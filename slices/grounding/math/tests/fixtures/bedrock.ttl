@@ -46,3 +46,50 @@ ex:allNaturals a math:Set ;
 ex:eqPiAnchor a gmeow:TermEquivalence ;
     gmeow:alignSubject math:pi ;
     gmeow:alignObject wd:Q167 .
+
+# Q6 — measures with their space, total mass, and whether they are probability
+# measures. A probability measure has mass one; a Lebesgue measure on the line has
+# extended-real mass math:PositiveInfinity. Both are typed math:Measure directly
+# (the competency lane reasons none, so subclass typing is asserted explicitly).
+ex:coinMeasure a math:ProbabilityMeasure , math:Measure ;
+    math:measureOn ex:coinSpace ;
+    math:totalMass 1 .
+ex:coinSpace a math:MeasurableSpace .
+ex:lengthMeasure a math:LebesgueMeasure , math:Measure ;
+    math:measureOn ex:lineSpace ;
+    math:totalMass math:PositiveInfinity .
+ex:lineSpace a math:MeasurableSpace .
+
+# Q7 — an integral naming its integrand, domain, and measure.
+ex:expectation a math:Integral ;
+    math:integrand ex:densityFn ;
+    math:integrationDomain ex:coinSpace ;
+    math:withRespectTo ex:coinMeasure .
+ex:densityFn a math:MeasurableFunction .
+
+# Q8/Q9 — two commensurable energy quantities (same derived dimension) and the
+# homogeneous dimensional expression that sums them.
+ex:energyDim a math:DerivedDimension ;
+    math:baseDimensionExponent ex:enMass1 , ex:enLength2 , ex:enTimeMinus2 .
+ex:enMass1 a math:DimensionExponent ;
+    math:exponentOfDimension math:massDimension ;
+    math:exponentNumerator 1 ; math:exponentDenominator 1 .
+ex:enLength2 a math:DimensionExponent ;
+    math:exponentOfDimension math:lengthDimension ;
+    math:exponentNumerator 2 ; math:exponentDenominator 1 .
+ex:enTimeMinus2 a math:DimensionExponent ;
+    math:exponentOfDimension math:timeDimension ;
+    math:exponentNumerator -2 ; math:exponentDenominator 1 .
+
+ex:restEnergyQ a math:Quantity ;
+    math:hasDimension ex:energyDim .
+ex:kineticEnergyQ a math:Quantity ;
+    math:hasDimension ex:energyDim .
+ex:totalEnergyExpr a math:DimensionalExpression ;
+    math:homogeneousOperand ex:restEnergyQ , ex:kineticEnergyQ .
+
+# Q10 — a quantity whose QUDT unit realizes its (base) dimension. Its dimension
+# (mass) is unique among the fixture quantities, so it has no commensurable peer.
+ex:sampleMassQ a math:Quantity ;
+    math:hasDimension math:massDimension ;
+    gmeow:unit <http://qudt.org/vocab/unit/KiloGM> .

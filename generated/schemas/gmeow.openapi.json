@@ -22398,6 +22398,81 @@
                 "@type": {
                   "anyOf": [
                     {
+                      "const": "math:DerivedDimension"
+                    },
+                    {
+                      "contains": {
+                        "const": "math:DerivedDimension"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/math:DerivedDimension"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "math:DimensionExponent"
+                    },
+                    {
+                      "contains": {
+                        "const": "math:DimensionExponent"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/math:DimensionExponent"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "math:DimensionalExpression"
+                    },
+                    {
+                      "contains": {
+                        "const": "math:DimensionalExpression"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/math:DimensionalExpression"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
                       "const": "math:Function"
                     },
                     {
@@ -22473,6 +22548,31 @@
                 "@type": {
                   "anyOf": [
                     {
+                      "const": "math:Integral"
+                    },
+                    {
+                      "contains": {
+                        "const": "math:Integral"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/math:Integral"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
                       "const": "math:LieGroup"
                     },
                     {
@@ -22523,6 +22623,31 @@
                 "@type": {
                   "anyOf": [
                     {
+                      "const": "math:Measure"
+                    },
+                    {
+                      "contains": {
+                        "const": "math:Measure"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/math:Measure"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
                       "const": "math:Number"
                     },
                     {
@@ -22540,6 +22665,56 @@
             },
             "then": {
               "$ref": "#/$defs/math:Number"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "math:ProbabilityMeasure"
+                    },
+                    {
+                      "contains": {
+                        "const": "math:ProbabilityMeasure"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/math:ProbabilityMeasure"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "math:Quantity"
+                    },
+                    {
+                      "contains": {
+                        "const": "math:Quantity"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/math:Quantity"
             }
           },
           {
@@ -35755,6 +35930,197 @@
         ],
         "type": "object"
       },
+      "math:DerivedDimension": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "math:baseDimensionExponent": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "$comment": "external class https://blackcatinformatics.ca/math/DimensionExponent",
+                    "type": "string"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
+              },
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "$comment": "external class https://blackcatinformatics.ca/math/DimensionExponent",
+                      "type": "string"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    }
+                  ]
+                },
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          }
+        },
+        "required": [
+          "math:baseDimensionExponent"
+        ],
+        "type": "object"
+      },
+      "math:DimensionExponent": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "math:exponentDenominator": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "properties": {
+                  "@type": {
+                    "type": "string"
+                  },
+                  "@value": {}
+                },
+                "required": [
+                  "@value"
+                ],
+                "type": "object"
+              }
+            ]
+          },
+          "math:exponentNumerator": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "properties": {
+                  "@type": {
+                    "type": "string"
+                  },
+                  "@value": {}
+                },
+                "required": [
+                  "@value"
+                ],
+                "type": "object"
+              }
+            ]
+          },
+          "math:exponentOfDimension": {
+            "anyOf": [
+              {
+                "$comment": "external class https://blackcatinformatics.ca/math/BaseDimension",
+                "type": "string"
+              },
+              {
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              }
+            ]
+          }
+        },
+        "required": [
+          "math:exponentDenominator",
+          "math:exponentNumerator",
+          "math:exponentOfDimension"
+        ],
+        "type": "object"
+      },
+      "math:DimensionalExpression": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "math:homogeneousOperand": {
+            "items": {},
+            "minItems": 2,
+            "type": "array"
+          }
+        },
+        "required": [
+          "math:homogeneousOperand"
+        ],
+        "type": "object"
+      },
       "math:Function": {
         "properties": {
           "@annotation": {
@@ -36036,6 +36402,84 @@
         ],
         "type": "object"
       },
+      "math:Integral": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "math:integrand": {
+            "anyOf": [
+              {
+                "$comment": "external class https://blackcatinformatics.ca/math/MeasurableFunction",
+                "type": "string"
+              },
+              {
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              }
+            ]
+          },
+          "math:integrationDomain": {
+            "properties": {
+              "@id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
+          },
+          "math:withRespectTo": {
+            "anyOf": [
+              {
+                "$comment": "external class https://blackcatinformatics.ca/math/Measure",
+                "type": "string"
+              },
+              {
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              }
+            ]
+          }
+        },
+        "required": [
+          "math:integrand",
+          "math:integrationDomain",
+          "math:withRespectTo"
+        ],
+        "type": "object"
+      },
       "math:LieGroup": {
         "properties": {
           "@annotation": {
@@ -36166,6 +36610,54 @@
         ],
         "type": "object"
       },
+      "math:Measure": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "math:measureOn": {
+            "anyOf": [
+              {
+                "$comment": "external class https://blackcatinformatics.ca/math/MeasurableSpace",
+                "type": "string"
+              },
+              {
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              }
+            ]
+          },
+          "math:totalMass": {}
+        },
+        "required": [
+          "math:measureOn",
+          "math:totalMass"
+        ],
+        "type": "object"
+      },
       "math:Number": {
         "properties": {
           "@annotation": {
@@ -36209,6 +36701,82 @@
         },
         "required": [
           "math:inNumberSystem"
+        ],
+        "type": "object"
+      },
+      "math:ProbabilityMeasure": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "math:totalMass": {
+            "const": {
+              "@type": "xsd:integer",
+              "@value": "1"
+            }
+          }
+        },
+        "type": "object"
+      },
+      "math:Quantity": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "math:hasDimension": {
+            "anyOf": [
+              {
+                "$comment": "external class https://blackcatinformatics.ca/math/Dimension",
+                "type": "string"
+              },
+              {
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              }
+            ]
+          }
+        },
+        "required": [
+          "math:hasDimension"
         ],
         "type": "object"
       },

@@ -378,3 +378,175 @@ math:RingDistributivityShape
         sh:severity sh:Violation ;
         sh:message "A math:Ring must declare at least one math:satisfiesDistributivity naming the distributivity axiom (a logic: formula) that ties its multiplication to its addition; a ring without distributivity is ill-formed." ;
     ] .
+
+# =========================================================================== #
+# Measure-and-dimension shapes — the cross-node vector arithmetic (homogeneity,
+# integral composition, derived commensurability) is enforced by the native
+# reasoned gate in crates/validate (math:DimensionalInhomogeneity); the shapes
+# below are the cheap presence/cardinality obligations that precede it.
+# =========================================================================== #
+
+# Rule 15 — a measure declares its measurable space and its total mass.
+math:MeasureShape
+    a sh:NodeShape ;
+    rdfs:label "Measure completeness shape"@x-gmeow-english ;
+    skos:definition "SHACL constraints for math:Measure: it declares the math:MeasurableSpace it acts on (math:measureOn) and exactly one math:totalMass — a finite non-negative number or the extended-real math:PositiveInfinity. A measure without its space and mass is ill-formed."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    math:enforcesFailureClass math:IncompleteMeasure ;
+    sh:targetClass math:Measure ;
+    sh:property [
+        sh:path math:measureOn ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:class math:MeasurableSpace ;
+        sh:severity sh:Violation ;
+        sh:message "A math:Measure must declare exactly one math:measureOn naming the math:MeasurableSpace it assigns mass over; a measure without its space is ill-formed." ;
+    ] ;
+    sh:property [
+        sh:path math:totalMass ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:or (
+            [ sh:nodeKind sh:Literal ; sh:minInclusive 0 ]
+            [ sh:hasValue math:PositiveInfinity ]
+        ) ;
+        sh:message "A math:Measure must declare exactly one math:totalMass — a non-negative number or math:PositiveInfinity; a measure without its total mass is ill-formed." ;
+    ] .
+
+# Rule 16 — a probability measure has total mass one.
+math:ProbabilityMeasureShape
+    a sh:NodeShape ;
+    rdfs:label "Probability-measure mass shape"@x-gmeow-english ;
+    skos:definition "SHACL constraint for math:ProbabilityMeasure: its math:totalMass is one. A probability measure is exactly a measure of total mass one; any other mass is ill-formed."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    math:enforcesFailureClass math:ProbabilityMeasureMassViolation ;
+    sh:targetClass math:ProbabilityMeasure ;
+    sh:property [
+        sh:path math:totalMass ;
+        sh:hasValue 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:ProbabilityMeasure must have exactly one math:totalMass and it must be 1 — a probability measure is exactly a measure of total mass one." ;
+    ] .
+
+# Rule 17 — an integral names its integrand, domain, and measure.
+math:IntegralShape
+    a sh:NodeShape ;
+    rdfs:label "Integral framing shape"@x-gmeow-english ;
+    skos:definition "SHACL constraints for math:Integral: it names exactly one each of math:integrand (a math:MeasurableFunction), math:integrationDomain, and math:withRespectTo (the math:Measure it integrates against). An integral missing any of the three is ill-formed."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    math:enforcesFailureClass math:IncompleteIntegral ;
+    sh:targetClass math:Integral ;
+    sh:property [
+        sh:path math:integrand ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:class math:MeasurableFunction ;
+        sh:severity sh:Violation ;
+        sh:message "A math:Integral must name exactly one math:integrand, and it must be a math:MeasurableFunction — the function it integrates." ;
+    ] ;
+    sh:property [
+        sh:path math:integrationDomain ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A math:Integral must name exactly one math:integrationDomain — the domain it integrates over." ;
+    ] ;
+    sh:property [
+        sh:path math:withRespectTo ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:class math:Measure ;
+        sh:severity sh:Violation ;
+        sh:message "A math:Integral must name exactly one math:withRespectTo — the math:Measure it integrates against." ;
+    ] .
+
+# Rule 18 — every quantity carries a dimension.
+math:QuantityDimensionShape
+    a sh:NodeShape ;
+    rdfs:label "Quantity dimensionedness shape"@x-gmeow-english ;
+    skos:definition "SHACL constraint for math:Quantity: it carries exactly one math:hasDimension naming the math:Dimension it lives in. Every quantity carries a dimension; an undimensioned quantity is ill-formed."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    math:enforcesFailureClass math:UndimensionedQuantity ;
+    sh:targetClass math:Quantity ;
+    sh:property [
+        sh:path math:hasDimension ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:class math:Dimension ;
+        sh:severity sh:Violation ;
+        sh:message "A math:Quantity must declare exactly one math:hasDimension naming the math:Dimension it carries; an undimensioned quantity is ill-formed." ;
+    ] .
+
+# Rule 19 — a derived dimension declares a non-empty exponent structure.
+math:DerivedDimensionShape
+    a sh:NodeShape ;
+    rdfs:label "Derived-dimension structure shape"@x-gmeow-english ;
+    skos:definition "SHACL constraint for math:DerivedDimension: it declares at least one math:baseDimensionExponent cell giving its product over the base dimensions. A derived dimension with no exponent structure is ill-formed."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    math:enforcesFailureClass math:MalformedDimension ;
+    sh:targetClass math:DerivedDimension ;
+    sh:property [
+        sh:path math:baseDimensionExponent ;
+        sh:minCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:class math:DimensionExponent ;
+        sh:severity sh:Violation ;
+        sh:message "A math:DerivedDimension must declare at least one math:baseDimensionExponent naming a math:DimensionExponent cell; a derived dimension without its exponent structure is ill-formed." ;
+    ] .
+
+# Rule 20 — a dimension exponent cell names a base dimension and an exact-rational power.
+math:DimensionExponentShape
+    a sh:NodeShape ;
+    rdfs:label "Dimension-exponent cell shape"@x-gmeow-english ;
+    skos:definition "SHACL constraints for math:DimensionExponent: it names the math:BaseDimension it raises (math:exponentOfDimension — a base dimension only, never a derived one, so the exponent vector is acyclic) and carries both math:exponentNumerator and a non-zero math:exponentDenominator, giving an exact-rational power. A zero denominator is not a rational power and is rejected here (not silently dropped downstream)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    math:enforcesFailureClass math:MalformedDimension ;
+    sh:targetClass math:DimensionExponent ;
+    sh:property [
+        sh:path math:exponentOfDimension ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:class math:BaseDimension ;
+        sh:severity sh:Violation ;
+        sh:message "A math:DimensionExponent must name exactly one math:exponentOfDimension, and it must be a math:BaseDimension — never a derived dimension, so the exponent vector is well-defined and acyclic." ;
+    ] ;
+    sh:property [
+        sh:path math:exponentNumerator ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:integer ;
+        sh:severity sh:Violation ;
+        sh:message "A math:DimensionExponent must declare exactly one integer math:exponentNumerator — the numerator of its exact-rational power." ;
+    ] ;
+    sh:property [
+        sh:path math:exponentDenominator ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:integer ;
+        sh:not [ sh:hasValue 0 ] ;
+        sh:severity sh:Violation ;
+        sh:message "A math:DimensionExponent must declare exactly one non-zero integer math:exponentDenominator — the denominator of its exact-rational power; a zero denominator is not a rational power." ;
+    ] .
+
+# Rule 21 — a dimensional expression combines at least two operands.
+math:DimensionalExpressionShape
+    a sh:NodeShape ;
+    rdfs:label "Dimensional-expression operand shape"@x-gmeow-english ;
+    skos:definition "SHACL constraint for math:DimensionalExpression: it carries at least two math:homogeneousOperand — homogeneity is vacuous below two operands. The native reasoned gate then checks that the operands share one dimension (math:DimensionalInhomogeneity)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    math:enforcesFailureClass math:MalformedDimension ;
+    sh:targetClass math:DimensionalExpression ;
+    sh:property [
+        sh:path math:homogeneousOperand ;
+        sh:minCount 2 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:DimensionalExpression must carry at least two math:homogeneousOperand — dimensional homogeneity is vacuous for zero or one operand." ;
+    ] .
