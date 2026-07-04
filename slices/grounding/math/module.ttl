@@ -108,9 +108,10 @@ math:ApproximateValue
 
 math:NumberSystem
     a owl:Class ;
+    rdfs:subClassOf math:Set ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Number System"@x-gmeow-english ;
-    skos:definition "A number system: the domain a number is situated in — ℕ, ℤ, ℚ, ℝ, or ℂ. Its instances are the five named systems math:naturalNumbers, math:integers, math:rationalNumbers, math:realNumbers, and math:complexNumbers, ordered by math:subsystemOf into the containment tower ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ. A math:Number points at one through math:inNumberSystem."@x-gmeow-english ;
+    skos:definition "A number system: the domain a number is situated in — ℕ, ℤ, ℚ, ℝ, or ℂ. A subclass of math:Set — a number system IS the set of its numbers, so it can serve as the math:domain or math:codomain of a function (the complex plane ℂ is the domain of the gamma function). Its instances are the five named systems math:naturalNumbers, math:integers, math:rationalNumbers, math:realNumbers, and math:complexNumbers, ordered by math:subsystemOf into the containment tower ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ. A math:Number points at one through math:inNumberSystem."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 # --- Number-system individuals (the containment tower) ---------------------- #
@@ -2062,4 +2063,309 @@ math:logicLoweringPreservation
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "logic lowering preservation"@x-gmeow-english ;
     skos:definition "Relates a math:MathematicalExpression to the preservation polarity of its lowering into logic:, reusing the shared loss-ledger vocabulary (logic:preservationKind values such as logic:ExactPreservation, logic:SoundUnderApproximation, logic:CompleteOverApproximation). Domain math:MathematicalExpression, range a logic:preservationKind value (stated in prose). No near-synonym is minted — mathematics lowering loss is queryable in the same ledger as every other GMEOW projection (Principle 17)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# =========================================================================== #
+# Calculus and analysis (ANALYSIS-AND-GEOMETRY charter)
+#
+# Limits, derivatives, integrals (∫ reused from the measure charter), series,
+# sequences, and special functions. Every operator here is a binder over the
+# expression AST: a math:Derivative, math:Limit, and math:Series are
+# math:BindingExpressions applying the differentiation, limit, and summation
+# binders (math:differentiationBinder, math:limitBinder, math:summationBinder),
+# so the calculus surface reuses the single binding form rather than minting
+# per-operator machinery. A derivative names what it differentiates, with respect
+# to which variable, at which order; a limit names its expression and its limit
+# point (and, where it matters, its direction/mode); a series/sequence carries a
+# math:Convergence with its mode. Special functions are first-class individuals
+# aligned to DLMF and OpenMath (calculus1/transc1), not new OWL classes.
+# =========================================================================== #
+
+# --- Calculus binders and analysis objects ---------------------------------- #
+
+math:Derivative
+    a owl:Class ;
+    rdfs:subClassOf math:BindingExpression ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Derivative"@x-gmeow-english ;
+    skos:definition "The derivative d/dx f of an expression as a first-class binding expression: it applies the math:differentiationBinder (math:operator), names what it differentiates through math:derivativeOf, the variable of differentiation through math:withRespectToVariable (a math:VariableDeclaration it binds), and its order through math:derivativeOrder. A derivative is a map of function spaces, not the string 'dy/dx'. A derivative missing what it differentiates, its variable, or its order is ill-formed (math:UnderspecifiedDerivative)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:PartialDerivative
+    a owl:Class ;
+    rdfs:subClassOf math:Derivative ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Partial Derivative"@x-gmeow-english ;
+    skos:definition "A partial derivative ∂f/∂x: a math:Derivative that applies the math:partialDifferentiationBinder, differentiating with respect to one variable while others are held. Mixed partials ∂²f/∂x∂y are nested partial derivatives, each binding its own math:VariableDeclaration, so order and shadowing are explicit. A subclass of math:Derivative; it declares the same what/variable/order frame."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:DifferentialOperator
+    a owl:Class ;
+    rdfs:subClassOf math:Operation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Differential Operator"@x-gmeow-english ;
+    skos:definition "A differential operator: a map of function spaces built from derivatives — the gradient ∇, the Laplacian Δ, a linear ODE operator. A subclass of math:Operation whose action is differentiation; the math:differentiationBinder is the elementary case it composes. Distinguished from a single math:Derivative, which is one application of the differentiation binder to one expression."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Limit
+    a owl:Class ;
+    rdfs:subClassOf math:BindingExpression ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Limit"@x-gmeow-english ;
+    skos:definition "The limit lim_{x→a} f(x) as a first-class binding expression: it applies the math:limitBinder (math:operator), names the expression whose limit is taken through math:limitOf, the limit point a through math:limitPoint, and — where it matters — the direction/mode through math:limitMode (from the left, from the right, or two-sided). A limit missing its expression or its limit point is ill-formed (math:UnderspecifiedLimit); the mode is optional because a two-sided limit has no direction."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:LimitMode
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Limit Mode"@x-gmeow-english ;
+    skos:definition "The direction in which a math:Limit approaches its limit point: one of math:limitFromLeft (x → a⁻), math:limitFromRight (x → a⁺), or math:limitTwoSided (x → a). A one-sided limit declares its side; a two-sided limit either declares math:limitTwoSided or omits the mode, since it has no direction."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Sequence
+    a owl:Class ;
+    rdfs:subClassOf math:Function ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Sequence"@x-gmeow-english ;
+    skos:definition "A sequence (aₙ): an indexed family, a math:Function whose math:domain is a subset of ℕ. It carries a math:Convergence through math:hasConvergence naming what it converges to and in which mode. A subclass of math:Function, so it declares its domain and codomain; a sequence asserted to converge without a math:Convergence naming the mode is ill-formed (math:UnderspecifiedConvergence)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Series
+    a owl:Class ;
+    rdfs:subClassOf math:BindingExpression ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Series"@x-gmeow-english ;
+    skos:definition "A series ∑ aₙ as a first-class binding expression: it applies the math:summationBinder (math:operator), names its general term through math:seriesTerm (the summand, a body indexed by the bound summation math:VariableDeclaration), and carries a math:Convergence through math:hasConvergence naming what it converges to and in which mode (absolute, conditional, …). A series asserted to converge without a math:Convergence naming the mode is ill-formed (math:UnderspecifiedConvergence)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Convergence
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Convergence"@x-gmeow-english ;
+    skos:definition "The convergence of a sequence or series: names what it converges to through math:convergesTo and the mode through math:convergenceMode (pointwise, uniform, absolute, conditional, in-measure, almost-everywhere, in-Lᵖ-norm, in-distribution). Convergence in which mode is a declared property, not an assumption — 'the series converges' is meaningless without the mode. A convergence without a mode is ill-formed (math:UnderspecifiedConvergence)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:ConvergenceMode
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Convergence Mode"@x-gmeow-english ;
+    skos:definition "The mode in which a sequence or series converges: one of math:pointwiseConvergence, math:uniformConvergence, math:absoluteConvergence, math:conditionalConvergence, math:inMeasureConvergence, math:almostEverywhereConvergence, math:inLpNormConvergence, or math:inDistributionConvergence. The mode is what distinguishes weak from strong convergence and is required on every math:Convergence."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:SpecialFunction
+    a owl:Class ;
+    rdfs:subClassOf math:Function ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Special Function"@x-gmeow-english ;
+    skos:definition "A special function: a named function of analysis — the gamma function Γ, the Riemann zeta function ζ, the Bessel functions, the error function erf — whose identity is the GMEOW individual, aligned to a DLMF equation ID and an OpenMath transc1/calculus1 symbol, not a rendering. The named functions are first-class individuals (math:gammaFunction, math:riemannZeta, …), not per-function OWL subclasses. A subclass of math:Function, so each declares its domain and codomain."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+# --- Limit-mode individuals ------------------------------------------------- #
+
+math:limitFromLeft
+    a owl:NamedIndividual , math:LimitMode ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "from the left (x → a⁻)"@x-gmeow-english ;
+    skos:definition "The one-sided limit from below: x approaches a through values less than a."@x-gmeow-english .
+
+math:limitFromRight
+    a owl:NamedIndividual , math:LimitMode ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "from the right (x → a⁺)"@x-gmeow-english ;
+    skos:definition "The one-sided limit from above: x approaches a through values greater than a."@x-gmeow-english .
+
+math:limitTwoSided
+    a owl:NamedIndividual , math:LimitMode ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "two-sided (x → a)"@x-gmeow-english ;
+    skos:definition "The two-sided limit: x approaches a from both sides, requiring the left and right limits to agree. The default when a math:Limit omits its mode."@x-gmeow-english .
+
+# --- Convergence-mode individuals (the full enumeration) -------------------- #
+
+math:pointwiseConvergence
+    a owl:NamedIndividual , math:ConvergenceMode ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "pointwise"@x-gmeow-english ;
+    skos:definition "Pointwise convergence: fₙ(x) → f(x) at each point x separately. The weakest of the function-convergence modes."@x-gmeow-english .
+
+math:uniformConvergence
+    a owl:NamedIndividual , math:ConvergenceMode ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "uniform"@x-gmeow-english ;
+    skos:definition "Uniform convergence: sup_x |fₙ(x) − f(x)| → 0, one rate for all points. Stronger than pointwise; preserves continuity of the limit."@x-gmeow-english .
+
+math:absoluteConvergence
+    a owl:NamedIndividual , math:ConvergenceMode ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "absolute"@x-gmeow-english ;
+    skos:definition "Absolute convergence of a series: ∑ |aₙ| converges. Implies convergence and permits reordering without changing the sum."@x-gmeow-english .
+
+math:conditionalConvergence
+    a owl:NamedIndividual , math:ConvergenceMode ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "conditional"@x-gmeow-english ;
+    skos:definition "Conditional convergence of a series: ∑ aₙ converges but ∑ |aₙ| diverges. Reordering can change the sum (Riemann rearrangement)."@x-gmeow-english .
+
+math:inMeasureConvergence
+    a owl:NamedIndividual , math:ConvergenceMode ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "in measure"@x-gmeow-english ;
+    skos:definition "Convergence in measure: for every ε, the measure of {x : |fₙ(x) − f(x)| ≥ ε} → 0. A measure-theoretic mode, weaker than almost-everywhere on a finite measure space."@x-gmeow-english .
+
+math:almostEverywhereConvergence
+    a owl:NamedIndividual , math:ConvergenceMode ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "almost everywhere"@x-gmeow-english ;
+    skos:definition "Almost-everywhere convergence: fₙ(x) → f(x) for all x outside a set of measure zero. The measure-theoretic strengthening of pointwise."@x-gmeow-english .
+
+math:inLpNormConvergence
+    a owl:NamedIndividual , math:ConvergenceMode ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "in Lᵖ norm"@x-gmeow-english ;
+    skos:definition "Convergence in Lᵖ norm: ‖fₙ − f‖_p → 0. The mode of the Banach spaces Lᵖ; L² convergence (mean-square) is the Hilbert-space case."@x-gmeow-english .
+
+math:inDistributionConvergence
+    a owl:NamedIndividual , math:ConvergenceMode ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "in distribution"@x-gmeow-english ;
+    skos:definition "Convergence in distribution (weak convergence of measures): the distribution functions converge at every continuity point. The probabilistic mode underlying the central limit theorem; shared with the probability charter."@x-gmeow-english .
+
+# --- Special-function individuals (DLMF/OpenMath anchored in mappings) ------- #
+
+math:gammaFunction
+    a owl:NamedIndividual , math:SpecialFunction ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Γ (gamma function)"@x-gmeow-english ;
+    math:domain math:complexNumbers ;
+    math:codomain math:complexNumbers ;
+    skos:definition "The gamma function Γ(z): the analytic continuation of the factorial, Γ(n) = (n−1)!. Aligned to DLMF chapter 5 and OpenMath transc1; its identity is this individual, not a rendering."@x-gmeow-english .
+
+math:riemannZeta
+    a owl:NamedIndividual , math:SpecialFunction ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "ζ (Riemann zeta function)"@x-gmeow-english ;
+    math:domain math:complexNumbers ;
+    math:codomain math:complexNumbers ;
+    skos:definition "The Riemann zeta function ζ(s) = ∑ n⁻ˢ (Re s > 1), analytically continued. Aligned to DLMF chapter 25 and Wikidata; the subject of the Riemann hypothesis."@x-gmeow-english .
+
+math:besselJ
+    a owl:NamedIndividual , math:SpecialFunction ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Jₙ (Bessel function, first kind)"@x-gmeow-english ;
+    math:domain math:realNumbers ;
+    math:codomain math:realNumbers ;
+    skos:definition "The Bessel function of the first kind Jₙ(x): a solution of Bessel's equation regular at the origin. Aligned to DLMF chapter 10."@x-gmeow-english .
+
+math:besselY
+    a owl:NamedIndividual , math:SpecialFunction ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Yₙ (Bessel function, second kind)"@x-gmeow-english ;
+    math:domain math:realNumbers ;
+    math:codomain math:realNumbers ;
+    skos:definition "The Bessel function of the second kind Yₙ(x): a solution of Bessel's equation singular at the origin. Aligned to DLMF chapter 10."@x-gmeow-english .
+
+math:errorFunction
+    a owl:NamedIndividual , math:SpecialFunction ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "erf (error function)"@x-gmeow-english ;
+    math:domain math:realNumbers ;
+    math:codomain math:realNumbers ;
+    skos:definition "The error function erf(x) = (2/√π) ∫₀ˣ e^(−t²) dt: the Gaussian integral central to probability. Aligned to DLMF chapter 7 and OpenMath transc1."@x-gmeow-english .
+
+# --- Calculus conformance failures ------------------------------------------ #
+
+math:UnderspecifiedDerivative
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Underspecified Derivative"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:Derivative does not name what it differentiates (math:derivativeOf), the variable of differentiation (math:withRespectToVariable), and its order (math:derivativeOrder). A derivative that does not say what, with respect to which variable, and at what order is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:UnderspecifiedLimit
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Underspecified Limit"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:Limit does not name the expression whose limit is taken (math:limitOf) and its limit point (math:limitPoint). A limit that does not say of what and at which point is ill-formed; its direction/mode is optional."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:UnderspecifiedConvergence
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Underspecified Convergence"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:Series or math:Sequence carries a math:Convergence that does not name what it converges to (math:convergesTo) and the mode (math:convergenceMode). 'It converges' is meaningless without the mode; a convergence without a mode is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+# --- Calculus properties ---------------------------------------------------- #
+
+math:derivativeOf
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "derivative of"@x-gmeow-english ;
+    skos:definition "Relates a math:Derivative to the math:MathematicalExpression (or math:Function) it differentiates. Domain math:Derivative, range math:MathematicalExpression (stated in prose). Every derivative names exactly one; a derivative without it is ill-formed (math:UnderspecifiedDerivative)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:withRespectToVariable
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "with respect to variable"@x-gmeow-english ;
+    skos:definition "Relates a math:Derivative to the math:VariableDeclaration it differentiates with respect to — the bound variable of the differentiation binder. Domain math:Derivative, range math:VariableDeclaration (stated in prose). Every derivative names exactly one; a derivative without it is ill-formed (math:UnderspecifiedDerivative)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:derivativeOrder
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "derivative order"@x-gmeow-english ;
+    skos:definition "The order of a math:Derivative — 1 for f′, 2 for f″, and so on. Domain math:Derivative, range xsd:positiveInteger (stated in prose). Every derivative names exactly one; a derivative without an order is ill-formed (math:UnderspecifiedDerivative)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:limitOf
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "limit of"@x-gmeow-english ;
+    skos:definition "Relates a math:Limit to the math:MathematicalExpression whose limit is taken. Domain math:Limit, range math:MathematicalExpression (stated in prose). Every limit names exactly one; a limit without it is ill-formed (math:UnderspecifiedLimit)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:limitPoint
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "limit point"@x-gmeow-english ;
+    skos:definition "Relates a math:Limit to the point its variable approaches — a math:Number, math:PositiveInfinity, or a point of a space. Domain math:Limit, range a math:Number or point (stated in prose). Every limit names exactly one; a limit without a point is ill-formed (math:UnderspecifiedLimit)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:limitMode
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "limit mode"@x-gmeow-english ;
+    skos:definition "Relates a math:Limit to its math:LimitMode — the direction of approach (from the left, from the right, two-sided). Domain math:Limit, range math:LimitMode (stated in prose). Optional: a two-sided limit has no direction, so a limit may omit the mode. Where a one-sided limit is meant, the side is declared, never assumed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:seriesTerm
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "series term"@x-gmeow-english ;
+    skos:definition "Relates a math:Series to its general term aₙ — the summand, a math:MathematicalExpression indexed by the bound summation variable. Domain math:Series, range math:MathematicalExpression (stated in prose). Every series names its general term."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:hasConvergence
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "has convergence"@x-gmeow-english ;
+    skos:definition "Relates a math:Series or math:Sequence to the math:Convergence describing what it converges to and in which mode. Domain a math:Series or math:Sequence, range math:Convergence (stated in prose). A series/sequence asserted to converge names its convergence; the mode is required (math:UnderspecifiedConvergence)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:convergesTo
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "converges to"@x-gmeow-english ;
+    skos:definition "Relates a math:Convergence to the value or expression its sequence/series converges to — a math:Number, a limit function, or a distribution. Domain math:Convergence, range a math:MathematicalObject or value (stated in prose). Every convergence names what it converges to."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:convergenceMode
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "convergence mode"@x-gmeow-english ;
+    skos:definition "Relates a math:Convergence to its math:ConvergenceMode — pointwise, uniform, absolute, conditional, in-measure, almost-everywhere, in-Lᵖ-norm, or in-distribution. Domain math:Convergence, range math:ConvergenceMode (stated in prose). The mode is required; convergence without a declared mode is ill-formed (math:UnderspecifiedConvergence)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
