@@ -105,8 +105,17 @@ pub fn build_corpus(root: &Path) -> Result<LangTranslationCorpus, PipelineError>
             if artifact.role != ArtifactRole::TranslationCatalog {
                 continue;
             }
-            let text = String::from_utf8_lossy(&artifact.content);
-            let parsed = parse_po(&text);
+            // A translation catalog is required input: invalid UTF-8 is a HARD FAIL, never
+            // a silent lossy repair that would corrupt the surface text it carries.
+            let text =
+                std::str::from_utf8(&artifact.content).map_err(|e| PipelineError::Stage {
+                    stage: "stage-mappings".to_string(),
+                    message: format!(
+                        "lang-translation: translation catalog '{}' is not valid UTF-8: {e}",
+                        artifact.logical_path
+                    ),
+                })?;
+            let parsed = parse_po(text);
             let lang = parsed.language.trim().to_string();
             // A catalog with no BCP-47 language header, or the English carrier itself,
             // is not a translation crossing.
