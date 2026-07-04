@@ -442,18 +442,15 @@ fn document_ledger_rows(units: &[Unit]) -> Vec<ProjectionResult> {
         .collect()
 }
 
-/// The weakest-dominates join over a document's unit judgments: an `Unsupported` gap
-/// (the legalization floor) dominates any `ValidationOnly` unit. An empty document (no
-/// units) cannot occur — every document is minted from at least one unit.
+/// The weakest-dominates join over a document's unit judgments: the weakest member kind
+/// dominates the roll-up (an `Unsupported` gap — the legalization floor — dominates any
+/// `ValidationOnly` unit). `PreservationKind` derives `Ord` in STRONGEST-FIRST declaration
+/// order (`Exact` least … `Unsupported` greatest), so the weakest kind is the `max`, NOT
+/// the `min` — the join is order-independent and total over the whole lattice. An empty
+/// document (no units) cannot occur — every document is minted from at least one unit — but
+/// `ValidationOnly` is the honest floor for that vacuous case.
 fn weakest_dominates(kinds: impl Iterator<Item = PreservationKind>) -> PreservationKind {
-    let mut result = PreservationKind::ValidationOnly;
-    for kind in kinds {
-        if kind == PreservationKind::Unsupported {
-            return PreservationKind::Unsupported;
-        }
-        result = kind;
-    }
-    result
+    kinds.max().unwrap_or(PreservationKind::ValidationOnly)
 }
 
 // ── N-Triples helpers ───────────────────────────────────────────────────────────
@@ -602,6 +599,30 @@ mod tests {
         let row = unit_ledger_row(&unit);
         assert_eq!(row.preservation, PreservationKind::Unsupported);
         assert!(row.actual_drops.iter().any(|d| d.contains("Foo")));
+    }
+
+    #[test]
+    fn weakest_dominates_is_the_order_independent_weakest_join() {
+        use PreservationKind::{Exact, Unsupported, ValidationOnly};
+        // Weakest = max under strongest-first Ord, regardless of iteration order.
+        assert_eq!(
+            weakest_dominates([ValidationOnly, Exact].into_iter()),
+            ValidationOnly,
+            "a weaker ValidationOnly must dominate a stronger Exact"
+        );
+        assert_eq!(
+            weakest_dominates([Exact, ValidationOnly].into_iter()),
+            ValidationOnly,
+            "the join must be order-independent"
+        );
+        // Any Unsupported gap (the floor) dominates the whole document.
+        assert_eq!(
+            weakest_dominates([ValidationOnly, Unsupported, Exact].into_iter()),
+            Unsupported
+        );
+        // A document of all-Exact units rolls up Exact; the vacuous case floors at ValidationOnly.
+        assert_eq!(weakest_dominates([Exact, Exact].into_iter()), Exact);
+        assert_eq!(weakest_dominates(std::iter::empty()), ValidationOnly);
     }
 
     #[test]
