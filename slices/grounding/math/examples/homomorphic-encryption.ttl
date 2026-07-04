@@ -1,0 +1,108 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# How homomorphic encryption works — flagship 2. A homomorphic-encryption scheme is a
+# ring homomorphism whose preservation law IS the property that makes it useful:
+# Dec(E(a) ⊗ E(b)) = a ⊕ b — computation on ciphertexts corresponds to computation on
+# plaintexts. That law is authored as a real logic:Formula carried exactly in the canonical
+# logic: layer (the purest exercise of the one-way math: → logic: bridge). The scheme names
+# the operation it is homomorphic over, its RLWE hardness assumption, and its noise model;
+# encrypt, evaluate, and decrypt are gmeow:Activity processes. No external ontology models
+# this — GMEOW authors it and dogfoods its own privacy reasoning. It validates cleanly under
+# the whole-ontology gate; standalone it is illustrative, not closed-world instance data —
+# its encrypt/evaluate/decrypt Activity individuals and the preservation-law formula resolve
+# against the full ontology, not the isolated file.
+
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix exa:   <https://blackcatinformatics.ca/gmeow/examples/math/algebra/> .
+
+# --- The plaintext and ciphertext rings (well-formed structures) ----------- #
+
+exa:plaintextRing a math:PolynomialRing ;
+    rdfs:label "the plaintext ring R_t = ℤ_t[x]/(xⁿ+1)"@x-gmeow-english ;
+    math:underlyingSet exa:plaintextSet ;
+    math:structureOperation exa:ptAdd , exa:ptMul ;
+    math:satisfiesAxiom exa:associativity , exa:commutativity , exa:leftDistributivity .
+
+exa:ciphertextRing a math:PolynomialRing ;
+    rdfs:label "the ciphertext ring R_q = ℤ_q[x]/(xⁿ+1)"@x-gmeow-english ;
+    math:underlyingSet exa:ciphertextSet ;
+    math:structureOperation exa:ctAdd , exa:ctMul ;
+    math:satisfiesAxiom exa:associativity , exa:commutativity , exa:leftDistributivity .
+
+exa:plaintextSet a math:Set ; rdfs:label "plaintext polynomials"@x-gmeow-english .
+exa:ciphertextSet a math:Set ; rdfs:label "ciphertext polynomials"@x-gmeow-english .
+exa:ptAdd a math:Operation ; rdfs:label "plaintext addition ⊕"@x-gmeow-english .
+exa:ptMul a math:Operation ; rdfs:label "plaintext multiplication"@x-gmeow-english .
+exa:ctAdd a math:Operation ; rdfs:label "ciphertext addition"@x-gmeow-english .
+exa:ctMul a math:Operation ; rdfs:label "ciphertext multiplication ⊗"@x-gmeow-english .
+
+# --- The homomorphic-encryption scheme ------------------------------------- #
+
+exa:bfvScheme a math:HomomorphicEncryptionScheme ;
+    rdfs:label "an RLWE homomorphic-encryption scheme (BFV-style)"@x-gmeow-english ;
+    math:domain exa:plaintextRing ;
+    math:codomain exa:ciphertextRing ;
+    math:homomorphicOver exa:ctMul ;
+    math:preservedOperation exa:ctMul ;
+    math:preservationLaw exa:heLaw ;
+    math:securityAssumption math:ringLearningWithErrors ;
+    math:noiseModel exa:gaussianNoise ;
+    math:encryptOperation exa:encryptActivity ;
+    math:evaluateOperation exa:evaluateActivity ;
+    math:decryptOperation exa:decryptActivity .
+
+exa:gaussianNoise
+    rdfs:label "discrete Gaussian noise growth (bounded below the decryption threshold)"@x-gmeow-english .
+
+exa:encryptActivity a gmeow:Activity ; rdfs:label "Encrypt: plaintext ↦ ciphertext"@x-gmeow-english .
+exa:evaluateActivity a gmeow:Activity ; rdfs:label "Evaluate: compute on ciphertexts"@x-gmeow-english .
+exa:decryptActivity a gmeow:Activity ; rdfs:label "Decrypt: ciphertext ↦ plaintext"@x-gmeow-english .
+
+# --- The homomorphic law as a real logic:Formula AST ----------------------- #
+# ∀a,b,ea,eb,prod,decv,sum:
+#   enc(a,ea) ∧ enc(b,eb) ∧ ctMul(ea,eb,prod) ∧ dec(prod,decv) ∧ ptAdd(a,b,sum) → eq(decv,sum)
+# i.e. Dec(E(a) ⊗ E(b)) = a ⊕ b.
+
+exa:encRel a logic:Type ; rdfs:label "enc(x,y) ⟺ E(x) = y"@x-gmeow-english .
+exa:ctMulRel a logic:Type ; rdfs:label "ctMul(x,y,z) ⟺ x ⊗ y = z"@x-gmeow-english .
+exa:decRel a logic:Type ; rdfs:label "dec(x,y) ⟺ Dec(x) = y"@x-gmeow-english .
+exa:ptAddRel a logic:Type ; rdfs:label "ptAdd(x,y,z) ⟺ x ⊕ y = z"@x-gmeow-english .
+
+exa:heLaw a math:Axiom , logic:Formula ;
+    rdfs:label "Dec(E(a) ⊗ E(b)) = a ⊕ b"@x-gmeow-english ;
+    skos:definition "The homomorphic property of the scheme: decrypting the ciphertext product recovers the plaintext sum. Denotes ∀a,b,ea,eb,prod,decv,sum: enc(a,ea) ∧ enc(b,eb) ∧ ctMul(ea,eb,prod) ∧ dec(prod,decv) ∧ ptAdd(a,b,sum) → eq(decv,sum) — a logic: formula over the declared ring structure."@x-gmeow-english ;
+    logic:quantifiedVariable
+        [ logic:termIndex 0 ; logic:termVariable "a" ] ,
+        [ logic:termIndex 1 ; logic:termVariable "b" ] ,
+        [ logic:termIndex 2 ; logic:termVariable "ea" ] ,
+        [ logic:termIndex 3 ; logic:termVariable "eb" ] ,
+        [ logic:termIndex 4 ; logic:termVariable "prod" ] ,
+        [ logic:termIndex 5 ; logic:termVariable "decv" ] ,
+        [ logic:termIndex 6 ; logic:termVariable "sum" ] ;
+    logic:forall exa:heImpl .
+
+exa:heImpl a logic:Formula ;
+    logic:antecedent exa:heAnte ;
+    logic:consequent exa:heCons .
+
+exa:heAnte a logic:Formula ;
+    logic:and exa:heA1 , exa:heA2 , exa:heA3 , exa:heA4 , exa:heA5 .
+
+exa:heA1 a logic:Formula ; logic:relation exa:encRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "a" ] , [ logic:termIndex 1 ; logic:termVariable "ea" ] .
+exa:heA2 a logic:Formula ; logic:relation exa:encRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "b" ] , [ logic:termIndex 1 ; logic:termVariable "eb" ] .
+exa:heA3 a logic:Formula ; logic:relation exa:ctMulRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "ea" ] , [ logic:termIndex 1 ; logic:termVariable "eb" ] , [ logic:termIndex 2 ; logic:termVariable "prod" ] .
+exa:heA4 a logic:Formula ; logic:relation exa:decRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "prod" ] , [ logic:termIndex 1 ; logic:termVariable "decv" ] .
+exa:heA5 a logic:Formula ; logic:relation exa:ptAddRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "a" ] , [ logic:termIndex 1 ; logic:termVariable "b" ] , [ logic:termIndex 2 ; logic:termVariable "sum" ] .
+
+exa:heCons a logic:Formula ; logic:relation exa:eqRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "decv" ] , [ logic:termIndex 1 ; logic:termVariable "sum" ] .
