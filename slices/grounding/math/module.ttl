@@ -1548,10 +1548,10 @@ math:measureOn
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:totalMass
-    a owl:ObjectProperty ;
+    a rdf:Property ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "total mass"@x-gmeow-english ;
-    skos:definition "The total mass a measure assigns to its whole space — a finite non-negative number or the extended-real math:PositiveInfinity. Domain math:Measure, range a non-negative numeric literal or math:PositiveInfinity (stated in prose). A math:ProbabilityMeasure has total mass one."@x-gmeow-english ;
+    skos:definition "The total mass a measure assigns to its whole space — a finite non-negative number or the extended-real math:PositiveInfinity. Domain math:Measure, range a non-negative numeric literal or math:PositiveInfinity (stated in prose). It is an rdf:Property, not an owl:ObjectProperty or owl:DatatypeProperty, precisely because its range spans both a datatype literal (the finite mass) and an individual (math:PositiveInfinity): neither DL property kind admits both, so the honest RDF supertype carries the extended-real range without a DL contradiction. A math:ProbabilityMeasure has total mass one."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:integrand
