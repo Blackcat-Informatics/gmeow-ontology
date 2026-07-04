@@ -264,6 +264,9 @@ pub fn fast_path(
                     bindings,
                     status: BudgetStatus::Partial,
                     preservation: crate::result::PreservationClaim::exact(),
+                    // The fast-path SPARQL projection over the materialized EDB does not run
+                    // the native governor, so it carries no stratum frontier.
+                    frontier: crate::query_ir::CompletionFrontier::empty(),
                 };
                 answer.canonicalize();
                 return Ok(answer);
@@ -283,6 +286,9 @@ pub fn fast_path(
         bindings,
         status: BudgetStatus::Ok,
         preservation: crate::result::PreservationClaim::exact(),
+        // The fast-path SPARQL projection over the materialized EDB does not run the
+        // native governor, so it carries no stratum frontier.
+        frontier: crate::query_ir::CompletionFrontier::empty(),
     };
     answer.canonicalize();
     Ok(answer)
@@ -928,6 +934,20 @@ mod tests {
             dispatched.bindings, reference.bindings,
             "native dispatch bindings must match the reference oracle at budget 0 (both empty)"
         );
+        // GAP A: the completion frontier crosses the PUBLIC `AnswerSet` boundary out of
+        // `dispatch_query`. A zero-step cut leaves the single (magic-transformed) stratum
+        // unsaturated — the caller reads `completed < total` to tell that from a complete
+        // result.
+        assert_eq!(
+            dispatched.frontier.completed, 0,
+            "a zero-step cut saturates no stratum: {:?}",
+            dispatched.frontier
+        );
+        assert_eq!(
+            dispatched.frontier.total, 1,
+            "one stratum in the ancestor program: {:?}",
+            dispatched.frontier
+        );
 
         // An ample step budget completes on native with `Ok` and the full 3 answers —
         // native is NOT demoted for carrying a step budget.
@@ -942,6 +962,18 @@ mod tests {
             completed.bindings.len(),
             3,
             "an ample step budget yields all 3 ancestors on the native path"
+        );
+        // GAP A: an ample budget saturates the stratum, so the public frontier reports a
+        // complete run and a positive committed-derivation count.
+        assert_eq!(
+            completed.frontier.completed, completed.frontier.total,
+            "an ample budget saturates the whole program: {:?}",
+            completed.frontier
+        );
+        assert!(
+            completed.frontier.consumed_steps >= 1,
+            "deriving the 3 ancestors commits at least one derivation: {:?}",
+            completed.frontier
         );
     }
 

@@ -10,5 +10,11 @@
     ],
     "unsupported_constructs": []
   },
-  "status": "exhausted"
+  "saturated": [
+    "https://example.org/profiles/goal-budget-steps/magic/ancestor_bf",
+    "https://example.org/profiles/goal-budget-steps/parentOf"
+  ],
+  "status": "exhausted",
+  "strata_completed": 0,
+  "strata_total": 1
 }

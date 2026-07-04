@@ -1,4 +1,9 @@
 {
   "budget_status": "ok",
-  "incomplete": false
+  "incomplete": false,
+  "saturated": [
+    "https://example.org/profiles/goal-budget-steps/parentOf"
+  ],
+  "strata_completed": 1,
+  "strata_total": 1
 }

@@ -96,6 +96,13 @@ pub struct CaseOutputs {
     pub certification: serde_json::Value,
     pub budget_status: String,
     pub incomplete: bool,
+    /// The native forward governor's completion frontier for this case's world
+    /// materialization: which strata / predicates are settled and how many derivations
+    /// were committed. Surfaced into `budget.json` (as `strata_completed` /
+    /// `strata_total` / `saturated`) ONLY when the case declares a step/derivation budget
+    /// (`max_steps` / `max_rule_firings`) — an ungoverned run reports the trivially
+    /// complete frontier, which adds no diagnostic signal.
+    pub frontier: gmeow_logic::query_ir::CompletionFrontier,
     /// `{query_stem: {"bindings": [...], "status": "...", "preservation": {...}}}` for
     /// each `queries/*.logic`.
     pub answers: BTreeMap<String, serde_json::Value>,
@@ -201,13 +208,14 @@ pub fn run_case(case_dir: &Path) -> Result<CaseOutputs, String> {
 
     // ── Materialization (+ explanations) ─────────────────────────────────────
     let input_nq = read_optional(case_dir, "input.nq")?;
-    let (quads, budget_status, incomplete, mut mat_preservation) = if profile.foundation_lowering {
-        materialize_foundation(&case_id, &input_nq, &profile)?
-    } else if profile.teleology_lowering {
-        materialize_teleology(&case_id, &input_nq, &profile)?
-    } else {
-        materialize_default(&case_id, &nemo_rules, &input_nq, &profile)?
-    };
+    let (quads, budget_status, incomplete, mut mat_preservation, mat_frontier) =
+        if profile.foundation_lowering {
+            materialize_foundation(&case_id, &input_nq, &profile)?
+        } else if profile.teleology_lowering {
+            materialize_teleology(&case_id, &input_nq, &profile)?
+        } else {
+            materialize_default(&case_id, &nemo_rules, &input_nq, &profile)?
+        };
     // Carry the full-FOL formula residue into the runtime preservation claim (maximal
     // information flow): a non-Horn formula that did not lower to an evaluable rule is
     // disclosed here as a SoundUnder construct, never silently absent. A clean (fully
@@ -306,6 +314,7 @@ pub fn run_case(case_dir: &Path) -> Result<CaseOutputs, String> {
         certification,
         budget_status,
         incomplete,
+        frontier: mat_frontier,
         answers,
         preservation: serialize::preservation_to_json(&mat_preservation),
         correspondence_gates,
@@ -451,6 +460,8 @@ fn run_cl_roundtrip_case(case_id: &str, case_dir: &Path) -> Result<CaseOutputs, 
         certification: serde_json::json!({}),
         budget_status: "ok".to_string(),
         incomplete: false,
+        // A CL round-trip case does not materialize, so no governor ran.
+        frontier: gmeow_logic::query_ir::CompletionFrontier::empty(),
         answers: BTreeMap::new(),
         // A lossless round-trip is Exact by construction (the gate above proved it).
         preservation: serialize::preservation_to_json(&PreservationClaim::exact()),
@@ -487,6 +498,8 @@ fn empty_outputs(case_id: String) -> CaseOutputs {
         certification: serde_json::json!({}),
         budget_status: "ok".to_string(),
         incomplete: false,
+        // The program was never evaluated, so no governor ran.
+        frontier: gmeow_logic::query_ir::CompletionFrontier::empty(),
         answers: BTreeMap::new(),
         // The case was refused as unsupported and never evaluated — disclose
         // `{unsupported}` (the legalization floor), never a false `{exact}` that would
@@ -617,7 +630,16 @@ fn materialize_default(
     nemo_rules: &str,
     input_nq: &str,
     profile: &Profile,
-) -> Result<(Vec<RunnerQuad>, String, bool, PreservationClaim), String> {
+) -> Result<
+    (
+        Vec<RunnerQuad>,
+        String,
+        bool,
+        PreservationClaim,
+        gmeow_logic::query_ir::CompletionFrontier,
+    ),
+    String,
+> {
     let budget = profile.budget_params.clone().unwrap_or_default();
     let derived = materialize_routed(
         nemo_rules,
@@ -630,6 +652,7 @@ fn materialize_default(
     .map_err(|e| format!("case {case_id}: materialize failed: {e}"))?;
 
     let preservation = derived.preservation;
+    let frontier = derived.frontier;
     let exhausted = derived
         .quads
         .iter()
@@ -649,7 +672,7 @@ fn materialize_default(
         .collect();
 
     let status = if exhausted { "exhausted" } else { "ok" };
-    Ok((quads, status.to_string(), exhausted, preservation))
+    Ok((quads, status.to_string(), exhausted, preservation, frontier))
 }
 
 /// Foundation-lowering materialization via the native OntoUML evaluator. The
@@ -659,7 +682,16 @@ fn materialize_foundation(
     case_id: &str,
     input_nq: &str,
     profile: &Profile,
-) -> Result<(Vec<RunnerQuad>, String, bool, PreservationClaim), String> {
+) -> Result<
+    (
+        Vec<RunnerQuad>,
+        String,
+        bool,
+        PreservationClaim,
+        gmeow_logic::query_ir::CompletionFrontier,
+    ),
+    String,
+> {
     if profile.budget_params.is_some() {
         return Err(format!(
             "case {case_id}: foundation_lowering cases cannot declare budget_params — \
@@ -698,7 +730,15 @@ fn materialize_foundation(
     };
     // The foundation evaluator runs the stratified chase to completion — faithful,
     // nothing dropped, so the materialization is exact.
-    Ok((quads, "ok".to_string(), false, PreservationClaim::exact()))
+    Ok((
+        quads,
+        "ok".to_string(),
+        false,
+        PreservationClaim::exact(),
+        // The foundation evaluator runs the stratified chase to completion outside the
+        // native semi-naive governor, so it exposes no stratum frontier.
+        gmeow_logic::query_ir::CompletionFrontier::empty(),
+    ))
 }
 
 /// Teleology-lowering materialization via the native canonical-process teleology evaluator.
@@ -715,7 +755,16 @@ fn materialize_teleology(
     case_id: &str,
     input_nq: &str,
     profile: &Profile,
-) -> Result<(Vec<RunnerQuad>, String, bool, PreservationClaim), String> {
+) -> Result<
+    (
+        Vec<RunnerQuad>,
+        String,
+        bool,
+        PreservationClaim,
+        gmeow_logic::query_ir::CompletionFrontier,
+    ),
+    String,
+> {
     if profile.budget_params.is_some() {
         return Err(format!(
             "case {case_id}: teleology_lowering cases cannot declare budget_params — \
@@ -750,7 +799,14 @@ fn materialize_teleology(
     // The production teleology claim carries the runtime preservation judgment:
     // exact when no satisfiedBy edge was generated; SoundUnder (naming the dropped
     // GoalEvaluation factored axes) when the forward bridge fired.
-    Ok((quads, "ok".to_string(), false, claim))
+    Ok((
+        quads,
+        "ok".to_string(),
+        false,
+        claim,
+        // The teleology evaluator has no budget governor, so it exposes no frontier.
+        gmeow_logic::query_ir::CompletionFrontier::empty(),
+    ))
 }
 
 /// Produce one explanation skeleton per quad. Asserted quads get a trivial
@@ -894,11 +950,13 @@ fn resolve_query(
     };
 
     // Counterfactual vs plain backward goal. Both carry a preservation
-    // claim disclosing what the target evaluated.
-    let (bindings_vec, status, preservation): (
+    // claim disclosing what the target evaluated; the dispatched backward goal also
+    // carries the native governor's completion frontier.
+    let (bindings_vec, status, preservation, frontier): (
         Vec<gmeow_logic::query_ir::Binding>,
         String,
         gmeow_logic::result::PreservationClaim,
+        gmeow_logic::query_ir::CompletionFrontier,
     ) = if gmeow_logic::counterfactual::is_counterfactual(&program) {
         let depth = program
             .counterfactual
@@ -916,7 +974,14 @@ fn resolve_query(
         .map_err(err)?;
         let status = cf.status_str().to_string();
         let preservation = cf.result.preservation.clone();
-        (std::mem::take(&mut cf.bindings), status, preservation)
+        // The counterfactual constructor runs its own bounded search, not the native
+        // semi-naive governor, so it exposes no stratum frontier.
+        (
+            std::mem::take(&mut cf.bindings),
+            status,
+            preservation,
+            gmeow_logic::query_ir::CompletionFrontier::empty(),
+        )
     } else {
         let foreign = WorldStoreForeign::from_world(&store, &world, profile_str).map_err(err)?;
         let answer = gmeow_logic::dispatch::dispatch_query(
@@ -933,6 +998,7 @@ fn resolve_query(
             answer.bindings,
             answer.status.as_str().to_string(),
             preservation,
+            answer.frontier,
         )
     };
 
@@ -946,11 +1012,33 @@ fn resolve_query(
             serde_json::Value::Object(obj)
         })
         .collect();
-    Ok(serde_json::json!({
+    let mut answer_json = serde_json::json!({
         "bindings": bindings,
         "status": status,
         "preservation": serialize::preservation_to_json(&preservation),
-    }))
+    });
+    // Surface the completion frontier ONLY when the query declared a step budget
+    // (`max_steps`) — the frontier answers "which strata completed" precisely when a
+    // step budget could truncate the backward search. A pure `max_answers` cap
+    // (post-fixpoint truncation) or an ungoverned goal adds no frontier key.
+    if max_steps.is_some() {
+        let obj = answer_json
+            .as_object_mut()
+            .expect("json! object is always an object");
+        obj.insert(
+            "strata_completed".to_string(),
+            serde_json::json!(frontier.completed),
+        );
+        obj.insert(
+            "strata_total".to_string(),
+            serde_json::json!(frontier.total),
+        );
+        obj.insert(
+            "saturated".to_string(),
+            serde_json::json!(frontier.saturated_preds.iter().collect::<Vec<_>>()),
+        );
+    }
+    Ok(answer_json)
 }
 
 /// Whether a quad is an asserted (EDB) input fact rather than a derived one.

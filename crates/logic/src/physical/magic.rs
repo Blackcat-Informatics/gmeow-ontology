@@ -99,7 +99,7 @@ impl Adorn {
 /// A `Const("<iri>")` → [`EvalTerm::ConstNamed`] (angle brackets stripped); a `Var(v)` →
 /// `EvalTerm::Var("?v")` (the engine's variable surface carries a leading `?`, matching
 /// `parse_eval_rules`); a `Num` is an arithmetic operand the native core does not carry.
-fn term_of(t: &QTerm) -> Result<EvalTerm, NativeOutcome<AnswerSet>> {
+fn term_of(t: &QTerm) -> Result<EvalTerm, UnsupportedKind> {
     match t {
         QTerm::Const(c) => {
             let iri = c
@@ -110,15 +110,19 @@ fn term_of(t: &QTerm) -> Result<EvalTerm, NativeOutcome<AnswerSet>> {
             Ok(EvalTerm::ConstNamed(iri.to_owned()))
         }
         QTerm::Var(v) => Ok(EvalTerm::Var(format!("?{v}"))),
-        QTerm::Num(_) => Err(NativeOutcome::Unsupported(UnsupportedKind::Arithmetic)),
+        QTerm::Num(_) => Err(UnsupportedKind::Arithmetic),
     }
 }
 
 /// Convert one binary `QAtom` to an [`EvalAtom`] (predicate angle brackets already absent
 /// in `QAtom::pred`), or report the gap.
-fn atom_of(atom: &QAtom) -> Result<EvalAtom, NativeOutcome<AnswerSet>> {
+///
+/// The `Err` carries just the [`UnsupportedKind`]; the caller wraps it in the
+/// `NativeOutcome::Unsupported` gap it returns (keeping the answer-sized outcome off the
+/// `Err` path, which would otherwise bloat every `?`-returning result).
+fn atom_of(atom: &QAtom) -> Result<EvalAtom, UnsupportedKind> {
     if atom.args.len() != 2 {
-        return Err(NativeOutcome::Unsupported(UnsupportedKind::NonBinaryAtom));
+        return Err(UnsupportedKind::NonBinaryAtom);
     }
     // `atom.pred` is already a validated predicate IRI surface; carry it directly.
     let predicate = atom.pred.clone();
@@ -531,14 +535,14 @@ pub(crate) fn resolve_native(
         }
         let head = match atom_of(&r.head) {
             Ok(a) => a,
-            Err(gap) => return Ok(gap),
+            Err(kind) => return Ok(NativeOutcome::Unsupported(kind)),
         };
         let mut body: Vec<EvalAtom> = Vec::new();
         for lit in &r.body {
             if let QBodyLit::Atom(a) = lit {
                 match atom_of(a) {
                     Ok(ea) => body.push(ea),
-                    Err(gap) => return Ok(gap),
+                    Err(kind) => return Ok(NativeOutcome::Unsupported(kind)),
                 }
             }
         }
@@ -555,7 +559,7 @@ pub(crate) fn resolve_native(
     // (2) Compute the goal adornment and magic-transform.
     let goal_atom = match atom_of(goal) {
         Ok(a) => a,
-        Err(gap) => return Ok(gap),
+        Err(kind) => return Ok(NativeOutcome::Unsupported(kind)),
     };
     let adorn = goal_adornment(goal);
     let transformed = magic_transform(&rules, &goal_atom, adorn);
@@ -570,18 +574,26 @@ pub(crate) fn resolve_native(
     }
     // The step/derivation budget is honoured DURING the fixpoint: `Exhausted` on a cut,
     // `Ok` on a natural fixpoint (including the pure-EDB case, where no rule fires).
-    let (facts, fixpoint_status) = match evaluate(edb, &transformed.rules, budget.max_steps)? {
-        NativeOutcome::Decided(budgeted) => (budgeted.rows, budgeted.status),
-        NativeOutcome::Unsupported(kind) => {
-            // A demand transform that breaks stratification is the documented gap kind;
-            // surface any non-stratifiable transform under that name.
-            let kind = match kind {
-                UnsupportedKind::NonStratifiable => UnsupportedKind::DemandBreaksStratification,
-                other => other,
-            };
-            return Ok(NativeOutcome::Unsupported(kind));
-        }
-    };
+    let (facts, fixpoint_status, frontier) =
+        match evaluate(edb, &transformed.rules, budget.max_steps)? {
+            NativeOutcome::Decided(budgeted) => {
+                // Surface the governor's completion frontier (which strata / predicates are
+                // settled) on the answer instead of dropping it: an `Exhausted` backward goal
+                // is incomplete, and the caller reads `completed < total` to tell that from a
+                // conclusive result.
+                let frontier = budgeted.frontier();
+                (budgeted.rows, budgeted.status, frontier)
+            }
+            NativeOutcome::Unsupported(kind) => {
+                // A demand transform that breaks stratification is the documented gap kind;
+                // surface any non-stratifiable transform under that name.
+                let kind = match kind {
+                    UnsupportedKind::NonStratifiable => UnsupportedKind::DemandBreaksStratification,
+                    other => other,
+                };
+                return Ok(NativeOutcome::Unsupported(kind));
+            }
+        };
 
     // (4) Project the goal predicate's derived tuples into bindings.
     let mut bindings = project_answers(&facts, goal, goal_atom.predicate.as_str());
@@ -597,6 +609,7 @@ pub(crate) fn resolve_native(
             bindings: bindings.clone(),
             status: BudgetStatus::Ok,
             preservation: crate::result::PreservationClaim::exact(),
+            frontier: crate::query_ir::CompletionFrontier::empty(),
         };
         tmp.canonicalize();
         if tmp.bindings.len() >= max_a && !tmp.bindings.is_empty() {
@@ -612,6 +625,7 @@ pub(crate) fn resolve_native(
         bindings,
         status,
         preservation: crate::result::PreservationClaim::exact(),
+        frontier,
     };
     answer.canonicalize();
     Ok(NativeOutcome::Decided(answer))
