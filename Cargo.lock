@@ -1844,6 +1844,7 @@ name = "gmeow-dev-cli"
 version = "0.1.0"
 dependencies = [
  "assert_cmd",
+ "ciborium",
  "clap",
  "gmeow-cli-core",
  "gmeow-diagnostics",

@@ -276,27 +276,11 @@ pub fn feedback(
 }
 
 /// Write the self-describing `<stem>.gts` bundle: the report's JSON + SARIF
-/// projections as content-addressed blobs in a fresh GTS package.
+/// projections as content-addressed blobs in a GTS package whose snapshot graph
+/// IS the findings RDF and whose metadata stamps the snapshot content id.
 fn write_feedback_bundle(report: &Report, config: &DiagnosticsConfig) -> Result<(), i32> {
-    let normalized = report.normalized();
-    let json = render::to_json(&normalized).map_err(|e| fail(format!("json render: {e}")))?;
-    let sarif = render::to_sarif(&normalized).map_err(|e| fail(format!("sarif render: {e}")))?;
-
-    // The findings JSON + SARIF projections ARE the self-describing payload; each
-    // rides as a content-addressed blob keyed by its `rep` label.
-    let mut writer = purrdf::gts::writer::Writer::new("feedback");
-    writer.add_blob(
-        json.as_bytes(),
-        Some("application/json"),
-        Some("feedback.json"),
-    );
-    writer.add_blob(
-        sarif.as_bytes(),
-        Some("application/sarif+json"),
-        Some("feedback.sarif"),
-    );
-    writer.add_index();
-    let bytes = writer.to_bytes();
+    let bytes = crate::feedback_bundle::build_feedback_bundle(report)
+        .map_err(|e| fail(format!("build feedback bundle: {e}")))?;
 
     if let Err(e) = std::fs::create_dir_all(&config.directory) {
         return Err(fail(format!(
