@@ -368,28 +368,44 @@ pub(crate) fn skolemize_restrictions(
 // Class enumerations (owl:oneOf)
 // --------------------------------------------------------------------------- //
 
+/// The outcome of walking an `rdf:first`/`rdf:rest`/`rdf:nil` list.
+enum ListWalk {
+    /// A well-formed list: every cell carried `rdf:first` and the walk reached `rdf:nil`.
+    Complete(Vec<Node>),
+    /// A corrupt list — the walk hit the named defect before reaching `rdf:nil`.
+    Malformed(&'static str),
+}
+
 /// Walk an `rdf:first`/`rdf:rest`/`rdf:nil` list from `head`, returning its members in
-/// order.  A malformed / cyclic list terminates at the first missing `rdf:rest` or on
-/// revisiting a node (the visited guard keeps a corrupt input from looping).
-fn rdf_list(store: &RdfDataset, head: &Node) -> Vec<Node> {
+/// order when the list is well-formed, or the defect that broke the walk.  A cell with
+/// no `rdf:first` (a hole), a cell with no `rdf:rest` (not nil-terminated), a non-resource
+/// cell, and a cycle (a revisited node) are each surfaced as [`ListWalk::Malformed`]
+/// rather than silently truncating the member set — the caller discloses and skips.
+fn rdf_list(store: &RdfDataset, head: &Node) -> ListWalk {
     let first = crate::graphutil::nn(RDF_FIRST);
     let rest = crate::graphutil::nn(RDF_REST);
     let mut out: Vec<Node> = Vec::new();
     let mut seen: BTreeSet<String> = BTreeSet::new();
     let mut cursor = head.clone();
-    while let Some(node) = crate::graphutil::term_as_subject(&cursor) {
-        if subject_str(&node) == RDF_NIL || !seen.insert(subject_str(&node)) {
-            break;
+    loop {
+        let Some(node) = crate::graphutil::term_as_subject(&cursor) else {
+            return ListWalk::Malformed("a list cell is a literal, not a resource");
+        };
+        if subject_str(&node) == RDF_NIL {
+            return ListWalk::Complete(out);
         }
-        if let Some(item) = value(store, &node, &first) {
-            out.push(item);
+        if !seen.insert(subject_str(&node)) {
+            return ListWalk::Malformed("list is cyclic");
+        }
+        match value(store, &node, &first) {
+            Some(item) => out.push(item),
+            None => return ListWalk::Malformed("a list cell has no rdf:first"),
         }
         match value(store, &node, &rest) {
             Some(next) => cursor = next,
-            None => break,
+            None => return ListWalk::Malformed("list is not nil-terminated"),
         }
     }
-    out
 }
 
 /// Every ANONYMOUS class enumeration under `vocab`: a blank subject carrying
@@ -449,7 +465,17 @@ pub(crate) fn skolemize_enumerations(
         let Some(list_head) = value(store, &node, &one_of_pred) else {
             continue;
         };
-        let members = rdf_list(store, &list_head);
+        let members = match rdf_list(store, &list_head) {
+            ListWalk::Complete(members) => members,
+            ListWalk::Malformed(why) => {
+                diagnostics.push(warn(
+                    "MALFORMED_ENUMERATION",
+                    format!("enumeration {node_label:?} has a corrupt oneOf list ({why}); skipped"),
+                    Some(node_label),
+                ));
+                continue;
+            }
+        };
         if members.is_empty() {
             diagnostics.push(warn(
                 "MALFORMED_ENUMERATION",

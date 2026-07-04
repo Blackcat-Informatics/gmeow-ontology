@@ -443,6 +443,34 @@ fn roundtrip_owl_oneof_enumeration_equals_logic() {
     assert!(assert_ir_isomorphic(&prog_logic, &prog_owl).is_ok());
 }
 
+#[test]
+fn enumeration_with_broken_list_emits_diagnostic() {
+    // A oneOf list that is not nil-terminated (a cell missing rdf:rest) is corrupt.
+    // The lift must disclose it and skip the enumeration rather than silently lift a
+    // truncated member set.  Hand-authored raw list cells (the ( … ) collection syntax
+    // only ever emits well-formed lists).
+    let (prog, diags) = adapt(
+        "ex:Season owl:equivalentClass [ a owl:Class ; owl:oneOf _:l0 ] .
+         _:l0 rdf:first ex:Spring ; rdf:rest _:l1 .
+         _:l1 rdf:first ex:Summer .",
+    );
+    assert!(
+        diags.iter().any(|d| d.code == "MALFORMED_ENUMERATION"),
+        "a corrupt oneOf list must surface a MALFORMED_ENUMERATION diagnostic"
+    );
+    assert!(
+        !prog.axioms.iter().any(|a| a.predicate == logic("oneOf")),
+        "a corrupt enumeration must not lift any oneOf member"
+    );
+    assert!(
+        !prog
+            .axioms
+            .iter()
+            .any(|a| a.obj.starts_with(&logic("enumeration/"))),
+        "a corrupt enumeration must not lift a skolem enumeration node"
+    );
+}
+
 // ── IR isomorphism gate ──────────────────────────────────────────────────────
 
 #[test]
