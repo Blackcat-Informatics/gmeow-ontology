@@ -122,25 +122,35 @@ Every surface obeys one rule: **stdout is product output; stderr is diagnostics.
 Conflating them is the classic CLI bug and, for the MCP server, an outright protocol
 corruption.
 
-- **stdout = product output** — the `Reporter` (results, findings, NDJSON event
-  stream, tables, progress). This is a **stable, versioned contract** with the caller.
+- **stdout = product output** — a command writes its actual answer (the computed
+  result) to stdout **itself**; the `Reporter` does not own the product answer. In
+  `jsonl` mode the `NdjsonReporter` adds its machine event frames (findings, `stage_*`,
+  `summary`) on stdout too. This is a **stable, versioned contract** with the caller.
   Where determinism is required — notably the pipeline `RunReport` and `--timings-json`
   — the payload is product *data*, not a log, and is **never** routed through the
   logging layer (whose field ordering is non-deterministic).
-- **stderr = diagnostics** — `tracing` spans and events (stage timings, MCP
+- **stderr = diagnostics** — the `Reporter`'s *diagnostic* channel: the `HumanReporter`'s
+  coloured findings, plus `tracing` spans and events (stage timings, MCP
   request-correlation ids, debug/trace), filtered by `GMEOW_LOG` / `RUST_LOG`, default
   quiet (`warn`) so `gmeow describe` stays silent and fast unless asked.
 
-`tracing`'s layer model is the diagnostic-side analogue of the `Reporter`: instrument
-once, then attach a human `fmt` layer or a JSON layer as the mode dictates. The
-stdio-MCP rule — *never write to stdout* — is satisfied **structurally**, because all
-MCP logging flows through the stderr `tracing` subscriber. The `GMEOW_PIPELINE_TIMING`
-stderr timing dump is ordinary `tracing` output and does not disturb the deterministic
-`--timings-json` artifact.
+The `Reporter` therefore owns the **diagnostic** surface, not the product answer:
+`HumanReporter` renders diagnostics to stderr, `NdjsonReporter` frames them as NDJSON on
+stdout for agents, and the command itself is what emits the product result.
 
-There are exactly two diagnostic sinks on that one instrumented event bus — a human
-`fmt` layer and a machine JSON layer — and neither touches stdout, so the product
-contract is unaffected. There is no third telemetry-export sink (see
+`tracing` is the **stderr** diagnostic log, and only that: `init_tracing()` installs a
+single stderr subscriber (a `fmt` layer under a `GMEOW_LOG` / `RUST_LOG` `EnvFilter`),
+never a stdout layer. That is what satisfies the stdio-MCP rule — *never write to
+stdout* — **structurally**: all MCP logging flows through the stderr `tracing`
+subscriber, so it can never corrupt the JSON-RPC stream on stdout. The
+`GMEOW_PIPELINE_TIMING` stderr timing dump is ordinary `tracing` output and does not
+disturb the deterministic `--timings-json` artifact.
+
+The machine-readable NDJSON stream is a **separate** concern from that log: it is owned
+by the `NdjsonReporter` (§4), which writes its frames to stdout in `jsonl` mode — it is
+**not** a `tracing` layer. So the distinct channels are: the command's product answer
+(stdout), the `NdjsonReporter`'s machine frames (stdout, `jsonl` mode), and the
+`tracing` diagnostic log (stderr). There is no third telemetry-export sink (see
 [§2.1](#21-deliberate-rejections-recorded-so-they-are-not-re-litigated)).
 
 ## 4. Shared core — `crates/cli-core` (`gmeow-cli-core`)
