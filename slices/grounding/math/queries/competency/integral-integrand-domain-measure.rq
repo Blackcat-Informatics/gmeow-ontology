@@ -1,0 +1,16 @@
+# Competency question: "What does this integral integrate, over what domain, against
+# what measure?"  This exercises the discipline that a math:Integral is a first-class
+# object naming its integrand (a math:MeasurableFunction), its integration domain, and
+# the math:Measure it integrates against (math:withRespectTo). Scoped to the fixture
+# namespace so the answer is exactly {expectation → integrand densityFn, domain
+# coinSpace, measure coinMeasure}.
+PREFIX math: <https://blackcatinformatics.ca/math/>
+
+SELECT ?integral ?integrand ?domain ?measure WHERE {
+    ?integral a math:Integral ;
+              math:integrand ?integrand ;
+              math:integrationDomain ?domain ;
+              math:withRespectTo ?measure .
+    FILTER(STRSTARTS(STR(?integral), "http://example.org/math/"))
+}
+ORDER BY ?integral

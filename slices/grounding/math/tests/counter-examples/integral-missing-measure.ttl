@@ -1,0 +1,22 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:IntegralShape: a math:Integral naming its integrand and
+# domain but omitting math:withRespectTo (sh:minCount 1), so validation MUST emit
+# shacl.MinCountConstraintComponent (and no other finding). The integrand declares its
+# frame so math:FunctionFramingShape stays satisfied.
+# Bound by tests/example-conformance.ttl (ex:ecIntegralMissingMeasure).
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:measurelessIntegral a math:Integral ;
+    math:integrand ex:densityFn ;
+    math:integrationDomain ex:space .
+
+ex:densityFn a math:MeasurableFunction ;
+    math:domain ex:domainSet ;
+    math:codomain ex:codomainSet .
+
+ex:space a math:MeasurableSpace .
+ex:domainSet a math:Set .
+ex:codomainSet a math:Set .
