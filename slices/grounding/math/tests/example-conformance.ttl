@@ -105,3 +105,84 @@ ex:ecFunctionMissingCodomain a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
     gmeow:conformanceRationale "The counter-example omits math:codomain on a math:Function (sh:minCount 1 on math:FunctionFramingShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UnframedFunction)." .
+
+# === Rule 8: a measure declares its space and total mass ==================== #
+
+ex:ecMeasureComplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/measure-complete.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:Measure declaring math:measureOn (its measurable space) and a finite math:totalMass satisfies math:MeasureShape and validates with no findings." .
+
+ex:ecMeasureMissingMass a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/measure-missing-mass.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example omits math:totalMass on a math:Measure (sh:minCount 1 on math:MeasureShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:IncompleteMeasure)." .
+
+# === Rule 9: a probability measure has total mass one ======================= #
+
+ex:ecProbabilityMassOne a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/probability-mass-one.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:ProbabilityMeasure of math:totalMass 1 on its space satisfies math:ProbabilityMeasureShape and math:MeasureShape and validates with no findings." .
+
+ex:ecProbabilityMassNotOne a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/probability-mass-not-one.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.HasValueConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example gives a math:ProbabilityMeasure math:totalMass 2 (sh:hasValue 1 on math:ProbabilityMeasureShape), so validation MUST emit shacl.HasValueConstraintComponent and NO other finding (math:ProbabilityMeasureMassViolation)." .
+
+# === Rule 10: an integral names its integrand, domain, and measure ========= #
+
+ex:ecIntegralFramed a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/integral-framed.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:Integral naming its math:integrand, math:integrationDomain, and math:withRespectTo satisfies math:IntegralShape and validates with no findings." .
+
+ex:ecIntegralMissingMeasure a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/integral-missing-measure.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example omits math:withRespectTo on a math:Integral (sh:minCount 1 on math:IntegralShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:IncompleteIntegral)." .
+
+# === Rule 11: every quantity carries a dimension =========================== #
+
+ex:ecQuantityDimensioned a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/quantity-dimensioned.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:Quantity declaring one math:hasDimension satisfies math:QuantityDimensionShape and validates with no findings." .
+
+ex:ecQuantityUndimensioned a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/quantity-undimensioned.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example carries no math:hasDimension on a math:Quantity (sh:minCount 1 on math:QuantityDimensionShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UndimensionedQuantity)." .
+
+# === Rule 12: a derived dimension declares its exponent structure ========== #
+
+ex:ecDerivedDimensionStructured a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/derived-dimension-structured.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:DerivedDimension declaring math:baseDimensionExponent cells that raise base dimensions to exact-rational powers satisfies math:DerivedDimensionShape and math:DimensionExponentShape and validates with no findings." .
+
+ex:ecDerivedDimensionNoExponents a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/derived-dimension-no-exponents.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example declares no math:baseDimensionExponent on a math:DerivedDimension (sh:minCount 1 on math:DerivedDimensionShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:MalformedDimension)." .
+
+# === Rule 13: an exponent cell raises a base dimension only ================= #
+
+ex:ecDimensionNonBaseExponent a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/dimension-nonbase-exponent.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.ClassConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example points math:exponentOfDimension at a non-base dimension (sh:class math:BaseDimension on math:DimensionExponentShape), so validation MUST emit shacl.ClassConstraintComponent and NO other finding (math:MalformedDimension)." .
+
+# === Rule 14: a dimensional expression combines at least two operands ======= #
+
+ex:ecDimensionalExpressionSingleton a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/dimensional-expression-singleton.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example carries only one math:homogeneousOperand on a math:DimensionalExpression (sh:minCount 2 on math:DimensionalExpressionShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:MalformedDimension)." .

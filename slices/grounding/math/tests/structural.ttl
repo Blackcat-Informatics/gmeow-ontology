@@ -83,3 +83,48 @@ ASK {
     math:compositionInner rdfs:subPropertyOf math:functionComposition .
 }""" ;
     gmeow:saRationale "Function composition is non-commutative (g ∘ f ≠ f ∘ g), so the composite→component relation MUST carry order: math:compositionOuter (applied second) and math:compositionInner (applied first) refine math:functionComposition. A single order-agnostic property would lose which component is inner and which is outer." .
+
+# --- 6. The measure subclasses specialize math:Measure (MUST) ---
+ex:saMeasureHierarchy a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    math:LebesgueMeasure    rdfs:subClassOf math:Measure .
+    math:CountingMeasure    rdfs:subClassOf math:Measure .
+    math:ProbabilityMeasure rdfs:subClassOf math:Measure .
+}""" ;
+    gmeow:saRationale "The Lebesgue, counting, and probability measures MUST specialize math:Measure, so the probability bridge (a probability measure is a measure of total mass one) and the continuous/discrete cases are entailed rather than re-minted." .
+
+# --- 7. The seven SI base dimensions exist as math:BaseDimension (MUST) ---
+ex:saBaseDimensions a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+ASK {
+    math:lengthDimension            a math:BaseDimension .
+    math:massDimension              a math:BaseDimension .
+    math:timeDimension              a math:BaseDimension .
+    math:electricCurrentDimension   a math:BaseDimension .
+    math:temperatureDimension       a math:BaseDimension .
+    math:amountOfSubstanceDimension a math:BaseDimension .
+    math:luminousIntensityDimension a math:BaseDimension .
+}""" ;
+    gmeow:saRationale "The seven SI base dimensions (length, mass, time, electric current, thermodynamic temperature, amount of substance, luminous intensity) MUST exist as math:BaseDimension individuals — the generators of the ℚ-vector space of dimensions." .
+
+# --- 8. The measure-and-dimension failure classes subclass the parent (MUST) ---
+ex:saMeasureDimensionFailures a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    math:IncompleteMeasure               rdfs:subClassOf math:MathConformanceFailure .
+    math:ProbabilityMeasureMassViolation rdfs:subClassOf math:MathConformanceFailure .
+    math:IncompleteIntegral              rdfs:subClassOf math:MathConformanceFailure .
+    math:UndimensionedQuantity           rdfs:subClassOf math:MathConformanceFailure .
+    math:MalformedDimension              rdfs:subClassOf math:MathConformanceFailure .
+    math:DimensionalInhomogeneity        rdfs:subClassOf math:MathConformanceFailure .
+}""" ;
+    gmeow:saRationale "Each measure-and-dimension hard-rule failure MUST be a subclass of math:MathConformanceFailure, so a violation — including the reasoned math:DimensionalInhomogeneity — is a typed, queryable object." .
