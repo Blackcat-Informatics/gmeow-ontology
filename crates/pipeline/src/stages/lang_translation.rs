@@ -73,6 +73,10 @@ struct Unit {
     tgt_surface: String,
     en_sign_system: String,
     tgt_sign_system: String,
+    /// The `lang:Script` individual the English source surface is written in (always Latin).
+    en_script: String,
+    /// The `lang:Script` individual the target surface is written in (from the catalog lang).
+    tgt_script: String,
     msgid: String,
     msgstr: String,
     lang: String,
@@ -115,14 +119,18 @@ pub fn build_corpus(root: &Path) -> Result<LangTranslationCorpus, PipelineError>
                 if entry.msgctxt.is_empty() {
                     continue;
                 }
-                let Some((_term_iri, _predicate)) = entry.msgctxt.split_once('|') else {
+                if !entry.msgctxt.contains('|') {
                     continue;
-                };
+                }
+                // Resolve the target surface's script now (fallible): an unknown catalog
+                // language HARD-FAILS rather than minting a materially-underspecified surface.
+                let tgt_script = script_for_lang(&lang)?;
                 units.push(build_unit(
                     &entry.msgctxt,
                     &entry.msgid,
                     &entry.msgstr,
                     &lang,
+                    tgt_script,
                 ));
             }
         }
@@ -140,8 +148,9 @@ pub fn build_corpus(root: &Path) -> Result<LangTranslationCorpus, PipelineError>
 }
 
 /// Derive one typed crossing from a `.po` entry: content-addressed IRIs for the unit,
-/// its carried correspondence, and both surface forms.
-fn build_unit(msgctxt: &str, msgid: &str, msgstr: &str, lang: &str) -> Unit {
+/// its carried correspondence, and both surface forms. `tgt_script` is the pre-resolved
+/// `lang:Script` local name for the target surface; the English source is always Latin.
+fn build_unit(msgctxt: &str, msgid: &str, msgstr: &str, lang: &str, tgt_script: &str) -> Unit {
     let present = !msgstr.is_empty();
     let unit_key = format!("{msgctxt}\u{1f}{lang}");
     Unit {
@@ -157,11 +166,37 @@ fn build_unit(msgctxt: &str, msgid: &str, msgstr: &str, lang: &str) -> Unit {
         ),
         en_sign_system: example("sign-system", "english"),
         tgt_sign_system: example("sign-system", lang),
+        en_script: iri(LANG_NS, "latinScript"),
+        tgt_script: iri(LANG_NS, tgt_script),
         msgid: msgid.to_string(),
         msgstr: msgstr.to_string(),
         lang: lang.to_string(),
         key: msgctxt.to_string(),
         present,
+    }
+}
+
+/// Resolve the `lang:Script` individual (local name) for a surface written in a BCP-47
+/// language. Script is material identity a surface hash needs, so an unknown language is a
+/// HARD FAIL (no silent default): a newly-added catalog forces an explicit script mapping
+/// and its `lang:Script` individual in `slices/grounding/lang/module.ttl`.
+fn script_for_lang(lang: &str) -> Result<&'static str, PipelineError> {
+    let primary = lang
+        .split(['-', '_'])
+        .next()
+        .unwrap_or("")
+        .to_ascii_lowercase();
+    match primary.as_str() {
+        "en" | "fr" => Ok("latinScript"),
+        "zh" => Ok("hanScript"),
+        _ => Err(PipelineError::Stage {
+            stage: "stage-mappings".to_string(),
+            message: format!(
+                "lang-translation: no lang:Script mapping for BCP-47 language '{lang}'; add \
+                 its lang:Script individual to slices/grounding/lang/module.ttl and extend \
+                 script_for_lang"
+            ),
+        }),
     }
 }
 
@@ -189,14 +224,13 @@ fn emit_ntriples(units: &[Unit]) -> Vec<u8> {
         docs.entry(unit.lang.clone())
             .or_insert_with(|| example("translation", &unit.lang));
     }
-    for (lang, doc_iri) in &docs {
+    for doc_iri in docs.values() {
         lines.push(triple(doc_iri, RDF_TYPE, &iri(LANG_NS, "Translation")));
         lines.push(triple(
             doc_iri,
             &iri(LANG_NS, "translationMethod"),
             &iri(LANG_NS, "methodHuman"),
         ));
-        let _ = lang;
     }
 
     for unit in units {
@@ -287,13 +321,39 @@ fn emit_ntriples(units: &[Unit]) -> Vec<u8> {
         ));
 
         // ── the two surface forms (surface text lives HERE, never on the unit) ──
-        for (surface, sign_system, text) in [
-            (&unit.en_surface, &unit.en_sign_system, &unit.msgid),
-            (&unit.tgt_surface, &unit.tgt_sign_system, &unit.msgstr),
+        // Each carries the material identity a stable surface hash needs — script,
+        // Unicode normalization, collation locale — so the corpus satisfies
+        // lang:SurfaceMaterialShape and never trips lang:UnhashableSurface.
+        for (surface, sign_system, script, locale, text) in [
+            (
+                &unit.en_surface,
+                &unit.en_sign_system,
+                &unit.en_script,
+                "en",
+                &unit.msgid,
+            ),
+            (
+                &unit.tgt_surface,
+                &unit.tgt_sign_system,
+                &unit.tgt_script,
+                unit.lang.as_str(),
+                &unit.msgstr,
+            ),
         ] {
             lines.push(triple(surface, RDF_TYPE, &iri(LANG_NS, "SurfaceForm")));
             lines.push(triple(surface, RDF_TYPE, &iri(LANG_NS, "UnanalyzedProse")));
             lines.push(triple(surface, &iri(LANG_NS, "inSignSystem"), sign_system));
+            lines.push(triple(surface, &iri(LANG_NS, "inScript"), script));
+            lines.push(triple_lit(
+                surface,
+                &iri(LANG_NS, "unicodeNormalization"),
+                "NFC",
+            ));
+            lines.push(triple_lit(
+                surface,
+                &iri(LANG_NS, "collationLocale"),
+                locale,
+            ));
             lines.push(triple_lit(surface, &iri(LANG_NS, "surfaceText"), text));
         }
 
@@ -536,10 +596,54 @@ mod tests {
             "Foo",
             "",
             "fr",
+            "latinScript",
         );
         assert!(!unit.present);
         let row = unit_ledger_row(&unit);
         assert_eq!(row.preservation, PreservationKind::Unsupported);
         assert!(row.actual_drops.iter().any(|d| d.contains("Foo")));
+    }
+
+    #[test]
+    fn corpus_surface_forms_carry_material_identity() {
+        // Every lang:SurfaceForm the live corpus mints declares the material identity
+        // lang:SurfaceMaterialShape requires — script, Unicode normalization, collation
+        // locale — so the corpus never trips lang:UnhashableSurface.
+        let corpus = build_corpus(&repo_root()).expect("build corpus");
+        let nt = String::from_utf8(corpus.ntriples).expect("utf8");
+        for pred in ["inScript", "unicodeNormalization", "collationLocale"] {
+            assert!(
+                nt.contains(&iri(LANG_NS, pred)),
+                "surface forms must declare lang:{pred}"
+            );
+        }
+        // The zh catalog forces a non-Latin script individual to be referenced.
+        assert!(
+            nt.contains(&iri(LANG_NS, "hanScript")),
+            "the zh catalog surface must be written in lang:hanScript"
+        );
+        // Every SurfaceForm line-block is complete: as many inScript triples as SurfaceForm
+        // types, so no surface is emitted materially underspecified.
+        let surface_forms = nt
+            .matches(&format!("<{}> .", iri(LANG_NS, "SurfaceForm")))
+            .count();
+        let scripts = nt
+            .matches(&format!(" <{}> ", iri(LANG_NS, "inScript")))
+            .count();
+        assert_eq!(
+            surface_forms, scripts,
+            "every lang:SurfaceForm must carry exactly one lang:inScript"
+        );
+    }
+
+    #[test]
+    fn script_for_lang_maps_known_and_hard_fails_unknown() {
+        assert_eq!(script_for_lang("en").unwrap(), "latinScript");
+        assert_eq!(script_for_lang("fr").unwrap(), "latinScript");
+        assert_eq!(script_for_lang("zh").unwrap(), "hanScript");
+        assert_eq!(script_for_lang("zh-Hans").unwrap(), "hanScript");
+        // An unmapped language is a HARD FAIL, never a silent default surface.
+        let err = script_for_lang("qtz").expect_err("unknown language must hard-fail");
+        assert!(format!("{err}").contains("no lang:Script mapping"));
     }
 }
