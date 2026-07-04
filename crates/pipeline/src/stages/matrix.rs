@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The `matrix` export leaf (#861 P4): the module-status matrix
+//! The `matrix` export leaf (P4): the module-status matrix
 //! (`generated/module-status.md`).
 //!
 //! A genuine port of `src/gmeow_tools/matrix.py` (no Rust existed): one row per

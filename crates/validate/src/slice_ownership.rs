@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 //! PyO3-free projection of the native `gmeow-slice` `OwnershipReport` into
-//! canonical diagnostics `Finding`s (#809).
+//! canonical diagnostics `Finding`s.
 //!
 //! `gmeow-slice` runs the ownership + dependency analysis and produces a fully
 //! structured [`OwnershipReport`] (`OwnershipDiagnostic` kinds, the offending

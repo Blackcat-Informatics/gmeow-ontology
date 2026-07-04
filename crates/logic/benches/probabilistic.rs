@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Before/after baseline for exact weighted model counting (#823, Phase 5,
+//! Before/after baseline for exact weighted model counting (Phase 5,
 //! item 4 — the bitmask power-set change).
 //!
 //! [`gmeow_logic::probabilistic::evaluate`] enumerates `2^N` total choices over

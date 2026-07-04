@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 //! Whole-ontology native SHACL helpers for the foundation-corpus acceptance test
-//! (#944), ported from `crates/validate/tests/conformance_support/mod.rs`.
+//! , ported from `crates/validate/tests/conformance_support/mod.rs`.
 //!
 //! `repo_root()` resolves from THIS crate: `CARGO_MANIFEST_DIR` is
 //! `crates/foundation-corpus`, so `../..` is the repository root that contains

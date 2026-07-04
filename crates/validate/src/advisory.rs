@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Advisory-tier emission seam — the D1 keystone for EPIC #759 / issue #760.
+//! Advisory-tier emission seam — the D1 keystone.
 //!
 //! # Dual-projection contract
 //!
@@ -12,7 +12,7 @@
 //!    [`Severity::Info`] — the linter/SARIF/CLI surface consumed by every
 //!    existing diagnostics renderer.
 //! 2. An in-memory [`AdvisoryClaim`] hook carrying the vantage IRI, the advised
-//!    proposition, and the deontic-modality IRI.  Issue #763 (D4) will later
+//!    proposition, and the deontic-modality IRI.  (D4) will later
 //!    materialise this hook into a `gmeow:ComplianceAssessment` /
 //!    `deonticRecommendation` RDF claim.  **D1 emits no RDF** — the claim lives
 //!    in memory only until D4 consumes it.
@@ -27,7 +27,7 @@
 //! is issued from an explicit `gmeow:Standpoint`.  The default is
 //! [`BEST_PRACTICE_STANDPOINT_IRI`]; callers may substitute another IRI to
 //! represent a different advisory vantage (e.g. a domain-specific style guide).
-//! D4 (#763) reconciles the string IRI with a real `gmeow:Standpoint` individual
+//! D4 reconciles the string IRI with a real `gmeow:Standpoint` individual
 //! when it materialises the RDF claim.
 
 use gmeow_diagnostics::{Finding, Location, Rule, Severity};
@@ -37,7 +37,7 @@ use gmeow_diagnostics::{Finding, Location, Rule, Severity};
 /// The canonical best-practice standpoint IRI an advisory is issued from — the
 /// `gmeow:vantage` of the recommendation claim (P9: advice is one standpoint's
 /// perspectival claim, never a global verdict).  D1 carries it as a string only;
-/// D4 (#763) reconciles it with a real `gmeow:Standpoint` individual.
+/// D4 reconciles it with a real `gmeow:Standpoint` individual.
 pub const BEST_PRACTICE_STANDPOINT_IRI: &str =
     "https://blackcatinformatics.ca/gmeow/standpoint/gmeowBestPractice";
 
@@ -88,7 +88,7 @@ pub struct Advisory {
 }
 
 /// The dual projection of one advisory event (P4/P17): a flat [`Finding`] and
-/// the in-memory claim hook D4 (#763) fills.  Produced together by
+/// the in-memory claim hook D4 fills.  Produced together by
 /// [`Advisory::project`].
 ///
 /// # Invariant
@@ -99,12 +99,12 @@ pub struct Advisory {
 pub struct AdvisoryProjection {
     /// The flat linter/SARIF/CLI surface for this advisory event.
     pub finding: Finding,
-    /// The in-memory claim hook for D4 (#763) to materialise as RDF.
+    /// The in-memory claim hook for D4 to materialise as RDF.
     pub claim: AdvisoryClaim,
 }
 
-/// The vantage-indexed recommendation-claim HOOK (#760 keystone; filled by
-/// #763).
+/// The vantage-indexed recommendation-claim HOOK (keystone; filled by
+/// ).
 ///
 /// Carries what a `gmeow:ComplianceAssessment` / `StandpointClaim` needs — the
 /// issuing standpoint (vantage), the advised proposition (message text), and the
@@ -112,7 +112,7 @@ pub struct AdvisoryProjection {
 ///
 /// # Lifecycle
 ///
-/// D1 constructs this struct; D4 (#763) consumes it, resolves
+/// D1 constructs this struct; D4 consumes it, resolves
 /// `standpoint_iri` to an in-graph `gmeow:Standpoint` individual, and emits the
 /// corresponding RDF triples into the validation output graph.
 #[derive(Debug, Clone, PartialEq)]

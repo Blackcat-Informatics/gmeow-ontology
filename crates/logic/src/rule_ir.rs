@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Shared evaluable rule IR + Gelfond-Lifschitz reduct engine (issue #651).
+//! Shared evaluable rule IR + Gelfond-Lifschitz reduct engine.
 //!
 //! This module is the native (non-Nemo) substrate for the two *non-stratifiable*
 //! semantics the foundation chase cannot express: the well-founded model
@@ -40,7 +40,7 @@
 //!
 //! # Phase-A dead code
 //!
-//! This is Phase A of #651: the evaluators and their unit tests are landed, but the
+//! This is Phase A: the evaluators and their unit tests are landed, but the
 //! `py.rs` materialize routing that consumes [`parse_eval_rules`] and reads the
 //! [`DerivedRow`] provenance fields is Phase B.  Until that lands, a few
 //! constructors / fields are exercised only by tests, so this module allows

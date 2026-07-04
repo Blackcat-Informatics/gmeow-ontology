@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Integration tests for the Rust-native validation orchestration (#634).
+//! Integration tests for the Rust-native validation orchestration.
 
 use std::collections::{BTreeSet, HashSet};
 use std::path::PathBuf;

@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The `source_load` stage (#861 P3): parse the authored ontology sources into
+//! The `source_load` stage (P3): parse the authored ontology sources into
 //! one in-memory base graph.
 //!
 //! This is the root of the build DAG. It loads `ontology/gmeow.ttl`, every
@@ -10,8 +10,8 @@
 //! build assembled via `load_merged_graph(include_imports=…)`. The dataset is the
 //! frozen carrier downstream stages union and project from, with the N-Quads byte
 //! lane published alongside so the pre-carrier byte readers parse it from memory
-//! instead of re-reading `gmeow.gts` from disk per generator (the bottleneck #861
-//! removes). EPIC #906: oxigraph-free — every parse routes through the native
+//! instead of re-reading `gmeow.gts` from disk per generator (the bottleneck
+//! removes).: oxigraph-free — every parse routes through the native
 //! `purrdf::parse_dataset` codecs and merges via `RdfDataset::union`.
 
 use std::collections::BTreeMap;
@@ -114,7 +114,7 @@ pub fn attributed_base_provenance(
 /// A stable (FNV-1a) blank-node label prefix for a source document — the native twin
 /// of `purrdf::oxigraph::flat_oxigraph_quads_from_dataset_scoped`'s scoping, kept
 /// byte-identical so the per-file provenance handle partition (and thus the committed
-/// `graph/provenance` projection) is preserved across the oxigraph removal (#906).
+/// `graph/provenance` projection) is preserved across the oxigraph removal.
 /// Deterministic across processes and stages — the same `scope_key` always yields the
 /// same prefix.
 fn blank_scope_prefix(scope_key: &str) -> String {
@@ -244,7 +244,7 @@ fn ttl_files_in(dir: &Path) -> Result<Vec<PathBuf>, PipelineError> {
 
 fn sorted_dirs(dir: &Path) -> Result<Vec<PathBuf>, PipelineError> {
     // Fail-fast on a read_dir entry error: a transient FS error must surface, not
-    // silently drop a slice group/dir (no-optionality, #863).
+    // silently drop a slice group/dir (no-optionality).
     let mut out: Vec<PathBuf> = Vec::new();
     for entry in std::fs::read_dir(dir)? {
         let path = entry?.path();

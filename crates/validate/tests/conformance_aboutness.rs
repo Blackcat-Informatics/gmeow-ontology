@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Conformance twins migrated from tests/test_aboutness.py (#867)
+//! Conformance twins migrated from tests/test_aboutness.py
 //!
 //! Each test loads a fixture file from `tests/fixtures/shapes/` and validates
 //! it against the whole shapes corpus using the native SHACL engine.

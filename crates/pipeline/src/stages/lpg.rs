@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The `lpg` export leaf (#861 P4): RDF → Labeled Property Graph.
+//! The `lpg` export leaf (P4): RDF → Labeled Property Graph.
 //!
 //! A genuine port of `src/gmeow_tools/lpg.py` (no Rust existed): reads the
 //! statement-layer quads + reifier/annotation fold tables from an `RdfDataset`

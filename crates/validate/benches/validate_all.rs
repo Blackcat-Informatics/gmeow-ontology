@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! End-to-end benchmark for the per-file `ValidationRun::run` path (#822).
+//! End-to-end benchmark for the per-file `ValidationRun::run` path.
 //!
 //! Exercises the parse-once refactor: each source Turtle file is read and
 //! parsed exactly once (instead of ~3× under the old per-phase `parse_file`

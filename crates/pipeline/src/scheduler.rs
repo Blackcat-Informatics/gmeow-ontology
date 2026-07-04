@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The level-parallel scheduler + the [`RunContext`] (#861 P2).
+//! The level-parallel scheduler + the [`RunContext`] (P2).
 //!
 //! Stages run by topological level (from [`crate::graph::StageGraph`]); within a
 //! level, independent stages run in parallel (rayon). A stage that declares a
@@ -131,7 +131,7 @@ impl RunContext {
 ///
 /// `StageProduct`'s carrier (`Arc<PipelineBundle>`) has no value equality, so this
 /// no longer derives `PartialEq`/`Eq`; the determinism witness is the
-/// `combined_digest` (a `String`), which tests compare directly (#1132 C4).
+/// `combined_digest` (a `String`), which tests compare directly (C4).
 #[derive(Debug, Clone)]
 pub struct RunResult {
     /// Each stage's product, keyed by stage id (sorted).
@@ -330,7 +330,7 @@ fn exec_stage(
     // ++ the content digest of any RAW source files the stage declares via `input_files`
     // (export leaves that read non-fold sources — references.ttl, the eval corpus, the
     // slice manifests — declare them there so a source change busts the cache;
-    // cache soundness for stages that legitimately consume nothing, #861/#863).
+    // cache soundness for stages that legitimately consume nothing).
     //
     // ARTIFACT-LEVEL granularity: for a producer the stage declares typed dataflow
     // entities over (`consumed_entities`), fold ONLY those named graphs' canonical

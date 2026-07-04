@@ -3,7 +3,7 @@
 
 //! Lowering the **one canonical AST** ([`gmeow_logic_compile::ir`]) directly into the
 //! evaluable rule IR ([`crate::rule_ir::EvalRule`]) — the AST-unification keystone
-//! of issue #664.
+//! of.
 //!
 //! Before this, the evaluable IR could only be obtained by *re-parsing* the
 //! `.rls` text the compiler had just produced
@@ -22,7 +22,7 @@
 //! authoritative lowering.
 //!
 //! Phase note: the lowering entry points are exercised by this module's parity
-//! tests now; the non-test consumer is the PyO3 routing landed in the #664 PyO3
+//! tests now; the non-test consumer is the PyO3 routing landed in the PyO3
 //! task (Task 6).  Until then the functions allow `dead_code` crate-internally
 //! (the same phased-development posture as [`crate::rule_ir`]).
 #![allow(dead_code)]

@@ -3,7 +3,7 @@
 
 //! The pipeline node model: the [`Stage`] trait and the in-memory
 //! [`StageInput`] / [`StageOutput`] / [`StageProduct`] handles a stage exchanges
-//! (#861).
+//! .
 //!
 //! A stage is re-cut for in-memory dataflow: it consumes the products of its
 //! upstream stages (live handles, not re-parsed files) and emits one product.
@@ -46,15 +46,15 @@ pub const SOURCE_ORIGIN: &str = "https://blackcatinformatics.ca/gmeow/sourceOrig
 
 /// The product of one stage: its id, the hex content digest of the value it
 /// produced (the cache-key contribution downstream stages fold in — Merkle
-/// composition, #861 P2), and the structured [`PipelineBundle`] it emitted.
+/// composition P2), and the structured [`PipelineBundle`] it emitted.
 ///
-/// # The carrier (#1132 C4)
+/// # The carrier (C4)
 ///
 /// The carrier is an [`Arc<PipelineBundle<PipelineHandle>>`]: the frozen RDF
 /// dataset + lookaside + content-addressed blob store + provenance + typed-handle
 /// lane. The pre-C4 named byte artifacts (logical path → bytes) ride the bundle's
 /// byte-artifact lane (see [`crate::bundle`]); `gts_compose` / `gts_sink` fold the
-/// upstream lane into the one bundle (#861 P3/P4). C2/C3/C5 progressively replace
+/// upstream lane into the one bundle (P3/P4). C2/C3/C5 progressively replace
 /// the byte reads with dataset/lane reads and retire the lane per stage.
 ///
 /// `digest` is the cache key: for a freshly produced bundle it is
@@ -215,7 +215,7 @@ pub trait Stage: Send + Sync {
     /// `metadata/references.ttl`, the eval corpus, or the slice manifests rather
     /// than consuming the composed fold). Their CONTENT is folded into the cache
     /// key so a source change busts the cache — the cache-soundness guarantee for
-    /// non-`SourceLoad` stages that legitimately consume nothing (#861, #863).
+    /// non-`SourceLoad` stages that legitimately consume nothing.
     ///
     /// The default is empty: a stage whose every input is an upstream product
     /// (Merkle-composed) or whose file reads are already covered by a consumed

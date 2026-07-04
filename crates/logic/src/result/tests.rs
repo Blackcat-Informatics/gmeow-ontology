@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Unit tests for the typed `logic:ReasoningResult` model (#768, ME2).
+//! Unit tests for the typed `logic:ReasoningResult` model (ME2).
 
 use super::*;
 use gmeow_logic_compile::ir::PreservationKind;

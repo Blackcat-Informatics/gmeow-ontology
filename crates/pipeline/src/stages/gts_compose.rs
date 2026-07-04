@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The `gts_compose` stage (#861 P3): union the upstream stage products into one
+//! The `gts_compose` stage (P3): union the upstream stage products into one
 //! in-memory composed dataset.
 //!
 //! Every downstream export leaf and the docs renderer query THIS dataset rather
@@ -26,7 +26,7 @@ use crate::stages::source_load::dataset_to_sorted_nquads;
 /// axioms (`mappings`), and the reasoned CLOSURE (`reason`).
 ///
 /// No oxigraph store, no re-parse of byte artifacts: each producing stage already
-/// carries its RDF contribution as its bundle's frozen dataset (#1132 C2), so this
+/// carries its RDF contribution as its bundle's frozen dataset (C2), so this
 /// stage assembles the composed value natively by unioning those handles. The
 /// union standardizes blank scopes apart per input and canonicalizes on freeze, so
 /// the result is order-independent.
@@ -34,7 +34,7 @@ use crate::stages::source_load::dataset_to_sorted_nquads;
 /// The base graph is REQUIRED. When `stage-statements` is an upstream (it always
 /// is in the full DAG), its dataset is REQUIRED and must be non-empty — a missing
 /// or empty statement-layer dataset is a HARD failure, never a silent skip that
-/// would compose a statement-layer-less dataset (no-optionality, #863). The
+/// would compose a statement-layer-less dataset (no-optionality). The
 /// mappings and reason-closure datasets fold in when present.
 ///
 /// The reason stage carries its CLOSURE alone as its dataset; the proof-skeleton
@@ -105,7 +105,7 @@ pub fn compose(upstream: &BTreeMap<String, StageProduct>) -> Result<RdfDataset, 
 /// (which are standpoint-scoped, never graph-scoped). Used by [`compose`] to fold a
 /// looped contributor's ontology contribution (its default graph) while excluding any
 /// named sidecar graph it carries (the reason product's `graph/reasoning` handle
-/// backing — #1132 C7).
+/// backing — C7).
 fn default_graph_only(dataset: &RdfDataset) -> Result<Arc<RdfDataset>, PipelineError> {
     let mut builder = purrdf::RdfDatasetBuilder::new();
     for quad in dataset.owned_quads() {
@@ -128,7 +128,7 @@ fn default_graph_only(dataset: &RdfDataset) -> Result<Arc<RdfDataset>, PipelineE
 /// [`compose`] projected to the deterministic sorted N-Quads byte form. The reason
 /// stage uses this to seed the reasoner's input EDB (its `dataset_from_bytes`). This
 /// is the SOLE consumer of the composed value's byte projection: the composed dataset
-/// itself rides the stage product's `bundle.dataset()` carrier (#1132 C2/C11), so there
+/// itself rides the stage product's `bundle.dataset` carrier (C2/C11), so there
 /// is no `composed.nq` artifact byte lane — `snapshot` and every other consumer take the
 /// carried dataset, not a re-parsed byte artifact.
 pub fn compose_nquads(upstream: &BTreeMap<String, StageProduct>) -> Result<Vec<u8>, PipelineError> {
@@ -178,9 +178,9 @@ impl Stage for GtsComposeStage {
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
         // Assemble the composed dataset natively by unioning the upstream stages'
-        // carried datasets (#1132 C2). The stage's product carries the composed
+        // carried datasets (C2). The stage's product carries the composed
         // DATASET as its bundle's frozen dataset — the SOLE carrier. The old
-        // `pipeline/composed.nq` byte-transport artifact (#1132 C11) is retired: every
+        // `pipeline/composed.nq` byte-transport artifact (C11) is retired: every
         // consumer reads the carried dataset, and `reason` re-projects the byte EDB it
         // needs through `compose_nquads` itself, so the artifact had no reader.
         let composed = compose(input.upstream)?;
@@ -212,7 +212,7 @@ mod tests {
     }
 
     /// Build the `source_load` + `statements` upstream products the way their
-    /// stages now do (#1132 C2): each CARRIES its RDF contribution as the bundle's
+    /// stages now do (C2): each CARRIES its RDF contribution as the bundle's
     /// frozen dataset (over its byte lane). Returns the upstream map plus the raw
     /// `(base quad count, base nq bytes, rdf12 ttl)` for the oracle.
     fn base_and_statements_upstream(
@@ -262,7 +262,7 @@ mod tests {
     }
 
     /// The native union (`compose`) must actually UNION the base + statement layers
-    /// and be canonically STABLE. EPIC #906 retired the old oxigraph-store byte-ingest
+    /// and be canonically STABLE.  retired the old oxigraph-store byte-ingest
     /// oracle this test once cross-checked against; the property it asserted (a faithful
     /// union of base ∪ statements) is now stated directly against the native value: the
     /// union strictly contains the base graph, and its RDFC-1.0 canonical form is

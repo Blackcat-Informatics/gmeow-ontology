@@ -32,7 +32,7 @@ fn logic(local: &str) -> String {
 }
 
 /// Resolve a facet *value* to its emitted IRI. The open facet-value vocabulary
-/// (#767, Gap 3) admits values that are already full custom IRIs (not under the
+/// (Gap 3) admits values that are already full custom IRIs (not under the
 /// `logic:` namespace); these must be emitted verbatim, not re-prefixed (which
 /// would yield a corrupt `…/logic/https://…`). A bare local name is prefixed under
 /// the `logic:` namespace. This is symmetric with the front-end storage convention
@@ -175,7 +175,7 @@ impl TripleSink {
     }
 
     /// Serialize to Turtle with a GENERATED banner.  The triple set is frozen into
-    /// the `RdfDataset` IR and serialized through the native codec (#909), which
+    /// the `RdfDataset` IR and serialized through the native codec, which
     /// emits canonical, deterministic Turtle — so no manual pre-sort is needed (the
     /// goldens compare by isomorphism either way). All projected quads live in the
     /// default graph, so `SerializeGraph::DefaultGraph` is the faithful selector.
@@ -608,7 +608,7 @@ pub fn project_canonical_rdf12(program: &LogicProgram) -> Result<ProjectionResul
         }
     }
 
-    // Reasoning contracts (#767). LOSSLESS projection: every contract — whether
+    // Reasoning contracts. LOSSLESS projection: every contract — whether
     // it carries a preset or only direct facets — is emitted in full as DIRECT
     // facet properties on its subject node, so a re-parse through
     // `extract_contracts` reconstructs the byte-identical `ReasoningContract`

@@ -1,9 +1,9 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! S8 #914 parity harness: in-engine ≡ Scryer-lowered property-path evaluation.
+//! S8 parity harness: in-engine ≡ Scryer-lowered property-path evaluation.
 //!
-//! The acceptance criterion for #914 is that the two implementations of one
+//! The acceptance criterion for is that the two implementations of one
 //! semantics agree on the corpus property-path shapes:
 //!
 //! - the **in-engine** wasm-safe evaluator (`purrdf::sparql`, via the public

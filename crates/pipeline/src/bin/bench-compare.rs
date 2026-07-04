@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! `bench-compare` (#668): the report-only perf regression scoreboard and the
+//! `bench-compare`: the report-only perf regression scoreboard and the
 //! single `bench/baseline.json` producer.
 //!
 //! Two modes, both reading a live criterion run under `target/criterion` and the

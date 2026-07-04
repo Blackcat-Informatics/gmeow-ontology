@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The `apache` export leaf (#861 P4): the content-negotiation include
+//! The `apache` export leaf (P4): the content-negotiation include
 //! (`generated/apache/gmeow.conf`).
 //!
 //! A genuine port of `src/gmeow_tools/apache.py` (no Rust existed). The `/gmeow`

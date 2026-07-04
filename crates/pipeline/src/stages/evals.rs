@@ -1,10 +1,10 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The `evals` export leaf (#861 P4): scorecard + leaderboard + scores.ttl.
+//! The `evals` export leaf (P4): scorecard + leaderboard + scores.ttl.
 //!
 //! A genuine port of the render half of `src/gmeow_tools/evals.py` (the
-//! claim-extraction eval suite, #298). The generator reads NON-fold inputs —
+//! claim-extraction eval suite). The generator reads NON-fold inputs —
 //! the emission schema (`evals/claim-emission.schema.json`), the corpus manifest
 //! (`evals/corpus.ttl`), the ground-truth expectations (`evals/expectations.json`),
 //! and the recorded model emissions (`evals/outputs/<model>/claims.jsonl`) — and

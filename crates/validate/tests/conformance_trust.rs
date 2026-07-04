@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Conformance twins migrated from tests/test_trust.py (#867).
+//! Conformance twins migrated from tests/test_trust.py.
 //!
 //! Migrated tests load the `trust-contested.ttl` coverage fixture, validate
 //! it against the whole shapes corpus, and assert triple membership using the

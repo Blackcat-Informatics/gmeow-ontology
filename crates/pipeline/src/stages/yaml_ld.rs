@@ -202,7 +202,7 @@ pub fn yaml_ld_star_to_gmeow_statement_metadata_nquads(
 /// The build-time round-trip gate ([`roundtrip_isomorphic`]) and the tests share one
 /// canonicalizer.
 pub(crate) fn canonical_lines(dataset: &RdfDataset) -> Vec<String> {
-    // Native full RDFC-1.0 over the FLATTENED carrier (#910): `canonical_flat_nquads`
+    // Native full RDFC-1.0 over the FLATTENED carrier: `canonical_flat_nquads`
     // re-materializes the RDF 1.2 statement overlay to plain `rdf:reifies` / annotation
     // triples before canonicalizing.
     let canonical = purrdf::canonical_flat_nquads(dataset)
@@ -227,7 +227,7 @@ fn dataset_from_nquads(nquads: &[u8]) -> Result<Arc<RdfDataset>, PipelineError> 
 /// Return whether `star_bytes` (format `"jsonld"`|`"yamlld"`) re-parses to a
 /// dataset isomorphic (RDFC-1.0 canonical) to the original N-Quads-star input.
 /// This is the Rust authority for the build-time serialization-isomorphism gate
-/// (#699), replacing the Python `_round_trip_star`.
+/// , replacing the Python `_round_trip_star`.
 pub fn roundtrip_isomorphic(
     original_nquads: &[u8],
     star_bytes: &[u8],
