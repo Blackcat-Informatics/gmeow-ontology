@@ -352,6 +352,12 @@ ex:ecTranslationUnmarkedSurface a gmeow:ExampleConformance ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
     gmeow:conformanceRationale "The unit's lang:translationSource is a lang:SurfaceForm that realizes nothing and is not typed lang:UnanalyzedProse while its logic:Correspondence claims logic:ExactPreservation (the sh:sparql constraint of lang:UnmarkedSurfaceTranslationShape), so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (lang:UnmarkedSurfaceTranslation); the segmented analysis level keeps the surface-analysis gate quiet." .
 
+ex:ecTranslationUnanalyzedOverclaim a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/translation-unanalyzed-overclaim.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "Both surfaces ARE typed lang:UnanalyzedProse (rawLevel, realizing nothing) yet the carried logic:Correspondence claims logic:ExactPreservation — the second conjunct of the honest 'unanalyzed AND weakest-judgment' rule is violated, so the OR-structured sh:sparql constraint of lang:UnmarkedSurfaceTranslationShape MUST emit shacl.SPARQLConstraintComponent and NO other finding (lang:UnmarkedSurfaceTranslation). An AND-structured gate would miss this — an unanalyzed surface may not claim an exact crossing." .
+
 ex:ecTranslationUnattributed a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/translation-unattributed.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
