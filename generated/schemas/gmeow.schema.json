@@ -36119,15 +36119,23 @@
           ]
         },
         "math:integrand": {
-          "properties": {
-            "@id": {
+          "anyOf": [
+            {
+              "$comment": "external class https://blackcatinformatics.ca/math/MeasurableFunction",
               "type": "string"
+            },
+            {
+              "properties": {
+                "@id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@id"
+              ],
+              "type": "object"
             }
-          },
-          "required": [
-            "@id"
-          ],
-          "type": "object"
+          ]
         },
         "math:integrationDomain": {
           "properties": {
@@ -36413,23 +36421,10 @@
           ]
         },
         "math:totalMass": {
-          "anyOf": [
-            {
-              "const": {
-                "@type": "xsd:integer",
-                "@value": "1"
-              }
-            },
-            {
-              "items": {
-                "const": {
-                  "@type": "xsd:integer",
-                  "@value": "1"
-                }
-              },
-              "type": "array"
-            }
-          ]
+          "const": {
+            "@type": "xsd:integer",
+            "@value": "1"
+          }
         }
       },
       "type": "object"
