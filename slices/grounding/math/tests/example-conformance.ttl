@@ -140,6 +140,11 @@ ex:ecHomomorphismLawString a gmeow:ExampleConformance ;
 
 # === Rule 11/12: a Lie group / root system declares its root-system data ==== #
 
+ex:ecLieStructureComplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/lie-structure-complete.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:LieGroup declaring math:hasRootSystem, whose math:RootSystem declares its math:cartanMatrix, math:weylGroup, and math:rootSystemRank, and whose math:WeylGroup carries its math:AlgebraicStructure frame and is anchored through math:automorphismGroupOf, satisfies math:LieStructureShape, math:RootSystemShape, math:AutomorphismGroupShape, and math:AlgebraicStructureShape and validates with no findings (a rank-2 A₂ system, not the E8 fingerprint, so the E8 value gate stays inert)." .
+
 ex:ecLieMissingRootSystem a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/lie-group-missing-root-system.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
@@ -173,6 +178,11 @@ ex:ecE8WrongWeylOrder a gmeow:ExampleConformance ;
     gmeow:conformanceRationale "The counter-example carries the E8 fingerprint (240 roots, rank 8) but declares a math:weylGroup of math:groupOrder 696729599 instead of 696729600 (the SPARQL constraint of math:E8WeylOrderShape), so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (math:WrongE8WeylOrder). The root system and Weyl group are otherwise complete, isolating the wrong-value violation — the flagship invariant is checked by value." .
 
 # === Rule 13: a homomorphic-encryption scheme declares op + hardness + noise = #
+
+ex:ecHeSchemeComplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/he-scheme-complete.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:HomomorphicEncryptionScheme declaring math:homomorphicOver, math:securityAssumption, math:noiseModel, and — as a math:RingHomomorphism — math:preservedOperation and a resource-valued math:preservationLaw satisfies math:HomomorphicEncryptionSchemeShape, math:HomomorphismShape, and math:PreservationLawShape and validates with no findings." .
 
 ex:ecHeMissingNoiseModel a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/he-scheme-missing-noise-model.ttl" ;
