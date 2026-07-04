@@ -38,7 +38,7 @@ preserve deterministic output, prefer Rust-native data/dispatch/ownership
 changes over compiler-flag churn, and keep the existing debug-assertion,
 overflow-check, no-debug-symbol, and `nemo` build-memory contracts intact.
 
-### The CLI razor — `gmeow` vs `gmeow-dev` (#517)
+### The CLI razor — `gmeow` vs `gmeow-dev`
 
 There are two CLIs, and a single razor decides where a command belongs:
 
@@ -70,9 +70,9 @@ the bundle from canonical sources afterward.
 ```bash
 make validate        # Validate Turtle syntax, term annotations, and SHACL
 make validate-gts    # Validate generated/dist/gmeow.gts
-make regenerate      # Rebuild ALL committed generated artifacts (the #279 registry; parallel by default)
+make regenerate # Rebuild ALL committed generated artifacts (the registry; parallel by default)
 make check-generated # Drift + orphan + internal-tag-leak check for every registered generator (parallel by default)
-make constitution-check # Every principle has live enforcement (governance/constitution.ttl, #280)
+make constitution-check # Every principle has live enforcement (governance/constitution.ttl)
 make crate-check     # Verify Rust crate layering and acyclic crate DAGs
 make wikidata        # Validate Wikidata QID/PID syntax in the mappings (offline)
 make coverage        # Gate vendored entity-slice class and predicate coverage
@@ -82,13 +82,13 @@ make doc-lint        # Lint ontology-docs for dangling links and coverage gaps
 ```
 
 The per-artifact `compile-*` commands were replaced by the unified generator
-registry (#279): every committed artifact under `generated/` is produced by a
+registry: every committed artifact under `generated/` is produced by a
 registered generator with staging, source-hash banners, drift detection,
 orphan detection, and the internal-tag leak gate (no `@x-gmeow-*` tag may
 appear in a generated artifact; the statements compilation — the canonical
 internal form — is the sole opt-out).
 
-#### Annotation-completeness gate (issue #221)
+#### Annotation-completeness gate
 
 `make validate` enforces that **every** GMEOW-namespaced term carries three
 annotation properties:
@@ -195,7 +195,7 @@ make maint-evals-score              # Score committed model emissions
 make maint-compliance-report-full   # Full compliance-report emission
 ```
 
-#### Snapshot goldens (insta, T8 #789)
+#### Snapshot goldens (insta, T8)
 
 The Rust suite pins large structured outputs — the logic projection back-ends,
 the diagnostics/SARIF renderers, and the explanation prose — with
@@ -219,13 +219,13 @@ snapshot you have not inspected, and never leave a `*.snap.new` uncommitted. The
 parity stays with the native `crates/conformance` harness (graph-isomorphism +
 bless), which insta does not replace.
 
-#### Suite quality & the gate-perf budget (benchmarks / coverage / mutation, T9 #790)
+#### Suite quality & the gate-perf budget (benchmarks / coverage / mutation, T9)
 
 The **always-on hard gate is `make rust-test`** (plus `make check`). Benchmarks,
 coverage, and mutation testing are SLOW and **report-only** — they run **off the
 required PR path**, scheduled + `workflow_dispatch` in
 [`.github/workflows/suite-quality.yml`](./.github/workflows/suite-quality.yml),
-exactly like the nightly fuzz job (#788) and the HermiT oracle. Keeping slow
+exactly like the nightly fuzz job and the HermiT oracle. Keeping slow
 tools off-gate IS the documented **gate-perf budget**: nothing here can block a
 PR, so the required lane stays fast.
 
@@ -234,7 +234,7 @@ make bench           # criterion hot-path benchmarks (host-tuned target-cpu=nati
                      #   reasoning (reason_all/el_closure/materialize_core), SHACL
                      #   validate, RDF layout, foundation chase, …
 make bench-compare   # report-only perf scoreboard: live criterion run vs committed
-                     #   bench/baseline.json (ok|watch|regressed; always exits 0, #668).
+                     # bench/baseline.json (ok|watch|regressed; always exits 0).
                      #   maint-bench-baseline refreshes the committed baseline + leaderboard.
 make rust-coverage   # cargo-llvm-cov region coverage (lcov + HTML, --include-ffi); report-only.
                      #   Named NOT `coverage` — that is the Python entity-coverage gate.
@@ -244,7 +244,7 @@ make mutants         # cargo-mutants over the logic+validate cores (mutants.toml
 ```
 
 A surviving mutant is a real test-strength gap: kill it by strengthening a test
-(see the `constitution.rs` `literal_i64`/`literal_string` tests added in #790),
+(see the `constitution.rs` `literal_i64`/`literal_string` tests added),
 or document why it is acceptable. Coverage/mutation/bench numbers are *evidence
 to act on*, never a fabricated metric — report exactly what ran.
 
@@ -253,7 +253,7 @@ For optimization doctrine beyond the report-only benchmark commands, see
 guide for static iterator seams, dense typed IDs, const generics/type-state,
 targeted SIMD, sealed traits, deterministic output, and Cargo profile changes.
 
-#### The 25 s per-test budget (#1045)
+#### The 25 s per-test budget
 
 **Every test on the always-on gate must complete under 25 s of real wall time.**
 The policy is *enforced*, not advisory: `make rust-test` / `make rust-gate` (and the
@@ -276,7 +276,7 @@ stay in the normal gate, even when they were first discovered during
 is justified by an inline comment there. Adding a new off-gate exception requires
 a comment in that filter AND a one-line entry here.
 
-Default off-gate groups (reevaluated 2026-06-29, #1045): `gmeow-validate`
+Default off-gate groups (reevaluated 2026-06-29): `gmeow-validate`
 `deep_surfaces_entailed_inconsistency_tier1_misses_heavy_offgate` (30.705 s
 locally in `make maint-rust-heavy`; the consumer `gmeow validate --deep` AC1
 reasons over user data merged with the whole bundled TBox via the native Nemo
@@ -390,7 +390,7 @@ Statement compilation runs inside `gmeow regenerate` (the `statements` generator
 
 * **Canonical input**: all Turtle files under [dsl/statements/](./dsl/statements/), plus the DSL vocabulary in [dsl/statements/vocabulary.ttl](./dsl/statements/vocabulary.ttl).
 * **Generated outputs**:
-  * `generated/statements/gmeow.rdf12.ttl` — RDF 1.2 / RDF* lead artifact, written natively by the `gmeow-rdf` Rust codec (`gmeow_rdf.project_statements_rdf12`); no Java, no Docker, no SPARQL engine (#667). rdflib cannot parse RDF 1.2 triple terms, so the native codec also supplies the OWL normal form for the round-trip check.
+  * `generated/statements/gmeow.rdf12.ttl` — RDF 1.2 / RDF* lead artifact, written natively by the `gmeow-rdf` Rust codec (`gmeow_rdf.project_statements_rdf12`); no Java, no Docker, no SPARQL engine. rdflib cannot parse RDF 1.2 triple terms, so the native codec also supplies the OWL normal form for the round-trip check.
   * `generated/statements/gmeow-statements.owl.ttl` — OWL 2 axiom-annotation downcast consumed by OWL 2 DL reasoners.
 * **Important behavior**: the DSL is plain Turtle that structurally mirrors RDF 1.2 reifying statements. The compiler emits the OWL form, projects it to RDF 1.2 natively with `gmeow-rdf`, then normalizes the RDF 1.2 form back to OWL and requires graph isomorphism before writing. Apache Jena re-reads the committed artifact only in the non-required `classic-cross-check` oracle lane.
 * **Drift check**: `make check-generated` performs the registered-generator check and fails if committed statement artifacts are stale.
@@ -419,9 +419,9 @@ If you are an agent trying to look up terms, resolve definitions, or discover vo
 
 ## 4. Directory Layout
 
-**The one rule (#287):** if a path is under `generated/`, a registered generator owns it and you never edit it; if it is under `dist/`, it is ephemeral and never committed; anything else is authored by a human.
+**The one rule:** if a path is under `generated/`, a registered generator owns it and you never edit it; if it is under `dist/`, it is ephemeral and never committed; anything else is authored by a human.
 
-**Exception (#440):** `ontology-docs/` at the repository root is a committed generated artifact owned by the `ontology-docs` registered generator. It lives outside `generated/` so it can be hosted directly (e.g. GitHub Pages). The same generator code rebuilds the site independently inside the `gts` generator and embeds it in `generated/dist/gmeow.gts`, so the offline snapshot does not depend on the committed `ontology-docs/` directory.
+**Exception:** `ontology-docs/` at the repository root is a committed generated artifact owned by the `ontology-docs` registered generator. It lives outside `generated/` so it can be hosted directly (e.g. GitHub Pages). The same generator code rebuilds the site independently inside the `gts` generator and embeds it in `generated/dist/gmeow.gts`, so the offline snapshot does not depend on the committed `ontology-docs/` directory.
 
 ```text
 slices/<group>/<name>/   # THE unit of the ontology: a slice. The <group> segment
@@ -431,7 +431,7 @@ slices/<group>/<name>/   # THE unit of the ontology: a slice. The <group> segmen
                          #   manifest.ttl, module.ttl, shapes.ttl, mappings/,
                          #   queries/, examples/, tests/, docs.md
 slices/vocabulary.ttl    # The slice-manifest authoring vocabulary (spec layer)
-ontology/gmeow.ttl       # Root ontology = the CORE profile (generated imports, #330)
+ontology/gmeow.ttl # Root ontology = the CORE profile (generated imports)
 dsl/mappings/            # Mapping DSL: vocabulary, foundational bridge, per-target
                          #   projections, shared equivalences, transforms.fno.ttl
 dsl/statements/          # Statement DSL (canonical RDF 1.2 statement metadata)
