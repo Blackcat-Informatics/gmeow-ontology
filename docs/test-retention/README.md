@@ -58,6 +58,13 @@ Removed because a Rust artifact already asserts the same behavior:
 - `test_diagnostics_config` → `crates/cli-core/tests/diagnostics_config.rs`
   (resolved diagnostics output policy: console mode, artifact kinds, directory,
   stem, category, with flag > env > default precedence).
+- `test_constitution` → `crates/validate/tests/constitution.rs` (all 16 cases:
+  granular codes, real-manifest pass, principle/heading sync, P18 RDF-1.2
+  enforcement, honor-system visibility, and every failure mode the gate exists
+  to catch: zero enforcement, stale artifact/symbol/make-target/CLI, orphaned
+  enforcement, title drift, undeclared enforcement, practice-only warning,
+  supersession/extends drift). The manifest parser data model is subsumed by
+  `gmeow_validate::constitution::{Principle, Enforcement, collect_principles}`.
 - `test_mcp_server`, `test_mcp_server_consumer`, `test_mcp_memory`: the MCP
   read-surface, stdio server loop, startup-lang validation, and grounded-memory
   triad are Rust — `crates/pipeline/src/mcp.rs` plus `export.rs`, asserted by
