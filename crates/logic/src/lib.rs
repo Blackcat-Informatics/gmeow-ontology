@@ -26,14 +26,14 @@ pub mod entrenchment;
 pub mod explain;
 pub mod foundation;
 // Runtime-side projection of compiler parse diagnostics into the PyO3-tainted
-// gmeow-diagnostics Report (#732/#856) — kept out of the wasm-able compiler crate.
+// gmeow-diagnostics Report — kept out of the wasm-able compiler crate.
 pub mod logic_diagnostics;
-// Compiler-IR → runtime EvalRule bridge (#732): depends on crate::rule_ir (Nemo),
+// Compiler-IR → runtime EvalRule bridge: depends on crate::rule_ir (Nemo),
 // so it stays in the runtime crate, not the wasm-able gmeow-logic-compile crate.
 pub mod lower;
 pub mod materialize;
 pub mod obligations;
-// Path-projection runtime tests (#732): they run the projected Datalog through
+// Path-projection runtime tests: they run the projected Datalog through
 // crate::rule_ir (Nemo), so they live runtime-side as an in-crate test module.
 #[cfg(test)]
 mod path_projection_tests;
@@ -77,7 +77,7 @@ pub use wellfounded::{WELL_FOUNDED_ITERATED_PHASE, WELL_FOUNDED_PHASES};
 pub mod py;
 
 // Re-export the module-registration entrypoint so the unified `gmeow_native`
-// cdylib can populate the `gmeow_native.logic` submodule (#630).
+// cdylib can populate the `gmeow_native.logic` submodule.
 #[cfg(feature = "python")]
 pub use py::register;
 

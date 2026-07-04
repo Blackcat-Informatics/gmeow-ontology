@@ -3,7 +3,7 @@
 
 //! PyO3 Python bindings for `gmeow-logic`.
 //!
-//! # Nemo wire-up (issue #501 Task 4)
+//! # Nemo wire-up (Task 4)
 //!
 //! `materialize` drives the full Nemo chase WITH real proof-trace provenance. The
 //! engine pipeline itself — parse N-Quads → encode Nemo facts → run the chase →
@@ -12,7 +12,7 @@
 //! This module keeps only the PyO3 marshalling shell:
 //!
 //! 1. Short-circuit empty input to an empty result.
-//! 2. Route non-stratifiable rule sets to the native evaluators (issue #651).
+//! 2. Route non-stratifiable rule sets to the native evaluators.
 //! 3. Delegate to [`crate::materialize::materialize_core`] off the GIL.
 //! 4. Serialize the resulting `DerivedQuad`s to Python dicts.
 //!
@@ -143,7 +143,7 @@ fn derived_quad_to_dict(py: Python<'_>, dq: &DerivedQuad) -> PyResult<Py<PyAny>>
 /// An empty (or whitespace-only) `input` returns `{"quads": [], "preservation":
 /// {exact}}` immediately without invoking the chase.
 ///
-/// # Budget governor (issue #502)
+/// # Budget governor
 ///
 /// The optional `max_rule_firings`, `max_answers`, and `time_ms` parameters bound
 /// the run. Asserted **EDB input facts are always kept in full** — a budget never
@@ -170,8 +170,8 @@ fn derived_quad_to_dict(py: Python<'_>, dq: &DerivedQuad) -> PyResult<Py<PyAny>>
 ///
 /// When a ceiling trips, kept rows are a **sound subset** of the full fixpoint —
 /// a prefix of the canonical (graph, S, P, O) sort — never fabricated. With all
-/// three parameters `None` (the default), the output is **byte-identical to
-/// pre-#502**: every quad keeps `budget_status = "ok"` and the chase-order output
+/// three parameters `None` (the default), the output is **byte-identical to the pre-existing behavior**:
+/// every quad keeps `budget_status = "ok"` and the chase-order output
 /// is preserved unchanged.
 ///
 /// # Errors
@@ -278,7 +278,7 @@ fn certify(py: Python<'_>, rules: &str, profile: &str) -> PyResult<Py<PyAny>> {
 
 // ── query ───────────────────────────────────────────────────────────────────
 
-/// Resolve a `.logic` backward goal over a materialized world (issue #504, v4).
+/// Resolve a `.logic` backward goal over a materialized world (v4).
 ///
 /// This is the AC-1/AC-2 engine surface: it loads the materialized EDB, parses the
 /// `.logic` query program (rules + goal), enforces the cut/profile gate, and routes
@@ -293,7 +293,7 @@ fn certify(py: Python<'_>, rules: &str, profile: &str) -> PyResult<Py<PyAny>> {
 ///   exactly one `?- goal.`).
 /// - `profile` — the semantic profile in force (bare name or IRI). Cut is permitted
 ///   ONLY under `ProceduralPrologProfile`; otherwise this raises `ValueError`. Under
-///   `ProbabilisticProfile` (#506) the goal is resolved by weighted model counting and
+///   `ProbabilisticProfile` the goal is resolved by weighted model counting and
 ///   each binding carries a `probability` (see [`crate::probabilistic`]).
 /// - `world_iri` — which world to resolve against. If `None`, the store must contain
 ///   exactly one named graph (auto-selected); otherwise this is an error.
@@ -349,7 +349,7 @@ fn query(
     // 3. Parse the query program (rules + goal).
     let program = parse_query_program(query_program).map_err(value_err)?;
 
-    // 3b. Probabilistic profile (#506, v6): marginal inference by weighted model
+    // 3b. Probabilistic profile (v6): marginal inference by weighted model
     //     counting routes here instead of the backward-goal dispatcher. Each binding
     //     carries a `probability`; this is the ONLY path that emits that key, so
     //     non-probabilistic answers stay byte-identical. confidence/weight/evidence
@@ -379,7 +379,7 @@ fn query(
     // 4. Build the read-only EDB accessor for this world.
     let foreign = WorldStoreForeign::from_world(&store, &world, profile).map_err(value_err)?;
 
-    // 5. Dispatch. A Stratum-C counterfactual program (#505) routes through
+    // 5. Dispatch. A Stratum-C counterfactual program routes through
     //    transient world construction; a plain v4 backward goal runs against the
     //    materialized world via the cut/profile-gated dispatcher.
     let budget = Budget {
@@ -438,11 +438,11 @@ fn query(
 
 // ── foundation ──────────────────────────────────────────────────────────────────
 
-/// Evaluate the OntoUML *foundation* disciplines natively (issue #636).
+/// Evaluate the OntoUML *foundation* disciplines natively.
 ///
-/// Native canonical evaluator for the OntoUML *foundation* disciplines (issue #636).
+/// Native canonical evaluator for the OntoUML *foundation* disciplines.
 /// (The Python foundation oracle — `logic_foundation.py` plus the `enable_naf`
-/// materializer path of `logic_materialize.py` — was retired in #636/#497.)  Parses
+/// materializer path of `logic_materialize.py` — was retired.) Parses
 /// `input` N-Quads into a world-indexed [`WorldStore`] (named graphs = worlds),
 /// runs the stratified semi-naive chase plus the cross-world rigidity and
 /// anti-rigidity post-passes, and returns the asserted + derived quads as Python
@@ -517,12 +517,12 @@ fn foundation(
     Ok(out)
 }
 
-/// `explain(quads) -> list[dict]` — native explanation skeletons (issue #497).
+/// `explain(quads) -> list[dict]` — native explanation skeletons.
 ///
 /// Reconstructs the derivation tree for every quad in `quads` (one explanation per
 /// input quad, IN INPUT ORDER) and returns the cited-IRI skeleton — the conformance
 /// surface.  This is the canonical native explanation reconstruction; the Python
-/// explanation oracle (`logic_explain.py`) was retired in #497.  Prose rendering is
+/// explanation oracle (`logic_explain.py`) was retired.  Prose rendering is
 /// intentionally not reproduced (the runner compares only `cited_iris` and matches
 /// by `target_quad_reifier`).
 ///
@@ -556,7 +556,7 @@ fn explain(py: Python<'_>, quads: Vec<Bound<'_, PyDict>>) -> PyResult<Vec<Py<PyA
 /// Decode a list of materialize/explain quad dicts into [`crate::explain::Row`]s.
 ///
 /// This is the SINGLE decode path used by both the standalone `explain` pyfunction
-/// and the fused `materialize_explained` (issue #630): there is no second,
+/// and the fused `materialize_explained`: there is no second,
 /// divergent decoder.  Each dict carries `graph`, `subject`, `predicate`, `obj`
 /// (or `object`), `derivation_id`, `rule_iri`, and `source_quad_ids`.
 ///
@@ -635,7 +635,7 @@ fn bare_iri(term_surface: &str) -> String {
 /// [`crate::explain::Explanation`] to the Python dict shape the runner consumes.
 ///
 /// This is the SINGLE serialization path used by both `explain` and
-/// `materialize_explained` (issue #630).
+/// `materialize_explained`.
 fn explain_rows_to_dicts(py: Python<'_>, rows: &[crate::explain::Row]) -> PyResult<Vec<Py<PyAny>>> {
     let explanations = crate::explain::explain_all(rows)
         .map_err(|e| pyo3::exceptions::PyRuntimeError::new_err(format!("explain failed: {e}")))?;
@@ -676,7 +676,7 @@ fn explain_rows_to_dicts(py: Python<'_>, rows: &[crate::explain::Row]) -> PyResu
 
 // ── materialize_explained ─────────────────────────────────────────────────────
 
-/// Fuse `materialize` + `explain` into one native call (issue #630).
+/// Fuse `materialize` + `explain` into one native call.
 ///
 /// Runs the EXACT same chase as [`materialize`] and then the EXACT same
 /// explanation skeleton as [`explain`] over the in-memory derivation — with NO
@@ -764,7 +764,7 @@ fn materialize_explained<'py>(
 }
 
 /// `stable_models(rules, input) -> dict` — enumerate the stable models (answer
-/// sets) of a non-stratifiable program, per world (issue #651).
+/// sets) of a non-stratifiable program, per world.
 ///
 /// The cautious (skeptical) intersection of these models is what
 /// `materialize(..., profile="StableModelProfile")` emits as quads; this entry
@@ -819,17 +819,17 @@ fn stable_models(py: Python<'_>, rules: &str, input: &str) -> PyResult<Py<PyAny>
 /// Exposes:
 /// - `materialize(rules, input, max_rule_firings=None, max_answers=None, time_ms=None, profile=None)`
 /// - `materialize_explained(rules, input, …) -> {"quads": [...], "explanations": [...]}`
-///   — the fused chase+explain call (issue #630)
-/// - `foundation(input, anti_rigidity_policy=None) -> list[dict]` (issue #636)
-/// - `explain(quads) -> list[dict]` — cited-IRI explanation skeletons (issue #497)
+///   — the fused chase+explain call
+/// - `foundation(input, anti_rigidity_policy=None) -> list[dict]`
+/// - `explain(quads) -> list[dict]` — cited-IRI explanation skeletons
 /// - `certify(rules, profile) -> dict`
-/// - `stable_models(rules, input) -> dict` — answer sets per world (issue #651)
+/// - `stable_models(rules, input) -> dict` — answer sets per world
 /// - `query(world_nquads, query_program, profile, world_iri=None, max_answers=None, max_steps=None) -> dict`
-///   (under `ProbabilisticProfile` each binding carries a `probability`; #506)
+///   (under `ProbabilisticProfile` each binding carries a `probability`;)
 /// Compile a `logic:` RDF 1.2 source document (Turtle text) into all eight
-/// committed artifacts, in Rust (issue #664).  This is the sole compiler behind
+/// committed artifacts, in Rust.  This is the sole compiler behind
 /// the registered `LogicGenerator`; the Python `logic_frontend` +
-/// `logic_projections` pipeline it replaced was retired in #727.
+/// `logic_projections` pipeline it replaced was retired.
 ///
 /// Returns a dict keyed by artifact name (`owl_dl`, `owl_el`, `datalog`, `n3`,
 /// `gufo`, `canonical_rdf12`, `nemo`, `report`), each mapping to the serialized
@@ -845,7 +845,7 @@ fn compile_logic<'py>(py: Python<'py>, source_ttl: &str) -> PyResult<Bound<'py, 
         .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.0))?;
     let arts = compile_program(&program).map_err(pyo3::exceptions::PyValueError::new_err)?;
 
-    // Build the canonical diagnostics Report in Rust (#856): the parse diagnostics
+    // Build the canonical diagnostics Report in Rust: the parse diagnostics
     // become `logic-compile.<code>` findings here, in the core, not via a Python
     // dict→finding reshaper. Normalize before handing it over so the live report
     // (and any downstream content hash / render) is deterministic — mirroring
@@ -883,7 +883,7 @@ fn compile_logic<'py>(py: Python<'py>, source_ttl: &str) -> PyResult<Bound<'py, 
     // Per-shape property-path projections: each entry is a dict with
     // `shape_iri`, `property_path` (extended SPARQL path string), and
     // `datalog` (depth-bounded rule scheme for the native engine).
-    // Flows into gmeow.gts via the regenerate pipeline (#1010 / gap G1).
+    // Flows into gmeow.gts via the regenerate pipeline (gap G1).
     let path_projections_list = pyo3::types::PyList::empty(py);
     for pp in &arts.path_projections {
         let entry = PyDict::new(py);
@@ -893,7 +893,7 @@ fn compile_logic<'py>(py: Python<'py>, source_ttl: &str) -> PyResult<Bound<'py, 
         path_projections_list.append(entry)?;
     }
     out.set_item("path_projections", path_projections_list)?;
-    // The parse diagnostics as a live, normalized `gmeow_diagnostics` Report (#856),
+    // The parse diagnostics as a live, normalized `gmeow_diagnostics` Report,
     // not a `list[dict]`. The Python surface forwards it directly.
     out.set_item(
         "diagnostics_report",
@@ -950,7 +950,7 @@ fn ledger_row_to_dict(
     Ok(d.into_any().unbind())
 }
 
-/// Build the native↔oracle divergence ledger and classify every row (issue #666
+/// Build the native↔oracle divergence ledger and classify every row (
 /// Task 4 — the ENFORCED classic-cross-check lane).
 ///
 /// This is the PyO3 surface over the authoritative Rust comparison logic in
@@ -977,7 +977,7 @@ fn ledger_row_to_dict(
 /// - `rows` — `list[dict]`, each `{kind, category, subject, object, world, detail}`
 ///   where `kind` is one of `"Agree"`, `"NativeOnly"`, `"OracleOnly"`, `"DlGap"`.
 /// - `agree`, `native_only`, `oracle_only`, `dl_gap` — per-kind tallies (int).
-/// - `passed` (bool) — the **Rust-computed** strict enforcement verdict (#697
+/// - `passed` (bool) — the **Rust-computed** strict enforcement verdict (
 ///   criterion 3): `True` only with zero `NativeOnly`/`OracleOnly`/`DlGap` rows.
 ///   This is the single decision authority; Python surfaces it unchanged and does
 ///   NOT recompute it.
@@ -1039,7 +1039,7 @@ fn build_divergence_ledger(
     // corpus-divergence row group is empty here.
     let ledger = build_ledger(subsumption_rows, consistency_rows, gap_rows, Vec::new());
 
-    // The strict pass/fail DECISION is computed HERE, in Rust (#697 criterion 3) —
+    // The strict pass/fail DECISION is computed HERE, in Rust (criterion 3) —
     // never in Python. The thin Python `classic_cross_check.enforce()` wrapper only
     // surfaces this `passed` flag.
     let verdict = enforce(&ledger);
@@ -1222,7 +1222,7 @@ fn reason_native_to_dict<'py>(
         // A DL coverage gap is always an error: the native closure is incomplete
         // and any downstream gate relying on it may produce false negatives.
         // Severity is decided here in Rust; Python must read this field rather
-        // than hardcoding "error" (Python-retirement doctrine, issue #697 Gap E).
+        // than hardcoding "error" (Python-retirement doctrine, Gap E).
         d.set_item("severity", "error")?;
         gaps.append(d)?;
     }
@@ -1259,7 +1259,7 @@ fn reason_native_to_dict<'py>(
     Ok(out)
 }
 
-/// Run native OWL-2 reasoning over a `gmeow.gts` bundle (issue #665).
+/// Run native OWL-2 reasoning over a `gmeow.gts` bundle.
 ///
 /// Ingests the RDF-1.2-first GTS bundle through the concrete
 /// [`purrdf::RdfDataset`] import path, then runs
@@ -1282,7 +1282,7 @@ fn reason_native_to_dict<'py>(
 /// - `coverage` (`dict`): `{present, decided, unsupported}` construct lists
 /// - `gaps` (`list[dict]`): each `{code, message}` — native coverage defects
 /// - `status` (`dict`): the typed shared result's four orthogonal status fields
-///   `{input, evaluation, completeness, information}` (#768 ME2, canonical wire values)
+///   `{input, evaluation, completeness, information}` (ME2, canonical wire values)
 /// - `preservation` (`dict`): `{polarities, unsupported_constructs}`
 /// - `provenance` (`dict`): `{contract_hash, engine_name, engine_version, consumed_budget}`
 ///
@@ -1368,7 +1368,7 @@ fn reason_and_verify_native(
 // ── reason_native_artifacts ───────────────────────────────────────────────────
 
 /// Reason a `gmeow.gts` bundle ONCE and emit all three native RDF 1.2 Turtle
-/// artifacts (issue #666 Task 3).
+/// artifacts (Task 3).
 ///
 /// This is the single-call replacement for the retired Python emitters
 /// (`gmeow_tools.reason.build_inferred_closure_ttl` / `build_explanations_ttl` /
@@ -1390,7 +1390,7 @@ fn reason_and_verify_native(
 /// - `closure` — the told-vs-inferred inferred-closure Turtle.
 /// - `explanations` — the per-axiom proof-skeleton Turtle.
 /// - `ledger` — the native gap-zero DL/EL crosscheck ledger Turtle.
-/// - `result` — the typed `logic:ReasoningResult` + proof-certificate Turtle (#768).
+/// - `result` — the typed `logic:ReasoningResult` + proof-certificate Turtle.
 ///
 /// # Errors
 ///
@@ -1426,7 +1426,7 @@ fn reason_native_artifacts(py: Python<'_>, gts_bytes: &[u8], merge: bool) -> PyR
             build_inferred_closure_ttl(&result, merge_store).map_err(ArtifactsError::Reason)?;
         let explanations = build_explanations_ttl(&result).map_err(ArtifactsError::Reason)?;
         let ledger = build_dl_el_ledger_ttl(&result);
-        // The typed reasoning-result + proof-certificate artifact (#768), emitted
+        // The typed reasoning-result + proof-certificate artifact, emitted
         // unconditionally (single-path; the `merge` flag governs only the closure).
         let result_ttl = build_reasoning_result_ttl(&result);
         Ok((closure, explanations, ledger, result_ttl))
@@ -1448,7 +1448,7 @@ fn reason_native_artifacts(py: Python<'_>, gts_bytes: &[u8], merge: bool) -> PyR
 
 // ── rl_closure ─────────────────────────────────────────────────────────────────
 
-/// Compute the OWL 2 RL/RDF deductive closure of an RDF graph (issue #666 Task 5).
+/// Compute the OWL 2 RL/RDF deductive closure of an RDF graph (Task 5).
 ///
 /// This is the native, Docker/Java-free **primary** entailment authority that
 /// replaces the `owlrl` deductive-closure baseline the conversion suites called.
@@ -1473,7 +1473,7 @@ fn reason_native_artifacts(py: Python<'_>, gts_bytes: &[u8], merge: bool) -> PyR
 ///. Term
 /// rendering — skolem-IRI → blank-node, literal display, de-dup and sort — happens
 /// in Rust ([`crate::reason::rl::RlClosure::to_ntriples`]), so the reasoning path
-/// crosses the FFI boundary exactly once (issue #630; the Python helper no longer
+/// crosses the FFI boundary exactly once (; the Python helper no longer
 /// re-renders rows).
 ///
 /// # Errors
@@ -1504,7 +1504,7 @@ fn compute_rl_closure(py: Python<'_>, input: &str) -> PyResult<crate::reason::rl
 /// Compute the OWL 2 RL/RDF deductive closure and return it as an N-Triples string.
 ///
 /// The native, Docker/Java-free **primary** entailment authority that replaces the
-/// `owlrl` deductive-closure baseline (issue #666 Task 5). See the module note on
+/// `owlrl` deductive-closure baseline (Task 5). See the module note on
 /// [`compute_rl_closure`]; the full closure is rendered to a byte-stable N-Triples
 /// document in Rust. `input` is N-Quads or N-Triples (rdflib's
 /// `graph.serialize(format="nt"|"nquads")` feeds it directly).
@@ -1523,14 +1523,14 @@ fn rl_closure_nt(py: Python<'_>, input: &str) -> PyResult<String> {
 
 // ── verify_native ─────────────────────────────────────────────────────────────
 
-/// Run the native reasoned-graph verify over a `gmeow.gts` bundle (issue #695).
+/// Run the native reasoned-graph verify over a `gmeow.gts` bundle.
 ///
 /// Materializes the asserted graph (flattened) unioned with the native EL/DL
 /// derived edges, runs each `(name, sparql)` SELECT query over it, and returns
 /// the resulting diagnostics report as a **live `Report` pyclass** (not a JSON
 /// string). All bindings now share one `Report` type in the `gmeow_native`
 /// cdylib, so handing the live object back eliminates the serialize→`from_json`
-/// round-trip the Python caller used to pay (#630, #695).
+/// round-trip the Python caller used to pay.
 ///
 /// # Arguments
 ///
@@ -1583,7 +1583,7 @@ fn verify_native(
 
 // ── extract_module ──────────────────────────────────────────────────────────────
 
-/// Extract a syntactic-locality module (SLME) from a source ontology (issue #695).
+/// Extract a syntactic-locality module (SLME) from a source ontology.
 ///
 /// Native, Java/Docker-free replacement for the ROBOT `extract` shell-out. Computes
 /// a *module* of `ontology_ttl` around the seed signature `terms` using ⊥-/⊤-locality
@@ -1654,7 +1654,7 @@ fn extract_module(
 
 /// Register the `gmeow-logic` surface on a Python module.
 ///
-/// Called by the unified `gmeow_native` cdylib (#630) to populate the
+/// Called by the unified `gmeow_native` cdylib to populate the
 /// `gmeow_native.logic` submodule; the legacy `import gmeow_logic` name resolves
 /// to that same submodule object via a Python shim.
 pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {

@@ -55,7 +55,7 @@ const CATALOGUE: &str = "https://ontouml.readthedocs.io/en/latest/anti-patterns/
 const GUFO_NS: &str = "http://purl.org/nemo/gufo#";
 
 /// The canonical `logic:` namespace (`https://blackcatinformatics.ca/logic/`) —
-/// the authoritative sort surface that subsumes gUFO (#663/#694). Slices migrate
+/// the authoritative sort surface that subsumes gUFO. Slices migrate
 /// their stereotype authoring from `gufo:` to `logic:`; this validator accepts
 /// EITHER namespace so the per-slice migration can run incrementally with the
 /// foundation-conformance gate green at every step (some slices migrated, others
@@ -96,7 +96,7 @@ impl GufoConfig {
 }
 
 /// The endurant-type stereotypes (`_ENDURANT_STEREOTYPES`), accepted in both the
-/// `gufo:` and the canonical `logic:` namespace (#694).
+/// `gufo:` and the canonical `logic:` namespace.
 fn endurant_stereotypes() -> Vec<String> {
     [
         "Kind",
@@ -115,7 +115,7 @@ fn endurant_stereotypes() -> Vec<String> {
 
 /// The perdurant stereotypes (`_PERDURANT_STEREOTYPES`). gUFO authors
 /// `gufo:EventType`/`gufo:SituationType`; the canonical `logic:` form down-projects
-/// them to `logic:Event`/`logic:Situation` (#694).
+/// them to `logic:Event`/`logic:Situation`.
 fn perdurant_stereotypes() -> Vec<String> {
     vec![
         gufo("EventType"),
@@ -328,7 +328,7 @@ pub fn exactly_one_stereotype(ds: &RdfDataset, cfg: &GufoConfig) -> Vec<Finding>
 /// Kind; no Kind ⊑ Kind.
 pub fn identity_overlap(ds: &RdfDataset, cfg: &GufoConfig) -> Vec<Finding> {
     let meta = meta_classes();
-    // A Kind in either namespace (gufo:Kind or the canonical logic:Kind, #694).
+    // A Kind in either namespace (gufo:Kind or the canonical logic:Kind).
     let kinds: [String; 2] = dual("Kind");
     let is_kind = |s: &String| kinds.contains(s);
     let rigid = rigid_sortals();
@@ -684,7 +684,7 @@ fn collection_members(ds: &RdfDataset, head: TermId) -> HashSet<String> {
     out
 }
 
-/// **coequal_facet_orthogonality (P9 #281)** — co-equal facet axes stay
+/// **coequal_facet_orthogonality (P9)** — co-equal facet axes stay
 /// orthogonal.
 pub fn coequal_facet_orthogonality(ds: &RdfDataset, cfg: &GufoConfig) -> Vec<Finding> {
     let coequal = format!("{}coequalFacet", cfg.namespace);
@@ -884,7 +884,7 @@ fn bridged_pairs(ds: &RdfDataset, axes: &[String]) -> Vec<(String, String)> {
     out
 }
 
-/// **frame_declaration_completeness (P11 #283)** — frame-pointing property
+/// **frame_declaration_completeness (P11)** — frame-pointing property
 /// carrier classes declare `gmeow:requiresFrame`.
 pub fn frame_declaration_completeness(ds: &RdfDataset, cfg: &GufoConfig) -> Vec<Finding> {
     let has_frame = format!("{}hasReferenceFrame", cfg.namespace);
@@ -1183,7 +1183,7 @@ mod tests {
         assert!(reasoning_invariants(&store, &cfg()).is_empty());
     }
 
-    // ── logic: stereotype acceptance (#694 owl/gUFO → logic: migration) ────────
+    // ── logic: stereotype acceptance (owl/gUFO → logic: migration) ────────
 
     #[test]
     fn logic_kind_satisfies_stereotype_requirement() {

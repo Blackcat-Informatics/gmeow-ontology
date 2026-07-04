@@ -1,13 +1,13 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Baseline benchmark for the native reasoning hot path (T9, #790) — the headline
+//! Baseline benchmark for the native reasoning hot path (T9) — the headline
 //! "reasoning (materialize / native EL-DL)" workload that the existing benches
 //! (foundation chase, SHACL validate, RDF layout) did not cover.
 //!
 //! Three groups, each over a small + a larger synthetic input so a regression in
 //! either the constant factor or the scaling is visible:
-//! - `reason_all` — the native EL/DL/RL reasoner (#665/#686 authority): one Nemo
+//! - `reason_all` — the native EL/DL/RL reasoner (authority): one Nemo
 //!   chase yielding the subsumption closure + the consistency verdict, over a
 //!   `RdfDataset` class hierarchy (the same IR shape the PyO3 `reason_native`
 //!   seam drives).

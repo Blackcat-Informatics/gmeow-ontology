@@ -262,7 +262,7 @@ fn for_lang_dict(py: Python<'_>, site: &Site) -> PyResult<Py<PyAny>> {
 
 /// Register the `gmeow-docs` surface on a Python module.
 ///
-/// Called by the unified `gmeow_native` cdylib (#630) to populate the
+/// Called by the unified `gmeow_native` cdylib to populate the
 /// `gmeow_native.docs` submodule; the legacy `import gmeow_docs` name resolves
 /// to that same submodule object via a Python shim.
 pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {

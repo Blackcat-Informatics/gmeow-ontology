@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-//! Conformance twins migrated from tests/test_narrative_time.py (#867)
+//! Conformance twins migrated from tests/test_narrative_time.py
 //!
 //! Two SHACL-conformance tests from the narrative-time test module are ported
 //! here. The remaining tests (TBox membership, dynamic sweep, SPARQL competency

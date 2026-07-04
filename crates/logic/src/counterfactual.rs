@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Stratum-C counterfactual world construction (#505).
+//! Stratum-C counterfactual world construction.
 //!
 //! This is the **only generative, budgeted, possibly-incomplete** stratum of the
 //! logic engine. When a query carries a [`crate::query_ir::QCounterfactual`]
@@ -57,7 +57,7 @@ pub const SOLVER_VERSION: &str = concat!("gmeow-logic/", env!("CARGO_PKG_VERSION
 /// Status of a counterfactual resolution. A superset of [`BudgetStatus`] that adds
 /// the two Stratum-C-only outcomes.
 ///
-/// This is the **engine-internal** computation/aggregation enum (#768): the
+/// This is the **engine-internal** computation/aggregation enum: the
 /// per-world resolution and the `worst_status` Lewis fold track outcomes in this
 /// ordered 5-way form. The *public* answer status is the typed
 /// [`crate::result::ReasoningResult`] on [`CfAnswer`], folded from this via
@@ -81,7 +81,7 @@ pub(crate) enum CfStatus {
 impl CfStatus {
     /// Canonical lowercase serialization (the historical conformance answer string).
     /// Retained only for the [`cf_status_string`] round-trip cross-check (the public
-    /// status now projects from the typed result, #768).
+    /// status now projects from the typed result).
     #[cfg(test)]
     pub(crate) fn as_str(self) -> &'static str {
         match self {
@@ -103,14 +103,14 @@ impl CfStatus {
 }
 
 /// Fold the engine-internal [`CfStatus`] into the typed shared
-/// [`crate::result::ReasoningResult`] (#768) — the canonical answer status. The
+/// [`crate::result::ReasoningResult`] — the canonical answer status. The
 /// `BudgetLimit` discriminator keeps the fold lossless: `partial`/`exhausted`/
 /// `incomplete` all map to budget exhaustion of *different* budgets and are
 /// recovered exactly by [`cf_status_string`].
 ///
 /// `payload` carries the goal-variable bindings for the resolution path or an
 /// empty [`ResultPayload::Bindings`] for refusal/budget paths — never
-/// [`ResultPayload::Empty`], so the typed model is fully lossless (#768).
+/// [`ResultPayload::Empty`], so the typed model is fully lossless.
 /// `projection_class` mirrors `preservation` (same idiom as result.rs:821/:883).
 fn cf_result(
     status: CfStatus,
@@ -184,7 +184,7 @@ fn cf_result(
 /// Project a counterfactual [`ReasoningResult`] back to the byte-pinned
 /// conformance answer string (`ok`/`partial`/`exhausted`/`unknown`/`incomplete`).
 /// The lossless inverse of [`cf_result`] (round-trip cross-checked in the tests),
-/// so the cross-engine corpus is unchanged (#768).
+/// so the cross-engine corpus is unchanged.
 pub fn cf_status_string(result: &ReasoningResult) -> &'static str {
     use crate::result::{BudgetLimit, CompletenessStatus, EvaluationStatus};
     // A revision tie surfaces as completeness=unknown.
@@ -206,7 +206,7 @@ pub fn cf_status_string(result: &ReasoningResult) -> &'static str {
 pub struct CfAnswer {
     /// Goal-variable bindings (empty for `unknown`/`incomplete`/no-match).
     pub bindings: Vec<Binding>,
-    /// The typed shared result status (#768) — the canonical answer status. The
+    /// The typed shared result status — the canonical answer status. The
     /// historical string projects from it via [`cf_status_string`].
     pub result: ReasoningResult,
     /// The constructed world IRI `W_cf` (bare IRI), for provenance/inspection.
@@ -973,7 +973,7 @@ mod tests {
     #[test]
     fn cf_status_string_round_trips_every_cfstatus() {
         // The typed ReasoningResult is a lossless carrier: projecting it back
-        // reproduces the byte-pinned conformance string exactly (#768), so the
+        // reproduces the byte-pinned conformance string exactly, so the
         // cross-engine corpus is unchanged.
         for s in [
             CfStatus::Ok,

@@ -8,7 +8,7 @@ JS/Go port — implements one adapter, and the runner diff-compares each output 
 `expected/` files. Identical-files-or-red-build is what makes "oracle ≡ engine" (Principle 7) a
 machine-checked guarantee rather than a hope.
 
-> **Status: live (native).** Since #785 the runner is the **native Rust
+> **Status: live (native).** Since the runner is the **native Rust
 > `gmeow-conformance` datatest harness** (`crates/conformance`), run via `cargo nextest run -p
 > gmeow-conformance` (wired to `make conformance`, and run automatically by the workspace
 > `cargo nextest` in CI / `make check`). It drives the `gmeow_logic` engine cores directly —

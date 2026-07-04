@@ -5,7 +5,7 @@ SPDX-License-Identifier: CC-BY-4.0
 
 # profiles/probabilistic-no-model
 
-**Acceptance criterion (#506):** probabilistic inference **requires** a declared
+**Acceptance criterion:** probabilistic inference **requires** a declared
 independence/dependency model — without one it refuses.
 
 A probabilistic fact (`rain = 0.5`) is declared, but the program declares **no**

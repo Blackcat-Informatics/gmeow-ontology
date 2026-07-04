@@ -78,7 +78,7 @@ CHECK_TARGETS := lint rust-gate validate check-generated constitution-check \
 	lint-alignment doc-lint coherence-gate-teeth
 
 .PHONY: help \
-	install fmt lint \
+	install fmt lint lint-issue-refs \
 	native-py native-py-wheel native-py-install validate validate-gts reason verify reason-verify test test-fast rust-build rust-test rust-docs check \
 	regenerate fanout check-generated commit docs normalize build project release release-sign-gts full-release verify-release release-publish clean \
 	mappings wikidata coverage acceptance crossref audit \
@@ -109,7 +109,10 @@ install: ## Sync the uv environment, build the Rust CLIs, and configure repo-loc
 fmt: ## Rewrite Python formatting with ruff.
 	uv run ruff format .
 
-lint: ## Run ruff, mypy, and the full pre-commit hygiene suite.
+lint-issue-refs: ## Reject issue/PR number references in Rust comments and Markdown docs.
+	./scripts/lint-issue-refs.sh
+
+lint: lint-issue-refs ## Run ruff, mypy, issue-ref lint, and the full pre-commit hygiene suite.
 	uv run ruff check .
 	uv run ruff format --check .
 	uv run mypy

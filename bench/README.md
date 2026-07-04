@@ -1,7 +1,7 @@
 <!-- SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca> -->
 <!-- SPDX-License-Identifier: CC-BY-4.0 -->
 
-# `bench/` — the committed perf reference run (#668)
+# `bench/` — the committed perf reference run
 
 `baseline.json` is the **committed reference run**: a flattened snapshot of a
 criterion benchmark pass, one entry per `"<group>/<bench>"` with its `mean_ns`

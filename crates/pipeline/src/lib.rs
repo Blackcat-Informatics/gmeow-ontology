@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! `gmeow-pipeline` — the DAG-driven single-pass build executor (#861).
+//! `gmeow-pipeline` — the DAG-driven single-pass build executor.
 //!
 //! The build is a directed acyclic graph of typed [`Stage`]s that exchange an
 //! in-memory RDF dataset / bundle instead of re-parsing `gmeow.gts` per
