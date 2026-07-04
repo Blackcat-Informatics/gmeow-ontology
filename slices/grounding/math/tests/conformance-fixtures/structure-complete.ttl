@@ -1,0 +1,15 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Well-formed: a math:Group declaring its carrier, operation, and an axiom it satisfies.
+# Conforms to math:AlgebraicStructureShape. Bound by ex:ecStructureComplete.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:completeGroup a math:Group ;
+    math:underlyingSet ex:carrier ;
+    math:structureOperation ex:op ;
+    math:satisfiesAxiom ex:associativityAxiom .
+
+ex:carrier a math:Set .
+ex:op a math:Operation .
