@@ -84,7 +84,12 @@ the **Frege triangle**, the **reified denotation record**, the **one-way bridge 
   lexeme or form through `lang:senseOf` and evokes a `lang:LexicalConcept` (a synset) through
   `lang:evokes`, so synonymy is derived, not asserted flat. Sense-to-sense relations (hypernymy,
   meronymy) are **reasoned in `logic:`** over the `logic:Type` a sense denotes — GMEOW's own engine,
-  a single source of truth — never a second is-a graph forked inside `lang:`.
+  a single source of truth — never a second is-a graph forked inside `lang:`. Where a taxonomic
+  relation is worth recording explicitly, `lang:SenseRelation` (its kind named by
+  `lang:senseRelationKind`, only `lang:hypernymy`/`lang:hyponymy` minted) reifies it as
+  **correspondence-only provenance** — sourced and vantage-holdable — while the subsumption itself
+  still recovers as `logic:` over the denoted `logic:Type`; no gate, query, or reasoner reads
+  `lang:senseRelationKind` as the subsumption source.
 - **The denotation record.** A `lang:Denotation` is a reified record (the Peircean triad made
   structural), never a bare edge: it names its form (`lang:denotedForm`, above the byte level), its
   kind (`lang:denotationKind`), its target (`lang:denotationTarget`), and its context
@@ -118,6 +123,16 @@ the **Frege triangle**, the **reified denotation record**, the **one-way bridge 
 | An indexical denotation names its anchor | `lang:IndexicalAnchoredShape` | `lang:UnanchoredIndexical` |
 | Preference weights are confidences, not probabilities | `lang:ConfidenceNotProbabilityShape` | `lang:ConfidenceAsProbability` |
 | A compositional lowering declares its preservation | native Rust validator | `lang:UndeclaredLoweringStage` |
+
+Two rows above are enforced by a **native Rust validator** rather than a SHACL shape:
+`lang:SilentDisambiguation` and `lang:UndeclaredLoweringStage`. Both require reasoning SHACL
+cannot express cleanly — the first is a whole-dataset check that a resolved reading is backed
+somewhere by a vantage-held observation, the second a kind-derived stage-coverage check over the
+compositional program — so they run bundle-wide inside `structural_lint_dataset`
+(`crates/validate/src/lint.rs`) alongside the one-way-bridge acyclicity check. Their negative
+fixtures accordingly live inline in that crate's Rust tests, not as `example-conformance.ttl`
+cells; the nine SHACL rules keep their fixture cells. The split is intentional: each gate lives
+where the invariant it enforces can actually be stated.
 
 ## Competency
 

@@ -36,6 +36,14 @@ Core properties: `lang:senseOf`, `lang:denotedForm`, `lang:denotationTarget`,
 `lang:communicativeForce`, and `lang:aboutReading` (the reading-correctness claim's subject, a
 sub-property of `gmeow:observedFeature`).
 
+Two structural markers back the well-formedness gates that make the rules below decidable.
+`lang:isIndexical` (a `xsd:boolean` on a denotation) *declares* — rather than infers — that a
+denotation's referent varies with a `lang:IndexicalAnchor`, so an indexical denotation whose act
+names no anchor is ill-formed. `lang:resolvedReading` names the single reading an interpretation
+act selects as canonical; selecting a winner is lawful only when a vantage-held observation
+(`lang:aboutReading` with `gmeow:vantage`) grounds it — an act that resolves with no such
+observation has silently disambiguated. Both are declared like the analysis level, never guessed.
+
 The triangle's three corners have three different identity criteria, which is why they are three
 disjoint kinds and not one node with three labels:
 
