@@ -38,7 +38,8 @@ exa:integerRing a math:CommutativeRing ;
     rdfs:label "(ℤ, +, ·) — the ring of integers"@x-gmeow-english ;
     math:underlyingSet exa:integerSet ;
     math:structureOperation exa:plus , exa:times ;
-    math:satisfiesAxiom exa:associativity , exa:commutativity , exa:leftDistributivity .
+    math:satisfiesAxiom exa:associativity , exa:commutativity , exa:leftDistributivity ;
+    math:satisfiesDistributivity exa:leftDistributivity .
 
 exa:times a math:Operation ;
     rdfs:label "· (integer multiplication)"@x-gmeow-english .

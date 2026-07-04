@@ -76,6 +76,7 @@ subclasses), so a violation is itself a typed, queryable object, not a log line.
 | Rule | Primary gate | Failure class |
 |---|---|---|
 | An algebraic structure declares its underlying set, operation, and axioms | SHACL Core | `math:IncompleteAlgebraicStructure` |
+| A ring declares the distributivity law tying its two operations together | SHACL Core | `math:NonDistributiveRing` |
 | A homomorphism declares its preserved operation and preservation law | SHACL Core | `math:UnderspecifiedHomomorphism` |
 | A preservation law denotes a `logic:` formula, not a string | SHACL Core | `math:StringOnlyPreservationLaw` |
 | A Lie group declares its root system | SHACL Core | `math:IncompleteLieStructure` |

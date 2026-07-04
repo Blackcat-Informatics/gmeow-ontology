@@ -179,3 +179,16 @@ ex:ecHeMissingNoiseModel a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
     gmeow:conformanceRationale "The counter-example omits math:noiseModel on a math:HomomorphicEncryptionScheme (sh:minCount 1 on math:HomomorphicEncryptionSchemeShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UnderspecifiedEncryptionScheme). It declares math:preservedOperation, math:homomorphicOver, math:preservationLaw, and math:securityAssumption so the homomorphism and hardness gates are satisfied, isolating the noise-model violation." .
+
+# === Rule 14: a ring declares the distributivity law tying its two operations = #
+
+ex:ecRingDistributive a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/ring-distributive.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:Ring declaring math:satisfiesDistributivity (the distributivity law) alongside its carrier, operations, and an axiom satisfies math:RingDistributivityShape and math:AlgebraicStructureShape and validates with no findings." .
+
+ex:ecRingMissingDistributivity a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/ring-missing-distributivity.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example omits math:satisfiesDistributivity on a math:Ring (sh:minCount 1 on math:RingDistributivityShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:NonDistributiveRing). It declares its carrier, both operations, and an axiom so the general math:AlgebraicStructureShape is satisfied, isolating the distributivity violation." .
