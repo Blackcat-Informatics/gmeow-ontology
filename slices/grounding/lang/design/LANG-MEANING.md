@@ -32,8 +32,9 @@ Core classes: `lang:Sense`, `lang:Denotation`, `lang:DenotationKind`, `lang:Read
 
 Core properties: `lang:senseOf`, `lang:denotedForm`, `lang:denotationTarget`,
 `lang:denotationKind`, `lang:denotationContext`, `lang:viaSense`, `lang:readingOf`,
-`lang:interpretedForm`, `lang:producedReading`, `lang:anchorsIndexical`, and
-`lang:communicativeForce`.
+`lang:denotation`, `lang:interpretedForm`, `lang:producedReading`, `lang:anchorsIndexical`,
+`lang:communicativeForce`, and `lang:aboutReading` (the reading-correctness claim's subject, a
+sub-property of `gmeow:observedFeature`).
 
 The triangle's three corners have three different identity criteria, which is why they are three
 disjoint kinds and not one node with three labels:
@@ -175,7 +176,7 @@ ex:readingDodge
 ex:obsPreferDodge
     a gmeow:Observation ;
     gmeow:vantage ex:annotatorVantage ;
-    gmeow:observationTarget ex:readingDodge .   # held preference, with confidence and method — not erasure of ex:readingBird
+    lang:aboutReading ex:readingDodge .   # held preference, with confidence and method — not erasure of ex:readingBird
 ```
 
 Both readings persist. The annotator's preference is a vantage-held observation *about* a reading,
