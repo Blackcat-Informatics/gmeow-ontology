@@ -1,0 +1,15 @@
+# Competency question: "In what mode does this series/sequence converge, and to what?"
+# This exercises the analysis discipline that a math:Series carries a math:Convergence
+# naming what it converges to (math:convergesTo) and the mode (math:convergenceMode) —
+# "it converges" is meaningless without the mode. Scoped to the fixture namespace so the
+# answer is exactly {geometricSeries → converges to seriesLimit, absolutely}.
+PREFIX math: <https://blackcatinformatics.ca/math/>
+
+SELECT ?series ?convergesTo ?mode WHERE {
+    ?series a math:Series ;
+            math:hasConvergence ?convergence .
+    ?convergence math:convergesTo ?convergesTo ;
+                 math:convergenceMode ?mode .
+    FILTER(STRSTARTS(STR(?series), "http://example.org/math/"))
+}
+ORDER BY ?series
