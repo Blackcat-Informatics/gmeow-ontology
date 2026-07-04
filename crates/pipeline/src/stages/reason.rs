@@ -191,11 +191,7 @@ impl ReasonStage {
             resources: vec![ENGINE_RESOURCE.to_string()],
             entities: vec![(
                 "stage-compile-logic".to_string(),
-                vec![
-                    crate::stages::compile_logic::GRAPH_CORRESPONDENCE.to_string(),
-                    crate::stages::compile_logic::GRAPH_LOGIC.to_string(),
-                    crate::stages::compile_logic::GRAPH_RELATIONAL_CORE.to_string(),
-                ],
+                crate::stages::compile_logic::object_level_entity_list(),
             )],
         }
     }

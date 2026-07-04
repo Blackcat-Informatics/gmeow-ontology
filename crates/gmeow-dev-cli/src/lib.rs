@@ -180,6 +180,9 @@ pub enum Commands {
     Reason {
         #[arg(long = "mode", default_value = "native")]
         mode: String,
+        /// Recompute the closure instead of reusing the shipped graph/reasoning verdict.
+        #[arg(long = "fresh")]
+        fresh: bool,
         #[arg(long = "merge")]
         merge: bool,
         #[arg(long = "reasoner", default_value = "ELK")]
@@ -199,6 +202,9 @@ pub enum Commands {
     Verify {
         #[arg(long = "mode", default_value = "native")]
         mode: String,
+        /// Recompute the closure instead of reusing the shipped graph/reasoning verdict.
+        #[arg(long = "fresh")]
+        fresh: bool,
         #[arg(long = "reasoner", default_value = "ELK")]
         reasoner: String,
         #[arg(long = "reasoned-input")]
@@ -209,6 +215,9 @@ pub enum Commands {
     /// Run native reasoning followed by reasoned-graph verify.
     #[command(name = "reason-verify")]
     ReasonVerify {
+        /// Recompute the closure instead of reusing the shipped graph/reasoning verdict.
+        #[arg(long = "fresh")]
+        fresh: bool,
         #[arg(long = "merge")]
         merge: bool,
         #[arg(long = "timings-json")]
@@ -653,16 +662,23 @@ pub fn run() -> i32 {
         }
         Commands::CrosscheckQueries => dev_gates::crosscheck_queries(),
         Commands::Reason {
-            mode, timings_json, ..
-        } => dev_reason::reason(&mode, timings_json.as_deref()),
+            mode,
+            fresh,
+            timings_json,
+            ..
+        } => dev_reason::reason(&mode, fresh, timings_json.as_deref()),
         Commands::Explain => dev_reason::explain(),
         Commands::Verify {
-            mode, timings_json, ..
-        } => dev_reason::verify(&mode, timings_json.as_deref()),
+            mode,
+            fresh,
+            timings_json,
+            ..
+        } => dev_reason::verify(&mode, fresh, timings_json.as_deref()),
         Commands::ReasonVerify {
+            fresh,
             merge: _,
             timings_json,
-        } => dev_reason::reason_verify(timings_json.as_deref()),
+        } => dev_reason::reason_verify(fresh, timings_json.as_deref()),
         Commands::Temporal {
             query,
             data,
