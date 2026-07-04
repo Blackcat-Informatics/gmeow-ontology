@@ -1,0 +1,15 @@
+# Competency question: "Which dimensioned expressions combine which operands, and of
+# what dimension?"  This is the positive-side view of the homogeneity gate: a
+# math:DimensionalExpression names the operands that must share one dimension through
+# math:homogeneousOperand, and each operand carries a math:hasDimension. Scoped to the
+# fixture namespace so the answer is exactly {totalEnergyExpr → operands kineticEnergyQ
+# and restEnergyQ, both of the energy dimension} — a homogeneous expression.
+PREFIX math: <https://blackcatinformatics.ca/math/>
+
+SELECT ?expression ?operand ?dimension WHERE {
+    ?expression a math:DimensionalExpression ;
+                math:homogeneousOperand ?operand .
+    ?operand math:hasDimension ?dimension .
+    FILTER(STRSTARTS(STR(?expression), "http://example.org/math/"))
+}
+ORDER BY ?expression ?operand

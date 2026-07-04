@@ -1,0 +1,11 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:DerivedDimensionShape: a math:DerivedDimension declaring no
+# math:baseDimensionExponent cell (sh:minCount 1), so validation MUST emit
+# shacl.MinCountConstraintComponent (and no other finding).
+# Bound by tests/example-conformance.ttl (ex:ecDerivedDimensionNoExponents).
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:emptyDimension a math:DerivedDimension .

@@ -1,0 +1,13 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Well-formed: a probability measure of total mass one on its space. Conforms to
+# math:ProbabilityMeasureShape (and math:MeasureShape). Bound by ex:ecProbabilityMassOne.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:fairCoin a math:ProbabilityMeasure ;
+    math:measureOn ex:space ;
+    math:totalMass 1 .
+
+ex:space a math:MeasurableSpace .

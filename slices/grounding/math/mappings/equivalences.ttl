@@ -560,3 +560,318 @@ gmeow:eqMathRlwe a gmeow:TermEquivalence ;
     gmeow:objectLabel "Ring Learning with Errors" ;
     gmeow:comment "math:ringLearningWithErrors is the RLWE hardness problem; wd:Q25303820 (Ring Learning with Errors) is the same concept. Identity, so skos:exactMatch." ;
     gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+# =========================================================================== #
+# Measure, integration, and dimension alignments
+#
+# Measure-theory and integration concepts anchor to Wikidata (the identity hub —
+# CC0). The quantity/unit/dimension grounding aligns to QUDT (CC-BY-4.0) for units,
+# quantity kinds, and dimension vectors, to the BIPM SI Digital Framework (D-SI PIDs,
+# CC-BY-3.0-IGO — the authoritative SI anchor, cited not re-minted), and to OM 2
+# (CC-BY-4.0 — align, don't spine). QUDT/D-SI/OM 2 objects are authored as full IRIs
+# by reference (the OEIS precedent): the alignment is a skos:*Match that copies no
+# axiom, so it is license-safe and needs no prefix registration. Every object IRI is
+# curl-validated: the Wikidata QIDs by label, the QUDT/D-SI IRIs by HTTP 200, and the
+# OM 2 entities by their resolvable /page/ view (the canonical /resource/ IRI is the
+# RDF identity the OM 2 server does not content-negotiate).
+# =========================================================================== #
+
+# --- Measure and integration → Wikidata (identity) ------------------------- #
+
+gmeow:eqMathMeasure a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:Measure ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q192276 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "measure" ;
+    gmeow:comment "math:Measure is the measure-theory measure — a countably-additive assignment of non-negative extended-real mass; wd:Q192276 (measure) is the same concept, a generalization of length, area, volume, and integral. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathMeasurableSpace a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:MeasurableSpace ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q3058218 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "measurable space" ;
+    gmeow:comment "math:MeasurableSpace is a set with a σ-algebra; wd:Q3058218 (measurable space) is the same pairing on which a measure can be defined. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathSigmaAlgebra a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:SigmaAlgebra ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q217357 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "sigma-algebra" ;
+    gmeow:comment "math:SigmaAlgebra is a collection of subsets closed under complement and countable union; wd:Q217357 (σ-algebra) is the same structure. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathLebesgueMeasure a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:LebesgueMeasure ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q827230 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "Lebesgue measure" ;
+    gmeow:comment "math:LebesgueMeasure is the translation-invariant length/area/volume measure on ℝⁿ; wd:Q827230 (Lebesgue measure) is the same measure. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathCountingMeasure a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:CountingMeasure ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q247204 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "counting measure" ;
+    gmeow:comment "math:CountingMeasure assigns to a set the number of its elements; wd:Q247204 (counting measure) is the same measure. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathProbabilityMeasure a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:ProbabilityMeasure ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q355020 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "probability measure" ;
+    gmeow:comment "math:ProbabilityMeasure is a measure of total mass one; wd:Q355020 (probability measure) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathMeasurableFunction a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:MeasurableFunction ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q516776 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "measurable function" ;
+    gmeow:comment "math:MeasurableFunction is a function under which the preimage of every measurable set is measurable; wd:Q516776 (measurable function) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathIntegral a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:Integral ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q80091 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "integral" ;
+    gmeow:comment "math:Integral is the first-class integral object ∫ f dμ; wd:Q80091 (integral) is the same operation of calculus. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathQuantityWd a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:Quantity ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q107715 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "physical quantity" ;
+    gmeow:comment "math:Quantity is the abstract dimensioned quantity (dimension + unit + magnitude); wd:Q107715 (physical quantity) is the close but not invertible physics counterpart. closeMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathDimensionless a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:Dimensionless ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q126818 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "dimensionless quantity" ;
+    gmeow:comment "math:Dimensionless is the identity of the dimension vector space (zero vector); wd:Q126818 (dimensionless quantity) is the close counterpart (a quantity of that dimension rather than the dimension itself). closeMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+# --- Quantity and dimension → QUDT (units spine, full IRIs by reference) ---- #
+
+gmeow:eqMathQuantityQudt a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:Quantity ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject <http://qudt.org/schema/qudt/Quantity> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "qudt:Quantity" ;
+    gmeow:comment "math:Quantity aligns to qudt:Quantity, QUDT's dimensioned quantity. closeMatch (QUDT is a units spine to align to, not to subsume — Principle 17). Full IRI by reference." ;
+    gmeow:sssomFile "gmeow-qudt.sssom.tsv" .
+
+gmeow:eqMathDimensionQudt a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:Dimension ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject <http://qudt.org/schema/qudt/QuantityKindDimensionVector> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "qudt:QuantityKindDimensionVector" ;
+    gmeow:comment "math:Dimension is an element of the ℚ-vector space over the SI base dimensions; qudt:QuantityKindDimensionVector is QUDT's dimension-vector concept — data, not a reasoned gate (GMEOW's differentiator). closeMatch, full IRI by reference." ;
+    gmeow:sssomFile "gmeow-qudt.sssom.tsv" .
+
+gmeow:eqMathLengthDimensionQudt a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:lengthDimension ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject <http://qudt.org/vocab/quantitykind/Length> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "quantitykind:Length" ;
+    gmeow:comment "math:lengthDimension (L) aligns to the QUDT quantity kind Length. closeMatch: a base dimension and the base quantity kind are close counterparts. Full IRI by reference." ;
+    gmeow:sssomFile "gmeow-qudt.sssom.tsv" .
+
+gmeow:eqMathMassDimensionQudt a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:massDimension ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject <http://qudt.org/vocab/quantitykind/Mass> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "quantitykind:Mass" ;
+    gmeow:comment "math:massDimension (M) aligns to the QUDT quantity kind Mass. closeMatch. Full IRI by reference." ;
+    gmeow:sssomFile "gmeow-qudt.sssom.tsv" .
+
+gmeow:eqMathTimeDimensionQudt a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:timeDimension ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject <http://qudt.org/vocab/quantitykind/Time> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "quantitykind:Time" ;
+    gmeow:comment "math:timeDimension (T) aligns to the QUDT quantity kind Time. closeMatch. Full IRI by reference." ;
+    gmeow:sssomFile "gmeow-qudt.sssom.tsv" .
+
+gmeow:eqMathCurrentDimensionQudt a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:electricCurrentDimension ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject <http://qudt.org/vocab/quantitykind/ElectricCurrent> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "quantitykind:ElectricCurrent" ;
+    gmeow:comment "math:electricCurrentDimension (I) aligns to the QUDT quantity kind ElectricCurrent. closeMatch. Full IRI by reference." ;
+    gmeow:sssomFile "gmeow-qudt.sssom.tsv" .
+
+gmeow:eqMathTemperatureDimensionQudt a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:temperatureDimension ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject <http://qudt.org/vocab/quantitykind/ThermodynamicTemperature> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "quantitykind:ThermodynamicTemperature" ;
+    gmeow:comment "math:temperatureDimension (Θ) aligns to the QUDT quantity kind ThermodynamicTemperature. closeMatch. Full IRI by reference." ;
+    gmeow:sssomFile "gmeow-qudt.sssom.tsv" .
+
+gmeow:eqMathAmountDimensionQudt a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:amountOfSubstanceDimension ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject <http://qudt.org/vocab/quantitykind/AmountOfSubstance> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "quantitykind:AmountOfSubstance" ;
+    gmeow:comment "math:amountOfSubstanceDimension (N) aligns to the QUDT quantity kind AmountOfSubstance. closeMatch. Full IRI by reference." ;
+    gmeow:sssomFile "gmeow-qudt.sssom.tsv" .
+
+gmeow:eqMathLuminousDimensionQudt a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:luminousIntensityDimension ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject <http://qudt.org/vocab/quantitykind/LuminousIntensity> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "quantitykind:LuminousIntensity" ;
+    gmeow:comment "math:luminousIntensityDimension (J) aligns to the QUDT quantity kind LuminousIntensity. closeMatch. Full IRI by reference." ;
+    gmeow:sssomFile "gmeow-qudt.sssom.tsv" .
+
+# --- Base dimensions → BIPM D-SI base-unit PIDs (realized-by-unit) ---------- #
+# A base dimension is realized by an SI base unit; the D-SI PID is the authoritative
+# SI anchor (cited, not re-minted). A dimension and its realizing unit are related,
+# not identical, so skos:relatedMatch.
+
+gmeow:eqMathLengthDimensionDsi a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:lengthDimension ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject <https://si-digital-framework.org/SI/units/metre> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "metre" ;
+    gmeow:comment "The length dimension L is realized by the SI base unit metre; the BIPM D-SI PID is the authoritative SI anchor. relatedMatch (dimension realized by unit), cited not re-minted." ;
+    gmeow:sssomFile "gmeow-dsi.sssom.tsv" .
+
+gmeow:eqMathMassDimensionDsi a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:massDimension ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject <https://si-digital-framework.org/SI/units/kilogram> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "kilogram" ;
+    gmeow:comment "The mass dimension M is realized by the SI base unit kilogram; the BIPM D-SI PID is the authoritative SI anchor. relatedMatch, cited not re-minted." ;
+    gmeow:sssomFile "gmeow-dsi.sssom.tsv" .
+
+gmeow:eqMathTimeDimensionDsi a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:timeDimension ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject <https://si-digital-framework.org/SI/units/second> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "second" ;
+    gmeow:comment "The time dimension T is realized by the SI base unit second; the BIPM D-SI PID is the authoritative SI anchor. relatedMatch, cited not re-minted." ;
+    gmeow:sssomFile "gmeow-dsi.sssom.tsv" .
+
+gmeow:eqMathCurrentDimensionDsi a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:electricCurrentDimension ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject <https://si-digital-framework.org/SI/units/ampere> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "ampere" ;
+    gmeow:comment "The electric-current dimension I is realized by the SI base unit ampere; the BIPM D-SI PID is the authoritative SI anchor. relatedMatch, cited not re-minted." ;
+    gmeow:sssomFile "gmeow-dsi.sssom.tsv" .
+
+gmeow:eqMathTemperatureDimensionDsi a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:temperatureDimension ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject <https://si-digital-framework.org/SI/units/kelvin> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "kelvin" ;
+    gmeow:comment "The thermodynamic-temperature dimension Θ is realized by the SI base unit kelvin; the BIPM D-SI PID is the authoritative SI anchor. relatedMatch, cited not re-minted." ;
+    gmeow:sssomFile "gmeow-dsi.sssom.tsv" .
+
+gmeow:eqMathAmountDimensionDsi a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:amountOfSubstanceDimension ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject <https://si-digital-framework.org/SI/units/mole> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "mole" ;
+    gmeow:comment "The amount-of-substance dimension N is realized by the SI base unit mole; the BIPM D-SI PID is the authoritative SI anchor. relatedMatch, cited not re-minted." ;
+    gmeow:sssomFile "gmeow-dsi.sssom.tsv" .
+
+gmeow:eqMathLuminousDimensionDsi a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:luminousIntensityDimension ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject <https://si-digital-framework.org/SI/units/candela> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "candela" ;
+    gmeow:comment "The luminous-intensity dimension J is realized by the SI base unit candela; the BIPM D-SI PID is the authoritative SI anchor. relatedMatch, cited not re-minted." ;
+    gmeow:sssomFile "gmeow-dsi.sssom.tsv" .
+
+# --- Quantity and dimension → OM 2 (align, don't spine) --------------------- #
+# The /resource/ IRIs below are OM 2's own canonical class identities: om-2.0.rdf
+# declares <owl:Class rdf:about="&om;Quantity"> and <owl:Class rdf:about="&om;Dimension">
+# with &om; = http://www.ontology-of-units-of-measure.org/resource/om-2/, so the align
+# targets are the concepts themselves, not a document. The OM 2 server does not
+# content-negotiate the /resource/ form (it returns 404 even for RDF Accept headers) —
+# a Pubby-server limitation, not a wrong IRI; the entities remain confirmed as owl:Class
+# declarations in the published ontology and are browsable via the /page/ view. Aligning
+# to the resolvable /page/ HTML view would mismap the concept to a document, so the
+# canonical /resource/ identity is kept. Aligned by reference (closeMatch copies no axiom).
+
+gmeow:eqMathQuantityOm2 a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:Quantity ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject <http://www.ontology-of-units-of-measure.org/resource/om-2/Quantity> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "om:Quantity" ;
+    gmeow:comment "math:Quantity aligns to om-2:Quantity, OM 2's quantity concept. closeMatch (align, don't spine — Principle 17). Full IRI by reference — OM 2's own owl:Class identity (declared in the published om-2.0.rdf); the server 404s the /resource/ form (a Pubby limitation), so it is browsable via the /page/ view." ;
+    gmeow:sssomFile "gmeow-om2.sssom.tsv" .
+
+gmeow:eqMathDimensionOm2 a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:Dimension ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject <http://www.ontology-of-units-of-measure.org/resource/om-2/Dimension> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "om:Dimension" ;
+    gmeow:comment "math:Dimension aligns to om-2:Dimension, OM 2's dimension concept. closeMatch (align, don't spine). Full IRI by reference — OM 2's own owl:Class identity (declared in the published om-2.0.rdf); the server 404s the /resource/ form (a Pubby limitation), so it is browsable via the /page/ view." ;
+    gmeow:sssomFile "gmeow-om2.sssom.tsv" .
