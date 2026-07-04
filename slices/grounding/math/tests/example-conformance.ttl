@@ -67,18 +67,18 @@ ex:ecIntensionalConditionString a gmeow:ExampleConformance ;
     gmeow:expectedViolationCode "shacl.NodeKindConstraintComponent" ;
     gmeow:conformanceRationale "The counter-example gives math:memberCondition an opaque string literal (sh:nodeKind sh:BlankNodeOrIRI on math:IntensionalSetShape), so validation MUST emit shacl.NodeKindConstraintComponent and NO other finding (math:StringOnlyMemberCondition)." .
 
-# === Rule 5: a complement names its ambient set ============================= #
+# === Rule 5: a complement names its ambient space and complement-semantics == #
 
 ex:ecComplementQualified a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/conformance-fixtures/complement-qualified.ttl" ;
     gmeow:expectedOutcome gmeow:conforms ;
-    gmeow:conformanceRationale "A math:Complement naming its ambient set through math:complementWithin satisfies math:ComplementShape and validates with no findings." .
+    gmeow:conformanceRationale "A math:Complement naming its ambient space through math:ambientSpace and its notion of complement through math:complementSemantics (set-theoretic) satisfies math:ComplementShape and validates with no findings." .
 
 ex:ecComplementUnqualified a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/complement-unqualified.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
-    gmeow:conformanceRationale "The counter-example omits math:complementWithin on a math:Complement (sh:minCount 1 on math:ComplementShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UnqualifiedComplement)." .
+    gmeow:conformanceRationale "The counter-example names math:ambientSpace but omits math:complementSemantics on a math:Complement (sh:minCount 1 on math:ComplementShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UnqualifiedComplement)." .
 
 # === Rule 6: a set is extensional or intensional, not both ================== #
 
