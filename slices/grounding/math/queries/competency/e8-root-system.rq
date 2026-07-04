@@ -1,0 +1,18 @@
+# Competency question: "What are E8's root system invariants — how many roots, what
+# rank, and what is the order of its Weyl group?"  This makes the E8 flagship's numbers
+# validatable: the answer is pinned exactly, so wrong data (a mistyped root count or
+# Weyl order) fails this exact-match gate. Over the fixture the answer is exactly
+# {rootCount 240, rank 8, Weyl order 696729600}. Values are stringified so the expected
+# cells are plain literals.
+PREFIX math: <https://blackcatinformatics.ca/math/>
+
+SELECT ?rootCount ?rank ?weylOrder WHERE {
+    ?rs a math:RootSystem ;
+        math:rootCount ?rc ;
+        math:rootSystemRank ?rk ;
+        math:weylGroup ?w .
+    ?w math:groupOrder ?wo .
+    BIND(STR(?rc) AS ?rootCount)
+    BIND(STR(?rk) AS ?rank)
+    BIND(STR(?wo) AS ?weylOrder)
+}
