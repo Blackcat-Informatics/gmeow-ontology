@@ -1,15 +1,16 @@
 # Retention: `tests/test_registers.py`
 
-**Category:** Domain invariant → slicetest cells
+**Category:** Merged-graph guard
 
 ## What it tests
 
-The registers & personas facility (#355, EPIC #348), in the norms slice.
+The registers & personas facility, in the norms slice.
 
-## Why it cannot move to Rust today
+Retained dynamic tests:
 
-Structural / competency / cross-slice invariants over the module (or merged) graph — ontology *shape*, not Python logic.
+- `test_no_primary_persona_machinery` — No primaryPersona / preferredRegister selectors exist.
+- `test_divergence_query_surfaces_legal_divergence` — Add a private-only norm: the query reports it (and SHACL still conforms — divergence is not a violation).
 
-## What is needed to move it to Rust
+## Why it cannot be deleted or moved to Rust today
 
-Author the assertions as slicetest cells in the **owning** slice (`structural.ttl` MUST/MUST-NOT, `competency.ttl` ASK/SELECT) per `docs/SLICE_QA.md`; cross-slice subjects go in the slice that *defines* the term. Confirm `make slicetest`, then delete this file. No new Rust — the harness exists.
+Whole-merged-graph sweeps over terms declared across many slice modules; cannot be faithfully scoped to a single slice module.

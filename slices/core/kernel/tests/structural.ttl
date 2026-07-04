@@ -83,3 +83,574 @@ ASK {
     FILTER (?m != gmeow:aboutnessDescribes && ?m != gmeow:aboutnessEnacts)
 }""" ;
     gmeow:saRationale "The aboutness value vocabulary is a genuinely-closed two-member enumeration with no privileged winner (Principle 9): the kernel module MUST NOT declare any gmeow:AboutnessMode individual other than the describes/enacts seeds. Mirrors the closure half of test_value_vocab_spans_two_seeds (kernel-scoped; the cross-module guarantee that no OTHER slice adds a member is borne by the retained merged-graph pytest)." .
+
+# =============================================================================
+# 6. Determinacy axis (migrated from tests/test_determinacy.py)
+# =============================================================================
+
+# --- 6.1 Determinacy class structure (MUST hold) -----------------------------
+ex:saDeterminacyClass a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK {
+    gmeow:Determinacy a owl:Class , logic:AbstractIndividualType ;
+        rdfs:subClassOf logic:QualityValue .
+}""" ;
+    gmeow:saRationale "gmeow:Determinacy MUST be a universal logic:AbstractIndividualType owl:Class that is a subclass of logic:QualityValue — a value vocabulary of individuals spanning the ontic-determinacy space (crisp, vague, fuzzy, probabilistic, disputed), never per-determinacy subclasses (Principle 9). Mirrors test_determinacy_class_structure in test_determinacy.py." .
+
+# --- 6.2 hasDeterminacy ObjectProperty structure (MUST) -----------------------
+ex:saHasDeterminacyProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:hasDeterminacy a owl:ObjectProperty ;
+        rdfs:range gmeow:Determinacy .
+}""" ;
+    gmeow:saRationale "gmeow:hasDeterminacy MUST be an owl:ObjectProperty with rdfs:range gmeow:Determinacy — the universal facet that attaches an ontic-determinacy model to a value/entity/claim. Mirrors the positive clauses of test_has_determinacy_property_structure." .
+
+# --- 6.3 hasDeterminacy is domain-free and non-functional (MUST-NOT) ---------
+ex:saHasDeterminacyNotFunctionalOrDomained a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    { gmeow:hasDeterminacy a owl:FunctionalProperty . }
+    UNION
+    { gmeow:hasDeterminacy rdfs:domain ?d . }
+}""" ;
+    gmeow:saRationale "gmeow:hasDeterminacy MUST NOT be owl:FunctionalProperty (multi-source determinacy claims coexist, Principle 9) and MUST NOT have an rdfs:domain (domain-free/universal, like hasGranularity and hasSensitivity). Mirrors the negative clauses of test_has_determinacy_property_structure." .
+
+# --- 6.5 Determinacy value vocabulary spans five seeds (MUST) ----------------
+ex:saDeterminacySeedsTyped a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:determinacyCrisp          a gmeow:Determinacy .
+    gmeow:determinacyVague          a gmeow:Determinacy .
+    gmeow:determinacyFuzzy          a gmeow:Determinacy .
+    gmeow:determinacyProbabilistic  a gmeow:Determinacy .
+    gmeow:determinacyDisputed       a gmeow:Determinacy .
+}""" ;
+    gmeow:saRationale "The determinacy space MUST be spanned by exactly five seeds: crisp, vague, fuzzy, probabilistic, and disputed — each a gmeow:Determinacy individual with no privileged winner (Principle 9). Mirrors test_value_vocab_spans_five_seeds." .
+
+# --- 6.6 No sixth Determinacy member in the kernel module (MUST-NOT) ---------
+ex:saDeterminacyNoSixthMember a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    ?m a gmeow:Determinacy .
+    FILTER (
+        ?m != gmeow:determinacyCrisp &&
+        ?m != gmeow:determinacyVague &&
+        ?m != gmeow:determinacyFuzzy &&
+        ?m != gmeow:determinacyProbabilistic &&
+        ?m != gmeow:determinacyDisputed
+    )
+}""" ;
+    gmeow:saRationale "The determinacy value vocabulary is a five-member enumeration with no privileged winner (Principle 9): the kernel module MUST NOT declare any gmeow:Determinacy individual other than the five seeds. Mirrors the closure half of test_value_vocab_spans_five_seeds (kernel-scoped; cross-module additions are borne by the retained merged-graph pytest)." .
+
+# --- 6.7 hasDeterminacy is orthogonal to confidence (MUST-NOT) ---------------
+ex:saDeterminacyConfidenceOrthogonal a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    {
+        gmeow:hasDeterminacy rdfs:subPropertyOf gmeow:confidence .
+    } UNION {
+        gmeow:confidence rdfs:subPropertyOf gmeow:hasDeterminacy .
+    } UNION {
+        gmeow:hasDeterminacy owl:equivalentProperty gmeow:confidence .
+    } UNION {
+        gmeow:confidence owl:equivalentProperty gmeow:hasDeterminacy .
+    }
+}""" ;
+    gmeow:saRationale "gmeow:hasDeterminacy (ontic indeterminacy) MUST NOT be entangled with gmeow:confidence (epistemic certainty) via rdfs:subPropertyOf or owl:equivalentProperty — the two axes are orthogonal (Principle 9). Mirrors test_determinacy_confidence_orthogonal." .
+
+# --- 6.8 hasDeterminacy is distinct from determinacyModel (MUST-NOT) ---------
+ex:saHasDeterminacyDeterminacyModelDistinct a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    {
+        gmeow:hasDeterminacy rdfs:subPropertyOf gmeow:determinacyModel .
+    } UNION {
+        gmeow:determinacyModel rdfs:subPropertyOf gmeow:hasDeterminacy .
+    } UNION {
+        gmeow:hasDeterminacy owl:equivalentProperty gmeow:determinacyModel .
+    } UNION {
+        gmeow:determinacyModel owl:equivalentProperty gmeow:hasDeterminacy .
+    }
+}""" ;
+    gmeow:saRationale "The universal facet gmeow:hasDeterminacy and the frame-level default gmeow:determinacyModel MUST NOT be related via rdfs:subPropertyOf or owl:equivalentProperty — they are distinct properties serving different scopes. Mirrors test_has_determinacy_determinacy_model_distinct." .
+
+# =============================================================================
+# 7. Disclosure / projection axis (migrated from tests/test_disclosure.py)
+# =============================================================================
+
+# --- 7.1 ProjectionContext class structure (MUST hold) -----------------------
+ex:saProjectionContextClass a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK {
+    gmeow:ProjectionContext a owl:Class , logic:AbstractIndividualType ;
+        rdfs:subClassOf logic:QualityValue .
+}""" ;
+    gmeow:saRationale "gmeow:ProjectionContext MUST be a universal logic:AbstractIndividualType owl:Class that is a subclass of logic:QualityValue — the open value vocabulary of projection consumers/audiences (internal archive, agent memory, Wikidata, Wikipedia, public site, etc.), never per-consumer subclasses (Principle 9). Mirrors test_projection_context_class_structure in test_disclosure.py." .
+
+# --- 7.2 DisclosurePolicy class structure (MUST hold) ------------------------
+ex:saDisclosurePolicyClass a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK {
+    gmeow:DisclosurePolicy a owl:Class , logic:AbstractIndividualType ;
+        rdfs:subClassOf logic:QualityValue .
+}""" ;
+    gmeow:saRationale "gmeow:DisclosurePolicy MUST be a universal logic:AbstractIndividualType owl:Class that is a subclass of logic:QualityValue — the open value vocabulary of disclosure postures (internalOnly, sensitive, publicCareful, publicSafe, neverPublic, publicOnlyWithIndependentSource), never per-policy subclasses (Principle 9). Mirrors test_disclosure_policy_class_structure in test_disclosure.py." .
+
+# --- 7.3 eligibleForConsumer ObjectProperty structure (MUST) -----------------
+ex:saEligibleForConsumerProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:eligibleForConsumer a owl:ObjectProperty ;
+        rdfs:range gmeow:ProjectionContext .
+}""" ;
+    gmeow:saRationale "gmeow:eligibleForConsumer MUST be an owl:ObjectProperty with rdfs:range gmeow:ProjectionContext — the universal *who* facet of disclosure control. Mirrors the positive clauses of test_eligible_for_consumer_property_structure." .
+
+# --- 7.4 eligibleForConsumer is domain-free and non-functional (MUST-NOT) ----
+ex:saEligibleForConsumerNotFunctionalOrDomained a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    { gmeow:eligibleForConsumer a owl:FunctionalProperty . }
+    UNION
+    { gmeow:eligibleForConsumer rdfs:domain ?d . }
+}""" ;
+    gmeow:saRationale "gmeow:eligibleForConsumer MUST NOT be owl:FunctionalProperty (multi-source consumer eligibilities coexist, Principle 9) and MUST NOT have an rdfs:domain (domain-free/universal). Mirrors the negative clauses of test_eligible_for_consumer_property_structure." .
+
+# --- 7.5 hasDisclosurePolicy ObjectProperty structure (MUST) -----------------
+ex:saHasDisclosurePolicyProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:hasDisclosurePolicy a owl:ObjectProperty ;
+        rdfs:range gmeow:DisclosurePolicy .
+}""" ;
+    gmeow:saRationale "gmeow:hasDisclosurePolicy MUST be an owl:ObjectProperty with rdfs:range gmeow:DisclosurePolicy — the universal *what* facet of disclosure control. Mirrors the positive clauses of test_has_disclosure_policy_property_structure." .
+
+# --- 7.6 hasDisclosurePolicy is domain-free and non-functional (MUST-NOT) ----
+ex:saHasDisclosurePolicyNotFunctionalOrDomained a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    { gmeow:hasDisclosurePolicy a owl:FunctionalProperty . }
+    UNION
+    { gmeow:hasDisclosurePolicy rdfs:domain ?d . }
+}""" ;
+    gmeow:saRationale "gmeow:hasDisclosurePolicy MUST NOT be owl:FunctionalProperty (multi-source disclosure policies coexist, Principle 9) and MUST NOT have an rdfs:domain (domain-free/universal). Mirrors the negative clauses of test_has_disclosure_policy_property_structure." .
+
+# --- 7.7 ProjectionContext seeds are declared (MUST) -------------------------
+ex:saProjectionContextSeedsDeclared a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:consumerInternalArchive         a gmeow:ProjectionContext .
+    gmeow:consumerAgentMemory             a gmeow:ProjectionContext .
+    gmeow:consumerWikidata                a gmeow:ProjectionContext .
+    gmeow:consumerWikipedia               a gmeow:ProjectionContext .
+    gmeow:consumerPublicSite              a gmeow:ProjectionContext .
+    gmeow:consumerSchemaOrgJsonLd         a gmeow:ProjectionContext .
+    gmeow:consumerFoafExport              a gmeow:ProjectionContext .
+    gmeow:consumerResearchQueue           a gmeow:ProjectionContext .
+    gmeow:consumerAdviceCatalog           a gmeow:ProjectionContext .
+}""" ;
+    gmeow:saRationale "The projection-consumer vocabulary MUST be seeded with the nine declared gmeow:ProjectionContext individuals. Mirrors test_projection_context_seeds_declared." .
+
+# --- 7.8 No tenth ProjectionContext member in the kernel module (MUST-NOT) ---
+ex:saProjectionContextNoTenthMember a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    ?m a gmeow:ProjectionContext .
+    FILTER (
+        ?m != gmeow:consumerInternalArchive &&
+        ?m != gmeow:consumerAgentMemory &&
+        ?m != gmeow:consumerWikidata &&
+        ?m != gmeow:consumerWikipedia &&
+        ?m != gmeow:consumerPublicSite &&
+        ?m != gmeow:consumerSchemaOrgJsonLd &&
+        ?m != gmeow:consumerFoafExport &&
+        ?m != gmeow:consumerResearchQueue &&
+        ?m != gmeow:consumerAdviceCatalog
+    )
+}""" ;
+    gmeow:saRationale "The kernel projection-consumer vocabulary is a closed nine-member enumeration (Principle 9): the kernel module MUST NOT declare any gmeow:ProjectionContext individual other than the nine seeds. Mirrors the closure half of test_projection_context_seeds_declared." .
+
+# --- 7.9 DisclosurePolicy seeds are declared (MUST) --------------------------
+ex:saDisclosurePolicySeedsDeclared a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:policyInternalOnly                     a gmeow:DisclosurePolicy .
+    gmeow:policySensitive                        a gmeow:DisclosurePolicy .
+    gmeow:policyPublicCareful                    a gmeow:DisclosurePolicy .
+    gmeow:policyPublicSafe                       a gmeow:DisclosurePolicy .
+    gmeow:policyNeverPublic                      a gmeow:DisclosurePolicy .
+    gmeow:policyPublicOnlyWithIndependentSource  a gmeow:DisclosurePolicy .
+}""" ;
+    gmeow:saRationale "The disclosure-policy vocabulary MUST be seeded with the six declared gmeow:DisclosurePolicy individuals. Mirrors test_disclosure_policy_seeds_declared." .
+
+# --- 7.10 No seventh DisclosurePolicy member in the kernel module (MUST-NOT) -
+ex:saDisclosurePolicyNoSeventhMember a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    ?m a gmeow:DisclosurePolicy .
+    FILTER (
+        ?m != gmeow:policyInternalOnly &&
+        ?m != gmeow:policySensitive &&
+        ?m != gmeow:policyPublicCareful &&
+        ?m != gmeow:policyPublicSafe &&
+        ?m != gmeow:policyNeverPublic &&
+        ?m != gmeow:policyPublicOnlyWithIndependentSource
+    )
+}""" ;
+    gmeow:saRationale "The kernel disclosure-policy vocabulary is a closed six-member enumeration (Principle 9): the kernel module MUST NOT declare any gmeow:DisclosurePolicy individual other than the six seeds. Mirrors the closure half of test_disclosure_policy_seeds_declared." .
+
+# --- 7.11 hasDisclosurePolicy is orthogonal to other axes (MUST-NOT) ---------
+ex:saDisclosureOrthogonalToOtherAxes a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    {
+        gmeow:hasDisclosurePolicy rdfs:subPropertyOf ?other .
+        FILTER (?other IN (gmeow:hasSensitivity, gmeow:hasDeterminacy, gmeow:confidence))
+    } UNION {
+        ?other rdfs:subPropertyOf gmeow:hasDisclosurePolicy .
+        FILTER (?other IN (gmeow:hasSensitivity, gmeow:hasDeterminacy, gmeow:confidence))
+    } UNION {
+        gmeow:hasDisclosurePolicy owl:equivalentProperty ?other .
+        FILTER (?other IN (gmeow:hasSensitivity, gmeow:hasDeterminacy, gmeow:confidence))
+    } UNION {
+        ?other owl:equivalentProperty gmeow:hasDisclosurePolicy .
+        FILTER (?other IN (gmeow:hasSensitivity, gmeow:hasDeterminacy, gmeow:confidence))
+    }
+}""" ;
+    gmeow:saRationale "gmeow:hasDisclosurePolicy MUST NOT be entangled with gmeow:hasSensitivity, gmeow:hasDeterminacy, or gmeow:confidence via rdfs:subPropertyOf or owl:equivalentProperty — disclosure is orthogonal to sensitivity, determinacy, and confidence (Principle 9). Mirrors test_disclosure_orthogonal_to_other_axes." .
+
+# --- 7.12 hasDisclosurePolicy is orthogonal to hasGranularity (MUST-NOT) -----
+ex:saDisclosureOrthogonalToGranularity a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    {
+        gmeow:hasDisclosurePolicy rdfs:subPropertyOf gmeow:hasGranularity .
+    } UNION {
+        gmeow:hasGranularity rdfs:subPropertyOf gmeow:hasDisclosurePolicy .
+    } UNION {
+        gmeow:hasDisclosurePolicy owl:equivalentProperty gmeow:hasGranularity .
+    } UNION {
+        gmeow:hasGranularity owl:equivalentProperty gmeow:hasDisclosurePolicy .
+    }
+}""" ;
+    gmeow:saRationale "gmeow:hasDisclosurePolicy MUST NOT be entangled with gmeow:hasGranularity via rdfs:subPropertyOf or owl:equivalentProperty — disclosure and granularity are distinct axes (Principle 9). Mirrors test_disclosure_orthogonal_to_granularity." .
+
+# =============================================================================
+# 8. Privacy / sensitivity axis — kernel parts (migrated from tests/test_privacy.py)
+# =============================================================================
+
+# --- 8.1 SensitivityLevel class structure (MUST hold) ------------------------
+ex:saSensitivityLevelClass a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK {
+    gmeow:SensitivityLevel a owl:Class , logic:AbstractIndividualType ;
+        rdfs:subClassOf logic:QualityValue .
+}""" ;
+    gmeow:saRationale "gmeow:SensitivityLevel MUST be a universal logic:AbstractIndividualType owl:Class that is a subclass of logic:QualityValue — the open, ordered value vocabulary of privacy-sensitivity levels (public ≺ internal ≺ confidential ≺ restricted ≺ sensitive personal), never per-level subclasses (Principle 9). Mirrors test_sensitivity_level_class_structure in test_privacy.py." .
+
+# --- 8.2 hasSensitivity ObjectProperty structure (MUST) ----------------------
+ex:saHasSensitivityProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:hasSensitivity a owl:ObjectProperty ;
+        rdfs:range gmeow:SensitivityLevel .
+}""" ;
+    gmeow:saRationale "gmeow:hasSensitivity MUST be an owl:ObjectProperty with rdfs:range gmeow:SensitivityLevel — the universal privacy-sensitivity facet. Mirrors the positive clauses of test_has_sensitivity_property_structure." .
+
+# --- 8.3 hasSensitivity is domain-free and non-functional (MUST-NOT) ---------
+ex:saHasSensitivityNotFunctionalOrDomained a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    { gmeow:hasSensitivity a owl:FunctionalProperty . }
+    UNION
+    { gmeow:hasSensitivity rdfs:domain ?d . }
+}""" ;
+    gmeow:saRationale "gmeow:hasSensitivity MUST NOT be owl:FunctionalProperty (multi-source sensitivity classifications coexist, Principle 9) and MUST NOT have an rdfs:domain (domain-free/universal). Mirrors the negative clauses of test_has_sensitivity_property_structure." .
+
+# --- 8.4 SensitivityLevel value vocabulary spans five seeds (MUST) -----------
+ex:saSensitivitySeedsTyped a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:sensitivityPublic             a gmeow:SensitivityLevel .
+    gmeow:sensitivityInternal           a gmeow:SensitivityLevel .
+    gmeow:sensitivityConfidential       a gmeow:SensitivityLevel .
+    gmeow:sensitivityRestricted         a gmeow:SensitivityLevel .
+    gmeow:sensitivitySensitivePersonal  a gmeow:SensitivityLevel .
+}""" ;
+    gmeow:saRationale "The sensitivity space MUST be spanned by the five ordered seeds: public, internal, confidential, restricted, and sensitive personal — each a gmeow:SensitivityLevel individual with no privileged winner (Principle 9). Mirrors test_value_vocab_spans_five_seeds in test_privacy.py." .
+
+# --- 8.5 No sixth SensitivityLevel member in the kernel module (MUST-NOT) ----
+ex:saSensitivityNoSixthMember a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    ?m a gmeow:SensitivityLevel .
+    FILTER (
+        ?m != gmeow:sensitivityPublic &&
+        ?m != gmeow:sensitivityInternal &&
+        ?m != gmeow:sensitivityConfidential &&
+        ?m != gmeow:sensitivityRestricted &&
+        ?m != gmeow:sensitivitySensitivePersonal
+    )
+}""" ;
+    gmeow:saRationale "The kernel sensitivity vocabulary is a closed five-member enumeration (Principle 9): the kernel module MUST NOT declare any gmeow:SensitivityLevel individual other than the five seeds. Mirrors the closure half of test_value_vocab_spans_five_seeds in test_privacy.py (kernel-scoped; cross-module additions are borne by the retained merged-graph pytest)." .
+
+# --- 8.6 hasSensitivity is orthogonal to other axes (MUST-NOT) ---------------
+ex:saSensitivityOrthogonalToOtherAxes a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    {
+        gmeow:hasSensitivity rdfs:subPropertyOf ?other .
+        FILTER (?other IN (gmeow:hasDeterminacy, gmeow:confidence))
+    } UNION {
+        ?other rdfs:subPropertyOf gmeow:hasSensitivity .
+        FILTER (?other IN (gmeow:hasDeterminacy, gmeow:confidence))
+    } UNION {
+        gmeow:hasSensitivity owl:equivalentProperty ?other .
+        FILTER (?other IN (gmeow:hasDeterminacy, gmeow:confidence))
+    } UNION {
+        ?other owl:equivalentProperty gmeow:hasSensitivity .
+        FILTER (?other IN (gmeow:hasDeterminacy, gmeow:confidence))
+    }
+}""" ;
+    gmeow:saRationale "gmeow:hasSensitivity MUST NOT be entangled with gmeow:hasDeterminacy or gmeow:confidence via rdfs:subPropertyOf or owl:equivalentProperty — sensitivity is orthogonal to determinacy and confidence (Principle 9). Mirrors test_sensitivity_orthogonal_to_other_axes." .
+
+# --- 8.7 hasSensitivity is orthogonal to hasGranularity (MUST-NOT) -----------
+ex:saSensitivityOrthogonalToGranularity a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    {
+        gmeow:hasSensitivity rdfs:subPropertyOf gmeow:hasGranularity .
+    } UNION {
+        gmeow:hasGranularity rdfs:subPropertyOf gmeow:hasSensitivity .
+    } UNION {
+        gmeow:hasSensitivity owl:equivalentProperty gmeow:hasGranularity .
+    } UNION {
+        gmeow:hasGranularity owl:equivalentProperty gmeow:hasSensitivity .
+    }
+}""" ;
+    gmeow:saRationale "gmeow:hasSensitivity MUST NOT be entangled with gmeow:hasGranularity via rdfs:subPropertyOf or owl:equivalentProperty — sensitivity and granularity are distinct axes (Principle 9). Mirrors test_sensitivity_orthogonal_to_granularity." .
+
+# =============================================================================
+# 9. Universal mereology spine — kernel parts (migrated from tests/test_mereology.py)
+# =============================================================================
+
+# --- 9.1 partOf and hasPart are broad transitive inverses (MUST) -------------
+ex:saUniversalPartPropertiesAreBroadTransitiveInverses a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:partOf a owl:ObjectProperty , owl:TransitiveProperty ;
+        owl:inverseOf gmeow:hasPart .
+    gmeow:hasPart a owl:ObjectProperty , owl:TransitiveProperty ;
+        owl:inverseOf gmeow:partOf .
+}""" ;
+    gmeow:saRationale "gmeow:partOf and gmeow:hasPart MUST each be an owl:ObjectProperty and owl:TransitiveProperty, and MUST be owl:inverseOf each other — the universal part/whole spine. Mirrors test_universal_part_properties_are_broad_transitive_inverses (positive part)." .
+
+# --- 9.2 partOf and hasPart are not functional and have no domain/range (MUST-NOT)
+ex:saUniversalPartPropertiesNotFunctionalOrTyped a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    {
+        ?prop a owl:FunctionalProperty .
+        FILTER (?prop IN (gmeow:partOf, gmeow:hasPart))
+    } UNION {
+        ?prop rdfs:domain ?d .
+        FILTER (?prop IN (gmeow:partOf, gmeow:hasPart))
+    } UNION {
+        ?prop rdfs:range ?r .
+        FILTER (?prop IN (gmeow:partOf, gmeow:hasPart))
+    }
+}""" ;
+    gmeow:saRationale "gmeow:partOf and gmeow:hasPart MUST NOT be owl:FunctionalProperty and MUST NOT have rdfs:domain or rdfs:range — the spine is intentionally broad so event, location, information-object and endurant parthood all remain possible in OWL 2 DL. Mirrors test_universal_part_properties_are_broad_transitive_inverses (negative part)." .
+
+# =============================================================================
+# 10. MentalMoment umbrella + proficiency vocabulary (migrated from
+#     tests/test_cognition.py and tests/test_teleology.py)
+# =============================================================================
+
+# test_mental_moment_is_category_under_intrinsic_mode
+ex:saMentalMomentIsCategoryUnderMode a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:MentalMoment a owl:Class , logic:Category ;
+        rdfs:subClassOf logic:Mode .
+}""" ;
+    gmeow:saRationale "gmeow:MentalMoment MUST be an owl:Class typed logic:Category and a subclass of logic:Mode — the umbrella for all agent mental moments (cognition, doxastic, conative) lives in the kernel slice so it can be queried uniformly (Principle 15)." .
+
+# test_proficiency_vocab_relocated_to_kernel
+ex:saProficiencyVocabInKernel a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:ProficiencyScale a owl:Class , logic:AbstractIndividualType ;
+        rdfs:subClassOf logic:QualityValue .
+    gmeow:ProficiencyLevel a owl:Class , logic:AbstractIndividualType ;
+        rdfs:subClassOf logic:QualityValue .
+    gmeow:ProficiencyModality a owl:Class , logic:AbstractIndividualType ;
+        rdfs:subClassOf logic:QualityValue .
+}""" ;
+    gmeow:saRationale "gmeow:ProficiencyScale, gmeow:ProficiencyLevel, and gmeow:ProficiencyModality MUST be logic:AbstractIndividualType subclasses of logic:QualityValue and defined by the kernel slice — the domain-neutral proficiency ruler is minted in kernel so expertise, languages, and cognition reuse it without a cross-slice dependency cycle (Principle 6)." .
+
+# test_intrinsic_modes_are_grounded (MentalMoment half)
+ex:saMentalMomentGroundsIntrinsicModes a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:MentalMoment rdfs:subClassOf logic:Mode .
+}""" ;
+    gmeow:saRationale "gmeow:MentalMoment MUST subclass logic:Mode — this is the native-logic grounding that keeps IntentionalMode and other intrinsic modes transitively under Mode without a direct gufo:IntrinsicMode assertion." .
+
+# =============================================================================
+# 11. Connectivity universal spine (migrated from tests/test_connectivity.py)
+# =============================================================================
+
+# --- 11.1 connectsTo is a universal ObjectProperty (MUST) ---------------------
+ex:saConnectsToIsObjectProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:connectsTo a owl:ObjectProperty . }""" ;
+    gmeow:saRationale "gmeow:connectsTo MUST be an owl:ObjectProperty -- the universal traversable-link spine. Mirrors test_connects_to_universal_spine (positive part)." .
+
+# --- 11.2 connectsTo has no rdfs:domain or rdfs:range (MUST-NOT) --------------
+ex:saConnectsToHasNoDomainRange a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    { gmeow:connectsTo rdfs:domain ?d . }
+    UNION
+    { gmeow:connectsTo rdfs:range ?r . }
+}""" ;
+    gmeow:saRationale "gmeow:connectsTo MUST NOT carry rdfs:domain or rdfs:range -- it is a universal spine. Mirrors test_connects_to_universal_spine (no-domain/range part)." .
+
+# --- 11.3 connectsTo is NOT symmetric (MUST-NOT) ------------------------------
+ex:saConnectsToNotSymmetric a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:connectsTo a owl:SymmetricProperty . }""" ;
+    gmeow:saRationale "gmeow:connectsTo MUST NOT be owl:SymmetricProperty -- subproperties decide their own directionality. Mirrors test_connects_to_universal_spine (not-symmetric part)." .
+
+# --- 11.4 connectsTo is NOT transitive (MUST-NOT) -----------------------------
+ex:saConnectsToNotTransitive a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:connectsTo a owl:TransitiveProperty . }""" ;
+    gmeow:saRationale "gmeow:connectsTo MUST NOT be owl:TransitiveProperty -- reachability is computed by the solver (Principle 12). Mirrors test_connects_to_universal_spine (not-transitive part)." .

@@ -1,15 +1,16 @@
 # Retention: `tests/test_notation.py`
 
-**Category:** Domain invariant → slicetest cells
+**Category:** Static repo guard
 
 ## What it tests
 
-Retained cross-slice and dynamic guards for the notation and symbolic
+Retained cross-slice and dynamic guards for the notation and symbolic systems building block.
 
-## Why it cannot move to Rust today
+Retained dynamic tests:
 
-Structural / competency / cross-slice invariants over the module (or merged) graph — ontology *shape*, not Python logic.
+- `test_value_vocabularies_not_subclasses` — No unexpected subclasses of SymbolicSystemKind or NotationUsageRole.
+- `test_ambiguous_cases_co_modelable` — Ambiguous systems (MusicXML, MathML, MIDI, ABC) can be co-modeled as both FormalLanguage and NotationSystem through standpoint-indexed claims.
 
-## What is needed to move it to Rust
+## Why it cannot be deleted or moved to Rust today
 
-Author the assertions as slicetest cells in the **owning** slice (`structural.ttl` MUST/MUST-NOT, `competency.ttl` ASK/SELECT) per `docs/SLICE_QA.md`; cross-slice subjects go in the slice that *defines* the term. Confirm `make slicetest`, then delete this file. No new Rust — the harness exists.
+Retained cross-slice and dynamic guards for the notation and symbolic systems building block.

@@ -1,15 +1,18 @@
 # Retention: `tests/test_identity_over_history.py`
 
-**Category:** Projection / alignment → Correspondence Calculus
+**Category:** Merged-graph guard
 
 ## What it tests
 
-Tests for issue #234 — identity over immutable history (the .mailmap model).
+Tests for — identity over immutable history (the .mailmap model).
 
-## Why it cannot move to Rust today
+Retained dynamic tests:
 
-Exercises the FnO/EDOAL/SPARQL projection or up-projection (alignment) layer — live Python engine output.
+- `test_contributor_transition_preserves_both_identities` — Eve and Evan coexist; the historical AuthorIdentity is not erased.
+- `test_mailmap_projection_emits_canonical_and_suppressed_lines` — The mailmap profile emits the canonical line plus a suppressed remapping.
+- `test_ai_author_is_software_agent_with_statement_metadata` — GitHub-Copilot-Bot is a SoftwareAgent; the authoredBy claim is annotated.
+- `test_suppressed_identity_passes_shacl` — A suppressed contributor identity is retained and valid.
 
-## What is needed to move it to Rust
+## Why it cannot be deleted or moved to Rust today
 
-Subsumed by the Correspondence Calculus (`docs/APPLIED_CATEGORY_THEORY/take1.md`): projections become lowerings of one `logic:Correspondence` get/put leg pair; up-projection is the derived `put` leg. When the lowering engine + `conformance/correspondence` round-trip/overclaim gates regenerate these outputs byte/graph-iso, the file is deleted under equivalence-before-deletion.
+Whole-merged-graph sweeps over terms declared across many slice modules; cannot be faithfully scoped to a single slice module.

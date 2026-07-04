@@ -1697,3 +1697,60 @@ ASK {
             gmeow:axisPostalCode , gmeow:axisCountryCode .
 }""" ;
     gmeow:saRationale "gmeow:referenceFramePostalAddress MUST be a gmeow:ReferenceFrame of frameKindTopological with dimensionCount 7 and exactly the seven postal hasAxis edges (street/extended/poBox/locality/region/postalCode/countryCode). The frame individual is places-home (module.ttl). Mirrors test_postal_address_frame." .
+
+# --- N. determinacyModel is a functional ObjectProperty on ReferenceFrame (MUST) -
+#     This term is declared in the places slice, so the cell lives here rather
+#     than in kernel/tests/structural.ttl. Migrated from tests/test_determinacy.py.
+ex:saDeterminacyModelProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:determinacyModel a owl:ObjectProperty , owl:FunctionalProperty ;
+        rdfs:domain gmeow:ReferenceFrame ;
+        rdfs:range gmeow:Determinacy .
+}""" ;
+    gmeow:saRationale "gmeow:determinacyModel MUST be an owl:ObjectProperty that is also owl:FunctionalProperty, with rdfs:domain gmeow:ReferenceFrame and rdfs:range gmeow:Determinacy — the frame-level default determinacy model (Principle 11). The property is declared in the places slice, so its structural cell lives here. Mirrors test_determinacy_model_preserved in tests/test_determinacy.py." .
+
+# --- 119. spatiallyConnectsTo is a symmetric subproperty of connectsTo (MUST) --
+ex:saSpatiallyConnectsToSymmetricSubproperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:spatiallyConnectsTo a owl:ObjectProperty , owl:SymmetricProperty ;
+        rdfs:subPropertyOf gmeow:connectsTo ;
+        rdfs:domain gmeow:Location ;
+        rdfs:range gmeow:Location .
+}""" ;
+    gmeow:saRationale "gmeow:spatiallyConnectsTo MUST be an owl:ObjectProperty, owl:SymmetricProperty, rdfs:subPropertyOf gmeow:connectsTo, with domain/range gmeow:Location. Mirrors test_spatially_connects_to_is_symmetric_subproperty." .
+
+# --- 120. Place containment relations specialize the partOf spine (MUST) ------
+ex:saPlaceContainmentSpecializesPartOf a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:containedInLocation rdfs:subPropertyOf gmeow:partOf .
+    gmeow:containedInPlace    rdfs:subPropertyOf gmeow:partOf .
+    gmeow:rcc8tpp             rdfs:subPropertyOf gmeow:partOf .
+    gmeow:rcc8ntpp            rdfs:subPropertyOf gmeow:partOf .
+}""" ;
+    gmeow:saRationale "The place-scoped child-to-whole relations (containedInLocation, containedInPlace, rcc8tpp, rcc8ntpp) MUST be rdfs:subPropertyOf gmeow:partOf. Mirrors test_existing_part_like_relations_specialize_the_spine (places partOf side)." .
+
+# --- 121. Place containment inverses specialize the hasPart spine (MUST) ------
+ex:saPlaceContainmentInversesSpecializeHasPart a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:rcc8tppi  rdfs:subPropertyOf gmeow:hasPart .
+    gmeow:rcc8ntppi rdfs:subPropertyOf gmeow:hasPart .
+}""" ;
+    gmeow:saRationale "The place-scoped whole-to-child inverses (rcc8tppi, rcc8ntppi) MUST be rdfs:subPropertyOf gmeow:hasPart. Mirrors test_existing_part_like_relations_specialize_the_spine (places hasPart side)." .
