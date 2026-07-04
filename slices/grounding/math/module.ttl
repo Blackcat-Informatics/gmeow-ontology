@@ -3,6 +3,7 @@
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
@@ -1631,3 +1632,168 @@ math:homogeneousOperand
     rdfs:label "homogeneous operand"@x-gmeow-english ;
     skos:definition "Relates a math:DimensionalExpression to one of the operands that must share its single dimension — a summand of an addition, a side of an equation, a term of a comparison. Domain math:DimensionalExpression, range a dimensioned object (a math:Quantity or another dimensioned expression) (stated in prose). An expression carries at least two; the homogeneity gate raises math:DimensionalInhomogeneity when their dimensions are not all equal."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
+
+# =========================================================================== #
+# The dimensional-homogeneity invariant as first-order logic: laws, and the
+# native ℚ⁷ validator declared as their exact executable lowering
+# (MEASURE-AND-DIMENSION — the charter's distinguished reasoned gate)
+#
+# math:DimensionalInhomogeneity is not a bare Rust side-channel: the invariant
+# the native validator (crates/validate check_math_dimension_invariants)
+# computes from the exact-rational ℚ⁷ exponent vectors is authored HERE as real
+# logic:Formula first-order ASTs — math: expresses the law, logic: owns
+# reasoning over it, exactly as the ALGEBRA preservation laws do. The validator
+# is then declared as the LOWERING of these laws, carrying
+# logic:preservationKind logic:ExactPreservation in the same loss ledger every
+# other GMEOW lowering rides (Principle 17; no new preservation vocabulary is
+# minted). The relation atoms are reified as logic:Type individuals per the
+# HiLog reflection (logic:relation ranges over logic:Type), exactly as the det
+# law reifies matMul/det; where a first-class math: property already names the
+# relation, the reflection carries an rdfs:seeAlso back to it, so no near-synonym
+# property is minted.
+# =========================================================================== #
+
+# --- Reified relation atoms (HiLog reflection of the dimension predicates) --- #
+
+math:homogeneousOperandRel
+    a logic:Type ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "homogeneousOperand(E,o) ⟺ o is a homogeneous operand of expression E"@x-gmeow-english ;
+    rdfs:seeAlso math:homogeneousOperand ;
+    skos:definition "The HiLog reflection of math:homogeneousOperand as a binary relation individual, so the homogeneity law can predicate over it inside a logic:Formula atom. It reflects the existing property (rdfs:seeAlso), keeping the object level first-order rather than minting a second relation."@x-gmeow-english .
+
+math:hasDimensionRel
+    a logic:Type ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "hasDimension(x,d) ⟺ dimensioned object x carries dimension d"@x-gmeow-english ;
+    rdfs:seeAlso math:hasDimension ;
+    skos:definition "The HiLog reflection of math:hasDimension as a binary relation individual, so a law can predicate 'x carries dimension d' inside a logic:Formula atom. Reflects the existing property (rdfs:seeAlso), minting no second relation."@x-gmeow-english .
+
+math:integrandRel
+    a logic:Type ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "integrand(I,f) ⟺ f is the integrand of integral I"@x-gmeow-english ;
+    rdfs:seeAlso math:integrand ;
+    skos:definition "The HiLog reflection of math:integrand as a binary relation individual, so the integral-composition law can predicate over it inside a logic:Formula atom. Reflects the existing property (rdfs:seeAlso)."@x-gmeow-english .
+
+math:withRespectToRel
+    a logic:Type ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "withRespectTo(I,μ) ⟺ μ is the measure integral I integrates against"@x-gmeow-english ;
+    rdfs:seeAlso math:withRespectTo ;
+    skos:definition "The HiLog reflection of math:withRespectTo as a binary relation individual, so the integral-composition law can predicate over it inside a logic:Formula atom. Reflects the existing property (rdfs:seeAlso)."@x-gmeow-english .
+
+math:dimensionEqualityRel
+    a logic:Type ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "dimEqual(d1,d2) ⟺ dimensions d1 and d2 have equal ℚ⁷ exponent vectors"@x-gmeow-english ;
+    rdfs:seeAlso math:commensurableWith ;
+    skos:definition "The dimension-level equality relation the homogeneity law concludes: dimEqual(d1,d2) holds exactly when d1 and d2 have identical exact-rational exponent vectors over the seven SI base dimensions — the derived commensurability the native validator computes by exact rational arithmetic. It is the dimension-carrier of the same equivalence math:commensurableWith carries at the quantity level (rdfs:seeAlso); a HiLog reflection individual, not a first-class asserted property (the equality is derived, never authored)."@x-gmeow-english .
+
+math:dimensionProductRel
+    a logic:Type ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "dimProduct(dA,dB,dC) ⟺ dC's exponent vector is dA's ⊕ dB's"@x-gmeow-english ;
+    skos:definition "The dimension-product relation the integral-composition law concludes: dimProduct(dA,dB,dC) holds exactly when dC's exact-rational exponent vector is the vector sum of dA's and dB's — a product of dimensions adds exponent vectors in the ℚ-vector space of dimensions. A HiLog reflection individual over which the law predicates 'result = integrand ⊕ measure'; the native validator discharges it by exact rational vector addition."@x-gmeow-english .
+
+# --- Law 1: dimensional homogeneity ----------------------------------------- #
+# ∀E,o1,o2,d1,d2: homogeneousOperand(E,o1) ∧ homogeneousOperand(E,o2)
+#                 ∧ hasDimension(o1,d1) ∧ hasDimension(o2,d2) → dimEqual(d1,d2)
+# Any two homogeneous operands of a dimensional expression carry equal dimensions
+# (equal ℚ⁷ exponent vectors). Its executable lowering is the native validator's
+# homogeneity branch, which raises math:DimensionalInhomogeneity on any violation.
+
+math:dimensionalHomogeneityLaw
+    a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "dimensional homogeneity: an expression's operands share one dimension"@x-gmeow-english ;
+    skos:definition "The homogeneity invariant of a math:DimensionalExpression as a universally-quantified first-order logic:Formula: for any two math:homogeneousOperand operands of the same expression, their carried dimensions have equal ℚ⁷ exponent vectors (dimEqual). math: expresses the law; logic: owns reasoning over it; the native validator is its exact executable lowering (math:dimensionalHomogeneityLowering)."@x-gmeow-english ;
+    logic:quantifiedVariable
+        [ logic:termIndex 0 ; logic:termVariable "E" ] ,
+        [ logic:termIndex 1 ; logic:termVariable "o1" ] ,
+        [ logic:termIndex 2 ; logic:termVariable "o2" ] ,
+        [ logic:termIndex 3 ; logic:termVariable "d1" ] ,
+        [ logic:termIndex 4 ; logic:termVariable "d2" ] ;
+    logic:forall math:dimHomImpl .
+
+math:dimHomImpl a logic:Formula ;
+    logic:antecedent math:dimHomAnte ;
+    logic:consequent math:dimHomCons .
+
+math:dimHomAnte a logic:Formula ;
+    logic:and math:dimHomA1 , math:dimHomA2 , math:dimHomA3 , math:dimHomA4 .
+
+math:dimHomA1 a logic:Formula ; logic:relation math:homogeneousOperandRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "E" ] , [ logic:termIndex 1 ; logic:termVariable "o1" ] .
+math:dimHomA2 a logic:Formula ; logic:relation math:homogeneousOperandRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "E" ] , [ logic:termIndex 1 ; logic:termVariable "o2" ] .
+math:dimHomA3 a logic:Formula ; logic:relation math:hasDimensionRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "o1" ] , [ logic:termIndex 1 ; logic:termVariable "d1" ] .
+math:dimHomA4 a logic:Formula ; logic:relation math:hasDimensionRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "o2" ] , [ logic:termIndex 1 ; logic:termVariable "d2" ] .
+
+math:dimHomCons a logic:Formula ; logic:relation math:dimensionEqualityRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "d1" ] , [ logic:termIndex 1 ; logic:termVariable "d2" ] .
+
+# --- Law 2: integral dimensional composition -------------------------------- #
+# ∀I,f,μ,dR,dF,dM: integrand(I,f) ∧ withRespectTo(I,μ) ∧ hasDimension(I,dR)
+#                 ∧ hasDimension(f,dF) ∧ hasDimension(μ,dM) → dimProduct(dF,dM,dR)
+# An integral's declared result dimension is its integrand's dimension composed
+# (⊕, exponent-vector addition) with its measure's. Its executable lowering is the
+# native validator's integral branch, which raises math:DimensionalInhomogeneity
+# when dim(result) ≠ dim(integrand) ⊕ dim(measure).
+
+math:integralDimensionCompositionLaw
+    a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "integral composition: dim(result) = dim(integrand) ⊕ dim(measure)"@x-gmeow-english ;
+    skos:definition "The dimensional-composition invariant of a math:Integral as a universally-quantified first-order logic:Formula: for an integral with integrand f (math:integrand) and measure μ (math:withRespectTo), the integral's declared result dimension equals f's dimension composed with μ's (dimProduct — exponent-vector addition in the ℚ-vector space). math: expresses the law; logic: owns reasoning over it; the native validator is its exact executable lowering (math:dimensionalHomogeneityLowering)."@x-gmeow-english ;
+    logic:quantifiedVariable
+        [ logic:termIndex 0 ; logic:termVariable "I" ] ,
+        [ logic:termIndex 1 ; logic:termVariable "f" ] ,
+        [ logic:termIndex 2 ; logic:termVariable "mu" ] ,
+        [ logic:termIndex 3 ; logic:termVariable "dR" ] ,
+        [ logic:termIndex 4 ; logic:termVariable "dF" ] ,
+        [ logic:termIndex 5 ; logic:termVariable "dM" ] ;
+    logic:forall math:intCompImpl .
+
+math:intCompImpl a logic:Formula ;
+    logic:antecedent math:intCompAnte ;
+    logic:consequent math:intCompCons .
+
+math:intCompAnte a logic:Formula ;
+    logic:and math:intCompA1 , math:intCompA2 , math:intCompA3 , math:intCompA4 , math:intCompA5 .
+
+math:intCompA1 a logic:Formula ; logic:relation math:integrandRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "I" ] , [ logic:termIndex 1 ; logic:termVariable "f" ] .
+math:intCompA2 a logic:Formula ; logic:relation math:withRespectToRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "I" ] , [ logic:termIndex 1 ; logic:termVariable "mu" ] .
+math:intCompA3 a logic:Formula ; logic:relation math:hasDimensionRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "I" ] , [ logic:termIndex 1 ; logic:termVariable "dR" ] .
+math:intCompA4 a logic:Formula ; logic:relation math:hasDimensionRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "f" ] , [ logic:termIndex 1 ; logic:termVariable "dF" ] .
+math:intCompA5 a logic:Formula ; logic:relation math:hasDimensionRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "mu" ] , [ logic:termIndex 1 ; logic:termVariable "dM" ] .
+
+math:intCompCons a logic:Formula ; logic:relation math:dimensionProductRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "dF" ] , [ logic:termIndex 1 ; logic:termVariable "dM" ] , [ logic:termIndex 2 ; logic:termVariable "dR" ] .
+
+# --- The native validator declared as the laws' exact executable lowering --- #
+# The loss-ledger record: the native ℚ⁷ dimensional validator is the executable
+# lowering of the two logic: laws above. Because it computes each dimension's
+# exact-rational exponent vector and decides dimEqual / dimProduct by exact
+# rational arithmetic — never rounding, never a divergent asserted label — it
+# neither misses a genuine inhomogeneity nor invents a spurious one: it yields
+# exactly the answers the canonical laws entail, hence logic:ExactPreservation
+# (the same polarity vocabulary every other GMEOW lowering carries). A violation
+# raises the typed failure math:DimensionalInhomogeneity.
+
+math:dimensionalHomogeneityLowering
+    a gmeow:InformationObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "native ℚ⁷ validator: exact lowering of the dimensional-homogeneity laws"@x-gmeow-english ;
+    skos:definition "The declaration that the native dimensional-homogeneity validator (the check computing dimensions' exact-rational ℚ⁷ exponent vectors) is the executable lowering of math:dimensionalHomogeneityLaw and math:integralDimensionCompositionLaw. It decides the laws' dimEqual and dimProduct conclusions by exact rational arithmetic over the exponent vectors, so it neither misses a genuine inhomogeneity nor reports a spurious one — it yields exactly the answers the canonical laws entail. Hence logic:preservationKind logic:ExactPreservation, reusing the existing loss-ledger polarity vocabulary (Principle 17, no near-synonym minted). A violation raises the typed failure class math:DimensionalInhomogeneity. The laws are the source, the native gate the enforcement, and this record their preservation judgment in the loss ledger."@x-gmeow-english ;
+    logic:preservationKind logic:ExactPreservation ;
+    rdfs:seeAlso math:dimensionalHomogeneityLaw ,
+        math:integralDimensionCompositionLaw ,
+        math:DimensionalInhomogeneity .
