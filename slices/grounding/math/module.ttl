@@ -974,3 +974,166 @@ math:StringOnlyPreservationLaw
     rdfs:label "String-Only Preservation Law"@x-gmeow-english ;
     skos:definition "The failure raised when a math:Homomorphism gives its math:preservationLaw as an opaque literal instead of denoting a logic: formula. The preservation law is the denotation seam to logic: reasoning; it must denote a formula (a resource), never a string."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
+
+# =========================================================================== #
+# Algebra — group actions, Lie theory, and root systems (the E8 flagship)
+#
+# A group action is how a symmetry group acts on the thing it is a symmetry of; its
+# action law is a logic: formula. A Lie group and its Lie algebra carry a root system
+# with a Cartan matrix, Dynkin diagram, and Weyl group (the symmetry group of the root
+# system, an automorphism group). E8 is the flagship: 240 roots, rank 8, Weyl order
+# 696,729,600.
+# =========================================================================== #
+
+math:GroupAction
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Group Action"@x-gmeow-english ;
+    skos:definition "An action of a math:Group on a set — a map assigning to each group element a transformation of the set, compatibly with the group operation ((g·h)·x = g·(h·x), e·x = x). It names the group and the set it math:actsOn, and its action law is a logic: formula. A group action is the mechanism of symmetry: the Weyl group of a root system acts on the roots."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:LieGroup
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Lie Group"@x-gmeow-english ;
+    skos:definition "A group that is also a smooth manifold, with smooth group operations (its group-ness stated in prose to keep the profile clean). It carries a math:RootSystem through math:hasRootSystem and a math:LieAlgebra as its infinitesimal structure. E8 is the 248-dimensional exceptional simple Lie group."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:LieAlgebra
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Lie Algebra"@x-gmeow-english ;
+    skos:definition "The infinitesimal structure of a math:LieGroup: a vector space with an alternating bilinear bracket satisfying the Jacobi identity (its algebra-ness stated in prose). It carries the same math:RootSystem as its Lie group. The E8 Lie algebra is the 248-dimensional exceptional simple Lie algebra."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:RootSystem
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Root System"@x-gmeow-english ;
+    skos:definition "A finite configuration of vectors (roots) in a Euclidean space satisfying the root-system axioms — the combinatorial heart of a semisimple Lie group. It declares its math:rootSystemRank, a math:CartanMatrix, a math:DynkinDiagram, and a math:WeylGroup (the symmetry group of the roots), and may carry its math:hasSimpleRoot base and math:rootCount. E8's root system has 240 roots in rank 8."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:SimpleRoot
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Simple Root"@x-gmeow-english ;
+    skos:definition "A root in the chosen base of a math:RootSystem — a basis of positive roots from which every root is a non-negative or non-positive integer combination. Reached through math:hasSimpleRoot. E8 has 8 simple roots, one per node of its Dynkin diagram."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:CartanMatrix
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Cartan Matrix"@x-gmeow-english ;
+    skos:definition "The integer matrix of pairwise Cartan integers of a root system's simple roots — it encodes the whole root system up to isomorphism. Reached through math:cartanMatrix. E8's is the 8×8 Cartan matrix of the E8 Dynkin diagram."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:DynkinDiagram
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Dynkin Diagram"@x-gmeow-english ;
+    skos:definition "The graph encoding a root system's simple roots and their angles — the pictorial classification datum of semisimple Lie algebras. Reached through math:dynkinDiagram. E8's is the 8-node Dynkin diagram of the exceptional series."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:WeylGroup
+    a owl:Class ;
+    rdfs:subClassOf math:AutomorphismGroup ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Weyl Group"@x-gmeow-english ;
+    skos:definition "The group generated by the reflections in the hyperplanes orthogonal to a root system's roots — the symmetry group of the root system, and so a math:AutomorphismGroup (hence a math:Group) that math:actsOn the roots. Reached through math:weylGroup. E8's Weyl group has order 696,729,600."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Lattice
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Lattice"@x-gmeow-english ;
+    skos:definition "A discrete subgroup of a real vector space that spans it — a regular grid of points closed under addition. The E8 lattice is the densest lattice packing in 8 dimensions; lattices are also the hardness substrate of lattice-based homomorphic encryption. (The order-theoretic lattice is a distinct notion, named elsewhere.)"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:GroupRepresentation
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Group Representation"@x-gmeow-english ;
+    skos:definition "A homomorphism from a group into the general linear group of a math:VectorSpace — a realization of the abstract group as linear transformations. It names the group it is a math:representationOf. E8's 248-dimensional adjoint representation acts on its own Lie algebra."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+# --- Group-action and Lie/root-system properties --------------------------- #
+
+math:actsOn
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "acts on"@x-gmeow-english ;
+    skos:definition "Relates a math:GroupAction (or a group acting) to the set or structure it acts on. Domain math:GroupAction or math:Group, range math:Set or math:AlgebraicStructure (stated in prose). A math:WeylGroup math:actsOn the roots of its math:RootSystem."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:hasRootSystem
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "has root system"@x-gmeow-english ;
+    skos:definition "Relates a math:LieGroup or math:LieAlgebra to its math:RootSystem. Domain math:LieGroup or math:LieAlgebra, range math:RootSystem (stated in prose). A semisimple Lie group without a root system is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:hasSimpleRoot
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "has simple root"@x-gmeow-english ;
+    skos:definition "Relates a math:RootSystem to a math:SimpleRoot in its chosen base. Domain math:RootSystem, range math:SimpleRoot (stated in prose). E8 has eight."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:cartanMatrix
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "cartan matrix"@x-gmeow-english ;
+    skos:definition "Relates a math:RootSystem to its math:CartanMatrix. Domain math:RootSystem, range math:CartanMatrix (stated in prose). A root system declares one; it encodes the system up to isomorphism."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:dynkinDiagram
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "dynkin diagram"@x-gmeow-english ;
+    skos:definition "Relates a math:RootSystem to its math:DynkinDiagram. Domain math:RootSystem, range math:DynkinDiagram (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:weylGroup
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "weyl group"@x-gmeow-english ;
+    skos:definition "Relates a math:RootSystem to its math:WeylGroup — the symmetry group of the roots. Domain math:RootSystem, range math:WeylGroup (stated in prose). A root system declares one."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:rootSystemRank
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "root system rank"@x-gmeow-english ;
+    skos:definition "The rank of a math:RootSystem — the dimension of the space it spans, equal to the number of simple roots. Domain math:RootSystem, range a non-negative integer (stated in prose). E8 has rank 8."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:rootCount
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "root count"@x-gmeow-english ;
+    skos:definition "The number of roots in a math:RootSystem — a validatable invariant of the system. Domain math:RootSystem, range a non-negative integer (stated in prose). E8 has 240 roots."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:groupOrder
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "group order"@x-gmeow-english ;
+    skos:definition "The order (number of elements) of a finite math:Group — a validatable invariant. Domain math:Group, range a positive integer (stated in prose). E8's math:WeylGroup has order 696,729,600."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:representationOf
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "representation of"@x-gmeow-english ;
+    skos:definition "Relates a math:GroupRepresentation to the math:Group it represents as linear maps. Domain math:GroupRepresentation, range math:Group (stated in prose). E8's adjoint representation is a math:representationOf E8."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# --- Lie conformance failure ----------------------------------------------- #
+
+math:IncompleteLieStructure
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Incomplete Lie Structure"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:LieGroup does not declare its math:hasRootSystem, or a math:RootSystem does not declare its math:cartanMatrix, math:weylGroup, and math:rootSystemRank. The root-system data is what makes a Lie structure expressible and its symmetry an automorphism group; a Lie structure asserted without it is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .

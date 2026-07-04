@@ -1,0 +1,131 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# The symmetry of E8 — flagship 1. E8 is the 248-dimensional exceptional simple Lie
+# group; its root system has 240 roots in rank 8, with an 8×8 Cartan matrix, an 8-node
+# Dynkin diagram, and a Weyl group of order 696,729,600. The Weyl group is modelled as
+# the AUTOMORPHISM GROUP that ACTS ON the root system (a symmetry group IS an
+# automorphism group — the unification), and its action law ((g·h)·x = g·(h·x)) is a
+# real logic:Formula the reasoner owns. The numbers (240 roots, rank 8, Weyl order) are
+# carried as data and pinned by the E8 competency question; wrong data fails that
+# exact-match gate. Group data cited to the ATLAS of Finite Groups / GAP; concept
+# identity anchored to Wikidata (see mappings/equivalences.ttl). Validates cleanly.
+
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix exa:   <https://blackcatinformatics.ca/gmeow/examples/math/algebra/> .
+
+# --- E8 as a Lie group with its Lie algebra and root system ---------------- #
+
+exa:E8LieGroup a math:LieGroup ;
+    rdfs:label "E8 — the exceptional simple Lie group"@x-gmeow-english ;
+    math:hasRootSystem exa:e8Roots .
+
+exa:E8LieAlgebra a math:LieAlgebra ;
+    rdfs:label "𝔢₈ — the exceptional simple Lie algebra (dimension 248)"@x-gmeow-english ;
+    math:hasRootSystem exa:e8Roots .
+
+exa:e8Roots a math:RootSystem ;
+    rdfs:label "the E8 root system (240 roots, rank 8)"@x-gmeow-english ;
+    math:rootSystemRank 8 ;
+    math:rootCount 240 ;
+    math:cartanMatrix exa:e8Cartan ;
+    math:dynkinDiagram exa:e8Dynkin ;
+    math:weylGroup exa:e8Weyl ;
+    math:hasSimpleRoot exa:e8SimpleRoot1 , exa:e8SimpleRoot2 , exa:e8SimpleRoot3 ,
+        exa:e8SimpleRoot4 , exa:e8SimpleRoot5 , exa:e8SimpleRoot6 ,
+        exa:e8SimpleRoot7 , exa:e8SimpleRoot8 .
+
+exa:e8Cartan a math:CartanMatrix ;
+    rdfs:label "the 8×8 E8 Cartan matrix"@x-gmeow-english .
+
+exa:e8Dynkin a math:DynkinDiagram ;
+    rdfs:label "the 8-node E8 Dynkin diagram"@x-gmeow-english .
+
+exa:e8SimpleRoot1 a math:SimpleRoot ; rdfs:label "α₁"@x-gmeow-english .
+exa:e8SimpleRoot2 a math:SimpleRoot ; rdfs:label "α₂"@x-gmeow-english .
+exa:e8SimpleRoot3 a math:SimpleRoot ; rdfs:label "α₃"@x-gmeow-english .
+exa:e8SimpleRoot4 a math:SimpleRoot ; rdfs:label "α₄"@x-gmeow-english .
+exa:e8SimpleRoot5 a math:SimpleRoot ; rdfs:label "α₅"@x-gmeow-english .
+exa:e8SimpleRoot6 a math:SimpleRoot ; rdfs:label "α₆"@x-gmeow-english .
+exa:e8SimpleRoot7 a math:SimpleRoot ; rdfs:label "α₇"@x-gmeow-english .
+exa:e8SimpleRoot8 a math:SimpleRoot ; rdfs:label "α₈"@x-gmeow-english .
+
+# --- The Weyl group: the automorphism group that acts on the roots --------- #
+# A symmetry group IS an automorphism group. As a math:Group (via AutomorphismGroup) it
+# is a well-formed structure; it carries its order (696,729,600) and acts on the roots.
+
+exa:e8Weyl a math:WeylGroup ;
+    rdfs:label "W(E8) — the Weyl group of E8 (order 696,729,600)"@x-gmeow-english ;
+    math:underlyingSet exa:e8Reflections ;
+    math:structureOperation exa:reflectionComposition ;
+    math:identityElement exa:identityReflection ;
+    math:inverseOperation exa:reflectionInverse ;
+    math:satisfiesAxiom exa:associativity , exa:identity , exa:inverse ;
+    math:groupOrder 696729600 ;
+    math:actsOn exa:e8Roots .
+
+exa:e8Reflections a math:Set ; rdfs:label "the reflections generating W(E8)"@x-gmeow-english .
+exa:reflectionComposition a math:Operation ; rdfs:label "composition of reflections"@x-gmeow-english .
+exa:reflectionInverse a math:Operation ; rdfs:label "w ↦ w⁻¹"@x-gmeow-english .
+exa:identityReflection rdfs:label "the identity symmetry"@x-gmeow-english .
+
+# The Weyl action of W(E8) on the roots, with its action law.
+exa:e8WeylAction a math:GroupAction ;
+    rdfs:label "the Weyl action W(E8) ↷ roots"@x-gmeow-english ;
+    math:actsOn exa:e8Roots ;
+    math:satisfiesAxiom exa:groupActionLaw .
+
+# --- The action law as a real logic:Formula AST --------------------------- #
+# ∀g,h,x,gh,r1,hx,r2: comp(g,h,gh) ∧ act(gh,x,r1) ∧ act(h,x,hx) ∧ act(g,hx,r2) → eq(r1,r2)
+# i.e. (g·h)·x = g·(h·x): the action is compatible with the group operation.
+
+exa:compRel a logic:Type ;
+    rdfs:label "comp(g,h,k) ⟺ g·h = k (group composition)"@x-gmeow-english .
+exa:actRel a logic:Type ;
+    rdfs:label "act(g,x,y) ⟺ g·x = y (the action)"@x-gmeow-english .
+
+exa:groupActionLaw a math:Axiom , logic:Formula ;
+    rdfs:label "group action: ∀g,h,x: (g·h)·x = g·(h·x)"@x-gmeow-english ;
+    skos:definition "The compatibility law of a group action with the group operation. Denotes ∀g,h,x,gh,r1,hx,r2: comp(g,h,gh) ∧ act(gh,x,r1) ∧ act(h,x,hx) ∧ act(g,hx,r2) → eq(r1,r2)."@x-gmeow-english ;
+    logic:quantifiedVariable
+        [ logic:termIndex 0 ; logic:termVariable "g" ] ,
+        [ logic:termIndex 1 ; logic:termVariable "h" ] ,
+        [ logic:termIndex 2 ; logic:termVariable "x" ] ,
+        [ logic:termIndex 3 ; logic:termVariable "gh" ] ,
+        [ logic:termIndex 4 ; logic:termVariable "r1" ] ,
+        [ logic:termIndex 5 ; logic:termVariable "hx" ] ,
+        [ logic:termIndex 6 ; logic:termVariable "r2" ] ;
+    logic:forall exa:actImpl .
+
+exa:actImpl a logic:Formula ;
+    logic:antecedent exa:actAnte ;
+    logic:consequent exa:actCons .
+
+exa:actAnte a logic:Formula ;
+    logic:and exa:actA1 , exa:actA2 , exa:actA3 , exa:actA4 .
+
+exa:actA1 a logic:Formula ; logic:relation exa:compRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "g" ] , [ logic:termIndex 1 ; logic:termVariable "h" ] , [ logic:termIndex 2 ; logic:termVariable "gh" ] .
+exa:actA2 a logic:Formula ; logic:relation exa:actRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "gh" ] , [ logic:termIndex 1 ; logic:termVariable "x" ] , [ logic:termIndex 2 ; logic:termVariable "r1" ] .
+exa:actA3 a logic:Formula ; logic:relation exa:actRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "h" ] , [ logic:termIndex 1 ; logic:termVariable "x" ] , [ logic:termIndex 2 ; logic:termVariable "hx" ] .
+exa:actA4 a logic:Formula ; logic:relation exa:actRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "g" ] , [ logic:termIndex 1 ; logic:termVariable "hx" ] , [ logic:termIndex 2 ; logic:termVariable "r2" ] .
+
+exa:actCons a logic:Formula ; logic:relation exa:eqRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "r1" ] , [ logic:termIndex 1 ; logic:termVariable "r2" ] .
+
+# --- The 248-dimensional adjoint representation ---------------------------- #
+
+exa:e8Adjoint a math:GroupRepresentation ;
+    rdfs:label "the 248-dimensional adjoint representation of E8"@x-gmeow-english ;
+    math:representationOf exa:E8LieGroup .
+
+# --- The E8 lattice -------------------------------------------------------- #
+
+exa:e8Lattice a math:Lattice ;
+    rdfs:label "the E8 lattice (densest packing in 8 dimensions)"@x-gmeow-english .

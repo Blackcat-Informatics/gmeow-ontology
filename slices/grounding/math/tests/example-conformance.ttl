@@ -137,3 +137,11 @@ ex:ecHomomorphismLawString a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.NodeKindConstraintComponent" ;
     gmeow:conformanceRationale "The counter-example gives math:preservationLaw an opaque string literal (sh:nodeKind sh:BlankNodeOrIRI on math:PreservationLawShape), so validation MUST emit shacl.NodeKindConstraintComponent and NO other finding (math:StringOnlyPreservationLaw)." .
+
+# === Rule 11/12: a Lie group / root system declares its root-system data ==== #
+
+ex:ecLieMissingRootSystem a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/lie-group-missing-root-system.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example omits math:hasRootSystem on a math:LieGroup (sh:minCount 1 on math:LieStructureShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:IncompleteLieStructure)." .

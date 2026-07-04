@@ -29,3 +29,12 @@ exf:rootReflection a math:Operation .
 exf:detLaw a logic:Formula .
 exf:heLaw a logic:Formula .
 exf:weylLaw a logic:Formula .
+
+# --- The E8 root system, with its validatable numbers (240/rank 8/Weyl order) #
+exf:e8RootSystem a math:RootSystem ;
+    math:rootCount 240 ;
+    math:rootSystemRank 8 ;
+    math:weylGroup exf:e8Weyl .
+
+exf:e8Weyl a math:WeylGroup ;
+    math:groupOrder 696729600 .
