@@ -289,3 +289,98 @@ ex:ecDimensionalExpressionSingleton a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
     gmeow:conformanceRationale "The counter-example carries only one math:homogeneousOperand on a math:DimensionalExpression (sh:minCount 2 on math:DimensionalExpressionShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:MalformedDimension)." .
+
+# === Analysis & geometry rules (ANALYSIS-AND-GEOMETRY charter) ============== #
+
+# Binder AST: an argument slot and a scoped variable occurrence are well-formed.
+ex:ecBindingScoped a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/binding-expression-scoped.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:BindingExpression with a bound math:VariableDeclaration, an indexed math:ArgumentSlot, and a math:VariableOccurrence resolving to the declaration satisfies math:ArgumentSlotShape and math:VariableOccurrenceShape and validates with no findings." .
+
+ex:ecSlotIndexDuplicate a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/slot-index-duplicate.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "Two math:argumentSlot cells of one binder share math:slotIndex 0 (the SPARQL constraint of math:SlotIndexUniquenessShape), so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (math:MalformedArgumentSlot)." .
+
+ex:ecVariableUnscoped a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/variable-occurrence-unscoped.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example omits math:declaredVariable on a math:VariableOccurrence (sh:minCount 1 on math:VariableOccurrenceShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UnscopedVariableOccurrence)." .
+
+# Calculus: derivative, limit, series framing.
+ex:ecDerivativeFramed a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/derivative-framed.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:Derivative naming math:derivativeOf, math:withRespectToVariable, and math:derivativeOrder satisfies math:DerivativeShape and validates with no findings." .
+
+ex:ecDerivativeMissingVariable a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/derivative-missing-variable.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example omits math:withRespectToVariable on a math:Derivative (sh:minCount 1 on math:DerivativeShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UnderspecifiedDerivative)." .
+
+ex:ecLimitFramed a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/limit-framed.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:Limit naming math:limitOf and math:limitPoint satisfies math:LimitShape and validates with no findings (its math:limitMode is optional)." .
+
+ex:ecLimitMissingPoint a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/limit-missing-point.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example omits math:limitPoint on a math:Limit (sh:minCount 1 on math:LimitShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UnderspecifiedLimit)." .
+
+ex:ecSeriesConvergent a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/series-convergent.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:Series naming math:seriesTerm and carrying a math:Convergence (math:convergesTo + math:convergenceMode) satisfies math:SeriesShape and math:ConvergenceShape and validates with no findings." .
+
+ex:ecSeriesMissingConvergence a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/series-missing-convergence.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example omits math:hasConvergence on a math:Series (sh:minCount 1 on math:SeriesShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UnderspecifiedConvergence)." .
+
+# Topology: continuity declared, not assumed.
+ex:ecContinuousMapDeclared a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/continuous-map-declared.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:ContinuousMap declaring math:isContinuous satisfies math:ContinuousMapShape and validates with no findings." .
+
+ex:ecMapContinuityAssumed a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/map-continuity-assumed.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example omits math:isContinuous on a math:ContinuousMap (sh:minCount 1 on math:ContinuousMapShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UndeclaredTopologicalProperty)." .
+
+# Geometry: manifold framing and chart dimension-consistency.
+ex:ecManifoldStructured a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/manifold-structured.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:SmoothManifold declaring math:manifoldDimension and math:manifoldStructureKind satisfies math:ManifoldShape and validates with no findings." .
+
+ex:ecManifoldMissingStructureKind a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/manifold-missing-structure-kind.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example omits math:manifoldStructureKind on a math:Manifold that declares its dimension (sh:minCount 1 on math:ManifoldShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UnderspecifiedManifold)." .
+
+ex:ecChartConsistent a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/chart-dimension-consistent.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:Chart naming its domain, coordinate map, and target space, whose target math:spaceDimension equals its manifold's math:manifoldDimension, satisfies math:ChartShape and math:ChartDimensionShape and validates with no findings." .
+
+ex:ecChartDimensionMismatch a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/chart-dimension-mismatch.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example's chart maps a dimension-2 manifold into a dimension-3 target (the SPARQL constraint of math:ChartDimensionShape); every property is present so only the dimension gate bites, and validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (math:DimensionMismatch)." .
+
+# Algebraic topology: a homology group is a fully-framed abelian group.
+ex:ecHomologyGroupFramed a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/homology-group-framed.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:HomologyGroup — a subclass of math:AbelianGroup — declaring its math:underlyingSet, math:structureOperation, and a math:satisfiesAxiom satisfies the inherited math:AlgebraicStructureShape and validates with no findings." .

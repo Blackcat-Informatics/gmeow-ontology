@@ -1,0 +1,11 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Well-formed: a manifold declaring both its dimension and its structure kind.
+# Conforms to math:ManifoldShape. Bound by ex:ecManifoldStructured.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:sphere a math:SmoothManifold ;
+    math:manifoldDimension 2 ;
+    math:manifoldStructureKind math:smoothStructure .

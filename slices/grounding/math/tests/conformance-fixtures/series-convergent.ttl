@@ -1,0 +1,20 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Well-formed: a series naming its general term and carrying a convergence with a
+# declared mode. Conforms to math:SeriesShape and math:ConvergenceShape. Bound by
+# ex:ecSeriesConvergent.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:zetaSeries a math:Series ;
+    math:operator math:summationBinder ;
+    math:seriesTerm ex:zetaTerm ;
+    math:hasConvergence ex:zetaConvergence .
+
+ex:zetaTerm a math:MathematicalExpression .
+ex:zetaConvergence a math:Convergence ;
+    math:convergesTo ex:zetaValue ;
+    math:convergenceMode math:absoluteConvergence .
+
+ex:zetaValue a math:MathematicalObject .
