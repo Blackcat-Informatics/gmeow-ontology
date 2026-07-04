@@ -21923,6 +21923,56 @@
                 "@type": {
                   "anyOf": [
                     {
+                      "const": "lang:Paraphrase"
+                    },
+                    {
+                      "contains": {
+                        "const": "lang:Paraphrase"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/lang:Paraphrase"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "lang:Rendering"
+                    },
+                    {
+                      "contains": {
+                        "const": "lang:Rendering"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/lang:Rendering"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
                       "const": "lang:Sense"
                     },
                     {
@@ -21990,6 +22040,56 @@
             },
             "then": {
               "$ref": "#/$defs/lang:SurfaceForm"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "lang:TranslationUnit"
+                    },
+                    {
+                      "contains": {
+                        "const": "lang:TranslationUnit"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/lang:TranslationUnit"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "lang:TransliterationMap"
+                    },
+                    {
+                      "contains": {
+                        "const": "lang:TransliterationMap"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/lang:TransliterationMap"
             }
           },
           {
@@ -34152,6 +34252,77 @@
         ],
         "type": "object"
       },
+      "lang:Paraphrase": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "lang:paraphraseSamenessKind": {
+            "anyOf": [
+              {
+                "$comment": "external class https://blackcatinformatics.ca/lang/ParaphraseSamenessKind",
+                "type": "string"
+              },
+              {
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              }
+            ]
+          }
+        },
+        "required": [
+          "lang:paraphraseSamenessKind"
+        ],
+        "type": "object"
+      },
+      "lang:Rendering": {
+        "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          }
+        },
+        "type": "object"
+      },
       "lang:Sense": {
         "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
         "properties": {
@@ -34399,6 +34570,139 @@
         },
         "required": [
           "lang:analysisLevel"
+        ],
+        "type": "object"
+      },
+      "lang:TranslationUnit": {
+        "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "lang:translationMethod": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "$comment": "external class https://blackcatinformatics.ca/lang/TranslationMethod",
+                    "type": "string"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
+              },
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "$comment": "external class https://blackcatinformatics.ca/lang/TranslationMethod",
+                      "type": "string"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    }
+                  ]
+                },
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          }
+        },
+        "required": [
+          "lang:translationMethod"
+        ],
+        "type": "object"
+      },
+      "lang:TransliterationMap": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "lang:transliterationScheme": {
+            "anyOf": [
+              {},
+              {
+                "items": {},
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          },
+          "lang:transliterationSourceOrthography": {
+            "anyOf": [
+              {},
+              {
+                "items": {},
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          },
+          "lang:transliterationTargetOrthography": {
+            "anyOf": [
+              {},
+              {
+                "items": {},
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          }
+        },
+        "required": [
+          "lang:transliterationScheme",
+          "lang:transliterationSourceOrthography",
+          "lang:transliterationTargetOrthography"
         ],
         "type": "object"
       },
