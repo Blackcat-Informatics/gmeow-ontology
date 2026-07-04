@@ -616,7 +616,7 @@ fn s(v: &str) -> Json {
 /// A score float rendered the way Python's `json.dumps(float(x))` would: trailing
 /// `.0` for integral values, else the shortest decimal of `float(lexical)`. A
 /// non-numeric score lexical HARD-fails — invalid source data is never silently
-/// coerced to `0.0` (no-optionality, #863).
+/// coerced to `0.0` (no-optionality).
 fn json_float(lexical: &str) -> Result<Json, PipelineError> {
     let f: f64 = lexical.trim().parse().map_err(|e| {
         PipelineError::Parse(format!(

@@ -253,7 +253,7 @@ impl PropVal {
             PropVal::One(v) => v.clone(),
             // The objects of a property are an RDF SET — no inherent order. Emit them in
             // a canonical (deterministic, content-keyed) order so the projection is
-            // independent of carrier-assembly vs gts-round-trip quad ordering (#1132):
+            // independent of carrier-assembly vs gts-round-trip quad ordering:
             // the in-memory carrier and a re-imported `gmeow.gts` then yield identical
             // bytes. Sort by each value's stable JSON rendering.
             PropVal::Many(vs) => {

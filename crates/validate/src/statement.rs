@@ -189,7 +189,7 @@ fn py_str_repr(s: &str) -> String {
 
 // ─────────────────────────────────────────────────────────────────────────────
 // The statement invariant + lossless checks over a native (`purrdf::RdfDataset`)
-// graph (#906). Every check reproduces the legacy oxigraph `Store` implementation's
+// graph. Every check reproduces the legacy oxigraph `Store` implementation's
 // failing CONDITION, message TEXT, severity, and emission ORDER byte-identically —
 // the statement diagnostics feed the committed `graph/diagnostics` projection in
 // `gmeow.gts`, so any drift would change committed bytes.
