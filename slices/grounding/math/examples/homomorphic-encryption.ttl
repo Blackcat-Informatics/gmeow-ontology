@@ -4,11 +4,14 @@
 # How homomorphic encryption works — flagship 2. A homomorphic-encryption scheme is a
 # ring homomorphism whose preservation law IS the property that makes it useful:
 # Dec(E(a) ⊗ E(b)) = a ⊕ b — computation on ciphertexts corresponds to computation on
-# plaintexts. That law is authored as a real logic:Formula the reasoner owns (the purest
-# exercise of the one-way math: → logic: bridge). The scheme names the operation it is
-# homomorphic over, its RLWE hardness assumption, and its noise model; encrypt, evaluate,
-# and decrypt are gmeow:Activity processes. No external ontology models this — GMEOW
-# authors it and dogfoods its own privacy reasoning. Validates cleanly under the gate.
+# plaintexts. That law is authored as a real logic:Formula carried exactly in the canonical
+# logic: layer (the purest exercise of the one-way math: → logic: bridge). The scheme names
+# the operation it is homomorphic over, its RLWE hardness assumption, and its noise model;
+# encrypt, evaluate, and decrypt are gmeow:Activity processes. No external ontology models
+# this — GMEOW authors it and dogfoods its own privacy reasoning. It validates cleanly under
+# the whole-ontology gate; standalone it is illustrative, not closed-world instance data —
+# its encrypt/evaluate/decrypt Activity individuals and the preservation-law formula resolve
+# against the full ontology, not the isolated file.
 
 @prefix math:  <https://blackcatinformatics.ca/math/> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .

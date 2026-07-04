@@ -85,8 +85,14 @@ their external anchors.
 The algebra charter ([`design/MATHEMATICS-ALGEBRA.md`](./design/MATHEMATICS-ALGEBRA.md)) deepens the
 object layer with four regions, on one discipline: **a structure declares its operations and laws, and
 a map between structures declares what it preserves.** `math:` expresses; `logic:` owns reasoning —
-every axiom and preservation law is a real `logic:Formula` first-order AST the reasoner consumes, not
-an opaque string.
+every axiom and preservation law is a real `logic:Formula` first-order AST, not an opaque string. The
+canonical `logic:` layer carries these formulas exactly (`logic:ExactPreservation`) and the reasoner
+consumes the full quantifier tree; their lowering to the evaluable Datalog/relational engine is
+recorded as `logic:SoundUnderApproximation` in the logic projection report
+(`generated/logic/projection-report.ttl`), because the flagship laws are n-ary (the ternary
+`op(x,y,z)` predication) and the binary evaluable core carries the extra arity as flagged unsupported
+residue. The laws are thus preserved and reasoned over faithfully in the canonical layer; entailment
+over their n-ary predication is a relational-core capability, not an algebra-slice concern.
 
 - **The algebraic-structure hierarchy** — `math:AlgebraicStructure` ⊐ `math:Magma` ⊐ `math:Semigroup`
   ⊐ `math:Monoid` ⊐ `math:Group` ⊐ `math:AbelianGroup`; `math:Ring` ⊐ `math:CommutativeRing` ⊐
