@@ -537,14 +537,21 @@ mod tests {
         for unit in ["translationSource", "translationTarget"] {
             assert!(nt.contains(&iri(LANG_NS, unit)), "missing lang:{unit}");
         }
-        assert!(
-            !nt.contains(&format!(
-                "<{}> <{}>",
-                EXAMPLE_BASE,
-                iri(LANG_NS, "surfaceText")
-            )),
-            "surface text must live on the SurfaceForm, never inline on a crossing subject"
-        );
+        // Surface text lives on the SurfaceForm, NEVER inline on a crossing subject
+        // (the unit or its correspondence). A blanket EXAMPLE_BASE prefix check is vacuous
+        // — crossing subjects are minted as `<EXAMPLE_BASE>translation-unit/<digest>`, so
+        // the base is never immediately followed by `surfaceText` — so assert directly that
+        // no crossing-subject line carries the predicate.
+        let surface_text = iri(LANG_NS, "surfaceText");
+        for line in nt.lines() {
+            let is_crossing_subject = line
+                .starts_with(&format!("<{EXAMPLE_BASE}translation-unit/"))
+                || line.starts_with(&format!("<{EXAMPLE_BASE}translation-correspondence/"));
+            assert!(
+                !(is_crossing_subject && line.contains(&surface_text)),
+                "surface text must live on the SurfaceForm, never inline on a crossing subject: {line}"
+            );
+        }
     }
 
     #[test]
