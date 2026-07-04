@@ -83,3 +83,170 @@ ASK {
     math:compositionInner rdfs:subPropertyOf math:functionComposition .
 }""" ;
     gmeow:saRationale "Function composition is non-commutative (g ∘ f ≠ f ∘ g), so the composite→component relation MUST carry order: math:compositionOuter (applied second) and math:compositionInner (applied first) refine math:functionComposition. A single order-agnostic property would lose which component is inner and which is outer." .
+
+# --- 6. The group subsumption tower Magma ⊒ … ⊒ AbelianGroup (MUST) ---
+ex:saGroupTower a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    math:Magma        rdfs:subClassOf math:AlgebraicStructure .
+    math:Semigroup    rdfs:subClassOf math:Magma .
+    math:Monoid       rdfs:subClassOf math:Semigroup .
+    math:Group        rdfs:subClassOf math:Monoid .
+    math:AbelianGroup rdfs:subClassOf math:Group .
+}""" ;
+    gmeow:saRationale "The algebraic hierarchy MUST be subsumption: an AbelianGroup is a Group is a Monoid is a Semigroup is a Magma is an AlgebraicStructure, each an rdfs:subClassOf edge, so an instance of a lower structure is entailed to be an instance of every weaker one." .
+
+# --- 7. The ring/module towers Field ⊑ … ⊑ Ring and VectorSpace ⊑ Module (MUST) ---
+ex:saRingModuleTower a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    math:Ring            rdfs:subClassOf math:AlgebraicStructure .
+    math:CommutativeRing rdfs:subClassOf math:Ring .
+    math:Field           rdfs:subClassOf math:CommutativeRing .
+    math:PolynomialRing  rdfs:subClassOf math:CommutativeRing .
+    math:Module          rdfs:subClassOf math:AlgebraicStructure .
+    math:VectorSpace     rdfs:subClassOf math:Module .
+}""" ;
+    gmeow:saRationale "The ring and module towers MUST be subsumption: a Field is a CommutativeRing is a Ring, a PolynomialRing is a CommutativeRing, and a VectorSpace is a Module — so a field is entailed to be a ring and every ring-level axiom applies." .
+
+# --- 8. A morphism is NOT a function (avoids the set-typed framing gate) (MUST-NOT) ---
+ex:saMorphismNotFunction a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    math:Morphism rdfs:subClassOf math:Function .
+}""" ;
+    gmeow:saRationale "A math:Morphism MUST NOT be a subclass of math:Function: a morphism's domain and codomain range over algebraic structures, not bare sets, so making it a function would let the set-typed math:FunctionFramingShape misfire on structure-typed domains. Morphism is its own object-layer parent." .
+
+# --- 9. The algebra failure classes subclass math:MathConformanceFailure (MUST) ---
+ex:saAlgebraFailureHierarchy a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    math:IncompleteAlgebraicStructure rdfs:subClassOf math:MathConformanceFailure .
+}""" ;
+    gmeow:saRationale "The algebra hard-rule failure math:IncompleteAlgebraicStructure MUST be a subclass of math:MathConformanceFailure, so a violation is a typed, queryable object." .
+
+# --- 10. The homomorphism hierarchy, incl. AutomorphismGroup ⊑ Group (MUST) ---
+ex:saHomomorphismHierarchy a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    math:Homomorphism      rdfs:subClassOf math:Morphism .
+    math:GroupHomomorphism rdfs:subClassOf math:Homomorphism .
+    math:RingHomomorphism  rdfs:subClassOf math:Homomorphism .
+    math:Isomorphism       rdfs:subClassOf math:Homomorphism .
+    math:Automorphism      rdfs:subClassOf math:Isomorphism .
+    math:AutomorphismGroup rdfs:subClassOf math:Group .
+}""" ;
+    gmeow:saRationale "The structure-preserving maps MUST form the declared hierarchy, and crucially math:AutomorphismGroup MUST be a subclass of math:Group: a symmetry group IS an automorphism group, the identity that lets E8's Weyl action, det, and a homomorphic-encryption scheme be the same kind of object." .
+
+# --- 11. The homomorphism failure classes subclass MathConformanceFailure (MUST) ---
+ex:saHomomorphismFailures a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    math:UnderspecifiedHomomorphism rdfs:subClassOf math:MathConformanceFailure .
+    math:StringOnlyPreservationLaw  rdfs:subClassOf math:MathConformanceFailure .
+}""" ;
+    gmeow:saRationale "Both homomorphism hard-rule failures MUST be subclasses of math:MathConformanceFailure, so a violation is a typed, queryable object." .
+
+# --- 12. The Weyl group IS an automorphism group IS a group (MUST) ---
+ex:saWeylGroupIsSymmetry a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    math:WeylGroup rdfs:subClassOf math:AutomorphismGroup .
+    math:AutomorphismGroup rdfs:subClassOf math:Group .
+}""" ;
+    gmeow:saRationale "A root system's symmetry group is its Weyl group, which MUST be a math:AutomorphismGroup and hence a math:Group — the identity that makes E8's symmetry expressible with the same machinery as det and homomorphic encryption." .
+
+# --- 12b. The unification failure classes subclass MathConformanceFailure (MUST) ---
+ex:saUnificationFailures a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    math:UnanchoredAutomorphismGroup rdfs:subClassOf math:MathConformanceFailure .
+    math:WrongE8WeylOrder            rdfs:subClassOf math:MathConformanceFailure .
+    math:automorphismGroupOf         a owl:ObjectProperty .
+}""" ;
+    gmeow:saRationale "The two unification hard-rule failures MUST be typed math:MathConformanceFailure, and math:automorphismGroupOf MUST exist: every math:AutomorphismGroup is the symmetry of some structure (anchored through math:automorphismGroupOf), and a root system claiming to be E8 with a wrong Weyl order is rejected by value — so a violation of either is a typed, queryable object." .
+
+# --- 12d. A ring's distributivity gate is a typed failure + refined property (MUST) ---
+ex:saRingDistributivity a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    math:NonDistributiveRing      rdfs:subClassOf math:MathConformanceFailure .
+    math:satisfiesDistributivity  rdfs:subPropertyOf math:satisfiesAxiom .
+}""" ;
+    gmeow:saRationale "The distributivity hard-rule failure math:NonDistributiveRing MUST be a typed math:MathConformanceFailure, and math:satisfiesDistributivity MUST refine math:satisfiesAxiom — a ring must name a distributivity law specifically, and that law is still one of the axioms the general structure gate sees." .
+
+# --- 13. IncompleteLieStructure subclasses MathConformanceFailure (MUST) ---
+ex:saLieFailure a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    math:IncompleteLieStructure rdfs:subClassOf math:MathConformanceFailure .
+}""" ;
+    gmeow:saRationale "The Lie hard-rule failure math:IncompleteLieStructure MUST be a subclass of math:MathConformanceFailure, so a violation is a typed, queryable object." .
+
+# --- 14. Homomorphic encryption IS a ring homomorphism (the bridge) (MUST) ---
+ex:saHeIsRingHomomorphism a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    math:HomomorphicEncryptionScheme rdfs:subClassOf math:EncryptionScheme .
+    math:HomomorphicEncryptionScheme rdfs:subClassOf math:RingHomomorphism .
+    math:homomorphicOver rdfs:subPropertyOf math:preservedOperation .
+}""" ;
+    gmeow:saRationale "A homomorphic-encryption scheme MUST be both a math:EncryptionScheme and a math:RingHomomorphism, and math:homomorphicOver MUST refine math:preservedOperation — so HE is the same map+law object as det and the Weyl action, and its homomorphic property is a preserved operation." .
+
+# --- 15. The lattice-hardness assumptions and HE failure exist (MUST) ---
+ex:saHeVocabulary a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    math:learningWithErrors     a math:LatticeHardnessAssumption .
+    math:ringLearningWithErrors a math:LatticeHardnessAssumption .
+    math:UnderspecifiedEncryptionScheme rdfs:subClassOf math:MathConformanceFailure .
+}""" ;
+    gmeow:saRationale "The LWE and RLWE hardness assumptions MUST exist as math:LatticeHardnessAssumption individuals, and the HE hard-rule failure MUST be a typed math:MathConformanceFailure." .
+
+# --- 16. Algebra dogfoods GMEOW via the one-way math:formalizes bridge (MUST) ---
+ex:saDogfoodFormalizes a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    math:Lattice math:formalizes gmeow:tuningSystemJustIntonation .
+}""" ;
+    gmeow:saRationale "Algebra MUST ground at least one GMEOW domain concept through the one-way math:formalizes annotation (Principle 19): a prime-limit just-intonation tuning is a free abelian lattice, so math:Lattice formalizes gmeow:tuningSystemJustIntonation — surfaced in the domain term's documentation with the domain slice asserting no math: triple. This makes algebra grounding for the ontology, not a math island." .
