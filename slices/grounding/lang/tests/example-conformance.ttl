@@ -177,3 +177,115 @@ ex:ecGraphemeNoScript a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
     gmeow:conformanceRationale "The counter-example's lang:Grapheme declares no lang:inScript at all (sh:minCount 1 on lang:GraphemeGroundedShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (lang:UngroundedGrapheme)." .
+
+# =========================================================================== #
+# Meaning-stratum fixtures — the Frege triangle, the denotation record, the
+# one-way logic: bridge, interpretation, ambiguity, deixis, and speech acts.
+# lang:SilentDisambiguation and lang:UndeclaredLoweringStage are native Rust gates
+# (crates/validate structural_lint) tested in-crate, not SHACL, so they have no
+# example-conformance cell here.
+# =========================================================================== #
+
+ex:ecMeaningCatsChaseMice a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/meaning-cats-chase-mice.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "Flagship 1: 'cats chase mice' denotes a logic:Formula through a compositional lowering (lang:composedBy / lang:composedFrom) with a per-stage logic:preservationKind, routed through a sense — satisfies every denotation gate and validates with no findings." .
+
+ex:ecMeaningScopeAmbiguity a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/meaning-scope-ambiguity.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "Two co-resident readings of one sentence denote two DISTINCT logic:Formulas (forall-exists vs exists-forall); both persist, neither is collapsed, and each carries a preservation judgment." .
+
+ex:ecMeaningSawHerDuck a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/meaning-saw-her-duck.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "Two co-resident readings via two senses of one lexeme, each routed through lang:viaSense (satisfying lang:AmbiguityRoutingShape); the annotator's preference is a vantage-held gmeow:Observation with logic:confidence, and the other reading persists." .
+
+ex:ecMeaningSenseHypernymy a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/meaning-sense-hypernymy.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "The senses of 'dog' and 'animal' denote two logic:Types whose hypernymy is carried as logic: subsumption over the denoted types, with a reified lang:SenseRelation recording it — the lattice preserved as logic: linkage." .
+
+ex:ecMeaningHigherOrder a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/meaning-higher-order.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A claim about a claim about a reading (three reified vantage-held observations) — the HiLog-reflectable spine supports higher-order reasoning; each reading-claim names its vantage." .
+
+ex:ecMeaningCompetencyQuestion a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/meaning-competency-question.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "Flagship 2: a competency question's own prose is a lang:SurfaceForm realizing a parsed form; a lang:CommunicativeAct with interrogative force whose content denotes a query (lang:denotesQuery). GMEOW reads its own prose." .
+
+ex:ecMeaningMemoryClaim a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/meaning-memory-claim.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "Principle 14/15: a stored claim's raw text is lifted to a form, interpreted, and held as a vantage-held reading — the store/recall construct the memory layer consumes." .
+
+ex:ecMeaningIndexicalAnchor a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/meaning-indexical-anchor.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "An indexical denotation whose interpretation act names a lang:IndexicalAnchor (person deixis) satisfies lang:IndexicalAnchoredShape and validates with no findings." .
+
+ex:ecMeaningCoreference a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/meaning-coreference.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "Two referring expressions introduce and co-refer with one lang:DiscourseReferent — the anaphora primitive — and validate with no findings." .
+
+ex:ecMeaningPresupposition a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/meaning-presupposition.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A denotation whose asserted content and lang:presupposes content are two distinct logic:Formulas — separate lowerings — validates with no findings." .
+
+ex:ecMeaningUnderspecifiedDenotation a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/meaning-underspecified-denotation.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The denotation omits lang:denotationContext (sh:minCount 1 on lang:DenotationRecordShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (lang:UnderspecifiedDenotation)." .
+
+ex:ecMeaningSurfaceDenotation a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/meaning-surface-denotation.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "The denotation's lang:denotedForm is a lang:SurfaceForm (the SPARQL constraint of lang:DenotationNonSurfaceShape), so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (lang:SurfaceLevelDenotation)." .
+
+ex:ecMeaningUnroutedAmbiguous a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/meaning-unrouted-ambiguous.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "The denoted form's head lexeme has two senses but the denotation omits lang:viaSense (the SPARQL constraint of lang:AmbiguityRoutingShape), so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (lang:UnroutedAmbiguousDenotation)." .
+
+ex:ecMeaningKindMismatch a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/meaning-kind-mismatch.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "The denotesLogicFormula denotation targets a logic:Type, not a logic:Formula (the SPARQL constraint of lang:DenotationKindMatchShape), so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (lang:DenotationKindMismatch)." .
+
+ex:ecMeaningUngroundedClaim a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/meaning-ungrounded-claim.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The observation about a reading names no gmeow:vantage (sh:minCount 1 on lang:ReadingClaimGroundedShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (lang:UngroundedReadingClaim)." .
+
+ex:ecMeaningUnanchoredIndexical a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/meaning-unanchored-indexical.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "The indexical denotation's interpretation act names no lang:IndexicalAnchor (the SPARQL constraint of lang:IndexicalAnchoredShape), so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (lang:UnanchoredIndexical)." .
+
+ex:ecMeaningConfidenceAsProbability a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/meaning-confidence-as-probability.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "The reading claim carries a logic:probability with no declared logic:probabilityModel (the SPARQL constraint of lang:ConfidenceNotProbabilityShape), so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (lang:ConfidenceAsProbability)." .
+
+ex:ecMeaningFregeConflation a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/meaning-frege-conflation.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "One node is typed as both lang:Sense and lang:Denotation (the SPARQL constraint of the SECONDARY lang:FregeDisjointShape), so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (lang:FregeConflation)." .
+
+ex:ecMeaningActObservationConflation a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/meaning-act-observation-conflation.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.NotConstraintComponent" ;
+    gmeow:conformanceRationale "A lang:InterpretationAct is typed also as a gmeow:Observation (the sh:not of the SECONDARY lang:ActObservationDisjointShape), so validation MUST emit shacl.NotConstraintComponent and NO other finding (lang:ActObservationConflation)." .
