@@ -1342,7 +1342,7 @@ lang:DenotationKindMismatch
     rdfs:subClassOf lang:LangConformanceFailure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "Denotation Kind Mismatch"@x-gmeow-english ;
-    skos:definition "The failure raised when a lang:denotationKind does not match its target's type — a denotesLogicFormula denotation whose target is not a logic:Formula, a denotesLogicType whose target is not a logic:Type, a denotesLogicTerm whose target is not a logic:Individual, a denotesClass whose target is not an owl:Class. The kind fixes the target's type."@x-gmeow-english ;
+    skos:definition "The failure raised when a lang:denotationKind does not match its target's type — a denotesLogicFormula denotation whose target is not a logic:Formula, a denotesLogicType whose target is not a logic:Type, a denotesLogicTerm whose target is not a logic:Individual, a denotesClass whose target is not an owl:Class, a denotesByDescription whose target is not a lang:Intension. The kind fixes the target's type."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 lang:ActObservationConflation
@@ -1561,6 +1561,13 @@ lang:isPerformative
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "is performative"@x-gmeow-english ;
     skos:definition "Whether a communicative act is performative (brings about the state it names by being uttered) rather than constative. Domain lang:CommunicativeAct, range xsd:boolean (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+lang:performedOn
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "performed on"@x-gmeow-english ;
+    skos:definition "Relates a communicative act to the lang:Form whose use it is — the form the act is performed on. A communicative act is the use of a form, so it names that form here. Domain lang:CommunicativeAct, range lang:Form (stated in prose)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 lang:aboutReading
