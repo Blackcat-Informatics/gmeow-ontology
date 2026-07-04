@@ -1,0 +1,21 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Well-formed: a derived dimension declaring an exponent cell that raises a base
+# dimension to an exact-rational power. Conforms to math:DerivedDimensionShape and
+# math:DimensionExponentShape. Bound by ex:ecDerivedDimensionStructured.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:velocityDim a math:DerivedDimension ;
+    math:baseDimensionExponent ex:lengthExp , ex:timeExp .
+
+ex:lengthExp a math:DimensionExponent ;
+    math:exponentOfDimension math:lengthDimension ;
+    math:exponentNumerator 1 ;
+    math:exponentDenominator 1 .
+
+ex:timeExp a math:DimensionExponent ;
+    math:exponentOfDimension math:timeDimension ;
+    math:exponentNumerator -1 ;
+    math:exponentDenominator 1 .

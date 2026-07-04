@@ -1,0 +1,19 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:DimensionalExpressionShape: a math:DimensionalExpression
+# with only one math:homogeneousOperand (sh:minCount 2 — homogeneity is vacuous below
+# two operands), so validation MUST emit shacl.MinCountConstraintComponent (and no
+# other finding). The operand is dimensioned so math:QuantityDimensionShape stays
+# satisfied.
+# Bound by tests/example-conformance.ttl (ex:ecDimensionalExpressionSingleton).
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:lonelyExpression a math:DimensionalExpression ;
+    math:homogeneousOperand ex:onlyOperand .
+
+ex:onlyOperand a math:Quantity ;
+    math:hasDimension ex:someDim .
+
+ex:someDim a math:Dimension .
