@@ -201,6 +201,120 @@ fn dedup_helper_keeps_one_per_content_key() {
 }
 
 #[test]
+fn none_vs_empty_string_optionals_differ() {
+    // An absent part of speech vs an explicitly-empty one are structurally distinct
+    // forms; the earlier `.unwrap_or("")` scheme collapsed them.
+    let none_pos = Form::Lexeme {
+        sign_system: EN.to_owned(),
+        lemma: "cat".to_owned(),
+        part_of_speech: None,
+    };
+    let empty_pos = Form::Lexeme {
+        sign_system: EN.to_owned(),
+        lemma: "cat".to_owned(),
+        part_of_speech: Some(String::new()),
+    };
+    assert_ne!(
+        none_pos.content_key(),
+        empty_pos.content_key(),
+        "None and Some(\"\") part-of-speech are distinct forms"
+    );
+
+    // Same distinction on a MorphFeature layer.
+    let none_layer = word_form(
+        "run",
+        "verb",
+        vec![MorphFeature {
+            key: "Number".to_owned(),
+            values: vec!["Sing".to_owned()],
+            layer: None,
+        }],
+    );
+    let empty_layer = word_form(
+        "run",
+        "verb",
+        vec![MorphFeature {
+            key: "Number".to_owned(),
+            values: vec!["Sing".to_owned()],
+            layer: Some(String::new()),
+        }],
+    );
+    assert_ne!(
+        none_layer.content_key(),
+        empty_layer.content_key(),
+        "None and Some(\"\") feature layer are distinct forms"
+    );
+
+    // And on a Slot role / dependency edge.
+    let none_role_slot = Form::Composed {
+        sign_system: EN.to_owned(),
+        level: "phrase".to_owned(),
+        analysis: None,
+        head: None,
+        slots: vec![Slot {
+            index: 0,
+            role: None,
+            dep_relation: None,
+            depends_on: None,
+            form: lexeme("cat", "noun"),
+        }],
+    };
+    let empty_role_slot = Form::Composed {
+        sign_system: EN.to_owned(),
+        level: "phrase".to_owned(),
+        analysis: None,
+        head: None,
+        slots: vec![Slot {
+            index: 0,
+            role: Some(String::new()),
+            dep_relation: None,
+            depends_on: None,
+            form: lexeme("cat", "noun"),
+        }],
+    };
+    assert_ne!(
+        none_role_slot.content_key(),
+        empty_role_slot.content_key(),
+        "None and Some(\"\") slot role are distinct forms"
+    );
+}
+
+#[test]
+fn delimiter_in_field_does_not_collide() {
+    // A single feature value "a,b" vs two values "a" and "b": under the old
+    // comma-joined value list both rendered as "a,b" and collided.
+    let one_value = word_form("x", "noun", vec![feat("Case", &["a,b"])]);
+    let two_values = word_form("x", "noun", vec![feat("Case", &["a", "b"])]);
+    assert_ne!(
+        one_value.content_key(),
+        two_values.content_key(),
+        "a value containing ',' must not alias a two-element value set"
+    );
+
+    // A lemma carrying the old field separator vs a plain one: under the old
+    // `\u{0}`-joined walk these could realign a completely different structure. Here
+    // the two lemmas differ, so the forms must key differently — and, crucially, no
+    // arrangement of raw bytes can make a lemma impersonate the surrounding tags.
+    let nul_lemma = lexeme("a\u{0}b", "noun");
+    let plain_lemma = lexeme("ab", "noun");
+    assert_ne!(
+        nul_lemma.content_key(),
+        plain_lemma.content_key(),
+        "a lemma is length-prefixed, so its bytes never merge into the frame"
+    );
+
+    // A lemma "3:x" (which mimics a length prefix) beside a distinct plain lemma: the
+    // length prefix in front of it keeps it inert.
+    let mimic = lexeme("3:xy", "noun");
+    let plain = lexeme("xy", "noun");
+    assert_ne!(
+        mimic.content_key(),
+        plain.content_key(),
+        "raw bytes that mimic a length prefix stay inert behind their own prefix"
+    );
+}
+
+#[test]
 fn worked_example_stable_id_is_pinned() {
     // A byte-for-byte golden: the stable id of "cats chase mice" must not drift.
     insta::assert_snapshot!(cats_chase_mice().stable_id());
