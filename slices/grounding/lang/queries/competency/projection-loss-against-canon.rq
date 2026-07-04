@@ -6,19 +6,19 @@
 # carried and flagged). This query reads that loss ledger off the live corpus.
 #
 # Worked instance: what does the French docs tree lose against the English canon? Over the
-# fixture the answer is exactly the typed lang:TranslationUnit crossings whose carried
-# logic:Correspondence declares a NON-Exact logic:preservationKind — every present fr/zh
-# pair as logic:ValidationOnly, with any untranslated unit surfacing as logic:Unsupported
-# and additionally flagged through lang:translationGap.
+# translation-french-english-pair fixture the answer is exactly the typed lang:TranslationUnit
+# crossings whose carried logic:Correspondence declares a NON-Exact logic:preservationKind —
+# both present English→French pairs as logic:ValidationOnly (string-level and machine-unanalyzed,
+# never a fabricated Exact). Each row reports the unit and its honest, non-Exact preservation
+# polarity read straight off the carried Correspondence's law-spine.
 PREFIX lang: <https://blackcatinformatics.ca/lang/>
 PREFIX logic: <https://blackcatinformatics.ca/logic/>
 
-SELECT DISTINCT ?unit ?preservation ?gap WHERE {
+SELECT DISTINCT ?unit ?preservation WHERE {
     ?unit a lang:TranslationUnit ;
           lang:translationCorrespondence ?corr .
     ?corr logic:preservationKind ?preservation .
     FILTER(?preservation != logic:ExactPreservation)
-    OPTIONAL { ?unit lang:translationGap ?gap . }
     FILTER(STRSTARTS(STR(?unit), "http://example.org/lang/"))
 }
 ORDER BY ?unit ?preservation

@@ -289,3 +289,83 @@ ex:ecMeaningActObservationConflation a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.NotConstraintComponent" ;
     gmeow:conformanceRationale "A lang:InterpretationAct is typed also as a gmeow:Observation (the sh:not of the SECONDARY lang:ActObservationDisjointShape), so validation MUST emit shacl.NotConstraintComponent and NO other finding (lang:ActObservationConflation)." .
+
+# =========================================================================== #
+# Translation-stratum fixtures — the crossing layer: renderings, transliteration
+# maps, translation units carrying a logic:Correspondence, document roll-ups, and
+# paraphrase. lang:FabricatedEquivalence, lang:AssertedRollup, lang:SurfaceLeakInContentKey,
+# and the PRIMARY lang:RenderingAsIdentity (content and produced form being one node) are
+# native Rust gates (crates/validate structural_lint) tested in-crate, not SHACL, so they
+# have no example-conformance cell here.
+# =========================================================================== #
+
+ex:ecTranslationFrenchEnglishPair a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/translation-french-english-pair.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "Flagship translation: an English→French document with two lang:TranslationUnits, each carrying exactly one logic:Correspondence with an honest logic:ValidationOnly judgment, rolled up by a document-level lang:Translation that asserts no document-level preservation — satisfies lang:TranslationUnitShape, lang:UnmarkedSurfaceTranslationShape, and lang:TranslationAttributionShape and validates with no findings." .
+
+ex:ecTranslationTransliterationISO9 a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/translation-transliteration-iso9.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A round-trippable ISO 9 lang:TransliterationMap (source/target orthography + scheme) whose application is held as a lang:Rendering carrying logic:ExactPreservation satisfies lang:TransliterationAnchorShape and lang:RenderingRecordShape / lang:RenderingNotIdentityShape and validates with no findings." .
+
+ex:ecTransliterationLossyRomanization a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/transliteration-lossy-romanization.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A lossy Arabic romanization lang:TransliterationMap whose rendering carries logic:SoundUnderApproximation — declaring the unrecoverable short-vowel and letter-seat residue as data rather than a silent Exact default — satisfies lang:TransliterationAnchorShape and lang:RenderingRecordShape and validates with no findings." .
+
+ex:ecParaphraseSameDenotation a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/paraphrase-same-denotation.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A lang:Paraphrase within one English sign system declaring lang:paraphraseSamenessKind lang:sameDenotation satisfies lang:ParaphraseKindShape and validates with no findings." .
+
+ex:ecRenderingTurtleEmit a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/rendering-turtle-emit.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A lang:Rendering of kind lang:renderingSerialization producing a Turtle lang:SurfaceForm distinct from its rendered content, carrying logic:ExactPreservation, satisfies lang:RenderingRecordShape and lang:RenderingNotIdentityShape and validates with no findings." .
+
+ex:ecRenderingProseGloss a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/rendering-prose-gloss.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A lang:Rendering of kind lang:renderingProse glossing a logic:Formula as English prose, carrying logic:SoundUnderApproximation (the gloss loses precise quantifier scope), satisfies lang:RenderingRecordShape and validates with no findings." .
+
+ex:ecTranslationUntranslatableResidue a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/translation-untranslatable-residue.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A lang:TranslationUnit for the untranslatable Japanese 間 whose carried logic:Correspondence is logic:Unsupported with logic:mnemomorphic false and which is marked lang:translationGap — untranslatability held as data — satisfies lang:TranslationUnitShape, lang:UnmarkedSurfaceTranslationShape (both sides UnanalyzedProse, weakest judgment), and lang:TranslationAttributionShape and validates with no findings." .
+
+ex:ecRenderingUnderspecified a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/rendering-underspecified.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The lang:Rendering omits its lang:renderedContent (sh:minCount 1 on lang:RenderingRecordShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (lang:UnderspecifiedRendering); the self-identity SPARQL branch cannot match with no renderedContent." .
+
+ex:ecTranslationUnitUnderspecified a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/translation-unit-underspecified.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The lang:TranslationUnit omits its single lang:translationCorrespondence (sh:minCount 1 on lang:TranslationUnitShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (lang:UnderspecifiedTranslationUnit); the unmarked-surface SPARQL branch binds through the absent correspondence and cannot match." .
+
+ex:ecTranslationUnmarkedSurface a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/translation-unmarked-surface.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "The unit's lang:translationSource is a lang:SurfaceForm that realizes nothing and is not typed lang:UnanalyzedProse while its logic:Correspondence claims logic:ExactPreservation (the sh:sparql constraint of lang:UnmarkedSurfaceTranslationShape), so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (lang:UnmarkedSurfaceTranslation); the segmented analysis level keeps the surface-analysis gate quiet." .
+
+ex:ecTranslationUnattributed a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/translation-unattributed.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The lang:TranslationUnit declares no lang:translationMethod (sh:minCount 1 on lang:TranslationAttributionShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (lang:UnattributedTranslation); the machine-attribution SPARQL branch cannot match an absent method." .
+
+ex:ecParaphraseUndeclaredKind a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/paraphrase-undeclared-kind.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The lang:Paraphrase names no lang:paraphraseSamenessKind (sh:minCount 1 on lang:ParaphraseKindShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (lang:UndeclaredParaphraseKind)." .
+
+ex:ecTransliterationUnanchored a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/transliteration-unanchored.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The lang:TransliterationMap declares no lang:transliterationScheme (sh:minCount 1 on lang:TransliterationAnchorShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (lang:UnanchoredTransliteration); both orthographies are declared." .

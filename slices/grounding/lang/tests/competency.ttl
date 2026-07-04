@@ -140,3 +140,28 @@ ex:cqHypernymyShape a logic:ResultShape ;
 ex:rowHypernymyDogAnimal a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "narrow" ; gmeow:cellValueIri exf:wfDog ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "broad" ; gmeow:cellValueIri exf:wfAnimal ] .
+
+# === Q7 (translation) — projection loss against canon (the crossing loss ledger) = #
+
+ex:cqProjectionLossAgainstCanon a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/lang/queries/competency/projection-loss-against-canon.rq" ;
+    gmeow:cqDataFile "tests/conformance-fixtures/translation-french-english-pair.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A crossing between sign systems carries its adequacy on a logic:Correspondence, not as a silent Exact default; this query reads the loss ledger off the corpus. Over the French/English pair fixture the answer is exactly the two present crossings {unitCat, unitDog}, each carrying a NON-Exact logic:ValidationOnly judgment (string-level and machine-unanalyzed) on its Correspondence." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqProjectionLossShape ;
+    gmeow:cqExpectRow ex:rowLossCat , ex:rowLossDog .
+
+ex:cqProjectionLossShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "unit" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "preservation" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowLossCat a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "unit" ; gmeow:cellValueIri exf:unitCat ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "preservation" ; gmeow:cellValueIri logic:ValidationOnly ] .
+
+ex:rowLossDog a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "unit" ; gmeow:cellValueIri exf:unitDog ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "preservation" ; gmeow:cellValueIri logic:ValidationOnly ] .
