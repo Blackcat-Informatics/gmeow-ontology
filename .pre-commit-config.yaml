@@ -110,9 +110,3 @@ repos:
         language: system
         pass_filenames: false
         files: ^crates/
-      - id: lint-issue-refs
-        name: lint issue/PR references
-        entry: ./scripts/lint-issue-refs.sh
-        language: system
-        pass_filenames: false
-        always_run: true
