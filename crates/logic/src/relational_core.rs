@@ -28,7 +28,7 @@ use purrdf::TermValue;
 use gmeow_logic_compile::ir::{LogicProgram, LOGIC_NAMESPACE};
 use gmeow_logic_compile::relational_core::{RcAtom, RcRule, RcTerm};
 
-use crate::encode::sha1_hex;
+use crate::facts::sha1_hex;
 use crate::result::PreservationClaim;
 use crate::rule_ir::{EvalAtom, EvalRule, EvalTerm};
 

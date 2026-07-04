@@ -2,10 +2,10 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 //! Lower a SPARQL property path to a `.logic` Datalog program and resolve it with
-//! the embedded Scryer tabling engine (S8 #914 — the native-only lowered twin).
+//! the embedded Scryer tabling engine (S8 — the native-only lowered twin).
 //!
 //! This is the **lowered** twin of the in-engine evaluator in
-//! `gmeow-sparql-eval::path`. The acceptance criterion for #914 is *parity*: the
+//! `gmeow-sparql-eval::path`. The acceptance criterion for is *parity*: the
 //! two implementations must agree on every property-path query in the corpus
 //! (validated by `crates/logic/tests/sparql_path_parity.rs`).
 //!
@@ -18,7 +18,7 @@
 //! `GraphPattern::Path` for the SPARQL stack. Wiring this lowering in as a *native
 //! accelerator* — routing recursive/closure shapes (`+`/`*`/`{n,}`) through Scryer
 //! behind the native SPARQL engine while the in-engine evaluator stays the
-//! wasm/default — is deferred to the native query stack EPIC #906. When that
+//! wasm/default — is deferred to the native query stack. When that
 //! dispatcher lands it **must** route every non-lowerable shape (the
 //! `NegatedPropertySet`/`Wildcard` and `{0,0}` cases that hard-fail below, plus any
 //! budget-incomplete result) back to the in-engine evaluator: the complete engine
@@ -32,7 +32,8 @@
 //! closure (`p+`/`p*`) and the stratified unroll of bounded `{n,m}` are ordinary
 //! Datalog. We reuse the `ScryerForeign` seam exactly — the path's edges are loaded
 //! into a world (a native named graph) and snapshotted as ground facts by
-//! [`run_scryer`]; the lowered [`QProgram`] carries only the IDB rules + goal.
+//! the backward oracle (`crate::oracle::BackwardOracle`); the lowered
+//! [`QProgram`] carries only the IDB rules + goal.
 //!
 //! # Positive relation + reflexivity
 //!
@@ -57,8 +58,8 @@ use std::collections::BTreeSet;
 
 use purrdf::sparql::PropertyPathExpression;
 
+use crate::oracle::{backward_oracle, BackwardOracle};
 use crate::query_ir::{AnswerSet, Budget, QAtom, QBodyLit, QGoal, QProgram, QRule, QTerm};
-use crate::scryer_engine::run_scryer;
 use crate::seam::{BudgetStatus, WorldStoreForeign};
 use crate::store::WorldStore;
 
@@ -123,7 +124,7 @@ pub fn evaluate_path_lowered(
     }
     let foreign = WorldStoreForeign::from_world(&store, LOWER_WORLD, LOWER_PROFILE)?;
 
-    let ans = run_scryer(
+    let ans = backward_oracle().solve(
         &foreign,
         LOWER_WORLD,
         &program,

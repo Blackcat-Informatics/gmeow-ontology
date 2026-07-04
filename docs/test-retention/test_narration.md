@@ -1,15 +1,20 @@
 # Retention: `tests/test_narration.py`
 
-**Category:** Domain invariant → slicetest cells
+**Category:** Merged-graph guard
 
 ## What it tests
 
-The narration seam (#360, EPIC #358).
+The narration seam.
 
-## Why it cannot move to Rust today
+Retained dynamic tests:
 
-Structural / competency / cross-slice invariants over the module (or merged) graph — ontology *shape*, not Python logic.
+- `test_seam_links_specialize_one_ancestor` — Retained dynamic test.
+- `test_orientations_are_not_inverse_axioms` — No owl:inverseOf between narrates and narratedIn: EL stays clean and either orientation is usable without entailing the other (the connectsTo convention).
+- `test_narration_mode_vocab_seeds` — Retained dynamic test.
+- `test_no_truth_bridge_from_unreliable_mode` — narrationUnreliable is a plain vocabulary individual — no axiom links it to the deception module.
+- `test_fixture_obeys_the_efficiency_budget` — The chapter-scale fixture demonstrates the doctrine: many flat links, exactly one promoted NarrationUsage (the one with a reason), and the promoted link is not duplicated as a flat quad.
+- `test_competency_cooccurrence_query_over_fixture` — The DraCor primitive: co-occurrence pairs reachable through all three seam forms (flat narrates, flat narratedIn, promoted NarrationUsage).
 
-## What is needed to move it to Rust
+## Why it cannot be deleted or moved to Rust today
 
-Author the assertions as slicetest cells in the **owning** slice (`structural.ttl` MUST/MUST-NOT, `competency.ttl` ASK/SELECT) per `docs/SLICE_QA.md`; cross-slice subjects go in the slice that *defines* the term. Confirm `make slicetest`, then delete this file. No new Rust — the harness exists.
+Whole-merged-graph sweeps over terms declared across many slice modules; cannot be faithfully scoped to a single slice module.

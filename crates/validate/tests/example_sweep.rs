@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Full slice-example validation sweep (#700 Task 6).
+//! Full slice-example validation sweep (Task 6).
 //!
 //! This integration test proves the closed-world fidelity of the SHACL→JSON
 //! Schema projection over the WHOLE example corpus: for every `slices/*/*/
@@ -81,8 +81,10 @@ const NON_CONFORMANT: &[&str] = &[
     "slices/core/inhabitation/examples/subject-status.ttl", // gmeow:tenureSubjectAgent/tenureVantage → Agent not typed standalone (SoftwareAgent⊑Agent chain); gmeow:hasTemporalFrame → shared TemporalFrame untyped standalone
     "slices/core/inquiry/examples/loaded-question.ttl", // gmeow:observationMethod → shared method individual untyped standalone
     "slices/core/inquiry/examples/open-question-and-resolution.ttl", // gmeow:observationMethod → shared method individual untyped standalone
+    "slices/grounding/lang/examples/forms-and-sign-systems.ttl", // lang:partOfSpeech/slotRole/featureKey/featureValue/analysisLevel/compositionLevel/offsetSpace/signSystemKind/modality/grammarFormalism → shared inventory, role, level, and kind individuals (noun, subjectRole, featNumber, valPlur, parsedLevel, sentenceLevel, codepointOffset, naturalLanguageKind, writtenModality, ebnfFormalism) defined in module.ttl, untyped standalone
     "slices/grounding/logic/examples/formalization-governance.ttl", // logic:candidateCategory/candidateProjectionBehavior/candidateNonEntailment → shared governance individuals (categories, preservation kinds, the standing obligations) defined in module.ttl, untyped standalone
     "slices/grounding/math/examples/numbers-sets-functions.ttl", // math:hasElement → set-member individuals (two/three/five/seven) untyped standalone; math:memberCondition → a logic:Formula node (no closed-world schema entry, the denotation seam)
+    "slices/grounding/math/examples/homomorphic-encryption.ttl", // math:encryptOperation/evaluateOperation/decryptOperation → gmeow:Activity process individuals, and the preservation law → a logic:Formula AST (the denotation seam), with no closed-world schema entry standalone
     "slices/core/metacognition/examples/dunning-kruger.ttl", // gmeow:observationMethod → shared method individual untyped standalone
     "slices/core/metacognition/examples/reflection-revision.ttl", // gmeow:observationMethod → shared method individual untyped standalone
     "slices/core/names/examples/person-names.ttl", // gmeow:usageAppellation/usageNamed → Appellation/Entity not typed standalone
@@ -134,7 +136,7 @@ fn repo_root() -> PathBuf {
 }
 
 /// Load one Turtle data-graph file into a frozen [`RdfDataset`] via the native
-/// codec (#909) — the SAME lenient native path the shape union uses
+/// codec — the SAME lenient native path the shape union uses
 /// ([`shape_union::load_shapes`]).
 fn load_data_graph(path: &Path) -> Arc<RdfDataset> {
     let bytes = std::fs::read(path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()));
@@ -212,6 +214,10 @@ fn gmeow_namespaces() -> json_schema::Namespaces {
             (
                 "logic".to_owned(),
                 "https://blackcatinformatics.ca/logic/".to_owned(),
+            ),
+            (
+                "lang".to_owned(),
+                "https://blackcatinformatics.ca/lang/".to_owned(),
             ),
             (
                 "math".to_owned(),

@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! `gmeow-pipeline` — the DAG-driven single-pass build executor (#861).
+//! `gmeow-pipeline` — the DAG-driven single-pass build executor.
 //!
 //! The build is a directed acyclic graph of typed [`Stage`]s that exchange an
 //! in-memory RDF dataset / bundle instead of re-parsing `gmeow.gts` per
@@ -29,7 +29,9 @@
 //! (single source of truth).
 
 pub mod bundle;
+pub mod bundle_blobs;
 pub mod cache;
+pub mod cli_ops;
 pub mod error;
 pub mod fanout;
 pub(crate) mod gmeow_ns;
@@ -37,6 +39,7 @@ pub mod graph;
 pub mod loader;
 pub mod mapping_purity;
 pub mod node;
+pub mod projections;
 pub mod provenance;
 pub mod put_executor;
 pub mod registry;
@@ -50,7 +53,6 @@ pub mod up_projection_corpus;
 pub mod up_projection_gates;
 pub mod up_projection_report;
 
-#[cfg(feature = "python")]
 pub mod mcp;
 #[cfg(feature = "python")]
 pub mod py;

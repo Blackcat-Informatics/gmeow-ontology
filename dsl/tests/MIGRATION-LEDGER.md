@@ -3,7 +3,7 @@ SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinform
 SPDX-License-Identifier: CC-BY-4.0
 -->
 
-# Test migration ledger — rdflib pytest → declarative test-DSL (#784, T3)
+# Test migration ledger — rdflib pytest → declarative test-DSL
 
 This ledger records, for the representative slice migrated end-to-end in T3
 (`slices/core/epistemics`), exactly which pytest tests were **converted** into
@@ -68,7 +68,7 @@ which is why it is sub-second.
 
 **Honest scope:** this PR migrates **one** representative slice (epistemics). The
 gate-wide collapse of the ~1,950 rdflib ontology-data tests lands incrementally as
-more slices migrate under #781 — the bulk of that suite still runs today. What
+more slices migrate in follow-on parcels — the bulk of that suite still runs today. What
 this PR banks is the end-to-end template plus the sub-second native lane every
 future slice migration inherits.
 
@@ -176,7 +176,7 @@ future slice migration inherits.
 | `test_imagined_world_open_domain_and_range` | `tests/test_imagination.py` | `ex:saImaginedWorldObjectProperty` + `ex:saImaginedWorldOpenDomainAndRange` | StructuralAssertion | converted | — | `make slicetest` |
 | `test_no_reality_or_truth_bit` | `tests/test_imagination.py` | `ex:saNoRealityOrTruthBit` | StructuralAssertion | converted | — | `make slicetest` |
 | `test_no_new_content_class` | `tests/test_imagination.py` | `ex:saNoNewContentClass` | StructuralAssertion | converted | — | `make slicetest` |
-| `test_by_reference_no_logic_triples` | `tests/test_imagination.py` | `ex:saByReferenceNoLogicTriples` | StructuralAssertion | converted | — (DYNAMIC FILTER over every `logic:` node, allowing only the 15 #694 stereotype IRIs — NOT a hand-listed blacklist) | `make slicetest` |
+| `test_by_reference_no_logic_triples` | `tests/test_imagination.py` | `ex:saByReferenceNoLogicTriples` | StructuralAssertion | converted | — (DYNAMIC FILTER over every `logic:` node, allowing only the 15 stereotype IRIs — NOT a hand-listed blacklist) | `make slicetest` |
 | `test_manifest_depends_only_on_kernel` | `tests/test_imagination.py` | — | — | **retained** | set-equality over `manifest.ttl`, which `run_structural_cell` never loads (store = module.ttl + examples/ only) | pytest |
 | `test_every_declared_term_is_annotated` | `tests/test_imagination.py` | — | — | **deleted** | Covered by global `make validate` gate via two guardians: (1) SHACL `GmeowClassShape` + `GmeowPropertyShape` (shapes/gmeow-shapes.ttl) enforce rdfs:label / skos:definition / rdfs:isDefinedBy / gmeow:graphBoxRole on every gmeow:-namespaced owl:Class and property; (2) the Rust `structural_lint` vocabulary-individual sweep (crates/validate/src/lint.rs `collect_typed_terms`, pinned by test `structural_still_flags_vocabulary_individual`) enforces the same contract on value-vocab individuals (the `origin*` ContentOrigin individuals). Verified 2026-06-22, BOTH guardians exercised on imagination terms: removing `gmeow:originImagined`'s `rdfs:label` (a value-vocab INDIVIDUAL) made `make validate` emit "error individual https://blackcatinformatics.ca/gmeow/originImagined is missing rdfs:label" (the Rust guardian) and exit non-zero; removing `gmeow:ContentOrigin`'s `rdfs:label` (a CLASS) made it emit "error class https://blackcatinformatics.ca/gmeow/ContentOrigin is missing rdfs:label" (the SHACL guardian) and exit non-zero. | `make validate` |
 
@@ -198,6 +198,44 @@ The temporal pytest loaded the FULL merged graph (`load_merged_graph(include_imp
 | `test_interpersonal_relationship_is_a_gufo_relator` | `tests/test_temporal.py` | `slices/core/contacts/tests/structural.ttl` `ex:saInterpersonalRelationshipIsRelatorKind` | StructuralAssertion | converted | — | `make slicetest` |
 
 **Temporal tally:** 7 converted, 1 retained-with-reason (cross-slice merged-graph). Source file `tests/test_temporal.py` trimmed to the 1 retained function (not deleted).
+
+## `slices/core/temporal` — temporal cluster
+
+This parcel migrates the temporal pytest cluster (`tests/test_edtf.py`,
+`tests/test_allen_jepd.py`, `tests/test_named_period.py`) into the temporal
+slice's declarative `tests/structural.ttl`. Every subject below is asserted in
+`temporal/module.ttl`, so each cell uses `gmeow:scopeModule`. The one retained
+function is a whole-graph sweep that cannot be narrowed to the module graph
+without losing the regression guard.
+
+| Pytest fn | Pytest file | DSL cell IRI | Cell type | Status | Reason if retained | Run by |
+|---|---|---|---|---|---|---|
+| `test_edtf_value_is_datatype_property` | `tests/test_edtf.py` | `ex:saEdtfValueIsDatatypeProperty` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_edtf_value_range_is_literal` | `tests/test_edtf.py` | `ex:saEdtfValueRangeIsLiteral` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_instant_exists_and_has_instant_value` | `tests/test_edtf.py` | `ex:saInstantExistsAndHasInstantValue` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_all_interval_level_allen_relations_exist` | `tests/test_allen_jepd.py` | `ex:saAllIntervalLevelAllenRelationsExist` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_interval_before_and_after_are_transitive` | `tests/test_allen_jepd.py` | `ex:saIntervalBeforeAndAfterAreTransitive` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_interval_coincides_with_is_symmetric_and_transitive` | `tests/test_allen_jepd.py` | `ex:saIntervalCoincidesWithIsSymmetricAndTransitive` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_no_event_interval_property_disjointness_in_owl` | `tests/test_allen_jepd.py` | `ex:saNoEventIntervalPropertyDisjointnessInOwl` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_no_owl_all_disjoint_properties_over_interval_relations` | `tests/test_allen_jepd.py` | — | — | **retained** | Whole-graph sweep over every `owl:AllDisjointProperties` to ensure no interval-level Allen relation is grouped into an OWL disjoint-properties axiom; not expressible as a finite module-scoped ASK. | pytest |
+| `test_named_period_subclasses_entity` | `tests/test_named_period.py` | `ex:saNamedPeriodSubclassesEntity` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_period_type_exists` | `tests/test_named_period.py` | `ex:saPeriodTypeExists` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_seed_geologic_periods_exist` | `tests/test_named_period.py` | `ex:saSeedGeologicPeriodsExist` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_period_part_of_is_transitive` | `tests/test_named_period.py` | `ex:saPeriodPartOfIsTransitive` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_period_part_of_links` | `tests/test_named_period.py` | `ex:saPeriodPartOfLinks` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_period_contains_period_is_inverse` | `tests/test_named_period.py` | `ex:saPeriodContainsPeriodIsInverse` | StructuralAssertion | converted | — | `make slicetest` |
+
+**Temporal cluster tally:** 13 converted → cells 7-19 of
+`slices/core/temporal/tests/structural.ttl`; 1 retained-with-reason
+(whole-graph `AllDisjointProperties` sweep). Source files `tests/test_edtf.py`
+and `tests/test_named_period.py` are DELETED; `tests/test_allen_jepd.py` is
+trimmed to the 1 retained function.
+
+### Cross-slice item from `tests/test_calendar.py`
+
+| Pytest fn | Pytest file | DSL cell IRI | Cell type | Status | Reason | Run by |
+|---|---|---|---|---|---|---|
+| `test_organizer_and_attendee_roles_exist` | `tests/test_calendar.py` | `slices/core/events/tests/structural.ttl` `ex:saOrganizerAndAttendeeRolesExist` | StructuralAssertion | converted | The role individuals are defined in `slices/core/events/module.ttl`, so the assertion is authored in the owning slice. | `make slicetest` |
 
 ## `slices/core/gts`
 
@@ -272,7 +310,7 @@ RETAINED in pytest (a module-scoped cell would silently narrow its subject set).
 | `test_assessed_entity_property_structure` | `tests/test_quality.py` | `ex:saAssessedEntityProperty` | StructuralAssertion | converted | — | `make slicetest` |
 | `test_quality_dimension_property_structure` | `tests/test_quality.py` | `ex:saQualityDimensionProperty` + `ex:saQualityDimensionNotFunctional` | StructuralAssertion | converted | — | `make slicetest` |
 | `test_dimension_seeds_exist` | `tests/test_quality.py` | `ex:saQualityDimensionSeeds` | StructuralAssertion | converted | — | `make slicetest` |
-| `test_no_preferred_or_primary_term_is_declared` | `tests/test_quality.py` | — | — | **retained** | whole-ontology Principle-9 dynamic sweep over the ENTIRE merged graph's subject set — a quality-module-scoped cell would silently narrow it (the #869 Gap-1 trap class). Kept as a dynamic-set sweep | pytest |
+| `test_no_preferred_or_primary_term_is_declared` | `tests/test_quality.py` | — | — | **retained** | whole-ontology Principle-9 dynamic sweep over the ENTIRE merged graph's subject set — a quality-module-scoped cell would silently narrow it (the Gap-1 trap class). Kept as a dynamic-set sweep | pytest |
 
 **Quality tally:** 5 converted (6 structural cells across 5 fns), 1 retained-with-reason. `tests/test_quality.py` keeps only the whole-ontology sweep.
 
@@ -312,7 +350,7 @@ The observation-module asserted-TBox structural assertions (#66, #69) migrated t
 
 **Observations tally:** 19 converted + 1 partial (property-bridges: 8 of 11 converted) = 23 structural cells, 5 retained-with-reason (4 generated-SSSOM-mapping reads + 1 cross-slice kin-bridge). `tests/test_observations.py` 24 → 5 fns.
 
-## #867 run_shacl → whole-ontology native conformance harness (crates/validate/tests/ontology_conformance.rs)
+## run_shacl → whole-ontology native conformance harness (crates/validate/tests/ontology_conformance.rs)
 
 The `run_shacl` pytest cluster ran full-ontology SHACL validation by assembling a merged
 shapes corpus in Python (`_shapes_turtle`) and feeding it alongside a fixture or inline
@@ -519,7 +557,7 @@ plus the 17 `#[test]` functions; all helper bodies deleted. All 17 tests still p
 
 **Batch 2 grand tally:** deception 10 + evidence 5 + notes 8 + events 2 + creative_works 8 + organization 2 + finance 6 + lifecycle 2 + standpoint 5 + rights 3 + registers 2 + profiles 3 + privacy 3 + teleology 2 + norms 2 + myth 3 + narrative 4 = **70 converted** across 17 slices; retained (cross-slice/dynamic/SPARQL/disk-load/SSSOM/projection) tracked per-fn above. All **87** conformance tests (17 batch-1 + 70 batch-2) green; `uv run mypy` clean (281 files).
 
-### #867 conformance batch 3 (citations, cognition, reference_frames, narration, aboutness, disclosure)
+### Conformance batch 3 (citations, cognition, reference_frames, narration, aboutness, disclosure)
 
 | pytest fn | source | disposition | Rust twin / retain reason |
 |-----------|--------|------------|---------------------------|
@@ -544,7 +582,7 @@ plus the 17 `#[test]` functions; all helper bodies deleted. All 17 tests still p
 
 **Conformance batch-3 (wave 1+2) tally:** citations 3 + cognition 2 + reference_frames 8 + narration 2 + aboutness 2 + disclosure 3 = **20 converted**. genealogy + employment had ZERO migratable tests (every run_shacl call is paired with a dynamic `g.objects()`/`(triple) in g`/post-SHACL membership assertion — retained whole, files unchanged). All **107** conformance tests (87 prior + 20) green; `uv run mypy` clean.
 
-### #867 conformance batch 3 wave 3 (risk, interior, narrative_time, software) + faithfulness fixes
+### Conformance batch 3 wave 3 (risk, interior, narrative_time, software) + faithfulness fixes
 
 | pytest fn | source | disposition | Rust twin / retain reason |
 |-----------|--------|------------|---------------------------|
@@ -561,11 +599,11 @@ plus the 17 `#[test]` functions; all helper bodies deleted. All 17 tests still p
 | `test_fixture_parses_and_shacl_passes` | test_software.py | converted | `fixture_parses_and_shacl_passes` |
 | 13 software tests | test_software.py | **retained** | `(triple) in g` membership / `_graph()` + combinations / dynamic sweeps |
 
-**FAITHFULNESS FIXES (mode correction):** four conformance twins were authored with `validate_with_ontology` (merged) but their Python originals used fixture-only `run_shacl(_fixture(...))` / `run_shacl(Graph().parse(...))`. Corrected to fixture-only `validate()` to match exactly: `conformance_narrative_time.rs` (×2, also REVERTED two `tests/fixtures/shapes/narrative-time-*.ttl` files an agent had edited to force a merged-mode pass — a fixture fudge), `conformance_software.rs` (×1), `conformance_cognition.rs` (×2, this branch), `conformance_organization.rs` (×2, correcting a latent drift merged in #961 — `Graph().parse(coverage/organization-*.ttl)` is fixture-only). Only `conformance_finance.rs` legitimately uses `validate_with_ontology` (Python `g = _graph()`). All pass fixture-only with original fixtures.
+**FAITHFULNESS FIXES (mode correction):** four conformance twins were authored with `validate_with_ontology` (merged) but their Python originals used fixture-only `run_shacl(_fixture(...))` / `run_shacl(Graph().parse(...))`. Corrected to fixture-only `validate()` to match exactly: `conformance_narrative_time.rs` (×2, also REVERTED two `tests/fixtures/shapes/narrative-time-*.ttl` files an agent had edited to force a merged-mode pass — a fixture fudge), `conformance_software.rs` (×1), `conformance_cognition.rs` (×2, this branch), `conformance_organization.rs` (×2, correcting a latent drift merged earlier — `Graph().parse(coverage/organization-*.ttl)` is fixture-only). Only `conformance_finance.rs` legitimately uses `validate_with_ontology` (Python `g = _graph()`). All pass fixture-only with original fixtures.
 
 **Conformance batch-3 wave-3 tally:** risk 2 + interior 2 + narrative_time 2 + software 2 = **8 converted**. All **115** conformance tests (107 prior + 8) green; `uv run mypy` clean.
 
-### #867 conformance batch 3 wave 4 (trust, rubrics, names, music_analysis)
+### Conformance batch 3 wave 4 (trust, rubrics, names, music_analysis)
 
 | pytest fn | source | disposition | Rust twin / retain reason |
 |-----------|--------|------------|---------------------------|
@@ -582,9 +620,9 @@ plus the 17 `#[test]` functions; all helper bodies deleted. All 17 tests still p
 
 **Conformance batch-3 wave-4 tally:** trust 1 + rubrics 2 + names 0 + music_analysis 3 = **6 converted**. All **121** conformance tests (115 prior + 6) green; `uv run mypy` clean.
 
-**Conformance batch-3 GRAND tally:** citations 3 + cognition 2 + reference_frames 8 + narration 2 + aboutness 2 + disclosure 3 + risk 2 + interior 2 + narrative_time 2 + software 2 + trust 1 + rubrics 2 + music_analysis 3 = **34 converted** across 13 slices (+ 4 faithfulness mode-fixes). genealogy/employment/names had ZERO migratable. Total native conformance suite = **121 tests** (#957: 17, #961: 70, batch-3: 34). Remaining run_shacl files: places 34, images 12, music_collections 10, music_pitch 9, + 1-count whole-graph validations (agentic/ai_claims/up_projection/identity_over_history/foundation_import/verifiable_release_chain).
+**Conformance batch-3 GRAND tally:** citations 3 + cognition 2 + reference_frames 8 + narration 2 + aboutness 2 + disclosure 3 + risk 2 + interior 2 + narrative_time 2 + software 2 + trust 1 + rubrics 2 + music_analysis 3 = **34 converted** across 13 slices (+ 4 faithfulness mode-fixes). genealogy/employment/names had ZERO migratable. Total native conformance suite = **121 tests** (conformance batch 1: 17, conformance batch 2: 70, batch-3: 34). Remaining run_shacl files: places 34, images 12, music_collections 10, music_pitch 9, + 1-count whole-graph validations (agentic/ai_claims/up_projection/identity_over_history/foundation_import/verifiable_release_chain).
 
-### #867 conformance batch 4 (the big files: places, images, music_collections, music_pitch)
+### Conformance batch 4 (the big files: places, images, music_collections, music_pitch)
 
 All migrated twins use fixture-only `validate()` (every Python original is `run_shacl(_fixture(...))` / `run_shacl(Graph())`); no `validate_with_ontology`, no fixture edits.
 
@@ -597,7 +635,7 @@ All migrated twins use fixture-only `validate()` (every Python original is `run_
 
 **Conformance batch-4 tally:** places 3 + images 11 + music_collections 11 + music_pitch 9 = **34 converted**. All **155** conformance tests (121 prior + 34) green.
 
-### #867 conformance batch 4 — whole-graph / single-run_shacl tail
+### Conformance batch 4 — whole-graph / single-run_shacl tail
 
 | source | converted | Rust twin / retain reason |
 |--------|-----------|---------------------------|
@@ -610,7 +648,7 @@ All migrated twins use fixture-only `validate()` (every Python original is `run_
 
 **Conformance batch-4 GRAND tally:** places 3 + images 11 + music_collections 11 + music_pitch 9 + ai_claims 1 + agentic 1 + verifiable_release_chain 1 = **37 converted**. Total native conformance suite = **158 tests**. The 4 `validate_with_ontology` (merged) users — finance, music_analysis, ai_claims, agentic — are all faithful (Python `g = _graph()`/`load_merged_graph()`). The run_shacl pytest population is now exhausted: every remaining run_shacl call is a faithful RETAIN (custom-shapes, dynamic disk/sweep, post-SHACL graph-membership, or cross-slice `_graph()` TBox) documented per-file above. `uv run mypy` clean (281 files).
 
-## #867 structural batch 13 (author-fresh: entities / sources / language / pipeline / graphrag)
+## Structural batch 13 (author-fresh: entities / sources / language / pipeline / graphrag)
 
 Five further slices that the batch-12 triage had pencilled in as "exempt" but which, on
 re-verification (the `verify-descope-claims` discipline — confirm before documenting), carry
@@ -628,7 +666,7 @@ so these are net-new declarative coverage; no pytest deleted. All green
 | `core/pipeline` | 4 (3 / 1) | Pipeline/PipelineStage Kinds ⊑ SocialObject + StageKind vocab; dataflow/stage property shapes; 7 StageKind seeds; every dogfooded PipelineStage carries a stageKind (build-pipeline integrity) |
 | `extensions/graphrag` | 4 (3 / 1) | Corpus/Community/ExtractedEntity/Embedding/VectorIndex Kinds ⊑ InformationObject + RetrievalEvent ⊑ Activity; DistanceMetric/IndexAlgorithm vocabs + seeds; functional retrieval edges; value vocabs never subclassed |
 
-**#869 Gap-1:** the three VALUES `mustNot` patterns (sources not-functional, graphrag
+**Gap-1:** the three VALUES `mustNot` patterns (sources not-functional, graphrag
 vocab-not-subclassed; and the language/entities/pipeline FILTER-NOT-EXISTS guards) range over the
 **fixed term sets each slice declares** (its three carrier properties, its two value-vocab classes)
 or use a dynamic `FILTER NOT EXISTS` over an open population (every Language-refinement class, every
@@ -638,7 +676,7 @@ Both the inference `saInferenceCommitmentNoSubclasses` and the graphrag `saGraph
 
 **Batch-13 tally:** 19 fresh structural cells across 5 slices (13 must + 6 mustNot); 0 pytest deleted.
 
-## #867 structural Tier-B CLOSEOUT — all 76 slices accounted
+## Structural Tier-B CLOSEOUT — all 76 slices accounted
 
 With batches 11–13, every one of the 12 slices that previously lacked `tests/structural.ttl` is
 accounted for. **10 now carry a structural cell** (kernel migrated from pytest; accounts, guides,
@@ -651,10 +689,10 @@ documented exemptions** (re-verified against the live slice, `verify-descope-cla
 | `core/logic` | **Principle 17** — `logic:` is the canonical reasoning vocabulary; its structural invariants are enforced by the Rust foundation oracle (`crates/foundation`, `foundation.rs`) and the gufo→logic migration validators, NOT by SHACL/SPARQL projections. A `structural.ttl` over `logic/module.ttl` would duplicate the Rust authority and risk divergence; its pytest (`test_logic_*.py`) exercises the solver ENGINE (KEEP), not TBox shape. |
 
 **Structural Tier-B is now 76/76 accounted: 74 slices carry `structural.ttl` + 2 documented
-exemptions, nothing silently dropped.** (The remaining open #867 work is Tier-C cull-on-retirement,
-gated on #832 / Python-oracle retirement — unchanged by this parcel.)
+exemptions, nothing silently dropped.** (The remaining open work is Tier-C cull-on-retirement,
+gated on Python-oracle retirement — unchanged by this parcel.)
 
-## #867 structural batch 12 (author-fresh: accounts / guides / inference / dreaming)
+## Structural batch 12 (author-fresh: accounts / guides / inference / dreaming)
 
 Four slices with real asserted-TBox vocabulary but **no migratable rdflib pytest** (they never
 had a `tests/test_<slice>.py` of structural assertions). Rather than leave them uncovered, fresh
@@ -669,7 +707,7 @@ No pytest is deleted (there was none to delete); these are net-new declarative c
 | `core/guides` | 5 (2 / 3) | Recipe/LearningPath QualityValue vocabs; includesRecipe LearningPath→Recipe shape; every dogfooded Recipe well-formed (slug+title+goal); every LearningPath has audience+goal; includesRecipe referential integrity (targets are typed Recipes) |
 | `core/inference` | 9 (6 / 3) | Analogy/Correspondence/InferenceCommitment = Relator Kinds; Process/Tenure endurant-occurrent spine; InferenceMode/AttackKind value vocabs + Peirce tetrad + the Argument/Attack/Support/ArgumentEvaluation acceptability layer; functional argument edges (conclusion/inferenceModeOf/correspondingSource-Target/tenureOf); competesWith symmetric; NO subclass of InferenceCommitment (Principle 9 — modes are values); open-range (Principle 13) argument inputs |
 
-**#869 Gap-1:** the two `mustNot` VALUES patterns (accounts status-properties, inference open-range
+**Gap-1:** the two `mustNot` VALUES patterns (accounts status-properties, inference open-range
 inputs) enumerate the **fixed, closed set of properties each slice declares**, not a stand-in for
 an open universal. The two OPEN value vocabularies (AccountStatus, ServiceStatus) and the
 "closed-but-open" InferenceMode/AttackKind vocabularies are asserted present-but-not-closed,
@@ -677,15 +715,15 @@ faithfully matching their module doctrine.
 
 **Batch-12 tally:** 21 fresh structural cells across 4 slices (13 must + 8 mustNot); 0 pytest
 deleted (none existed); net-new coverage. With kernel (batch 11) + these four, the 5 author/migrate
-slices of the #867 structural closeout are done.
+slices of the structural closeout are done.
 
-## #867 structural batch 11 (kernel — the universal aboutness axis)
+## Structural batch 11 (kernel — the universal aboutness axis)
 
-`tests/test_aboutness.py` (the kernel-resident #349/EPIC-#348 aboutness axis, 7 fns) migrated
+`tests/test_aboutness.py` (the kernel-resident aboutness axis, 7 fns) migrated
 to `slices/core/kernel/tests/{structural,competency}.ttl`. 3 structural fns → 5
 `gmeow:StructuralAssertion` cells (3 must + 2 mustNot) + 1 competency fn → 1
 `gmeow:CompetencyQuestion` cell; all green (`cargo nextest -p gmeow-slicetest`). `make validate` ✓.
-Per-cell `saRationale`/`cqRationale` names the source fn. kernel is #694-migrated (logic:).
+Per-cell `saRationale`/`cqRationale` names the source fn. kernel is migrated (logic:).
 
 | Source fn | Disposition |
 |---|---|
@@ -706,7 +744,7 @@ Per-cell `saRationale`/`cqRationale` names the source fn. kernel is #694-migrate
   `gmeow:aboutnessEnacts` is referenced from `core/citations` and `extensions/norms`, so the
   exactly-one-type guarantee is a merged-graph property, not a kernel-module one.
 
-**#869 Gap-1:** `saAboutnessNoThirdMember` is a closed two-member enumeration the source already
+**Gap-1:** `saAboutnessNoThirdMember` is a closed two-member enumeration the source already
 pinned (`members == {describes, enacts}`) — a genuinely-closed value vocabulary, not a finite-VALUES
 blacklist standing in for an open universal. The cross-module "no OTHER slice adds a member"
 guarantee is carried by the retained merged-graph pytest, not weakened away.
@@ -721,14 +759,14 @@ label+definition sweep is subsumed by `make validate`'s `Gmeow*Shape` SHACL + th
 `structural_lint` annotation sweep; break-and-revert confirmed `make validate` reds on a dropped
 label). `tests/test_aboutness.py` is trimmed to the 2 retained fns + the `_graph()` helper.
 
-## #867 structural batch 10 (places — the 129-fn slice)
+## Structural batch 10 (places — the 129-fn slice)
 
 The largest single slice (129 pytest fns) migrated to `slices/core/places/tests/structural.ttl`
 in its own parcel (the cell file is ~1750 lines, authored via chunked writes). ~87 converted
 fns → 122 `gmeow:StructuralAssertion` cells (94 must + 28 mustNot); all green
-(`cargo nextest -p gmeow-slicetest`, 61/61 cell files). places is #694-migrated (logic:).
+(`cargo nextest -p gmeow-slicetest`, 61/61 cell files). places is migrated (logic:).
 `make validate` ✓. The OWL-RL chain/location-propagation tests were already migrated to Rust
-(#896) and are NOT re-introduced.
+in the reasoning-cluster migration and are NOT re-introduced.
 
 **Retained (42 pytest fns):**
 
@@ -752,7 +790,7 @@ competency questions (`competency.ttl`), permanent Keeps (CLI/MCP/generator/nume
 sweeps/SSSOM-mapping reads), and the Tier-C parity tests gated on the oracle/purrdf/native-
 producer retirements.
 
-## #867 structural batch 9 (creative-works / genealogy)
+## Structural batch 9 (creative-works / genealogy)
 
 Two more home slices migrated to `slices/<g>/<n>/tests/structural.ttl` (both gufo:).
 20 converted fns → 33 `gmeow:StructuralAssertion` cells; all green
@@ -763,20 +801,20 @@ structural.ttl is too large to author in a single write; tracked for a follow-on
 
 | Slice (stereotype) | Converted fns → cells | Retained fns (reason) |
 |---|---|---|
-| `core/creative-works` (gufo:) | 17 → 27 cells | 22 retained: cross-slice WEMI subjects (CreativeWork/Document/Article/MediaObject/BookRelease + ContributionDegree + eventType* defined in documents/citations/events); `transitive_objects` dynamic traversal; 6 run_shacl; the #156 book/narrative tests (subjects in documents); 8 run_shacl ExampleConformance |
-| `extensions/genealogy` (gufo:) | 3 → 6 cells | 5 retained: 2 whole-graph dynamic sweeps (no-former-event-subclass, no-preferred); 3 run_shacl ExampleConformance. genealogy OWNS the 3 KinRelationship bridges (relationshipParent/relationshipChild/hasPartner subPropertyOf observedFeature) that the observations slice could not see (#867 batch-1 cross-slice deferral) — now migrated home as cells |
+| `core/creative-works` (gufo:) | 17 → 27 cells | 22 retained: cross-slice WEMI subjects (CreativeWork/Document/Article/MediaObject/BookRelease + ContributionDegree + eventType* defined in documents/citations/events); `transitive_objects` dynamic traversal; 6 run_shacl; the book/narrative tests (subjects in documents); 8 run_shacl ExampleConformance |
+| `extensions/genealogy` (gufo:) | 3 → 6 cells | 5 retained: 2 whole-graph dynamic sweeps (no-former-event-subclass, no-preferred); 3 run_shacl ExampleConformance. genealogy OWNS the 3 KinRelationship bridges (relationshipParent/relationshipChild/hasPartner subPropertyOf observedFeature) that the observations slice could not see (batch-1 cross-slice deferral) — now migrated home as cells |
 
 **Batch-9 tally:** 20 converted fns → 33 structural cells across 2 slices; 27
 retained-with-reason. Notably closes the cross-slice loop from batch 1: the 3
 KinRelationship observation-bridges, retained-in-pytest there as "pending a genealogy
 migration", are now genealogy `structural.ttl` cells.
 
-## #867 structural batch 8 (attestation / standpoint / archaeological-evidence / notes / sensory / sensory-environment)
+## Structural batch 8 (attestation / standpoint / archaeological-evidence / notes / sensory / sensory-environment)
 
 Six more home slices migrated to `slices/<g>/<n>/tests/structural.ttl`. ~83 converted
 fns → 125 `gmeow:StructuralAssertion` cells; all green (`cargo nextest -p gmeow-slicetest`,
-70/70 cell files). `standpoint` is #694-migrated (logic:); the rest gufo:. sensory +
-sensory-environment had their OWL-RL reasoning tests migrated to Rust in #896 — this
+70/70 cell files). `standpoint` is migrated (logic:); the rest gufo:. sensory +
+sensory-environment had their OWL-RL reasoning tests migrated to Rust in the reasoning-cluster migration — this
 batch migrates their remaining ASSERTED-TBox structural fns (the SOSA/AFO `*_mapped_to_*`
 mapping reads stay retained). Per-cell `saRationale` names the source fn. Every RETAINED
 fn is rowed below (no silent drops). `make validate` ✓.
@@ -787,19 +825,19 @@ fn is rowed below (no silent drops). `make validate` ✓.
 | `core/standpoint` (logic:) | 5 → 14 cells | 32 retained: foundational slice with heavy cross-slice (wasAttributedTo/confidence in provenance, containedInPlace/Place in places); 5 run_shacl; 5 SSSOM mapping reads; whole-graph dynamic sweeps (modality `==` over merged graph, no-preferred); bnode tenure-restriction walk |
 | `extensions/archaeological-evidence` (gufo:) | 29 → 42 cells | `test_attested_on_carrier_exists` (cross-slice: attestedOnCarrier in lexicon); `test_no_primary_or_preferred_archaeological_terms` (whole-graph sweep) |
 | `extensions/notes` (gufo:) | 16 → 23 cells | 16 retained: 3 cross-slice (EvidenceSpan/Selector in evidence, accordingTo in standpoint); `motivation` numeric-count gate (seeds+ban migrated); 7 run_shacl + 1 retracted; 4 projection parse tests |
-| `extensions/sensory` (gufo:) | 7 → 7 cells | 7 retained: all SOSA/AFO `*_mapped_to_*` + AFO-equivalences reads (generated mapping artifacts) — the reasoning tests were already migrated to Rust (#896) |
+| `extensions/sensory` (gufo:) | 7 → 7 cells | 7 retained: all SOSA/AFO `*_mapped_to_*` + AFO-equivalences reads (generated mapping artifacts) — the reasoning tests were already migrated to Rust |
 | `extensions/sensory-environment` (gufo:) | 12 → 15 cells | 5 retained: 2 SSSOM mapping reads; 2 cross-slice (axis/frame-realm in places); the consistency arm of the mixed `mental_reference_frame_requires_host` (its structural restriction arm → cell) |
 
 **Batch-8 tally:** ~83 converted fns → 125 structural cells across 6 slices; ~65
 retained-with-reason (cross-slice subjects, run_shacl ExampleConformance, SSSOM-mapping
 reads, whole-graph dynamic sweeps, bnode list-walks, projection-parse + numeric gates).
-sensory/sensory-environment complete the #896 reasoning-cluster slices' structural tails.
+sensory/sensory-environment complete the reasoning-cluster slices' structural tails.
 
-## #867 structural batch 7 (names / events / software / finance / images / cognition)
+## Structural batch 7 (names / events / software / finance / images / cognition)
 
 Six more home slices migrated to `slices/<g>/<n>/tests/structural.ttl`. ~94 converted
 fns → 179 `gmeow:StructuralAssertion` cells; all green (`cargo nextest -p gmeow-slicetest`,
-64/64 cell files). `names` and `events` are #694-migrated (logic:); the rest gufo:.
+64/64 cell files). `names` and `events` are migrated (logic:); the rest gufo:.
 Per-cell `saRationale` names the source fn; detailed cell IRIs live in each
 `structural.ttl`. Every RETAINED fn is rowed below (no silent drops). `make validate` ✓.
 
@@ -818,7 +856,7 @@ ExampleConformance, whole-graph dynamic sweeps, bnode list-walks, projection +
 SSSOM-mapping + numeric reads). names' 3 cross-slice Appellation-bridge cells were
 caught by the harness (must-cell failed) and correctly moved back to retained pytest.
 
-## #867 structural batch 6 (coreference / organization / agentic / evidence / narrative / deception)
+## Structural batch 6 (coreference / organization / agentic / evidence / narrative / deception)
 
 Six more home slices migrated to `slices/<g>/<n>/tests/structural.ttl` (all gufo:).
 50 converted fns → 108 `gmeow:StructuralAssertion` cells; all green
@@ -843,7 +881,7 @@ non-assertion guardrails (NO `isFalse`/`isDeceptive` property — falsehood is a
 StandpointClaim, not a truth-bit) migrated as mustNot cells, and licensed-falsehood ⊄
 untrue as a disjointness pair.
 
-## #867 structural batch 5 (calendar / citations / rights / norms / teleology / lifecycle)
+## Structural batch 5 (calendar / citations / rights / norms / teleology / lifecycle)
 
 Six more home slices migrated to `slices/<g>/<n>/tests/structural.ttl` (all gufo:).
 75 converted fns → 134 `gmeow:StructuralAssertion` cells; all green
@@ -868,7 +906,7 @@ dynamic sweeps, numeric/cardinality + `.rq` reads). Two partials (teleology
 intrinsic-modes, lifecycle supersession) split module-local arms to cells + retained
 the cross-slice arm.
 
-## #867 structural batch 4 (procedures / languages / trust / profiles / employment / risk)
+## Structural batch 4 (procedures / languages / trust / profiles / employment / risk)
 
 Six more home slices migrated to `slices/<g>/<n>/tests/structural.ttl`. 37 converted
 fns → 97 `gmeow:StructuralAssertion` cells; all green (`cargo nextest -p gmeow-slicetest`,
@@ -876,7 +914,7 @@ fns → 97 `gmeow:StructuralAssertion` cells; all green (`cargo nextest -p gmeow
 in each `structural.ttl`. Every RETAINED / PARTIAL fn is rowed (no silent drops). This
 batch includes the first slices with `run_shacl` ExampleConformance tests (trust,
 profiles, employment, risk) — those `run_shacl` fns are RETAINED in pytest (a different
-cell type, deferred to a future example-conformance parcel). `risk` is #694-migrated
+cell type, deferred to a future example-conformance parcel). `risk` is migrated
 (`logic:`); the rest are `gufo:`.
 
 | Slice (stereotype) | Converted fns → cells | Retained / partial fns (reason) |
@@ -893,10 +931,10 @@ retained-with-reason (cross-slice subjects, 8 run_shacl ExampleConformance fns d
 whole-graph dynamic sweeps, numeric/cardinality + `.rq` reads). First batch carrying
 `run_shacl` retentions (the example-conformance cell type is a separate future parcel).
 
-## #867 structural batch 3 (accessibility / expertise / versions / lexicon / tags / notation)
+## Structural batch 3 (accessibility / expertise / versions / lexicon / tags / notation)
 
 Six more home slices migrated to `slices/<g>/<n>/tests/structural.ttl` (all gufo:,
-none #694-migrated). 66 converted fns → 109 `gmeow:StructuralAssertion` cells; all
+none migrated). 66 converted fns → 109 `gmeow:StructuralAssertion` cells; all
 green (`cargo nextest -p gmeow-slicetest`). Per-cell `saRationale` names the source
 fn (`Mirrors test_*`); the detailed cell IRIs live in each `structural.ttl`. Every
 RETAINED / PARTIAL / covered-elsewhere fn is rowed below (no silent drops). The
@@ -918,13 +956,13 @@ retained-with-reason (7 cross-slice, 3 whole-graph dynamic sweeps, 1 covered by 
 observations cell). Pytest fn deltas: accessibility 11→0, expertise 11→4, versions
 12→1, lexicon 13→0, tags 14→1, notation 16→5.
 
-## #867 structural batch 2 (provenance / sexuality / connectivity / gender / aggregation)
+## Structural batch 2 (provenance / sexuality / connectivity / gender / aggregation)
 
 Five more home slices migrated to `slices/<g>/<n>/tests/structural.ttl` declarative
 cells. `music` was assessed and produced **no** cell file — all 4 of its tests are
 cross-slice (Genre/roles defined in creative-works/events), a generated-shapes read,
 or a whole-graph `transitive_subjects` sweep — all retained in pytest; the later
-tail for #694 below adds a music `structural.ttl` file for different stale
+tail below adds a music `structural.ttl` file for different stale
 stereotype assertions, while these four batch-2 functions remain retained. RETAIN
 categories applied uniformly: cross-slice subjects (module-scoped cell can't see
 them), generated-artifact reads (`load_mappings`, `.rq` competency files, shapes),
@@ -1003,7 +1041,7 @@ mustNot references a real `owl:ObjectProperty` in its module.
 retained-with-reason (7 cross-slice, 3 generated-artifact/competency, 1 dynamic-set) plus music's 4 retained. Pytest fn counts: provenance 4→2, sexuality 6→1, connectivity
 7→3, gender 7→2, aggregation 8→1, music 4→4 (untouched).
 
-## #694 logic stereotype retirement tail
+## logic stereotype retirement tail
 
 This tail removes the remaining Python structural assertions that still expected
 `gufo:` stereotypes after the canonical slice sources moved to the local
@@ -1027,14 +1065,14 @@ deleted or trimmed.
 | `tests/test_verifiable_release_chain.py` | `slices/extensions/software/tests/structural.ttl` | stale `SLSALevel` gUFO assertion deleted |
 | `tests/test_music_pitch.py`, `tests/test_music_collections.py`, `slices/extensions/music/tests/test_music_*.py` | `slices/extensions/music/tests/structural.ttl` | stale music stereotype assertions deleted; non-structural fixture, query, mapping, SHACL, and dynamic sweep tests retained |
 
-**#694 tail tally:** 34 stale Python structural functions removed, 7 new
+**Logic stereotype retirement tail tally:** 34 stale Python structural functions removed, 7 new
 slice-local structural spec files added, 5 existing structural spec files
 extended, and the native `make slicetest` lane now carries the advanced
 stereotype coverage. Historical retained rows above are unchanged when they
 cover generated artifacts, cross-slice subjects, numeric set/cardinality checks,
 fixture SHACL, queries, or whole-graph dynamic sweeps.
 
-## Reasoning cluster → native Rust OWL 2 RL harness (#896)
+## Reasoning cluster → native Rust OWL 2 RL harness
 
 The OWL/EL/DL **reasoning + entailment** tests are a distinct lane from the
 declarative slice-test DSL above: each rebuilt a reasoned rdflib graph via the
@@ -1047,7 +1085,7 @@ the native twin of `_materialize(module, *abox)`: parse the *same* authored
 (`gmeow_logic::reason::rl_closure`) over that small scoped input (seconds,
 Docker-free). RL lane (not EL/DL) to preserve exact entailments. The structural
 (asserted-graph, no-closure) tests that lived alongside them stay in pytest
-pending the #867 slicetest structural migration — they are not reasoning tests.
+pending the slicetest structural migration — they are not reasoning tests.
 
 | Pytest fn | Pytest file | Rust twin | Cell type | Status | Reason if retained | Run by |
 |---|---|---|---|---|---|---|
@@ -1061,12 +1099,12 @@ pending the #867 slicetest structural migration — they are not reasoning tests
 | `test_specialized_part_relations_entail_generic_parthood` | `tests/test_mereology.py` | `specialized_part_relations_entail_generic_parthood` | RL-entailment | converted | — | `make logic-test` |
 | `test_member_of_propagates_through_suborganization` | `tests/test_mereology.py` | `member_of_propagates_through_suborganization` | RL-entailment | converted | — | `make logic-test` |
 | `test_event_location_propagates_through_spatial_containment_only` | `tests/test_mereology.py` | `event_location_propagates_through_spatial_containment` | RL-entailment | converted | — | `make logic-test` |
-| `test_universal_part_properties_are_broad_transitive_inverses` | `tests/test_mereology.py` | — | — | **retained** | structural TBox well-formedness over the ASSERTED graph (no closure) — #867 slicetest territory, not a reasoning test | pytest |
-| `test_existing_part_like_relations_specialize_the_spine` | `tests/test_mereology.py` | — | — | **retained** | structural sub-property assertions over the asserted graph — #867 | pytest |
-| `test_no_winner_or_cardinality_terms_for_parts` | `tests/test_mereology.py` | — | — | **retained** | structural absence check over the asserted graph — #867 | pytest |
+| `test_universal_part_properties_are_broad_transitive_inverses` | `tests/test_mereology.py` | — | — | **retained** | structural TBox well-formedness over the ASSERTED graph (no closure) — slicetest territory, not a reasoning test | pytest |
+| `test_existing_part_like_relations_specialize_the_spine` | `tests/test_mereology.py` | — | — | **retained** | structural sub-property assertions over the asserted graph — | pytest |
+| `test_no_winner_or_cardinality_terms_for_parts` | `tests/test_mereology.py` | — | — | **retained** | structural absence check over the asserted graph — | pytest |
 | `test_competency_ancestry_is_answered_only_by_reasoning` | `tests/test_competency.py` | `ancestry_is_derived_not_asserted` | RL-entailment | converted | — (same genealogy chain as the `_materialize` ancestry twin) | `make logic-test` |
 | `test_place_naming_is_entailed_not_asserted` | `tests/test_competency.py` | `place_naming_is_entailed_not_asserted` | RL-entailment | converted | — (the first `owl:equivalentClass` defined-class classification + its negative) | `make logic-test` |
-| the 47 `_query_terms` / `_query_terms_on_graph` competency QUERY tests | `tests/test_competency.py` | — | — | **retained (de-reasoned)** | answer on the ASSERTED merged graph via SPARQL property paths — they never needed the OWL-RL closure; `_query_terms` was repointed from `_reasoned_graph()` to the asserted `_merged_graph()`, killing the ~4-min materialization. Stay in pytest pending the #867 slicetest competency migration | pytest (now ~1.7s) |
+| the 47 `_query_terms` / `_query_terms_on_graph` competency QUERY tests | `tests/test_competency.py` | — | — | **retained (de-reasoned)** | answer on the ASSERTED merged graph via SPARQL property paths — they never needed the OWL-RL closure; `_query_terms` was repointed from `_reasoned_graph()` to the asserted `_merged_graph()`, killing the ~4-min materialization. Stay in pytest pending the slicetest competency migration | pytest (now ~1.7s) |
 | `test_sensory_observation_specialises_observation` | `tests/test_sensory.py` | `sensory_observation_specialises_observation` | RL-entailment | converted | — (SensoryObservation ⊑ Observation) | `make logic-test` |
 | `test_sensor_specialises_agent` | `tests/test_sensory.py` | `sensor_specialises_agent` | RL-entailment | converted | — (Sensor ⊑ Agent) | `make logic-test` |
 | `test_sensory_quantity_inherits_scalar_quantity` | `tests/test_sensory.py` | `sensory_quantity_inherits_scalar_quantity` | RL-entailment | converted | — (SensoryQuantity ≡ ScalarQuantity) | `make logic-test` |
@@ -1074,7 +1112,7 @@ pending the #867 slicetest structural migration — they are not reasoning tests
 | `test_sensory_quantity_frame_inheritance` | `tests/test_sensory.py` | `sensory_quantity_frame_inheritance` | RL-entailment | converted | — (isResultOf ∘ hasReferenceFrame chain) | `make logic-test` |
 | `test_has_sensory_quantity_property_chain` | `tests/test_sensory.py` | `has_sensory_quantity_property_chain` | RL-entailment | converted | — (hasSensoryObservation ∘ sensoryResult shortcut) | `make logic-test` |
 | `test_contested_sensory_readings_coexist` | `tests/test_sensory.py` | `contested_sensory_readings_coexist` | RL-entailment | converted | — (Principle 9 coexistence; decimal literals omitted, not assertion-relevant) | `make logic-test` |
-| the 14 structural `test_sensory.py` tests (TBox existence, equivalentClass/subProperty/inverseOf assertions, SOSA/AFO mappings) | `tests/test_sensory.py` | — | — | **retained** | structural checks over the ASSERTED graph / generated mapping artifacts (no closure) — #867 slicetest territory | pytest (now ~4.8s) |
+| the 14 structural `test_sensory.py` tests (TBox existence, equivalentClass/subProperty/inverseOf assertions, SOSA/AFO mappings) | `tests/test_sensory.py` | — | — | **retained** | structural checks over the ASSERTED graph / generated mapping artifacts (no closure) — slicetest territory | pytest (now ~4.8s) |
 | `test_coordinate_observation_chain_fires` | `tests/test_places.py` | `coordinate_observation_chain_fires` | RL-entailment | converted | — (hasCoordinateObservation ∘ coordinateResult ⊑ hasCoordinates) | `make logic-test` |
 | `test_geometry_observation_chain_fires` | `tests/test_places.py` | `geometry_observation_chain_fires` | RL-entailment | converted | — (hasCoordinateObservation ∘ geometryResult ⊑ hasGeometry) | `make logic-test` |
 | `test_sensory_environment_el_axioms_fire` | `tests/test_sensory_environment.py` | `sensory_environment_el_axioms_fire` | RL-entailment | converted | — (environmentAtLocation domain ⇒ SensoryEnvironment) | `make logic-test` |
@@ -1094,22 +1132,22 @@ pending the #867 slicetest structural migration — they are not reasoning tests
 | `test_is_result_of_provenance_chain` | `tests/test_observations.py` | `is_result_of_provenance_chain` | RL-entailment | converted | — (isResultOf inverse of observationResult, #77) | `make logic-test` |
 | `test_frame_inheritance_via_quantity` | `tests/test_observations.py` | `frame_inheritance_via_quantity` | RL-entailment | converted | — (#77) | `make logic-test` |
 | `test_stream_el_axiom` | `tests/test_observations.py` | `stream_el_axiom_stays_consistent` | RL-entailment | converted | — (#96) | `make logic-test` |
-| `test_spatial_measurement_infers_observation` | `tests/test_observations.py` | `spatial_measurement_infers_observation` | RL-entailment | converted | — (#125) | `make logic-test` |
-| `test_coordinate_observation_infers_spatial_measurement` | `tests/test_observations.py` | `coordinate_observation_infers_spatial_measurement` | RL-entailment | converted | — (#125) | `make logic-test` |
-| `test_coordinate_observation_frame_inheritance` | `tests/test_observations.py` | `coordinate_observation_frame_inheritance` | RL-entailment | converted | — (#125) | `make logic-test` |
-| `test_coordinate_observation_el_axioms` | `tests/test_observations.py` | `coordinate_observation_el_axioms_stay_consistent` | RL-entailment | converted | — (#125) | `make logic-test` |
+| `test_spatial_measurement_infers_observation` | `tests/test_observations.py` | `spatial_measurement_infers_observation` | RL-entailment | converted | — | `make logic-test` |
+| `test_coordinate_observation_infers_spatial_measurement` | `tests/test_observations.py` | `coordinate_observation_infers_spatial_measurement` | RL-entailment | converted | — | `make logic-test` |
+| `test_coordinate_observation_frame_inheritance` | `tests/test_observations.py` | `coordinate_observation_frame_inheritance` | RL-entailment | converted | — | `make logic-test` |
+| `test_coordinate_observation_el_axioms` | `tests/test_observations.py` | `coordinate_observation_el_axioms_stay_consistent` | RL-entailment | converted | — | `make logic-test` |
 | `test_quality_assessment_specialises_observation` | `tests/test_quality.py` | `quality_assessment_specialises_observation` | RL-entailment | converted | — (QualityAssessment ⊑ Observation; the assessedEntity/Place A-Box is decoration) | `make logic-test` |
 | `TestReasonNativeEngine::test_consistent_with_entailments_and_gaps` | `tests/test_reason_native.py` | `reason_all` (`crates/logic/src/reason/mod.rs`) + the `check-generated` byte-regen of the committed closure/ledger | engine-direct | converted (covered) | — (consistency + non-empty closure is the `reason_all` unit test; real-bundle consistency/gaps is pinned by the byte-regenerable `generated/logic/*.ttl` gate) | `make rust-test` + `gmeow-dev check-generated` |
 | `TestVerifyNative::test_violating_query_reports_error` | `tests/test_reason_native.py` | `violating_query_yields_error_finding_with_detail` (`crates/logic/src/verify.rs`) | engine-direct | converted (covered) | — (the verify violation path — same `verify()` code + `!ok`/`error_count`/finding-code semantics) | `make logic-test` |
 | `TestNativeReasonArtifacts::test_closure_parses_and_carries_reifier_provenance` | `tests/test_reason_native.py` | `closure_emits_triple_and_reifier_with_provenance` (`crates/logic/src/reason/artifacts.rs`) | engine-direct | converted (covered) | — (same `reifies`/`Deduction`/`viaRule` tokens on the same `build_closure_ttl` output) | `make logic-test` |
 | `TestNativeReasonArtifacts::test_explanations_parse_and_carry_derivation_skeleton` | `tests/test_reason_native.py` | `explanations_emit_derivation_with_premise` (`crates/logic/src/reason/artifacts.rs`) | engine-direct | converted (covered) | — (same `Derivation`/`concludes`/`hasPremise` tokens) | `make logic-test` |
-| `TestNativeReasonArtifacts::test_ledger_parses_and_carries_entries_gaps_and_counts` | `tests/test_reason_native.py` | `ledger_header_entries_gaps_and_counts` (`crates/logic/src/reason/artifacts.rs`) + the byte-regen gate | engine-direct | converted (covered) | — (`CrosscheckLedger`/`DlGap`/`entailmentCount` tokens; the `#666`/`classic-cross-check`/`consistent> true` banner tokens are byte-pinned by `check-generated`) | `make logic-test` + `gmeow-dev check-generated` |
+| `TestNativeReasonArtifacts::test_ledger_parses_and_carries_entries_gaps_and_counts` | `tests/test_reason_native.py` | `ledger_header_entries_gaps_and_counts` (`crates/logic/src/reason/artifacts.rs`) + the byte-regen gate | engine-direct | converted (covered) | — (`CrosscheckLedger`/`DlGap`/`entailmentCount` tokens; the `classic-cross-check`/`consistent> true` banner tokens are byte-pinned by `check-generated`) | `make logic-test` + `gmeow-dev check-generated` |
 | `TestNativeReasonArtifacts::test_artifacts_are_byte_regenerable_against_committed` | `tests/test_reason_native.py` | `crates/pipeline/tests/full_parity.rs` + the `ontology-generated` lane (`gmeow-dev check-generated`) | engine-direct | converted (covered) | — (the SAME `GtsGraphStore → reason_all → build_*_ttl` path reproduces the committed `generated/logic/*.ttl` EXACTLY; the authoritative cutover gate, fail-closed) | `gmeow-dev check-generated` |
 | `TestReasonNativePipeline::test_report_ok_and_writes_closure` | `tests/test_reason_native.py` | — | — | **retained** | the Python report wrapper `gmeow_tools.reason.reason_native` — disk-writing orchestration over the Rust core; independent live Python surface, no Rust twin (doctrine-guard) | pytest |
 | `TestVerifyNative::test_clean_over_bundle_and_writes_artifacts` | `tests/test_reason_native.py` | — | — | **retained** | the Python report wrapper `gmeow_tools.reason.verify_native` — slice-query glob discovery + JSON/SARIF/HTML artifact writing; Python surface, no Rust twin (doctrine-guard) | pytest |
 | `test_gmeow_reason_native` | `tests/test_mcp_server.py` | — | — | **retained** | the thin Python MCP wrapper `gmeow_tools.mcp_server.gmeow_reason` — independent live Python surface, no Rust twin (doctrine-guard) | pytest |
 
-**#896 reasoning tally:** 45 converted (39 RL-entailment twins + 6 engine-direct
+**Reasoning cluster reasoning tally:** 45 converted (39 RL-entailment twins + 6 engine-direct
 covered by existing Rust unit tests / the byte-regen gate), 11 retained-with-reason
 (3 Python Docker-orchestration, 4 structural-not-reasoning, 1 mixed, 2 native-report
 Python wrappers, 1 MCP wrapper), plus the 47 competency QUERY tests de-reasoned in
@@ -1127,12 +1165,12 @@ No other slice carries declarative test-DSL specs yet (T2 authored only the
 epistemics exemplars). Their pytest tests are therefore **retained, pending
 future slice migration** — removing them now would drop coverage with no
 declarative twin to replace it. The ~1,950 ontology-data rdflib tests across the
-remaining slices are migrated in follow-on parcels under epic #781; the harness
+remaining slices are migrated in follow-on parcels in follow-on parcels; the harness
 already discovers and runs the three fixed spec filenames (`competency.ttl`,
 `structural.ttl`, `example-conformance.ttl`) under any slice, so each new slice
 spec lights up automatically.
 
-## #867 — `tests/test_competency.py` → native competency cells (2026-06-24)
+## `tests/test_competency.py` → native competency cells (2026-06-24)
 
 Supersedes the "Other slices" note above for the **competency** cell type: the
 whole of `tests/test_competency.py` (~46 functions + the QC `missing-definitions`
@@ -1172,7 +1210,7 @@ deliberately-empty queries pin `cqExpectRowCount 0`.
 | `core/evidence` | evidence, notability-eligible | same | subset |
 | `extensions/procedures` | procedures, ingestion-executions (count 0) | same | subset + 1 empty |
 | `core/inquiry` | research-inquiries (count 0) | research-inquiries | empty |
-| `core/quality` | `cqMissingDefinitions` (count 0) | `test_qc_missing_definitions_is_empty` | empty; preserves the OPEN-universal dynamic `FILTER(STRSTARTS(...))` (the #869 Gap-1 GOOD pattern, NOT a blacklist) |
+| `core/quality` | `cqMissingDefinitions` (count 0) | `test_qc_missing_definitions_is_empty` | empty; preserves the OPEN-universal dynamic `FILTER(STRSTARTS(...))` (the Gap-1 GOOD pattern, NOT a blacklist) |
 
 **Instance-overlay reconciliation:** the source had 14 `_query_terms_on_graph`
 classifiers = 10 deception + 4 expertise. **13 are migrated** as `cqDataFile`
@@ -1189,7 +1227,7 @@ templating the DSL deliberately lacks. Per the verification-honesty doctrine
 builds its data relative to the run-time clock. `tests/test_competency.py` is
 trimmed to this one function + the `_query_terms_on_graph` helper (not deleted).
 
-**#869 Gap-1:** none of the migrated cells is a finite-VALUES blacklist standing
+**Gap-1:** none of the migrated cells is a finite-VALUES blacklist standing
 in for an open universal. The TBox cells enumerate fixed term sets the source
 already pinned; the overlay cells pin fixed instance classifications; the QC cell
 references the `.rq` verbatim, keeping its dynamic `FILTER(STRSTARTS(...))` open
@@ -1208,6 +1246,131 @@ never by guessing.
 **Verification:** `cargo nextest run -p gmeow-slicetest` runs 25 competency files
 green; the harness auto-discovers each new `competency.ttl` (no harness wiring
 change beyond the Task-1 `cqDataFile` addition).
+
+## `slices/core/kernel`
+
+Kernel-axis invariants migrated . The kernel module owns
+Determinacy, SensitivityLevel, GranularityLevel, ProjectionContext, DisclosurePolicy,
+and the universal part/whole spine (`partOf` / `hasPart`).
+
+| Pytest fn | Pytest file | DSL cell IRI | Cell type | Status | Reason if retained/deleted | Run by |
+|---|---|---|---|---|---|---|
+| `test_determinacy_class_structure` | `tests/test_determinacy.py` | `ex:saDeterminacyClass` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_has_determinacy_property_structure` | `tests/test_determinacy.py` | `ex:saHasDeterminacyProperty` + `ex:saHasDeterminacyNotFunctionalOrDomained` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_determinacy_model_preserved` | `tests/test_determinacy.py` | `ex:saDeterminacyModelProperty` | StructuralAssertion | converted | `gmeow:determinacyModel` is declared in `slices/core/places`, so its structural cell lives there, not in kernel. | `make slicetest` |
+| `test_value_vocab_spans_five_seeds` | `tests/test_determinacy.py` | `ex:saDeterminacySeedsTyped` + `ex:saDeterminacyNoSixthMember` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_determinacy_confidence_orthogonal` | `tests/test_determinacy.py` | `ex:saDeterminacyConfidenceOrthogonal` | StructuralAssertion | converted | `gmeow:confidence` is declared in `slices/core/epistemics`; the module-scoped mustNot cell catches any forbidden edge in the kernel module. The merged-graph guarantee stays in pytest. | `make slicetest` + pytest |
+| `test_has_determinacy_determinacy_model_distinct` | `tests/test_determinacy.py` | `ex:saHasDeterminacyDeterminacyModelDistinct` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_projection_context_class_structure` | `tests/test_disclosure.py` | `ex:saProjectionContextClass` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_disclosure_policy_class_structure` | `tests/test_disclosure.py` | `ex:saDisclosurePolicyClass` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_eligible_for_consumer_property_structure` | `tests/test_disclosure.py` | `ex:saEligibleForConsumerProperty` + `ex:saEligibleForConsumerNotFunctionalOrDomained` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_has_disclosure_policy_property_structure` | `tests/test_disclosure.py` | `ex:saHasDisclosurePolicyProperty` + `ex:saHasDisclosurePolicyNotFunctionalOrDomained` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_projection_context_seeds_declared` | `tests/test_disclosure.py` | `ex:saProjectionContextSeedsDeclared` + `ex:saProjectionContextNoTenthMember` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_disclosure_policy_seeds_declared` | `tests/test_disclosure.py` | `ex:saDisclosurePolicySeedsDeclared` + `ex:saDisclosurePolicyNoSeventhMember` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_disclosure_orthogonal_to_other_axes` | `tests/test_disclosure.py` | `ex:saDisclosureOrthogonalToOtherAxes` | StructuralAssertion | converted | `gmeow:confidence` is cross-slice; the merged-graph guarantee stays in pytest. | `make slicetest` + pytest |
+| `test_disclosure_orthogonal_to_granularity` | `tests/test_disclosure.py` | `ex:saDisclosureOrthogonalToGranularity` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_sensitivity_level_class_structure` | `tests/test_privacy.py` | `ex:saSensitivityLevelClass` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_has_sensitivity_property_structure` | `tests/test_privacy.py` | `ex:saHasSensitivityProperty` + `ex:saHasSensitivityNotFunctionalOrDomained` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_value_vocab_spans_five_seeds` | `tests/test_privacy.py` | `ex:saSensitivitySeedsTyped` + `ex:saSensitivityNoSixthMember` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_sensitivity_orthogonal_to_other_axes` | `tests/test_privacy.py` | `ex:saSensitivityOrthogonalToOtherAxes` | StructuralAssertion | converted | `gmeow:confidence` is cross-slice; the merged-graph guarantee stays in pytest. | `make slicetest` + pytest |
+| `test_sensitivity_orthogonal_to_granularity` | `tests/test_privacy.py` | `ex:saSensitivityOrthogonalToGranularity` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_universal_part_properties_are_broad_transitive_inverses` | `tests/test_mereology.py` | `ex:saUniversalPartPropertiesAreBroadTransitiveInverses` + `ex:saUniversalPartPropertiesNotFunctionalOrTyped` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_no_preferred_or_primary_term_is_declared` | `tests/test_determinacy.py` | — | — | **retained** | scans the merged graph for any `gmeow:` term starting with `primary`/`preferred`; module-scoped ASK cannot express a cross-module vocabulary-wide absence. | pytest |
+
+**Kernel tally:** 20 converted (25 cells across 20 pytest functions), 1 retained-with-reason (cross-module no-preferred/primary sweep). Source files trimmed, not deleted: `tests/test_determinacy.py`, `tests/test_disclosure.py`, `tests/test_privacy.py`, `tests/test_mereology.py`.
+
+## `slices/core/rights`
+
+Privacy-role cross-slice items migrated . Although the
+original assertions lived in `tests/test_privacy.py`, the terms they assert on
+(`PrivacyNotice`, `hasPrivacyNotice`, `hasDataSubject`, `hasDataController`,
+`actionProcessPersonalData`) are declared in the rights slice, so the cells live
+in `slices/core/rights/tests/structural.ttl`.
+
+| Pytest fn | Pytest file | DSL cell IRI | Cell type | Status | Reason if retained/deleted | Run by |
+|---|---|---|---|---|---|---|
+| `test_privacy_roles_declared` | `tests/test_privacy.py` | `ex:saPrivacyRolesDeclared` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_privacy_notice_is_information_object` | `tests/test_privacy.py` | `ex:saPrivacyNoticeIsInformationObject` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_has_privacy_notice_is_domain_free` | `tests/test_privacy.py` | `ex:saHasPrivacyNoticeIsDomainFree` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_action_process_personal_data_is_rights_action` | `tests/test_privacy.py` | `ex:saActionProcessPersonalDataIsRightsAction` | StructuralAssertion | converted | — | `make slicetest` |
+
+**Rights tally (privacy-role part):** 4 converted (4 cells across 4 pytest functions).
+
+## `slices/extensions/email` (Task 4)
+
+Email extension structural guards migrated . Assertions moved
+to `slices/extensions/email/tests/structural.ttl`; the EmailAddress stable
+properties (`addressValue`, `localPart`, `domainPart`) are owned by the contacts
+slice and live in `slices/core/contacts/tests/structural.ttl` as
+`ex:saEmailAddressStablePropertiesFunctional`.
+
+| Cell IRI | Cell type | Rationale (excerpt) |
+|---|---|---|
+| `ex:saEmailAddressStablePropertiesFunctional` | StructuralAssertion | gmeow:addressValue/localPart/domainPart MUST be functional DatatypeProperties on EmailAddress. |
+| `ex:saMailingListClassExists` | StructuralAssertion | The five MessageKind seeds (DSN, bounce, feedback report, read receipt, auto-generated) MU... |
+| `ex:saHasMessageKindProperty` | StructuralAssertion | gmeow:hasMessageKind MUST be an ObjectProperty linking Message to MessageKind and MUST NOT... |
+| `ex:saPriorityDatatypePropertyOnEmailMessage` | StructuralAssertion | gmeow:priority MUST be a DatatypeProperty with domain EmailMessage and range Literal. Mirr... |
+| `ex:saImportanceDatatypePropertyOnEmailMessage` | StructuralAssertion | gmeow:importance MUST be a DatatypeProperty with domain EmailMessage and range Literal. Mi... |
+| `ex:saUserAgentDatatypePropertyOnEmailMessage` | StructuralAssertion | gmeow:userAgent MUST be a DatatypeProperty with domain EmailMessage and range Literal. Mir... |
+| `ex:saAutoSubmittedDatatypePropertyOnEmailMessage` | StructuralAssertion | gmeow:autoSubmitted MUST be a DatatypeProperty with domain EmailMessage and range Literal.... |
+| `ex:saPrecedenceDatatypePropertyOnEmailMessage` | StructuralAssertion | gmeow:precedence MUST be a DatatypeProperty with domain EmailMessage and range Literal. Mi... |
+| `ex:saReadReceiptRequestedBooleanNotFunctional` | StructuralAssertion | gmeow:readReceiptRequested MUST be a DatatypeProperty on EmailMessage ranging over xsd:boo... |
+| `ex:saDispositionNotificationToObjectProperty` | StructuralAssertion | gmeow:dispositionNotificationTo MUST be an ObjectProperty from EmailMessage to EmailAddres... |
+| `ex:saSentBySoftwareObjectProperty` | StructuralAssertion | gmeow:sentBySoftware MUST be an ObjectProperty from EmailMessage to SoftwareAgent. Mirrors... |
+| `ex:saDescribesEventObjectProperty` | StructuralAssertion | gmeow:describesEvent MUST be an ObjectProperty from EmailMessage to Event and MUST NOT be ... |
+| `ex:saEventDescribedByInverse` | StructuralAssertion | gmeow:eventDescribedBy MUST be the inverse of gmeow:describesEvent, domain Event, range Em... |
+| `ex:saCalendarAttachmentSubproperty` | StructuralAssertion | gmeow:calendarAttachment MUST be an ObjectProperty, subproperty of gmeow:hasAttachment, fr... |
+| `ex:saCalendarUidDatatypeProperty` | StructuralAssertion | gmeow:calendarUid MUST be a DatatypeProperty on EmailMessage ranging over Literal and MUST... |
+| `ex:saCalendarMethodSeedsExist` | StructuralAssertion | The eight iCalendar METHOD seeds MUST be declared as CalendarMethod individuals. Mirrors t... |
+| `ex:saHasCalendarMethodProperty` | StructuralAssertion | gmeow:hasCalendarMethod MUST be an ObjectProperty from EmailMessage to CalendarMethod and ... |
+| `ex:saMessageKindCalendarInvitationExists` | StructuralAssertion | gmeow:messageKindCalendarInvitation MUST be declared as a MessageKind individual. Mirrors ... |
+| `ex:saBlobIdDatatypePropertyDomainFree` | StructuralAssertion | gmeow:blobId MUST be a domain-free DatatypeProperty ranging over Literal so it can be used... |
+| `ex:saBodyStructureFunctionalDatatypeProperty` | StructuralAssertion | gmeow:bodyStructure MUST be a functional DatatypeProperty on EmailMessage ranging over Lit... |
+| `ex:saBodyValueClassExists` | StructuralAssertion | gmeow:BodyValue MUST be a logic:Kind subclass of InformationObject. Mirrors test_body_valu... |
+| `ex:saNoCompetingBodyStructureClassOrProperty` | StructuralAssertion | The canonical MIME tree is the existing hasBodyPart/hasPart spine; no competing BodyStruct... |
+| `ex:saNoCompetingBodyValueProperty` | StructuralAssertion | Decoded body content is linked by wasDerivedFrom, not a dedicated hasBodyValue property. M... |
+| `ex:saParentMailboxSubpropertyOfPartOf` | StructuralAssertion | gmeow:parentMailbox MUST be an ObjectProperty, subproperty of gmeow:partOf, from Mailbox t... |
+| `ex:saChildMailboxSubpropertyOfHasPart` | StructuralAssertion | gmeow:childMailbox MUST be an ObjectProperty, subproperty of gmeow:hasPart, inverse of gme... |
+| `ex:saMailboxSortOrderIntegerNotFunctional` | StructuralAssertion | gmeow:mailboxSortOrder MUST be a DatatypeProperty on Mailbox ranging over xsd:integer and ... |
+| `ex:saMailboxPathDatatypeProperty` | StructuralAssertion | gmeow:mailboxPath MUST be a DatatypeProperty on Mailbox ranging over Literal. Mirrors test... |
+| `ex:saMailboxTotalMessagesInteger` | StructuralAssertion | gmeow:mailboxTotalMessages MUST be a DatatypeProperty on Mailbox ranging over xsd:integer.... |
+| `ex:saMailboxUnreadMessagesInteger` | StructuralAssertion | gmeow:mailboxUnreadMessages MUST be a DatatypeProperty on Mailbox ranging over xsd:integer... |
+| `ex:saNoSystemMailboxSubclass` | StructuralAssertion | System vs user mailbox status MUST be modeled by role, not by a SystemMailbox subclass. Mi... |
+| `ex:saNoUserMailboxSubclass` | StructuralAssertion | System vs user mailbox status MUST be modeled by role, not by a UserMailbox subclass. Mirr... |
+| `ex:saNoIsSystemMailboxProperty` | StructuralAssertion | System mailbox status MUST be modeled by role/lifecycle, not by an isSystemMailbox boolean... |
+| `ex:saNoIsDestroyedMailboxProperty` | StructuralAssertion | Destroyed mailbox state MUST use the lifecycle event pattern, not an isDestroyedMailbox bo... |
+| `ex:saHasMailingListProperty` | StructuralAssertion | gmeow:hasMailingList MUST be an ObjectProperty from EmailMessage to MailingList and MUST N... |
+| `ex:saMailingListUriHeaderProperties` | StructuralAssertion | gmeow:listSubscribe, listUnsubscribe, listHelp, and listArchive MUST be ObjectProperties f... |
+| `ex:saListPostDatatypeProperty` | StructuralAssertion | gmeow:listPost MUST be a DatatypeProperty on EmailMessage ranging over Literal. Mirrors te... |
+| `ex:saListOwnerObjectPropertyToEmailAddress` | StructuralAssertion | gmeow:listOwner MUST be an ObjectProperty from EmailMessage to EmailAddress and MUST NOT b... |
+| `ex:saListIdDomainUnchanged` | StructuralAssertion | gmeow:listId MUST keep Message as its domain and MUST NOT acquire MailingList as an additi... |
+| `ex:saMailingListAnnotationCompleteness` | StructuralAssertion | Every new mailing-list term MUST carry rdfs:label, skos:definition, and rdfs:isDefinedBy (... |
+| `ex:saMessageParticipantClassExists` | StructuralAssertion | gmeow:MessageParticipant MUST be declared as an owl:Class (a logic:Kind relator). Mirrors ... |
+| `ex:saMessageParticipantRoleClassExists` | StructuralAssertion | gmeow:MessageParticipantRole MUST be declared as an owl:Class (a value vocabulary / Abstra... |
+| `ex:saMessageParticipantRoleSeedsExist` | StructuralAssertion | The fourteen RFC 5322 message participant role seeds MUST be declared. Mirrors test_role_s... |
+| `ex:saParticipantPropertiesDeclared` | StructuralAssertion | participantMessage, participantAddress, participantRole, and participantHeader MUST be fun... |
+| `ex:saHasMessageParticipantInverse` | StructuralAssertion | gmeow:hasMessageParticipant MUST be the inverse of participantMessage, domain EmailMessage... |
+| `ex:saParticipantOrdinalFunctional` | StructuralAssertion | gmeow:participantOrdinal MUST be a functional DatatypeProperty on MessageParticipant rangi... |
+| `ex:saDisplayNameScopedToParticipant` | StructuralAssertion | gmeow:displayName MUST be scoped to MessageParticipant and MUST NOT be declared with domai... |
+| `ex:saRawAddressValueScopedToParticipant` | StructuralAssertion | gmeow:rawAddressValue MUST be scoped to MessageParticipant and MUST NOT be declared with d... |
+| `ex:saParticipantGroupLiteral` | StructuralAssertion | gmeow:participantGroup MUST be a DatatypeProperty on MessageParticipant ranging over Liter... |
+| `ex:saResentDateProperty` | StructuralAssertion | gmeow:resentDate MUST be a DatatypeProperty on EmailMessage ranging over xsd:dateTime and ... |
+| `ex:saResentMessageIdProperty` | StructuralAssertion | gmeow:resentMessageId MUST be a DatatypeProperty on EmailMessage ranging over Literal and ... |
+| `ex:saThreadSubjectDatatypePropertyOnThread` | StructuralAssertion | gmeow:threadSubject MUST be a DatatypeProperty on Thread ranging over Literal. Mirrors tes... |
+| `ex:saSubjectPrefixDatatypePropertyOnEmailMessage` | StructuralAssertion | gmeow:subjectPrefix MUST be a DatatypeProperty on EmailMessage ranging over Literal and MU... |
+| `ex:saNoEmailVariantSubclasses` | StructuralAssertion | Canonical/variant status MUST be modeled via roles, not email-specific subclasses. Mirrors... |
+| `ex:saHasPatchDiffObjectProperty` | StructuralAssertion | gmeow:hasPatchDiff MUST be an ObjectProperty, subproperty of gmeow:hasBodyPart, from Email... |
+| `ex:saMessageIdGeneratedBoolean` | StructuralAssertion | gmeow:messageIdGenerated MUST be a DatatypeProperty on EmailMessage ranging over xsd:boole... |
+| `ex:saMessageIdCollisionBoolean` | StructuralAssertion | gmeow:messageIdCollision MUST be a DatatypeProperty on EmailMessage ranging over xsd:boole... |
+| `ex:saCanonicalFingerprintLiteral` | StructuralAssertion | gmeow:canonicalFingerprint MUST be a DatatypeProperty on EmailMessage ranging over Literal... |
+| `ex:saBodyLineFingerprintLiteral` | StructuralAssertion | gmeow:bodyLineFingerprint MUST be a DatatypeProperty on EmailMessage ranging over Literal.... |
+| `ex:saAnalysisScopeLiteral` | StructuralAssertion | gmeow:analysisScope MUST be a DatatypeProperty on EmailMessage ranging over Literal. Mirrors test_analysis_scope... |
+| `ex:saAnalysisInputBodyLineLiteral` | StructuralAssertion | gmeow:analysisInputBodyLine MUST be a DatatypeProperty on EmailMessage ranging over Litera... |
+
+**Tally:** 59 cells added to the email slice structural spec, 1 cell added
+to the contacts slice structural spec, and 66 pytest functions removed from the
+8 `tests/test_email_*.py` files. `tests/test_email_mailing_list.py` had no
+remaining dynamic tests and was deleted, along with its retention dossier.
 
 ## Notes / known limitations
 

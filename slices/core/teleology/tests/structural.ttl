@@ -61,6 +61,18 @@ ASK {
 }""" ;
     gmeow:saRationale "gmeow:IntentionalMode MUST be an owl:Class typed logic:Category and subclass of both gmeow:MentalMoment and gmeow:IntentionalMoment — the intrinsic branch joins the mental-moment family while spanning the intentional umbrella. Mirrors test_intrinsic_modes_are_grounded (module-local part)." .
 
+# test_intentional_mode_reparented_under_mental_moment (negative half)
+ex:saIntentionalModeNotDirectlyIntrinsicMode a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:IntentionalMode rdfs:subClassOf gufo:IntrinsicMode .
+}""" ;
+    gmeow:saRationale "gmeow:IntentionalMode MUST NOT keep a redundant direct rdfs:subClassOf gufo:IntrinsicMode parent — it is reparented under gmeow:MentalMoment (kernel), which supplies logic:Mode transitively; the gufo:IntrinsicMode bridge is alignment-only, not asserted." .
+
 # --- 3. Desire is a logic:Kind subclass of IntentionalMode (MUST) --------------
 ex:saDesireIsKindIntentionalMode a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;

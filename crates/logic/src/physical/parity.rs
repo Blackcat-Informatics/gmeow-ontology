@@ -4,20 +4,23 @@
 //! Native↔oracle parity comparator + the committed native-coverage floor.
 //!
 //! The native execution core ([`crate::physical::seminaive::materialize_native`] forward,
-//! [`crate::physical::magic::resolve_native`] backward) is the PRIMARY runtime path;
-//! Nemo ([`crate::materialize::materialize_core`]) and the declarative SLD oracle
-//! ([`crate::reference_resolver::resolve`]) are the DEMOTED oracles. This module makes that
-//! demotion EXPLICIT and GATED: over a representative corpus of stratifiable binary Datalog±
-//! programs it runs native AND the oracle, classifies each derived row / answer into a
-//! [`ParityLedger`], and exposes a strict verdict (passing iff zero non-`Agree` rows).
+//! [`crate::physical::magic::resolve_native`] backward) is the PRIMARY runtime path; an
+//! external engine, consulted through the [`crate::oracle`] seam, is the DEMOTED oracle. This
+//! module makes that demotion EXPLICIT and GATED: over a representative corpus of stratifiable
+//! binary Datalog± programs it runs native AND the oracle, classifies each derived row / answer
+//! into a [`ParityLedger`], and exposes a strict verdict (passing iff zero non-`Agree` rows).
 //!
-//! # The two parity surfaces
+//! # The two parity surfaces (generic over the oracle trait)
 //!
 //! * **Forward** — [`compare_materialization`] compares the native [`DerivedRow`] set against
-//!   the Nemo [`DerivedQuad`] set. Both engines echo the asserted EDB AND emit the derived
-//!   closure, so the comparison is on the full fact set.
+//!   the closure materialized by any [`crate::oracle::ForwardOracle`] (Nemo in the gate). Both
+//!   engines echo the asserted EDB AND emit the derived closure, so the comparison is on the
+//!   full fact set.
 //! * **Backward** — [`compare_answers`] compares the native [`AnswerSet`] bindings against the
-//!   reference SLD oracle's bindings.
+//!   answers of any [`crate::oracle::BackwardOracle`] (the reference SLD oracle in the gate).
+//!
+//! Because both comparators take the oracle as a trait object, the divergence-ledger promotion
+//! harness works unchanged whichever engine backs the oracle.
 //!
 //! # What is compared (and what is NOT)
 //!
@@ -48,11 +51,13 @@
 
 use std::collections::BTreeSet;
 
+use crate::facts::TypedFactSet;
+use crate::oracle::{BackwardOracle, ForwardBudget, ForwardOracle, TypedRow};
 use crate::provenance::term_display;
-use crate::query_ir::AnswerSet;
+use crate::query_ir::{AnswerSet, Budget, QProgram};
 use crate::reason::ledger::{DivergenceKind, LedgerRow, LedgerVerdict};
 use crate::rule_ir::DerivedRow;
-use crate::seam::DerivedQuad;
+use crate::seam::ScryerForeign;
 
 /// The native↔oracle parity ledger over one corpus program: every classified row plus the
 /// per-kind tallies the verdict keys on.
@@ -140,33 +145,52 @@ fn row_fact_key(row: &DerivedRow) -> FactKey {
     )
 }
 
-/// The fact key of a Nemo [`DerivedQuad`]: its `(subject, predicate, object)` N3 surfaces.
-fn quad_fact_key(quad: &DerivedQuad) -> FactKey {
-    (
-        term_display(&quad.subject),
-        quad.predicate.as_str().to_owned(),
-        term_display(&quad.object),
-    )
+/// The fact key of an arity-3 forward-oracle [`TypedRow`]: `(subject, predicate, object)`.
+///
+/// A world-scoped quad is a ternary row whose columns are `subject`, `object`, `world`
+/// (the relation name is the predicate) — the same coercion `materialize` applies. Only
+/// arity-3 rows are quads; a helper-predicate row of any other arity is not a fact-level
+/// comparand and yields `None`.
+fn typed_row_fact_key(row: &TypedRow) -> Option<FactKey> {
+    if row.args.len() != 3 {
+        return None;
+    }
+    Some((
+        term_display(&row.args[0]),
+        row.predicate.clone(),
+        term_display(&row.args[1]),
+    ))
 }
 
-/// Compare the native [`DerivedRow`] fact set against the Nemo [`DerivedQuad`] fact set.
+/// Compare the native [`DerivedRow`] fact set against a [`ForwardOracle`]'s materialized
+/// closure, generically over which engine backs the oracle.
 ///
-/// Each `(subject, predicate, object)` triple is classified: present in BOTH ⇒
+/// The oracle is run here (over the same typed EDB and rule text the native engine used), and
+/// each `(subject, predicate, object)` triple is classified: present in BOTH ⇒
 /// [`DivergenceKind::Agree`], native ∖ oracle ⇒ [`DivergenceKind::NativeOnly`], oracle ∖ native
-/// ⇒ [`DivergenceKind::OracleOnly`]. Rows are emitted in sorted-key order so the ledger is
-/// deterministic.
+/// ⇒ [`DivergenceKind::OracleOnly`]. Detail strings name the oracle via [`ForwardOracle::name`]
+/// so the ledger is engine-agnostic. Rows are emitted in sorted-key order.
 ///
 /// Only the FACT set is compared, NOT provenance: a multiply-derivable fact may legitimately
-/// carry a different `derivation_id` between the native first-wins tiebreak and the Nemo chase
-/// — that derivation-id divergence is expected and is NOT a fact-level divergence (it is pinned
-/// separately by the determinism gate in [`crate::physical::seminaive`]).
+/// carry a different `derivation_id` between the native first-wins tiebreak and the oracle
+/// chase — that derivation-id divergence is expected and is NOT a fact-level divergence (it is
+/// pinned separately by the determinism gate in [`crate::physical::seminaive`]).
 fn compare_materialization(
     native: &[DerivedRow],
-    oracle: &[DerivedQuad],
+    oracle: &dyn ForwardOracle,
+    facts: &TypedFactSet,
+    rules: &str,
     world: &str,
-) -> ParityLedger {
+) -> Result<ParityLedger, String> {
+    let closure = oracle.materialize(facts, rules, &ForwardBudget::UNBOUNDED)?;
+    let oracle_name = oracle.name();
+
     let native_keys: BTreeSet<FactKey> = native.iter().map(row_fact_key).collect();
-    let oracle_keys: BTreeSet<FactKey> = oracle.iter().map(quad_fact_key).collect();
+    let oracle_keys: BTreeSet<FactKey> = closure
+        .rows
+        .iter()
+        .filter_map(|(row, _prov)| typed_row_fact_key(row))
+        .collect();
 
     let mut rows: Vec<LedgerRow> = Vec::new();
 
@@ -175,7 +199,9 @@ fn compare_materialization(
         rows.push(LedgerRow {
             kind: DivergenceKind::Agree,
             category: "materialization".to_owned(),
-            detail: format!("native and Nemo agree on fact: {subject} {predicate} {object}"),
+            detail: format!(
+                "native and {oracle_name} agree on fact: {subject} {predicate} {object}"
+            ),
             subject,
             object,
             world: world.to_owned(),
@@ -186,7 +212,9 @@ fn compare_materialization(
         rows.push(LedgerRow {
             kind: DivergenceKind::NativeOnly,
             category: "materialization".to_owned(),
-            detail: format!("derived natively but not by Nemo: {subject} {predicate} {object}"),
+            detail: format!(
+                "derived natively but not by {oracle_name}: {subject} {predicate} {object}"
+            ),
             subject,
             object,
             world: world.to_owned(),
@@ -197,14 +225,16 @@ fn compare_materialization(
         rows.push(LedgerRow {
             kind: DivergenceKind::OracleOnly,
             category: "materialization".to_owned(),
-            detail: format!("derived by Nemo but not natively: {subject} {predicate} {object}"),
+            detail: format!(
+                "derived by {oracle_name} but not natively: {subject} {predicate} {object}"
+            ),
             subject,
             object,
             world: world.to_owned(),
         });
     }
 
-    ParityLedger::from_rows(rows)
+    Ok(ParityLedger::from_rows(rows))
 }
 
 /// A comparable answer-binding key: the sorted `var=value` pairs of one [`crate::query_ir::Binding`].
@@ -223,16 +253,31 @@ fn binding_key(binding: &crate::query_ir::Binding) -> String {
         .join(", ")
 }
 
-/// Compare the native [`AnswerSet`] bindings against the reference SLD oracle's bindings.
+/// Compare the native [`AnswerSet`] bindings against a [`BackwardOracle`]'s answer set,
+/// generically over which engine backs the oracle.
 ///
-/// Each binding is classified by its `binding_key`: present in BOTH ⇒ [`DivergenceKind::Agree`],
-/// native ∖ oracle ⇒ [`DivergenceKind::NativeOnly`], oracle ∖ native ⇒
-/// [`DivergenceKind::OracleOnly`]. Callers pass `AnswerSet`s already `canonicalize()`d; the
-/// comparison is on the binding SET (duplicate bindings, which the canonicalized sets never
-/// carry distinctly, collapse). Rows are emitted in sorted-key order.
-fn compare_answers(native: &AnswerSet, oracle: &AnswerSet) -> ParityLedger {
+/// The oracle is run here (over the same world snapshot, program, and budget the native engine
+/// used), and each binding is classified by its `binding_key`: present in BOTH ⇒
+/// [`DivergenceKind::Agree`], native ∖ oracle ⇒ [`DivergenceKind::NativeOnly`], oracle ∖ native
+/// ⇒ [`DivergenceKind::OracleOnly`]. Detail strings name the oracle via [`BackwardOracle::name`]
+/// so the ledger is engine-agnostic. The comparison is on the binding SET; rows are emitted in
+/// sorted-key order.
+///
+/// `tabling` is empty here: the parity corpus is compared without tabling hints (the reference
+/// SLD oracle ignores them and native/Scryer must agree without them on this corpus).
+fn compare_answers(
+    native: &AnswerSet,
+    oracle: &dyn BackwardOracle,
+    foreign: &dyn ScryerForeign,
+    world: &str,
+    program: &QProgram,
+    budget: &Budget,
+) -> Result<ParityLedger, String> {
+    let answers = oracle.solve(foreign, world, program, &[], budget)?;
+    let oracle_name = oracle.name();
+
     let native_keys: BTreeSet<String> = native.bindings.iter().map(binding_key).collect();
-    let oracle_keys: BTreeSet<String> = oracle.bindings.iter().map(binding_key).collect();
+    let oracle_keys: BTreeSet<String> = answers.bindings.iter().map(binding_key).collect();
 
     let mut rows: Vec<LedgerRow> = Vec::new();
 
@@ -243,7 +288,7 @@ fn compare_answers(native: &AnswerSet, oracle: &AnswerSet) -> ParityLedger {
             subject: key.clone(),
             object: String::new(),
             world: String::new(),
-            detail: format!("native and the SLD oracle agree on answer: {key}"),
+            detail: format!("native and {oracle_name} agree on answer: {key}"),
         });
     }
     for key in native_keys.difference(&oracle_keys) {
@@ -253,7 +298,7 @@ fn compare_answers(native: &AnswerSet, oracle: &AnswerSet) -> ParityLedger {
             subject: key.clone(),
             object: String::new(),
             world: String::new(),
-            detail: format!("answered natively but not by the SLD oracle: {key}"),
+            detail: format!("answered natively but not by {oracle_name}: {key}"),
         });
     }
     for key in oracle_keys.difference(&native_keys) {
@@ -263,30 +308,35 @@ fn compare_answers(native: &AnswerSet, oracle: &AnswerSet) -> ParityLedger {
             subject: key.clone(),
             object: String::new(),
             world: String::new(),
-            detail: format!("answered by the SLD oracle but not natively: {key}"),
+            detail: format!("answered by {oracle_name} but not natively: {key}"),
         });
     }
 
-    ParityLedger::from_rows(rows)
+    Ok(ParityLedger::from_rows(rows))
 }
 
 #[cfg(test)]
 mod tests {
     //! The parity + native-coverage-floor GATE.
     //!
-    //! `materialize_parity_*` invoke Nemo (`materialize_core`) and so MUST run in the `engine`
+    //! `materialize_parity_*` drive the Nemo forward oracle and so MUST run in the `engine`
     //! nextest group (the `materialize` token in the test-fn name matches the engine-group
-    //! regex `nemo_engine|scryer_engine|materialize|reason|verify|certify|dispatch|...`).
-    //! `dispatch_parity_*` (the `dispatch` token) likewise match. The floor test
-    //! `native_coverage_floor` drives both and is named to match `materialize`/`dispatch`-free
-    //! but is grouped via the explicit `physical::parity` filter clause added to
-    //! `.config/nextest.toml`'s engine override.
+    //! regex `nemo_engine|scryer_engine|materialize|reason|verify|certify|dispatch|...` in
+    //! `.config/nextest.toml`). `dispatch_parity_*` (the `dispatch` token) likewise match.
+    //! The floor test `native_coverage_floor` drives ONLY the native engines
+    //! (`materialize_native` / `resolve_native`) — no Nemo/Scryer subprocess — so it has no
+    //! multi-GB footprint and does not need the engine group; it is intentionally left
+    //! ungrouped. Any NEW parity test that drives a real engine must keep a group token
+    //! (`materialize`/`dispatch`) in its fn name.
 
     use super::*;
+    use crate::oracle::{
+        ForwardBudget, ForwardOracle, NemoForwardOracle, ReferenceBackwardOracle, TypedChaseResult,
+        TypedProvenance, TypedRow,
+    };
     use crate::physical::magic::resolve_native;
     use crate::physical::seminaive::{materialize_native, NativeOutcome};
     use crate::query_ir::{parse_query_program, Budget, QProgram};
-    use crate::reference_resolver;
     use crate::rule_ir::parse_eval_rules;
     use crate::seam::WorldStoreForeign;
     use crate::store::WorldStore;
@@ -466,10 +516,16 @@ mod tests {
         let mut total_native_decided = 0usize;
         for p in forward_corpus() {
             let native = run_native_forward(&p);
-            let oracle = crate::materialize::materialize_core(&p.rls, &p.nquads, None, None, None)
-                .unwrap_or_else(|e| panic!("[{}] materialize_core (Nemo) failed: {e}", p.label));
+            // Drive the oracle through the ForwardOracle seam over the SAME typed EDB
+            // (built by the shared `edb_from_nquads`) and rule text native used.
+            let edb = crate::materialize::edb_from_nquads(&p.nquads)
+                .unwrap_or_else(|e| panic!("[{}] edb_from_nquads failed: {e}", p.label));
 
-            let ledger = compare_materialization(&native, &oracle, p.world);
+            let ledger =
+                compare_materialization(&native, &NemoForwardOracle, &edb, &p.rls, p.world)
+                    .unwrap_or_else(|e| {
+                        panic!("[{}] forward oracle materialize failed: {e}", p.label)
+                    });
             let verdict = ledger.enforce();
             assert!(
                 verdict.passed,
@@ -496,6 +552,56 @@ mod tests {
             total_native_decided > 0,
             "the native engine decided ZERO forward rows across the whole corpus — a total \
              fallback is a coverage-floor failure"
+        );
+    }
+
+    /// A forward oracle that returns a fixed closure independent of its inputs — used to prove
+    /// the generic [`compare_materialization`] still CATCHES divergence after going generic.
+    /// Every other forward test is a green-path agreement test, so a broken comparator could
+    /// pass them all; this one gives the comparator a genuinely disagreeing oracle.
+    struct DivergentForwardOracle {
+        rows: Vec<(TypedRow, TypedProvenance)>,
+    }
+
+    impl ForwardOracle for DivergentForwardOracle {
+        fn name(&self) -> &'static str {
+            "divergent-mock"
+        }
+        fn materialize(
+            &self,
+            _facts: &crate::facts::TypedFactSet,
+            _rules: &str,
+            _budget: &ForwardBudget,
+        ) -> Result<TypedChaseResult, String> {
+            Ok(TypedChaseResult {
+                rows: self.rows.clone(),
+            })
+        }
+        fn provides_provenance(&self) -> bool {
+            false
+        }
+    }
+
+    #[test]
+    fn materialize_parity_divergence_is_caught() {
+        // Native decides a real, non-empty closure.
+        let p = forward_subclass_chain();
+        let native = run_native_forward(&p);
+        assert!(!native.is_empty(), "native must decide the subclass chain");
+        let edb = crate::materialize::edb_from_nquads(&p.nquads).unwrap();
+
+        // An oracle returning an EMPTY closure disagrees with native on every fact.
+        let empty_oracle = DivergentForwardOracle { rows: vec![] };
+        let ledger = compare_materialization(&native, &empty_oracle, &edb, &p.rls, p.world)
+            .expect("comparator must run");
+        let verdict = ledger.enforce();
+        assert!(
+            !verdict.passed,
+            "a divergent (empty) oracle closure must FAIL the generic gate, not pass it"
+        );
+        assert!(
+            ledger.native_only > 0,
+            "native facts absent from the oracle must be classified native-only"
         );
     }
 
@@ -628,16 +734,6 @@ mod tests {
         }
     }
 
-    /// Run the reference SLD oracle for a backward program.
-    fn run_oracle_backward(b: &BackwardProgram) -> AnswerSet {
-        let (store, world_nn) = backward_world(b);
-        const W: &str = "http://logic.test/world/parity";
-        let foreign =
-            WorldStoreForeign::from_world(&store, W, PROFILE).expect("from_world must succeed");
-        reference_resolver::resolve(&foreign, &world_nn, &b.program, &Budget::default())
-            .unwrap_or_else(|e| panic!("[{}] reference_resolver::resolve failed: {e}", b.label))
-    }
-
     // ── Backward parity: native ≡ reference SLD oracle (THE GATE) ─────────────────────
 
     #[test]
@@ -645,20 +741,36 @@ mod tests {
         let mut total_native_answers = 0usize;
         for b in backward_corpus() {
             let native = run_native_backward(&b);
-            let oracle = run_oracle_backward(&b);
+            // Drive the oracle through the BackwardOracle seam over the SAME world snapshot,
+            // program, and budget native used.
+            let (store, world_nn) = backward_world(&b);
+            let foreign = WorldStoreForeign::from_world(&store, &world_nn, PROFILE)
+                .expect("from_world must succeed");
 
-            let ledger = compare_answers(&native, &oracle);
+            let ledger = compare_answers(
+                &native,
+                &ReferenceBackwardOracle,
+                &foreign,
+                &world_nn,
+                &b.program,
+                &Budget::default(),
+            )
+            .unwrap_or_else(|e| panic!("[{}] backward oracle solve failed: {e}", b.label));
             let verdict = ledger.enforce();
             assert!(
                 verdict.passed,
                 "[{}] native↔reference answer set DIVERGED ({} native-only, {} oracle-only): \
-                 {:?}\nnative {:?}\noracle {:?}",
+                 {:?}\nnative {:?}\ndivergent rows {:?}",
                 b.label,
                 ledger.native_only,
                 ledger.oracle_only,
                 verdict.reasons,
                 native.bindings,
-                oracle.bindings
+                ledger
+                    .rows
+                    .iter()
+                    .filter(|r| r.kind != DivergenceKind::Agree)
+                    .collect::<Vec<_>>()
             );
             total_native_answers += native.bindings.len();
         }

@@ -379,3 +379,86 @@ fn duplicate_formulas_produce_one_rule_not_two() {
         "dedup of identical clauses must not degrade preservation to sound-under"
     );
 }
+
+/// Flagship 1 (the `lang:` MEANING stratum): the declarative sentence "cats chase mice"
+/// denotes a full-FOL `logic:Formula`, authored as an RDF AST in the shared conformance
+/// fixture. This test ties the RDF fixture to the native reasoner: it parses the fixture's
+/// `logic:` layer with the real front-end and asserts the reasoner CONSUMES the denoted
+/// formula — `lower_formulas` clausifies it into an evaluable Horn rule with EXACT
+/// preservation — rather than merely DL-typing an empty AST node.
+///
+/// The formula is `∀x∀y. (instanceOf(x, typeCat) ∧ instanceOf(y, typeMouse)) → chase(x, y)`,
+/// authored in the binary-Horn fragment (the nouns predicated through the HiLog
+/// `logic:instanceOf` reflection so every atom is binary). It lowers to a single rule
+/// `chase(x, y) ← instanceOf(x, typeCat) ∧ instanceOf(y, typeMouse)` — from which, given a
+/// cat and a mouse, the chase derives a chased mouse (the flagship entailment "some mouse is
+/// chased"). Both stages are exact: the `lang:` → `logic:` denotation (the fixture's asserted
+/// `logic:ExactPreservation`) and the `logic:` → relational-core evaluation asserted here.
+#[test]
+fn flagship_cats_chase_mice_lowers_to_evaluable_rules_with_exact_preservation() {
+    use gmeow_logic_compile::frontend::parse_logic_str;
+
+    // The one authored fixture — the same file the `lang:` slice conformance harness
+    // validates — so the RDF AST and the native IR can never silently drift apart.
+    let fixture = include_str!(
+        "../../../../slices/grounding/lang/tests/conformance-fixtures/meaning-cats-chase-mice.ttl"
+    );
+    let (program, diagnostics) = parse_logic_str(fixture, None).expect("fixture parses");
+    assert!(
+        !diagnostics.iter().any(|d| d.code == "MALFORMED_FORMULA"),
+        "the flagship formula AST must reconstruct cleanly, got: {diagnostics:?}"
+    );
+
+    // The front-end lifted the sentence's denoted formula as a top-level assertion.
+    assert_eq!(
+        program.formulas.len(),
+        1,
+        "exactly the one top-level flagship formula is lifted: {:?}",
+        program.formulas
+    );
+
+    // The native reasoner CONSUMES it: the full-FOL AST is clausified to an evaluable rule.
+    let out = lower_formulas(&program);
+    assert_eq!(
+        out.rules.len(),
+        1,
+        "the flagship formula lowers to exactly one evaluable Horn rule: {:?}",
+        out.rules
+    );
+
+    // Evaluation shape: head is the binary chase relation, body is the two type memberships.
+    let rule = &out.rules[0];
+    assert!(
+        rule.head.predicate.ends_with("typeChase"),
+        "the derived head is the chase predication, got: {}",
+        rule.head.predicate
+    );
+    assert_eq!(
+        rule.body.len(),
+        2,
+        "two body atoms (the cat and mouse type memberships): {:?}",
+        rule.body
+    );
+    assert!(
+        rule.body
+            .iter()
+            .all(|a| a.predicate.ends_with("instanceOf")),
+        "each body atom is a HiLog type membership: {:?}",
+        rule.body
+    );
+
+    // Per-stage preservation: the `logic:` → relational-core evaluation is EXACT (no residue),
+    // matching the fixture's asserted `logic:ExactPreservation` on the denotation composition.
+    assert!(
+        out.preservation.unsupported_constructs.is_empty(),
+        "nothing is carried as residue: {:?}",
+        out.preservation.unsupported_constructs
+    );
+    assert!(
+        out.preservation
+            .polarities
+            .contains(&PreservationKind::Exact),
+        "the flagship formula lowers with exact preservation: {:?}",
+        out.preservation.polarities
+    );
+}

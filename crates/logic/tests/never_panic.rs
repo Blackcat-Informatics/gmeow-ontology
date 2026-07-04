@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! "Reject malformed, never panic" property gate (T7, #788) for the gmeow-logic
+//! "Reject malformed, never panic" property gate (T7) for the gmeow-logic
 //! frontends.
 //!
 //! `compile::frontend::parse_logic_str` parses untrusted logic-Turtle into a

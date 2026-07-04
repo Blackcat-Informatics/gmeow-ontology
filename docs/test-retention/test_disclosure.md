@@ -1,15 +1,18 @@
 # Retention: `tests/test_disclosure.py`
 
-**Category:** Domain invariant → slicetest cells
+**Category:** Merged-graph guard
 
 ## What it tests
 
-Tests for the consumer projection policy / disclosure control facility (#225).
+Tests for the consumer projection policy / disclosure control facility.
 
-## Why it cannot move to Rust today
+Retained dynamic tests:
 
-Structural / competency / cross-slice invariants over the module (or merged) graph — ontology *shape*, not Python logic.
+- `test_no_preferred_or_primary_disclosure_term` — No `gmeow:primary*` or `gmeow:preferred*` disclosure term.
+- `test_project_when_in_sparql_query` — The schema-org SPARQL projection contains the projectWhen FILTER EXISTS guard.
+- `test_public_candidates_query_runnable` — public-candidates.
+- `test_privacy_leaks_query_runnable` — privacy-leaks.
 
-## What is needed to move it to Rust
+## Why it cannot be deleted or moved to Rust today
 
-Author the assertions as slicetest cells in the **owning** slice (`structural.ttl` MUST/MUST-NOT, `competency.ttl` ASK/SELECT) per `docs/SLICE_QA.md`; cross-slice subjects go in the slice that *defines* the term. Confirm `make slicetest`, then delete this file. No new Rust — the harness exists.
+Whole-merged-graph sweeps over terms declared across many slice modules; cannot be faithfully scoped to a single slice module.

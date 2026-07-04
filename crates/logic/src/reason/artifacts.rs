@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Native RDF 1.2 Turtle artifact builders for the reasoning lane (issue #666).
+//! Native RDF 1.2 Turtle artifact builders for the reasoning lane.
 //!
 //! The Java/Docker-free authority lane (Principles 17/18) emits three committed
 //! artifacts from a single [`ReasoningResult`]:
@@ -25,7 +25,7 @@ use purrdf::{
     RdfAnnotation, RdfDataset, RdfLiteral, RdfQuad, RdfReifier, RdfTerm, RdfTriple, TermValue,
 };
 
-use crate::encode::decode_nemo_term;
+use crate::nemo_engine::codec::decode_nemo_term;
 use crate::reason::dl::gaps_from_unsupported;
 use crate::reason::el::InferredAxiom;
 use crate::result::ReasoningResult;
@@ -147,7 +147,7 @@ fn axiom_triple(axiom: &InferredAxiom) -> RdfTriple {
 /// The derived (non-EDB) axioms of a result in a deterministic content order.
 ///
 /// The native chase emits axioms in world-iteration order, which varies
-/// run-to-run (issue #883). Premises are canonicalized (sorted) at construction
+/// run-to-run. Premises are canonicalized (sorted) at construction
 /// time in `run_reasoning`, so this helper only orders the derived set by full
 /// content so all three artifacts serialize byte-identically regardless of chase
 /// order — killing the drift class at the single chokepoint every builder funnels
@@ -324,18 +324,17 @@ fn emit_anonymous_resource(properties: &[(String, String)]) -> String {
 /// defect, and the entailment/gap counts. The committed bundle is expected to
 /// have zero `DlGap` rows.
 pub fn build_dl_el_ledger_ttl(result: &ReasoningResult) -> String {
-    const DEFERRED_NOTE: &str =
-        "oracle comparison runs in classic-cross-check; native gaps fail #697";
+    const DEFERRED_NOTE: &str = "oracle comparison runs in classic-cross-check; native gaps fail";
     let mut out = String::from(LEDGER_HEADER);
 
     // The DL coverage gaps are reconstructed from the shared model's
     // unsupported-construct set via the one recipe `verdict_from_inferred` uses,
     // so the ledger stays byte-identical whether built from a DlVerdict or a typed
-    // ReasoningResult (#768). The committed bundle is gap-zero, so this is empty
+    // ReasoningResult. The committed bundle is gap-zero, so this is empty
     // on a healthy run; the set is already sorted (a BTreeSet).
     let gaps = gaps_from_unsupported(result.preservation.unsupported_constructs.iter());
 
-    out.push_str("\n# --- ledger header (native coverage; #697 gap-zero) ---\n");
+    out.push_str("\n# --- ledger header (native coverage; gap-zero) ---\n");
     out.push_str(&emit_resource(
         &gmeow("dl-el-crosscheck"),
         &[
@@ -421,7 +420,7 @@ pub fn build_dl_el_ledger_ttl(result: &ReasoningResult) -> String {
 
 // ── reasoning-result + proof-certificate ────────────────────────────────────────
 
-/// The `logic:` vocabulary namespace (the typed-result terms live here, #768).
+/// The `logic:` vocabulary namespace (the typed-result terms live here).
 const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
 
 /// `logic:` term IRI helper.
@@ -431,7 +430,7 @@ fn logic(local: &str) -> String {
 
 /// Banner for the typed reasoning-result + proof-certificate artifact.
 const RESULT_HEADER: &str = "\
-# GMEOW typed reasoning result + proof certificate (RDF 1.2, #768 ME2).
+# GMEOW typed reasoning result + proof certificate (RDF 1.2).
 # The single shared logic:ReasoningResult the native lane produced, serialized as
 # its five orthogonal status fields (input, evaluation, completeness,
 # preservation, information) plus the provenance bundle (contract hash, engine,
@@ -444,7 +443,7 @@ const RESULT_HEADER: &str = "\
 ";
 
 /// Render the typed [`ReasoningResult`] as a `logic:ReasoningResult` individual —
-/// the proof-certificate surface (#768 ME2): the five status fields projected to
+/// the proof-certificate surface (ME2): the five status fields projected to
 /// their `module.ttl` value individuals plus the provenance bundle (contract
 /// hash, engine, proof/counterproof, contradiction witnesses, assumptions). This
 /// is a NEW, additive artifact — it does not touch the three historical
@@ -642,7 +641,7 @@ mod tests {
             RdfTerm::iri("http://example.org/B")
         );
         // A typed literal stays a literal — emitting it as an IRI would produce
-        // invalid Turtle in the proof skeleton (#666 / CodeRabbit review).
+        // invalid Turtle in the proof skeleton (CodeRabbit review).
         assert_eq!(
             emit_term(&premise_object(
                 "\"42\"^^<http://www.w3.org/2001/XMLSchema#integer>"

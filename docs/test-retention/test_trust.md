@@ -1,15 +1,16 @@
 # Retention: `tests/test_trust.py`
 
-**Category:** Domain invariant → slicetest cells
+**Category:** Merged-graph guard
 
 ## What it tests
 
 Retained pytest guards for the trust (Web-of-Trust) slice.
 
-## Why it cannot move to Rust today
+Retained dynamic tests:
 
-Structural / competency / cross-slice invariants over the module (or merged) graph — ontology *shape*, not Python logic.
+- `test_three_axes_are_orthogonal_in_trust` — accordingTo ⟂ wasAttributedTo ⟂ confidence: no inferential bridge in the trust module (mirrors test_three_axes_are_orthogonal in test_standpoint.
+- `test_no_preferred_or_primary_trust_term` — Principle 9: no single slot to win — trust mints no preferred/primary selector for a contested certification or trust level.
 
-## What is needed to move it to Rust
+## Why it cannot be deleted or moved to Rust today
 
-Author the assertions as slicetest cells in the **owning** slice (`structural.ttl` MUST/MUST-NOT, `competency.ttl` ASK/SELECT) per `docs/SLICE_QA.md`; cross-slice subjects go in the slice that *defines* the term. Confirm `make slicetest`, then delete this file. No new Rust — the harness exists.
+Retained pytest guards for the trust (Web-of-Trust) slice.

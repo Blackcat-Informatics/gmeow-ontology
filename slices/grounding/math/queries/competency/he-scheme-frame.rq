@@ -1,0 +1,12 @@
+# Competency question: "Which ring operation is this homomorphic-encryption scheme
+# homomorphic over, under what hardness assumption and noise model?"  Over the fixture the
+# answer is exactly {heScheme → ringMultiplication / RLWE / gaussianNoise}.
+PREFIX math: <https://blackcatinformatics.ca/math/>
+
+SELECT ?scheme ?operation ?assumption ?noise WHERE {
+    ?scheme a math:HomomorphicEncryptionScheme ;
+            math:homomorphicOver ?operation ;
+            math:securityAssumption ?assumption ;
+            math:noiseModel ?noise .
+}
+ORDER BY ?scheme

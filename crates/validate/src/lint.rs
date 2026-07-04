@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! PyO3-free engine for the structural and naming lints (#579).
+//! PyO3-free engine for the structural and naming lints.
 //!
 //! These two lints — ported byte-exact from `src/gmeow_tools/validate.py`'s
 //! `structural_lint` and `term_naming_lint` — run over
@@ -36,14 +36,14 @@ pub struct LintConfig {
     pub core_slice_iris: HashSet<String>,
     /// Standard annotation predicates whose literals are policed by Check 2.
     /// Defaults to [`default_annotation_predicates`] — this crate is the single
-    /// source of truth (#630); Python reads the set from here, it is no longer
+    /// source of truth; Python reads the set from here, it is no longer
     /// pushed in from `language_tags`.
     pub annotation_predicates: HashSet<String>,
 }
 
 /// The canonical annotation predicates whose literals the Check-2 language-tag
 /// policy polices — `rdfs:label`, `skos:definition`, `rdfs:comment`, `dcterms:title`,
-/// `dcterms:description`. This crate owns the registry (#630); the Python
+/// `dcterms:description`. This crate owns the registry; the Python
 /// `language_tags` helpers read it back through the PyO3 `annotation_predicates`
 /// surface rather than maintaining a parallel constant.
 #[must_use]
@@ -236,7 +236,7 @@ fn camel_tokens(local: &str) -> Vec<String> {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// The structural / naming lints over a native (`purrdf::RdfDataset`) graph (#906).
+// The structural / naming lints over a native (`purrdf::RdfDataset`) graph.
 //
 // Every check, error/warning TEXT, severity, and emission ORDER is byte-identical to
 // the legacy oxigraph `Store` implementation it replaced.
@@ -356,7 +356,7 @@ fn ds_has_type(ds: &RdfDataset, subject_iri: &str, type_iri: &str) -> bool {
         .is_some()
 }
 
-/// Native twin of [`structural_lint`] over a frozen [`RdfDataset`] (EPIC #906).
+/// Native twin of [`structural_lint`] over a frozen [`RdfDataset`].
 ///
 /// Byte-identical errors/warnings to the `Store` version; reads across all graphs
 /// ([`GraphMatch::Any`]) so a named-graph input is linted exactly as the old
@@ -481,17 +481,17 @@ pub fn structural_lint_dataset(ds: &RdfDataset, cfg: &LintConfig) -> LintReport 
         }
         if !ds_has_predicate(ds, term, &use_when) {
             report.warnings.push(format!(
-                "{kind} {term} is missing gmeow:useWhen (Tier-1 depth, #471)"
+                "{kind} {term} is missing gmeow:useWhen (Tier-1 depth)"
             ));
         }
         let has_how_to_use = ds_has_predicate(ds, term, &how_to_use);
         if !has_how_to_use {
             report.warnings.push(format!(
-                "{kind} {term} is missing gmeow:howToUse (Tier-1 depth, #471)"
+                "{kind} {term} is missing gmeow:howToUse (Tier-1 depth)"
             ));
         } else if !ds_has_predicate(ds, term, skos::EXAMPLE) {
             report.warnings.push(format!(
-                "{kind} {term} has gmeow:howToUse but no skos:example (Tier-1 depth, #471)"
+                "{kind} {term} has gmeow:howToUse but no skos:example (Tier-1 depth)"
             ));
         }
     }
@@ -622,7 +622,143 @@ pub fn structural_lint_dataset(ds: &RdfDataset, cfg: &LintConfig) -> LintReport 
         }
     }
 
+    // lang: meaning-stratum native gates (charter primary gates): compositional-
+    // lowering preservation, co-resident-reading non-collapse, and the whole-bundle
+    // one-way lang:->logic: bridge acyclicity.
+    check_lang_meaning_invariants(ds, cfg, &mut report);
+
     report
+}
+
+/// Namespace roots for the `lang:`/`logic:` meaning-stratum invariants.
+const LANG_NS: &str = "https://blackcatinformatics.ca/lang/";
+const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
+
+fn lang_iri(term: &str) -> String {
+    format!("{LANG_NS}{term}")
+}
+
+fn logic_iri(term: &str) -> String {
+    format!("{LOGIC_NS}{term}")
+}
+
+/// Subjects carrying an explicit `rdf:type` of `type_iri`.
+fn ds_subjects_of_type(ds: &RdfDataset, type_iri: &str) -> Vec<String> {
+    let mut out = Vec::new();
+    let (Some(type_id), Some(t_id)) = (ds_iri_id(ds, rdf::TYPE), ds_iri_id(ds, type_iri)) else {
+        return out;
+    };
+    for q in ds.quads_for_pattern(None, Some(type_id), Some(t_id), GraphMatch::Any) {
+        if let TermRef::Iri(s) = ds.resolve(q.s) {
+            out.push(s.to_owned());
+        }
+    }
+    // `GraphMatch::Any` visits every graph, so a typing triple repeated across the
+    // default graph and named graphs (or across imported fixtures) yields the same
+    // subject more than once. Collapse them so downstream gates lint — and report —
+    // each subject exactly once.
+    out.sort();
+    out.dedup();
+    out
+}
+
+/// The `lang:` meaning-stratum invariants the charter designates as native
+/// Rust-validator primary gates (realized here rather than in SHACL), plus the
+/// whole-bundle one-way-bridge acyclicity. Runs over the merged dataset, so the
+/// invariants hold bundle-wide, not merely per fixture.
+fn check_lang_meaning_invariants(ds: &RdfDataset, cfg: &LintConfig, report: &mut LintReport) {
+    check_undeclared_lowering(ds, report);
+    check_silent_disambiguation(ds, cfg, report);
+    check_one_way_bridge(ds, report);
+}
+
+/// `lang:UndeclaredLoweringStage` — every `lang:Denotation` whose kind bridges
+/// into `logic:` declares a `logic:preservationKind`. Being a lowering is derived
+/// from the kind, never an optional flag, so the gate cannot fail open.
+fn check_undeclared_lowering(ds: &RdfDataset, report: &mut LintReport) {
+    let bridge_kinds = [
+        lang_iri("denotesLogicFormula"),
+        lang_iri("denotesLogicTerm"),
+        lang_iri("denotesLogicType"),
+        lang_iri("denotesQuery"),
+    ];
+    let denotation_kind = lang_iri("denotationKind");
+    let preservation_kind = logic_iri("preservationKind");
+    for subj in ds_subjects_of_type(ds, &lang_iri("Denotation")) {
+        let kinds = ds_object_iris(ds, &subj, &denotation_kind);
+        let bridges = kinds.iter().any(|k| bridge_kinds.iter().any(|b| b == k));
+        if bridges && !ds_has_predicate(ds, &subj, &preservation_kind) {
+            report.errors.push(format!(
+                "lang:UndeclaredLoweringStage: denotation {subj} bridges into logic: \
+                 (lang:denotationKind) but declares no logic:preservationKind"
+            ));
+        }
+    }
+}
+
+/// `lang:SilentDisambiguation` — an interpretation act that resolves to a single
+/// reading among two or more co-resident readings must be backed by a vantage-held
+/// `gmeow:Observation` (through `lang:aboutReading`, with `gmeow:vantage`);
+/// otherwise it has silently collapsed the ambiguity.
+fn check_silent_disambiguation(ds: &RdfDataset, cfg: &LintConfig, report: &mut LintReport) {
+    let produced = lang_iri("producedReading");
+    let resolved = lang_iri("resolvedReading");
+    let about_reading = lang_iri("aboutReading");
+    let vantage = format!("{}vantage", cfg.namespace);
+    for act in ds_subjects_of_type(ds, &lang_iri("InterpretationAct")) {
+        let readings = ds_object_iris(ds, &act, &produced);
+        if readings.len() < 2 {
+            continue;
+        }
+        for chosen in ds_object_iris(ds, &act, &resolved) {
+            if !reading_claim_is_grounded(ds, &about_reading, &chosen, &vantage) {
+                report.errors.push(format!(
+                    "lang:SilentDisambiguation: interpretation act {act} resolves to reading \
+                     {chosen} among {} co-resident readings with no vantage-held observation \
+                     grounding the choice",
+                    readings.len()
+                ));
+            }
+        }
+    }
+}
+
+/// Whether some subject names `chosen` through `lang:aboutReading` and carries a
+/// `gmeow:vantage` — a grounded reading-correctness claim.
+fn reading_claim_is_grounded(
+    ds: &RdfDataset,
+    about_reading: &str,
+    chosen: &str,
+    vantage: &str,
+) -> bool {
+    let (Some(p_id), Some(o_id)) = (ds_iri_id(ds, about_reading), ds_iri_id(ds, chosen)) else {
+        return false;
+    };
+    for q in ds.quads_for_pattern(None, Some(p_id), Some(o_id), GraphMatch::Any) {
+        if let TermRef::Iri(obs) = ds.resolve(q.s) {
+            if ds_has_predicate(ds, obs, vantage) {
+                return true;
+            }
+        }
+    }
+    false
+}
+
+/// One-way bridge acyclicity (Principle 19): no `logic:`-namespaced subject carries
+/// a `lang:`-namespaced predicate. The bridge runs `lang:` -> `logic:` through
+/// `lang:denotationTarget` and never reverses.
+fn check_one_way_bridge(ds: &RdfDataset, report: &mut LintReport) {
+    for q in ds.quads_for_pattern(None, None, None, GraphMatch::Any) {
+        let (TermRef::Iri(s), TermRef::Iri(p)) = (ds.resolve(q.s), ds.resolve(q.p)) else {
+            continue;
+        };
+        if s.starts_with(LOGIC_NS) && p.starts_with(LANG_NS) {
+            report.errors.push(format!(
+                "lang: one-way bridge violated: logic: subject {s} carries lang: predicate {p} \
+                 (Principle 19: the lang:->logic: bridge never reverses)"
+            ));
+        }
+    }
 }
 
 /// Native twin of [`check_annotation_literal`].
@@ -821,7 +957,7 @@ mod tests {
     fn structural_exempts_self_description_abox() {
         // A-Box individuals defined by the `self` self-description ontology are
         // project metadata, not vocabulary surface, so the per-term annotation /
-        // graphBoxRole contract must not fire on them (#644). The same individual
+        // graphBoxRole contract must not fire on them. The same individual
         // shape would be flagged if it were ordinary vocabulary.
         let store = store_from(&format!(
             "{PREFIXES}\
@@ -1115,7 +1251,7 @@ mod tests {
     }
 
     /// The native `structural_lint_dataset` twin must produce byte-identical
-    /// errors/warnings to the `Store` version across a battery of fixtures (#906).
+    /// errors/warnings to the `Store` version across a battery of fixtures.
     #[test]
     fn native_structural_lint_parity_with_store() {
         let fixtures = [
@@ -1184,5 +1320,131 @@ mod tests {
         assert_eq!(py_str_repr("new\nline"), "'new\\nline'");
         assert_eq!(py_str_repr("tab\there"), "'tab\\there'");
         assert_eq!(py_str_repr("uniécode"), "'uniécode'");
+    }
+
+    // --- lang: meaning-stratum native gates ---------------------------------- #
+
+    const LANG_PREFIXES: &str = "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+         @prefix lang: <https://blackcatinformatics.ca/lang/> .\n\
+         @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+         @prefix ex: <https://example.org/> .\n";
+
+    #[test]
+    fn undeclared_lowering_flags_bridge_denotation_without_preservation() {
+        let ds = dataset_from(&format!(
+            "{LANG_PREFIXES}\
+             ex:d1 a lang:Denotation ;\n\
+               lang:denotationKind lang:denotesLogicFormula ;\n\
+               lang:denotedForm ex:f ;\n\
+               lang:denotationTarget ex:formula ;\n\
+               lang:denotationContext ex:ctx .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:UndeclaredLoweringStage")),
+            "errors: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn undeclared_lowering_clean_when_preservation_declared() {
+        let ds = dataset_from(&format!(
+            "{LANG_PREFIXES}\
+             ex:d1 a lang:Denotation ;\n\
+               lang:denotationKind lang:denotesLogicFormula ;\n\
+               lang:denotedForm ex:f ;\n\
+               lang:denotationTarget ex:formula ;\n\
+               lang:denotationContext ex:ctx ;\n\
+               logic:preservationKind logic:ExactPreservation .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            !report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:UndeclaredLoweringStage")),
+            "errors: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn silent_disambiguation_flags_ungrounded_resolution() {
+        let ds = dataset_from(&format!(
+            "{LANG_PREFIXES}\
+             ex:act a lang:InterpretationAct ;\n\
+               lang:producedReading ex:r1 , ex:r2 ;\n\
+               lang:resolvedReading ex:r1 .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:SilentDisambiguation")),
+            "errors: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn silent_disambiguation_clean_when_resolution_is_vantage_held() {
+        let ds = dataset_from(&format!(
+            "{LANG_PREFIXES}\
+             ex:act a lang:InterpretationAct ;\n\
+               lang:producedReading ex:r1 , ex:r2 ;\n\
+               lang:resolvedReading ex:r1 .\n\
+             ex:obs lang:aboutReading ex:r1 ;\n\
+               gmeow:vantage ex:annotator .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            !report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:SilentDisambiguation")),
+            "errors: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn one_way_bridge_flags_logic_subject_with_lang_predicate() {
+        let ds = dataset_from(&format!(
+            "{LANG_PREFIXES}\
+             logic:someObject lang:denotedForm ex:f .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("one-way bridge violated")),
+            "errors: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn one_way_bridge_clean_for_lang_to_logic_target() {
+        // The lawful direction: a lang: denotation targeting a logic: object.
+        let ds = dataset_from(&format!(
+            "{LANG_PREFIXES}\
+             ex:d1 a lang:Denotation ;\n\
+               lang:denotationTarget logic:someFormula .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            !report
+                .errors
+                .iter()
+                .any(|e| e.contains("one-way bridge violated")),
+            "errors: {:?}",
+            report.errors
+        );
     }
 }

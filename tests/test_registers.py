@@ -1,24 +1,29 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: MIT
-"""The registers & personas facility (#355, EPIC #348), in the norms slice.
+"""The registers & personas facility, in the norms slice.
 
-Same agent, same norms, different expression by context. Persona is a RELATOR
-(the NameUsage idiom — personas need their own identity for style guides and
-tenure; gUFO roles classify, they don't reify), bearing registers from the
-names-core gmeow:Register spine (NameRegister ⊑ Register: address and
-expression share one vocabulary). The voice payload is byte-perfect: style
-guides attach content-digested Documents carrying hasAboutness ENACTS, never
-pseudo-quantified style triples. The same-norms invariant is a competency
-QUERY, not a shape — divergence is legal (P9); the query makes it visible.
-Register-switching is not deception (#212 boundary, documented not
-axiomatized).
+All structural invariants and the same-norms competency question have been
+migrated to the slice-resident declarative test-DSL:
+
+  - slices/extensions/norms/tests/structural.ttl
+  - slices/extensions/norms/tests/competency.ttl
+  - slices/core/names/tests/structural.ttl (Register / NameRegister classhood)
+
+What remains here are tests that cannot be expressed as module-scoped SPARQL
+ASK/SELECT cells:
+
+  - test_no_primary_persona_machinery: dynamic sweep over the merged graph
+    checking that no primary/preferred persona/register term exists.
+  - test_divergence_query_surfaces_legal_divergence: hybrid test that mutates
+    a fixture, runs SHACL, and checks the divergence query reports the injected
+    private-only norm.
 """
 
 from __future__ import annotations
 
 from pathlib import Path
 
-from purrdf.compat.rdflib import OWL, RDF, RDFS, Graph, Namespace
+from purrdf.compat.rdflib import Graph, Namespace
 from purrdf.compat.rdflib.query import ResultRow
 
 from gmeow_tools.config import COMPETENCY_DIR
@@ -27,7 +32,6 @@ from tests._graph_nt import run_shacl
 
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
 GM = Namespace(GMEOW)
-LOGIC = Namespace("https://blackcatinformatics.ca/logic/")
 EX = Namespace("https://example.org/shapes/")
 
 FIXTURES = Path(__file__).parent / "fixtures" / "shapes"
@@ -44,40 +48,8 @@ def _fixture(name: str) -> Graph:
 
 
 # --------------------------------------------------------------------------- #
-# Structural invariants
+# Dynamic / fixture residue
 # --------------------------------------------------------------------------- #
-
-
-def test_register_spine_lives_in_names_core() -> None:
-    """gmeow:Register is the names-core umbrella; NameRegister specializes it
-    so address and expression draw from one vocabulary (the dependency
-    direction requires the umbrella below its consumers)."""
-    g = _graph()
-    assert (GM.Register, RDF.type, LOGIC.AbstractIndividualType) in g
-    assert (GM.Register, RDFS.subClassOf, LOGIC.QualityValue) in g
-    assert (GM.NameRegister, RDFS.subClassOf, GM.Register) in g
-    # A names-core seed and a persona-facing seed are both Registers.
-    assert (GM.registerFormal, RDF.type, GM.NameRegister) in g
-    assert (GM.registerPublic, RDF.type, GM.Register) in g
-
-
-def test_expression_machinery_is_open_and_plural() -> None:
-    g = _graph()
-    for prop in (GM.personaRegister, GM.activatedIn, GM.expressesNorm):
-        assert (prop, RDF.type, OWL.FunctionalProperty) not in g, prop
-    assert (GM.personaRegister, RDFS.range, GM.Register) in g
-    assert (GM.expressesNorm, RDFS.range, GM.Norm) in g
-    # Activation context is range-open: a Condition or a situation type.
-    assert g.value(GM.activatedIn, RDFS.range) is None
-
-
-def test_style_guide_voice_doctrine() -> None:
-    g = _graph()
-    assert (GM.StyleGuide, RDFS.subClassOf, GM.InformationObject) in g
-    assert (GM.voiceExemplifiedBy, RDFS.range, GM.Document) in g
-    assert g.value(GM.styleGuideFor, RDFS.range) is None
-    for prop in (GM.styleGuideFor, GM.voiceExemplifiedBy):
-        assert (prop, RDF.type, OWL.FunctionalProperty) not in g, prop
 
 
 def test_no_primary_persona_machinery() -> None:
@@ -97,20 +69,6 @@ def test_no_primary_persona_machinery() -> None:
         and str(s)[len(GMEOW) :].lower().startswith(banned)
     ]
     assert offenders == []
-
-
-# --------------------------------------------------------------------------- #
-# The same-norms invariant — a query, not a shape
-# --------------------------------------------------------------------------- #
-
-
-def test_same_norms_invariant_holds_on_wellformed_fixture() -> None:
-    """Both personas express the tier-1 norm → the divergence query returns
-    no rows. Divergence would be LEGAL — the query makes it visible."""
-    query_path = COMPETENCY_DIR / "registers-norm-divergence.rq"
-    query = query_path.read_text(encoding="utf-8")
-    rows = list(_fixture("registers-wellformed").query(query))
-    assert rows == []
 
 
 def test_divergence_query_surfaces_legal_divergence() -> None:

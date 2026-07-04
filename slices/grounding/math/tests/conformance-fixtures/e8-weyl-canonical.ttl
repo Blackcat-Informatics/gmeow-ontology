@@ -1,0 +1,28 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Well-formed: a math:RootSystem carrying the E8 fingerprint (240 roots in rank 8)
+# whose math:weylGroup declares the true order of W(E8), 696,729,600. Conforms to
+# math:E8WeylOrderShape (the value gate), math:RootSystemShape, math:AutomorphismGroupShape,
+# and math:AlgebraicStructureShape. Bound by ex:ecE8WeylCanonical.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:e8LikeRoots a math:RootSystem ;
+    math:rootCount 240 ;
+    math:rootSystemRank 8 ;
+    math:cartanMatrix ex:e8LikeCartan ;
+    math:weylGroup ex:e8LikeWeyl .
+
+ex:e8LikeCartan a math:CartanMatrix .
+
+ex:e8LikeWeyl a math:WeylGroup ;
+    math:underlyingSet ex:reflSet ;
+    math:structureOperation ex:reflComposition ;
+    math:satisfiesAxiom ex:reflAssoc ;
+    math:automorphismGroupOf ex:e8LikeRoots ;
+    math:groupOrder 696729600 .
+
+ex:reflSet a math:Set .
+ex:reflComposition a math:Operation .
+ex:reflAssoc a math:Axiom .

@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! GTS bundle signature and trust verification pre-gate (#646).
+//! GTS bundle signature and trust verification pre-gate.
 //!
 //! This module wraps [`purrdf::gts::verify::verify_file_with_options`] and maps the
 //! cryptographic and policy-layer outcomes into canonical
@@ -203,7 +203,7 @@ pub fn verify_gts_bundle(
 /// Map a `purrdf::gts` reader diagnostic code to a canonical [`Severity`].
 ///
 /// The reader does not attach severity to its diagnostics; the design doc
-/// (#646) requires us to classify them. Structural integrity failures
+///  requires us to classify them. Structural integrity failures
 /// (empty input, damaged frames, broken chain, torn/truncated logs, layout
 /// violations) are treated as errors because they mean the bundle cannot be
 /// reliably folded. Missing-capability and soft-degradation codes (unknown

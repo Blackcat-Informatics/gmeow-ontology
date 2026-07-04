@@ -62,7 +62,7 @@ pub struct ReasonArtifacts {
     /// The native physical-engine performance ledger Turtle — the flag-don't-build
     /// record of the deferred / non-incremental levers. Canonical static content.
     pub perf_ledger: String,
-    /// The typed five-axis result (#1132 C7 handle payload).
+    /// The typed five-axis result (C7 handle payload).
     pub result: ReasoningResult,
 }
 
@@ -191,11 +191,7 @@ impl ReasonStage {
             resources: vec![ENGINE_RESOURCE.to_string()],
             entities: vec![(
                 "stage-compile-logic".to_string(),
-                vec![
-                    crate::stages::compile_logic::GRAPH_CORRESPONDENCE.to_string(),
-                    crate::stages::compile_logic::GRAPH_LOGIC.to_string(),
-                    crate::stages::compile_logic::GRAPH_RELATIONAL_CORE.to_string(),
-                ],
+                crate::stages::compile_logic::object_level_entity_list(),
             )],
         }
     }
@@ -239,7 +235,7 @@ impl Stage for ReasonStage {
         // byte-lane only and are EXCLUDED from the compose union BY CONSTRUCTION. The
         // typed five-axis result rides BOTH as the `graph/reasoning` named graph (the
         // repo-free RDF projection) AND as the typed `PipelineHandle::Reasoning` handle
-        // pinned to that graph (#1132 C7) — dual carriage.
+        // pinned to that graph (C7) — dual carriage.
         let dataset = reason_dataset(&reasoned.closure, &reasoned.result)?;
         let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
         artifacts.insert(CLOSURE_PATH.to_string(), reasoned.closure.into_bytes());

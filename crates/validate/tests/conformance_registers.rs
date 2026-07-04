@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Conformance twins migrated from tests/test_registers.py (#867)
+//! Conformance twins migrated from tests/test_registers.py
 //!
 //! Two tests from test_registers.py are reproduced here because they use
 //! `run_shacl(g)` and rely solely on fixtures — no Python-side merged graph,

@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Native evaluator scoreboards for repository gates (#946).
+//! Native evaluator scoreboards for repository gates.
 //!
 //! The Python command surface remains a thin interface, but the claim-audit and
 //! acceptance scoreboard authority lives here.  This module starts with the
@@ -230,7 +230,7 @@ impl FileAcceptance {
     }
 }
 
-// ── Native RDF substrate (EPIC #906) ──────────────────────────────────────────
+// ── Native RDF substrate ──────────────────────────────────────────
 //
 // The scoreboard once built oxigraph `Store`s and read `oxigraph::model` terms.
 // It now operates entirely on the frozen `purrdf::RdfDataset` IR: each Turtle
@@ -675,7 +675,7 @@ pub fn default_corpus(root: &Path) -> Result<Vec<PathBuf>, String> {
     )
 }
 
-/// The HARD corpus-aggregate round-trip recall floor (GAP 3, #1145).
+/// The HARD corpus-aggregate round-trip recall floor (GAP 3).
 ///
 /// The measured derived aggregate recall (Σ recovered / Σ addressable) over the
 /// external parity corpus (`bii.ttl` + `paudley.ttl`) is **64.57 %** — established
@@ -725,7 +725,7 @@ pub fn aggregate_recall_gate(results: &[FileAcceptance], floor: f64) -> GateResu
 /// recall floor is cleared ([`aggregate_recall_gate`] passes at `floor`). The
 /// aggregate floor is a corpus-level gate with no per-file home, so without folding
 /// it in here the structured verdict could report `passed = true` while the hard
-/// aggregate gate FAILED — an internal inconsistency (GAP 3 / #1145 finding). The
+/// aggregate gate FAILED — an internal inconsistency (GAP 3 / finding). The
 /// CLI hard-fails on the same aggregate check, so this only strengthens the
 /// structured API to match; it never weakens an existing gate.
 pub fn corpus_passed(results: &[FileAcceptance], floor: f64) -> bool {
@@ -791,7 +791,7 @@ pub fn render_acceptance_report(results: &[FileAcceptance]) -> String {
 
 pub fn acceptance_diagnostics(results: &[FileAcceptance]) -> Report {
     let mut out = Report::new("acceptance");
-    // The HARD corpus-aggregate recall floor (GAP 3, #1145): a pooled recall below
+    // The HARD corpus-aggregate recall floor (GAP 3): a pooled recall below
     // ACCEPTANCE_MIN_RECALL_PCT is a real coverage regression, surfaced as an Error so
     // the diagnostics fold consumed by `make check` fails on it.
     let aggregate_gate = aggregate_recall_gate(results, ACCEPTANCE_MIN_RECALL_PCT);
@@ -1030,11 +1030,12 @@ fn shapes_turtle(root: &Path) -> Result<String, String> {
             }
         }
     }
-    let generated = glob_ttl(&root.join("generated").join("shapes"))?;
+    let generated_shapes = root.join("generated").join("shapes"); // GENERATED-READ-OK: dev-CLI scoreboard audit of committed shapes; never folds into gmeow.gts
+    let generated = glob_ttl(&generated_shapes)?;
     if generated.is_empty() {
         return Err(format!(
             "no generated shapes under {}",
-            root.join("generated").join("shapes").display()
+            generated_shapes.display()
         ));
     }
     files.extend(generated);
@@ -1043,7 +1044,7 @@ fn shapes_turtle(root: &Path) -> Result<String, String> {
     // shapes graph the reader parses so that `sh:prefixes gmeow:CorePrefixes`
     // references on production shapes RESOLVE (not just fall back to the
     // document's own `@prefix` lines). This is the §2 "generalize sh:declare"
-    // dogfood: the set is consumed, proving it is importable (#1009 §2).
+    // dogfood: the set is consumed, proving it is importable (§2).
     // It is a generated artifact, so a missing file is a real pipeline error.
     let core_prefixes = root.join(crate::stages::mappings::CORE_PREFIXES_PATH);
     if !core_prefixes.exists() {
@@ -1171,6 +1172,7 @@ fn ontology_nt(root: &Path) -> Result<String, String> {
 }
 
 fn sssom_texts(root: &Path) -> Result<Vec<String>, String> {
+    // GENERATED-READ-OK: dev-CLI scoreboard audit of committed mappings; result never folds into gmeow.gts.
     let dir = root.join("generated").join("mappings");
     let paths = glob_suffix(&dir, ".sssom.tsv")?;
     if paths.is_empty() {
@@ -1189,6 +1191,7 @@ fn projection_ttls(root: &Path) -> Result<Vec<String>, String> {
 }
 
 fn projection_queries(root: &Path) -> Result<Vec<(String, String)>, String> {
+    // GENERATED-READ-OK: dev-CLI scoreboard audit of committed queries; result never folds into gmeow.gts.
     let dir = root.join("generated").join("queries");
     ACCEPTANCE_PROFILES
         .iter()

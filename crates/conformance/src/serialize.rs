@@ -39,14 +39,14 @@ pub fn materialized_to_nquads(quads: &[RunnerQuad]) -> String {
     }
 }
 
-/// The consistency status of a world in the verdicts JSON (#753).
+/// The consistency status of a world in the verdicts JSON.
 ///
 /// Serializes to the historical lowercase wire strings. `Consistent` is the
 /// materialization default; `Inconsistent` is emitted when the native DL
 /// consistency path finds a populated `owl:Nothing` clash in that world (the
 /// external `Theorem`/`Unsatisfiable`/`PositiveEntailment` branch); `Incomplete`
 /// is emitted when the budget governor exhausts the chase (the external
-/// `Unknown`/budget-tripped branch). Before #753 only `Consistent` was ever
+/// `Unknown`/budget-tripped branch). Before only `Consistent` was ever
 /// produced — `build_verdicts` hard-coded the string.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum VerdictStatus {
@@ -86,7 +86,7 @@ pub fn count_worlds(quads: &[RunnerQuad]) -> BTreeMap<String, u64> {
 /// `inconsistent` while the materialization path applies one aggregate status
 /// (the materializing-worlds-are-`consistent` default, or `incomplete` on a
 /// budget trip). Keeping `Consistent` for every materializing world reproduces
-/// the pre-#753 golden byte-for-byte.
+/// the golden byte-for-byte.
 pub fn build_verdicts(
     world_quad_counts: &BTreeMap<String, u64>,
     status_for_world: impl Fn(&str) -> VerdictStatus,
@@ -187,7 +187,7 @@ mod tests {
     #[test]
     fn build_verdicts_consistent_reproduces_pre_753_shape() {
         // Two quads in world `w`, one in `v` → sparse per-world counts, all
-        // `consistent` (the byte-for-byte pre-#753 golden shape).
+        // `consistent` (the byte-for-byte golden shape).
         let quads = vec![rq("w"), rq("w"), rq("v")];
         let counts = count_worlds(&quads);
         let v = build_verdicts(&counts, |_| VerdictStatus::Consistent);

@@ -162,3 +162,219 @@ math:FunctionFramingShape
         sh:severity sh:Violation ;
         sh:message "A math:Function must declare exactly one math:codomain naming the target set; a function without a codomain, or with several, is ill-formed." ;
     ] .
+
+# =========================================================================== #
+# Algebra slice SHACL shapes — the algebra hard-rule gates (ALGEBRA charter)
+#
+# A structure declares its operation, carrier, and axioms; a homomorphism declares
+# its preserved operation and preservation law (a logic: formula, not a string); a
+# root system declares its Cartan matrix, Weyl group, and rank; a homomorphic-
+# encryption scheme declares its homomorphic operation, hardness assumption, and
+# noise model. Each shape names, through math:enforcesFailureClass, the typed
+# math:MathConformanceFailure it raises.
+# =========================================================================== #
+
+# Rule 8 — an algebraic structure declares its carrier, operation, and axioms.
+math:AlgebraicStructureShape
+    a sh:NodeShape ;
+    rdfs:label "Algebraic structure completeness shape"@x-gmeow-english ;
+    skos:definition "SHACL constraints for math:AlgebraicStructure: it declares a math:underlyingSet, at least one math:structureOperation, and at least one math:satisfiesAxiom law. A group is a set with an operation satisfying stated axioms; a structure asserted without them is ill-formed."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    math:enforcesFailureClass math:IncompleteAlgebraicStructure ;
+    sh:targetClass math:AlgebraicStructure ;
+    sh:property [
+        sh:path math:underlyingSet ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:class math:Set ;
+        sh:severity sh:Violation ;
+        sh:message "A math:AlgebraicStructure must declare exactly one math:underlyingSet naming its carrier; a structure without a carrier is ill-formed." ;
+    ] ;
+    sh:property [
+        sh:path math:structureOperation ;
+        sh:minCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:class math:Operation ;
+        sh:severity sh:Violation ;
+        sh:message "A math:AlgebraicStructure must declare at least one math:structureOperation; a structure without an operation is ill-formed." ;
+    ] ;
+    sh:property [
+        sh:path math:satisfiesAxiom ;
+        sh:minCount 1 ;
+        sh:nodeKind sh:BlankNodeOrIRI ;
+        sh:severity sh:Violation ;
+        sh:message "A math:AlgebraicStructure must declare at least one math:satisfiesAxiom naming a math:Axiom (which denotes a logic: formula); a structure without stated axioms is ill-formed." ;
+    ] .
+
+# Rule 9 — a homomorphism declares its preserved operation and preservation law.
+math:HomomorphismShape
+    a sh:NodeShape ;
+    rdfs:label "Homomorphism completeness shape"@x-gmeow-english ;
+    skos:definition "SHACL constraints for math:Homomorphism: it declares at least one math:preservedOperation and at least one math:preservationLaw. A map is a homomorphism only by declaring what it preserves and the law of that preservation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    math:enforcesFailureClass math:UnderspecifiedHomomorphism ;
+    sh:targetClass math:Homomorphism ;
+    sh:property [
+        sh:path math:preservedOperation ;
+        sh:minCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:class math:Operation ;
+        sh:severity sh:Violation ;
+        sh:message "A math:Homomorphism must declare at least one math:preservedOperation naming the operation it carries; a homomorphism without a preserved operation is ill-formed." ;
+    ] ;
+    sh:property [
+        sh:path math:preservationLaw ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:Homomorphism must declare at least one math:preservationLaw; a homomorphism without its law is ill-formed." ;
+    ] .
+
+# Rule 10 — a preservation law denotes a logic: formula, not a string.
+math:PreservationLawShape
+    a sh:NodeShape ;
+    rdfs:label "Preservation-law denotation shape"@x-gmeow-english ;
+    skos:definition "SHACL constraint for math:Homomorphism: its math:preservationLaw denotes a logic: formula (a resource, the denotation seam), never an opaque literal string."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    math:enforcesFailureClass math:StringOnlyPreservationLaw ;
+    sh:targetClass math:Homomorphism ;
+    sh:property [
+        sh:path math:preservationLaw ;
+        sh:nodeKind sh:BlankNodeOrIRI ;
+        sh:severity sh:Violation ;
+        sh:message "A math:Homomorphism must name its math:preservationLaw as a resource denoting a logic: formula, not an opaque literal string." ;
+    ] .
+
+# Rule 11 — a Lie group declares its root system.
+math:LieStructureShape
+    a sh:NodeShape ;
+    rdfs:label "Lie structure shape"@x-gmeow-english ;
+    skos:definition "SHACL constraint for math:LieGroup: it declares its math:hasRootSystem. The root system is what makes a semisimple Lie group expressible; a Lie group without one is ill-formed."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    math:enforcesFailureClass math:IncompleteLieStructure ;
+    sh:targetClass math:LieGroup ;
+    sh:property [
+        sh:path math:hasRootSystem ;
+        sh:minCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:class math:RootSystem ;
+        sh:severity sh:Violation ;
+        sh:message "A math:LieGroup must declare at least one math:hasRootSystem; a semisimple Lie group without a root system is ill-formed." ;
+    ] .
+
+# Rule 12 — a root system declares its Cartan matrix, Weyl group, and rank.
+math:RootSystemShape
+    a sh:NodeShape ;
+    rdfs:label "Root system completeness shape"@x-gmeow-english ;
+    skos:definition "SHACL constraints for math:RootSystem: it declares its math:cartanMatrix, math:weylGroup, and math:rootSystemRank. These are what make E8's symmetry an automorphism group; a root system without them is ill-formed."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    math:enforcesFailureClass math:IncompleteLieStructure ;
+    sh:targetClass math:RootSystem ;
+    sh:property [
+        sh:path math:cartanMatrix ;
+        sh:minCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:class math:CartanMatrix ;
+        sh:severity sh:Violation ;
+        sh:message "A math:RootSystem must declare its math:cartanMatrix; a root system without one is ill-formed." ;
+    ] ;
+    sh:property [
+        sh:path math:weylGroup ;
+        sh:minCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:class math:WeylGroup ;
+        sh:severity sh:Violation ;
+        sh:message "A math:RootSystem must declare its math:weylGroup — the symmetry group of the roots; a root system without one is ill-formed." ;
+    ] ;
+    sh:property [
+        sh:path math:rootSystemRank ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:RootSystem must declare its math:rootSystemRank; a root system without a rank is ill-formed." ;
+    ] .
+
+# Rule 12b — an automorphism group is anchored to the structure it is the symmetry of.
+math:AutomorphismGroupShape
+    a sh:NodeShape ;
+    rdfs:label "Automorphism-group anchoring shape"@x-gmeow-english ;
+    skos:definition "SHACL constraint for math:AutomorphismGroup: it declares, through math:automorphismGroupOf, the structure whose symmetries it collects. Every automorphism group is the symmetry group OF some structure (a math:WeylGroup of its root system); a free-floating automorphism group is ill-formed. This is the invariant behind the charter's unification — E8's Weyl group is the symmetry of the E8 root system."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    math:enforcesFailureClass math:UnanchoredAutomorphismGroup ;
+    sh:targetClass math:AutomorphismGroup ;
+    sh:property [
+        sh:path math:automorphismGroupOf ;
+        sh:minCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A math:AutomorphismGroup must declare, through math:automorphismGroupOf, the structure whose symmetries it collects; an automorphism group is always the symmetry group OF something, and one asserted without its anchoring structure is ill-formed." ;
+    ] .
+
+# Rule 12c — a root system claiming the E8 fingerprint declares the true Weyl order.
+math:E8WeylOrderShape
+    a sh:NodeShape ;
+    rdfs:label "E8 Weyl-order value shape"@x-gmeow-english ;
+    skos:definition "SHACL-SPARQL constraint over math:RootSystem: a root system carrying the E8 fingerprint (240 roots in rank 8) MUST declare a math:weylGroup whose math:groupOrder is 696,729,600 — the true order of W(E8). This turns the flagship's numbers into a validatable invariant: a corrupted Weyl order on data claiming to be E8 is rejected by value, not trusted."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    math:enforcesFailureClass math:WrongE8WeylOrder ;
+    sh:targetClass math:RootSystem ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "A math:RootSystem with the E8 fingerprint (math:rootCount 240, math:rootSystemRank 8) must declare a math:weylGroup of math:groupOrder 696729600 — the order of W(E8); a different order corrupts the flagship invariant and is rejected." ;
+        sh:select """
+            SELECT DISTINCT $this WHERE {
+                $this <https://blackcatinformatics.ca/math/rootCount> 240 ;
+                      <https://blackcatinformatics.ca/math/rootSystemRank> 8 ;
+                      <https://blackcatinformatics.ca/math/weylGroup> ?w .
+                ?w <https://blackcatinformatics.ca/math/groupOrder> ?order .
+                FILTER(?order != 696729600)
+            }
+        """ ;
+    ] .
+
+# Rule 13 — a homomorphic-encryption scheme declares its homomorphic operation,
+# hardness assumption, and noise model.
+math:HomomorphicEncryptionSchemeShape
+    a sh:NodeShape ;
+    rdfs:label "Homomorphic-encryption scheme completeness shape"@x-gmeow-english ;
+    skos:definition "SHACL constraints for math:HomomorphicEncryptionScheme: it declares the operation it is math:homomorphicOver, its math:securityAssumption (a lattice-hardness assumption), and its math:noiseModel. These make the homomorphic claim meaningful and its security stateable."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    math:enforcesFailureClass math:UnderspecifiedEncryptionScheme ;
+    sh:targetClass math:HomomorphicEncryptionScheme ;
+    sh:property [
+        sh:path math:homomorphicOver ;
+        sh:minCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:class math:Operation ;
+        sh:severity sh:Violation ;
+        sh:message "A math:HomomorphicEncryptionScheme must declare the math:homomorphicOver operation it carries; a homomorphic scheme without a homomorphic operation is ill-formed." ;
+    ] ;
+    sh:property [
+        sh:path math:securityAssumption ;
+        sh:minCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:class math:LatticeHardnessAssumption ;
+        sh:severity sh:Violation ;
+        sh:message "A math:HomomorphicEncryptionScheme must declare its math:securityAssumption naming a math:LatticeHardnessAssumption; a scheme without a stated hardness assumption is ill-formed." ;
+    ] ;
+    sh:property [
+        sh:path math:noiseModel ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:HomomorphicEncryptionScheme must declare its math:noiseModel; a lattice-based scheme without a noise model is ill-formed." ;
+    ] .
+
+# Rule 14 — a ring declares the distributivity law that ties its two operations together.
+math:RingDistributivityShape
+    a sh:NodeShape ;
+    rdfs:label "Ring distributivity shape"@x-gmeow-english ;
+    skos:definition "SHACL constraint for math:Ring: it declares, through math:satisfiesDistributivity, the distributivity law relating its multiplication to its addition (a·(b+c) = a·b + a·c). Distributivity is what makes a two-operation structure a ring rather than two unrelated groups; a ring declared without it is ill-formed. math:satisfiesDistributivity refines math:satisfiesAxiom (the distributivity law is one of the ring's axioms, and the reasoner entails the general property); the SHACL gate reads asserted triples, so a well-formed ring asserts both math:satisfiesAxiom and math:satisfiesDistributivity, satisfying math:AlgebraicStructureShape and this gate on the asserted graph."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    math:enforcesFailureClass math:NonDistributiveRing ;
+    sh:targetClass math:Ring ;
+    sh:property [
+        sh:path math:satisfiesDistributivity ;
+        sh:minCount 1 ;
+        sh:nodeKind sh:BlankNodeOrIRI ;
+        sh:severity sh:Violation ;
+        sh:message "A math:Ring must declare at least one math:satisfiesDistributivity naming the distributivity axiom (a logic: formula) that ties its multiplication to its addition; a ring without distributivity is ill-formed." ;
+    ] .

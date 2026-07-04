@@ -38,3 +38,29 @@ ex:saContradictsClaimRangeOpen a gmeow:StructuralAssertion ;
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK { gmeow:contradictsClaim rdfs:range ?range . }""" ;
     gmeow:saRationale "gmeow:contradictsClaim MUST NOT have an rdfs:range; the claim node form is intentionally open across StandpointClaims, Observations, and statement reifiers." .
+
+# --- Migrated from tests/test_ai_claims.py --------------------------------
+
+# test_extraction_methods_are_observation_methods
+ex:saExtractionMethodsAreObservationMethods a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:methodLlmExtraction a gmeow:ObservationMethod .
+    gmeow:methodNliDerivation a gmeow:ObservationMethod .
+}""" ;
+    gmeow:saRationale "The AI slice's extraction methods (methodLlmExtraction, methodNliDerivation) MUST be typed gmeow:ObservationMethod — claims are observations and their production method is observationMethod (Principle 9, unified observation stance)." .
+
+# test_invocation_and_retrieval_are_activities (ModelInvocation half; RetrievalEvent half lives in graphrag)
+ex:saModelInvocationIsActivity a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:ModelInvocation a owl:Class ;
+        rdfs:subClassOf gmeow:Activity .
+}""" ;
+    gmeow:saRationale "gmeow:ModelInvocation MUST be an owl:Class subclass of gmeow:Activity — the model call is an occurrent activity whose outputs link back via wasGeneratedBy (Principle 5)." .

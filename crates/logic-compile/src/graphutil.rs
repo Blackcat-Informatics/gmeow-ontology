@@ -5,8 +5,8 @@
 //!
 //! These provide the RDF term/graph idioms the compiler relies on — `str(node)`,
 //! `graph.value(s, p)`, `graph.objects(s, p)`, `graph.subjects(p, o)` — over the
-//! oxigraph-free [`RdfDataset`] (the wasm-clean `gmeow-rdf` `gts` surface, #885 /
-//! #909), so the frontend, adapter, and projections share one definition of node
+//! oxigraph-free [`RdfDataset`] (the wasm-clean `gmeow-rdf` `gts` surface
+//! ), so the frontend, adapter, and projections share one definition of node
 //! stringification (the golden-pinned surface) and the whole compiler builds for
 //! `wasm32-unknown-unknown` — no oxigraph Store, no RocksDB.
 //!
@@ -16,7 +16,7 @@
 //! value of a literal is carried — the compiler never inspects datatype or language
 //! on the parse path (it stringifies via [`term_str`]).
 //!
-//! This is a shared toolkit built up across the #664 tasks; a few helpers
+//! This is a shared toolkit built up across the tasks; a few helpers
 //! (e.g. [`contains`]) land here for the projection back-ends before they have an
 //! in-tree caller, so the module allows `dead_code` crate-internally rather than
 //! scattering per-item attributes.
@@ -263,7 +263,7 @@ fn object_id(ds: &RdfDataset, object: &Node) -> Option<TermId> {
 /// projection at the source (greenfield: one deterministic front door, not a
 /// per-back-end patch).
 ///
-/// Implementation: native full RDFC-1.0 (#910), the wasm-clean `purrdf::canonicalize`
+/// Implementation: native full RDFC-1.0, the wasm-clean `purrdf::canonicalize`
 /// (SHA-256), then re-parse the canonical N-Quads so the relabeled `_:c14nN` ids
 /// become the dataset's blank labels. The labeling is identical to the oxigraph
 /// `canonicalize_store` it replaces (both are conformant RDFC-1.0 / SHA-256), so the
@@ -355,4 +355,24 @@ pub(crate) fn has_predicate_object(ds: &RdfDataset, predicate: &Iri, object: &No
     };
     ds.quads()
         .any(|q| q.g.is_none() && q.p == p_id && q.o == o_id)
+}
+
+// --------------------------------------------------------------------------- //
+// Content-addressed hashing
+// --------------------------------------------------------------------------- //
+
+/// First 12 hex chars of SHA-256 of `s` — the content-stable digest used to mint
+/// deterministic IRIs (reifier keys, covering/union class nodes, and restriction
+/// skolem nodes) so a projection is byte-identical across regenerate runs.
+///
+/// Shared by the projections (`projections::rdf`) and the restriction skolemizer
+/// (`restriction`); both must mint the SAME id from the SAME content key.
+pub(crate) fn sha256_12(s: &str) -> String {
+    use sha2::{Digest, Sha256};
+    let digest = Sha256::digest(s.as_bytes());
+    let mut out = String::with_capacity(12);
+    for b in digest.iter().take(6) {
+        out.push_str(&format!("{b:02x}"));
+    }
+    out
 }

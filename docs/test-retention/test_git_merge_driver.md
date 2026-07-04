@@ -1,15 +1,16 @@
 # Retention: `tests/test_git_merge_driver.py`
 
-**Category:** Python CLI surface
+**Category:** Static repo guard
 
 ## What it tests
 
-Regression tests for the generated bundle merge driver (#532).
+Regression tests for the generated bundle merge driver.
 
-## Why it cannot move to Rust today
+Retained dynamic tests:
 
-Drives the Python `gmeow`/`gmeow-dev` Typer CLI via `CliRunner`/subprocess — behavior that does not exist outside Python.
+- `test_bootstrap_configures_ours_merge_driver` — The install bootstrap makes Git's custom ``ours`` driver available locally.
+- `test_generated_bundle_merge_keeps_current_side` — Conflicting edits to generated/dist/gmeow.
 
-## What is needed to move it to Rust
+## Why it cannot be deleted or moved to Rust today
 
-Port the command surface to a Rust binary (`clap`) with `assert_cmd`/`trycmd` integration tests, then delete this file.
+Filesystem, AST, or workflow assertion about the repository itself; not expressible as a module-scoped slice-test cell.

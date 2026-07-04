@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Conformance twins migrated from tests/test_music_pitch.py (#867)
+//! Conformance twins migrated from tests/test_music_pitch.py
 //!
 //! Migrates the 7 `run_shacl(Graph())`-conformance tests that build inline
 //! triples and assert `result.ok` / `not result.ok` / error substrings.

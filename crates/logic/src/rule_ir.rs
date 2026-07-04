@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Shared evaluable rule IR + Gelfond-Lifschitz reduct engine (issue #651).
+//! Shared evaluable rule IR + Gelfond-Lifschitz reduct engine.
 //!
 //! This module is the native (non-Nemo) substrate for the two *non-stratifiable*
 //! semantics the foundation chase cannot express: the well-founded model
@@ -40,7 +40,7 @@
 //!
 //! # Phase-A dead code
 //!
-//! This is Phase A of #651: the evaluators and their unit tests are landed, but the
+//! This is Phase A: the evaluators and their unit tests are landed, but the
 //! `py.rs` materialize routing that consumes [`parse_eval_rules`] and reads the
 //! [`DerivedRow`] provenance fields is Phase B.  Until that lands, a few
 //! constructors / fields are exercised only by tests, so this module allows
@@ -292,11 +292,11 @@ fn lower_nemo_term(
 /// Parse a literal object's Nemo N3 surface (`"lex"`, `"lex"@lang`,
 /// `"lex"^^<dt>`) into a native [`TermValue`].
 ///
-/// Delegates to [`crate::encode::decode_nemo_term`], the shared decoder for the
+/// Delegates to [`crate::nemo_engine::codec::decode_nemo_term`], the shared decoder for the
 /// `"lex"`/`"lex"@lang`/`"lex"^^<dt>`/`<iri>` surface grammar — same codec as the
 /// rest of the stack, oxigraph-free.
 fn parse_n3_object_literal(n3: &str) -> Result<TermValue, String> {
-    crate::encode::decode_nemo_term(n3)
+    crate::nemo_engine::codec::decode_nemo_term(n3)
         .map_err(|e| format!("rule_ir: cannot parse literal object {n3:?}: {e}"))
 }
 
