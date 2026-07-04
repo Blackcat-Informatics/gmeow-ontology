@@ -1,0 +1,188 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# The reusable algebra axiom library — the "math: expresses, logic: owns reasoning"
+# core. Each axiom a math:AlgebraicStructure satisfies is authored here ONCE as a real
+# logic:Formula first-order AST (a logic:forall quantifier over a body of logic:relation
+# atomic predications), not an opaque string. A structure points at these through
+# math:satisfiesAxiom; the logic: reasoner owns entailment over them, and the canonical
+# RDF 1.2 serialization round-trips them losslessly while weaker projections (OWL/Datalog)
+# carry them as flagged unsupported residue (the loss ledger).
+#
+# A binary operation is reified as a ternary relation op(x,y,z) ⟺ x·y = z, and equality
+# as a binary relation eq(x,y) ⟺ x = y (the HiLog reflection: relations are logic:Type
+# individuals, keeping the object level first-order). This file validates cleanly under the
+# global gate — no SHACL shape constrains a logic:Formula's internal AST; the reasoner does.
+
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix exa:   <https://blackcatinformatics.ca/gmeow/examples/math/algebra/> .
+
+# --- Reified relations (logic:Type individuals — the HiLog reflection) ------ #
+
+exa:opRel a logic:Type ;
+    rdfs:label "op(x,y,z) ⟺ x·y = z"@x-gmeow-english ;
+    skos:definition "The structure operation reified as a ternary relation: op(x,y,z) holds exactly when x·y = z under the structure's math:structureOperation. Reifying the binary operation as a ternary relation keeps the object level first-order, so the algebra axioms are ordinary logic: predications rather than function terms."@x-gmeow-english .
+
+exa:eqRel a logic:Type ;
+    rdfs:label "eq(x,y) ⟺ x = y"@x-gmeow-english ;
+    skos:definition "Equality reified as a binary relation: eq(x,y) holds exactly when x and y denote the same element. The consequent of every equational axiom predicates over it."@x-gmeow-english .
+
+exa:addRel a logic:Type ;
+    rdfs:label "add(x,y,z) ⟺ x + y = z"@x-gmeow-english ;
+    skos:definition "A ring's additive operation reified as a ternary relation: add(x,y,z) holds exactly when x + y = z. Paired with exa:mulRel to state the distributivity axiom."@x-gmeow-english .
+
+exa:mulRel a logic:Type ;
+    rdfs:label "mul(x,y,z) ⟺ x · y = z"@x-gmeow-english ;
+    skos:definition "A ring's multiplicative operation reified as a ternary relation: mul(x,y,z) holds exactly when x · y = z. Paired with exa:addRel to state the distributivity axiom."@x-gmeow-english .
+
+exa:identityElement a logic:Type ;
+    rdfs:label "e — the identity element"@x-gmeow-english ;
+    skos:definition "A constant symbol denoting the structure's two-sided identity element e, used as an IRI-constant term in the identity and inverse axioms."@x-gmeow-english .
+
+# ===========================================================================
+# Associativity: ∀a,b,c,ab,bc,l,r: op(a,b,ab) ∧ op(ab,c,l) ∧ op(b,c,bc) ∧ op(a,bc,r) → eq(l,r)
+# ===========================================================================
+
+exa:associativity a math:Axiom , logic:Formula ;
+    rdfs:label "associativity: ∀a,b,c: (a·b)·c = a·(b·c)"@x-gmeow-english ;
+    skos:definition "The associativity axiom of a math:Semigroup and everything above it: composing three elements is independent of grouping. Denotes the first-order formula ∀a,b,c,ab,bc,l,r: op(a,b,ab) ∧ op(ab,c,l) ∧ op(b,c,bc) ∧ op(a,bc,r) → eq(l,r), authored as a logic:Formula AST the reasoner owns."@x-gmeow-english ;
+    logic:quantifiedVariable
+        [ logic:termIndex 0 ; logic:termVariable "a" ] ,
+        [ logic:termIndex 1 ; logic:termVariable "b" ] ,
+        [ logic:termIndex 2 ; logic:termVariable "c" ] ,
+        [ logic:termIndex 3 ; logic:termVariable "ab" ] ,
+        [ logic:termIndex 4 ; logic:termVariable "bc" ] ,
+        [ logic:termIndex 5 ; logic:termVariable "l" ] ,
+        [ logic:termIndex 6 ; logic:termVariable "r" ] ;
+    logic:forall exa:assocImpl .
+
+exa:assocImpl a logic:Formula ;
+    logic:antecedent exa:assocAnte ;
+    logic:consequent exa:assocCons .
+
+exa:assocAnte a logic:Formula ;
+    logic:and exa:assocA1 , exa:assocA2 , exa:assocA3 , exa:assocA4 .
+
+exa:assocA1 a logic:Formula ; logic:relation exa:opRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "a" ] , [ logic:termIndex 1 ; logic:termVariable "b" ] , [ logic:termIndex 2 ; logic:termVariable "ab" ] .
+exa:assocA2 a logic:Formula ; logic:relation exa:opRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "ab" ] , [ logic:termIndex 1 ; logic:termVariable "c" ] , [ logic:termIndex 2 ; logic:termVariable "l" ] .
+exa:assocA3 a logic:Formula ; logic:relation exa:opRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "b" ] , [ logic:termIndex 1 ; logic:termVariable "c" ] , [ logic:termIndex 2 ; logic:termVariable "bc" ] .
+exa:assocA4 a logic:Formula ; logic:relation exa:opRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "a" ] , [ logic:termIndex 1 ; logic:termVariable "bc" ] , [ logic:termIndex 2 ; logic:termVariable "r" ] .
+
+exa:assocCons a logic:Formula ; logic:relation exa:eqRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "l" ] , [ logic:termIndex 1 ; logic:termVariable "r" ] .
+
+# ===========================================================================
+# Commutativity: ∀a,b,ab,ba: op(a,b,ab) ∧ op(b,a,ba) → eq(ab,ba)
+# ===========================================================================
+
+exa:commutativity a math:Axiom , logic:Formula ;
+    rdfs:label "commutativity: ∀a,b: a·b = b·a"@x-gmeow-english ;
+    skos:definition "The commutativity axiom that upgrades a math:Group to a math:AbelianGroup (and a math:Ring to a math:CommutativeRing): operand order does not matter. Denotes ∀a,b,ab,ba: op(a,b,ab) ∧ op(b,a,ba) → eq(ab,ba)."@x-gmeow-english ;
+    logic:quantifiedVariable
+        [ logic:termIndex 0 ; logic:termVariable "a" ] ,
+        [ logic:termIndex 1 ; logic:termVariable "b" ] ,
+        [ logic:termIndex 2 ; logic:termVariable "ab" ] ,
+        [ logic:termIndex 3 ; logic:termVariable "ba" ] ;
+    logic:forall exa:commImpl .
+
+exa:commImpl a logic:Formula ;
+    logic:antecedent exa:commAnte ;
+    logic:consequent exa:commCons .
+
+exa:commAnte a logic:Formula ;
+    logic:and exa:commA1 , exa:commA2 .
+
+exa:commA1 a logic:Formula ; logic:relation exa:opRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "a" ] , [ logic:termIndex 1 ; logic:termVariable "b" ] , [ logic:termIndex 2 ; logic:termVariable "ab" ] .
+exa:commA2 a logic:Formula ; logic:relation exa:opRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "b" ] , [ logic:termIndex 1 ; logic:termVariable "a" ] , [ logic:termIndex 2 ; logic:termVariable "ba" ] .
+
+exa:commCons a logic:Formula ; logic:relation exa:eqRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "ab" ] , [ logic:termIndex 1 ; logic:termVariable "ba" ] .
+
+# ===========================================================================
+# Identity: ∀a: op(a,e,a) ∧ op(e,a,a)   (e = exa:identityElement, an IRI constant)
+# ===========================================================================
+
+exa:identity a math:Axiom , logic:Formula ;
+    rdfs:label "identity: ∀a: a·e = e·a = a"@x-gmeow-english ;
+    skos:definition "The two-sided identity axiom that upgrades a math:Semigroup to a math:Monoid: the identity element e leaves every element unchanged. Denotes ∀a: op(a,e,a) ∧ op(e,a,a), with e the IRI constant exa:identityElement."@x-gmeow-english ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "a" ] ;
+    logic:forall exa:identBody .
+
+exa:identBody a logic:Formula ;
+    logic:and exa:identA1 , exa:identA2 .
+
+exa:identA1 a logic:Formula ; logic:relation exa:opRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "a" ] , [ logic:termIndex 1 ; logic:termIri exa:identityElement ] , [ logic:termIndex 2 ; logic:termVariable "a" ] .
+exa:identA2 a logic:Formula ; logic:relation exa:opRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termIri exa:identityElement ] , [ logic:termIndex 1 ; logic:termVariable "a" ] , [ logic:termIndex 2 ; logic:termVariable "a" ] .
+
+# ===========================================================================
+# Inverse: ∀a ∃b: op(a,b,e) ∧ op(b,a,e)   (nested quantifier)
+# ===========================================================================
+
+exa:inverse a math:Axiom , logic:Formula ;
+    rdfs:label "inverse: ∀a ∃a⁻¹: a·a⁻¹ = a⁻¹·a = e"@x-gmeow-english ;
+    skos:definition "The inverse axiom that upgrades a math:Monoid to a math:Group: every element has a two-sided inverse. Denotes ∀a ∃b: op(a,b,e) ∧ op(b,a,e) — a genuine ∀∃ alternation the logic: reasoner owns, with e the IRI constant exa:identityElement."@x-gmeow-english ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "a" ] ;
+    logic:forall exa:invExists .
+
+exa:invExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "b" ] ;
+    logic:exists exa:invBody .
+
+exa:invBody a logic:Formula ;
+    logic:and exa:invA1 , exa:invA2 .
+
+exa:invA1 a logic:Formula ; logic:relation exa:opRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "a" ] , [ logic:termIndex 1 ; logic:termVariable "b" ] , [ logic:termIndex 2 ; logic:termIri exa:identityElement ] .
+exa:invA2 a logic:Formula ; logic:relation exa:opRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "b" ] , [ logic:termIndex 1 ; logic:termVariable "a" ] , [ logic:termIndex 2 ; logic:termIri exa:identityElement ] .
+
+# ===========================================================================
+# Left distributivity: ∀a,b,c,bc,ab,ac,l,r:
+#   add(b,c,bc) ∧ mul(a,bc,l) ∧ mul(a,b,ab) ∧ mul(a,c,ac) ∧ add(ab,ac,r) → eq(l,r)
+# ===========================================================================
+
+exa:leftDistributivity a math:Axiom , logic:Formula ;
+    rdfs:label "left distributivity: ∀a,b,c: a·(b+c) = a·b + a·c"@x-gmeow-english ;
+    skos:definition "The left-distributivity axiom of a math:Ring: multiplication distributes over addition on the left. Denotes ∀a,b,c,bc,ab,ac,l,r: add(b,c,bc) ∧ mul(a,bc,l) ∧ mul(a,b,ab) ∧ mul(a,c,ac) ∧ add(ab,ac,r) → eq(l,r)."@x-gmeow-english ;
+    logic:quantifiedVariable
+        [ logic:termIndex 0 ; logic:termVariable "a" ] ,
+        [ logic:termIndex 1 ; logic:termVariable "b" ] ,
+        [ logic:termIndex 2 ; logic:termVariable "c" ] ,
+        [ logic:termIndex 3 ; logic:termVariable "bc" ] ,
+        [ logic:termIndex 4 ; logic:termVariable "ab" ] ,
+        [ logic:termIndex 5 ; logic:termVariable "ac" ] ,
+        [ logic:termIndex 6 ; logic:termVariable "l" ] ,
+        [ logic:termIndex 7 ; logic:termVariable "r" ] ;
+    logic:forall exa:distImpl .
+
+exa:distImpl a logic:Formula ;
+    logic:antecedent exa:distAnte ;
+    logic:consequent exa:distCons .
+
+exa:distAnte a logic:Formula ;
+    logic:and exa:distA1 , exa:distA2 , exa:distA3 , exa:distA4 , exa:distA5 .
+
+exa:distA1 a logic:Formula ; logic:relation exa:addRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "b" ] , [ logic:termIndex 1 ; logic:termVariable "c" ] , [ logic:termIndex 2 ; logic:termVariable "bc" ] .
+exa:distA2 a logic:Formula ; logic:relation exa:mulRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "a" ] , [ logic:termIndex 1 ; logic:termVariable "bc" ] , [ logic:termIndex 2 ; logic:termVariable "l" ] .
+exa:distA3 a logic:Formula ; logic:relation exa:mulRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "a" ] , [ logic:termIndex 1 ; logic:termVariable "b" ] , [ logic:termIndex 2 ; logic:termVariable "ab" ] .
+exa:distA4 a logic:Formula ; logic:relation exa:mulRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "a" ] , [ logic:termIndex 1 ; logic:termVariable "c" ] , [ logic:termIndex 2 ; logic:termVariable "ac" ] .
+exa:distA5 a logic:Formula ; logic:relation exa:addRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "ab" ] , [ logic:termIndex 1 ; logic:termVariable "ac" ] , [ logic:termIndex 2 ; logic:termVariable "r" ] .
+
+exa:distCons a logic:Formula ; logic:relation exa:eqRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "l" ] , [ logic:termIndex 1 ; logic:termVariable "r" ] .
