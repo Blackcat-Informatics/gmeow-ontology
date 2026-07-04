@@ -949,6 +949,80 @@ fn owl_restriction_round_trips_through_dl_projection() {
 }
 
 #[test]
+fn non_el_restriction_drops_whole_in_el_projection() {
+    // allValuesFrom is not EL-safe: the WHOLE restriction (node + the subClassOf edge
+    // into it) must vanish from the EL projection, with a disclosed drop — no dangling
+    // reference. DL keeps it.
+    let prefixes = "\
+@prefix ex:   <https://example.org/test/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+";
+    let ttl = "ex:VegDish rdfs:subClassOf [ a owl:Restriction ;
+        owl:onProperty ex:hasIngredient ; owl:allValuesFrom ex:Vegetable ] .";
+    let (program, _) =
+        crate::adapter::adapt_legacy_str(&format!("{prefixes}{ttl}"), None).expect("adapt ok");
+
+    let dl = rdf::project_owl_dl(&program).unwrap();
+    assert!(
+        dl.content
+            .contains("http://www.w3.org/2002/07/owl#allValuesFrom"),
+        "DL expresses allValuesFrom:\n{}",
+        dl.content
+    );
+
+    let el = rdf::project_owl_el(&program).unwrap();
+    assert!(
+        !el.content.contains("allValuesFrom"),
+        "EL must not carry the non-EL restriction:\n{}",
+        el.content
+    );
+    assert!(
+        !el.content
+            .contains("http://www.w3.org/2002/07/owl#Restriction"),
+        "the dropped restriction node must not appear in EL:\n{}",
+        el.content
+    );
+    // The subClassOf edge into the dropped restriction must not dangle.
+    assert!(
+        !el.content.contains("restriction/"),
+        "no dangling subClassOf into the dropped skolem node:\n{}",
+        el.content
+    );
+    assert!(
+        el.actual_drops.iter().any(|d| d.contains("EL-safe")),
+        "the EL drop must be disclosed: {:?}",
+        el.actual_drops
+    );
+}
+
+#[test]
+fn cardinality_restriction_projects_typed_integer_in_dl() {
+    let prefixes = "\
+@prefix ex:   <https://example.org/test/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+";
+    let ttl = "ex:Parent rdfs:subClassOf [ a owl:Restriction ;
+        owl:onProperty ex:hasChild ; owl:minCardinality 1 ] .";
+    let (program, _) =
+        crate::adapter::adapt_legacy_str(&format!("{prefixes}{ttl}"), None).expect("adapt ok");
+    let dl = rdf::project_owl_dl(&program).unwrap();
+    assert!(
+        dl.content
+            .contains("http://www.w3.org/2002/07/owl#minCardinality"),
+        "DL emits minCardinality:\n{}",
+        dl.content
+    );
+    assert!(
+        dl.content
+            .contains("http://www.w3.org/2001/XMLSchema#nonNegativeInteger"),
+        "the count is a typed xsd:nonNegativeInteger:\n{}",
+        dl.content
+    );
+}
+
+#[test]
 fn covering_owl_dl_is_deterministic() {
     let prog =
         LogicProgram::new(vec![], vec![], vec![], None).with_formulas(vec![covering_formula(

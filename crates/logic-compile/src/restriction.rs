@@ -48,10 +48,41 @@ pub(crate) const ON_PROPERTY_LOCAL: &str = "onProperty";
 
 /// The single-valued restriction *constraint* predicates handled by the lift, as
 /// local names (shared verbatim by the `owl:` and `logic:` namespaces).  A restriction
-/// node carries `onProperty` plus one or more of these.  Grows as later construct
-/// families land (cardinality, qualified cardinality); `owl:oneOf` is multi-valued and
-/// handled separately in [`collect_constraints`].
-pub(crate) const CONSTRAINT_LOCALS: &[&str] = &["someValuesFrom", "hasValue"];
+/// node carries `onProperty` plus one or more of these:
+///
+/// * value constraints — `someValuesFrom`, `allValuesFrom`, `hasValue`;
+/// * unqualified cardinality — `minCardinality`, `maxCardinality`, `cardinality`;
+/// * qualified cardinality — `qualifiedCardinality`, `qualifiedMinCardinality`,
+///   `qualifiedMaxCardinality`, each paired with `onClass` (a class filler) or
+///   `onDataRange` (a datatype filler).
+///
+/// Each is a single object (IRI filler or literal count), so the generic
+/// [`collect_constraints`] walk lifts them uniformly.  `owl:oneOf` is a multi-valued
+/// class enumeration (no `onProperty`) and is out of the property-restriction surface.
+pub(crate) const CONSTRAINT_LOCALS: &[&str] = &[
+    "someValuesFrom",
+    "allValuesFrom",
+    "hasValue",
+    "minCardinality",
+    "maxCardinality",
+    "cardinality",
+    "qualifiedCardinality",
+    "qualifiedMinCardinality",
+    "qualifiedMaxCardinality",
+    "onClass",
+    "onDataRange",
+];
+
+/// The cardinality-count constraint locals — their filler is a non-negative integer,
+/// which the OWL projection re-emits as an `xsd:nonNegativeInteger`-typed literal.
+pub(crate) const CARDINALITY_LOCALS: &[&str] = &[
+    "minCardinality",
+    "maxCardinality",
+    "cardinality",
+    "qualifiedCardinality",
+    "qualifiedMinCardinality",
+    "qualifiedMaxCardinality",
+];
 
 /// The source vocabulary a [`skolemize_restrictions`] pass reads.  The constraint /
 /// property-slot / type local names are shared between `owl:` and `logic:`; only the

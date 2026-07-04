@@ -306,6 +306,68 @@ fn roundtrip_owl_hasvalue_literal_equals_logic() {
     assert!(assert_ir_isomorphic(&prog_logic, &prog_owl).is_ok());
 }
 
+#[test]
+fn roundtrip_owl_allvaluesfrom_equals_logic() {
+    let prog_logic = logic_prog(
+        "ex:VegDish logic:subClassOf [ a logic:Restriction ;
+            logic:onProperty ex:hasIngredient ; logic:allValuesFrom ex:Vegetable ] .",
+    );
+    let prog_owl = adapt(
+        "ex:VegDish rdfs:subClassOf [ a owl:Restriction ;
+            owl:onProperty ex:hasIngredient ; owl:allValuesFrom ex:Vegetable ] .",
+    )
+    .0;
+    assert!(assert_ir_isomorphic(&prog_logic, &prog_owl).is_ok());
+}
+
+#[test]
+fn roundtrip_owl_min_cardinality_equals_logic() {
+    let prog_logic = logic_prog(
+        "ex:Parent logic:subClassOf [ a logic:Restriction ;
+            logic:onProperty ex:hasChild ; logic:minCardinality 1 ] .",
+    );
+    let prog_owl = adapt(
+        "ex:Parent rdfs:subClassOf [ a owl:Restriction ;
+            owl:onProperty ex:hasChild ; owl:minCardinality 1 ] .",
+    )
+    .0;
+    assert!(prog_owl
+        .axioms
+        .iter()
+        .any(|a| a.predicate == logic("minCardinality") && a.obj == "1" && a.obj_is_literal));
+    assert!(assert_ir_isomorphic(&prog_logic, &prog_owl).is_ok());
+}
+
+#[test]
+fn roundtrip_owl_qualified_cardinality_equals_logic() {
+    // A qualified cardinality node carries both the count and its onClass filler; both
+    // lift as constraints on the same skolem node and both feed the content key.
+    let prog_logic = logic_prog(
+        "ex:Hand logic:subClassOf [ a logic:Restriction ;
+            logic:onProperty ex:hasPart ; logic:qualifiedCardinality 5 ;
+            logic:onClass ex:Finger ] .",
+    );
+    let prog_owl = adapt(
+        "ex:Hand rdfs:subClassOf [ a owl:Restriction ;
+            owl:onProperty ex:hasPart ; owl:qualifiedCardinality 5 ;
+            owl:onClass ex:Finger ] .",
+    )
+    .0;
+    assert!(assert_ir_isomorphic(&prog_logic, &prog_owl).is_ok());
+    // Distinct qualified cardinality on the same property but a different onClass mints a
+    // DIFFERENT skolem node (onClass participates in the content key).
+    let other = adapt(
+        "ex:Hand rdfs:subClassOf [ a owl:Restriction ;
+            owl:onProperty ex:hasPart ; owl:qualifiedCardinality 5 ;
+            owl:onClass ex:Thumb ] .",
+    )
+    .0;
+    assert_ne!(
+        restriction_node_of(&prog_owl, "/Hand"),
+        restriction_node_of(&other, "/Hand")
+    );
+}
+
 // ── IR isomorphism gate ──────────────────────────────────────────────────────
 
 #[test]
