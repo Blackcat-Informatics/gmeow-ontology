@@ -907,6 +907,48 @@ fn covering_lowers_to_owl_disjoint_union_when_members_pairwise_disjoint() {
 }
 
 #[test]
+fn owl_restriction_round_trips_through_dl_projection() {
+    // Adapt an OWL restriction into the logic: IR, then project OWL-DL back: the
+    // owl:Restriction graph must reappear (anchored on the deterministic skolem node).
+    let prefixes = "\
+@prefix ex:   <https://example.org/test/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+";
+    let ttl = "ex:Bird rdfs:subClassOf [ a owl:Restriction ;
+        owl:onProperty ex:hasBeak ; owl:someValuesFrom ex:Beak ] .";
+    let (program, _) =
+        crate::adapter::adapt_legacy_str(&format!("{prefixes}{ttl}"), None).expect("adapt ok");
+    let dl = rdf::project_owl_dl(&program).unwrap();
+    for needle in [
+        "http://www.w3.org/2002/07/owl#Restriction",
+        "http://www.w3.org/2002/07/owl#onProperty",
+        "http://www.w3.org/2002/07/owl#someValuesFrom",
+        "https://blackcatinformatics.ca/logic/restriction/",
+        "http://www.w3.org/2000/01/rdf-schema#subClassOf",
+    ] {
+        assert!(
+            dl.content.contains(needle),
+            "missing {needle}:\n{}",
+            dl.content
+        );
+    }
+    // someValuesFrom is EL-safe, so the EL projection keeps it too (no drop).
+    let el = rdf::project_owl_el(&program).unwrap();
+    assert!(
+        el.content
+            .contains("http://www.w3.org/2002/07/owl#someValuesFrom"),
+        "someValuesFrom is EL-safe:\n{}",
+        el.content
+    );
+    assert!(
+        !el.actual_drops.iter().any(|d| d.contains("EL-safe")),
+        "an all-EL-safe restriction is not dropped: {:?}",
+        el.actual_drops
+    );
+}
+
+#[test]
 fn covering_owl_dl_is_deterministic() {
     let prog =
         LogicProgram::new(vec![], vec![], vec![], None).with_formulas(vec![covering_formula(
