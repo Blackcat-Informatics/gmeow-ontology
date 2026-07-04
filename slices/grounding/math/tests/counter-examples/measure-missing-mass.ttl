@@ -1,0 +1,14 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:MeasureShape: a math:Measure declaring its space but
+# omitting math:totalMass (sh:minCount 1), so validation MUST emit
+# shacl.MinCountConstraintComponent (and no other finding).
+# Bound by tests/example-conformance.ttl (ex:ecMeasureMissingMass).
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:masslessMeasure a math:Measure ;
+    math:measureOn ex:space .
+
+ex:space a math:MeasurableSpace .
