@@ -21773,6 +21773,31 @@
                 "@type": {
                   "anyOf": [
                     {
+                      "const": "lang:Denotation"
+                    },
+                    {
+                      "contains": {
+                        "const": "lang:Denotation"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/lang:Denotation"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
                       "const": "lang:Form"
                     },
                     {
@@ -21848,6 +21873,31 @@
                 "@type": {
                   "anyOf": [
                     {
+                      "const": "lang:InterpretationAct"
+                    },
+                    {
+                      "contains": {
+                        "const": "lang:InterpretationAct"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/lang:InterpretationAct"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
                       "const": "lang:MorphFeature"
                     },
                     {
@@ -21865,6 +21915,31 @@
             },
             "then": {
               "$ref": "#/$defs/lang:MorphFeature"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "lang:Sense"
+                    },
+                    {
+                      "contains": {
+                        "const": "lang:Sense"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/lang:Sense"
             }
           },
           {
@@ -33618,6 +33693,31 @@
         },
         "type": "object"
       },
+      "lang:Denotation": {
+        "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          }
+        },
+        "type": "object"
+      },
       "lang:Form": {
         "properties": {
           "@annotation": {
@@ -33736,6 +33836,54 @@
         ],
         "type": "object"
       },
+      "lang:InterpretationAct": {
+        "not": {
+          "properties": {
+            "@annotation": {
+              "$ref": "#/$defs/Annotation"
+            },
+            "@id": {
+              "type": "string"
+            },
+            "@type": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                }
+              ]
+            }
+          },
+          "type": "object"
+        },
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          }
+        },
+        "type": "object"
+      },
       "lang:MorphFeature": {
         "properties": {
           "@annotation": {
@@ -33827,6 +33975,31 @@
           "lang:featureKey",
           "lang:featureValue"
         ],
+        "type": "object"
+      },
+      "lang:Sense": {
+        "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          }
+        },
         "type": "object"
       },
       "lang:SurfaceAnchor": {

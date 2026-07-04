@@ -72,6 +72,68 @@ queryable object rather than a log line.
 | Structural positions hold forms, not literals | `lang:StructuralFormShape` | `lang:StringOnlyForm` |
 | Graphemes grounded in their script's repertoire | `lang:GraphemeGroundedShape` | `lang:UngroundedGrapheme` |
 
+## The meaning stratum
+
+Over the form AST sits the semantic layer specified in [`LANG-MEANING.md`](design/LANG-MEANING.md):
+the **Frege triangle**, the **reified denotation record**, the **one-way bridge into `logic:`**, and
+**interpretation as a vantage-held act**.
+
+- **Form ≠ sense ≠ reference.** `lang:Form`, `lang:Sense`, and `lang:Denotation` are disjoint kinds
+  (the layer's signature hard rule): string identity never implies form identity, form identity never
+  implies sense identity, and sense identity never implies co-reference. A `lang:Sense` attaches to a
+  lexeme or form through `lang:senseOf` and evokes a `lang:LexicalConcept` (a synset) through
+  `lang:evokes`, so synonymy is derived, not asserted flat. Sense-to-sense relations (hypernymy,
+  meronymy) are **reasoned in `logic:`** over the `logic:Type` a sense denotes — GMEOW's own engine,
+  a single source of truth — never a second is-a graph forked inside `lang:`. Where a taxonomic
+  relation is worth recording explicitly, `lang:SenseRelation` (its kind named by
+  `lang:senseRelationKind`, only `lang:hypernymy`/`lang:hyponymy` minted) reifies it as
+  **correspondence-only provenance** — sourced and vantage-holdable — while the subsumption itself
+  still recovers as `logic:` over the denoted `logic:Type`; no gate, query, or reasoner reads
+  `lang:senseRelationKind` as the subsumption source.
+- **The denotation record.** A `lang:Denotation` is a reified record (the Peircean triad made
+  structural), never a bare edge: it names its form (`lang:denotedForm`, above the byte level), its
+  kind (`lang:denotationKind`), its target (`lang:denotationTarget`), and its context
+  (`lang:denotationContext`), routing through `lang:viaSense` where the head lexeme is ambiguous.
+- **The one-way bridge into `logic:`.** A declarative sentence denotes a `logic:Formula`
+  (`lang:denotesLogicFormula`), a referring expression a `logic:Individual` (`lang:denotesLogicTerm`),
+  a common noun or predicate a `logic:Type` (`lang:denotesLogicType`), and an interrogative's content
+  a query (`lang:denotesQuery`). Lowering is compositional where analysis reaches — a composed
+  denotation names its `lang:CompositionRule` (`lang:composedBy`) and its constituent denotations
+  (`lang:composedFrom`), each carrying a `logic:preservationKind`. The bridge runs `lang:` → `logic:`
+  and never reverses (Principle 19 acyclic grounding).
+- **Interpretation, ambiguity, deixis, force.** A `lang:InterpretationAct` (a `gmeow:Activity`, never
+  an observation) produces `lang:Reading` results; the claim that a reading is correct is a
+  `gmeow:Observation` held from a `gmeow:vantage` with `logic:confidence` (never a probability absent a
+  declared frame). Ambiguity is co-resident readings — *I saw her duck* keeps both, and *every man
+  loves a woman* keeps both scopings as distinct `logic:Formula`s. Deixis is anchored, not resolved
+  away (`lang:IndexicalAnchor` + `lang:anchorKind`); communicative force (`lang:CommunicativeForce`) is
+  not content, and only assertive force lowers to an asserted formula. Because the whole spine is
+  reified, GMEOW reasons *about* readings and claims to arbitrary order.
+
+| Rule | Gate | Failure class |
+|---|---|---|
+| Form, sense, and denotation kinds are disjoint | OWL disjointness (+ `lang:FregeDisjointShape`) | `lang:FregeConflation` |
+| A denotation names its form, kind, target, and context | `lang:DenotationRecordShape` | `lang:UnderspecifiedDenotation` |
+| A denotation attaches to a form, never a surface | `lang:DenotationNonSurfaceShape` | `lang:SurfaceLevelDenotation` |
+| Ambiguous denotations route through a sense | `lang:AmbiguityRoutingShape` | `lang:UnroutedAmbiguousDenotation` |
+| A denotation kind matches its target's type | `lang:DenotationKindMatchShape` | `lang:DenotationKindMismatch` |
+| An interpretation act is never an observation | OWL disjointness (+ `lang:ActObservationDisjointShape`) | `lang:ActObservationConflation` |
+| A reading-correctness claim has a vantage | `lang:ReadingClaimGroundedShape` | `lang:UngroundedReadingClaim` |
+| Co-resident readings are never silently collapsed | native Rust validator | `lang:SilentDisambiguation` |
+| An indexical denotation names its anchor | `lang:IndexicalAnchoredShape` | `lang:UnanchoredIndexical` |
+| Preference weights are confidences, not probabilities | `lang:ConfidenceNotProbabilityShape` | `lang:ConfidenceAsProbability` |
+| A compositional lowering declares its preservation | native Rust validator | `lang:UndeclaredLoweringStage` |
+
+Two rows above are enforced by a **native Rust validator** rather than a SHACL shape:
+`lang:SilentDisambiguation` and `lang:UndeclaredLoweringStage`. Both require reasoning SHACL
+cannot express cleanly — the first is a whole-dataset check that a resolved reading is backed
+somewhere by a vantage-held observation, the second a kind-derived stage-coverage check over the
+compositional program — so they run bundle-wide inside `structural_lint_dataset`
+(`crates/validate/src/lint.rs`) alongside the one-way-bridge acyclicity check. Their negative
+fixtures accordingly live inline in that crate's Rust tests, not as `example-conformance.ttl`
+cells; the nine SHACL rules keep their fixture cells. The split is intentional: each gate lives
+where the invariant it enforces can actually be stated.
+
 ## Competency
 
 The slice's competency questions (in `tests/competency.ttl`, backed by `queries/competency/*.rq`)

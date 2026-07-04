@@ -1,0 +1,32 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Higher-order reasoning: because the whole spine is reified, GMEOW reasons ABOUT
+# readings and claims to arbitrary order — a claim about a claim about a reading.
+# obs1 (about the reading) -> obs2 (about obs1) -> obs3 (about obs2), each vantage-held.
+
+@prefix lang:  <https://blackcatinformatics.ca/lang/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <http://example.org/lang/> .
+
+ex:english a lang:SignSystem .
+ex:form a lang:WordForm ; lang:inSignSystem ex:english .
+ex:r a lang:Reading ; lang:readingOf ex:form .
+
+# 1st order: a vantage-held claim that the reading is correct.
+ex:obs1 a gmeow:Observation ;
+    lang:aboutReading ex:r ;
+    gmeow:vantage ex:reader ;
+    logic:confidence 0.7 .
+
+# 2nd order: a claim about obs1 (a reviewer disputing the reading's correctness).
+ex:obs2 a gmeow:Observation ;
+    gmeow:observedFeature ex:obs1 ;
+    gmeow:vantage ex:reviewer ;
+    logic:confidence 0.6 .
+
+# 3rd order: a claim about obs2 (an editor adjudicating the reviewer's claim).
+ex:obs3 a gmeow:Observation ;
+    gmeow:observedFeature ex:obs2 ;
+    gmeow:vantage ex:editor ;
+    logic:confidence 0.9 .

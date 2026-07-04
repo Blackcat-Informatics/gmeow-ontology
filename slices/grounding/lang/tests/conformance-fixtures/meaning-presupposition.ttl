@@ -1,0 +1,22 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Presupposition: "the king of France is bald" asserts baldness but presupposes that
+# the king of France exists — two distinct logic:Formulas, a separate lowering each.
+
+@prefix lang:  <https://blackcatinformatics.ca/lang/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <http://example.org/lang/> .
+
+ex:english a lang:SignSystem .
+ex:sent a lang:ComposedForm ; lang:inSignSystem ex:english .
+
+ex:fAsserted a logic:Formula .     # bald(theKingOfFrance)
+ex:fPresupposed a logic:Formula .  # exists! theKingOfFrance
+
+ex:denSent a lang:Denotation ;
+    lang:denotedForm ex:sent ;
+    lang:denotationKind lang:denotesLogicFormula ;
+    lang:denotationTarget ex:fAsserted ;
+    lang:denotationContext ex:ctx ;
+    lang:presupposes ex:fPresupposed ;
+    logic:preservationKind logic:ExactPreservation .
