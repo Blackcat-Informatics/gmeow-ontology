@@ -55,6 +55,9 @@ Removed because a Rust artifact already asserts the same behavior:
   `crates/gmeow-dev-cli/tests/feedback_bundle.rs` (self-describing GTS feedback
   bundle with findings RDF snapshot, SARIF/JSON blobs, snapshot-content-id
   self-attestation, and robust verifier).
+- `test_diagnostics_config` → `crates/cli-core/tests/diagnostics_config.rs`
+  (resolved diagnostics output policy: console mode, artifact kinds, directory,
+  stem, category, with flag > env > default precedence).
 - `test_mcp_server`, `test_mcp_server_consumer`, `test_mcp_memory`: the MCP
   read-surface, stdio server loop, startup-lang validation, and grounded-memory
   triad are Rust — `crates/pipeline/src/mcp.rs` plus `export.rs`, asserted by

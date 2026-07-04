@@ -11,7 +11,6 @@ import gmeow_diagnostics
 from rich.console import Console
 
 from gmeow_tools.config import PROJECT_ROOT
-from gmeow_tools.diagnostics_config import ConsoleMode, DiagnosticsConfig
 
 DiagnosticsFinding = Any
 DiagnosticsReport = Any
@@ -129,51 +128,6 @@ def emit_legacy_cli(report_obj: DiagnosticsReport, err_console: Console) -> None
     advisory = report_obj.render_advisory_text()
     if advisory:
         err_console.print(advisory, markup=False, highlight=False)
-
-
-def _findings_as_jsonl(report_obj: DiagnosticsReport) -> list[str]:
-    """The report's findings as compact one-JSON-object-per-line strings.
-
-    Sourced from the Rust-canonical ``report.to_json()`` (already normalized and
-    ordered), not re-serialized field-by-field in Python — so JSONL is a faithful
-    line-framing of the canonical projection and stays deterministic.
-    """
-    payload = json.loads(report_obj.to_json())
-    return [
-        json.dumps(item, sort_keys=True, separators=(",", ":"))
-        for item in payload.get("findings", [])
-    ]
-
-
-def emit_console(
-    report_obj: DiagnosticsReport,
-    config: DiagnosticsConfig,
-    err_console: Console,
-) -> None:
-    """Project a report to the console per the resolved console mode (#662).
-
-    ``auto`` is already collapsed to a concrete mode during
-    :meth:`DiagnosticsConfig.resolve`, so this only ever dispatches on
-    pretty/text/jsonl/silent. ``silent`` prints nothing; an unhandled mode is a
-    hard error (no silent fallback). Text/JSONL are printed with Rich markup and
-    highlighting off so payload characters are emitted verbatim.
-    """
-    mode = config.console
-    if mode is ConsoleMode.SILENT:
-        return
-    if mode is ConsoleMode.PRETTY:
-        emit_legacy_cli(report_obj, err_console)
-        return
-    if mode is ConsoleMode.TEXT:
-        text = report_obj.render_text()
-        if text:
-            err_console.print(text, markup=False, highlight=False)
-        return
-    if mode is ConsoleMode.JSONL:
-        for line in _findings_as_jsonl(report_obj):
-            err_console.print(line, markup=False, highlight=False)
-        return
-    raise ValueError(f"unhandled console mode: {mode}")
 
 
 def write_report_artifacts(
