@@ -503,7 +503,7 @@ math:DerivedDimensionShape
 math:DimensionExponentShape
     a sh:NodeShape ;
     rdfs:label "Dimension-exponent cell shape"@x-gmeow-english ;
-    skos:definition "SHACL constraints for math:DimensionExponent: it names the math:BaseDimension it raises (math:exponentOfDimension — a base dimension only, never a derived one, so the exponent vector is acyclic) and carries both math:exponentNumerator and math:exponentDenominator, giving an exact-rational power."@x-gmeow-english ;
+    skos:definition "SHACL constraints for math:DimensionExponent: it names the math:BaseDimension it raises (math:exponentOfDimension — a base dimension only, never a derived one, so the exponent vector is acyclic) and carries both math:exponentNumerator and a non-zero math:exponentDenominator, giving an exact-rational power. A zero denominator is not a rational power and is rejected here (not silently dropped downstream)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     math:enforcesFailureClass math:MalformedDimension ;
     sh:targetClass math:DimensionExponent ;
@@ -529,8 +529,9 @@ math:DimensionExponentShape
         sh:minCount 1 ;
         sh:maxCount 1 ;
         sh:datatype xsd:integer ;
+        sh:not [ sh:hasValue 0 ] ;
         sh:severity sh:Violation ;
-        sh:message "A math:DimensionExponent must declare exactly one integer math:exponentDenominator — the denominator of its exact-rational power." ;
+        sh:message "A math:DimensionExponent must declare exactly one non-zero integer math:exponentDenominator — the denominator of its exact-rational power; a zero denominator is not a rational power." ;
     ] .
 
 # Rule 21 — a dimensional expression combines at least two operands.

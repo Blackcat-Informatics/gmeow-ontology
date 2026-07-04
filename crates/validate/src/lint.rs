@@ -919,9 +919,14 @@ fn render_dimension_vector(v: &DimVector) -> String {
 /// unit basis vector; `math:dimensionless` (or any `math:Dimensionless`) is zero; a
 /// `math:DerivedDimension` sums `power * e_base` over its `math:baseDimensionExponent`
 /// cells. Pure: returns `None` for a dimension whose structure is ill-formed (a
-/// non-base exponent target, a missing or zero-denominator power, or arithmetic
-/// overflow — all of which the SHACL `DimensionExponentShape` reports) or whose kind
-/// cannot be computed, so an unrelated node never yields a false positive.
+/// non-base exponent target, a missing/non-integer/zero-denominator power, or
+/// arithmetic overflow) or whose kind cannot be computed, so an unrelated node never
+/// yields a false positive. The ill-formed structural cases are surfaced explicitly,
+/// not swallowed here — a non-base exponent target by the SHACL `DimensionExponentShape`
+/// (`sh:class`), and a zero denominator by both that shape (`sh:not sh:hasValue 0`) and
+/// the native zero-denominator scan in [`check_math_dimension_invariants`] — so a `None`
+/// from a genuinely malformed cell means "already reported elsewhere", never "silently
+/// dropped".
 fn dimension_vector(ds: &RdfDataset, dim_iri: &str) -> Option<DimVector> {
     if let Some(i) = base_dimension_index(dim_iri) {
         let mut v = zero_vector();
@@ -990,6 +995,31 @@ fn check_math_dimension_invariants(ds: &RdfDataset, report: &mut LintReport) {
                     "math:MalformedDimension: dimension {subj} declares math:dimensionVector \
                      \"{lexical}\" but its structured exponents render to \"{canonical}\" — the \
                      string is a computed projection, not an independent source"
+                ));
+            }
+        }
+    }
+
+    // Zero-denominator exponent: an exact-rational power needs a non-zero denominator.
+    // `dimension_vector` returns `None` on such a cell (Rat::new rejects a zero
+    // denominator), which would let the cell be silently skipped by the homogeneity /
+    // composition loops below; surface it here as math:MalformedDimension so a malformed
+    // power hard-fails rather than fails open. The SHACL DimensionExponentShape forbids
+    // it too (sh:not sh:hasValue 0) — this native scan is the whole-bundle twin, genuine
+    // defense in depth rather than a false claim of one.
+    {
+        let mut cells = ds_subjects_of_type(ds, &math_iri("DimensionExponent"));
+        cells.sort();
+        for cell in cells {
+            let has_zero_denominator =
+                ds_object_literals(ds, &cell, &math_iri("exponentDenominator"))
+                    .into_iter()
+                    .any(|l| l.trim().parse::<i128>() == Ok(0));
+            if has_zero_denominator {
+                report.errors.push(format!(
+                    "math:MalformedDimension: dimension-exponent cell {cell} declares \
+                     math:exponentDenominator 0 — an exact-rational power needs a non-zero \
+                     denominator; the cell is ill-formed"
                 ));
             }
         }
@@ -1922,6 +1952,51 @@ mod tests {
         assert!(
             has_inhomogeneity(&structural_lint_dataset(&mixed, &cfg())),
             "T^(-1/2) and T^(-1) must be inhomogeneous"
+        );
+    }
+
+    #[test]
+    fn zero_denominator_exponent_is_flagged() {
+        // An exact-rational power with denominator 0 is ill-formed: dimension_vector
+        // returns None on it, so the homogeneity/composition loops would skip it
+        // silently. The native scan must surface it as math:MalformedDimension rather
+        // than fail open.
+        let ds = dataset_from(&format!(
+            "{MATH_PREFIXES}\
+             ex:badDim a math:DerivedDimension ; math:baseDimensionExponent ex:zc .\n\
+             ex:zc a math:DimensionExponent ; math:exponentOfDimension math:timeDimension ;\n\
+               math:exponentNumerator -1 ; math:exponentDenominator 0 .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("math:MalformedDimension")
+                    && e.contains("exponentDenominator 0")),
+            "a zero-denominator exponent cell must raise math:MalformedDimension; errors: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn nonzero_denominator_exponent_is_clean() {
+        // The well-formed twin: a legitimate 1/2 power must NOT trip the zero-denominator
+        // scan (guards against an over-broad match on the denominator literal).
+        let ds = dataset_from(&format!(
+            "{MATH_PREFIXES}\
+             ex:okDim a math:DerivedDimension ; math:baseDimensionExponent ex:hc .\n\
+             ex:hc a math:DimensionExponent ; math:exponentOfDimension math:timeDimension ;\n\
+               math:exponentNumerator -1 ; math:exponentDenominator 2 .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            !report
+                .errors
+                .iter()
+                .any(|e| e.contains("math:MalformedDimension")),
+            "a non-zero denominator must not raise math:MalformedDimension; errors: {:?}",
+            report.errors
         );
     }
 }
