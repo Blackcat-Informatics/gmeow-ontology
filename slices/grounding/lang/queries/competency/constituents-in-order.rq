@@ -1,0 +1,14 @@
+# Competency question: "What are the slot forms of a composed form, in slot-index
+# order?"  This exercises the commitment that constituent order is carried by indexed
+# lang:FormSlot individuals rather than RDF list ordering. Over the fixture the answer
+# for the composed form exf:cf is exactly its two constituent word forms in index
+# order {cats (0), sleep (1)}.
+PREFIX lang: <https://blackcatinformatics.ca/lang/>
+PREFIX exf:  <http://example.org/lang/>
+
+SELECT ?form WHERE {
+    exf:cf lang:formSlot ?slot .
+    ?slot lang:slotForm ?form ;
+          lang:slotIndex ?index .
+}
+ORDER BY ?index

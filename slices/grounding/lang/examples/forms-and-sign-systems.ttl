@@ -1,0 +1,202 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+# Illustrative clean scene for the lang: form AST. Demonstrates each construct
+# under the global validation gate: a sign-system reference scene (English and
+# French natural languages, Turtle as a formal language, the Latin script with a
+# grapheme repertoire, an orthography), the worked "cats chase mice" composed
+# form with a full constituency-and-dependency analysis over one parsed surface,
+# a multiword-token form (French "du" spanning two syntactic words), and a covert
+# form (the zero plural of "sheep").
+
+@prefix lang: <https://blackcatinformatics.ca/lang/> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex:   <https://blackcatinformatics.ca/gmeow/examples/lang/> .
+
+# --- Sign-system reference scene -------------------------------------------- #
+
+ex:english
+    a lang:SignSystem ;
+    rdfs:label "English"@x-gmeow-english ;
+    lang:signSystemKind lang:naturalLanguageKind ;
+    lang:modality lang:writtenModality ;
+    lang:informalGloss "The English natural language, written in the Latin script." .
+
+ex:french
+    a lang:SignSystem ;
+    rdfs:label "French"@x-gmeow-english ;
+    lang:signSystemKind lang:naturalLanguageKind ;
+    lang:modality lang:writtenModality ;
+    lang:informalGloss "The French natural language, written in the Latin script." .
+
+ex:turtle
+    a lang:SignSystem ;
+    rdfs:label "Turtle"@x-gmeow-english ;
+    lang:signSystemKind lang:formalLanguageKind ;
+    lang:modality lang:writtenModality ;
+    lang:informalGloss "The W3C Turtle serialization, a formal language with an explicit grammar." .
+
+ex:latinScript
+    a lang:Script ;
+    rdfs:label "Latin"@x-gmeow-english ;
+    lang:hasGrapheme ex:graphemeC , ex:graphemeA , ex:graphemeT , ex:graphemeS .
+
+ex:graphemeC  a lang:Grapheme ; rdfs:label "c"@x-gmeow-english ; lang:inScript ex:latinScript .
+ex:graphemeA  a lang:Grapheme ; rdfs:label "a"@x-gmeow-english ; lang:inScript ex:latinScript .
+ex:graphemeT  a lang:Grapheme ; rdfs:label "t"@x-gmeow-english ; lang:inScript ex:latinScript .
+ex:graphemeS  a lang:Grapheme ; rdfs:label "s"@x-gmeow-english ; lang:inScript ex:latinScript .
+
+ex:englishLatinOrthography
+    a lang:Orthography ;
+    rdfs:label "English Latin orthography"@x-gmeow-english ;
+    lang:orthographyFor ex:english ;
+    lang:usesScript ex:latinScript .
+
+ex:turtleGrammar
+    a lang:Grammar ;
+    rdfs:label "Turtle grammar"@x-gmeow-english ;
+    lang:grammarFor ex:turtle ;
+    lang:grammarFormalism lang:ebnfFormalism .
+
+# --- Lexemes ---------------------------------------------------------------- #
+
+ex:lexCat
+    a lang:Lexeme ;
+    rdfs:label "cat"@x-gmeow-english ;
+    lang:inSignSystem ex:english ;
+    lang:partOfSpeech lang:noun .
+
+ex:lexChase
+    a lang:Lexeme ;
+    rdfs:label "chase"@x-gmeow-english ;
+    lang:inSignSystem ex:english ;
+    lang:partOfSpeech lang:verb .
+
+ex:lexMouse
+    a lang:Lexeme ;
+    rdfs:label "mouse"@x-gmeow-english ;
+    lang:inSignSystem ex:english ;
+    lang:partOfSpeech lang:noun .
+
+# --- Morph features --------------------------------------------------------- #
+
+ex:featPlur
+    a lang:MorphFeature ;
+    lang:featureKey lang:featNumber ;
+    lang:featureValue lang:valPlur .
+
+ex:featPres
+    a lang:MorphFeature ;
+    lang:featureKey lang:featTense ;
+    lang:featureValue lang:valPres .
+
+# --- Word forms ------------------------------------------------------------- #
+
+ex:wfCats
+    a lang:WordForm ;
+    rdfs:label "cats"@x-gmeow-english ;
+    lang:inSignSystem ex:english ;
+    lang:inflectionOf ex:lexCat ;
+    lang:morphFeature ex:featPlur .
+
+ex:wfChase
+    a lang:WordForm ;
+    rdfs:label "chase"@x-gmeow-english ;
+    lang:inSignSystem ex:english ;
+    lang:inflectionOf ex:lexChase ;
+    lang:morphFeature ex:featPres .
+
+ex:wfMice
+    a lang:WordForm ;
+    rdfs:label "mice"@x-gmeow-english ;
+    lang:inSignSystem ex:english ;
+    lang:inflectionOf ex:lexMouse ;
+    lang:morphFeature ex:featPlur .
+
+# --- The composed form "cats chase mice" ------------------------------------ #
+
+ex:analysisCatsChaseMice
+    a lang:Analysis ;
+    rdfs:label "parse of 'cats chase mice'"@x-gmeow-english .
+
+ex:sentCatsChaseMice
+    a lang:ComposedForm ;
+    rdfs:label "cats chase mice"@x-gmeow-english ;
+    lang:inSignSystem ex:english ;
+    lang:compositionLevel lang:sentenceLevel ;
+    lang:inAnalysis ex:analysisCatsChaseMice ;
+    lang:formHead ex:wfChase ;
+    lang:formSlot ex:slotS0 , ex:slotS1 , ex:slotS2 .
+
+ex:slotS0
+    a lang:FormSlot ;
+    lang:inAnalysis ex:analysisCatsChaseMice ;
+    lang:slotIndex 0 ;
+    lang:slotForm ex:wfCats ;
+    lang:slotRole lang:subjectRole ;
+    lang:dependencyRelation lang:subjectRole ;
+    lang:dependsOn ex:slotS1 .
+
+ex:slotS1
+    a lang:FormSlot ;
+    lang:inAnalysis ex:analysisCatsChaseMice ;
+    lang:slotIndex 1 ;
+    lang:slotForm ex:wfChase ;
+    lang:slotRole lang:predicateRole .
+
+ex:slotS2
+    a lang:FormSlot ;
+    lang:inAnalysis ex:analysisCatsChaseMice ;
+    lang:slotIndex 2 ;
+    lang:slotForm ex:wfMice ;
+    lang:slotRole lang:objectRole ;
+    lang:dependencyRelation lang:objectRole ;
+    lang:dependsOn ex:slotS1 .
+
+ex:sentSurface
+    a lang:SurfaceForm ;
+    lang:inSignSystem ex:english ;
+    lang:surfaceText "cats chase mice" ;
+    lang:inScript ex:latinScript ;
+    lang:encoding "UTF-8" ;
+    lang:unicodeNormalization "NFC" ;
+    lang:collationLocale "en" ;
+    lang:analysisLevel lang:parsedLevel ;
+    lang:realizes ex:sentCatsChaseMice ;
+    lang:surfaceAnchor ex:sentAnchor .
+
+ex:sentAnchor
+    a lang:SurfaceAnchor ;
+    lang:anchorSource ex:english ;
+    lang:anchorStart 0 ;
+    lang:anchorEnd 15 ;
+    lang:offsetSpace lang:codepointOffset .
+
+# --- Multiword token: French "du" = de + le --------------------------------- #
+
+ex:owDu
+    a lang:OrthographicWord ;
+    rdfs:label "du"@x-gmeow-english ;
+    lang:inSignSystem ex:french ;
+    lang:spansWords ex:swDe , ex:swLe .
+
+ex:swDe
+    a lang:SyntacticWord ;
+    rdfs:label "de"@x-gmeow-english ;
+    lang:inSignSystem ex:french ;
+    lang:tokenOf ex:owDu .
+
+ex:swLe
+    a lang:SyntacticWord ;
+    rdfs:label "le"@x-gmeow-english ;
+    lang:inSignSystem ex:french ;
+    lang:tokenOf ex:owDu .
+
+# --- Covert form: the zero plural of "sheep" -------------------------------- #
+
+ex:covertSheepPlural
+    a lang:CovertForm ;
+    rdfs:label "zero plural morph of 'sheep'"@x-gmeow-english ;
+    lang:inSignSystem ex:english ;
+    lang:morphFeature ex:featPlur .
