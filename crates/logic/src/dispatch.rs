@@ -337,28 +337,27 @@ pub fn dispatch_query(
     // gap (`NativeOutcome::Unsupported` — cut / arithmetic / non-binary / demand-breaks-
     // stratification) falls through to the demoted fast-path / Scryer fallback below.
     //
-    // Step-budget demotion: the native engine runs to fixpoint and has no post-hoc step
-    // governor; it cannot stamp `BudgetStatus::Exhausted` or honour `max_steps`. When
-    // the caller supplies a step limit, route to the Scryer/fast-path fallback (which
-    // does honour it) rather than silently running unbounded and reporting the wrong
-    // status. `max_answers`-only budgets are genuinely handled natively and are NOT
-    // demoted. A query carrying BOTH fields is demoted (max_steps takes precedence).
-    if budget.max_steps.is_none() {
-        match crate::physical::resolve_native(foreign, world, program, budget)? {
-            crate::physical::NativeOutcome::Decided(answer) => return Ok(answer),
-            crate::physical::NativeOutcome::Unsupported(_) => {}
-        }
+    // The native engine now HONOURS `max_steps` (its semi-naive governor stamps
+    // `BudgetStatus::Exhausted` at the step ceiling — a sound partial answer, never a
+    // wrong verdict), so a step-budgeted query is NO LONGER demoted for lack of a step
+    // governor: it runs native for the fragments native decides.  Only a declared native
+    // gap still falls through, where the step-honouring Scryer fallback takes over.
+    match crate::physical::resolve_native(foreign, world, program, budget)? {
+        crate::physical::NativeOutcome::Decided(answer) => return Ok(answer),
+        crate::physical::NativeOutcome::Unsupported(_) => {}
     }
 
     // (3) Fallback: cyclic IDB predicates for tabling, then the legacy router.
     let table_preds = cyclic_predicates(program);
 
     match classify_goal(program) {
-        // `fast_path` is a single-pass EDB SPARQL optimisation that honours only
-        // `max_answers`; it has no step governor. A step-budgeted query must therefore
+        // This arm is only reached when native declared a gap (`Unsupported`). `fast_path`
+        // is a single-pass EDB SPARQL optimisation that honours only `max_answers`; it has
+        // no step governor. A step-budgeted goal that fell through here must therefore
         // bypass it and go to Scryer, which wraps the goal in `call_with_inference_limit`
-        // and stamps `BudgetStatus::Exhausted` on the step ceiling (matching the reference
-        // oracle). Without this, a step-budgeted pure-EDB goal would silently report `Ok`.
+        // and stamps `BudgetStatus::Exhausted` on the step ceiling. (A step-budgeted
+        // pure-EDB goal no longer reaches here: native decides it — settled stratum 0 —
+        // and returns a complete `Ok` answer, the frontier win at the query surface.)
         Dispatch::Fast if budget.max_steps.is_none() => fast_path(store, world, program, budget),
         Dispatch::Fast | Dispatch::Scryer => {
             backward_oracle().solve(foreign, world, program, &table_preds, budget)
@@ -829,15 +828,15 @@ mod tests {
         );
     }
 
-    // ── Budget: max_steps demotion parity ─────────────────────────────────────────
+    // ── Budget: max_steps runs NATIVE (no demotion) ──────────────────────────────
 
     #[test]
-    fn dispatch_budget_max_steps_demotes_native_and_matches_reference() {
+    fn dispatch_budget_max_steps_runs_native_and_matches_reference() {
         // Build a chain: a→b→c→d (3 EDB parentOf edges), transitive-closure program.
-        // With a very tight max_steps budget (1), the Scryer fallback exhausts before
-        // fixpoint and reports Exhausted.  The native engine has no step governor and
-        // would silently return all 3 answers with status Ok — the demotion guard must
-        // prevent it from firing at all.
+        // The native engine now HONOURS `max_steps`: a step-budgeted query runs native
+        // (no demotion) and stamps `Exhausted` at the ceiling. At a zero-step budget the
+        // IDB goal derives nothing, so native and the reference oracle agree byte-for-byte
+        // (both `Exhausted`, both empty); at an ample budget native completes with `Ok`.
         let store = WorldStore::new();
         let base = "https://example.org/";
         store.insert_quad(
@@ -890,11 +889,10 @@ mod tests {
             "unbudgeted status must be Ok"
         );
 
-        // Zero-step budget: reference_resolver exhausts at the very first budget_exceeded()
-        // check (steps=0 >= 0) in resolve_conjunct, reporting Exhausted with no bindings.
-        // Scryer's inference limit of 0 also fires immediately.  The native engine has no
-        // step governor and would silently return all 3 answers with status Ok; the
-        // demotion guard must prevent it from being invoked at all.
+        // Zero-step budget: the native governor stops before the first ancestor
+        // derivation → `Exhausted` with no bindings. The reference oracle also exhausts at
+        // its first budget check (steps=0 >= 0) with no bindings. Because the IDB goal
+        // derives nothing at budget 0, the two engines agree byte-for-byte here.
         let tight_budget = Budget {
             max_steps: Some(0),
             max_answers: None,
@@ -908,46 +906,54 @@ mod tests {
             &tight_budget,
         )
         .unwrap();
-
-        // Core invariant: the native engine was NOT invoked.  If it had been, it would
-        // have returned Ok with 3 bindings; the Scryer fallback honours the step budget
-        // and returns Exhausted before collecting any answer.
         assert_eq!(
             dispatched.status,
             BudgetStatus::Exhausted,
-            "a 1-step budget must be Exhausted (native would wrongly return Ok with 3 answers)"
+            "a zero-step budget must be Exhausted (native honours it, no wrong Ok)"
         );
         assert!(
-            dispatched.bindings.len() < 3,
-            "demoted path must not deliver all 3 native answers"
+            dispatched.bindings.is_empty(),
+            "a zero-step budget derives no ancestor ⇒ no bindings"
         );
 
-        // Cross-check the reference oracle under the same budget: reference_resolver hits
-        // budget_exceeded() (steps=0 >= 0) at the top of the first resolve_conjunct call
-        // and stamps Exhausted immediately.  Bindings must also match (both empty).
+        // At budget 0 the native path and the reference oracle agree byte-for-byte (both
+        // Exhausted, both empty) — the completion boundary where the two engines coincide.
         let reference =
             crate::reference_resolver::resolve(&foreign, &world_nn, &prog, &tight_budget).unwrap();
         assert_eq!(
-            reference.status,
-            BudgetStatus::Exhausted,
-            "reference oracle must also stamp Exhausted under a zero-step budget"
-        );
-        assert_eq!(
             dispatched.status, reference.status,
-            "demoted dispatch status must match reference oracle under max_steps budget"
+            "native dispatch status must match the reference oracle at budget 0"
         );
         assert_eq!(
             dispatched.bindings, reference.bindings,
-            "demoted dispatch bindings must match reference oracle under max_steps budget"
+            "native dispatch bindings must match the reference oracle at budget 0 (both empty)"
+        );
+
+        // An ample step budget completes on native with `Ok` and the full 3 answers —
+        // native is NOT demoted for carrying a step budget.
+        let ample = Budget {
+            max_steps: Some(1_000_000),
+            max_answers: None,
+        };
+        let completed =
+            dispatch_query(&foreign, &store, &world_nn, &prog, HORN_PROFILE, &ample).unwrap();
+        assert_eq!(completed.status, BudgetStatus::Ok, "ample budget completes");
+        assert_eq!(
+            completed.bindings.len(),
+            3,
+            "an ample step budget yields all 3 ancestors on the native path"
         );
     }
 
     #[test]
-    fn dispatch_budget_max_steps_pure_edb_goal_honours_budget() {
-        // A single binary EDB atom classifies as `Dispatch::Fast`. `fast_path` honours
-        // only `max_answers`, so a step budget routed there would silently report `Ok`.
-        // The router must instead send step-budgeted Fast goals to Scryer, which stamps
-        // Exhausted on the step ceiling — matching the reference oracle.
+    fn dispatch_budget_max_steps_pure_edb_goal_completes_native() {
+        // A single binary EDB atom classifies as `Dispatch::Fast`, but the native engine
+        // now runs first: a pure-EDB goal is the settled stratum 0, so it derives NOTHING
+        // and native returns the COMPLETE answer with `Ok` under ANY step budget, including
+        // 0. This is the frontier win at the query surface — more correct than the
+        // reference oracle, which counts the EDB lookup as a step and stamps `Exhausted`
+        // at 0. The two engines intentionally DIVERGE on the pure-EDB path (different step
+        // units), so no cross-engine status parity is asserted here.
         let store = WorldStore::new();
         store.insert_quad(
             W,
@@ -993,8 +999,8 @@ mod tests {
         );
         assert_eq!(full.status, BudgetStatus::Ok);
 
-        // Zero-step budget: must NOT take fast_path (which would report Ok); routes to
-        // Scryer and stamps Exhausted, matching the reference oracle.
+        // Zero-step budget: native decides the pure-EDB goal without any derivation, so it
+        // returns the COMPLETE answer (both children) with `Ok` — no inference was needed.
         let tight_budget = Budget {
             max_steps: Some(0),
             max_answers: None,
@@ -1010,19 +1016,24 @@ mod tests {
         .unwrap();
         assert_eq!(
             dispatched.status,
-            BudgetStatus::Exhausted,
-            "a step-budgeted pure-EDB goal must report Exhausted, not silent Ok via fast_path"
+            BudgetStatus::Ok,
+            "a pure-EDB goal needs no derivation ⇒ complete `Ok` under any step budget"
+        );
+        assert_eq!(
+            dispatched.bindings.len(),
+            2,
+            "the complete pure-EDB answer (both children) is returned under budget 0"
         );
 
+        // The reference oracle, by contrast, counts the EDB lookup as a step and stamps
+        // Exhausted at budget 0 — the documented, intended divergence (different step
+        // units). Native's complete answer is the more faithful verdict.
         let reference =
             crate::reference_resolver::resolve(&foreign, &world_nn, &prog, &tight_budget).unwrap();
         assert_eq!(
-            dispatched.status, reference.status,
-            "step-budgeted Fast goal status must match the reference oracle"
-        );
-        assert_eq!(
-            dispatched.bindings, reference.bindings,
-            "step-budgeted Fast goal bindings must match the reference oracle"
+            reference.status,
+            BudgetStatus::Exhausted,
+            "the reference oracle exhausts at budget 0 — native intentionally diverges"
         );
     }
 }
