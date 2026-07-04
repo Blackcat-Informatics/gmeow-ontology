@@ -1797,3 +1797,269 @@ math:dimensionalHomogeneityLowering
     rdfs:seeAlso math:dimensionalHomogeneityLaw ,
         math:integralDimensionCompositionLaw ,
         math:DimensionalInhomogeneity .
+
+# =========================================================================== #
+# Mathematical-core binder AST (EXPRESSIONS charter — the subset the
+# analysis-and-geometry charter consumes)
+#
+# Calculus operators (d/dx, ∂, ∫, ∑, lim) are binders over the expression AST,
+# not display strings (MATHEMATICS-EXPRESSIONS.md §Expression AST layer). A
+# math:BindingExpression is an application-shaped node: it names its binder
+# operator through math:operator, its body through indexed math:argumentSlot
+# cells, and the variable it binds through math:boundVariable. Binding is modeled
+# with an explicit declaration/occurrence split so nested and shadowed binders —
+# mixed partials ∂²/∂x∂y, a sum ∑ᵢ(xᵢ + ∑ᵢ yᵢ) whose inner i shadows the outer —
+# are checkable: a math:VariableDeclaration is a variable's identity within a
+# scope and a math:VariableOccurrence is a use site resolving to exactly one
+# declaration, making α-equivalence a graph isomorphism rather than a string
+# match. Any expression that crosses into reasoning declares what it denotes
+# (math:denotationKind) and how it lowers (math:compilesToLogicTerm/Formula/Type)
+# with a recorded preservation polarity — the seam that keeps the mathematical
+# surface from silently becoming a logic: assertion. Bedrock landed
+# math:ApplicationExpression + math:operator and deferred this surface; the
+# analysis-and-geometry charter is its first consumer and lands exactly the
+# subset its binders need, using the canonical reserved names (no near-synonyms).
+# =========================================================================== #
+
+# --- Expression AST: argument slots and the binding form -------------------- #
+
+math:ArgumentSlot
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Argument Slot"@x-gmeow-english ;
+    skos:definition "One indexed operand position of a math:ApplicationExpression or math:BindingExpression: it carries exactly one integer math:slotIndex and exactly one math:slotExpression. Operand order is carried by these slots, not by RDF list ordering — swapping two slots' expressions is a different expression, so non-commutative operators (matrix product, function composition, subtraction, the body of a binder) are order-safe. Slot indexes are unique within one application; strict canonical mode additionally requires them zero-based and contiguous. A slot missing its index or expression is ill-formed (math:MalformedArgumentSlot)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:BindingExpression
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalExpression ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Binding Expression"@x-gmeow-english ;
+    skos:definition "A binder: the expression node that binds a variable over a body. Application-shaped — it names its binder operator through math:operator (a math:Operation individual such as the differentiation, integration, summation, or limit binder), its body through indexed math:argumentSlot cells, and the math:VariableDeclaration it introduces through math:boundVariable. It binds math:VariableOccurrence use sites through math:bindsOccurrence, never glyphs, so nested and shadowed binders are checkable. The single binding form d/dx, ∂, ∫, ∑, and lim all specialize: a math:Derivative, a math:Limit, a math:Series, and a math:Integral are binding expressions, so no per-operator binder machinery is minted. A binder without a bound variable and a body is ill-formed (math:MalformedBindingExpression)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:VariableExpression
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalExpression ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Variable Expression"@x-gmeow-english ;
+    skos:definition "A variable used inside an expression: an expression node standing for one math:VariableOccurrence (math:variableOccurrence). Its occurrence is either bound by a math:BindingExpression or resolves to a math:FreeVariableDeclaration; there is no implicit free variable. This is the leaf of the AST where a bound or free variable enters a formula."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:VariableDeclaration
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Variable Declaration"@x-gmeow-english ;
+    skos:definition "The identity of a variable within a scope — the binding site's referent. Introduced by a math:BindingExpression through math:boundVariable, or standing alone as a math:FreeVariableDeclaration carrying a declared type/domain context. Every math:VariableOccurrence points at exactly one declaration through math:declaredVariable, so α-equivalence (same structure up to renaming of declarations) is a graph isomorphism over declarations rather than a string comparison. Two binders that reuse the glyph i introduce two distinct declarations."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:FreeVariableDeclaration
+    a owl:Class ;
+    rdfs:subClassOf math:VariableDeclaration ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Free Variable Declaration"@x-gmeow-english ;
+    skos:definition "A variable declaration not introduced by a binder: a free variable, standing alone with a declared type and domain context. The explicit marker that a variable occurrence is free — there is no implicit free variable, so an occurrence is either bound by a math:BindingExpression or resolves to a math:FreeVariableDeclaration with its type/domain declared."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:VariableOccurrence
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Variable Occurrence"@x-gmeow-english ;
+    skos:definition "A use site of a variable within an expression scope: it names the math:VariableDeclaration it refers to through math:declaredVariable and the scope it occurs in through math:occursInScope. A binder binds occurrences (math:bindsOccurrence), not glyphs, so an occurrence in the body of two nested binders that reuse a glyph resolves to exactly one of the two declarations. An occurrence that resolves to no declaration and is not marked free is ill-formed (math:UnscopedVariableOccurrence)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:DenotationKind
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Denotation Kind"@x-gmeow-english ;
+    skos:definition "What a math:MathematicalExpression denotes when it crosses into reasoning: one of math:denotesObject (a mathematical object/value → a logic: term), math:denotesProposition (a proposition → a logic: formula), math:denotesType (a type/sort → a logic: type), math:denotesOperator (a function/relation/operator → a logic: predicate or function symbol), or math:denotesProof (a proof-term → a logic: proof object). The AST is not a second logic: an expression declares its denotation kind and its lowering so the mathematical surface and the reasoning surface compose instead of duplicating."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+# --- Denotation-kind individuals (the five lowering targets) ---------------- #
+
+math:denotesObject
+    a owl:NamedIndividual , math:DenotationKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "denotes object / value"@x-gmeow-english ;
+    skos:definition "The denotation kind of an expression standing for a mathematical object or value — a number, a limit, a definite integral, a tensor. It lowers to a logic: term through math:compilesToLogicTerm. The default kind of a computed value expression."@x-gmeow-english .
+
+math:denotesProposition
+    a owl:NamedIndividual , math:DenotationKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "denotes proposition / formula"@x-gmeow-english ;
+    skos:definition "The denotation kind of a truth-valued expression — an equation, an inequality, a convergence claim ∀ε∃δ. It lowers to a logic: formula through math:compilesToLogicFormula. A truth-valued expression does not become a logic: assertion until this kind and its lowering preservation are declared; silent promotion is forbidden (math:UndeclaredLogicLowering)."@x-gmeow-english .
+
+math:denotesType
+    a owl:NamedIndividual , math:DenotationKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "denotes type / sort"@x-gmeow-english ;
+    skos:definition "The denotation kind of an expression standing for a type, class, or sort — a function space, a manifold's structure kind. It lowers to a logic: type through math:compilesToLogicType."@x-gmeow-english .
+
+math:denotesOperator
+    a owl:NamedIndividual , math:DenotationKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "denotes operator / function / relation"@x-gmeow-english ;
+    skos:definition "The denotation kind of an expression standing for a function, relation, or operator — the differentiation operator, a continuous map. It lowers to a logic: predicate or function symbol."@x-gmeow-english .
+
+math:denotesProof
+    a owl:NamedIndividual , math:DenotationKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "denotes proof / proof-term"@x-gmeow-english ;
+    skos:definition "The denotation kind of an expression standing for a proof or proof-term. It lowers to a logic: proof object. The rarest kind, used where a proof term is carried as structured content rather than as prose."@x-gmeow-english .
+
+# --- Binder-operator individuals (the binder symbols) ----------------------- #
+
+math:differentiationBinder
+    a owl:NamedIndividual , math:Operation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "d/dx (differentiation binder)"@x-gmeow-english ;
+    skos:definition "The differentiation binder d/dx: the math:operator a math:Derivative binding expression applies, binding the variable of differentiation over the body it differentiates. Anchored to the OpenMath calculus1 diff symbol."@x-gmeow-english .
+
+math:partialDifferentiationBinder
+    a owl:NamedIndividual , math:Operation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "∂ (partial-differentiation binder)"@x-gmeow-english ;
+    skos:definition "The partial-differentiation binder ∂: the math:operator a math:PartialDerivative binding expression applies, binding one variable while others are held. Mixed partials ∂²/∂x∂y are nested binding expressions, each with its own math:VariableDeclaration. Anchored to the OpenMath calculus1 partialdiff symbol."@x-gmeow-english .
+
+math:summationBinder
+    a owl:NamedIndividual , math:Operation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "∑ (summation binder)"@x-gmeow-english ;
+    skos:definition "The summation binder ∑: the math:operator a math:Series binding expression applies, binding the summation index over the summand. A shadowed index ∑ᵢ(xᵢ + ∑ᵢ yᵢ) introduces two distinct math:VariableDeclarations. Anchored to the OpenMath arith1 sum symbol."@x-gmeow-english .
+
+math:limitBinder
+    a owl:NamedIndividual , math:Operation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "lim (limit binder)"@x-gmeow-english ;
+    skos:definition "The limit binder lim: the math:operator a math:Limit binding expression applies, binding the variable that approaches the limit point over the body. Anchored to the OpenMath calculus1 limit symbol."@x-gmeow-english .
+
+# --- Integration binder retrofit (∫ is a binding expression) ---------------- #
+
+math:Integral rdfs:subClassOf math:BindingExpression .
+
+# --- Binder AST conformance failures ---------------------------------------- #
+
+math:MalformedArgumentSlot
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Malformed Argument Slot"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:ArgumentSlot does not carry exactly one math:slotIndex and exactly one math:slotExpression, or when two slots of one application share an index. Operand order is carried by unique indexed slots; a slot missing its index or expression, or a duplicated index, is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:UnscopedVariableOccurrence
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Unscoped Variable Occurrence"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:VariableOccurrence neither resolves to a math:VariableDeclaration through math:declaredVariable nor is marked free through a math:FreeVariableDeclaration. There is no implicit free variable; an occurrence that binds to nothing is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:MalformedBindingExpression
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Malformed Binding Expression"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:BindingExpression does not name the math:VariableDeclaration it binds through math:boundVariable, or does not name its body through math:argumentSlot. A binder binds a variable over a body; a binder missing either is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:UndeclaredLogicLowering
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Undeclared Logic Lowering"@x-gmeow-english ;
+    skos:definition "The failure raised when a truth-valued math:MathematicalExpression is lowered into logic: (math:compilesToLogicFormula) without declaring its math:denotationKind and its math:logicLoweringPreservation. Silent promotion of a mathematical expression to a logical assertion is forbidden — an equation is a denotable object until something declares it a proposition and lowers it, with recorded preservation, into the reasoning layer."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+# --- Binder AST properties -------------------------------------------------- #
+
+math:argumentSlot
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "argument slot"@x-gmeow-english ;
+    skos:definition "Relates a math:ApplicationExpression or math:BindingExpression to one math:ArgumentSlot carrying an indexed operand (or, for a binder, the body). Domain a math:ApplicationExpression or math:BindingExpression, range math:ArgumentSlot (stated in prose). Operand order is carried by the slots' math:slotIndex, never by RDF list ordering."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:slotIndex
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "slot index"@x-gmeow-english ;
+    skos:definition "The integer position of a math:ArgumentSlot within its application — the operand order. Domain math:ArgumentSlot, range xsd:nonNegativeInteger (stated in prose). Unique within one application; strict canonical mode requires the indexes zero-based and contiguous. A slot without exactly one index is ill-formed (math:MalformedArgumentSlot)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:slotExpression
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "slot expression"@x-gmeow-english ;
+    skos:definition "The math:MathematicalExpression filling one math:ArgumentSlot — the operand, or the body of a binder. Domain math:ArgumentSlot, range math:MathematicalExpression (stated in prose). Every slot names exactly one; a slot without an expression is ill-formed (math:MalformedArgumentSlot)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:boundVariable
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "bound variable"@x-gmeow-english ;
+    skos:definition "Relates a math:BindingExpression to the math:VariableDeclaration it introduces and binds — the variable of differentiation, integration, summation, or the limit. Domain math:BindingExpression, range math:VariableDeclaration (stated in prose). Every binder names exactly one bound variable's declaration; a binder without one is ill-formed (math:MalformedBindingExpression). This is the edge through which a binder introduces its variable's scoped identity, over which its bound math:VariableOccurrence use sites resolve."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:bindsOccurrence
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "binds occurrence"@x-gmeow-english ;
+    skos:definition "Relates a math:BindingExpression to a math:VariableOccurrence it binds — a use site of its bound variable within its body. Domain math:BindingExpression, range math:VariableOccurrence (stated in prose). A binder binds occurrences, not glyphs, so under nesting and shadowing each occurrence resolves to exactly one binder."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:declaredVariable
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "declared variable"@x-gmeow-english ;
+    skos:definition "Relates a math:VariableOccurrence to the math:VariableDeclaration it refers to — the binding site or free declaration that gives the occurrence its identity. Domain math:VariableOccurrence, range math:VariableDeclaration (stated in prose). Every occurrence resolves to exactly one declaration; an occurrence resolving to none and not marked free is ill-formed (math:UnscopedVariableOccurrence)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:occursInScope
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "occurs in scope"@x-gmeow-english ;
+    skos:definition "Relates a math:VariableOccurrence to the math:MathematicalExpression scope it occurs in — the binding expression or sub-expression whose body contains the use site. Domain math:VariableOccurrence, range math:MathematicalExpression (stated in prose). Scope is what makes shadowing resolvable: an occurrence in the innermost scope binds to the innermost declaration of its glyph."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:variableOccurrence
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "variable occurrence"@x-gmeow-english ;
+    skos:definition "Relates a math:VariableExpression leaf to the math:VariableOccurrence it stands for. Domain math:VariableExpression, range math:VariableOccurrence (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:denotationKind
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "denotation kind"@x-gmeow-english ;
+    skos:definition "Relates a math:MathematicalExpression to the math:DenotationKind naming what it denotes when it crosses into reasoning — object/value, proposition, type, operator, or proof. Domain math:MathematicalExpression, range math:DenotationKind (stated in prose). A truth-valued expression declares this before lowering to a logic: formula; an undeclared lowering is ill-formed (math:UndeclaredLogicLowering)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:compilesToLogicTerm
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "compiles to logic: term"@x-gmeow-english ;
+    skos:definition "Relates a math:MathematicalExpression that denotes an object/value to the logic: term it lowers to. Domain math:MathematicalExpression (math:denotationKind math:denotesObject), range a logic: term (stated in prose). The explicit, preservation-judged map that keeps the mathematical AST from re-implementing the logic: IR."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:compilesToLogicFormula
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "compiles to logic: formula"@x-gmeow-english ;
+    skos:definition "Relates a truth-valued math:MathematicalExpression to the logic:Formula it lowers to. Domain math:MathematicalExpression (math:denotationKind math:denotesProposition), range logic:Formula (stated in prose). Present only with a declared math:denotationKind and math:logicLoweringPreservation; silent promotion to a logical assertion is forbidden (math:UndeclaredLogicLowering)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:compilesToLogicType
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "compiles to logic: type"@x-gmeow-english ;
+    skos:definition "Relates a math:MathematicalExpression that denotes a type/sort to the logic: type it lowers to. Domain math:MathematicalExpression (math:denotationKind math:denotesType), range a logic: type (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:logicLoweringPreservation
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "logic lowering preservation"@x-gmeow-english ;
+    skos:definition "Relates a math:MathematicalExpression to the preservation polarity of its lowering into logic:, reusing the shared loss-ledger vocabulary (logic:preservationKind values such as logic:ExactPreservation, logic:SoundUnderApproximation, logic:CompleteOverApproximation). Domain math:MathematicalExpression, range a logic:preservationKind value (stated in prose). No near-synonym is minted — mathematics lowering loss is queryable in the same ledger as every other GMEOW projection (Principle 17)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
