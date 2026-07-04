@@ -81,6 +81,7 @@ const NON_CONFORMANT: &[&str] = &[
     "slices/core/inhabitation/examples/subject-status.ttl", // gmeow:tenureSubjectAgent/tenureVantage → Agent not typed standalone (SoftwareAgent⊑Agent chain); gmeow:hasTemporalFrame → shared TemporalFrame untyped standalone
     "slices/core/inquiry/examples/loaded-question.ttl", // gmeow:observationMethod → shared method individual untyped standalone
     "slices/core/inquiry/examples/open-question-and-resolution.ttl", // gmeow:observationMethod → shared method individual untyped standalone
+    "slices/grounding/lang/examples/forms-and-sign-systems.ttl", // lang:partOfSpeech/slotRole/featureKey/featureValue/analysisLevel/compositionLevel/offsetSpace/signSystemKind/modality/grammarFormalism → shared inventory, role, level, and kind individuals (noun, subjectRole, featNumber, valPlur, parsedLevel, sentenceLevel, codepointOffset, naturalLanguageKind, writtenModality, ebnfFormalism) defined in module.ttl, untyped standalone
     "slices/grounding/logic/examples/formalization-governance.ttl", // logic:candidateCategory/candidateProjectionBehavior/candidateNonEntailment → shared governance individuals (categories, preservation kinds, the standing obligations) defined in module.ttl, untyped standalone
     "slices/grounding/math/examples/numbers-sets-functions.ttl", // math:hasElement → set-member individuals (two/three/five/seven) untyped standalone; math:memberCondition → a logic:Formula node (no closed-world schema entry, the denotation seam)
     "slices/core/metacognition/examples/dunning-kruger.ttl", // gmeow:observationMethod → shared method individual untyped standalone
@@ -212,6 +213,10 @@ fn gmeow_namespaces() -> json_schema::Namespaces {
             (
                 "logic".to_owned(),
                 "https://blackcatinformatics.ca/logic/".to_owned(),
+            ),
+            (
+                "lang".to_owned(),
+                "https://blackcatinformatics.ca/lang/".to_owned(),
             ),
             (
                 "math".to_owned(),
