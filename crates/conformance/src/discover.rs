@@ -7,20 +7,20 @@
 //! filesystem glob (one nextest case per `profile.json` sentinel) and calls
 //! [`validate_case`] on each discovered directory. [`discover_cases`] is the
 //! standalone walk used by the parity/unit tests and any non-harness caller
-//! (the retired Python `discover_cases` it supersedes was removed in #727):
+//! (the retired Python `discover_cases` it supersedes was removed):
 //!
 //! * `input.logic.ttl` is required.
 //! * `profile.json` is required and must be a JSON object (malformed ⇒ hard fail).
 //! * `input.nq` is optional (world-indexed cases supply it; projection-only cases
 //!   do not).
 //!
-//! ## External-corpus seam (#752 / #753)
+//! ## External-corpus seam
 //!
 //! Discovery is intentionally **category-agnostic**: the harness globs every
 //! `profile.json` under `cases/`, so a future `cases/external/<corpus>/<case>/`
 //! group is auto-discovered the moment it adopts the same per-case anatomy. The
 //! SZS/manifest ingestion adapter that lowers third-party corpora INTO that
-//! anatomy is the scope of #753; this harness is the discovery host it plugs into.
+//! anatomy is the scope; this harness is the discovery host it plugs into.
 
 use std::path::{Path, PathBuf};
 
@@ -63,7 +63,7 @@ pub fn validate_case(case_dir: &Path) -> Result<ConformanceCase, String> {
 
 /// Discover every conformance case under `cases_root`.
 ///
-/// Walks the tree at ANY depth in sorted order (#753): a directory is a case iff it
+/// Walks the tree at ANY depth in sorted order: a directory is a case iff it
 /// holds BOTH `input.logic.ttl` and `profile.json`. This recovers the standard
 /// two-level `cases/<category>/<case>/` layout AND the three-level vendored
 /// `cases/external/<corpus>/<case>/` layout, matching the recursive glob the
@@ -168,7 +168,7 @@ mod tests {
     fn discovers_the_full_corpus() {
         // Canonical discovery test: every case under projections/ (and the rest of the corpus)
         // is discovered. (The retired tests/test_logic_runner.py::TestDiscoverCases covered the
-        // same case before being removed in #727.)
+        // same case before being removed.)
         let cases = discover_cases(&corpus_cases_root()).expect("discovery ok");
         let ids: Vec<&str> = cases.iter().map(|c| c.case_id.as_str()).collect();
         assert!(
@@ -184,7 +184,7 @@ mod tests {
         // the harness against the Python baseline, not pinned here).
         assert!(cases.len() >= 20, "unexpectedly few cases: {}", cases.len());
 
-        // Recursion guard (#753): the discovered id SET must be unchanged except for
+        // Recursion guard: the discovered id SET must be unchanged except for
         // `external/**` additions. A standard case id is exactly `<category>/<case>`
         // (one slash); only a vendored corpus case may be deeper, and then it MUST be
         // `external/<corpus>/<case>` (two slashes). This catches the recursion
@@ -210,7 +210,7 @@ mod tests {
     fn discovers_three_level_external_case_and_skips_source_subtree() {
         // A vendored external corpus lives at cases/external/<corpus>/<case>/ — three
         // levels deep. The recursive walk must find it (the binary path missed it
-        // before #753), assign the external/-prefixed id, and NOT mistake the case's
+        // before), assign the external/-prefixed id, and NOT mistake the case's
         // own `source/` subtree for a nested case.
         let tmp = std::env::temp_dir().join(format!("gmeow-disc-ext-{}", std::process::id()));
         let cases = tmp.join("cases");

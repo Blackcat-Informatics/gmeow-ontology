@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The `logic:Correspondence` carrier lane (#1132 C10): project a set of typed
+//! The `logic:Correspondence` carrier lane (C10): project a set of typed
 //! [`Correspondence`] IR nodes into a deterministic, sorted, byte-stable RDF
 //! named-graph (`graph/correspondence`) and re-derive them back — the inverse the
 //! cache uses on a hit.
@@ -206,7 +206,7 @@ pub struct CorrespondenceCaveat {
 
 /// A compiled set of [`Correspondence`] nodes plus their caveats and the declared
 /// preservation polarity — the typed payload the `PipelineHandle::Correspondence` arm
-/// carries (#1132 C10). One content identity ([`CorrespondenceProgram::content_key`])
+/// carries (C10). One content identity ([`CorrespondenceProgram::content_key`])
 /// across the typed handle and its backing `graph/correspondence` projection.
 #[derive(Debug, Clone, PartialEq)]
 pub struct CorrespondenceProgram {

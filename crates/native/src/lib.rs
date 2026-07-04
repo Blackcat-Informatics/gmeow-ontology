@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! `gmeow_native` — the single unified PyO3 extension module (#630).
+//! `gmeow_native` — the single unified PyO3 extension module.
 //!
 //! # Why one cdylib
 //!
@@ -21,18 +21,18 @@
 //! Each engine is registered into its own submodule:
 //!
 //! * `gmeow_native.rdf` — the RDF 1.2 kernel: statement codec + oxigraph
-//!   Store/SPARQL/parse/canonicalize surface (#667).
-//! * `gmeow_native.diagnostics` — the Finding/Report model + renderers (#654).
+//!   Store/SPARQL/parse/canonicalize surface.
+//! * `gmeow_native.diagnostics` — the Finding/Report model + renderers.
 //! * `gmeow_native.shacl` — the SHACL Core validator.
 //! * `gmeow_native.validate` — the validation-path lints + orchestration.
 //! * `gmeow_native.logic` — the reasoning engine surface.
 //! * `gmeow_native.slice` — the native slice catalog + ownership/dependency
-//!   analyzer (#820 S8): the authoritative slice machinery.
+//!   analyzer (S8): the authoritative slice machinery.
 //! * `gmeow_native.docs` — the typed documentation model built from the slice
-//!   catalog (#853): slices, terms, and dependency edges.
-//! * `gmeow_native.pipeline` — the DAG-driven single-pass build executor (#861):
+//!   catalog: slices, terms, and dependency edges.
+//! * `gmeow_native.pipeline` — the DAG-driven single-pass build executor:
 //!   the `run_pipeline` full-build / drift-check surface.
-//! * `gmeow_native.foundation` — the foundation-corpus importer (#944): the
+//! * `gmeow_native.foundation` — the foundation-corpus importer: the
 //!   `import_foundation` surface (foundation.ttl + budget report + six
 //!   projections).
 //! * `gmeow_native.music` — the music-package toolchain: GTS package I/O,

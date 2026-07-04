@@ -8,8 +8,8 @@ cross-slice dependency edges from the ownership analyzer.
 
 The model is PyO3-free and fully deterministic — every collection is sorted by a
 stable key so the serialized model is byte-reproducible. Python bindings live in
-`src/py.rs` and are folded into the unified `gmeow_native` cdylib (#630) as the
+`src/py.rs` and are folded into the unified `gmeow_native` cdylib as the
 `gmeow_native.docs` submodule.
 
 Renderers (Markdown / HTML), linkage diagrams, lint, and bundle wiring are built
-on top of this model in later tasks of #853; this crate owns the model itself.
+on top of this model in later tasks; this crate owns the model itself.

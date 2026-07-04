@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 //! The oxigraph-free native SPARQL substrate for the introspection export leaves
-//! (`result_shapes`, `result_shape_composition`, `research_objects`) — EPIC #906.
+//! (`result_shapes`, `result_shape_composition`, `research_objects`).
 //!
 //! Each of those leaves used to parse Turtle sources into a transient oxigraph
 //! `Store` and query it via `SparqlEvaluator`. This module replaces both with the

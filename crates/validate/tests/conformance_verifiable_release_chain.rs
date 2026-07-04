@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Conformance twins migrated from tests/test_verifiable_release_chain.py (#867).
+//! Conformance twins migrated from tests/test_verifiable_release_chain.py.
 //!
 //! Only `test_fixture_loads_and_shacl_passes` was migratable: it is the sole
 //! `run_shacl` call in the Python file, uses the fixture-only graph (no merged

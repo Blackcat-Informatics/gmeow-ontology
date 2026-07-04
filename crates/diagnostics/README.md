@@ -8,7 +8,7 @@ The engine model and renderers are PyO3-free. Python bindings live in
 `src/py.rs` and expose the `gmeow_diagnostics` extension module for
 `gmeow_tools.diagnostics`.
 
-## Projections (#654)
+## Projections
 
 The canonical `Report` is the single source of truth — it must report on a graph
 too broken to parse, so it lives in Rust, not RDF. Every user-facing format is a

@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The `references` export leaf (#861 P4): the citation-ledger exports.
+//! The `references` export leaf (P4): the citation-ledger exports.
 //!
 //! A genuine port of the render half of `src/gmeow_tools/references.py` (no Rust
 //! existed): the curated `metadata/references.ttl` ledger → CSL-JSON, BibTeX, and

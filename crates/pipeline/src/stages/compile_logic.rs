@@ -62,14 +62,14 @@ use crate::stages::diag_render::{render_diagnostics_artifacts, DiagnosticsPaths}
 pub const SOURCE_PATH: &str = "slices/grounding/logic/module.ttl";
 
 /// The named-graph IRI carrying the canonical RDF-1.2 projection of the compiled
-/// [`LogicProgram`] (#1132 C6). The compile-logic stage pins its typed
+/// [`LogicProgram`] (C6). The compile-logic stage pins its typed
 /// [`PipelineHandle::Logic`] handle to THIS graph's canonical digest, and
 /// `stage-snapshot` folds the same projection into the bundle under this IRI — so the
 /// in-graph carriage and the typed handle are the two faces of one content identity.
 pub const GRAPH_LOGIC: &str = "https://blackcatinformatics.ca/gmeow/graph/logic";
 
 /// The named-graph IRI carrying the deterministic RDF projection of the relational-core
-/// lowering of the compiled [`LogicProgram`] (#1132 C8) — the engine-agnostic
+/// lowering of the compiled [`LogicProgram`] (C8) — the engine-agnostic
 /// Datalog±-with-stratified-negation dialect lowered from the program's Horn `rules`.
 /// The compile-logic stage pins its typed [`PipelineHandle::RelationalCore`] handle to
 /// THIS graph's canonical digest, and `stage-snapshot` folds the same projection into the
@@ -81,7 +81,7 @@ pub const GRAPH_RELATIONAL_CORE: &str =
     "https://blackcatinformatics.ca/gmeow/graph/relational-core";
 
 /// The named-graph IRI carrying the deterministic RDF projection of the compiled
-/// [`CorrespondenceProgram`] (#1132 C10) — the `logic:Correspondence` carrier lane and
+/// [`CorrespondenceProgram`] (C10) — the `logic:Correspondence` carrier lane and
 /// the §14 affine-triangle worked transform (`foaf:Person` + `schema:ContactPoint`
 /// co-projecting onto `gmeow:contact`). The compile-logic stage pins its typed
 /// [`PipelineHandle::Correspondence`] handle to THIS graph's canonical digest, and
@@ -138,12 +138,12 @@ pub const OPT_TEST_DATATYPES_PATH: &str = "validations/openehr-test-datatypes/Te
 /// the correspondence-calculus loss ledger and serializes the report ONCE. `stage-snapshot`
 /// reads it from the mappings product.
 pub const PROJECTION_REPORT_PATH: &str = "generated/logic/projection-report.ttl";
-/// Committed relational-core dialect projection (#1132 C8): the deterministic N-Triples
+/// Committed relational-core dialect projection (C8): the deterministic N-Triples
 /// RDF projection of the [`RelationalCoreProgram`] lowered from the program's Horn rules.
 /// It is BOTH a committed artifact AND the backing graph the typed RelationalCore handle
 /// pins to (the same role the canonical RDF-1.2 projection plays for the Logic handle).
 pub const RELATIONAL_CORE_PATH: &str = "generated/logic/gmeow.relational-core.nt";
-/// Committed correspondence-lane projection (#1132 C10): the deterministic N-Triples RDF
+/// Committed correspondence-lane projection (C10): the deterministic N-Triples RDF
 /// projection of the [`CorrespondenceProgram`] (the §14 affine-triangle worked transform).
 /// It is BOTH a committed artifact AND the backing graph the typed Correspondence handle
 /// pins to (the same role the canonical RDF-1.2 projection plays for the Logic handle).
@@ -344,7 +344,7 @@ impl Stage for CompileLogicStage {
             })?,
         );
         // Keep the canonical RDF-1.2 projection: it is BOTH a committed artifact AND
-        // the backing graph the typed Logic handle (#1132 C6) pins to.
+        // the backing graph the typed Logic handle (C6) pins to.
         let canonical_rdf12 = arts.canonical_rdf12;
         artifacts.insert(
             CANONICAL_RDF12_PATH.to_string(),
@@ -397,7 +397,7 @@ impl Stage for CompileLogicStage {
                 .map_err(|e| stage_err(format!("encode logic-projections channel: {e}")))?,
         );
 
-        // The relational-core lowering (#1132 C8): lower the program's Horn rules into the
+        // The relational-core lowering (C8): lower the program's Horn rules into the
         // engine-agnostic Datalog±-with-stratified-negation dialect, then project it into
         // a deterministic N-Triples graph. Keep the projection: it is BOTH a committed
         // artifact AND the backing graph the typed RelationalCore handle pins to. The
@@ -410,7 +410,7 @@ impl Stage for CompileLogicStage {
             canon_fanout_nt(&relational_core_nt)?,
         );
 
-        // The correspondence carrier lane (#1132 C10): the §14 affine-triangle worked
+        // The correspondence carrier lane (C10): the §14 affine-triangle worked
         // transform (`foaf:Person` + `schema:ContactPoint` co-projecting onto
         // `gmeow:contact`). Constructed ONCE here, projected ONCE here, then carried BOTH
         // as the typed `PipelineHandle::Correspondence` payload AND its backing
@@ -470,7 +470,7 @@ impl Stage for CompileLogicStage {
             },
         )?);
 
-        // The REAL typed Logic handle (#1132 C6): carry the compiled program itself
+        // The REAL typed Logic handle (C6): carry the compiled program itself
         // on the bundle, pinned to the canonical RDF-1.2 projection of THIS program
         // folded into the `graph/logic` named graph. A downstream consumer takes the
         // typed `Arc<LogicProgram>` and never re-parses the logic graph; on a cache
@@ -545,7 +545,7 @@ fn build_logic_bundle(
             pinned,
         )
         .map_err(|e| stage_err(format!("pin Logic handle to <{GRAPH_LOGIC}>: {e}")))?;
-    // The REAL typed RelationalCore handle (#1132 C8): the typed dialect, pinned to its
+    // The REAL typed RelationalCore handle (C8): the typed dialect, pinned to its
     // backing `graph/relational-core` projection. `pin_handle` HARD-fails on a digest
     // mismatch, so a handle that disagrees with its backing graph can never attach.
     let pinned_rc = bundle.graph_digest(GRAPH_RELATIONAL_CORE);
@@ -560,7 +560,7 @@ fn build_logic_bundle(
                 "pin RelationalCore handle to <{GRAPH_RELATIONAL_CORE}>: {e}"
             ))
         })?;
-    // The REAL typed Correspondence handle (#1132 C10): the typed correspondence program,
+    // The REAL typed Correspondence handle (C10): the typed correspondence program,
     // pinned to its backing `graph/correspondence` projection. `pin_handle` HARD-fails on
     // a digest mismatch, so a handle that disagrees with its backing graph can never attach.
     let pinned_corr = bundle.graph_digest(GRAPH_CORRESPONDENCE);
@@ -790,7 +790,7 @@ mod tests {
         )
     }
 
-    /// P17 round-trip identity (#1132 C6): the canonical RDF-1.2 projection of a
+    /// P17 round-trip identity (C6): the canonical RDF-1.2 projection of a
     /// LogicProgram parses back — BOTH via the string reverse parser AND via the
     /// dataset reverse parser the cache uses on a hit — to a canonical-key-EQUAL
     /// program. This is the identity the typed Logic handle relies on: a consumer can
@@ -907,7 +907,7 @@ mod tests {
         );
     }
 
-    // ── #1132 C8: the relational-core carrier lane ──────────────────────────────
+    // ── C8: the relational-core carrier lane ──────────────────────────────
 
     /// The compile-logic stage pins a REAL typed [`PipelineHandle::RelationalCore`]
     /// handle to `graph/relational-core`, and that handle re-derives (via the SAME
@@ -1039,7 +1039,7 @@ mod tests {
         );
     }
 
-    // ── #1132 C10: the correspondence carrier lane ──────────────────────────────
+    // ── C10: the correspondence carrier lane ──────────────────────────────
 
     /// The compile-logic stage pins a REAL typed [`PipelineHandle::Correspondence`]
     /// handle to `graph/correspondence`, and that handle re-derives (via the SAME reverse

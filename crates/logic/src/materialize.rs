@@ -6,7 +6,7 @@
 //! natively (no Python, no FFI).
 //!
 //! The PyO3 wrapper in [`crate::py`] keeps only the marshalling shell: the empty
-//! short-circuit, the non-stratifiable native routing (issue #651, which returns
+//! short-circuit, the non-stratifiable native routing (which returns
 //! Python rows), and the `DerivedQuad → PyDict` serialization. Everything between
 //! — parse N-Quads → encode Nemo facts → run the chase → decode rows to
 //! [`DerivedQuad`]s with real provenance → apply the post-hoc budget governor —
@@ -130,7 +130,7 @@ fn rule_iri_from_name(rule_name: Option<&str>) -> String {
 ///
 /// With all of `max_rule_firings`/`max_answers`/`time_ms` set to `None` (the
 /// default), the post-hoc budget governor is skipped entirely and the output is
-/// byte-identical to the pre-#502 chase order with every quad `budget_status = Ok`.
+/// byte-identical to the chase order with every quad `budget_status = Ok`.
 ///
 /// # Errors
 ///
@@ -272,9 +272,9 @@ pub fn materialize_core(
         derived_quads.push((dq, is_edb));
     }
 
-    // ── 6. Post-hoc budget governor (issue #502) ─────────────────────────────
+    // ── 6. Post-hoc budget governor ─────────────────────────────
     // With no budget params (the default), this whole block is skipped, so the
-    // output is byte-identical to pre-#502: chase order, every quad "ok".
+    // output is byte-identical to: chase order, every quad "ok".
     let final_quads: Vec<DerivedQuad> = if budget_active {
         apply_budget(derived_quads, max_rule_firings, max_answers, time_ms, start)
     } else {
@@ -385,13 +385,13 @@ fn apply_budget(
         .collect()
 }
 
-// ── Profile-routed materialization (issue #785) ──────────────────────────────────
+// ── Profile-routed materialization ──────────────────────────────────
 //
 // The native conformance harness (`crates/conformance`) drives the engine
 // directly, with no PyO3 boundary. It therefore needs ONE public entry point that
 // reproduces the routing the `gmeow_logic.materialize` PyO3 wrapper performs in
 // [`crate::py`]: empty-input short-circuit, the non-stratifiable native routing
-// (well-founded / cautious-stable / declared-StratifiedNAF echo, issue #651), and
+// (well-founded / cautious-stable / declared-StratifiedNAF echo), and
 // otherwise the Nemo [`materialize_core`] chase. The wrapper's routing logic and
 // this function are the SAME native evaluators (`crate::wellfounded`,
 // `crate::stablemodel`, `crate::rule_ir`), so the produced quads are identical by
@@ -489,7 +489,7 @@ fn echo_edb_only(input: &str) -> Result<Vec<crate::rule_ir::DerivedRow>, Materia
 
 /// Materialize the forward chase, routing by declared semantic `profile`.
 ///
-/// This is the public, PyO3-free entry point the conformance harness (#785) calls.
+/// This is the public, PyO3-free entry point the conformance harness calls.
 /// It reproduces the routing of the `gmeow_logic.materialize` wrapper exactly:
 ///
 /// * empty `input` ⇒ empty result;
@@ -605,7 +605,7 @@ pub fn materialize_routed(
 
 #[cfg(test)]
 mod tests {
-    //! Native coverage of the materialize engine pipeline (issue #786 / T5).
+    //! Native coverage of the materialize engine pipeline (T5).
     //!
     //! These are the Rust ports of the engine assertions that previously lived in
     //! `tests/test_logic_engine.py` and drove `gmeow_logic.materialize` through

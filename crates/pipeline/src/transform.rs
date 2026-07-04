@@ -8,7 +8,7 @@
 //! suppression-aware strong-equivalence saturation, projection CONSTRUCT
 //! execution, provenance merge, and GTS byte emission.
 //!
-//! Oxigraph-free (EPIC #906): the transient triple stores are flat
+//! Oxigraph-free: the transient triple stores are flat
 //! [`purrdf::RdfDataset`]s built from owned [`RdfQuad`] streams and pattern-queried
 //! through the native [`DatasetView`]; the projection CONSTRUCT runs through
 //! [`NativeSparqlEngine`]. The deterministic Skolem IRI minting, the content-addressed
@@ -709,7 +709,7 @@ fn gts_from_maximal(
     derived: &BTreeMap<TripleKey, DerivedTriple>,
 ) -> Result<Vec<u8>, String> {
     let mut builder = purrdf::gts_compose::SnapshotBuilder::new();
-    // Native carrier ingestion (#909): serialize the default graph to N-Triples and
+    // Native carrier ingestion: serialize the default graph to N-Triples and
     // parse it into a frozen dataset, then fold it in. The native parse folds any RDF
     // 1.2 statement layer into the dataset's reifier/annotation side-tables, so a
     // single `add_dataset` reproduces the old `add_quads` + `add_rdf12` split.

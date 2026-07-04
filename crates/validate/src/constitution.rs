@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Native constitution-as-code gate (#809, #939).
+//! Native constitution-as-code gate.
 //!
 //! Ports the full Python ``gmeow_tools.constitution`` checks to Rust:
 //! enforcement coverage, principle/heading sync, cited artifact/symbol/target/CLI
@@ -868,7 +868,7 @@ fn error(code: &str, message: String) -> Finding {
 mod tests {
     use super::*;
 
-    // cargo-mutants (T9, #790) surfaced surviving mutants in `literal_i64` /
+    // cargo-mutants (T9) surfaced surviving mutants in `literal_i64` /
     // `literal_string` — the helpers had no direct coverage, so replacing their
     // body with `None`/`Some(0)`/deleting the match arm went undetected. These
     // tests pin both the literal path and the non-literal fallthrough, killing

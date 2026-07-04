@@ -1,10 +1,10 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Native slice-test harness (#784, T3 of the Rust-first testing epic #781).
+//! Native slice-test harness (T3 of the Rust-first testing epic).
 //!
 //! GMEOW's doctrine is "one canonical source, everything else a generated or
-//! checked projection". T2 (#783) minted a declarative test-DSL
+//! checked projection". T2 minted a declarative test-DSL
 //! (`dsl/tests/vocabulary.ttl`) and authored each slice's tests AS ontology
 //! data under `slices/<group>/<name>/tests/*.ttl`: a competency question is a
 //! SPARQL ASK/SELECT plus an expected outcome; a structural assertion is a
@@ -22,7 +22,7 @@
 //!   asserted graph (default) and its RDFS closure (opt-in via
 //!   `gmeow:cqReasoning`). See `docs/TESTING.md` for the design.
 //! * [`exec`] — the three cell executors and their per-file aggregators.
-//! * [`native_query`] — the oxigraph-free native SPARQL substrate (EPIC #906): the
+//! * [`native_query`] — the oxigraph-free native SPARQL substrate: the
 //!   dataset builder, the `NativeSparqlEngine` wrapper, and the canonical term
 //!   renderer the other modules share.
 //! * [`paths`] — `CARGO_MANIFEST_DIR`-anchored path resolution.

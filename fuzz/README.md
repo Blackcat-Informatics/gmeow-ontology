@@ -3,7 +3,7 @@ SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinform
 SPDX-License-Identifier: AGPL-3.0-only
 -->
 
-# `gmeow-fuzz` — cargo-fuzz harness for the format frontends (T7, #788)
+# `gmeow-fuzz` — cargo-fuzz harness for the format frontends (T7)
 
 Deep, coverage-guided fuzzing of the **"reject malformed, never panic"** doctrine:
 every parser given arbitrary bytes must return `Ok`/`Err`, never panic/abort.
@@ -27,8 +27,8 @@ portable contract enforcement; this crate explores far deeper given time.
 The crate depends only on `gmeow-rdf` + `gmeow-shacl` (oxigraph-backed) so the
 libFuzzer + sanitizer build never drags the heavy `nemo` tree. The **logic**
 frontends (`parse_logic_str` / `parse_query_program`) are covered by the proptest
-gate; their fuzz targets are deferred (nemo build cost). **CLIF/CGIF/XCL (#718)**
-and **full-FOL IR (#719)** parsers do not exist yet — no targets until they land.
+gate; their fuzz targets are deferred (nemo build cost). **CLIF/CGIF/XCL**
+and **full-FOL IR** parsers do not exist yet — no targets until they land.
 
 ## Running
 

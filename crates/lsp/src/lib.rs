@@ -62,7 +62,7 @@ fn analyze_ttl(text: &str, virtual_path: &str) -> Report {
     let mut report = Report::new("gmeow-lsp");
     let bytes = text.as_bytes();
 
-    // Parse through the native (oxigraph-free, EPIC #906) codec. The native parser is
+    // Parse through the native (oxigraph-free) codec. The native parser is
     // fail-fast (one diagnostic per parse) rather than lenient-multi-error; that is
     // acceptable for an editor linter, which re-lints on every edit.
     if let Err(diagnostic) = parse_dataset(bytes, NativeRdfFormat::Turtle.media_type(), None) {

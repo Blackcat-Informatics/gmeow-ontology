@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The oxigraph-free native SPARQL substrate for the slice-test harness (EPIC #906).
+//! The oxigraph-free native SPARQL substrate for the slice-test harness.
 //!
 //! Every store the harness ran over was an oxigraph in-memory `Store` queried via
 //! `SparqlEvaluator`; this module replaces both with the native stack:

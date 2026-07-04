@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Property-based structural invariants (#787, T6 of #781).
+//! Property-based structural invariants (T6).
 //!
 //! Two invariant families:
 //!
@@ -11,7 +11,7 @@
 //!    (building from a permuted input yields the same canonical program). Verified
 //!    through the existing [`canonical_key`] content key and the [`assert_ir_isomorphic`]
 //!    gate — re-used, never re-minted (Principle 5). This targets the **current**
-//!    IR; full-FOL-IR idempotence is deferred (#719).
+//!    IR; full-FOL-IR idempotence is deferred.
 //!
 //! 2. **Entrenchment strict partial order** — [`Entrenchment`] reads a `≻` order
 //!    from `gmeow:overrides` edges. The property: any successfully-built order is a
@@ -20,7 +20,7 @@
 //!    toward connected edge sets so the order relations are exercised
 //!    non-vacuously.
 //!
-//! 3. **Reasoning-contract compatibility totality** (#766 ME1) — `compat::check` is
+//! 3. **Reasoning-contract compatibility totality** (ME1) — `compat::check` is
 //!    a total, deterministic, hard verdict over a [`ReasoningContract`]. The
 //!    exhaustive oracle sweep in `compat.rs` pins correctness over the documented
 //!    value domains; this property complements it with *robustness* over ARBITRARY
@@ -115,7 +115,7 @@ fn arb_dag_edges() -> impl Strategy<Value = Vec<(usize, usize)>> {
     })
 }
 
-// ── Reasoning-contract generators (#766 ME1) ──────────────────────────────────────
+// ── Reasoning-contract generators (ME1) ──────────────────────────────────────
 
 /// One facet-value string: a documented value drawn from across the facets mixed
 /// with arbitrary junk, so generated contracts exercise both recognised and

@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The pipeline-side carrier types (#1132 C4): the [`PipelineHandle`] typed-handle
+//! The pipeline-side carrier types (C4): the [`PipelineHandle`] typed-handle
 //! enum and the byte-artifact lane the [`StageProduct`](crate::node::StageProduct)
 //! threads stage→stage as an [`Arc<PipelineBundle<PipelineHandle>>`].
 //!
@@ -49,7 +49,7 @@ use purrdf::{
 /// The pipeline-side typed-handle payload carried in the bundle's handle lane.
 ///
 /// Each arm is a typed projection over a named graph the bundle carries; later
-/// tasks (#1132 C7–C10) fill the remaining arms with their real payloads. For C4
+/// tasks (C7–C10) fill the remaining arms with their real payloads. For C4
 /// the lane only had to EXIST; C6 lands the FIRST real typed handle:
 /// [`Logic`](Self::Logic) now carries the compiled [`LogicProgram`] itself (the
 /// content-addressed IR), pinned to its backing `graph/logic` canonical RDF-1.2
@@ -62,14 +62,14 @@ use purrdf::{
 #[non_exhaustive]
 pub enum PipelineHandle {
     /// The logic layer: the compiled [`LogicProgram`] (the typed, content-addressed
-    /// IR) over its backing `graph/logic` named graph — the REAL handle (#1132 C6),
+    /// IR) over its backing `graph/logic` named graph — the REAL handle (C6),
     /// not the C4 placeholder. Its backing graph is the canonical RDF-1.2 projection
     /// of this program; the program's [`canonical_key`](LogicProgram::canonical_key)
     /// is its content identity.
     Logic(Arc<LogicProgram>),
     /// The reasoning layer: the typed [`ReasoningResult`] (the five-axis verdict +
     /// provenance bundle) over its backing `graph/reasoning` named graph — the REAL
-    /// handle (#1132 C7), not the C4 placeholder. Its backing graph is the
+    /// handle (C7), not the C4 placeholder. Its backing graph is the
     /// deterministic RDF projection of this result
     /// ([`project_reasoning_result`](gmeow_logic::result_rdf::project_reasoning_result));
     /// a consumer takes the typed handle and reads the verdict/provenance without
@@ -82,7 +82,7 @@ pub enum PipelineHandle {
     /// The relational-core layer: the typed [`RelationalCoreProgram`] (the engine-agnostic
     /// Datalog±-with-stratified-negation dialect lowered from the compiled program's Horn
     /// rules) over its backing `graph/relational-core` named graph — the REAL handle
-    /// (#1132 C8), not the C4 placeholder. Its backing graph is the deterministic RDF
+    /// (C8), not the C4 placeholder. Its backing graph is the deterministic RDF
     /// projection of this dialect
     /// ([`project_relational_core`](gmeow_logic_compile::relational_core::project_relational_core));
     /// a consumer takes the typed handle and reads the lowered rules/facts/residue
@@ -95,7 +95,7 @@ pub enum PipelineHandle {
     RelationalCore(Arc<RelationalCoreProgram>),
     /// The correspondence/alignment layer: the typed [`CorrespondenceProgram`] (the set
     /// of `logic:Correspondence` IR nodes + caveats + declared preservation polarity)
-    /// over its backing `graph/correspondence` named graph — the REAL handle (#1132 C10),
+    /// over its backing `graph/correspondence` named graph — the REAL handle (C10),
     /// not the C4 placeholder. Its backing graph is the deterministic RDF projection of
     /// this program
     /// ([`project_correspondence`](gmeow_logic_compile::projections::correspondence::project_correspondence));
@@ -198,7 +198,7 @@ pub fn bundle_artifacts(bundle: &PipelineBundle<PipelineHandle>) -> BTreeMap<Str
 /// Replace a bundle's provenance sidecar with `provenance` in place, cloning the
 /// shared carrier only if needed (`Arc::make_mut`). The pipeline scheduler uses
 /// this to thread the run's per-stage provenance into the produced carrier
-/// (#1132 C4 deliverable 3) so the bundle CARRIES a provenance sidecar; the full
+/// (C4 deliverable 3) so the bundle CARRIES a provenance sidecar; the full
 /// graph/occurrence projection over it is C9.
 pub fn set_bundle_provenance(
     bundle: &mut Arc<PipelineBundle<PipelineHandle>>,
@@ -263,7 +263,7 @@ mod tests {
 
     #[test]
     fn pipeline_handle_logic_carries_the_compiled_program() {
-        // The Logic arm now carries the REAL typed IR (#1132 C6), not a backing-graph
+        // The Logic arm now carries the REAL typed IR (C6), not a backing-graph
         // placeholder: an empty program is a valid, cloneable payload.
         let program = Arc::new(LogicProgram::new(vec![], vec![], vec![], None));
         let h = PipelineHandle::Logic(program);
