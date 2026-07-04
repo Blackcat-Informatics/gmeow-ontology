@@ -2,7 +2,13 @@
 # SPDX-License-Identifier: CC-BY-4.0
 # Flagship 1: the declarative sentence "cats chase mice" denotes a logic:Formula
 # through a compositional lowering (lang:composedBy / lang:composedFrom), each step
-# carrying a logic:preservationKind. Conforms to every meaning gate.
+# carrying a logic:preservationKind. The denoted formula is a genuine full-FOL AST
+# — ∀x∀y. (instanceOf(x, Cat) ∧ instanceOf(y, Mouse)) → chase(x, y) — built from the
+# logic: Formula vocabulary, so the native relational-core lowering CONSUMES it into
+# an evaluable Horn rule (head chase(x,y) ← the two type memberships), exactly (no
+# residue). The nouns denote logic:Type individuals (the HiLog reflection) predicated
+# through logic:instanceOf; the verb denotes the binary relation logic:Type it heads.
+# Conforms to every meaning gate.
 
 @prefix lang:  <https://blackcatinformatics.ca/lang/> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
@@ -10,12 +16,24 @@
 
 ex:english a lang:SignSystem .
 
-# The head verb, its lexeme, and the pursue sense (chase = pursue, not engrave).
+# ── The subject noun "cats" → the logic:Type of cats ─────────────────────────
+ex:lexCat a lang:Lexeme ; lang:inSignSystem ex:english .
+ex:senseCat a lang:Sense ; lang:senseOf ex:lexCat .
+ex:wfCats a lang:WordForm ; lang:inSignSystem ex:english ; lang:lexemeOf ex:lexCat .
+ex:typeCat a logic:Type .
+ex:denCats a lang:Denotation ;
+    lang:denotedForm ex:wfCats ;
+    lang:denotationKind lang:denotesLogicType ;
+    lang:denotationTarget ex:typeCat ;
+    lang:denotationContext ex:ctxPlainAssertion ;
+    lang:viaSense ex:senseCat ;
+    logic:preservationKind logic:ExactPreservation .
+
+# ── The head verb "chase" → the binary relation it predicates ────────────────
+# chase = pursue, not engrave; the sense routes the record through the triangle.
 ex:lexChase a lang:Lexeme ; lang:inSignSystem ex:english .
 ex:senseChase a lang:Sense ; lang:senseOf ex:lexChase .
 ex:wfChase a lang:WordForm ; lang:inSignSystem ex:english ; lang:lexemeOf ex:lexChase .
-
-# The predicate denotation of the verb (a logic:Type — the HiLog reflection).
 ex:typeChase a logic:Type .
 ex:denChase a lang:Denotation ;
     lang:denotedForm ex:wfChase ;
@@ -25,9 +43,21 @@ ex:denChase a lang:Denotation ;
     lang:viaSense ex:senseChase ;
     logic:preservationKind logic:ExactPreservation .
 
-# The whole sentence denotes a logic:Formula, composed from its constituents.
+# ── The object noun "mice" → the logic:Type of mice ──────────────────────────
+ex:lexMouse a lang:Lexeme ; lang:inSignSystem ex:english .
+ex:senseMouse a lang:Sense ; lang:senseOf ex:lexMouse .
+ex:wfMice a lang:WordForm ; lang:inSignSystem ex:english ; lang:lexemeOf ex:lexMouse .
+ex:typeMouse a logic:Type .
+ex:denMice a lang:Denotation ;
+    lang:denotedForm ex:wfMice ;
+    lang:denotationKind lang:denotesLogicType ;
+    lang:denotationTarget ex:typeMouse ;
+    lang:denotationContext ex:ctxPlainAssertion ;
+    lang:viaSense ex:senseMouse ;
+    logic:preservationKind logic:ExactPreservation .
+
+# ── The whole sentence denotes a full-FOL logic:Formula, composed S-V-O ───────
 ex:sentCatsChaseMice a lang:ComposedForm ; lang:inSignSystem ex:english .
-ex:formulaCatsChaseMice a logic:Formula .
 ex:ruleSubjVerbObj a lang:CompositionRule .
 ex:denSent a lang:Denotation ;
     lang:denotedForm ex:sentCatsChaseMice ;
@@ -35,5 +65,44 @@ ex:denSent a lang:Denotation ;
     lang:denotationTarget ex:formulaCatsChaseMice ;
     lang:denotationContext ex:ctxPlainAssertion ;
     lang:composedBy ex:ruleSubjVerbObj ;
-    lang:composedFrom ex:denChase ;
+    lang:composedFrom ex:denCats , ex:denChase , ex:denMice ;
     logic:preservationKind logic:ExactPreservation .
+
+# ── The formula AST the reasoner consumes ────────────────────────────────────
+# ∀x∀y. (instanceOf(x, typeCat) ∧ instanceOf(y, typeMouse)) → chase(x, y)
+# A container asserts it as a top-level formula (logic:hasFormula).
+ex:progCatsChaseMice logic:hasFormula ex:formulaCatsChaseMice .
+
+ex:formulaCatsChaseMice a logic:Formula ;
+    logic:forall ex:fBody ;
+    logic:quantifiedVariable ex:qvX , ex:qvY .
+ex:qvX logic:termIndex 0 ; logic:termVariable "x" .
+ex:qvY logic:termIndex 1 ; logic:termVariable "y" .
+
+# body: (cat(x) ∧ mouse(y)) → chase(x, y)
+ex:fBody a logic:Formula ;
+    logic:antecedent ex:fMemberships ;
+    logic:consequent ex:fChase .
+
+# antecedent: instanceOf(x, typeCat) ∧ instanceOf(y, typeMouse)
+ex:fMemberships a logic:Formula ;
+    logic:and ex:fCat , ex:fMouse .
+
+ex:fCat a logic:Formula ;
+    logic:relation logic:instanceOf ;
+    logic:argument ex:aCatX , ex:aCatT .
+ex:aCatX logic:termIndex 0 ; logic:termVariable "x" .
+ex:aCatT logic:termIndex 1 ; logic:termIri ex:typeCat .
+
+ex:fMouse a logic:Formula ;
+    logic:relation logic:instanceOf ;
+    logic:argument ex:aMouseY , ex:aMouseT .
+ex:aMouseY logic:termIndex 0 ; logic:termVariable "y" .
+ex:aMouseT logic:termIndex 1 ; logic:termIri ex:typeMouse .
+
+# consequent: chase(x, y)
+ex:fChase a logic:Formula ;
+    logic:relation ex:typeChase ;
+    logic:argument ex:aChaseX , ex:aChaseY .
+ex:aChaseX logic:termIndex 0 ; logic:termVariable "x" .
+ex:aChaseY logic:termIndex 1 ; logic:termVariable "y" .
