@@ -325,7 +325,18 @@ fn emit_restriction(g: &mut TripleSink, node: &str, r: &LiftedRestriction) {
     g.add_iri(node, RDF_TYPE, &owl("Restriction"));
     g.add_iri(node, &owl(restriction::ON_PROPERTY_LOCAL), on_property);
     for (local, obj, is_lit) in &r.constraints {
-        g.add_obj(node, &owl(local), obj, *is_lit);
+        if restriction::CARDINALITY_LOCALS.contains(&local.as_str()) {
+            // A cardinality count is an xsd:nonNegativeInteger in OWL 2 (the datatype is
+            // lost on the adapter read, which carries lexical form only, but is fixed by
+            // the predicate, so restore it faithfully here).
+            g.add_lit(
+                node,
+                &owl(local),
+                RdfLiteral::typed(obj, format!("{XSD_NS}nonNegativeInteger")),
+            );
+        } else {
+            g.add_obj(node, &owl(local), obj, *is_lit);
+        }
     }
 }
 
