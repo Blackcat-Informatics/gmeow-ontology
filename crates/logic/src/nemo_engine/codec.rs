@@ -145,11 +145,11 @@ pub(in crate::nemo_engine) fn encode_literal(
 ///
 /// Format: `<predicate_iri>(<subject_term>, <object_term>, "world_iri").`
 ///
-/// Temporarily `pub(crate)`: the materialize and reasoning paths still render
-/// their EDB lines directly until they migrate onto
+/// Temporarily `pub(crate)`: the reasoning path ([`crate::reason`]) still
+/// renders its EDB lines directly until it migrates onto
 /// [`crate::nemo_engine::run_chase_typed`], the typed adapter surface that is
-/// this function's destination.  Once they do, this tightens to
-/// `pub(in crate::nemo_engine)`.
+/// this function's destination (the materialize path already did).  Once it
+/// does, this tightens to `pub(in crate::nemo_engine)`.
 pub(crate) fn encode_quad_to_nemo_fact(
     subject: &TermValue,
     predicate: &str,

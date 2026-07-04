@@ -112,9 +112,9 @@ thread_local! {
 /// [`AnyDataValue`]'s [`fmt::Display`] implementation (the canonical Nemo
 /// surface string).
 ///
-/// String-surface row: retained while the materialize/reasoning paths finish
-/// migrating onto [`run_chase_typed`] and [`TypedRow`], the typed destination
-/// surface — new consumers must use those instead.
+/// String-surface row: retained while the reasoning path finishes migrating
+/// onto [`run_chase_typed`] and [`TypedRow`], the typed destination surface —
+/// new consumers must use those instead (the materialize path already does).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) struct ChaseRow {
     /// The predicate name (e.g. `"tc"` for a rule `tc(?x,?y) :- …`).
@@ -170,10 +170,6 @@ pub(crate) struct ChaseRowWithProvenance {
 /// `String` (it is a name, not a term — see [`crate::facts::TypedFact`]), and
 /// every argument is a decoded [`TermValue`].  Arity-generic: callers coerce
 /// positions (e.g. subject/object/world for ternary reasoning rows).
-// The typed surface is exercised by the adapter unit tests today; the
-// materialize/reasoning callers migrate onto it next, at which point these
-// dead-code allowances disappear.
-#[allow(dead_code)]
 #[derive(Debug, Clone, PartialEq)]
 pub(crate) struct TypedRow {
     /// The relation name (a full predicate IRI, un-bracketed, or a bare
@@ -184,7 +180,6 @@ pub(crate) struct TypedRow {
 }
 
 /// Provenance metadata for a typed row — the typed twin of [`ChaseProvenance`].
-#[allow(dead_code)]
 #[derive(Debug, Clone, PartialEq)]
 pub(crate) struct TypedProvenance {
     /// Whether this fact is an EDB (asserted input) fact.
@@ -194,11 +189,13 @@ pub(crate) struct TypedProvenance {
     /// Immediate antecedent facts (premises) that the rule consumed, decoded.
     pub antecedents: Vec<TypedRow>,
     /// Structured slice attributions (§9 / S5) — carried through unchanged.
+    /// Populated at the validation boundary when slice context is available;
+    /// no in-crate consumer reads it yet.
+    #[allow(dead_code)]
     pub attributions: Vec<Attribution>,
 }
 
 /// The full result of a typed chase: every materialized row with provenance.
-#[allow(dead_code)]
 #[derive(Debug, Clone, PartialEq)]
 pub(crate) struct TypedChaseResult {
     /// All materialized rows, each paired with its provenance.
@@ -219,7 +216,6 @@ fn render_predicate(name: &str) -> String {
 /// Decode one string-surface [`ChaseRow`] into a [`TypedRow`], hard-failing on
 /// any argument the codec cannot decode — silently skipping a row would drop
 /// derived facts on the floor.
-#[allow(dead_code)]
 fn typed_row_from_chase_row(row: &ChaseRow) -> Result<TypedRow, String> {
     let args = row
         .values
@@ -255,7 +251,6 @@ fn typed_row_from_chase_row(row: &ChaseRow) -> Result<TypedRow, String> {
 /// terms have no Nemo encoding), if the chase itself fails, or if any result
 /// or antecedent term cannot be decoded — undecodable rows are a hard failure,
 /// never skipped.
-#[allow(dead_code)]
 pub(crate) fn run_chase_typed(
     edb: &crate::facts::TypedFactSet,
     rules: &str,
