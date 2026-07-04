@@ -458,15 +458,9 @@ fn assemble_carrier(
     let projection_ledger = producer_graph(upstream, "stage-mappings", GRAPH_PROJECTION_LEDGER)?;
 
     // ── the carried graphs ride in from the producers' carriers ────────────────
-    let compile = upstream
-        .get("stage-compile-logic")
-        .ok_or_else(|| stage_err("missing stage-compile-logic product"))?;
     let reason = upstream
         .get("stage-reason")
         .ok_or_else(|| stage_err("missing stage-reason product for the Reasoning handle"))?;
-    let logic_iri = crate::stages::compile_logic::GRAPH_LOGIC;
-    let rc_iri = crate::stages::compile_logic::GRAPH_RELATIONAL_CORE;
-    let corr_iri = crate::stages::compile_logic::GRAPH_CORRESPONDENCE;
     let reasoning_iri = gmeow_logic::result_rdf::GRAPH_REASONING;
 
     // ── route every snapshot-owned source into its named graph, then union all ──
@@ -485,23 +479,12 @@ fn assemble_carrier(
         documentation,
         std::sync::Arc::new(diagnostics),
         projection_ledger,
-        rooted_in_graph(
-            &compile.bundle().dataset().project_named_graph(logic_iri),
-            logic_iri,
-        )?,
-        rooted_in_graph(
-            &compile.bundle().dataset().project_named_graph(rc_iri),
-            rc_iri,
-        )?,
-        rooted_in_graph(
-            &compile.bundle().dataset().project_named_graph(corr_iri),
-            corr_iri,
-        )?,
-        rooted_in_graph(
-            &reason.bundle().dataset().project_named_graph(reasoning_iri),
-            reasoning_iri,
-        )?,
     ];
+    datasets.extend(compile_logic_object_graphs(upstream)?);
+    datasets.push(rooted_in_graph(
+        &reason.bundle().dataset().project_named_graph(reasoning_iri),
+        reasoning_iri,
+    )?);
     // graph/conformance is folded only when non-empty (an all-agree corpus has none).
     if conformance.quad_count() != 0 {
         datasets.push(conformance);
@@ -657,33 +640,33 @@ pub(crate) fn assemble_object_level_edb(
         .and_then(|p| p.artifact(RDF12_PATH))
         .ok_or_else(|| stage_err("missing statements RDF 1.2 artifact"))?
         .to_vec();
-    let compile = upstream
-        .get("stage-compile-logic")
-        .ok_or_else(|| stage_err("missing stage-compile-logic product"))?;
-    let logic_iri = crate::stages::compile_logic::GRAPH_LOGIC;
-    let rc_iri = crate::stages::compile_logic::GRAPH_RELATIONAL_CORE;
-    let corr_iri = crate::stages::compile_logic::GRAPH_CORRESPONDENCE;
 
-    let datasets: Vec<std::sync::Arc<purrdf::RdfDataset>> = vec![
+    let mut datasets: Vec<std::sync::Arc<purrdf::RdfDataset>> = vec![
         base,
         parse_into_graph(&rdf12, "text/turtle", GRAPH_STATEMENTS)?,
         source_load_graph(upstream, GRAPH_IMPORTS)?,
         producer_graph(upstream, "stage-mappings", GRAPH_ALIGNMENTS)?,
-        rooted_in_graph(
-            &compile.bundle().dataset().project_named_graph(logic_iri),
-            logic_iri,
-        )?,
-        rooted_in_graph(
-            &compile.bundle().dataset().project_named_graph(rc_iri),
-            rc_iri,
-        )?,
-        rooted_in_graph(
-            &compile.bundle().dataset().project_named_graph(corr_iri),
-            corr_iri,
-        )?,
     ];
+    datasets.extend(compile_logic_object_graphs(upstream)?);
     let refs: Vec<&purrdf::RdfDataset> = datasets.iter().map(|d| d.as_ref()).collect();
     Ok(std::sync::Arc::new(purrdf::RdfDataset::union(&refs)))
+}
+
+/// The compile-logic object-level named graphs
+/// ([`crate::stages::compile_logic::OBJECT_LEVEL_GRAPHS`]), each projected off the
+/// stage-compile-logic product and re-rooted into its own graph — the SINGLE fold
+/// routine shared by [`assemble_carrier`]'s snapshot union and
+/// [`assemble_object_level_edb`], so the two folds can never drift on the set.
+fn compile_logic_object_graphs(
+    upstream: &BTreeMap<String, StageProduct>,
+) -> Result<Vec<std::sync::Arc<purrdf::RdfDataset>>, PipelineError> {
+    let compile = upstream
+        .get("stage-compile-logic")
+        .ok_or_else(|| stage_err("missing stage-compile-logic product"))?;
+    crate::stages::compile_logic::OBJECT_LEVEL_GRAPHS
+        .iter()
+        .map(|iri| rooted_in_graph(&compile.bundle().dataset().project_named_graph(iri), iri))
+        .collect()
 }
 
 /// Serialize the fully-assembled carrier to the `dist`-profile `gmeow.gts` bytes: fold

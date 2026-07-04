@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Per-test duration budget gate for the Rust test suite (#1045).
+//! Per-test duration budget gate for the Rust test suite.
 //!
 //! The always-on policy: **every test on the default/ci nextest profile must
 //! complete under 25 s of real wall time.** Tests that are irreducibly heavier are

@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The `mappings` stage (#861 P3): compile the alignment artifacts.
+//! The `mappings` stage (P3): compile the alignment artifacts.
 //!
 //! All mapping artifact families are Rust-owned and wired directly here:
 //!   * **SSSOM / FnO / EDOAL / SPARQL CONSTRUCT** → the oxigraph-free
@@ -57,12 +57,12 @@ pub const EDOAL_DIR: &str = "generated/projections";
 pub const QUERIES_DIR: &str = "generated/queries";
 /// Committed logical path of the DSL surface-count summary.
 pub const DSL_STATS_PATH: &str = "generated/mappings/dsl-stats.json";
-/// Committed logical path of the importable named prefix set (#1009 §2).
+/// Committed logical path of the importable named prefix set (§2).
 pub const CORE_PREFIXES_PATH: &str = "generated/projections/core-prefixes.ttl";
-/// Committed logical path of the JSON-LD `@context` (#1009 §2; replaces the
+/// Committed logical path of the JSON-LD `@context` (§2; replaces the
 /// retired Python `jsonld_context.py` builder).
 pub const JSONLD_CONTEXT_PATH: &str = "generated/context.jsonld";
-/// Committed logical path of the first-class RDF list functions (#1009 §5).
+/// Committed logical path of the first-class RDF list functions (§5).
 pub const LIST_FUNCTIONS_PATH: &str = "generated/projections/list-functions.fno.ttl";
 
 /// The mapping artifacts plus the per-correspondence loss ledger the SSSOM/FnO/EDOAL/
@@ -81,7 +81,7 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, PipelineError> 
     let vocab = crate::gmeow_ns::gmeow_slice_vocab();
     let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
 
-    // Prefix-consistency gate (#1009 §2): no authored source may shadow a registry
+    // Prefix-consistency gate (§2): no authored source may shadow a registry
     // prefix with a foreign namespace — a shadow desynchronizes authored CURIEs from
     // the registry-driven shortener. Hard-fail before emitting any artifact
     // (no-optionality); this makes `regenerate` / `check-generated` / `make check`
@@ -173,7 +173,7 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, PipelineError> 
     })?;
     artifacts.insert(DSL_STATS_PATH.to_string(), dsl_stats.into_bytes());
 
-    // Prefix-set projections (#1009 §2) — both derived from the single
+    // Prefix-set projections (§2) — both derived from the single
     // PREFIX_REGISTRY authority: the importable `gmeow:CorePrefixes` SHACL set
     // and the JSON-LD `@context`. Deterministic by construction (const-derived),
     // so they ride the `generated/` drift gate and fold into `gmeow.gts` exactly
@@ -187,7 +187,7 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, PipelineError> 
         emit_jsonld_context(&vocab).into_bytes(),
     );
 
-    // First-class RDF list functions (#1009 §5) — six FnO primitives backed by the
+    // First-class RDF list functions (§5) — six FnO primitives backed by the
     // reasoning layer's recursive rdf:List resolution. Fixed content, deterministic;
     // folds into gmeow.gts like the FnO catalog.
     artifacts.insert(
@@ -431,7 +431,7 @@ fn sssom_finding(
 
 /// Recursively collect every regular file under `dir` into `out` (fail-fast on a
 /// `read_dir` entry error — a transient FS error must surface, not silently drop
-/// a mapping source, #863). A missing directory yields nothing.
+/// a mapping source). A missing directory yields nothing.
 fn collect_files_recursive(
     dir: &Path,
     out: &mut Vec<std::path::PathBuf>,
@@ -553,8 +553,8 @@ impl Stage for MappingsStage {
             })?;
         // Fold the gate-derived 591-term up-projection audit into the curated-cell header
         // counts, so the committed loss ledger carries the gate-verdict liftability statistic
-        // (#1149). Then canonicalize the report TTL so `projection-report.ttl` is carried as
-        // the fold of its named graph (#1142 superset gate), not an opaque byte lane.
+        // . Then canonicalize the report TTL so `projection-report.ttl` is carried as
+        // the fold of its named graph (superset gate), not an opaque byte lane.
         let header = fold_up_projection_audit(input.root, &artifacts, channel.header)?;
         let report = build_union_report(header, &channel, &compiled.ledger)?;
         artifacts.insert(
@@ -943,7 +943,7 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
 
     #[test]
     fn prefix_set_projections_are_emitted_and_parse() {
-        // Wiring check (#1009 §2): the mappings stage emits the importable prefix
+        // Wiring check (§2): the mappings stage emits the importable prefix
         // set + JSON-LD context, and the Turtle parses with the importable node
         // carrying the generalized sh:declare surface.
         let root = repo_root();
@@ -983,7 +983,7 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
 
     #[test]
     fn list_functions_are_emitted_and_parse() {
-        // Wiring check (#1009 §5): the mappings stage emits the six list functions
+        // Wiring check (§5): the mappings stage emits the six list functions
         // as well-formed FnO Turtle (routed through the shared
         // `purrdf::fno::to_quads` serializer, §19 one-path), each typed via
         // fno:Output and fno:Function.

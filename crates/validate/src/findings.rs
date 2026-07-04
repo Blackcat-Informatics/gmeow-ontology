@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 //! Bridge from the structured RDF/SHACL diagnostics into the canonical
-//! [`gmeow_diagnostics::Finding`] model (#654).
+//! [`gmeow_diagnostics::Finding`] model.
 //!
 //! `gmeow-diagnostics` links pyo3 unconditionally, so the PyO3-free
 //! `gmeow-rdf` kernel must not depend on it. `gmeow-validate` already links
@@ -172,7 +172,7 @@ mod tests {
 
     #[test]
     fn ir_quad_location_threads_end_to_end_into_sarif() {
-        // The full #819 Task 12 chain: a source location attached to a quad in the
+        // The full Task 12 chain: a source location attached to a quad in the
         // immutable IR survives (a) owned-boundary resolution of the frozen quad,
         // (b) the RdfLocation -> diagnostics Location bridge here, and (c) the
         // SARIF renderer — surfacing as a repo-relative physicalLocation. No

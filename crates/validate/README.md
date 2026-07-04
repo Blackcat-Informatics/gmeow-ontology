@@ -17,7 +17,7 @@
 > **An LLM output is a claim, not a truth.**
 
 `gmeow-validate` is an oxigraph-backed Rust crate that hosts the GMEOW
-validation-path lints. As of **EPIC #575 / issue #579** it carries the two
+validation-path lints. As of **that effort** it carries the two
 lowest-risk lints — per-file Turtle syntax checking and the Principle 5
 `owl:sameAs`-to-external-entity ban — proving the Rust↔Python validation seam
 end-to-end. Further lints migrate here in subsequent tasks.
@@ -110,7 +110,7 @@ print(report["errors"])    # list of "syntax error in ..." strings
 
 `gmeow-validate` is developed by [Blackcat Informatics® Inc.](https://blackcatinformatics.ca)
 as part of the [GMEOW ontology and tooling](https://github.com/Blackcat-Informatics/gmeow-ontology)
-suite. See EPIC #575 for the full roadmap.
+suite. See the issue tracker for the full roadmap.
 
 Related packages:
 

@@ -469,7 +469,7 @@ mod tests {
             let oracle = crate::materialize::materialize_core(&p.rls, &p.nquads, None, None, None)
                 .unwrap_or_else(|e| panic!("[{}] materialize_core (Nemo) failed: {e}", p.label));
 
-            let ledger = compare_materialization(&native, &oracle, p.world);
+            let ledger = compare_materialization(&native, &oracle.quads, p.world);
             let verdict = ledger.enforce();
             assert!(
                 verdict.passed,

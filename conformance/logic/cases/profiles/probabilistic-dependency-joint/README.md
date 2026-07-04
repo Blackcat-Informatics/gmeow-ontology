@@ -5,7 +5,7 @@ SPDX-License-Identifier: CC-BY-4.0
 
 # profiles/probabilistic-dependency-joint
 
-**Acceptance criterion (#506):** marginals under a declared **dependency** model
+**Acceptance criterion:** marginals under a declared **dependency** model
 (explicit joint), demonstrably different from the independence reading.
 
 `a` and `b` are perfectly correlated under the declared `logic:DependencyModel`.

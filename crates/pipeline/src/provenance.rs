@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Per-stage provenance stamping (#861 P2).
+//! Per-stage provenance stamping (P2).
 //!
 //! Each stage stamps the quads it produces into the kernel `DatasetProvenance`
 //! sidecar with the correct `OriginKind` (`Source` / `Generated` / `Import` /

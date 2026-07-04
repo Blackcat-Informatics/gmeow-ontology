@@ -1,0 +1,15 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Counter-example: an interpretation act typed also as a gmeow:Observation
+# (fires lang:ActObservationConflation / shacl.NotConstraintComponent — the
+# SECONDARY twin of the OWL disjointness).
+
+@prefix lang:  <https://blackcatinformatics.ca/lang/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <http://example.org/lang/> .
+
+ex:english a lang:SignSystem .
+ex:form a lang:WordForm ; lang:inSignSystem ex:english .
+
+ex:act a lang:InterpretationAct , gmeow:Observation ;
+    lang:interpretedForm ex:form .

@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Full slice-example validation sweep (#700 Task 6).
+//! Full slice-example validation sweep (Task 6).
 //!
 //! This integration test proves the closed-world fidelity of the SHACL→JSON
 //! Schema projection over the WHOLE example corpus: for every `slices/*/*/
@@ -136,7 +136,7 @@ fn repo_root() -> PathBuf {
 }
 
 /// Load one Turtle data-graph file into a frozen [`RdfDataset`] via the native
-/// codec (#909) — the SAME lenient native path the shape union uses
+/// codec — the SAME lenient native path the shape union uses
 /// ([`shape_union::load_shapes`]).
 fn load_data_graph(path: &Path) -> Arc<RdfDataset> {
     let bytes = std::fs::read(path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()));

@@ -1,0 +1,49 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Flagship (lexical ambiguity): "I saw her duck" — duck as waterfowl vs duck as the
+# act of ducking — two co-resident readings via distinct senses, routed through
+# lang:viaSense. The annotator's preference is a vantage-held gmeow:Observation with
+# logic:confidence (never a probability); the other reading persists.
+
+@prefix lang:  <https://blackcatinformatics.ca/lang/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <http://example.org/lang/> .
+
+ex:english a lang:SignSystem .
+ex:lexDuck a lang:Lexeme ; lang:inSignSystem ex:english .
+ex:senseBird a lang:Sense ; lang:senseOf ex:lexDuck .
+ex:senseDodge a lang:Sense ; lang:senseOf ex:lexDuck .
+ex:wfDuck a lang:WordForm ; lang:inSignSystem ex:english ; lang:lexemeOf ex:lexDuck .
+
+# duck = the waterfowl she owns (a referring expression → an entity)
+ex:denBird a lang:Denotation ;
+    lang:denotedForm ex:wfDuck ;
+    lang:denotationKind lang:denotesEntity ;
+    lang:denotationTarget ex:herDuck ;
+    lang:denotationContext ex:ctx ;
+    lang:viaSense ex:senseBird .
+
+# duck = the act of ducking (a predication → a logic:Formula)
+ex:fDodge a logic:Formula .
+ex:denDodge a lang:Denotation ;
+    lang:denotedForm ex:wfDuck ;
+    lang:denotationKind lang:denotesLogicFormula ;
+    lang:denotationTarget ex:fDodge ;
+    lang:denotationContext ex:ctx ;
+    lang:viaSense ex:senseDodge ;
+    logic:preservationKind logic:ExactPreservation .
+
+ex:readingBird a lang:Reading ; lang:readingOf ex:wfDuck ; lang:denotation ex:denBird .
+ex:readingDodge a lang:Reading ; lang:readingOf ex:wfDuck ; lang:denotation ex:denDodge .
+
+ex:act a lang:InterpretationAct ;
+    lang:interpretedForm ex:wfDuck ;
+    lang:producedReading ex:readingBird , ex:readingDodge .
+
+# A held preference — with confidence and method — not erasure of readingBird.
+ex:obsPreferDodge a gmeow:Observation ;
+    lang:aboutReading ex:readingDodge ;
+    gmeow:vantage ex:annotatorVantage ;
+    gmeow:observationMethod ex:manualAnnotation ;
+    logic:confidence 0.8 .

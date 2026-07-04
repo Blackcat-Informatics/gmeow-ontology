@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The FULL-build parity gate (#861 P6 integration): `run_full(check)` must
+//! The FULL-build parity gate (P6 integration): `run_full(check)` must
 //! reproduce EVERY **committed** artifact in one single pass.
 //!
 //! This is the cutover gate. It runs the whole dogfooded DAG single-pass — the
@@ -13,7 +13,7 @@
 //!
 //!  * `gmeow.gts` (committed) — compared by the FOLD (per-named-graph quad set +
 //!    reifier/annotation counts, the same comparator as `fold_parity.rs`).
-//!    CBOR has encoding skew (#595), so byte parity is not the contract; the fold
+//!    CBOR has encoding skew, so byte parity is not the contract; the fold
 //!    is. The fold now matches EXACTLY — including the self-describing pipeline
 //!    DAG triples — so NO triple filtering is applied (the committed bundle was
 //!    refolded to the current DAG). A fold mismatch here is a real regression.
@@ -52,7 +52,7 @@ fn repo_root() -> PathBuf {
 /// freshly-produced bytes legitimately diverge. Minimal and individually
 /// justified — NOT a place to hide real drift.
 ///
-/// The last two parity gaps (#861 P6) are now CLOSED:
+/// The last two parity gaps (P6) are now CLOSED:
 ///
 ///  * The three `generated/logic/*` artifacts (inferred-closure /
 ///    reasoning-explanations / dl-el-crosscheck-report) are produced by the
@@ -223,7 +223,7 @@ fn rdf_isomorphic(committed: &[u8], produced: &[u8]) -> bool {
 }
 
 fn canonical_quads(bytes: &[u8]) -> Option<std::collections::BTreeSet<String>> {
-    // Native text ingress (#909) + native full RDFC-1.0 (#910): no oxigraph::io
+    // Native text ingress + native full RDFC-1.0: no oxigraph::io
     // parse, no oxrdf `Dataset::canonicalize`.
     for media_type in ["text/turtle", "application/n-quads"] {
         let Ok(ir) = purrdf::parse_dataset(bytes, media_type, None) else {

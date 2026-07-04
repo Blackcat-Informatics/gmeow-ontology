@@ -7,7 +7,7 @@
 //! `<project-root>/.cache/validate/<kind>/<key>.json`, where each finding is a
 //! serialized [`gmeow_diagnostics::Finding`] — so the structured SHACL focus
 //! nodes and GTS wire coordinates survive a cache hit, not just a fresh compute
-//! (#654). Keys are short SHA-256 hashes of NUL-delimited byte parts, matching
+//! . Keys are short SHA-256 hashes of NUL-delimited byte parts, matching
 //! the Python `_cache_key` algorithm. Invalidation is purely content-based;
 //! there is no TTL. Older `{"errors","warnings"}` entries simply fail to
 //! deserialize and are treated as a miss, so the cache self-heals on upgrade.

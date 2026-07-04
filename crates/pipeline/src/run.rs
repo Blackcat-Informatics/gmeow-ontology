@@ -334,21 +334,17 @@ fn st_sink(id: &str, impl_key: &str, consumes: &[&str]) -> StageSpec {
 }
 
 /// The reasoning stage: it requires the exclusive reasoning engine (resource-conflict
-/// serialization) AND reads only the `logic` / `relational-core` / `correspondence`
-/// named graphs from `stage-compile-logic` (artifact-level typed dataflow). Mirrors
-/// [`crate::stages::reason::ReasonStage`]'s resources() + consumed_entities() so the
-/// dag_dogfood parity and the loader's bind-agreement both hold.
+/// serialization) AND reads only the object-level named graphs
+/// ([`crate::stages::compile_logic::OBJECT_LEVEL_GRAPHS`]) from `stage-compile-logic`
+/// (artifact-level typed dataflow). Derives the SAME entity list as
+/// [`crate::stages::reason::ReasonStage`]'s consumed_entities() so the dag_dogfood
+/// parity and the loader's bind-agreement both hold.
 fn st_reason(id: &str, impl_key: &str, consumes: &[&str]) -> StageSpec {
-    use crate::stages::compile_logic::{GRAPH_CORRESPONDENCE, GRAPH_LOGIC, GRAPH_RELATIONAL_CORE};
     let mut s = st(id, impl_key, consumes);
     s.resources = vec![ENGINE_RESOURCE.to_string()];
     s.dataflow_entities = vec![(
         "stage-compile-logic".to_string(),
-        vec![
-            GRAPH_CORRESPONDENCE.to_string(),
-            GRAPH_LOGIC.to_string(),
-            GRAPH_RELATIONAL_CORE.to_string(),
-        ],
+        crate::stages::compile_logic::object_level_entity_list(),
     )];
     s
 }

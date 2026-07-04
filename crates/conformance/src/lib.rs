@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Native logic-conformance harness (#785, T4 of the Rust-first testing epic #781).
+//! Native logic-conformance harness (T4 of the Rust-first testing epic).
 //!
 //! The logic conformance corpus (`conformance/logic/cases/`) is GMEOW's
 //! Principle-7 gate: the *oracle ≡ engine* equivalence check. Each case directory
@@ -16,7 +16,7 @@
 //! [`gmeow_logic`] native engine cores **directly** — the same functions the
 //! PyO3 surface (`gmeow_logic::py`) wraps — so the produced artifacts are
 //! identical by construction (the Python `logic_runner.py` this replaced was
-//! retired in #727). Comparison
+//! retired). Comparison
 //! against the goldens uses the three runner-contract modes:
 //!
 //! * **graph-isomorphism** (RDFC-1.0) for RDF artifacts ([`compare::compare_rdf`]),
@@ -24,7 +24,7 @@
 //!   / answers ([`compare::compare_canonical_json`]),
 //! * **cited-IRI skeleton** for explanations ([`compare::compare_explanation_skeleton`]).
 //!
-//! The modules mirror the structure of `crates/slicetest` (#784):
+//! The modules mirror the structure of `crates/slicetest`:
 //!
 //! * [`discover`] — find every case directory under `conformance/logic/cases/`.
 //! * [`profile`] — parse and validate `profile.json` (hard-fail, no-optionality).

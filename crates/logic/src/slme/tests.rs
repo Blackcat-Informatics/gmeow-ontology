@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Unit tests for the native SLME module extractor (issue #695).
+//! Unit tests for the native SLME module extractor.
 
 use super::*;
 
