@@ -1,0 +1,24 @@
+# Competency question: "What does any rendering, transliteration, or translation lose
+# against its canon?"  A crossing between sign systems carries its adequacy on a
+# logic:Correspondence, not as a silent Exact default: a machine-unanalyzed surface pair
+# is honestly logic:ValidationOnly (present, but sense/register preservation is NOT
+# machine-verified) and an untranslated gap is logic:Unsupported (the legalization floor,
+# carried and flagged). This query reads that loss ledger off the live corpus.
+#
+# Worked instance: what does the French docs tree lose against the English canon? Over the
+# fixture the answer is exactly the typed lang:TranslationUnit crossings whose carried
+# logic:Correspondence declares a NON-Exact logic:preservationKind — every present fr/zh
+# pair as logic:ValidationOnly, with any untranslated unit surfacing as logic:Unsupported
+# and additionally flagged through lang:translationGap.
+PREFIX lang: <https://blackcatinformatics.ca/lang/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+
+SELECT DISTINCT ?unit ?preservation ?gap WHERE {
+    ?unit a lang:TranslationUnit ;
+          lang:translationCorrespondence ?corr .
+    ?corr logic:preservationKind ?preservation .
+    FILTER(?preservation != logic:ExactPreservation)
+    OPTIONAL { ?unit lang:translationGap ?gap . }
+    FILTER(STRSTARTS(STR(?unit), "http://example.org/lang/"))
+}
+ORDER BY ?unit ?preservation
