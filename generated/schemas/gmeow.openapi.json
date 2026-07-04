@@ -22248,6 +22248,31 @@
                 "@type": {
                   "anyOf": [
                     {
+                      "const": "math:AutomorphismGroup"
+                    },
+                    {
+                      "contains": {
+                        "const": "math:AutomorphismGroup"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/math:AutomorphismGroup"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
                       "const": "math:Complement"
                     },
                     {
@@ -22415,6 +22440,31 @@
             },
             "then": {
               "$ref": "#/$defs/math:Number"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "math:Ring"
+                    },
+                    {
+                      "contains": {
+                        "const": "math:Ring"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/math:Ring"
             }
           },
           {
@@ -35298,6 +35348,63 @@
         ],
         "type": "object"
       },
+      "math:AutomorphismGroup": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "math:automorphismGroupOf": {
+            "anyOf": [
+              {
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          }
+        },
+        "required": [
+          "math:automorphismGroupOf"
+        ],
+        "type": "object"
+      },
       "math:Complement": {
         "properties": {
           "@annotation": {
@@ -35801,7 +35908,7 @@
         ],
         "type": "object"
       },
-      "math:RootSystem": {
+      "math:Ring": {
         "properties": {
           "@annotation": {
             "$ref": "#/$defs/Annotation"
@@ -35822,102 +35929,30 @@
               }
             ]
           },
-          "math:cartanMatrix": {
+          "math:satisfiesDistributivity": {
             "anyOf": [
               {
-                "anyOf": [
-                  {
-                    "$comment": "external class https://blackcatinformatics.ca/math/CartanMatrix",
+                "properties": {
+                  "@id": {
                     "type": "string"
-                  },
-                  {
-                    "properties": {
-                      "@id": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "@id"
-                    ],
-                    "type": "object"
                   }
-                ]
-              },
-              {
-                "items": {
-                  "anyOf": [
-                    {
-                      "$comment": "external class https://blackcatinformatics.ca/math/CartanMatrix",
-                      "type": "string"
-                    },
-                    {
-                      "properties": {
-                        "@id": {
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "@id"
-                      ],
-                      "type": "object"
-                    }
-                  ]
                 },
-                "minItems": 1,
-                "type": "array"
-              }
-            ]
-          },
-          "math:rootSystemRank": {
-            "anyOf": [
-              {},
-              {
-                "items": {},
-                "minItems": 1,
-                "type": "array"
-              }
-            ]
-          },
-          "math:weylGroup": {
-            "anyOf": [
-              {
-                "anyOf": [
-                  {
-                    "$comment": "external class https://blackcatinformatics.ca/math/WeylGroup",
-                    "type": "string"
-                  },
-                  {
-                    "properties": {
-                      "@id": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "@id"
-                    ],
-                    "type": "object"
-                  }
-                ]
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
               },
               {
                 "items": {
-                  "anyOf": [
-                    {
-                      "$comment": "external class https://blackcatinformatics.ca/math/WeylGroup",
+                  "properties": {
+                    "@id": {
                       "type": "string"
-                    },
-                    {
-                      "properties": {
-                        "@id": {
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "@id"
-                      ],
-                      "type": "object"
                     }
-                  ]
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
                 },
                 "minItems": 1,
                 "type": "array"
@@ -35926,10 +35961,33 @@
           }
         },
         "required": [
-          "math:cartanMatrix",
-          "math:rootSystemRank",
-          "math:weylGroup"
+          "math:satisfiesDistributivity"
         ],
+        "type": "object"
+      },
+      "math:RootSystem": {
+        "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          }
+        },
         "type": "object"
       },
       "math:Set": {
