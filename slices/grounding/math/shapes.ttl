@@ -362,3 +362,19 @@ math:HomomorphicEncryptionSchemeShape
         sh:severity sh:Violation ;
         sh:message "A math:HomomorphicEncryptionScheme must declare its math:noiseModel; a lattice-based scheme without a noise model is ill-formed." ;
     ] .
+
+# Rule 14 — a ring declares the distributivity law that ties its two operations together.
+math:RingDistributivityShape
+    a sh:NodeShape ;
+    rdfs:label "Ring distributivity shape"@x-gmeow-english ;
+    skos:definition "SHACL constraint for math:Ring: it declares, through math:satisfiesDistributivity, the distributivity law relating its multiplication to its addition (a·(b+c) = a·b + a·c). Distributivity is what makes a two-operation structure a ring rather than two unrelated groups; a ring declared without it is ill-formed. (math:satisfiesDistributivity refines math:satisfiesAxiom, so the general structure gate still sees the law.)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    math:enforcesFailureClass math:NonDistributiveRing ;
+    sh:targetClass math:Ring ;
+    sh:property [
+        sh:path math:satisfiesDistributivity ;
+        sh:minCount 1 ;
+        sh:nodeKind sh:BlankNodeOrIRI ;
+        sh:severity sh:Violation ;
+        sh:message "A math:Ring must declare at least one math:satisfiesDistributivity naming the distributivity axiom (a logic: formula) that ties its multiplication to its addition; a ring without distributivity is ill-formed." ;
+    ] .

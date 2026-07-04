@@ -836,6 +836,14 @@ math:satisfiesAxiom
     skos:definition "Relates an algebraic structure to a math:Axiom it obeys — associativity, commutativity, distributivity. Domain math:AlgebraicStructure, range math:Axiom (stated in prose). The axiom denotes a logic: formula the logic: reasoner owns: math: declares that the structure satisfies the law, logic: reasons over it."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+math:satisfiesDistributivity
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf math:satisfiesAxiom ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "satisfies distributivity"@x-gmeow-english ;
+    skos:definition "Names the distributivity axiom a math:Ring satisfies — multiplication distributes over addition (a·(b+c) = a·b + a·c), the law that makes a two-operation structure a ring rather than two unrelated groups. Domain math:Ring, range a math:Axiom denoting a logic: formula (stated in prose). A refinement of math:satisfiesAxiom: a ring must name a distributivity law specifically, not merely some axiom. A ring without distributivity is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 math:substructureOf
     a owl:ObjectProperty , owl:TransitiveProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
@@ -858,6 +866,14 @@ math:IncompleteAlgebraicStructure
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Incomplete Algebraic Structure"@x-gmeow-english ;
     skos:definition "The failure raised when a math:AlgebraicStructure does not declare its constituting parts — a math:underlyingSet, at least one math:structureOperation, and at least one math:satisfiesAxiom law. A group is a set with an operation satisfying stated axioms; a structure asserted without them is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:NonDistributiveRing
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Non-Distributive Ring"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:Ring does not declare, through math:satisfiesDistributivity, the distributivity law that ties its two operations together. Distributivity (a·(b+c) = a·b + a·c) is what makes a set with an addition and a multiplication a ring rather than two unrelated groups; a ring asserted without it is ill-formed."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 # =========================================================================== #

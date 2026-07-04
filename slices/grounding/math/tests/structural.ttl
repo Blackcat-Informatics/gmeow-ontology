@@ -191,6 +191,18 @@ ASK {
 }""" ;
     gmeow:saRationale "The two unification hard-rule failures MUST be typed math:MathConformanceFailure, and math:automorphismGroupOf MUST exist: every math:AutomorphismGroup is the symmetry of some structure (anchored through math:automorphismGroupOf), and a root system claiming to be E8 with a wrong Weyl order is rejected by value — so a violation of either is a typed, queryable object." .
 
+# --- 12d. A ring's distributivity gate is a typed failure + refined property (MUST) ---
+ex:saRingDistributivity a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    math:NonDistributiveRing      rdfs:subClassOf math:MathConformanceFailure .
+    math:satisfiesDistributivity  rdfs:subPropertyOf math:satisfiesAxiom .
+}""" ;
+    gmeow:saRationale "The distributivity hard-rule failure math:NonDistributiveRing MUST be a typed math:MathConformanceFailure, and math:satisfiesDistributivity MUST refine math:satisfiesAxiom — a ring must name a distributivity law specifically, and that law is still one of the axioms the general structure gate sees." .
+
 # --- 13. IncompleteLieStructure subclasses MathConformanceFailure (MUST) ---
 ex:saLieFailure a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
