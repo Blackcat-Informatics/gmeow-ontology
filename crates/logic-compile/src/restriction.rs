@@ -221,7 +221,9 @@ pub(crate) fn restriction_node_labels(
 }
 
 /// Collect a restriction node's single-valued constraints (the [`CONSTRAINT_LOCALS`]
-/// set).  `owl:oneOf` / cardinality families extend this in later construct tasks.
+/// set).  Cardinality-count constraints are part of [`CONSTRAINT_LOCALS`] and lift
+/// here; `owl:oneOf` class enumerations are a separate multi-valued construct handled
+/// by [`skolemize_enumerations`].
 fn collect_constraints(
     store: &RdfDataset,
     node: &Subject,
