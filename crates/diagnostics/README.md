@@ -36,8 +36,8 @@ position.
 ## Self-describing feedback bundle
 
 `gmeow-dev feedback` always writes `dist/gmeow-feedback.gts` (via
-`gmeow_tools.feedback_bundle`): the findings RDF as the snapshot graph plus the
-SARIF and JSON projections as content-addressed blobs. The snapshot content id is
-stamped into the report metadata as a self-attestation
+`crates/gmeow-dev-cli/src/feedback_bundle.rs`): the findings RDF as the snapshot
+graph plus the SARIF and JSON projections as content-addressed blobs. The
+snapshot content id is stamped into the report metadata as a self-attestation
 (`verify_feedback_bundle`). The committed `gmeow.gts` never carries a report —
 only the feedback bundle does (artifact separation, no flag).

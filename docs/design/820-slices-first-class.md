@@ -479,7 +479,9 @@ composition.
 
 - Slice meta-ontology & gates: `slices/vocabulary.ttl`,
   `shapes/slice-manifest-shapes.ttl`.
-- Python plumbing to replace: `src/gmeow_tools/slices.py`, `gts_gen.py`, `gts_producer.py`.
+- Python plumbing to replace: `src/gmeow_tools/slices.py`, `gts_gen.py`.
+  (`gts_producer.py` is now the Rust `purrdf::gts_compose` core used by
+  `crates/gmeow-dev-cli/src/feedback_bundle.rs` and `crates/pipeline`.)
   Ownership plumbing **retired**: `crates/validate/src/validate_all.rs` (`module_specs`)
   and `crates/validate/src/lint.rs` (`slice_ownership_lint`) are deleted; ownership is sourced
   from the native `gmeow_slice.OwnershipAnalyzer` and folded in `src/gmeow_tools/validate.py`

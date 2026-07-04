@@ -51,8 +51,10 @@ Removed because a Rust artifact already asserts the same behavior:
   `make validate` reasoning-invariants gate.
 - Migration stubs (`test_reference_frames`, `test_profiles`, `test_accessibility`,
   `test_lexicon`) → slicetest cells + `conformance_*.rs`.
-- `test_images`, `test_music_analysis/collections/pitch`, `test_procedures` →
-  slice `structural.ttl` cells + `conformance_*.rs`.
+- `test_feedback_bundle` → `crates/gmeow-dev-cli/src/feedback_bundle.rs` +
+  `crates/gmeow-dev-cli/tests/feedback_bundle.rs` (self-describing GTS feedback
+  bundle with findings RDF snapshot, SARIF/JSON blobs, snapshot-content-id
+  self-attestation, and robust verifier).
 - `test_mcp_server`, `test_mcp_server_consumer`, `test_mcp_memory`: the MCP
   read-surface, stdio server loop, startup-lang validation, and grounded-memory
   triad are Rust — `crates/pipeline/src/mcp.rs` plus `export.rs`, asserted by
@@ -69,8 +71,7 @@ Removed because a Rust artifact already asserts the same behavior:
   edges, `skos:closeMatch`-hint refusal, lint denial, suppression safety,
   `owl:sameAs` mirroring, `mappedFrom`/`confidence` provenance, and determinism are
   asserted by the inline saturation parity tests in that module. `saturate.py`
-  remains only as the PyO3 surface adapter its consumers (`transform.py`,
-  `gts_producer.py`) call.
+  remains only as the PyO3 surface adapter its consumer (`transform.py`) calls.
 
 Relocated out of the mainline test tree (dossier removed with the test):
 
