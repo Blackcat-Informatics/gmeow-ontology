@@ -24,8 +24,12 @@
 //!
 //! The closure vocabulary ([`TypedRow`], [`TypedProvenance`], [`TypedChaseResult`])
 //! lives here, not inside any adapter, so the trait does not depend on the
-//! engine that happens to produce it — this is what makes an adapter *deletable*
-//! (the endgame: retiring an engine is removing its adapter + its Cargo line).
+//! engine that happens to produce it — this is what lets an engine's *solver
+//! adapter* be deleted.  For Scryer that solver adapter is the whole engine
+//! (retiring it is removing its adapter + its Cargo line).  Nemo also carries a
+//! separate rule/term codec (`NemoParsedRules` / `decode_nemo_term`), a
+//! wire-format concern distinct from solver invocation, so fully retiring Nemo
+//! additionally requires neutralizing that codec (see *Single naming site*).
 //!
 //! # Provenance as a capability
 //!
@@ -37,9 +41,14 @@
 //!
 //! # Single naming site
 //!
-//! [`forward_oracle`] and [`backward_oracle`] are the *only* places an engine is
-//! named.  Every call site depends on the trait via these providers, so swapping
-//! (or deleting) an engine is a one-line change here.
+//! [`forward_oracle`] and [`backward_oracle`] are the *only* places a solver is
+//! invoked.  Every call site depends on the trait via these providers, so
+//! swapping the backing solver (or deleting the Scryer adapter outright) is a
+//! one-line change here.  Nemo's rule/term *codec* (`NemoParsedRules` /
+//! `decode_nemo_term`) is a distinct wire-format subsystem — the neutral rule-IR
+//! carrier — named outside this seam in production code, so retiring Nemo
+//! *entirely* additionally requires neutralizing that codec; it is not covered
+//! by this solver boundary.
 
 use purrdf::provenance::Attribution;
 use purrdf::TermValue;
@@ -117,8 +126,9 @@ pub(crate) struct ForwardBudget {
 
 impl ForwardBudget {
     /// The unbounded budget (no field set) — the value every current forward
-    /// call site passes, since inline forward-budget governance is not yet a
-    /// native capability.
+    /// call site passes, since inline forward-budget governance is a
+    /// native-governor concern above the oracle boundary, not an oracle
+    /// capability.
     pub const UNBOUNDED: ForwardBudget = ForwardBudget {
         max_rule_firings: None,
         max_answers: None,
