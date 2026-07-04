@@ -61,6 +61,9 @@ pub struct BudgetParams {
     pub time_ms: Option<u64>,
     pub max_rule_firings: Option<u64>,
     pub max_answers: Option<u64>,
+    /// The step/derivation budget for a backward goal query — the native governor's
+    /// `max_steps` (honoured by the magic-sets engine). Absence ⇒ unbounded.
+    pub max_steps: Option<u64>,
 }
 
 /// A parsed, validated `profile.json`.
@@ -363,7 +366,7 @@ fn parse_budget_params(
         format!("case {case_id}: profile.json budget_params must be a JSON object")
     })?;
 
-    const ALLOWED: [&str; 3] = ["time_ms", "max_rule_firings", "max_answers"];
+    const ALLOWED: [&str; 4] = ["time_ms", "max_rule_firings", "max_answers", "max_steps"];
     let mut unknown: Vec<&str> = raw
         .keys()
         .map(String::as_str)
@@ -411,6 +414,7 @@ fn parse_budget_params(
         time_ms: ceiling("time_ms")?,
         max_rule_firings: ceiling("max_rule_firings")?,
         max_answers: ceiling("max_answers")?,
+        max_steps: ceiling("max_steps")?,
     }))
 }
 
@@ -614,6 +618,16 @@ mod tests {
         assert_eq!(b.time_ms, Some(50));
         assert_eq!(b.max_answers, Some(7));
         assert_eq!(b.max_rule_firings, None);
+        assert_eq!(b.max_steps, None);
+    }
+
+    #[test]
+    fn budget_params_parses_max_steps() {
+        // The backward step/derivation budget for a native goal query.
+        let p = parse_profile("c", &json!({ "budget_params": { "max_steps": 2 } })).expect("ok");
+        let b = p.budget_params.expect("some");
+        assert_eq!(b.max_steps, Some(2));
+        assert_eq!(b.max_answers, None);
     }
 
     #[test]

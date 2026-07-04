@@ -1,0 +1,14 @@
+{
+  "bindings": [
+    {
+      "Y": "<https://example.org/profiles/goal-budget-steps/b>"
+    }
+  ],
+  "preservation": {
+    "polarities": [
+      "ExactPreservation"
+    ],
+    "unsupported_constructs": []
+  },
+  "status": "exhausted"
+}
