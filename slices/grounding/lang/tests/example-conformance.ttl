@@ -89,6 +89,24 @@ ex:ecDependencyDangling a gmeow:ExampleConformance ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
     gmeow:conformanceRationale "The counter-example's lang:dependsOn head reference points at a slot in a different lang:Analysis (the SPARQL constraint of lang:DependencyIntegrityShape), so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (lang:DanglingDependency)." .
 
+ex:ecDependencyCycle3 a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/dependency-cycle3.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "Three well-formed lang:FormSlot individuals in one lang:Analysis form a length-three lang:dependsOn cycle A->B->C->A. The dangling branch does not fire (all heads stay in the analysis) and slot indexes are present and contiguous (0,1,2), so the transitive dependsOn+ cycle branch of lang:DependencyIntegrityShape is the sole failing constraint: validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (lang:DanglingDependency)." .
+
+ex:ecDependencySelfLoop a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/dependency-selfloop.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "A single well-formed lang:FormSlot in one lang:Analysis depends on itself, a length-one lang:dependsOn cycle A->A. The dangling branch does not fire (the head stays in the analysis) and the slot index is present (0), so the transitive dependsOn+ cycle branch of lang:DependencyIntegrityShape is the sole failing constraint: validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (lang:DanglingDependency)." .
+
+ex:ecDependencyCycle2 a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/dependency-cycle2.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "Two well-formed lang:FormSlot individuals in one lang:Analysis form a length-two lang:dependsOn cycle A->B->A. The dangling branch does not fire (all heads stay in the analysis) and slot indexes are present and contiguous (0,1), so the transitive dependsOn+ cycle branch of lang:DependencyIntegrityShape is the sole failing constraint: validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (lang:DanglingDependency)." .
+
 # === Rule: morphology is typed from the feature inventory =================== #
 
 ex:ecMorphologyTyped a gmeow:ExampleConformance ;

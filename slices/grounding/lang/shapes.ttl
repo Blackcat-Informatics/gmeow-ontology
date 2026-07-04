@@ -132,7 +132,7 @@ lang:SlotIndexPresentShape
 lang:DependencyIntegrityShape
     a sh:NodeShape ;
     rdfs:label "Dependency integrity shape"@x-gmeow-english ;
-    skos:definition "A lang:dependsOn head reference stays within the lang:Analysis its slot belongs to and does not form a self-loop or a two-slot cycle."@x-gmeow-english ;
+    skos:definition "A lang:dependsOn head reference stays within the lang:Analysis its slot belongs to and does not participate in a dependency cycle of any length."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     lang:enforcesFailureClass lang:DanglingDependency ;
     sh:targetClass lang:FormSlot ;
@@ -146,10 +146,7 @@ lang:DependencyIntegrityShape
                     $this <https://blackcatinformatics.ca/lang/inAnalysis> ?a .
                     FILTER NOT EXISTS { ?h <https://blackcatinformatics.ca/lang/inAnalysis> ?a . }
                 } UNION {
-                    $this <https://blackcatinformatics.ca/lang/dependsOn> $this .
-                } UNION {
-                    $this <https://blackcatinformatics.ca/lang/dependsOn> ?h2 .
-                    ?h2 <https://blackcatinformatics.ca/lang/dependsOn> $this .
+                    $this <https://blackcatinformatics.ca/lang/dependsOn>+ $this .
                 }
             }
         """ ;
