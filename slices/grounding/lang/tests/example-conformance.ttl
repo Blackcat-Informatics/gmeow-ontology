@@ -70,6 +70,12 @@ ex:ecSlotGap a gmeow:ExampleConformance ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
     gmeow:conformanceRationale "The counter-example has slots at indexes 0, 1, and 3 with an internal gap at 2 (the SPARQL constraint of lang:SlotContiguityShape, which compares the max index against the slot count), so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (lang:NonContiguousSlots)." .
 
+ex:ecSlotNoIndex a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/slot-no-index.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example's indexed slots are contiguous (0, 1) but one lang:FormSlot declares no lang:slotIndex at all (sh:minCount 1 on lang:SlotIndexPresentShape); the contiguity aggregate silently skips the index-less slot, so only the plain cardinality rule catches it and validation MUST emit shacl.MinCountConstraintComponent and NO other finding (lang:NonContiguousSlots)." .
+
 # === Rule: dependency edges stay in their analysis, acyclic ================= #
 
 ex:ecDependencyIntegral a gmeow:ExampleConformance ;

@@ -113,6 +113,22 @@ lang:SlotContiguityShape
         """ ;
     ] .
 
+lang:SlotIndexPresentShape
+    a sh:NodeShape ;
+    rdfs:label "Slot index presence shape"@x-gmeow-english ;
+    skos:definition "Every lang:FormSlot declares exactly one integer lang:slotIndex — a slot with no index cannot take its place in the contiguous constituent order, and the contiguity aggregation of lang:SlotContiguityShape would silently skip an index-less slot, so its presence is mandated by plain cardinality rather than left to the aggregate arithmetic."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    lang:enforcesFailureClass lang:NonContiguousSlots ;
+    sh:targetClass lang:FormSlot ;
+    sh:property [
+        sh:path lang:slotIndex ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:integer ;
+        sh:severity sh:Violation ;
+        sh:message "A lang:FormSlot must declare exactly one integer lang:slotIndex." ;
+    ] .
+
 lang:DependencyIntegrityShape
     a sh:NodeShape ;
     rdfs:label "Dependency integrity shape"@x-gmeow-english ;
