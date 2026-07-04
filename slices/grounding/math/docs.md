@@ -79,3 +79,50 @@ term surface answers, over the fixtures, what number system a number is in and w
 whether a set is extensional or intensional and its condition, a function's domain/codomain/image and
 its injectivity/surjectivity/bijectivity, a set's cardinality, and which named constants appear with
 their external anchors.
+
+## Algebra — structures, symmetry, and homomorphisms
+
+The algebra charter ([`design/MATHEMATICS-ALGEBRA.md`](./design/MATHEMATICS-ALGEBRA.md)) deepens the
+object layer with four regions, on one discipline: **a structure declares its operations and laws, and
+a map between structures declares what it preserves.** `math:` expresses; `logic:` owns reasoning —
+every axiom and preservation law is a real `logic:Formula` first-order AST the reasoner consumes, not
+an opaque string.
+
+- **The algebraic-structure hierarchy** — `math:AlgebraicStructure` ⊐ `math:Magma` ⊐ `math:Semigroup`
+  ⊐ `math:Monoid` ⊐ `math:Group` ⊐ `math:AbelianGroup`; `math:Ring` ⊐ `math:CommutativeRing` ⊐
+  `math:Field`; `math:Module` ⊐ `math:VectorSpace`; `math:PolynomialRing`, `math:Ideal` — each naming
+  its `math:underlyingSet`, `math:structureOperation`, and the axioms it `math:satisfiesAxiom`. The
+  reusable axiom library ([`examples/algebra-axioms.ttl`](./examples/algebra-axioms.ttl)) authors
+  associativity, commutativity, identity, inverse, and distributivity as `logic:Formula` ASTs.
+- **Structure-preserving maps** — `math:Homomorphism` (⊑ `math:Morphism`) with `math:GroupHomomorphism`,
+  `math:RingHomomorphism`, `math:Isomorphism`, `math:Automorphism`, and `math:AutomorphismGroup` (⊑
+  `math:Group`), carrying `math:preservedOperation`, `math:kernel`, and a `math:preservationLaw`; the
+  first-isomorphism triple (`math:Quotient`, `math:normalSubgroupOf`). The determinant example authors
+  `det(A·B) = det(A)·det(B)` as a `logic:Formula`, with `GL₂/SL₂ ≅ ℝ*`.
+- **Lie theory and the E8 flagship** — `math:LieGroup`, `math:LieAlgebra`, `math:RootSystem`,
+  `math:CartanMatrix`, `math:DynkinDiagram`, `math:WeylGroup` (⊑ `math:AutomorphismGroup`), `math:Lattice`,
+  `math:GroupRepresentation`, and `math:GroupAction`/`math:actsOn`. E8 is authored with 240 roots, rank
+  8, and a Weyl group of order 696,729,600 modelled as the automorphism group acting on the roots — the
+  numbers pinned by an exact-match competency question so wrong data fails the gate.
+- **Homomorphic encryption (flagship 2) and secret sharing** — `math:HomomorphicEncryptionScheme` (a
+  `math:RingHomomorphism`) with `math:homomorphicOver`, `math:securityAssumption` (LWE/RLWE), and
+  `math:noiseModel`; encrypt/evaluate/decrypt as `gmeow:Activity` processes. `Dec(E(a) ⊗ E(b)) = a ⊕ b`
+  is a `logic:Formula` over the declared ring structure — the purest exercise of the one-way
+  `math:` → `logic:` bridge. Shamir secret sharing reuses the field / polynomial-ring machinery.
+
+Algebra also **dogfoods** GMEOW: `math:Lattice math:formalizes gmeow:tuningSystemJustIntonation` (a
+prime-limit just-intonation tuning is a free abelian lattice), the one-way `math:formalizes` bridge
+(Principle 19) making algebra grounding for the ontology. The algebra classes align to Wikidata
+(`skos:exactMatch`, QIDs curl-validated) and to Lean **mathlib** by reference (a new
+`gmeow-mathlib.sssom.tsv` lane, `skos:relatedMatch`, URLs curl-validated).
+
+The algebra gates:
+
+| Rule | Shape | Failure class |
+| --- | --- | --- |
+| A structure declares its carrier, operation, and axioms | `math:AlgebraicStructureShape` | `math:IncompleteAlgebraicStructure` |
+| A homomorphism declares its preserved operation and law | `math:HomomorphismShape` | `math:UnderspecifiedHomomorphism` |
+| A preservation law denotes a `logic:` formula, not a string | `math:PreservationLawShape` | `math:StringOnlyPreservationLaw` |
+| A Lie group declares its root system | `math:LieStructureShape` | `math:IncompleteLieStructure` |
+| A root system declares its Cartan matrix, Weyl group, and rank | `math:RootSystemShape` | `math:IncompleteLieStructure` |
+| An HE scheme declares its homomorphic operation, hardness, and noise | `math:HomomorphicEncryptionSchemeShape` | `math:UnderspecifiedEncryptionScheme` |
