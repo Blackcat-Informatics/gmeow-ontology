@@ -45,6 +45,7 @@ _SLICE = URIRef(NAMESPACE + "Slice")
 _TIER = URIRef(NAMESPACE + "sliceTier")
 _TIER_CORE = URIRef(NAMESPACE + "tierCore")
 _TIER_EXTENSION = URIRef(NAMESPACE + "tierExtension")
+_TIER_PROFILE = URIRef(NAMESPACE + "tierProfile")
 _DEPENDS_ON = URIRef(NAMESPACE + "sliceDependsOn")
 _CONSUMER = URIRef(NAMESPACE + "sliceConsumer")
 _PROFILE = URIRef(NAMESPACE + "sliceProfile")
@@ -75,7 +76,7 @@ class Slice:
     name: str
     group: str
     path: Path
-    tier: str  # "core" | "extension"
+    tier: str  # "core" | "extension" | "profile"
     depends_on: tuple[str, ...]
     consumers: tuple[str, ...]
     title: str
@@ -132,10 +133,10 @@ def _load_manifest(manifest: Path) -> Slice:
         raise SliceError(f"{manifest}: the gmeow:Slice subject must be an IRI")
 
     tiers = sorted(set(graph.objects(node, _TIER)), key=str)
-    if len(tiers) != 1 or tiers[0] not in (_TIER_CORE, _TIER_EXTENSION):
+    if len(tiers) != 1 or tiers[0] not in (_TIER_CORE, _TIER_EXTENSION, _TIER_PROFILE):
         raise SliceError(
             f"{manifest}: gmeow:sliceTier must be exactly one of "
-            "gmeow:tierCore / gmeow:tierExtension"
+            "gmeow:tierCore / gmeow:tierExtension / gmeow:tierProfile"
         )
 
     titles = _strings(graph, node, DCTERMS.title) or _strings(graph, node, RDFS.label)
@@ -147,7 +148,13 @@ def _load_manifest(manifest: Path) -> Slice:
         name=manifest.parent.name,
         group=manifest.parent.parent.name,
         path=manifest.parent,
-        tier="core" if tiers[0] == _TIER_CORE else "extension",
+        tier=(
+            "core"
+            if tiers[0] == _TIER_CORE
+            else "profile"
+            if tiers[0] == _TIER_PROFILE
+            else "extension"
+        ),
         depends_on=tuple(
             sorted(
                 str(o)

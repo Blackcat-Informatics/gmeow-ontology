@@ -46,6 +46,7 @@ classes:
     title: Activity
     is_a: Event
     slots:
+    - usedCapability
     - wasAssociatedWith
   AddressTenure:
     class_uri: https://blackcatinformatics.ca/gmeow/AddressTenure
@@ -198,6 +199,13 @@ classes:
     - telephone
     - understands
     - wondersWhether
+  AgentSession:
+    class_uri: https://blackcatinformatics.ca/gmeow/AgentSession
+    title: Agent Session
+    is_a: Activity
+    slots:
+    - sessionConfiguration
+    - sessionSubjectStage
   AggregationFunction:
     class_uri: https://blackcatinformatics.ca/gmeow/AggregationFunction
     title: Aggregation Function
@@ -2601,16 +2609,30 @@ classes:
   ModalForce:
     class_uri: https://blackcatinformatics.ca/gmeow/ModalForce
     title: Modal Force
+  ModelArtifact:
+    class_uri: https://blackcatinformatics.ca/gmeow/ModelArtifact
+    title: Model Artifact
+    is_a: InformationObject
   ModelCard:
     class_uri: https://blackcatinformatics.ca/gmeow/ModelCard
     title: Model Card
     is_a: InformationObject
     slots:
     - describesModel
+    - describesModelArtifact
+    - describesModelService
     - modelContextWindow
     - modelProvider
     - modelTrainingCutoff
     - modelVersionTag
+  ModelDeployment:
+    class_uri: https://blackcatinformatics.ca/gmeow/ModelDeployment
+    title: Model Deployment
+    slots:
+    - deploymentArtifact
+    - deploymentEndpoint
+    - deploymentHost
+    - deploymentService
   ModelInferenceRun:
     class_uri: https://blackcatinformatics.ca/gmeow/ModelInferenceRun
     title: Model Inference Run
@@ -2629,6 +2651,7 @@ classes:
     is_a: Activity
     slots:
     - hasPrompt
+    - invocationInExecution
     - samplingMaxTokens
     - samplingTemperature
     - samplingTopP
@@ -3696,6 +3719,12 @@ classes:
     - ruleConsequence
     - ruleConstraint
     - ruleTarget
+  RuntimeExecution:
+    class_uri: https://blackcatinformatics.ca/gmeow/RuntimeExecution
+    title: Runtime Execution
+    is_a: Activity
+    slots:
+    - executionOfDeployment
   SLSALevel:
     class_uri: https://blackcatinformatics.ca/gmeow/SLSALevel
     title: SLSA Level
@@ -6719,6 +6748,30 @@ slots:
     range: Entity
     domain: MediaObject
     multivalued: true
+  deploymentArtifact:
+    slot_uri: https://blackcatinformatics.ca/gmeow/deploymentArtifact
+    title: deployment artifact
+    range: ModelArtifact
+    domain: ModelDeployment
+    multivalued: true
+  deploymentEndpoint:
+    slot_uri: https://blackcatinformatics.ca/gmeow/deploymentEndpoint
+    title: deployment endpoint
+    range: uriorcurie
+    domain: ModelDeployment
+    multivalued: true
+  deploymentHost:
+    slot_uri: https://blackcatinformatics.ca/gmeow/deploymentHost
+    title: deployment host
+    range: Entity
+    domain: ModelDeployment
+    multivalued: true
+  deploymentService:
+    slot_uri: https://blackcatinformatics.ca/gmeow/deploymentService
+    title: deployment service
+    range: SoftwareAgent
+    domain: ModelDeployment
+    multivalued: true
   derivationEvidence:
     slot_uri: https://blackcatinformatics.ca/gmeow/derivationEvidence
     title: derivation evidence
@@ -6797,6 +6850,18 @@ slots:
     range: SoftwareAgent
     domain: ModelCard
     multivalued: false
+  describesModelArtifact:
+    slot_uri: https://blackcatinformatics.ca/gmeow/describesModelArtifact
+    title: describes model artifact
+    range: ModelArtifact
+    domain: ModelCard
+    multivalued: true
+  describesModelService:
+    slot_uri: https://blackcatinformatics.ca/gmeow/describesModelService
+    title: describes model service
+    range: ModelDeployment
+    domain: ModelCard
+    multivalued: true
   description:
     slot_uri: https://blackcatinformatics.ca/gmeow/description
     title: description
@@ -7380,6 +7445,12 @@ slots:
     range: ProcedureStep
     domain: Execution
     multivalued: true
+  executionOfDeployment:
+    slot_uri: https://blackcatinformatics.ca/gmeow/executionOfDeployment
+    title: execution of deployment
+    range: ModelDeployment
+    domain: RuntimeExecution
+    multivalued: true
   executionParticipant:
     slot_uri: https://blackcatinformatics.ca/gmeow/executionParticipant
     title: execution participant
@@ -7836,11 +7907,23 @@ slots:
     slot_uri: https://blackcatinformatics.ca/gmeow/generalizesVia
     title: generalizes via
     range: string
+  generatedForSubject:
+    slot_uri: https://blackcatinformatics.ca/gmeow/generatedForSubject
+    title: generated for subject
+    description: COMPUTED PROJECTION, generated not authored (Principle 12). Materialized by a projection-layer rule as the one-hop collapse of the multi-hop path output → gmeow:wasGeneratedBy → invocation → gmeow:subEventOf → session → gmeow:sessionSubjectStage → subject stage (and onward, in the agent-runtime profile, gmeow:stageOfLineage → durable lineage). The canonical nested situations remain the source of truth for deep audits; real-time recall reads this flat shortcut. Never hand-assert it in the authored corpus — the projection-agreement gate (tests/perf-recall.ttl + queries/competency/audit.rq) proves the shortcut equals the collapse of the canon (Principle 7).
+    range: uriorcurie
+    multivalued: true
   generatedObservation:
     slot_uri: https://blackcatinformatics.ca/gmeow/generatedObservation
     title: generated observation
     range: Observation
     domain: ObservationalActivity
+    multivalued: true
+  generatedUnderConfiguration:
+    slot_uri: https://blackcatinformatics.ca/gmeow/generatedUnderConfiguration
+    title: generated under configuration
+    description: COMPUTED PROJECTION, generated not authored (Principle 12). Materialized by a projection-layer rule as the one-hop collapse of output → gmeow:wasGeneratedBy → invocation → gmeow:subEventOf → session → gmeow:sessionConfiguration → active configuration. Never hand-assert it in the authored corpus; the projection-agreement gate proves it equals the collapse of the canon (Principle 7).
+    range: uriorcurie
     multivalued: true
   geocodeFrame:
     slot_uri: https://blackcatinformatics.ca/gmeow/geocodeFrame
@@ -9542,6 +9625,12 @@ slots:
     title: invitation status
     range: InvitationStatus
     domain: EventInvitation
+    multivalued: true
+  invocationInExecution:
+    slot_uri: https://blackcatinformatics.ca/gmeow/invocationInExecution
+    title: invocation in execution
+    range: RuntimeExecution
+    domain: ModelInvocation
     multivalued: true
   invoiceAmount:
     slot_uri: https://blackcatinformatics.ca/gmeow/invoiceAmount
@@ -12729,6 +12818,18 @@ slots:
     range: ServiceType
     domain: ServiceOffering
     multivalued: true
+  sessionConfiguration:
+    slot_uri: https://blackcatinformatics.ca/gmeow/sessionConfiguration
+    title: session configuration
+    range: uriorcurie
+    domain: AgentSession
+    multivalued: true
+  sessionSubjectStage:
+    slot_uri: https://blackcatinformatics.ca/gmeow/sessionSubjectStage
+    title: session subject stage
+    range: uriorcurie
+    domain: AgentSession
+    multivalued: true
   sexAssignedAtBirth:
     slot_uri: https://blackcatinformatics.ca/gmeow/sexAssignedAtBirth
     title: sex assigned at birth
@@ -14042,6 +14143,12 @@ slots:
     slot_uri: https://blackcatinformatics.ca/gmeow/useWhen
     title: use when
     range: string
+  usedCapability:
+    slot_uri: https://blackcatinformatics.ca/gmeow/usedCapability
+    title: used capability
+    range: string
+    domain: Activity
+    multivalued: true
   usedInput:
     slot_uri: https://blackcatinformatics.ca/gmeow/usedInput
     title: used input
@@ -16456,6 +16563,9 @@ enums:
       eventTypeAdoption:
         meaning: https://blackcatinformatics.ca/gmeow/eventTypeAdoption
         title: adoption
+      eventTypeAgentEpisode:
+        meaning: https://blackcatinformatics.ca/gmeow/eventTypeAgentEpisode
+        title: agent episode
       eventTypeAnnulment:
         meaning: https://blackcatinformatics.ca/gmeow/eventTypeAnnulment
         title: annulment

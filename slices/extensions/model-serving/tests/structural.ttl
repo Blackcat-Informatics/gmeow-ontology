@@ -132,6 +132,17 @@ ASK {
 }""" ;
     gmeow:saRationale "gmeow:usedCapability (the passive half of the CQ5 discriminator) MUST range over logic:ActionSchema with domain gmeow:Activity — passive capability use, as opposed to a delegated gmeow:ToolCall → gmeow:usedTool → gmeow:SoftwareAgent." .
 
+# --- 9b. ModelDeployment is disjoint with Agent (the awareness-subject invariant) (MUST)
+ex:saModelDeploymentDisjointAgent a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    gmeow:ModelDeployment owl:disjointWith gmeow:Agent .
+}""" ;
+    gmeow:saRationale "gmeow:ModelDeployment MUST be owl:disjointWith gmeow:Agent — a deployment is a logic:Relator and can never be a gmeow:awarenessSubject (which ranges over gmeow:Agent), so the serving-mode gmeow:AwarenessTenure attaches to the deployment's gmeow:deploymentService SoftwareAgent, never the deployment itself. Enforced at the TBox (EL-valid class disjointness → a node typed both is a DL incoherence) rather than a SHACL sh:not, which is incompatible with the closed-world JSON-schema property projection." .
+
 # --- 10. The upper-projections are declared object properties (MUST) ----------
 ex:saUpperProjectionsDeclared a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;

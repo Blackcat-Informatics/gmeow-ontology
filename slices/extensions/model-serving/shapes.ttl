@@ -47,12 +47,17 @@ gmeow:ModelDeploymentShape
         sh:class gmeow:Entity ;
         sh:severity sh:Violation ;
         sh:message "A ModelDeployment serves on at most one gmeow:deploymentHost, and it must be a gmeow:Entity." ;
-    ] ;
-    sh:not [
-        sh:class gmeow:Agent ;
-    ] ;
-    sh:message "A gmeow:ModelDeployment is a logic:Relator and MUST NOT also be a gmeow:Agent — it cannot be a gmeow:awarenessSubject; attach the serving-mode gmeow:AwarenessTenure to the deployment's gmeow:deploymentService SoftwareAgent." ;
-    sh:severity sh:Violation .
+    ] .
+
+# NOTE: the deployment / awareness-subject disjointness (a gmeow:ModelDeployment
+# is a logic:Relator and MUST NOT be a gmeow:Agent, so it can never be a
+# gmeow:awarenessSubject) is enforced at the TBox with
+# `gmeow:ModelDeployment owl:disjointWith gmeow:Agent` (module.ttl), NOT with a
+# SHACL sh:not here: the closed-world JSON-schema projection derives a class's
+# allowed properties from its NodeShape, and a node-level sh:not (or a second
+# NodeShape targeting the same class) suppresses that property extraction
+# (purrdf json_schema keys $defs by class, first-writer-wins). The owl:disjointWith
+# is EL-valid and a node typed both classes is a DL incoherence.
 
 # =========================================================================== #
 # ModelCard split — the artifact facet and the service facet are distinct
