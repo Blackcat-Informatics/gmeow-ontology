@@ -1,0 +1,112 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow:     <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl:       <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs:      <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:      <http://www.w3.org/2004/02/skos/core#> .
+@prefix semapv:    <https://w3id.org/semapv/vocab/> .
+@prefix mls:       <http://www.w3.org/ns/mls#> .
+@prefix otelgenai: <https://opentelemetry.io/docs/specs/semconv/registry/attributes/gen-ai/> .
+
+# Term equivalences for the model-serving slice — GMEOW authoring source, compiled
+# to mappings/gmeow-model-serving.sssom.tsv by `gmeow compile-mappings`. All
+# alignments are BY REFERENCE (Principle 5); GMEOW never imports an external
+# axiom, and every external IRI is curl-validated (OTel semconv registry and
+# ML-Schema both resolve).
+#
+# SCOPE DISCIPLINE (INHABITED-ALIGNMENT.md §"Aligned elsewhere, referenced here"):
+# this file aligns ONLY the terms model-serving OWNS — gmeow:ModelArtifact,
+# gmeow:ModelDeployment, gmeow:RuntimeExecution, gmeow:AgentSession — to the two
+# flagship seams that ARE its concern: OpenTelemetry-GenAI (the observability
+# occurrent shadow) and ML-metadata (ML-Schema / Model Cards / Croissant /
+# SPDX-AI / MLflow). The PROV activity/agent/entity core is INHERITED BY REFERENCE
+# through the superclass alignments (gmeow:Activity ↔ prov:Activity is owned by
+# the provenance slice; gmeow:RuntimeExecution / gmeow:AgentSession ⊑ gmeow:Activity
+# get it transitively; gmeow:ModelArtifact ⊑ gmeow:InformationObject inherits the
+# kernel entity alignment) — re-authoring those rows here would be the linkage
+# twin of minting a term in the wrong place. The gmeow:ModelInvocation / gmeow:ToolCall
+# / gmeow:usedTool / gmeow:samplingTemperature OTel rows are owned by the ai and
+# agentic slices that mint those terms, not re-aligned here.
+
+gmeow:mapsetModelServing a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-model-serving.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/model-serving" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment """Model-serving alignments (extensions/model-serving slice).
+        FLAGSHIP 1 — OpenTelemetry-GenAI (the occurrent shadow, INHABITED-ALIGNMENT.md): the OTel GenAI semantic conventions (the experimental gen_ai.* namespace) describe spans for model calls, tool calls, and agent operations — the runtime/invocation layer FAITHFULLY, and NOTHING of the durable subject, the tenure, continuity, or claims-as-observations. That asymmetry is the projection doctrine, authored once per target across four layers: (1) SSSOM term↔term for the 1:1 cases (below); (2) EDOAL structural correspondences where no single term matches — 'gmeow:AgentSession ≡ an OTel trace whose spans carry gen_ai.*' is a class-expression correspondence, not a term row; (3) FnO value transforms — gmeow:duringInterval → span start/end (epoch-nanos), gmeow:samplingTemperature → gen_ai.request.temperature; (4) CONSTRUCT that materializes the target view AND the inverse ingest lift. The EDOAL/FnO/CONSTRUCT layers are GENERATED from this DSL and the loss ledger. DIRECTIONALITY (the Galois-connection shape): projection GMEOW → OTel is a SoundUnderApproximation — every emitted span is faithful, but the endurant/epistemic structure (the DigitalSubject and its tenure, InhabitationTenure/Configuration, IdentityContinuityAssessment, ControlAssessment, InhabitationClaim/standpoints, TransferManifest and migration boundaries) is DROPPED, and the ledger says so; ingest OTel → GMEOW is ENRICHING (subsume-and-extend) — a trace lifts to a gmeow:RuntimeExecution with its gmeow:ModelInvocation / gmeow:ToolCall sub-events, and GMEOW ADDS the subject, tenure, and attributed provenance the trace could not express, the super-ontology earning its name.
+        ML-METADATA (the LLM-ops hub): gmeow:ModelArtifact / gmeow:ModelDeployment / gmeow:RuntimeExecution align to ML-Schema (mls:Model / mls:Implementation / mls:Run) and, by the same four-layer pattern, to Model Cards, Croissant, SPDX-AI, and MLflow runs — making the model-serving slice a hub for LLM-ops metadata (under-approximation, L/I).
+        LOSS LEDGER: the OTel and ML rows are skos:relatedMatch or closeMatch (cross-category or broader-target, lossy); the flagship projection is honestly a SoundUnderApproximation, not 'supported' — what a target cannot hold is recorded, never silently dropped (Principles 4, 7).""" ;
+    gmeow:setTrailer "# INHERITED BY REFERENCE (not re-authored here): PROV-O — gmeow:RuntimeExecution / gmeow:AgentSession ⊑ gmeow:Activity ↔ prov:Activity (owned by the provenance slice); gmeow:ModelArtifact ⊑ gmeow:InformationObject ↔ the kernel entity alignment. gUFO down-projection (Principle 17) and the OTel EDOAL/FnO structural-and-value correspondences are GENERATED from the stereotypes and this DSL, not per-term SSSOM rows.\n# OWNED ELSEWHERE (align once): the OTel gen_ai.* rows for gmeow:ModelInvocation (an LLM chat span), gmeow:ToolCall (a tool span), gmeow:usedTool (gen_ai.tool.name), and gmeow:samplingTemperature / samplingMaxTokens (gen_ai.request.*) belong to the ai and agentic slices that mint those terms — referenced from model-serving transitively, never re-aligned here." .
+
+# ── OpenTelemetry-GenAI (the observability seam) ─────────────────────────────
+# gmeow:AgentSession ↔ an OTel trace / gen_ai.conversation.id.
+gmeow:eqModelServing001 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:AgentSession ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject otelgenai:conversation ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.5 ;
+    gmeow:comment "the session aggregate ↔ an OTel trace whose spans carry gen_ai.* (gen_ai.conversation.id); a structural (EDOAL) correspondence surfaced as a loose term row — the endurant subject/tenure the session carries has no OTel counterpart" ;
+    gmeow:sssomFile "gmeow-model-serving.sssom.tsv" .
+
+# gmeow:RuntimeExecution ↔ an OTel agent root span (gen_ai.agent.*).
+gmeow:eqModelServing002 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:RuntimeExecution ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject otelgenai:agent ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.5 ;
+    gmeow:comment "the occurrent running of a deployment ↔ an OTel agent root span (gen_ai.agent.id / .name, gen_ai.operation.name = create_agent/invoke_agent); the span captures the process, not the deployment relator it runs" ;
+    gmeow:sssomFile "gmeow-model-serving.sssom.tsv" .
+
+# gmeow:ModelDeployment provider ↔ gen_ai.system.
+gmeow:eqModelServing003 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:ModelDeployment ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject otelgenai:system ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.4 ;
+    gmeow:comment "the served, callable realization's provider/service ↔ gen_ai.system (e.g. anthropic); OTel records the serving provider as a flat attribute, dropping the deployment's artifact·host·endpoint·interval binding structure" ;
+    gmeow:sssomFile "gmeow-model-serving.sssom.tsv" .
+
+# gmeow:ModelArtifact version ↔ gen_ai.request.model / gen_ai.response.model.
+gmeow:eqModelServing004 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:ModelArtifact ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject otelgenai:request-model ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.45 ;
+    gmeow:comment "the served model artifact's identity ↔ gen_ai.request.model / gen_ai.response.model; OTel carries the model name as a span attribute, dropping the content-digested artifact identity" ;
+    gmeow:sssomFile "gmeow-model-serving.sssom.tsv" .
+
+# ── ML-metadata (the LLM-ops hub) ────────────────────────────────────────────
+# gmeow:ModelArtifact ↔ mls:Model (the trained model).
+gmeow:eqModelServing005 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:ModelArtifact ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject mls:Model ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:comment "the content-digested served model ↔ mls:Model, ML-Schema's trained-model artifact; a close but not exact match — mls:Model is the learned model, gmeow:ModelArtifact adds the distribution/versioning framing aligned by reference to the software slice" ;
+    gmeow:sssomFile "gmeow-model-serving.sssom.tsv" .
+
+# gmeow:ModelDeployment ↔ mls:Implementation (the executable realization).
+gmeow:eqModelServing006 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:ModelDeployment ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject mls:Implementation ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.5 ;
+    gmeow:comment "the served, callable realization ↔ mls:Implementation, ML-Schema's executable implementation of an algorithm; relatedMatch only — a gmeow:ModelDeployment additionally binds a service identity, host, endpoint, and serving interval" ;
+    gmeow:sssomFile "gmeow-model-serving.sssom.tsv" .
+
+# gmeow:RuntimeExecution ↔ mls:Run (an execution of an implementation).
+gmeow:eqModelServing007 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:RuntimeExecution ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject mls:Run ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.55 ;
+    gmeow:comment "a particular running of a deployment ↔ mls:Run, ML-Schema's execution of an implementation on data; relatedMatch — mls:Run is training/evaluation-centred, gmeow:RuntimeExecution is a serving occurrent within which gmeow:ModelInvocation events occur" ;
+    gmeow:sssomFile "gmeow-model-serving.sssom.tsv" .
