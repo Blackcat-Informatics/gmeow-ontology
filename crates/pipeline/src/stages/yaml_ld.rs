@@ -226,8 +226,8 @@ fn dataset_from_nquads(nquads: &[u8]) -> Result<Arc<RdfDataset>, PipelineError> 
 
 /// Return whether `star_bytes` (format `"jsonld"`|`"yamlld"`) re-parses to a
 /// dataset isomorphic (RDFC-1.0 canonical) to the original N-Quads-star input.
-/// This is the Rust authority for the build-time serialization-isomorphism gate
-/// , replacing the Python `_round_trip_star`.
+/// This is the Rust authority for the build-time serialization-isomorphism gate,
+/// replacing the Python `_round_trip_star`.
 pub fn roundtrip_isomorphic(
     original_nquads: &[u8],
     star_bytes: &[u8],

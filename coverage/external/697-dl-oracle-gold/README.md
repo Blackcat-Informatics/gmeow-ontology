@@ -8,7 +8,7 @@ SPDX-License-Identifier: CC-BY-4.0
 A frozen, **oracle-generated** conformance corpus proving that GMEOW's native,
 Docker-free reasoner catches every inconsistency / unsatisfiable class the classic
 Java OWL 2 DL oracle (HermiT) catches — `native ⊇ oracle` (criteria 2
-and 4). The gold here is the **oracle's** verdict, frozen from a real HermiT run;
+and 4 of the cross-check policy). The gold here is the **oracle's** verdict, frozen from a real HermiT run;
 the native engine is then asserted to reproduce it OFFLINE.
 
 ## Layout

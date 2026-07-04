@@ -190,7 +190,7 @@ fn rule_key(r: &LogicRule) -> String {
     base
 }
 
-/// Stable diff key for a reasoning contract (; was `profile_key`).
+/// Stable diff key for a reasoning contract (previously `profile_key`).
 fn contract_key(c: &ReasoningContract) -> String {
     c.sort_key()
 }
