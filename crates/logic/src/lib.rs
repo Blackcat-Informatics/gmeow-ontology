@@ -86,5 +86,8 @@ pub use py::register;
 // Nemo reasoner bridge.
 pub(crate) mod nemo_engine;
 
+// The reasoning-oracle boundary: Forward/Backward oracle traits + engine adapters.
+pub(crate) mod oracle;
+
 // Static profile / decidability certifier.
 pub mod certify;
