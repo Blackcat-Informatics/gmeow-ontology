@@ -21,9 +21,11 @@ pub mod dag_profile;
 pub(crate) mod dense;
 pub mod derivation_graph;
 pub mod dispatch;
-pub mod encode;
 pub mod entrenchment;
 pub mod explain;
+// The typed-fact bridge: dictionary-interned facts (TermInterner / TypedFactSet)
+// exchanged between the store sweep and the reasoning adapters. Crate-internal.
+pub(crate) mod facts;
 pub mod foundation;
 // Runtime-side projection of compiler parse diagnostics into the PyO3-tainted
 // gmeow-diagnostics Report — kept out of the wasm-able compiler crate.
@@ -82,7 +84,7 @@ pub mod py;
 pub use py::register;
 
 // Nemo reasoner bridge.
-pub mod nemo_engine;
+pub(crate) mod nemo_engine;
 
 // Static profile / decidability certifier.
 pub mod certify;

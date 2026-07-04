@@ -102,18 +102,20 @@ pub(crate) enum NativeOutcome<T> {
 
 /// Compute the [`Bound`] for `atom`'s `(subject, object)` columns under `sol`.
 ///
-/// A position contributes a surface iff it grounds (a bound var or a constant);
-/// an unbound var contributes nothing.  Surfaces come from [`ground`] so they match
-/// the [`RelationStore`]'s N3 index keys exactly (`<iri>` for an IRI, the literal's
-/// N3 for a literal).  The borrowed `&str` slices point into the owned strings the
-/// caller pins for the lifetime of the `select` call.
-fn atom_bound<'a>(subj: &'a Option<String>, obj: &'a Option<String>) -> Bound<'a> {
-    match (subj.as_deref(), obj.as_deref()) {
-        (Some(s), Some(o)) => Bound::Both(s, o),
-        (Some(s), None) => Bound::Subject(s),
-        (None, Some(o)) => Bound::Object(o),
+/// A position contributes iff it grounds (a bound var or a constant); an unbound
+/// var contributes nothing.  Ground surfaces come from [`ground`] and are
+/// translated to interned ids via [`RelationStore::term_id`] — the store's
+/// dictionary is keyed on the same display surfaces, so the translation is exact.
+/// `None` means a bound position's term has never entered `rel`: no row can match,
+/// and the caller treats the selection as empty (exactly where a surface-keyed
+/// index would have produced zero matches).
+fn atom_bound(rel: &RelationStore, subj: Option<&str>, obj: Option<&str>) -> Option<Bound> {
+    Some(match (subj, obj) {
+        (Some(s), Some(o)) => Bound::Both(rel.term_id(s)?, rel.term_id(o)?),
+        (Some(s), None) => Bound::Subject(rel.term_id(s)?),
+        (None, Some(o)) => Bound::Object(rel.term_id(o)?),
         (None, None) => Bound::Any,
-    }
+    })
 }
 
 /// Extend each partial solution by index-selecting `atom`'s matching rows under `scan`.
@@ -137,11 +139,14 @@ fn extend_solutions_indexed(
     let pred = atom.predicate.as_str();
     let mut next: Vec<Solution> = Vec::new();
     for sol in solutions {
-        // Compute the selection bound from the current partial solution.  Pin the
-        // ground surfaces so the `Bound`'s `&str`s outlive the `select` call.
+        // Compute the selection bound from the current partial solution, translating
+        // ground surfaces to interned ids.  A bound term the store has never seen
+        // matches nothing — skip to the next solution (the empty selection).
         let subj_surface = ground(&atom.subject, sol);
         let obj_surface = ground(&atom.object, sol);
-        let bound = atom_bound(&subj_surface, &obj_surface);
+        let Some(bound) = atom_bound(rel, subj_surface.as_deref(), obj_surface.as_deref()) else {
+            continue;
+        };
         for (subject, object) in rel.select(pred, bound) {
             let f = Fact {
                 subject,

@@ -3,6 +3,17 @@
 
 //! Nemo reasoner bridge — native targets only.
 //!
+//! # Sole fact-stringifier
+//!
+//! This adapter is the ONLY place in the crate where facts become Nemo
+//! fact-string text and where Nemo's display surface becomes native terms
+//! again: [`run_chase_typed`] renders a [`crate::facts::TypedFactSet`] to
+//! ground-fact lines via [`codec`] at the last moment, runs the chase, and
+//! decodes every result and antecedent row back to
+//! [`purrdf::TermValue`] before it leaves the module.  Encode-direction codec
+//! functions are scoped `pub(in crate::nemo_engine)` so the boundary is
+//! compiler-enforced.
+//!
 //! # Role: not-yet-native fallback + conformance oracle
 //!
 //! The native physical engine (`crate::physical`) is the primary forward
@@ -50,7 +61,9 @@
 //! MUST release the GIL **and** call this function from a non-async context
 //! or a `spawn_blocking` task.
 
-use nemo::api::{load_program, load_string, reason, validate};
+pub(crate) mod codec;
+
+use nemo::api::{load_string, reason};
 use nemo::datavalues::AnyDataValue;
 use nemo::execution::tracing::trace::{ExecutionTraceTree, TraceTreeRuleApplication};
 use nemo::rule_model::components::atom::Atom;
@@ -59,6 +72,7 @@ use nemo::rule_model::components::tag::Tag;
 use nemo::rule_model::programs::program::Program;
 use nemo::rule_model::programs::ProgramRead;
 use purrdf::provenance::Attribution;
+use purrdf::TermValue;
 use tokio::runtime::Runtime;
 
 use std::cell::RefCell;
@@ -97,8 +111,12 @@ thread_local! {
 /// `values` are the string representations of each term in the row, using
 /// [`AnyDataValue`]'s [`fmt::Display`] implementation (the canonical Nemo
 /// surface string).
+///
+/// String-surface row: retained while the reasoning path finishes migrating
+/// onto [`run_chase_typed`] and [`TypedRow`], the typed destination surface —
+/// new consumers must use those instead (the materialize path already does).
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct ChaseRow {
+pub(crate) struct ChaseRow {
     /// The predicate name (e.g. `"tc"` for a rule `tc(?x,?y) :- …`).
     pub predicate: String,
     /// One string per column in the row.
@@ -124,7 +142,7 @@ impl fmt::Display for ChaseRow {
 ///   or unfilled contexts; populated at the validation boundary when slice
 ///   context is available.
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct ChaseProvenance {
+pub(crate) struct ChaseProvenance {
     /// Whether this fact is an EDB (asserted input) fact.
     pub is_edb: bool,
     /// Name of the rule that derived this fact, as set via `#[name("...")]`.
@@ -137,11 +155,156 @@ pub struct ChaseProvenance {
 
 /// A single materialized row with its provenance metadata.
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct ChaseRowWithProvenance {
+pub(crate) struct ChaseRowWithProvenance {
     /// The derived fact.
     pub row: ChaseRow,
     /// Provenance metadata (EDB/IDB, rule name, antecedents).
     pub provenance: ChaseProvenance,
+}
+
+// ── Typed adapter surface ─────────────────────────────────────────────────────
+
+/// A single materialized row with decoded, native-term arguments.
+///
+/// This is the typed twin of [`ChaseRow`]: the predicate stays a relation-name
+/// `String` (it is a name, not a term — see [`crate::facts::TypedFact`]), and
+/// every argument is a decoded [`TermValue`].  Arity-generic: callers coerce
+/// positions (e.g. subject/object/world for ternary reasoning rows).
+#[derive(Debug, Clone, PartialEq)]
+pub(crate) struct TypedRow {
+    /// The relation name (a full predicate IRI, un-bracketed, or a bare
+    /// program-local predicate symbol).
+    pub predicate: String,
+    /// One decoded native term per column in the row.
+    pub args: Vec<TermValue>,
+}
+
+/// Provenance metadata for a typed row — the typed twin of [`ChaseProvenance`].
+#[derive(Debug, Clone, PartialEq)]
+pub(crate) struct TypedProvenance {
+    /// Whether this fact is an EDB (asserted input) fact.
+    pub is_edb: bool,
+    /// Name of the rule that derived this fact, as set via `#[name("...")]`.
+    pub rule_name: Option<String>,
+    /// Immediate antecedent facts (premises) that the rule consumed, decoded.
+    pub antecedents: Vec<TypedRow>,
+    /// Structured slice attributions (§9 / S5) — carried through unchanged.
+    /// Populated at the validation boundary when slice context is available;
+    /// no in-crate consumer reads it yet.
+    #[allow(dead_code)]
+    pub attributions: Vec<Attribution>,
+}
+
+/// The full result of a typed chase: every materialized row with provenance.
+#[derive(Debug, Clone, PartialEq)]
+pub(crate) struct TypedChaseResult {
+    /// All materialized rows, each paired with its provenance.
+    pub rows: Vec<(TypedRow, TypedProvenance)>,
+}
+
+/// Render a relation name as a Nemo predicate token: full IRIs are wrapped in
+/// angle brackets; bare program-local symbols pass through unchanged.  Inverse
+/// of the `Tag::to_string()` surface that populates [`ChaseRow::predicate`].
+fn render_predicate(name: &str) -> String {
+    if name.contains("://") {
+        format!("<{name}>")
+    } else {
+        name.to_owned()
+    }
+}
+
+/// Decode one string-surface [`ChaseRow`] into a [`TypedRow`], hard-failing on
+/// any argument the codec cannot decode — silently skipping a row would drop
+/// derived facts on the floor.
+fn typed_row_from_chase_row(row: &ChaseRow) -> Result<TypedRow, String> {
+    let args = row
+        .values
+        .iter()
+        .map(|value| {
+            codec::decode_nemo_term(value).map_err(|e| {
+                format!(
+                    "nemo typed-decode error: row {}({}) has undecodable term {value:?}: {e}",
+                    row.predicate,
+                    row.values.join(", ")
+                )
+            })
+        })
+        .collect::<Result<Vec<TermValue>, String>>()?;
+    Ok(TypedRow {
+        predicate: row.predicate.clone(),
+        args,
+    })
+}
+
+/// Run the Nemo chase over a typed EDB and a rule string, returning fully
+/// typed rows and provenance.
+///
+/// This is the adapter's typed surface and the crate's SOLE fact-string
+/// boundary: each [`crate::facts::TypedFact`] in `edb` is rendered to a Nemo
+/// ground-fact line via [`codec`] at the last moment, the existing chase
+/// machinery runs verbatim, and EVERY result row and antecedent row is decoded
+/// back to [`TermValue`] arguments before returning.
+///
+/// # Errors
+///
+/// Returns `Err(String)` if any EDB term cannot be rendered (RDF-star triple
+/// terms have no Nemo encoding), if the chase itself fails, or if any result
+/// or antecedent term cannot be decoded — undecodable rows are a hard failure,
+/// never skipped.
+pub(crate) fn run_chase_typed(
+    edb: &crate::facts::TypedFactSet,
+    rules: &str,
+) -> Result<TypedChaseResult, String> {
+    // ── 1. Render the EDB — the last-moment, sole stringification site ────────
+    let mut program = String::new();
+    let interner = edb.interner();
+    for fact in edb.facts() {
+        let mut rendered_args: Vec<String> = Vec::with_capacity(fact.args.len());
+        for &id in &fact.args {
+            let term = interner.resolve(id);
+            let rendered = codec::encode_term(term);
+            if rendered.is_empty() {
+                return Err(format!(
+                    "nemo typed-encode error: fact {}/{} carries a term with no \
+                     Nemo encoding (RDF-star triple terms are unsupported): {term:?}",
+                    fact.predicate,
+                    fact.args.len()
+                ));
+            }
+            rendered_args.push(rendered);
+        }
+        program.push_str(&render_predicate(&fact.predicate));
+        program.push('(');
+        program.push_str(&rendered_args.join(", "));
+        program.push_str(").\n");
+    }
+    program.push_str(rules);
+
+    // ── 2. Run the existing chase machinery verbatim ──────────────────────────
+    let raw_rows = run_chase(program)?;
+
+    // ── 3. Decode every row and every antecedent back to native terms ─────────
+    let mut rows: Vec<(TypedRow, TypedProvenance)> = Vec::with_capacity(raw_rows.len());
+    for rwp in &raw_rows {
+        let row = typed_row_from_chase_row(&rwp.row)?;
+        let antecedents = rwp
+            .provenance
+            .antecedent_rows
+            .iter()
+            .map(typed_row_from_chase_row)
+            .collect::<Result<Vec<TypedRow>, String>>()?;
+        rows.push((
+            row,
+            TypedProvenance {
+                is_edb: rwp.provenance.is_edb,
+                rule_name: rwp.provenance.rule_name.clone(),
+                antecedents,
+                attributions: rwp.provenance.attributions.clone(),
+            },
+        ));
+    }
+
+    Ok(TypedChaseResult { rows })
 }
 
 // ── Internal helper: reconstruct a parseable Nemo fact string ─────────────────
@@ -152,17 +315,50 @@ pub struct ChaseRowWithProvenance {
 ///
 /// This is used to pass derived facts back into `engine.trace()`.
 fn chase_row_to_fact_string(row: &ChaseRow) -> String {
-    // The predicate in ChaseRow is the raw IRI (Tag::to_string() strips angle
-    // brackets that Nemo internally stores).  We need to detect if it looks like
-    // an IRI (contains "://") and wrap in angle brackets accordingly.
-    let pred = if row.predicate.contains("://") {
-        format!("<{}>", row.predicate)
-    } else {
-        row.predicate.clone()
-    };
+    let pred = render_predicate(&row.predicate);
+    let args: Vec<String> = row
+        .values
+        .iter()
+        .map(|v| display_value_to_source(v))
+        .collect();
+    format!("{}({}).", pred, args.join(", "))
+}
 
-    let args = row.values.join(", ");
-    format!("{}({}).", pred, args)
+/// Convert one display-form value back to Nemo *source* form.
+///
+/// Nemo's display (`AnyDataValue::to_string()` via `quote_string`) escapes a
+/// raw newline as `\n` and a raw carriage return as `\r`, but its lexer does
+/// NOT process those escapes when parsing a string literal — re-parsing the
+/// display form for `engine.trace()` would therefore build a *different*
+/// stored value (a literal backslash-n) and the trace lookup would miss the
+/// fact.  Restore the raw control characters so the reconstructed fact is
+/// byte-identical to the stored one.  All other escape pairs (`\\`, `\"`)
+/// pass through verbatim: the source form carries them escaped too.
+fn display_value_to_source(value: &str) -> String {
+    let mut out = String::with_capacity(value.len());
+    let mut chars = value.chars();
+    let mut in_str = false;
+    while let Some(c) = chars.next() {
+        if c == '"' {
+            in_str = !in_str;
+            out.push(c);
+            continue;
+        }
+        if in_str && c == '\\' {
+            match chars.next() {
+                Some('n') => out.push('\n'),
+                Some('r') => out.push('\r'),
+                Some(other) => {
+                    out.push('\\');
+                    out.push(other);
+                }
+                None => out.push('\\'),
+            }
+            continue;
+        }
+        out.push(c);
+    }
+    out
 }
 
 // ── Trace extraction ──────────────────────────────────────────────────────────
@@ -362,7 +558,7 @@ fn extract_provenance_from_tree(tree: &ExecutionTraceTree) -> Result<ChaseProven
 /// so the GIL is released and the call runs outside the interpreter's async
 /// context.  Failing to do so will panic at runtime with "cannot start a
 /// runtime within a runtime" (or equivalent).
-pub fn run_chase(rls: String) -> Result<Vec<ChaseRowWithProvenance>, String> {
+pub(crate) fn run_chase(rls: String) -> Result<Vec<ChaseRowWithProvenance>, String> {
     // Serialise access to Nemo's process-global TimedCode singleton.
     // A poisoned lock means a previous chase panicked; recover the guard so
     // subsequent calls are not permanently wedged.
@@ -458,7 +654,8 @@ pub fn run_chase(rls: String) -> Result<Vec<ChaseRowWithProvenance>, String> {
                     // trace; that is also a faithfulness failure — propagate it.
                     else {
                         return Err(format!(
-                            "nemo trace error: no trace tree for derived fact at index {row_idx}"
+                            "nemo trace error: no trace tree for derived fact at index {row_idx} ({})",
+                            rows[*row_idx]
                         ));
                     }
                 }
@@ -476,47 +673,24 @@ pub fn run_chase(rls: String) -> Result<Vec<ChaseRowWithProvenance>, String> {
     })
 }
 
-/// Run the chase and return bare [`ChaseRow`]s (without provenance).
-///
-/// Convenience wrapper used by unit tests that only care about derived facts,
-/// not their provenance.  Equivalent to `run_chase(rls).map(|rows| rows.into_iter().map(|r| r.row).collect())`.
-pub fn run_chase_rows(rls: String) -> Result<Vec<ChaseRow>, String> {
-    run_chase(rls).map(|rows| rows.into_iter().map(|r| r.row).collect())
-}
-
 // ── Legacy synchronous parse/validate surface ─────────────────────────────────
 
-/// A parsed, validated Nemo rule program ready to be handed to a tokio runtime
+/// A parsed Nemo rule program ready to be handed to a tokio runtime
 /// for execution via [`nemo::api::reason`].
 ///
 /// `NemoParsedRules` is the synchronous half of the pipeline.  The async
 /// chase is now driven by [`run_chase`], which manages its own per-thread
-/// runtime.  This type is retained for callers that need only parse/validate
-/// without running the full chase.
+/// runtime.  This type is retained for callers (the static certifier, the
+/// rule-IR lowering) that need only the parse without running the full chase.
 #[derive(Debug)]
-pub struct NemoParsedRules {
+pub(crate) struct NemoParsedRules {
     program: Program,
 }
 
 impl NemoParsedRules {
-    /// Parse and validate a Nemo rule program from a source string.
-    ///
-    /// Uses [`nemo::api::load_program`], which is fully synchronous (no tokio
-    /// required).  Actual reasoning ([`nemo::api::reason`]) is async and is
-    /// driven by [`run_chase`] via a thread-local tokio runtime.
-    ///
-    /// # Errors
-    ///
-    /// Returns a string error if Nemo cannot parse or validate the program.
-    pub fn parse(rules: &str) -> Result<Self, String> {
-        let program = load_program(rules.to_owned(), "<gmeow-logic>".to_owned())
-            .map_err(|report| format!("nemo parse error: {report:?}"))?;
-        Ok(Self { program })
-    }
-
     /// Parse a Nemo rule program **without** the semantic-validation pass.
     ///
-    /// [`Self::parse`] (via [`nemo::api::load_program`]) runs Nemo's validator,
+    /// The validated path ([`nemo::api::load_program`]) runs Nemo's validator,
     /// which *rejects* the very rule shapes the static certifier exists to flag —
     /// e.g. a head variable not bound by a positive body atom (Nemo error 202,
     /// "unsafe variable used in rule head") or a rule with no positive literals
@@ -551,14 +725,6 @@ impl NemoParsedRules {
             program.add_statement(statement.clone());
         }
         Ok(Self { program })
-    }
-
-    /// Validate a Nemo rule string and return any diagnostics as a string.
-    ///
-    /// This is a pure syntax/semantic check; no engine is instantiated.
-    pub fn lint(rules: &str) -> String {
-        let report = validate(rules.to_owned(), "<gmeow-logic>".to_owned());
-        format!("{report:?}")
     }
 
     /// Return the inner [`Program`] for use by the async chase driver.
@@ -720,6 +886,95 @@ e(b,c).
             "expected rule_name='my-transitivity', got {:?}",
             prov.rule_name
         );
+    }
+
+    // ── Typed adapter surface ─────────────────────────────────────────────────
+
+    /// Round-trip a small typed EDB through the adapter: IRI subject/object
+    /// quads, a literal-with-embedded-newline object, a lang-tagged literal
+    /// object, and a transitive rule.  Every returned row and antecedent must
+    /// come back as structurally-equal native [`TermValue`]s, EDB rows must be
+    /// flagged `is_edb`, and the derived closure row must carry typed
+    /// antecedents.
+    #[test]
+    fn test_run_chase_typed_round_trips_edb_and_transitive_rule() {
+        use crate::facts::TypedFactSet;
+
+        const WORLD: &str = "http://world/W";
+        let a = TermValue::iri("http://ex/a");
+        let b = TermValue::iri("http://ex/b");
+        let c = TermValue::iri("http://ex/c");
+        let note = TermValue::simple_literal("line1\nline2\ttabbed");
+        let greeting = TermValue::lang_literal("Hola", "es");
+
+        let mut edb = TypedFactSet::new();
+        assert!(edb.push_quad(&a, "http://ex/knows", &b, WORLD));
+        assert!(edb.push_quad(&b, "http://ex/knows", &c, WORLD));
+        assert!(edb.push_quad(&a, "http://ex/note", &note, WORLD));
+        assert!(edb.push_quad(&a, "http://ex/greeting", &greeting, WORLD));
+
+        let rules = "#[name(\"typed-transitivity\")]\n\
+                     <http://ex/knows>(?x, ?z, ?w) :- \
+                     <http://ex/knows>(?x, ?y, ?w), <http://ex/knows>(?y, ?z, ?w) .";
+
+        let result = run_chase_typed(&edb, rules).expect("typed chase should succeed");
+        let world = TermValue::simple_literal(WORLD);
+
+        let find = |predicate: &str, args: &[TermValue]| {
+            result
+                .rows
+                .iter()
+                .find(|(row, _)| row.predicate == predicate && row.args == args)
+                .unwrap_or_else(|| {
+                    panic!(
+                        "expected typed row {predicate}({args:?}) in:\n{:#?}",
+                        result.rows
+                    )
+                })
+        };
+
+        // EDB rows come back typed and flagged is_edb.
+        let (_, prov_ab) = find("http://ex/knows", &[a.clone(), b.clone(), world.clone()]);
+        assert!(prov_ab.is_edb, "asserted knows(a,b) must be flagged EDB");
+        assert!(prov_ab.antecedents.is_empty());
+
+        // The newline+tab literal survives the full encode → chase → decode
+        // round-trip structurally intact.
+        let (row_note, prov_note) =
+            find("http://ex/note", &[a.clone(), note.clone(), world.clone()]);
+        assert!(prov_note.is_edb);
+        assert_eq!(row_note.args[1], note, "control chars must round-trip");
+
+        // The lang-tagged literal round-trips with its tag.
+        let (row_greeting, _) = find(
+            "http://ex/greeting",
+            &[a.clone(), greeting.clone(), world.clone()],
+        );
+        assert_eq!(row_greeting.args[1], greeting);
+
+        // The derived closure row knows(a,c) is IDB, carries the rule name,
+        // and its antecedents are typed rows equal to the two EDB premises.
+        let (_, prov_ac) = find("http://ex/knows", &[a.clone(), c.clone(), world.clone()]);
+        assert!(!prov_ac.is_edb, "knows(a,c) must be derived (IDB)");
+        assert_eq!(prov_ac.rule_name.as_deref(), Some("typed-transitivity"));
+        assert_eq!(prov_ac.antecedents.len(), 2, "two premises expected");
+        let expected_premises = [
+            TypedRow {
+                predicate: "http://ex/knows".to_owned(),
+                args: vec![a.clone(), b.clone(), world.clone()],
+            },
+            TypedRow {
+                predicate: "http://ex/knows".to_owned(),
+                args: vec![b.clone(), c.clone(), world.clone()],
+            },
+        ];
+        for premise in &expected_premises {
+            assert!(
+                prov_ac.antecedents.contains(premise),
+                "expected typed antecedent {premise:?} in {:#?}",
+                prov_ac.antecedents
+            );
+        }
     }
 
     /// `split_nemo_args` must correctly split IRI and string arguments.

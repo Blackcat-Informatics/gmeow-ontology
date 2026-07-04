@@ -476,16 +476,22 @@ Investigated the pinned Nemo rev (`4415bc2`). The path the logic crate uses toda
   derivation provenance, which `run_chase` already consumes.
 
 **Verdict:** the typed `TermId ↔ AnyDataValue` EDB bridge is **feasible** (no
-upstream Nemo change required — the API exists), but implementing it is a real
-refactor of `run_chase`/`encode` to construct the `Program` programmatically, in
-the nightly-gated `crates/logic`. It is therefore scheduled as a follow-up rather
-than landed in this PR.
+upstream Nemo change required — the API exists).
 
-**Documented fallback boundary (current behavior):** facts are encoded as strings
-in the `.rls` program over IR/oxigraph-derived terms, and provenance is recovered
-via `engine.trace()`. The explanation **cited-IRI string skeleton** (the
-conformance contract) is unchanged; resolving those cited IRIs to `TermId`
-against the materialized dataset rides with the typed-bridge implementation.
+**Landed since the spike:** the typed fact bridge now exists. Callers build a
+dictionary-interned `TypedFactSet` (`crates/logic/src/facts.rs`) and drive the
+chase through `run_chase_typed` (`crates/logic/src/nemo_engine/mod.rs`), which
+returns typed rows with typed provenance; the string codec is confined to
+`nemo_engine/codec.rs` as the adapter's private, last-moment serialization, and
+the columnar `RelationStore` keys and indexes on interned `TermId`s. What remains
+of C5 is only the *internal* swap from fact-line rendering to programmatic
+`add_fact(AnyDataValue)` construction inside the adapter — invisible to every
+caller of the typed surface.
+
+**Documented fallback boundary (current behavior):** inside the adapter, typed
+facts are rendered to `.rls` fact lines at the last moment, and provenance is
+recovered via `engine.trace()`. The explanation **cited-IRI string skeleton**
+(the conformance contract) is unchanged.
 
 ### Deferred (with reason)
 
@@ -496,7 +502,9 @@ against the materialized dataset rides with the typed-bridge implementation.
   conversion — the seam moves, it is not removed. True removal needs the Python
   pipeline (audit/acceptance/dsl_validate/sparql) to go rdflib-free over the IR, a
   separate effort.
-- **C5 typed-bridge implementation** — feasible (above), deferred as a follow-up.
+- **C5 typed-bridge implementation** — LANDED (typed fact set + typed chase
+  surface + interned columnar store; see above). Only the adapter-internal
+  programmatic `add_fact` swap remains open.
 - **Sub-file SARIF `region` line/col** — gated on oxigraph 0.5's parser, which
   exposes source positions only on the *error* path, not for successfully parsed
   triples. The `RdfLocation`/builder/renderer plumbing is ready; a positional
