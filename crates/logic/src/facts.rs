@@ -124,6 +124,18 @@ pub(crate) struct TermInterner {
 
 impl TermInterner {
     /// A fresh, empty interner.
+    ///
+    /// Production consumers so far build interners through [`TypedFactSet`];
+    /// the direct constructor (like `lookup`/`display_of`/`len` below) is the
+    /// surface the columnar physical store adopts when it moves onto TermId
+    /// interning — until then it is exercised by the unit tests only.
+    #[cfg_attr(
+        not(test),
+        expect(
+            dead_code,
+            reason = "interner surface for the columnar store's TermId adoption"
+        )
+    )]
     pub(crate) fn new() -> Self {
         Self::default()
     }
@@ -143,6 +155,13 @@ impl TermInterner {
     }
 
     /// The id of `term` if it is already interned; never inserts.
+    #[cfg_attr(
+        not(test),
+        expect(
+            dead_code,
+            reason = "interner surface for the columnar store's TermId adoption"
+        )
+    )]
     pub(crate) fn lookup(&self, term: &TermValue) -> Option<TermId> {
         self.by_display.get(&term_display(term)).copied()
     }
@@ -164,6 +183,13 @@ impl TermInterner {
     }
 
     /// The cached display surface for `id` (same panic contract as [`Self::resolve`]).
+    #[cfg_attr(
+        not(test),
+        expect(
+            dead_code,
+            reason = "interner surface for the columnar store's TermId adoption"
+        )
+    )]
     pub(crate) fn display_of(&self, id: TermId) -> &str {
         self.displays.get(id.index()).unwrap_or_else(|| {
             panic!(
@@ -175,6 +201,13 @@ impl TermInterner {
     }
 
     /// The number of distinct terms interned.
+    #[cfg_attr(
+        not(test),
+        expect(
+            dead_code,
+            reason = "interner surface for the columnar store's TermId adoption"
+        )
+    )]
     pub(crate) fn len(&self) -> usize {
         self.terms.len()
     }
@@ -269,6 +302,11 @@ impl TypedFactSet {
     /// The facts, in insertion order.
     pub(crate) fn facts(&self) -> impl Iterator<Item = &TypedFact> {
         self.facts.iter()
+    }
+
+    /// Whether the set holds no facts.
+    pub(crate) fn is_empty(&self) -> bool {
+        self.facts.is_empty()
     }
 }
 

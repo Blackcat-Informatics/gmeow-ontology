@@ -25,12 +25,6 @@ pub mod entrenchment;
 pub mod explain;
 // The typed-fact bridge: dictionary-interned facts (TermInterner / TypedFactSet)
 // exchanged between the store sweep and the reasoning adapters. Crate-internal.
-// The expectation self-retires (unfulfilled-lint error) once the adapters adopt
-// the bridge — remove it at that point.
-#[expect(
-    dead_code,
-    reason = "the typed-fact bridge lands ahead of its adapter consumers"
-)]
 pub(crate) mod facts;
 pub mod foundation;
 // Runtime-side projection of compiler parse diagnostics into the PyO3-tainted
