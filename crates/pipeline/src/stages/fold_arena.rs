@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 //! The gts-`Graph` arena read shape, materialized over the native carrier
-//! [`RdfDataset`] (#1132).
+//! [`RdfDataset`].
 //!
 //! Several export leaves (`yaml_ld`, `parquet`) were written against the gts
 //! in-memory `Graph` model: a flat term arena indexed by `usize` term id, `(s, p, o,

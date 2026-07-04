@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Shared helpers for whole-ontology native SHACL conformance tests (#867).
+//! Shared helpers for whole-ontology native SHACL conformance tests.
 //!
 //! This module centralises:
 //! - Repo-root and shapes-corpus assembly helpers (mirrors Python `_shapes_turtle`).
@@ -235,7 +235,7 @@ pub fn base_ontology_dataset() -> &'static Arc<RdfDataset> {
         for path in &module_paths {
             let ttl = std::fs::read_to_string(path)
                 .unwrap_or_else(|e| panic!("failed to read {}: {e}", path.display()));
-            // Native codec parse (#909): lenient on private-use language tags.
+            // Native codec parse: lenient on private-use language tags.
             match parse_dataset(ttl.as_bytes(), "text/turtle", None) {
                 Ok(ds) => {
                     for mut quad in flat_rdf_quads_from_dataset(&ds) {
@@ -333,7 +333,7 @@ fn flatten_to_default_graph(dataset: &RdfDataset) -> Arc<RdfDataset> {
     flat_dataset_from_quads(&quads).expect("flattened dataset must freeze")
 }
 
-/// Serialize a dataset's default graph as N-Triples via the native codec (#909). The
+/// Serialize a dataset's default graph as N-Triples via the native codec. The
 /// `application/n-quads` codec on the `DefaultGraph` selection emits graphless rows
 /// (N-Triples) and is byte-lenient on private-use language tags.
 fn dataset_default_graph_to_nt(dataset: &RdfDataset) -> String {
@@ -386,7 +386,7 @@ pub fn validate(data_nt: &str) -> ValidationReport {
     validate_dataset(&dataset, whole_shapes()).expect("native SHACL validation must succeed")
 }
 
-// ── Parameterized case harness (#1051) ──────────────────────────────────────────
+// ── Parameterized case harness ──────────────────────────────────────────
 
 /// Where a [`Case`]'s data graph comes from.
 pub enum Source {
@@ -409,7 +409,7 @@ pub enum Source {
     RepoPath(&'static str),
 }
 
-/// A single parameterized SHACL conformance case (#1051).
+/// A single parameterized SHACL conformance case.
 ///
 /// Collapses the load→validate→assert tail shared by the ~37 `conformance_*.rs`
 /// twin files into one reusable spec, driven by `rstest` `#[case]` rows.

@@ -1,13 +1,13 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Tests for the `logic:PathShape` projection (#1010): the property-path lowering,
+//! Tests for the `logic:PathShape` projection: the property-path lowering,
 //! the depth-bounded Datalog scheme, the loss ledger, and the **runtime reuse** —
 //! the unrolled rules running on the existing native least-model engine.
 //!
 //! These live in the runtime crate (not the wasm-able gmeow-logic-compile) because
 //! they execute the projected Datalog through `crate::rule_ir`, the Nemo-coupled
-//! evaluable engine (#732). They consume the path projection's public surface from
+//! evaluable engine. They consume the path projection's public surface from
 //! `gmeow_logic_compile::projections::paths`.
 
 use crate::rule_ir::{least_model_of_reduct, parse_eval_rules, Fact, FactStore};
@@ -384,7 +384,7 @@ fn nearby_orgs_wildcard_runs_on_the_native_engine() {
 // logic:nearbyOrgs over a four-node chain.  GMEOW's native projection lowers that
 // shape to the EXTENDED SPARQL property path `<...linkedTo>{1,2}`; standard SPARQL
 // engines (the native SPARQL engine that runs the competency cell) cannot parse a
-// `{m,n}` quantifier — that is precisely the §9 gap issue #1010 closes — so the .rq embeds
+// `{m,n}` quantifier — that is precisely the §9 gap closes — so the.rq embeds
 // the licensed standard-SPARQL down-projection `(linkedTo|linkedTo/linkedTo)`.
 // This golden pins the lossless extended-SPARQL projection output: if the
 // projection drifts, this test fails (rust-first anti-drift), independent of the

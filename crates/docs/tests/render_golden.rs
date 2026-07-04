@@ -11,7 +11,7 @@
 //! against the cached once-per-run render, and the absence of dangling internal
 //! `.html` links.
 
-// Rich colored line-diffs on assert_eq! failure (#871); shadows the std macro
+// Rich colored line-diffs on assert_eq! failure; shadows the std macro
 // for this file. Identical behaviour on pass; insta snapshots are unaffected.
 use pretty_assertions::assert_eq;
 use std::collections::BTreeSet;
@@ -64,7 +64,7 @@ fn fully_populated_term_slug(model: &DocsModel) -> String {
     term_slug(term)
 }
 
-/// A deterministic term that exercises the #1020 relational surfaces: the term
+/// A deterministic term that exercises the relational surfaces: the term
 /// (by stable curie/iri sort) carrying the MOST of {logic stereotype, SHACL
 /// constraint, related term, competency back-ref, example cross-link, box role}.
 /// Locks a byte-golden that actually renders the new term-page sections.
@@ -113,7 +113,7 @@ fn richest_surface_term_markdown_golden() {
     insta::assert_snapshot!(to_markdown(&model, &Page::Term(slug)));
 }
 
-/// A deterministic term that carries a per-term changelog (#1026): the first by
+/// A deterministic term that carries a per-term changelog: the first by
 /// (curie, iri) sort with a non-empty `changelog`. Keyed off the EXPLICIT
 /// `gmeow:hasChangelogEntry` data — not the richest-surface heuristic, which can
 /// shift — so the suppressed-when-empty Changelog + Profiles blocks are always
@@ -133,7 +133,7 @@ fn term_with_changelog_slug(model: &DocsModel) -> String {
 
 #[test]
 fn term_with_changelog_markdown_golden() {
-    // Exercises the #1026 lifecycle/citation blocks: an explicit stability badge,
+    // Exercises the lifecycle/citation blocks: an explicit stability badge,
     // an added-in version, a reified changelog entry, profile chips, and the
     // citation block (permalink + concept DOI).
     let model = common::cached_model();
@@ -602,10 +602,10 @@ fn render_site_is_byte_stable() {
     assert!(a.files.contains_key("diagrams/slices.svg"));
     assert!(a.files.contains_key("diagrams/concerns.svg"));
     assert!(a.files.contains_key("search-index.json"));
-    // The #1027 standard llmstxt.org surfaces (superseded `llms-docs.txt`).
+    // The standard llmstxt.org surfaces (superseded `llms-docs.txt`).
     assert!(a.files.contains_key("llms.txt"));
     assert!(a.files.contains_key("llms-full.txt"));
-    // The #1027 per-term card surface: at least the richest-surface term's
+    // The per-term card surface: at least the richest-surface term's
     // card.md must be present in the site tree (terms/{slug}/card.md).
     let card_slug = richest_surface_term_slug(&model);
     let card_path = format!("terms/{card_slug}/card.md");
@@ -618,7 +618,7 @@ fn render_site_is_byte_stable() {
     assert!(a.files.contains_key("concerns/index.html"));
     assert!(a.files.contains_key("external-ontologies/index.html"));
     assert!(a.files.contains_key("integrity-constraints/index.html"));
-    // The #1020 logic-stereotypes index (resolves the formerly-dangling nav_logic).
+    // The logic-stereotypes index (resolves the formerly-dangling nav_logic).
     assert!(a.files.contains_key("logic/index.html"));
     // The T3b guides surfaces: recipe/learning-path indexes + the four-boxes page.
     assert!(a.files.contains_key("recipes/index.html"));

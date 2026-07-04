@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The `frame-shapes` export leaf (#861 P4): Principle 11 SHACL by annotation (#283).
+//! The `frame-shapes` export leaf (P4): Principle 11 SHACL by annotation.
 //!
 //! A genuine port of `src/gmeow_tools/frame_shapes_gen.py` (no Rust existed):
 //! every `gmeow:requiresFrame` declaration in the root ontology + slice modules

@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The `bench` perf surface (#668): the committed perf leaderboard generator
+//! The `bench` perf surface: the committed perf leaderboard generator
 //! plus the report-only regression scoreboard.
 //!
 //! Timings are non-deterministic, so the load-bearing line is between two
@@ -207,7 +207,7 @@ pub fn compare_against_baseline(criterion_root: &Path, baseline_json: &str) -> S
     // either — surface it to stderr (the job-summary log) before degrading, so a
     // misleading all-`missing`/all-`new` board is always explained. The committed
     // `render_bench_leaderboard` path hard-fails instead; only this advisory path
-    // degrades. See #668 / Principle 18.
+    // degrades. See / Principle 18.
     let baseline: BTreeMap<String, Estimate> = if baseline_json.trim().is_empty() {
         BTreeMap::new()
     } else {
@@ -339,7 +339,7 @@ pub(crate) fn render_bench_leaderboard(
     Ok(out)
 }
 
-/// The `stage-export-bench` export-leaf (#668): the committed perf leaderboard.
+/// The `stage-export-bench` export-leaf: the committed perf leaderboard.
 pub struct BenchLeaderboardStage;
 
 impl Stage for BenchLeaderboardStage {
@@ -463,7 +463,7 @@ mod tests {
     fn compare_degrades_on_malformed_baseline_without_panic() {
         // A PRESENT-but-unparseable baseline must NOT panic the report-only path
         // (it always exits 0) and must NOT be silently dropped — the warning is
-        // surfaced to stderr (Gap #668). The current run is still classified as
+        // surfaced to stderr (Gap). The current run is still classified as
         // `new` against the now-empty baseline.
         let dir = tempdir().unwrap();
         let root = dir.path();

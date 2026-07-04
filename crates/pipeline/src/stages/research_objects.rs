@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The `research-objects` export leaf (#861 P4): Croissant / RO-Crate / DataCite /
+//! The `research-objects` export leaf (P4): Croissant / RO-Crate / DataCite
 //! Frictionless / DCAT research-object projections.
 //!
 //! A genuine Rust port of `src/gmeow_tools/research_objects.py` (#58): the flagship

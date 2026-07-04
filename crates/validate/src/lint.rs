@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! PyO3-free engine for the structural and naming lints (#579).
+//! PyO3-free engine for the structural and naming lints.
 //!
 //! These two lints — ported byte-exact from `src/gmeow_tools/validate.py`'s
 //! `structural_lint` and `term_naming_lint` — run over
@@ -36,14 +36,14 @@ pub struct LintConfig {
     pub core_slice_iris: HashSet<String>,
     /// Standard annotation predicates whose literals are policed by Check 2.
     /// Defaults to [`default_annotation_predicates`] — this crate is the single
-    /// source of truth (#630); Python reads the set from here, it is no longer
+    /// source of truth; Python reads the set from here, it is no longer
     /// pushed in from `language_tags`.
     pub annotation_predicates: HashSet<String>,
 }
 
 /// The canonical annotation predicates whose literals the Check-2 language-tag
 /// policy polices — `rdfs:label`, `skos:definition`, `rdfs:comment`, `dcterms:title`,
-/// `dcterms:description`. This crate owns the registry (#630); the Python
+/// `dcterms:description`. This crate owns the registry; the Python
 /// `language_tags` helpers read it back through the PyO3 `annotation_predicates`
 /// surface rather than maintaining a parallel constant.
 #[must_use]
@@ -236,7 +236,7 @@ fn camel_tokens(local: &str) -> Vec<String> {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// The structural / naming lints over a native (`purrdf::RdfDataset`) graph (#906).
+// The structural / naming lints over a native (`purrdf::RdfDataset`) graph.
 //
 // Every check, error/warning TEXT, severity, and emission ORDER is byte-identical to
 // the legacy oxigraph `Store` implementation it replaced.
@@ -356,7 +356,7 @@ fn ds_has_type(ds: &RdfDataset, subject_iri: &str, type_iri: &str) -> bool {
         .is_some()
 }
 
-/// Native twin of [`structural_lint`] over a frozen [`RdfDataset`] (EPIC #906).
+/// Native twin of [`structural_lint`] over a frozen [`RdfDataset`].
 ///
 /// Byte-identical errors/warnings to the `Store` version; reads across all graphs
 /// ([`GraphMatch::Any`]) so a named-graph input is linted exactly as the old
@@ -821,7 +821,7 @@ mod tests {
     fn structural_exempts_self_description_abox() {
         // A-Box individuals defined by the `self` self-description ontology are
         // project metadata, not vocabulary surface, so the per-term annotation /
-        // graphBoxRole contract must not fire on them (#644). The same individual
+        // graphBoxRole contract must not fire on them. The same individual
         // shape would be flagged if it were ordinary vocabulary.
         let store = store_from(&format!(
             "{PREFIXES}\
@@ -1115,7 +1115,7 @@ mod tests {
     }
 
     /// The native `structural_lint_dataset` twin must produce byte-identical
-    /// errors/warnings to the `Store` version across a battery of fixtures (#906).
+    /// errors/warnings to the `Store` version across a battery of fixtures.
     #[test]
     fn native_structural_lint_parity_with_store() {
         let fixtures = [

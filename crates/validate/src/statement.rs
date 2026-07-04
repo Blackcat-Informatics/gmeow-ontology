@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! PyO3-free engine for the statement-metadata invariants (#630, Gap B3).
+//! PyO3-free engine for the statement-metadata invariants (Gap B3).
 //!
 //! These four checks — ported semantics-exact from
 //! `src/gmeow_tools/statement_lint.py`'s `annotation_property_soundness`,
@@ -121,7 +121,7 @@ fn is_property_type(iri: &str) -> bool {
         || iri == RDF_PROPERTY
 }
 
-/// The diagnostic code for the RDF-1.2 ↔ OWL round-trip lossless check (#809).
+/// The diagnostic code for the RDF-1.2 ↔ OWL round-trip lossless check.
 const LOSSLESS_CODE: &str = crate::codes::STATEMENT_COMPILE_LOSSLESS_ROUND_TRIP;
 fn lossless_finding(message: String) -> gmeow_diagnostics::Finding {
     gmeow_diagnostics::Finding::new(gmeow_diagnostics::Severity::Error, LOSSLESS_CODE, message)
@@ -916,7 +916,7 @@ mod tests {
     }
 
     /// The native invariant twin must produce byte-identical messages to the `Store`
-    /// version across the full fixture battery (#906 parity).
+    /// version across the full fixture battery (parity).
     #[test]
     fn native_invariants_parity_with_store() {
         let fixtures = [

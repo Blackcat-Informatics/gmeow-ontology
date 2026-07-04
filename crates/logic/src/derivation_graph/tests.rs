@@ -1,11 +1,11 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Acceptance tests for the S6b truth-maintenance derivation graph (#820).
+//! Acceptance tests for the S6b truth-maintenance derivation graph.
 //!
 //! These run against the Rust derivation graph **directly**, with
 //! content-addressed goldens — NOT a Nemo re-chase (Nemo rejects non-stratifiable
-//! materialization, #651). Every assertion is over the structure built here.
+//! materialization). Every assertion is over the structure built here.
 
 use std::collections::BTreeSet;
 

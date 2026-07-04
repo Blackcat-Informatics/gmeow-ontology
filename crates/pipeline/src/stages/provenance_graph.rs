@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The dogfooded `graph/provenance` projection (#1132 C9).
+//! The dogfooded `graph/provenance` projection (C9).
 //!
 //! The pipeline's occurrence-based provenance sidecar ([`purrdf::provenance::DatasetProvenance`]) is
 //! projected — THROUGH THE PUBLIC-IRI BOUNDARY (`public_projection`) — into a
@@ -126,7 +126,7 @@ fn lane_iri(slug: &str) -> String {
     format!("{GMEOW}provenance/lane/{slug}")
 }
 
-/// Project the provenance sidecar's PUBLIC projection (#1132 C9) plus the fixed
+/// Project the provenance sidecar's PUBLIC projection (C9) plus the fixed
 /// carrier-lane manifest into deterministic N-Triples for the `graph/provenance`
 /// named graph. The rows arrive sorted + deduped (`public_projection`); this only
 /// re-derives the distinct `(unit_name, kind)` set, sorts everything, and emits.

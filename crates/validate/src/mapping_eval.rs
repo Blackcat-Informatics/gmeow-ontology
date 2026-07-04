@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Native Wikidata and Dublin Core mapping evaluators (#945).
+//! Native Wikidata and Dublin Core mapping evaluators.
 //!
 //! The public command surface remains Python (`gmeow-dev`), but the evaluator
 //! authority lives here: QID/PID syntax, mapping-IRI namespace misuse, offline

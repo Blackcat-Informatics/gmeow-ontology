@@ -98,7 +98,7 @@ impl PyReport {
     /// into the same `gmeow_native` cdylib, so this is the ONE shared `Report`
     /// type — can hand Python the canonical report as a **live object** instead
     /// of a JSON string, eliminating the serialize→`from_json`→`to_json`
-    /// round-trip the orchestration layer used to pay (#630, #654).
+    /// round-trip the orchestration layer used to pay.
     pub fn from_engine(inner: Report) -> Self {
         Self { inner }
     }
@@ -194,7 +194,7 @@ impl PyReport {
     }
 
     /// Project the report into the gmeow: RDF vocabulary as N-Quads, all in the
-    /// gmeow:graph/diagnostics named graph (#654).
+    /// gmeow:graph/diagnostics named graph.
     fn to_gmeow_rdf(&self) -> String {
         render::to_gmeow_rdf(&self.inner)
     }
@@ -210,7 +210,7 @@ impl PyReport {
         render::to_text_summarized(&self.inner)
     }
 
-    /// Render only the advisory (Note/Info) findings as text (#760 F1).
+    /// Render only the advisory (Note/Info) findings as text (F1).
     fn render_advisory_text(&self) -> String {
         render::to_text_advisories(&self.inner)
     }
@@ -218,7 +218,7 @@ impl PyReport {
     /// Write the report's projections to `directory/<stem>.<ext>` and return the
     /// `{kind: path}` map of what was written.
     ///
-    /// `kinds` selects which projections to write (`#662` artifact selection).
+    /// `kinds` selects which projections to write (`` artifact selection).
     /// `None` is a deliberate **maximal default** — write all three, the same as
     /// before this argument existed — not a back-compat shim; the Python facade
     /// always passes an explicit, config-resolved selection. The fixed write
@@ -310,7 +310,7 @@ fn finding_to_dict(py: Python<'_>, finding: &Finding) -> PyResult<Py<PyAny>> {
 
 /// Register the `gmeow-diagnostics` surface on a Python module.
 ///
-/// Called by the unified `gmeow_native` cdylib (#630) to populate the
+/// Called by the unified `gmeow_native` cdylib to populate the
 /// `gmeow_native.diagnostics` submodule; the legacy `import gmeow_diagnostics`
 /// name resolves to that same submodule object via a Python shim, so `PyReport`
 /// / `PyFinding` are a single shared type across the whole extension.

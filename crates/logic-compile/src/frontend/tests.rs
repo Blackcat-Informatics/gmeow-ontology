@@ -3,7 +3,7 @@
 
 //! Tests for the front-end parser, driven by Turtle source strings.  These are
 //! the authoritative parser tests; the Python `tests/test_logic_frontend.py` they
-//! superseded was retired in #727.
+//! superseded was retired.
 
 use super::*;
 use crate::ir::LogicModality;
@@ -55,7 +55,7 @@ fn parse_invalid_turtle_raises() {
     assert!(err.0.contains("Failed to parse"));
 }
 
-// ── Minimal graph + reasoning contracts (#767) ───────────────────────────────
+// ── Minimal graph + reasoning contracts ───────────────────────────────
 
 #[test]
 fn parse_minimal_graph_succeeds() {
@@ -106,7 +106,7 @@ fn unknown_semantic_profile_is_a_hard_error() {
         .any(|d| d.code == "UNKNOWN_PROFILE" && d.severity == Severity::Error));
 }
 
-// ── Compatibility firewall (#767, Task 3 / reviewer C3) ──────────────────────
+// ── Compatibility firewall (Task 3 / reviewer C3) ──────────────────────
 
 #[test]
 fn unsupported_contract_is_a_hard_compile_failure() {
@@ -222,7 +222,7 @@ fn probabilistic_measure_with_declared_model_is_supported() {
     );
 }
 
-// ── Meta-config does not leak into domain axioms (#767, Gap 1) ───────────────
+// ── Meta-config does not leak into domain axioms (Gap 1) ───────────────
 
 #[test]
 fn contract_facet_config_does_not_leak_into_domain_axioms() {
@@ -261,7 +261,7 @@ fn contract_facet_config_does_not_leak_into_domain_axioms() {
     );
 }
 
-// ── Malformed ClosureEntry hard-fail (#767, Gap 4) ───────────────────────────
+// ── Malformed ClosureEntry hard-fail (Gap 4) ───────────────────────────
 
 #[test]
 fn closure_entry_missing_value_is_a_hard_error() {
@@ -527,11 +527,11 @@ fn confidence_scoped_axiom_case_produces_expected_ir() {
     assert!(has_axiom(&prog, "/Bird", "subClassOf", LogicModality::None));
 }
 
-// The diagnostics_report projection (#856) is tested in crate::logic_diagnostics
+// The diagnostics_report projection is tested in crate::logic_diagnostics
 // (it returns the PyO3-tainted gmeow_diagnostics::Report and lives runtime-side,
-// out of the wasm-able compiler — #732).
+// out of the wasm-able compiler —).
 
-// ── Path shapes (#1010) ──────────────────────────────────────────────────────
+// ── Path shapes ──────────────────────────────────────────────────────
 
 fn path_shape<'a>(prog: &'a LogicProgram, iri_suffix: &str) -> &'a PathShapeIr {
     prog.path_shapes

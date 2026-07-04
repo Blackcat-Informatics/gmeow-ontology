@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The `statements` stage (#861 P3): compile `dsl/statements/*.ttl` into the OWL
+//! The `statements` stage (P3): compile `dsl/statements/*.ttl` into the OWL
 //! axiom-annotation downcast + the RDF 1.2 lead artifact.
 //!
 //! This is the native Rust statement compiler stage. The statement DSL is
@@ -11,10 +11,10 @@
 //! statement (a quoted base triple + the annotations on its reifier). The OWL
 //! form reuses the reifier IRI as the named `owl:Axiom` node; the RDF 1.2 lead
 //! is materialized from it by the SAME pure-Rust codec the Python called
-//! (`purrdf::statements::project_owl_to_rdf12`, #667). Outputs are compared by
+//! (`purrdf::statements::project_owl_to_rdf12`). Outputs are compared by
 //! graph isomorphism, never bytes, so serialization formatting is immaterial.
 //!
-//! EPIC #906: oxigraph-free. Every parse routes through `purrdf::parse_dataset`
+//! oxigraph-free. Every parse routes through `purrdf::parse_dataset`
 //! and merges via `RdfDataset::union`; the invariant + lossless checks call the
 //! native `gmeow_validate::statement::*_dataset` twins (the `Store`-based functions
 //! stay for the PyO3 surface). The cell/annotation queries use the native
@@ -249,7 +249,7 @@ pub fn statement_dsl_files(root: &Path) -> Result<Vec<std::path::PathBuf>, Pipel
     }
     let mut files: Vec<std::path::PathBuf> = Vec::new();
     // Fail-fast on a read_dir entry error: a transient FS error must surface, not
-    // silently drop a DSL file (no-optionality, #863).
+    // silently drop a DSL file (no-optionality).
     for entry in std::fs::read_dir(&dir)? {
         let path = entry?.path();
         if path.extension().is_some_and(|x| x == "ttl") {
@@ -446,7 +446,7 @@ fn resolve_obj(ds: &RdfDataset, id: purrdf::TermId) -> Option<ObjTerm> {
 }
 
 /// The single object of `(subject_id, predicate, ?)` (IRI or literal), or `None` if
-/// absent. More than one value is a hard error (no silent pick, #863).
+/// absent. More than one value is a hard error (no silent pick).
 fn single_object(
     ds: &RdfDataset,
     subject_id: purrdf::TermId,
@@ -497,7 +497,7 @@ fn single_named(
 
 /// Every IRI value of `predicate` on `subject` (for multi-valued properties such
 /// as `gmeow:reifier`, where RDF 1.2 allows several reifiers per statement). A
-/// non-IRI value is a hard error (no silent skip, #863).
+/// non-IRI value is a hard error (no silent skip).
 fn all_named(
     ds: &RdfDataset,
     subject_id: purrdf::TermId,

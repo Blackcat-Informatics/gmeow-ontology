@@ -7,7 +7,7 @@
 //! # Why a mirror exists
 //!
 //! Python remains the *conformance oracle* (slow, simple, correct); this crate
-//! is the *engine* (fast path).  The `oracle ≡ engine` gate (issue #502, Task 6)
+//! is the *engine* (fast path).  The `oracle ≡ engine` gate (Task 6)
 //! diffs the Python `CertificationVerdict.to_json()` against the Rust
 //! [`CertificationVerdict::to_json_pairs`] for the SAME input.  For that diff to hold,
 //! every field name, every violation string, and the SCC-cycle rendering must be
@@ -25,7 +25,7 @@
 //! # The predicate-naming parity normalization (the crux)
 //!
 //! The legacy typed-IR certifier ran over a `LogicProgram` value (the `logic_ir`
-//! typed IR was retired in #727), where each atom carries a *full IRI* predicate
+//! typed IR was retired), where each atom carries a *full IRI* predicate
 //! string and an `rdf:type`-folding rule (`_predicate_key`):
 //!
 //! * a non-`rdf:type` atom's key is its bare predicate IRI;
@@ -72,7 +72,7 @@
 //! still terminate. This is the same accepted tradeoff the Python oracle and
 //! `LOGIC-SEMANTICS.md §Decidability` state.
 //!
-//! # Division of labour with the budget governor (honesty invariant, #502)
+//! # Division of labour with the budget governor (honesty invariant)
 //!
 //! Rejecting a genuinely **non-terminating** rule set up front is *this static
 //! certifier's* job, not the runtime budget governor's. The governor in
@@ -428,7 +428,7 @@ impl DepGraph {
 pub fn tarjan_scc(graph: &BTreeMap<String, Vec<String>>) -> Vec<BTreeSet<String>> {
     use crate::dense::DenseInterner;
 
-    // Lowered to dense `u32` ids (#823): all per-node Tarjan state lives in dense
+    // Lowered to dense `u32` ids: all per-node Tarjan state lives in dense
     // arrays keyed by id, and successor lists are precomputed `Vec<u32>`.
     //
     // DETERMINISM CONTRACT: the result order is driven by the DFS-root iteration
@@ -618,7 +618,7 @@ fn is_stratified(graph: &DepGraph) -> bool {
 /// Whether the `.rls` program is stratifiable (no negation-as-failure cycle).
 ///
 /// Thin wrapper over the existing dependency-graph analysis, exposed so the later
-/// `py.rs` materialize routing phase (issue #651) can dispatch stratifiable
+/// `py.rs` materialize routing phase can dispatch stratifiable
 /// programs to the Nemo chase and non-stratifiable ones to the native
 /// well-founded / stable-model evaluators.  Additive; reuses
 /// [`parse_rule_views`], [`DepGraph`], and [`is_stratified`] verbatim.
@@ -626,7 +626,7 @@ fn is_stratified(graph: &DepGraph) -> bool {
 /// # Errors
 ///
 /// Returns the Nemo parse-error string if `rules` does not parse as `.rls`.
-// Phase-A scaffolding for #651: the `py.rs` materialize router that dispatches on
+// Phase-A scaffolding for the `py.rs` materialize router that dispatches on
 // stratifiability (Nemo chase vs native well-founded / stable-model evaluators) is
 // Phase B; this helper is landed now so the routing change is additive.
 #[allow(dead_code)]
@@ -989,7 +989,7 @@ pub fn certify(
     })
 }
 
-/// Certify a program straight from the **canonical source AST** (issue #664).
+/// Certify a program straight from the **canonical source AST**.
 ///
 /// This is the canonical-AST front door to the certifier: the program is lowered
 /// to its Nemo rules section by the Rust compiler ([`gmeow_logic_compile::projections`])

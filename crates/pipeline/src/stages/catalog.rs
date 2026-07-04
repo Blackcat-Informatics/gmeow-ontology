@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The `catalog` export leaf (#861 P4): the OASIS XML catalog (`catalog-v001.xml`).
+//! The `catalog` export leaf (P4): the OASIS XML catalog (`catalog-v001.xml`).
 //!
 //! A genuine port of `src/gmeow_tools/catalog_gen.py` (no Rust existed): the
 //! IRI→file map is 100% derived from the slice manifests + a static upper-ontology

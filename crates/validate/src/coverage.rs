@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Coverage graph-analysis over the vendored entity-slice fixtures (#579).
+//! Coverage graph-analysis over the vendored entity-slice fixtures.
 //!
 //! PyO3-free. Mirrors `gmeow_tools.coverage.analyze` EXACTLY: it loads the merged
 //! fixture graphs into one oxigraph [`oxigraph::store::Store`], collects every distinct class

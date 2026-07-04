@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 //! The `STAGE_REGISTRY`: the binding from a `gmeow:stageImpl` key to its Rust
-//! [`Stage`] implementation (#861).
+//! [`Stage`] implementation.
 //!
 //! The codebase has no static trait-object registry, so this follows the manual
 //! registration pattern used by `crates/native` for engine submodules: a

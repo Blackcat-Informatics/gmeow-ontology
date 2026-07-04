@@ -518,7 +518,7 @@ mod tests {
         ColumnKind, ResultColumn, ResultShape, RowCardinality,
     };
 
-    /// Materialize inline Turtle into a native dataset via the canonical codec (#909).
+    /// Materialize inline Turtle into a native dataset via the canonical codec.
     fn store_from_turtle(ttl: &str) -> Arc<RdfDataset> {
         native_query::dataset_from_turtle(ttl).expect("valid turtle")
     }

@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Rust↔TTL cross-check (#768, ME2): the typed `logic:ReasoningResult` status
+//! Rust↔TTL cross-check (ME2): the typed `logic:ReasoningResult` status
 //! enums are the Rust authority; `slices/grounding/logic/module.ttl` is their lossy
 //! projection (Principle 17). This test pins the two together — every enum
 //! variant's `module.ttl` local name MUST be declared as a `logic:` individual,

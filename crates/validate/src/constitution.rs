@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Native constitution-as-code gate (#809, #939).
+//! Native constitution-as-code gate.
 //!
 //! Ports the full Python ``gmeow_tools.constitution`` checks to Rust:
 //! enforcement coverage, principle/heading sync, cited artifact/symbol/target/CLI

@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! End-to-end executor test (#861 P3/P6): the DAG-driven executor runs the wired
+//! End-to-end executor test (P3/P6): the DAG-driven executor runs the wired
 //! spine through the snapshot carrier boundary — source_load → (statements,
 //! mappings) → reason → gts_compose → validate/docs_render → snapshot → no-op
 //! test sink — over the real repo, binding every stage against the default
@@ -167,7 +167,7 @@ fn spine() -> PipelineSpec {
                 &["stage-gts-compose", "stage-reason"],
             ),
             spec("stage-validate", "validate", &["stage-source-load"]),
-            // The SHACL→JSON-Schema source leaf the snapshot folds (#700); a
+            // The SHACL→JSON-Schema source leaf the snapshot folds; a
             // source-reading ExportLeaf that consumes nothing.
             spec("stage-export-json-schema", "json_schema", &[]),
             // The external-corpus divergence grader the snapshot folds into

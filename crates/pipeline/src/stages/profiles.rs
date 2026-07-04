@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The `profiles` export leaf (#861 P4): IRI-addressable ontology profiles (#330).
+//! The `profiles` export leaf (P4): IRI-addressable ontology profiles.
 //!
 //! A genuine port of `src/gmeow_tools/profiles_gen.py` (no Rust existed). The
 //! `full` profile imports the root IRI + every extension slice; each named
@@ -39,7 +39,7 @@ pub(crate) struct SliceMeta {
 }
 
 /// Discover every slice's profile-relevant manifest facts, keyed by slice IRI.
-/// Shared with the `metadata` stage (DCAT profile membership, #330).
+/// Shared with the `metadata` stage (DCAT profile membership).
 pub(crate) fn discover_slices(root: &Path) -> Result<BTreeMap<String, SliceMeta>, PipelineError> {
     let mut slices: BTreeMap<String, SliceMeta> = BTreeMap::new();
     for module in module_files(root)? {
@@ -113,7 +113,7 @@ pub(crate) fn group_named_profiles(
 }
 
 /// Members + every slice reachable through `sliceDependsOn`, sorted. Hard-fails
-/// if a chain escapes the registry or a profile has no members (#330).
+/// if a chain escapes the registry or a profile has no members.
 pub(crate) fn dependency_closure(
     name: &str,
     members: &[String],

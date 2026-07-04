@@ -133,7 +133,7 @@ fn reachable_to_self(start: &str, adj: &BTreeMap<String, BTreeSet<String>>) -> b
 // ── Goal classification ────────────────────────────────────────────────────────
 
 /// Return `true` if any rule body in `program` contains an arithmetic/comparison
-/// builtin (#1009 G2a). Such a program MUST be resolved by Scryer (the SPARQL fast
+/// builtin (G2a). Such a program MUST be resolved by Scryer (the SPARQL fast
 /// path cannot evaluate arithmetic), never the EDB fast path.
 pub fn program_has_builtin(program: &QProgram) -> bool {
     program.rules.iter().any(|rule| {
@@ -565,7 +565,7 @@ mod tests {
         );
     }
 
-    // ── Arithmetic-builtin list functions (#1009 G2a) ─────────────────────────
+    // ── Arithmetic-builtin list functions (G2a) ─────────────────────────
     //
     // Over the list (x y z): l0 →first x, →rest l1; l1 →first y, →rest l2;
     // l2 →first z, →rest rdf:nil. Each runs via dispatch_query under the

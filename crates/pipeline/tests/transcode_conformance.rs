@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! File-driven transcode conformance corpus harness (#671 Task 5).
+//! File-driven transcode conformance corpus harness (Task 5).
 //!
 //! Discovers every subdirectory of `tests/transcode_corpus/` that contains a
 //! `profile.json`, runs the universal transcoder on the input file, and
@@ -46,7 +46,7 @@ struct Profile {
 // ── RDF canonicalization (mirrors crates/conformance/src/compare.rs) ──────────
 
 fn canonical_quads(bytes: &[u8], fmt: NativeRdfFormat) -> Result<Vec<String>, String> {
-    // Native text ingress (#909) + native full RDFC-1.0 (#910): parse into the IR and
+    // Native text ingress + native full RDFC-1.0: parse into the IR and
     // canonicalize via the flattened path (`canonical_flat_nquads`), byte-identical to
     // the prior oxigraph parse + `canonicalize_quads`.
     let dataset = purrdf::parse_dataset(bytes, fmt.media_type(), None)

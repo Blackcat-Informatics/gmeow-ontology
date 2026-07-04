@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Integration tests for the `.cache/validate` content-addressed cache (#634).
+//! Integration tests for the `.cache/validate` content-addressed cache.
 
 use std::collections::{BTreeSet, HashMap, HashSet};
 use std::fs;

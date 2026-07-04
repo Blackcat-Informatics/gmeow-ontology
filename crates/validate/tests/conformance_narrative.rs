@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Conformance twins migrated from tests/test_narrative.py (#867)
+// Conformance twins migrated from tests/test_narrative.py
 
-//! Conformance twins migrated from tests/test_narrative.py (#867).
+//! Conformance twins migrated from tests/test_narrative.py.
 //!
 //! Each test builds an inline Turtle graph containing the triples that the
 //! Python test assembled via `g.add(...)` / `_add_narrative_frame(...)`,
