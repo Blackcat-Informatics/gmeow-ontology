@@ -227,6 +227,29 @@ pub fn manifest_files(root: &Path) -> Result<Vec<PathBuf>, PipelineError> {
     Ok(out)
 }
 
+/// Every `slices/<group>/<name>/manifest.ttl`, INCLUDING slices that have no
+/// `module.ttl` — the profile-tier pure-selection slices that mint nothing
+/// (Principle 16) and so carry only a manifest declaring their `sliceDependsOn`
+/// selection. `manifest_files` is deliberately module-gated (a slice that loads
+/// nothing has no composed fold); the profiles stage uses THIS to discover the
+/// selection-only profile slices whose dependency closure it emits.
+pub fn all_manifest_files(root: &Path) -> Result<Vec<PathBuf>, PipelineError> {
+    let mut out = Vec::new();
+    let slices = root.join("slices");
+    if !slices.is_dir() {
+        return Ok(out);
+    }
+    for group in sorted_dirs(&slices)? {
+        for slice_dir in sorted_dirs(&group)? {
+            let manifest = slice_dir.join("manifest.ttl");
+            if manifest.is_file() {
+                out.push(manifest);
+            }
+        }
+    }
+    Ok(out)
+}
+
 fn ttl_files_in(dir: &Path) -> Result<Vec<PathBuf>, PipelineError> {
     let mut out = Vec::new();
     if !dir.is_dir() {

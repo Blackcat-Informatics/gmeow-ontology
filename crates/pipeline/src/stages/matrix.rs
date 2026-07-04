@@ -145,6 +145,8 @@ fn parse_manifest(path: &Path) -> Result<(String, String, usize), PipelineError>
             if let TermRef::Iri(n) = ds.resolve(q.o) {
                 if n == format!("{NS}tierCore") {
                     tier = "core".to_string();
+                } else if n == format!("{NS}tierProfile") {
+                    tier = "profile".to_string();
                 }
             }
         }
