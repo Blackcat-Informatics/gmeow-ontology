@@ -67,7 +67,7 @@ subclasses), so a violation is itself a typed, queryable object, not a log line.
 | A `math:ApproximateValue` names the exact number it approximates and its error | SHACL Core | `math:ExactApproximateConflation` |
 | A named constant is an exact individual, not a decimal literal | SHACL Core | `math:ConstantAsDecimalLiteral` |
 | An intensional set's member condition denotes a `logic:` formula, not a string | SHACL Core | `math:StringOnlyMemberCondition` |
-| A complement names its ambient set | SHACL Core | `math:UnqualifiedComplement` |
+| A complement names its ambient space and its complement-semantics | SHACL Core | `math:UnqualifiedComplement` |
 | A set is extensional or intensional, not silently both | SHACL-SPARQL | `math:AmbiguousSetExtent` |
 | A `math:Function` declares its domain and codomain | SHACL Core | `math:UnframedFunction` |
 
@@ -130,6 +130,43 @@ it neither misses a genuine inhomogeneity nor reports a spurious one — it yiel
 the canonical laws entail. So the row above reads "Rust validator" as *the declared exact lowering of
 the `logic:` law*, a first-class queryable object in the same loss ledger every other GMEOW lowering
 rides (Principle 17), never a mere side-channel. A violation raises `math:DimensionalInhomogeneity`.
+
+### Analysis-and-geometry rules
+
+The analysis-and-geometry charter lands the subset of the mathematical-core binder
+AST its operators consume (`math:BindingExpression` over the indexed argument-slot
+AST, the declaration/occurrence split, and the `math:denotationKind` lowering seam),
+so the binder-AST rules below are enforced here. Every rule is SHACL Core or
+SHACL-SPARQL — none needs a native validator, so `native_contract_hash` is
+untouched. The defining law of continuity (the preimage of an open set is open) is
+authored as a first-order `logic:Formula` (`math:continuityLaw`), the exemplar
+witness that "declared, not assumed" predicates over real structure rather than a
+bare boolean.
+
+| Rule | Primary gate | Failure class |
+|---|---|---|
+| Each `math:ArgumentSlot` has exactly one index and one expression | SHACL Core | `math:MalformedArgumentSlot` |
+| Slot indexes are unique within one application/binder | SHACL-SPARQL | `math:MalformedArgumentSlot` |
+| A `math:VariableOccurrence` resolves to a declaration (bound or explicitly free) | SHACL Core | `math:UnscopedVariableOccurrence` |
+| A binder binds a variable over a body; a truth-valued lowering into `logic:` declares its denotation kind and preservation | SHACL Core / source-lint | `math:MalformedBindingExpression` / `math:UndeclaredLogicLowering` |
+| A `math:Derivative` names what it differentiates, its variable, and its order | SHACL Core | `math:UnderspecifiedDerivative` |
+| A `math:Limit` names its expression and its limit point (mode optional) | SHACL Core | `math:UnderspecifiedLimit` |
+| A `math:Series`/`math:Sequence` carries a `math:Convergence` naming what it converges to and the mode | SHACL Core | `math:UnderspecifiedConvergence` |
+| Continuity/compactness/connectedness are declared, not assumed | SHACL Core (backed by `math:continuityLaw`) | `math:UndeclaredTopologicalProperty` |
+| A `math:Manifold` declares its dimension and its structure kind | SHACL Core | `math:UnderspecifiedManifold` |
+| A `math:Chart` names its domain, coordinate map, and target coordinate space | SHACL Core | `math:UnderspecifiedChart` |
+| A chart's target space (and a tangent space) has the same dimension as its manifold | SHACL-SPARQL | `math:DimensionMismatch` |
+| **A `math:Complement` names its ambient space and its complement-semantics** | SHACL Core | `math:UnqualifiedComplement` |
+
+The named-complement rule is the charter's distinguished gate: it generalizes the
+bedrock set-theoretic complement (`math:complementWithin`, replaced) to
+`math:ambientSpace` + `math:complementSemantics` (set-theoretic, orthogonal,
+complex-linear, topological, or quotient/cokernel) — "the complement of X" without
+an ambient space and a named semantics is ill-formed. A `math:HomologyGroup` is a
+`math:AbelianGroup`, so it inherits the algebra structure gate (`underlyingSet`,
+`structureOperation`, `satisfiesAxiom`); a homology-group individual that is not a
+fully-framed abelian group raises `math:IncompleteAlgebraicStructure`, not a
+topology failure.
 
 ### Probability rules
 
