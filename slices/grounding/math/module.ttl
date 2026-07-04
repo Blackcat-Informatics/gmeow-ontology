@@ -2369,3 +2369,240 @@ math:convergenceMode
     rdfs:label "convergence mode"@x-gmeow-english ;
     skos:definition "Relates a math:Convergence to its math:ConvergenceMode — pointwise, uniform, absolute, conditional, in-measure, almost-everywhere, in-Lᵖ-norm, or in-distribution. Domain math:Convergence, range math:ConvergenceMode (stated in prose). The mode is required; convergence without a declared mode is ill-formed (math:UnderspecifiedConvergence)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
+
+# =========================================================================== #
+# Topology (ANALYSIS-AND-GEOMETRY charter)
+#
+# A topological space is given by its open sets (or a basis); continuity is a
+# declared property of a map (preimages of open sets are open), never an
+# assumption; compactness, connectedness, and the separation axioms are
+# first-class declared properties, not entailments of a bare type. Maps lower
+# onto the landed math:Morphism: a math:ContinuousMap is a morphism of spaces and
+# a math:Homeomorphism is an iso. Homotopy and homology give the algebraic-
+# topology bridge — a math:HomologyGroup is a math:AbelianGroup (ALGEBRA charter),
+# so a homology-group individual carries the full abelian-group frame. Little
+# external ontology exists, so the depth is authored and cited (mathlib/AFP). The
+# defining law that continuity is not assumed — the preimage of an open set is
+# open — is authored as a first-order logic:Formula (math:continuityLaw), the
+# exemplar witness that "declared, not assumed" predicates over real structure.
+# =========================================================================== #
+
+# --- Topological spaces and their open/closed sets -------------------------- #
+
+math:TopologicalSpace
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Topological Space"@x-gmeow-english ;
+    skos:definition "A topological space (X, τ): a set X together with a topology τ — its collection of open sets, closed under arbitrary union and finite intersection and containing ∅ and X. Given by its open sets (or a basis) through math:hasOpenSet. The object over which continuity, compactness, connectedness, and the separation axioms are defined; a math:MetricSpace and a manifold's underlying space are topological spaces."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:OpenSet
+    a owl:Class ;
+    rdfs:subClassOf math:Set ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Open Set"@x-gmeow-english ;
+    skos:definition "An open set of a math:TopologicalSpace: a member of the space's topology τ. A subclass of math:Set. Continuity is defined by open sets (preimages of open sets are open), and a math:Neighbourhood of a point contains an open set containing the point."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:ClosedSet
+    a owl:Class ;
+    rdfs:subClassOf math:Set ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Closed Set"@x-gmeow-english ;
+    skos:definition "A closed set of a math:TopologicalSpace: the complement of a math:OpenSet within the space (a math:Complement whose math:complementSemantics is topological). A subclass of math:Set. Closed under finite union and arbitrary intersection, dual to the open sets."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Neighbourhood
+    a owl:Class ;
+    rdfs:subClassOf math:Set ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Neighbourhood"@x-gmeow-english ;
+    skos:definition "A neighbourhood of a point in a math:TopologicalSpace: a set containing an open set that contains the point. A subclass of math:Set. Neighbourhoods are the local structure the separation axioms (math:separationAxiom, e.g. Hausdorff) quantify over."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:ContinuousMap
+    a owl:Class ;
+    rdfs:subClassOf math:Morphism ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Continuous Map"@x-gmeow-english ;
+    rdfs:seeAlso math:continuityLaw ;
+    skos:definition "A continuous map between topological spaces: a map under which the preimage of every open set is open. A subclass of math:Morphism (a structure-preserving map of spaces, its math:sourceObject and math:targetObject the two topological spaces), and it declares its continuity through math:isContinuous — continuity is declared, not assumed (an undeclared continuity is ill-formed, math:UndeclaredTopologicalProperty). The structure it preserves is the topology, whose defining law is math:continuityLaw (preimages of open sets are open), referenced through math:preservesStructure."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Homeomorphism
+    a owl:Class ;
+    rdfs:subClassOf math:ContinuousMap ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Homeomorphism"@x-gmeow-english ;
+    skos:definition "A homeomorphism: a continuous map with a continuous inverse — an isomorphism in the category of topological spaces. A subclass of math:ContinuousMap; two spaces related by a homeomorphism are topologically the same. A chart's coordinate map is a homeomorphism onto its image."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:CompactSpace
+    a owl:Class ;
+    rdfs:subClassOf math:TopologicalSpace ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Compact Space"@x-gmeow-english ;
+    skos:definition "A compact topological space: one in which every open cover has a finite subcover. A subclass of math:TopologicalSpace that declares its compactness through math:isCompact — compactness is declared, not assumed (an undeclared compactness is ill-formed, math:UndeclaredTopologicalProperty). Compactness is the topological generalization of closed-and-bounded (Heine–Borel) and is preserved by continuous images."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:ConnectedSpace
+    a owl:Class ;
+    rdfs:subClassOf math:TopologicalSpace ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Connected Space"@x-gmeow-english ;
+    skos:definition "A connected topological space: one that is not the union of two disjoint non-empty open sets. A subclass of math:TopologicalSpace that declares its connectedness through math:isConnected — connectedness is declared, not assumed (an undeclared connectedness is ill-formed, math:UndeclaredTopologicalProperty). Connectedness is preserved by continuous images (the intermediate value theorem is its avatar on ℝ)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Homotopy
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Homotopy"@x-gmeow-english ;
+    skos:definition "A homotopy between two continuous maps: a continuous deformation H: X×[0,1] → Y from one map to the other. Two spaces are homotopy-equivalent (math:homotopyEquivalentTo) when maps between them compose to maps homotopic to the identities. Homotopy equivalence is coarser than homeomorphism and is the equivalence algebraic topology's invariants (homotopy and math:HomologyGroup) respect."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:HomologyGroup
+    a owl:Class ;
+    rdfs:subClassOf math:AbelianGroup ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Homology Group"@x-gmeow-english ;
+    skos:definition "A homology group Hₙ(X): an abelian group functorially assigned to a topological space, counting n-dimensional holes. A subclass of math:AbelianGroup (ALGEBRA charter), so a homology-group individual carries the full algebraic-structure frame — its underlying set, its abelian operation, and its axioms — like any other abelian group. The algebraic-topology bridge: homotopy-equivalent spaces have isomorphic homology groups. The homology functor itself (the assignment X ↦ Hₙ(X)) belongs to a downstream category charter and is not minted here."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+# --- Topology conformance failure ------------------------------------------- #
+
+math:UndeclaredTopologicalProperty
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Undeclared Topological Property"@x-gmeow-english ;
+    skos:definition "The failure raised when a topological property is assumed rather than declared: a math:ContinuousMap without math:isContinuous, a math:CompactSpace without math:isCompact, or a math:ConnectedSpace without math:isConnected. Continuity, compactness, and connectedness are declared properties (backed by their defining law, e.g. math:continuityLaw), never entailments of a bare type."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+# --- Topology properties ---------------------------------------------------- #
+
+math:hasOpenSet
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "has open set"@x-gmeow-english ;
+    skos:definition "Relates a math:TopologicalSpace to a math:OpenSet of its topology (or a basis element). Domain math:TopologicalSpace, range math:OpenSet (stated in prose). A space is given by its open sets; continuity is defined by them."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:isContinuous
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "is continuous"@x-gmeow-english ;
+    skos:definition "Declares whether a map is continuous — the preimage of every open set is open (math:continuityLaw). Domain math:ContinuousMap, range xsd:boolean (stated in prose). The canonical checkable bearer of continuity; continuity is declared here, not assumed from the math:ContinuousMap type (an undeclared continuity is ill-formed, math:UndeclaredTopologicalProperty)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:separationAxiom
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "separation axiom"@x-gmeow-english ;
+    skos:definition "Relates a math:TopologicalSpace to a separation axiom it satisfies — T0, T1, T2 (Hausdorff), T3, T4. Domain math:TopologicalSpace, range a math:SeparationAxiom individual (stated in prose). The separation axioms grade how finely neighbourhoods distinguish points; math:hausdorffSeparation (T2) is the one manifolds require."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:isCompact
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "is compact"@x-gmeow-english ;
+    skos:definition "Declares whether a space is compact — every open cover has a finite subcover. Domain math:CompactSpace (or math:TopologicalSpace), range xsd:boolean (stated in prose). Compactness is declared, not assumed from the type (an undeclared compactness is ill-formed, math:UndeclaredTopologicalProperty)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:isConnected
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "is connected"@x-gmeow-english ;
+    skos:definition "Declares whether a space is connected — not the union of two disjoint non-empty open sets. Domain math:ConnectedSpace (or math:TopologicalSpace), range xsd:boolean (stated in prose). Connectedness is declared, not assumed from the type (an undeclared connectedness is ill-formed, math:UndeclaredTopologicalProperty)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:homotopyEquivalentTo
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "homotopy equivalent to"@x-gmeow-english ;
+    skos:definition "Relates a math:TopologicalSpace to another it is homotopy-equivalent to — there are maps between them composing to maps homotopic to the identities. Domain and range math:TopologicalSpace (stated in prose). Symmetric mathematically; homotopy-equivalent spaces share homotopy and math:HomologyGroup invariants."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# --- Separation-axiom individuals ------------------------------------------- #
+
+math:SeparationAxiom
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Separation Axiom"@x-gmeow-english ;
+    skos:definition "A separation axiom of a topological space: math:t0Separation, math:t1Separation, math:hausdorffSeparation (T2), math:t3Separation, or math:t4Separation, graded by how finely neighbourhoods separate points. A math:TopologicalSpace names those it satisfies through math:separationAxiom."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:hausdorffSeparation
+    a owl:NamedIndividual , math:SeparationAxiom ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Hausdorff (T2)"@x-gmeow-english ;
+    skos:definition "The Hausdorff separation axiom T2: any two distinct points have disjoint neighbourhoods. The separation a manifold's underlying space requires so limits are unique."@x-gmeow-english .
+
+math:t0Separation
+    a owl:NamedIndividual , math:SeparationAxiom ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "T0 (Kolmogorov)"@x-gmeow-english ;
+    skos:definition "The T0 separation axiom: any two distinct points are topologically distinguishable (some open set contains one but not the other)."@x-gmeow-english .
+
+math:t1Separation
+    a owl:NamedIndividual , math:SeparationAxiom ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "T1 (Fréchet)"@x-gmeow-english ;
+    skos:definition "The T1 separation axiom: for any two distinct points each has a neighbourhood not containing the other; equivalently, singletons are closed."@x-gmeow-english .
+
+# --- Reified relation atoms for the continuity law (HiLog reflection) -------- #
+
+math:isContinuousRel
+    a logic:Type ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "continuous(f) ⟺ map f is continuous"@x-gmeow-english ;
+    rdfs:seeAlso math:isContinuous ;
+    skos:definition "The HiLog reflection of continuity as a unary relation individual, so the continuity law can predicate 'f is continuous' inside a logic:Formula atom. Reflects the existing math:isContinuous declaration (rdfs:seeAlso), minting no second relation."@x-gmeow-english .
+
+math:openSetRel
+    a logic:Type ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "openSet(V) ⟺ V is an open set of its space"@x-gmeow-english ;
+    rdfs:seeAlso math:hasOpenSet ;
+    skos:definition "The HiLog reflection of open-set membership as a unary relation individual, so the continuity law can predicate 'V is open' inside a logic:Formula atom. Reflects math:hasOpenSet / the math:OpenSet type (rdfs:seeAlso)."@x-gmeow-english .
+
+math:preimageRel
+    a logic:Type ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "preimage(U,f,V) ⟺ U is the f-preimage f⁻¹(V) of V"@x-gmeow-english ;
+    skos:definition "The preimage relation the continuity law quantifies over: preimage(U,f,V) holds exactly when U is the preimage f⁻¹(V) = {x : f(x) ∈ V}. A HiLog relation individual over which the law states 'the preimage of an open set is open'; no first-class asserted property is minted, because the preimage is a derived construction, not authored data."@x-gmeow-english .
+
+# --- Law: continuity — the preimage of an open set is open ------------------- #
+# ∀f,U,V: isContinuous(f) ∧ openSet(V) ∧ preimage(U,f,V) → openSet(U)
+# The defining law of a math:ContinuousMap, authored as a first-order logic:Formula
+# exactly as the algebra and measure charters author their hard laws. It is the
+# exemplar that "continuity is declared, not assumed" predicates over real
+# structure: a continuous map references this law through math:preservesStructure,
+# and the SHACL gate requires math:isContinuous to be present.
+
+math:continuityLaw
+    a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "continuity: the preimage of an open set is open"@x-gmeow-english ;
+    skos:definition "The defining law of continuity as a universally-quantified first-order logic:Formula: for a continuous map f, if V is an open set and U is the preimage f⁻¹(V), then U is open. math: expresses the law; logic: owns reasoning over it. It is the structure a math:ContinuousMap preserves (math:preservesStructure), so continuity is backed by a real law rather than a bare boolean."@x-gmeow-english ;
+    logic:quantifiedVariable
+        [ logic:termIndex 0 ; logic:termVariable "f" ] ,
+        [ logic:termIndex 1 ; logic:termVariable "U" ] ,
+        [ logic:termIndex 2 ; logic:termVariable "V" ] ;
+    logic:forall math:continuityImpl .
+
+math:continuityImpl a logic:Formula ;
+    logic:antecedent math:continuityAnte ;
+    logic:consequent math:continuityCons .
+
+math:continuityAnte a logic:Formula ;
+    logic:and math:continuityA1 , math:continuityA2 , math:continuityA3 .
+
+math:continuityA1 a logic:Formula ; logic:relation math:isContinuousRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "f" ] .
+math:continuityA2 a logic:Formula ; logic:relation math:openSetRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "V" ] .
+math:continuityA3 a logic:Formula ; logic:relation math:preimageRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "U" ] , [ logic:termIndex 1 ; logic:termVariable "f" ] , [ logic:termIndex 2 ; logic:termVariable "V" ] .
+
+math:continuityCons a logic:Formula ; logic:relation math:openSetRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "U" ] .
