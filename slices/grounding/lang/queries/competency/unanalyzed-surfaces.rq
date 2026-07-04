@@ -1,0 +1,12 @@
+# Competency question: "Which surfaces are explicitly unanalyzed prose?"  This
+# exercises the graded-analysis discipline that a surface is analyzed or explicitly
+# recorded as lang:UnanalyzedProse at lang:rawLevel, never silently either. Scoped to
+# the fixture namespace so the answer is exactly the one raw surface {rawSurface}, not
+# the parsed surface of the same text nor any unanalyzed prose in the merged ontology.
+PREFIX lang: <https://blackcatinformatics.ca/lang/>
+
+SELECT ?surface WHERE {
+    ?surface a lang:UnanalyzedProse .
+    FILTER(STRSTARTS(STR(?surface), "http://example.org/lang/"))
+}
+ORDER BY ?surface

@@ -1,0 +1,9 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Conforming fixture: a morph feature typed with a feature key and value individual (lang:TypedMorphologyShape).
+
+@prefix lang: <https://blackcatinformatics.ca/lang/> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:   <http://example.org/lang/> .
+
+ex:mf a lang:MorphFeature ; lang:featureKey lang:featNumber ; lang:featureValue lang:valPlur .

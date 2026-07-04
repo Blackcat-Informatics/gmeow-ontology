@@ -1,0 +1,10 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Counter-example: a grapheme whose script does not list it in its repertoire (fires lang:UngroundedGrapheme / shacl.SPARQLConstraintComponent).
+
+@prefix lang: <https://blackcatinformatics.ca/lang/> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:   <http://example.org/lang/> .
+
+ex:latin a lang:Script .
+ex:gX a lang:Grapheme ; lang:inScript ex:latin .
