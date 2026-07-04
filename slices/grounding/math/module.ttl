@@ -2606,3 +2606,286 @@ math:continuityA3 a logic:Formula ; logic:relation math:preimageRel ;
 
 math:continuityCons a logic:Formula ; logic:relation math:openSetRel ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "U" ] .
+
+# =========================================================================== #
+# Differential geometry and manifolds (ANALYSIS-AND-GEOMETRY charter)
+#
+# A manifold declares its dimension and its structure kind (topological, smooth,
+# complex, Riemannian, Lorentzian) — a manifold without both is ill-formed. A
+# chart names its domain, coordinate map, and target coordinate space; an atlas
+# is a covering family of charts with their transition maps φᵢ∘φⱼ⁻¹ (reusing the
+# landed math:functionComposition). A metric tensor (Riemannian or Lorentzian) is
+# a tensor field carrying a structured signature (p,q). The Lorentzian metric is
+# the math object a physics slice needs for spacetime, and it stays here on the
+# math side of the boundary — spacetime, worldlines, and SR/GR are physics.
+# =========================================================================== #
+
+# --- Manifolds and their structure kind ------------------------------------- #
+
+math:Manifold
+    a owl:Class ;
+    rdfs:subClassOf math:TopologicalSpace ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Manifold"@x-gmeow-english ;
+    skos:definition "A manifold: a topological space locally homeomorphic to ℝⁿ, Hausdorff and second-countable, covered by a math:Atlas of charts. A subclass of math:TopologicalSpace. It declares both its dimension through math:manifoldDimension and its structure kind through math:manifoldStructureKind (topological, smooth, complex, Riemannian, Lorentzian) — a manifold missing either is ill-formed (math:UnderspecifiedManifold)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:SmoothManifold
+    a owl:Class ;
+    rdfs:subClassOf math:Manifold ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Smooth Manifold"@x-gmeow-english ;
+    skos:definition "A smooth (C^∞) manifold: a manifold whose atlas has smooth transition maps, so differentiation is well-defined. A subclass of math:Manifold; its math:manifoldStructureKind is math:smoothStructure. The setting for tangent spaces, tensor fields, and differential geometry."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:ComplexManifold
+    a owl:Class ;
+    rdfs:subClassOf math:SmoothManifold ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Complex Manifold"@x-gmeow-english ;
+    skos:definition "A complex manifold: a manifold with holomorphic transition maps, locally modeled on ℂⁿ. A subclass of math:SmoothManifold (a complex structure refines a smooth one); its math:manifoldStructureKind is math:complexStructure. Its real dimension is twice its complex dimension."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:RiemannianManifold
+    a owl:Class ;
+    rdfs:subClassOf math:SmoothManifold ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Riemannian Manifold"@x-gmeow-english ;
+    skos:definition "A Riemannian manifold: a smooth manifold with a positive-definite math:MetricTensor giving lengths and angles. A subclass of math:SmoothManifold; its math:manifoldStructureKind is math:riemannianStructure and its metric's math:metricSignature is (n, 0). The setting of curvature, geodesics, and classical differential geometry."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:LorentzianManifold
+    a owl:Class ;
+    rdfs:subClassOf math:SmoothManifold ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Lorentzian Manifold"@x-gmeow-english ;
+    skos:definition "A Lorentzian manifold: a smooth manifold with a metric tensor of signature (1, n−1) (or (n−1, 1)) — one timelike and n−1 spacelike directions. A subclass of math:SmoothManifold (a pseudo-Riemannian manifold, sibling to math:RiemannianManifold, not a subclass of it since the metric is indefinite); its math:manifoldStructureKind is math:lorentzianStructure. The math object a physics slice builds spacetime on — the metric and manifold stay here on the math side; spacetime, worldlines, and proper time are physics."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:ManifoldStructureKind
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Manifold Structure Kind"@x-gmeow-english ;
+    skos:definition "The structure kind a manifold carries: one of math:topologicalStructure, math:smoothStructure, math:complexStructure, math:riemannianStructure, or math:lorentzianStructure. A manifold declares exactly one through math:manifoldStructureKind; the kind fixes what is well-defined on it (continuity only, differentiation, holomorphy, a definite or indefinite metric)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+# --- Structure-kind individuals --------------------------------------------- #
+
+math:topologicalStructure
+    a owl:NamedIndividual , math:ManifoldStructureKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "topological"@x-gmeow-english ;
+    skos:definition "The topological structure kind: a manifold with only a topology — continuity is well-defined, differentiation is not. The weakest structure a math:Manifold can declare."@x-gmeow-english .
+
+math:smoothStructure
+    a owl:NamedIndividual , math:ManifoldStructureKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "smooth"@x-gmeow-english ;
+    skos:definition "The smooth (C^∞) structure kind: a manifold with smooth transition maps, on which differentiation, tangent spaces, and tensor fields are well-defined."@x-gmeow-english .
+
+math:complexStructure
+    a owl:NamedIndividual , math:ManifoldStructureKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "complex"@x-gmeow-english ;
+    skos:definition "The complex structure kind: a manifold with holomorphic transition maps, locally modeled on ℂⁿ."@x-gmeow-english .
+
+math:riemannianStructure
+    a owl:NamedIndividual , math:ManifoldStructureKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Riemannian"@x-gmeow-english ;
+    skos:definition "The Riemannian structure kind: a smooth manifold with a positive-definite metric tensor (signature (n, 0)) giving lengths and angles."@x-gmeow-english .
+
+math:lorentzianStructure
+    a owl:NamedIndividual , math:ManifoldStructureKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Lorentzian"@x-gmeow-english ;
+    skos:definition "The Lorentzian structure kind: a smooth manifold with an indefinite metric tensor of signature (1, n−1) — one timelike direction. The structure spacetime requires; it stays math-side."@x-gmeow-english .
+
+# --- Charts, atlases, and coordinate maps ----------------------------------- #
+
+math:Chart
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Chart"@x-gmeow-english ;
+    skos:definition "A chart (coordinate patch) on a manifold: it names the region it covers through math:chartDomain, the math:CoordinateMap taking that region to coordinates through math:coordinateMap, and the target coordinate space (ℝⁿ or ℂⁿ) through math:targetCoordinateSpace. A chart missing its domain, coordinate map, or target space is ill-formed (math:UnderspecifiedChart). Its coordinate map is a homeomorphism onto its image, and the target space's dimension must match the manifold's (math:DimensionMismatch)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Atlas
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Atlas"@x-gmeow-english ;
+    skos:definition "An atlas of a manifold: a covering family of charts (math:hasChart) whose domains cover the manifold, together with the transition maps φᵢ∘φⱼ⁻¹ on chart overlaps (math:transitionMap, reusing the landed math:functionComposition to express the composite). The transition maps' regularity (continuous, smooth, holomorphic) is what fixes the manifold's structure kind — the real mathematical content of an atlas, not just a bag of charts."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:CoordinateMap
+    a owl:Class ;
+    rdfs:subClassOf math:Function ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Coordinate Map"@x-gmeow-english ;
+    skos:definition "A coordinate map of a chart: a homeomorphism from the chart's domain onto an open subset of the target coordinate space, assigning coordinates to points. A subclass of math:Function, so it declares its math:domain (the chart region) and math:codomain (the coordinate space). Transition maps between charts are compositions of coordinate maps and their inverses."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+# --- Tangent spaces, tensor fields, and metrics ----------------------------- #
+
+math:TangentSpace
+    a owl:Class ;
+    rdfs:subClassOf math:VectorSpace ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Tangent Space"@x-gmeow-english ;
+    skos:definition "The tangent space T_pM at a point p of a manifold M: the vector space of tangent vectors at that point. A subclass of math:VectorSpace; it names its base point through math:tangentSpaceAt and its manifold through math:tangentSpaceOf, and its math:spaceDimension equals the manifold's math:manifoldDimension (math:DimensionMismatch otherwise). Tensor fields are sections over the tangent bundle — the disjoint union of the tangent spaces."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:TensorField
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Tensor Field"@x-gmeow-english ;
+    skos:definition "A tensor field on a manifold: an assignment of a tensor to each point, a section of a tensor bundle over the tangent spaces. Names the manifold it lives on through math:tensorFieldOn. A math:MetricTensor is the distinguished tensor field giving the geometry; vector fields and differential forms are other tensor fields."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:MetricTensor
+    a owl:Class ;
+    rdfs:subClassOf math:TensorField ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Metric Tensor"@x-gmeow-english ;
+    skos:definition "A metric tensor g: a symmetric bilinear form on each tangent space giving lengths and angles. A subclass of math:TensorField carrying a structured math:metricSignature (p, q) through math:metricSignature — positive-definite (q = 0) for a math:RiemannianManifold, indefinite with one timelike direction (p or q = 1) for a math:LorentzianManifold. The Lorentzian metric is the math object a physics slice needs for spacetime and stays math-side."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:MetricSignature
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Metric Signature"@x-gmeow-english ;
+    skos:definition "The signature (p, q) of a math:MetricTensor: the count of positive (math:signaturePositive) and negative (math:signatureNegative) eigenvalues of the metric. Structured, not an opaque string — Riemannian is (n, 0), Lorentzian is (1, n−1) or (n−1, 1), so 'exactly one timelike direction' is checkable against the manifold's structure kind. The sum p + q equals the manifold's dimension."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+# --- Geometry conformance failures ------------------------------------------ #
+
+math:UnderspecifiedManifold
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Underspecified Manifold"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:Manifold does not declare both its dimension (math:manifoldDimension) and its structure kind (math:manifoldStructureKind). A manifold that does not say how many dimensions and which structure it carries is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:UnderspecifiedChart
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Underspecified Chart"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:Chart does not name its domain (math:chartDomain), its coordinate map (math:coordinateMap), and its target coordinate space (math:targetCoordinateSpace). A chart that does not say what it covers, how it coordinatizes, and into which space is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:DimensionMismatch
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Dimension Mismatch"@x-gmeow-english ;
+    skos:definition "The failure raised when a geometric dimension does not agree: a math:Chart on an n-manifold whose math:targetCoordinateSpace does not have dimension n, a math:TangentSpace whose math:spaceDimension differs from its manifold's math:manifoldDimension, or a math:MetricSignature whose p + q does not equal the manifold's dimension. The analysis-geometry analogue of dimensional homogeneity — a silent-error class the charter forbids."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+# --- Geometry properties ---------------------------------------------------- #
+
+math:manifoldDimension
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "manifold dimension"@x-gmeow-english ;
+    skos:definition "The dimension of a math:Manifold — the n such that it is locally homeomorphic to ℝⁿ. Domain math:Manifold, range xsd:nonNegativeInteger (stated in prose). Every manifold declares exactly one; a manifold without a dimension is ill-formed (math:UnderspecifiedManifold). A chart's target space and a tangent space must match it (math:DimensionMismatch)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:manifoldStructureKind
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "manifold structure kind"@x-gmeow-english ;
+    skos:definition "Relates a math:Manifold to the math:ManifoldStructureKind it carries — topological, smooth, complex, Riemannian, or Lorentzian. Domain math:Manifold, range math:ManifoldStructureKind (stated in prose). Every manifold declares exactly one; a manifold without a structure kind is ill-formed (math:UnderspecifiedManifold)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:spaceDimension
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "space dimension"@x-gmeow-english ;
+    skos:definition "The dimension of a coordinate space, vector space, or math:TangentSpace — distinct from the physical math:hasDimension (an SI dimension). Domain a math:Set or math:VectorSpace serving as a coordinate/tangent space, range xsd:nonNegativeInteger (stated in prose). A chart's math:targetCoordinateSpace and a math:TangentSpace carry it; it must equal the manifold's math:manifoldDimension (math:DimensionMismatch)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:hasChart
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "has chart"@x-gmeow-english ;
+    skos:definition "Relates a math:Manifold or math:Atlas to a math:Chart covering part of it. Domain a math:Manifold or math:Atlas, range math:Chart (stated in prose). An atlas is the covering family of charts named through this property."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:chartDomain
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "chart domain"@x-gmeow-english ;
+    skos:definition "Relates a math:Chart to the region of the manifold it covers — an open subset, or the whole manifold for a global chart. Domain math:Chart, range a math:TopologicalSpace or math:OpenSet (stated in prose). Every chart names exactly one; a chart without it is ill-formed (math:UnderspecifiedChart)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:coordinateMap
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "coordinate map"@x-gmeow-english ;
+    skos:definition "Relates a math:Chart to its math:CoordinateMap — the homeomorphism assigning coordinates to points of its domain. Domain math:Chart, range math:CoordinateMap (stated in prose). Every chart names exactly one; a chart without it is ill-formed (math:UnderspecifiedChart)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:targetCoordinateSpace
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "target coordinate space"@x-gmeow-english ;
+    skos:definition "Relates a math:Chart to the coordinate space its map lands in — ℝⁿ for a real manifold, ℂⁿ for a complex one, carrying its math:spaceDimension. Domain math:Chart, range a math:Set or math:VectorSpace (stated in prose). Every chart names exactly one; its dimension must equal the manifold's (math:DimensionMismatch); a chart without it is ill-formed (math:UnderspecifiedChart)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:transitionMap
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "transition map"@x-gmeow-english ;
+    skos:definition "Relates a math:Atlas to a transition map φᵢ∘φⱼ⁻¹ on a chart overlap — a math:Function expressed as a composition (math:functionComposition / math:compositionOuter / math:compositionInner) of one chart's coordinate map with another's inverse. Domain math:Atlas, range math:Function (stated in prose). The transition maps' regularity fixes the manifold's structure kind."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:metricTensor
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "metric tensor"@x-gmeow-english ;
+    skos:definition "Relates a math:RiemannianManifold or math:LorentzianManifold to its math:MetricTensor. Domain a math:Manifold, range math:MetricTensor (stated in prose). The metric gives the manifold its lengths, angles, and — for a Lorentzian metric — its causal structure."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:tensorFieldOn
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "tensor field on"@x-gmeow-english ;
+    skos:definition "Relates a math:TensorField to the math:Manifold it is a field on. Domain math:TensorField, range math:Manifold (stated in prose). Every tensor field names the manifold it lives over."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:tangentSpaceAt
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "tangent space at"@x-gmeow-english ;
+    skos:definition "Relates a math:TangentSpace to the point of the manifold it is the tangent space at — the p in T_pM. Domain math:TangentSpace, range a point (stated in prose). A tangent space is at a point; naming it makes the tangent bundle's fibres explicit."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:tangentSpaceOf
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "tangent space of"@x-gmeow-english ;
+    skos:definition "Relates a math:TangentSpace to the math:Manifold it is a tangent space of. Domain math:TangentSpace, range math:Manifold (stated in prose). Its math:spaceDimension must equal that manifold's math:manifoldDimension (math:DimensionMismatch)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:metricSignature
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "metric signature"@x-gmeow-english ;
+    skos:definition "Relates a math:MetricTensor to its math:MetricSignature (p, q). Domain math:MetricTensor, range math:MetricSignature (stated in prose). Structured, not an opaque string, so a Lorentzian metric's 'exactly one timelike direction' is checkable against the manifold's structure kind."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:signaturePositive
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "signature positive"@x-gmeow-english ;
+    skos:definition "The count p of positive eigenvalues (spacelike directions in the +−−− convention) of a math:MetricSignature. Domain math:MetricSignature, range xsd:nonNegativeInteger (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:signatureNegative
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "signature negative"@x-gmeow-english ;
+    skos:definition "The count q of negative eigenvalues (timelike directions in the +−−− convention) of a math:MetricSignature. Domain math:MetricSignature, range xsd:nonNegativeInteger (stated in prose). A Lorentzian signature has exactly one negative (or, dually, exactly one positive) — the timelike direction spacetime is built on."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
