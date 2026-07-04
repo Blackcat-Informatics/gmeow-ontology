@@ -626,26 +626,31 @@ pub fn materialize_routed(
     // and cautious-stable evaluators run their native fixpoints; any other profile with
     // a declared set that fails stratification (⇔ `preservation` discloses dropped
     // rules) is echoed asserted-only.
-    let routed: Option<Vec<crate::rule_ir::DerivedRow>> = match profile {
+    // Each native route yields its derived rows plus the budget status the native
+    // governor stamped (`Ok` for the ungoverned well-founded / cautious-stable /
+    // echo paths; the semi-naive governor's `Ok`/`Exhausted` for the PositiveHorn arm).
+    let routed: Option<(Vec<crate::rule_ir::DerivedRow>, BudgetStatus)> = match profile {
         Some("WellFoundedProfile") => {
             let store = crate::store::WorldStore::new();
             store.load_nquads(input).map_err(MaterializeError::Parse)?;
             let eval_rules =
                 crate::rule_ir::parse_eval_rules(rules).map_err(MaterializeError::Parse)?;
-            Some(
+            Some((
                 crate::wellfounded::materialize(&store, &eval_rules)
                     .map_err(MaterializeError::Chase)?,
-            )
+                BudgetStatus::Ok,
+            ))
         }
         Some("StableModelProfile") => {
             let store = crate::store::WorldStore::new();
             store.load_nquads(input).map_err(MaterializeError::Parse)?;
             let eval_rules =
                 crate::rule_ir::parse_eval_rules(rules).map_err(MaterializeError::Parse)?;
-            Some(
+            Some((
                 crate::stablemodel::cautious_materialize(&store, &eval_rules)
                     .map_err(MaterializeError::Chase)?,
-            )
+                BudgetStatus::Ok,
+            ))
         }
         _ => {
             // PositiveHorn / declared StratifiedNAF / Probabilistic / Procedural / None.
@@ -656,26 +661,36 @@ pub fn materialize_routed(
             // native gap (`NativeOutcome::Unsupported`). `preservation` is exact for this
             // arm, so the native and Nemo paths disclose the same judgment.
             if !preservation.unsupported_constructs.is_empty() {
-                Some(echo_edb_only(input)?)
-            } else if max_rule_firings.is_some() || max_answers.is_some() || time_ms.is_some() {
-                // Budget-constrained materialization stays on the Nemo fallback: the
-                // native core decides the WHOLE stratifiable least model and does not yet
-                // reproduce the oracle's post-hoc budget governor (the truncation cut and
-                // the exhausted / incomplete disclosure it stamps). An unbudgeted call is
-                // native's competence; a budgeted one is a declared native gap → Nemo.
+                Some((echo_edb_only(input)?, BudgetStatus::Ok))
+            } else if time_ms.is_some() {
+                // A wall-clock budget is a genuine native gap: the semi-naive governor
+                // counts committed derivations, not elapsed time, so a `time_ms` request
+                // demotes to the Nemo post-hoc governor. (A step/derivation budget —
+                // `max_rule_firings` / `max_answers` — is now native's competence, below.)
                 None
             } else {
                 let store = crate::store::WorldStore::new();
                 store.load_nquads(input).map_err(MaterializeError::Parse)?;
                 let eval_rules =
                     crate::rule_ir::parse_eval_rules(rules).map_err(MaterializeError::Parse)?;
-                // This branch is unbudgeted (budgeted materialization is demoted to Nemo
-                // above), so the native step governor runs unbounded (`None`) and the
-                // returned status is always `Ok`.
-                match crate::physical::materialize_native(&store, &eval_rules, None)
+                // The forward step/derivation budget: a rule firing IS a committed
+                // derivation, so `max_rule_firings` maps to the native governor's
+                // `max_steps`; `max_answers` is the same derivation cap under another
+                // name, so the ceiling is their `min` (matching the Nemo `derived_cap`).
+                // Exhaustion stamps `Exhausted` on every emitted quad — incomplete, never
+                // wrong.
+                let max_steps = match (max_rule_firings, max_answers) {
+                    (Some(a), Some(b)) => Some(a.min(b)),
+                    (Some(a), None) => Some(a),
+                    (None, Some(b)) => Some(b),
+                    (None, None) => None,
+                };
+                match crate::physical::materialize_native(&store, &eval_rules, max_steps)
                     .map_err(MaterializeError::Chase)?
                 {
-                    crate::physical::NativeOutcome::Decided(budgeted) => Some(budgeted.rows),
+                    crate::physical::NativeOutcome::Decided(budgeted) => {
+                        Some((budgeted.rows, budgeted.status))
+                    }
                     // A declared native gap (e.g. non-stratifiable after parse) falls
                     // through to the demoted Nemo fallback / conformance oracle.
                     crate::physical::NativeOutcome::Unsupported(_) => None,
@@ -684,10 +699,18 @@ pub fn materialize_routed(
         }
     };
 
-    if let Some(rows) = routed {
+    if let Some((rows, status)) = routed {
         let quads = rows
             .into_iter()
             .map(derived_row_to_quad)
+            .map(|dq| {
+                dq.map(|mut q| {
+                    // Stamp the native governor's status onto every emitted quad (the
+                    // seam carries budget-incompleteness per quad, mirroring the Nemo path).
+                    q.budget_status = status;
+                    q
+                })
+            })
             .collect::<Result<Vec<_>, _>>()?;
         return Ok(Materialization {
             quads,
@@ -1314,31 +1337,89 @@ mod tests {
         );
     }
 
-    /// Budget-constrained materialization must route to the Nemo fallback, not the native
-    /// core: native decides the WHOLE least model and cannot reproduce the oracle's
-    /// post-hoc truncation. The routed result under a budget must match `materialize_core`
-    /// (the Nemo governor) EXACTLY — a regression back to the native arm would derive the
-    /// full closure and diverge from the budgeted oracle, so this equality is what proves
-    /// the fallback (not merely the asserted-EDB echo, which the native arm also emits).
-    /// The exact truncation/exhausted-disclosure semantics are pinned by the
-    /// `external/szs-mini/unknown-budget` conformance case.
+    /// A step/derivation budget (`max_rule_firings`) now runs on the NATIVE core, not the
+    /// Nemo fallback: the semi-naive governor honours the ceiling and stamps `Exhausted`.
+    /// A zero-firing budget derives NO IDB (only the asserted EDB echo) and marks every
+    /// emitted quad `Exhausted` — incomplete, never wrong.
     #[test]
-    fn materialize_routed_budget_uses_nemo_fallback() {
+    fn materialize_routed_forward_budget_runs_native() {
         let m = materialize_routed(
             TRANSITIVITY_RULES,
             CHAIN_NQUADS,
-            Some(0), // a zero rule-firing budget the native core has no governor for
+            Some(0), // zero rule firings — the native governor stops before any derivation
             None,
             None,
             Some("PositiveHornProfile"),
         )
-        .expect("budgeted routed materialize must not fail (Nemo governor handles it)");
-        let oracle = materialize_core(TRANSITIVITY_RULES, CHAIN_NQUADS, Some(0), None, None)
-            .expect("budgeted Nemo materialize_core must succeed");
+        .expect("budgeted routed materialize must not fail (native governor handles it)");
+
+        // The two asserted EDB edges are echoed; no derived subClassOf edge is produced.
+        assert_eq!(
+            m.quads.len(),
+            2,
+            "0-firing budget ⇒ only the 2 EDB echoes: {:?}",
+            m.quads
+        );
+        let sub_class_of = "https://blackcatinformatics.ca/logic/subClassOf";
+        let derived_present = m.quads.iter().any(|q| {
+            crate::provenance::term_display(&q.subject) == "<http://example.org/Dog>"
+                && q.predicate.as_str() == sub_class_of
+                && crate::provenance::term_display(&q.object) == "<http://example.org/Animal>"
+        });
+        assert!(
+            !derived_present,
+            "Dog ⊑ Animal must NOT be derived under a 0-firing budget"
+        );
+        assert!(
+            m.quads
+                .iter()
+                .all(|q| q.budget_status == BudgetStatus::Exhausted),
+            "every emitted quad must be stamped Exhausted under an exceeded budget"
+        );
+    }
+
+    /// A budget LARGER than the completion cost completes on native with `Ok`: the full
+    /// closure is derived and no quad is stamped `Exhausted`.
+    #[test]
+    fn materialize_routed_forward_budget_completes_ok() {
+        // The chain closure needs exactly one derivation (Dog ⊑ Animal); a budget of 1
+        // (or more) reaches the fixpoint.
+        let m = materialize_routed(
+            TRANSITIVITY_RULES,
+            CHAIN_NQUADS,
+            Some(8),
+            None,
+            None,
+            Some("PositiveHornProfile"),
+        )
+        .expect("budgeted routed materialize must not fail");
+        assert_eq!(m.quads.len(), 3, "2 EDB + 1 derived closure edge");
+        assert!(
+            m.quads.iter().all(|q| q.budget_status == BudgetStatus::Ok),
+            "an ample budget completes ⇒ every quad Ok"
+        );
+    }
+
+    /// A wall-clock budget (`time_ms`) remains a native gap and demotes to the Nemo
+    /// post-hoc governor: the native semi-naive engine counts committed derivations, not
+    /// elapsed time. The routed result must equal `materialize_core` (the Nemo path)
+    /// exactly, proving the demotion.
+    #[test]
+    fn materialize_routed_time_budget_uses_nemo_fallback() {
+        let m = materialize_routed(
+            TRANSITIVITY_RULES,
+            CHAIN_NQUADS,
+            None,
+            None,
+            Some(0), // a zero wall-clock budget the native core has no governor for
+            Some("PositiveHornProfile"),
+        )
+        .expect("time-budgeted routed materialize must not fail (Nemo governor handles it)");
+        let oracle = materialize_core(TRANSITIVITY_RULES, CHAIN_NQUADS, None, None, Some(0))
+            .expect("time-budgeted Nemo materialize_core must succeed");
         assert_eq!(
             m.quads, oracle.quads,
-            "budgeted routed materialize must match the Nemo fallback exactly; a native \
-             regression would derive the full closure and diverge"
+            "a time_ms budget must demote to the Nemo fallback exactly"
         );
     }
 }
