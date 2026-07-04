@@ -1,0 +1,46 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Lattice-as-logic-linkage: the sense of "dog" and the sense of "animal" each denote
+# a logic:Type; the hypernymy relation between them is carried as logic: subsumption
+# over the denoted types (rdfs:subClassOf), not a forked lang: is-a edge. The reified
+# lang:SenseRelation records the relation for provenance; the reasoning lives in logic:.
+
+@prefix lang:  <https://blackcatinformatics.ca/lang/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex:    <http://example.org/lang/> .
+
+ex:english a lang:SignSystem .
+
+ex:lexDog a lang:Lexeme ; lang:inSignSystem ex:english .
+ex:lexAnimal a lang:Lexeme ; lang:inSignSystem ex:english .
+ex:senseDog a lang:Sense ; lang:senseOf ex:lexDog .
+ex:senseAnimal a lang:Sense ; lang:senseOf ex:lexAnimal .
+ex:wfDog a lang:WordForm ; lang:inSignSystem ex:english ; lang:lexemeOf ex:lexDog .
+ex:wfAnimal a lang:WordForm ; lang:inSignSystem ex:english ; lang:lexemeOf ex:lexAnimal .
+
+ex:typeDog a logic:Type .
+ex:typeAnimal a logic:Type .
+# The hypernymy IS the logic: subsumption over the denoted types.
+ex:typeDog rdfs:subClassOf ex:typeAnimal .
+
+ex:denDog a lang:Denotation ;
+    lang:denotedForm ex:wfDog ;
+    lang:denotationKind lang:denotesLogicType ;
+    lang:denotationTarget ex:typeDog ;
+    lang:denotationContext ex:ctx ;
+    lang:viaSense ex:senseDog ;
+    logic:preservationKind logic:ExactPreservation .
+
+ex:denAnimal a lang:Denotation ;
+    lang:denotedForm ex:wfAnimal ;
+    lang:denotationKind lang:denotesLogicType ;
+    lang:denotationTarget ex:typeAnimal ;
+    lang:denotationContext ex:ctx ;
+    lang:viaSense ex:senseAnimal ;
+    logic:preservationKind logic:ExactPreservation .
+
+# The reified relation records provenance; it does not re-implement subsumption.
+ex:relDogAnimal a lang:SenseRelation ;
+    lang:relatesSense ex:senseDog , ex:senseAnimal ;
+    lang:senseRelationKind lang:hypernymy .
