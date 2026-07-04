@@ -950,11 +950,11 @@ math:kernel
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:normalSubgroupOf
-    a owl:ObjectProperty , owl:TransitiveProperty ;
+    a owl:ObjectProperty ;
     rdfs:subPropertyOf math:substructureOf ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "normal subgroup of"@x-gmeow-english ;
-    skos:definition "Relates a normal subgroup to the group that contains it (gNg⁻¹ = N for all g) — the kind of subgroup one can quotient by. Domain and range math:Group (stated in prose); a refinement of math:substructureOf, transitive. The math:kernel of a group homomorphism is a math:normalSubgroupOf its domain."@x-gmeow-english ;
+    skos:definition "Relates a normal subgroup to the group that contains it (gNg⁻¹ = N for all g) — the kind of subgroup one can quotient by. Domain and range math:Group (stated in prose); a refinement of math:substructureOf. Not transitive: A ◁ B and B ◁ C do not imply A ◁ C — in A₄ the Klein four-group V₄ ◁ A₄ and a two-element subgroup H ◁ V₄, yet H is not normal in A₄. The math:kernel of a group homomorphism is a math:normalSubgroupOf its domain."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 # --- Homomorphism conformance failures ------------------------------------- #
