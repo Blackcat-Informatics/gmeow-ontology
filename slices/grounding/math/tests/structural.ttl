@@ -250,3 +250,48 @@ ASK {
     math:Lattice math:formalizes gmeow:tuningSystemJustIntonation .
 }""" ;
     gmeow:saRationale "Algebra MUST ground at least one GMEOW domain concept through the one-way math:formalizes annotation (Principle 19): a prime-limit just-intonation tuning is a free abelian lattice, so math:Lattice formalizes gmeow:tuningSystemJustIntonation — surfaced in the domain term's documentation with the domain slice asserting no math: triple. This makes algebra grounding for the ontology, not a math island." .
+
+# --- 17. The measure subclasses specialize math:Measure (MUST) ---
+ex:saMeasureHierarchy a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    math:LebesgueMeasure    rdfs:subClassOf math:Measure .
+    math:CountingMeasure    rdfs:subClassOf math:Measure .
+    math:ProbabilityMeasure rdfs:subClassOf math:Measure .
+}""" ;
+    gmeow:saRationale "The Lebesgue, counting, and probability measures MUST specialize math:Measure, so the probability bridge (a probability measure is a measure of total mass one) and the continuous/discrete cases are entailed rather than re-minted." .
+
+# --- 18. The seven SI base dimensions exist as math:BaseDimension (MUST) ---
+ex:saBaseDimensions a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+ASK {
+    math:lengthDimension            a math:BaseDimension .
+    math:massDimension              a math:BaseDimension .
+    math:timeDimension              a math:BaseDimension .
+    math:electricCurrentDimension   a math:BaseDimension .
+    math:temperatureDimension       a math:BaseDimension .
+    math:amountOfSubstanceDimension a math:BaseDimension .
+    math:luminousIntensityDimension a math:BaseDimension .
+}""" ;
+    gmeow:saRationale "The seven SI base dimensions (length, mass, time, electric current, thermodynamic temperature, amount of substance, luminous intensity) MUST exist as math:BaseDimension individuals — the generators of the ℚ-vector space of dimensions." .
+
+# --- 19. The measure-and-dimension failure classes subclass the parent (MUST) ---
+ex:saMeasureDimensionFailures a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    math:IncompleteMeasure               rdfs:subClassOf math:MathConformanceFailure .
+    math:ProbabilityMeasureMassViolation rdfs:subClassOf math:MathConformanceFailure .
+    math:IncompleteIntegral              rdfs:subClassOf math:MathConformanceFailure .
+    math:UndimensionedQuantity           rdfs:subClassOf math:MathConformanceFailure .
+    math:MalformedDimension              rdfs:subClassOf math:MathConformanceFailure .
+    math:DimensionalInhomogeneity        rdfs:subClassOf math:MathConformanceFailure .
+}""" ;
+    gmeow:saRationale "Each measure-and-dimension hard-rule failure MUST be a subclass of math:MathConformanceFailure, so a violation — including the reasoned math:DimensionalInhomogeneity — is a typed, queryable object." .
