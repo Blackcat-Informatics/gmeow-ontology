@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Dependency-free dense-id graph primitives (#823 acceleration, Phase 5).
+//! Dependency-free dense-id graph primitives (acceleration, Phase 5).
 //!
 //! Graph algorithms over RDF IRIs are naturally written against `String` keys,
 //! but `BTreeMap<String, BTreeSet<String>>` adjacency pays a hashing/allocation
@@ -98,7 +98,7 @@ impl BitSet {
 
     /// Whether bit `i` is set.
     ///
-    /// Part of the complete `BitSet` contract (#823) and exercised by the unit
+    /// Part of the complete `BitSet` contract and exercised by the unit
     /// tests; backs the Warshall closure's membership test (`reach[i].contains(k)`)
     /// in [`crate::entrenchment`].
     pub(crate) fn contains(&self, i: usize) -> bool {

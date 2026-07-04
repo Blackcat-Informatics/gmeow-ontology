@@ -22,6 +22,7 @@
 pub const PREFIX_REGISTRY: &[(&str, &str)] = &[
     ("gmeow", "https://blackcatinformatics.ca/gmeow/"),
     ("logic", "https://blackcatinformatics.ca/logic/"),
+    ("lang", "https://blackcatinformatics.ca/lang/"),
     ("math", "https://blackcatinformatics.ca/math/"),
     ("owl", "http://www.w3.org/2002/07/owl#"),
     ("rdf", "http://www.w3.org/1999/02/22-rdf-syntax-ns#"),
@@ -271,13 +272,14 @@ mod tests {
 
     #[test]
     fn registry_insertion_order_is_preserved() {
-        // Order is load-bearing for CURIE tie-breaks: the first three entries are the
-        // GMEOW-local namespaces (gmeow, logic, math), ahead of the standard
-        // vocabularies (owl next).
+        // Order is load-bearing for CURIE tie-breaks: the first four entries are the
+        // GMEOW-local grounding namespaces (gmeow, logic, lang, math), ahead of the
+        // standard vocabularies (owl next). The grounding order is logic: < lang: < math:.
         assert_eq!(PREFIX_REGISTRY[0].0, "gmeow");
         assert_eq!(PREFIX_REGISTRY[1].0, "logic");
-        assert_eq!(PREFIX_REGISTRY[2].0, "math");
-        assert_eq!(PREFIX_REGISTRY[3].0, "owl");
+        assert_eq!(PREFIX_REGISTRY[2].0, "lang");
+        assert_eq!(PREFIX_REGISTRY[3].0, "math");
+        assert_eq!(PREFIX_REGISTRY[4].0, "owl");
     }
 
     #[test]

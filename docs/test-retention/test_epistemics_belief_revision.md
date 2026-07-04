@@ -1,15 +1,20 @@
 # Retention: `tests/test_epistemics_belief_revision.py`
 
-**Category:** Domain invariant → slicetest cells
+**Category:** Python tool algorithm
 
 ## What it tests
 
-Competency test for the doxastic belief-revision pattern (#560).
+Competency test for the doxastic belief-revision pattern.
 
-## Why it cannot move to Rust today
+Retained dynamic tests:
 
-Structural / competency / cross-slice invariants over the module (or merged) graph — ontology *shape*, not Python logic.
+- `test_old_doxastic_tenure_is_closed` — Verify the original doxastic tenure has a single xsd:dateTime end time.
+- `test_old_doxastic_tenure_is_suppressed` — Verify the superseded original tenure is marked as not displayable.
+- `test_old_doxastic_state_is_retained` — Verify the original belief remains typed and linked to its agent and content.
+- `test_new_doxastic_state_is_present` — Verify the revised belief is present as a DoxasticState for the operator.
+- `test_new_doxastic_tenure_is_open` — Verify the revised tenure interval has started but has not yet ended.
+- `test_qualitative_modality_via_linked_standpoint_claim` — Verify both beliefs link to standpoint claims with the expected modalities.
 
-## What is needed to move it to Rust
+## Why it cannot be deleted or moved to Rust today
 
-Author the assertions as slicetest cells in the **owning** slice (`structural.ttl` MUST/MUST-NOT, `competency.ttl` ASK/SELECT) per `docs/SLICE_QA.md`; cross-slice subjects go in the slice that *defines* the term. Confirm `make slicetest`, then delete this file. No new Rust — the harness exists.
+Python-only algorithm or generated-artifact checks with no declarative slice-test equivalent.

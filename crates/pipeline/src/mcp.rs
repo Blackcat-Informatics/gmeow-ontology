@@ -20,7 +20,9 @@ use std::io::{self, BufRead, Write};
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex, OnceLock};
 
+#[cfg(feature = "python")]
 use pyo3::exceptions::PyValueError;
+#[cfg(feature = "python")]
 use pyo3::prelude::*;
 use serde_json::{json, Value};
 
@@ -39,9 +41,14 @@ const LANGUAGE_TAG: &str = "https://blackcatinformatics.ca/gmeow/languageTag";
 const BCP47_TAG: &str = "https://blackcatinformatics.ca/gmeow/bcp47Tag";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const TOOL_AGENT_NS: &str = "urn:gmeow:tool:";
+/// The distinct external-provenance named graph the read-only local overlay is
+/// re-homed into (the origin marker). Overlay triples are visible to reads
+/// (`bundle ∪ overlay`) but quarantined under this graph — NEVER unioned into the
+/// signed `gmeow:` canon and NEVER written back.
+const EXTERNAL_OVERLAY_GRAPH: &str = "urn:gmeow:mcp:overlay:external";
 
 /// A loaded, bundle-backed view over the GMEOW snapshot for the MCP consumer.
-#[pyclass(name = "McpView", skip_from_py_object)]
+#[cfg_attr(feature = "python", pyclass(name = "McpView", skip_from_py_object))]
 pub struct McpView {
     /// THIS server's view of the bundled snapshot as the native carrier dataset:
     /// the MCP server is a gts ARCHIVE CONSUMER — it imports `gmeow.gts` to
@@ -66,6 +73,7 @@ pub struct McpView {
 }
 
 impl McpView {
+    #[cfg(feature = "python")]
     fn from_snapshot(snapshot: &[u8]) -> Result<Self, String> {
         let bundle = purrdf::import_gts_events(snapshot)
             .map_err(|e| format!("read snapshot gmeow.gts: {e}"))?;
@@ -139,37 +147,107 @@ impl McpView {
             self.dataset
                 .project_named_graph(crate::stages::carrier::GRAPH_DOCUMENTATION),
         );
-        match crate::stages::native_query::query(&docs, sparql).map_err(|e| e.to_string())? {
-            purrdf::SparqlResult::Boolean(value) => Ok(json!({"ok": true, "boolean": value})),
-            purrdf::SparqlResult::Solutions {
-                variables, rows, ..
-            } => {
-                let bindings: Vec<Value> = rows
-                    .iter()
-                    .map(|row| {
-                        let mut obj = serde_json::Map::new();
-                        for (i, cell) in row.iter().enumerate() {
-                            if let (Some(name), Some(term)) = (variables.get(i), cell.as_ref()) {
-                                if let Some(value) = sparql_term_to_json(term) {
-                                    obj.insert(name.clone(), value);
-                                }
+        let result =
+            crate::stages::native_query::query(&docs, sparql).map_err(|e| e.to_string())?;
+        sparql_result_to_json(result)
+    }
+
+    /// Run a SELECT / ASK SPARQL query over the bundle canon UNIONED with a
+    /// READ-ONLY external overlay loaded from `overlay_path`, returning a standard
+    /// SPARQL-1.1 JSON-results envelope under `"ok"`. See [`Self::run_local_query`]
+    /// for the read-only / external-provenance contract.
+    fn query_local_json(&self, overlay_path: &str, sparql: &str) -> String {
+        match self.run_local_query(overlay_path, sparql) {
+            Ok(value) => value.to_string(),
+            Err(err) => json!({"ok": false, "error": err}).to_string(),
+        }
+    }
+
+    /// Query `bundle ∪ overlay` where `overlay` is the user's LOCAL lower-tier
+    /// graph file, loaded as a READ-ONLY external annex.
+    ///
+    /// CONTRACT (enforced here, not just documented):
+    /// * the overlay is loaded into its own transient dataset from `overlay_path`
+    ///   — the signed canon (`self.dataset`) is pushed VERBATIM and is NEVER
+    ///   mutated;
+    /// * every overlay triple is re-homed under the distinct external-provenance
+    ///   graph [`EXTERNAL_OVERLAY_GRAPH`] (the origin marker), so external content
+    ///   stays isolable via a `GRAPH` clause and is NEVER unioned into the signed
+    ///   `gmeow:` canon graphs;
+    /// * a default-graph copy makes reads see `bundle ∪ overlay`, but the whole
+    ///   union is transient and discarded after the query — it is NEVER persisted,
+    ///   NEVER folded into `gmeow.gts`, and NEVER written back to the canon or the
+    ///   overlay file (the memory-write triad only ever touches `memory.gts`);
+    /// * only SELECT / ASK are accepted (CONSTRUCT / DESCRIBE are rejected).
+    fn run_local_query(&self, overlay_path: &str, sparql: &str) -> Result<Value, String> {
+        let path = Path::new(overlay_path);
+        // The media type is the file extension (ttl/nt/nq/trig/rdf/owl/xml/…); an
+        // unknown extension HARD-FAILS in `parse_dataset` (no silent fallback).
+        let media = path
+            .extension()
+            .and_then(|ext| ext.to_str())
+            .map(str::to_ascii_lowercase)
+            .unwrap_or_else(|| "text/turtle".to_string());
+        let bytes = fs::read(path).map_err(|e| format!("read overlay {overlay_path}: {e}"))?;
+        let overlay = purrdf::parse_dataset(&bytes, &media, None)
+            .map_err(|e| format!("parse overlay {overlay_path}: {e}"))?;
+
+        let mut builder = purrdf::RdfDatasetBuilder::new();
+        // The signed canon — verbatim, never mutated.
+        builder.push_dataset(self.dataset.as_ref());
+        let external = purrdf::RdfTerm::Iri(EXTERNAL_OVERLAY_GRAPH.to_string());
+        for quad in overlay.owned_quads() {
+            // Default-graph copy → a plain query reads `bundle ∪ overlay`.
+            let mut in_default = quad.clone();
+            in_default.graph_name = None;
+            builder.push_owned_quad(&in_default);
+            // Origin-marked copy → external provenance, isolable via GRAPH.
+            let mut tagged = quad;
+            tagged.graph_name = Some(external.clone());
+            builder.push_owned_quad(&tagged);
+        }
+        let dataset = builder.freeze().map_err(|e| e.to_string())?;
+        let result =
+            crate::stages::native_query::query(&dataset, sparql).map_err(|e| e.to_string())?;
+        sparql_result_to_json(result)
+    }
+}
+
+/// A native SPARQL result rendered as a JSON envelope under `"ok"`: an ASK boolean,
+/// SELECT bindings (SPARQL-1.1 JSON-results shape), or — for a CONSTRUCT / DESCRIBE
+/// graph result — a hard error (these tools serve bindings or a boolean, never a
+/// graph).
+fn sparql_result_to_json(result: purrdf::SparqlResult) -> Result<Value, String> {
+    match result {
+        purrdf::SparqlResult::Boolean(value) => Ok(json!({"ok": true, "boolean": value})),
+        purrdf::SparqlResult::Solutions {
+            variables, rows, ..
+        } => {
+            let bindings: Vec<Value> = rows
+                .iter()
+                .map(|row| {
+                    let mut obj = serde_json::Map::new();
+                    for (i, cell) in row.iter().enumerate() {
+                        if let (Some(name), Some(term)) = (variables.get(i), cell.as_ref()) {
+                            if let Some(value) = sparql_term_to_json(term) {
+                                obj.insert(name.clone(), value);
                             }
                         }
-                        Value::Object(obj)
-                    })
-                    .collect();
-                Ok(json!({
-                    "ok": true,
-                    "head": {"vars": variables},
-                    "results": {"bindings": bindings},
-                }))
-            }
-            purrdf::SparqlResult::Graph(_) => Err(
-                "query_docs accepts only SELECT and ASK queries; CONSTRUCT/DESCRIBE are not \
-                 supported (the tool serves bindings or a boolean, never a graph)"
-                    .to_string(),
-            ),
+                    }
+                    Value::Object(obj)
+                })
+                .collect();
+            Ok(json!({
+                "ok": true,
+                "head": {"vars": variables},
+                "results": {"bindings": bindings},
+            }))
         }
+        purrdf::SparqlResult::Graph(_) => Err(
+            "this tool accepts only SELECT and ASK queries; CONSTRUCT/DESCRIBE are not \
+             supported (it serves bindings or a boolean, never a graph)"
+                .to_string(),
+        ),
     }
 }
 
@@ -201,6 +279,7 @@ fn sparql_term_to_json(term: &purrdf::TermValue) -> Option<Value> {
     }
 }
 
+#[cfg(feature = "python")]
 #[pymethods]
 impl McpView {
     /// Load and fold the bundled `gmeow.gts` snapshot bytes. Hard-fails if the
@@ -265,13 +344,19 @@ impl McpView {
     }
 }
 
+/// Which tool surface an [`McpServer`] advertises: the bundle-only consumer
+/// surface, or the repository-anchored developer surface (dev adds the
+/// repo-reading maintenance tools).
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-enum McpMode {
+pub enum McpMode {
+    /// Bundle-only surface — the shippable `gmeow mcp` server.
     Consumer,
+    /// Consumer surface plus the repo-reading dev tools (`gmeow-dev mcp`).
     Dev,
 }
 
 impl McpMode {
+    #[cfg(feature = "python")]
     fn from_bool(dev: bool) -> Self {
         if dev {
             Self::Dev
@@ -286,7 +371,7 @@ impl McpMode {
 }
 
 /// A Rust MCP server over the bundled snapshot and optional repository root.
-#[pyclass(name = "McpServer", skip_from_py_object)]
+#[cfg_attr(feature = "python", pyclass(name = "McpServer", skip_from_py_object))]
 pub struct McpServer {
     view: McpView,
     mode: McpMode,
@@ -296,6 +381,7 @@ pub struct McpServer {
     startup_requested: Vec<String>,
 }
 
+#[cfg(feature = "python")]
 #[pymethods]
 impl McpServer {
     /// Build a Rust MCP server. `dev=true` exposes repository-maintenance tools.
@@ -339,7 +425,11 @@ impl McpServer {
 }
 
 impl McpServer {
-    fn from_snapshot(
+    /// Build a native MCP server over the bundled `gmeow.gts` snapshot bytes.
+    /// `root` (the checkout path) is required only for the [`McpMode::Dev`]
+    /// repo-reading tools; the consumer surface passes `None`. Hard-fails if the
+    /// snapshot does not read or the startup language (`GMEOW_LANG`) is unknown.
+    pub fn from_snapshot(
         snapshot: &[u8],
         root: Option<PathBuf>,
         mode: McpMode,
@@ -402,6 +492,16 @@ impl McpServer {
                 "Run a SELECT or ASK SPARQL query over the bundled documentation graph \
                  (gmeow:graph/documentation) and return SPARQL-1.1 JSON results.",
                 &[("query", "string")],
+            ),
+            tool(
+                "query_local",
+                "Run a SELECT or ASK SPARQL query over the bundle UNIONED with a READ-ONLY \
+                 local overlay graph file (path). The overlay is loaded as an EXTERNAL, \
+                 read-only annex: its triples are visible to reads (bundle \u{222a} overlay, \
+                 also isolable via GRAPH <urn:gmeow:mcp:overlay:external>) but are NEVER merged \
+                 into the signed gmeow: canon and NEVER written back to disk. Accepts Turtle / \
+                 TriG / N-Triples / N-Quads / RDF-XML by file extension.",
+                &[("path", "string"), ("query", "string")],
             ),
             tool(
                 "store_claim",
@@ -506,6 +606,7 @@ impl McpServer {
             "doc_card" => self.tool_doc_card(args),
             "okf_index" => self.tool_okf_index(args),
             "query_docs" => self.tool_query_docs(args),
+            "query_local" => self.tool_query_local(args),
             "store_claim" => self.tool_store_claim(args),
             "recall" => self.tool_recall(args),
             "revise_belief" => self.tool_revise_belief(args),
@@ -581,7 +682,10 @@ impl McpServer {
         json!({"jsonrpc": "2.0", "id": id, "result": result}).to_string()
     }
 
-    fn run_stdio(&self) -> Result<(), String> {
+    /// Serve the stdio JSON-RPC 2.0 MCP loop: one request per line on stdin, one
+    /// response per line on stdout, until EOF. Blocking; the native `gmeow mcp` /
+    /// `gmeow-dev mcp` launchers call this directly.
+    pub fn run_stdio(&self) -> Result<(), String> {
         let stdin = io::stdin();
         let mut stdout = io::stdout();
         for line in stdin.lock().lines() {
@@ -628,6 +732,12 @@ impl McpServer {
     fn tool_query_docs(&self, args: &Value) -> Result<String, String> {
         let query = required_str(args, "query")?;
         Ok(self.view.query_docs_json(query))
+    }
+
+    fn tool_query_local(&self, args: &Value) -> Result<String, String> {
+        let path = required_str(args, "path")?;
+        let query = required_str(args, "query")?;
+        Ok(self.view.query_local_json(path, query))
     }
 
     fn tool_store_claim(&self, args: &Value) -> Result<String, String> {
@@ -914,6 +1024,7 @@ impl McpView {
     }
 }
 
+#[cfg(feature = "python")]
 #[pyfunction]
 pub fn run_consumer_mcp(snapshot: &[u8]) -> PyResult<()> {
     let server = McpServer::from_snapshot(snapshot, None, McpMode::Consumer)
@@ -921,6 +1032,7 @@ pub fn run_consumer_mcp(snapshot: &[u8]) -> PyResult<()> {
     server.run_stdio().map_err(PyValueError::new_err)
 }
 
+#[cfg(feature = "python")]
 #[pyfunction]
 pub fn run_dev_mcp(snapshot: &[u8], root: String) -> PyResult<()> {
     let server = McpServer::from_snapshot(snapshot, Some(PathBuf::from(root)), McpMode::Dev)
@@ -1084,7 +1196,9 @@ impl ExpandHome for PathBuf {
 fn tool(name: &str, description: &str, properties: &[(&str, &str)]) -> Value {
     let required: Vec<&str> = properties
         .iter()
-        .filter_map(|(name, _)| matches!(*name, "term" | "text" | "claim_id").then_some(*name))
+        .filter_map(|(name, _)| {
+            matches!(*name, "term" | "text" | "claim_id" | "path").then_some(*name)
+        })
         .collect();
     let props = properties
         .iter()
@@ -1910,5 +2024,196 @@ mod tests {
             server.call_tool_result("store_claim", &json!({"text": "relative path belief"})),
         );
         assert!(relative_dir.path().join("memory.gts").exists());
+    }
+
+    /// The read-only local-ontology overlay: reads see `bundle ∪ overlay`, the
+    /// overlay is provenance-isolated under the external graph, and nothing is
+    /// written back — not the overlay file, not the canon, not memory.
+    #[test]
+    fn local_overlay_is_a_read_only_external_annex() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG", "GMEOW_MEMORY_PATH", "HOME", "USERPROFILE"]);
+        env::remove_var("GMEOW_LANG");
+        let (mem_dir, memory_path) = temp_memory();
+        let bytes = snapshot();
+        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+
+        // A local lower-tier vocab file the agent supplies (not part of the canon).
+        let overlay_dir = tempfile::tempdir().expect("overlay tempdir");
+        let overlay_path = overlay_dir.path().join("local-vocab.ttl");
+        let overlay_ttl =
+            "<urn:ex:widget> <urn:ex:label> \"Local Widget\" .\n<urn:ex:widget> a <urn:ex:Thing> .\n";
+        fs::write(&overlay_path, overlay_ttl).unwrap();
+        let overlay_before = fs::read(&overlay_path).unwrap();
+        let path_str = overlay_path.to_str().unwrap();
+
+        // Reads see the overlay unioned into the default graph.
+        let seen = text_payload(server.call_tool_result(
+            "query_local",
+            &json!({
+                "path": path_str,
+                "query": "SELECT ?o WHERE { <urn:ex:widget> <urn:ex:label> ?o }",
+            }),
+        ));
+        assert_eq!(seen["ok"], true, "overlay query must succeed: {seen}");
+        assert_eq!(seen["results"]["bindings"][0]["o"]["value"], "Local Widget");
+
+        // Reads ALSO see the bundle canon in the same active graph (union, not
+        // replacement): a plain triple pattern still matches the signed ontology.
+        let canon = text_payload(server.call_tool_result(
+            "query_local",
+            &json!({"path": path_str, "query": "ASK { ?s ?p ?o }"}),
+        ));
+        assert_eq!(canon["ok"], true);
+        assert_eq!(canon["boolean"], true);
+
+        // The overlay is provenance-isolable under the distinct external graph — its
+        // triples never bear a signed gmeow: graph name.
+        let isolated = text_payload(server.call_tool_result(
+            "query_local",
+            &json!({
+                "path": path_str,
+                "query": "SELECT ?o WHERE { GRAPH <urn:gmeow:mcp:overlay:external> \
+                          { <urn:ex:widget> <urn:ex:label> ?o } }",
+            }),
+        ));
+        assert_eq!(
+            isolated["ok"], true,
+            "external-graph query must succeed: {isolated}"
+        );
+        assert_eq!(
+            isolated["results"]["bindings"][0]["o"]["value"],
+            "Local Widget"
+        );
+
+        // CONSTRUCT/DESCRIBE are rejected — the tool serves bindings or a boolean.
+        let construct = text_payload(server.call_tool_result(
+            "query_local",
+            &json!({"path": path_str, "query": "CONSTRUCT { ?s ?p ?o } WHERE { ?s ?p ?o } LIMIT 1"}),
+        ));
+        assert_eq!(construct["ok"], false);
+        assert!(construct["error"]
+            .as_str()
+            .unwrap_or_default()
+            .contains("SELECT and ASK"));
+
+        // Read-only: the overlay file is byte-for-byte unchanged and NOTHING was
+        // written to memory (the write triad never touches the overlay or canon).
+        assert_eq!(fs::read(&overlay_path).unwrap(), overlay_before);
+        assert!(Memory::new(&memory_path).claims().unwrap().is_empty());
+        assert!(!memory_path.exists());
+        drop(mem_dir);
+        drop(overlay_dir);
+    }
+
+    /// Full MCP protocol conformance over the real JSON-RPC dispatch: the
+    /// handshake, the discovery surfaces, a read tool call and a TR-write tool call
+    /// with `dry_run=true` (asserting the write stays hypothetical), and that EVERY
+    /// advertised tool is dispatch-callable (no `unknown tool`).
+    #[test]
+    fn json_rpc_protocol_conformance_round_trip() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG", "GMEOW_MEMORY_PATH", "HOME", "USERPROFILE"]);
+        env::remove_var("GMEOW_LANG");
+        let (_mem_dir, memory_path) = temp_memory();
+        let bytes = snapshot();
+        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+
+        let rpc = |body: &str| -> Value {
+            let raw = server.handle_message(body);
+            let value: Value = serde_json::from_str(&raw).expect("response is JSON");
+            assert_eq!(value["jsonrpc"], "2.0", "JSON-RPC framing: {value}");
+            value
+        };
+
+        // initialize
+        let init = rpc(r#"{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}"#);
+        assert_eq!(init["id"], 1);
+        assert_eq!(init["result"]["serverInfo"]["name"], "gmeow");
+        assert!(init["result"]["protocolVersion"].as_str().is_some());
+
+        // tools/list
+        let tools = rpc(r#"{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}"#);
+        let tool_names: Vec<String> = tools["result"]["tools"]
+            .as_array()
+            .expect("tools array")
+            .iter()
+            .map(|t| t["name"].as_str().unwrap().to_string())
+            .collect();
+        for expected in [
+            "lookup_term",
+            "query_docs",
+            "query_local",
+            "store_claim",
+            "recall",
+        ] {
+            assert!(
+                tool_names.iter().any(|n| n == expected),
+                "missing {expected}"
+            );
+        }
+
+        // resources/list
+        let resources = rpc(r#"{"jsonrpc":"2.0","id":3,"method":"resources/list","params":{}}"#);
+        assert!(resources["result"]["resources"]
+            .as_array()
+            .map(|r| !r.is_empty())
+            .unwrap_or(false));
+
+        // tools/call — a read tool (query_docs ASK) succeeds.
+        let read = rpc(
+            r#"{"jsonrpc":"2.0","id":4,"method":"tools/call","params":{"name":"query_docs","arguments":{"query":"ASK { ?s ?p ?o }"}}}"#,
+        );
+        let read_text: Value =
+            serde_json::from_str(read["result"]["content"][0]["text"].as_str().unwrap()).unwrap();
+        assert_eq!(read_text["ok"], true);
+        assert_eq!(read_text["boolean"], true);
+
+        // tools/call — a TR-write tool (store_claim) with dry_run=true stays
+        // hypothetical: the verdict is computed but nothing is committed.
+        let dry = rpc(
+            r#"{"jsonrpc":"2.0","id":5,"method":"tools/call","params":{"name":"store_claim","arguments":{"text":"a conformance probe belief","dry_run":true}}}"#,
+        );
+        let dry_text: Value =
+            serde_json::from_str(dry["result"]["content"][0]["text"].as_str().unwrap()).unwrap();
+        assert_eq!(dry_text["ok"], true);
+        assert_eq!(dry_text["dry_run"], true);
+        assert_eq!(dry_text["transaction"]["committed"], false);
+        assert!(dry_text.get("claim").is_none(), "dry run commits no claim");
+        // Nothing persisted by the dry-run write.
+        assert!(Memory::new(&memory_path).claims().unwrap().is_empty());
+        assert!(!memory_path.exists());
+
+        // Every advertised tool is dispatch-callable (recognized by tools/call).
+        let overlay_dir = tempfile::tempdir().expect("overlay tempdir");
+        let overlay_path = overlay_dir.path().join("probe.ttl");
+        fs::write(&overlay_path, "<urn:ex:s> <urn:ex:p> <urn:ex:o> .\n").unwrap();
+        let mut call_args: HashMap<&str, Value> = HashMap::new();
+        call_args.insert("lookup_term", json!({"term": "gmeow:Entity"}));
+        call_args.insert("doc_card", json!({"term": "gmeow:Entity"}));
+        call_args.insert("query_docs", json!({"query": "ASK { ?s ?p ?o }"}));
+        call_args.insert(
+            "query_local",
+            json!({"path": overlay_path.to_str().unwrap(), "query": "ASK { ?s ?p ?o }"}),
+        );
+        call_args.insert("store_claim", json!({"text": "probe", "dry_run": true}));
+        call_args.insert("recall", json!({}));
+        call_args.insert(
+            "revise_belief",
+            json!({"claim_id": "urn:gmeow:assertion:none", "dry_run": true}),
+        );
+        for name in &tool_names {
+            let args = call_args
+                .get(name.as_str())
+                .cloned()
+                .unwrap_or_else(|| json!({}));
+            let result = server.call_tool_result(name, &args);
+            let content = result["content"][0]["text"].as_str().expect("tool text");
+            assert!(
+                !content.contains("unknown tool"),
+                "advertised tool {name} is not dispatch-callable: {content}"
+            );
+        }
+        drop(overlay_dir);
     }
 }

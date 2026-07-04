@@ -1,0 +1,82 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# ABox overlay for the deception disinformation-boundary competency question.
+# Replicates the synthetic propagation chain formerly built inline in
+# tests/test_deception.py::test_disinformation_boundary_query.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://example.org/test/> .
+
+ex:method1 a gmeow:ObservationMethod .
+
+# Origin node: held ≠ projected + deceptive intent claim → disinformation
+ex:originEvent a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypeDisinformation ;
+    gmeow:heldStandpoint ex:originHeld ;
+    gmeow:projectedStandpoint ex:originProjected ;
+    gmeow:deceptiveIntentClaim ex:originIntent .
+
+ex:deceiver a gmeow:Agent .
+
+ex:originHeldProp a gmeow:Proposition .
+ex:originProjectedProp a gmeow:Proposition .
+
+ex:originHeld a gmeow:DoxasticStandpointClaim , gmeow:StandpointClaim ;
+    gmeow:observationMethod ex:method1 ;
+    gmeow:claimOfBelief ex:originHeldState .
+
+ex:originHeldState a gmeow:DoxasticState ;
+    gmeow:epistemicAgent ex:deceiver ;
+    gmeow:doxasticContent ex:originHeldProp ;
+    gmeow:doxasticClaim ex:originHeld .
+
+ex:originProjected a gmeow:DoxasticStandpointClaim , gmeow:StandpointClaim ;
+    gmeow:observationMethod ex:method1 ;
+    gmeow:claimOfBelief ex:originProjectedState .
+
+ex:originProjectedState a gmeow:DoxasticState ;
+    gmeow:epistemicAgent ex:deceiver ;
+    gmeow:doxasticContent ex:originProjectedProp ;
+    gmeow:doxasticClaim ex:originProjected .
+
+ex:originIntent a gmeow:StandpointClaim ;
+    gmeow:observationMethod ex:method1 .
+
+# Dupe node: held = projected + veridicalityUntrue, no intent → misinformation
+ex:dupeEvent a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypeDeception ;
+    gmeow:heldStandpoint ex:dupeBelief ;
+    gmeow:projectedStandpoint ex:dupeBelief .
+
+ex:dupe a gmeow:Agent .
+ex:dupeProp a gmeow:Proposition .
+
+ex:dupeBelief a gmeow:DoxasticStandpointClaim , gmeow:StandpointClaim ;
+    gmeow:observationMethod ex:method1 ;
+    gmeow:claimOfBelief ex:dupeState ;
+    gmeow:claimVeridicality gmeow:veridicalityUntrue .
+
+ex:dupeState a gmeow:DoxasticState ;
+    gmeow:epistemicAgent ex:dupe ;
+    gmeow:doxasticContent ex:dupeProp ;
+    gmeow:doxasticClaim ex:dupeBelief .
+
+# Downstream node: same shape as dupe → misinformation
+ex:downstreamEvent a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypeDeception ;
+    gmeow:heldStandpoint ex:downstreamBelief ;
+    gmeow:projectedStandpoint ex:downstreamBelief .
+
+ex:downstream a gmeow:Agent .
+ex:downstreamProp a gmeow:Proposition .
+
+ex:downstreamBelief a gmeow:DoxasticStandpointClaim , gmeow:StandpointClaim ;
+    gmeow:observationMethod ex:method1 ;
+    gmeow:claimOfBelief ex:downstreamState ;
+    gmeow:claimVeridicality gmeow:veridicalityUntrue .
+
+ex:downstreamState a gmeow:DoxasticState ;
+    gmeow:epistemicAgent ex:downstream ;
+    gmeow:doxasticContent ex:downstreamProp ;
+    gmeow:doxasticClaim ex:downstreamBelief .

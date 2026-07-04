@@ -13,12 +13,6 @@ resolution-markers = [
     "python_full_version < '3.14' and sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 
-[manifest]
-members = [
-    "gmeow",
-    "gmeow-dev",
-]
-
 [[package]]
 name = "absl-py"
 version = "2.4.0"
@@ -735,17 +729,6 @@ dev = [
     { name = "types-jsonschema", specifier = ">=4.23" },
     { name = "xmlschema", specifier = ">=4.3" },
 ]
-
-[[package]]
-name = "gmeow-dev"
-version = "1.0.2"
-source = { editable = "packages/gmeow-dev" }
-dependencies = [
-    { name = "gmeow" },
-]
-
-[package.metadata]
-requires-dist = [{ name = "gmeow", editable = "." }]
 
 [[package]]
 name = "gmeow-gts"

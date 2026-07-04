@@ -1,0 +1,21 @@
+# Competency question: "Which denoted forms stand in hypernymy, resolved as logic:
+# subsumption over their denoted types?"  This proves the sense lattice is preserved as
+# logic: linkage rather than a forked lang: is-a graph: two senses denote two logic:Types
+# and the hypernymy chain resolves through the bridge. Over the sense-hypernymy fixture the
+# answer is exactly the (dog, animal) pair.
+PREFIX lang: <https://blackcatinformatics.ca/lang/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?narrow ?broad WHERE {
+    ?dn lang:denotedForm ?narrow ;
+        lang:denotationKind lang:denotesLogicType ;
+        lang:denotationTarget ?tn .
+    ?db lang:denotedForm ?broad ;
+        lang:denotationKind lang:denotesLogicType ;
+        lang:denotationTarget ?tb .
+    ?tn rdfs:subClassOf ?tb .
+    FILTER(?tn != ?tb)
+    FILTER(STRSTARTS(STR(?narrow), "http://example.org/lang/"))
+}
+ORDER BY ?narrow ?broad

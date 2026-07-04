@@ -121,3 +121,17 @@ ASK {
         rdfs:range gmeow:Person .
 }""" ;
     gmeow:saRationale "gmeow:hasPartner MUST be an owl:ObjectProperty with rdfs:subPropertyOf gmeow:observedFeature, domain CoupleRelationship, and range Person -- partners are co-observed features of the couple observation so the universal query path sees them; non-functional because a couple has two partners. Mirrors test_kin_relationship_bridges_fire (observations) (observations structural.ttl cell 7 deferred this here)." .
+
+# --- 7. Genealogy kinship properties are subproperties of connectsTo (MUST) ---
+ex:saGenealogySubpropertiesOfConnectsTo a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:hasSpouse  rdfs:subPropertyOf gmeow:connectsTo .
+    gmeow:hasSibling rdfs:subPropertyOf gmeow:connectsTo .
+    gmeow:hasParent  rdfs:subPropertyOf gmeow:connectsTo .
+    gmeow:hasChild   rdfs:subPropertyOf gmeow:connectsTo .
+}""" ;
+    gmeow:saRationale "gmeow:hasSpouse, hasSibling, hasParent, and hasChild MUST each be rdfs:subPropertyOf gmeow:connectsTo -- kinship links are specializations of the universal connectivity spine. Mirrors test_genealogy_subproperties_of_connects_to." .

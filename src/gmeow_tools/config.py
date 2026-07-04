@@ -30,6 +30,15 @@ NAMESPACE = ONTOLOGY_IRI + "/"
 #: lossy projections (Principle 17); term IRIs are ``LOGIC_NAMESPACE + local``.
 LOGIC_NAMESPACE = "https://blackcatinformatics.ca/logic/"
 
+#: The ``lang:`` namespace — GMEOW Language's semiotic grounding vocabulary, the
+#: third grounding layer and a peer of ``logic:`` and ``math:``. It grounds sign
+#: systems, scripts, orthographies, grammars, and the typed form AST (surface
+#: forms, lexemes, word forms, morphs, composed forms) — the primitive objects
+#: every textual, nominal, or notational surface realizes; term IRIs are
+#: ``LANG_NAMESPACE + local``. The grounding order is ``logic:`` < ``lang:`` <
+#: ``math:``.
+LANG_NAMESPACE = "https://blackcatinformatics.ca/lang/"
+
 #: The ``math:`` namespace — GMEOW Mathematics' grounding vocabulary, a peer of
 #: ``logic:``. It grounds number systems and exactness, arithmetic, sets, and
 #: relations/functions — the primitive objects every other mathematical charter
@@ -334,6 +343,9 @@ PREFIXES: dict[str, str] = {
     # GMEOW Logic — the canonical reasoning vocabulary (Principle 17). gUFO,
     # OWL, Datalog, SHACL, Prolog and N3 are generated lossy projections of it.
     "logic": LOGIC_NAMESPACE,
+    # GMEOW Language — the semiotic grounding vocabulary of sign systems and the
+    # form AST, the third grounding layer (order logic: < lang: < math:).
+    "lang": LANG_NAMESPACE,
     # GMEOW Mathematics — the grounding vocabulary of numbers, sets, and functions,
     # a peer of logic:.
     "math": MATH_NAMESPACE,

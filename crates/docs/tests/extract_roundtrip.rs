@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Extract-tree coverage (R4 of #859).
+//! Extract-tree coverage (R4).
 //!
 //! The on-disk writer `DocSet::write_artifacts` is a private GIL-bound PyO3
 //! method (and pyo3's `extension-module` feature precludes a standalone GIL test
@@ -12,7 +12,7 @@
 //! identity, and the archive-prefix selection. Those are tested here. The disk
 //! write itself is trivial sorted-BTreeMap I/O over these guaranteed trees.
 
-// Rich colored line-diffs on assert_eq! failure (#871); shadows the std macro
+// Rich colored line-diffs on assert_eq! failure; shadows the std macro
 // for this file. Identical behaviour on pass; insta snapshots are unaffected.
 use pretty_assertions::assert_eq;
 use std::collections::BTreeSet;

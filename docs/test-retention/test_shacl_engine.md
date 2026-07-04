@@ -1,15 +1,22 @@
 # Retention: `tests/test_shacl_engine.py`
 
-**Category:** PyO3 seam
+**Category:** Python tool algorithm
 
 ## What it tests
 
-Unit tests for the N-Triples→gmeow_shacl validation seam (#578/#579).
+Unit tests for the N-Triples→gmeow_shacl validation seam.
 
-## Why it cannot move to Rust today
+Retained dynamic tests:
 
-Tests a PyO3 binding's marshalling / error-surfacing — the seam itself, which Rust cannot test from the inside; the engine substance is already Rust-tested.
+- `test_version_is_reported` — Retained dynamic test.
+- `test_conforming_graph_has_no_results` — Retained dynamic test.
+- `test_violation_partitions_to_errors_with_stable_line` — Retained dynamic test.
+- `test_warning_severity_buckets_to_warnings` — Retained dynamic test.
+- `test_partition_results_prefixes_box_roles_when_present` — Retained dynamic test.
+- `test_partition_results_uses_hash_iri_local_name_for_unknown_roles` — Retained dynamic test.
+- `test_parse_error_hard_fails` — Retained dynamic test.
+- `test_term_normalization` — Retained dynamic test.
 
-## What is needed to move it to Rust
+## Why it cannot be deleted or moved to Rust today
 
-Delete when the Python surface that owns the seam is removed (the binding drops once nothing Python imports it); the engine is covered by its Rust crate.
+Python-only algorithm or generated-artifact checks with no declarative slice-test equivalent.

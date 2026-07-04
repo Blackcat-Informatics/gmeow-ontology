@@ -114,7 +114,7 @@ pub fn register_default(registry: &mut StageRegistry) {
     registry.register("schemas", Arc::new(schemas::SchemasStage::new()));
     registry.register(
         "research-objects",
-        Arc::new(research_objects::ResearchObjectsStage),
+        Arc::new(research_objects::ResearchObjectsStage::new()),
     );
     registry.register("parquet", Arc::new(parquet::ParquetStage::new()));
     registry.register("okf", Arc::new(okf::OkfStage::new()));

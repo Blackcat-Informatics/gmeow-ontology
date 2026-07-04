@@ -1,0 +1,173 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative structural assertions for the language slice — the slice-resident
+# test-DSL twin of the asserted-TBox MUST / MUST-NOT invariants. Each assertion
+# runs as a SPARQL ASK over the language module graph (gmeow:scopeModule) under
+# the native Rust slicetest harness (crates/slicetest).
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/lang/tests/> .
+
+# --- 1. The form-AST strata subclass lang:Form (MUST) ----------------------- #
+ex:saFormStrata a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX lang: <https://blackcatinformatics.ca/lang/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    lang:SurfaceForm      rdfs:subClassOf lang:Form .
+    lang:Lexeme           rdfs:subClassOf lang:Form .
+    lang:WordForm         rdfs:subClassOf lang:Form .
+    lang:ComposedForm     rdfs:subClassOf lang:Form .
+    lang:Morpheme         rdfs:subClassOf lang:Form .
+    lang:Morph            rdfs:subClassOf lang:Form .
+    lang:OrthographicWord rdfs:subClassOf lang:Form .
+    lang:CovertForm       rdfs:subClassOf lang:Form .
+    lang:UnanalyzedProse  rdfs:subClassOf lang:SurfaceForm .
+    lang:SyntacticWord    rdfs:subClassOf lang:WordForm .
+}""" ;
+    gmeow:saRationale "Every structured stratum of the form AST MUST subclass lang:Form, so the mandatory-sign-system gate (lang:FormSituatedShape) reaches all of them, and the word-level and prose strata sit under their proper parents." .
+
+# --- 2. Every failure class subclasses lang:LangConformanceFailure (MUST) ---- #
+ex:saFailureHierarchy a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX lang: <https://blackcatinformatics.ca/lang/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    lang:UnsituatedForm      rdfs:subClassOf lang:LangConformanceFailure .
+    lang:MisdeclaredAnalysis rdfs:subClassOf lang:LangConformanceFailure .
+    lang:DuplicateSlotIndex  rdfs:subClassOf lang:LangConformanceFailure .
+    lang:NonContiguousSlots  rdfs:subClassOf lang:LangConformanceFailure .
+    lang:DanglingDependency  rdfs:subClassOf lang:LangConformanceFailure .
+    lang:UntypedMorphology   rdfs:subClassOf lang:LangConformanceFailure .
+    lang:UnhashableSurface   rdfs:subClassOf lang:LangConformanceFailure .
+    lang:UnanchoredOffset    rdfs:subClassOf lang:LangConformanceFailure .
+    lang:StringOnlyForm      rdfs:subClassOf lang:LangConformanceFailure .
+    lang:UngroundedGrapheme  rdfs:subClassOf lang:LangConformanceFailure .
+}""" ;
+    gmeow:saRationale "Each of the ten hard-rule failures MUST be a subclass of lang:LangConformanceFailure, so a violation is a typed, queryable object." .
+
+# --- 3. The sign-system kinds and modalities exist as individuals (MUST) ----- #
+ex:saKindIndividuals a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX lang: <https://blackcatinformatics.ca/lang/>
+ASK {
+    lang:naturalLanguageKind a lang:SignSystemKind .
+    lang:formalLanguageKind  a lang:SignSystemKind .
+    lang:notationalKind      a lang:SignSystemKind .
+    lang:gesturalKind        a lang:SignSystemKind .
+    lang:tactileKind         a lang:SignSystemKind .
+    lang:writtenModality     a lang:Modality .
+    lang:signedModality      a lang:Modality .
+    lang:tactileModality     a lang:Modality .
+}""" ;
+    gmeow:saRationale "Sign systems are distinguished by kind and modality individuals rather than by a subclass ladder; the natural, formal, notational, gestural, and tactile kinds and the written/signed/tactile modalities MUST exist so signed languages and Braille are first-class." .
+
+# --- 4. The analysis levels are ordered by lang:levelRank (MUST) ------------- #
+ex:saAnalysisLevelOrder a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX lang: <https://blackcatinformatics.ca/lang/>
+ASK {
+    lang:rawLevel          lang:levelRank 0 .
+    lang:segmentedLevel    lang:levelRank 1 .
+    lang:tokenizedLevel    lang:levelRank 2 .
+    lang:morphAnalyzedLevel lang:levelRank 3 .
+    lang:parsedLevel       lang:levelRank 4 .
+}""" ;
+    gmeow:saRationale "The graded analysis lattice MUST be data-driven: each lang:AnalysisLevel carries an integer lang:levelRank from raw (0) to parsed (4), so the ordering is queryable without hard-coding names." .
+
+# --- 5. No lang: property asserts an EL-forbidden OWL characteristic (MUST-NOT) - #
+ex:saNoForbiddenCharacteristics a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    ?p a ?characteristic .
+    FILTER (?characteristic IN (
+        owl:SymmetricProperty, owl:AsymmetricProperty, owl:IrreflexiveProperty,
+        owl:FunctionalProperty, owl:InverseFunctionalProperty
+    ))
+    FILTER (STRSTARTS(STR(?p), "https://blackcatinformatics.ca/lang/"))
+}""" ;
+    gmeow:saRationale "No lang: property MUST carry a symmetric, asymmetric, irreflexive, functional, or inverse-functional OWL characteristic — the profile is kept EL-clean; functionality (every form names exactly one sign system) is enforced in SHACL, and the inverse pairing of lang:spansWords / lang:tokenOf is documented in prose." .
+
+# --- 6. The Frege triangle's three corners are pairwise disjoint (MUST) ------ #
+ex:saFregeDisjoint a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX lang: <https://blackcatinformatics.ca/lang/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+ASK {
+    ?d a owl:AllDisjointClasses ;
+       owl:members/rdf:rest*/rdf:first lang:Form ;
+       owl:members/rdf:rest*/rdf:first lang:Sense ;
+       owl:members/rdf:rest*/rdf:first lang:Denotation .
+}""" ;
+    gmeow:saRationale "Form, sense, and denotation-record kinds MUST be pairwise disjoint (the Frege signature rule): string identity never implies form identity, form identity never implies sense identity, sense identity never implies co-reference. Asserted as an owl:AllDisjointClasses over lang:Form, lang:Sense, lang:Denotation — DisjointClasses is OWL 2 EL-clean." .
+
+# --- 7. An interpretation act is a gmeow:Activity, never an Observation (MUST) - #
+ex:saActIsActivityNotObservation a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX lang: <https://blackcatinformatics.ca/lang/>
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    lang:InterpretationAct rdfs:subClassOf gmeow:Activity .
+    lang:InterpretationAct owl:disjointWith gmeow:Observation .
+}""" ;
+    gmeow:saRationale "A lang:InterpretationAct is the process, never the claim: it MUST be a gmeow:Activity and MUST be owl:disjointWith gmeow:Observation, so the observation spine's process/result/claim separation holds and an act is never typed as the observation that a reading is correct." .
+
+# --- 8. Each meaning failure class subclasses lang:LangConformanceFailure ---- #
+ex:saMeaningFailureHierarchy a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX lang: <https://blackcatinformatics.ca/lang/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    lang:FregeConflation           rdfs:subClassOf lang:LangConformanceFailure .
+    lang:UnderspecifiedDenotation  rdfs:subClassOf lang:LangConformanceFailure .
+    lang:SurfaceLevelDenotation    rdfs:subClassOf lang:LangConformanceFailure .
+    lang:UnroutedAmbiguousDenotation rdfs:subClassOf lang:LangConformanceFailure .
+    lang:DenotationKindMismatch    rdfs:subClassOf lang:LangConformanceFailure .
+    lang:ActObservationConflation  rdfs:subClassOf lang:LangConformanceFailure .
+    lang:UngroundedReadingClaim    rdfs:subClassOf lang:LangConformanceFailure .
+    lang:SilentDisambiguation      rdfs:subClassOf lang:LangConformanceFailure .
+    lang:UnanchoredIndexical       rdfs:subClassOf lang:LangConformanceFailure .
+    lang:ConfidenceAsProbability   rdfs:subClassOf lang:LangConformanceFailure .
+    lang:UndeclaredLoweringStage   rdfs:subClassOf lang:LangConformanceFailure .
+}""" ;
+    gmeow:saRationale "Each of the eleven meaning-rule failures MUST be a subclass of lang:LangConformanceFailure, so a meaning-layer violation is a typed, queryable object like every form-layer one." .
+
+# --- 9. The denotation-kind vocabulary is closed and typed (MUST) ------------ #
+ex:saDenotationKindClosed a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX lang: <https://blackcatinformatics.ca/lang/>
+ASK {
+    lang:denotesEntity        a lang:DenotationKind .
+    lang:denotesClass         a lang:DenotationKind .
+    lang:denotesLogicFormula  a lang:DenotationKind .
+    lang:denotesLogicTerm     a lang:DenotationKind .
+    lang:denotesLogicType     a lang:DenotationKind .
+    lang:denotesByDescription a lang:DenotationKind .
+    lang:denotesQuery         a lang:DenotationKind .
+}""" ;
+    gmeow:saRationale "The denotation-kind vocabulary MUST be a closed set of named lang:DenotationKind individuals — extended by design, not ad hoc — so a denotation's kind is always one of the seven the kind-match gate reasons over." .
+
+# --- 10. No logic: subject carries a lang: predicate (MUST-NOT, Principle 19) - #
+ex:saOneWayBridge a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """ASK {
+    ?s ?p ?o .
+    FILTER (STRSTARTS(STR(?s), "https://blackcatinformatics.ca/logic/"))
+    FILTER (STRSTARTS(STR(?p), "https://blackcatinformatics.ca/lang/"))
+}""" ;
+    gmeow:saRationale "The bridge runs lang: -> logic: and never reverses (Principle 19, acyclic grounding order): no logic:-namespaced subject MUST carry a lang:-namespaced predicate. lang: IRIs reach logic: only as the object of lang:denotationTarget." .

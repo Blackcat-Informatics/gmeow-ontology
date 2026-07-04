@@ -1,15 +1,16 @@
 # Retention: `tests/test_agentic.py`
 
-**Category:** Domain invariant → slicetest cells
+**Category:** Python tool algorithm
 
 ## What it tests
 
-The agentic extension (#390): tool-call provenance, gated.
+The agentic extension: tool-call provenance, gated.
 
-## Why it cannot move to Rust today
+Retained dynamic tests:
 
-Structural / competency / cross-slice invariants over the module (or merged) graph — ontology *shape*, not Python logic.
+- `test_memory_records_and_reads_tool_calls` — Retained dynamic test.
+- `test_memory_applies_the_verbatim_or_digest_doctrine` — Retained dynamic test.
 
-## What is needed to move it to Rust
+## Why it cannot be deleted or moved to Rust today
 
-Author the assertions as slicetest cells in the **owning** slice (`structural.ttl` MUST/MUST-NOT, `competency.ttl` ASK/SELECT) per `docs/SLICE_QA.md`; cross-slice subjects go in the slice that *defines* the term. Confirm `make slicetest`, then delete this file. No new Rust — the harness exists.
+All runtime/Memory/MCP integration tests that are not expressible as module-scoped SPARQL ASK cells or example-file competency questions.

@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Matrix executable-path gate (#671).
+//! Matrix executable-path gate.
 //!
 //! Verifies that every `(from, to)` row in `generated/transcode-matrix.json`
 //! has a working code path in [`transcode()`].  The matrix is generated from

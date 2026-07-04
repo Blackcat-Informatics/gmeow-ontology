@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 //! PyO3-free projection of the native `gmeow-slice` `OwnershipReport` into
-//! canonical diagnostics `Finding`s (#809).
+//! canonical diagnostics `Finding`s.
 //!
 //! `gmeow-slice` runs the ownership + dependency analysis and produces a fully
 //! structured [`OwnershipReport`] (`OwnershipDiagnostic` kinds, the offending
@@ -48,7 +48,7 @@ pub fn ownership_findings(report: &OwnershipReport) -> Vec<Finding> {
             crate::codes::SLICE_OWNERSHIP_UNOWNED,
             format!(
                 "{term} rdfs:isDefinedBy {declared} — no slice physically \
-                 defines this term (#329)",
+                 defines this term",
                 term = owner.term.as_str(),
                 declared = owner.declared_owner,
             ),
@@ -77,7 +77,7 @@ fn diagnostic_finding(diag: &OwnershipDiagnostic) -> Option<Finding> {
             crate::codes::SLICE_OWNERSHIP_CONFLICT,
             format!(
                 "{term} rdfs:isDefinedBy is claimed by multiple slices {claimants:?} \
-                 — a term must have exactly one owning slice (#329)",
+                 — a term must have exactly one owning slice",
                 term = term.as_str(),
             ),
             Some(term.as_str().to_string()),
@@ -91,7 +91,7 @@ fn diagnostic_finding(diag: &OwnershipDiagnostic) -> Option<Finding> {
             crate::codes::SLICE_OWNERSHIP_MISMATCH,
             format!(
                 "{term} rdfs:isDefinedBy {declared} — must equal the owning slice \
-                 IRI {physical} (#329)",
+                 IRI {physical}",
                 term = term.as_str(),
             ),
             Some(term.as_str().to_string()),

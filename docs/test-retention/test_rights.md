@@ -1,15 +1,21 @@
 # Retention: `tests/test_rights.py`
 
-**Category:** Projection / alignment → Correspondence Calculus
+**Category:** Merged-graph guard
 
 ## What it tests
 
-Tests for the rights / IP / trademark / licensing facility (#21).
+Tests for the rights / IP / trademark / licensing facility.
 
-## Why it cannot move to Rust today
+Retained dynamic tests:
 
-Exercises the FnO/EDOAL/SPARQL projection or up-projection (alignment) layer — live Python engine output.
+- `test_expanded_action_vocabulary_is_seeded` — The ODRL Common-Vocabulary actions are seeded (maximal, not a thin stub).
+- `test_odrl_projection_emits_a_policy_with_rules` — Retained dynamic test.
+- `test_odrl_projection_emits_constraint_and_conflict_logic` — Retained dynamic test.
+- `test_spdx_projection_emits_listed_license` — Retained dynamic test.
+- `test_cc_projection_emits_license_and_attribution` — Retained dynamic test.
+- `test_dcterms_projection_emits_flat_rights` — Retained dynamic test.
+- `test_schema_projection_emits_rights_cluster` — Retained dynamic test.
 
-## What is needed to move it to Rust
+## Why it cannot be deleted or moved to Rust today
 
-Subsumed by the Correspondence Calculus (`docs/APPLIED_CATEGORY_THEORY/take1.md`): projections become lowerings of one `logic:Correspondence` get/put leg pair; up-projection is the derived `put` leg. When the lowering engine + `conformance/correspondence` round-trip/overclaim gates regenerate these outputs byte/graph-iso, the file is deleted under equivalence-before-deletion.
+The numeric action-count check (not expressible as a module-scoped ASK) and the ODRL / CC REL / schema.org projection round-trips over the coverage fixture.

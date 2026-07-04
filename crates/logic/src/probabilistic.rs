@@ -1,9 +1,9 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Probabilistic / weighted inference under `logic:ProbabilisticProfile` (#506, v6).
+//! Probabilistic / weighted inference under `logic:ProbabilisticProfile` (v6).
 //!
-//! This is the final rung of the Logic EPIC (#497): exact marginal inference over
+//! This is the final rung of the Logic EPIC: exact marginal inference over
 //! probabilistic facts, ProbLog-style, by **weighted model counting**.
 //!
 //! # Semantics
@@ -61,7 +61,7 @@ type Fact = (String, String, String);
 
 /// Status of a probabilistic resolution.
 ///
-/// Engine-internal (#768): the *public* answer status is the typed
+/// Engine-internal: the *public* answer status is the typed
 /// [`crate::result::ReasoningResult`] on [`ProbAnswer`], folded via [`prob_result`];
 /// the byte-pinned conformance string projects back via [`prob_status_string`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -74,7 +74,7 @@ pub(crate) enum ProbStatus {
 
 impl ProbStatus {
     /// Canonical lowercase wire string (retained only for the [`prob_status_string`]
-    /// round-trip cross-check; the public status projects from the typed result, #768).
+    /// round-trip cross-check; the public status projects from the typed result).
     #[cfg(test)]
     pub(crate) fn as_str(self) -> &'static str {
         match self {
@@ -85,7 +85,7 @@ impl ProbStatus {
 }
 
 /// Fold the engine-internal [`ProbStatus`] into the typed shared
-/// [`crate::result::ReasoningResult`] (#768) — the canonical answer status. A
+/// [`crate::result::ReasoningResult`] — the canonical answer status. A
 /// no-declared-model refusal is `unsupported` + `not-evaluated` (NOT the Belnap
 /// `neither`); a computed run is `completed` + `complete-for-fragment` with
 /// `information=undetermined` (the graded marginal carries no discretization
@@ -94,7 +94,7 @@ impl ProbStatus {
 /// `world` is propagated into [`ResultProvenance`] (lossless, fixes the prior
 /// empty-string drop). `payload` carries the marginal bindings for the `Ok` path
 /// or an empty [`ResultPayload::Marginals`] for the refusal path — never
-/// [`ResultPayload::Empty`], so the typed model is fully lossless (#768).
+/// [`ResultPayload::Empty`], so the typed model is fully lossless.
 /// `projection_class` mirrors `preservation` (same idiom as result.rs:821/:883).
 fn prob_result(
     status: ProbStatus,
@@ -163,7 +163,7 @@ pub struct ProbBinding {
 pub struct ProbAnswer {
     /// Bindings with non-zero marginal, canonically sorted.
     pub bindings: Vec<ProbBinding>,
-    /// The typed shared result status (#768) — the canonical answer status. The
+    /// The typed shared result status — the canonical answer status. The
     /// historical string projects from it via [`prob_status_string`].
     pub result: crate::result::ReasoningResult,
 }
@@ -869,7 +869,7 @@ mod tests {
 
     #[test]
     fn prob_status_string_round_trips() {
-        // The typed ReasoningResult losslessly carries the prob status (#768).
+        // The typed ReasoningResult losslessly carries the prob status.
         assert_eq!(
             prob_status_string(&prob_result(
                 ProbStatus::Ok,

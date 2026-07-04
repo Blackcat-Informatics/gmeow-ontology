@@ -12,7 +12,11 @@ use std::collections::HashSet;
 
 use purrdf::{serialize_dataset, RdfDatasetBuilder, RdfLiteral, SerializeGraph};
 
+use std::collections::BTreeMap;
+
+use super::super::graphutil::sha256_12;
 use super::super::ir::{Formula, LogicAxiom, LogicModality, LogicProgram, Term};
+use super::super::restriction;
 use super::{
     assert_no_overclaim, contract_drop_notes, generated_banner, is_modal_or_scoped, target_meta,
     OverclaimError, ProjectionResult, GMEOW_NS, LOGIC_NS, OWL_NS, RDFS_NS, RDF_NS, RDF_TYPE,
@@ -32,7 +36,7 @@ fn logic(local: &str) -> String {
 }
 
 /// Resolve a facet *value* to its emitted IRI. The open facet-value vocabulary
-/// (#767, Gap 3) admits values that are already full custom IRIs (not under the
+/// (Gap 3) admits values that are already full custom IRIs (not under the
 /// `logic:` namespace); these must be emitted verbatim, not re-prefixed (which
 /// would yield a corrupt `…/logic/https://…`). A bare local name is prefixed under
 /// the `logic:` namespace. This is symmetric with the front-end storage convention
@@ -136,6 +140,14 @@ fn is_el_safe_char(obj: &str) -> bool {
     obj.strip_prefix(LOGIC_NS) == Some("transitiveProperty")
 }
 
+/// Whether a lifted restriction constraint local name is expressible in OWL 2 EL.
+/// `someValuesFrom` and `hasValue` are EL-safe; the remaining families
+/// (`allValuesFrom`, cardinality, `oneOf`, …) are not and force the whole restriction
+/// to drop from the EL projection.
+fn is_el_safe_restriction_constraint(local: &str) -> bool {
+    matches!(local, "someValuesFrom" | "hasValue")
+}
+
 // --------------------------------------------------------------------------- //
 // Triple sink + deterministic Turtle serialization
 // --------------------------------------------------------------------------- //
@@ -175,7 +187,7 @@ impl TripleSink {
     }
 
     /// Serialize to Turtle with a GENERATED banner.  The triple set is frozen into
-    /// the `RdfDataset` IR and serialized through the native codec (#909), which
+    /// the `RdfDataset` IR and serialized through the native codec, which
     /// emits canonical, deterministic Turtle — so no manual pre-sort is needed (the
     /// goldens compare by isomorphism either way). All projected quads live in the
     /// default graph, so `SerializeGraph::DefaultGraph` is the faithful selector.
@@ -259,6 +271,206 @@ fn emit_holon_surface(g: &mut TripleSink) {
 }
 
 // --------------------------------------------------------------------------- //
+// Class-expression restrictions (owl:Restriction re-emission)
+// --------------------------------------------------------------------------- //
+
+/// A lifted restriction reconstructed from the flat `logic:` axiom set for OWL
+/// re-emission.  The `node` is the skolem IRI (`logic:restriction/<hash>`) that serves
+/// as the (non-blank) `owl:Restriction` node.
+#[derive(Default)]
+struct LiftedRestriction {
+    on_property: Option<String>,
+    /// `(constraint local name, filler/value, is_literal)`, in axiom order.
+    constraints: Vec<(String, String, bool)>,
+}
+
+/// Collect every lifted restriction from the program's flat axioms, keyed by skolem
+/// node IRI.  A node qualifies once it is typed `logic:Restriction` or carries
+/// `logic:onProperty`; its constraints are the [`restriction::CONSTRAINT_LOCALS`]
+/// predicates on it.  The `BTreeMap` gives a deterministic emission order.
+fn collect_lifted_restrictions(program: &LogicProgram) -> BTreeMap<String, LiftedRestriction> {
+    let restriction_ty = logic(restriction::RESTRICTION_CLASS_LOCAL);
+    let on_property = logic(restriction::ON_PROPERTY_LOCAL);
+    let mut out: BTreeMap<String, LiftedRestriction> = BTreeMap::new();
+    for axiom in &program.axioms {
+        let pred = axiom.predicate.as_str();
+        if pred == RDF_TYPE && axiom.obj == restriction_ty {
+            out.entry(axiom.subject.clone()).or_default();
+        } else if pred == on_property {
+            out.entry(axiom.subject.clone()).or_default().on_property = Some(axiom.obj.clone());
+        } else if let Some(local) = pred.strip_prefix(LOGIC_NS) {
+            if restriction::CONSTRAINT_LOCALS.contains(&local) {
+                out.entry(axiom.subject.clone())
+                    .or_default()
+                    .constraints
+                    .push((local.to_owned(), axiom.obj.clone(), axiom.obj_is_literal));
+            }
+        }
+    }
+    out
+}
+
+/// Emit the `owl:Restriction` graph for one lifted restriction (used by OWL 2 DL,
+/// which expresses every restriction family).  The skolem `node` IRI is the restriction
+/// node; the `C rdfs:subClassOf node` anchor is emitted by the main axiom loop from the
+/// `logic:subClassOf` axiom.  A restriction missing `onProperty` or constraints is
+/// structurally incomplete and is skipped (the lift never produces one).
+fn emit_restriction(g: &mut TripleSink, node: &str, r: &LiftedRestriction) {
+    let Some(on_property) = &r.on_property else {
+        return;
+    };
+    if r.constraints.is_empty() {
+        return;
+    }
+    g.add_iri(node, RDF_TYPE, &owl("Restriction"));
+    g.add_iri(node, &owl(restriction::ON_PROPERTY_LOCAL), on_property);
+    for (local, obj, is_lit) in &r.constraints {
+        if restriction::CARDINALITY_LOCALS.contains(&local.as_str()) {
+            // A cardinality count is an xsd:nonNegativeInteger in OWL 2 (the datatype is
+            // lost on the adapter read, which carries lexical form only, but is fixed by
+            // the predicate, so restore it faithfully here).
+            g.add_lit(
+                node,
+                &owl(local),
+                RdfLiteral::typed(obj, format!("{XSD_NS}nonNegativeInteger")),
+            );
+        } else {
+            g.add_obj(node, &owl(local), obj, *is_lit);
+        }
+    }
+}
+
+/// Collect every lifted anonymous enumeration (`logic:enumeration/<hash>` typed
+/// `logic:Enumeration`, carrying `logic:oneOf` members), keyed by skolem node IRI.  The
+/// `(member, is_literal)` pairs arrive object-sorted because `program.axioms` is globally
+/// ordered by `LogicAxiom::sort_key` (see `LogicProgram::new` in `ir.rs`), but this
+/// collector also sorts+dedups each member list locally so the deterministic `owl:oneOf`
+/// list is guaranteed here rather than relying on that non-local ordering.
+fn collect_lifted_enumerations(program: &LogicProgram) -> BTreeMap<String, Vec<(String, bool)>> {
+    let enumeration_ty = logic(restriction::ENUMERATION_CLASS_LOCAL);
+    let one_of = logic(restriction::ONE_OF_LOCAL);
+    let mut out: BTreeMap<String, Vec<(String, bool)>> = BTreeMap::new();
+    for axiom in &program.axioms {
+        let pred = axiom.predicate.as_str();
+        if pred == RDF_TYPE && axiom.obj == enumeration_ty {
+            out.entry(axiom.subject.clone()).or_default();
+        } else if pred == one_of {
+            out.entry(axiom.subject.clone())
+                .or_default()
+                .push((axiom.obj.clone(), axiom.obj_is_literal));
+        }
+    }
+    // Belt-and-braces determinism: program.axioms is already globally ordered by
+    // LogicAxiom::sort_key (see LogicProgram::new in ir.rs), so members arrive
+    // object-sorted; sort+dedup here makes the guarantee local rather than relying
+    // on that non-local ordering.
+    for members in out.values_mut() {
+        members.sort();
+        members.dedup();
+    }
+    out
+}
+
+/// Emit the `owl:oneOf` enumeration graph for one lifted enumeration (OWL 2 DL): the
+/// skolem node typed `owl:Class` with an `owl:oneOf` `rdf:List` of the members (minted
+/// as deterministic list-cell IRIs, never blank nodes).  Literal members are not valid
+/// OWL individuals, so an enumeration is emitted only when all members are IRIs.
+fn emit_enumeration(g: &mut TripleSink, node: &str, members: &[(String, bool)]) {
+    if members.is_empty() || members.iter().any(|(_, is_lit)| *is_lit) {
+        return;
+    }
+    let iris: Vec<String> = members.iter().map(|(m, _)| m.clone()).collect();
+    let list_head = emit_class_list(g, node, &iris);
+    g.add_iri(node, RDF_TYPE, &owl("Class"));
+    g.add_iri(node, &owl(restriction::ONE_OF_LOCAL), &list_head);
+}
+
+// --------------------------------------------------------------------------- //
+// Datatype restrictions (owl:withRestrictions dataranges)
+// --------------------------------------------------------------------------- //
+
+/// A lifted datatype restriction (datarange) reconstructed from the flat `logic:` axiom
+/// set for OWL re-emission.  The `node` is the skolem IRI (`logic:datarange/<hash>`) that
+/// serves as the (non-blank) `rdfs:Datatype` node.
+#[derive(Default)]
+struct LiftedDatarange {
+    on_datatype: Option<String>,
+    /// `(full xsd: facet IRI, facet value)`, sorted + deduped for a deterministic list.
+    facets: Vec<(String, String)>,
+}
+
+/// Collect every lifted datarange from the program's flat axioms, keyed by skolem node
+/// IRI.  A node qualifies once it is typed `logic:Datarange` or carries `logic:onDatatype`;
+/// its facets are the `xsd:`-namespaced [`restriction::FACET_LOCALS`] predicates on it.
+/// Each facet list is sorted + deduped locally so the emitted `owl:withRestrictions` list
+/// is deterministic (the enumeration collector's discipline), and the `BTreeMap` gives a
+/// deterministic emission order.
+fn collect_lifted_dataranges(program: &LogicProgram) -> BTreeMap<String, LiftedDatarange> {
+    let datarange_ty = logic(restriction::DATARANGE_CLASS_LOCAL);
+    let on_datatype = logic(restriction::ON_DATATYPE_LOCAL);
+    let mut out: BTreeMap<String, LiftedDatarange> = BTreeMap::new();
+    for axiom in &program.axioms {
+        let pred = axiom.predicate.as_str();
+        if pred == RDF_TYPE && axiom.obj == datarange_ty {
+            out.entry(axiom.subject.clone()).or_default();
+        } else if pred == on_datatype {
+            out.entry(axiom.subject.clone()).or_default().on_datatype = Some(axiom.obj.clone());
+        } else if let Some(local) = pred.strip_prefix(XSD_NS) {
+            if restriction::FACET_LOCALS.contains(&local) {
+                out.entry(axiom.subject.clone())
+                    .or_default()
+                    .facets
+                    .push((pred.to_owned(), axiom.obj.clone()));
+            }
+        }
+    }
+    for dr in out.values_mut() {
+        dr.facets.sort();
+        dr.facets.dedup();
+    }
+    out
+}
+
+/// Emit the `owl:withRestrictions` `rdf:List` for one datarange: each list element is a
+/// facet node carrying its single `<facetIRI> <value>` triple (never a bare member).  The
+/// facet-cell and list-cell IRIs are minted deterministically off `base` (never blank
+/// nodes), adapting [`emit_class_list`].  Returns the list head IRI.
+fn emit_facet_list(g: &mut TripleSink, base: &str, facets: &[(String, String)]) -> String {
+    let rdf_first = format!("{RDF_NS}first");
+    let rdf_rest = format!("{RDF_NS}rest");
+    let mut rest = format!("{RDF_NS}nil");
+    for (i, (facet_iri, value)) in facets.iter().enumerate().rev() {
+        // The facet node carries its one constraining-facet triple.
+        let facet_node = format!("{base}/facet/{i:04}");
+        g.add_lit(&facet_node, facet_iri, RdfLiteral::simple(value));
+        // The list cell points at that facet node.
+        let cell = format!("{base}/cell/{i:04}");
+        g.add_iri(&cell, &rdf_first, &facet_node);
+        g.add_iri(&cell, &rdf_rest, &rest);
+        rest = cell;
+    }
+    rest
+}
+
+/// Emit the `rdfs:Datatype` graph for one lifted datarange (used by OWL 2 DL, which
+/// expresses datatype facets): the skolem `node` typed `rdfs:Datatype` with its
+/// `owl:onDatatype` base and an `owl:withRestrictions` list of facet cells.  A datarange
+/// missing `onDatatype` or facets is structurally incomplete and is skipped (the lift
+/// never produces one).
+fn emit_datarange(g: &mut TripleSink, node: &str, dr: &LiftedDatarange) {
+    let Some(on_datatype) = &dr.on_datatype else {
+        return;
+    };
+    if dr.facets.is_empty() {
+        return;
+    }
+    g.add_iri(node, RDF_TYPE, &rdfs("Datatype"));
+    g.add_iri(node, &owl(restriction::ON_DATATYPE_LOCAL), on_datatype);
+    let list_head = emit_facet_list(g, node, &dr.facets);
+    g.add_iri(node, &owl(restriction::WITH_RESTRICTIONS_LOCAL), &list_head);
+}
+
+// --------------------------------------------------------------------------- //
 // OWL 2 DL
 // --------------------------------------------------------------------------- //
 
@@ -282,9 +494,32 @@ pub fn project_owl_dl(program: &LogicProgram) -> Result<ProjectionResult, Overcl
         emit_holon_surface(&mut g);
     }
 
+    // Re-emit class-expression restrictions as owl:Restriction graphs and anonymous
+    // enumerations as owl:oneOf graphs (DL expresses both), and skip their flat
+    // internals in the axiom loop.
+    let restrictions = collect_lifted_restrictions(program);
+    for (node, r) in &restrictions {
+        emit_restriction(&mut g, node, r);
+    }
+    let enumerations = collect_lifted_enumerations(program);
+    for (node, members) in &enumerations {
+        emit_enumeration(&mut g, node, members);
+    }
+    let dataranges = collect_lifted_dataranges(program);
+    for (node, dr) in &dataranges {
+        emit_datarange(&mut g, node, dr);
+    }
+
     for axiom in &program.axioms {
         let pred = &axiom.predicate;
         let obj = &axiom.obj;
+        // Restriction / enumeration / datarange internals are emitted above.
+        if restrictions.contains_key(&axiom.subject)
+            || enumerations.contains_key(&axiom.subject)
+            || dataranges.contains_key(&axiom.subject)
+        {
+            continue;
+        }
         if pred == RDF_TYPE {
             if let Some(gufo_type) = gufo_for_sort(obj) {
                 g.add_iri(&axiom.subject, RDF_TYPE, &gufo_type);
@@ -390,9 +625,76 @@ pub fn project_owl_el(program: &LogicProgram) -> Result<ProjectionResult, Overcl
         emit_holon_surface(&mut g);
     }
 
+    // Re-emit only the EL-safe class-expression restrictions (someValuesFrom /
+    // hasValue).  A restriction with any non-EL constraint (allValuesFrom, cardinality,
+    // oneOf, …) drops WHOLE — its node and every `subClassOf` edge pointing at it — so
+    // the EL surface never carries a dangling reference.  EL is SoundUnder, so dropping
+    // needs no enum change, only an `actual_drops` note.
+    let restrictions = collect_lifted_restrictions(program);
+    let mut dropped_class_exprs: HashSet<String> = HashSet::new();
+    for (node, r) in &restrictions {
+        let well_formed = r.on_property.is_some() && !r.constraints.is_empty();
+        let el_safe = well_formed
+            && r.constraints
+                .iter()
+                .all(|(local, _, _)| is_el_safe_restriction_constraint(local));
+        if el_safe {
+            emit_restriction(&mut g, node, r);
+        } else {
+            dropped_class_exprs.insert(node.clone());
+            if well_formed {
+                let kinds = r
+                    .constraints
+                    .iter()
+                    .map(|(local, _, _)| local.as_str())
+                    .collect::<Vec<_>>()
+                    .join(", ");
+                actual_drops.push(format!(
+                    "owl:Restriction <{node}> ({kinds}) is not OWL 2 EL-safe; dropped"
+                ));
+            }
+        }
+    }
+    // Enumerations are nominals (owl:oneOf) — not OWL 2 EL. Every anonymous enumeration
+    // drops whole, along with the subClassOf/equivalentClass edges into it.
+    let enumerations = collect_lifted_enumerations(program);
+    for node in enumerations.keys() {
+        dropped_class_exprs.insert(node.clone());
+        actual_drops.push(format!(
+            "owl:oneOf enumeration <{node}> is not OWL 2 EL-safe (nominals); dropped"
+        ));
+    }
+    // Datatype facets are not OWL 2 EL either. Every datarange drops whole, along with the
+    // subClassOf/equivalentClass edges into it.
+    let dataranges = collect_lifted_dataranges(program);
+    for node in dataranges.keys() {
+        dropped_class_exprs.insert(node.clone());
+        actual_drops.push(format!(
+            "owl:withRestrictions datarange <{node}> is not OWL 2 EL-safe (datatype facets); \
+             dropped"
+        ));
+    }
+
     for axiom in &program.axioms {
         let pred = &axiom.predicate;
         let obj = &axiom.obj;
+        // Restriction / enumeration / datarange internals are emitted (or dropped) above.
+        if restrictions.contains_key(&axiom.subject)
+            || enumerations.contains_key(&axiom.subject)
+            || dataranges.contains_key(&axiom.subject)
+        {
+            continue;
+        }
+        // A subClassOf / equivalentClass edge into a dropped class expression must not
+        // dangle in EL.
+        if dropped_class_exprs.contains(obj)
+            && matches!(
+                pred.strip_prefix(LOGIC_NS),
+                Some("subClassOf" | "equivalentClass")
+            )
+        {
+            continue;
+        }
         if pred == RDF_TYPE {
             if let Some(gufo_type) = gufo_for_sort(obj) {
                 g.add_iri(&axiom.subject, RDF_TYPE, &gufo_type);
@@ -608,7 +910,7 @@ pub fn project_canonical_rdf12(program: &LogicProgram) -> Result<ProjectionResul
         }
     }
 
-    // Reasoning contracts (#767). LOSSLESS projection: every contract — whether
+    // Reasoning contracts. LOSSLESS projection: every contract — whether
     // it carries a preset or only direct facets — is emitted in full as DIRECT
     // facet properties on its subject node, so a re-parse through
     // `extract_contracts` reconstructs the byte-identical `ReasoningContract`
@@ -1100,16 +1402,4 @@ fn format_decimal(value: f64) -> String {
     } else {
         format!("{s}.0")
     }
-}
-
-/// First 12 hex chars of SHA-256 of `s` — the content-stable reifier key hash
-/// (`sha256(sort_key)[:12]`).
-fn sha256_12(s: &str) -> String {
-    use sha2::{Digest, Sha256};
-    let digest = Sha256::digest(s.as_bytes());
-    let mut out = String::with_capacity(12);
-    for b in digest.iter().take(6) {
-        out.push_str(&format!("{b:02x}"));
-    }
-    out
 }

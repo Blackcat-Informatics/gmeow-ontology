@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Integration coverage for elementary Transaction-Logic state transitions (#712).
+//! Integration coverage for elementary Transaction-Logic state transitions.
 //!
 //! The full transaction-path frontend is tracked separately. This test pins the
 //! Rust oracle surface that frontend will call: a base `WorldStore` state is

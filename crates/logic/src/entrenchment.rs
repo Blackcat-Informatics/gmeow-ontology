@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Epistemic-entrenchment ordering reader for deterministic AGM revision (#505).
+//! Epistemic-entrenchment ordering reader for deterministic AGM revision.
 //!
 //! Stratum-C revision must be **deterministic**: admitting a counterfactual
 //! antecedent `A` may force retracting conflicting base facts, and in a
@@ -325,7 +325,7 @@ impl Entrenchment {
 
 /// Transitively close a set of `(from, to)` edges into a `from → {reachable}` map.
 ///
-/// Lowered to dense `u32` node ids + `Vec<u64>` bitsets (#823): every endpoint is
+/// Lowered to dense `u32` node ids + `Vec<u64>` bitsets: every endpoint is
 /// interned, adjacency becomes a `Vec<BitSet>`, and transitive reachability is a
 /// DFS over set bits with bit-parallel [`crate::dense::BitSet::union_with`]. The
 /// boundary maps every node back to its IRI, so the returned

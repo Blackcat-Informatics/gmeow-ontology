@@ -253,7 +253,7 @@ impl<'a> ResolveState<'a> {
 
             // Detect an arithmetic/comparison builtin — reject immediately, the same
             // way cut is rejected: the declarative oracle has no arithmetic engine, so
-            // Scryer is the sole evaluator for builtin programs (#1009 G2a).
+            // Scryer is the sole evaluator for builtin programs (G2a).
             if rule.body.iter().any(|b| matches!(b, QBodyLit::Builtin(_))) {
                 return Err(
                     "arithmetic/comparison builtins are not supported by the declarative \

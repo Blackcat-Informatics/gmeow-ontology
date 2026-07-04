@@ -1,11 +1,19 @@
-"""Competency test for the doxastic belief-revision pattern (#560)."""
+"""Competency test for the doxastic belief-revision pattern.
+
+The ontology-constraint assertions from test_ontology_constraints_and_functionality
+have been migrated to declarative slicetest cells in
+slices/core/epistemics/tests/structural.ttl. The remaining
+functions exercise fixture-data instances from
+slices/core/epistemics/tests/fixtures/coverage/epistemics-belief-revision.ttl
+and stay in pytest as competency-style instance checks.
+"""
 
 from __future__ import annotations
 
 from pathlib import Path
 
 import pytest
-from purrdf.compat.rdflib import OWL, RDF, RDFS, Graph, Literal, Namespace
+from purrdf.compat.rdflib import RDF, Graph, Literal, Namespace
 from purrdf.compat.rdflib.namespace import XSD
 
 GMEOW = Namespace("https://blackcatinformatics.ca/gmeow/")
@@ -100,29 +108,3 @@ def test_qualitative_modality_via_linked_standpoint_claim(graph: Graph) -> None:
     assert (EX.revisedBelief, GMEOW.doxasticClaim, revised_claim) in graph
     assert (original_claim, GMEOW.claimModality, GMEOW.unequivocal) in graph
     assert (revised_claim, GMEOW.claimModality, GMEOW.probable) in graph
-
-
-def test_ontology_constraints_and_functionality() -> None:
-    """Verify OWL domain/range constraints and functional-property tagging."""
-    g = Graph().parse("slices/core/epistemics/module.ttl", format="turtle")
-
-    # Domain / range constraints.
-    assert (GMEOW.epistemicAgent, RDFS.domain, GMEOW.DoxasticState) in g
-    assert (GMEOW.epistemicAgent, RDFS.range, GMEOW.Agent) in g
-    assert (GMEOW.doxasticContent, RDFS.domain, GMEOW.DoxasticState) in g
-    assert (GMEOW.doxasticContent, RDFS.range, GMEOW.Proposition) in g
-    assert (GMEOW.doxasticClaim, RDFS.domain, GMEOW.DoxasticState) in g
-    assert (GMEOW.doxasticClaim, RDFS.range, GMEOW.StandpointClaim) in g
-    assert (GMEOW.credence, RDFS.domain, GMEOW.DoxasticState) in g
-    assert (GMEOW.credence, RDFS.range, XSD.decimal) in g
-    assert (GMEOW.tenureOfDoxasticState, RDFS.domain, GMEOW.DoxasticTenure) in g
-    assert (GMEOW.tenureOfDoxasticState, RDFS.range, GMEOW.DoxasticState) in g
-
-    # Functional properties.
-    assert (GMEOW.epistemicAgent, RDF.type, OWL.FunctionalProperty) in g
-    assert (GMEOW.doxasticContent, RDF.type, OWL.FunctionalProperty) in g
-    assert (GMEOW.doxasticClaim, RDF.type, OWL.FunctionalProperty) in g
-    assert (GMEOW.tenureOfDoxasticState, RDF.type, OWL.FunctionalProperty) in g
-
-    # Non-functional properties.
-    assert (GMEOW.credence, RDF.type, OWL.FunctionalProperty) not in g

@@ -1,15 +1,18 @@
 # Retention: `tests/test_evidence.py`
 
-**Category:** Domain invariant → slicetest cells
+**Category:** Python tool algorithm
 
 ## What it tests
 
-SHACL guards for the evidence / source-typing module (#224).
+SHACL guards for the evidence / source-typing module.
 
-## Why it cannot move to Rust today
+Retained dynamic tests:
 
-Structural / competency / cross-slice invariants over the module (or merged) graph — ontology *shape*, not Python logic.
+- `test_infoworld_citation_passes` — InfoWorld = independent secondary significant coverage → supports notability.
+- `test_orgbook_citation_passes` — OrgBook = official primary routine filing → factual verification only.
+- `test_private_contract_triggers_self_private_warning` — Private contract = self-originated private scan → Warning.
+- `test_orgbook_notability_mutation_triggers_violation` — Flip OrgBook supportsNotability to true → Violation (primary ≠ secondary).
 
-## What is needed to move it to Rust
+## Why it cannot be deleted or moved to Rust today
 
-Author the assertions as slicetest cells in the **owning** slice (`structural.ttl` MUST/MUST-NOT, `competency.ttl` ASK/SELECT) per `docs/SLICE_QA.md`; cross-slice subjects go in the slice that *defines* the term. Confirm `make slicetest`, then delete this file. No new Rust — the harness exists.
+Fixture-based mutation tests that cannot be expressed as module-scoped SPARQL ASK cells. The five inline-graph run_shacl() tests have been migrated to crates/validate/tests/conformance_evidence.rs.

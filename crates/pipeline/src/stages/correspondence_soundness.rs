@@ -186,6 +186,12 @@ fn merge_ontology(
 /// Load every SSSOM mapping row from `generated/mappings/*.sssom.tsv` (sorted by path,
 /// the same source + order the retired `load_sssom_mappings` read).
 fn load_sssom_mappings(root: &Path) -> Result<Vec<Mapping>, SliceError> {
+    // GENERATED-READ-OK: audit lane. `lint_correspondence_soundness` is NOT a pipeline
+    // produce-stage — its only callers are the dev-CLI feedback surfaces
+    // (`compile_diagnostics_report` → `py.rs`, the `scoreboards` audit, `py.rs` directly).
+    // Its job is to AUDIT the committed `generated/mappings/*.sssom.tsv`, so reading them
+    // off disk is correct-by-design, not the stale-disk-fold class (which is a produce
+    // stage folding stale bytes into the bundle). None of its output reaches gmeow.gts.
     let mappings_dir = root.join("generated").join("mappings");
     if !mappings_dir.is_dir() {
         return Err(SliceError::Io(std::io::Error::new(
@@ -564,6 +570,8 @@ pub fn lint_correspondence_soundness(
         }
     }
 
+    // GENERATED-READ-OK: audit lane (see load_sssom_mappings) — this lints the committed
+    // generated/projections EDOAL/FnO output; not a produce-stage read, never folds into gmeow.gts.
     let projections = root.join("generated").join("projections");
     let fno = fno_catalog(root, &projections)?;
     let edoal = edoal_datasets(&projections)?;

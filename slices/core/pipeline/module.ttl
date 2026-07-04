@@ -674,7 +674,8 @@ gmeow:stage-export-research-objects
     logic:precondition gmeow:stageInputsAvailable ;
     logic:capability gmeow:stageExecutorCapability ;
     gmeow:stageImpl "research-objects" ;
-    gmeow:producesFormat "ro-crate" .
+    gmeow:producesFormat "ro-crate" ;
+    gmeow:dataflowConsumes gmeow:stage-mappings .
 
 gmeow:stage-export-references
     a gmeow:PipelineStage ;

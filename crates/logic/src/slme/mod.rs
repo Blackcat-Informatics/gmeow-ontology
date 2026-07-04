@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Minimal, SOUND native SLME — Syntactic Locality Module Extraction (issue #695).
+//! Minimal, SOUND native SLME — Syntactic Locality Module Extraction.
 //!
 //! This is the Java/Docker-free replacement for the ROBOT `extract` shell-out. It
 //! computes a *module* of a source ontology around a seed signature Σ (the caller's

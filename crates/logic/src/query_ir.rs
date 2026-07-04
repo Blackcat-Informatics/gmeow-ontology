@@ -36,7 +36,7 @@ pub enum QTerm {
     Const(String),
     /// A logic variable name, e.g. `X`, `_Y`.
     Var(String),
-    /// An integer literal term (arithmetic operand), e.g. `0`, `1` (#1009 G2a).
+    /// An integer literal term (arithmetic operand), e.g. `0`, `1` (G2a).
     ///
     /// Distinct from `Const("\"0\"^^<…#integer>")`: a `Num` is a *bare* arithmetic
     /// operand that Scryer's native `is`/comparison evaluates, never a quoted atom.
@@ -47,7 +47,7 @@ pub enum QTerm {
 ///
 /// `pred(Subject, Object)` maps to the triple `(Subject, predIRI, Object)`. EDB
 /// (RDF) atoms are binary; IDB predicates may have any arity ≥ 1 (e.g. `get/3`
-/// for list indexing — #1009 G2a). `pred` is the bare IRI string (no angle brackets).
+/// for list indexing — G2a). `pred` is the bare IRI string (no angle brackets).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct QAtom {
     /// Bare IRI string for the predicate (no angle brackets).
@@ -57,7 +57,7 @@ pub struct QAtom {
 }
 
 /// A body literal in a rule: a predicate atom, the cut marker, or an arithmetic /
-/// comparison builtin (#1009 G2a, `logic:builtinArithmetic`).
+/// comparison builtin (G2a, `logic:builtinArithmetic`).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum QBodyLit {
     /// A normal predicate atom.
@@ -170,7 +170,7 @@ pub struct QGoal {
     pub atoms: Vec<QAtom>,
 }
 
-/// A Stratum-C counterfactual declaration parsed from `.logic` directives (#505).
+/// A Stratum-C counterfactual declaration parsed from `.logic` directives.
 ///
 /// A counterfactual query departs from a **base world** `W_base`, admits a
 /// hypothetical **antecedent** `A` (one or more ground atoms) via a deterministic
@@ -196,7 +196,7 @@ pub struct QCounterfactual {
     pub depth_budget: Option<u64>,
 }
 
-/// An independent probabilistic fact (#506), declared by the query-layer directive
+/// An independent probabilistic fact, declared by the query-layer directive
 /// `:- probability(pred(S, O), p).`
 ///
 /// The ground atom `pred(S, O)` is an independent Bernoulli variable that is true
@@ -215,7 +215,7 @@ pub struct QProbFact {
     pub prob: String,
 }
 
-/// One row of a dependency model's explicit joint table (#506), declared by
+/// One row of a dependency model's explicit joint table, declared by
 /// `:- joint(p, atom1, atom2, ...).`
 ///
 /// The listed atoms are exactly those TRUE in this joint outcome; every other
@@ -231,7 +231,7 @@ pub struct QJointOutcome {
     pub prob: String,
 }
 
-/// The declared probability model governing probabilistic inference (#506) — the
+/// The declared probability model governing probabilistic inference — the
 /// surface for `logic:ProbabilityModel`.
 ///
 /// Probabilistic inference requires one of these to be declared; with no model the
@@ -247,7 +247,7 @@ pub enum QProbModel {
     },
 }
 
-/// A confidence annotation (#506), declared by `:- confidence(pred(S, O), c).`
+/// A confidence annotation, declared by `:- confidence(pred(S, O), c).`
 ///
 /// Carried for completeness and to make the confidence≠probability guard concrete:
 /// a confidence-annotated atom is an asserted (deterministic) fact whose annotation
@@ -271,14 +271,14 @@ pub struct QProgram {
     pub rules: Vec<QRule>,
     /// The single conjunctive goal.
     pub goal: QGoal,
-    /// `Some` iff this is a Stratum-C counterfactual query (#505); `None` for a
+    /// `Some` iff this is a Stratum-C counterfactual query; `None` for a
     /// plain v4 backward goal resolved directly against the materialized world.
     pub counterfactual: Option<QCounterfactual>,
-    /// Independent probabilistic facts declared by `:- probability(...)` (#506).
+    /// Independent probabilistic facts declared by `:- probability(...)`.
     pub prob_facts: Vec<QProbFact>,
-    /// The declared probability model, if any (`:- probability_model(...)`) (#506).
+    /// The declared probability model, if any (`:- probability_model(...)`).
     pub prob_model: Option<QProbModel>,
-    /// Confidence annotations declared by `:- confidence(...)` (#506) — asserted
+    /// Confidence annotations declared by `:- confidence(...)` — asserted
     /// facts whose confidence is metadata, never a probability.
     pub confidences: Vec<QConfidence>,
 }
@@ -350,14 +350,14 @@ pub fn parse_query_program(src: &str) -> Result<QProgram, String> {
     let mut rules: Vec<QRule> = Vec::new();
     let mut goal: Option<QGoal> = None;
 
-    // ── Stratum-C counterfactual accumulators (#505) ─────────────────────────
+    // ── Stratum-C counterfactual accumulators ─────────────────────────
     // Populated by the `counterfactual(...)`, `assume(...)`, and `depth_budget(...)`
     // directives. `cf_worlds` is Some once a `counterfactual(...)` directive is seen.
     let mut cf_worlds: Option<(String, String)> = None;
     let mut cf_antecedent: Vec<QAtom> = Vec::new();
     let mut cf_depth_budget: Option<u64> = None;
 
-    // ── Probabilistic accumulators (#506) ────────────────────────────────────
+    // ── Probabilistic accumulators ────────────────────────────────────
     // `prob_model_kind` is the bare keyword from `:- probability_model(...)`;
     // joints accumulate from `:- joint(...)` rows; prob_facts/confidences from
     // `:- probability(...)` / `:- confidence(...)`.
@@ -515,7 +515,7 @@ pub fn parse_query_program(src: &str) -> Result<QProgram, String> {
         }
     };
 
-    // ── Assemble the optional probability model (#506) ───────────────────────
+    // ── Assemble the optional probability model ───────────────────────
     let prob_model = match prob_model_kind.as_deref() {
         Some("full_independence") => {
             // Joints are meaningless without a dependency model: a `joint(...)`
@@ -657,7 +657,7 @@ fn parse_prefix_directive(body: &str) -> Result<Option<(String, String)>, String
     Ok(Some((alias, iri)))
 }
 
-// ── Counterfactual directive parsers (#505) ──────────────────────────────────
+// ── Counterfactual directive parsers ──────────────────────────────────
 
 /// Parse a `counterfactual(<W_cf>, <W_base>)` directive body (the part after `:-`).
 ///
@@ -721,7 +721,7 @@ fn parse_depth_budget_directive(body: &str) -> Result<u64, String> {
         .map_err(|e| format!("depth_budget(...) must be a non-negative integer in {body:?}: {e}"))
 }
 
-// ── Probabilistic directive parsers (#506) ───────────────────────────────────
+// ── Probabilistic directive parsers ───────────────────────────────────
 
 /// Validate a probability/confidence decimal token: must parse as `f64` and lie
 /// in `[0, 1]`. Returns the trimmed token verbatim (the IR keeps the raw text).
@@ -1101,7 +1101,7 @@ fn split_comma_top(s: &str) -> Vec<&str> {
 ///
 /// The predicate may be a prefixed name (`ex:foo`) or a single-quoted IRI
 /// (`'https://...'`). Args are one or more terms (binary EDB RDF atoms carry two;
-/// n-ary IDB predicates like `get/3` carry more — #1009 G2a).
+/// n-ary IDB predicates like `get/3` carry more — G2a).
 fn parse_atom(s: &str, prefixes: &BTreeMap<String, String>) -> Result<QAtom, String> {
     let s = s.trim();
     // Find the opening paren.
@@ -1147,7 +1147,7 @@ fn parse_term(s: &str, prefixes: &BTreeMap<String, String>) -> Result<QTerm, Str
         return Ok(QTerm::Var(s.to_owned()));
     }
 
-    // Integer literal: a bare `i64` arithmetic operand (#1009 G2a). Checked before
+    // Integer literal: a bare `i64` arithmetic operand (G2a). Checked before
     // the prefixed-name branch so `0`/`1`/`-1` are numbers, not failed IRIs.
     if let Ok(n) = s.parse::<i64>() {
         return Ok(QTerm::Num(n));
@@ -1398,7 +1398,7 @@ ex:ancestorOf(X, Y) :- ex:parentOf(X, Z), ex:ancestorOf(Z, Y).\
     #[test]
     fn parse_ternary_atom_is_accepted() {
         // Arity is now arbitrary (≥1): n-ary IDB predicates like get/3 are valid
-        // (#1009 G2a). EDB RDF atoms remain binary naturally.
+        // (G2a). EDB RDF atoms remain binary naturally.
         let prog = parse_query_program(
             ":- prefix(ex, 'https://example.org/').\n\
              ex:p(ex:a, ex:b, ex:c).\n\
@@ -1409,7 +1409,7 @@ ex:ancestorOf(X, Y) :- ex:parentOf(X, Z), ex:ancestorOf(Z, Y).\
         assert_eq!(prog.goal.atoms[0].args.len(), 3);
     }
 
-    // ── Arithmetic / comparison builtin parsing (#1009 G2a) ───────────────────
+    // ── Arithmetic / comparison builtin parsing (G2a) ───────────────────
 
     #[test]
     fn parse_is_arith_builtin_roundtrip() {
@@ -1477,7 +1477,7 @@ ex:ancestorOf(X, Y) :- ex:parentOf(X, Z), ex:ancestorOf(Z, Y).\
 
     // ── Answer-set canonicalization ───────────────────────────────────────────
 
-    // ── Counterfactual directive parsing (#505) ───────────────────────────────
+    // ── Counterfactual directive parsing ───────────────────────────────
 
     #[test]
     fn plain_program_has_no_counterfactual() {

@@ -1,15 +1,22 @@
 # Retention: `tests/test_slices.py`
 
-**Category:** Static repo guard
+**Category:** Python tool algorithm
 
 ## What it tests
 
-Slice discovery + manifest loading (Principles 15-16; issue #287).
+Slice discovery + manifest loading.
 
-## Why it cannot move to Rust today
+Retained dynamic tests:
 
-A static assertion about the repository itself (Python AST / filesystem / workflow / manifest).
+- `TestDiscovery.test_repo_exemplar_loads` — Retained dynamic test.
+- `TestDiscovery.test_identity_is_manifest_only_not_path` — slices/<group>/ carries no semantics: same name, two groups, two IRIs.
+- `TestDiscovery.test_duplicate_iri_rejected` — Retained dynamic test.
+- `TestDiscovery.test_missing_tier_rejected` — Retained dynamic test.
+- `TestDiscovery.test_empty_root_is_empty` — Retained dynamic test.
+- `TestDependencyRule.test_extension_to_core_ok_extension_to_extension_rejected` — Retained dynamic test.
+- `TestDependencyRule.test_unknown_dependency_reported` — Retained dynamic test.
+- `TestOwnershipGate.test_repo_is_clean` — Retained dynamic test.
 
-## What is needed to move it to Rust
+## Why it cannot be deleted or moved to Rust today
 
-Reimplement as a Rust gate (Python-aware parse) or enforce structurally via crate-layering, then delete this file.
+Python-only algorithm or generated-artifact checks with no declarative slice-test equivalent.

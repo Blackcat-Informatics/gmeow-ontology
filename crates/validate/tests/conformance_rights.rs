@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Conformance twins migrated from tests/test_rights.py (#867)
+// Conformance twins migrated from tests/test_rights.py
 
 mod conformance_support;
 use conformance_support::*;
