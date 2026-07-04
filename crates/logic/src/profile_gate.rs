@@ -245,6 +245,7 @@ pub fn evolution_mode_local(evolution: &str) -> Option<&'static str> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::oracle::{backward_oracle, BackwardOracle};
     use crate::query_ir::parse_query_program;
     use crate::seam::WorldStoreForeign;
     use crate::store::WorldStore;
@@ -458,14 +459,15 @@ mod tests {
         check_cut_profile(&prog, PROCEDURAL_PROLOG_PROFILE)
             .expect("gate must pass under ProceduralPrologProfile");
 
-        let ans = crate::scryer_engine::run_scryer(
-            &foreign,
-            WORLD,
-            &prog,
-            &[], // no tabling — cut program is procedural
-            &crate::query_ir::Budget::default(),
-        )
-        .expect("run_scryer must succeed on a terminating cut program");
+        let ans = backward_oracle()
+            .solve(
+                &foreign,
+                WORLD,
+                &prog,
+                &[], // no tabling — cut program is procedural
+                &crate::query_ir::Budget::default(),
+            )
+            .expect("the backward oracle must succeed on a terminating cut program");
 
         // Cut commits to the first answer; store is still unchanged.
         assert_eq!(
