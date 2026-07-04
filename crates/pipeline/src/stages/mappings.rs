@@ -70,8 +70,15 @@ pub const LIST_FUNCTIONS_PATH: &str = "generated/projections/list-functions.fno.
 pub struct CompiledMappings {
     /// Every emitted artifact, by logical path.
     pub artifacts: BTreeMap<String, Vec<u8>>,
-    /// The per-correspondence loss ledger across all four dialects.
+    /// The per-correspondence loss ledger across all four dialects PLUS the live
+    /// `lang:TranslationUnit` corpus rows (one per unit + one per language roll-up).
     pub ledger: Vec<ProjectionResult>,
+    /// The live translation-corpus N-Triples graph (`graph/lang-translation-corpus`):
+    /// every `.po` catalog pair typed as a `lang:TranslationUnit` carrying a
+    /// `logic:Correspondence` with an honestly-computed preservation judgment. Carried
+    /// as a named graph by [`MappingsStage::run`], excluded from the reasoned EDB exactly
+    /// like the projection-ledger graph.
+    pub lang_translation_corpus: Vec<u8>,
 }
 
 /// Compile all five mapping families (SSSOM + FnO + EDOAL + SPARQL + standpoint
@@ -146,7 +153,16 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, PipelineError> 
     // many-to-one collapse row already rides in `aligned.ledger` (folded into the union
     // projection-report below), so writing the document is all that remains here.
     artifacts.insert(EMOTIONML_PATH.to_string(), aligned.emotionml.into_bytes());
-    let ledger = aligned.ledger;
+    let mut ledger = aligned.ledger;
+
+    // Live `lang:TranslationUnit` corpus (Principle 15 consumer wiring): type every
+    // multilingual `.po` catalog pair as a first-class crossing carrying a
+    // `logic:Correspondence` with an honestly-computed preservation judgment, and fold
+    // its per-unit + per-document rows into the loss ledger. The RDF graph is carried as
+    // a named graph by the stage `run` below (never a `generated/` file).
+    let lang_corpus = crate::stages::lang_translation::build_corpus(root)?;
+    ledger.extend(lang_corpus.ledger);
+    let lang_translation_corpus = lang_corpus.ntriples;
 
     // Standpoint projections — the seven fixed `standpoint-*.rq` queries (byte-identical
     // to the Python template-coded emitters; no DSL input).
@@ -195,7 +211,11 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, PipelineError> 
         canon_fanout_ttl(&emit_list_functions(&vocab))?,
     );
 
-    Ok(CompiledMappings { artifacts, ledger })
+    Ok(CompiledMappings {
+        artifacts,
+        ledger,
+        lang_translation_corpus,
+    })
 }
 
 /// Emit a Turtle RDF projection as EXACTLY the canonical fold (shared prefix
@@ -599,10 +619,22 @@ impl Stage for MappingsStage {
             "application/n-quads",
             crate::stages::carrier::GRAPH_ALIGNMENTS,
         )?;
+        // graph/lang-translation-corpus — the live `lang:TranslationUnit` corpus (every
+        // `.po` catalog pair typed as a crossing carrying a `logic:Correspondence`),
+        // carried as a named graph so the presenter reads it via `producer_graph`. Like
+        // the projection-ledger and alignments graphs it stays OUT of the reasoned EDB
+        // (`gts_compose` folds only the default graph, so this named graph never pollutes
+        // the composed object-level EDB).
+        let lang_translation_graph = crate::stages::carrier::parse_into_graph(
+            &compiled.lang_translation_corpus,
+            "application/n-triples",
+            crate::stages::carrier::GRAPH_LANG_TRANSLATION_CORPUS,
+        )?;
         let dataset = std::sync::Arc::new(purrdf::RdfDataset::union(&[
             rdf_dataset.as_ref(),
             ledger_graph.as_ref(),
             alignments_graph.as_ref(),
+            lang_translation_graph.as_ref(),
         ]));
         Ok(StageOutput {
             product: StageProduct::from_artifacts_over(self.id(), dataset, artifacts),
