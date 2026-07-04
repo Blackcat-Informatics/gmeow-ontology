@@ -1,0 +1,21 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:RingDistributivityShape: a math:Ring that declares its carrier,
+# both operations, and an axiom, but omits math:satisfiesDistributivity (sh:minCount 1) —
+# two operations with no law tying them together are two unrelated groups, not a ring. It
+# satisfies math:AlgebraicStructureShape (carrier + operation + an axiom), so validation
+# MUST emit shacl.MinCountConstraintComponent and no other finding (math:NonDistributiveRing).
+# Bound by tests/example-conformance.ttl (ex:ecRingMissingDistributivity).
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:nonDistributiveRing a math:Ring ;
+    math:underlyingSet ex:ringCarrier ;
+    math:structureOperation ex:ringAdd , ex:ringMul ;
+    math:satisfiesAxiom ex:ringAssoc .
+
+ex:ringCarrier a math:Set .
+ex:ringAdd a math:Operation .
+ex:ringMul a math:Operation .
+ex:ringAssoc a math:Axiom .
