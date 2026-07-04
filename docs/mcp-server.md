@@ -136,7 +136,7 @@ Resources: `gmeow://ontology/llms.txt`, `gmeow://ontology/llms-full.txt`, and
 
 ## Developer MCP
 
-From a checkout, `uv run --package gmeow-dev gmeow-dev mcp` exposes the
+From a checkout, `cargo run -p gmeow-dev-cli -- mcp` exposes the
 repo-maintenance server:
 
 | Tool | What it does |

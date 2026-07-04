@@ -1,25 +1,15 @@
 # Retention: `tests/test_observations.py`
 
-**Category:** Cross-slice TBox invariant → slicetest cells
+**Category:** Merged-graph guard
 
 ## What it tests
 
-Observation module — retained pytest. Only
-`test_kin_relationship_bridges_fire` remains: a cross-slice sub-property check
-(the KinRelationship bridges are asserted in the GENEALOGY module) over the
-merged graph. The four SOSA `*_mapped_to_*` SSSOM-alignment checks were removed
-in the correspondence-frontend migration: the generated-mapping projection is now enforced by the native Rust
-dialect lowerings and their byte-iso parity oracles, so the Python `load_mappings`
-surface was the redundant dual authority.
+Observation module — retained pytest.
 
-## Why it cannot move to Rust today
+Retained dynamic tests:
 
-Cross-slice sub-property invariant: the bridges live in the GENEALOGY module, so
-a module-scoped observations slicetest cell cannot see them — ontology *shape*,
-not Python logic.
+- `test_kin_relationship_bridges_fire` — The KinRelationship sub-property bridges expose kinship roles as observation roles.
 
-## What is needed to move it to Rust
+## Why it cannot be deleted or moved to Rust today
 
-Author the assertion as a slicetest cell once the genealogy slice gains a
-structural migration that covers the cross-module sub-property bridge; confirm
-`make slicetest`, then delete this file. No new Rust — the harness exists.
+Observation module — retained pytest.

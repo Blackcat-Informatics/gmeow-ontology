@@ -9,12 +9,14 @@ The burden of proof is on *keeping*. Every surviving pytest test (or coherent
 file of tests) has a dossier here that states:
 
 1. **What it tests** — the concrete surface under test.
-2. **Why it cannot be deleted or moved to Rust today** — the specific blocker.
-3. **What is needed to move it to Rust** — the migration that would let it be
-   deleted. When that migration lands, the test goes and its dossier is removed.
+2. **Retained dynamic tests** — the exact tests that remain and a one-line
+   reason each one is dynamic.
+3. **Why it cannot be deleted or moved to Rust today** — the specific blocker
+   (e.g. whole-merged-graph sweep, Python-only algorithm, filesystem/repo guard,
+   CLI surface, PyO3 seam, Docker oracle).
 
-A test with no dossier is a deletion candidate. A dossier whose "what's needed"
-has shipped is a deletion order.
+A test with no dossier is a deletion candidate. A dossier whose tests have all
+found a Rust or slicetest home is a deletion order.
 
 ## Retention categories
 

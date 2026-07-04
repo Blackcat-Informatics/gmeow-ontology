@@ -6,10 +6,11 @@
 
 The bundle is self-sufficient: transpile runs from the wheel, no repo (#bundle).
 
-## Why it cannot move to Rust today
+Retained dynamic tests:
 
-Drives the Python `gmeow`/`gmeow-dev` Typer CLI via `CliRunner`/subprocess — behavior that does not exist outside Python.
+- `test_transpile_runs_purely_from_the_bundle` — Wheel mode (every repo path blinded) transpiles non-trivially from the bundle.
+- `test_wheel_mode_matches_repo_mode_exactly` — The bundle is a faithful stand-in: blinded run == repo run, metric for metric.
 
-## What is needed to move it to Rust
+## Why it cannot be deleted or moved to Rust today
 
-Port the command surface to a Rust binary (`clap`) with `assert_cmd`/`trycmd` integration tests, then delete this file.
+The CLIs under test are Typer applications; their behavior is exercised through CliRunner and subprocess integration, which is inherently Python-only surface.

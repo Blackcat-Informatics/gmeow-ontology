@@ -526,8 +526,7 @@ impl J {
     /// The MCP `lookup_term` tool returns `json.dumps(result)` (no
     /// `ensure_ascii=False`), so its envelope is ASCII-escaped — unlike the
     /// OKF index, which is explicitly `ensure_ascii=False`. Only the MCP consumer
-    /// surface (`python`/`test`) calls it.
-    #[cfg(any(feature = "python", test))]
+    /// surface (`mcp`/`test`) calls it.
     fn compact_ascii(&self, out: &mut String) {
         self.compact_opt(out, true);
     }
@@ -1742,15 +1741,13 @@ pub(crate) fn consumer_llms_full(terms: &[Term], title: &str, version: &str) -> 
 // through the single `gmeow_docs::card` renderer, so the MCP card is the genuine
 // twin of the docs-site `card.md`.
 //
-// Gated to `python` (the only runtime consumer, via `crate::mcp`) and `test`
-// (the byte-format goldens) so a plain rlib build carries no dead code.
+// Consumed unconditionally by `crate::mcp` (the native MCP server, no longer
+// gated behind `python`) and by the byte-format goldens under `test`.
 
-#[cfg(any(feature = "python", test))]
 pub(crate) use consumer::{
     consumer_llms_txt, doc_card_md, doc_url_map, lookup_envelope, okf_index_envelope,
 };
 
-#[cfg(any(feature = "python", test))]
 mod consumer {
     use super::*;
 

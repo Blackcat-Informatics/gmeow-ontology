@@ -37,10 +37,6 @@ dependencies = [
     "gmeow-gts>=0.9.11,<0.10",
 ]
 
-[project.scripts]
-gmeow = "gmeow_tools.cli:app"
-gmeow-music = "gmeow_tools.ext.music.cli:app"
-
 [project.optional-dependencies]
 # The classic_cross_check oracle lane — the ONLY place gmeow uses upstream
 # rdflib/owlrl, as the independent reasoner/engine oracle. Installed via
@@ -71,9 +67,6 @@ dev = [
     "mlcroissant>=1.0",  # Croissant JSON-LD validation — un-skippable (no importorskip)
 ]
 
-[tool.uv.workspace]
-members = ["packages/gmeow-dev"]
-
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
@@ -81,13 +74,10 @@ build-backend = "hatchling.build"
 [tool.hatch.build.targets.wheel]
 packages = ["src/gmeow_tools"]
 
-[tool.hatch.build.targets.wheel.force-include]
-"generated/dist/gmeow.gts" = "generated/dist/gmeow.gts"
-
 [tool.ruff]
 line-length = 88
 target-version = "py313"
-src = ["src", "tests", "packages/gmeow-dev/src"]
+src = ["src", "tests"]
 # generated/ is owned by registered generators; never lint outputs.
 # validations/ holds standalone external validator-zoo lanes, deliberately
 # outside the repo's normal workflow (their own Makefile/pytest, never make
@@ -128,7 +118,7 @@ warn_unreachable = true
 warn_redundant_casts = true
 warn_unused_ignores = true
 disallow_any_generics = true
-files = ["src", "tests", "packages/gmeow-dev/src"]
+files = ["src", "tests"]
 # Resolve the gmeow_logic and gmeow_rdf stubs (the legacy-name shim packages
 # under crates/native/python/*/__init__.pyi) from the source tree, so
 # type-checking does not depend on the unified `gmeow_native` extension being

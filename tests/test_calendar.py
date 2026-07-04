@@ -94,11 +94,6 @@ def test_calendar_axes_are_independent() -> None:
 # --------------------------------------------------------------------------- #
 # Organizer/attendee reuse — roleOrganizer and roleAttendee already exist in
 # events.ttl as ParticipantRole values; no new terms needed.
-# Retained: cross-slice subjects defined in slices/core/event/module.ttl.
+# MIGRATED to slices/core/events/tests/structural.ttl
+# (ex:saOrganizerAndAttendeeRolesExist).
 # --------------------------------------------------------------------------- #
-
-
-def test_organizer_and_attendee_roles_exist() -> None:
-    g = _graph()
-    assert (GM.roleOrganizer, RDF.type, GM.ParticipantRole) in g
-    assert (GM.roleAttendee, RDF.type, GM.ParticipantRole) in g

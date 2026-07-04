@@ -1,15 +1,15 @@
 # Retention: `tests/test_tags.py`
 
-**Category:** Domain invariant → slicetest cells
+**Category:** Merged-graph guard
 
 ## What it tests
 
 Structural guards for the tags building block — RETAINED dynamic sweeps only.
 
-## Why it cannot move to Rust today
+Retained dynamic tests:
 
-Structural / competency / cross-slice invariants over the module (or merged) graph — ontology *shape*, not Python logic.
+- `test_no_bridge_among_has_tag_is_about_and_rdf_type` — The three axes must remain orthogonal — no subPropertyOf or equivalentProperty bridge among them.
 
-## What is needed to move it to Rust
+## Why it cannot be deleted or moved to Rust today
 
-Author the assertions as slicetest cells in the **owning** slice (`structural.ttl` MUST/MUST-NOT, `competency.ttl` ASK/SELECT) per `docs/SLICE_QA.md`; cross-slice subjects go in the slice that *defines* the term. Confirm `make slicetest`, then delete this file. No new Rust — the harness exists.
+Structural guards for the tags building block — RETAINED dynamic sweeps only.

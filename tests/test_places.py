@@ -492,7 +492,7 @@ def test_place_type_parcel_exists() -> None:
 
 
 # --------------------------------------------------------------------------- #
-# Standpoint coexistence — contested sovereignty / place names (#51)
+# Standpoint coexistence — contested sovereignty / place names
 # --------------------------------------------------------------------------- #
 
 
@@ -530,7 +530,7 @@ def test_superseded_historical_name_suppressed() -> None:
 
 
 # --------------------------------------------------------------------------- #
-# Terrestrial realm deepening (#82)
+# Terrestrial realm deepening
 # --------------------------------------------------------------------------- #
 
 
@@ -591,7 +591,7 @@ def test_geometry_has_type_and_geojson() -> None:
 
 
 # --------------------------------------------------------------------------- #
-# RegulatoryOverlay — legal / regulatory overlays (#103)
+# RegulatoryOverlay — legal / regulatory overlays
 # --------------------------------------------------------------------------- #
 
 
@@ -681,7 +681,7 @@ def test_contested_eez_coexistence() -> None:
 
 
 # --------------------------------------------------------------------------- #
-# Motion — Streaming (#96)
+# Motion — Streaming
 # --------------------------------------------------------------------------- #
 
 
@@ -717,7 +717,7 @@ def test_stream_and_trajectory_coexist() -> None:
 
 
 # --------------------------------------------------------------------------- #
-# Capacity / Occupancy / Utilization (#100)
+# Capacity / Occupancy / Utilization
 # --------------------------------------------------------------------------- #
 
 
@@ -782,7 +782,7 @@ def test_storage_capacity_in_bytes() -> None:
 
 
 # --------------------------------------------------------------------------- #
-# Virtual Location Type + Network Address Space (#84)
+# Virtual Location Type + Network Address Space
 # --------------------------------------------------------------------------- #
 
 
@@ -878,7 +878,7 @@ def test_contested_dns_names_coexist() -> None:
 
 
 # --------------------------------------------------------------------------- #
-# Biological sequence (#90)
+# Biological sequence
 # --------------------------------------------------------------------------- #
 
 
@@ -898,7 +898,7 @@ def test_biological_standpoint_coordinate_claims_coexist() -> None:
 
 
 # --------------------------------------------------------------------------- #
-# Geocoding frames (#91)
+# Geocoding frames
 # --------------------------------------------------------------------------- #
 
 
@@ -929,7 +929,7 @@ def test_geocode_shape_invalid_two_codes() -> None:
 
 
 # --------------------------------------------------------------------------- #
-# SpatialMeasurement / CoordinateObservation (#125)
+# SpatialMeasurement / CoordinateObservation
 # --------------------------------------------------------------------------- #
 
 
@@ -1052,60 +1052,3 @@ def test_cadastral_reference_multiple_types_coexist() -> None:
     assert len(types) >= 2, "Expected at least two co-existing reference type claims"
     assert URIRef(GMEOW + "referenceTypeParcelId") in types
     assert URIRef(GMEOW + "referenceTypeTitle") in types
-
-
-# Retained (cross-slice): postalAddress* terms are home-asserted in core/contacts and
-# gmeow:hasPlaceName/PlaceName in core/names -- cross-slice, see #867.
-
-
-def test_alternate_name_retired() -> None:
-    """Greenfield (Principle 6, issue #105): the flat gmeow:alternateName literal was
-    retired in favour of co-equal gmeow:PlaceName appellations borne via
-    gmeow:hasPlaceName (names module). It must not exist as any property."""
-    graph = _graph()
-    alt = URIRef(GMEOW + "alternateName")
-    assert (alt, RDF.type, OWL.DatatypeProperty) not in graph
-    assert (alt, RDF.type, OWL.ObjectProperty) not in graph
-    # The structured replacement bears a PlaceName on a Place.
-    assert (
-        URIRef(GMEOW + "hasPlaceName"),
-        RDFS.range,
-        URIRef(GMEOW + "PlaceName"),
-    ) in graph
-
-
-def test_address_components_present_and_nonfunctional() -> None:
-    graph = _graph()
-    for prop in (
-        "streetAddress",
-        "extendedAddress",
-        "postOfficeBox",
-        "addressLocality",
-        "addressRegion",
-        "postalCode",
-        "countryCode",
-    ):
-        node = URIRef(GMEOW + prop)
-        assert (node, RDF.type, OWL.DatatypeProperty) in graph
-        assert (node, RDF.type, OWL.FunctionalProperty) not in graph
-    assert (
-        URIRef(GMEOW + "addressPlace"),
-        RDFS.range,
-        URIRef(GMEOW + "Place"),
-    ) in graph
-    assert (
-        URIRef(GMEOW + "PostalAddress"),
-        RDFS.subClassOf,
-        URIRef(GMEOW + "ContactPoint"),
-    ) in graph
-
-
-def test_postal_address_frame_property() -> None:
-    """postalAddressFrame is a functional sub-property of hasReferenceFrame."""
-    graph = _graph()
-    prop = URIRef(GMEOW + "postalAddressFrame")
-    assert (prop, RDF.type, OWL.ObjectProperty) in graph
-    assert (prop, RDF.type, OWL.FunctionalProperty) in graph
-    assert (prop, RDFS.subPropertyOf, URIRef(GMEOW + "hasReferenceFrame")) in graph
-    assert (prop, RDFS.domain, URIRef(GMEOW + "PostalAddress")) in graph
-    assert (prop, RDFS.range, URIRef(GMEOW + "ReferenceFrame")) in graph

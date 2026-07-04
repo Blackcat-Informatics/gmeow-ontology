@@ -1,15 +1,16 @@
 # Retention: `tests/test_deception.py`
 
-**Category:** Domain invariant → slicetest cells
+**Category:** Merged-graph guard
 
 ## What it tests
 
-Deception -- SHACL / dynamic tests retained from issue #213.
+Deception -- SHACL / dynamic tests retained.
 
-## Why it cannot move to Rust today
+Retained dynamic tests:
 
-Structural / competency / cross-slice invariants over the module (or merged) graph — ontology *shape*, not Python logic.
+- `test_blame_deflection_example_uses_doxastic_standpoint_claims` — Every held/projected standpoint in the blame-deflection example is typed gmeow:DoxasticStandpointClaim.
+- `test_licensed_falsehood_not_a_lie` — Negative guard: a fiction claim under a NarrativeReferenceFrame must NOT be typed as a lie event — the licensed-falsehood safety property.
 
-## What is needed to move it to Rust
+## Why it cannot be deleted or moved to Rust today
 
-Author the assertions as slicetest cells in the **owning** slice (`structural.ttl` MUST/MUST-NOT, `competency.ttl` ASK/SELECT) per `docs/SLICE_QA.md`; cross-slice subjects go in the slice that *defines* the term. Confirm `make slicetest`, then delete this file. No new Rust — the harness exists.
+Deception -- SHACL / dynamic tests retained.

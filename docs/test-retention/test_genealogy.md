@@ -1,15 +1,19 @@
 # Retention: `tests/test_genealogy.py`
 
-**Category:** Domain invariant → slicetest cells
+**Category:** Merged-graph guard
 
 ## What it tests
 
 Standpoint + dynamic guards for the genealogy module.
 
-## Why it cannot move to Rust today
+Retained dynamic tests:
 
-Structural / competency / cross-slice invariants over the module (or merged) graph — ontology *shape*, not Python logic.
+- `test_former_event_subclasses_are_not_reintroduced` — The ~30 LifeEvent subclasses became gmeow:eventType value individuals in the events module; genealogy must not re-introduce them as classes.
+- `test_contested_parentage_coexists` — Two contradictory standpoint-indexed hasParent claims load, SHACL-pass, and are BOTH retained — neither is the ground truth.
+- `test_contested_birth_date_coexists` — Two standpoint-indexed eventTime claims on the same LifeEvent coexist.
+- `test_withdrawn_parentage_suppressed_not_deleted` — A refuted / withdrawn parentage claim is retained with displayable false.
+- `test_no_preferred_or_primary_genealogy_term` — Principle 9: no single slot to win — genealogy mints no preferred/primary selector for a contested parent, kinship, or event.
 
-## What is needed to move it to Rust
+## Why it cannot be deleted or moved to Rust today
 
-Author the assertions as slicetest cells in the **owning** slice (`structural.ttl` MUST/MUST-NOT, `competency.ttl` ASK/SELECT) per `docs/SLICE_QA.md`; cross-slice subjects go in the slice that *defines* the term. Confirm `make slicetest`, then delete this file. No new Rust — the harness exists.
+Asserted-TBox invariants (Family/KinRelationship/ParentChildRelationship grounding and KinRelationship bridges) were migrated to slices/extensions/genealogy/tests/structural.ttl . Only the dynamic guards that cannot be expressed as module-scoped ASK cells are retained here: - whole-ontology merged-graph sweeps (_graph()), - run_shacl() ExampleConformance + ABox fixture checks.

@@ -12,7 +12,16 @@ The centrepiece here is the anti-subclass / anti-subproperty REGRESSION GUARD: i
 pins the refactor permanently, so the frozen taxonomy can never grow back. See
 slices/core/events/module.ttl.
 
-MIGRATED to slices/core/events/tests/structural.ttl (#867):
+MIGRATED to declarative slicetest cells:
+  test_event_is_grounded_in_gufo_event -- the gmeow:Activity rdfs:subClassOf
+    gmeow:Event assertion moves to slices/core/provenance/tests/structural.ttl
+    because gmeow:Activity is defined there.
+  test_observational_activity_is_subclass_of_activity_and_event -- the
+    gmeow:ObservationalActivity rdfs:subClassOf gmeow:Activity assertion moves
+    to slices/core/events/tests/structural.ttl; Activity ⊑ Event stays in the
+    provenance slice.
+
+MIGRATED to slices/core/events/tests/structural.ttl:
   test_participation_is_a_gufo_relator
   test_event_type_and_role_are_value_object_properties
   test_former_role_subproperties_are_gone_and_are_values_now
@@ -39,9 +48,6 @@ MIGRATED to slices/core/events/tests/structural.ttl (#867):
   test_no_primary_preferred_observation_term
 
 RETAINED here (not migratable to scopeModule cells):
-  test_event_is_grounded_in_gufo_event -- cross-slice: asserts
-    gmeow:Activity rdfs:subClassOf gmeow:Event; Activity is defined in the
-    provenance slice, so a scopeModule cell would miss that triple.
   test_former_event_types_are_individuals_not_classes -- dynamic sweep:
     uses g.subjects(RDFS.subClassOf, GM.LifeEvent) over the whole merged graph
     to catch any GMEOW-prefixed subclass resurrection; narrowing to the events
@@ -50,7 +56,7 @@ RETAINED here (not migratable to scopeModule cells):
     owl:Restriction blank nodes via g.objects() + g.items() to verify
     someValuesFrom axioms; bnode list structure is not expressible as a
     simple module-scoped ASK.
-  test_wellformed_participation_conforms -- run_shacl() ExampleConformance.
+  test_wellformed_participation_conforms -- run_shacl() call; ExampleConformance.
   test_malformed_participation_is_flagged -- run_shacl() with error-text check.
   test_contested_event_claims_coexist_and_validate -- multi-file ABox fixture
     loaded dynamically + run_shacl() + object sweep.
@@ -62,10 +68,8 @@ RETAINED here (not migratable to scopeModule cells):
   test_ical_vevent_fuzzy_spans_the_bounds -- projection bound check.
   test_ical_summary_is_the_event_type_label -- projection label check.
   test_owl_time_projection_emits_pure_interval_relations -- projection sweep.
-  test_observational_activity_is_subclass_of_activity_and_event -- cross-slice:
-    asserts gmeow:Activity rdfs:subClassOf gmeow:Event (Activity is in provenance).
   test_observational_activity_chain_on_was_associated_with -- bnode list walk:
-    inspects owl:propertyChainAxiom blank-node list via g.objects() + g.items()
+    inspects owl:propertyChainAxiom blank-node lists via g.objects() + g.items()
     to verify the exact member order of generatedObservation + vantage.
 """
 
@@ -90,19 +94,9 @@ def _graph() -> Graph:
 
 
 # --------------------------------------------------------------------------- #
-# gUFO grounding -- Event is a perdurant type; cross-slice Activity assertion.
+# gUFO grounding -- Event is a perdurant type; Activity assertion migrated to
+# slices/core/provenance/tests/structural.ttl.
 # --------------------------------------------------------------------------- #
-
-
-def test_event_is_grounded_in_gufo_event() -> None:
-    g = _graph()
-    assert (GM.Event, RDF.type, OWL.Class) in g
-    assert (GM.Event, RDFS.subClassOf, LOGIC.Event) in g
-    # The former top occurrences re-parent onto the universal Event.
-    # Activity is defined in the provenance slice (cross-slice assertion --
-    # not migratable to a scopeModule cell).
-    assert (GM.Activity, RDFS.subClassOf, GM.Event) in g
-    assert (GM.LifeEvent, RDFS.subClassOf, GM.Event) in g
 
 
 # --------------------------------------------------------------------------- #
@@ -281,21 +275,6 @@ def test_owl_time_projection_emits_pure_interval_relations() -> None:
     # dawn->noon is ONLY intervalBefore, not all 13 relations (no var aliasing).
     dawn_noon = {p for _, p, o in out if _ == EX_EVENTS.dawn and o == EX_EVENTS.noon}
     assert dawn_noon == {TIME.intervalBefore}
-
-
-# --------------------------------------------------------------------------- #
-# ObservationalActivity and observation linkage (#128) -- cross-slice assertion.
-# The Activity rdfs:subClassOf Event assertion is cross-slice (provenance module).
-# --------------------------------------------------------------------------- #
-
-
-def test_observational_activity_is_subclass_of_activity_and_event() -> None:
-    g = _graph()
-    assert (GM.ObservationalActivity, RDF.type, OWL.Class) in g
-    assert (GM.ObservationalActivity, RDFS.subClassOf, GM.Activity) in g
-    # Activity is already a subclass of Event, so transitively
-    # ObservationalActivity <= Event. Activity is cross-slice (provenance module).
-    assert (GM.Activity, RDFS.subClassOf, GM.Event) in g
 
 
 # --------------------------------------------------------------------------- #
