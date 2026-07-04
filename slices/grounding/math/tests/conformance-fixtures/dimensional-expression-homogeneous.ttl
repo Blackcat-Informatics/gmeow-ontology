@@ -1,0 +1,18 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Well-formed: a dimensional expression combining two same-dimension operands.
+# Conforms to math:DimensionalExpressionShape (and math:QuantityDimensionShape on the
+# operands). Bound by ex:ecDimensionalExpressionHomogeneous.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:lengthSum a math:DimensionalExpression ;
+    math:homogeneousOperand ex:sideA , ex:sideB .
+
+ex:sideA a math:Quantity ;
+    math:hasDimension ex:lengthDim .
+ex:sideB a math:Quantity ;
+    math:hasDimension ex:lengthDim .
+
+ex:lengthDim a math:Dimension .
