@@ -47,7 +47,8 @@ use super::ir::{
     LOGIC_NAMESPACE,
 };
 use super::restriction::{
-    restriction_node_labels, skolemize_restrictions, LiftedTriple, RestrictionVocab,
+    enumeration_node_labels, restriction_node_labels, skolemize_enumerations,
+    skolemize_restrictions, LiftedTriple, RestrictionVocab,
 };
 
 const GUFO_NS: &str = "http://purl.org/nemo/gufo#";
@@ -468,12 +469,16 @@ pub fn adapt_legacy_dataset(
     let mut mapped: Vec<MappedAxiom> = Vec::new();
 
     // Lift OWL class-expression restrictions (owl:Restriction + onProperty +
-    // value/cardinality constraints) into deterministic skolem-keyed logic: axioms.
-    // The node set drives the generic extractors' skip filter so the anchor edge and
-    // internals are owned solely by the skolemizer.
+    // value/cardinality constraints) and owl:oneOf enumerations into deterministic
+    // skolem-keyed logic: axioms.  The combined node set drives the generic extractors'
+    // skip filter so the anchor edges and internals are owned solely by the skolemizers.
     let owl_vocab = RestrictionVocab::owl();
-    let rnodes = restriction_node_labels(store, &owl_vocab);
+    let mut handled = restriction_node_labels(store, &owl_vocab);
+    handled.extend(enumeration_node_labels(store, &owl_vocab));
     for lifted in skolemize_restrictions(store, &owl_vocab, &mut diagnostics) {
+        mapped.push(lifted.into());
+    }
+    for lifted in skolemize_enumerations(store, &owl_vocab, &mut diagnostics) {
         mapped.push(lifted.into());
     }
 
@@ -481,10 +486,10 @@ pub fn adapt_legacy_dataset(
     mapped.extend(extract_owl_char_axioms(store, &mut diagnostics));
     mapped.extend(extract_owl_structural_axioms(
         store,
-        &rnodes,
+        &handled,
         &mut diagnostics,
     ));
-    extract_unmapped_owl_triples(store, &rnodes, &mut diagnostics);
+    extract_unmapped_owl_triples(store, &handled, &mut diagnostics);
 
     // Build LogicAxiom instances, dedup by content (the Python `set(...)`).
     let mut seen: HashSet<String> = HashSet::new();

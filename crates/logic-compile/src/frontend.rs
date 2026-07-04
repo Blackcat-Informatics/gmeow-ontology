@@ -325,8 +325,16 @@ fn extract_axioms(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Vec<
     // restriction node's internals never leak as blank-labelled axioms — the load-
     // bearing ordering: skolemize FIRST, then skip restriction-internal triples.
     let logic_vocab = restriction::RestrictionVocab::logic();
-    let rnodes = restriction::restriction_node_labels(store, &logic_vocab);
-    for lifted in restriction::skolemize_restrictions(store, &logic_vocab, diagnostics) {
+    let mut rnodes = restriction::restriction_node_labels(store, &logic_vocab);
+    rnodes.extend(restriction::enumeration_node_labels(store, &logic_vocab));
+    let mut lifted_class_exprs =
+        restriction::skolemize_restrictions(store, &logic_vocab, diagnostics);
+    lifted_class_exprs.extend(restriction::skolemize_enumerations(
+        store,
+        &logic_vocab,
+        diagnostics,
+    ));
+    for lifted in lifted_class_exprs {
         if let Ok(ax) = LogicAxiom::new(
             lifted.subject,
             lifted.predicate,

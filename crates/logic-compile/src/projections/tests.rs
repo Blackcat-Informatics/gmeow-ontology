@@ -997,6 +997,45 @@ fn non_el_restriction_drops_whole_in_el_projection() {
 }
 
 #[test]
+fn oneof_enumeration_round_trips_dl_and_drops_in_el() {
+    let prefixes = "\
+@prefix ex:   <https://example.org/test/> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+";
+    let ttl = "ex:Season owl:equivalentClass [ a owl:Class ;
+        owl:oneOf ( ex:Spring ex:Summer ) ] .";
+    let (program, _) =
+        crate::adapter::adapt_legacy_str(&format!("{prefixes}{ttl}"), None).expect("adapt ok");
+
+    let dl = rdf::project_owl_dl(&program).unwrap();
+    for needle in [
+        "http://www.w3.org/2002/07/owl#oneOf",
+        "http://www.w3.org/1999/02/22-rdf-syntax-ns#first",
+        "https://blackcatinformatics.ca/logic/enumeration/",
+        "http://www.w3.org/2002/07/owl#equivalentClass",
+    ] {
+        assert!(
+            dl.content.contains(needle),
+            "missing {needle}:\n{}",
+            dl.content
+        );
+    }
+
+    // owl:oneOf is a nominal — not EL. The whole enumeration + its anchor drop.
+    let el = rdf::project_owl_el(&program).unwrap();
+    assert!(
+        !el.content.contains("oneOf") && !el.content.contains("enumeration/"),
+        "EL must not carry the nominal enumeration:\n{}",
+        el.content
+    );
+    assert!(
+        el.actual_drops.iter().any(|d| d.contains("oneOf")),
+        "the EL enumeration drop must be disclosed: {:?}",
+        el.actual_drops
+    );
+}
+
+#[test]
 fn cardinality_restriction_projects_typed_integer_in_dl() {
     let prefixes = "\
 @prefix ex:   <https://example.org/test/> .
