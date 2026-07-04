@@ -2003,6 +2003,7 @@ dependencies = [
  "bytes",
  "ciborium",
  "ed25519-dalek",
+ "gmeow-cli-core",
  "gmeow-conformance",
  "gmeow-diagnostics",
  "gmeow-docs",
