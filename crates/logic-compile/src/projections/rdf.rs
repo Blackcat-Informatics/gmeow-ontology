@@ -342,8 +342,10 @@ fn emit_restriction(g: &mut TripleSink, node: &str, r: &LiftedRestriction) {
 
 /// Collect every lifted anonymous enumeration (`logic:enumeration/<hash>` typed
 /// `logic:Enumeration`, carrying `logic:oneOf` members), keyed by skolem node IRI.  The
-/// `(member, is_literal)` pairs are gathered in sorted-and-deduped axiom order (the IR
-/// stored them sorted), giving a deterministic `owl:oneOf` list.
+/// `(member, is_literal)` pairs arrive object-sorted because `program.axioms` is globally
+/// ordered by `LogicAxiom::sort_key` (see `LogicProgram::new` in `ir.rs`), but this
+/// collector also sorts+dedups each member list locally so the deterministic `owl:oneOf`
+/// list is guaranteed here rather than relying on that non-local ordering.
 fn collect_lifted_enumerations(program: &LogicProgram) -> BTreeMap<String, Vec<(String, bool)>> {
     let enumeration_ty = logic(restriction::ENUMERATION_CLASS_LOCAL);
     let one_of = logic(restriction::ONE_OF_LOCAL);
@@ -357,6 +359,14 @@ fn collect_lifted_enumerations(program: &LogicProgram) -> BTreeMap<String, Vec<(
                 .or_default()
                 .push((axiom.obj.clone(), axiom.obj_is_literal));
         }
+    }
+    // Belt-and-braces determinism: program.axioms is already globally ordered by
+    // LogicAxiom::sort_key (see LogicProgram::new in ir.rs), so members arrive
+    // object-sorted; sort+dedup here makes the guarantee local rather than relying
+    // on that non-local ordering.
+    for members in out.values_mut() {
+        members.sort();
+        members.dedup();
     }
     out
 }
