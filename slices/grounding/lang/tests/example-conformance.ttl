@@ -147,3 +147,9 @@ ex:ecGraphemeUngrounded a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
     gmeow:conformanceRationale "The counter-example's lang:Grapheme declares a lang:Script that does not list it through lang:hasGrapheme (the SPARQL constraint of lang:GraphemeGroundedShape), so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (lang:UngroundedGrapheme)." .
+
+ex:ecGraphemeNoScript a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/grapheme-no-script.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example's lang:Grapheme declares no lang:inScript at all (sh:minCount 1 on lang:GraphemeGroundedShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (lang:UngroundedGrapheme)." .

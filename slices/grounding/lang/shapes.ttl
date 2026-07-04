@@ -283,6 +283,15 @@ lang:GraphemeGroundedShape
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     lang:enforcesFailureClass lang:UngroundedGrapheme ;
     sh:targetClass lang:Grapheme ;
+    sh:property [
+        sh:path lang:inScript ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:class lang:Script ;
+        sh:severity sh:Violation ;
+        sh:message "A lang:Grapheme must declare exactly one lang:Script through lang:inScript." ;
+    ] ;
     sh:sparql [
         sh:severity sh:Violation ;
         sh:message "A grapheme is not in the repertoire of the script it declares." ;
