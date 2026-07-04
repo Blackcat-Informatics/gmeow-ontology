@@ -1,0 +1,153 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow:     <https://blackcatinformatics.ca/gmeow/> .
+@prefix lang:      <https://blackcatinformatics.ca/lang/> .
+@prefix skos:      <http://www.w3.org/2004/02/skos/core#> .
+@prefix semapv:    <https://w3id.org/semapv/vocab/> .
+@prefix wd:        <http://www.wikidata.org/entity/> .
+@prefix lexvo:     <http://lexvo.org/id/> .
+@prefix glottolog: <https://glottolog.org/resource/languoid/id/> .
+
+# Term equivalences (authored in-slice; source of alignment linkage).
+#
+# External identifiers name alignments, not identity: a GMEOW sign system, script,
+# part of speech, or feature key aligns to Wikidata (the identity hub — CC0), to
+# Glottolog (languoid genealogy — CC-BY 4.0), to Lexvo (the ISO 639 language-code
+# and ISO 15924 script-code hub — CC-BY-SA 3.0), and to the IANA Language Subtag
+# Registry (the BCP-47 authority — public IETF standard), but the GMEOW term
+# remains the local source of truth. Each external standard carries its OWN
+# first-class record — no single record double-counts two standards. Every object
+# IRI is a real external entity, curl-validated (Principle 5): the Wikidata QIDs
+# resolve to the named concepts, the Glottolog languoid resolves, the Lexvo
+# ISO-code IRIs resolve, and the IANA registry resolves.
+# Identity → skos:exactMatch; a genealogically-scoped or code-scoped companion →
+# skos:closeMatch / skos:relatedMatch.
+
+# --- SSSOM publication header for the BCP-47 / IANA mapping set -------------- #
+# (Wikidata / Glottolog / Lexvo set headers live in dsl/mappings/mapping-sets.ttl;
+# the IANA set is introduced here alongside its only linkage cell.)
+
+gmeow:mapsetBcp47 a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-bcp47.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/bcp47" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment "GMEOW sign-system → IANA Language Subtag Registry (BCP-47) alignments. A BCP-47 primary language subtag (e.g. \"en\") is registered by IANA (drawn from ISO 639); the registry resource is a code-scoped identifier, a related resource rather than identity (skos:relatedMatch). By reference, curl-validated." .
+
+# --- English (a sign system) → Wikidata / Glottolog / ISO 639 / BCP-47 ------ #
+
+gmeow:eqLangEnglishWikidata a gmeow:TermEquivalence ;
+    gmeow:alignSubject lang:english ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q1860 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "English" ;
+    gmeow:comment "lang:english is the English natural language; wd:Q1860 (English) is the same language. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqLangEnglishGlottolog a gmeow:TermEquivalence ;
+    gmeow:alignSubject lang:english ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject glottolog:stan1293 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "Standard English" ;
+    gmeow:comment "glottolog:stan1293 (Standard English) is Glottolog's languoid for the standard variety; lang:english is the language more broadly, a close but not identical match, so skos:closeMatch." ;
+    gmeow:sssomFile "gmeow-glottolog.sssom.tsv" .
+
+gmeow:eqLangEnglishIso639 a gmeow:TermEquivalence ;
+    gmeow:alignSubject lang:english ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject lexvo:iso639-3/eng ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "eng (ISO 639-3)" ;
+    gmeow:comment "lexvo:iso639-3/eng is the Lexvo resource for the ISO 639-3 code eng (ISO 639-1 en) — the ISO 639 language-code identity for English. A code-scoped identifier, a related resource rather than identity, so skos:relatedMatch." ;
+    gmeow:sssomFile "gmeow-lexvo.sssom.tsv" .
+
+gmeow:eqLangEnglishBcp47 a gmeow:TermEquivalence ;
+    gmeow:alignSubject lang:english ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject <https://www.iana.org/assignments/language-subtag-registry> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "en (BCP-47 primary language subtag)" ;
+    gmeow:comment "The IANA Language Subtag Registry defines en as the BCP-47 primary language subtag for English (there is no per-subtag resolvable IRI; the registry is the authoritative resource). A code-scoped identifier, a related resource rather than identity, so skos:relatedMatch." ;
+    gmeow:sssomFile "gmeow-bcp47.sssom.tsv" .
+
+# --- Latin script → Wikidata / Lexvo (ISO 15924) ---------------------------- #
+
+gmeow:eqLangLatinScriptWikidata a gmeow:TermEquivalence ;
+    gmeow:alignSubject lang:latinScript ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q8229 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "Latin script" ;
+    gmeow:comment "lang:latinScript is the Latin script; wd:Q8229 (Latin script) is the same character repertoire. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqLangLatinScriptIso15924 a gmeow:TermEquivalence ;
+    gmeow:alignSubject lang:latinScript ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject lexvo:script/Latn ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "Latn (ISO 15924)" ;
+    gmeow:comment "lexvo:script/Latn is the Lexvo resource for the ISO 15924 script code Latn — the code-scoped identifier for the Latin script. A related resource rather than identity, so skos:relatedMatch." ;
+    gmeow:sssomFile "gmeow-lexvo.sssom.tsv" .
+
+# --- Parts of speech → Wikidata (identity) ---------------------------------- #
+
+gmeow:eqLangNoun a gmeow:TermEquivalence ;
+    gmeow:alignSubject lang:noun ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q1084 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "noun" ;
+    gmeow:comment "lang:noun is the noun part of speech; wd:Q1084 (noun) is the same category. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqLangVerb a gmeow:TermEquivalence ;
+    gmeow:alignSubject lang:verb ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q24905 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "verb" ;
+    gmeow:comment "lang:verb is the verb part of speech; wd:Q24905 (verb) is the same category. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+# --- Morphological feature keys → Wikidata (concept, close match) ------------ #
+
+gmeow:eqLangFeatNumber a gmeow:TermEquivalence ;
+    gmeow:alignSubject lang:featNumber ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q104083 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "grammatical number" ;
+    gmeow:comment "lang:featNumber is the Number feature key; wd:Q104083 (grammatical number) is the linguistic category. A concept-scoped match to the feature-inventory key, so skos:closeMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqLangFeatCase a gmeow:TermEquivalence ;
+    gmeow:alignSubject lang:featCase ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q128234 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "grammatical case" ;
+    gmeow:comment "lang:featCase is the Case feature key; wd:Q128234 (case) is the linguistic category — categorization of nouns and modifiers by function. A concept-scoped match, so skos:closeMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqLangFeatTense a gmeow:TermEquivalence ;
+    gmeow:alignSubject lang:featTense ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q177691 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "tense" ;
+    gmeow:comment "lang:featTense is the Tense feature key; wd:Q177691 (tense) is the linguistic category locating a situation in time. A concept-scoped match, so skos:closeMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .

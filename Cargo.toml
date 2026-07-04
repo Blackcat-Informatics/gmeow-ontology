@@ -25,6 +25,9 @@ members = [
     # reference resolution, syntax normalization, CURIE/prefix expansion): the
     # zero-dep leaf that replaces the oxigraph-family `oxiri` (purrdf S2, EPIC #906).
 
+    # The lang: form AST, content keys, and interning (FORMS): a pure rlib peer of
+    # logic-compile with no reasoning-runtime deps, keying forms by structural content.
+    "crates/lang-form",
     # Dependency-free license-token policy classifier (RUST-FIRST single source of
     # truth) shared by the conformance vendoring gate and the Python LinkPolicy shim.
     "crates/license",
@@ -187,6 +190,9 @@ codegen-units = 256
 codegen-units = 1
 
 [profile.release.package.gmeow-logic-compile]
+codegen-units = 1
+
+[profile.release.package.gmeow-lang-form]
 codegen-units = 1
 
 [profile.release.package.gmeow-validate]

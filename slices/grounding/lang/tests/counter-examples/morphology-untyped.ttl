@@ -1,0 +1,9 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Counter-example: a morph feature with no typed feature value (fires lang:UntypedMorphology / shacl.MinCountConstraintComponent).
+
+@prefix lang: <https://blackcatinformatics.ca/lang/> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:   <http://example.org/lang/> .
+
+ex:mf a lang:MorphFeature ; lang:featureKey lang:featNumber .
