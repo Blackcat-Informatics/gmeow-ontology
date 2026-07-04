@@ -7269,6 +7269,286 @@
     logic:complexityClass "PTIME" ;
     logic:preservationKind logic:ValidationOnly .
 
+<https://blackcatinformatics.ca/logic/target/lang-translation-doc:fr>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-translation-doc:fr" ;
+    gmeow:lossyDrop "actual: document roll-up over 19 translation unit(s); weakest-dominates join = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-translation-doc:zh>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-translation-doc:zh" ;
+    gmeow:lossyDrop "actual: document roll-up over 19 translation unit(s); weakest-dominates join = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-translation:0180e5cc4b5b2fde>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-translation:0180e5cc4b5b2fde" ;
+    gmeow:lossyDrop "actual: unanalyzed surface pair: sense/register preservation not machine-verified (zh, https://blackcatinformatics.ca/gmeow/slices/lifecycle|rdfs:label)" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-translation:0556904b76d6365c>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-translation:0556904b76d6365c" ;
+    gmeow:lossyDrop "actual: unanalyzed surface pair: sense/register preservation not machine-verified (zh, https://blackcatinformatics.ca/gmeow/existenceEntity|skos:definition)" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-translation:0bf52bb98800b37c>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-translation:0bf52bb98800b37c" ;
+    gmeow:lossyDrop "actual: unanalyzed surface pair: sense/register preservation not machine-verified (zh, https://blackcatinformatics.ca/gmeow/slices/lifecycle|rdfs:comment)" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-translation:0fee8a9eb344c5aa>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-translation:0fee8a9eb344c5aa" ;
+    gmeow:lossyDrop "actual: unanalyzed surface pair: sense/register preservation not machine-verified (zh, https://blackcatinformatics.ca/gmeow/existenceCreationEvent|rdfs:label)" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-translation:126200db4c81dbe1>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-translation:126200db4c81dbe1" ;
+    gmeow:lossyDrop "actual: unanalyzed surface pair: sense/register preservation not machine-verified (zh, https://blackcatinformatics.ca/gmeow/existenceCreationEvent|skos:definition)" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-translation:1761cc47e8b7d88e>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-translation:1761cc47e8b7d88e" ;
+    gmeow:lossyDrop "actual: unanalyzed surface pair: sense/register preservation not machine-verified (zh, https://blackcatinformatics.ca/gmeow/existenceInterval|rdfs:label)" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-translation:2f431939463db5ee>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-translation:2f431939463db5ee" ;
+    gmeow:lossyDrop "actual: unanalyzed surface pair: sense/register preservation not machine-verified (zh, https://blackcatinformatics.ca/gmeow/existenceInterval|skos:definition)" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-translation:2f5798f9442da5c9>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-translation:2f5798f9442da5c9" ;
+    gmeow:lossyDrop "actual: unanalyzed surface pair: sense/register preservation not machine-verified (fr, https://blackcatinformatics.ca/gmeow/supersededBy|skos:definition)" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-translation:34fa2e9c9bca60f4>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-translation:34fa2e9c9bca60f4" ;
+    gmeow:lossyDrop "actual: unanalyzed surface pair: sense/register preservation not machine-verified (fr, https://blackcatinformatics.ca/gmeow/existenceEntity|rdfs:label)" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-translation:3d57f8d88d58f6cd>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-translation:3d57f8d88d58f6cd" ;
+    gmeow:lossyDrop "actual: unanalyzed surface pair: sense/register preservation not machine-verified (fr, https://blackcatinformatics.ca/gmeow/existenceCreationEvent|rdfs:label)" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-translation:3f71c21e9e9364d7>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-translation:3f71c21e9e9364d7" ;
+    gmeow:lossyDrop "actual: unanalyzed surface pair: sense/register preservation not machine-verified (zh, https://blackcatinformatics.ca/gmeow/existenceDestructionEvent|rdfs:label)" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-translation:44502d304a970fb2>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-translation:44502d304a970fb2" ;
+    gmeow:lossyDrop "actual: unanalyzed surface pair: sense/register preservation not machine-verified (zh, https://blackcatinformatics.ca/gmeow/hasCreationEvent|rdfs:label)" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-translation:46ce0cf924a1ac09>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-translation:46ce0cf924a1ac09" ;
+    gmeow:lossyDrop "actual: unanalyzed surface pair: sense/register preservation not machine-verified (fr, https://blackcatinformatics.ca/gmeow/hasCreationEvent|skos:definition)" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-translation:4c0e4d217ca5834c>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-translation:4c0e4d217ca5834c" ;
+    gmeow:lossyDrop "actual: unanalyzed surface pair: sense/register preservation not machine-verified (fr, https://blackcatinformatics.ca/gmeow/existenceDestructionEvent|skos:definition)" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-translation:530e4f97173ed7ff>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-translation:530e4f97173ed7ff" ;
+    gmeow:lossyDrop "actual: unanalyzed surface pair: sense/register preservation not machine-verified (fr, https://blackcatinformatics.ca/gmeow/supersededBy|rdfs:label)" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-translation:6562e005ff2e70cc>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-translation:6562e005ff2e70cc" ;
+    gmeow:lossyDrop "actual: unanalyzed surface pair: sense/register preservation not machine-verified (fr, https://blackcatinformatics.ca/gmeow/slices/lifecycle|rdfs:label)" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-translation:68dbdd323323f255>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-translation:68dbdd323323f255" ;
+    gmeow:lossyDrop "actual: unanalyzed surface pair: sense/register preservation not machine-verified (zh, https://blackcatinformatics.ca/gmeow/hasCreationEvent|skos:definition)" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-translation:6d7a006929b91dff>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-translation:6d7a006929b91dff" ;
+    gmeow:lossyDrop "actual: unanalyzed surface pair: sense/register preservation not machine-verified (zh, https://blackcatinformatics.ca/gmeow/existenceDestructionEvent|skos:definition)" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-translation:6eb6a5ba03cc871b>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-translation:6eb6a5ba03cc871b" ;
+    gmeow:lossyDrop "actual: unanalyzed surface pair: sense/register preservation not machine-verified (fr, https://blackcatinformatics.ca/gmeow/existenceDestructionEvent|rdfs:label)" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-translation:9133d6ea2de200a1>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-translation:9133d6ea2de200a1" ;
+    gmeow:lossyDrop "actual: unanalyzed surface pair: sense/register preservation not machine-verified (zh, https://blackcatinformatics.ca/gmeow/supersededBy|skos:definition)" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-translation:913f24b2c54f2d3d>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-translation:913f24b2c54f2d3d" ;
+    gmeow:lossyDrop "actual: unanalyzed surface pair: sense/register preservation not machine-verified (zh, https://blackcatinformatics.ca/gmeow/hasDestructionEvent|skos:definition)" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-translation:91857688519ce1c3>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-translation:91857688519ce1c3" ;
+    gmeow:lossyDrop "actual: unanalyzed surface pair: sense/register preservation not machine-verified (fr, https://blackcatinformatics.ca/gmeow/existenceEntity|skos:definition)" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-translation:94a940a6dcac94ec>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-translation:94a940a6dcac94ec" ;
+    gmeow:lossyDrop "actual: unanalyzed surface pair: sense/register preservation not machine-verified (fr, https://blackcatinformatics.ca/gmeow/slices/lifecycle|rdfs:comment)" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-translation:9942a55e3ce14207>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-translation:9942a55e3ce14207" ;
+    gmeow:lossyDrop "actual: unanalyzed surface pair: sense/register preservation not machine-verified (zh, https://blackcatinformatics.ca/gmeow/hasDestructionEvent|rdfs:label)" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-translation:9a0d607857ca4adb>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-translation:9a0d607857ca4adb" ;
+    gmeow:lossyDrop "actual: unanalyzed surface pair: sense/register preservation not machine-verified (zh, https://blackcatinformatics.ca/gmeow/EntityExistence|rdfs:label)" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-translation:9e2554c9d0e5d01d>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-translation:9e2554c9d0e5d01d" ;
+    gmeow:lossyDrop "actual: unanalyzed surface pair: sense/register preservation not machine-verified (fr, https://blackcatinformatics.ca/gmeow/EntityExistence|rdfs:label)" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-translation:b7f38bea21881c1d>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-translation:b7f38bea21881c1d" ;
+    gmeow:lossyDrop "actual: unanalyzed surface pair: sense/register preservation not machine-verified (fr, https://blackcatinformatics.ca/gmeow/EntityExistence|skos:definition)" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-translation:ba921beb5a6650e6>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-translation:ba921beb5a6650e6" ;
+    gmeow:lossyDrop "actual: unanalyzed surface pair: sense/register preservation not machine-verified (zh, https://blackcatinformatics.ca/gmeow/EntityExistence|skos:definition)" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-translation:c1ea63843f2bec15>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-translation:c1ea63843f2bec15" ;
+    gmeow:lossyDrop "actual: unanalyzed surface pair: sense/register preservation not machine-verified (fr, https://blackcatinformatics.ca/gmeow/hasCreationEvent|rdfs:label)" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-translation:c2ae3873739ff624>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-translation:c2ae3873739ff624" ;
+    gmeow:lossyDrop "actual: unanalyzed surface pair: sense/register preservation not machine-verified (zh, https://blackcatinformatics.ca/gmeow/supersededBy|rdfs:label)" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-translation:d3b228a82c9cd7ad>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-translation:d3b228a82c9cd7ad" ;
+    gmeow:lossyDrop "actual: unanalyzed surface pair: sense/register preservation not machine-verified (fr, https://blackcatinformatics.ca/gmeow/existenceInterval|skos:definition)" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-translation:dc3a99bf4475c7e6>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-translation:dc3a99bf4475c7e6" ;
+    gmeow:lossyDrop "actual: unanalyzed surface pair: sense/register preservation not machine-verified (zh, https://blackcatinformatics.ca/gmeow/slices/lifecycle|skos:definition)" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-translation:e55b34f7bb4b3f13>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-translation:e55b34f7bb4b3f13" ;
+    gmeow:lossyDrop "actual: unanalyzed surface pair: sense/register preservation not machine-verified (zh, https://blackcatinformatics.ca/gmeow/existenceEntity|rdfs:label)" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-translation:ec070392c0a3edf4>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-translation:ec070392c0a3edf4" ;
+    gmeow:lossyDrop "actual: unanalyzed surface pair: sense/register preservation not machine-verified (fr, https://blackcatinformatics.ca/gmeow/slices/lifecycle|skos:definition)" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-translation:eda010f59bb3ad97>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-translation:eda010f59bb3ad97" ;
+    gmeow:lossyDrop "actual: unanalyzed surface pair: sense/register preservation not machine-verified (fr, https://blackcatinformatics.ca/gmeow/existenceInterval|rdfs:label)" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-translation:f4915c7ab20d92f1>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-translation:f4915c7ab20d92f1" ;
+    gmeow:lossyDrop "actual: unanalyzed surface pair: sense/register preservation not machine-verified (fr, https://blackcatinformatics.ca/gmeow/hasDestructionEvent|rdfs:label)" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-translation:f5ca57b280c7dba1>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-translation:f5ca57b280c7dba1" ;
+    gmeow:lossyDrop "actual: unanalyzed surface pair: sense/register preservation not machine-verified (fr, https://blackcatinformatics.ca/gmeow/hasDestructionEvent|skos:definition)" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-translation:fbc4625af3032a5d>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-translation:fbc4625af3032a5d" ;
+    gmeow:lossyDrop "actual: unanalyzed surface pair: sense/register preservation not machine-verified (fr, https://blackcatinformatics.ca/gmeow/existenceCreationEvent|skos:definition)" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
 <https://blackcatinformatics.ca/logic/target/n3>
     a logic:ProjectionTarget ;
     rdfs:label "n3" ;
@@ -36605,6 +36885,46 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/fno:f97ab23988289696> ,
         <https://blackcatinformatics.ca/logic/target/fno:fda31433851be3f9> ,
         <https://blackcatinformatics.ca/logic/target/gufo> ,
+        <https://blackcatinformatics.ca/logic/target/lang-translation-doc:fr> ,
+        <https://blackcatinformatics.ca/logic/target/lang-translation-doc:zh> ,
+        <https://blackcatinformatics.ca/logic/target/lang-translation:0180e5cc4b5b2fde> ,
+        <https://blackcatinformatics.ca/logic/target/lang-translation:0556904b76d6365c> ,
+        <https://blackcatinformatics.ca/logic/target/lang-translation:0bf52bb98800b37c> ,
+        <https://blackcatinformatics.ca/logic/target/lang-translation:0fee8a9eb344c5aa> ,
+        <https://blackcatinformatics.ca/logic/target/lang-translation:126200db4c81dbe1> ,
+        <https://blackcatinformatics.ca/logic/target/lang-translation:1761cc47e8b7d88e> ,
+        <https://blackcatinformatics.ca/logic/target/lang-translation:2f431939463db5ee> ,
+        <https://blackcatinformatics.ca/logic/target/lang-translation:2f5798f9442da5c9> ,
+        <https://blackcatinformatics.ca/logic/target/lang-translation:34fa2e9c9bca60f4> ,
+        <https://blackcatinformatics.ca/logic/target/lang-translation:3d57f8d88d58f6cd> ,
+        <https://blackcatinformatics.ca/logic/target/lang-translation:3f71c21e9e9364d7> ,
+        <https://blackcatinformatics.ca/logic/target/lang-translation:44502d304a970fb2> ,
+        <https://blackcatinformatics.ca/logic/target/lang-translation:46ce0cf924a1ac09> ,
+        <https://blackcatinformatics.ca/logic/target/lang-translation:4c0e4d217ca5834c> ,
+        <https://blackcatinformatics.ca/logic/target/lang-translation:530e4f97173ed7ff> ,
+        <https://blackcatinformatics.ca/logic/target/lang-translation:6562e005ff2e70cc> ,
+        <https://blackcatinformatics.ca/logic/target/lang-translation:68dbdd323323f255> ,
+        <https://blackcatinformatics.ca/logic/target/lang-translation:6d7a006929b91dff> ,
+        <https://blackcatinformatics.ca/logic/target/lang-translation:6eb6a5ba03cc871b> ,
+        <https://blackcatinformatics.ca/logic/target/lang-translation:9133d6ea2de200a1> ,
+        <https://blackcatinformatics.ca/logic/target/lang-translation:913f24b2c54f2d3d> ,
+        <https://blackcatinformatics.ca/logic/target/lang-translation:91857688519ce1c3> ,
+        <https://blackcatinformatics.ca/logic/target/lang-translation:94a940a6dcac94ec> ,
+        <https://blackcatinformatics.ca/logic/target/lang-translation:9942a55e3ce14207> ,
+        <https://blackcatinformatics.ca/logic/target/lang-translation:9a0d607857ca4adb> ,
+        <https://blackcatinformatics.ca/logic/target/lang-translation:9e2554c9d0e5d01d> ,
+        <https://blackcatinformatics.ca/logic/target/lang-translation:b7f38bea21881c1d> ,
+        <https://blackcatinformatics.ca/logic/target/lang-translation:ba921beb5a6650e6> ,
+        <https://blackcatinformatics.ca/logic/target/lang-translation:c1ea63843f2bec15> ,
+        <https://blackcatinformatics.ca/logic/target/lang-translation:c2ae3873739ff624> ,
+        <https://blackcatinformatics.ca/logic/target/lang-translation:d3b228a82c9cd7ad> ,
+        <https://blackcatinformatics.ca/logic/target/lang-translation:dc3a99bf4475c7e6> ,
+        <https://blackcatinformatics.ca/logic/target/lang-translation:e55b34f7bb4b3f13> ,
+        <https://blackcatinformatics.ca/logic/target/lang-translation:ec070392c0a3edf4> ,
+        <https://blackcatinformatics.ca/logic/target/lang-translation:eda010f59bb3ad97> ,
+        <https://blackcatinformatics.ca/logic/target/lang-translation:f4915c7ab20d92f1> ,
+        <https://blackcatinformatics.ca/logic/target/lang-translation:f5ca57b280c7dba1> ,
+        <https://blackcatinformatics.ca/logic/target/lang-translation:fbc4625af3032a5d> ,
         <https://blackcatinformatics.ca/logic/target/n3> ,
         <https://blackcatinformatics.ca/logic/target/nemo> ,
         <https://blackcatinformatics.ca/logic/target/owl-dl> ,
