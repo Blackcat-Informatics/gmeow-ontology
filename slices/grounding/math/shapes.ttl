@@ -367,7 +367,7 @@ math:HomomorphicEncryptionSchemeShape
 math:RingDistributivityShape
     a sh:NodeShape ;
     rdfs:label "Ring distributivity shape"@x-gmeow-english ;
-    skos:definition "SHACL constraint for math:Ring: it declares, through math:satisfiesDistributivity, the distributivity law relating its multiplication to its addition (a·(b+c) = a·b + a·c). Distributivity is what makes a two-operation structure a ring rather than two unrelated groups; a ring declared without it is ill-formed. (math:satisfiesDistributivity refines math:satisfiesAxiom, so the general structure gate still sees the law.)"@x-gmeow-english ;
+    skos:definition "SHACL constraint for math:Ring: it declares, through math:satisfiesDistributivity, the distributivity law relating its multiplication to its addition (a·(b+c) = a·b + a·c). Distributivity is what makes a two-operation structure a ring rather than two unrelated groups; a ring declared without it is ill-formed. math:satisfiesDistributivity refines math:satisfiesAxiom (the distributivity law is one of the ring's axioms, and the reasoner entails the general property); the SHACL gate reads asserted triples, so a well-formed ring asserts both math:satisfiesAxiom and math:satisfiesDistributivity, satisfying math:AlgebraicStructureShape and this gate on the asserted graph."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     math:enforcesFailureClass math:NonDistributiveRing ;
     sh:targetClass math:Ring ;

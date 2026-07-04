@@ -86,8 +86,8 @@ subclasses), so a violation is itself a typed, queryable object, not a log line.
 | The E8 root-system invariants (240 roots, rank 8, Weyl order 696,729,600) are the pinned answer | competency query | a mistyped invariant fails the exact-match competency gate |
 | A root system claiming the E8 fingerprint (240 roots, rank 8) declares the true Weyl order 696,729,600 | SHACL-SPARQL | `math:WrongE8WeylOrder` |
 
-Every algebra axiom and preservation law is authored as a real `logic:Formula` first-order AST (a
-quantifier over `logic:relation` atomic predications) — `math:` expresses the law and `logic:` owns
+Every algebra axiom and preservation law is authored as a real `logic:Formula` first-order AST (atoms
+over `logic:relation` predications, the logical connectives, and quantifiers) — `math:` expresses the law and `logic:` owns
 reasoning over it. Because a `logic:Formula` round-trips losslessly in canonical RDF 1.2 and weaker
 projections carry any formula they cannot express as flagged unsupported residue (the
 `logic:FormulaShape` tags), the algebra laws ride the existing projection / loss-ledger path: their
