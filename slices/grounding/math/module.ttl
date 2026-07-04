@@ -661,3 +661,201 @@ math:enforcesFailureClass
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "enforces failure class"@x-gmeow-english ;
     skos:definition "Links a SHACL shape to the math:MathConformanceFailure subclass it enforces, so the machine-checked gate and the typed failure vocabulary are cross-referenced: a query can move from a shape to the named failure it raises and back. An annotation property, carried on the shape, never a reasoned axiom."@x-gmeow-english .
+
+# =========================================================================== #
+# Algebra — the algebraic-structure hierarchy (ALGEBRA charter)
+#
+# A structure declares its operations and laws; a map between structures declares
+# what it preserves. The laws are logic: formulas (math: expresses, logic: owns
+# reasoning): a math:Axiom denotes a logic: formula reached through math:satisfiesAxiom,
+# never an opaque string. The hierarchy is subsumption — an AbelianGroup is a Group
+# that additionally satisfies a commutativity axiom.
+# =========================================================================== #
+
+# --- Object-layer parents the charter builds on --------------------------- #
+
+math:Morphism
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Morphism"@x-gmeow-english ;
+    skos:definition "A structure-preserving map between mathematical objects: the object-layer parent of math:Homomorphism. Deliberately NOT a subclass of math:Function — a morphism's math:domain and math:codomain range over math:AlgebraicStructure (or another object), not a bare math:Set, so the set-typed function-framing gate never targets it. What a morphism preserves is declared through math:preservesStructure and its preservation law; richer categorical structure (composition, identity morphisms) belongs to a downstream category charter and is deliberately not minted here."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Axiom
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Axiom"@x-gmeow-english ;
+    skos:definition "A stated law a structure satisfies — associativity, commutativity, an identity or inverse law, distributivity. An axiom denotes a logic: formula (the denotation seam, reached in the worked examples as a resource typed both math:Axiom and logic:Formula), never an opaque string: math: expresses the law and logic: owns reasoning over it. A math:AlgebraicStructure names the axioms it satisfies through math:satisfiesAxiom; the object-layer parent the algebra hierarchy builds on."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:AlgebraicStructure
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Algebraic Structure"@x-gmeow-english ;
+    skos:definition "A set equipped with operations satisfying stated axioms: a math:underlyingSet, one or more math:structureOperation, an identity/inverse where they exist, and the math:satisfiesAxiom laws it obeys. A group is not a labelled set — a math:Group asserted without an operation and axioms is ill-formed. The root of the algebraic hierarchy math:Magma … math:Field; substructures are related through math:substructureOf."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Magma
+    a owl:Class ;
+    rdfs:subClassOf math:AlgebraicStructure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Magma"@x-gmeow-english ;
+    skos:definition "A set with a single closed binary math:structureOperation and no further axioms: the weakest algebraic structure, a subclass of math:AlgebraicStructure. A math:Semigroup is a magma whose operation is associative."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Semigroup
+    a owl:Class ;
+    rdfs:subClassOf math:Magma ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Semigroup"@x-gmeow-english ;
+    skos:definition "A math:Magma whose binary operation is associative — it satisfies the associativity axiom (∀a,b,c: (a·b)·c = a·(b·c)) through math:satisfiesAxiom. A subclass of math:Magma; a math:Monoid is a semigroup with an identity element."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Monoid
+    a owl:Class ;
+    rdfs:subClassOf math:Semigroup ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Monoid"@x-gmeow-english ;
+    skos:definition "A math:Semigroup with a two-sided identity element (∀a: a·e = e·a = a), named through math:identityElement. A subclass of math:Semigroup; a math:Group is a monoid in which every element has an inverse."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Group
+    a owl:Class ;
+    rdfs:subClassOf math:Monoid ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Group"@x-gmeow-english ;
+    skos:definition "A math:Monoid in which every element has a two-sided inverse (∀a ∃a⁻¹: a·a⁻¹ = a⁻¹·a = e), the inverse reached through math:inverseOperation. A subclass of math:Monoid — the central structure of symmetry, of which a math:AutomorphismGroup and a math:WeylGroup are instances. A math:AbelianGroup is a group whose operation additionally commutes."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:AbelianGroup
+    a owl:Class ;
+    rdfs:subClassOf math:Group ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Abelian Group"@x-gmeow-english ;
+    skos:definition "A math:Group whose operation is commutative (∀a,b: a·b = b·a) — it additionally satisfies the commutativity axiom through math:satisfiesAxiom. A subclass of math:Group; the additive group of a math:Ring is abelian."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Ring
+    a owl:Class ;
+    rdfs:subClassOf math:AlgebraicStructure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Ring"@x-gmeow-english ;
+    skos:definition "A set with two operations — an abelian additive group and an associative multiplication that distributes over addition (∀a,b,c: a·(b+c) = a·b + a·c) — carried as two math:structureOperation with the distributivity axiom through math:satisfiesAxiom. A subclass of math:AlgebraicStructure; a math:CommutativeRing is a ring whose multiplication commutes."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:CommutativeRing
+    a owl:Class ;
+    rdfs:subClassOf math:Ring ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Commutative Ring"@x-gmeow-english ;
+    skos:definition "A math:Ring whose multiplication commutes (∀a,b: a·b = b·a). A subclass of math:Ring; a math:Field is a commutative ring whose non-zero elements form a group under multiplication, and a math:PolynomialRing is a commutative ring of polynomials."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Field
+    a owl:Class ;
+    rdfs:subClassOf math:CommutativeRing ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Field"@x-gmeow-english ;
+    skos:definition "A math:CommutativeRing whose non-zero elements form an abelian group under multiplication — every non-zero element has a multiplicative inverse. A subclass of math:CommutativeRing; ℚ, ℝ, ℂ and the finite fields are fields, the ground over which a math:VectorSpace and Shamir secret sharing are defined."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Module
+    a owl:Class ;
+    rdfs:subClassOf math:AlgebraicStructure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Module"@x-gmeow-english ;
+    skos:definition "An abelian group with a compatible scalar action of a math:Ring — the generalization of a vector space to scalars from a ring rather than a field. A subclass of math:AlgebraicStructure; a math:VectorSpace is a module over a field."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:VectorSpace
+    a owl:Class ;
+    rdfs:subClassOf math:Module ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Vector Space"@x-gmeow-english ;
+    skos:definition "A math:Module whose scalars form a math:Field: an abelian group of vectors with a scalar action satisfying the vector-space axioms. A subclass of math:Module — the setting of linear algebra, on which a math:GroupRepresentation realizes a group as linear maps."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Algebra
+    a owl:Class ;
+    rdfs:subClassOf math:Module ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Algebra"@x-gmeow-english ;
+    skos:definition "A math:Module equipped with a bilinear multiplication of its elements — a ring-and-module structure over a base ring, such as a math:LieAlgebra or a matrix algebra. A subclass of math:Module; the vector-space-with-multiplication that carries a Lie bracket in the E8 flagship."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:PolynomialRing
+    a owl:Class ;
+    rdfs:subClassOf math:CommutativeRing ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Polynomial Ring"@x-gmeow-english ;
+    skos:definition "The commutative ring R[x] of polynomials in one or more indeterminates over a base ring R. A subclass of math:CommutativeRing; the ring a math:Ideal is taken in, and the ring a lattice-based homomorphic-encryption scheme and Shamir secret sharing operate over."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Ideal
+    a owl:Class ;
+    rdfs:subClassOf math:AlgebraicStructure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Ideal"@x-gmeow-english ;
+    skos:definition "A subset of a math:Ring closed under addition and under multiplication by any ring element — the kernel of a ring homomorphism is an ideal, and quotienting a ring by an ideal yields a math:Quotient ring. A subclass of math:AlgebraicStructure, related to its ambient ring through math:substructureOf; the modulus structure a lattice-based encryption scheme reduces against."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+# --- Structure properties -------------------------------------------------- #
+
+math:underlyingSet
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "underlying set"@x-gmeow-english ;
+    skos:definition "Names the carrier set of an algebraic structure — the elements the operations act on. Domain math:AlgebraicStructure, range math:Set (stated in prose). Every math:AlgebraicStructure declares one; a structure without a carrier is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:structureOperation
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "structure operation"@x-gmeow-english ;
+    skos:definition "Names a binary (or n-ary) operation of an algebraic structure — the group operation, or a ring's addition and multiplication. Domain math:AlgebraicStructure, range math:Operation (stated in prose). A ring carries two such operations; a structure with none is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:identityElement
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "identity element"@x-gmeow-english ;
+    skos:definition "Names the two-sided identity of a monoid operation (the e with a·e = e·a = a). Domain math:Monoid or a richer structure, range an element of the math:underlyingSet (stated in prose). A math:Group inherits it from math:Monoid."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:inverseOperation
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "inverse operation"@x-gmeow-english ;
+    skos:definition "Names the unary inverse map of a group (a ↦ a⁻¹ with a·a⁻¹ = e). Domain math:Group, range math:Operation (stated in prose). The existence of inverses is what distinguishes a math:Group from a math:Monoid."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:satisfiesAxiom
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "satisfies axiom"@x-gmeow-english ;
+    skos:definition "Relates an algebraic structure to a math:Axiom it obeys — associativity, commutativity, distributivity. Domain math:AlgebraicStructure, range math:Axiom (stated in prose). The axiom denotes a logic: formula the logic: reasoner owns: math: declares that the structure satisfies the law, logic: reasons over it."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:substructureOf
+    a owl:ObjectProperty , owl:TransitiveProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "substructure of"@x-gmeow-english ;
+    skos:definition "Relates an algebraic structure to a structure of the same kind that contains it and shares its operations — a subgroup within a group, an ideal within a ring. Domain and range math:AlgebraicStructure (stated in prose). Transitive: a subgroup of a subgroup is a subgroup. The kernel of a homomorphism is a math:substructureOf its domain."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:preservesStructure
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "preserves structure"@x-gmeow-english ;
+    skos:definition "Relates a math:Morphism to a structural feature it preserves — the object-layer primitive that math:preservedOperation refines for homomorphisms. Domain math:Morphism, range an operation or axiom (stated in prose). What a map preserves is declared, not assumed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# --- Structure conformance failure ----------------------------------------- #
+
+math:IncompleteAlgebraicStructure
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Incomplete Algebraic Structure"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:AlgebraicStructure does not declare its constituting parts — a math:underlyingSet, at least one math:structureOperation, and at least one math:satisfiesAxiom law. A group is a set with an operation satisfying stated axioms; a structure asserted without them is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .

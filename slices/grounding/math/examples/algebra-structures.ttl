@@ -1,0 +1,44 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked algebraic structures over the algebra hierarchy: the additive group of the
+# integers (ℤ, +) as a math:AbelianGroup declaring its carrier, operation, identity,
+# inverse, and the axioms it satisfies (reached, through math:satisfiesAxiom, into the
+# reusable logic:Formula axiom library in algebra-axioms.ttl). It validates cleanly under
+# the global gate — a structure that declares its operation and axioms satisfies
+# math:AlgebraicStructureShape.
+
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix exa:   <https://blackcatinformatics.ca/gmeow/examples/math/algebra/> .
+
+# (ℤ, +) — the additive group of integers, an abelian group.
+exa:integerAddition a math:AbelianGroup ;
+    rdfs:label "(ℤ, +) — the additive group of integers"@x-gmeow-english ;
+    math:underlyingSet exa:integerSet ;
+    math:structureOperation exa:plus ;
+    math:identityElement exa:zero ;
+    math:inverseOperation exa:negation ;
+    math:satisfiesAxiom exa:associativity , exa:identity , exa:inverse , exa:commutativity .
+
+exa:integerSet a math:Set ;
+    rdfs:label "ℤ"@x-gmeow-english .
+
+exa:plus a math:Operation ;
+    rdfs:label "+ (integer addition)"@x-gmeow-english .
+
+exa:negation a math:Operation ;
+    rdfs:label "n ↦ −n (additive inverse)"@x-gmeow-english .
+
+exa:zero
+    rdfs:label "0 (the additive identity)"@x-gmeow-english .
+
+# (ℤ, +, ·) — the integers as a commutative ring, sharing the additive group above.
+exa:integerRing a math:CommutativeRing ;
+    rdfs:label "(ℤ, +, ·) — the ring of integers"@x-gmeow-english ;
+    math:underlyingSet exa:integerSet ;
+    math:structureOperation exa:plus , exa:times ;
+    math:satisfiesAxiom exa:associativity , exa:commutativity , exa:leftDistributivity .
+
+exa:times a math:Operation ;
+    rdfs:label "· (integer multiplication)"@x-gmeow-english .
