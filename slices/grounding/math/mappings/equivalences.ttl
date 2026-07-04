@@ -846,9 +846,15 @@ gmeow:eqMathLuminousDimensionDsi a gmeow:TermEquivalence ;
     gmeow:sssomFile "gmeow-dsi.sssom.tsv" .
 
 # --- Quantity and dimension → OM 2 (align, don't spine) --------------------- #
-# The OM 2 canonical /resource/ IRIs are the RDF identity; the OM 2 server does not
-# content-negotiate them (they 404), but the entities are confirmed via their
-# resolvable /page/ view. Aligned by reference (closeMatch copies no axiom).
+# The /resource/ IRIs below are OM 2's own canonical class identities: om-2.0.rdf
+# declares <owl:Class rdf:about="&om;Quantity"> and <owl:Class rdf:about="&om;Dimension">
+# with &om; = http://www.ontology-of-units-of-measure.org/resource/om-2/, so the align
+# targets are the concepts themselves, not a document. The OM 2 server does not
+# content-negotiate the /resource/ form (it returns 404 even for RDF Accept headers) —
+# a Pubby-server limitation, not a wrong IRI; the entities remain confirmed as owl:Class
+# declarations in the published ontology and are browsable via the /page/ view. Aligning
+# to the resolvable /page/ HTML view would mismap the concept to a document, so the
+# canonical /resource/ identity is kept. Aligned by reference (closeMatch copies no axiom).
 
 gmeow:eqMathQuantityOm2 a gmeow:TermEquivalence ;
     gmeow:alignSubject math:Quantity ;
@@ -857,7 +863,7 @@ gmeow:eqMathQuantityOm2 a gmeow:TermEquivalence ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
     gmeow:objectLabel "om:Quantity" ;
-    gmeow:comment "math:Quantity aligns to om-2:Quantity, OM 2's quantity concept. closeMatch (align, don't spine — Principle 17). Full IRI by reference; entity confirmed via the OM 2 /page/ view." ;
+    gmeow:comment "math:Quantity aligns to om-2:Quantity, OM 2's quantity concept. closeMatch (align, don't spine — Principle 17). Full IRI by reference — OM 2's own owl:Class identity (declared in the published om-2.0.rdf); the server 404s the /resource/ form (a Pubby limitation), so it is browsable via the /page/ view." ;
     gmeow:sssomFile "gmeow-om2.sssom.tsv" .
 
 gmeow:eqMathDimensionOm2 a gmeow:TermEquivalence ;
@@ -867,5 +873,5 @@ gmeow:eqMathDimensionOm2 a gmeow:TermEquivalence ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
     gmeow:objectLabel "om:Dimension" ;
-    gmeow:comment "math:Dimension aligns to om-2:Dimension, OM 2's dimension concept. closeMatch (align, don't spine). Full IRI by reference; entity confirmed via the OM 2 /page/ view." ;
+    gmeow:comment "math:Dimension aligns to om-2:Dimension, OM 2's dimension concept. closeMatch (align, don't spine). Full IRI by reference — OM 2's own owl:Class identity (declared in the published om-2.0.rdf); the server 404s the /resource/ form (a Pubby limitation), so it is browsable via the /page/ view." ;
     gmeow:sssomFile "gmeow-om2.sssom.tsv" .
