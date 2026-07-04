@@ -14,6 +14,7 @@
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
 @prefix exa:   <https://blackcatinformatics.ca/gmeow/examples/math/algebra/> .
 
 # --- The plaintext and ciphertext rings (well-formed structures) ----------- #
