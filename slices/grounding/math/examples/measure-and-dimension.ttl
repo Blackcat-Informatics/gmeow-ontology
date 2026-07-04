@@ -1,0 +1,125 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# An illustrative, well-formed scene over the measure-and-dimension charter: a
+# measurable space with its σ-algebra, a Lebesgue (volume) measure of infinite
+# total mass and a probability measure of mass one on it, a measurable energy-
+# density function, and the worked expected-energy integral ∫ f dμ whose declared
+# result dimension (energy, M·L²·T⁻²) is exactly what its integrand (energy density,
+# M·L⁻¹·T⁻²) and its measure (volume, L³) compose to. Two energy quantities carry a
+# QUDT unit and share the energy dimension (so the derived commensurability relation
+# groups them), and a dimensional expression adds them homogeneously. It validates
+# cleanly under the global gate, including the native dimensional-homogeneity check.
+
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/math/> .
+
+# --- A measurable space with its underlying set and σ-algebra ---------------- #
+
+ex:configSpace a math:MeasurableSpace ;
+    rdfs:label "configuration space"@x-gmeow-english ;
+    math:measurableSpaceOf ex:configSet , ex:configSigma .
+
+ex:configSet a math:Set ;
+    rdfs:label "configuration set"@x-gmeow-english .
+
+ex:configSigma a math:SigmaAlgebra ;
+    rdfs:label "Borel σ-algebra on the configuration space"@x-gmeow-english .
+
+# --- A Lebesgue (volume) measure of infinite mass, and a probability measure -- #
+
+ex:volumeMeasure a math:LebesgueMeasure ;
+    rdfs:label "volume measure"@x-gmeow-english ;
+    math:measureOn ex:configSpace ;
+    math:totalMass math:PositiveInfinity ;
+    math:hasDimension ex:volumeDimension .
+
+ex:uniformProbability a math:ProbabilityMeasure ;
+    rdfs:label "uniform probability measure"@x-gmeow-english ;
+    math:measureOn ex:configSpace ;
+    math:totalMass 1 ;
+    math:hasDimension math:dimensionless .
+
+# --- The measurable energy-density function (the integrand) ------------------ #
+
+ex:energyDensityFn a math:MeasurableFunction ;
+    rdfs:label "energy density"@x-gmeow-english ;
+    math:domain ex:configSet ;
+    math:codomain ex:realValues ;
+    math:hasDimension ex:energyDensityDimension .
+
+ex:realValues a math:Set ;
+    rdfs:label "the real values"@x-gmeow-english .
+
+# --- The worked integral ∫ f dμ, carrying its result dimension --------------- #
+# The homogeneity gate checks that dim(result) = dim(integrand) ⊕ dim(measure):
+# energy density (M·L⁻¹·T⁻²) times volume (L³) is energy (M·L²·T⁻²).
+
+ex:expectedEnergy a math:Integral ;
+    rdfs:label "expected energy"@x-gmeow-english ;
+    math:integrand ex:energyDensityFn ;
+    math:integrationDomain ex:configSpace ;
+    math:withRespectTo ex:volumeMeasure ;
+    math:hasDimension ex:energyDimension .
+
+# --- Dimensions as ℚ-vector-space elements (structured exponents only) -------- #
+
+ex:energyDimension a math:DerivedDimension ;
+    rdfs:label "energy dimension (M·L²·T⁻²)"@x-gmeow-english ;
+    math:baseDimensionExponent ex:eMass1 , ex:eLength2 , ex:eTimeMinus2 .
+
+ex:eMass1 a math:DimensionExponent ;
+    math:exponentOfDimension math:massDimension ;
+    math:exponentNumerator 1 ; math:exponentDenominator 1 .
+ex:eLength2 a math:DimensionExponent ;
+    math:exponentOfDimension math:lengthDimension ;
+    math:exponentNumerator 2 ; math:exponentDenominator 1 .
+ex:eTimeMinus2 a math:DimensionExponent ;
+    math:exponentOfDimension math:timeDimension ;
+    math:exponentNumerator -2 ; math:exponentDenominator 1 .
+
+ex:energyDensityDimension a math:DerivedDimension ;
+    rdfs:label "energy-density dimension (M·L⁻¹·T⁻²)"@x-gmeow-english ;
+    math:baseDimensionExponent ex:dMass1 , ex:dLengthMinus1 , ex:dTimeMinus2 .
+
+ex:dMass1 a math:DimensionExponent ;
+    math:exponentOfDimension math:massDimension ;
+    math:exponentNumerator 1 ; math:exponentDenominator 1 .
+ex:dLengthMinus1 a math:DimensionExponent ;
+    math:exponentOfDimension math:lengthDimension ;
+    math:exponentNumerator -1 ; math:exponentDenominator 1 .
+ex:dTimeMinus2 a math:DimensionExponent ;
+    math:exponentOfDimension math:timeDimension ;
+    math:exponentNumerator -2 ; math:exponentDenominator 1 .
+
+ex:volumeDimension a math:DerivedDimension ;
+    rdfs:label "volume dimension (L³)"@x-gmeow-english ;
+    math:baseDimensionExponent ex:vLength3 .
+
+ex:vLength3 a math:DimensionExponent ;
+    math:exponentOfDimension math:lengthDimension ;
+    math:exponentNumerator 3 ; math:exponentDenominator 1 .
+
+# --- Two commensurable energy quantities (a QUDT unit realizes the dimension) - #
+
+ex:restEnergy a math:Quantity ;
+    rdfs:label "rest energy"@x-gmeow-english ;
+    math:hasDimension ex:energyDimension ;
+    gmeow:unit <http://qudt.org/vocab/unit/J> ;
+    math:quantityValue "8.187e-14"^^xsd:double .
+
+ex:kineticEnergy a math:Quantity ;
+    rdfs:label "kinetic energy"@x-gmeow-english ;
+    math:hasDimension ex:energyDimension ;
+    gmeow:unit <http://qudt.org/vocab/unit/J> ;
+    math:quantityValue "1.5e-13"^^xsd:double .
+
+# --- A homogeneous dimensional expression (their sum) ------------------------ #
+# Both operands carry the energy dimension, so the sum is dimensionally homogeneous.
+
+ex:totalEnergy a math:DimensionalExpression ;
+    rdfs:label "total energy = rest + kinetic"@x-gmeow-english ;
+    math:homogeneousOperand ex:restEnergy , ex:kineticEnergy .
