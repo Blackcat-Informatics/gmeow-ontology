@@ -1,0 +1,18 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for the awareness-subject-range invariant, enforced explicitly
+# (INHABITED-RUNTIME-STACK.md): a gmeow:ModelDeployment is a logic:Relator and
+# MUST NOT also be a gmeow:Agent — otherwise it could be attached as a
+# gmeow:awarenessSubject (which ranges over gmeow:Agent), collapsing the
+# deployment onto its serving-mode tenure. gmeow:ModelDeploymentShape carries an
+# sh:not [ sh:class gmeow:Agent ]; because purrdf's sh:class is literal, this
+# fixture types the deployment directly gmeow:Agent so the disjointness fires
+# without relying on inference. Native SHACL MUST reject it with
+# shacl.NotConstraintComponent.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/model-serving/tests/> .
+
+ex:deploymentIsAgent a gmeow:ModelDeployment ,
+        gmeow:Agent .   # <-- a deployment typed an Agent trips sh:not [ sh:class gmeow:Agent ]
