@@ -1,0 +1,20 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:DimensionExponentShape: a math:DimensionExponent whose
+# math:exponentOfDimension is not a math:BaseDimension (sh:class math:BaseDimension),
+# so the exponent vector would be undefined. Validation MUST emit
+# shacl.ClassConstraintComponent (and no other finding).
+# Bound by tests/example-conformance.ttl (ex:ecDimensionNonBaseExponent).
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:illFormedDimension a math:DerivedDimension ;
+    math:baseDimensionExponent ex:badCell .
+
+ex:badCell a math:DimensionExponent ;
+    math:exponentOfDimension ex:notABaseDimension ;
+    math:exponentNumerator 1 ;
+    math:exponentDenominator 1 .
+
+ex:notABaseDimension a math:Dimension .

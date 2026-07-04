@@ -3,6 +3,7 @@
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
@@ -1286,3 +1287,513 @@ math:UnderspecifiedEncryptionScheme
 # =========================================================================== #
 
 math:Lattice math:formalizes gmeow:tuningSystemJustIntonation .
+
+# =========================================================================== #
+# Measure, integration, and dimension (MEASURE-AND-DIMENSION charter)
+#
+# Two jobs meet here. Measure and integration give probability its foundation
+# — a probability measure is a measure of total mass one, so the probability
+# charter specializes this vocabulary rather than duplicating it. Dimension is
+# the cross-cutting invariant: every quantity carries a dimension (an element of
+# the ℚ-vector space over the seven SI base dimensions) and dimensional
+# homogeneity is a reasoned hard-fail, not asserted data.
+# =========================================================================== #
+
+# --- Measurable spaces, measures, and integration --------------------------- #
+
+math:MeasurableSpace
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Measurable Space"@x-gmeow-english ;
+    skos:definition "A measurable space (X, Σ): a set X together with a σ-algebra Σ of its measurable subsets. Names its underlying set and its σ-algebra through math:measurableSpaceOf. The domain a math:Measure assigns mass over and the domain a math:Integral integrates over; shared with the probability charter, where a probability space is a measurable space carrying a probability measure."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:SigmaAlgebra
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "σ-Algebra"@x-gmeow-english ;
+    skos:definition "A σ-algebra over a set: a collection of subsets closed under complement and countable union (and hence countable intersection), containing the whole set. The measurable sets of a math:MeasurableSpace — the events a math:Measure can assign mass to. Shared with the probability charter, where the σ-algebra is the event space of a probability space."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Measure
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Measure"@x-gmeow-english ;
+    skos:definition "A measure μ: a countably-additive assignment of non-negative extended-real mass to the measurable sets of a math:MeasurableSpace. Names the space it acts on through math:measureOn and its total mass through math:totalMass — which may be a finite non-negative number or math:PositiveInfinity (a σ-finite measure such as a math:LebesgueMeasure on the line, or a math:CountingMeasure on an infinite set, has infinite total mass). The general object every mass-bearing construction specializes: a math:ProbabilityMeasure is a measure of total mass one, and a math:Integral integrates a math:MeasurableFunction against a measure."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:LebesgueMeasure
+    a owl:Class ;
+    rdfs:subClassOf math:Measure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Lebesgue Measure"@x-gmeow-english ;
+    skos:definition "The Lebesgue measure: the canonical translation-invariant measure on ℝⁿ that assigns to an interval its length (area, volume). A subclass of math:Measure; the continuous counterpart of the discrete math:CountingMeasure. Its total mass over an unbounded space is math:PositiveInfinity, though it is σ-finite. Integration against it recovers the ordinary Riemann integral where that exists."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:CountingMeasure
+    a owl:Class ;
+    rdfs:subClassOf math:Measure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Counting Measure"@x-gmeow-english ;
+    skos:definition "The counting measure: the measure that assigns to a set the number of its elements. A subclass of math:Measure; the discrete counterpart of the continuous math:LebesgueMeasure. Its total mass over an infinite set is math:PositiveInfinity. Integration against it turns an integral into a sum, unifying the continuous and discrete cases under one math:Integral object."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:ProbabilityMeasure
+    a owl:Class ;
+    rdfs:subClassOf math:Measure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Probability Measure"@x-gmeow-english ;
+    skos:definition "A probability measure: a math:Measure of total mass one (math:totalMass 1). The probability bridge — the probability charter specializes this class rather than re-minting it, so a probability space is a math:MeasurableSpace carrying a probability measure and an expectation is a math:Integral against it. A probability measure that does not have total mass one is ill-formed (math:ProbabilityMeasureMassViolation)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:MeasurableFunction
+    a owl:Class ;
+    rdfs:subClassOf math:Function ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Measurable Function"@x-gmeow-english ;
+    skos:definition "A measurable function: a function between measurable spaces under which the preimage of every measurable set is measurable. A subclass of math:Function, so it declares its math:domain and math:codomain. The integrand of a math:Integral is a measurable function; density and mass functions in the probability charter are measurable functions."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Integral
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalExpression ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Integral"@x-gmeow-english ;
+    skos:definition "An integral ∫_D f dμ as a first-class object: the application of a math:IntegrationOperator naming its integrand (math:integrand, a math:MeasurableFunction), its domain (math:integrationDomain, a math:MeasurableSpace or measurable set), and the measure it integrates against (math:withRespectTo, a math:Measure). It carries the dimension of its result through math:hasDimension; the homogeneity gate checks that this equals the integrand's dimension combined with the measure's. An expectation in the probability charter is an integral against a probability measure."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:IntegrationOperator
+    a owl:Class ;
+    rdfs:subClassOf math:Operation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Integration Operator"@x-gmeow-english ;
+    skos:definition "The integration operator ∫ · dμ: a binder over the integration variable that a math:Integral applies. A subclass of math:Operation; because it binds the integration variable it is a binding form (a binder in the sense of the mathematical-expression surface this bedrock builds on), which is why an integral is a first-class expression object rather than a display string."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:PositiveInfinity
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "+∞"@x-gmeow-english ;
+    skos:definition "Positive infinity as an extended-real value: the total mass of a σ-finite but non-finite measure such as a math:LebesgueMeasure on the line or a math:CountingMeasure on an infinite set. A math:totalMass is either a finite non-negative number or this individual; it is the extended-real point that makes an infinite measure declarable without a finite literal."@x-gmeow-english .
+
+# --- Dimension — the cross-cutting invariant -------------------------------- #
+
+math:Dimension
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Dimension"@x-gmeow-english ;
+    skos:definition "A physical dimension: an element of the ℚ-vector space over the seven SI base dimensions (length, mass, time, electric current, thermodynamic temperature, amount of substance, luminous intensity). Product of dimensions adds their exponent vectors, a power scalar-multiplies, math:dimensionless is the identity, and two dimensions are equal exactly when their exponent vectors are equal — the derived math:commensurableWith relation. Exponents are exact rationals (ℚ, admitting fractional dimensions such as T^(−1/2)), never floating-point. A math:Quantity carries its dimension through math:hasDimension."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:BaseDimension
+    a owl:Class ;
+    rdfs:subClassOf math:Dimension ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Base Dimension"@x-gmeow-english ;
+    skos:definition "One of the seven SI base dimensions — a generator of the ℚ-vector space of dimensions. The seven individuals are math:lengthDimension (L), math:massDimension (M), math:timeDimension (T), math:electricCurrentDimension (I), math:temperatureDimension (Θ), math:amountOfSubstanceDimension (N), and math:luminousIntensityDimension (J). A base dimension is a basis vector; it carries no math:baseDimensionExponent list because it is itself a generator, not a product."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:DerivedDimension
+    a owl:Class ;
+    rdfs:subClassOf math:Dimension ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Derived Dimension"@x-gmeow-english ;
+    skos:definition "A dimension expressed as a product of powers of the base dimensions — velocity L·T⁻¹, energy M·L²·T⁻², and so on. It records that product as a set of math:DimensionExponent cells through math:baseDimensionExponent (one edge per base dimension it involves), each naming a math:BaseDimension (math:exponentOfDimension) and an exact-rational power (math:exponentNumerator over math:exponentDenominator). The cells are an unordered set — a product commutes — so no list order is imposed. Its human-readable math:dimensionVector string is a computed projection of that structured set, never an independent source."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Dimensionless
+    a owl:Class ;
+    rdfs:subClassOf math:Dimension ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Dimensionless"@x-gmeow-english ;
+    skos:definition "The dimensionless quantity: the identity element of the dimension vector space, whose exponent vector is zero on every base dimension. A ratio of commensurable quantities, a probability, a correlation, and an angle are all math:dimensionless. The distinguished individual is math:dimensionless."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:DimensionalExpression
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalExpression ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Dimensional Expression"@x-gmeow-english ;
+    skos:definition "An expression whose operands must be dimensionally homogeneous — an addition, a subtraction, an equation, or a comparison, where every operand must share one dimension. Names its operands through math:homogeneousOperand (at least two). The homogeneity gate collects the dimensions of the operands and raises math:DimensionalInhomogeneity if they are not all equal. This is the first-class carrier of the homogeneity invariant; the full expression grammar (indexed argument slots) belongs to the mathematical-core surface this bedrock builds on, which will refine this class."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Quantity
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Quantity"@x-gmeow-english ;
+    skos:definition "A dimensioned quantity: a value that carries a math:Dimension through math:hasDimension and, where measured, a unit (gmeow:unit, aligned to QUDT / OM 2) that realizes that dimension and a numeric magnitude (math:quantityValue). Every quantity carries a dimension — an undimensioned quantity is ill-formed (math:UndimensionedQuantity). Units live within a dimension; two quantities are comparable exactly when their dimensions are equal (math:commensurableWith)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:DimensionExponent
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Dimension Exponent"@x-gmeow-english ;
+    skos:definition "One (base dimension, exact-rational power) cell of a derived dimension's product form: it names the math:BaseDimension it raises (math:exponentOfDimension) and the power, as an exact rational, through math:exponentNumerator over math:exponentDenominator (denominator non-zero). The cells named by a math:DerivedDimension's math:baseDimensionExponent edges together give its exponent vector over the seven base dimensions. Rational, not decimal, so equality of dimensions is exact."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+# --- Base-dimension individuals (the ℚ⁷ generators) ------------------------- #
+
+math:lengthDimension
+    a owl:NamedIndividual , math:BaseDimension ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "length (L)"@x-gmeow-english ;
+    skos:definition "The SI base dimension of length, L — realized by the metre. A generator of the dimension vector space."@x-gmeow-english .
+
+math:massDimension
+    a owl:NamedIndividual , math:BaseDimension ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "mass (M)"@x-gmeow-english ;
+    skos:definition "The SI base dimension of mass, M — realized by the kilogram. A generator of the dimension vector space."@x-gmeow-english .
+
+math:timeDimension
+    a owl:NamedIndividual , math:BaseDimension ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "time (T)"@x-gmeow-english ;
+    skos:definition "The SI base dimension of time, T — realized by the second. A generator of the dimension vector space."@x-gmeow-english .
+
+math:electricCurrentDimension
+    a owl:NamedIndividual , math:BaseDimension ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "electric current (I)"@x-gmeow-english ;
+    skos:definition "The SI base dimension of electric current, I — realized by the ampere. A generator of the dimension vector space."@x-gmeow-english .
+
+math:temperatureDimension
+    a owl:NamedIndividual , math:BaseDimension ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "thermodynamic temperature (Θ)"@x-gmeow-english ;
+    skos:definition "The SI base dimension of thermodynamic temperature, Θ — realized by the kelvin. A generator of the dimension vector space."@x-gmeow-english .
+
+math:amountOfSubstanceDimension
+    a owl:NamedIndividual , math:BaseDimension ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "amount of substance (N)"@x-gmeow-english ;
+    skos:definition "The SI base dimension of amount of substance, N — realized by the mole. A generator of the dimension vector space."@x-gmeow-english .
+
+math:luminousIntensityDimension
+    a owl:NamedIndividual , math:BaseDimension ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "luminous intensity (J)"@x-gmeow-english ;
+    skos:definition "The SI base dimension of luminous intensity, J — realized by the candela. A generator of the dimension vector space."@x-gmeow-english .
+
+math:dimensionless
+    a owl:NamedIndividual , math:Dimensionless ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "dimensionless (1)"@x-gmeow-english ;
+    skos:definition "The dimensionless dimension: the zero vector, the identity of the dimension vector space. The dimension of a ratio of commensurable quantities, a probability, a correlation, or an angle."@x-gmeow-english .
+
+# --- Measure and dimension failure classes ---------------------------------- #
+
+math:IncompleteMeasure
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Incomplete Measure"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:Measure does not declare the measurable space it acts on (math:measureOn) or its total mass (math:totalMass, a finite non-negative number or math:PositiveInfinity). A measure without its space and mass is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:ProbabilityMeasureMassViolation
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Probability-Measure Mass Violation"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:ProbabilityMeasure does not have math:totalMass one. A probability measure is exactly a measure of total mass one; any other total mass is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:IncompleteIntegral
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Incomplete Integral"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:Integral does not name its integrand (math:integrand), its domain (math:integrationDomain), and the measure it integrates against (math:withRespectTo). An integral missing any of the three is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:UndimensionedQuantity
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Undimensioned Quantity"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:Quantity does not carry a math:Dimension through math:hasDimension. Every quantity carries a dimension; an undimensioned quantity is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:MalformedDimension
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Malformed Dimension"@x-gmeow-english ;
+    skos:definition "The failure raised when a dimension is structurally ill-formed: a math:DerivedDimension with no math:baseDimensionExponent list, an exponent cell whose math:exponentOfDimension is not a math:BaseDimension (so the exponent vector is undefined or cyclic), an exponent missing its numerator or denominator, or a math:dimensionVector string that does not match the canonical render of the structured exponent list (a divergent second source). Also raised when a math:DimensionalExpression carries fewer than two math:homogeneousOperand."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:DimensionalInhomogeneity
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Dimensional Inhomogeneity"@x-gmeow-english ;
+    skos:definition "The failure raised when an expression is dimensionally inhomogeneous: the operands of a math:DimensionalExpression do not all share one dimension, or a math:Integral's declared result dimension does not equal its integrand's dimension combined with its measure's. This is the no-optionality posture applied to dimensions — a dimensionally inhomogeneous expression is ill-formed. It is a reasoned gate, computed exactly from the rational exponent vectors of the ℚ-vector space of dimensions, not asserted data — this is GMEOW's differentiator over unit vocabularies that record conversions as data rather than deriving homogeneity."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+# --- Measure properties ----------------------------------------------------- #
+
+math:measurableSpaceOf
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "measurable space of"@x-gmeow-english ;
+    skos:definition "Relates a math:MeasurableSpace to its underlying set or its σ-algebra — the components (X, Σ) that constitute it. Domain math:MeasurableSpace, range math:Set or math:SigmaAlgebra (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:measureOn
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "measure on"@x-gmeow-english ;
+    skos:definition "Names the math:MeasurableSpace a measure assigns mass over. Domain math:Measure, range math:MeasurableSpace (stated in prose). Every math:Measure declares one; a measure without its space is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:totalMass
+    a rdf:Property ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "total mass"@x-gmeow-english ;
+    skos:definition "The total mass a measure assigns to its whole space — a finite non-negative number or the extended-real math:PositiveInfinity. Domain math:Measure, range a non-negative numeric literal or math:PositiveInfinity (stated in prose). It is an rdf:Property, not an owl:ObjectProperty or owl:DatatypeProperty, precisely because its range spans both a datatype literal (the finite mass) and an individual (math:PositiveInfinity): neither DL property kind admits both, so the honest RDF supertype carries the extended-real range without a DL contradiction. A math:ProbabilityMeasure has total mass one."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:integrand
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "integrand"@x-gmeow-english ;
+    skos:definition "Names the math:MeasurableFunction a math:Integral integrates — the f in ∫_D f dμ. Domain math:Integral, range math:MeasurableFunction (stated in prose). Every integral names one."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:integrationDomain
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "integration domain"@x-gmeow-english ;
+    skos:definition "Names the domain a math:Integral integrates over — the D in ∫_D f dμ, a math:MeasurableSpace or measurable set. Domain math:Integral, range math:MeasurableSpace or math:Set (stated in prose). Every integral names one."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:withRespectTo
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "with respect to"@x-gmeow-english ;
+    skos:definition "Names the math:Measure a math:Integral integrates against — the μ in ∫_D f dμ. Domain math:Integral, range math:Measure (stated in prose). Every integral names exactly one; it is the single measure property of an integral (an expectation integrates against a probability measure). The homogeneity gate combines the integrand's dimension with this measure's to check the integral's declared result dimension."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# --- Dimension properties --------------------------------------------------- #
+
+math:hasDimension
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "has dimension"@x-gmeow-english ;
+    skos:definition "Names the math:Dimension a quantity, integral, or dimensioned object carries. Domain math:Quantity (or another dimensioned object such as a math:Integral), range math:Dimension (stated in prose). Every math:Quantity declares exactly one — an undimensioned quantity is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:dimensionVector
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "dimension vector"@x-gmeow-english ;
+    skos:definition "The human-readable canonical rendering of a dimension's exponent vector, for example \"M·L2·T-2\" for energy. Domain math:Dimension, range xsd:string (stated in prose). A computed projection of the structured math:baseDimensionExponent list, never an independent authored source: where present it must match the canonical render of the structured exponents, or the dimension is malformed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:baseDimensionExponent
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "base dimension exponent"@x-gmeow-english ;
+    skos:definition "Relates a math:DerivedDimension to one math:DimensionExponent cell of its product form over the base dimensions — one such edge per base dimension involved (an unordered set, since a product commutes). Domain math:DerivedDimension, range math:DimensionExponent (stated in prose). A base dimension carries no such edge — it is a generator, not a product."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:exponentOfDimension
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "exponent of dimension"@x-gmeow-english ;
+    skos:definition "Names the math:BaseDimension that a math:DimensionExponent cell raises to a power. Domain math:DimensionExponent, range math:BaseDimension only (stated in prose) — never a derived dimension, so the exponent vector is well-defined and acyclic by construction."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:exponentNumerator
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "exponent numerator"@x-gmeow-english ;
+    skos:definition "The numerator of the exact-rational power a math:DimensionExponent raises its base dimension to. Domain math:DimensionExponent, range xsd:integer (stated in prose). Together with math:exponentDenominator it gives an exact math:RationalNumber power — ℚ, admitting fractional dimensions such as T^(−1/2) — never a floating-point or decimal approximation."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:exponentDenominator
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "exponent denominator"@x-gmeow-english ;
+    skos:definition "The denominator of the exact-rational power a math:DimensionExponent raises its base dimension to. Domain math:DimensionExponent, range xsd:integer (stated in prose), non-zero. Together with math:exponentNumerator it gives an exact math:RationalNumber power; a whole-number exponent uses denominator one."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:commensurableWith
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "commensurable with"@x-gmeow-english ;
+    skos:definition "Relates two quantities that share one dimension — the equivalence relation of equal dimension vectors, under which they can be added, compared, or subtracted. Domain and range math:Quantity (stated in prose). This relation is derived, not asserted: it is computed as the kernel-equivalence of the dimension map (quantities whose exact-rational exponent vectors are equal), so its reflexivity, symmetry, and transitivity are properties of the derivation, carried by no OWL characteristic (symmetric properties are outside the EL profile) — the competency query reads the computed equivalence classes."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:homogeneousOperand
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "homogeneous operand"@x-gmeow-english ;
+    skos:definition "Relates a math:DimensionalExpression to one of the operands that must share its single dimension — a summand of an addition, a side of an equation, a term of a comparison. Domain math:DimensionalExpression, range a dimensioned object (a math:Quantity or another dimensioned expression) (stated in prose). An expression carries at least two; the homogeneity gate raises math:DimensionalInhomogeneity when their dimensions are not all equal."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# =========================================================================== #
+# The dimensional-homogeneity invariant as first-order logic: laws, and the
+# native ℚ⁷ validator declared as their exact executable lowering
+# (MEASURE-AND-DIMENSION — the charter's distinguished reasoned gate)
+#
+# math:DimensionalInhomogeneity is not a bare Rust side-channel: the invariant
+# the native validator (crates/validate check_math_dimension_invariants)
+# computes from the exact-rational ℚ⁷ exponent vectors is authored HERE as real
+# logic:Formula first-order ASTs — math: expresses the law, logic: owns
+# reasoning over it, exactly as the ALGEBRA preservation laws do. The validator
+# is then declared as the LOWERING of these laws, carrying
+# logic:preservationKind logic:ExactPreservation in the same loss ledger every
+# other GMEOW lowering rides (Principle 17; no new preservation vocabulary is
+# minted). The relation atoms are reified as logic:Type individuals per the
+# HiLog reflection (logic:relation ranges over logic:Type), exactly as the det
+# law reifies matMul/det; where a first-class math: property already names the
+# relation, the reflection carries an rdfs:seeAlso back to it, so no near-synonym
+# property is minted.
+# =========================================================================== #
+
+# --- Reified relation atoms (HiLog reflection of the dimension predicates) --- #
+
+math:homogeneousOperandRel
+    a logic:Type ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "homogeneousOperand(E,o) ⟺ o is a homogeneous operand of expression E"@x-gmeow-english ;
+    rdfs:seeAlso math:homogeneousOperand ;
+    skos:definition "The HiLog reflection of math:homogeneousOperand as a binary relation individual, so the homogeneity law can predicate over it inside a logic:Formula atom. It reflects the existing property (rdfs:seeAlso), keeping the object level first-order rather than minting a second relation."@x-gmeow-english .
+
+math:hasDimensionRel
+    a logic:Type ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "hasDimension(x,d) ⟺ dimensioned object x carries dimension d"@x-gmeow-english ;
+    rdfs:seeAlso math:hasDimension ;
+    skos:definition "The HiLog reflection of math:hasDimension as a binary relation individual, so a law can predicate 'x carries dimension d' inside a logic:Formula atom. Reflects the existing property (rdfs:seeAlso), minting no second relation."@x-gmeow-english .
+
+math:integrandRel
+    a logic:Type ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "integrand(I,f) ⟺ f is the integrand of integral I"@x-gmeow-english ;
+    rdfs:seeAlso math:integrand ;
+    skos:definition "The HiLog reflection of math:integrand as a binary relation individual, so the integral-composition law can predicate over it inside a logic:Formula atom. Reflects the existing property (rdfs:seeAlso)."@x-gmeow-english .
+
+math:withRespectToRel
+    a logic:Type ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "withRespectTo(I,μ) ⟺ μ is the measure integral I integrates against"@x-gmeow-english ;
+    rdfs:seeAlso math:withRespectTo ;
+    skos:definition "The HiLog reflection of math:withRespectTo as a binary relation individual, so the integral-composition law can predicate over it inside a logic:Formula atom. Reflects the existing property (rdfs:seeAlso)."@x-gmeow-english .
+
+math:dimensionEqualityRel
+    a logic:Type ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "dimEqual(d1,d2) ⟺ dimensions d1 and d2 have equal ℚ⁷ exponent vectors"@x-gmeow-english ;
+    rdfs:seeAlso math:commensurableWith ;
+    skos:definition "The dimension-level equality relation the homogeneity law concludes: dimEqual(d1,d2) holds exactly when d1 and d2 have identical exact-rational exponent vectors over the seven SI base dimensions — the derived commensurability the native validator computes by exact rational arithmetic. It is the dimension-carrier of the same equivalence math:commensurableWith carries at the quantity level (rdfs:seeAlso); a HiLog reflection individual, not a first-class asserted property (the equality is derived, never authored)."@x-gmeow-english .
+
+math:dimensionProductRel
+    a logic:Type ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "dimProduct(dA,dB,dC) ⟺ dC's exponent vector is dA's ⊕ dB's"@x-gmeow-english ;
+    skos:definition "The dimension-product relation the integral-composition law concludes: dimProduct(dA,dB,dC) holds exactly when dC's exact-rational exponent vector is the vector sum of dA's and dB's — a product of dimensions adds exponent vectors in the ℚ-vector space of dimensions. A HiLog reflection individual over which the law predicates 'result = integrand ⊕ measure'; the native validator discharges it by exact rational vector addition."@x-gmeow-english .
+
+# --- Law 1: dimensional homogeneity ----------------------------------------- #
+# ∀E,o1,o2,d1,d2: homogeneousOperand(E,o1) ∧ homogeneousOperand(E,o2)
+#                 ∧ hasDimension(o1,d1) ∧ hasDimension(o2,d2) → dimEqual(d1,d2)
+# Any two homogeneous operands of a dimensional expression carry equal dimensions
+# (equal ℚ⁷ exponent vectors). Its executable lowering is the native validator's
+# homogeneity branch, which raises math:DimensionalInhomogeneity on any violation.
+
+math:dimensionalHomogeneityLaw
+    a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "dimensional homogeneity: an expression's operands share one dimension"@x-gmeow-english ;
+    skos:definition "The homogeneity invariant of a math:DimensionalExpression as a universally-quantified first-order logic:Formula: for any two math:homogeneousOperand operands of the same expression, their carried dimensions have equal ℚ⁷ exponent vectors (dimEqual). math: expresses the law; logic: owns reasoning over it; the native validator is its exact executable lowering (math:dimensionalHomogeneityLowering)."@x-gmeow-english ;
+    logic:quantifiedVariable
+        [ logic:termIndex 0 ; logic:termVariable "E" ] ,
+        [ logic:termIndex 1 ; logic:termVariable "o1" ] ,
+        [ logic:termIndex 2 ; logic:termVariable "o2" ] ,
+        [ logic:termIndex 3 ; logic:termVariable "d1" ] ,
+        [ logic:termIndex 4 ; logic:termVariable "d2" ] ;
+    logic:forall math:dimHomImpl .
+
+math:dimHomImpl a logic:Formula ;
+    logic:antecedent math:dimHomAnte ;
+    logic:consequent math:dimHomCons .
+
+math:dimHomAnte a logic:Formula ;
+    logic:and math:dimHomA1 , math:dimHomA2 , math:dimHomA3 , math:dimHomA4 .
+
+math:dimHomA1 a logic:Formula ; logic:relation math:homogeneousOperandRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "E" ] , [ logic:termIndex 1 ; logic:termVariable "o1" ] .
+math:dimHomA2 a logic:Formula ; logic:relation math:homogeneousOperandRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "E" ] , [ logic:termIndex 1 ; logic:termVariable "o2" ] .
+math:dimHomA3 a logic:Formula ; logic:relation math:hasDimensionRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "o1" ] , [ logic:termIndex 1 ; logic:termVariable "d1" ] .
+math:dimHomA4 a logic:Formula ; logic:relation math:hasDimensionRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "o2" ] , [ logic:termIndex 1 ; logic:termVariable "d2" ] .
+
+math:dimHomCons a logic:Formula ; logic:relation math:dimensionEqualityRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "d1" ] , [ logic:termIndex 1 ; logic:termVariable "d2" ] .
+
+# --- Law 2: integral dimensional composition -------------------------------- #
+# ∀I,f,μ,dR,dF,dM: integrand(I,f) ∧ withRespectTo(I,μ) ∧ hasDimension(I,dR)
+#                 ∧ hasDimension(f,dF) ∧ hasDimension(μ,dM) → dimProduct(dF,dM,dR)
+# An integral's declared result dimension is its integrand's dimension composed
+# (⊕, exponent-vector addition) with its measure's. Its executable lowering is the
+# native validator's integral branch, which raises math:DimensionalInhomogeneity
+# when dim(result) ≠ dim(integrand) ⊕ dim(measure).
+
+math:integralDimensionCompositionLaw
+    a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "integral composition: dim(result) = dim(integrand) ⊕ dim(measure)"@x-gmeow-english ;
+    skos:definition "The dimensional-composition invariant of a math:Integral as a universally-quantified first-order logic:Formula: for an integral with integrand f (math:integrand) and measure μ (math:withRespectTo), the integral's declared result dimension equals f's dimension composed with μ's (dimProduct — exponent-vector addition in the ℚ-vector space). math: expresses the law; logic: owns reasoning over it; the native validator is its exact executable lowering (math:dimensionalHomogeneityLowering)."@x-gmeow-english ;
+    logic:quantifiedVariable
+        [ logic:termIndex 0 ; logic:termVariable "I" ] ,
+        [ logic:termIndex 1 ; logic:termVariable "f" ] ,
+        [ logic:termIndex 2 ; logic:termVariable "mu" ] ,
+        [ logic:termIndex 3 ; logic:termVariable "dR" ] ,
+        [ logic:termIndex 4 ; logic:termVariable "dF" ] ,
+        [ logic:termIndex 5 ; logic:termVariable "dM" ] ;
+    logic:forall math:intCompImpl .
+
+math:intCompImpl a logic:Formula ;
+    logic:antecedent math:intCompAnte ;
+    logic:consequent math:intCompCons .
+
+math:intCompAnte a logic:Formula ;
+    logic:and math:intCompA1 , math:intCompA2 , math:intCompA3 , math:intCompA4 , math:intCompA5 .
+
+math:intCompA1 a logic:Formula ; logic:relation math:integrandRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "I" ] , [ logic:termIndex 1 ; logic:termVariable "f" ] .
+math:intCompA2 a logic:Formula ; logic:relation math:withRespectToRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "I" ] , [ logic:termIndex 1 ; logic:termVariable "mu" ] .
+math:intCompA3 a logic:Formula ; logic:relation math:hasDimensionRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "I" ] , [ logic:termIndex 1 ; logic:termVariable "dR" ] .
+math:intCompA4 a logic:Formula ; logic:relation math:hasDimensionRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "f" ] , [ logic:termIndex 1 ; logic:termVariable "dF" ] .
+math:intCompA5 a logic:Formula ; logic:relation math:hasDimensionRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "mu" ] , [ logic:termIndex 1 ; logic:termVariable "dM" ] .
+
+math:intCompCons a logic:Formula ; logic:relation math:dimensionProductRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "dF" ] , [ logic:termIndex 1 ; logic:termVariable "dM" ] , [ logic:termIndex 2 ; logic:termVariable "dR" ] .
+
+# --- The native validator declared as the laws' exact executable lowering --- #
+# The loss-ledger record: the native ℚ⁷ dimensional validator is the executable
+# lowering of the two logic: laws above. Because it computes each dimension's
+# exact-rational exponent vector and decides dimEqual / dimProduct by exact
+# rational arithmetic — never rounding, never a divergent asserted label — it
+# neither misses a genuine inhomogeneity nor invents a spurious one: it yields
+# exactly the answers the canonical laws entail, hence logic:ExactPreservation
+# (the same polarity vocabulary every other GMEOW lowering carries). A violation
+# raises the typed failure math:DimensionalInhomogeneity.
+
+math:dimensionalHomogeneityLowering
+    a gmeow:InformationObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "native ℚ⁷ validator: exact lowering of the dimensional-homogeneity laws"@x-gmeow-english ;
+    skos:definition "The declaration that the native dimensional-homogeneity validator (the check computing dimensions' exact-rational ℚ⁷ exponent vectors) is the executable lowering of math:dimensionalHomogeneityLaw and math:integralDimensionCompositionLaw. It decides the laws' dimEqual and dimProduct conclusions by exact rational arithmetic over the exponent vectors, so it neither misses a genuine inhomogeneity nor reports a spurious one — it yields exactly the answers the canonical laws entail. Hence logic:preservationKind logic:ExactPreservation, reusing the existing loss-ledger polarity vocabulary (Principle 17, no near-synonym minted). A violation raises the typed failure class math:DimensionalInhomogeneity. The laws are the source, the native gate the enforcement, and this record their preservation judgment in the loss ledger."@x-gmeow-english ;
+    logic:preservationKind logic:ExactPreservation ;
+    rdfs:seeAlso math:dimensionalHomogeneityLaw ,
+        math:integralDimensionCompositionLaw ,
+        math:DimensionalInhomogeneity .

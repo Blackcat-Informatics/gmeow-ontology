@@ -1,0 +1,20 @@
+# Competency question: "What measurable space and total mass does this measure have,
+# and is it a probability measure?"  This exercises the measure discipline that a
+# math:Measure declares the math:MeasurableSpace it acts on and a total mass — a
+# finite non-negative number or the extended-real math:PositiveInfinity — and that a
+# probability measure is exactly a measure of total mass one. Scoped to the fixture
+# namespace so the answer is the two fixture measures {coinMeasure → coinSpace, mass
+# 1, a probability measure; lengthMeasure → lineSpace, mass +∞, not a probability
+# measure}.
+PREFIX math: <https://blackcatinformatics.ca/math/>
+
+SELECT ?measure ?space ?mass ?isProbability WHERE {
+    ?measure a math:Measure ;
+             math:measureOn ?space ;
+             math:totalMass ?massRaw .
+    FILTER(STRSTARTS(STR(?measure), "http://example.org/math/"))
+    BIND(STR(?massRaw) AS ?mass)
+    OPTIONAL { ?measure a math:ProbabilityMeasure . BIND("true" AS ?probStr) }
+    BIND(COALESCE(?probStr, "false") AS ?isProbability)
+}
+ORDER BY ?measure

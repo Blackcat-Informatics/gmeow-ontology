@@ -1,0 +1,13 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Well-formed: a measure declaring the measurable space it acts on and a finite total
+# mass. Conforms to math:MeasureShape. Bound by ex:ecMeasureComplete.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:finiteMeasure a math:Measure ;
+    math:measureOn ex:space ;
+    math:totalMass 5 .
+
+ex:space a math:MeasurableSpace .
