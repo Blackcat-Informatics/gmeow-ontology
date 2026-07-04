@@ -99,22 +99,30 @@ math:IntensionalSetShape
         sh:message "A math:SetBuilderExpression must name exactly one math:memberCondition as a resource denoting a logic: formula (a single defining condition, which may itself be a compound formula), not an opaque literal string." ;
     ] .
 
-# Rule 5 — a complement names its ambient set.
+# Rule 5 — a complement names its ambient space AND its complement-semantics.
 math:ComplementShape
     a sh:NodeShape ;
-    rdfs:label "Complement ambient-set shape"@x-gmeow-english ;
-    skos:definition "SHACL constraint for math:Complement: it names the ambient set it is taken relative to through math:complementWithin. An unqualified complement is ill-formed."@x-gmeow-english ;
+    rdfs:label "Complement ambient-space and semantics shape"@x-gmeow-english ;
+    skos:definition "SHACL constraint for math:Complement: it names the ambient space it is taken relative to through math:ambientSpace and which notion of complement it uses through math:complementSemantics (set-theoretic, orthogonal, complex-linear, topological, or quotient). A complement missing either is ill-formed."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     math:enforcesFailureClass math:UnqualifiedComplement ;
     sh:targetClass math:Complement ;
     sh:property [
-        sh:path math:complementWithin ;
+        sh:path math:ambientSpace ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
         sh:nodeKind sh:IRI ;
-        sh:class math:Set ;
         sh:severity sh:Violation ;
-        sh:message "A math:Complement must name its ambient set through math:complementWithin; an unqualified complement is ill-formed." ;
+        sh:message "A math:Complement must name its ambient space through math:ambientSpace; an unqualified complement is ill-formed." ;
+    ] ;
+    sh:property [
+        sh:path math:complementSemantics ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:class math:ComplementSemantics ;
+        sh:severity sh:Violation ;
+        sh:message "A math:Complement must name its complement-semantics through math:complementSemantics (one of set-theoretic, orthogonal, complex-linear, topological, quotient); an unqualified complement is ill-formed." ;
     ] .
 
 # Rule 6 — a set is extensional or intensional, not silently both.

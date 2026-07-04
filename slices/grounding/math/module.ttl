@@ -299,7 +299,7 @@ math:SetOperation
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Set Operation"@x-gmeow-english ;
-    skos:definition "An operation constructing a set from operand sets — union, intersection, difference, or complement. Its operands are named through math:setOperationOn. The complement construction is the distinguished subclass math:Complement, which additionally names its ambient set through math:complementWithin; an unqualified complement is ill-formed. math:PowerSet and math:CartesianProduct are distinguished constructions with their own classes."@x-gmeow-english ;
+    skos:definition "An operation constructing a set from operand sets — union, intersection, difference, or complement. Its operands are named through math:setOperationOn. The complement construction is the distinguished subclass math:Complement, which additionally names its ambient space through math:ambientSpace and its complement-semantics through math:complementSemantics; an unqualified complement is ill-formed. math:PowerSet and math:CartesianProduct are distinguished constructions with their own classes."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:Complement
@@ -307,7 +307,7 @@ math:Complement
     rdfs:subClassOf math:SetOperation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Complement"@x-gmeow-english ;
-    skos:definition "The complement construction Sᶜ = U ∖ S: the set of elements of an ambient set U that are not in S. A subclass of math:SetOperation that always names its ambient set through math:complementWithin — a complement is relative to an ambient set, so an unqualified complement is ill-formed."@x-gmeow-english ;
+    skos:definition "The complement construction: the elements of an ambient space not in S, under a declared notion of complement. A subclass of math:SetOperation that always names its ambient space through math:ambientSpace and which notion of complement it uses through math:complementSemantics (set-theoretic U ∖ S, orthogonal S⊥, complex-linear, topological, or quotient/cokernel) — a complement is relative to an ambient space under a semantics, so an unqualified complement (missing either) is ill-formed."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:PowerSet
@@ -458,7 +458,7 @@ math:UnqualifiedComplement
     rdfs:subClassOf math:MathConformanceFailure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Unqualified Complement"@x-gmeow-english ;
-    skos:definition "The failure raised when a complement math:SetOperation does not name its ambient set through math:complementWithin. A complement is relative to an ambient set; an unqualified complement is ill-formed."@x-gmeow-english ;
+    skos:definition "The failure raised when a math:Complement does not name its ambient space through math:ambientSpace or its complement-semantics through math:complementSemantics. A complement is relative to an ambient space under a declared notion of complement (set-theoretic, orthogonal, complex-linear, topological, or quotient); a complement missing either is ambiguous and ill-formed."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:AmbiguousSetExtent
@@ -562,12 +562,56 @@ math:setOperationOn
     skos:definition "Relates a set-construction (a math:SetOperation, math:PowerSet, or math:CartesianProduct) to an operand set it is built from. Domain math:SetOperation or its siblings, range math:Set (stated in prose)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
-math:complementWithin
+math:ambientSpace
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
-    rdfs:label "complement within"@x-gmeow-english ;
-    skos:definition "Names the ambient set a complement is taken relative to (the U in Sᶜ = U ∖ S). Domain a complement math:SetOperation, range math:Set (stated in prose). A complement without an ambient set is ill-formed."@x-gmeow-english ;
+    rdfs:label "ambient space"@x-gmeow-english ;
+    skos:definition "Names the ambient space a math:Complement is taken relative to (the U in a complement of S within U). Domain math:Complement, range a math:Set, math:VectorSpace, math:TopologicalSpace, or math:FunctionSpace (stated in prose) — the ambient space generalizes the set-theoretic case to the orthogonal, complex-linear, topological, and quotient cases the math:complementSemantics distinguishes. A complement without an ambient space is ill-formed (math:UnqualifiedComplement). Generalizes the earlier set-only complement predicate: a complement is relative to an ambient space, and which space and which semantics must both be named."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
+
+math:complementSemantics
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "complement semantics"@x-gmeow-english ;
+    skos:definition "Names which notion of complement a math:Complement uses: a math:ComplementSemantics individual — set-theoretic (U ∖ S), orthogonal (S⊥ in an inner-product space), complex-linear (a complementary subspace), topological (the closed complement of an open set), or quotient/cokernel. Domain math:Complement, range math:ComplementSemantics (stated in prose). 'The complement of X' without a named semantics is ambiguous and ill-formed (math:UnqualifiedComplement) — the flagship-adjacent 'complex complement' hazard the charter forbids."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:ComplementSemantics
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Complement Semantics"@x-gmeow-english ;
+    skos:definition "The notion of complement a math:Complement uses: one of math:setTheoreticComplement, math:orthogonalComplement, math:complexLinearComplement, math:topologicalComplement, or math:quotientComplement. A complement names exactly one through math:complementSemantics; the same ambient object admits several inequivalent complements, so the semantics must be declared."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:setTheoreticComplement
+    a owl:NamedIndividual , math:ComplementSemantics ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "set-theoretic (U ∖ S)"@x-gmeow-english ;
+    skos:definition "The set-theoretic complement Sᶜ = U ∖ S: the elements of the ambient set U not in S. The elementary case; the ambient space is a math:Set."@x-gmeow-english .
+
+math:orthogonalComplement
+    a owl:NamedIndividual , math:ComplementSemantics ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "orthogonal (S⊥)"@x-gmeow-english ;
+    skos:definition "The orthogonal complement S⊥ = {v : ⟨v, s⟩ = 0 ∀s ∈ S} in an inner-product space. The ambient space is a math:VectorSpace with an inner product; realized in the linear-algebra charter."@x-gmeow-english .
+
+math:complexLinearComplement
+    a owl:NamedIndividual , math:ComplementSemantics ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "complex-linear"@x-gmeow-english ;
+    skos:definition "A complex-linear complement: a subspace W with V = S ⊕ W over ℂ, not canonical without further structure. The 'complex complement' hazard — ambiguous unless the ambient space and this semantics are named."@x-gmeow-english .
+
+math:topologicalComplement
+    a owl:NamedIndividual , math:ComplementSemantics ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "topological (closed complement)"@x-gmeow-english ;
+    skos:definition "The topological complement: the closed complement X ∖ U of an open set U in a math:TopologicalSpace (a math:ClosedSet). Distinct from the set-theoretic complement in carrying the topology."@x-gmeow-english .
+
+math:quotientComplement
+    a owl:NamedIndividual , math:ComplementSemantics ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "quotient / cokernel"@x-gmeow-english ;
+    skos:definition "A quotient/cokernel complement: the quotient V/S rather than a chosen complementary subspace, canonical where a direct-sum complement is not. The ambient space is the total object; the complement is its cokernel."@x-gmeow-english .
 
 math:hasCardinality
     a owl:ObjectProperty ;
