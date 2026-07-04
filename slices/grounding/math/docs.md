@@ -102,8 +102,11 @@ an opaque string.
 - **Lie theory and the E8 flagship** — `math:LieGroup`, `math:LieAlgebra`, `math:RootSystem`,
   `math:CartanMatrix`, `math:DynkinDiagram`, `math:WeylGroup` (⊑ `math:AutomorphismGroup`), `math:Lattice`,
   `math:GroupRepresentation`, and `math:GroupAction`/`math:actsOn`. E8 is authored with 240 roots, rank
-  8, and a Weyl group of order 696,729,600 modelled as the automorphism group acting on the roots — the
-  numbers pinned by an exact-match competency question so wrong data fails the gate.
+  8, and a Weyl group of order 696,729,600 modelled as the automorphism group acting on the roots. The
+  Weyl group is anchored to the roots through `math:automorphismGroupOf` (every automorphism group is
+  the symmetry OF some structure), and E8's numbers are pinned two ways: an exact-match competency
+  question, and `math:E8WeylOrderShape` — a by-value SHACL gate that rejects a root system claiming the
+  E8 fingerprint (240 roots, rank 8) whose Weyl order is not 696,729,600.
 - **Homomorphic encryption (flagship 2) and secret sharing** — `math:HomomorphicEncryptionScheme` (a
   `math:RingHomomorphism`) with `math:homomorphicOver`, `math:securityAssumption` (LWE/RLWE), and
   `math:noiseModel`; encrypt/evaluate/decrypt as `gmeow:Activity` processes. `Dec(E(a) ⊗ E(b)) = a ⊕ b`
@@ -125,4 +128,6 @@ The algebra gates:
 | A preservation law denotes a `logic:` formula, not a string | `math:PreservationLawShape` | `math:StringOnlyPreservationLaw` |
 | A Lie group declares its root system | `math:LieStructureShape` | `math:IncompleteLieStructure` |
 | A root system declares its Cartan matrix, Weyl group, and rank | `math:RootSystemShape` | `math:IncompleteLieStructure` |
+| An automorphism group is anchored to the structure it is the symmetry of | `math:AutomorphismGroupShape` | `math:UnanchoredAutomorphismGroup` |
+| A root system claiming the E8 fingerprint declares the true Weyl order | `math:E8WeylOrderShape` (SHACL-SPARQL) | `math:WrongE8WeylOrder` |
 | An HE scheme declares its homomorphic operation, hardness, and noise | `math:HomomorphicEncryptionSchemeShape` | `math:UnderspecifiedEncryptionScheme` |

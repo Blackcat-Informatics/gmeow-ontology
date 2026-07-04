@@ -1,0 +1,28 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Well-formed: a math:AutomorphismGroup that declares, through math:automorphismGroupOf,
+# the structure whose symmetries it collects (and carries the math:AlgebraicStructure
+# frame every group has). Conforms to math:AutomorphismGroupShape and
+# math:AlgebraicStructureShape. Bound by ex:ecAutomorphismGroupAnchored.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:autGroup a math:AutomorphismGroup ;
+    math:underlyingSet ex:autCarrier ;
+    math:structureOperation ex:autComposition ;
+    math:satisfiesAxiom ex:autAssoc ;
+    math:automorphismGroupOf ex:anchoredStructure .
+
+ex:autCarrier a math:Set .
+ex:autComposition a math:Operation .
+ex:autAssoc a math:Axiom .
+
+ex:anchoredStructure a math:Group ;
+    math:underlyingSet ex:anchoredCarrier ;
+    math:structureOperation ex:anchoredOp ;
+    math:satisfiesAxiom ex:anchoredAssoc .
+
+ex:anchoredCarrier a math:Set .
+ex:anchoredOp a math:Operation .
+ex:anchoredAssoc a math:Axiom .

@@ -975,6 +975,14 @@ math:StringOnlyPreservationLaw
     skos:definition "The failure raised when a math:Homomorphism gives its math:preservationLaw as an opaque literal instead of denoting a logic: formula. The preservation law is the denotation seam to logic: reasoning; it must denote a formula (a resource), never a string."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+math:UnanchoredAutomorphismGroup
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Unanchored Automorphism Group"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:AutomorphismGroup does not declare, through math:automorphismGroupOf, the structure whose symmetries it collects. Every automorphism group is the symmetry group OF some structure — the invariant that makes E8's Weyl group the symmetry of the E8 root system rather than a free-floating group; an automorphism group asserted without its anchoring structure is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
 # =========================================================================== #
 # Algebra — group actions, Lie theory, and root systems (the E8 flagship)
 #
@@ -1065,6 +1073,13 @@ math:actsOn
     skos:definition "Relates a math:GroupAction (or a group acting) to the set or structure it acts on. Domain math:GroupAction or math:Group, range math:Set or math:AlgebraicStructure (stated in prose). A math:WeylGroup math:actsOn the roots of its math:RootSystem."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+math:automorphismGroupOf
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "automorphism group of"@x-gmeow-english ;
+    skos:definition "Relates a math:AutomorphismGroup to the structure whose symmetries it collects — an automorphism group is always the symmetry group OF something. Domain math:AutomorphismGroup, range math:AlgebraicStructure or math:RootSystem (stated in prose). A math:WeylGroup math:automorphismGroupOf its root system: W(E8) is the automorphism group of the E8 root system. This is the invariant that makes a symmetry group anchored — an automorphism group declared without the structure it is the symmetry of is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 math:hasRootSystem
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
@@ -1136,6 +1151,14 @@ math:IncompleteLieStructure
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Incomplete Lie Structure"@x-gmeow-english ;
     skos:definition "The failure raised when a math:LieGroup does not declare its math:hasRootSystem, or a math:RootSystem does not declare its math:cartanMatrix, math:weylGroup, and math:rootSystemRank. The root-system data is what makes a Lie structure expressible and its symmetry an automorphism group; a Lie structure asserted without it is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:WrongE8WeylOrder
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Wrong E8 Weyl Order"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:RootSystem carries the E8 fingerprint (240 roots in rank 8) yet declares a math:weylGroup whose math:groupOrder is not 696,729,600 — the true order of W(E8). The flagship's numbers are a validatable invariant, not decoration: a root system claiming to be E8 with a corrupted Weyl order is ill-formed, and the gate rejects it rather than trusting the value."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 # =========================================================================== #
