@@ -262,16 +262,28 @@ pub(crate) fn skolemize_restrictions(
     for node in restriction_nodes(store, vocab) {
         let node_label = subject_str(&node);
         let on_properties = objects(store, &node, &on_property_pred);
-        let Some(on_property) = on_properties.first().map(term_str) else {
-            diagnostics.push(warn(
-                "MALFORMED_RESTRICTION",
-                format!(
-                    "restriction node {node_label:?} is typed a restriction but has no \
-                     onProperty; skipped"
-                ),
-                Some(node_label),
-            ));
-            continue;
+        let on_property = match on_properties.as_slice() {
+            // No onProperty is authored-input malformedness: disclose and skip.
+            [] => {
+                diagnostics.push(warn(
+                    "MALFORMED_RESTRICTION",
+                    format!(
+                        "restriction node {node_label:?} is typed a restriction but has no \
+                         onProperty; skipped"
+                    ),
+                    Some(node_label),
+                ));
+                continue;
+            }
+            // Two or more onProperty values is a wiring contradiction, not a
+            // disclosable malformedness — pick-first would silently drop a slot, so
+            // hard-fail (the No-optionality invariant).
+            [_, _, ..] => panic!(
+                "restriction node {node_label:?} has {} onProperty values (a \
+                 single-property restriction is required)",
+                on_properties.len()
+            ),
+            [only] => term_str(only),
         };
         let constraints = collect_constraints(store, &node, vocab);
         if constraints.is_empty() {

@@ -231,6 +231,19 @@ fn restriction_missing_on_property_emits_diagnostic() {
 }
 
 #[test]
+#[should_panic(expected = "onProperty values")]
+fn restriction_with_two_on_properties_hard_fails() {
+    // Two onProperty values on one restriction is a wiring contradiction, not a
+    // disclosable malformedness — pick-first would silently drop a slot, so the lift
+    // must hard-fail rather than continue.
+    let _ = adapt(
+        "ex:Bird rdfs:subClassOf [ a owl:Restriction ;
+            owl:onProperty ex:hasBeak ; owl:onProperty ex:hasWing ;
+            owl:someValuesFrom ex:Beak ] .",
+    );
+}
+
+#[test]
 fn two_classes_share_one_restriction_node() {
     // Identical restriction on two classes → ONE skolem node (structure sharing);
     // the content key excludes the subject class.
