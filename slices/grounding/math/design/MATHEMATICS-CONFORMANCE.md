@@ -105,7 +105,7 @@ Lean mathlib (structural, by reference).
 | A `math:Integral` names its integrand, domain, and the measure it integrates against | SHACL Core | `math:IncompleteIntegral` |
 | Every `math:Quantity` carries a `math:Dimension` | SHACL Core | `math:UndimensionedQuantity` |
 | A `math:DerivedDimension` declares a non-empty exponent structure, each cell raising a `math:BaseDimension` to an exact-rational power, and a `math:DimensionalExpression` combines at least two operands | SHACL Core | `math:MalformedDimension` |
-| An expression is dimensionally homogeneous — a `math:DimensionalExpression`'s operands share one dimension, and a `math:Integral`'s declared result dimension equals its integrand's dimension combined with its measure's — computed from the exact-rational ℚ⁷ exponent vectors | Rust validator | `math:DimensionalInhomogeneity` |
+| An expression is dimensionally homogeneous — a `math:DimensionalExpression`'s operands share one dimension, and a `math:Integral`'s declared result dimension equals its integrand's dimension combined with its measure's — computed from the exact-rational ℚ⁷ exponent vectors | Rust validator (the exact executable lowering of the `logic:` laws `math:dimensionalHomogeneityLaw` / `math:integralDimensionCompositionLaw`) | `math:DimensionalInhomogeneity` |
 | An authored `math:dimensionVector` string matches the canonical render of the structured exponents (a computed projection, never a divergent second source) | Rust validator | `math:MalformedDimension` |
 
 The dimensional-homogeneity checks are the charter's distinguished **reasoned gate**: rather than
@@ -114,6 +114,22 @@ vector in the ℚ-vector space over the seven SI base dimensions and derives hom
 rational arithmetic (a product of dimensions adds exponent vectors; commensurability is vector
 equality). This is what a units vocabulary that records conversions as data cannot express, and it
 is why these rows are Rust-validator gates rather than SHACL.
+
+The gate is not a bare Rust side-channel, however: the invariant it enforces is authored as two
+real `logic:Formula` first-order ASTs in `module.ttl` — `math:dimensionalHomogeneityLaw`
+(∀ operands of a `math:DimensionalExpression`, their dimensions are equal) and
+`math:integralDimensionCompositionLaw` (a `math:Integral`'s result dimension equals its integrand's
+composed with its measure's) — exactly as the algebra preservation laws are authored (`math:`
+expresses the law, `logic:` owns reasoning over it; the relation atoms are reified as `logic:Type`
+individuals per the HiLog reflection, carrying `rdfs:seeAlso` back to the first-class `math:`
+property they reflect so no near-synonym is minted). The native ℚ⁷ validator is then declared as the
+**executable lowering** of these two laws through `math:dimensionalHomogeneityLowering`, a loss-ledger
+record carrying `logic:preservationKind logic:ExactPreservation`: because the validator decides the
+laws' `dimEqual` and `dimProduct` conclusions by exact rational arithmetic over the exponent vectors,
+it neither misses a genuine inhomogeneity nor reports a spurious one — it yields exactly the answers
+the canonical laws entail. So the row above reads "Rust validator" as *the declared exact lowering of
+the `logic:` law*, a first-class queryable object in the same loss ledger every other GMEOW lowering
+rides (Principle 17), never a mere side-channel. A violation raises `math:DimensionalInhomogeneity`.
 
 ### Probability rules
 
