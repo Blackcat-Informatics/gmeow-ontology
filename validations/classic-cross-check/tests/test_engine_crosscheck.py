@@ -39,6 +39,8 @@ from gmeow_tools.oracles.engine_crosscheck import (
     write_artifacts,
 )
 
+pytestmark = [pytest.mark.classic_cross_check, pytest.mark.maintainer]
+
 _WIDGET = URIRef("https://example.org/Widget")
 
 

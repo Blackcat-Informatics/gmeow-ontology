@@ -8,6 +8,10 @@ lanes. The OKF *export* side is folded by the native ``stage-export-okf`` and
 covered by the Rust ``stages::okf`` tests; this file exercises the lift back into
 GMEOW: feeding the emitted bundle through ``gts from-okf`` and mapping the
 recognized ``okf:`` subset.
+
+This module lives under ``validations/maintainer/`` so it is excluded from the
+primary ``make test-fast`` lane; it runs on demand via ``make maint-test-heavy``
+when an OKF-capable ``gts`` binary is available.
 """
 
 from __future__ import annotations
@@ -20,7 +24,7 @@ from purrdf.compat.rdflib import OWL, RDF, RDFS, SKOS, URIRef
 
 from gmeow_tools.bundle import bundled_okf
 
-pytestmark = pytest.mark.maintainer
+pytestmark = [pytest.mark.maintainer, pytest.mark.okf]
 
 _OKF_NS = "https://blackcatinformatics.ca/projects/gts/okf#"
 _OKF_DIR_NAME = "gmeow-okf"
