@@ -59,6 +59,6 @@ impl Interner {
 /// and the idiom to prefer over `Vec::sort` + `Vec::dedup`, which would order by the
 /// derived `Ord` (variant-declaration order) rather than lexically by content key.
 pub fn dedup_by_content_key(forms: &mut Vec<Form>) {
-    let mut seen = std::collections::BTreeSet::new();
+    let mut seen = std::collections::HashSet::new();
     forms.retain(|f| seen.insert(f.content_key()));
 }
