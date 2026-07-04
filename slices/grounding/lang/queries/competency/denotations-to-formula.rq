@@ -1,0 +1,15 @@
+# Competency question: "Which forms denote a logic:Formula through the declarative
+# bridge?"  This exercises the one-way lang: -> logic: bridge: a declarative sentence
+# denotes a full-FOL logic:Formula, kind-typed and target-typed. Over the cats-chase-mice
+# fixture the answer is exactly the one sentence form.
+PREFIX lang: <https://blackcatinformatics.ca/lang/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+
+SELECT DISTINCT ?form WHERE {
+    ?d lang:denotedForm ?form ;
+       lang:denotationKind lang:denotesLogicFormula ;
+       lang:denotationTarget ?f .
+    ?f a logic:Formula .
+    FILTER(STRSTARTS(STR(?form), "http://example.org/lang/"))
+}
+ORDER BY ?form

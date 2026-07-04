@@ -1,0 +1,24 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Counter-example: a denotation attached to a lang:SurfaceForm
+# (fires lang:SurfaceLevelDenotation / shacl.SPARQLConstraintComponent).
+# The surface is fully material-specified so only the surface-level rule fires.
+
+@prefix lang: <https://blackcatinformatics.ca/lang/> .
+@prefix ex:   <http://example.org/lang/> .
+
+ex:english a lang:SignSystem .
+
+ex:surf a lang:SurfaceForm , lang:UnanalyzedProse ;
+    lang:inSignSystem ex:english ;
+    lang:analysisLevel lang:rawLevel ;
+    lang:surfaceText "cat" ;
+    lang:inScript lang:latinScript ;
+    lang:unicodeNormalization "NFC" ;
+    lang:collationLocale "en" .
+
+ex:d a lang:Denotation ;
+    lang:denotedForm ex:surf ;
+    lang:denotationKind lang:denotesEntity ;
+    lang:denotationTarget ex:entity ;
+    lang:denotationContext ex:ctx .
