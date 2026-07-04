@@ -490,10 +490,12 @@ mod tests {
             .unwrap_or_else(|e| panic!("[{}] WorldStore load failed: {e}", p.label));
         let rules = parse_eval_rules(&p.rls)
             .unwrap_or_else(|e| panic!("[{}] parse_eval_rules failed: {e}", p.label));
-        match materialize_native(&store, &rules)
+        // The coverage floor runs unbudgeted (`None`), so the native step governor never
+        // trips: the returned status is always `Ok` and the full least model is produced.
+        match materialize_native(&store, &rules, None)
             .unwrap_or_else(|e| panic!("[{}] materialize_native errored: {e}", p.label))
         {
-            NativeOutcome::Decided(rows) => rows,
+            NativeOutcome::Decided(budgeted) => budgeted.rows,
             NativeOutcome::Unsupported(kind) => panic!(
                 "[{}] native FELL BACK to Unsupported({kind:?}) — the coverage floor demands a \
                  Decided outcome for every stratifiable corpus program",

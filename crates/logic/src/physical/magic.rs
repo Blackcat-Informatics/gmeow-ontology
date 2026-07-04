@@ -568,8 +568,8 @@ pub(crate) fn resolve_native(
         let fact = seed_to_fact(seed)?;
         edb.insert(&fact.predicate, fact.subject, fact.object);
     }
-    let facts = match evaluate(edb, &transformed.rules)? {
-        NativeOutcome::Decided(facts) => facts,
+    let facts = match evaluate(edb, &transformed.rules, None)? {
+        NativeOutcome::Decided(budgeted) => budgeted.rows,
         NativeOutcome::Unsupported(kind) => {
             // A demand transform that breaks stratification is the documented gap kind;
             // surface any non-stratifiable transform under that name.
@@ -926,8 +926,8 @@ mod tests {
             let f = seed_to_fact(seed).unwrap();
             edb.insert(&f.predicate, f.subject, f.object);
         }
-        let facts = match evaluate(edb, &transformed.rules).unwrap() {
-            NativeOutcome::Decided(f) => f,
+        let facts = match evaluate(edb, &transformed.rules, None).unwrap() {
+            NativeOutcome::Decided(budgeted) => budgeted.rows,
             other => panic!("expected Decided, got {other:?}"),
         };
 

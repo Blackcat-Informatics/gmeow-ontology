@@ -669,10 +669,13 @@ pub fn materialize_routed(
                 store.load_nquads(input).map_err(MaterializeError::Parse)?;
                 let eval_rules =
                     crate::rule_ir::parse_eval_rules(rules).map_err(MaterializeError::Parse)?;
-                match crate::physical::materialize_native(&store, &eval_rules)
+                // This branch is unbudgeted (budgeted materialization is demoted to Nemo
+                // above), so the native step governor runs unbounded (`None`) and the
+                // returned status is always `Ok`.
+                match crate::physical::materialize_native(&store, &eval_rules, None)
                     .map_err(MaterializeError::Chase)?
                 {
-                    crate::physical::NativeOutcome::Decided(rows) => Some(rows),
+                    crate::physical::NativeOutcome::Decided(budgeted) => Some(budgeted.rows),
                     // A declared native gap (e.g. non-stratifiable after parse) falls
                     // through to the demoted Nemo fallback / conformance oracle.
                     crate::physical::NativeOutcome::Unsupported(_) => None,
