@@ -11,5 +11,5 @@
 #   semapv: https://w3id.org/semapv/vocab/
 #   skos: http://www.w3.org/2004/02/skos/core#
 subject_id	predicate_id	object_id	object_label	mapping_justification	confidence	comment
-lang:english	skos:relatedMatch	lexvo:iso639-3/eng	eng (ISO 639-3)	semapv:ManualMappingCuration	0.9	lexvo:iso639-3/eng is the Lexvo resource for the ISO 639-3 code eng — the ISO 639 / BCP-47 identification hub for English (BCP-47 primary subtag en). A code-scoped identifier, a related resource rather than identity, so skos:relatedMatch.
+lang:english	skos:relatedMatch	lexvo:iso639-3/eng	eng (ISO 639-3)	semapv:ManualMappingCuration	0.9	lexvo:iso639-3/eng is the Lexvo resource for the ISO 639-3 code eng (ISO 639-1 en) — the ISO 639 language-code identity for English. A code-scoped identifier, a related resource rather than identity, so skos:relatedMatch.
 lang:latinScript	skos:relatedMatch	lexvo:script/Latn	Latn (ISO 15924)	semapv:ManualMappingCuration	0.9	lexvo:script/Latn is the Lexvo resource for the ISO 15924 script code Latn — the code-scoped identifier for the Latin script. A related resource rather than identity, so skos:relatedMatch.
