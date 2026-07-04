@@ -13,15 +13,16 @@
 # logic:AbstractIndividual, logic:Relator). These cells mirror the module's
 # CURRENT logic: shape.
 #
-# One test stays in tests/test_temporal.py because it is CROSS-SLICE — the
-# subjects are NOT declared in temporal/module.ttl, so the module-scoped harness
-# (which loads only this slice's module.ttl) cannot see them; the pytest reaches
-# them via the FULL merged graph (load_merged_graph(include_imports=True)):
-#   * test_reified_residence_and_tenure_are_time_scoped — gmeow:MailboxResidence
-#     (extensions/email) and gmeow:AddressTenure (core/contacts) ⊑
-#     gmeow:TimeScopedRelation. The subclass edges live in those OTHER slices'
-#     modules, not here.
-# This is a genuine cross-slice integration check, faithfully retained in pytest.
+# RETAINED in pytest (not migratable here):
+#   * test_reified_residence_and_tenure_are_time_scoped (tests/test_temporal.py)
+#     — CROSS-SLICE: gmeow:MailboxResidence (extensions/email) and
+#     gmeow:AddressTenure (core/contacts) ⊑ gmeow:TimeScopedRelation. The
+#     subclass edges live in those OTHER slices' modules, not here.
+#   * test_no_owl_all_disjoint_properties_over_interval_relations
+#     (tests/test_allen_jepd.py) — whole-graph sweep over every
+#     owl:AllDisjointProperties to ensure no interval-level Allen relation is
+#     grouped into an OWL disjoint-properties axiom; not a finite module-scoped
+#     ASK.
 #
 # See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest→DSL mapping.
 
@@ -100,3 +101,192 @@ PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK { gmeow:TemporalMeasurement rdfs:subClassOf logic:Relator . }""" ;
     gmeow:saRationale "gmeow:TemporalMeasurement reifies a dating claim (method, age, uncertainty): it MUST be a subClassOf logic:Relator (the migrated stereotype), not a Situation. Mirrors test_temporal_measurement_is_logic_relator." .
+# ===========================================================================
+# EDTF / Instant vocabulary (migrated from tests/test_edtf.py)
+# ===========================================================================
+
+# --- 7. edtfValue is a DatatypeProperty (MUST) -------------------------------
+ex:saEdtfValueIsDatatypeProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:edtfValue a owl:DatatypeProperty . }""" ;
+    gmeow:saRationale "gmeow:edtfValue MUST be an owl:DatatypeProperty — the ISO 8601-2 EDTF expression of an instant or interval is carried as a plain literal (Principle 3). Mirrors test_edtf_value_is_datatype_property." .
+
+# --- 8. edtfValue ranges over rdfs:Literal (MUST) ----------------------------
+ex:saEdtfValueRangeIsLiteral a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:edtfValue rdfs:range rdfs:Literal . }""" ;
+    gmeow:saRationale "gmeow:edtfValue MUST range over rdfs:Literal — EDTF strings are plain literals, not xsd:dateTime (Principle 3). Mirrors test_edtf_value_range_is_literal." .
+
+# --- 9. Instant exists and instantValue has correct shape (MUST) -------------
+ex:saInstantExistsAndHasInstantValue a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+ASK {
+    gmeow:Instant a owl:Class .
+    gmeow:instantValue a owl:DatatypeProperty ;
+        rdfs:domain gmeow:Instant ;
+        rdfs:range xsd:dateTime .
+}""" ;
+    gmeow:saRationale "gmeow:Instant MUST exist as an owl:Class and gmeow:instantValue MUST be an owl:DatatypeProperty with domain gmeow:Instant and range xsd:dateTime — the crisp, machine-computable point value (Principle 3). Mirrors test_instant_exists_and_has_instant_value." .
+
+# ===========================================================================
+# Allen interval relations (migrated from tests/test_allen_jepd.py)
+# ===========================================================================
+
+# --- 10. All thirteen interval-level Allen relations exist (MUST) -------------
+ex:saAllIntervalLevelAllenRelationsExist a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    VALUES ?rel {
+        gmeow:intervalBefore
+        gmeow:intervalAfter
+        gmeow:intervalMeets
+        gmeow:intervalMetBy
+        gmeow:intervalOverlaps
+        gmeow:intervalOverlappedBy
+        gmeow:intervalStarts
+        gmeow:intervalStartedBy
+        gmeow:intervalDuring
+        gmeow:intervalContains
+        gmeow:intervalFinishes
+        gmeow:intervalFinishedBy
+        gmeow:intervalCoincidesWith
+    }
+    ?rel a owl:ObjectProperty .
+}""" ;
+    gmeow:saRationale "All thirteen interval-level Allen relations MUST exist as owl:ObjectProperty — the complete JEPD relation set for TimeInterval ordering. Mirrors test_all_interval_level_allen_relations_exist." .
+
+# --- 11. intervalBefore and intervalAfter are transitive (MUST) --------------
+ex:saIntervalBeforeAndAfterAreTransitive a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    gmeow:intervalBefore a owl:TransitiveProperty .
+    gmeow:intervalAfter  a owl:TransitiveProperty .
+}""" ;
+    gmeow:saRationale "gmeow:intervalBefore and gmeow:intervalAfter MUST each be owl:TransitiveProperty — strict ordering chains across a sequence of intervals. Mirrors test_interval_before_and_after_are_transitive." .
+
+# --- 12. intervalCoincidesWith is symmetric and transitive (MUST) ------------
+ex:saIntervalCoincidesWithIsSymmetricAndTransitive a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    gmeow:intervalCoincidesWith a owl:SymmetricProperty , owl:TransitiveProperty .
+}""" ;
+    gmeow:saRationale "gmeow:intervalCoincidesWith MUST be both owl:SymmetricProperty and owl:TransitiveProperty — Allen EQUALS is co-extensionality, which is symmetric and transitive (but not identity: distinct intervals may coincide). Mirrors test_interval_coincides_with_is_symmetric_and_transitive." .
+
+# --- 13. No event/interval relation pair is property-disjoint in OWL (MUST-NOT)
+ex:saNoEventIntervalPropertyDisjointnessInOwl a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    VALUES (?eventRel ?intervalRel) {
+        (gmeow:before          gmeow:intervalBefore)
+        (gmeow:after           gmeow:intervalAfter)
+        (gmeow:meets           gmeow:intervalMeets)
+        (gmeow:metBy           gmeow:intervalMetBy)
+        (gmeow:overlaps        gmeow:intervalOverlaps)
+        (gmeow:overlappedBy    gmeow:intervalOverlappedBy)
+        (gmeow:starts          gmeow:intervalStarts)
+        (gmeow:startedBy       gmeow:intervalStartedBy)
+        (gmeow:during          gmeow:intervalDuring)
+        (gmeow:contains        gmeow:intervalContains)
+        (gmeow:finishes        gmeow:intervalFinishes)
+        (gmeow:finishedBy      gmeow:intervalFinishedBy)
+        (gmeow:coincidesWith   gmeow:intervalCoincidesWith)
+    }
+    { ?eventRel owl:propertyDisjointWith ?intervalRel }
+    UNION
+    { ?intervalRel owl:propertyDisjointWith ?eventRel }
+}""" ;
+    gmeow:saRationale "No event-level Allen relation and its interval-level twin MUST be declared owl:propertyDisjointWith in OWL — several interval relations are transitive (non-simple), and OWL 2 DL forbids DisjointObjectProperties over non-simple properties. JEPD disjointness is enforced in SHACL / solver instead. Mirrors test_no_event_interval_property_disjointness_in_owl." .
+
+# ===========================================================================
+# Named periods (migrated from tests/test_named_period.py)
+# ===========================================================================
+
+# --- 14. NamedPeriod subclasses Entity (MUST) --------------------------------
+ex:saNamedPeriodSubclassesEntity a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:NamedPeriod a owl:Class ;
+        rdfs:subClassOf gmeow:Entity .
+}""" ;
+    gmeow:saRationale "gmeow:NamedPeriod MUST be an owl:Class and a subclass of gmeow:Entity — a geologic era, dynasty, or fiscal year is a first-class identifiable entity. Mirrors test_named_period_subclasses_entity." .
+
+# --- 15. PeriodType exists (MUST) --------------------------------------------
+ex:saPeriodTypeExists a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:PeriodType a owl:Class . }""" ;
+    gmeow:saRationale "gmeow:PeriodType MUST exist as an owl:Class — the value vocabulary that classifies named periods by kind (geologic rank, historical era, fiscal year). Mirrors test_period_type_exists." .
+
+# --- 16. Seed geologic periods exist (MUST) ----------------------------------
+ex:saSeedGeologicPeriodsExist a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:periodPhanerozoic a gmeow:NamedPeriod .
+    gmeow:periodCenozoic    a gmeow:NamedPeriod .
+    gmeow:periodQuaternary  a gmeow:NamedPeriod .
+    gmeow:periodHolocene    a gmeow:NamedPeriod .
+}""" ;
+    gmeow:saRationale "The four seed geologic periods (Phanerozoic, Cenozoic, Quaternary, Holocene) MUST exist as gmeow:NamedPeriod individuals — they bootstrap the geologic-timescale examples. Mirrors test_seed_geologic_periods_exist." .
+
+# --- 17. periodPartOf is transitive (MUST) -----------------------------------
+ex:saPeriodPartOfIsTransitive a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:periodPartOf a owl:TransitiveProperty . }""" ;
+    gmeow:saRationale "gmeow:periodPartOf MUST be owl:TransitiveProperty — epoch-within-period-within-era nesting chains transitively. Mirrors test_period_part_of_is_transitive." .
+
+# --- 18. periodPartOf seed links form the geologic ladder (MUST) -------------
+ex:saPeriodPartOfLinks a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:periodHolocene   gmeow:periodPartOf gmeow:periodQuaternary .
+    gmeow:periodQuaternary gmeow:periodPartOf gmeow:periodCenozoic .
+    gmeow:periodCenozoic   gmeow:periodPartOf gmeow:periodPhanerozoic .
+}""" ;
+    gmeow:saRationale "The seed geologic periods MUST be linked by gmeow:periodPartOf in the expected ladder (Holocene → Quaternary → Cenozoic → Phanerozoic). Mirrors test_period_part_of_links." .
+
+# --- 19. periodContainsPeriod is inverse of periodPartOf (MUST) --------------
+ex:saPeriodContainsPeriodIsInverse a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    gmeow:periodContainsPeriod owl:inverseOf gmeow:periodPartOf .
+}""" ;
+    gmeow:saRationale "gmeow:periodContainsPeriod MUST be the owl:inverseOf gmeow:periodPartOf — the whole-rooted view of period nesting. Mirrors test_period_contains_period_is_inverse." .

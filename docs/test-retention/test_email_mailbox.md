@@ -1,15 +1,19 @@
 # Retention: `tests/test_email_mailbox.py`
 
-**Category:** Domain invariant → slicetest cells
+**Category:** Merged-graph guard
 
 ## What it tests
 
 Structural guards for mailbox hierarchy and provider-derived state terms.
 
-## Why it cannot move to Rust today
+Retained dynamic tests:
 
-Structural / competency / cross-slice invariants over the module (or merged) graph — ontology *shape*, not Python logic.
+- `test_fixture_nested_hierarchy` — The coverage fixture shows a three-level mailbox hierarchy.
+- `test_fixture_mailbox_paths` — Derived path strings are present on nested mailboxes.
+- `test_fixture_sort_orders` — Sort orders are present on nested mailboxes.
+- `test_fixture_destroyed_mailbox_uses_lifecycle` — A destroyed mailbox uses hasDestructionEvent, not a boolean flag.
+- `test_fixture_messages_in_nested_mailbox` — Messages reside in the nested projectsFolder.
 
-## What is needed to move it to Rust
+## Why it cannot be deleted or moved to Rust today
 
-Author the assertions as slicetest cells in the **owning** slice (`structural.ttl` MUST/MUST-NOT, `competency.ttl` ASK/SELECT) per `docs/SLICE_QA.md`; cross-slice subjects go in the slice that *defines* the term. Confirm `make slicetest`, then delete this file. No new Rust — the harness exists.
+Whole-merged-graph sweeps over terms declared across many slice modules; cannot be faithfully scoped to a single slice module.

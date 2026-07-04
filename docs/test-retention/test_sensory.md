@@ -1,15 +1,21 @@
 # Retention: `tests/test_sensory.py`
 
-**Category:** Projection / alignment → Correspondence Calculus
+**Category:** Python tool algorithm
 
 ## What it tests
 
-Mapping tests for the Sensory module (#126) -- SOSA / AFO alignments only.
+Mapping tests for the Sensory module -- SOSA / AFO alignments only.
 
-## Why it cannot move to Rust today
+Retained dynamic tests:
 
-Exercises the FnO/EDOAL/SPARQL projection or up-projection (alignment) layer — live Python engine output.
+- `test_sensor_mapped_to_sosa_sensor` — Sensor is aligned to sosa:Sensor.
+- `test_sensor_platform_mapped_to_sosa_platform` — SensorPlatform is aligned to sosa:Platform.
+- `test_observable_property_mapped_to_sosa` — ObservableProperty is aligned to sosa:ObservableProperty.
+- `test_sensory_quantity_mapped_to_sosa_result` — SensoryQuantity is aligned to sosa:Result.
+- `test_sensory_property_mapped_to_sosa_observed_property` — sensoryProperty is aligned to sosa:observedProperty.
+- `test_platform_location_mapped_to_geo_location` — platformLocation is aligned to geo:location.
+- `test_sensory_afo_mappings_exist` — Retained dynamic test.
 
-## What is needed to move it to Rust
+## Why it cannot be deleted or moved to Rust today
 
-Subsumed by the Correspondence Calculus (`docs/APPLIED_CATEGORY_THEORY/take1.md`): projections become lowerings of one `logic:Correspondence` get/put leg pair; up-projection is the derived `put` leg. When the lowering engine + `conformance/correspondence` round-trip/overclaim gates regenerate these outputs byte/graph-iso, the file is deleted under equivalence-before-deletion.
+Python-only algorithm or generated-artifact checks with no declarative slice-test equivalent.

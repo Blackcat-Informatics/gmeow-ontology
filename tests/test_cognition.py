@@ -1,31 +1,27 @@
-"""Retained guards for the cognition module (issues #556/#557/#558).
+"""Retained guards for the cognition module.
 
 Asserted-TBox structural invariants whose ASK subjects live in the cognition
 module graph have been migrated to the declarative test-DSL cell file at
-slices/core/cognition/tests/structural.ttl (#867).
+slices/core/cognition/tests/structural.ttl.
+
+Cross-slice asserted-TBox invariants migrated to their owning slices:
+  - test_mental_moment_is_category_under_intrinsic_mode
+      → slices/core/kernel/tests/structural.ttl (saMentalMomentIsCategoryUnderMode)
+  - test_intentional_mode_reparented_under_mental_moment
+      → slices/core/teleology/tests/structural.ttl (saIntentionalModeIsCategory,
+        saIntentionalModeNotDirectlyIntrinsicMode)
+  - test_proficiency_vocab_relocated_to_kernel
+      → slices/core/kernel/tests/structural.ttl (saProficiencyVocabInKernel)
+  - test_intrinsic_modes_are_grounded (from tests/test_teleology.py)
+      → slices/core/kernel/tests/structural.ttl (saMentalMomentGroundsIntrinsicModes)
 
 RETAINED here (not expressible as module-scoped declarative cells):
-
-  test_mental_moment_is_category_under_intrinsic_mode --
-    gmeow:MentalMoment is defined in slices/core/kernel/module.ttl; a
-    scopeModule cell over the cognition graph would silently miss it.
 
   test_mental_moment_has_exactly_one_gufo_metaclass --
     Whole-graph dynamic sweep: iterates all four classes and counts
     metaclass hits from an open gufo:/logic: set. The "exactly-one"
     cardinality check cannot be faithfully encoded as a module-scoped
     ASK without narrowing the assertion to a finite list.
-
-  test_intentional_mode_reparented_under_mental_moment --
-    gmeow:IntentionalMode is defined in slices/core/teleology/module.ttl;
-    cross-slice subject.
-
-  test_proficiency_vocab_relocated_to_kernel --
-    gmeow:ProficiencyScale/Level/Modality are defined in kernel; cross-
-    slice subjects.
-
-  test_wellformed_knowledge_proficiency_conforms / _is_flagged --
-    run_shacl() calls; ExampleConformance, not structural TBox assertions.
 
   test_cognition_sssom_* --
     load_mappings() reads of gmeow-cognition.sssom.tsv; MAP-flag ledger
@@ -34,7 +30,7 @@ RETAINED here (not expressible as module-scoped declarative cells):
 
 from __future__ import annotations
 
-from purrdf.compat.rdflib import RDF, RDFS, Graph, URIRef
+from purrdf.compat.rdflib import RDF, Graph, URIRef
 
 from gmeow_tools.graph import load_merged_graph
 from gmeow_tools.mappings import load_mappings
@@ -62,21 +58,8 @@ def _logic(local: str) -> URIRef:
 
 
 # --------------------------------------------------------------------------- #
-# MentalMoment umbrella (#556) — cross-slice / dynamic sweep; RETAINED.
+# MentalMoment umbrella — dynamic sweep; RETAINED.
 # --------------------------------------------------------------------------- #
-
-
-def test_mental_moment_is_category_under_intrinsic_mode() -> None:
-    """MentalMoment is a logic:Category placed under logic:Mode (kernel).
-
-    Subject gmeow:MentalMoment lives in slices/core/kernel, not the cognition
-    module. A scopeModule cell would silently miss it — retained here.
-    """
-    graph = _graph()
-    mm = _g("MentalMoment")
-    assert (mm, RDF.type, _logic("Category")) in graph
-    assert (mm, RDFS.subClassOf, _logic("Mode")) in graph
-    assert (mm, RDFS.isDefinedBy, _g("slices/kernel")) in graph
 
 
 def test_mental_moment_has_exactly_one_gufo_metaclass() -> None:
@@ -119,39 +102,8 @@ def test_mental_moment_has_exactly_one_gufo_metaclass() -> None:
         )
 
 
-def test_intentional_mode_reparented_under_mental_moment() -> None:
-    """teleology:IntentionalMode now subclasses MentalMoment (the reparent).
-
-    Subject gmeow:IntentionalMode lives in slices/core/teleology — cross-
-    slice; retained here.
-    """
-    graph = _graph()
-    im = _g("IntentionalMode")
-    assert (im, RDFS.subClassOf, _g("MentalMoment")) in graph
-    # Must NOT keep a redundant direct gufo:IntrinsicMode parent assertion.
-    assert (im, RDFS.subClassOf, _gufo("IntrinsicMode")) not in graph
-
-
 # --------------------------------------------------------------------------- #
-# Proficiency value vocab relocated to kernel (#556) — cross-slice; RETAINED.
-# --------------------------------------------------------------------------- #
-
-
-def test_proficiency_vocab_relocated_to_kernel() -> None:
-    """ProficiencyScale/Level/Modality are defined by the kernel slice now.
-
-    All three subjects live in slices/core/kernel — cross-slice; retained.
-    """
-    graph = _graph()
-    for cls in ("ProficiencyScale", "ProficiencyLevel", "ProficiencyModality"):
-        node = _g(cls)
-        assert (node, RDFS.subClassOf, _logic("QualityValue")) in graph
-        assert (node, RDFS.isDefinedBy, _g("slices/kernel")) in graph
-        assert (node, RDFS.isDefinedBy, _g("slices/expertise")) not in graph
-
-
-# --------------------------------------------------------------------------- #
-# SSSOM alignment ledger coverage (#549 / PR #678).
+# SSSOM alignment ledger coverage.
 # --------------------------------------------------------------------------- #
 
 
@@ -199,8 +151,7 @@ def test_cognition_sssom_rows_include_expected_alignments() -> None:
 
 
 def test_cognition_sssom_includes_corrected_wikidata_qids() -> None:
-    """The issue-supplied QIDs were rejected and replaced with verified entities
-    (#549)."""
+    """The issue-supplied QIDs were rejected and replaced with verified entities."""
     rows = _cognition_sssom_rows()
     qids = {obj for _subj, _pred, obj in rows if obj.startswith("wd:")}
     assert "wd:Q6501338" in qids, "attention QID expected"
@@ -213,6 +164,6 @@ def test_cognition_sssom_includes_corrected_wikidata_qids() -> None:
 
 
 def test_cognition_sssom_includes_opencyc_knows_about() -> None:
-    """OpenCyc knowsAbout is present as a relatedMatch anchor (#549)."""
+    """OpenCyc knowsAbout is present as a relatedMatch anchor."""
     rows = _cognition_sssom_rows()
     assert ("gmeow:knowsAbout", "skos:relatedMatch", "cyc:knowsAbout") in rows

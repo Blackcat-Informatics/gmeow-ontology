@@ -1,15 +1,18 @@
 # Retention: `tests/test_narrative.py`
 
-**Category:** Domain invariant → slicetest cells
+**Category:** Merged-graph guard
 
 ## What it tests
 
-Narrative reference frame and creative-work sourcing (issue #89).
+Narrative reference frame and creative-work sourcing.
 
-## Why it cannot move to Rust today
+Retained dynamic tests:
 
-Structural / competency / cross-slice invariants over the module (or merged) graph — ontology *shape*, not Python logic.
+- `test_narrative_reference_frame_is_not_standpoint_subclass` — gUFO MixIden forbids a sortal from specializing >1 Kind.
+- `test_book_release_and_serial_installment_are_creative_works` — Retained dynamic test.
+- `test_frame_realm_narrative_and_frame_kind_narrative_exist` — Check that the merged RDF graph declares the narrative frame realm and narrative frame kind individuals.
+- `test_reading_order_subclasses_standpoint` — Retained dynamic test.
 
-## What is needed to move it to Rust
+## Why it cannot be deleted or moved to Rust today
 
-Author the assertions as slicetest cells in the **owning** slice (`structural.ttl` MUST/MUST-NOT, `competency.ttl` ASK/SELECT) per `docs/SLICE_QA.md`; cross-slice subjects go in the slice that *defines* the term. Confirm `make slicetest`, then delete this file. No new Rust — the harness exists.
+Retained dynamic / SHACL checks -- asserted-TBox invariants whose subjects live in the narrative module have been migrated to slices/extensions/narrative/tests/structural.ttl.

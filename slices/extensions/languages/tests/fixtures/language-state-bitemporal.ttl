@@ -1,4 +1,4 @@
-# Coverage fixture for the language varieties, states, and change events layer (#170).
+# Coverage fixture for the language varieties, states, and change events layer.
 # Worked examples: contested dialect/language classification (Scots), localized
 # variant (Mexican Spanish), generational slang, English historical states
 # (Old/Middle/Modern), version-vs-state distinction (Ithkuil), and a change event

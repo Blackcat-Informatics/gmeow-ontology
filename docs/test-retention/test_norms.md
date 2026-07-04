@@ -1,15 +1,15 @@
 # Retention: `tests/test_norms.py`
 
-**Category:** Domain invariant → slicetest cells
+**Category:** Python tool algorithm
 
 ## What it tests
 
-The norms extension + rights graft (#351 / #352, EPIC #348) — RETAINED tests.
+The norms extension + rights graft — RETAINED tests.
 
-## Why it cannot move to Rust today
+Retained dynamic tests:
 
-Structural / competency / cross-slice invariants over the module (or merged) graph — ontology *shape*, not Python logic.
+- `test_graft_axioms_live_extension_side_only` — Zero core churn: the core rights module contains no reference to any norms-extension IRI — the graft is asserted in the norms module.
 
-## What is needed to move it to Rust
+## Why it cannot be deleted or moved to Rust today
 
-Author the assertions as slicetest cells in the **owning** slice (`structural.ttl` MUST/MUST-NOT, `competency.ttl` ASK/SELECT) per `docs/SLICE_QA.md`; cross-slice subjects go in the slice that *defines* the term. Confirm `make slicetest`, then delete this file. No new Rust — the harness exists.
+The norms extension + rights graft — RETAINED tests.
