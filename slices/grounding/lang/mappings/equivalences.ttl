@@ -13,15 +13,28 @@
 #
 # External identifiers name alignments, not identity: a GMEOW sign system, script,
 # part of speech, or feature key aligns to Wikidata (the identity hub — CC0), to
-# Glottolog (languoid genealogy — CC-BY 4.0), and to Lexvo (the ISO 639 / ISO 15924
-# code hub, which also anchors the BCP-47 primary subtags — CC-BY-SA 3.0), but the
-# GMEOW term remains the local source of truth. Every object IRI is a real external
-# entity, curl-validated (Principle 5): the Wikidata QIDs resolve to the named
-# concepts, the Glottolog languoid resolves, and the Lexvo ISO-code IRIs resolve.
+# Glottolog (languoid genealogy — CC-BY 4.0), to Lexvo (the ISO 639 language-code
+# and ISO 15924 script-code hub — CC-BY-SA 3.0), and to the IANA Language Subtag
+# Registry (the BCP-47 authority — public IETF standard), but the GMEOW term
+# remains the local source of truth. Each external standard carries its OWN
+# first-class record — no single record double-counts two standards. Every object
+# IRI is a real external entity, curl-validated (Principle 5): the Wikidata QIDs
+# resolve to the named concepts, the Glottolog languoid resolves, the Lexvo
+# ISO-code IRIs resolve, and the IANA registry resolves.
 # Identity → skos:exactMatch; a genealogically-scoped or code-scoped companion →
 # skos:closeMatch / skos:relatedMatch.
 
-# --- English (a sign system) → Wikidata / Glottolog / Lexvo (ISO 639, BCP-47) - #
+# --- SSSOM publication header for the BCP-47 / IANA mapping set -------------- #
+# (Wikidata / Glottolog / Lexvo set headers live in dsl/mappings/mapping-sets.ttl;
+# the IANA set is introduced here alongside its only linkage cell.)
+
+gmeow:mapsetBcp47 a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-bcp47.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/bcp47" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment "GMEOW sign-system → IANA Language Subtag Registry (BCP-47) alignments. A BCP-47 primary language subtag (e.g. \"en\") is registered by IANA (drawn from ISO 639); the registry resource is a code-scoped identifier, a related resource rather than identity (skos:relatedMatch). By reference, curl-validated." .
+
+# --- English (a sign system) → Wikidata / Glottolog / ISO 639 / BCP-47 ------ #
 
 gmeow:eqLangEnglishWikidata a gmeow:TermEquivalence ;
     gmeow:alignSubject lang:english ;
@@ -43,15 +56,25 @@ gmeow:eqLangEnglishGlottolog a gmeow:TermEquivalence ;
     gmeow:comment "glottolog:stan1293 (Standard English) is Glottolog's languoid for the standard variety; lang:english is the language more broadly, a close but not identical match, so skos:closeMatch." ;
     gmeow:sssomFile "gmeow-glottolog.sssom.tsv" .
 
-gmeow:eqLangEnglishLexvo a gmeow:TermEquivalence ;
+gmeow:eqLangEnglishIso639 a gmeow:TermEquivalence ;
     gmeow:alignSubject lang:english ;
     gmeow:alignPredicate skos:relatedMatch ;
     gmeow:alignObject lexvo:iso639-3/eng ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
     gmeow:objectLabel "eng (ISO 639-3)" ;
-    gmeow:comment "lexvo:iso639-3/eng is the Lexvo resource for the ISO 639-3 code eng — the ISO 639 / BCP-47 identification hub for English (BCP-47 primary subtag en). A code-scoped identifier, a related resource rather than identity, so skos:relatedMatch." ;
+    gmeow:comment "lexvo:iso639-3/eng is the Lexvo resource for the ISO 639-3 code eng (ISO 639-1 en) — the ISO 639 language-code identity for English. A code-scoped identifier, a related resource rather than identity, so skos:relatedMatch." ;
     gmeow:sssomFile "gmeow-lexvo.sssom.tsv" .
+
+gmeow:eqLangEnglishBcp47 a gmeow:TermEquivalence ;
+    gmeow:alignSubject lang:english ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject <https://www.iana.org/assignments/language-subtag-registry> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "en (BCP-47 primary language subtag)" ;
+    gmeow:comment "The IANA Language Subtag Registry defines en as the BCP-47 primary language subtag for English (there is no per-subtag resolvable IRI; the registry is the authoritative resource). A code-scoped identifier, a related resource rather than identity, so skos:relatedMatch." ;
+    gmeow:sssomFile "gmeow-bcp47.sssom.tsv" .
 
 # --- Latin script → Wikidata / Lexvo (ISO 15924) ---------------------------- #
 
@@ -65,7 +88,7 @@ gmeow:eqLangLatinScriptWikidata a gmeow:TermEquivalence ;
     gmeow:comment "lang:latinScript is the Latin script; wd:Q8229 (Latin script) is the same character repertoire. Identity, so skos:exactMatch." ;
     gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
 
-gmeow:eqLangLatinScriptLexvo a gmeow:TermEquivalence ;
+gmeow:eqLangLatinScriptIso15924 a gmeow:TermEquivalence ;
     gmeow:alignSubject lang:latinScript ;
     gmeow:alignPredicate skos:relatedMatch ;
     gmeow:alignObject lexvo:script/Latn ;
