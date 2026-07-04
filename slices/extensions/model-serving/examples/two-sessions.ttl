@@ -1,0 +1,34 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# CQ3 fixture — two simultaneous sessions, SAME model, DIFFERENT subjects.
+# Both sessions' invocations run in one execution of one deployment of one served
+# gmeow:ModelArtifact (ex:opusArtifact — a SHARED MODEL), yet each session carries
+# a distinct gmeow:sessionSubjectStage (ex:stageAlice vs ex:stageBob — DIFFERENT
+# SUBJECTS). The subject-stage / model-artifact split therefore answers "shared
+# model, not the same subject" — a distinction a single collapsed tenure could not
+# make. The subject stages are opaque targets here (sessionSubjectStage is
+# open-range) so the fixture stays standalone-resolvable.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/model-serving/> .
+
+ex:opusArtifact a gmeow:ModelArtifact .
+ex:opusDeployment a gmeow:ModelDeployment ;
+    gmeow:deploymentArtifact ex:opusArtifact .
+ex:opusExecution a gmeow:RuntimeExecution ;
+    gmeow:executionOfDeployment ex:opusDeployment .
+
+# Session Alice — one invocation in the shared execution.
+ex:sessionAlice a gmeow:AgentSession ;
+    gmeow:sessionSubjectStage ex:stageAlice .
+ex:invAlice a gmeow:ModelInvocation ;
+    gmeow:invocationInExecution ex:opusExecution ;
+    gmeow:subEventOf ex:sessionAlice .
+
+# Session Bob — one invocation in the SAME shared execution (shared model).
+ex:sessionBob a gmeow:AgentSession ;
+    gmeow:sessionSubjectStage ex:stageBob .
+ex:invBob a gmeow:ModelInvocation ;
+    gmeow:invocationInExecution ex:opusExecution ;
+    gmeow:subEventOf ex:sessionBob .

@@ -35,9 +35,12 @@
 # NOT rdfs:subClassOf gmeow:Distribution) — a range/subclass axiom is a real
 # dependency regardless of owl:imports, and an extension may not depend on another
 # extension. gmeow:ModelInvocation / gmeow:ToolCall / gmeow:usedTool /
-# gmeow:usedCapability / gmeow:ActionSchema are REUSED at the instance level, never
-# re-minted (Principle 5). Internal session order is a logic:Path resolved in the
-# solver, never an asserted nextInvocation chain (Principle 12).
+# logic:ActionSchema are REUSED at the instance level, never re-minted
+# (Principle 5); gmeow:usedCapability — the passive-capability discriminator of
+# CQ5 (an Activity USED an ActionSchema, as opposed to a delegated ToolCall) — is
+# minted here because the design names it but no slice had yet declared it.
+# Internal session order is a logic:Path resolved in the solver, never an asserted
+# nextInvocation chain (Principle 12).
 # ─────────────────────────────────────────────────────────────────────────────
 
 <https://blackcatinformatics.ca/gmeow/slices/model-serving>
@@ -208,6 +211,17 @@ gmeow:sessionSubjectStage
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/model-serving> ;
     rdfs:label "session subject stage"@x-gmeow-english ;
     skos:definition "The subject stage a gmeow:AgentSession is on behalf of — the session → subject hop that lets an output trace to its durable subject. Open-range (no rdfs:range) so the slice stays standalone: the target (e.g. an inhabitation gmeow:SubjectStage) is typed at the instance level, in the agent-runtime profile, not by a cross-extension range axiom (Principle 16)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox .
+
+gmeow:usedCapability
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Activity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/model-serving> ;
+    rdfs:label "used capability"@x-gmeow-english ;
+    rdfs:range logic:ActionSchema ;
+    skos:definition "Relates a gmeow:Activity (a gmeow:ModelInvocation or a gmeow:RuntimeExecution) to the logic:ActionSchema — an internal function, library, or code path — it exercised PASSIVELY, with no delegation to another agent. The passive half of the CQ5 discriminator: a gmeow:usedCapability edge to a logic:ActionSchema is passive capability use, whereas a gmeow:ToolCall whose gmeow:usedTool points to a distinct gmeow:SoftwareAgent is delegation. Reuses the provenance 'used' pattern rather than minting a CapabilityExercise wrapper class (which would become an operational catch-all)."@x-gmeow-english ;
+    skos:example "ex:invocation-7 gmeow:usedCapability ex:sortSchema ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxCBox ,
         gmeow:boxRBox .
 
