@@ -7,7 +7,7 @@
 > in the sibling charters into a specific, traceable gate with a named failure class, and it fixes
 > the preservation vocabulary the projection layer uses so semiotic loss is queryable alongside
 > every other GMEOW lowering. It is the language peer of
-> `slices/core/logic/design/LOGIC-CONFORMANCE.md` and
+> `slices/grounding/logic/design/LOGIC-CONFORMANCE.md` and
 > `slices/grounding/math/design/MATHEMATICS-CONFORMANCE.md`. Where a sibling charter says
 > "established by shapes, competency queries, and the loss ledger", this document says *by which
 > shape, which query, which validator, and what failure is raised*.

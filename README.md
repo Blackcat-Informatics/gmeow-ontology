@@ -52,14 +52,13 @@ disagreement as coexisting standpoints instead of overwriting the loser.
 - **Friendly front, rigorous engine.** Flat JSON / Pydantic / MCP tools are the front door
   (no one learns RDF); reasoned RDF is the engine room.
 
-**One engine, three products** ([v0.2.0 realignment](./docs/REALIGNMENT-v0.2.0.md), epic
-[#300](https://github.com/Blackcat-Informatics/gmeow-ontology/issues/300)):
+**One engine, three products** ([v0.2.0 realignment](./docs/REALIGNMENT-v0.2.0.md)):
 
 | Product | What it is | Status |
 |---|---|---|
-| **`gmeow` (PyPI)** | The five-minute client and repo-free consumer CLI: inspect the bundled ontology, describe terms, verify bundles, transpile RDF, project profiles, export docs, and run the MCP server | shipped ([#296](https://github.com/Blackcat-Informatics/gmeow-ontology/issues/296), [#442](https://github.com/Blackcat-Informatics/gmeow-ontology/issues/442)) |
-| **Grounded-memory MCP server** | `store_claim` / `recall` / `revise_belief` tool-calls for agents, backed by the claim, standpoint, evidence, and suppression model | shipped ([#297](https://github.com/Blackcat-Informatics/gmeow-ontology/issues/297)) |
-| **GTS `ai-package`** | A content-addressed, append-only, signable **single-file agent memory** — belief revision as suppression frames; portable across sessions, models, and vendors ([spec](https://github.com/Blackcat-Informatics/gmeow-gts/blob/main/docs/GTS-SPEC.md)) | shipped with Python, Rust, Go, and TypeScript engines plus signing/verification ([#267](https://github.com/Blackcat-Informatics/gmeow-ontology/issues/267), [#272](https://github.com/Blackcat-Informatics/gmeow-ontology/issues/272), [#327](https://github.com/Blackcat-Informatics/gmeow-ontology/issues/327)) |
+| **`gmeow` (PyPI)** | The five-minute client and repo-free consumer CLI: inspect the bundled ontology, describe terms, verify bundles, transpile RDF, project profiles, export docs, and run the MCP server | shipped |
+| **Grounded-memory MCP server** | `store_claim` / `recall` / `revise_belief` tool-calls for agents, backed by the claim, standpoint, evidence, and suppression model | shipped |
+| **GTS `ai-package`** | A content-addressed, append-only, signable **single-file agent memory** — belief revision as suppression frames; portable across sessions, models, and vendors ([spec](https://github.com/Blackcat-Informatics/gmeow-gts/blob/main/docs/GTS-SPEC.md)) | shipped with Python, Rust, Go, and TypeScript engines plus signing/verification |
 
 **Verifiable PyPI builds.** Wheels and sdists for `gmeow` and `gmeow-gts` are built in
 GitHub Actions and signed with GitHub artifact attestations. After downloading a package
@@ -152,10 +151,10 @@ slice's model *and* how it aligns/projects.
 | [`docs/GTS-SPEC.md`](https://github.com/Blackcat-Informatics/gmeow-gts/blob/main/docs/GTS-SPEC.md) | Specification | The Graph Transport Substrate — the content-addressed, append-only single-file format behind the `ai-package` memory and the narrow-waist exports |
 | [`docs/VERIFY-EXAMPLE.md`](./docs/VERIFY-EXAMPLE.md) | Reference | Sample signed `gmeow.gts` verification output: signature counts, transport-key fingerprint, emoji hash, randomart, and bundled ontology checks |
 | [`docs/cli-extensions.md`](./docs/cli-extensions.md) | Specification | The `gmeow` CLI extension roll-up — subcommand discovery from slice manifests, GTS profile gating, and solver-layer transforms |
-| [`docs/validation-thresholds.md`](./docs/validation-thresholds.md) | Reference | The four blocking validation gate floors (#579) — SHACL, vendored-entity coverage, slice-example, transpile recall — their measured values, where each floor lives, and the ratchet rule |
+| [`docs/validation-thresholds.md`](./docs/validation-thresholds.md) | Reference | The four blocking validation gate floors — SHACL, vendored-entity coverage, slice-example, transpile recall — their measured values, where each floor lives, and the ratchet rule |
 | [`docs/i18n.md`](./docs/i18n.md) | Process | The compiled PO translation layer: `.po` layout, extract/merge/export/sync commands, translator workflow, and i18n quality gates |
-| [`slices/core/logic/design/LOGIC.md`](./slices/core/logic/design/LOGIC.md) | Doctrine | The native RDF 1.2 `logic:` layer: canonical logic source, projection profiles, conformance, runtime, and migration — the design-set entrypoint |
-| [`slices/core/logic/design/LOGIC-CORRESPONDENCE.md`](./slices/core/logic/design/LOGIC-CORRESPONDENCE.md) | Doctrine | The correspondence calculus — cross-ontology alignment as the ninth `logic:` node kind; the law-spine, mnemomorphism, and section/retraction ("perfectly subsume V" as a CI-checkable law); rationale in [`docs/APPLIED_CATEGORY_THEORY/`](./docs/APPLIED_CATEGORY_THEORY/) |
+| [`slices/grounding/logic/design/LOGIC.md`](./slices/grounding/logic/design/LOGIC.md) | Doctrine | The native RDF 1.2 `logic:` layer: canonical logic source, projection profiles, conformance, runtime, and migration — the design-set entrypoint |
+| [`slices/grounding/logic/design/LOGIC-CORRESPONDENCE.md`](./slices/grounding/logic/design/LOGIC-CORRESPONDENCE.md) | Doctrine | The correspondence calculus — cross-ontology alignment as the ninth `logic:` node kind; the law-spine, mnemomorphism, and section/retraction ("perfectly subsume V" as a CI-checkable law); rationale in [`docs/APPLIED_CATEGORY_THEORY/`](./docs/APPLIED_CATEGORY_THEORY/) |
 | [`docs/reasoning.md`](./docs/reasoning.md) | Doctrine | The OWL-infers / SHACL-validates split, the four verification lanes, and why OWL cardinality is avoided |
 | [`docs/four-boxes.md`](./docs/four-boxes.md) | Doctrine | ABox/TBox/RBox/CBox as explicit graph roles for docs, validation diagnostics, GTS/package surfaces, and RDF 1.2 statement context |
 | [`docs/projections.md`](./docs/projections.md) | Doctrine | The generated alignment lowerings (SSSOM / EDOAL / FnO / SPARQL) of `logic:Correspondence`, and how lossy down-projection works |
@@ -278,7 +277,7 @@ hash, text labels, randomart, and valid/invalid/unverified signature counts. See
 | `make reason` | Native Docker-free EL/DL reasoning authority |
 | `make maint-explain` | Explain unsatisfiable classes with **HermiT** |
 | `make verify` | Reasoned-graph SPARQL QC (native EL/DL closure over `queries/verify/`, Java/Docker-free) — the closed-world half of the [OWL-infers / SHACL-validates split](./docs/reasoning.md) |
-| `make regenerate` | Rebuild EVERY committed artifact under `generated/` via the registered-generator framework (#279): mappings, projections, statements, schemas, lpg, metadata, apache, the module-status matrix |
+| `make regenerate` | Rebuild EVERY committed artifact under `generated/` via the registered-generator framework: mappings, projections, statements, schemas, lpg, metadata, apache, the module-status matrix |
 | `make check-generated` | Drift + orphan + internal-tag-leak gate over every registered generator |
 | `make mappings` | SSSOM → OWL/SKOS alignment axioms + VoID linksets; validates Wikidata QID syntax |
 | `make wikidata` / `make maint-wikidata-live` | Wikidata QID/PID syntax gate (offline) / + existence check (network) |
@@ -296,7 +295,7 @@ invoking user, so generated files are never owned by root.
 
 ## Architecture
 
-**The one rule (#287):** under `generated/`, a registered generator owns it; under
+**The one rule:** under `generated/`, a registered generator owns it; under
 `dist/`, it is ephemeral; everything else is authored. The unit of the ontology is
 the **slice** — identical anatomy for core and extensions, with the manifest as the
 sole source of identity and tier (Principles 15–16).
@@ -333,7 +332,7 @@ dist/                     Ephemeral build products (never committed)
 generated/dist/gmeow.gts  The single canonical terminal — a content-addressed,
                           signable bundle every generated/ artifact is a
                           projection of (docs/PIPELINE_SPINE.md)
-slices/core/logic/design/      Canonical design sets — the logic: layer +
+slices/grounding/logic/design/      Canonical design sets — the logic: layer +
 docs/APPLIED_CATEGORY_THEORY/  the correspondence-calculus rationale; read in
                           full before working in those areas
 ```
@@ -395,7 +394,7 @@ inverse (`put`, up-projection) is *recovery*, not reconstruction — which turns
 subsumes vocabulary V" into a **CI-checkable section/retraction law** (`u ∘ d = id`) rather than a
 slogan. It is *proven*, not asserted: the openEHR blood-pressure archetype round-trips through an
 in-band complement and passes a real (Archie RM) validator. Design + rationale:
-[`LOGIC-CORRESPONDENCE.md`](./slices/core/logic/design/LOGIC-CORRESPONDENCE.md) and
+[`LOGIC-CORRESPONDENCE.md`](./slices/grounding/logic/design/LOGIC-CORRESPONDENCE.md) and
 [`docs/APPLIED_CATEGORY_THEORY/`](./docs/APPLIED_CATEGORY_THEORY/); the projection reference:
 [`docs/projections.md`](./docs/projections.md).
 
@@ -455,7 +454,7 @@ GMEOW is **RDF 1.2 / RDF\*-first** ([Principles 2–3](./CONSTITUTION.md)): stat
 metadata — provenance, confidence, temporal scope — is **authored once** as native RDF 1.2 /
 RDF\* content in `dsl/statements/`, the canonical source. From it `gmeow-dev regenerate statements`
 generates two verified artifacts: the **RDF 1.2 / RDF\* serialization** (the lead form, written
-natively by the `gmeow-rdf` Rust codec — no Java, no Docker; #667) and the **OWL 2 axiom-annotation
+natively by the `gmeow-rdf` Rust codec — no Java, no Docker) and the **OWL 2 axiom-annotation
 form** (`owl:Axiom` + `owl:annotatedSource/Property/Target`) — the *generated,
 reasoning-lossless downcast* that the OWL 2 DL reasoners GMEOW gates on actually consume. The
 OWL form is the **downgrade for legacy tooling** — the same lossy-compatibility-as-projection
@@ -479,11 +478,11 @@ GMEOW's logical core is a maximally expressive, RDF-1.2-native `logic:` layer
 ([Principle 17](./CONSTITUTION.md)) — a full-FOL, Turing-complete typed IR, not an OWL syntax with
 a new namespace. **Every prior formalism is a generated, lossy projection of it**, and the
 relations are kept distinct on one lattice
-([`LOGIC-META-SEMANTICS.md`](./slices/core/logic/design/LOGIC-META-SEMANTICS.md)): `logic:` is
+([`LOGIC-META-SEMANTICS.md`](./slices/grounding/logic/design/LOGIC-META-SEMANTICS.md)): `logic:` is
 *built atop* RDF 1.2; it is a *superset of* the definitional formalisms (OWL, RDFS, SKOS, gUFO,
 UFO — lifted in and projected back at exact preservation); it *down-projects lossily to* the
 closed-world validation surfaces (**SHACL Core + ShEx**, derived from a `logic:` validation-shape
-node kind — [`LOGIC-VALIDATION.md`](./slices/core/logic/design/LOGIC-VALIDATION.md)); and it
+node kind — [`LOGIC-VALIDATION.md`](./slices/grounding/logic/design/LOGIC-VALIDATION.md)); and it
 *derives, via the correspondence layer,* the alignment surfaces (SSSOM/EDOAL/FnO). OWL DL/EL,
 Datalog, N3, Prolog, and the Common Logic dialects (CLIF/CGIF/XCL) are further generated surfaces;
 BFO/DOLCE/SUMO/YAMATO are bridge views.
@@ -496,8 +495,8 @@ the native core — demoted to cross-check oracles + not-yet-native fallbacks; E
 only as a non-authoritative cross-check lane. Every lowering carries a preservation judgment (exact
 / under- / over-approximation / validation-only / unsupported), and any reasoning-contract
 combination with no defined semantics surfaces as an explicit `unsupported` — never a silent
-approximation. Design set: [`slices/core/logic/design/`](./slices/core/logic/design/) (entrypoint
-[`LOGIC.md`](./slices/core/logic/design/LOGIC.md)).
+approximation. Design set: [`slices/grounding/logic/design/`](./slices/grounding/logic/design/) (entrypoint
+[`LOGIC.md`](./slices/grounding/logic/design/LOGIC.md)).
 
 ### Names: first-class, multi-culture, inclusive
 

@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Rust↔TTL cross-check (#768, ME2): the typed `logic:ReasoningResult` status
-//! enums are the Rust authority; `slices/core/logic/module.ttl` is their lossy
+//! Rust↔TTL cross-check (ME2): the typed `logic:ReasoningResult` status
+//! enums are the Rust authority; `slices/grounding/logic/module.ttl` is their lossy
 //! projection (Principle 17). This test pins the two together — every enum
 //! variant's `module.ttl` local name MUST be declared as a `logic:` individual,
 //! so the Rust enums and the ontology surface can never silently diverge.
@@ -15,7 +15,7 @@ use gmeow_logic::result_shape::{ColumnBinding, RowCardinality, TermKind};
 fn module_ttl() -> String {
     let path = concat!(
         env!("CARGO_MANIFEST_DIR"),
-        "/../../slices/core/logic/module.ttl"
+        "/../../slices/grounding/logic/module.ttl"
     );
     std::fs::read_to_string(path).unwrap_or_else(|e| panic!("read {path}: {e}"))
 }

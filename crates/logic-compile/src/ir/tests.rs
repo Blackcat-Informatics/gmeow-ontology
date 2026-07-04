@@ -19,7 +19,7 @@ fn axiom(subj: &str, pred: &str, obj: &str) -> LogicAxiom {
 /// Read the canonical `module.ttl` (relative to the crate manifest).
 fn module_ttl_text() -> String {
     let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("../../slices/core/logic/module.ttl");
+        .join("../../slices/grounding/logic/module.ttl");
     std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
 }
 
@@ -84,13 +84,13 @@ fn semantic_profile_ids_match_module_ttl() {
     .collect();
 
     // The six preset local names must be EXACTLY the logic:ReasoningPreset named
-    // individuals declared in module.ttl (#767, reviewer B1): the historical
+    // individuals declared in module.ttl (reviewer B1): the historical
     // logic:SemanticProfile class is retired, so the source of truth is now the
     // set of logic:ReasoningPreset individuals. Walk the top-level subject blocks
     // and collect every subject whose block names logic:ReasoningPreset as a type
     // (skipping the class declaration itself).
     let module_ttl = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("../../slices/core/logic/module.ttl");
+        .join("../../slices/grounding/logic/module.ttl");
     let text = std::fs::read_to_string(&module_ttl)
         .unwrap_or_else(|e| panic!("read {}: {e}", module_ttl.display()));
 
@@ -161,7 +161,7 @@ fn procedural_preset_carries_procedural_execution_facet() {
     // exactly the presets whose module.ttl expandsToFacet bundle includes
     // logic:ProceduralExecution may license cut — so the two can never silently diverge.
     let module_ttl = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("../../slices/core/logic/module.ttl");
+        .join("../../slices/grounding/logic/module.ttl");
     let text = std::fs::read_to_string(&module_ttl)
         .unwrap_or_else(|e| panic!("read {}: {e}", module_ttl.display()));
 
@@ -215,7 +215,7 @@ fn compatibility_rule_ids_match_module_ttl() {
     use crate::compat::ALL_RULE_IDS;
 
     let module_ttl = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("../../slices/core/logic/module.ttl");
+        .join("../../slices/grounding/logic/module.ttl");
     let text = std::fs::read_to_string(&module_ttl)
         .unwrap_or_else(|e| panic!("read {}: {e}", module_ttl.display()));
 
@@ -623,7 +623,7 @@ fn logic_rule_distinct_pairs_canonicalized() {
     assert!(r1.sort_key().contains("?A\u{0}?B"));
 }
 
-// ── ReasoningContract (#767) ─────────────────────────────────────────────────
+// ── ReasoningContract ─────────────────────────────────────────────────
 
 #[test]
 fn reasoning_contract_with_and_without_complexity() {
@@ -765,7 +765,7 @@ fn logic_program_source_iri_preserved() {
     assert!(prog.path_shapes.is_empty());
 }
 
-// ── Path shapes (#1010) ──────────────────────────────────────────────────────
+// ── Path shapes ──────────────────────────────────────────────────────
 
 fn shape(iri: &str, base: PathBase, min: u32, max: Option<u32>) -> PathShapeIr {
     PathShapeIr::new(iri, base, min, max, None, None).unwrap()
@@ -1050,7 +1050,7 @@ fn path_shape_accepts_namespace_scope_on_wildcard() {
     .expect("namespace_scope on a wildcard step must be accepted");
 }
 
-// ── The correspondence calculus (#1088) ──────────────────────────────────────
+// ── The correspondence calculus ──────────────────────────────────────
 
 /// Build a minimal valid correspondence with the given IRI and law claims.
 fn corr(iri: &str, law_claims: Vec<LawClaimIr>) -> Correspondence {
@@ -1343,7 +1343,7 @@ fn corr_err(iri: &str, get_leg: Option<String>) -> String {
     .unwrap_err()
 }
 
-// ── Full first-order Formula AST (#719) ──────────────────────────────────────
+// ── Full first-order Formula AST ──────────────────────────────────────
 
 /// A variable term.
 fn tv(name: &str) -> Term {

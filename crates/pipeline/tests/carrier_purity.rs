@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Carrier-purity gate (#1132 C11).
+//! Carrier-purity gate (C11).
 //!
 //! The build pipeline's inter-stage CARRIER/TRANSPORT path is NATIVE: the composed
 //! value rides `Arc<PipelineBundle<PipelineHandle>>`/`RdfDataset` handles, the
@@ -25,7 +25,7 @@
 //! There is NO sanctioned-exception carve-out: the carrier's typed-literal value-space
 //! canonicalization is now NATIVE (`purrdf::xsd::parse_by_iri` + `XsdValue::canonical_lexical`
 //! in `carrier::dataset_to_nquads`), so the former transient-`Store`
-//! `canonicalize_quad_literals` residual (#1132 C3) is GONE — the carrier path uses NO
+//! `canonicalize_quad_literals` residual (C3) is GONE — the carrier path uses NO
 //! oxigraph `Store` at all.
 //!
 //! What this gate FORBIDS — and FAILS on if reintroduced — is a `Store::new()`
@@ -129,7 +129,7 @@ fn carrier_transport_path_creates_no_oxigraph_store_for_accumulation() {
 
 #[test]
 fn carrier_literal_canonicalization_is_native_gmeow_xsd_not_an_oxigraph_store() {
-    // The carrier's typed-literal value-space canonicalization (#1132 C3) is NATIVE:
+    // The carrier's typed-literal value-space canonicalization (C3) is NATIVE:
     // `carrier::dataset_to_nquads` maps each literal through `purrdf::xsd::parse_by_iri`
     // + `XsdValue::canonical_lexical`, with NO transient oxigraph `Store`. The former
     // `canonicalize_quad_literals` residual is GONE — assert it is neither referenced by

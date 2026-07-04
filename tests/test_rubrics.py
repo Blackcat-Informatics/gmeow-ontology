@@ -1,25 +1,28 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: MIT
-"""The rubrics facility (#353, EPIC #348), in the norms slice.
+"""The rubrics facility, in the norms slice.
 
-A rubric IS a norm for judging (Rubric ⊑ Norm — issuer, overrides, and
-authority come free; the P16 DAG rule bars extension→extension dependencies,
-so the facility lives in the norms slice). Rubric content is fully reified —
-criteria with NAMED poles, scales, anchored exemplars; rubric application is
-solver-layer, permanently (Principle 12). An LLM judge is just a vantage:
-two models disagreeing on a score are two coexisting Assessments, no winner
-(Principle 9). Exemplar ⊑ CitationAct carries the kernel aboutness phase-gate
-(#349) and the entity-subject pinning for EPIC #358's character exemplars.
+All structural invariants and the exemplar-polarity competency question have been
+migrated to the slice-resident declarative test-DSL:
+
+  - slices/extensions/norms/tests/structural.ttl
+  - slices/extensions/norms/tests/competency.ttl
+
+What remains here are tests that cannot be expressed as module-scoped SPARQL
+ASK/SELECT cells:
+
+  - test_no_preferred_assessment_machinery: dynamic sweep over the merged graph
+    checking that no preferred/canonical/primary assessment term exists.
+  - test_two_judges_disagree_without_contradiction: fixture-level assessment
+    value check asserting two co-equal assessment cells stand.
 """
 
 from __future__ import annotations
 
 from pathlib import Path
 
-from purrdf.compat.rdflib import OWL, RDF, RDFS, Graph, Literal, Namespace
-from purrdf.compat.rdflib.query import ResultRow
+from purrdf.compat.rdflib import RDF, Graph, Literal, Namespace
 
-from gmeow_tools.config import COMPETENCY_DIR
 from gmeow_tools.graph import load_merged_graph
 
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
@@ -40,44 +43,8 @@ def _fixture(name: str) -> Graph:
 
 
 # --------------------------------------------------------------------------- #
-# Structural invariants
+# Dynamic / fixture residue
 # --------------------------------------------------------------------------- #
-
-
-def test_criterion_carries_named_poles() -> None:
-    g = _graph()
-    assert (GM.Criterion, RDFS.subClassOf, GM.InformationObject) in g
-    assert (GM.CriterionPole, RDFS.subClassOf, GM.InformationObject) in g
-    for prop in (GM.rewardPole, GM.penaltyPole):
-        assert (prop, RDF.type, OWL.FunctionalProperty) in g, prop
-        assert (prop, RDFS.range, GM.CriterionPole) in g, prop
-
-
-def test_exemplar_subject_is_open_and_optional() -> None:
-    """The EPIC #358 coordination property: entity-pattern exemplars (823 in
-    the foundation corpus). Range open; not functional; coexists with
-    selectors."""
-    g = _graph()
-    assert (GM.exemplarSubject, RDF.type, OWL.ObjectProperty) in g
-    assert g.value(GM.exemplarSubject, RDFS.range) is None
-    assert (GM.exemplarSubject, RDF.type, OWL.FunctionalProperty) not in g
-
-
-def test_assessment_is_a_vantage_indexed_observation() -> None:
-    g = _graph()
-    assert (GM.Assessment, RDFS.subClassOf, GM.Observation) in g
-    assert (GM.assessmentTarget, RDFS.subPropertyOf, GM.observedFeature) in g
-    # The claimModality pattern: criterion/rubric play the observationMethod
-    # ROLE without the subproperty axiom (functional QualityValue range vs
-    # Entity-valued Criterion/Rubric).
-    for prop in (GM.assessmentCriterion, GM.assessmentRubric):
-        assert (prop, RDFS.subPropertyOf, GM.observationMethod) not in g, prop
-        assert (prop, RDF.type, OWL.FunctionalProperty) in g, prop
-    # Localizable prose is NOT functional (PR #376 review): one meaning /
-    # rationale per language tag, enforced by sh:uniqueLang.
-    for prop in (GM.anchorMeaning, GM.exemplarRationale):
-        assert (prop, RDF.type, OWL.FunctionalProperty) not in g, prop
-    assert (GM.assessmentScoreValue, RDF.type, OWL.DatatypeProperty) in g
 
 
 def test_no_preferred_assessment_machinery() -> None:
@@ -100,11 +67,6 @@ def test_no_preferred_assessment_machinery() -> None:
     assert offenders == []
 
 
-# --------------------------------------------------------------------------- #
-# Closed-world SHACL shapes — migrated to crates/validate/tests/conformance_rubrics.rs
-# --------------------------------------------------------------------------- #
-
-
 def test_two_judges_disagree_without_contradiction() -> None:
     """The LLM-judge doctrine in fixture form: one chunk, two vantages, two
     scores — both cells stand."""
@@ -116,22 +78,3 @@ def test_two_judges_disagree_without_contradiction() -> None:
         scores[g.value(a, GM.vantage)] = float(value.toPython())
     assert scores[EX.judgeA] == 0.9
     assert scores[EX.judgeB] == 0.4
-
-
-# --------------------------------------------------------------------------- #
-# Competency
-# --------------------------------------------------------------------------- #
-
-
-def test_competency_exemplar_polarity_query() -> None:
-    query_path = COMPETENCY_DIR / "rubrics-exemplar-polarity.rq"
-    query = query_path.read_text(encoding="utf-8")
-    polarities: set[object] = set()
-    for row in _graph().query(query):
-        assert isinstance(row, ResultRow)
-        polarities.add(row[0])
-    assert polarities == {
-        GM.polarityPositive,
-        GM.polarityNegative,
-        GM.polarityCautionary,
-    }

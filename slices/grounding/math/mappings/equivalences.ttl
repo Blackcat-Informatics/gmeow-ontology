@@ -1,0 +1,562 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow:  <https://blackcatinformatics.ca/gmeow/> .
+@prefix math:   <https://blackcatinformatics.ca/math/> .
+@prefix skos:   <http://www.w3.org/2004/02/skos/core#> .
+@prefix semapv: <https://w3id.org/semapv/vocab/> .
+@prefix wd:     <http://www.wikidata.org/entity/> .
+
+# Term equivalences (authored in-slice; source of alignment linkage).
+#
+# Named constants and the number systems are anchored to Wikidata (the identity
+# hub — CC0), and each named constant additionally carries its OEIS decimal-
+# expansion locator (link-only, by reference; Principle 5 — every object IRI is a
+# real external entity, curl-validated). A constant's Wikidata QID is its identity
+# (skos:exactMatch); a number system's QID names the number-type concept, a close
+# but not invertible match to the system individual (skos:closeMatch); an OEIS
+# A-number locates the decimal digits of a constant, a related resource rather than
+# its identity (skos:relatedMatch).
+
+# --- Named constants → Wikidata (identity) --------------------------------- #
+
+gmeow:eqMathPi a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:pi ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q167 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "pi" ;
+    gmeow:comment "math:pi is the exact constant π; wd:Q167 (pi) is the same constant — the ratio of a circle's circumference to its diameter. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathEulerNumber a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:eulerNumber ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q82435 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "Euler's number" ;
+    gmeow:comment "math:eulerNumber is the exact constant e; wd:Q82435 (Euler's number) is the same constant — the base of the natural logarithm. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathEulerMascheroni a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:eulerMascheroni ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q273023 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "Euler–Mascheroni constant" ;
+    gmeow:comment "math:eulerMascheroni is the exact constant γ; wd:Q273023 (Euler–Mascheroni constant) is the same constant — the limiting difference between the harmonic series and the natural logarithm. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+# --- Named constants → OEIS (decimal-expansion locator, by reference) ------ #
+
+gmeow:eqMathPiOeis a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:pi ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject <https://oeis.org/A000796> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "A000796" ;
+    gmeow:comment "OEIS A000796 is the decimal expansion of π — a locator for the digits of math:pi, a related resource rather than the constant's identity, so skos:relatedMatch. Link-only (OEIS is CC BY-SA 4.0, aligned by reference)." ;
+    gmeow:sssomFile "gmeow-oeis.sssom.tsv" .
+
+gmeow:eqMathEulerNumberOeis a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:eulerNumber ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject <https://oeis.org/A001113> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "A001113" ;
+    gmeow:comment "OEIS A001113 is the decimal expansion of e — a locator for the digits of math:eulerNumber, a related resource rather than the constant's identity, so skos:relatedMatch. Link-only (OEIS is CC BY-SA 4.0, aligned by reference)." ;
+    gmeow:sssomFile "gmeow-oeis.sssom.tsv" .
+
+gmeow:eqMathEulerMascheroniOeis a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:eulerMascheroni ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject <https://oeis.org/A001620> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "A001620" ;
+    gmeow:comment "OEIS A001620 is the decimal expansion of the Euler–Mascheroni constant γ — a locator for the digits of math:eulerMascheroni, a related resource rather than the constant's identity, so skos:relatedMatch. Link-only (OEIS is CC BY-SA 4.0, aligned by reference)." ;
+    gmeow:sssomFile "gmeow-oeis.sssom.tsv" .
+
+# --- Number systems → Wikidata (number-type concept, closeMatch) ----------- #
+
+gmeow:eqMathNaturalNumbers a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:naturalNumbers ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q21199 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "natural number" ;
+    gmeow:comment "math:naturalNumbers is the system ℕ; wd:Q21199 (natural number) names the number-type concept. closeMatch, not identity: the system individual and the (deliberately ambiguous — non-negative or positive) number-type concept are close counterparts, not invertibly the same object." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathIntegers a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:integers ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q12503 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "integer" ;
+    gmeow:comment "math:integers is the system ℤ; wd:Q12503 (integer) names the number-type concept. closeMatch: the system individual and the number-type concept are close counterparts, not invertibly the same object." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathRationalNumbers a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:rationalNumbers ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q1244890 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "rational number" ;
+    gmeow:comment "math:rationalNumbers is the system ℚ; wd:Q1244890 (rational number) names the number-type concept. closeMatch: the system individual and the number-type concept are close counterparts, not invertibly the same object." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathRealNumbers a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:realNumbers ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q12916 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "real number" ;
+    gmeow:comment "math:realNumbers is the system ℝ; wd:Q12916 (real number) names the number-type concept. closeMatch: the system individual and the number-type concept are close counterparts, not invertibly the same object." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathComplexNumbers a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:complexNumbers ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q11567 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "complex number" ;
+    gmeow:comment "math:complexNumbers is the system ℂ; wd:Q11567 (complex number) names the number-type concept. closeMatch: the system individual and the number-type concept are close counterparts, not invertibly the same object." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+# --- Algebraic-structure classes → Wikidata (concept identity) ------------- #
+# Each math: structure class denotes the same concept as its Wikidata item — a
+# clean 1:1 identity (the class IS the concept "group", "ring", …), so
+# skos:exactMatch at confidence 1.0. All QIDs curl-validated July 2026.
+
+gmeow:eqMathAlgebraicStructure a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:AlgebraicStructure ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q205464 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "algebraic structure" ;
+    gmeow:comment "math:AlgebraicStructure is a set equipped with operations satisfying axioms; wd:Q205464 (algebraic structure) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathSemigroup a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:Semigroup ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q207348 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "semigroup" ;
+    gmeow:comment "math:Semigroup is a magma with an associative operation; wd:Q207348 (semigroup) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathMonoid a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:Monoid ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q208237 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "monoid" ;
+    gmeow:comment "math:Monoid is a semigroup with an identity element; wd:Q208237 (monoid) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathGroup a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:Group ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q83478 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "group" ;
+    gmeow:comment "math:Group is a monoid in which every element has an inverse; wd:Q83478 (group) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathAbelianGroup a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:AbelianGroup ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q181296 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "abelian group" ;
+    gmeow:comment "math:AbelianGroup is a group with a commutative operation; wd:Q181296 (abelian group) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathRing a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:Ring ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q161172 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "ring" ;
+    gmeow:comment "math:Ring is an abelian additive group with a distributive multiplication; wd:Q161172 (ring) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathCommutativeRing a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:CommutativeRing ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q858656 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "commutative ring" ;
+    gmeow:comment "math:CommutativeRing is a ring whose multiplication commutes; wd:Q858656 (commutative ring) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathField a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:Field ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q190109 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "field" ;
+    gmeow:comment "math:Field is a commutative ring whose non-zero elements form a multiplicative group; wd:Q190109 (field) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathModule a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:Module ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q18848 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "module" ;
+    gmeow:comment "math:Module is an abelian group with a compatible ring-scalar action; wd:Q18848 (module) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathVectorSpace a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:VectorSpace ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q125977 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "vector space" ;
+    gmeow:comment "math:VectorSpace is a module over a field; wd:Q125977 (vector space) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathPolynomialRing a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:PolynomialRing ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q1455652 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "polynomial ring" ;
+    gmeow:comment "math:PolynomialRing is the ring R[x] of polynomials over a base ring; wd:Q1455652 (polynomial ring) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathIdeal a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:Ideal ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q44649 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "ideal" ;
+    gmeow:comment "math:Ideal is an additive subgroup of a ring closed under multiplication by any ring element; wd:Q44649 (ideal, ring theory) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+# --- Structure-preserving maps → Wikidata (concept identity) --------------- #
+
+gmeow:eqMathMorphism a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:Morphism ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q1948412 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "morphism" ;
+    gmeow:comment "math:Morphism is a structure-preserving map between objects; wd:Q1948412 (morphism) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathHomomorphism a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:Homomorphism ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q215111 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "homomorphism" ;
+    gmeow:comment "math:Homomorphism is a structure-preserving map between algebraic structures; wd:Q215111 (homomorphism) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathGroupHomomorphism a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:GroupHomomorphism ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q868169 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "group homomorphism" ;
+    gmeow:comment "math:GroupHomomorphism preserves the group operation; wd:Q868169 (group homomorphism) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathRingHomomorphism a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:RingHomomorphism ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q1194212 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "ring homomorphism" ;
+    gmeow:comment "math:RingHomomorphism preserves both ring operations; wd:Q1194212 (ring homomorphism) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathIsomorphism a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:Isomorphism ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q189112 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "isomorphism" ;
+    gmeow:comment "math:Isomorphism is an invertible structure-preserving map; wd:Q189112 (isomorphism) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathAutomorphism a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:Automorphism ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q782566 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "automorphism" ;
+    gmeow:comment "math:Automorphism is an isomorphism of a structure with itself; wd:Q782566 (automorphism) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathAutomorphismGroup a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:AutomorphismGroup ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q60790315 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "automorphism group" ;
+    gmeow:comment "math:AutomorphismGroup is the group of a structure's automorphisms — its symmetry group; wd:Q60790315 (automorphism group) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathQuotient a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:Quotient ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q1138961 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "quotient group" ;
+    gmeow:comment "math:Quotient is the general quotient of a structure by a compatible substructure; wd:Q1138961 (quotient group) is its canonical group instance. closeMatch, not identity: math:Quotient is broader (ring and module quotients too), so the map to the group-specific concept is a close but non-invertible counterpart." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+# --- Algebra classes → Lean mathlib (structural formalization, by reference) #
+# The typeclass hierarchy and the root-system / Lie formalizations aligned to their
+# mathlib4 declarations. mathlib is Apache-2.0 but not RDF-projectable, so this is
+# structural-by-reference (skos:relatedMatch), NOT identity: the Lean formalization is
+# a related resource, not an invertible identity. All URLs curl-validated (HTTP 200).
+
+gmeow:eqMathMonoidMathlib a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:Monoid ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject <https://leanprover-community.github.io/mathlib4_docs/Mathlib/Algebra/Group/Defs.html> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "Mathlib.Algebra.Group.Defs (Monoid)" ;
+    gmeow:comment "math:Monoid is formalized by the Monoid typeclass in mathlib's Algebra.Group.Defs. Structural formalization by reference (mathlib is Apache-2.0 but not RDF), so skos:relatedMatch." ;
+    gmeow:sssomFile "gmeow-mathlib.sssom.tsv" .
+
+gmeow:eqMathGroupMathlib a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:Group ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject <https://leanprover-community.github.io/mathlib4_docs/Mathlib/Algebra/Group/Basic.html> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "Mathlib.Algebra.Group.Basic (Group)" ;
+    gmeow:comment "math:Group is formalized by the Group typeclass in mathlib's Algebra.Group. Structural formalization by reference, so skos:relatedMatch." ;
+    gmeow:sssomFile "gmeow-mathlib.sssom.tsv" .
+
+gmeow:eqMathRingMathlib a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:Ring ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject <https://leanprover-community.github.io/mathlib4_docs/Mathlib/Algebra/Ring/Defs.html> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "Mathlib.Algebra.Ring.Defs (Ring)" ;
+    gmeow:comment "math:Ring is formalized by the Ring typeclass in mathlib's Algebra.Ring.Defs. Structural formalization by reference, so skos:relatedMatch." ;
+    gmeow:sssomFile "gmeow-mathlib.sssom.tsv" .
+
+gmeow:eqMathFieldMathlib a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:Field ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject <https://leanprover-community.github.io/mathlib4_docs/Mathlib/Algebra/Field/Defs.html> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "Mathlib.Algebra.Field.Defs (Field)" ;
+    gmeow:comment "math:Field is formalized by the Field typeclass in mathlib's Algebra.Field.Defs. Structural formalization by reference, so skos:relatedMatch." ;
+    gmeow:sssomFile "gmeow-mathlib.sssom.tsv" .
+
+gmeow:eqMathModuleMathlib a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:Module ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject <https://leanprover-community.github.io/mathlib4_docs/Mathlib/Algebra/Module/Defs.html> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "Mathlib.Algebra.Module.Defs (Module)" ;
+    gmeow:comment "math:Module is formalized by the Module typeclass in mathlib's Algebra.Module.Defs. Structural formalization by reference, so skos:relatedMatch." ;
+    gmeow:sssomFile "gmeow-mathlib.sssom.tsv" .
+
+gmeow:eqMathRootSystemMathlib a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:RootSystem ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject <https://leanprover-community.github.io/mathlib4_docs/Mathlib/LinearAlgebra/RootSystem/Defs.html> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "Mathlib.LinearAlgebra.RootSystem.Defs" ;
+    gmeow:comment "math:RootSystem is formalized by mathlib's RootSystem/RootPairing in LinearAlgebra.RootSystem.Defs — the formalization the E8 flagship aligns to. Structural by reference, so skos:relatedMatch." ;
+    gmeow:sssomFile "gmeow-mathlib.sssom.tsv" .
+
+gmeow:eqMathLieAlgebraMathlib a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:LieAlgebra ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject <https://leanprover-community.github.io/mathlib4_docs/Mathlib/Algebra/Lie/Basic.html> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "Mathlib.Algebra.Lie.Basic (LieAlgebra)" ;
+    gmeow:comment "math:LieAlgebra is formalized by the LieAlgebra/LieRing typeclasses in mathlib's Algebra.Lie.Basic. Structural by reference, so skos:relatedMatch." ;
+    gmeow:sssomFile "gmeow-mathlib.sssom.tsv" .
+
+# --- Lie theory & group actions → Wikidata (concept identity) -------------- #
+
+gmeow:eqMathGroupAction a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:GroupAction ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q288465 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "group action" ;
+    gmeow:comment "math:GroupAction is the action of a group on a set compatible with the group operation; wd:Q288465 (group action) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathLieGroup a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:LieGroup ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q622679 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "Lie group" ;
+    gmeow:comment "math:LieGroup is a group that is also a smooth manifold; wd:Q622679 (Lie group) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathLieAlgebra a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:LieAlgebra ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q664495 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "Lie algebra" ;
+    gmeow:comment "math:LieAlgebra is the infinitesimal structure of a Lie group — a vector space with an alternating bracket; wd:Q664495 (Lie algebra) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathRootSystem a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:RootSystem ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q534131 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "root system" ;
+    gmeow:comment "math:RootSystem is the finite root configuration of a semisimple Lie group; wd:Q534131 (root system) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathWeylGroup a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:WeylGroup ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q768074 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "Weyl group" ;
+    gmeow:comment "math:WeylGroup is the reflection symmetry group of a root system; wd:Q768074 (Weyl group) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathCartanMatrix a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:CartanMatrix ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q2004951 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "Cartan matrix" ;
+    gmeow:comment "math:CartanMatrix is the integer matrix of Cartan integers of a root system's simple roots; wd:Q2004951 (Cartan matrix) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathDynkinDiagram a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:DynkinDiagram ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q5319218 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "Dynkin diagram" ;
+    gmeow:comment "math:DynkinDiagram is the graph classifying a root system's simple roots; wd:Q5319218 (Dynkin diagram) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathGroupRepresentation a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:GroupRepresentation ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q1055807 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "group representation" ;
+    gmeow:comment "math:GroupRepresentation is a homomorphism of a group into a general linear group; wd:Q1055807 (group representation) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathLattice a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:Lattice ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q1096885 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "lattice" ;
+    gmeow:comment "math:Lattice is a discrete subgroup of a real vector space that spans it; wd:Q1096885 (lattice, the discrete-subgroup sense) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+# --- Homomorphic encryption & hardness → Wikidata (concept identity) ------- #
+
+gmeow:eqMathHomomorphicEncryption a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:HomomorphicEncryptionScheme ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q2154943 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "homomorphic encryption" ;
+    gmeow:comment "math:HomomorphicEncryptionScheme is a scheme allowing computation on ciphertexts; wd:Q2154943 (homomorphic encryption) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathEncryptionScheme a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:EncryptionScheme ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q141090 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "encryption" ;
+    gmeow:comment "math:EncryptionScheme is the scheme (key + encrypt/decrypt maps); wd:Q141090 (encryption) names the process. closeMatch, not identity: the scheme and the process are close but non-invertible counterparts." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathLatticeHardness a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:LatticeHardnessAssumption ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q6497083 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "lattice-based cryptography" ;
+    gmeow:comment "math:LatticeHardnessAssumption is the hardness assumption a scheme rests on; wd:Q6497083 (lattice-based cryptography) names the cryptographic family built on such assumptions. closeMatch: the assumption and the family that uses it are close but non-invertible counterparts." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathLwe a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:learningWithErrors ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q6510239 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "learning with errors" ;
+    gmeow:comment "math:learningWithErrors is the LWE hardness problem; wd:Q6510239 (learning with errors) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathRlwe a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:ringLearningWithErrors ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q25303820 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "Ring Learning with Errors" ;
+    gmeow:comment "math:ringLearningWithErrors is the RLWE hardness problem; wd:Q25303820 (Ring Learning with Errors) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .

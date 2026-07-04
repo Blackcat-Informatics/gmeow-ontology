@@ -6,6 +6,9 @@
 # `cargo install gmeow-gts`. The ontology Rust workspace keeps logic + shacl +
 # validate plus shared diagnostics/RDF glue.
 members = [
+    # Shared CLI foundation (console modes, reporters, tracing, exit codes) both
+    # the consumer `gmeow` and the maintenance `gmeow-dev` binaries build on.
+    "crates/cli-core",
     # Native logic-conformance harness (#785): datatest-stable over the corpus.
     "crates/conformance",
     "crates/diagnostics",
@@ -14,10 +17,17 @@ members = [
     # Foundation-corpus importer (#364): narrative JSONL corpus → RDF graph +
     # budget report + six lossy projections; the consumer child of EPICs #358/#364.
     "crates/foundation-corpus",
+    # The consumer/wheel-only `gmeow` command surface (runs without the repo).
+    "crates/gmeow-cli",
+    # The repo-maintenance `gmeow-dev` command surface (needs the working tree).
+    "crates/gmeow-dev-cli",
     # Native IRI/URI value space (RFC-3987 IRI + RFC-3986 URI parse/validate,
     # reference resolution, syntax normalization, CURIE/prefix expansion): the
     # zero-dep leaf that replaces the oxigraph-family `oxiri` (purrdf S2, EPIC #906).
 
+    # The lang: form AST, content keys, and interning (FORMS): a pure rlib peer of
+    # logic-compile with no reasoning-runtime deps, keying forms by structural content.
+    "crates/lang-form",
     # Dependency-free license-token policy classifier (RUST-FIRST single source of
     # truth) shared by the conformance vendoring gate and the Python LinkPolicy shim.
     "crates/license",
@@ -182,6 +192,9 @@ codegen-units = 1
 [profile.release.package.gmeow-logic-compile]
 codegen-units = 1
 
+[profile.release.package.gmeow-lang-form]
+codegen-units = 1
+
 [profile.release.package.gmeow-validate]
 codegen-units = 1
 
@@ -225,6 +238,16 @@ codegen-units = 1
 
 [profile.release.package.gmeow-lsp]
 codegen-units = 1
+
+[profile.release.package.gmeow-cli-core]
+codegen-units = 1
+
+[profile.release.package.gmeow-cli]
+codegen-units = 1
+
+[profile.release.package.gmeow-dev-cli]
+codegen-units = 1
+
 [profile.bench]
 lto = false
 

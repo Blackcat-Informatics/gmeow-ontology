@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Conformance twins migrated from tests/test_teleology.py (#867)
+//! Conformance twins migrated from tests/test_teleology.py
 //!
 //! Each test loads a fixture file from `tests/fixtures/shapes/` and validates
 //! it against the whole shapes corpus using `validate()`.
@@ -26,8 +26,8 @@ use rstest::rstest;
         .fails()
         .violations(&[
             "exactly one gmeow:intentBearer",
-            "distinct from its committed agent",
-            "never its own counter-goal",
+            "gmeow:commitmentBeneficiary and gmeow:committedAgent must be distinct",
+            "its own gmeow:counterGoal",
             "exactly one gmeow:tenureAgent",
         ])
 )]

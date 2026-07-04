@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The dogfooding parity gate (#861 P6 integration): the build DAG authored as
+//! The dogfooding parity gate (P6 integration): the build DAG authored as
 //! data in `slices/core/pipeline/module.ttl` must load, validate, bind against
 //! the registry, AND be IDENTICAL to the authoritative Rust [`full_spec`] the run
 //! executes. This proves the two never diverge — the slice file IS the build

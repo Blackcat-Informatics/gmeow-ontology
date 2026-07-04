@@ -1,15 +1,15 @@
 # Retention: `tests/test_competency.py`
 
-**Category:** Domain invariant → slicetest cells
+**Category:** Static repo guard
 
 ## What it tests
 
 Clock-relative competency retain (the rest migrated to native slice-test cells).
 
-## Why it cannot move to Rust today
+Retained dynamic tests:
 
-Structural / competency / cross-slice invariants over the module (or merged) graph — ontology *shape*, not Python logic.
+- `test_competency_expertise_expiring_credentials_query` — Expiring-credentials query returns credentials with a near-future expiry.
 
-## What is needed to move it to Rust
+## Why it cannot be deleted or moved to Rust today
 
-Author the assertions as slicetest cells in the **owning** slice (`structural.ttl` MUST/MUST-NOT, `competency.ttl` ASK/SELECT) per `docs/SLICE_QA.md`; cross-slice subjects go in the slice that *defines* the term. Confirm `make slicetest`, then delete this file. No new Rust — the harness exists.
+ONE test is deliberately retained here: ``expertise-expiring-credentials``. Its query selects credentials whose ``gmeow:validUntil`` falls within one year of ``NOW()`` — a clock-RELATIVE window. No static fixture date can satisfy "within a year of now" perpetually: a far-future literal falls outside the window, and any fixed near date becomes a time-bomb that silently reds once wall-clock time passes it. A faithful native cell would need clock-relative date templating the test-DSL deliberately does not have, so this stays a pytest retain that builds its data relative to the current clock at run time (the verification-honesty doctrine: never author a test that silently breaks later).

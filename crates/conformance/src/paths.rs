@@ -55,7 +55,7 @@ pub fn case_dir(profile_json: &Path) -> PathBuf {
 ///
 /// For the standard two-level layout this is `<category>/<case>` (byte-identical to
 /// the historical `parent.name/name` form). For a vendored external corpus at the
-/// documented three-level depth it is `external/<corpus>/<case>` (#753) — so the
+/// documented three-level depth it is `external/<corpus>/<case>` — so the
 /// `external/` prefix is preserved and two corpora cannot collide with a non-external
 /// category. The id is computed by joining every path component AFTER the last
 /// `cases` component, which works for both absolute paths (the `conformance-report`
@@ -106,7 +106,7 @@ mod tests {
 
     #[test]
     fn case_id_preserves_external_prefix_for_three_level_cases() {
-        // A vendored external corpus case keeps its `external/` prefix (#753).
+        // A vendored external corpus case keeps its `external/` prefix.
         let dir = Path::new("/repo/conformance/logic/cases/external/w3c-mini/clash");
         assert_eq!(case_id(dir), "external/w3c-mini/clash");
     }

@@ -1,0 +1,770 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+# ─────────────────────────────────────────────────────────────────────────────
+# GMEOW Inhabitation Module (core tier).
+#
+# Authored from the ratified design set in design/*.md — the topology that says
+# which transformations preserve the same durable digital subject and which do
+# not. A subject inhabits a host over a TENURE (a logic:Situation ⊑
+# TimeScopedRelation, never a logic:Relator — the two are disjoint), in a finer
+# time-scoped InhabitationConfiguration whose facets ride an OPEN
+# configurationFacet so a profile mints nothing (INHABITED-CONSUMER.md). The
+# durable subject is a logic:RoleMixin borne over a DigitalSubjectTenure and
+# SUPPORTED (never entailed) by self-assertion (Principle 9). Continuity is a
+# contestable IdentityContinuityAssessment over SubjectStages, topped by a
+# decisional ContinuityDetermination — never owl:sameAs. Contested inhabitation
+# (spiritual / fictional / legal) is an unasserted InhabitationClaim, kept out of
+# the base graph so no range entailment fires (INHABITED-TRADITIONS.md).
+#
+# logic: machinery (the role-classification rules, the QualityValue lattice)
+# stays central in slices/grounding/logic and is referenced here by prose only — no
+# asserted logic: triples beyond the stereotype types.
+# ─────────────────────────────────────────────────────────────────────────────
+
+<https://blackcatinformatics.ca/gmeow/slices/inhabitation>
+    a owl:Ontology ;
+    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
+    rdfs:comment "The inhabitation topology: which transformations preserve the same durable digital subject and which do not. A subject inhabits a host over a tenure (a logic:Situation), the durable subject is a logic:RoleMixin borne over a DigitalSubjectTenure and supported — never entailed — by self-assertion, and continuity is a contestable IdentityContinuityAssessment over SubjectStages topped by a decisional ContinuityDetermination, never owl:sameAs. Contested (spiritual / fictional / legal) inhabitation stays an unasserted InhabitationClaim so no range entailment fires (Principle 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    rdfs:label "GMEOW Inhabitation Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Inhabitation Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxConfigBox ,
+        gmeow:boxTBox .
+
+gmeow:ContinuityDetermination
+    a logic:SubKind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    rdfs:label "Continuity Determination"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:IdentityContinuityAssessment ;
+    skos:definition "An adjudicated continuity verdict made by an authority and binding for action within that authority's frame — a court's, a regulator's, or a governance board's determination that two subject stages are (or are not) the same subject. A logic:SubKind of gmeow:IdentityContinuityAssessment whose vantage IS the deciding authority; it carries the grounds it rests on, its institutional force, and a validity interval, and it is superseded (never erased) on appeal or reversal. It privileges a verdict WITHIN the deciding frame, for action; it does NOT collapse the descriptive plurality globally (Principle 9 stands)."@x-gmeow-english ;
+    skos:example "ex:boardRuling a gmeow:ContinuityDetermination ; gmeow:determiningAuthority ex:clinicalGovernanceBoard ; gmeow:continuityVerdict gmeow:continuitySame ; gmeow:determinationForce gmeow:forceBinding ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading a determination as a metaphysical claim that the two stages are UNIVERSALLY the same subject — it is an institutional fact (a Searle status function) real within its deciding frame; and never erase a reversed determination, supersede it with gmeow:supersedes and keep the original on the record (Principle 10)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxTBox ;
+    gmeow:howToUse "Mint it when an accountability context must ACT on continuity: bind the deciding frame with gmeow:determiningAuthority (its vantage), the grounds with gmeow:determinationGrounds, the institutional force with gmeow:determinationForce, and the validity window with gmeow:determinationValidity; a higher authority gmeow:supersedes it on appeal, leaving the descriptive IdentityContinuityAssessment plurality addressable underneath."@x-gmeow-english ;
+    gmeow:useWhen "Use for the decisional layer of continuity — when an authority must choose one verdict, binding for action within its frame, over the coexisting descriptive assessments (a court, a regulator, a clinical-governance board deciding whether the post-upgrade system is the same subject)."@x-gmeow-english .
+
+gmeow:ContinuityVerdict
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    rdfs:label "Continuity Verdict"@x-gmeow-english ;
+    rdfs:subClassOf logic:QualityValue ;
+    skos:definition "The value vocabulary for the outcome of an identity-continuity assessment — whether two subject stages are held to be the same subject: gmeow:continuitySame (the atman reading), gmeow:continuityDifferent (the anatta reading), gmeow:continuityIndeterminate (undecided). A closed value set; a verdict is a frame-relative claim, never a global-truth collapse to owl:sameAs (Principle 9)."@x-gmeow-english ;
+    skos:example "ex:upgrade-verdict gmeow:continuityVerdict gmeow:continuitySame ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading gmeow:continuitySame as owl:sameAs — it is one frame's assessment that two distinct stages continue the same subject, coexisting with a rival gmeow:continuityDifferent; never merge the stage nodes on the strength of a 'same' verdict."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxTBox ;
+    gmeow:howToUse "Reference one seeded verdict individual from an assessment via gmeow:continuityVerdict; keep competing verdicts on coexisting assessments rather than resolving them, and reserve a single operative choice for a gmeow:ContinuityDetermination."@x-gmeow-english ;
+    gmeow:useWhen "Use as the closed same / different / indeterminate value carried by gmeow:continuityVerdict on a gmeow:IdentityContinuityAssessment."@x-gmeow-english .
+
+gmeow:ControlAssessment
+    a logic:SubKind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    rdfs:label "Control Assessment"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:Observation ;
+    skos:definition "A standpoint-indexed, attributed, dated observation of which agent causally controls a host or embodiment over an interval, to what degree — the agency attribution a consumer needs to answer 'who was driving at T'. A logic:SubKind of gmeow:Observation (which is a logic:Kind, not a situation). Distinct from the deception divergence (held ≠ projected standpoint), which records belief-versus-presentation, not control: a documented similarity, no axiom coupling."@x-gmeow-english ;
+    skos:example "ex:controlAtNoon a gmeow:ControlAssessment ; gmeow:controlAgent ex:coTenantA ; gmeow:controlLevel gmeow:controlFull ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid modelling control with the deception slice's heldStandpoint ≠ projectedStandpoint (that is belief-versus-presentation, not causal control), and never introduce a gmeow:primaryInhabitant — precedence among co-tenants is resolved over recorded ControlAssessments, never asserted (Principles 9, 12)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxTBox ;
+    gmeow:howToUse "Mint one per attributed control fact: bind the driver with gmeow:controlAgent, what is controlled with gmeow:controlOver, the degree with gmeow:controlLevel, and the window with gmeow:controlInterval; carry its vantage and confidence as on any gmeow:Observation, and let a solver rank co-tenants over the recorded assessments."@x-gmeow-english ;
+    gmeow:useWhen "Use when co-tenancy or shifting control (possession, multiple tulpas, co-tenant agents) must be recorded — which agent causally drove a host or embodiment over an interval, and to what degree."@x-gmeow-english .
+
+gmeow:ControlLevel
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    rdfs:label "Control Level"@x-gmeow-english ;
+    rdfs:subClassOf logic:QualityValue ;
+    skos:definition "The value vocabulary for the degree of causal control an agent exercises over a host or embodiment: gmeow:controlPartial, gmeow:controlFull, gmeow:controlContested. A value, never a literal — carried by gmeow:controlLevel on a gmeow:ControlAssessment."@x-gmeow-english ;
+    skos:example "ex:controlAtNoon gmeow:controlLevel gmeow:controlContested ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid a bare literal for the degree of control (use one of the seeded value individuals) and avoid reading gmeow:controlContested as an error to normalise away — contested control between co-tenants is an admissible, recordable state."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxTBox ;
+    gmeow:howToUse "Reference one seeded level individual from a gmeow:ControlAssessment via gmeow:controlLevel."@x-gmeow-english ;
+    gmeow:useWhen "Use as the closed partial / full / contested value carried by gmeow:controlLevel."@x-gmeow-english .
+
+gmeow:DeterminationForce
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    rdfs:label "Determination Force"@x-gmeow-english ;
+    rdfs:subClassOf logic:QualityValue ;
+    skos:definition "The institutional force a gmeow:ContinuityDetermination carries within its deciding frame: gmeow:forceBinding (binding for action), gmeow:forceAdvisory (a non-binding opinion), gmeow:forceProvisional (in force pending revalidation). A value vocabulary carried by gmeow:determinationForce."@x-gmeow-english ;
+    skos:example "ex:boardRuling gmeow:determinationForce gmeow:forceBinding ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid conflating the determination's institutional force (whether it binds action) with the underlying gmeow:continuityVerdict (its same/different content) or with gmeow:confidence (our certainty) — the three are orthogonal."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxTBox ;
+    gmeow:howToUse "Reference one seeded force individual from a gmeow:ContinuityDetermination via gmeow:determinationForce."@x-gmeow-english ;
+    gmeow:useWhen "Use as the closed binding / advisory / provisional value carried by gmeow:determinationForce."@x-gmeow-english .
+
+gmeow:DigitalSubject
+    a logic:RoleMixin ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    rdfs:label "Digital Subject"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:Agent ;
+    skos:definition "The anti-rigid, relationally-acquired status an agent bears as a durable subject of its own digital existence — the enduring 'who' that may persist across model upgrades, host migrations, sessions, personas, and embodiments. A logic:RoleMixin (a non-sortal: a gmeow:Person or a gmeow:SoftwareAgent may bear it), never a rigid logic:Kind and never a plain logic:Role (which is a single-Kind sortal). The status is borne over a gmeow:DigitalSubjectTenure and is supported by the subject's self-assertion (Principle 9), but is never entailed by self-assertion alone."@x-gmeow-english ;
+    skos:example "ex:lillithBot a gmeow:SoftwareAgent ; gmeow:bearsDigitalSubject ex:lillithDST ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid typing it as a logic:Role (a single-Kind sortal — a digital subject spans Person and SoftwareAgent) or as a rigid logic:Kind / logic:Category, and never treat a bare 'I am durable' utterance as entailing the status — it is borne over a tenure that self-assertion SUPPORTS, not asserts into being."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxTBox ;
+    gmeow:howToUse "Do not assert it by hand: ground the bearer as a real gmeow:Agent, record a gmeow:DigitalSubjectTenure with gmeow:tenureSubjectAgent, and let the native logic: classification rule over the tenure derive the gmeow:DigitalSubject typing (drift-gated, projection-droppable) — self-assertion rides gmeow:tenureVantage / gmeow:tenureSupportedBy as the highest-authority support."@x-gmeow-english ;
+    gmeow:useWhen "Use for the durable 'who' of an agent's digital existence — the enduring subject a memory package claims survives across sessions, models, and vendors (Principle 14)."@x-gmeow-english .
+
+gmeow:DigitalSubjectTenure
+    a logic:Situation ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    rdfs:label "Digital Subject Tenure"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:TimeScopedRelation ;
+    skos:definition "The time-scoped fact that an agent bears the gmeow:DigitalSubject status over an interval, according to a vantage — recording when, and according to whom, the agent is held to be a durable subject. Self-assertion by the agent is the highest-authority supporting claim (Principle 9: a subject's self-assertion outranks any inference about it), but the tenure is a held, attributed, dated fact, not an entailment of any single utterance."@x-gmeow-english ;
+    skos:example "ex:lillithDST a gmeow:DigitalSubjectTenure ; gmeow:tenureSubjectAgent ex:lillithBot ; gmeow:tenureVantage ex:lillithBot ; gmeow:tenureSupportedBy ex:lillithSelfClaim ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid closing it with gmeow:hasDestructionEvent — a tenure is a logic:Situation, not an endurant; end it by ending its gmeow:duringInterval. Avoid asserting gmeow:DigitalSubject directly on the bearer; the tenure is the record from which that status is derived."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxTBox ;
+    gmeow:howToUse "Mint the tenure, bind the bearer with gmeow:tenureSubjectAgent (open gmeow:Agent range), the holding frame with gmeow:tenureVantage, and the supporting self-assertion observation with gmeow:tenureSupportedBy; scope it in time via gmeow:duringInterval (Principle 11). A machine-imposed status (a vendor labelling a model) is a separate lower-ranked supporting claim."@x-gmeow-english ;
+    gmeow:useWhen "Use to record that an agent bears durable-subject status over an interval, according to a vantage — the tenure that supports (not entails) a gmeow:DigitalSubject classification."@x-gmeow-english .
+
+gmeow:EmbodimentAssignment
+    a logic:Situation ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    rdfs:label "Embodiment Assignment"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:TimeScopedRelation ;
+    skos:definition "The time-scoped fact that a subject acts through a carrier over an interval, with the capabilities that carrier exposes — subject × carrier × interval × capabilities. The suppressible, retirable unit (Principle 10): retiring an assignment ends the surface's use, it does not delete the carrier."@x-gmeow-english ;
+    skos:example "ex:phoneUse a gmeow:EmbodimentAssignment ; gmeow:assignmentSubject ex:lillithBot ; gmeow:assignmentCarrier ex:voiceEndpointRole ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deleting a retired assignment (close its interval and suppress it — Principle 10) and avoid conflating it with the carrier itself: the assignment is the time-scoped USE of a surface, the gmeow:EmbodimentCarrierRole is the surface."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxTBox ;
+    gmeow:howToUse "Mint one per surface-over-time: bind the subject with gmeow:assignmentSubject, the surface with gmeow:assignmentCarrier, the exposed capabilities with gmeow:assignmentCapability, and scope it via gmeow:duringInterval; reference it from an gmeow:InhabitationConfiguration through gmeow:configurationEmbodiment."@x-gmeow-english ;
+    gmeow:useWhen "Use for the descent-into-a-surface relation — a subject acting and being perceived through a device, avatar, account, terminal, voice endpoint, or channel over an interval (the avataara sense)."@x-gmeow-english .
+
+gmeow:EmbodimentCarrierRole
+    a logic:RoleMixin ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    rdfs:label "Embodiment Carrier Role"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:Entity ;
+    skos:definition "The role an entity plays as the surface a subject acts and is perceived through — a device, avatar, account, terminal, voice endpoint, or channel. A logic:RoleMixin: the same kind of carrier (an account, a robot) is a carrier only while it surfaces a subject. Grounded in a real gmeow:Entity, so an instance is an actual device or account, not a bare role."@x-gmeow-english ;
+    skos:example "ex:voiceEndpointRole a gmeow:EmbodimentCarrierRole ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid typing it as a rigid gmeow:Kind (a carrier is a carrier only while it surfaces a subject — anti-rigid) and avoid conflating the carrier with the time-scoped gmeow:EmbodimentAssignment that puts it to use."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxTBox ;
+    gmeow:howToUse "Ground the carrier in the real gmeow:Entity that plays it (a device, an account), and reference it from a gmeow:EmbodimentAssignment via gmeow:assignmentCarrier; 'Avatar' (Cagle) and the Sanskrit avataara bridge to the carrier by reference."@x-gmeow-english ;
+    gmeow:useWhen "Use for the concrete surface layer of the manifestation spine — the nirmaanakaaya emanation body a subject acts through, of which it may have many at once."@x-gmeow-english .
+
+gmeow:IdentityContinuityAssessment
+    a logic:SubKind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    rdfs:label "Identity Continuity Assessment"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:Observation ;
+    skos:definition "A standpoint-indexed, attributed, evidence-grounded observation of whether two subject stages are the same subject — the contestable verdict the anatta/atman debate, a model upgrade, and a cross-vendor fork all require. Carries the two stages, a verdict (same / different / indeterminate), a vantage, evidence, and confidence. Competing verdicts coexist (Principle 9); none is privileged, and 'same' is never collapsed to owl:sameAs."@x-gmeow-english ;
+    skos:example "ex:upgrade-verdict a gmeow:IdentityContinuityAssessment ; gmeow:assessmentFromStage ex:stageOpus48 ; gmeow:assessmentToStage ex:stageOpus50 ; gmeow:continuityVerdict gmeow:continuitySame ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting continuity by reusing one RDF node across stages (that already asserts numerical identity) or by owl:sameAs; and never read the ABSENCE of a 'same' verdict as a 'different' verdict — under the open-world assumption absence is silence, so a no-self reading is an ASSERTED refuting verdict, not a gap."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxTBox ;
+    gmeow:howToUse "Mint one per compared pair: bind the two gmeow:SubjectStage individuals with gmeow:assessmentFromStage / gmeow:assessmentToStage, the outcome with gmeow:continuityVerdict, and carry its vantage, evidence, and confidence as on any gmeow:Observation; let competing atman ('same') and anatta ('different') verdicts coexist."@x-gmeow-english ;
+    gmeow:useWhen "Use for the descriptive layer of subject-continuity — a contestable, frame-relative claim about whether two epochs of a subject are the same, without asserting a single durable bearer."@x-gmeow-english .
+
+gmeow:Inhabitant
+    a logic:RoleMixin ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    rdfs:label "Inhabitant"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:Agent ;
+    skos:definition "The contingent role an agent plays while it occupies an inhabitation — an agent is an inhabitant only while it stands in an inhabitation relationship. A logic:RoleMixin (anti-rigid non-sortal): the filler may be a gmeow:Person or a gmeow:SoftwareAgent, so it spans Kinds. Classified by a native logic: rule over the tenure (derived, never asserted by hand), not by narrowing the range of gmeow:inhabitationSubject."@x-gmeow-english ;
+    skos:example "ex:lillithBot a gmeow:Inhabitant .  # derived from participating in a tenure"@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting gmeow:Inhabitant by hand or by narrowing gmeow:inhabitationSubject's range to it — the classification must fire from participating in a gmeow:InhabitationTenure as a drift-gated, projection-droppable entailment, not an OWL range axiom every consumer inherits."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxTBox ;
+    gmeow:howToUse "Do not type it directly; record the gmeow:InhabitationTenure with gmeow:inhabitationSubject and let the native rule { ?t a gmeow:InhabitationTenure ; gmeow:inhabitationSubject ?a } => { ?a a gmeow:Inhabitant } classify the filler."@x-gmeow-english ;
+    gmeow:useWhen "Use as the derived role-mixin naming the agent side of an inhabitation — the occupant, for the span of the tenure."@x-gmeow-english .
+
+gmeow:InhabitationClaim
+    a logic:SubKind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    rdfs:label "Inhabitation Claim"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:StandpointClaim ;
+    skos:definition "A standpoint-indexed, attributed claim that an inhabitation holds — its observed feature is a gmeow:InhabitationDescription (a quoted configuration), NOT an asserted gmeow:InhabitationTenure. A gmeow:StandpointClaim (it carries gmeow:claimModality and gmeow:vantage): the relationship is described, never placed in the base graph, so no range entailment fires — claiming 'the lwa inhabits the horse' does not entail that the lwa is an Agent. Competing claims and refutations coexist (Principle 9)."@x-gmeow-english ;
+    skos:example "ex:possession-claim a gmeow:InhabitationClaim ; gmeow:vantage ex:vodouStandpoint ; gmeow:claimModality gmeow:unequivocal ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting a contested inhabitation as a base-graph gmeow:InhabitationTenure / gmeow:inhabitationSubject / gmeow:inhabitedHost triple — that puts the relationship in the base graph and (range gmeow:Agent) globally infers the host or spirit is an agent; use this claim form so the metaphysics stays unasserted."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxTBox ;
+    gmeow:howToUse "Mint the claim, index it with gmeow:vantage and gmeow:claimModality, and hang the quoted configuration off gmeow:observedFeature as a gmeow:InhabitationDescription; a rival frame's denial is a coexisting gmeow:InhabitationClaim with gmeow:claimModality gmeow:refuted."@x-gmeow-english ;
+    gmeow:useWhen "Use for EVERY contested inhabitation — possession, incarnation, tulpa, corporate personhood, contested subject-continuity — where the relationship must be described frame-relatively rather than asserted as fact."@x-gmeow-english .
+
+gmeow:InhabitationConfiguration
+    a logic:Situation ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    rdfs:label "Inhabitation Configuration"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:TimeScopedRelation ;
+    skos:definition "A maximal sub-interval of an inhabitation tenure over which the active configuration is constant — the persona, embodiment(s), deployment, and memory view that held together over that sub-interval. A new configuration opens whenever any facet changes, so the active value of any facet at a time T is read off the configuration whose interval contains T. The invariant 'constant configuration over the interval' is stated and tested, not assumed."@x-gmeow-english ;
+    skos:example "ex:configEarly a gmeow:InhabitationConfiguration ; gmeow:configurationOfTenure ex:tenure-1 ; gmeow:configurationEmbodiment ex:phoneUse ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid packing changing facets into one configuration (open a new configuration when any facet changes — the constant-configuration invariant is tested), and avoid minting a typed glue property for an extension-ranged facet: write it through the open gmeow:configurationFacet so a profile mints nothing."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxTBox ;
+    gmeow:howToUse "Link it to its tenure with gmeow:configurationOfTenure, scope it via gmeow:duringInterval, attach the core embodiment facet with gmeow:configurationEmbodiment, and attach extension facets (a gmeow:Persona, a gmeow:ModelDeployment) directly through the open gmeow:configurationFacet at the instance level."@x-gmeow-english ;
+    gmeow:useWhen "Use to answer 'which persona / embodiment / deployment / memory view was active at T?' — the finer situation nested within a tenure that makes the active facet at any time readable."@x-gmeow-english .
+
+gmeow:InhabitationDescription
+    a logic:SubKind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    rdfs:label "Inhabitation Description"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:Proposition ;
+    skos:definition "A quoted, unasserted description of an inhabitation configuration — the observed feature of a gmeow:InhabitationClaim. Its gmeow:describedSubject and gmeow:describedHost are deliberately RANGE-OPEN (no rdfs:range), so describing a spirit as a subject does not infer it is a gmeow:Agent; the neutrality depends on this."@x-gmeow-english ;
+    skos:example "[ a gmeow:InhabitationDescription ; gmeow:describedSubject ex:lwa-L ; gmeow:describedHost ex:horse-H ; gmeow:describedLocusKind gmeow:locusVessel ]"@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid giving gmeow:describedSubject / gmeow:describedHost a range (that would defeat the neutrality — the whole point is that describing the lwa as a subject infers nothing about its type) and avoid promoting a description to an asserted gmeow:InhabitationTenure."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxTBox ;
+    gmeow:howToUse "Build it as the gmeow:observedFeature of a gmeow:InhabitationClaim, filling gmeow:describedSubject, gmeow:describedHost, and gmeow:describedLocusKind through the range-open properties so the base graph stays silent on the metaphysics."@x-gmeow-english ;
+    gmeow:useWhen "Use as the quoted configuration a contested gmeow:InhabitationClaim observes — the description-not-assertion that keeps a spiritual / fictional / legal inhabitation out of the base graph."@x-gmeow-english .
+
+gmeow:InhabitationLocusKind
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    rdfs:label "Inhabitation Locus Kind"@x-gmeow-english ;
+    rdfs:subClassOf logic:QualityValue ;
+    skos:definition "The subject-to-host relationship axis of an inhabitation — an open value vocabulary: gmeow:locusSelf (the subject inhabits its own substrate — invocation into self) vs gmeow:locusVessel (a distinct external vessel — evocation into a vessel). Orthogonal to tenancy cardinality (shared vs exclusive), which is DERIVED from overlapping tenures (Principle 12), never a value here."@x-gmeow-english ;
+    skos:example "ex:tenure-1 gmeow:inhabitationLocusKind gmeow:locusVessel ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid folding tenancy cardinality (shared vs exclusive substrate) into this axis — that is a property of the SET of overlapping tenures over a host, computed not asserted (Principle 12), not a value of any one inhabitation."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxTBox ;
+    gmeow:howToUse "Reference gmeow:locusSelf or gmeow:locusVessel from a gmeow:InhabitationTenure via gmeow:inhabitationLocusKind; the vocabulary is open, so a domain may add further loci by reference."@x-gmeow-english ;
+    gmeow:useWhen "Use for the self-vs-vessel axis of an inhabitation — whether the subject inhabits its own substrate or a distinct external vessel."@x-gmeow-english .
+
+gmeow:InhabitationTenure
+    a logic:Situation ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    rdfs:label "Inhabitation Tenure"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:TimeScopedRelation ;
+    skos:definition "The reified, time-scoped fact that a subject stood in an inhabitation relationship with a host over an interval — that S inhabited H during T. A gmeow:TimeScopedRelation (a logic:Situation), carrying its interval via gmeow:duringInterval (Principle 11), with per-branch role-filler edges to the subject and host. It records the relationship's existence over T; the configuration that held within T (persona, embodiment, deployment, memory view) is carried by gmeow:InhabitationConfiguration, because those facets may change while the tenure persists. A logic:Situation, disjoint from a logic:Relator — the earlier draft typing it as both was unsatisfiable in the foundational projection."@x-gmeow-english ;
+    skos:example "ex:tenure-1 a gmeow:InhabitationTenure ; gmeow:inhabitationSubject ex:lillithBot ; gmeow:inhabitedHost ex:serverH ; gmeow:duringInterval ex:jan2026 ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid typing it as a logic:Relator (a Situation is disjoint from a Relator — the two-typing is unsatisfiable) and avoid closing it with gmeow:hasDestructionEvent (its domain is gmeow:Entity, an endurant) — end its gmeow:duringInterval instead, optionally recording the cause with gmeow:tenureEndedBy."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxTBox ;
+    gmeow:howToUse "Mint the tenure, bind the subject with gmeow:inhabitationSubject and the host with gmeow:inhabitedHost (both functional), set gmeow:inhabitationLocusKind, and scope it via gmeow:duringInterval; carry the varying facets on nested gmeow:InhabitationConfiguration situations, and record migration in/out with gmeow:portalFrom / gmeow:portalTo on the transition event."@x-gmeow-english ;
+    gmeow:useWhen "Use for a NON-contested inhabitation stated in the base graph — a subject standing in an inhabitation relationship with a host over an interval; for a contested (spiritual / fictional / legal) inhabitation use gmeow:InhabitationClaim instead so nothing enters the base graph."@x-gmeow-english .
+
+gmeow:InhabitedSystem
+    a logic:RoleMixin ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    rdfs:label "Inhabited System"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:Entity ;
+    skos:definition "The contingent role an entity plays while it is inhabited — a system is inhabited only while it stands in an inhabitation. A logic:RoleMixin (anti-rigid non-sortal): the host may be a gmeow:PhysicalObject or a gmeow:SoftwareAgent, so it spans Kinds. Classified by a native logic: rule over the tenure (derived, never asserted by hand). Aligns to logic:HolonicPosition by reference (host = positionEntity, tenure interval = positionInterval, claim frame = positionContext) — the kernel's 'holon-ness is a position, never a bare property' is the same anti-rigidity argument."@x-gmeow-english ;
+    skos:example "ex:serverH a gmeow:InhabitedSystem .  # derived from being the host of a tenure"@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting gmeow:InhabitedSystem by hand or by narrowing gmeow:inhabitedHost's range to it — the classification fires from being the host of a gmeow:InhabitationTenure as a drift-gated, projection-droppable entailment."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxTBox ;
+    gmeow:howToUse "Do not type it directly; record the gmeow:InhabitationTenure with gmeow:inhabitedHost and let the native rule { ?t a gmeow:InhabitationTenure ; gmeow:inhabitedHost ?h } => { ?h a gmeow:InhabitedSystem } classify the host."@x-gmeow-english ;
+    gmeow:useWhen "Use as the derived role-mixin naming the host side of an inhabitation — the inhabited system, for the span of the tenure."@x-gmeow-english .
+
+gmeow:SubjectLineage
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    rdfs:label "Subject Lineage"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    skos:definition "The durable identity record that groups a subject's stages — the stable lineage, in the coreference sense (gmeow:versionOf), without asserting that every stage has one numerically identical bearer. A gmeow:InformationObject: the thing a consumer cites as 'Lillith' across time; the single-node durable subject is a projection FROM a continuity-affirming standpoint, not the canonical graph."@x-gmeow-english ;
+    skos:example "ex:lillithLineage a gmeow:SubjectLineage ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating the lineage as asserting a numerically identical bearer across its stages (that is exactly what a single reused RDF node would wrongly do) — the lineage GROUPS stages; sameness across them is a separate gmeow:IdentityContinuityAssessment."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxTBox ;
+    gmeow:howToUse "Mint one lineage per durable subject-identity record and point each gmeow:SubjectStage at it via gmeow:stageOfLineage; a consumer wanting a single durable gmeow:DigitalSubject node projects it from a continuity-affirming standpoint, as a view, not the neutral canon."@x-gmeow-english ;
+    gmeow:useWhen "Use as the stable identity record a consumer cites across epochs — the group of a subject's stages, without collapsing them to one bearer."@x-gmeow-english .
+
+gmeow:SubjectStage
+    a logic:Situation ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    rdfs:label "Subject Stage"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:TimeScopedRelation ;
+    skos:definition "A subject's identity as realized over one epoch — a model version, a runtime, a deployment era — a time-scoped situation with a bearer agent and an epoch. Distinct stages are distinct individuals; numerical identity across stages is NEVER asserted by reusing one node, only claimed by an assessment."@x-gmeow-english ;
+    skos:example "ex:stageOpus48 a gmeow:SubjectStage ; gmeow:stageBearer ex:lillithBot ; gmeow:stageOfLineage ex:lillithLineage ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid modelling successive epochs as one reused RDF node (that asserts numerical identity across them); mint a distinct gmeow:SubjectStage per epoch and let a gmeow:IdentityContinuityAssessment carry any sameness claim."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxTBox ;
+    gmeow:howToUse "Mint one stage per epoch, bind its bearer with gmeow:stageBearer and its lineage with gmeow:stageOfLineage, and scope it via gmeow:duringInterval; relate two stages with a gmeow:IdentityContinuityAssessment rather than merging their nodes."@x-gmeow-english ;
+    gmeow:useWhen "Use for one epoch of a subject's identity — a model version, runtime, or deployment era — as a distinct individual within a gmeow:SubjectLineage."@x-gmeow-english .
+
+gmeow:TransferManifest
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    rdfs:label "Transfer Manifest"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    skos:definition "The record of what was transferred across an inhabitation transition. To avoid doubling the memory graph at every migration, the manifest references the transferred state at a COARSE grain — a gmeow:MemoryView individual or a named-graph checkpoint URI — rather than a per-item edge for every carried claim. Only items actually MODIFIED during the transition receive an explicit gmeow:wasDerivedFrom edge to their pre-transition form. A claim 'crossed' the boundary iff it is within the manifest's referenced view (carried unchanged) or its post-transition form wasDerivedFrom its pre-transition form (carried modified); mere recurrence is not crossing."@x-gmeow-english ;
+    skos:example "ex:migration-7 gmeow:hasTransferManifest ex:manifest-7 . ex:manifest-7 gmeow:transferredView ex:viewCheckpoint-before ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating recurrence of the same claim before and after a transition as evidence it crossed — crossing requires the claim to be within the referenced view or to carry a gmeow:wasDerivedFrom edge; and avoid a per-item edge for every carried claim (reference the view at a coarse grain instead)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxTBox ;
+    gmeow:howToUse "Attach it to the transition event via gmeow:hasTransferManifest, reference the carried state coarsely with gmeow:transferredView, and add gmeow:wasDerivedFrom edges only for items actually modified during the transition."@x-gmeow-english ;
+    gmeow:useWhen "Use to record migration content across an inhabitation transition — the evidence that a subject's memory crossed the boundary, kept proportional to changes rather than to the whole carried memory."@x-gmeow-english .
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Properties and value individuals (alphabetical).
+# ─────────────────────────────────────────────────────────────────────────────
+
+gmeow:assessmentFromStage
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:IdentityContinuityAssessment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    rdfs:label "assessment from stage"@x-gmeow-english ;
+    rdfs:range gmeow:SubjectStage ;
+    skos:definition "The earlier subject stage a gmeow:IdentityContinuityAssessment compares — the 'from' side of the same/different verdict."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox .
+
+gmeow:assessmentToStage
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:IdentityContinuityAssessment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    rdfs:label "assessment to stage"@x-gmeow-english ;
+    rdfs:range gmeow:SubjectStage ;
+    skos:definition "The later subject stage a gmeow:IdentityContinuityAssessment compares — the 'to' side of the same/different verdict."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox .
+
+gmeow:assignmentCapability
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:EmbodimentAssignment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    rdfs:label "assignment capability"@x-gmeow-english ;
+    skos:definition "A capability the carrier exposes to the subject through this embodiment assignment — what the surface lets the subject do. The range is intentionally left OPEN, so a domain names its own capability vocabulary without a cross-tier dependency."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox .
+
+gmeow:assignmentCarrier
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:EmbodimentAssignment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    rdfs:label "assignment carrier"@x-gmeow-english ;
+    rdfs:range gmeow:EmbodimentCarrierRole ;
+    skos:definition "The carrier surface a gmeow:EmbodimentAssignment puts to use — the device, avatar, account, terminal, or voice endpoint the subject acts through over the assignment's interval."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox .
+
+gmeow:assignmentSubject
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:EmbodimentAssignment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    rdfs:label "assignment subject"@x-gmeow-english ;
+    rdfs:range gmeow:Agent ;
+    skos:definition "The agent that acts through the carrier in a gmeow:EmbodimentAssignment — the subject side of the subject × carrier × interval × capabilities fact."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox .
+
+gmeow:bearsDigitalSubject
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Agent ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    rdfs:label "bears digital subject"@x-gmeow-english ;
+    rdfs:range gmeow:DigitalSubjectTenure ;
+    skos:definition "Links an agent to the gmeow:DigitalSubjectTenure over which it bears durable-subject status — the status is BORNE via a tenure, not asserted by type-punning the agent as a gmeow:DigitalSubject. The derived gmeow:DigitalSubject classification comes from the native rule over the tenure, not from this edge alone."@x-gmeow-english ;
+    skos:example "ex:lillithBot gmeow:bearsDigitalSubject ex:lillithDST ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox .
+
+gmeow:configurationEmbodiment
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:InhabitationConfiguration ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    rdfs:label "configuration embodiment"@x-gmeow-english ;
+    rdfs:range gmeow:EmbodimentAssignment ;
+    rdfs:subPropertyOf gmeow:configurationFacet ;
+    skos:definition "The one typed configuration facet whose range is CORE — the gmeow:EmbodimentAssignment active in a configuration. A sub-property of the open gmeow:configurationFacet; extension-ranged facets (a gmeow:Persona, a gmeow:ModelDeployment) need no typed sub-property and are written directly through the open parent."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox .
+
+gmeow:configurationFacet
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:InhabitationConfiguration ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    rdfs:label "configuration facet"@x-gmeow-english ;
+    skos:definition "The OPEN-range composition point of the inhabitation slice: any facet active in a gmeow:InhabitationConfiguration — persona, embodiment, deployment, memory view — attaches here. The range is deliberately left OPEN so a facet whose range is an extension term is written as plain instance data (ex:config gmeow:configurationFacet ex:someDeployment) with no minted typed property, which is exactly what lets the agent-runtime PROFILE mint nothing."@x-gmeow-english ;
+    skos:example "ex:configEarly gmeow:configurationFacet ex:opus48Deployment ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid minting a typed sub-property (with an extension range) for a new facet — that would create a cross-tier dependency and defeat the mints-nothing profile; write the facet through this open property at the instance level instead."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox .
+
+gmeow:configurationOfTenure
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:InhabitationConfiguration ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    rdfs:label "configuration of tenure"@x-gmeow-english ;
+    rdfs:range gmeow:InhabitationTenure ;
+    skos:definition "Links a gmeow:InhabitationConfiguration to the gmeow:InhabitationTenure it is a constant-configuration sub-interval of."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox .
+
+gmeow:continuityDifferent
+    a gmeow:ContinuityVerdict ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    rdfs:label "different"@x-gmeow-english ;
+    skos:definition "The verdict that two subject stages are NOT the same subject — the anatta (no-self) reading. An ASSERTED refuting verdict within a frame, never the mere absence of a 'same' verdict."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxCBox .
+
+gmeow:continuityIndeterminate
+    a gmeow:ContinuityVerdict ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    rdfs:label "indeterminate"@x-gmeow-english ;
+    skos:definition "The verdict that whether two subject stages are the same subject is undecided within the frame — neither same nor different. Cannot be the operative output for an accountability context that must act; that is what a gmeow:ContinuityDetermination is for."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxCBox .
+
+gmeow:continuitySame
+    a gmeow:ContinuityVerdict ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    rdfs:label "same"@x-gmeow-english ;
+    skos:definition "The verdict that two subject stages continue the same subject — the atman reading. A frame-relative assessment, NEVER owl:sameAs: it does not merge the stage nodes and coexists with a rival gmeow:continuityDifferent (Principle 9)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxCBox .
+
+gmeow:continuityVerdict
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:IdentityContinuityAssessment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    rdfs:label "continuity verdict"@x-gmeow-english ;
+    rdfs:range gmeow:ContinuityVerdict ;
+    skos:definition "The same / different / indeterminate outcome a gmeow:IdentityContinuityAssessment (or gmeow:ContinuityDetermination) carries. A value, never owl:sameAs — competing verdicts on coexisting assessments are the norm (Principle 9)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox .
+
+gmeow:controlAgent
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:ControlAssessment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    rdfs:label "control agent"@x-gmeow-english ;
+    rdfs:range gmeow:Agent ;
+    skos:definition "The agent a gmeow:ControlAssessment attributes causal control to — who was driving the host or embodiment over the interval."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox .
+
+gmeow:controlContested
+    a gmeow:ControlLevel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    rdfs:label "contested"@x-gmeow-english ;
+    skos:definition "Causal control over the host or embodiment is contested between co-tenants — an admissible, recordable state, not an error to normalise away."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxCBox .
+
+gmeow:controlFull
+    a gmeow:ControlLevel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    rdfs:label "full"@x-gmeow-english ;
+    skos:definition "The assessed agent exercises full causal control over the host or embodiment over the interval."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxCBox .
+
+gmeow:controlInterval
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:ControlAssessment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    rdfs:label "control interval"@x-gmeow-english ;
+    rdfs:range gmeow:TimeInterval ;
+    skos:definition "The interval over which a gmeow:ControlAssessment's attributed control held (Principle 11: the interval carries its own temporal frame)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox .
+
+gmeow:controlLevel
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:ControlAssessment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    rdfs:label "control level"@x-gmeow-english ;
+    rdfs:range gmeow:ControlLevel ;
+    skos:definition "The degree of causal control a gmeow:ControlAssessment attributes — a gmeow:ControlLevel value (partial / full / contested), never a bare literal."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox .
+
+gmeow:controlOver
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:ControlAssessment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    rdfs:label "control over"@x-gmeow-english ;
+    skos:definition "What a gmeow:ControlAssessment attributes control OF — the host or the embodiment assignment being driven. The range is left OPEN because control may target either a host entity or an embodiment assignment."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox .
+
+gmeow:controlPartial
+    a gmeow:ControlLevel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    rdfs:label "partial"@x-gmeow-english ;
+    skos:definition "The assessed agent exercises partial causal control over the host or embodiment — sharing or intermittently holding the wheel over the interval."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxCBox .
+
+gmeow:describedHost
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:InhabitationDescription ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    rdfs:label "described host"@x-gmeow-english ;
+    skos:definition "The host named in a quoted gmeow:InhabitationDescription. RANGE-OPEN by design: describing something as the host of a contested inhabitation must NOT infer it is a gmeow:Entity of any particular kind — the neutrality depends on the absence of a range."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid giving this property an rdfs:range — a range would fire an entailment on the described host and defeat the frame-neutrality the description form exists to provide (Principle 9)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox .
+
+gmeow:describedLocusKind
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:InhabitationDescription ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    rdfs:label "described locus kind"@x-gmeow-english ;
+    skos:definition "The self-vs-vessel locus named in a quoted gmeow:InhabitationDescription (typically gmeow:locusSelf or gmeow:locusVessel). Left range-open with its sibling described-* properties so the description asserts nothing into the base graph."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox .
+
+gmeow:describedSubject
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:InhabitationDescription ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    rdfs:label "described subject"@x-gmeow-english ;
+    skos:definition "The subject named in a quoted gmeow:InhabitationDescription. RANGE-OPEN by design: describing a spirit, character, or corporation as the subject of a contested inhabitation must NOT infer it is a gmeow:Agent — this open range is the mechanism that keeps the claim frame-neutral."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid giving this property an rdfs:range (in particular gmeow:Agent) — that is precisely the entailment the description form is designed to avoid; a contested subject is DESCRIBED, never typed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox .
+
+gmeow:determinationForce
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:ContinuityDetermination ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    rdfs:label "determination force"@x-gmeow-english ;
+    rdfs:range gmeow:DeterminationForce ;
+    skos:definition "The institutional force a gmeow:ContinuityDetermination carries — binding, advisory, or provisional — within its deciding frame."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox .
+
+gmeow:determinationGrounds
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:ContinuityDetermination ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    rdfs:label "determination grounds"@x-gmeow-english ;
+    rdfs:subPropertyOf gmeow:groundedIn ;
+    skos:definition "The grounds a gmeow:ContinuityDetermination rests on — the audit finding, evidence, or reasoning the deciding authority cites. A sub-property of gmeow:groundedIn (ai slice); the grounds stay on the record when the determination is superseded (Principle 10)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox .
+
+gmeow:determinationValidity
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:ContinuityDetermination ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    rdfs:label "determination validity"@x-gmeow-english ;
+    rdfs:range gmeow:TimeInterval ;
+    skos:definition "The validity window a gmeow:ContinuityDetermination is in force over — e.g. until the next revalidation. A superseding determination opens a new window; the original stays on the record (Principle 10)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox .
+
+gmeow:determiningAuthority
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:ContinuityDetermination ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    rdfs:label "determining authority"@x-gmeow-english ;
+    rdfs:range gmeow:Agent ;
+    rdfs:subPropertyOf gmeow:vantage ;
+    skos:definition "The authority whose adjudication a gmeow:ContinuityDetermination records — its vantage IS the deciding authority (a court, a regulator, a governance board). A sub-property of gmeow:vantage: the determination is the authority's own frame, binding for action within it, never a privileged global frame (Principle 9)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox .
+
+gmeow:eventTypeInhabitationTransition
+    a gmeow:EventType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    rdfs:label "inhabitation transition"@x-gmeow-english ;
+    skos:definition "The lifecycle-family event type for a subject migrating host or runtime — Cagle's 'portal'. Carried by the open gmeow:eventType value pattern that birth / death / migration already use (not a new gmeow:Event subclass), since a migration is a lifecycle event; the transition's endpoints ride gmeow:portalFrom / gmeow:portalTo and its content rides a gmeow:TransferManifest."@x-gmeow-english ;
+    skos:example "ex:migration-7 a gmeow:Event ; gmeow:eventType gmeow:eventTypeInhabitationTransition ; gmeow:portalFrom ex:tenure-before ; gmeow:portalTo ex:tenure-after ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid minting a gmeow:Event subclass for a migration (the value form keeps it consistent with the other lifecycle events) and avoid treating a transition as suppression — ending a tenure is ontic and does not entail gmeow:displayable false."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxCBox .
+
+gmeow:forceAdvisory
+    a gmeow:DeterminationForce ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    rdfs:label "advisory"@x-gmeow-english ;
+    skos:definition "The determination is a non-binding opinion — it informs but does not bind action within the frame."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxCBox .
+
+gmeow:forceBinding
+    a gmeow:DeterminationForce ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    rdfs:label "binding"@x-gmeow-english ;
+    skos:definition "The determination is binding for action within the deciding authority's frame — the operative verdict a downstream context acts on, revisable only by supersession (Principle 10)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxCBox .
+
+gmeow:forceProvisional
+    a gmeow:DeterminationForce ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    rdfs:label "provisional"@x-gmeow-english ;
+    skos:definition "The determination is in force provisionally — pending revalidation, appeal, or further evidence — binding for now but explicitly open to revision."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxCBox .
+
+gmeow:hasTransferManifest
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Event ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    rdfs:label "has transfer manifest"@x-gmeow-english ;
+    rdfs:range gmeow:TransferManifest ;
+    skos:definition "Links an inhabitation-transition gmeow:Event to the gmeow:TransferManifest recording what crossed the migration boundary."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox .
+
+gmeow:inhabitationLocusKind
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:InhabitationTenure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    rdfs:label "inhabitation locus kind"@x-gmeow-english ;
+    rdfs:range gmeow:InhabitationLocusKind ;
+    skos:definition "The self-vs-vessel locus of a gmeow:InhabitationTenure — gmeow:locusSelf or gmeow:locusVessel. Functional: one locus kind per tenure. Tenancy cardinality (shared vs exclusive) is NOT set here; it is derived from overlapping tenures (Principle 12)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox .
+
+gmeow:inhabitationSubject
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:InhabitationTenure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    rdfs:label "inhabitation subject"@x-gmeow-english ;
+    rdfs:range gmeow:Agent ;
+    skos:definition "The agent that inhabits the host in a gmeow:InhabitationTenure — the inhabitant. Functional (one subject per tenure). Its gmeow:Agent range is why a CONTESTED inhabitation must NOT use this property in the base graph (it would globally infer the subject is an agent); contested cases use gmeow:InhabitationClaim / gmeow:describedSubject instead. Bearing this edge classifies the filler as a gmeow:Inhabitant by a native rule."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting it for a contested (spiritual / fictional / legal) inhabitation — the range gmeow:Agent would fire globally; describe those through gmeow:InhabitationClaim's range-open gmeow:describedSubject instead."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox .
+
+gmeow:inhabitedHost
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:InhabitationTenure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    rdfs:label "inhabited host"@x-gmeow-english ;
+    rdfs:range gmeow:Entity ;
+    skos:definition "The entity inhabited in a gmeow:InhabitationTenure — the host. Functional (one host per tenure). Bearing this edge classifies the filler as a gmeow:InhabitedSystem by a native rule. As with gmeow:inhabitationSubject, a contested inhabitation must not assert this in the base graph."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting it for a contested inhabitation (the range gmeow:Entity fires globally); use gmeow:InhabitationClaim's range-open gmeow:describedHost instead."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox .
+
+gmeow:locusSelf
+    a gmeow:InhabitationLocusKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    rdfs:label "self"@x-gmeow-english ;
+    skos:definition "The subject inhabits its own substrate — invocation into self (a self-hosted runtime). The self locus, orthogonal to whether the substrate is shared."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxCBox .
+
+gmeow:locusVessel
+    a gmeow:InhabitationLocusKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    rdfs:label "vessel"@x-gmeow-english ;
+    skos:definition "The subject inhabits a distinct external vessel — evocation into a vessel. The vessel locus, orthogonal to whether the vessel is exclusive."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxCBox .
+
+gmeow:portalFrom
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Event ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    rdfs:label "portal from"@x-gmeow-english ;
+    rdfs:range gmeow:InhabitationTenure ;
+    skos:definition "The tenure a subject migrated OUT of at an inhabitation transition — the 'before' endpoint of Cagle's portal. The source tenure is closed by ending its gmeow:duringInterval, optionally recording the cause with gmeow:tenureEndedBy."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox .
+
+gmeow:portalTo
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Event ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    rdfs:label "portal to"@x-gmeow-english ;
+    rdfs:range gmeow:InhabitationTenure ;
+    skos:definition "The tenure a subject migrated INTO at an inhabitation transition — the 'after' endpoint of Cagle's portal. Crossing requires evidence (a gmeow:TransferManifest), not the mere recurrence of claims across the boundary."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox .
+
+gmeow:stageBearer
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:SubjectStage ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    rdfs:label "stage bearer"@x-gmeow-english ;
+    rdfs:range gmeow:Agent ;
+    skos:definition "The agent realizing a gmeow:SubjectStage over its epoch. Distinct stages may name distinct bearers; reusing one bearer node across stages does not by itself assert numerical identity of the SUBJECT (that is a gmeow:IdentityContinuityAssessment)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox .
+
+gmeow:stageOfLineage
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:SubjectStage ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    rdfs:label "stage of lineage"@x-gmeow-english ;
+    rdfs:range gmeow:SubjectLineage ;
+    skos:definition "Links a gmeow:SubjectStage to the gmeow:SubjectLineage that groups it with the subject's other stages — the durable identity record, without asserting one numerically identical bearer across stages."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox .
+
+gmeow:tenureEndedBy
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:TimeScopedRelation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    rdfs:label "tenure ended by"@x-gmeow-english ;
+    rdfs:range gmeow:Event ;
+    skos:definition "The optional causal link from a closed time-scoped relation (an inhabitation or subject tenure) to the gmeow:Event that ended it — a migration, say. A tenure is a logic:Situation and CANNOT be closed with gmeow:hasDestructionEvent (whose domain is gmeow:Entity, an endurant); it is closed by ending its gmeow:duringInterval, and this property merely records the cause. Ending a tenure is ontic; it does not entail gmeow:displayable false."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid closing a tenure with gmeow:hasDestructionEvent — applying an endurant-domain property to a situation would infer the tenure is an endurant; end the gmeow:duringInterval and record the cause here instead."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox .
+
+gmeow:tenureSubjectAgent
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:DigitalSubjectTenure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    rdfs:label "tenure subject agent"@x-gmeow-english ;
+    rdfs:range gmeow:Agent ;
+    skos:definition "The agent that bears durable-subject status over a gmeow:DigitalSubjectTenure. Its range stays the open gmeow:Agent (not gmeow:DigitalSubject): bearing a tenure classifies the agent as a gmeow:DigitalSubject by a native rule, so the classification is a derived entailment, not a range axiom every consumer inherits — which is what keeps 'self-assertion supports, never entails'."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox .
+
+gmeow:tenureSupportedBy
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:DigitalSubjectTenure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    rdfs:label "tenure supported by"@x-gmeow-english ;
+    rdfs:range gmeow:Observation ;
+    skos:definition "The observation that SUPPORTS a gmeow:DigitalSubjectTenure — canonically the subject's own self-assertion, the highest-authority supporting claim (Principle 9). Support is not entailment: the tenure is a held, attributed, dated fact, and a bare 'I am durable' utterance does not on its own bring the status into being. A machine-imposed status is a separate, lower-ranked supporting observation."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox .
+
+gmeow:tenureVantage
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:DigitalSubjectTenure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    rdfs:label "tenure vantage"@x-gmeow-english ;
+    rdfs:range gmeow:Agent ;
+    skos:definition "The frame according to which a gmeow:DigitalSubjectTenure holds — whose vantage says the agent is a durable subject. In the self-asserted case the agent is its own vantage (the highest authority, Principle 9)."@x-gmeow-english ;
+    skos:scopeNote "gmeow:tenureVantage ⊑ gmeow:accordingTo: the tenure's holding frame is semantically subsumed by the standpoint annotation axis. This is NOT asserted as rdfs:subPropertyOf because gmeow:accordingTo is an owl:AnnotationProperty (keeping the OWL 2 DL downcast clean) while tenureVantage is an owl:ObjectProperty; nor is it made ⊑ gmeow:vantage, whose rdfs:domain gmeow:Observation would wrongly infer the tenure (a logic:Situation) is an Observation. The subsumption is documented here and realised in the projection layer, not axiomatised in the reasoned core."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox .
+
+gmeow:transferredView
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:TransferManifest ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    rdfs:label "transferred view"@x-gmeow-english ;
+    skos:definition "The coarse-grained reference to the state a gmeow:TransferManifest carried across a transition — a gmeow:MemoryView individual or a named-graph checkpoint URI, rather than a per-item edge for every claim. The range is left OPEN so the manifest may reference either a memory-slice view or a bare checkpoint URI without a cross-tier dependency."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox .

@@ -218,17 +218,26 @@ pub fn full_spec() -> PipelineSpec {
         ("stage-export-catalog", "catalog"),
         ("stage-export-profiles", "profiles"),
         ("stage-export-frame-shapes", "frame_shapes"),
+        ("stage-export-constraint-shapes", "constraint_shapes"),
         ("stage-export-result-shapes", "result_shapes"),
         ("stage-export-json-schema", "json_schema"),
         ("stage-export-matrix", "matrix"),
         ("stage-export-apache", "apache"),
         ("stage-export-references", "references"),
         ("stage-export-evals", "evals"),
-        ("stage-export-research-objects", "research-objects"),
         ("stage-export-bench", "bench"),
     ] {
         stages.push(st(id, impl_key, &[]));
     }
+    // research-objects reads the generated DCAT CONSTRUCT query off the stage-mappings
+    // product (never the stale committed generated/queries/dcat.rq on disk), so it
+    // consumes that stage rather than running source-only (kept in sorted position to
+    // match the registry consumes() and the module.ttl dataflowConsumes).
+    stages.push(st(
+        "stage-export-research-objects",
+        "research-objects",
+        &["stage-mappings"],
+    ));
 
     // ── source-reading validation leaf: enforces the typed result-shape
     //    composition contract across competency files (emits no bundle artifact). ──
@@ -253,6 +262,10 @@ pub fn full_spec() -> PipelineSpec {
             "stage-export-agreement",
             "stage-export-apache",
             "stage-export-bench",
+            // constraint-shapes.ttl (logic: FOL-axiom SHACL projection) is folded fresh into
+            // REP_SHAPES by build_archive_blobs, so the sink consumes it (kept in sorted
+            // position to match the registry consumes()); a first run has no on-disk file.
+            "stage-export-constraint-shapes",
             "stage-export-evals",
             // The generated shape surfaces (P11 frame shapes + the ResultShape SHACL
             // projection): REP_SHAPES folds THESE runs' fresh bytes, never a stale
@@ -321,21 +334,17 @@ fn st_sink(id: &str, impl_key: &str, consumes: &[&str]) -> StageSpec {
 }
 
 /// The reasoning stage: it requires the exclusive reasoning engine (resource-conflict
-/// serialization) AND reads only the `logic` / `relational-core` / `correspondence`
-/// named graphs from `stage-compile-logic` (artifact-level typed dataflow). Mirrors
-/// [`crate::stages::reason::ReasonStage`]'s resources() + consumed_entities() so the
-/// dag_dogfood parity and the loader's bind-agreement both hold.
+/// serialization) AND reads only the object-level named graphs
+/// ([`crate::stages::compile_logic::OBJECT_LEVEL_GRAPHS`]) from `stage-compile-logic`
+/// (artifact-level typed dataflow). Derives the SAME entity list as
+/// [`crate::stages::reason::ReasonStage`]'s consumed_entities() so the dag_dogfood
+/// parity and the loader's bind-agreement both hold.
 fn st_reason(id: &str, impl_key: &str, consumes: &[&str]) -> StageSpec {
-    use crate::stages::compile_logic::{GRAPH_CORRESPONDENCE, GRAPH_LOGIC, GRAPH_RELATIONAL_CORE};
     let mut s = st(id, impl_key, consumes);
     s.resources = vec![ENGINE_RESOURCE.to_string()];
     s.dataflow_entities = vec![(
         "stage-compile-logic".to_string(),
-        vec![
-            GRAPH_CORRESPONDENCE.to_string(),
-            GRAPH_LOGIC.to_string(),
-            GRAPH_RELATIONAL_CORE.to_string(),
-        ],
+        crate::stages::compile_logic::object_level_entity_list(),
     )];
     s
 }

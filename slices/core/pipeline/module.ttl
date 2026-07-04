@@ -331,6 +331,7 @@ gmeow:pipeline-build
         gmeow:stage-export-okf ,
         gmeow:stage-export-apache ,
         gmeow:stage-export-frame-shapes ,
+        gmeow:stage-export-constraint-shapes ,
         gmeow:stage-export-result-shapes ,
         gmeow:stage-validate-result-shape-composition ,
         gmeow:stage-export-json-schema ,
@@ -609,6 +610,17 @@ gmeow:stage-export-frame-shapes
     gmeow:stageImpl "frame_shapes" ;
     gmeow:producesFormat "shacl" .
 
+gmeow:stage-export-constraint-shapes
+    a gmeow:PipelineStage ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "export: constraint shapes"@x-gmeow-english ;
+    skos:definition "Project each logic: open-world FOL axiom (irreflexivity / acyclicity / relatum-distinctness / class-disjointness) to a SHACL sh:SPARQLConstraint node shape — the P4/P17 projection of the axioms otherwise hand-authored as sh:sparql constraints."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:precondition gmeow:stageInputsAvailable ;
+    logic:capability gmeow:stageExecutorCapability ;
+    gmeow:stageImpl "constraint_shapes" ;
+    gmeow:producesFormat "shacl" .
+
 gmeow:stage-export-result-shapes
     a gmeow:PipelineStage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
@@ -662,7 +674,8 @@ gmeow:stage-export-research-objects
     logic:precondition gmeow:stageInputsAvailable ;
     logic:capability gmeow:stageExecutorCapability ;
     gmeow:stageImpl "research-objects" ;
-    gmeow:producesFormat "ro-crate" .
+    gmeow:producesFormat "ro-crate" ;
+    gmeow:dataflowConsumes gmeow:stage-mappings .
 
 gmeow:stage-export-references
     a gmeow:PipelineStage ;
@@ -760,6 +773,7 @@ gmeow:stage-gts-sink
         gmeow:stage-export-references ,
         gmeow:stage-export-research-objects ,
         gmeow:stage-export-result-shapes ,
+        gmeow:stage-export-constraint-shapes ,
         gmeow:stage-compile-logic ,
         gmeow:stage-mappings ,
         gmeow:stage-reason ,

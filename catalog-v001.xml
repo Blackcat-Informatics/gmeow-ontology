@@ -4,7 +4,7 @@
      import closure (gUFO spine + GMEOW slices) resolves offline for
      ROBOT, Protégé, and the reasoning pipeline. Paths are relative
      to this file (the repository root). Derived from the slice
-     manifests by src/gmeow_tools/catalog_gen.py (#331). -->
+     manifests by src/gmeow_tools/catalog_gen.py. -->
 <catalog prefer="public" xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog">
     <!-- Upper-ontology spine (static allowlist) -->
     <uri name="http://purl.org/nemo/gufo#" uri="imports/gufo.ttl"/>
@@ -50,14 +50,17 @@
     <uri name="https://blackcatinformatics.ca/gmeow/slices/images" uri="slices/extensions/images/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/imagination" uri="slices/core/imagination/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/inference" uri="slices/core/inference/module.ttl"/>
+    <uri name="https://blackcatinformatics.ca/gmeow/slices/inhabitation" uri="slices/core/inhabitation/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/inquiry" uri="slices/core/inquiry/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/kernel" uri="slices/core/kernel/module.ttl"/>
+    <uri name="https://blackcatinformatics.ca/gmeow/slices/lang" uri="slices/grounding/lang/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/language" uri="slices/core/language/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/languages" uri="slices/extensions/languages/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/learning" uri="slices/core/learning/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/lexicon" uri="slices/extensions/lexicon/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/lifecycle" uri="slices/core/lifecycle/module.ttl"/>
-    <uri name="https://blackcatinformatics.ca/gmeow/slices/logic" uri="slices/core/logic/module.ttl"/>
+    <uri name="https://blackcatinformatics.ca/gmeow/slices/logic" uri="slices/grounding/logic/module.ttl"/>
+    <uri name="https://blackcatinformatics.ca/gmeow/slices/math" uri="slices/grounding/math/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/mentation" uri="slices/core/mentation/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/metacognition" uri="slices/core/metacognition/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/music" uri="slices/extensions/music/module.ttl"/>
@@ -88,7 +91,7 @@
     <uri name="https://blackcatinformatics.ca/gmeow/slices/trust" uri="slices/core/trust/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/versions" uri="slices/core/versions/module.ttl"/>
 
-    <!-- Named profiles (generated, #330) -->
+    <!-- Named profiles (generated) -->
     <uri name="https://blackcatinformatics.ca/gmeow/profiles/claims" uri="generated/profiles/claims.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/profiles/dreaming" uri="generated/profiles/dreaming.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/profiles/memory" uri="generated/profiles/memory.ttl"/>

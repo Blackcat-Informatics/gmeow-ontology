@@ -15,16 +15,25 @@ use purrdf::{Namespaces, OntologyProfile, SliceVocab};
 pub(crate) const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
 /// gmeow's logic-core namespace (the second authored gmeow-ecosystem namespace).
 pub(crate) const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
+/// gmeow's language grounding namespace (the semiotic grounding layer, peer of
+/// `logic:` and `math:`; the grounding order is `logic:` < `lang:` < `math:`).
+pub(crate) const LANG_NS: &str = "https://blackcatinformatics.ca/lang/";
+/// gmeow's mathematics grounding namespace (the third authored gmeow-ecosystem
+/// namespace, peer of `logic:`).
+pub(crate) const MATH_NS: &str = "https://blackcatinformatics.ca/math/";
 
 /// gmeow's single ontology profile: the `gmeow:` primary namespace plus the
-/// authored `logic:` prefix. purrdf's builtins (xsd/rdf/rdfs/owl/sh) are always
-/// available on top of these, so the profile only carries gmeow's own vocab.
+/// authored `logic:`, `lang:`, and `math:` prefixes. purrdf's builtins
+/// (xsd/rdf/rdfs/owl/sh) are always available on top of these, so the profile only
+/// carries gmeow's own vocab.
 pub(crate) fn gmeow_profile() -> OntologyProfile {
     OntologyProfile::for_namespace(GMEOW_NS)
         .with_prefix("gmeow")
         .with_prefixes(vec![
             ("gmeow".to_owned(), GMEOW_NS.to_owned()),
             ("logic".to_owned(), LOGIC_NS.to_owned()),
+            ("lang".to_owned(), LANG_NS.to_owned()),
+            ("math".to_owned(), MATH_NS.to_owned()),
         ])
 }
 

@@ -19,6 +19,7 @@
 pub mod badge;
 pub mod card;
 pub mod coverage;
+pub mod describe;
 pub mod exec;
 pub mod fixture;
 pub mod i18n;
@@ -35,6 +36,7 @@ pub mod svg;
 #[cfg(feature = "python")]
 pub mod py;
 
+pub use describe::{build_card, describe, resolve_term, DescribeGraph};
 pub use exec::{example_key, ExecutableDocsData, InferenceDiff};
 pub use i18n::{available_languages, ui_string, Translations, UiCatalog};
 pub use lint::lint;

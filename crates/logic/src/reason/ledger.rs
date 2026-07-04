@@ -6,7 +6,7 @@
 //! This module compares the native engine's results ([`crate::reason::el`] for EL
 //! subsumption, [`crate::reason::dl`] for DL consistency) against the classic
 //! oracles (ELK for subsumption, HermiT for consistency) on **structured tuples,
-//! not message bytes** — mirroring the #578 doctrine that comparison happens on
+//! not message bytes** — mirroring the doctrine that comparison happens on
 //! the structured shape, never on rendered human strings.
 //!
 //! It classifies each tuple as agreeing, native-only, oracle-only, or a native
@@ -84,7 +84,7 @@ pub struct LedgerVerdict {
 }
 
 /// Decide the strict native↔oracle cross-check verdict (the anti-regression
-/// superset gate, #697 criterion 3): the native-decided construct set must be a
+/// superset gate criterion 3): the native-decided construct set must be a
 /// superset of the oracle-decided set, with no native coverage defect.
 ///
 /// The verdict is `passed` only when the ledger has **zero** `NativeOnly`,
@@ -642,7 +642,7 @@ mod tests {
         assert_eq!(ledger.dl_gap, 1, "build_ledger tallies dl_gap == 1");
     }
 
-    // ── enforce (the strict native⊇oracle decision, #697 criterion 3) ──────────
+    // ── enforce (the strict native⊇oracle decision criterion 3) ──────────
 
     #[test]
     fn enforce_passes_on_pure_agreement() {

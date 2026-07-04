@@ -25,9 +25,10 @@
 #   test_calendar_axes_are_independent — itertools.combinations sweep over 10
 #     orthogonal properties (45 pairs × 4 assertions = 180 checks); NEVER
 #     convert a dynamic pair-sweep to a finite blacklist enumeration.
-#   test_organizer_and_attendee_roles_exist — gmeow:roleOrganizer and
-#     gmeow:roleAttendee are defined in slices/core/event/module.ttl (cross-slice
-#     subjects); a scopeModule cell would silently miss them.
+#   test_organizer_and_attendee_roles_exist — MIGRATED to
+#     slices/core/events/tests/structural.ttl (ex:saOrganizerAndAttendeeRolesExist);
+#     gmeow:roleOrganizer and gmeow:roleAttendee are defined in
+#     slices/core/events/module.ttl, so the owning slice hosts the cell.
 #
 # See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest→DSL mapping.
 

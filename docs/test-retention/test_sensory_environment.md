@@ -1,15 +1,19 @@
 # Retention: `tests/test_sensory_environment.py`
 
-**Category:** Projection / alignment → Correspondence Calculus
+**Category:** Merged-graph guard
 
 ## What it tests
 
-Retained tests for the Sensory Environment module (#104).
+Retained tests for the Sensory Environment module.
 
-## Why it cannot move to Rust today
+Retained dynamic tests:
 
-Exercises the FnO/EDOAL/SPARQL projection or up-projection (alignment) layer — live Python engine output.
+- `test_new_axes_exist` — Sensory-environment axes are present in the places module.
+- `test_perceptual_frame_realm_exists` — frameRealmPerceptual is present for mental reference frames.
+- `test_sosa_alignments_loaded` — The sensory-environment mapping set contains SOSA alignments.
+- `test_mental_reference_frame_requires_host` — : a hosted MentalReferenceFrame instance is consistent under OWL 2 RL.
+- `test_psychological_mappings_loaded` — : The sensory-environment mapping set contains MF and MFOEM alignments.
 
-## What is needed to move it to Rust
+## Why it cannot be deleted or moved to Rust today
 
-Subsumed by the Correspondence Calculus (`docs/APPLIED_CATEGORY_THEORY/take1.md`): projections become lowerings of one `logic:Correspondence` get/put leg pair; up-projection is the derived `put` leg. When the lowering engine + `conformance/correspondence` round-trip/overclaim gates regenerate these outputs byte/graph-iso, the file is deleted under equivalence-before-deletion.
+Retained tests for the Sensory Environment module.

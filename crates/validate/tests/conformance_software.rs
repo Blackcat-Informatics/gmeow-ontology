@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Conformance twins migrated from tests/test_software.py (#867)
+//! Conformance twins migrated from tests/test_software.py
 //!
 //! Migrated tests (use `run_shacl`):
 //!   - `test_facet_orthogonality_shacl_rejects_two_facets`: inline dual-facet
@@ -39,7 +39,7 @@ ex:x rdf:type gmeow:SoftwareProduct .
 "
     ))
         .fails()
-        .violations(&["may fill at most one software facet"])
+        .violations(&["may fill at most one of these mutually disjoint classes"])
 )]
 #[case::fixture_parses_and_shacl_passes(Case::repo_path("tests/fixtures/software.ttl"))]
 fn software(#[case] case: Case) {

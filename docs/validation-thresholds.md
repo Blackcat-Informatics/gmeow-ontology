@@ -51,8 +51,8 @@ be treated as a regression of the contract, not routine maintenance.
   - Makefile `coverage` target (`coverage --gaps --min-class 0.92 --min-predicate 0.85`).
   - `.github/workflows/ci.yml` — `ontology` job, "Vendored-entity coverage — hard
     class/predicate floors" step.
-  - Enforcement: `src/gmeow_tools/cli_dev.py` `coverage()` command
-    (the `min_class` / `min_predicate` comparison that raises `_fail`).
+  - Enforcement: the `gmeow-dev coverage` command (`crates/gmeow-dev-cli`)
+    (the `min_class` / `min_predicate` comparison that fails the gate).
 - **Ratchet:** as GMEOW grows to cover more vendored classes/predicates, raise
   `0.92` / `0.85` toward the new measured values.
 
@@ -83,7 +83,7 @@ be treated as a regression of the contract, not routine maintenance.
   - Makefile `ACCEPTANCE_MIN_RECALL ?= 60` (consumed by the `acceptance` target).
   - `.github/workflows/ci.yml` — `ontology` job, "Transpile acceptance — hard
     aggregate recall floor" step.
-  - Enforcement: `src/gmeow_tools/cli_dev.py` `acceptance()` command
+  - Enforcement: the `gmeow-dev acceptance` command (`crates/gmeow-dev-cli`)
     (`min_recall` aggregate comparison that exits 1).
 - **Ratchet:** as transpile fidelity improves, raise `60` toward the new measured
   aggregate.

@@ -7,7 +7,7 @@
 > in the sibling charters into a specific, traceable gate with a named failure class, and it fixes
 > the preservation vocabulary the projection layer uses so mathematics loss is queryable alongside
 > every other GMEOW lowering. It is the mathematical peer of
-> `slices/core/logic/design/LOGIC-CONFORMANCE.md`. Where a sibling charter says "established by
+> `slices/grounding/logic/design/LOGIC-CONFORMANCE.md`. Where a sibling charter says "established by
 > shapes, competency queries, and the loss ledger", this document says *by which shape, which query,
 > which validator, and what failure is raised*.
 >
@@ -24,7 +24,7 @@ most declarative to most procedural:
   native reasoner over the reasoned graph.
 - **SHACL Core** — node/property shapes in `shapes.ttl` (cardinality, datatype, value range,
   `sh:in`) lowered from the canonical `logic:` validation-shape node kind
-  (`slices/core/logic/design/LOGIC-VALIDATION.md`).
+  (`slices/grounding/logic/design/LOGIC-VALIDATION.md`).
 - **SHACL-SPARQL** — constraints that need a query (uniqueness across a set, cross-node
   cardinality-by-role, contiguity), authored as `logic:` rules and projected to
   `sh:SPARQLConstraint`.
@@ -58,6 +58,43 @@ subclasses), so a violation is itself a typed, queryable object, not a log line.
 | A truth-valued expression lowered to `logic:` declares denotation kind and lowering preservation | Rust validator | `math:UndeclaredLogicLowering` |
 | A theorem/lemma/… role is asserted under a theory context (not as unconditional truth) | SHACL-SPARQL | `math:UnscopedStatementRole` |
 | A `FormalVerificationResult` is grounded as an observation with a vantage | SHACL Core | `math:UngroundedVerificationResult` |
+
+### Numbers-and-sets rules
+
+| Rule | Primary gate | Failure class |
+|---|---|---|
+| A `math:Number` declares the number system it belongs to | SHACL Core | `math:UnsituatedNumber` |
+| A `math:ApproximateValue` names the exact number it approximates and its error | SHACL Core | `math:ExactApproximateConflation` |
+| A named constant is an exact individual, not a decimal literal | SHACL Core | `math:ConstantAsDecimalLiteral` |
+| An intensional set's member condition denotes a `logic:` formula, not a string | SHACL Core | `math:StringOnlyMemberCondition` |
+| A complement names its ambient set | SHACL Core | `math:UnqualifiedComplement` |
+| A set is extensional or intensional, not silently both | SHACL-SPARQL | `math:AmbiguousSetExtent` |
+| A `math:Function` declares its domain and codomain | SHACL Core | `math:UnframedFunction` |
+
+### Algebra rules
+
+| Rule | Primary gate | Failure class |
+|---|---|---|
+| An algebraic structure declares its underlying set, operation, and axioms | SHACL Core | `math:IncompleteAlgebraicStructure` |
+| A ring declares the distributivity law tying its two operations together | SHACL Core | `math:NonDistributiveRing` |
+| A homomorphism declares its preserved operation and preservation law | SHACL Core | `math:UnderspecifiedHomomorphism` |
+| A preservation law denotes a `logic:` formula, not a string | SHACL Core | `math:StringOnlyPreservationLaw` |
+| A Lie group declares its root system | SHACL Core | `math:IncompleteLieStructure` |
+| A root system declares its Cartan matrix, Weyl group, and rank | SHACL Core | `math:IncompleteLieStructure` |
+| An automorphism group is anchored to the structure it is the symmetry of | SHACL Core | `math:UnanchoredAutomorphismGroup` |
+| A homomorphic-encryption scheme declares its homomorphic operation, hardness assumption, and noise model | SHACL Core | `math:UnderspecifiedEncryptionScheme` |
+| The E8 root-system invariants (240 roots, rank 8, Weyl order 696,729,600) are the pinned answer | competency query | a mistyped invariant fails the exact-match competency gate |
+| A root system claiming the E8 fingerprint (240 roots, rank 8) declares the true Weyl order 696,729,600 | SHACL-SPARQL | `math:WrongE8WeylOrder` |
+
+Every algebra axiom and preservation law is authored as a real `logic:Formula` first-order AST (atoms
+over `logic:relation` predications, the logical connectives, and quantifiers) — `math:` expresses the law and `logic:` owns
+reasoning over it. Because a `logic:Formula` round-trips losslessly in canonical RDF 1.2 and weaker
+projections carry any formula they cannot express as flagged unsupported residue (the
+`logic:FormulaShape` tags), the algebra laws ride the existing projection / loss-ledger path: their
+lowering to OWL/Datalog is recorded as non-exact with named residue in the same `logic:` loss ledger as
+every other GMEOW lowering, so no new preservation vocabulary is minted (Principle 17). Algebra also
+dogfoods GMEOW through the one-way `math:formalizes` annotation, and aligns to Wikidata (identity) and
+Lean mathlib (structural, by reference).
 
 ### Probability rules
 
@@ -125,7 +162,7 @@ lowerings. The mathematics slice mints **no** near-synonyms.
 
 A mathematics projection is therefore a `logic:Correspondence` lowering carrying a
 `logic:preservationKind` and, where lossy, an enumeration of unsupported constructs — the same shape
-the correspondence calculus uses (`slices/core/logic/design/LOGIC-CORRESPONDENCE.md`). "Lossy with
+the correspondence calculus uses (`slices/grounding/logic/design/LOGIC-CORRESPONDENCE.md`). "Lossy with
 named drops" is not a fourth polarity; it is a non-exact preservation with its drops enumerated.
 
 ## The conformance corpus

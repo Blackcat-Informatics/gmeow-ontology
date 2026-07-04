@@ -615,8 +615,10 @@ mod tests {
         assert!(agents.exact_rows);
         assert_eq!(
             agents.expected_rows.len(),
-            6,
-            "six fully-enumerated agent kinds"
+            8,
+            "eight fully-enumerated agent kinds: the six rigid Kinds (Agent, Builder, \
+             Organization, Person, Sensor, SoftwareAgent) plus the inhabitation-slice \
+             role-mixins DigitalSubject and Inhabitant, both grounded rdfs:subClassOf gmeow:Agent"
         );
         // Each row has exactly one cell binding ?agentKind to a gmeow: IRI.
         for row in &agents.expected_rows {
@@ -699,7 +701,7 @@ mod tests {
         );
     }
 
-    /// Load inline Turtle into a native dataset via the canonical codec (#909 / #906):
+    /// Load inline Turtle into a native dataset via the canonical codec:
     /// `parse_dataset` into the frozen IR — the same codec the rest of the stack uses
     /// (and lenient on long private-use language tags, like the harness).
     fn store_from_turtle(ttl: &str) -> Arc<RdfDataset> {

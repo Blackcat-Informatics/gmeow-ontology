@@ -247,7 +247,7 @@ fn handle_arm_tag(handle: &PipelineHandle) -> &'static str {
 ///
 /// The C4 placeholder arms (`reasoning` / `relational-core` / `correspondence`) wrap
 /// the backing `Arc<RdfDataset>` directly. The `logic` arm carries the REAL typed IR
-/// (#1132 C6): its backing graph is the canonical RDF-1.2 projection of a
+/// (C6): its backing graph is the canonical RDF-1.2 projection of a
 /// [`LogicProgram`], so on a cache hit the program is RE-DERIVED from that backing
 /// graph via the reverse parser ([`parse_logic_dataset`]) — the consumer never
 /// re-parses the logic graph itself, the cache boundary does it ONCE here. A parse
@@ -271,7 +271,7 @@ fn rebuild_handle(
             PipelineHandle::Logic(Arc::new(program))
         }
         "reasoning" => {
-            // The REAL typed Reasoning handle (#1132 C7): its backing graph is the
+            // The REAL typed Reasoning handle (C7): its backing graph is the
             // deterministic `graph/reasoning` projection of a `ReasoningResult`, so on
             // a cache hit the verdict-and-provenance result is RE-DERIVED from that
             // graph via the reverse parser (the binding rows / closure quads are not
@@ -301,7 +301,7 @@ fn rebuild_handle(
             PipelineHandle::Reasoning(Arc::new(result))
         }
         "relational-core" => {
-            // The REAL typed RelationalCore handle (#1132 C8): its backing graph is the
+            // The REAL typed RelationalCore handle (C8): its backing graph is the
             // deterministic projection of a `RelationalCoreProgram`, so on a cache hit the
             // typed dialect is RE-DERIVED from that graph via the reverse parser. The
             // consumer never re-lowers; the cache boundary re-derives it ONCE here. A parse
@@ -318,7 +318,7 @@ fn rebuild_handle(
             PipelineHandle::RelationalCore(Arc::new(program))
         }
         "correspondence" => {
-            // The REAL typed Correspondence handle (#1132 C10): its backing graph is the
+            // The REAL typed Correspondence handle (C10): its backing graph is the
             // deterministic `graph/correspondence` projection of a `CorrespondenceProgram`,
             // so on a cache hit the typed program is RE-DERIVED from that graph via the
             // reverse parser. The consumer never re-projects; the cache boundary re-derives
@@ -655,6 +655,8 @@ impl PipelineCache {
     /// The conventional cache base directory under a repo root. [`open`](Self::open)
     /// appends the version segment, so this is the un-segmented base.
     pub fn default_dir(root: &Path) -> PathBuf {
+        // GENERATED-READ-OK: the pipeline cache is a gitignored scratch dir under generated/, not a
+        // committed fanout projection — reading its path cannot trigger the stale-disk-fold bug class.
         root.join("generated").join(".pipeline-cache")
     }
 
@@ -744,7 +746,7 @@ impl PipelineCache {
 /// SAME directory (so the final `rename` stays on one filesystem, where POSIX
 /// guarantees atomicity), then rename over the target. An interrupted write can
 /// only ever leave a stray temp file, never a half-written `target` — so the
-/// cache is never bricked mid-write (no-optionality, #861 P2).
+/// cache is never bricked mid-write (no-optionality P2).
 fn write_atomic(target: &Path, bytes: &[u8]) -> Result<(), PipelineError> {
     let dir = target.parent().ok_or_else(|| {
         PipelineError::Io(std::io::Error::new(
@@ -862,7 +864,7 @@ mod tests {
 
         let mut bundle = PipelineBundle::new(dataset, lookaside, Arc::new(blobs), prov);
 
-        // Attach the REAL typed Logic handle (#1132 C6) over the named graph: the
+        // Attach the REAL typed Logic handle (C6) over the named graph: the
         // payload is the compiled program, pinned to the canonical digest of its
         // backing `graph/logic` projection.
         let program = Arc::new(sample_logic_program());
@@ -916,7 +918,7 @@ mod tests {
         let PipelineHandle::Logic(reconstituted) = &entry.payload else {
             panic!("handle arm preserved (Logic)");
         };
-        // The REAL typed Logic handle (#1132 C6) re-derives from its backing
+        // The REAL typed Logic handle (C6) re-derives from its backing
         // `graph/logic` projection to a canonical-key-equal program.
         assert_eq!(
             reconstituted.canonical_key(),
@@ -998,7 +1000,7 @@ mod tests {
 
     /// A `ReasoningResult` whose `graph/reasoning` projection backs a cache handle, so
     /// the cache's re-derivation (`parse_reasoning_graph`) reconstructs a faithful
-    /// verdict-and-provenance result (#1132 C7).
+    /// verdict-and-provenance result (C7).
     fn sample_reasoning_result() -> gmeow_logic::result::ReasoningResult {
         use gmeow_logic::result::{
             CompletenessStatus, EvaluationStatus, InformationState, InputStatus, PreservationClaim,
@@ -1089,7 +1091,7 @@ mod tests {
 
     /// A bundle whose dataset carries a `graph/relational-core` named graph (the
     /// projection of a lowered Horn program) with a typed RelationalCore handle pinned
-    /// to it (#1132 C8).
+    /// to it (C8).
     fn relational_core_bundle() -> (
         PipelineBundle<PipelineHandle>,
         gmeow_logic_compile::relational_core::RelationalCoreProgram,
@@ -1180,7 +1182,7 @@ mod tests {
 
     /// A bundle whose dataset carries a `graph/correspondence` named graph (the §14
     /// affine-triangle worked example) with a typed Correspondence handle pinned to it
-    /// (#1132 C10).
+    /// (C10).
     fn correspondence_bundle() -> (
         PipelineBundle<PipelineHandle>,
         gmeow_logic_compile::projections::correspondence::CorrespondenceProgram,

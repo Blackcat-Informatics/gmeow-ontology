@@ -1,0 +1,16 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Counter-example: three slots in one analysis forming a length-three dependency cycle A->B->C->A (fires lang:DanglingDependency / shacl.SPARQLConstraintComponent via the transitive dependsOn+ path).
+
+@prefix lang: <https://blackcatinformatics.ca/lang/> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:   <http://example.org/lang/> .
+
+ex:english a lang:SignSystem .
+ex:a1 a lang:Analysis .
+ex:s0 a lang:FormSlot ; lang:inAnalysis ex:a1 ; lang:slotIndex 0 ; lang:slotForm ex:w0 ; lang:dependsOn ex:s1 .
+ex:s1 a lang:FormSlot ; lang:inAnalysis ex:a1 ; lang:slotIndex 1 ; lang:slotForm ex:w1 ; lang:dependsOn ex:s2 .
+ex:s2 a lang:FormSlot ; lang:inAnalysis ex:a1 ; lang:slotIndex 2 ; lang:slotForm ex:w2 ; lang:dependsOn ex:s0 .
+ex:w0 a lang:WordForm ; lang:inSignSystem ex:english .
+ex:w1 a lang:WordForm ; lang:inSignSystem ex:english .
+ex:w2 a lang:WordForm ; lang:inSignSystem ex:english .

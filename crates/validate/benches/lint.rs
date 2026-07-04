@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Baseline benchmark for the validation-path lints (#630 acceleration, Phase 0).
+//! Baseline benchmark for the validation-path lints (acceleration, Phase 0).
 //!
 //! Exercises the whole-store scans the explore pass flagged: `structural_lint`
 //! (the language-tag / namespace sweep over every quad) and `collect_typed_terms`.

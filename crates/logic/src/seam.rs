@@ -19,7 +19,7 @@
 //! cited in explanations as virtual derivation steps keyed by `derivation_id`, never as stored
 //! quads.
 //!
-//! **Two explicit exceptions are deferred to issue #501** and are intentionally absent from this
+//! **Two explicit exceptions are deferred** and are intentionally absent from this
 //! module:
 //! 1. Stratum-C constructed worlds *are* materialized (into a transient named graph).
 //! 2. A query may opt into IDB memoization, writing a clearly-marked derived graph.
@@ -100,7 +100,7 @@ impl std::fmt::Display for BudgetStatus {
 /// consulting any secondary index.
 ///
 /// Field names and semantics match the design contract in
-/// `slices/core/logic/design/LOGIC-RUNTIME.md §"The seam data contract"` verbatim:
+/// `slices/grounding/logic/design/LOGIC-RUNTIME.md §"The seam data contract"` verbatim:
 ///
 /// ```text
 /// Nemo output (per derived quad written to oxigraph):
@@ -160,7 +160,7 @@ pub struct DerivedQuad {
 ///
 /// These are **contract stubs only** — no Prolog embedding is present in this task.
 /// Embedding Scryer and wiring these to a live Prolog session is deferred to a later rung
-/// (see issue #499 task notes and LOGIC-RUNTIME.md §"Backward chaining").
+/// (see task notes and LOGIC-RUNTIME.md §"Backward chaining").
 ///
 /// Each method maps directly to its Prolog mode annotation:
 ///
@@ -375,7 +375,7 @@ impl ScryerForeign for WorldStoreForeign {
     /// `contradiction_witness(+W, ?WitnessGraph)` — always empty in this implementation.
     ///
     /// Monotonic-vacuous in v4: the monotonic fragment has no within-world contradictions;
-    /// real paraconsistent witnesses arrive with #503. This empty result is vacuously-correct,
+    /// real paraconsistent witnesses arrive later. This empty result is vacuously-correct,
     /// NOT a silent stub.
     fn contradiction_witness<'a>(&'a self, _world: &str) -> Box<dyn Iterator<Item = String> + 'a> {
         Box::new(std::iter::empty())

@@ -352,7 +352,7 @@ fn nq_escape(value: &str) -> String {
             '\t' => out.push_str("\\t"),
             // Any remaining C0 control character must be escaped as \uXXXX, else
             // the literal is illegal raw in an N-Quads STRING_LITERAL_QUOTE and
-            // rdflib/oxigraph reject the graph (mirrors diagnostics #654).
+            // rdflib/oxigraph reject the graph (mirrors diagnostics).
             c if (c as u32) < 0x20 => out.push_str(&format!("\\u{:04X}", c as u32)),
             c => out.push(c),
         }

@@ -5,14 +5,14 @@ expression: summary
 {
   "title": "GMEOW Ontology Documentation",
   "version": "7",
-  "slice_count": 75,
-  "term_count": 2335,
-  "dependency_edge_count": 849,
+  "slice_count": 78,
+  "term_count": 2389,
+  "dependency_edge_count": 909,
   "term_count_by_category": {
-    "Class": 705,
+    "Class": 725,
     "Datatype": 1,
     "Individual": 3,
-    "Property": 1626
+    "Property": 1660
   },
   "slice_iris": [
     "https://blackcatinformatics.ca/gmeow/slices/accessibility",
@@ -53,14 +53,17 @@ expression: summary
     "https://blackcatinformatics.ca/gmeow/slices/images",
     "https://blackcatinformatics.ca/gmeow/slices/imagination",
     "https://blackcatinformatics.ca/gmeow/slices/inference",
+    "https://blackcatinformatics.ca/gmeow/slices/inhabitation",
     "https://blackcatinformatics.ca/gmeow/slices/inquiry",
     "https://blackcatinformatics.ca/gmeow/slices/kernel",
+    "https://blackcatinformatics.ca/gmeow/slices/lang",
     "https://blackcatinformatics.ca/gmeow/slices/language",
     "https://blackcatinformatics.ca/gmeow/slices/languages",
     "https://blackcatinformatics.ca/gmeow/slices/learning",
     "https://blackcatinformatics.ca/gmeow/slices/lexicon",
     "https://blackcatinformatics.ca/gmeow/slices/lifecycle",
     "https://blackcatinformatics.ca/gmeow/slices/logic",
+    "https://blackcatinformatics.ca/gmeow/slices/math",
     "https://blackcatinformatics.ca/gmeow/slices/mentation",
     "https://blackcatinformatics.ca/gmeow/slices/metacognition",
     "https://blackcatinformatics.ca/gmeow/slices/music",
@@ -293,11 +296,11 @@ expression: summary
       ]
     }
   ],
-  "mapping_set_count": 71,
-  "linkage_count": 1810,
-  "example_count": 115,
+  "mapping_set_count": 78,
+  "linkage_count": 1893,
+  "example_count": 128,
   "concern_count": 7,
-  "external_term_count": 1554,
+  "external_term_count": 1629,
   "sample_mapping_set": {
     "iri": "https://blackcatinformatics.ca/gmeow/mapsetAccessibility",
     "curie": "gmeow:mapsetAccessibility",
@@ -415,8 +418,8 @@ expression: summary
       "schema"
     ]
   },
-  "shape_count": 299,
-  "competency_count": 63,
+  "shape_count": 305,
+  "competency_count": 92,
   "sample_shape": {
     "shape_iri": "https://blackcatinformatics.ca/gmeow/RetractedAccessibilityAssertionShape",
     "target_term": "https://blackcatinformatics.ca/gmeow/AccessibilityAssertion",

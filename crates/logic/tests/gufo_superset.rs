@@ -2,18 +2,18 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 //! Native `gmeow:logic ⊇ gUFO` coverage floor — the `meta:gate-logic-gufo-superset`
 //! gate (Principle 17), ported from the retired Python fixture
-//! `tests/test_logic_gufo_superset.py` (#731).
+//! `tests/test_logic_gufo_superset.py`.
 //!
 //! gUFO is a generated, VALIDATION-ONLY lossy down-projection of the canonical
 //! `gmeow:logic` foundation: every gUFO `owl:Class` must therefore be covered by a
 //! richer `logic:` term, or be explicitly SUPERSEDED by the `logic:Fluent` + RDF-1.2
 //! edge-property pattern (the five temporary-situation reifiers). This is the honest
 //! floor that enforces it, checked against the live sources
-//! `imports/gufo.ttl` + `slices/core/logic/module.ttl` + the worked example
-//! `slices/core/logic/examples/criticism-fixes.ttl`.
+//! `imports/gufo.ttl` + `slices/grounding/logic/module.ttl` + the worked example
+//! `slices/grounding/logic/examples/criticism-fixes.ttl`.
 //!
 //! Replaces the Python `_GUFO_CLASS_TO_LOGIC` fixture inlined when the Python
-//! compiler was deleted in #727. The 11-stereotype *runtime* sort map stays in
+//! compiler was deleted. The 11-stereotype *runtime* sort map stays in
 //! `crates/logic/src/compile/adapter.rs`; this test owns the full *coverage* floor.
 
 use std::collections::HashSet;
@@ -80,7 +80,7 @@ fn iri_term(iri: &str) -> RdfTerm {
 // down-projection). Keys are the gUFO classes of `imports/gufo.ttl` PLUS the
 // map-only extra `Disposition` (not a stock gUFO class — gUFO models it as an
 // IntrinsicMode; `logic:` carries it first-class). Targets are `logic:` terms
-// declared in `slices/core/logic/module.ttl`.
+// declared in `slices/grounding/logic/module.ttl`.
 //
 // The map is MANY-TO-ONE: 50 entries = 45 `Logic` + 5 `Superseded`; the 45 `Logic`
 // targets dedupe to 40 DISTINCT `logic:` IRIs (e.g. `Aspect`/`IntrinsicAspect`/
@@ -214,8 +214,8 @@ fn load_store(rel: &str) -> Vec<RdfQuad> {
 }
 
 const GUFO_TTL: &str = "imports/gufo.ttl";
-const MODULE_TTL: &str = "slices/core/logic/module.ttl";
-const EXAMPLE_TTL: &str = "slices/core/logic/examples/criticism-fixes.ttl";
+const MODULE_TTL: &str = "slices/grounding/logic/module.ttl";
+const EXAMPLE_TTL: &str = "slices/grounding/logic/examples/criticism-fixes.ttl";
 
 /// Lazily-loaded, shared stores — parsed exactly once per test binary run.
 static GUFO_STORE: LazyLock<Vec<RdfQuad>> = LazyLock::new(|| load_store(GUFO_TTL));

@@ -1,0 +1,11 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Conforming fixture: an anchor declaring source, span, and offset space (lang:AnchorCompleteShape).
+
+@prefix lang: <https://blackcatinformatics.ca/lang/> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:   <http://example.org/lang/> .
+
+ex:doc a lang:SignSystem .
+ex:anc a lang:SurfaceAnchor ; lang:anchorSource ex:doc ; lang:anchorStart 0 ;
+    lang:anchorEnd 5 ; lang:offsetSpace lang:codepointOffset .

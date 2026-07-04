@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The explanation skeleton emitter (issue #497) — the sole authority; the Python
-//! explanation oracle (`gmeow_tools.logic_explain`) was retired in #497.
+//! The explanation skeleton emitter — the sole authority; the Python
+//! explanation oracle (`gmeow_tools.logic_explain`) was retired.
 //!
 //! Given a materialization result (a list of derived quads each carrying full seam
 //! provenance), this module reconstructs the derivation tree for a target quad and

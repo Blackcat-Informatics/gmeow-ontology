@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Rust acceptance-test spine for the foundation-corpus importer (#944).
+//! Rust acceptance-test spine for the foundation-corpus importer.
 //!
 //! This is the parity proof: it ports the acceptance assertions the (now
 //! retired) Python `tests/test_foundation_import.py` pinned, so the Rust

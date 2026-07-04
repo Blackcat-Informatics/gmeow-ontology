@@ -201,7 +201,7 @@ fn an_equivalence_overclaim_on_a_lossy_rung_reds() {
 }
 
 // --------------------------------------------------------------------------- //
-// candidate_lifts — cross-layer ambiguity guard (issue #1145 / feedback #4)
+// candidate_lifts — cross-layer ambiguity guard (feedback #4)
 // --------------------------------------------------------------------------- //
 
 fn edoal_set(pairs: &[(&str, &[&str])]) -> BTreeMap<String, BTreeSet<String>> {

@@ -1,15 +1,16 @@
 # Retention: `tests/test_dsl_shacl.py`
 
-**Category:** PyO3 seam
+**Category:** Python tool algorithm
 
 ## What it tests
 
 Tests for RDF-native SHACL validation of the mapping and statement DSL sources.
 
-## Why it cannot move to Rust today
+Retained dynamic tests:
 
-Tests a PyO3 binding's marshalling / error-surfacing — the seam itself, which Rust cannot test from the inside; the engine substance is already Rust-tested.
+- `TestMappingDslShacl.test_malformed_term_equivalence_shacl_diagnostic` — A TermEquivalence missing alignSubject must fail with a SHACL diagnostic.
+- `TestStatementDslShacl.test_malformed_statement_shacl_diagnostic` — A StatementMetadata with both qObject and qObjectLiteral must fail.
 
-## What is needed to move it to Rust
+## Why it cannot be deleted or moved to Rust today
 
-Delete when the Python surface that owns the seam is removed (the binding drops once nothing Python imports it); the engine is covered by its Rust crate.
+Python-only algorithm or generated-artifact checks with no declarative slice-test equivalent.

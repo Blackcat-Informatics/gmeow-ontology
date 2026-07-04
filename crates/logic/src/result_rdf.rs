@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 //! The deterministic RDF projection of a typed [`ReasoningResult`] into the
-//! `graph/reasoning` named graph (#1132 C7).
+//! `graph/reasoning` named graph (C7).
 //!
 //! This is the dual-carriage projection layer for the reasoning lane: the pipeline
 //! carries the live typed [`ReasoningResult`] as a

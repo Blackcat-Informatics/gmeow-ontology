@@ -58,7 +58,7 @@ This keeps the TBox small and the ABox expressive, matching the project's frame-
 established repository pattern: `gmeow:TermEquivalence` reification records in the slice's
 `mappings/equivalences.ttl` (with `gmeow:alignSubject`/`gmeow:alignPredicate`/`gmeow:alignObject`,
 a `semapv:` justification, and a confidence), lowered as a `logic:Correspondence` — the ninth
-`logic:` IR node kind (`slices/core/logic/design/LOGIC-CORRESPONDENCE.md`). The mathematics slice
+`logic:` IR node kind (`slices/grounding/logic/design/LOGIC-CORRESPONDENCE.md`). The mathematics slice
 introduces **no** free-standing `authorityLink` predicate; a Wikidata QID for a named concept is a
 `skos:exactMatch`/`skos:closeMatch` alignment carrying its preservation judgment in the loss ledger,
 exactly as every other slice records its external links.
@@ -172,7 +172,7 @@ making α-equivalence a graph isomorphism over declarations rather than a string
 
 The expression AST is **not** a second logic. `logic:` already owns a typed, full first-order IR —
 terms, formulas, types, predicates, and proof objects
-(`slices/core/logic/design/LOGIC-IR.md`). The mathematical AST must therefore declare, for any
+(`slices/grounding/logic/design/LOGIC-IR.md`). The mathematical AST must therefore declare, for any
 expression that crosses into reasoning, *what it denotes* and *how it lowers*, so the two layers
 compose instead of duplicating.
 

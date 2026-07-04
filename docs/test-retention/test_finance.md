@@ -1,15 +1,24 @@
 # Retention: `tests/test_finance.py`
 
-**Category:** Domain invariant → slicetest cells
+**Category:** Merged-graph guard
 
 ## What it tests
 
-Retained dynamic guards for the finance module (#64).
+Retained dynamic guards for the finance module.
 
-## Why it cannot move to Rust today
+Retained dynamic tests:
 
-Structural / competency / cross-slice invariants over the module (or merged) graph — ontology *shape*, not Python logic.
+- `test_monetary_amount_is_entity` — Retained dynamic test.
+- `test_currency_vocab_is_open_values_not_subclasses` — Retained dynamic test.
+- `test_monetary_value_is_functional` — Retained dynamic test.
+- `test_currency_is_functional` — Retained dynamic test.
+- `test_currency_is_subproperty_of_has_reference_frame` — Retained dynamic test.
+- `test_currency_frames_have_realm_currency` — Retained dynamic test.
+- `test_no_transaction_subclass_explosion` — Retained dynamic test.
+- `test_transaction_type_vocab_is_open_values` — Retained dynamic test.
+- `test_transaction_uses_participation_not_subproperty` — Retained dynamic test.
+- `test_asset_type_vocab_is_open_values` — Retained dynamic test.
 
-## What is needed to move it to Rust
+## Why it cannot be deleted or moved to Rust today
 
-Author the assertions as slicetest cells in the **owning** slice (`structural.ttl` MUST/MUST-NOT, `competency.ttl` ASK/SELECT) per `docs/SLICE_QA.md`; cross-slice subjects go in the slice that *defines* the term. Confirm `make slicetest`, then delete this file. No new Rust — the harness exists.
+Retained dynamic guards for the finance module.

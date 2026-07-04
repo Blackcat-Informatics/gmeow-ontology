@@ -1,0 +1,18 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<https://blackcatinformatics.ca/gmeow/slices/math>
+    a gmeow:Slice ;
+    rdfs:label "mathematics"@x-gmeow-english ;
+    skos:definition "The mathematics slice (core tier): the home of GMEOW Mathematics — the `math:` grounding layer, a peer of the `logic:` reasoning layer. It grounds the primitive mathematical objects every other consumer quantifies, indexes, maps, and measures over: number systems and exactness (the containment tower ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ, exact values distinguished from their approximations, named constants as exact individuals), arithmetic operations, sets given extensionally or by an intensional condition that denotes a `logic:` formula, and relations and functions with declared domain and codomain. Its single discipline is that exactness is explicit. The typed conformance-failure vocabulary makes every well-formedness violation a queryable object; the preservation vocabulary is reused verbatim from the `logic:` loss ledger. The manifest is the sole source of slice identity and tier."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    dcterms:title "GMEOW Mathematics"@x-gmeow-english ;
+    dcterms:creator "Blackcat Informatics® Inc." ;
+    gmeow:sliceTier gmeow:tierCore ;
+    gmeow:sliceDependsOn <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:sliceConsumer "Every mathematical charter that builds on the bedrock objects — measure and dimension, algebra, analysis and geometry, linear algebra and learning, and the ingestion bridges — together with every projection consumer that reasons over numbers, sets, and functions. The preservation-polarity vocabulary and the intensional-condition denotation seam are borrowed from the `logic:` slice, of which this slice is the mathematical peer."@x-gmeow-english .

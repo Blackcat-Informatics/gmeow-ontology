@@ -1,0 +1,13 @@
+# Competency question: "Which forms hold more than one co-resident reading?"  This
+# exercises the commitment that ambiguity is data: an ambiguous form keeps every
+# reading as first-class, never collapsed. Over the scope-ambiguity fixture the answer
+# is exactly the one sentence form that carries both scopings.
+PREFIX lang: <https://blackcatinformatics.ca/lang/>
+
+SELECT DISTINCT ?form WHERE {
+    ?r1 lang:readingOf ?form .
+    ?r2 lang:readingOf ?form .
+    FILTER(?r1 != ?r2)
+    FILTER(STRSTARTS(STR(?form), "http://example.org/lang/"))
+}
+ORDER BY ?form

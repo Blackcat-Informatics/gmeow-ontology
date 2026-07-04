@@ -1,0 +1,12 @@
+# Competency question: "Which sets are given intensionally, and what is the defining
+# condition as a logic: formula?"  This exercises the denotation seam: an intensional
+# math:SetBuilderExpression names its math:memberCondition as a resource denoting a
+# logic: formula, never an opaque string. Over the fixture the answer is
+# {evenNumbers → evenFormula}.
+PREFIX math: <https://blackcatinformatics.ca/math/>
+
+SELECT ?set ?condition WHERE {
+    ?set a math:SetBuilderExpression ;
+         math:memberCondition ?condition .
+}
+ORDER BY ?set

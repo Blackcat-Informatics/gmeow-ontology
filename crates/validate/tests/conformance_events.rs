@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Conformance twins migrated from tests/test_events.py (#867)
+//! Conformance twins migrated from tests/test_events.py
 //!
 //! Migrated tests:
 //!   - `test_wellformed_participation_conforms` → `wellformed_participation_conforms`

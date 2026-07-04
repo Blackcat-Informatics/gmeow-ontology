@@ -1,0 +1,31 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:E8WeylOrderShape: a math:RootSystem carrying the E8
+# fingerprint (240 roots in rank 8) but declaring a math:weylGroup whose
+# math:groupOrder is 696,729,599 — one short of the true order of W(E8),
+# 696,729,600. The root system and Weyl group are otherwise complete (they satisfy
+# math:RootSystemShape, math:AutomorphismGroupShape, and math:AlgebraicStructureShape),
+# so validation MUST emit shacl.SPARQLConstraintComponent and no other finding: the
+# wrong Weyl order is caught by value, not trusted. Bound by ex:ecE8WrongWeylOrder.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:e8CorruptedRoots a math:RootSystem ;
+    math:rootCount 240 ;
+    math:rootSystemRank 8 ;
+    math:cartanMatrix ex:corruptedCartan ;
+    math:weylGroup ex:corruptedWeyl .
+
+ex:corruptedCartan a math:CartanMatrix .
+
+ex:corruptedWeyl a math:WeylGroup ;
+    math:underlyingSet ex:reflSet ;
+    math:structureOperation ex:reflComposition ;
+    math:satisfiesAxiom ex:reflAssoc ;
+    math:automorphismGroupOf ex:e8CorruptedRoots ;
+    math:groupOrder 696729599 .
+
+ex:reflSet a math:Set .
+ex:reflComposition a math:Operation .
+ex:reflAssoc a math:Axiom .

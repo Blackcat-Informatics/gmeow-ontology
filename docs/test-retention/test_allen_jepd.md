@@ -1,15 +1,15 @@
 # Retention: `tests/test_allen_jepd.py`
 
-**Category:** Domain invariant → slicetest cells
+**Category:** Merged-graph guard
 
 ## What it tests
 
-Tests for Allen interval relations and JEPD disjointness (issue #67).
+Tests for Allen interval relations and JEPD disjointness.
 
-## Why it cannot move to Rust today
+Retained dynamic tests:
 
-Structural / competency / cross-slice invariants over the module (or merged) graph — ontology *shape*, not Python logic.
+- `test_no_owl_all_disjoint_properties_over_interval_relations` — OWL 2 DL forbids DisjointObjectProperties over non-simple (transitive) properties.
 
-## What is needed to move it to Rust
+## Why it cannot be deleted or moved to Rust today
 
-Author the assertions as slicetest cells in the **owning** slice (`structural.ttl` MUST/MUST-NOT, `competency.ttl` ASK/SELECT) per `docs/SLICE_QA.md`; cross-slice subjects go in the slice that *defines* the term. Confirm `make slicetest`, then delete this file. No new Rust — the harness exists.
+A whole-graph sweep over every owl:AllDisjointProperties to ensure no interval-level Allen relation is grouped into an OWL disjoint-properties axiom. Not expressible as a finite module-scoped SPARQL ASK.

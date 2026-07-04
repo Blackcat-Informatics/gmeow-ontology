@@ -9,7 +9,7 @@
 > restated as new doctrine; where this document and a normative source disagree, the
 > source wins and this guide has a bug. Normative sources, in precedence order:
 > [`.goals`](../.goals) and [`CONSTITUTION.md`](../CONSTITUTION.md); the grounding design
-> sets ([`slices/core/logic/design/`](../slices/core/logic/design/LOGIC.md),
+> sets ([`slices/grounding/logic/design/`](../slices/grounding/logic/design/LOGIC.md),
 > [`slices/grounding/math/design/`](../slices/grounding/math/design/MATHEMATICS.md),
 > [`slices/grounding/lang/design/`](../slices/grounding/lang/design/LANG.md)); the
 > correspondence calculus

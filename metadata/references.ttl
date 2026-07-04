@@ -208,10 +208,10 @@
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/0624aecdfd770d7a> .
 
 <https://blackcatinformatics.ca/gmeow/references/citation/063f173f800151f2> a gmeow:CitationAct ;
-    rdfs:label "slices/core/logic/design/LOGIC-SEMANTICS.md"@en ;
+    rdfs:label "slices/grounding/logic/design/LOGIC-SEMANTICS.md"@en ;
     gmeow:citationIntent gmeow:intentBridgedByReference ;
     gmeow:citedEntity <https://blackcatinformatics.ca/logic/> ;
-    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/core/logic/design/LOGIC-SEMANTICS.md> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/grounding/logic/design/LOGIC-SEMANTICS.md> ;
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/063f173f800151f2> .
 
 <https://blackcatinformatics.ca/gmeow/references/citation/0667b7ea023ffb06> a gmeow:CitationAct ;
@@ -761,10 +761,10 @@
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/1c190d66f5ea9ed1> .
 
 <https://blackcatinformatics.ca/gmeow/references/citation/1c46816569c25f62> a gmeow:CitationAct ;
-    rdfs:label "slices/core/logic/design/LOGIC-REFERENCES.md"@en ;
+    rdfs:label "slices/grounding/logic/design/LOGIC-REFERENCES.md"@en ;
     gmeow:citationIntent gmeow:intentBridgedByReference ;
     gmeow:citedEntity <https://souffle-lang.github.io/> ;
-    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/core/logic/design/LOGIC-REFERENCES.md> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/grounding/logic/design/LOGIC-REFERENCES.md> ;
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/1c46816569c25f62> .
 
 <https://blackcatinformatics.ca/gmeow/references/citation/1c58c476dfa4d9bc> a gmeow:CitationAct ;
@@ -964,10 +964,10 @@
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/22c52260ce285cc6> .
 
 <https://blackcatinformatics.ca/gmeow/references/citation/2300f177c42e7c9c> a gmeow:CitationAct ;
-    rdfs:label "slices/core/logic/design/LOGIC-REFERENCES.md"@en ;
+    rdfs:label "slices/grounding/logic/design/LOGIC-REFERENCES.md"@en ;
     gmeow:citationIntent gmeow:intentBridgedByReference ;
     gmeow:citedEntity <https://www.w3.org/TR/rdf12-concepts/> ;
-    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/core/logic/design/LOGIC-REFERENCES.md> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/grounding/logic/design/LOGIC-REFERENCES.md> ;
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/2300f177c42e7c9c> .
 
 <https://blackcatinformatics.ca/gmeow/references/citation/2314f66ba21b44da> a gmeow:CitationAct ;
@@ -1846,10 +1846,10 @@
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/415995b4d67b9432> .
 
 <https://blackcatinformatics.ca/gmeow/references/citation/41eda32348eb4366> a gmeow:CitationAct ;
-    rdfs:label "slices/core/logic/design/LOGIC-REFERENCES.md"@en ;
+    rdfs:label "slices/grounding/logic/design/LOGIC-REFERENCES.md"@en ;
     gmeow:citationIntent gmeow:intentBridgedByReference ;
     gmeow:citedEntity <https://www.w3.org/TR/owl2-overview/> ;
-    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/core/logic/design/LOGIC-REFERENCES.md> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/grounding/logic/design/LOGIC-REFERENCES.md> ;
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/41eda32348eb4366> .
 
 <https://blackcatinformatics.ca/gmeow/references/citation/42943e68291cb514> a gmeow:CitationAct ;
@@ -2224,10 +2224,10 @@
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/4da77da9bccfbb77> .
 
 <https://blackcatinformatics.ca/gmeow/references/citation/4db6f6e23f263c97> a gmeow:CitationAct ;
-    rdfs:label "slices/core/logic/design/LOGIC-REFERENCES.md"@en ;
+    rdfs:label "slices/grounding/logic/design/LOGIC-REFERENCES.md"@en ;
     gmeow:citationIntent gmeow:intentBridgedByReference ;
     gmeow:citedEntity <https://ontouml.readthedocs.io/> ;
-    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/core/logic/design/LOGIC-REFERENCES.md> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/grounding/logic/design/LOGIC-REFERENCES.md> ;
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/4db6f6e23f263c97> .
 
 <https://blackcatinformatics.ca/gmeow/references/citation/4ef43879a9d0c10d> a gmeow:CitationAct ;
@@ -2973,10 +2973,10 @@
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/6a4f6548a6af077c> .
 
 <https://blackcatinformatics.ca/gmeow/references/citation/6aee7901c5dda740> a gmeow:CitationAct ;
-    rdfs:label "slices/core/logic/design/LOGIC-REFERENCES.md"@en ;
+    rdfs:label "slices/grounding/logic/design/LOGIC-REFERENCES.md"@en ;
     gmeow:citationIntent gmeow:intentBridgedByReference ;
     gmeow:citedEntity <https://nemo-ufes.github.io/gufo/> ;
-    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/core/logic/design/LOGIC-REFERENCES.md> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/grounding/logic/design/LOGIC-REFERENCES.md> ;
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/6aee7901c5dda740> .
 
 <https://blackcatinformatics.ca/gmeow/references/citation/6b6d159b04e7bb54> a gmeow:CitationAct ;
@@ -3274,10 +3274,10 @@
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/75ce8e686848b918> .
 
 <https://blackcatinformatics.ca/gmeow/references/citation/75f555ae726e0ff8> a gmeow:CitationAct ;
-    rdfs:label "slices/core/logic/design/LOGIC-REFERENCES.md"@en ;
+    rdfs:label "slices/grounding/logic/design/LOGIC-REFERENCES.md"@en ;
     gmeow:citationIntent gmeow:intentBridgedByReference ;
     gmeow:citedEntity <https://webassembly.org/> ;
-    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/core/logic/design/LOGIC-REFERENCES.md> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/grounding/logic/design/LOGIC-REFERENCES.md> ;
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/75f555ae726e0ff8> .
 
 <https://blackcatinformatics.ca/gmeow/references/citation/761269d7054198d2> a gmeow:CitationAct ;
@@ -3351,10 +3351,10 @@
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/78476787a65eb49f> .
 
 <https://blackcatinformatics.ca/gmeow/references/citation/78ca1ac71943cbab> a gmeow:CitationAct ;
-    rdfs:label "slices/core/logic/design/LOGIC-REFERENCES.md"@en ;
+    rdfs:label "slices/grounding/logic/design/LOGIC-REFERENCES.md"@en ;
     gmeow:citationIntent gmeow:intentBridgedByReference ;
     gmeow:citedEntity <https://www.w3.org/TR/sparql11-query/> ;
-    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/core/logic/design/LOGIC-REFERENCES.md> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/grounding/logic/design/LOGIC-REFERENCES.md> ;
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/78ca1ac71943cbab> .
 
 <https://blackcatinformatics.ca/gmeow/references/citation/7967a11fcc2ebdd1> a gmeow:CitationAct ;
@@ -3568,10 +3568,10 @@
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/81d7b7adcee88778> .
 
 <https://blackcatinformatics.ca/gmeow/references/citation/8237f92be4c4b4b3> a gmeow:CitationAct ;
-    rdfs:label "slices/core/logic/design/LOGIC-REFERENCES.md"@en ;
+    rdfs:label "slices/grounding/logic/design/LOGIC-REFERENCES.md"@en ;
     gmeow:citationIntent gmeow:intentBridgedByReference ;
     gmeow:citedEntity <https://www.w3.org/TR/rif-overview/> ;
-    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/core/logic/design/LOGIC-REFERENCES.md> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/grounding/logic/design/LOGIC-REFERENCES.md> ;
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/8237f92be4c4b4b3> .
 
 <https://blackcatinformatics.ca/gmeow/references/citation/825d58bc127414d2> a gmeow:CitationAct ;
@@ -3610,10 +3610,10 @@
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/82cea626de4a02ad> .
 
 <https://blackcatinformatics.ca/gmeow/references/citation/835bd8349e5f5d9f> a gmeow:CitationAct ;
-    rdfs:label "slices/core/logic/design/LOGIC-REFERENCES.md"@en ;
+    rdfs:label "slices/grounding/logic/design/LOGIC-REFERENCES.md"@en ;
     gmeow:citationIntent gmeow:intentBridgedByReference ;
     gmeow:citedEntity <https://www.w3.org/2000/10/swap/doc/cwm.html> ;
-    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/core/logic/design/LOGIC-REFERENCES.md> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/grounding/logic/design/LOGIC-REFERENCES.md> ;
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/835bd8349e5f5d9f> .
 
 <https://blackcatinformatics.ca/gmeow/references/citation/836ceccdfa9e40a9> a gmeow:CitationAct ;
@@ -3897,10 +3897,10 @@
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/8bec7b5a0720c9b6> .
 
 <https://blackcatinformatics.ca/gmeow/references/citation/8c25f54d7f19bb43> a gmeow:CitationAct ;
-    rdfs:label "slices/core/logic/design/LOGIC-REFERENCES.md"@en ;
+    rdfs:label "slices/grounding/logic/design/LOGIC-REFERENCES.md"@en ;
     gmeow:citationIntent gmeow:intentBridgedByReference ;
     gmeow:citedEntity <https://www.w3.org/TR/shacl/> ;
-    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/core/logic/design/LOGIC-REFERENCES.md> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/grounding/logic/design/LOGIC-REFERENCES.md> ;
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/8c25f54d7f19bb43> .
 
 <https://blackcatinformatics.ca/gmeow/references/citation/8c3b30e5316f1f13> a gmeow:CitationAct ;
@@ -3967,10 +3967,10 @@
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/9075bd942ad59cb9> .
 
 <https://blackcatinformatics.ca/gmeow/references/citation/90f490f889fe21d1> a gmeow:CitationAct ;
-    rdfs:label "slices/core/logic/design/LOGIC-REFERENCES.md"@en ;
+    rdfs:label "slices/grounding/logic/design/LOGIC-REFERENCES.md"@en ;
     gmeow:citationIntent gmeow:intentBridgedByReference ;
     gmeow:citedEntity <https://ithkuil.net/> ;
-    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/core/logic/design/LOGIC-REFERENCES.md> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/grounding/logic/design/LOGIC-REFERENCES.md> ;
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/90f490f889fe21d1> .
 
 <https://blackcatinformatics.ca/gmeow/references/citation/9130c463866827b6> a gmeow:CitationAct ;
@@ -6102,10 +6102,10 @@
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/e46fa27369b67d85> .
 
 <https://blackcatinformatics.ca/gmeow/references/citation/e47c2eb308fffcc3> a gmeow:CitationAct ;
-    rdfs:label "slices/core/logic/design/LOGIC-REFERENCES.md"@en ;
+    rdfs:label "slices/grounding/logic/design/LOGIC-REFERENCES.md"@en ;
     gmeow:citationIntent gmeow:intentBridgedByReference ;
     gmeow:citedEntity <https://www.w3.org/submissions/SWRL/> ;
-    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/core/logic/design/LOGIC-REFERENCES.md> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/grounding/logic/design/LOGIC-REFERENCES.md> ;
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/e47c2eb308fffcc3> .
 
 <https://blackcatinformatics.ca/gmeow/references/citation/e4b2cf8e2f2902fc> a gmeow:CitationAct ;
@@ -8386,7 +8386,7 @@ foaf:homepage a gmeow:CreativeWork ;
     gmeow:selectorLocator "docs/research-objects.md:97" .
 
 <https://blackcatinformatics.ca/gmeow/references/selector/063f173f800151f2> a gmeow:Selector ;
-    gmeow:selectorLocator "slices/core/logic/design/LOGIC-SEMANTICS.md:51" .
+    gmeow:selectorLocator "slices/grounding/logic/design/LOGIC-SEMANTICS.md:51" .
 
 <https://blackcatinformatics.ca/gmeow/references/selector/0667b7ea023ffb06> a gmeow:Selector ;
     gmeow:selectorLocator "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/242:102" .
@@ -8623,7 +8623,7 @@ foaf:homepage a gmeow:CreativeWork ;
     gmeow:selectorLocator "src/gmeow_tools/ontology_docs.py:343" .
 
 <https://blackcatinformatics.ca/gmeow/references/selector/1c46816569c25f62> a gmeow:Selector ;
-    gmeow:selectorLocator "slices/core/logic/design/LOGIC-REFERENCES.md:100" .
+    gmeow:selectorLocator "slices/grounding/logic/design/LOGIC-REFERENCES.md:100" .
 
 <https://blackcatinformatics.ca/gmeow/references/selector/1c58c476dfa4d9bc> a gmeow:Selector ;
     gmeow:selectorLocator "dsl/mappings/equivalences/classes.ttl:13" .
@@ -8710,7 +8710,7 @@ foaf:homepage a gmeow:CreativeWork ;
     gmeow:selectorLocator "slices/core/standpoint/mappings/equivalences.ttl:14" .
 
 <https://blackcatinformatics.ca/gmeow/references/selector/2300f177c42e7c9c> a gmeow:Selector ;
-    gmeow:selectorLocator "slices/core/logic/design/LOGIC-REFERENCES.md:32" .
+    gmeow:selectorLocator "slices/grounding/logic/design/LOGIC-REFERENCES.md:32" .
 
 <https://blackcatinformatics.ca/gmeow/references/selector/2314f66ba21b44da> a gmeow:Selector ;
     gmeow:selectorLocator "README.md:293" .
@@ -9088,7 +9088,7 @@ foaf:homepage a gmeow:CreativeWork ;
     gmeow:selectorLocator "crates/gts/src/stream.rs:16" .
 
 <https://blackcatinformatics.ca/gmeow/references/selector/41eda32348eb4366> a gmeow:Selector ;
-    gmeow:selectorLocator "slices/core/logic/design/LOGIC-REFERENCES.md:35" .
+    gmeow:selectorLocator "slices/grounding/logic/design/LOGIC-REFERENCES.md:35" .
 
 <https://blackcatinformatics.ca/gmeow/references/selector/42943e68291cb514> a gmeow:Selector ;
     gmeow:selectorLocator "dsl/mappings/projections/sigstore.ttl:4" .
@@ -9250,7 +9250,7 @@ foaf:homepage a gmeow:CreativeWork ;
     gmeow:selectorLocator "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/191#discussion_r3370550323:116" .
 
 <https://blackcatinformatics.ca/gmeow/references/selector/4db6f6e23f263c97> a gmeow:Selector ;
-    gmeow:selectorLocator "slices/core/logic/design/LOGIC-REFERENCES.md:53" .
+    gmeow:selectorLocator "slices/grounding/logic/design/LOGIC-REFERENCES.md:53" .
 
 <https://blackcatinformatics.ca/gmeow/references/selector/4ef43879a9d0c10d> a gmeow:Selector ;
     gmeow:selectorLocator "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/235#discussion_r3377108581:140" .
@@ -9571,7 +9571,7 @@ foaf:homepage a gmeow:CreativeWork ;
     gmeow:selectorLocator "tests/test_alignments.py:254" .
 
 <https://blackcatinformatics.ca/gmeow/references/selector/6aee7901c5dda740> a gmeow:Selector ;
-    gmeow:selectorLocator "slices/core/logic/design/LOGIC-REFERENCES.md:52" .
+    gmeow:selectorLocator "slices/grounding/logic/design/LOGIC-REFERENCES.md:52" .
 
 <https://blackcatinformatics.ca/gmeow/references/selector/6b6d159b04e7bb54> a gmeow:Selector ;
     gmeow:selectorLocator "tests/test_slices.py:71" .
@@ -9700,7 +9700,7 @@ foaf:homepage a gmeow:CreativeWork ;
     gmeow:selectorLocator "dsl/mappings/projections/exif.ttl:4" .
 
 <https://blackcatinformatics.ca/gmeow/references/selector/75f555ae726e0ff8> a gmeow:Selector ;
-    gmeow:selectorLocator "slices/core/logic/design/LOGIC-REFERENCES.md:115" .
+    gmeow:selectorLocator "slices/grounding/logic/design/LOGIC-REFERENCES.md:115" .
 
 <https://blackcatinformatics.ca/gmeow/references/selector/761269d7054198d2> a gmeow:Selector ;
     gmeow:selectorLocator "slices/core/creative-works/mappings/equivalences.ttl:10" .
@@ -9733,7 +9733,7 @@ foaf:homepage a gmeow:CreativeWork ;
     gmeow:selectorLocator "tests/test_coverage.py:131" .
 
 <https://blackcatinformatics.ca/gmeow/references/selector/78ca1ac71943cbab> a gmeow:Selector ;
-    gmeow:selectorLocator "slices/core/logic/design/LOGIC-REFERENCES.md:37" .
+    gmeow:selectorLocator "slices/grounding/logic/design/LOGIC-REFERENCES.md:37" .
 
 <https://blackcatinformatics.ca/gmeow/references/selector/7967a11fcc2ebdd1> a gmeow:Selector ;
     gmeow:selectorLocator "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/55:81" .
@@ -9826,7 +9826,7 @@ foaf:homepage a gmeow:CreativeWork ;
     gmeow:selectorLocator "src/gmeow_tools/research_objects.py:115" .
 
 <https://blackcatinformatics.ca/gmeow/references/selector/8237f92be4c4b4b3> a gmeow:Selector ;
-    gmeow:selectorLocator "slices/core/logic/design/LOGIC-REFERENCES.md:40" .
+    gmeow:selectorLocator "slices/grounding/logic/design/LOGIC-REFERENCES.md:40" .
 
 <https://blackcatinformatics.ca/gmeow/references/selector/825d58bc127414d2> a gmeow:Selector ;
     gmeow:selectorLocator "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/250#discussion_r3382543281:80" .
@@ -9844,7 +9844,7 @@ foaf:homepage a gmeow:CreativeWork ;
     gmeow:selectorLocator "docs/lpg-mapping.md:192" .
 
 <https://blackcatinformatics.ca/gmeow/references/selector/835bd8349e5f5d9f> a gmeow:Selector ;
-    gmeow:selectorLocator "slices/core/logic/design/LOGIC-REFERENCES.md:108" .
+    gmeow:selectorLocator "slices/grounding/logic/design/LOGIC-REFERENCES.md:108" .
 
 <https://blackcatinformatics.ca/gmeow/references/selector/836ceccdfa9e40a9> a gmeow:Selector ;
     gmeow:selectorLocator "dsl/mappings/equivalences/classes.ttl:10" .
@@ -9967,7 +9967,7 @@ foaf:homepage a gmeow:CreativeWork ;
     gmeow:selectorLocator "slices/core/observations/mappings/equivalences.ttl:10" .
 
 <https://blackcatinformatics.ca/gmeow/references/selector/8c25f54d7f19bb43> a gmeow:Selector ;
-    gmeow:selectorLocator "slices/core/logic/design/LOGIC-REFERENCES.md:36" .
+    gmeow:selectorLocator "slices/grounding/logic/design/LOGIC-REFERENCES.md:36" .
 
 <https://blackcatinformatics.ca/gmeow/references/selector/8c3b30e5316f1f13> a gmeow:Selector ;
     gmeow:selectorLocator "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/181#discussion_r3370209546:186" .
@@ -9997,7 +9997,7 @@ foaf:homepage a gmeow:CreativeWork ;
     gmeow:selectorLocator "tests/test_alignments.py:107" .
 
 <https://blackcatinformatics.ca/gmeow/references/selector/90f490f889fe21d1> a gmeow:Selector ;
-    gmeow:selectorLocator "slices/core/logic/design/LOGIC-REFERENCES.md:119" .
+    gmeow:selectorLocator "slices/grounding/logic/design/LOGIC-REFERENCES.md:119" .
 
 <https://blackcatinformatics.ca/gmeow/references/selector/9130c463866827b6> a gmeow:Selector ;
     gmeow:selectorLocator "slices/core/creative-works/mappings/equivalences.ttl:9" .
@@ -10914,7 +10914,7 @@ foaf:homepage a gmeow:CreativeWork ;
     gmeow:selectorLocator "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/211:261" .
 
 <https://blackcatinformatics.ca/gmeow/references/selector/e47c2eb308fffcc3> a gmeow:Selector ;
-    gmeow:selectorLocator "slices/core/logic/design/LOGIC-REFERENCES.md:39" .
+    gmeow:selectorLocator "slices/grounding/logic/design/LOGIC-REFERENCES.md:39" .
 
 <https://blackcatinformatics.ca/gmeow/references/selector/e4b2cf8e2f2902fc> a gmeow:Selector ;
     gmeow:selectorLocator "src/gmeow_tools/projection_lint.py:121" .
@@ -11386,9 +11386,9 @@ repo:CITATION.cff a gmeow:CreativeWork ;
     rdfs:label "slices/core/coreference/mappings/equivalences.ttl"@en ;
     gmeow:sourceLocation "slices/core/coreference/mappings/equivalences.ttl" .
 
-<https://blackcatinformatics.ca/gmeow/repo/slices/core/logic/design/LOGIC-SEMANTICS.md> a gmeow:CreativeWork ;
-    rdfs:label "slices/core/logic/design/LOGIC-SEMANTICS.md"@en ;
-    gmeow:sourceLocation "slices/core/logic/design/LOGIC-SEMANTICS.md" .
+<https://blackcatinformatics.ca/gmeow/repo/slices/grounding/logic/design/LOGIC-SEMANTICS.md> a gmeow:CreativeWork ;
+    rdfs:label "slices/grounding/logic/design/LOGIC-SEMANTICS.md"@en ;
+    gmeow:sourceLocation "slices/grounding/logic/design/LOGIC-SEMANTICS.md" .
 
 <https://blackcatinformatics.ca/gmeow/repo/slices/core/names/mappings/equivalences.ttl> a gmeow:CreativeWork ;
     rdfs:label "slices/core/names/mappings/equivalences.ttl"@en ;
@@ -14646,9 +14646,9 @@ repo:CONTRIBUTING.md a gmeow:CreativeWork ;
     rdfs:label "docs/projects-mapping.md"@en ;
     gmeow:sourceLocation "docs/projects-mapping.md" .
 
-<https://blackcatinformatics.ca/gmeow/repo/slices/core/logic/design/LOGIC-REFERENCES.md> a gmeow:CreativeWork ;
-    rdfs:label "slices/core/logic/design/LOGIC-REFERENCES.md"@en ;
-    gmeow:sourceLocation "slices/core/logic/design/LOGIC-REFERENCES.md" .
+<https://blackcatinformatics.ca/gmeow/repo/slices/grounding/logic/design/LOGIC-REFERENCES.md> a gmeow:CreativeWork ;
+    rdfs:label "slices/grounding/logic/design/LOGIC-REFERENCES.md"@en ;
+    gmeow:sourceLocation "slices/grounding/logic/design/LOGIC-REFERENCES.md" .
 
 <https://github.com/Blackcat-Informatics/gmeow-ontology/pull/13#discussion_r3359622498> a gmeow:CreativeWork ;
     rdfs:label "GitHub PR review comment #unknown by coderabbitai[bot]"@en ;
@@ -14918,18 +14918,18 @@ repo:README.md a gmeow:CreativeWork ;
     rdfs:label "logic: design reference to ISO/IEC 24707 Common Logic and its CLIF/CGIF/XCL dialects"@en ;
     gmeow:citationIntent gmeow:intentBridgedByReference ;
     gmeow:citedEntity <https://www.iso.org/standard/66249.html> ;
-    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/core/logic/design/LOGIC-REFERENCES.md> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/grounding/logic/design/LOGIC-REFERENCES.md> ;
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/a5041cfe0b2f933c> .
 
 <https://blackcatinformatics.ca/gmeow/references/selector/a5041cfe0b2f933c> a gmeow:Selector ;
-    gmeow:selectorLocator "slices/core/logic/design/LOGIC-REFERENCES.md:41" .
+    gmeow:selectorLocator "slices/grounding/logic/design/LOGIC-REFERENCES.md:41" .
 
 <https://blackcatinformatics.ca/gmeow/references/citation/35cf3ae20aad3156> a gmeow:CitationAct ;
     rdfs:label "logic: lineage note bridges Common Logic as an operationalized, externally cross-checked FOL ancestor"@en ;
     gmeow:citationIntent gmeow:intentBridgedByReference ;
     gmeow:citedEntity <https://www.iso.org/standard/66249.html> ;
-    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/core/logic/design/LOGIC.md> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/grounding/logic/design/LOGIC.md> ;
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/35cf3ae20aad3156> .
 
 <https://blackcatinformatics.ca/gmeow/references/selector/35cf3ae20aad3156> a gmeow:Selector ;
-    gmeow:selectorLocator "slices/core/logic/design/LOGIC.md:131" .
+    gmeow:selectorLocator "slices/grounding/logic/design/LOGIC.md:131" .

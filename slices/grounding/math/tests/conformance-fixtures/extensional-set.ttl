@@ -1,0 +1,15 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Well-formed: a finite set given extensionally by its elements, with a cardinality.
+# Conforms to math:SetExtentShape (extensional only). Bound by ex:ecExtensionalSet.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:primesUnderTen a math:FiniteSet ;
+    math:hasElement ex:two , ex:three , ex:five , ex:seven ;
+    math:hasCardinality math:cardinalityFinite ;
+    math:quantityValue 4 .

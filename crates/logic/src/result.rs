@@ -1,16 +1,16 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The typed `logic:ReasoningResult` (#768, ME2): the single shared result model
+//! The typed `logic:ReasoningResult` (ME2): the single shared result model
 //! every reasoning surface produces and every consumer reads.
 //!
 //! This module is **pure data** — no I/O, no graph parsing. It is the Rust
-//! authority (Principle 17); `slices/core/logic/module.ttl` carries the lossy
+//! authority (Principle 17); `slices/grounding/logic/module.ttl` carries the lossy
 //! ontology projection of these types.
 //!
 //! # Two orthogonal status axes, five compositional fields
 //!
-//! The canonical specification is `slices/core/logic/design/LOGIC-SEMANTICS.md`
+//! The canonical specification is `slices/grounding/logic/design/LOGIC-SEMANTICS.md`
 //! §"The reasoning result" (authoritative over the issue body). A result carries
 //! **five orthogonal fields**, each ranging over its own values; several can hold
 //! at once:
@@ -53,7 +53,7 @@ use crate::reason::{DlVerdict, InconsistencyWitness};
 //   * `wire()`       — the SEMANTICS canonical hyphenated-lowercase value, used in
 //                      every JSON/text projection (PyO3, conformance, certs).
 //   * `local_name()` — the `module.ttl` named-individual local name (PascalCase),
-//                      tied 1:1 by the Rust↔TTL cross-check (#768 Task 8).
+//                      tied 1:1 by the Rust↔TTL cross-check (Task 8).
 // --------------------------------------------------------------------------- //
 
 /// `input` — was the request well-formed? (SEMANTICS:246-251)
@@ -723,7 +723,7 @@ pub enum ResultPayload {
 // The result type.
 // --------------------------------------------------------------------------- //
 
-/// The typed `logic:ReasoningResult` — the single shared result model (#768).
+/// The typed `logic:ReasoningResult` — the single shared result model.
 #[derive(Debug, Clone, PartialEq)]
 pub struct ReasoningResult {
     /// Was the request well-formed?
@@ -839,7 +839,7 @@ impl ReasoningResult {
         result
     }
 
-    /// Attach the declared row-schema facet (#766) — the typed
+    /// Attach the declared row-schema facet — the typed
     /// [`ResultShape`](crate::result_shape::ResultShape) the result's bindings are
     /// contracted to. The schema is the caller's *declaration*, validated against
     /// the bindings by the consumer; it is never synthesised from the bindings.
@@ -925,7 +925,7 @@ impl ReasoningResult {
     /// classifying the information state at the single [`InformationState::classify`]
     /// chokepoint (so the conclusiveness invariant cannot be violated).
     ///
-    /// This is the query-surface entry point (#768 Task 3): `proof` is present iff
+    /// This is the query-surface entry point (Task 3): `proof` is present iff
     /// the conclusion is derivable; `counterproof` is present iff its explicit
     /// negation is derivable. The Belnap quadrant follows: proof-only ⇒ supported,
     /// counterproof-only ⇒ opposed, both ⇒ a witnessed contradiction (`both`),

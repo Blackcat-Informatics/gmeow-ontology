@@ -1,0 +1,23 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Well-formed: a math:HomomorphicEncryptionScheme declaring the operation it is
+# math:homomorphicOver, its math:securityAssumption (a lattice-hardness assumption), its
+# math:noiseModel, and — as a math:RingHomomorphism — its math:preservedOperation and its
+# math:preservationLaw (a resource denoting a logic: formula). Conforms to
+# math:HomomorphicEncryptionSchemeShape, math:HomomorphismShape, and math:PreservationLawShape.
+# Bound by ex:ecHeSchemeComplete.
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <http://example.org/math/> .
+
+ex:completeHe a math:HomomorphicEncryptionScheme ;
+    math:preservedOperation ex:ctMul ;
+    math:homomorphicOver ex:ctMul ;
+    math:preservationLaw ex:heLaw ;
+    math:securityAssumption math:ringLearningWithErrors ;
+    math:noiseModel ex:gaussianNoise .
+
+ex:ctMul a math:Operation .
+ex:heLaw a logic:Formula .
+ex:gaussianNoise a math:Operation .

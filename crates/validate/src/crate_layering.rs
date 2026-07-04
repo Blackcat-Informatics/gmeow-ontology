@@ -245,8 +245,8 @@ pub fn check_crate_layering(crates_dir: &Path) -> CrateLayeringReport {
             .insert(name.to_owned(), first_party_deps(&manifest));
     }
 
-    // The RDF-1.2 kernel / event-seam / adapter layering discipline (former #820 S0
-    // / #885 P2b: gmeow-rdf-core purity, gmeow-rdf-events zero-dep seam, gmeow-rdf
+    // The RDF-1.2 kernel / event-seam / adapter layering discipline (former S0
+    // P2b: gmeow-rdf-core purity, gmeow-rdf-events zero-dep seam, gmeow-rdf
     // adapter) is not gmeow's to enforce: the RDF stack is the external `purrdf`
     // toolkit, which owns and gates that layering internally. gmeow consumes it
     // through the single `purrdf` umbrella dependency, so those crates are not
