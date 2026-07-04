@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-//! Conformance twins migrated from tests/test_creative_works.py (#867)
+//! Conformance twins migrated from tests/test_creative_works.py
 //!
 //! Migrated tests build inline Turtle graphs, convert to N-Triples, and validate
 //! against the whole shapes corpus via `validate()`.

@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Conformance twins migrated from tests/test_disclosure.py (#867)
+//! Conformance twins migrated from tests/test_disclosure.py
 //!
 //! Covers the closed-world SHACL shapes for the disclosure control facility
-//! (#225): leak detection, well-formed conformance, and conditional-disclosure
+//! leak detection, well-formed conformance, and conditional-disclosure
 //! warning tolerance.
 //!
 //! Retained in Python (not migrated):

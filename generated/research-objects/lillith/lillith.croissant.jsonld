@@ -187,7 +187,7 @@
       "@type": "cr:RecordSet",
       "@id": "evalScores",
       "name": "evalScores",
-      "description": "Vantage-indexed rubric assessments from the gmeow-evals harness (#298).",
+      "description": "Vantage-indexed rubric assessments from the gmeow-evals harness.",
       "field": [
         {
           "@type": "cr:Field",

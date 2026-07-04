@@ -2,9 +2,8 @@
 
 # Module status matrix
 
-One row per slice (#287): tier and dependencies from the manifest, term counts
-from the module, documentation status from the guide. STUB guides are the #325
-Tier-2 uplift backlog.
+One row per slice: tier and dependencies from the manifest, term counts
+from the module, documentation status from the guide. STUB guides are the Tier-2 uplift backlog.
 
 | slice | tier | group | deps | classes | props | individuals | examples | advice | guide |
 |---|---|---|---:|---:|---:|---:|---:|---:|---|
@@ -87,4 +86,4 @@ Tier-2 uplift backlog.
 | trust | core | core | 2 | 7 | 23 | 0 | 1 | 30/30 | full |
 | versions | core | core | 3 | 6 | 13 | 0 | 1 | 19/19 | full |
 
-**78 slices** · documentation: 78 full guides, 0 stubs remaining (#325); advisory coverage: 1265/1993 core class/property terms (#471).
+**78 slices** · documentation: 78 full guides, 0 stubs remaining; advisory coverage: 1265/1993 core class/property terms.

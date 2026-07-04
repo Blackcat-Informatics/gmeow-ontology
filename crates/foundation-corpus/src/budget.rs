@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! `BudgetReport` — the flat-vs-reified statement budget (#360 made checkable).
+//! `BudgetReport` — the flat-vs-reified statement budget (made checkable).
 //!
 //! A faithful port of the Python dataclass: three string-keyed counters
 //! (`flat`, `reified`, `skipped`) plus an `as_text()` renderer that sorts each

@@ -701,7 +701,7 @@ mod tests {
         );
     }
 
-    /// Load inline Turtle into a native dataset via the canonical codec (#909 / #906):
+    /// Load inline Turtle into a native dataset via the canonical codec:
     /// `parse_dataset` into the frozen IR — the same codec the rest of the stack uses
     /// (and lenient on long private-use language tags, like the harness).
     fn store_from_turtle(ttl: &str) -> Arc<RdfDataset> {

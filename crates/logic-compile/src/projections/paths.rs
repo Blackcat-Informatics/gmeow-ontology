@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Projection back-end for `logic:PathShape` (#1010): a named/parametric predicate
+//! Projection back-end for `logic:PathShape`: a named/parametric predicate
 //! path → an **extended SPARQL property path** + a **depth-bounded Datalog** rule
 //! scheme.
 //!
@@ -282,4 +282,4 @@ pub fn project_path_shapes(program: &LogicProgram) -> Vec<PathProjection> {
 
 // The path-projection tests exercise the runtime rule engine (crate::rule_ir),
 // which lives in gmeow-logic, so they are a gmeow-logic integration test
-// (crates/logic/tests/logic_path_projection.rs) rather than an in-crate unit test (#732).
+// (crates/logic/tests/logic_path_projection.rs) rather than an in-crate unit test.

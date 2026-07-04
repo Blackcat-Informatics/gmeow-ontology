@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The `research-objects` export leaf (#861 P4): Croissant / RO-Crate / DataCite /
+//! The `research-objects` export leaf (P4): Croissant / RO-Crate / DataCite
 //! Frictionless / DCAT research-object projections.
 //!
 //! A genuine Rust port of `src/gmeow_tools/research_objects.py` (#58): the flagship
@@ -616,7 +616,7 @@ fn s(v: &str) -> Json {
 /// A score float rendered the way Python's `json.dumps(float(x))` would: trailing
 /// `.0` for integral values, else the shortest decimal of `float(lexical)`. A
 /// non-numeric score lexical HARD-fails — invalid source data is never silently
-/// coerced to `0.0` (no-optionality, #863).
+/// coerced to `0.0` (no-optionality).
 fn json_float(lexical: &str) -> Result<Json, PipelineError> {
     let f: f64 = lexical.trim().parse().map_err(|e| {
         PipelineError::Parse(format!(
@@ -771,7 +771,7 @@ fn croissant_record_sets(store: &Store) -> Result<Vec<Json>, PipelineError> {
             ("name", s("evalScores")),
             (
                 "description",
-                s("Vantage-indexed rubric assessments from the gmeow-evals harness (#298)."),
+                s("Vantage-indexed rubric assessments from the gmeow-evals harness."),
             ),
             (
                 "field",

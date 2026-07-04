@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Native OWL 2 RL/RDF deductive closure over the Nemo chase (issue #666, Task 5).
+//! Native OWL 2 RL/RDF deductive closure over the Nemo chase (Task 5).
 //!
 //! This is the Docker/Java-free **primary** entailment authority that replaces
 //! the `owlrl` deductive-closure baseline the conversion suites used to call.
@@ -57,7 +57,7 @@
 //!   disjoint-union member subsumption.
 //! * **cls-int1** — length-2 `owl:intersectionOf` membership; together with
 //!   cls-svf1 + scm-eqc1 this recognizes the `owl:equivalentClass` defined
-//!   classes (e.g. `PlaceNaming ≡ NameUsage ⊓ ∃usageNamed.Place`, #105).
+//!   classes (e.g. `PlaceNaming ≡ NameUsage ⊓ ∃usageNamed.Place`).
 //! * **eq-sym / eq-trans / eq-rep-{s,p,o}** — `owl:sameAs` is an equivalence
 //!   relation and substitutes in every position.
 //!
@@ -329,7 +329,7 @@ impl RlClosure {
     ///
     /// This is the native replacement for the per-row term rendering the Python
     /// helper (`gmeow_tools.native_rl`) used to do — moved into Rust so the
-    /// reasoning path crosses the FFI boundary exactly once (issue #630). A
+    /// reasoning path crosses the FFI boundary exactly once. A
     /// skolemized blank-node IRI (`{SKOLEM_PREFIX}…`) is mapped back to an
     /// N-Triples blank-node label so a source blank node round-trips as a blank
     /// node; every other subject/predicate is a NamedNode and the object is
@@ -732,7 +732,7 @@ mod tests {
         );
     }
 
-    // ── rule-local coverage for the five RL clause families (#697 feedback) ──
+    // ── rule-local coverage for the five RL clause families (feedback) ──
     // Each test exercises exactly one clause family with the minimal axioms that
     // make it fire, in the same shape as the cls-svf/cls-int test above.
 
@@ -900,7 +900,7 @@ mod tests {
     #[test]
     fn to_ntriples_renders_blank_literal_dedups_and_sorts() {
         // The native render that replaced the Python `gmeow_tools.native_rl` row
-        // formatter (#630): skolem IRI → blank-node label, literal pass-through,
+        // formatter: skolem IRI → blank-node label, literal pass-through,
         // de-dup, and byte-stable sort.
         let lit = |s: &str, p: &str, o: &str| RlTriple {
             subject: s.to_owned(),

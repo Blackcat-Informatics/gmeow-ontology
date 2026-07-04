@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Release-as-evidence: fold a SIGNED full-release `gmeow.gts` (#673,
+//! Release-as-evidence: fold a SIGNED full-release `gmeow.gts` (
 //! CONSTITUTION.md §18).
 //!
 //! This is a STANDALONE fold — NOT a regenerate pipeline DAG stage. The
@@ -238,7 +238,7 @@ pub fn build_coherence_evidence(
     })
 }
 
-/// Consumer-side outcome of verifying a signed release-evidence bundle (#673,
+/// Consumer-side outcome of verifying a signed release-evidence bundle (
 /// §18). The `artifacts_verified` count is the number of per-artifact
 /// attestations whose attested bytes were actually found in the bundle.
 pub struct ReleaseVerifyReport {

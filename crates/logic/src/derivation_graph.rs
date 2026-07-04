@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 //! Exact incremental reasoning via a truth-maintenance derivation graph
-//! (issue #820, child S6b).
+//! (child S6b).
 //!
 //! # Why this exists
 //!

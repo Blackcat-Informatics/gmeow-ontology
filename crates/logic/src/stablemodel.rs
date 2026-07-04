@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Native stable-model / answer-set evaluator (issue #651, Phase A).
+//! Native stable-model / answer-set evaluator (Phase A).
 //!
 //! Nemo rejects non-stratifiable programs, so the stable models are enumerated
 //! here directly, on top of the reduct least model in [`crate::rule_ir`].  Per
@@ -25,7 +25,7 @@
 //! so only the asserted `candidate(x,x)` quad is emitted.
 //!
 //! Phase-A note: [`stable_models`] / [`cautious_materialize`] are the entry points
-//! `py.rs` will call in Phase B of #651; until that routing lands they are consumed
+//! `py.rs` will call in Phase B; until that routing lands they are consumed
 //! only by this module's tests, hence the crate-internal `dead_code` allowance.
 #![allow(dead_code)]
 

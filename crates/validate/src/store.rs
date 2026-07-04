@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! PyO3-free RDF ingestion for the validation lints (native `RdfDataset` IR, #906).
+//! PyO3-free RDF ingestion for the validation lints (native `RdfDataset` IR).
 //!
 //! Every validation engine (coverage, lint, gUFO, statement, constitution, the DSL
 //! SHACL merge, the data-graph path) reads a frozen [`purrdf::RdfDataset`]: the
@@ -10,7 +10,7 @@
 //! queried through the indexed [`purrdf::DatasetView::quads_for_pattern`]. The
 //! SHACL engine is itself native ([`shacl_validate_dataset`]).
 //!
-//! This module is fully oxigraph-free (#906): every helper returns or queries the
+//! This module is fully oxigraph-free: every helper returns or queries the
 //! native [`purrdf::RdfDataset`]. The transitional oxigraph `Store` construction
 //! that still backs the PyO3 `ValidationStore`/`_store_capsule` lives entirely in
 //! [`crate::py`]; the final rdf pass removes it when the rdf `py_store` goes native.
@@ -18,7 +18,7 @@
 //! Parsing is **lenient by construction**: the native codecs accept the GMEOW
 //! ontology's private-use `@x-gmeow-*` language tags whose subtag exceeds BCP-47's
 //! 8-char limit (e.g. `@x-gmeow-afrikaans`), while still surfacing every real Turtle
-//! syntax error (#597).
+//! syntax error.
 
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
@@ -83,7 +83,7 @@ pub fn dataset_from_paths(paths: &[PathBuf]) -> Result<Arc<RdfDataset>, String> 
 /// graph slot to the default graph (N-Triples is graphless).
 ///
 /// Lenient parsing (private-use `@x-gmeow-*` language tags) — the data seam for the
-/// rdflib-free validation path (#579).
+/// rdflib-free validation path.
 ///
 /// # Errors
 ///
@@ -347,7 +347,7 @@ mod tests {
 
         // A literal with a private-use `@x-gmeow-*` tag (BCP-47 subtag > 8 chars)
         // in a NAMED graph. The lenient native fold must accept the tag and collapse
-        // the named graph into the default graph (#644).
+        // the named graph into the default graph.
         let mut graph = purrdf::gts::model::Graph::default();
         for value in ["https://example.org/s", "https://example.org/p"] {
             graph.terms.push(Term {

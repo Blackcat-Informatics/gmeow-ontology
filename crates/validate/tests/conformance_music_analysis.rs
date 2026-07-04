@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Conformance twins migrated from tests/test_music_analysis.py (#867)
+//! Conformance twins migrated from tests/test_music_analysis.py
 //!
 //! Migrated tests assert `result.ok` / `not result.ok` + substring checks using
 //! inline fixture Turtle only (no `_graph()` / `load_merged_graph` dependency).
