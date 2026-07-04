@@ -210,6 +210,12 @@ lang:latinScript
     rdfs:label "Latin script"@x-gmeow-english ;
     skos:definition "The Latin script as a first-class character repertoire: a lang:Script. Its ISO 15924 code Latn and Wikidata QID are alignments, never its identity."@x-gmeow-english .
 
+lang:hanScript
+    a owl:NamedIndividual , lang:Script ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "Han script"@x-gmeow-english ;
+    skos:definition "The Han (CJK) script as a first-class character repertoire: a lang:Script. Its ISO 15924 code Hani and Wikidata QID are alignments, never its identity."@x-gmeow-english .
+
 # =========================================================================== #
 # Form AST — the stratified form calculus
 # =========================================================================== #
