@@ -88,6 +88,10 @@ gmeow:ModelArtifact
 gmeow:ModelDeployment
     a logic:Kind ,
         owl:Class ;
+    logic:mediates gmeow:deploymentArtifact ,
+        gmeow:deploymentService ,
+        gmeow:deploymentHost ;
+    owl:disjointWith gmeow:Agent ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/model-serving> ;
     rdfs:label "Model Deployment"@x-gmeow-english ;
     rdfs:subClassOf logic:Relator ;
