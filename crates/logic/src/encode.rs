@@ -26,29 +26,13 @@
 //! the decode strips the outer double quotes.
 
 use purrdf::TermValue;
-use sha1::{Digest, Sha1};
 
-// ── Skolem prefix ─────────────────────────────────────────────────────────────
+// ── Skolemization (owned by the typed-fact bridge) ───────────────────────────
 
-/// Prefix for Skolem IRIs derived from blank-node identifiers.
-///
-/// Matches the Python oracle: `{NAMESPACE}skolem/{sha1_hex(bnode_id_utf8)}`.
-pub(crate) const SKOLEM_PREFIX: &str = "https://blackcatinformatics.ca/gmeow/skolem/";
-
-// ── Skolemization ─────────────────────────────────────────────────────────────
-
-/// Compute the SHA-1 hex digest of a UTF-8 string — matching the Python recipe
-/// `sha1(str(bnode).encode("utf-8")).hexdigest()`.
-pub(crate) fn sha1_hex(s: &str) -> String {
-    let mut hasher = Sha1::new();
-    hasher.update(s.as_bytes());
-    format!("{:x}", hasher.finalize())
-}
-
-/// Skolemize a blank-node identifier to a stable IRI string.
-pub(crate) fn skolem_iri(bnode_id: &str) -> String {
-    format!("{}{}", SKOLEM_PREFIX, sha1_hex(bnode_id))
-}
+// The Skolemization primitives live in the typed-fact bridge — Skolemizing is a
+// semantic operation of the fact set, not a codec concern.  Re-exported here so
+// this module's encode path and its downstream consumers keep one authority.
+pub(crate) use crate::facts::{sha1_hex, skolem_iri, SKOLEM_PREFIX};
 
 // ── Encode: oxigraph quad → Nemo ground-fact line ────────────────────────────
 
