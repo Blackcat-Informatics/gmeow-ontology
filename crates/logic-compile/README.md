@@ -5,7 +5,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 # gmeow-logic-compile
 
-The pure, **wasm-able** GMEOW logic compiler (#664/#732).
+The pure, **wasm-able** GMEOW logic compiler.
 
 This crate is the parse-and-project half of the logic stack:
 
