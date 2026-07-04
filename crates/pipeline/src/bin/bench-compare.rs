@@ -49,7 +49,7 @@ fn main() -> ExitCode {
             Err(e) if e.kind() == std::io::ErrorKind::NotFound => String::new(),
             Err(e) => {
                 eprintln!(
-                    "warning(#668): committed `{}` is present but unreadable ({e}); \
+                    "warning: committed `{}` is present but unreadable ({e}); \
 treating every benchmark as `new`.",
                     bench::BASELINE_PATH
                 );
