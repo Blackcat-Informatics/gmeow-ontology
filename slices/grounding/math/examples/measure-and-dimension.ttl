@@ -72,12 +72,15 @@ ex:energyDimension a math:DerivedDimension ;
     math:baseDimensionExponent ex:eMass1 , ex:eLength2 , ex:eTimeMinus2 .
 
 ex:eMass1 a math:DimensionExponent ;
+    rdfs:label "energy: mass exponent 1 (M¹)"@x-gmeow-english ;
     math:exponentOfDimension math:massDimension ;
     math:exponentNumerator 1 ; math:exponentDenominator 1 .
 ex:eLength2 a math:DimensionExponent ;
+    rdfs:label "energy: length exponent 2 (L²)"@x-gmeow-english ;
     math:exponentOfDimension math:lengthDimension ;
     math:exponentNumerator 2 ; math:exponentDenominator 1 .
 ex:eTimeMinus2 a math:DimensionExponent ;
+    rdfs:label "energy: time exponent −2 (T⁻²)"@x-gmeow-english ;
     math:exponentOfDimension math:timeDimension ;
     math:exponentNumerator -2 ; math:exponentDenominator 1 .
 
@@ -86,12 +89,15 @@ ex:energyDensityDimension a math:DerivedDimension ;
     math:baseDimensionExponent ex:dMass1 , ex:dLengthMinus1 , ex:dTimeMinus2 .
 
 ex:dMass1 a math:DimensionExponent ;
+    rdfs:label "energy density: mass exponent 1 (M¹)"@x-gmeow-english ;
     math:exponentOfDimension math:massDimension ;
     math:exponentNumerator 1 ; math:exponentDenominator 1 .
 ex:dLengthMinus1 a math:DimensionExponent ;
+    rdfs:label "energy density: length exponent −1 (L⁻¹)"@x-gmeow-english ;
     math:exponentOfDimension math:lengthDimension ;
     math:exponentNumerator -1 ; math:exponentDenominator 1 .
 ex:dTimeMinus2 a math:DimensionExponent ;
+    rdfs:label "energy density: time exponent −2 (T⁻²)"@x-gmeow-english ;
     math:exponentOfDimension math:timeDimension ;
     math:exponentNumerator -2 ; math:exponentDenominator 1 .
 
@@ -100,6 +106,7 @@ ex:volumeDimension a math:DerivedDimension ;
     math:baseDimensionExponent ex:vLength3 .
 
 ex:vLength3 a math:DimensionExponent ;
+    rdfs:label "volume: length exponent 3 (L³)"@x-gmeow-english ;
     math:exponentOfDimension math:lengthDimension ;
     math:exponentNumerator 3 ; math:exponentDenominator 1 .
 
