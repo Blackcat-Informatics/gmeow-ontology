@@ -1,0 +1,21 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:DimensionExponentShape: a math:DimensionExponent whose
+# math:exponentDenominator is 0. A zero denominator is not an exact-rational power,
+# so the cell is ill-formed. Validation MUST emit shacl.NotConstraintComponent
+# (sh:not [ sh:hasValue 0 ]) and no other finding. This closes the fail-open case
+# where dimension_vector would return None and the exponent cell would be silently
+# dropped (the native zero-denominator scan is the whole-bundle twin, exercised by
+# the in-crate lint tests).
+# Bound by tests/example-conformance.ttl (ex:ecDimensionZeroDenominator).
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:zeroDenomDimension a math:DerivedDimension ;
+    math:baseDimensionExponent ex:zeroDenomCell .
+
+ex:zeroDenomCell a math:DimensionExponent ;
+    math:exponentOfDimension math:timeDimension ;
+    math:exponentNumerator 1 ;
+    math:exponentDenominator 0 .
