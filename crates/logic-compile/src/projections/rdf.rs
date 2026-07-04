@@ -386,6 +386,91 @@ fn emit_enumeration(g: &mut TripleSink, node: &str, members: &[(String, bool)]) 
 }
 
 // --------------------------------------------------------------------------- //
+// Datatype restrictions (owl:withRestrictions dataranges)
+// --------------------------------------------------------------------------- //
+
+/// A lifted datatype restriction (datarange) reconstructed from the flat `logic:` axiom
+/// set for OWL re-emission.  The `node` is the skolem IRI (`logic:datarange/<hash>`) that
+/// serves as the (non-blank) `rdfs:Datatype` node.
+#[derive(Default)]
+struct LiftedDatarange {
+    on_datatype: Option<String>,
+    /// `(full xsd: facet IRI, facet value)`, sorted + deduped for a deterministic list.
+    facets: Vec<(String, String)>,
+}
+
+/// Collect every lifted datarange from the program's flat axioms, keyed by skolem node
+/// IRI.  A node qualifies once it is typed `logic:Datarange` or carries `logic:onDatatype`;
+/// its facets are the `xsd:`-namespaced [`restriction::FACET_LOCALS`] predicates on it.
+/// Each facet list is sorted + deduped locally so the emitted `owl:withRestrictions` list
+/// is deterministic (the enumeration collector's discipline), and the `BTreeMap` gives a
+/// deterministic emission order.
+fn collect_lifted_dataranges(program: &LogicProgram) -> BTreeMap<String, LiftedDatarange> {
+    let datarange_ty = logic(restriction::DATARANGE_CLASS_LOCAL);
+    let on_datatype = logic(restriction::ON_DATATYPE_LOCAL);
+    let mut out: BTreeMap<String, LiftedDatarange> = BTreeMap::new();
+    for axiom in &program.axioms {
+        let pred = axiom.predicate.as_str();
+        if pred == RDF_TYPE && axiom.obj == datarange_ty {
+            out.entry(axiom.subject.clone()).or_default();
+        } else if pred == on_datatype {
+            out.entry(axiom.subject.clone()).or_default().on_datatype = Some(axiom.obj.clone());
+        } else if let Some(local) = pred.strip_prefix(XSD_NS) {
+            if restriction::FACET_LOCALS.contains(&local) {
+                out.entry(axiom.subject.clone())
+                    .or_default()
+                    .facets
+                    .push((pred.to_owned(), axiom.obj.clone()));
+            }
+        }
+    }
+    for dr in out.values_mut() {
+        dr.facets.sort();
+        dr.facets.dedup();
+    }
+    out
+}
+
+/// Emit the `owl:withRestrictions` `rdf:List` for one datarange: each list element is a
+/// facet node carrying its single `<facetIRI> <value>` triple (never a bare member).  The
+/// facet-cell and list-cell IRIs are minted deterministically off `base` (never blank
+/// nodes), adapting [`emit_class_list`].  Returns the list head IRI.
+fn emit_facet_list(g: &mut TripleSink, base: &str, facets: &[(String, String)]) -> String {
+    let rdf_first = format!("{RDF_NS}first");
+    let rdf_rest = format!("{RDF_NS}rest");
+    let mut rest = format!("{RDF_NS}nil");
+    for (i, (facet_iri, value)) in facets.iter().enumerate().rev() {
+        // The facet node carries its one constraining-facet triple.
+        let facet_node = format!("{base}/facet/{i:04}");
+        g.add_lit(&facet_node, facet_iri, RdfLiteral::simple(value));
+        // The list cell points at that facet node.
+        let cell = format!("{base}/cell/{i:04}");
+        g.add_iri(&cell, &rdf_first, &facet_node);
+        g.add_iri(&cell, &rdf_rest, &rest);
+        rest = cell;
+    }
+    rest
+}
+
+/// Emit the `rdfs:Datatype` graph for one lifted datarange (used by OWL 2 DL, which
+/// expresses datatype facets): the skolem `node` typed `rdfs:Datatype` with its
+/// `owl:onDatatype` base and an `owl:withRestrictions` list of facet cells.  A datarange
+/// missing `onDatatype` or facets is structurally incomplete and is skipped (the lift
+/// never produces one).
+fn emit_datarange(g: &mut TripleSink, node: &str, dr: &LiftedDatarange) {
+    let Some(on_datatype) = &dr.on_datatype else {
+        return;
+    };
+    if dr.facets.is_empty() {
+        return;
+    }
+    g.add_iri(node, RDF_TYPE, &rdfs("Datatype"));
+    g.add_iri(node, &owl(restriction::ON_DATATYPE_LOCAL), on_datatype);
+    let list_head = emit_facet_list(g, node, &dr.facets);
+    g.add_iri(node, &owl(restriction::WITH_RESTRICTIONS_LOCAL), &list_head);
+}
+
+// --------------------------------------------------------------------------- //
 // OWL 2 DL
 // --------------------------------------------------------------------------- //
 
@@ -420,12 +505,19 @@ pub fn project_owl_dl(program: &LogicProgram) -> Result<ProjectionResult, Overcl
     for (node, members) in &enumerations {
         emit_enumeration(&mut g, node, members);
     }
+    let dataranges = collect_lifted_dataranges(program);
+    for (node, dr) in &dataranges {
+        emit_datarange(&mut g, node, dr);
+    }
 
     for axiom in &program.axioms {
         let pred = &axiom.predicate;
         let obj = &axiom.obj;
-        // Restriction / enumeration internals are emitted above.
-        if restrictions.contains_key(&axiom.subject) || enumerations.contains_key(&axiom.subject) {
+        // Restriction / enumeration / datarange internals are emitted above.
+        if restrictions.contains_key(&axiom.subject)
+            || enumerations.contains_key(&axiom.subject)
+            || dataranges.contains_key(&axiom.subject)
+        {
             continue;
         }
         if pred == RDF_TYPE {
@@ -572,12 +664,25 @@ pub fn project_owl_el(program: &LogicProgram) -> Result<ProjectionResult, Overcl
             "owl:oneOf enumeration <{node}> is not OWL 2 EL-safe (nominals); dropped"
         ));
     }
+    // Datatype facets are not OWL 2 EL either. Every datarange drops whole, along with the
+    // subClassOf/equivalentClass edges into it.
+    let dataranges = collect_lifted_dataranges(program);
+    for node in dataranges.keys() {
+        dropped_class_exprs.insert(node.clone());
+        actual_drops.push(format!(
+            "owl:withRestrictions datarange <{node}> is not OWL 2 EL-safe (datatype facets); \
+             dropped"
+        ));
+    }
 
     for axiom in &program.axioms {
         let pred = &axiom.predicate;
         let obj = &axiom.obj;
-        // Restriction / enumeration internals are emitted (or dropped) above.
-        if restrictions.contains_key(&axiom.subject) || enumerations.contains_key(&axiom.subject) {
+        // Restriction / enumeration / datarange internals are emitted (or dropped) above.
+        if restrictions.contains_key(&axiom.subject)
+            || enumerations.contains_key(&axiom.subject)
+            || dataranges.contains_key(&axiom.subject)
+        {
             continue;
         }
         // A subClassOf / equivalentClass edge into a dropped class expression must not

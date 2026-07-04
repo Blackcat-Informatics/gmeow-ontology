@@ -327,9 +327,15 @@ fn extract_axioms(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Vec<
     let logic_vocab = restriction::RestrictionVocab::logic();
     let mut rnodes = restriction::restriction_node_labels(store, &logic_vocab);
     rnodes.extend(restriction::enumeration_node_labels(store, &logic_vocab));
+    rnodes.extend(restriction::datarange_node_labels(store, &logic_vocab));
     let mut lifted_class_exprs =
         restriction::skolemize_restrictions(store, &logic_vocab, diagnostics);
     lifted_class_exprs.extend(restriction::skolemize_enumerations(
+        store,
+        &logic_vocab,
+        diagnostics,
+    ));
+    lifted_class_exprs.extend(restriction::skolemize_dataranges(
         store,
         &logic_vocab,
         diagnostics,
