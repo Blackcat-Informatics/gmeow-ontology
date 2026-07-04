@@ -324,8 +324,7 @@ fn emit_anonymous_resource(properties: &[(String, String)]) -> String {
 /// defect, and the entailment/gap counts. The committed bundle is expected to
 /// have zero `DlGap` rows.
 pub fn build_dl_el_ledger_ttl(result: &ReasoningResult) -> String {
-    const DEFERRED_NOTE: &str =
-        "oracle comparison runs in classic-cross-check; native gaps fail #697";
+    const DEFERRED_NOTE: &str = "oracle comparison runs in classic-cross-check; native gaps fail";
     let mut out = String::from(LEDGER_HEADER);
 
     // The DL coverage gaps are reconstructed from the shared model's
@@ -335,7 +334,7 @@ pub fn build_dl_el_ledger_ttl(result: &ReasoningResult) -> String {
     // on a healthy run; the set is already sorted (a BTreeSet).
     let gaps = gaps_from_unsupported(result.preservation.unsupported_constructs.iter());
 
-    out.push_str("\n# --- ledger header (native coverage; #697 gap-zero) ---\n");
+    out.push_str("\n# --- ledger header (native coverage; gap-zero) ---\n");
     out.push_str(&emit_resource(
         &gmeow("dl-el-crosscheck"),
         &[
@@ -431,7 +430,7 @@ fn logic(local: &str) -> String {
 
 /// Banner for the typed reasoning-result + proof-certificate artifact.
 const RESULT_HEADER: &str = "\
-# GMEOW typed reasoning result + proof certificate (RDF 1.2, #768 ME2).
+# GMEOW typed reasoning result + proof certificate (RDF 1.2).
 # The single shared logic:ReasoningResult the native lane produced, serialized as
 # its five orthogonal status fields (input, evaluation, completeness,
 # preservation, information) plus the provenance bundle (contract hash, engine,

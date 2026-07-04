@@ -122,7 +122,7 @@ pub(crate) fn dependency_closure(
     if members.is_empty() {
         return Err(PipelineError::Stage {
             stage: "stage-export-profiles".to_string(),
-            message: format!("named profile {name} has no declared members (#330)"),
+            message: format!("named profile {name} has no declared members"),
         });
     }
     let mut closed: BTreeSet<String> = BTreeSet::new();
@@ -134,7 +134,7 @@ pub(crate) fn dependency_closure(
         let s = slices.get(&iri).ok_or_else(|| PipelineError::Stage {
             stage: "stage-export-profiles".to_string(),
             message: format!(
-                "profile dependency closure escapes the registry: {iri} is not a discovered slice (#330)"
+                "profile dependency closure escapes the registry: {iri} is not a discovered slice"
             ),
         })?;
         closed.insert(iri.clone());

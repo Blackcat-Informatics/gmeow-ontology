@@ -139,7 +139,7 @@ fn recipe_index_and_page_surface_goal_and_terms() {
     let model = common::cached_model();
     assert!(
         !model.recipes.is_empty(),
-        "the live docs model must carry dogfooded recipes (#853)"
+        "the live docs model must carry dogfooded recipes (seed data)"
     );
     let recipe = {
         let mut r: Vec<_> = model.recipes.iter().collect();
@@ -176,7 +176,7 @@ fn learning_path_index_and_page_sequence_audience_goal_and_recipes() {
     let model = common::cached_model();
     assert!(
         !model.learning_paths.is_empty(),
-        "the live docs model must carry dogfooded learning paths (#853)"
+        "the live docs model must carry dogfooded learning paths (seed data)"
     );
     let path = {
         let mut p: Vec<_> = model.learning_paths.iter().collect();

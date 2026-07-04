@@ -552,7 +552,7 @@ impl ValidationRun {
         // advisory rules (find via the "advisory-demonstrator" tag).
         let advisory = Advisory::note(
             crate::codes::ADVICE_TIER_ACTIVE,
-            "Advisory tier active — soft (deonticRecommendation) advice will surface here once advisory rules are harvested (#762).",
+            "Advisory tier active — soft (deonticRecommendation) advice will surface here once advisory rules are harvested.",
         )
         .with_suggestion("Run `gmeow describe <term>` to see modeling guidance (avoidWhen / useWhen / howToUse).")
         .with_help_uri("https://blackcatinformatics.ca/gmeow/advice")
@@ -1083,7 +1083,7 @@ fn check_example_coverage(slices_dir: &str) -> Result<PhaseResult, String> {
         if !has_example {
             result.errors.push(format!(
                 "slice {slice_name}: no examples/*.ttl — every slice must \
-                 ship at least one validating example (#579)"
+                 ship at least one validating example"
             ));
         }
     }

@@ -481,17 +481,17 @@ pub fn structural_lint_dataset(ds: &RdfDataset, cfg: &LintConfig) -> LintReport 
         }
         if !ds_has_predicate(ds, term, &use_when) {
             report.warnings.push(format!(
-                "{kind} {term} is missing gmeow:useWhen (Tier-1 depth, #471)"
+                "{kind} {term} is missing gmeow:useWhen (Tier-1 depth)"
             ));
         }
         let has_how_to_use = ds_has_predicate(ds, term, &how_to_use);
         if !has_how_to_use {
             report.warnings.push(format!(
-                "{kind} {term} is missing gmeow:howToUse (Tier-1 depth, #471)"
+                "{kind} {term} is missing gmeow:howToUse (Tier-1 depth)"
             ));
         } else if !ds_has_predicate(ds, term, skos::EXAMPLE) {
             report.warnings.push(format!(
-                "{kind} {term} has gmeow:howToUse but no skos:example (Tier-1 depth, #471)"
+                "{kind} {term} has gmeow:howToUse but no skos:example (Tier-1 depth)"
             ));
         }
     }

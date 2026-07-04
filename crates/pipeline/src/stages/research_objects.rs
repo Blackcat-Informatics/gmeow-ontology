@@ -771,7 +771,7 @@ fn croissant_record_sets(store: &Store) -> Result<Vec<Json>, PipelineError> {
             ("name", s("evalScores")),
             (
                 "description",
-                s("Vantage-indexed rubric assessments from the gmeow-evals harness (#298)."),
+                s("Vantage-indexed rubric assessments from the gmeow-evals harness."),
             ),
             (
                 "field",

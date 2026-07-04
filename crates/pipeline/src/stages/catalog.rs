@@ -53,7 +53,7 @@ pub fn render_catalog(root: &Path) -> Result<String, PipelineError> {
     out.push_str("     import closure (gUFO spine + GMEOW slices) resolves offline for\n");
     out.push_str("     ROBOT, Protégé, and the reasoning pipeline. Paths are relative\n");
     out.push_str("     to this file (the repository root). Derived from the slice\n");
-    out.push_str("     manifests by src/gmeow_tools/catalog_gen.py (#331). -->\n");
+    out.push_str("     manifests by src/gmeow_tools/catalog_gen.py. -->\n");
     out.push_str(
         "<catalog prefer=\"public\" xmlns=\"urn:oasis:names:tc:entity:xmlns:xml:catalog\">\n",
     );
@@ -72,7 +72,7 @@ pub fn render_catalog(root: &Path) -> Result<String, PipelineError> {
     }
     if !profiles.is_empty() {
         out.push('\n');
-        out.push_str("    <!-- Named profiles (generated, #330) -->\n");
+        out.push_str("    <!-- Named profiles (generated) -->\n");
         for name in &profiles {
             out.push_str(&format!(
                 "    <uri name=\"{GMEOW}/profiles/{name}\" uri=\"generated/profiles/{name}.ttl\"/>\n"

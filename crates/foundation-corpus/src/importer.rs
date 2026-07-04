@@ -365,7 +365,7 @@ impl FoundationImporter {
             }
         }
         self.budget
-            .add_skipped("thematic_tags (unpromoted — #363 heuristic)", tag_total);
+            .add_skipped("thematic_tags (unpromoted — heuristic)", tag_total);
 
         let _ = characters; // bound for clarity, all uses inline above
         Ok(())
@@ -575,7 +575,7 @@ impl FoundationImporter {
                     let criterion = self.criterion(goal_id);
                     self.add_iri(&criterion, &gm("hasScoreAnchor"), &anchor);
                     self.budget
-                        .add_reified("entity exemplars (exemplarSubject, #353/#362)", 1);
+                        .add_reified("entity exemplars (exemplarSubject)", 1);
                 }
             }
         }

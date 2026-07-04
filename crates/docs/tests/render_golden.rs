@@ -127,7 +127,7 @@ fn term_with_changelog_slug(model: &DocsModel) -> String {
     candidates.sort_by(|a, b| a.curie.cmp(&b.curie).then_with(|| a.iri.cmp(&b.iri)));
     let term = candidates
         .first()
-        .expect("at least one term carries a changelog entry (#1026 seed data)");
+        .expect("at least one term carries a changelog entry (seed data)");
     term_slug(term)
 }
 
