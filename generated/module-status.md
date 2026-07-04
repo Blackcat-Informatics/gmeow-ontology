@@ -49,7 +49,7 @@ Tier-2 uplift backlog.
 | inhabitation | core | core | 11 | 20 | 34 | 0 | 5 | 20/54 | full |
 | inquiry | core | core | 5 | 3 | 10 | 0 | 2 | 13/13 | full |
 | kernel | core | core | 0 | 17 | 27 | 0 | 1 | 28/44 | full |
-| lang | core | grounding | 3 | 0 | 0 | 0 | 1 | 0/0 | full |
+| lang | core | grounding | 6 | 0 | 0 | 0 | 1 | 0/0 | full |
 | language | core | core | 2 | 5 | 5 | 3 | 1 | 10/10 | full |
 | languages | extension | extensions | 6 | 15 | 30 | 0 | 1 | - | full |
 | learning | core | core | 7 | 3 | 8 | 0 | 2 | 11/11 | full |
