@@ -1,0 +1,19 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:AutomorphismGroupShape: a math:AutomorphismGroup that
+# declares its math:AlgebraicStructure frame but omits math:automorphismGroupOf
+# (sh:minCount 1), so validation MUST emit shacl.MinCountConstraintComponent (and
+# no other finding — an automorphism group must name the structure it is the
+# symmetry of). Bound by tests/example-conformance.ttl (ex:ecAutomorphismGroupUnanchored).
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:unanchoredAutGroup a math:AutomorphismGroup ;
+    math:underlyingSet ex:carrier ;
+    math:structureOperation ex:composition ;
+    math:satisfiesAxiom ex:assoc .
+
+ex:carrier a math:Set .
+ex:composition a math:Operation .
+ex:assoc a math:Axiom .

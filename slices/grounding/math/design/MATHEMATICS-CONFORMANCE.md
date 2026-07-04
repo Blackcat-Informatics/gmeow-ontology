@@ -80,8 +80,10 @@ subclasses), so a violation is itself a typed, queryable object, not a log line.
 | A preservation law denotes a `logic:` formula, not a string | SHACL Core | `math:StringOnlyPreservationLaw` |
 | A Lie group declares its root system | SHACL Core | `math:IncompleteLieStructure` |
 | A root system declares its Cartan matrix, Weyl group, and rank | SHACL Core | `math:IncompleteLieStructure` |
+| An automorphism group is anchored to the structure it is the symmetry of | SHACL Core | `math:UnanchoredAutomorphismGroup` |
 | A homomorphic-encryption scheme declares its homomorphic operation, hardness assumption, and noise model | SHACL Core | `math:UnderspecifiedEncryptionScheme` |
 | The E8 root-system invariants (240 roots, rank 8, Weyl order 696,729,600) are the pinned answer | competency query | a mistyped invariant fails the exact-match competency gate |
+| A root system claiming the E8 fingerprint (240 roots, rank 8) declares the true Weyl order 696,729,600 | SHACL-SPARQL | `math:WrongE8WeylOrder` |
 
 Every algebra axiom and preservation law is authored as a real `logic:Formula` first-order AST (a
 quantifier over `logic:relation` atomic predications) — `math:` expresses the law and `logic:` owns

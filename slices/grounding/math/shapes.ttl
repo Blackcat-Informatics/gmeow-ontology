@@ -293,6 +293,44 @@ math:RootSystemShape
         sh:message "A math:RootSystem must declare its math:rootSystemRank; a root system without a rank is ill-formed." ;
     ] .
 
+# Rule 12b — an automorphism group is anchored to the structure it is the symmetry of.
+math:AutomorphismGroupShape
+    a sh:NodeShape ;
+    rdfs:label "Automorphism-group anchoring shape"@x-gmeow-english ;
+    skos:definition "SHACL constraint for math:AutomorphismGroup: it declares, through math:automorphismGroupOf, the structure whose symmetries it collects. Every automorphism group is the symmetry group OF some structure (a math:WeylGroup of its root system); a free-floating automorphism group is ill-formed. This is the invariant behind the charter's unification — E8's Weyl group is the symmetry of the E8 root system."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    math:enforcesFailureClass math:UnanchoredAutomorphismGroup ;
+    sh:targetClass math:AutomorphismGroup ;
+    sh:property [
+        sh:path math:automorphismGroupOf ;
+        sh:minCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A math:AutomorphismGroup must declare, through math:automorphismGroupOf, the structure whose symmetries it collects; an automorphism group is always the symmetry group OF something, and one asserted without its anchoring structure is ill-formed." ;
+    ] .
+
+# Rule 12c — a root system claiming the E8 fingerprint declares the true Weyl order.
+math:E8WeylOrderShape
+    a sh:NodeShape ;
+    rdfs:label "E8 Weyl-order value shape"@x-gmeow-english ;
+    skos:definition "SHACL-SPARQL constraint over math:RootSystem: a root system carrying the E8 fingerprint (240 roots in rank 8) MUST declare a math:weylGroup whose math:groupOrder is 696,729,600 — the true order of W(E8). This turns the flagship's numbers into a validatable invariant: a corrupted Weyl order on data claiming to be E8 is rejected by value, not trusted."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    math:enforcesFailureClass math:WrongE8WeylOrder ;
+    sh:targetClass math:RootSystem ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "A math:RootSystem with the E8 fingerprint (math:rootCount 240, math:rootSystemRank 8) must declare a math:weylGroup of math:groupOrder 696729600 — the order of W(E8); a different order corrupts the flagship invariant and is rejected." ;
+        sh:select """
+            SELECT DISTINCT $this WHERE {
+                $this <https://blackcatinformatics.ca/math/rootCount> 240 ;
+                      <https://blackcatinformatics.ca/math/rootSystemRank> 8 ;
+                      <https://blackcatinformatics.ca/math/weylGroup> ?w .
+                ?w <https://blackcatinformatics.ca/math/groupOrder> ?order .
+                FILTER(?order != 696729600)
+            }
+        """ ;
+    ] .
+
 # Rule 13 — a homomorphic-encryption scheme declares its homomorphic operation,
 # hardness assumption, and noise model.
 math:HomomorphicEncryptionSchemeShape

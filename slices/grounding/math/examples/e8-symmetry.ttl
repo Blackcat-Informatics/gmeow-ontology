@@ -66,6 +66,7 @@ exa:e8Weyl a math:WeylGroup ;
     math:inverseOperation exa:reflectionInverse ;
     math:satisfiesAxiom exa:associativity , exa:identity , exa:inverse ;
     math:groupOrder 696729600 ;
+    math:automorphismGroupOf exa:e8Roots ;
     math:actsOn exa:e8Roots .
 
 exa:e8Reflections a math:Set ; rdfs:label "the reflections generating W(E8)"@x-gmeow-english .
@@ -73,11 +74,19 @@ exa:reflectionComposition a math:Operation ; rdfs:label "composition of reflecti
 exa:reflectionInverse a math:Operation ; rdfs:label "w ↦ w⁻¹"@x-gmeow-english .
 exa:identityReflection rdfs:label "the identity symmetry"@x-gmeow-english .
 
-# The Weyl action of W(E8) on the roots, with its action law.
+# The Weyl action of W(E8) on the roots, with its action law. The action is a
+# structure-preserving map — it preserves the root-reflection structure of the roots —
+# so it names its math:preservedOperation and math:preservationLaw and unifies with det
+# and a homomorphic-encryption scheme under the structure-preserving-maps query.
 exa:e8WeylAction a math:GroupAction ;
     rdfs:label "the Weyl action W(E8) ↷ roots"@x-gmeow-english ;
     math:actsOn exa:e8Roots ;
+    math:preservedOperation exa:rootReflection ;
+    math:preservationLaw exa:groupActionLaw ;
     math:satisfiesAxiom exa:groupActionLaw .
+
+exa:rootReflection a math:Operation ;
+    rdfs:label "reflection of a root across a root hyperplane"@x-gmeow-english .
 
 # --- The action law as a real logic:Formula AST --------------------------- #
 # ∀g,h,x,gh,r1,hx,r2: comp(g,h,gh) ∧ act(gh,x,r1) ∧ act(h,x,hx) ∧ act(g,hx,r2) → eq(r1,r2)
