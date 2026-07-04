@@ -38,9 +38,9 @@
 
 use std::collections::{BTreeMap, BTreeSet, HashSet};
 
+use crate::oracle::{backward_oracle, BackwardOracle};
 use crate::profile_gate;
 use crate::query_ir::{AnswerSet, Budget, QBodyLit, QProgram, QTerm};
-use crate::scryer_engine;
 use crate::seam::{BudgetStatus, ScryerForeign};
 use crate::store::WorldStore;
 
@@ -361,7 +361,7 @@ pub fn dispatch_query(
         // oracle). Without this, a step-budgeted pure-EDB goal would silently report `Ok`.
         Dispatch::Fast if budget.max_steps.is_none() => fast_path(store, world, program, budget),
         Dispatch::Fast | Dispatch::Scryer => {
-            scryer_engine::run_scryer(foreign, world, program, &table_preds, budget)
+            backward_oracle().solve(foreign, world, program, &table_preds, budget)
         }
     }
 }
@@ -514,12 +514,14 @@ mod tests {
         let fast = fast_path(&store, W, &prog, &budget).unwrap();
 
         let foreign = WorldStoreForeign::from_world(&store, W, HORN_PROFILE).unwrap();
-        // run_scryer with no table preds on an EDB-only goal.
-        let scryer = crate::scryer_engine::run_scryer(&foreign, W, &prog, &[], &budget).unwrap();
+        // Backward oracle with no table preds on an EDB-only goal.
+        let scryer = backward_oracle()
+            .solve(&foreign, W, &prog, &[], &budget)
+            .unwrap();
 
         assert_eq!(
             fast.bindings, scryer.bindings,
-            "fast_path and run_scryer must agree on EDB-only goal"
+            "fast_path and the backward oracle must agree on EDB-only goal"
         );
     }
 

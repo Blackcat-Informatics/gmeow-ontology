@@ -9,7 +9,7 @@
 //! short-circuit, the non-stratifiable native routing (which returns
 //! Python rows), and the `DerivedQuad → PyDict` serialization. Everything between
 //! — parse N-Quads → build the typed EDB ([`TypedFactSet`]) → run the typed
-//! chase ([`run_chase_typed`]) → coerce typed rows to [`DerivedQuad`]s with real
+//! chase through the forward oracle → coerce typed rows to [`DerivedQuad`]s with real
 //! provenance → apply the post-hoc budget governor — lives here and is exercised
 //! by both the FFI and native `#[test]`s.  Fact-string encoding and decoding are
 //! confined to the Nemo adapter ([`crate::nemo_engine`]); this module only ever
@@ -24,7 +24,8 @@ use std::time::Instant;
 use purrdf::{parse_dataset, TermValue};
 
 use crate::facts::TypedFactSet;
-use crate::nemo_engine::{run_chase_typed, TypedRow};
+use crate::nemo_engine::TypedRow;
+use crate::oracle::ForwardOracle;
 use crate::provenance::{mint_derivation_id, mint_reifier, ASSERT_RULE_IRI, LOGIC_NAMESPACE};
 use crate::result::PreservationClaim;
 use crate::seam::{BudgetStatus, DerivationId, DerivedQuad};
@@ -157,6 +158,52 @@ pub struct MaterializeOutcome {
     pub non_quad_rows: Vec<NonQuadRow>,
 }
 
+/// Parse `input` N-Quads and build the typed EDB — one arity-3 fact per
+/// named-graph quad.
+///
+/// The single canonical N-Quads → [`TypedFactSet`] path, shared by
+/// [`materialize_core`] and the forward parity gate so the EDB-build logic is
+/// never forked.  Default and blank-node graphs are skipped (a non-named graph
+/// has no world IRI); fabricating synthetic world IRIs would break the
+/// oracle≡engine parity guarantee.  An empty input yields an empty EDB.
+///
+/// # Errors
+///
+/// Returns [`MaterializeError::Parse`] for malformed N-Quads.
+pub(crate) fn edb_from_nquads(input: &str) -> Result<TypedFactSet, MaterializeError> {
+    let mut edb = TypedFactSet::new();
+    if input.trim().is_empty() {
+        return Ok(edb);
+    }
+
+    let dataset = parse_dataset(input.as_bytes(), "application/n-quads", None)
+        .map_err(|e| MaterializeError::Parse(format!("N-Quads parse error: {e}")))?;
+
+    for quad in dataset.quads() {
+        // Resolve the world IRI (named-graph component); skip non-named graphs.
+        let world_iri: String = match quad.g.map(|g| dataset.term_value(g)) {
+            Some(TermValue::Iri(iri)) => iri,
+            _ => continue,
+        };
+
+        let subject = dataset.term_value(quad.s);
+        let predicate = dataset.term_value(quad.p);
+        let object = dataset.term_value(quad.o);
+        // The predicate of an RDF quad is always an IRI; it is the relation name.
+        let predicate_iri = match &predicate {
+            TermValue::Iri(iri) => iri.as_str(),
+            // Defensive: a non-IRI predicate is invalid RDF and cannot be a fact.
+            _ => continue,
+        };
+
+        // Blank subjects/objects are Skolemized inside `push_quad`; the world
+        // travels as a plain string literal (the Nemo string-constant treatment).
+        edb.push_quad(&subject, predicate_iri, &object, &world_iri);
+    }
+
+    Ok(edb)
+}
+
 /// Materialize `input` N-Quads under `rules`, returning derived quads with real
 /// provenance and (optional) budget bookkeeping, plus any non-quad helper rows.
 ///
@@ -193,41 +240,24 @@ pub fn materialize_core(
         });
     }
 
-    // ── 1. Parse input N-Quads through the native codec into the frozen IR ────
-    let dataset = parse_dataset(input.as_bytes(), "application/n-quads", None)
-        .map_err(|e| MaterializeError::Parse(format!("N-Quads parse error: {e}")))?;
+    // ── 1–2. Parse input N-Quads and build the typed EDB ─────────────────────
+    let edb = edb_from_nquads(input)?;
 
-    // ── 2. Build the typed EDB — one arity-3 fact per named-graph quad ───────
-    let mut edb = TypedFactSet::new();
-    for quad in dataset.quads() {
-        // Resolve the world IRI (named-graph component).
-        // Default and blank-node graphs are skipped — matching the Python oracle
-        // (_extract_worlds checks `isinstance(graph_id, URIRef)` and skips non-named
-        // graphs).  Fabricating synthetic world IRIs for unnamed graphs would break
-        // the oracle≡engine parity guarantee (AC-d).
-        let world_iri: String = match quad.g.map(|g| dataset.term_value(g)) {
-            Some(TermValue::Iri(iri)) => iri,
-            // Default graph (None), blank-node graph, or any non-IRI graph: skip.
-            _ => continue,
-        };
-
-        let subject = dataset.term_value(quad.s);
-        let predicate = dataset.term_value(quad.p);
-        let object = dataset.term_value(quad.o);
-        // The predicate of an RDF quad is always an IRI; it is the relation name.
-        let predicate_iri = match &predicate {
-            TermValue::Iri(iri) => iri.as_str(),
-            // Defensive: a non-IRI predicate is invalid RDF and cannot be a fact.
-            _ => continue,
-        };
-
-        // Blank subjects/objects are Skolemized inside `push_quad`; the world
-        // travels as a plain string literal (the Nemo string-constant treatment).
-        edb.push_quad(&subject, predicate_iri, &object, &world_iri);
+    // ── 3. Run the typed forward chase through the oracle boundary ───────────
+    // The oracle is the sole fact-stringifier; the unbudgeted closure is
+    // materialized here and any budget is applied post-fixpoint below.  This
+    // path consumes per-row provenance (EDB/IDB flag, rule, antecedents), so an
+    // oracle that cannot attribute derivations cannot drive it — hard-fail
+    // rather than fabricate provenance.
+    let oracle = crate::oracle::forward_oracle();
+    if !oracle.provides_provenance() {
+        return Err(MaterializeError::Chase(format!(
+            "forward oracle '{}' provides no provenance, which materialize requires",
+            oracle.name()
+        )));
     }
-
-    // ── 3. Run the typed Nemo chase (the adapter is the sole stringifier) ────
-    let chase = run_chase_typed(&edb, rules)
+    let chase = oracle
+        .materialize(&edb, rules, &crate::oracle::ForwardBudget::UNBOUNDED)
         .map_err(|e| MaterializeError::Chase(format!("chase error: {e}")))?;
 
     // ── 4. Coerce typed rows → DerivedQuads with real provenance ─────────────
