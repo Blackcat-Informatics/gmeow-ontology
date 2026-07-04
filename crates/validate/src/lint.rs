@@ -653,6 +653,12 @@ fn ds_subjects_of_type(ds: &RdfDataset, type_iri: &str) -> Vec<String> {
             out.push(s.to_owned());
         }
     }
+    // `GraphMatch::Any` visits every graph, so a typing triple repeated across the
+    // default graph and named graphs (or across imported fixtures) yields the same
+    // subject more than once. Collapse them so downstream gates lint — and report —
+    // each subject exactly once.
+    out.sort();
+    out.dedup();
     out
 }
 
