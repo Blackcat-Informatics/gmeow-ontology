@@ -169,21 +169,378 @@ fn adapt_owl_characteristics() {
     }
 }
 
-// ── Unmapped constructs ──────────────────────────────────────────────────────
+// ── OWL restrictions (class-expression lift) ─────────────────────────────────
+
+/// The skolem restriction node an authored class points at (`C logic:subClassOf R`).
+fn restriction_node_of(prog: &LogicProgram, class_suffix: &str) -> String {
+    prog.axioms
+        .iter()
+        .find(|a| a.predicate == logic("subClassOf") && a.subject.ends_with(class_suffix))
+        .map(|a| a.obj.clone())
+        .expect("subClassOf → restriction anchor")
+}
 
 #[test]
-fn blank_node_restriction_emits_unmapped_diagnostic() {
+fn blank_node_restriction_lifts_to_skolem_axioms() {
     let (prog, diags) = adapt(
         "ex:Bird rdfs:subClassOf [ a owl:Restriction ;
             owl:onProperty ex:hasBeak ; owl:someValuesFrom ex:Beak ] .",
     );
-    // The blank-node restriction object cannot be normalized.
-    assert!(prog.axioms.iter().all(|a| !a.obj.is_empty()));
-    let d = diags
+    // No fail-soft skip: the restriction lifts to first-class logic: axioms.
+    assert!(
+        !diags.iter().any(|d| d.code == "UNMAPPED_OWL_CONSTRUCT"),
+        "restriction must not be dropped: {diags:?}"
+    );
+    let r = restriction_node_of(&prog, "/Bird");
+    assert!(
+        r.starts_with(&logic("restriction/")),
+        "anchor must be a deterministic skolem IRI, got {r}"
+    );
+    let has = |s: &str, p: &str, o: &str| {
+        prog.axioms
+            .iter()
+            .any(|a| a.subject == s && a.predicate == p && a.obj == o)
+    };
+    assert!(has(&r, RDF_TYPE, &logic("Restriction")));
+    assert!(has(
+        &r,
+        &logic("onProperty"),
+        "https://example.org/test/hasBeak"
+    ));
+    assert!(has(
+        &r,
+        &logic("someValuesFrom"),
+        "https://example.org/test/Beak"
+    ));
+}
+
+#[test]
+fn restriction_missing_on_property_emits_diagnostic() {
+    let (prog, diags) = adapt(
+        "ex:Bird rdfs:subClassOf [ a owl:Restriction ;
+            owl:someValuesFrom ex:Beak ] .",
+    );
+    assert!(diags.iter().any(|d| d.code == "MALFORMED_RESTRICTION"));
+    assert!(
+        !prog
+            .axioms
+            .iter()
+            .any(|a| a.predicate == logic("someValuesFrom")),
+        "a restriction with no onProperty must not lift a constraint"
+    );
+}
+
+#[test]
+#[should_panic(expected = "onProperty values")]
+fn restriction_with_two_on_properties_hard_fails() {
+    // Two onProperty values on one restriction is a wiring contradiction, not a
+    // disclosable malformedness — pick-first would silently drop a slot, so the lift
+    // must hard-fail rather than continue.
+    let _ = adapt(
+        "ex:Bird rdfs:subClassOf [ a owl:Restriction ;
+            owl:onProperty ex:hasBeak ; owl:onProperty ex:hasWing ;
+            owl:someValuesFrom ex:Beak ] .",
+    );
+}
+
+#[test]
+fn two_classes_share_one_restriction_node() {
+    // Identical restriction on two classes → ONE skolem node (structure sharing);
+    // the content key excludes the subject class.
+    let (prog, _) = adapt(
+        "ex:Bird rdfs:subClassOf [ a owl:Restriction ;
+            owl:onProperty ex:hasBeak ; owl:someValuesFrom ex:Beak ] .
+         ex:Duck rdfs:subClassOf [ a owl:Restriction ;
+            owl:onProperty ex:hasBeak ; owl:someValuesFrom ex:Beak ] .",
+    );
+    let bird_r = restriction_node_of(&prog, "/Bird");
+    let duck_r = restriction_node_of(&prog, "/Duck");
+    assert_eq!(bird_r, duck_r, "identical restrictions must share one node");
+    // The shared node's defining axioms appear exactly once (dedup).
+    let type_count = prog
+        .axioms
         .iter()
-        .find(|d| d.code == "UNMAPPED_OWL_CONSTRUCT")
-        .expect("unmapped diagnostic");
-    assert!(d.message.contains("restriction"), "msg: {}", d.message);
+        .filter(|a| a.subject == bird_r && a.predicate == RDF_TYPE)
+        .count();
+    assert_eq!(type_count, 1, "shared restriction internals must dedup");
+}
+
+// ── Round-trip: owl:Restriction ≡ logic:Restriction ──────────────────────────
+
+#[test]
+fn roundtrip_owl_somevaluesfrom_equals_logic() {
+    let prog_logic = logic_prog(
+        "ex:Bird logic:subClassOf [ a logic:Restriction ;
+            logic:onProperty ex:hasBeak ; logic:someValuesFrom ex:Beak ] .",
+    );
+    let prog_owl = adapt(
+        "ex:Bird rdfs:subClassOf [ a owl:Restriction ;
+            owl:onProperty ex:hasBeak ; owl:someValuesFrom ex:Beak ] .",
+    )
+    .0;
+    // Same skolem IRI on both surfaces (the content key agrees byte-for-byte).
+    assert_eq!(
+        restriction_node_of(&prog_logic, "/Bird"),
+        restriction_node_of(&prog_owl, "/Bird")
+    );
+    assert!(assert_ir_isomorphic(&prog_logic, &prog_owl).is_ok());
+}
+
+#[test]
+fn roundtrip_owl_hasvalue_iri_equals_logic() {
+    let prog_logic = logic_prog(
+        "ex:RedThing logic:subClassOf [ a logic:Restriction ;
+            logic:onProperty ex:hasColour ; logic:hasValue ex:Red ] .",
+    );
+    let prog_owl = adapt(
+        "ex:RedThing rdfs:subClassOf [ a owl:Restriction ;
+            owl:onProperty ex:hasColour ; owl:hasValue ex:Red ] .",
+    )
+    .0;
+    assert!(assert_ir_isomorphic(&prog_logic, &prog_owl).is_ok());
+}
+
+#[test]
+fn roundtrip_owl_hasvalue_literal_equals_logic() {
+    let prog_logic = logic_prog(
+        "ex:Adult logic:subClassOf [ a logic:Restriction ;
+            logic:onProperty ex:minAge ; logic:hasValue 18 ] .",
+    );
+    let prog_owl = adapt(
+        "ex:Adult rdfs:subClassOf [ a owl:Restriction ;
+            owl:onProperty ex:minAge ; owl:hasValue 18 ] .",
+    )
+    .0;
+    // The literal filler round-trips (obj_is_literal preserved on both surfaces).
+    assert!(prog_owl
+        .axioms
+        .iter()
+        .any(|a| a.predicate == logic("hasValue") && a.obj_is_literal));
+    assert!(assert_ir_isomorphic(&prog_logic, &prog_owl).is_ok());
+}
+
+#[test]
+fn roundtrip_owl_allvaluesfrom_equals_logic() {
+    let prog_logic = logic_prog(
+        "ex:VegDish logic:subClassOf [ a logic:Restriction ;
+            logic:onProperty ex:hasIngredient ; logic:allValuesFrom ex:Vegetable ] .",
+    );
+    let prog_owl = adapt(
+        "ex:VegDish rdfs:subClassOf [ a owl:Restriction ;
+            owl:onProperty ex:hasIngredient ; owl:allValuesFrom ex:Vegetable ] .",
+    )
+    .0;
+    assert!(assert_ir_isomorphic(&prog_logic, &prog_owl).is_ok());
+}
+
+#[test]
+fn roundtrip_owl_min_cardinality_equals_logic() {
+    let prog_logic = logic_prog(
+        "ex:Parent logic:subClassOf [ a logic:Restriction ;
+            logic:onProperty ex:hasChild ; logic:minCardinality 1 ] .",
+    );
+    let prog_owl = adapt(
+        "ex:Parent rdfs:subClassOf [ a owl:Restriction ;
+            owl:onProperty ex:hasChild ; owl:minCardinality 1 ] .",
+    )
+    .0;
+    assert!(prog_owl
+        .axioms
+        .iter()
+        .any(|a| a.predicate == logic("minCardinality") && a.obj == "1" && a.obj_is_literal));
+    assert!(assert_ir_isomorphic(&prog_logic, &prog_owl).is_ok());
+}
+
+#[test]
+fn roundtrip_owl_qualified_cardinality_equals_logic() {
+    // A qualified cardinality node carries both the count and its onClass filler; both
+    // lift as constraints on the same skolem node and both feed the content key.
+    let prog_logic = logic_prog(
+        "ex:Hand logic:subClassOf [ a logic:Restriction ;
+            logic:onProperty ex:hasPart ; logic:qualifiedCardinality 5 ;
+            logic:onClass ex:Finger ] .",
+    );
+    let prog_owl = adapt(
+        "ex:Hand rdfs:subClassOf [ a owl:Restriction ;
+            owl:onProperty ex:hasPart ; owl:qualifiedCardinality 5 ;
+            owl:onClass ex:Finger ] .",
+    )
+    .0;
+    assert!(assert_ir_isomorphic(&prog_logic, &prog_owl).is_ok());
+    // Distinct qualified cardinality on the same property but a different onClass mints a
+    // DIFFERENT skolem node (onClass participates in the content key).
+    let other = adapt(
+        "ex:Hand rdfs:subClassOf [ a owl:Restriction ;
+            owl:onProperty ex:hasPart ; owl:qualifiedCardinality 5 ;
+            owl:onClass ex:Thumb ] .",
+    )
+    .0;
+    assert_ne!(
+        restriction_node_of(&prog_owl, "/Hand"),
+        restriction_node_of(&other, "/Hand")
+    );
+}
+
+#[test]
+fn nested_class_expression_filler_is_disclosed_not_lifted() {
+    // someValuesFrom of an anonymous class expression (a nested union) has no stable
+    // filler identity: the restriction must be DISCLOSED (surfaced), never lifted with a
+    // non-deterministic blank label.
+    let (prog, diags) = adapt(
+        "ex:Weird rdfs:subClassOf [ a owl:Restriction ;
+            owl:onProperty ex:rel ;
+            owl:someValuesFrom [ a owl:Class ; owl:unionOf ( ex:A ex:B ) ] ] .",
+    );
+    assert!(
+        diags
+            .iter()
+            .any(|d| d.code == "UNSUPPORTED_NESTED_RESTRICTION"),
+        "a nested-filler restriction must be disclosed: {diags:?}"
+    );
+    assert!(
+        !prog
+            .axioms
+            .iter()
+            .any(|a| a.predicate == logic("someValuesFrom")),
+        "no blank-labelled filler may leak into the IR"
+    );
+}
+
+// ── OWL enumerations (owl:oneOf) ─────────────────────────────────────────────
+
+#[test]
+fn roundtrip_owl_oneof_enumeration_equals_logic() {
+    // An anonymous owl:oneOf enumeration and its logic: twin normalize to the same
+    // content-addressed logic:enumeration node with individual logic:oneOf axioms.
+    let prog_logic = logic_prog(
+        "ex:Season logic:equivalentClass [ a logic:Enumeration ;
+            logic:oneOf ( ex:Spring ex:Summer ex:Autumn ex:Winter ) ] .",
+    );
+    let prog_owl = adapt(
+        "ex:Season owl:equivalentClass [ a owl:Class ;
+            owl:oneOf ( ex:Spring ex:Summer ex:Autumn ex:Winter ) ] .",
+    )
+    .0;
+    let e = prog_owl
+        .axioms
+        .iter()
+        .find(|a| a.predicate == logic("equivalentClass") && a.subject.ends_with("/Season"))
+        .map(|a| a.obj.clone())
+        .expect("equivalentClass → enumeration anchor");
+    assert!(
+        e.starts_with(&logic("enumeration/")),
+        "anchor must be a deterministic skolem enumeration IRI, got {e}"
+    );
+    assert_eq!(
+        prog_owl
+            .axioms
+            .iter()
+            .filter(|a| a.subject == e && a.predicate == logic("oneOf"))
+            .count(),
+        4,
+        "four members lift as individual oneOf axioms"
+    );
+    assert!(assert_ir_isomorphic(&prog_logic, &prog_owl).is_ok());
+}
+
+#[test]
+fn enumeration_with_broken_list_emits_diagnostic() {
+    // A oneOf list that is not nil-terminated (a cell missing rdf:rest) is corrupt.
+    // The lift must disclose it and skip the enumeration rather than silently lift a
+    // truncated member set.  Hand-authored raw list cells (the ( … ) collection syntax
+    // only ever emits well-formed lists).
+    let (prog, diags) = adapt(
+        "ex:Season owl:equivalentClass [ a owl:Class ; owl:oneOf _:l0 ] .
+         _:l0 rdf:first ex:Spring ; rdf:rest _:l1 .
+         _:l1 rdf:first ex:Summer .",
+    );
+    assert!(
+        diags.iter().any(|d| d.code == "MALFORMED_ENUMERATION"),
+        "a corrupt oneOf list must surface a MALFORMED_ENUMERATION diagnostic"
+    );
+    assert!(
+        !prog.axioms.iter().any(|a| a.predicate == logic("oneOf")),
+        "a corrupt enumeration must not lift any oneOf member"
+    );
+    assert!(
+        !prog
+            .axioms
+            .iter()
+            .any(|a| a.obj.starts_with(&logic("enumeration/"))),
+        "a corrupt enumeration must not lift a skolem enumeration node"
+    );
+}
+
+// ── OWL datatype restrictions (owl:withRestrictions dataranges) ──────────────
+
+const XSD: &str = "@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .\n";
+
+#[test]
+fn roundtrip_owl_withrestrictions_equals_logic() {
+    // An owl:withRestrictions datarange and its logic: twin normalize to the same
+    // content-addressed logic:datarange node with a logic:onDatatype base and one axiom
+    // per xsd: facet.
+    let prog_logic = logic_prog(&format!(
+        "{XSD}ex:PositiveScore logic:equivalentClass [ a rdfs:Datatype ;
+            logic:onDatatype xsd:decimal ;
+            logic:withRestrictions ( [ xsd:minInclusive \"0.0\"^^xsd:decimal ]
+                                     [ xsd:maxInclusive \"1.0\"^^xsd:decimal ] ) ] ."
+    ));
+    let prog_owl = adapt(&format!(
+        "{XSD}ex:PositiveScore owl:equivalentClass [ a rdfs:Datatype ;
+            owl:onDatatype xsd:decimal ;
+            owl:withRestrictions ( [ xsd:minInclusive \"0.0\"^^xsd:decimal ]
+                                   [ xsd:maxInclusive \"1.0\"^^xsd:decimal ] ) ] ."
+    ))
+    .0;
+    let d = prog_owl
+        .axioms
+        .iter()
+        .find(|a| a.predicate == logic("equivalentClass") && a.subject.ends_with("/PositiveScore"))
+        .map(|a| a.obj.clone())
+        .expect("equivalentClass → datarange anchor");
+    assert!(
+        d.starts_with(&logic("datarange/")),
+        "anchor must be a deterministic skolem datarange IRI, got {d}"
+    );
+    // The base datatype rides on logic:onDatatype (an IRI object).
+    assert!(prog_owl.axioms.iter().any(|a| a.subject == d
+        && a.predicate == logic("onDatatype")
+        && a.obj.ends_with("XMLSchema#decimal")
+        && !a.obj_is_literal));
+    // Each facet rides on its full xsd: IRI as a literal-valued axiom.
+    let facet_count = prog_owl
+        .axioms
+        .iter()
+        .filter(|a| {
+            a.subject == d
+                && a.predicate.starts_with("http://www.w3.org/2001/XMLSchema#")
+                && a.obj_is_literal
+        })
+        .count();
+    assert_eq!(facet_count, 2, "two facets lift as literal-valued axioms");
+    assert!(assert_ir_isomorphic(&prog_logic, &prog_owl).is_ok());
+}
+
+#[test]
+fn datarange_missing_ondatatype_emits_diagnostic() {
+    // A withRestrictions datarange with no owl:onDatatype base is malformed: the lift must
+    // disclose it and skip rather than mint a base-less node.
+    let (prog, diags) = adapt(&format!(
+        "{XSD}ex:Bad owl:equivalentClass [ a rdfs:Datatype ;
+            owl:withRestrictions ( [ xsd:minInclusive \"0.0\"^^xsd:decimal ] ) ] ."
+    ));
+    assert!(
+        diags.iter().any(|d| d.code == "MALFORMED_DATARANGE"),
+        "a datarange with no onDatatype must surface a MALFORMED_DATARANGE diagnostic: {diags:?}"
+    );
+    assert!(
+        !prog
+            .axioms
+            .iter()
+            .any(|a| a.obj.starts_with(&logic("datarange/"))),
+        "a malformed datarange must not lift a skolem datarange node"
+    );
 }
 
 // ── IR isomorphism gate ──────────────────────────────────────────────────────

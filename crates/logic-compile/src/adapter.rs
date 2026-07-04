@@ -11,10 +11,17 @@
 //! a construct authored in `logic:` and an equivalent construct in
 //! `owl:*`/`gufo:` form must normalize to identical IR.
 //!
+//! Class-expression restrictions (`owl:Restriction` + `owl:onProperty` +
+//! value/cardinality constraints) are lifted via the shared [`super::restriction`]
+//! skolemizer into deterministic, content-addressed `logic:restriction/<hash>` nodes —
+//! the SAME routine the `logic:` front-end runs — so an OWL-authored restriction and
+//! its `logic:`-authored twin normalize to identical IR.
+//!
 //! # Adapter contract
 //!
-//! * **Fail-soft** on unrecognised constructs (blank-node restrictions, unmapped
-//!   `owl:` predicates) — emit a [`Diagnostic`] and skip; nothing is silently lost.
+//! * **Fail-soft** on unrecognised constructs (malformed restrictions missing
+//!   `owl:onProperty`, anonymous blank-node objects, unmapped `owl:` predicates) —
+//!   emit a [`Diagnostic`] and skip; nothing is silently lost.
 //! * **Raise** ([`LogicParseError`]) on empty/unreadable input.
 //!
 //! The `gufo: class → logic: term` *coverage* correspondence (the `#663`
@@ -24,7 +31,7 @@
 //! `crates/logic/tests/gufo_superset.rs` (#731, which retired the Python fixture
 //! `tests/test_logic_gufo_superset.py`).
 
-use std::collections::HashSet;
+use std::collections::{BTreeSet, HashSet};
 #[cfg(not(target_arch = "wasm32"))]
 use std::path::Path;
 
@@ -33,12 +40,15 @@ use purrdf::{parse_dataset, RdfDataset};
 use super::frontend::{Diagnostic, LogicParseError, Severity};
 use super::graphutil::{
     default_graph_quads, iri_of, is_empty, nn, subject_is_blank, subject_of, subject_str,
-    subjects_with, term_as_subject, term_is_blank, term_is_literal, term_str, value, Node, Subject,
-    RDF_TYPE,
+    subjects_with, term_is_blank, term_is_literal, term_str, Node, RDF_TYPE,
 };
 use super::ir::{
     ContextualScope, Formula, LogicAxiom, LogicProgram, LogicRule, ReasoningContract,
     LOGIC_NAMESPACE,
+};
+use super::restriction::{
+    datarange_node_labels, enumeration_node_labels, restriction_node_labels, skolemize_dataranges,
+    skolemize_enumerations, skolemize_restrictions, LiftedTriple, RestrictionVocab,
 };
 
 const GUFO_NS: &str = "http://purl.org/nemo/gufo#";
@@ -114,19 +124,6 @@ fn rdfs_skip_preds() -> HashSet<String> {
     .into_iter()
     .collect()
 }
-
-/// OWL restriction predicates that mark a blank node as a complex restriction.
-const OWL_RESTRICTION_PREDS: &[&str] = &[
-    "someValuesFrom",
-    "allValuesFrom",
-    "hasValue",
-    "onProperty",
-    "minCardinality",
-    "maxCardinality",
-    "cardinality",
-    "onClass",
-    "onDataRange",
-];
 
 // --------------------------------------------------------------------------- //
 // IR isomorphism gate
@@ -276,12 +273,15 @@ struct MappedAxiom {
     obj_is_literal: bool,
 }
 
-/// Whether the blank node `node` is a complex OWL restriction (`owl:onProperty`,
-/// `owl:someValuesFrom`, cardinalities, …).
-fn is_complex_restriction(store: &RdfDataset, node: &Subject) -> bool {
-    OWL_RESTRICTION_PREDS
-        .iter()
-        .any(|p| value(store, node, &nn(&owl(p))).is_some())
+impl From<LiftedTriple> for MappedAxiom {
+    fn from(t: LiftedTriple) -> Self {
+        Self {
+            subject: t.subject,
+            predicate: t.predicate,
+            obj: t.obj,
+            obj_is_literal: t.obj_is_literal,
+        }
+    }
 }
 
 fn extract_gufo_sort_axioms(
@@ -349,6 +349,7 @@ fn extract_owl_char_axioms(
 
 fn extract_owl_structural_axioms(
     store: &RdfDataset,
+    rnodes: &BTreeSet<String>,
     diagnostics: &mut Vec<Diagnostic>,
 ) -> Vec<MappedAxiom> {
     let quads = default_graph_quads(store);
@@ -360,6 +361,15 @@ fn extract_owl_structural_axioms(
             if quad.predicate.as_str() != owl_pred_iri {
                 continue;
             }
+            // Restriction anchor / internal edges are owned by the skolemizer: a
+            // `C rdfs:subClassOf <restriction>` edge is re-emitted redirected to the
+            // skolem node, and a restriction node never contributes a flat structural
+            // axiom of its own.  Skip both here so nothing double-emits.
+            if rnodes.contains(&term_str(&quad.object))
+                || rnodes.contains(&subject_str(&quad.subject))
+            {
+                continue;
+            }
             if subject_is_blank(&quad.subject) {
                 // Anonymous subject — skip silently (blank reification helper).
                 continue;
@@ -367,21 +377,14 @@ fn extract_owl_structural_axioms(
             if term_is_blank(&quad.object) {
                 let s_str = subject_str(&quad.subject);
                 let pred_str = format!("{ns}{owl_local}");
-                let is_restriction = term_as_subject(&quad.object)
-                    .as_ref()
-                    .is_some_and(|n| is_complex_restriction(store, n));
-                let message = if is_restriction {
-                    format!(
-                        "{s_str:?} {pred_str:?} [blank-node restriction]: OWL restrictions \
-                         cannot be normalized to logic: axioms; skipped"
-                    )
-                } else {
+                diagnostics.push(warn(
+                    "UNMAPPED_OWL_CONSTRUCT",
                     format!(
                         "{s_str:?} {pred_str:?} [blank node]: anonymous blank-node object \
                          cannot be normalized; skipped"
-                    )
-                };
-                diagnostics.push(warn("UNMAPPED_OWL_CONSTRUCT", message, Some(s_str)));
+                    ),
+                    Some(s_str),
+                ));
                 continue;
             }
             result.push(MappedAxiom {
@@ -395,7 +398,11 @@ fn extract_owl_structural_axioms(
     result
 }
 
-fn extract_unmapped_owl_triples(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) {
+fn extract_unmapped_owl_triples(
+    store: &RdfDataset,
+    rnodes: &BTreeSet<String>,
+    diagnostics: &mut Vec<Diagnostic>,
+) {
     let skip = rdfs_skip_preds();
     let mapped_owl: HashSet<String> = OWL_PRED_TO_LOGIC
         .iter()
@@ -414,6 +421,11 @@ fn extract_unmapped_owl_triples(store: &RdfDataset, diagnostics: &mut Vec<Diagno
             continue;
         }
         let subject = subject_of(store, q.s);
+        // Restriction internals (`<r> owl:onProperty/owl:someValuesFrom/…`) are lifted
+        // by the skolemizer, not dropped.
+        if rnodes.contains(&subject_str(&subject)) {
+            continue;
+        }
         if subject_is_blank(&subject) {
             continue;
         }
@@ -455,10 +467,34 @@ pub fn adapt_legacy_dataset(
 
     let mut diagnostics: Vec<Diagnostic> = Vec::new();
     let mut mapped: Vec<MappedAxiom> = Vec::new();
+
+    // Lift OWL class-expression restrictions (owl:Restriction + onProperty +
+    // value/cardinality constraints), owl:oneOf enumerations, and owl:withRestrictions
+    // datatype restrictions (dataranges) into deterministic skolem-keyed logic: axioms.
+    // The combined node set drives the generic extractors' skip filter so the anchor edges
+    // and internals are owned solely by the skolemizers.
+    let owl_vocab = RestrictionVocab::owl();
+    let mut handled = restriction_node_labels(store, &owl_vocab);
+    handled.extend(enumeration_node_labels(store, &owl_vocab));
+    handled.extend(datarange_node_labels(store, &owl_vocab));
+    for lifted in skolemize_restrictions(store, &owl_vocab, &mut diagnostics) {
+        mapped.push(lifted.into());
+    }
+    for lifted in skolemize_enumerations(store, &owl_vocab, &mut diagnostics) {
+        mapped.push(lifted.into());
+    }
+    for lifted in skolemize_dataranges(store, &owl_vocab, &mut diagnostics) {
+        mapped.push(lifted.into());
+    }
+
     mapped.extend(extract_gufo_sort_axioms(store, &mut diagnostics));
     mapped.extend(extract_owl_char_axioms(store, &mut diagnostics));
-    mapped.extend(extract_owl_structural_axioms(store, &mut diagnostics));
-    extract_unmapped_owl_triples(store, &mut diagnostics);
+    mapped.extend(extract_owl_structural_axioms(
+        store,
+        &handled,
+        &mut diagnostics,
+    ));
+    extract_unmapped_owl_triples(store, &handled, &mut diagnostics);
 
     // Build LogicAxiom instances, dedup by content (the Python `set(...)`).
     let mut seen: HashSet<String> = HashSet::new();

@@ -356,3 +356,23 @@ pub(crate) fn has_predicate_object(ds: &RdfDataset, predicate: &Iri, object: &No
     ds.quads()
         .any(|q| q.g.is_none() && q.p == p_id && q.o == o_id)
 }
+
+// --------------------------------------------------------------------------- //
+// Content-addressed hashing
+// --------------------------------------------------------------------------- //
+
+/// First 12 hex chars of SHA-256 of `s` — the content-stable digest used to mint
+/// deterministic IRIs (reifier keys, covering/union class nodes, and restriction
+/// skolem nodes) so a projection is byte-identical across regenerate runs.
+///
+/// Shared by the projections (`projections::rdf`) and the restriction skolemizer
+/// (`restriction`); both must mint the SAME id from the SAME content key.
+pub(crate) fn sha256_12(s: &str) -> String {
+    use sha2::{Digest, Sha256};
+    let digest = Sha256::digest(s.as_bytes());
+    let mut out = String::with_capacity(12);
+    for b in digest.iter().take(6) {
+        out.push_str(&format!("{b:02x}"));
+    }
+    out
+}

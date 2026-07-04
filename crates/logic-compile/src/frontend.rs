@@ -48,6 +48,7 @@ use super::ir::{
     PathShapeIr, PropertyConstraintIr, ReasoningContract, SemanticProfileId, ShaclNodeKind,
     ShapeTarget, Term, ValidationShapeIr, LOGIC_NAMESPACE,
 };
+use super::restriction;
 
 /// Re-export the CGIF reader alongside CLIF (the conceptual-graph dialect inverse).
 pub use crate::cgif::parse_cgif_str;
@@ -316,6 +317,42 @@ fn extract_axioms(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Vec<
     // triples on these are contract configuration, not domain facts.
     let config_subjects = collect_contract_config_subjects(store);
 
+    // Class-expression restrictions authored in logic: (`C logic:subClassOf
+    // [ a logic:Restriction ; logic:onProperty P ; logic:someValuesFrom D ]`) lift
+    // through the SAME skolemizer the owl: adapter uses, so an owl:-authored and a
+    // logic:-authored restriction normalize to identical skolem-keyed axioms (the
+    // isomorphism gate).  The node set drives the skip filter below so the blank
+    // restriction node's internals never leak as blank-labelled axioms — the load-
+    // bearing ordering: skolemize FIRST, then skip restriction-internal triples.
+    let logic_vocab = restriction::RestrictionVocab::logic();
+    let mut rnodes = restriction::restriction_node_labels(store, &logic_vocab);
+    rnodes.extend(restriction::enumeration_node_labels(store, &logic_vocab));
+    rnodes.extend(restriction::datarange_node_labels(store, &logic_vocab));
+    let mut lifted_class_exprs =
+        restriction::skolemize_restrictions(store, &logic_vocab, diagnostics);
+    lifted_class_exprs.extend(restriction::skolemize_enumerations(
+        store,
+        &logic_vocab,
+        diagnostics,
+    ));
+    lifted_class_exprs.extend(restriction::skolemize_dataranges(
+        store,
+        &logic_vocab,
+        diagnostics,
+    ));
+    for lifted in lifted_class_exprs {
+        if let Ok(ax) = LogicAxiom::new(
+            lifted.subject,
+            lifted.predicate,
+            lifted.obj,
+            lifted.obj_is_literal,
+            false,
+            ContextualScope::default(),
+        ) {
+            axioms.push(ax);
+        }
+    }
+
     // 1. Triples with a logic: predicate (excluding rdf:type).
     for quad in default_graph_quads(store) {
         let p_str = quad.predicate.as_str();
@@ -325,9 +362,21 @@ fn extract_axioms(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Vec<
         if p_str == RDF_TYPE {
             continue; // unreachable (rdf:type is not logic:) but mirrors Python.
         }
+        // Restriction internals + anchor edges are owned by the skolemizer above.
+        // Skip a triple whose subject is a restriction node, and a subClassOf /
+        // equivalentClass edge whose object is a restriction node (re-emitted
+        // redirected to the skolem node).
+        if rnodes.contains(&subject_str(&quad.subject)) {
+            continue;
+        }
+        let p_local = &p_str[LOGIC_NAMESPACE.len()..];
+        if matches!(p_local, "subClassOf" | "equivalentClass")
+            && rnodes.contains(&term_str(&quad.object))
+        {
+            continue;
+        }
         // Skip contract/preset/closure facet-config triples: they are consumed by
         // extract_contracts and must not pollute the domain axiom set.
-        let p_local = &p_str[LOGIC_NAMESPACE.len()..];
         if is_facet_config_predicate(p_local)
             && config_subjects.contains(&subject_str(&quad.subject))
         {
@@ -364,6 +413,10 @@ fn extract_axioms(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Vec<
     // 2. rdf:type triples whose object is a logic: class.
     for quad in default_graph_quads(store) {
         if quad.predicate.as_str() != RDF_TYPE {
+            continue;
+        }
+        // The `<r> rdf:type logic:Restriction` typing is owned by the skolemizer.
+        if rnodes.contains(&subject_str(&quad.subject)) {
             continue;
         }
         let o_str = term_str(&quad.object);
