@@ -960,8 +960,8 @@ mod tests {
 
     /// A multi-finding report exercising: GTS wire coordinates (quad + segment)
     /// on a `.gts` bundle, a repo-relative `.ttl` with a focus-IRI logical anchor
-    /// plus a logical-only related `path <iri>` that folds onto the primary
-    /// (#666), two attributions (sorted by role then sliceIri), a `category`
+    /// plus a logical-only related `path <iri>` that folds onto the primary,
+    /// two attributions (sorted by role then sliceIri), a `category`
     /// (yielding run-level `automationDetails.id`), and a fileless legacy warning
     /// (anchored to the ontology root).
     fn comprehensive_report() -> Report {
@@ -1018,7 +1018,7 @@ mod tests {
     /// PRIMARY location is logical-only (the focus IRI) and whose related
     /// locations are the source file (physical) plus a `path <iri>` annotation
     /// (logical-only). GitHub requires the primary to be physical, so the file is
-    /// promoted to primary and every logical entry folds onto it (#666).
+    /// promoted to primary and every logical entry folds onto it.
     fn stale_cache_report() -> Report {
         let mut finding =
             Finding::new(Severity::Error, "shacl.MinCount", "missing property").with_tool("shacl");
@@ -1045,7 +1045,7 @@ mod tests {
         report
     }
 
-    // ── Whole-output snapshot goldens (T8, #789) ─────────────────────────────
+    // ── Whole-output snapshot goldens (T8) ─────────────────────────────
 
     #[test]
     fn sarif_full_snapshot() {
@@ -1087,7 +1087,7 @@ mod tests {
         // A finding with two physical file locations: the first becomes the
         // primary `physicalLocation`, the rest ride as `relatedLocations`
         // (render.rs §"Remaining physical locations"). This is the only shape that
-        // emits `relatedLocations`, so it pins that branch AND makes the #666
+        // emits `relatedLocations`, so it pins that branch AND makes the
         // "every relatedLocation carries a physicalLocation" invariant non-vacuous.
         let mut finding =
             Finding::new(Severity::Error, "shacl.MinCount", "missing property").with_tool("shacl");
@@ -1109,7 +1109,7 @@ mod tests {
         let value: Value = serde_json::from_str(&to_sarif(&report).unwrap()).unwrap();
 
         // The emission branch fired: exactly one related location, carrying a
-        // physicalLocation (the #666 contract, here actually exercised).
+        // physicalLocation (the contract, here actually exercised).
         let related = value["runs"][0]["results"][0]["relatedLocations"]
             .as_array()
             .expect("relatedLocations emitted for a 2+ physical-location finding");
@@ -1153,7 +1153,7 @@ mod tests {
 
     #[test]
     fn sarif_emits_no_absolute_or_angle_bracket_uris() {
-        // #666 code-scanning contract, asserted as a property over the whole rich
+        // code-scanning contract, asserted as a property over the whole rich
         // report (not a single field): NO artifactLocation.uri is angle-bracketed
         // or absolute-scheme, and every emitted relatedLocation carries a
         // physicalLocation (a logical-only related location is rejected by GitHub).
@@ -1261,7 +1261,7 @@ mod tests {
     #[test]
     fn gmeow_rdf_escapes_c0_control_characters() {
         // A message carrying raw C0 controls (NUL, backspace, form-feed, VT)
-        // must escape them as \uXXXX so the projection stays valid N-Quads (#654).
+        // must escape them as \uXXXX so the projection stays valid N-Quads.
         let mut report = Report::new("validate");
         report.add_finding(Finding::new(
             Severity::Error,

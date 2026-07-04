@@ -47,7 +47,7 @@ fn authored_origin_kind(root: &Path, path: &Path) -> OriginKind {
     }
 }
 
-/// Build the per-quad provenance sidecar for the authored base graph (#1132 C9).
+/// Build the per-quad provenance sidecar for the authored base graph (C9).
 ///
 /// Every authored file (`ontology/gmeow.ttl`, every slice `module.ttl`, every
 /// `imports/*.ttl`) is registered as one compilation [`unit`](DatasetProvenance::register_unit)
