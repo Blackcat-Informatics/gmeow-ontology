@@ -12,8 +12,8 @@
 //! # Platform note
 //!
 //! There is no architecture cfg guard on this module: the crate is native-only
-//! by construction (a capability cfg would be optionality, not compliance,
-//! ). pyo3 cannot link into wasm, so the crate is simply never built for
+//! by construction; a capability cfg would be optionality, not compliance.
+//! pyo3 cannot link into wasm, so the crate is simply never built for
 //! wasm.
 
 use std::collections::{BTreeSet, HashMap, HashSet};
@@ -373,8 +373,8 @@ fn build_dataset_or_err(source_paths: &[String]) -> PyResult<std::sync::Arc<purr
     store::dataset_from_paths(&paths).map_err(pyo3::exceptions::PyValueError::new_err)
 }
 
-/// Build the native dataset from an N-Triples string (the rdflib-free data seam,
-/// ), mapping a parse failure to a Python `ValueError`. The reasoning checks
+/// Build the native dataset from an N-Triples string (the rdflib-free data seam),
+/// mapping a parse failure to a Python `ValueError`. The reasoning checks
 /// accept graphs as N-Triples now (test shims build a synthetic graph and serialize
 /// it), so this is their ingestion primitive.
 fn build_dataset_from_nt_or_err(data_nt: &str) -> PyResult<std::sync::Arc<purrdf::RdfDataset>> {

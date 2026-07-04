@@ -24,8 +24,8 @@
 //!   emit a [`Diagnostic`] and skip; nothing is silently lost.
 //! * **Raise** ([`LogicParseError`]) on empty/unreadable input.
 //!
-//! The `gufo: class → logic: term` *coverage* correspondence (the ``
-//! "gmeow:logic ⊇ gUFO floor", with its `SUPERSEDED` sentinel) is **not** part of
+//! The `gufo: class → logic: term` *coverage* correspondence (the `gmeow:logic ⊇ gUFO floor`
+//! coverage floor, with its `SUPERSEDED` sentinel) is **not** part of
 //! the compiler runtime — only the 11-stereotype runtime sort map lives in this
 //! module. The coverage floor is enforced natively by the integration test
 //! `crates/logic/tests/gufo_superset.rs` (which retired the Python fixture

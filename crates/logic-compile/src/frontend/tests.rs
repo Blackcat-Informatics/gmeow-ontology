@@ -529,7 +529,7 @@ fn confidence_scoped_axiom_case_produces_expected_ir() {
 
 // The diagnostics_report projection is tested in crate::logic_diagnostics
 // (it returns the PyO3-tainted gmeow_diagnostics::Report and lives runtime-side,
-// out of the wasm-able compiler —).
+// out of the wasm-able compiler).
 
 // ── Path shapes ──────────────────────────────────────────────────────
 

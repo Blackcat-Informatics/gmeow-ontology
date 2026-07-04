@@ -218,7 +218,7 @@ impl PyReport {
     /// Write the report's projections to `directory/<stem>.<ext>` and return the
     /// `{kind: path}` map of what was written.
     ///
-    /// `kinds` selects which projections to write (`` artifact selection).
+    /// `kinds` selects which projections to write (artifact selection).
     /// `None` is a deliberate **maximal default** — write all three, the same as
     /// before this argument existed — not a back-compat shim; the Python facade
     /// always passes an explicit, config-resolved selection. The fixed write

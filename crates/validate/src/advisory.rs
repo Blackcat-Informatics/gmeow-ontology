@@ -103,8 +103,7 @@ pub struct AdvisoryProjection {
     pub claim: AdvisoryClaim,
 }
 
-/// The vantage-indexed recommendation-claim HOOK (keystone; filled by
-/// ).
+/// The vantage-indexed recommendation-claim HOOK (keystone; filled later).
 ///
 /// Carries what a `gmeow:ComplianceAssessment` / `StandpointClaim` needs — the
 /// issuing standpoint (vantage), the advised proposition (message text), and the
