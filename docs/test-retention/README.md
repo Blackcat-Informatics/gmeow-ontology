@@ -76,12 +76,14 @@ Removed because a Rust artifact already asserts the same behavior:
   repository static guards now live in `crates/validate/src/repo_static.rs` and
   run through `make crate-check`, covering the narrow-waist, Java/Docker
   lane-purity, and first-party upstream-`rdflib` import seals.
-- `test_saturate`: the equivalence-saturation engine E(G) is Rust
-  (`crates/pipeline/src/transform.rs::saturate_nt`); its strong-only class/property
-  edges, `skos:closeMatch`-hint refusal, lint denial, suppression safety,
-  `owl:sameAs` mirroring, `mappedFrom`/`confidence` provenance, and determinism are
-  asserted by the inline saturation parity tests in that module. `saturate.py`
-  remains only as the PyO3 surface adapter its consumer (`transform.py`) calls.
+- `test_validate`: syntax checking, structural lint, annotation-completeness
+  gate, `owl:sameAs` ban (internal/external/allowlist/empty-paths), cache
+  read/write, and mapping/statement/test DSL SHACL are now asserted by
+  `crates/validate` (`store.rs`, `lint.rs`, `cache.rs`, and
+  `tests/validate_all.rs`). The consumer-facing `gmeow validate <data>` surface
+  is covered by `crates/validate/tests/data_validate.rs`. `src/gmeow_tools/validate.py`
+  is retained as the Python orchestration wrapper until its remaining consumers
+  are migrated.
 
 Relocated out of the mainline test tree (dossier removed with the test):
 
