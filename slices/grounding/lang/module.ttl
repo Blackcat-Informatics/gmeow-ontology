@@ -1507,6 +1507,13 @@ lang:producedReading
     skos:definition "Relates an interpretation act to a reading it produced. Domain lang:InterpretationAct, range lang:Reading (stated in prose). An ambiguous form's act produces multiple co-resident readings, none collapsed."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+lang:resolvedReading
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "resolved reading"@x-gmeow-english ;
+    skos:definition "Relates an interpretation act to the single reading it selects as canonical. Domain lang:InterpretationAct, range lang:Reading (stated in prose). Selecting a winner among co-resident readings is lawful ONLY when a vantage-held gmeow:Observation (through lang:aboutReading, with gmeow:vantage) grounds the choice; an act that resolves to one reading with no such observation has silently disambiguated — the meaning-layer form of fabricating certainty — and is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 lang:anchorsIndexical
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
