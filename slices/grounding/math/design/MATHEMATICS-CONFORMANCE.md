@@ -71,6 +71,25 @@ subclasses), so a violation is itself a typed, queryable object, not a log line.
 | A set is extensional or intensional, not silently both | SHACL-SPARQL | `math:AmbiguousSetExtent` |
 | A `math:Function` declares its domain and codomain | SHACL Core | `math:UnframedFunction` |
 
+### Measure-and-dimension rules
+
+| Rule | Primary gate | Failure class |
+|---|---|---|
+| A `math:Measure` declares its measurable space and total mass (a non-negative number or `math:PositiveInfinity`) | SHACL Core | `math:IncompleteMeasure` |
+| A `math:ProbabilityMeasure` has total mass one | SHACL Core | `math:ProbabilityMeasureMassViolation` |
+| A `math:Integral` names its integrand, domain, and the measure it integrates against | SHACL Core | `math:IncompleteIntegral` |
+| Every `math:Quantity` carries a `math:Dimension` | SHACL Core | `math:UndimensionedQuantity` |
+| A `math:DerivedDimension` declares a non-empty exponent structure, each cell raising a `math:BaseDimension` to an exact-rational power, and a `math:DimensionalExpression` combines at least two operands | SHACL Core | `math:MalformedDimension` |
+| An expression is dimensionally homogeneous — a `math:DimensionalExpression`'s operands share one dimension, and a `math:Integral`'s declared result dimension equals its integrand's dimension combined with its measure's — computed from the exact-rational ℚ⁷ exponent vectors | Rust validator | `math:DimensionalInhomogeneity` |
+| An authored `math:dimensionVector` string matches the canonical render of the structured exponents (a computed projection, never a divergent second source) | Rust validator | `math:MalformedDimension` |
+
+The dimensional-homogeneity checks are the charter's distinguished **reasoned gate**: rather than
+trusting an asserted dimension label, the native validator computes each dimension's exponent
+vector in the ℚ-vector space over the seven SI base dimensions and derives homogeneity by exact
+rational arithmetic (a product of dimensions adds exponent vectors; commensurability is vector
+equality). This is what a units vocabulary that records conversions as data cannot express, and it
+is why these rows are Rust-validator gates rather than SHACL.
+
 ### Probability rules
 
 | Rule | Primary gate | Failure class |
