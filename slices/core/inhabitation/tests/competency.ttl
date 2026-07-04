@@ -1,0 +1,109 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative competency questions for core/inhabitation, executed by the native
+# Rust slice-test harness (crates/slicetest) over the full merged ontology,
+# asserted lane (gmeow:reasoningNone). Each instance-classifier question overlays
+# its ABox fixture with gmeow:cqDataFile (slice-relative), so the fixture's
+# individuals are visible to the query without polluting the shared merged graph.
+# This is the executable half of the INHABITED-COMPETENCY.md conformance
+# contract: a question is "answered" only with a shipped fixture, an executable
+# query, and a pinned, MEASURED expectation.
+#
+# Scope (INHABITED-COMPETENCY.md staggering): the four questions here are the
+# core-answerable set — CQ12 neutrality (the load-bearing base-graph-empty gate),
+# CQ1+CQ9 coexisting continuity verdicts, CQ13 determination-in-force, and CQ8
+# co-tenancy control. CQ3 (two-sessions), CQ5 (tool-usage), and CQ6
+# (provenance-chain) are DEFERRED to Package 2 (extensions/model-serving): they
+# need gmeow:ModelArtifact / gmeow:ModelDeployment / gmeow:RuntimeExecution
+# identities that this core slice deliberately mints nothing for. That deferral
+# is design-staged (issue #1262 packages Package 2 separately), not a descope of
+# the core acceptance bar.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/inhabitation/tests/> .
+@prefix exd:   <https://blackcatinformatics.ca/gmeow/examples/inhabitation/> .
+
+# --- CQ12 / neutrality: the base graph is silent on a contested inhabitation ----
+# queries/competency/neutrality.rq ASKs whether any base-graph inhabitation edge
+# or gmeow:InhabitationTenure exists over the contested-possession fixture; it
+# MUST be false — the relationship lives only inside the InhabitationClaim's
+# quoted description. This is the load-bearing neutrality gate (Principle 9).
+ex:cqNeutrality a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/core/inhabitation/queries/competency/neutrality.rq" ;
+    gmeow:cqDataFile "examples/contested-possession.ttl" ;
+    gmeow:cqExpectAsk false ;
+    gmeow:cqRationale "GMEOW must keep a CONTESTED (spiritual / fictional / legal) inhabitation OUT of the asserted base graph: over the possession fixture, a query for gmeow:inhabitationSubject / gmeow:inhabitedHost / gmeow:InhabitationTenure returns nothing, because the lwa-mounts-horse relationship is only the observed feature of a frame-indexed gmeow:InhabitationClaim. A non-empty answer would leak the metaphysics into the base graph and globally infer the spirit's type (Principle 9)." .
+
+# --- CQ1 + CQ9 / coexisting continuity verdicts --------------------------------
+# For one gmeow:SubjectLineage the affirming ('same') and denying ('different')
+# gmeow:IdentityContinuityAssessments coexist as asserted verdicts. RowsExact:
+# exactly the two descriptive readings (the gmeow:ContinuityDetermination subtype
+# is not matched in the asserted lane, so the decisional layer stays out).
+ex:cqCoexistingVerdicts a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/core/inhabitation/queries/competency/continuity-verdicts.rq" ;
+    gmeow:cqDataFile "examples/continuity-upgrade.ttl" ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqVerdictsShape ;
+    gmeow:cqRationale "GMEOW must answer 'is this the same subject after a model upgrade?' AND let the denial coexist: for gmeow:lillithLineage a gmeow:continuitySame verdict (the atman reading, CQ1) and a gmeow:continuityDifferent verdict (the anatta reading, CQ9) are BOTH asserted gmeow:IdentityContinuityAssessments — neither the mere absence of the other, and neither collapsing the two distinct gmeow:SubjectStage nodes to owl:sameAs (Principle 9). The asserted answer is exactly these two verdicts." ;
+    gmeow:cqExpectRow ex:cqVerdictRowSame , ex:cqVerdictRowDifferent .
+
+ex:cqVerdictsShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "verdict" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:cqVerdictRowSame a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "verdict" ; gmeow:cellValueIri gmeow:continuitySame ] .
+ex:cqVerdictRowDifferent a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "verdict" ; gmeow:cellValueIri gmeow:continuityDifferent ] .
+
+# --- CQ13 / which determination is in force, by which authority ----------------
+# The appeal gmeow:supersedes the board ruling, so the in-force determination is
+# the one nothing supersedes. RowsExact: exactly the appeal ruling and its
+# authority (the superseded original stays on the record, Principle 10).
+ex:cqDeterminationInForce a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/core/inhabitation/queries/competency/determination-in-force.rq" ;
+    gmeow:cqDataFile "examples/continuity-upgrade.ttl" ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqDeterminationShape ;
+    gmeow:cqRationale "GMEOW must answer 'what continuity determination is IN FORCE, by which authority?' — the gmeow:ContinuityDetermination no later determination gmeow:supersedes. The clinical board's original ruling is superseded on appeal, so the in-force determination is the appeal ruling by the appeals board; the original is retained but retired from force (Principle 10), and the descriptive same/different plurality (CQ1/CQ9) stays addressable underneath." ;
+    gmeow:cqExpectRow ex:cqDeterminationRow .
+
+ex:cqDeterminationShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "determination" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:declaresColumn
+        [ logic:columnVariable "authority" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:cqDeterminationRow a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "determination" ; gmeow:cellValueIri exd:appealRuling ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "authority" ; gmeow:cellValueIri exd:appealsBoard ] .
+
+# --- CQ8 / co-tenancy control: who was driving at T ----------------------------
+# Two co-tenants over one host; control is answered from the gmeow:ControlAssessments,
+# never a privileged gmeow:primaryInhabitant. RowsExact: each co-tenant with its
+# attributed gmeow:controlLevel.
+ex:cqControl a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/core/inhabitation/queries/competency/control.rq" ;
+    gmeow:cqDataFile "examples/control.ttl" ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqControlShape ;
+    gmeow:cqRationale "GMEOW must answer 'who was driving the shared host at T?' under co-tenancy from the recorded gmeow:ControlAssessments — co-tenant A at gmeow:controlFull and co-tenant B at gmeow:controlPartial — with a solver ranking them, never an asserted gmeow:primaryInhabitant (Principles 9, 12). The asserted answer is exactly these two attributed control facts." ;
+    gmeow:cqExpectRow ex:cqControlRowA , ex:cqControlRowB .
+
+ex:cqControlShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "agent" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:declaresColumn
+        [ logic:columnVariable "level" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:cqControlRowA a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "agent" ; gmeow:cellValueIri exd:coTenantA ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "level" ; gmeow:cellValueIri gmeow:controlFull ] .
+ex:cqControlRowB a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "agent" ; gmeow:cellValueIri exd:coTenantB ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "level" ; gmeow:cellValueIri gmeow:controlPartial ] .

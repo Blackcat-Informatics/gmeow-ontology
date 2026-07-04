@@ -1,0 +1,142 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative competency questions for the language slice (crates/slicetest): the
+# bedrock questions the term surface must answer about the typed form AST. Each query
+# runs over the merged ontology unioned with the shared fixture (gmeow:cqDataFile),
+# and its expected rows are pinned exactly (logic:RowsExact).
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix lang:  <https://blackcatinformatics.ca/lang/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/lang/tests/> .
+@prefix exf:   <http://example.org/lang/> .
+
+# === Q1 — explicitly unanalyzed surfaces =================================== #
+
+ex:cqUnanalyzedSurfaces a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/lang/queries/competency/unanalyzed-surfaces.rq" ;
+    gmeow:cqDataFile "tests/fixtures/forms.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A surface reports whether it is explicitly held as lang:UnanalyzedProse at lang:rawLevel; over the fixture the answer is exactly {rawSurface}, distinct from the parsed surface of the same text." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqUnanalyzedShape ;
+    gmeow:cqExpectRow ex:rowRawSurface .
+
+ex:cqUnanalyzedShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "surface" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowRawSurface a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "surface" ; gmeow:cellValueIri exf:rawSurface ] .
+
+# === Q2 — constituents of a composed form in slot-index order ============== #
+
+ex:cqConstituentsInOrder a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/lang/queries/competency/constituents-in-order.rq" ;
+    gmeow:cqDataFile "tests/fixtures/forms.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A composed form reports its slot forms in lang:slotIndex order; over the fixture the answer for exf:cf is exactly its two constituents {cats (0), sleep (1)}." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqConstituentsShape ;
+    gmeow:cqExpectRow ex:rowConstituentCats , ex:rowConstituentSleep .
+
+ex:cqConstituentsShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "form" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowConstituentCats a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "form" ; gmeow:cellValueIri exf:wfCats ] .
+
+ex:rowConstituentSleep a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "form" ; gmeow:cellValueIri exf:wfSleep ] .
+
+# === Q3 — word forms with their lexeme and Number value ==================== #
+
+ex:cqWordFormMorphology a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/lang/queries/competency/word-form-morphology.rq" ;
+    gmeow:cqDataFile "tests/fixtures/forms.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A word form reports the lexeme it inflects and its typed Number value drawn from the feature inventory; over the fixture the answer is exactly {wfCats → (cat, Plur), wfSleep → (sleep, Plur)}." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqMorphologyShape ;
+    gmeow:cqExpectRow ex:rowMorphCats , ex:rowMorphSleep .
+
+ex:cqMorphologyShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "wf" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "lex" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "val" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowMorphCats a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "wf" ; gmeow:cellValueIri exf:wfCats ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "lex" ; gmeow:cellValueIri exf:lexCat ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "val" ; gmeow:cellValueIri lang:valPlur ] .
+
+ex:rowMorphSleep a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "wf" ; gmeow:cellValueIri exf:wfSleep ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "lex" ; gmeow:cellValueIri exf:lexSleep ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "val" ; gmeow:cellValueIri lang:valPlur ] .
+
+# === Q4 (meaning) — forms holding more than one co-resident reading ========= #
+
+ex:cqCoresidentReadings a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/lang/queries/competency/coresident-readings.rq" ;
+    gmeow:cqDataFile "tests/conformance-fixtures/meaning-scope-ambiguity.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "An ambiguous form keeps every reading as first-class data; over the scope-ambiguity fixture the one sentence form carrying both the forall-exists and exists-forall readings is exactly {sent}." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqCoresidentShape ;
+    gmeow:cqExpectRow ex:rowCoresidentSent .
+
+ex:cqCoresidentShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "form" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowCoresidentSent a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "form" ; gmeow:cellValueIri exf:sent ] .
+
+# === Q5 (meaning) — forms denoting a logic:Formula (the declarative bridge) == #
+
+ex:cqDenotationsToFormula a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/lang/queries/competency/denotations-to-formula.rq" ;
+    gmeow:cqDataFile "tests/conformance-fixtures/meaning-cats-chase-mice.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A declarative sentence denotes a full-FOL logic:Formula through the one-way bridge; over the cats-chase-mice fixture the denoting form is exactly {sentCatsChaseMice}." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqDenotationsToFormulaShape ;
+    gmeow:cqExpectRow ex:rowDenotesFormula .
+
+ex:cqDenotationsToFormulaShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "form" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowDenotesFormula a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "form" ; gmeow:cellValueIri exf:sentCatsChaseMice ] .
+
+# === Q6 (meaning) — hypernymy resolved as logic: subsumption over denoted types = #
+
+ex:cqHypernymyThroughBridge a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/lang/queries/competency/hypernymy-through-bridge.rq" ;
+    gmeow:cqDataFile "tests/conformance-fixtures/meaning-sense-hypernymy.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "The sense lattice is preserved as logic: linkage: two senses denote two logic:Types and their hypernymy IS the logic: subsumption over those types. Over the sense-hypernymy fixture the answer is exactly the (dog, animal) pair — reasoned in logic:, not a forked lang: edge." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqHypernymyShape ;
+    gmeow:cqExpectRow ex:rowHypernymyDogAnimal .
+
+ex:cqHypernymyShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "narrow" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "broad" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowHypernymyDogAnimal a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "narrow" ; gmeow:cellValueIri exf:wfDog ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "broad" ; gmeow:cellValueIri exf:wfAnimal ] .

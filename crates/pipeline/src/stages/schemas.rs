@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Native schema export leaf (#941): LinkML YAML plus Python, TypeScript, and
+//! Native schema export leaf: LinkML YAML plus Python, TypeScript, and
 //! GraphQL developer surfaces.
 //!
 //! This stage replaces the former lane-only `gmeow_tools.schema_compile`
@@ -828,7 +828,7 @@ impl Stage for SchemasStage {
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
         // Read THIS run's carrier dataset directly off the snapshot product's bundle
-        // (#1132) — GTS is exit-only, never re-parsed by an export leaf.
+        //  — GTS is exit-only, never re-parsed by an export leaf.
         let dataset = crate::stages::carrier::snapshot_dataset(input.upstream)?;
         Ok(StageOutput {
             product: StageProduct::from_artifacts(

@@ -22,16 +22,6 @@ use crate::model::rdf;
 
 const TOOL: &str = "repo-static";
 
-const GTS_APP: &str = "gts_app";
-const GTS_SUBCOMMANDS: &[&str] = &[
-    "gts_info",
-    "gts_verify",
-    "gts_extract_key",
-    "gts_to_nq",
-    "gts_from_rdf",
-    "gts_to_sqlite",
-    "gts_to_duckdb",
-];
 // engine_crosscheck.py is the sole remaining rdflib runtime keeper (the
 // rdflib query cross-check). rl_agreement.py + the rest of the classic oracle
 // lane were relocated out of src/ to validations/classic-cross-check/.
@@ -88,10 +78,11 @@ impl RepoStaticReport {
 
 pub fn check_repo_static(root: &Path) -> RepoStaticReport {
     let mut report = RepoStaticReport::default();
-    check_narrow_waist(root, &mut report);
     check_lane_purity(root, &mut report);
     check_no_rdflib_in_runtime(root, &mut report);
     check_projection_compute_purity(root, &mut report);
+    check_projection_shape_purity(root, &mut report);
+    check_no_generated_read_in_pipeline_stages(root, &mut report);
     report
 }
 
@@ -118,49 +109,6 @@ pub fn to_diagnostics_report(report: &RepoStaticReport) -> Report {
         );
     }
     out
-}
-
-fn check_narrow_waist(root: &Path, report: &mut RepoStaticReport) {
-    let src = root.join("src").join("gmeow_tools");
-    // The flat-export narrow waist is now structurally guaranteed: the exporter
-    // is native Rust (`crates/pipeline/src/stages/export.rs`), which reads only
-    // the GTS bundle and cannot import rdflib. The retired Python exporter guard
-    // is gone with the module.
-    let cli_path = src.join("cli.py");
-    let rel = "src/gmeow_tools/cli.py";
-    let text = match fs::read_to_string(&cli_path) {
-        Ok(text) => text,
-        Err(err) => {
-            report.error(format!("{rel}: cannot read: {err}"));
-            return;
-        }
-    };
-    let code = strip_python_non_code(&text);
-    let assigned = python_assigned_names(&code);
-    if assigned.contains(GTS_APP) {
-        report.error(format!(
-            "{rel} still assigns the retired {GTS_APP:?} Typer app"
-        ));
-    }
-
-    let defined = python_defined_functions(&code);
-    let legacy = GTS_SUBCOMMANDS
-        .iter()
-        .filter(|name| defined.contains(**name))
-        .copied()
-        .collect::<Vec<_>>();
-    if !legacy.is_empty() {
-        report.error(format!(
-            "{rel} still defines legacy GTS subcommand function(s): {}",
-            legacy.join(", ")
-        ));
-    }
-
-    if has_gts_app_command_decorator(&code) {
-        report.error(format!(
-            "{rel} still registers a command on the retired {GTS_APP:?} app"
-        ));
-    }
 }
 
 fn check_no_rdflib_in_runtime(root: &Path, report: &mut RepoStaticReport) {
@@ -356,6 +304,127 @@ fn check_projection_compute_purity(root: &Path, report: &mut RepoStaticReport) {
                  (design/LOGIC-SHACL-AF.md)",
                 node_label(&ds, *subj),
                 constructs.join(", ")
+            ));
+        }
+    }
+}
+
+/// The gmeow domain namespace — the migrated FOL-axiom predicates live under it.
+const GMEOW_NS_STATIC: &str = "https://blackcatinformatics.ca/gmeow/";
+
+/// The migrated irreflexive/acyclic predicates: a hand-authored `sh:select` self-reference
+/// `$this <P> $this` (optionally `+`/`*`) IS an irreflexivity/acyclicity axiom — a logical
+/// characteristic that must be authored in the logic: canon and PROJECTED, not hand-authored.
+const MIGRATED_SELF_PREDS: &[&str] = &["counterGoal", "overrides", "linkNext"];
+
+/// The migrated relatum-distinctness role-pairs: a `sh:select` binding both roles to one value
+/// IS a mutual-inequality axiom (`logic:RelatumDistinctnessAssertion`). Detected by both role
+/// IRIs co-occurring in one select body — a pattern the retained closed-world checks never use.
+const MIGRATED_DISTINCT_PAIRS: &[(&str, &str)] = &[
+    ("committedAgent", "commitmentBeneficiary"),
+    ("precedenceHigher", "precedenceLower"),
+    ("rewardPole", "penaltyPole"),
+    ("linkAntecedent", "linkConsequent"),
+];
+
+/// The shape-half of the projection-purity seal (the peer of [`check_projection_compute_purity`]):
+/// an authored `sh:sparql`/`sh:select` that re-encodes a migrated open-world FOL axiom
+/// (irreflexivity / acyclicity / relatum-distinctness — the distinctive self-reference and
+/// coincident-role signatures) is a hand-authored second source of truth. It must be authored in
+/// the logic: canon and PROJECTED to `generated/shapes/constraint-shapes.ttl` (Principle 17), or
+/// carry a `logic:formalizes` back-reference on the construct or its owning shape. This realizes
+/// the `sh:sparql` procedural-constraint fragment of the shape gate
+/// (`design/LOGIC-VALIDATION.md`); the declarative `sh:PropertyShape` fragment follows as the
+/// remaining closed-world shapes migrate (the same incremental realization the frame/result shape
+/// stages are already described under). Scans `shapes/` (where the FOL SHACL lived) as well as
+/// `slices/` + `dsl/`.
+fn check_projection_shape_purity(root: &Path, report: &mut RepoStaticReport) {
+    let mut ttl_files = Vec::new();
+    for sub in ["shapes", "slices", "dsl"] {
+        let dir = root.join(sub);
+        if dir.is_dir() {
+            collect_ttl_files(&dir, report, &mut ttl_files);
+        }
+    }
+    ttl_files.sort();
+    for path in ttl_files {
+        let text = match fs::read_to_string(&path) {
+            Ok(text) => text,
+            Err(err) => {
+                report.error(format!("{}: cannot read: {err}", path.display()));
+                continue;
+            }
+        };
+        if !text.contains(SHACL_NS) {
+            continue;
+        }
+        let rel = slash_path(path.strip_prefix(root).unwrap_or(&path));
+        let ds = match purrdf::parse_dataset(text.as_bytes(), "text/turtle", None) {
+            Ok(ds) => ds,
+            Err(err) => {
+                report.error(format!("{rel}: does not parse as Turtle: {err}"));
+                continue;
+            }
+        };
+
+        // Parents: a `sh:sparql` / `sh:target` construct block → its owning shape, so a
+        // `logic:formalizes` on the shape legalizes the block (the upward walk).
+        let mut parents: BTreeMap<TermId, BTreeSet<TermId>> = BTreeMap::new();
+        for local in ["sparql", "target"] {
+            let Some(pid) = iri_id_static(&ds, &format!("{SHACL_NS}{local}")) else {
+                continue;
+            };
+            for q in ds.quads_for_pattern(None, Some(pid), None, GraphMatch::Any) {
+                parents.entry(q.o).or_default().insert(q.s);
+            }
+        }
+        let mut directly_backed: BTreeSet<TermId> = BTreeSet::new();
+        if let Some(fid) = iri_id_static(&ds, PROJECTION_FORMALIZES_IRI) {
+            for q in ds.quads_for_pattern(None, Some(fid), None, GraphMatch::Any) {
+                directly_backed.insert(q.s);
+            }
+        }
+
+        let Some(sel_id) = iri_id_static(&ds, &format!("{SHACL_NS}select")) else {
+            continue;
+        };
+        for q in ds.quads_for_pattern(None, Some(sel_id), None, GraphMatch::Any) {
+            let TermRef::Literal { lexical, .. } = ds.resolve(q.o) else {
+                continue;
+            };
+            // The sh:select lexical with ALL whitespace removed. The seal is a lexical
+            // heuristic; stripping whitespace means a hand-authored re-encoding cannot slip
+            // it by padding the `<prop> $this` self-loop (or the `<prop1> … <prop2>` pair)
+            // with tabs, newlines, or extra spaces. IRIs and `$this` carry no interior
+            // whitespace, so removal preserves every token while collapsing the evasion
+            // surface (it also defeats a stray space before a `+` property-path modifier).
+            let sel: String = lexical.split_whitespace().collect();
+            let mut matched: Option<String> = None;
+            for p in MIGRATED_SELF_PREDS {
+                let base = format!("{GMEOW_NS_STATIC}{p}>");
+                if sel.contains(&format!("{base}$this")) || sel.contains(&format!("{base}+$this")) {
+                    matched = Some(format!("irreflexivity/acyclicity on gmeow:{p}"));
+                }
+            }
+            for (a, b) in MIGRATED_DISTINCT_PAIRS {
+                if sel.contains(&format!("{GMEOW_NS_STATIC}{a}>"))
+                    && sel.contains(&format!("{GMEOW_NS_STATIC}{b}>"))
+                {
+                    matched = Some(format!("relatum-distinctness on gmeow:{a}/gmeow:{b}"));
+                }
+            }
+            let Some(desc) = matched else {
+                continue;
+            };
+            if formalizes_backed(q.s, &directly_backed, &parents) {
+                continue;
+            }
+            report.error(format!(
+                "{rel}: a hand-authored sh:sparql re-encodes the migrated FOL axiom \
+                 ({desc}) without a `logic:formalizes` back-reference on it or its owning \
+                 shape: this axiom is authored in the logic: canon and PROJECTED to \
+                 generated/shapes/constraint-shapes.ttl (Principle 17, H8), never \
+                 hand-authored as a second source of truth (design/LOGIC-VALIDATION.md)"
             ));
         }
     }
@@ -672,28 +741,6 @@ fn python_imported_top_modules(code: &str) -> BTreeSet<String> {
     out
 }
 
-fn python_assigned_names(code: &str) -> BTreeSet<String> {
-    let re = Regex::new(r"(?m)^\s*([A-Za-z_][A-Za-z0-9_]*)\s*(?::[^=!+\-*/%^&<>\n]+)?=\s*[^=\n]")
-        .expect("static regex");
-    re.captures_iter(code)
-        .map(|cap| cap[1].to_owned())
-        .collect()
-}
-
-fn python_defined_functions(code: &str) -> BTreeSet<String> {
-    let re = Regex::new(r"(?m)^\s*(?:async\s+)?def\s+([A-Za-z_][A-Za-z0-9_]*)\s*\(")
-        .expect("static regex");
-    re.captures_iter(code)
-        .map(|cap| cap[1].to_owned())
-        .collect()
-}
-
-fn has_gts_app_command_decorator(code: &str) -> bool {
-    Regex::new(r"(?m)^\s*@\s*gts_app\s*\.\s*command\b")
-        .expect("static regex")
-        .is_match(code)
-}
-
 fn is_identifier(value: &str) -> bool {
     let mut chars = value.chars();
     let Some(first) = chars.next() else {
@@ -798,6 +845,365 @@ fn slash_path(path: &Path) -> String {
         .join("/")
 }
 
+// ── generated/ produce-path read ban ────────────────────────────────────
+
+/// No pipeline PRODUCE stage may read a `generated/` artifact off disk. Every `generated/`
+/// file has exactly one producing stage, so a consumer must add a `dataflowConsumes` edge
+/// and read the producer's IN-MEMORY product; a disk read at `run()` time carries the
+/// last-committed bytes forever (the post-pipeline fanout rewrites those files from the
+/// bundle), so `make regenerate` reports "unchanged" while `check-generated` reds
+/// permanently — the stale-disk-fold bug class. This gate scans every Rust source
+/// under `crates/pipeline/src/` (recursively — no produce helper outside `stages/`
+/// can silently escape the gate) and flags any DISK-PATH construction under
+/// `generated/`: a literal `.join("generated"…)` (whitespace- and `format!`-tolerant) or a
+/// `.join(NAME)` — including the `.join(&NAME)` / `.join(NAME.as_str())` indirections — where
+/// `NAME` is a `const … = "generated/…"` path constant. A read from a stage PRODUCT
+/// (`.artifact(NAME)`) is not a disk read and is never flagged. A read whose `.join(` argument is
+/// split across physical lines or aliased through a local binding is left to the fixed-point
+/// backstop below (a single-line textual scanner cannot see it).
+///
+/// Exemptions (both fail the class OPEN unless justified): `#[cfg(test)] mod …` blocks (test
+/// fixtures may mirror committed files) and a read carrying an inline `// GENERATED-READ-OK:
+/// <reason>` marker in the contiguous comment block directly above it (or trailing on the line
+/// itself) — reserved for any read whose result NEVER folds into `gmeow.gts`: dev-CLI audit
+/// lanes (lint committed output), verification oracles, the monotonic-changelog prior-state
+/// read, and the gitignored `.pipeline-cache` scratch dir. The textual gate catches literal +
+/// traceable const-indirected reads; the pipeline's regenerate→check-generated fixed-point test
+/// is the semantic backstop for the rest.
+fn check_no_generated_read_in_pipeline_stages(root: &Path, report: &mut RepoStaticReport) {
+    let src = root.join("crates").join("pipeline").join("src");
+    // Nothing to scan when the pipeline crate is absent (synthetic minimal-repo fixtures).
+    // The real repo always carries it; `live_repo_static_passes` scans it on-gate.
+    if !src.is_dir() {
+        return;
+    }
+    let mut files = Vec::new();
+    collect_rust_files(&src, report, &mut files);
+    files.sort();
+
+    // Pass 1: collect path constants whose value is under `generated/` (emit targets), across
+    // ALL scanned files. Reading one of these via `.join(NAME)` builds a disk path; a product
+    // read (`.artifact(NAME)`) does not, so only `.join(NAME)` is flagged in pass 2.
+    let const_re = match Regex::new(
+        r#"const\s+([A-Z0-9_]+)\s*:\s*&(?:'static\s+)?str\s*=\s*"generated(?:/|")"#,
+    ) {
+        Ok(re) => re,
+        Err(err) => {
+            report.error(format!(
+                "generated-read guard: const regex failed to compile: {err}"
+            ));
+            return;
+        }
+    };
+    let mut generated_consts: BTreeSet<String> = BTreeSet::new();
+    for path in &files {
+        let Ok(text) = fs::read_to_string(path) else {
+            continue;
+        };
+        for cap in const_re.captures_iter(&text) {
+            generated_consts.insert(cap[1].to_string());
+        }
+    }
+
+    // A literal `.join("generated"…)` disk read: tolerant of whitespace after `(`, a
+    // `format!(` wrapper, and raw strings — so a re-encoding cannot slip past a naive
+    // single-form `contains` check.
+    let literal_re = match Regex::new(r#"\.join\(\s*(?:format!\s*\(\s*)?r?#*"generated"#) {
+        Ok(re) => re,
+        Err(err) => {
+            report.error(format!(
+                "generated-read guard: literal regex failed to compile: {err}"
+            ));
+            return;
+        }
+    };
+
+    // Pass 2: flag disk-path construction under `generated/` in produce code.
+    for path in &files {
+        let rel = slash_path(path.strip_prefix(root).unwrap_or(path));
+        let text = match fs::read_to_string(path) {
+            Ok(text) => text,
+            Err(err) => {
+                report.error(format!("{rel}: cannot read: {err}"));
+                continue;
+            }
+        };
+        // `detect`: comments blanked (so prose mentioning generated/ paths cannot match),
+        // string literals KEPT (so `.join("generated"…)` is still visible), and every
+        // `#[cfg(test)] mod …` body blanked (test fixtures are exempt). Line-aligned with the
+        // original, so line numbers and the GENERATED-READ-OK look-up stay correct.
+        let detect = blank_comments_and_cfg_test_modules(&text);
+        let orig_lines: Vec<&str> = text.lines().collect();
+        for (idx, line) in detect.lines().enumerate() {
+            let literal = literal_re.is_match(line);
+            // A `.join(NAME)` builds a disk path from a generated/ const. Catch the
+            // idiomatic indirections too — `.join(&NAME)` (borrow), `.join(NAME.as_str())`
+            // (method), and `.join(NAME, …)` (wrapped first arg) — each bounded by a
+            // terminator (`)`/`.`/`,`) so one const name that prefixes another cannot
+            // false-match. A `.artifact(NAME)` PRODUCT read has no `.join(` and is ignored.
+            let const_indirect = generated_consts.iter().any(|name| {
+                [')', '.', ','].iter().any(|t| {
+                    line.contains(&format!(".join({name}{t}"))
+                        || line.contains(&format!(".join(&{name}{t}"))
+                })
+            });
+            if !(literal || const_indirect) {
+                continue;
+            }
+            if generated_read_ok_marked(&orig_lines, idx) {
+                continue;
+            }
+            report.error(format!(
+                "{rel}:{}: pipeline produce-stage constructs a generated/ disk path \
+                 (stale-disk-fold bug class) — consume the producing stage's in-memory \
+                 product instead of reading the committed file, or, for a dev-CLI AUDIT-lane read \
+                 of committed output, mark it `// GENERATED-READ-OK: <reason>`: {}",
+                idx + 1,
+                orig_lines.get(idx).unwrap_or(&"").trim()
+            ));
+        }
+    }
+}
+
+/// True if the contiguous line-comment block directly above `idx` (or the line itself)
+/// carries the `GENERATED-READ-OK` marker — the audit-lane exemption.
+fn generated_read_ok_marked(orig_lines: &[&str], idx: usize) -> bool {
+    if orig_lines
+        .get(idx)
+        .is_some_and(|l| l.contains("GENERATED-READ-OK"))
+    {
+        return true;
+    }
+    let mut i = idx;
+    while i > 0 {
+        i -= 1;
+        let trimmed = orig_lines[i].trim_start();
+        if !trimmed.starts_with("//") {
+            break;
+        }
+        if trimmed.contains("GENERATED-READ-OK") {
+            return true;
+        }
+    }
+    false
+}
+
+/// Return `text` with (a) all comments and (b) every `#[cfg(test)]`-attributed item body
+/// replaced by spaces, preserving newlines (so line numbers and column offsets are unchanged)
+/// and KEEPING string-literal contents (so `.join("generated"…)` stays visible to the scanner).
+/// A Rust-aware char scanner — handling line/block comments, string / raw-string / byte-string
+/// literals, char literals **distinguished from lifetimes** (`'a`, `'static`), and byte prefixes
+/// — builds a `skeleton` (strings + comments blanked) so the `#[cfg(test)]` item body can be
+/// brace-matched without being fooled by braces inside strings/comments. Works entirely in CHAR
+/// indices (never byte offsets), so multi-byte chars (→, ∪, ×) never misalign it.
+fn blank_comments_and_cfg_test_modules(text: &str) -> String {
+    let src: Vec<char> = text.chars().collect();
+    let n = src.len();
+    let mut out: Vec<char> = src.clone();
+    let mut skeleton: Vec<char> = src.clone();
+    let blank = |c: char| if c == '\n' { '\n' } else { ' ' };
+    let is_ident = |c: char| c.is_alphanumeric() || c == '_';
+
+    let mut i = 0;
+    while i < n {
+        let c = src[i];
+        // Line comment.
+        if c == '/' && i + 1 < n && src[i + 1] == '/' {
+            while i < n && src[i] != '\n' {
+                out[i] = blank(src[i]);
+                skeleton[i] = blank(src[i]);
+                i += 1;
+            }
+            continue;
+        }
+        // Block comment (non-nesting is sufficient for this gate).
+        if c == '/' && i + 1 < n && src[i + 1] == '*' {
+            while i < n && !(src[i] == '*' && i + 1 < n && src[i + 1] == '/') {
+                out[i] = blank(src[i]);
+                skeleton[i] = blank(src[i]);
+                i += 1;
+            }
+            if i + 1 < n {
+                out[i] = blank(src[i]);
+                out[i + 1] = blank(src[i + 1]);
+                skeleton[i] = blank(src[i]);
+                skeleton[i + 1] = blank(src[i + 1]);
+                i += 2;
+            }
+            continue;
+        }
+        // Raw string: r"…" / r#…"…"#… (optionally byte-prefixed: br"…"). The opening `r`/`br`
+        // must start an identifier boundary (not be part of a longer ident).
+        let raw_start = (c == 'r' || (c == 'b' && i + 1 < n && src[i + 1] == 'r'))
+            && (i == 0 || !is_ident(src[i - 1]));
+        if raw_start {
+            let mut j = if c == 'b' { i + 2 } else { i + 1 };
+            let mut hashes = 0;
+            while j < n && src[j] == '#' {
+                hashes += 1;
+                j += 1;
+            }
+            if j < n && src[j] == '"' {
+                // A genuine raw string: blank (skeleton only) through the closing "###.
+                j += 1;
+                loop {
+                    if j >= n {
+                        break;
+                    }
+                    if src[j] == '"' {
+                        let mut h = 0;
+                        while h < hashes && j + 1 + h < n && src[j + 1 + h] == '#' {
+                            h += 1;
+                        }
+                        if h == hashes {
+                            for p in j..=(j + hashes).min(n - 1) {
+                                skeleton[p] = blank(src[p]);
+                            }
+                            j += 1 + hashes;
+                            break;
+                        }
+                    }
+                    skeleton[j] = blank(src[j]);
+                    j += 1;
+                }
+                for p in i..j.min(n) {
+                    skeleton[p] = blank(src[p]);
+                }
+                i = j;
+                continue;
+            }
+        }
+        // Normal / byte string.
+        if c == '"' {
+            skeleton[i] = blank(c);
+            i += 1;
+            while i < n {
+                if src[i] == '\\' && i + 1 < n {
+                    skeleton[i] = blank(src[i]);
+                    skeleton[i + 1] = blank(src[i + 1]);
+                    i += 2;
+                    continue;
+                }
+                let end = src[i] == '"';
+                skeleton[i] = blank(src[i]);
+                i += 1;
+                if end {
+                    break;
+                }
+            }
+            continue;
+        }
+        // Char literal vs lifetime. A char literal is `'x'` or `'\x'` — a `'`, an optional
+        // escape + one char, then a closing `'`. A lifetime (`'a`, `'static`) has NO closing
+        // `'`, so it must NOT enter char-literal scanning (the bug that desynced the scanner).
+        if c == '\'' {
+            let is_char_lit = if i + 1 < n && src[i + 1] == '\\' {
+                // Escaped: `'\n'`, `'\x41'`, `'\u{1F}'` — closing quote is a few chars along.
+                (i + 3 < n && src[i + 3] == '\'')
+                    || (2..8).any(|k| i + 2 + k < n && src[i + 2 + k] == '\'')
+            } else {
+                i + 2 < n && src[i + 2] == '\''
+            };
+            if is_char_lit {
+                let mut j = i + 1;
+                while j < n {
+                    if src[j] == '\\' && j + 1 < n {
+                        skeleton[j] = blank(src[j]);
+                        skeleton[j + 1] = blank(src[j + 1]);
+                        j += 2;
+                        continue;
+                    }
+                    let end = src[j] == '\'';
+                    skeleton[j] = blank(src[j]);
+                    j += 1;
+                    if end {
+                        break;
+                    }
+                }
+                skeleton[i] = blank(c);
+                i = j;
+                continue;
+            }
+            // Lifetime: leave `'` as code, advance one char.
+            i += 1;
+            continue;
+        }
+        i += 1;
+    }
+
+    // On the skeleton, blank every `#[cfg(test)]`-attributed item body. After the attribute,
+    // the item's brace-delimited body is the region from the next `{` to its matching `}`
+    // (fn / mod / impl); items with no body before a `;` (a `use`/`const`) carry no read.
+    let marker: Vec<char> = "#[cfg(test)]".chars().collect();
+    let mut m = 0;
+    while m + marker.len() <= skeleton.len() {
+        if skeleton[m..m + marker.len()] != marker[..] {
+            m += 1;
+            continue;
+        }
+        // Find the item's opening brace, but stop at a `;` (a semicolon-terminated item has no
+        // body to blank — e.g. `#[cfg(test)] use super::*;`).
+        let mut j = m + marker.len();
+        while j < skeleton.len() && skeleton[j] != '{' && skeleton[j] != ';' {
+            j += 1;
+        }
+        if j >= skeleton.len() || skeleton[j] == ';' {
+            m += marker.len();
+            continue;
+        }
+        let mut depth = 0i32;
+        let mut k = j;
+        while k < skeleton.len() {
+            match skeleton[k] {
+                '{' => depth += 1,
+                '}' => {
+                    depth -= 1;
+                    if depth == 0 {
+                        k += 1;
+                        break;
+                    }
+                }
+                _ => {}
+            }
+            k += 1;
+        }
+        for pos in j..k.min(out.len()) {
+            out[pos] = blank(src[pos]);
+        }
+        m = k;
+    }
+    out.iter().collect()
+}
+
+/// Recursively collect `.rs` files under `dir`.
+fn collect_rust_files(dir: &Path, report: &mut RepoStaticReport, out: &mut Vec<PathBuf>) {
+    let entries = match fs::read_dir(dir) {
+        Ok(entries) => entries,
+        Err(err) => {
+            report.error(format!("{}: cannot read directory: {err}", dir.display()));
+            return;
+        }
+    };
+    for entry in entries {
+        let entry = match entry {
+            Ok(entry) => entry,
+            Err(err) => {
+                report.error(format!(
+                    "{}: cannot read directory entry: {err}",
+                    dir.display()
+                ));
+                continue;
+            }
+        };
+        let path = entry.path();
+        if path.is_dir() {
+            collect_rust_files(&path, report, out);
+        } else if path.extension().is_some_and(|ext| ext == "rs") {
+            out.push(path);
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -810,10 +1216,6 @@ mod tests {
     }
 
     fn write_minimal_repo(root: &Path) {
-        write(
-            &root.join("src/gmeow_tools/cli.py"),
-            "from __future__ import annotations\n\ndef main() -> None:\n    pass\n",
-        );
         write(
             &root.join("src/gmeow_tools/oracles/engine_crosscheck.py"),
             "import rdflib\n",
@@ -836,21 +1238,6 @@ mod tests {
         let imports = python_imported_top_modules(&code);
         assert!(imports.contains("os"));
         assert!(!imports.contains("rdflib"));
-    }
-
-    #[test]
-    fn python_assignment_scanner_ignores_comparisons() {
-        let names = python_assigned_names(
-            "if gts_app == other:\n    pass\nif gts_app != other:\n    pass\nother = 1\n",
-        );
-        assert!(!names.contains(GTS_APP));
-        assert!(names.contains("other"));
-    }
-
-    #[test]
-    fn python_assignment_scanner_keeps_annotated_assignment() {
-        let names = python_assigned_names("gts_app: typer.Typer = typer.Typer()\n");
-        assert!(names.contains(GTS_APP));
     }
 
     #[test]
@@ -1022,19 +1409,6 @@ mod tests {
     }
 
     #[test]
-    fn public_cli_legacy_gts_surface_fails() {
-        let temp = tempfile::tempdir().unwrap();
-        write_minimal_repo(temp.path());
-        write(
-            &temp.path().join("src/gmeow_tools/cli.py"),
-            "gts_app = object()\n\n@gts_app.command()\ndef gts_info():\n    pass\n",
-        );
-        let report = check_repo_static(temp.path());
-        assert!(report.errors.iter().any(|e| e.contains("gts_app")));
-        assert!(report.errors.iter().any(|e| e.contains("gts_info")));
-    }
-
-    #[test]
     fn rdflib_runtime_offender_fails() {
         let temp = tempfile::tempdir().unwrap();
         write_minimal_repo(temp.path());
@@ -1125,6 +1499,108 @@ mod tests {
     }
 
     #[test]
+    fn shape_purity_flags_unbacked_migrated_axioms_and_passes_backed_and_closed_world() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        let g = "https://blackcatinformatics.ca/gmeow/";
+
+        // A hand-authored irreflexivity self-reference axiom with NO logic:formalizes → flagged.
+        write(
+            &root.join("shapes/bad-irreflexive.ttl"),
+            &format!(
+                "@prefix sh: <http://www.w3.org/ns/shacl#> .\n\
+                 @prefix ex: <https://example.org/> .\n\
+                 ex:S a sh:NodeShape ;\n    \
+                     sh:sparql [ a sh:SPARQLConstraint ; \
+                     sh:select \"\"\"SELECT $this WHERE {{ $this <{g}counterGoal> $this . }}\"\"\" ] .\n"
+            ),
+        );
+        // A hand-authored coincident-role distinctness axiom, unbacked → flagged.
+        write(
+            &root.join("shapes/bad-distinct.ttl"),
+            &format!(
+                "@prefix sh: <http://www.w3.org/ns/shacl#> .\n\
+                 @prefix ex: <https://example.org/> .\n\
+                 ex:S a sh:NodeShape ;\n    \
+                     sh:sparql [ a sh:SPARQLConstraint ; \
+                     sh:select \"\"\"SELECT $this WHERE {{ $this <{g}committedAgent> ?v . $this <{g}commitmentBeneficiary> ?v . }}\"\"\" ] .\n"
+            ),
+        );
+        // The SAME irreflexivity axiom WITH a logic:formalizes on its owning shape → legal.
+        write(
+            &root.join("shapes/good-backed.ttl"),
+            &format!(
+                "@prefix sh: <http://www.w3.org/ns/shacl#> .\n\
+                 @prefix ex: <https://example.org/> .\n\
+                 @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+                 ex:S a sh:NodeShape ; logic:formalizes ex:someAxiom ;\n    \
+                     sh:sparql [ a sh:SPARQLConstraint ; \
+                     sh:select \"\"\"SELECT $this WHERE {{ $this <{g}counterGoal> $this . }}\"\"\" ] .\n"
+            ),
+        );
+        // A retained closed-world check (FILTER NOT EXISTS existence) → NOT a migrated axiom,
+        // must NOT be flagged even without logic:formalizes.
+        write(
+            &root.join("shapes/closed-world.ttl"),
+            &format!(
+                "@prefix sh: <http://www.w3.org/ns/shacl#> .\n\
+                 @prefix ex: <https://example.org/> .\n\
+                 ex:S a sh:NodeShape ;\n    \
+                     sh:sparql [ a sh:SPARQLConstraint ; \
+                     sh:select \"\"\"SELECT $this WHERE {{ $this <{g}deonticModality> ?m . FILTER NOT EXISTS {{ $this <{g}normIssuer> ?i . }} }}\"\"\" ] .\n"
+            ),
+        );
+
+        // The SAME irreflexivity axiom, unbacked, but padded with a newline + tab + extra
+        // spaces between the predicate and `$this` — a whitespace re-encoding a single-space
+        // `contains` check would miss. Must still be flagged.
+        write(
+            &root.join("shapes/bad-irreflexive-ws.ttl"),
+            &format!(
+                "@prefix sh: <http://www.w3.org/ns/shacl#> .\n\
+                 @prefix ex: <https://example.org/> .\n\
+                 ex:S a sh:NodeShape ;\n    \
+                     sh:sparql [ a sh:SPARQLConstraint ; \
+                     sh:select \"\"\"SELECT $this WHERE {{ $this <{g}counterGoal>\n\t  $this . }}\"\"\" ] .\n"
+            ),
+        );
+
+        let mut report = RepoStaticReport::default();
+        check_projection_shape_purity(root, &mut report);
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("bad-irreflexive.ttl")),
+            "an unbacked irreflexivity self-reference axiom must be flagged; got {:?}",
+            report.errors
+        );
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("bad-irreflexive-ws.ttl")),
+            "a whitespace-padded re-encoding of a migrated axiom must still be flagged; got {:?}",
+            report.errors
+        );
+        assert!(
+            report.errors.iter().any(|e| e.contains("bad-distinct.ttl")),
+            "an unbacked coincident-role distinctness axiom must be flagged; got {:?}",
+            report.errors
+        );
+        assert!(
+            !report.errors.iter().any(|e| e.contains("good-backed.ttl")),
+            "a logic:formalizes-backed axiom must pass; got {:?}",
+            report.errors
+        );
+        assert!(
+            !report.errors.iter().any(|e| e.contains("closed-world.ttl")),
+            "a retained closed-world check must NOT be flagged; got {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
     fn live_repo_static_passes() {
         let root = Path::new(env!("CARGO_MANIFEST_DIR"))
             .parent()
@@ -1132,5 +1608,192 @@ mod tests {
             .expect("validate crate should live under crates/");
         let report = check_repo_static(root);
         assert!(report.ok(), "{:?}", report.errors);
+    }
+
+    // ── generated/-read ban ─────────────────────────────────────────────
+
+    #[test]
+    fn blank_pass_keeps_strings_blanks_comments_and_cfg_test_bodies() {
+        let src = "let a = root.join(\"generated/x.rq\"); // prose generated/y\n\
+                   #[cfg(test)]\n\
+                   mod t {\n    fn f() { let _ = root.join(\"generated/z.rq\"); }\n}\n";
+        let out = blank_comments_and_cfg_test_modules(src);
+        // Real string literals survive (so the scanner can still see them)…
+        assert!(out.contains(".join(\"generated/x.rq\""));
+        // …the line comment is blanked (prose mentioning a generated/ path cannot match)…
+        assert!(!out.contains("generated/y"));
+        // …and the whole `#[cfg(test)] mod` body is blanked (test fixtures are exempt).
+        assert!(!out.contains("generated/z"));
+        // Line count is preserved so line numbers stay aligned.
+        assert_eq!(out.lines().count(), src.lines().count());
+    }
+
+    fn stage_file(root: &Path, name: &str, body: &str) {
+        write(
+            &root.join(format!("crates/pipeline/src/stages/{name}")),
+            body,
+        );
+    }
+
+    fn ban_errors(root: &Path) -> Vec<String> {
+        let mut report = RepoStaticReport::default();
+        check_no_generated_read_in_pipeline_stages(root, &mut report);
+        report.errors
+    }
+
+    #[test]
+    fn ban_flags_a_literal_generated_disk_read_in_a_produce_stage() {
+        let temp = tempfile::tempdir().unwrap();
+        stage_file(
+            temp.path(),
+            "foo.rs",
+            "fn run(root: &std::path::Path) {\n    let _ = list_files(&root.join(\"generated/queries\"), \"rq\");\n}\n",
+        );
+        let errs = ban_errors(temp.path());
+        assert_eq!(errs.len(), 1, "{errs:?}");
+        assert!(errs[0].contains("stale-disk-fold"), "{errs:?}");
+    }
+
+    #[test]
+    fn ban_flags_a_const_indirected_generated_disk_read() {
+        let temp = tempfile::tempdir().unwrap();
+        stage_file(
+            temp.path(),
+            "foo.rs",
+            "const DCAT: &str = \"generated/queries/dcat.rq\";\n\
+             fn run(root: &std::path::Path) {\n    let _ = std::fs::read(root.join(DCAT));\n}\n",
+        );
+        let errs = ban_errors(temp.path());
+        assert_eq!(errs.len(), 1, "{errs:?}");
+    }
+
+    #[test]
+    fn ban_flags_a_borrowed_or_method_const_generated_read() {
+        // Idiomatic indirections must not slip the ban: `.join(&NAME)` (borrow) and
+        // `.join(NAME.as_str())` (method) both build a disk path from a generated const.
+        let temp = tempfile::tempdir().unwrap();
+        stage_file(
+            temp.path(),
+            "foo.rs",
+            "const DCAT: &str = \"generated/queries/dcat.rq\";\n\
+             fn run(root: &std::path::Path) {\n\
+             \x20   let _ = std::fs::read(root.join(&DCAT));\n\
+             \x20   let _ = std::fs::read(root.join(DCAT.as_str()));\n}\n",
+        );
+        let errs = ban_errors(temp.path());
+        assert_eq!(errs.len(), 2, "{errs:?}");
+    }
+
+    #[test]
+    fn ban_ignores_a_product_read_of_a_generated_const() {
+        // Reading the artifact off a stage PRODUCT (`.artifact(NAME)`) is not a disk read.
+        let temp = tempfile::tempdir().unwrap();
+        stage_file(
+            temp.path(),
+            "foo.rs",
+            "const DCAT: &str = \"generated/queries/dcat.rq\";\n\
+             fn run(p: &Product) {\n    let _ = p.artifact(DCAT);\n}\n",
+        );
+        assert!(ban_errors(temp.path()).is_empty());
+    }
+
+    #[test]
+    fn ban_exempts_cfg_test_modules() {
+        let temp = tempfile::tempdir().unwrap();
+        stage_file(
+            temp.path(),
+            "foo.rs",
+            "fn run() {}\n\
+             #[cfg(test)]\nmod tests {\n    fn t(root: &std::path::Path) {\n        let _ = list_files(&root.join(\"generated/mappings\"), \"tsv\");\n    }\n}\n",
+        );
+        assert!(ban_errors(temp.path()).is_empty());
+    }
+
+    #[test]
+    fn ban_exempts_a_marked_audit_read() {
+        let temp = tempfile::tempdir().unwrap();
+        stage_file(
+            temp.path(),
+            "foo.rs",
+            "fn audit(root: &std::path::Path) {\n\
+             \x20   // GENERATED-READ-OK: audit lane, lints committed output, never folds into gmeow.gts.\n\
+             \x20   let _ = root.join(\"generated/mappings\");\n}\n",
+        );
+        assert!(ban_errors(temp.path()).is_empty());
+    }
+
+    #[test]
+    fn ban_ignores_prose_mentioning_generated_paths() {
+        let temp = tempfile::tempdir().unwrap();
+        stage_file(
+            temp.path(),
+            "foo.rs",
+            "fn run() {\n    // this fold used to read generated/queries off disk; now product-sourced.\n    let _ = 1;\n}\n",
+        );
+        assert!(ban_errors(temp.path()).is_empty());
+    }
+
+    // ── bypass-coverage: hardened literal regex + widened scan scope ─────
+
+    fn pipeline_src_file(root: &Path, name: &str, body: &str) {
+        write(&root.join(format!("crates/pipeline/src/{name}")), body);
+    }
+
+    #[test]
+    fn ban_flags_a_whitespace_join_generated_read() {
+        // A space after `.join(` — a naive `.contains(".join(\"generated")` misses it.
+        let temp = tempfile::tempdir().unwrap();
+        stage_file(
+            temp.path(),
+            "foo.rs",
+            "fn run(root: &std::path::Path) {\n    let _ = list_files(&root.join( \"generated/queries\"), \"rq\");\n}\n",
+        );
+        let errs = ban_errors(temp.path());
+        assert_eq!(errs.len(), 1, "{errs:?}");
+        assert!(errs[0].contains("stale-disk-fold"), "{errs:?}");
+    }
+
+    #[test]
+    fn ban_flags_a_format_join_generated_read() {
+        // A `.join(format!("generated/{p}.rq"))` wrapper — must still be flagged.
+        let temp = tempfile::tempdir().unwrap();
+        stage_file(
+            temp.path(),
+            "foo.rs",
+            "fn run(root: &std::path::Path, p: &str) {\n    let _ = std::fs::read(root.join(format!(\"generated/{p}.rq\")));\n}\n",
+        );
+        let errs = ban_errors(temp.path());
+        assert_eq!(errs.len(), 1, "{errs:?}");
+        assert!(errs[0].contains("stale-disk-fold"), "{errs:?}");
+    }
+
+    #[test]
+    fn ban_flags_a_slashless_const_generated_read() {
+        // A slash-less `const … = "generated";` used via `.join(G)` — the relaxed const regex
+        // must catch the bare directory name, not only `"generated/…"`.
+        let temp = tempfile::tempdir().unwrap();
+        stage_file(
+            temp.path(),
+            "foo.rs",
+            "const G: &str = \"generated\";\n\
+             fn run(root: &std::path::Path) {\n    let _ = std::fs::read(root.join(G));\n}\n",
+        );
+        let errs = ban_errors(temp.path());
+        assert_eq!(errs.len(), 1, "{errs:?}");
+    }
+
+    #[test]
+    fn ban_flags_a_produce_read_outside_stages_dir() {
+        // A produce read in a helper OUTSIDE stages/ — the old stages/-only scan would have
+        // missed it; the widened recursive scan of crates/pipeline/src/ catches it.
+        let temp = tempfile::tempdir().unwrap();
+        pipeline_src_file(
+            temp.path(),
+            "helper.rs",
+            "fn run(root: &std::path::Path) {\n    let _ = list_files(&root.join(\"generated/queries\"), \"rq\");\n}\n",
+        );
+        let errs = ban_errors(temp.path());
+        assert_eq!(errs.len(), 1, "{errs:?}");
+        assert!(errs[0].contains("stale-disk-fold"), "{errs:?}");
     }
 }

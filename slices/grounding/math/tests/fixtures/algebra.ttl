@@ -1,0 +1,61 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Shared ABox for the algebra competency questions (crates/slicetest). It carries the
+# three arms of the charter's unification — the determinant (a group homomorphism), the
+# E8 Weyl action (an automorphism), and a homomorphic-encryption scheme (a ring
+# homomorphism) — each a map declaring the operation it preserves and its preservation
+# law, so one uniform query returns all three as the same kind of object.
+
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix exf:   <http://example.org/math/> .
+
+exf:detHom a math:GroupHomomorphism ;
+    math:preservedOperation exf:matrixMultiplication ;
+    math:preservationLaw exf:detLaw ;
+    math:kernel exf:sl2 .
+
+exf:heScheme a math:HomomorphicEncryptionScheme ;
+    math:preservedOperation exf:ringMultiplication ;
+    math:preservationLaw exf:heLaw ;
+    math:homomorphicOver exf:ringMultiplication ;
+    math:securityAssumption math:ringLearningWithErrors ;
+    math:noiseModel exf:gaussianNoise .
+
+exf:weylAction a math:Automorphism ;
+    math:preservedOperation exf:rootReflection ;
+    math:preservationLaw exf:weylLaw .
+
+exf:sl2 a math:Group .
+exf:gaussianNoise a math:Operation .
+
+# --- A structure (for the structure-operation-axioms question) ------------- #
+exf:exampleGroup a math:Group ;
+    math:structureOperation exf:groupOp ;
+    math:satisfiesAxiom exf:assocAxiom .
+exf:groupOp a math:Operation .
+exf:assocAxiom a math:Axiom .
+
+# --- An isomorphism (for the isomorphic-structures question) --------------- #
+exf:sampleIso a math:Isomorphism ;
+    math:domain exf:structA ;
+    math:codomain exf:structB .
+exf:structA a math:Group .
+exf:structB a math:Group .
+
+exf:matrixMultiplication a math:Operation .
+exf:ringMultiplication a math:Operation .
+exf:rootReflection a math:Operation .
+exf:detLaw a logic:Formula .
+exf:heLaw a logic:Formula .
+exf:weylLaw a logic:Formula .
+
+# --- The E8 root system, with its validatable numbers (240/rank 8/Weyl order) #
+exf:e8RootSystem a math:RootSystem ;
+    math:rootCount 240 ;
+    math:rootSystemRank 8 ;
+    math:weylGroup exf:e8Weyl .
+
+exf:e8Weyl a math:WeylGroup ;
+    math:groupOrder 696729600 .

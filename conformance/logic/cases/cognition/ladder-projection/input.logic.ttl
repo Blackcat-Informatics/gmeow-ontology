@@ -12,7 +12,7 @@
 # narrow task (procedural strong, transfer weak) does NOT project hasMastered —
 # the distinction a single ordinal ladder hides.
 #
-# These are the shipped projection rules (slices/core/logic/module.ttl); the
+# These are the shipped projection rules (slices/grounding/logic/module.ttl); the
 # profile rows, the levelAtOrAbove ordinal order, and the assessment instances are
 # the EDB (input.nq). Positive Horn: the threshold is read from the profile.
 #

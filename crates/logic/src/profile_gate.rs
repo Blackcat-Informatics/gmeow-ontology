@@ -14,7 +14,7 @@
 //! inserted into `WorldStore.inner` during or after resolution. Cut is virtual-only by
 //! construction.
 //!
-//! # Cut-permission is facet-derived (#767)
+//! # Cut-permission is facet-derived
 //!
 //! Cut-confinement is decided in FACET terms, not by a raw profile-name match: a
 //! profile reference (full IRI, `prefix:Local`, or bare local name) is resolved to its
@@ -44,7 +44,7 @@ pub fn has_cut(program: &QProgram) -> bool {
 /// Cut may appear ONLY under a profile whose facet bundle licenses it. Hard-fail
 /// otherwise — there is no fallback or silent stripping of cut.
 ///
-/// The decision is **facet-derived** (#767): `profile` is resolved to its preset
+/// The decision is **facet-derived**: `profile` is resolved to its preset
 /// via its local name ([`SemanticProfileId::from_local`]) and cut is licensed iff
 /// that preset's facet bundle carries the procedural-execution facet
 /// (`logic:ProceduralExecution`, exposed by [`SemanticProfileId::permits_cut`] and
@@ -74,7 +74,7 @@ pub fn check_cut_profile(program: &QProgram, profile: &str) -> Result<(), String
     ))
 }
 
-// ── Arithmetic-builtin gate (#1009 G2a) ──────────────────────────────────────
+// ── Arithmetic-builtin gate (G2a) ──────────────────────────────────────
 
 /// Return `true` if any rule body in `program` contains an arithmetic/comparison
 /// builtin ([`QBodyLit::Builtin`]).
@@ -90,7 +90,7 @@ pub fn has_builtin(program: &QProgram) -> bool {
 /// resolves to a preset whose facet bundle licenses procedural execution.
 ///
 /// Arithmetic builtins (`logic:builtinArithmetic`) are gated to
-/// `ProceduralPrologProfile` (per `slices/core/logic/module.ttl`), exactly as cut is.
+/// `ProceduralPrologProfile` (per `slices/grounding/logic/module.ttl`), exactly as cut is.
 /// The decision is **facet-derived** (the same [`is_procedural_profile`] predicate
 /// used for cut): an unrecognized profile resolves to no preset and does not license
 /// builtins. There is no fallback or silent stripping.
@@ -139,7 +139,7 @@ fn is_procedural_profile(profile: &str) -> bool {
         .is_some_and(SemanticProfileId::permits_cut)
 }
 
-// ── Probabilistic profile recognition (#506) ─────────────────────────────────
+// ── Probabilistic profile recognition ─────────────────────────────────
 
 /// The canonical full IRI for the probabilistic profile.
 pub const PROBABILISTIC_PROFILE: &str = "https://blackcatinformatics.ca/logic/ProbabilisticProfile";
@@ -151,14 +151,14 @@ const PROBABILISTIC_SHORT_NAME: &str = "ProbabilisticProfile";
 ///
 /// Matching mirrors [`is_procedural_profile`]: full IRI, bare short name, or any
 /// prefixed form ending in the short name (`logic:ProbabilisticProfile`, etc.).
-/// Probabilistic inference (#506) is available ONLY under this profile.
+/// Probabilistic inference is available ONLY under this profile.
 pub fn is_probabilistic_profile(profile: &str) -> bool {
     profile == PROBABILISTIC_PROFILE
         || profile == PROBABILISTIC_SHORT_NAME
         || profile.ends_with(PROBABILISTIC_SHORT_NAME)
 }
 
-// ── Lewis multi-world profile recognition (#505) ─────────────────────────────
+// ── Lewis multi-world profile recognition ─────────────────────────────
 
 /// The opt-in, budget-capped Lewis multi-world profiles. Non-default: Stratum-C
 /// resolves under the deterministic-revision profile unless one of these is named.
@@ -245,6 +245,7 @@ pub fn evolution_mode_local(evolution: &str) -> Option<&'static str> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::oracle::{backward_oracle, BackwardOracle};
     use crate::query_ir::parse_query_program;
     use crate::seam::WorldStoreForeign;
     use crate::store::WorldStore;
@@ -350,7 +351,7 @@ mod tests {
         assert!(check_cut_profile(&prog, "SomeRandomProfile").is_ok());
     }
 
-    // ── Lewis profile recognition (#505) ──────────────────────────────────────
+    // ── Lewis profile recognition ──────────────────────────────────────
 
     #[test]
     fn lewis_mode_recognizes_full_iri_and_short_and_prefixed() {
@@ -422,7 +423,7 @@ mod tests {
 
     // ── No-write firewall ──────────────────────────────────────────────────────
     //
-    // Run a terminating cut program through `run_scryer` under the procedural
+    // Run a terminating cut program through the backward oracle under the procedural
     // profile and verify the store quad count is unchanged — cut is virtual-only,
     // no quads are inserted.
 
@@ -458,14 +459,15 @@ mod tests {
         check_cut_profile(&prog, PROCEDURAL_PROLOG_PROFILE)
             .expect("gate must pass under ProceduralPrologProfile");
 
-        let ans = crate::scryer_engine::run_scryer(
-            &foreign,
-            WORLD,
-            &prog,
-            &[], // no tabling — cut program is procedural
-            &crate::query_ir::Budget::default(),
-        )
-        .expect("run_scryer must succeed on a terminating cut program");
+        let ans = backward_oracle()
+            .solve(
+                &foreign,
+                WORLD,
+                &prog,
+                &[], // no tabling — cut program is procedural
+                &crate::query_ir::Budget::default(),
+            )
+            .expect("the backward oracle must succeed on a terminating cut program");
 
         // Cut commits to the first answer; store is still unchanged.
         assert_eq!(
@@ -476,7 +478,7 @@ mod tests {
         let after = store.quads_in_world(WORLD).len();
         assert_eq!(
             before, after,
-            "store quad count must be UNCHANGED after run_scryer (no-write firewall)"
+            "store quad count must be UNCHANGED after the backward oracle solve (no-write firewall)"
         );
     }
 }

@@ -1,0 +1,24 @@
+# Competency question: "What are the domain, codomain, and image of each function,
+# and is it injective/surjective/bijective?"  This exercises the rule that a function
+# declares its frame (domain and codomain — both mandatory, so a strict BGP) and that
+# injectivity/surjectivity/bijectivity and the image are declared, checkable booleans.
+# The image and the boolean characteristics are not shape-mandatory, so they are
+# OPTIONAL: a function that has not (yet) declared them still appears in the answer
+# with its frame, rather than dropping out silently. Over the fixture the answer is
+# the single function {successor: ℕ → ℕ, image positives, injective, not surjective,
+# not bijective}.
+PREFIX math: <https://blackcatinformatics.ca/math/>
+
+SELECT ?function ?domain ?codomain ?image ?injective ?surjective ?bijective WHERE {
+    ?function a math:Function ;
+              math:domain ?domain ;
+              math:codomain ?codomain .
+    OPTIONAL { ?function math:image ?image }
+    OPTIONAL { ?function math:isInjective ?injRaw }
+    OPTIONAL { ?function math:isSurjective ?surjRaw }
+    OPTIONAL { ?function math:isBijective ?bijRaw }
+    BIND(STR(?injRaw) AS ?injective)
+    BIND(STR(?surjRaw) AS ?surjective)
+    BIND(STR(?bijRaw) AS ?bijective)
+}
+ORDER BY ?function

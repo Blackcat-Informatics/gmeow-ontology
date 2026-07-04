@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The `json-schema` export leaf (#700): native SHACL → JSON Schema + OpenAPI.
+//! The `json-schema` export leaf: native SHACL → JSON Schema + OpenAPI.
 //!
 //! Replaces the Python LinkML `JsonSchemaGenerator` + OpenAPI derivation (which
 //! went through the LinkML toolkit). This leaf compiles the SAME SHACL shape
@@ -185,7 +185,7 @@ mod tests {
         }
     }
 
-    /// Corpus self-consistency invariant (#700): compiling over the REAL repo
+    /// Corpus self-consistency invariant: compiling over the REAL repo
     /// shape union must produce ZERO dangling `$ref`s — every `#/$defs/<name>`
     /// the schema references must resolve to an emitted `$def`. This guards the
     /// real corpus against the dangling-ref bug a draft-2020-12 validator rejects

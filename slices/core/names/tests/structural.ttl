@@ -566,3 +566,56 @@ ex:saNameLanguageDomainAppellation a gmeow:StructuralAssertion ;
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK { gmeow:nameLanguage rdfs:domain gmeow:Appellation . }""" ;
     gmeow:saRationale "gmeow:nameLanguage MUST have rdfs:domain gmeow:Appellation -- declared on the superclass so all subclasses inherit it. Mirrors test_name_language_is_functional_on_appellation (domain part)." .
+
+# --- 48. Register spine lives in names core (MUST) ---------------------------
+ex:saRegisterSpineLivesInNamesCore a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:Register a owl:Class , logic:AbstractIndividualType ;
+        rdfs:subClassOf logic:QualityValue .
+    gmeow:NameRegister rdfs:subClassOf gmeow:Register .
+    gmeow:registerFormal a gmeow:NameRegister .
+}""" ;
+    gmeow:saRationale "gmeow:Register MUST be an owl:Class typed logic:AbstractIndividualType and a subclass of logic:QualityValue in the names-core slice; gmeow:NameRegister MUST specialize it; and the seed gmeow:registerFormal MUST be a gmeow:NameRegister. Mirrors test_register_spine_lives_in_names_core." .
+
+# --- 49. PlaceName is a SubKind subclass of Appellation (MUST) ----------------
+ex:saPlaceNameIsSubKindAppellation a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:PlaceName a owl:Class , logic:SubKind ;
+        rdfs:subClassOf gmeow:Appellation .
+}""" ;
+    gmeow:saRationale "gmeow:PlaceName MUST be an owl:Class typed logic:SubKind and a subclass of gmeow:Appellation -- the structured replacement for the retired flat alternateName. Mirrors test_alternate_name_retired (PlaceName part)." .
+
+# --- 50. The retired alternateName literal property does NOT exist (MUST-NOT) -
+ex:saAlternateNameRetired a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    VALUES ?t { owl:DatatypeProperty owl:ObjectProperty }
+    gmeow:alternateName a ?t .
+}""" ;
+    gmeow:saRationale "The retired flat gmeow:alternateName MUST NOT exist as an owl:DatatypeProperty or owl:ObjectProperty -- place naming is carried by gmeow:hasPlaceName -> gmeow:PlaceName (greenfield, Principle 6). Mirrors test_alternate_name_retired (retired property part)." .
+
+# --- 51. hasNamePart specializes the universal hasPart spine (MUST) ------------
+ex:saHasNamePartSpecializesHasPart a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:hasNamePart rdfs:subPropertyOf gmeow:hasPart .
+}""" ;
+    gmeow:saRationale "gmeow:hasNamePart MUST be rdfs:subPropertyOf gmeow:hasPart -- name decomposition specializes the universal has-part spine. Mirrors test_existing_part_like_relations_specialize_the_spine (names hasPart side)." .

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-//! Conformance twins migrated from tests/test_norms.py (#867)
+//! Conformance twins migrated from tests/test_norms.py
 //!
 //! Migrated: the two `run_shacl`-based fixture tests.
 //!
@@ -27,11 +27,11 @@ use rstest::rstest;
         .fails()
         .violations(&[
             "no ought, only ought-according-to",
-            "never overrides itself",
+            "its own gmeow:overrides",
             "at least two gmeow:groupMember",
             "exactly one gmeow:groupOperator",
             "binds exactly one of gmeow:parameterValue",
-            "higher and lower norms must be distinct",
+            "gmeow:precedenceHigher and gmeow:precedenceLower must be distinct",
             "must be scoped to exactly one gmeow:precedenceScope",
             "must be gmeow:deonticPermission",
             "exactly one gmeow:evaluationVerdict",

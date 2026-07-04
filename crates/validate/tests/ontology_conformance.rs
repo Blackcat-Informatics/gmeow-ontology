@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Whole-ontology native SHACL conformance harness (#867).
+//! Whole-ontology native SHACL conformance harness.
 //!
 //! Migrated from Python `run_shacl` pytest functions:
 //!
@@ -32,7 +32,7 @@
 //! that `make validate` uses — so regressions in shape authoring are caught at
 //! Rust compile+test speed, not after Python import.
 //!
-//! Collapsed onto the shared [`Case`] harness (#1051). `Case::raw_nt` feeds raw
+//! Collapsed onto the shared [`Case`] harness. `Case::raw_nt` feeds raw
 //! N-Triples straight to the validator (no Turtle round-trip) for the originals
 //! that called `validate(nt)` on an N-Triples literal — notably the
 //! case-insensitive language-tag check, whose tag casing must not be normalised.
@@ -50,7 +50,7 @@ use rstest::rstest;
         .violations(&[
             "exactly one gmeow:Gender value",
             "must use exactly one appellation",
-            "may fill at most one identity axis",
+            "may fill at most one of these mutually disjoint classes",
         ])
         .warnings(&["should set gmeow:displayable false"])
 )]
@@ -69,7 +69,7 @@ ex:x a gmeow:SexualOrientation .
 "
     )
     .fails()
-    .violations(&["may fill at most one identity axis"])
+    .violations(&["may fill at most one of these mutually disjoint classes"])
 )]
 #[case::wellformed_facet_cardinality_passes(Case::inline(
     "\

@@ -4,8 +4,8 @@
 # Worked example — the REAL memory-MCP triad, dogfooded as action schemas under the
 # canonical-process action theory.
 #
-# These are the three tools the production memory MCP server actually exposes
-# (src/gmeow_tools/mcp_server.py): `store_claim` (writes a reified claim to memory),
+# These are the three tools the production native memory MCP server actually
+# exposes: `store_claim` (writes a reified claim to memory),
 # `revise_belief` (SUPPRESSES a claim — P10 suppression-not-erasure, the recovery /
 # rollback action), and `recall` (the read path, which records nothing). This file
 # models each tool as a logic:ActionSchema and brings the two WRITE tools under the

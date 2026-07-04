@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Integration tests for the `gmeow-validate` lints (#579).
+//! Integration tests for the `gmeow-validate` lints.
 //!
 //! These exercise the PyO3-free engine API directly: [`store::parse_file_dataset`]
 //! (syntax checking) and [`store::sameas_violations`] (the Principle 5 ban).

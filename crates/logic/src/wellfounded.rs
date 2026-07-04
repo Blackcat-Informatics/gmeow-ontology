@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Native well-founded-semantics evaluator (issue #651, Phase A).
+//! Native well-founded-semantics evaluator (Phase A).
 //!
 //! Nemo rejects non-stratifiable programs, so the well-founded model is computed
 //! here by the **alternating fixpoint** of van Gelder, on top of the reduct least
@@ -31,7 +31,7 @@
 //! `source_quad_ids = [reifier(move(p1,p2))]`.
 //!
 //! Phase-A note: [`materialize`] is the entry point `py.rs` will call in Phase B of
-//! #651; until that routing lands it is consumed only by this module's tests, hence
+//! ; until that routing lands it is consumed only by this module's tests, hence
 //! the crate-internal `dead_code` allowance.
 #![allow(dead_code)]
 
@@ -41,7 +41,7 @@ use crate::rule_ir::{
 
 /// The ordered intra-engine phases [`materialize`] runs per world — the runtime
 /// twin of the authored `logic:wellFoundedMaterializerPlan`
-/// (`slices/core/logic/module.ttl`).
+/// (`slices/grounding/logic/module.ttl`).
 ///
 /// Principle 12 BOUNDARY: the authored plan is checked against THIS const by the
 /// dogfood parity gate `crates/pipeline/tests/wellfounded_plan_parity.rs`; the

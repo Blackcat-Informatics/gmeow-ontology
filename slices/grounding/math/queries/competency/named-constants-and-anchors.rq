@@ -1,0 +1,14 @@
+# Competency question: "Which named constants appear, and what are their external
+# anchors?"  This exercises the rule that a named constant is an exact individual
+# anchored to an external authority (a Wikidata QID), reached through a
+# gmeow:TermEquivalence alignment record. Over the fixture the answer is
+# {math:pi → wd:Q167}.
+PREFIX math:  <https://blackcatinformatics.ca/math/>
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?constant ?anchor WHERE {
+    ?equivalence gmeow:alignSubject ?constant ;
+                 gmeow:alignObject ?anchor .
+    ?constant a math:MathematicalConstant .
+}
+ORDER BY ?constant

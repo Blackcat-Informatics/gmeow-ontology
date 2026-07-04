@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Golden test of the `gmeow:` RDF projection of the documentation model (#853
+//! Golden test of the `gmeow:` RDF projection of the documentation model (
 //! T5 dogfooding).
 //!
 //! The snapshot is over a SMALL, hand-built deterministic model — not the live
@@ -9,7 +9,7 @@
 //! vocabulary shape (predicates, the documentation named graph, the
 //! `xsd:boolean` typing) rather than churning on ontology content.
 
-// Rich colored line-diffs on assert_eq! failure (#871); shadows the std macro
+// Rich colored line-diffs on assert_eq! failure; shadows the std macro
 // for this file. Identical behaviour on pass; insta snapshots are unaffected.
 use gmeow_docs::{
     to_gmeow_rdf, DocConcern, DocMappingSet, DocSlice, DocTerm, DocTermCategory, DocsModel,
@@ -124,7 +124,7 @@ fn gmeow_rdf_projection_is_deterministic() {
     assert_eq!(to_gmeow_rdf(&model), to_gmeow_rdf(&model));
 }
 
-// ── R5 (#859): vocabulary-shape + round-trip-valid RDF (beyond the golden) ──────
+// ── R5: vocabulary-shape + round-trip-valid RDF (beyond the golden) ──────
 
 const DOCUMENTATION_GRAPH: &str = "https://blackcatinformatics.ca/gmeow/graph/documentation";
 
@@ -177,7 +177,7 @@ fn gmeow_rdf_types_the_definition_flag_as_xsd_boolean() {
 /// NOT through any gmeow-rdf serializer — so re-parsing it through the
 /// *independent* native N-Quads reader ([`purrdf::parse_dataset`]) proves the
 /// projection emits valid, round-trippable N-Quads without testing the codec
-/// against itself. (EPIC #906: docs is oxigraph-free; this carve-out moved from
+/// against itself. (docs is oxigraph-free; this carve-out moved from
 /// the oxigraph reader to the native reader, exactly the slice-crate migration.)
 #[test]
 fn gmeow_rdf_reparses_through_native_codec() {

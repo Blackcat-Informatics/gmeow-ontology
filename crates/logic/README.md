@@ -34,7 +34,7 @@ Nemo-based rule materialization and PyO3 bindings are included.
 
 ---
 
-## Static certifier and the budget governor (issue #502)
+## Static certifier and the budget governor
 
 `certify(rules, profile)` is the Rust mirror of the Python oracle
 (`gmeow_tools.logic_certify`). It parses Nemo `.rls` text with Nemo's own parser
@@ -78,10 +78,10 @@ ceilings the verdict, kept set, and budget strings match the oracle exactly; the
 only engine-dependent budget is `time_ms`, and that divergence is **named here,
 not glossed** (the same contract appears in the `certify.rs` and `py.rs` doc
 comments). With all three budget parameters `None` (the default), `materialize`
-output is byte-identical to the pre-#502 behaviour: chase order preserved, every
+output is byte-identical to the pre-existing behaviour: chase order preserved, every
 quad `"ok"`.
 
-## Foundation lowering (issues #503, #636)
+## Foundation lowering
 
 Foundation lowering is the move of the five OntoUML structural disciplines from the native gUFO
 checks (`crates/validate/src/gufo.rs`) into executable `logic:` IR rules that materialize
@@ -106,7 +106,7 @@ anti-rigidity witness policy (`witness-obligation` / `witness-required` / `schem
 companion pass that emits `logic:dischargeObligation` / `logic:witnessRequiredViolation` per the
 declared policy without ever suppressing a violation.
 
-### Native Rust evaluator (issue #636)
+### Native Rust evaluator
 
 The lowering is **evaluated natively in Rust** by `crates/logic/src/foundation.rs` (entry point:
 the `gmeow_logic.foundation(nquads, policy)` PyO3 binding). The in-world discipline rules, the
@@ -131,7 +131,7 @@ materialization with the loss recorded.)
 
 ---
 
-## Stratum-C counterfactuals (issue #505)
+## Stratum-C counterfactuals
 
 `query(...)` resolves a `.logic` program that declares a counterfactual
 (`:- counterfactual(W_cf, W_base).` + `:- assume(p(s, o)).`) by constructing a
@@ -157,7 +157,7 @@ under `conformance/logic/cases/worlds-C/`.
 
 ---
 
-## Probabilistic / weighted layer (issue #506)
+## Probabilistic / weighted layer
 
 Under `logic:ProbabilisticProfile`, `query(...)` routes to the probabilistic evaluator
 (`src/probabilistic.rs`) instead of the backward-goal dispatcher. It computes **exact
@@ -247,8 +247,8 @@ assert_eq!(worlds, vec!["http://world/A", "http://world/B"]);
 
 ## Developer documentation
 
-- [Logic Runtime Architecture](../../slices/core/logic/design/LOGIC-RUNTIME.md)
-- [Logic Semantics](../../slices/core/logic/design/LOGIC-SEMANTICS.md)
+- [Logic Runtime Architecture](../../slices/grounding/logic/design/LOGIC-RUNTIME.md)
+- [Logic Semantics](../../slices/grounding/logic/design/LOGIC-SEMANTICS.md)
 - [Project Rationale](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/docs/RATIONALE.md)
 - [GMEOW Constitution](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/CONSTITUTION.md)
 - [Repository AGENTS.md](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/AGENTS.md)

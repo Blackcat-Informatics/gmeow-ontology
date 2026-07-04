@@ -1,0 +1,292 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative competency questions for the mathematics slice (crates/slicetest): the
+# five bedrock questions the charter requires the term surface to answer. Each query
+# runs over the merged ontology unioned with the shared fixture (gmeow:cqDataFile),
+# and its expected rows are pinned exactly (logic:RowsExact). Boolean flags are
+# projected as their string form (STR(...)) so the expected cell is a plain literal.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix wd:    <http://www.wikidata.org/entity/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/math/tests/> .
+@prefix exf:   <http://example.org/math/> .
+
+# === Q1 — number system and exactness ====================================== #
+
+ex:cqNumberSystemAndExactness a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/number-system-and-exactness.rq" ;
+    gmeow:cqDataFile "tests/fixtures/bedrock.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "Each situated number reports the math:NumberSystem it belongs to and its exactness; over the fixture the answer is exactly {half → ℚ (exact), negFive → ℤ (exact)}." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqNumberSystemShape ;
+    gmeow:cqExpectRow ex:rowHalf , ex:rowNegFive .
+
+ex:cqNumberSystemShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "number" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "system" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "exact" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ; logic:columnDatatype xsd:string ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowHalf a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "number" ; gmeow:cellValueIri exf:half ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "system" ; gmeow:cellValueIri math:rationalNumbers ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "exact" ; gmeow:cellValueLiteral "true" ] .
+
+ex:rowNegFive a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "number" ; gmeow:cellValueIri exf:negFive ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "system" ; gmeow:cellValueIri math:integers ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "exact" ; gmeow:cellValueLiteral "true" ] .
+
+# === Q2 — set extent and condition ========================================= #
+
+ex:cqSetExtentAndCondition a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/set-extent-and-condition.rq" ;
+    gmeow:cqDataFile "tests/fixtures/bedrock.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "An intensional math:SetBuilderExpression reports its math:memberCondition as the logic: formula that denotes it; over the fixture the answer is exactly {evenNumbers → evenFormula}." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqSetExtentShape ;
+    gmeow:cqExpectRow ex:rowEvenNumbers .
+
+ex:cqSetExtentShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "set" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "condition" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowEvenNumbers a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "set" ; gmeow:cellValueIri exf:evenNumbers ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "condition" ; gmeow:cellValueIri exf:evenFormula ] .
+
+# === Q3 — function domain, codomain, image, and inj/surj/bij ================ #
+
+ex:cqFunctionFraming a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/function-domain-codomain-image.rq" ;
+    gmeow:cqDataFile "tests/fixtures/bedrock.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A function reports its domain, codomain, image, and its declared injective/surjective/bijective flags; over the fixture the answer is exactly the single function successor (ℕ → ℕ, image positives, injective, not surjective, not bijective)." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqFunctionShape ;
+    gmeow:cqExpectRow ex:rowSuccessor .
+
+ex:cqFunctionShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "function" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "domain" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "codomain" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "image" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "injective" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ; logic:columnDatatype xsd:string ] ,
+        [ logic:columnVariable "surjective" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ; logic:columnDatatype xsd:string ] ,
+        [ logic:columnVariable "bijective" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ; logic:columnDatatype xsd:string ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowSuccessor a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "function" ; gmeow:cellValueIri exf:successor ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "domain" ; gmeow:cellValueIri exf:naturalsSet ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "codomain" ; gmeow:cellValueIri exf:naturalsSet ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "image" ; gmeow:cellValueIri exf:positivesSet ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "injective" ; gmeow:cellValueLiteral "true" ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "surjective" ; gmeow:cellValueLiteral "false" ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "bijective" ; gmeow:cellValueLiteral "false" ] .
+
+# === Q4 — set cardinality ================================================== #
+
+ex:cqSetCardinality a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/set-cardinality.rq" ;
+    gmeow:cqDataFile "tests/fixtures/bedrock.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "Each set reports its cardinality; over the fixture the answer is exactly {primesUnderTen → finite, allNaturals → ℵ₀}." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqCardinalityShape ;
+    gmeow:cqExpectRow ex:rowPrimes , ex:rowAllNaturals .
+
+ex:cqCardinalityShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "set" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "cardinality" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowPrimes a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "set" ; gmeow:cellValueIri exf:primesUnderTen ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "cardinality" ; gmeow:cellValueIri math:cardinalityFinite ] .
+
+ex:rowAllNaturals a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "set" ; gmeow:cellValueIri exf:allNaturals ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "cardinality" ; gmeow:cellValueIri math:alephNull ] .
+
+# === Q5 — named constants and their anchors ================================ #
+
+ex:cqNamedConstantsAndAnchors a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/named-constants-and-anchors.rq" ;
+    gmeow:cqDataFile "tests/fixtures/bedrock.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A named constant reports the external anchor reached through its gmeow:TermEquivalence alignment; over the fixture the answer is exactly {math:pi → wd:Q167}." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqConstantsShape ;
+    gmeow:cqExpectRow ex:rowPiAnchor .
+
+ex:cqConstantsShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "constant" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "anchor" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowPiAnchor a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "constant" ; gmeow:cellValueIri math:pi ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "anchor" ; gmeow:cellValueIri wd:Q167 ] .
+
+# === Q6 — the unification: structure-preserving maps (det, Weyl, HE) ======== #
+
+ex:cqStructurePreservingMaps a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/structure-preserving-maps.rq" ;
+    gmeow:cqDataFile "tests/fixtures/algebra.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "The charter's unification made queryable: det (a group homomorphism), the E8 Weyl action (an automorphism), and a homomorphic-encryption scheme (a ring homomorphism) are the same kind of object — a map naming a preserved operation and a preservation law. Over the fixture the answer is exactly the three maps with their operation and law." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqMapsShape ;
+    gmeow:cqExpectRow ex:rowDetMap , ex:rowHeMap , ex:rowWeylMap .
+
+ex:cqMapsShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "map" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "operation" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "law" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowDetMap a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "map" ; gmeow:cellValueIri exf:detHom ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "operation" ; gmeow:cellValueIri exf:matrixMultiplication ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "law" ; gmeow:cellValueIri exf:detLaw ] .
+
+ex:rowHeMap a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "map" ; gmeow:cellValueIri exf:heScheme ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "operation" ; gmeow:cellValueIri exf:ringMultiplication ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "law" ; gmeow:cellValueIri exf:heLaw ] .
+
+ex:rowWeylMap a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "map" ; gmeow:cellValueIri exf:weylAction ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "operation" ; gmeow:cellValueIri exf:rootReflection ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "law" ; gmeow:cellValueIri exf:weylLaw ] .
+
+# === Q7 — the validated E8 root system (240 / rank 8 / Weyl order) ========== #
+
+ex:cqE8RootSystem a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/e8-root-system.rq" ;
+    gmeow:cqDataFile "tests/fixtures/algebra.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "The E8 flagship's invariants made validatable: over the fixture the answer is exactly {rootCount 240, rank 8, Weyl order 696729600}. A mistyped number would fail this exact-match gate." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqE8Shape ;
+    gmeow:cqExpectRow ex:rowE8 .
+
+ex:cqE8Shape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "rootCount" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ; logic:columnDatatype xsd:string ] ,
+        [ logic:columnVariable "rank" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ; logic:columnDatatype xsd:string ] ,
+        [ logic:columnVariable "weylOrder" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ; logic:columnDatatype xsd:string ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowE8 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "rootCount" ; gmeow:cellValueLiteral "240" ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "rank" ; gmeow:cellValueLiteral "8" ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "weylOrder" ; gmeow:cellValueLiteral "696729600" ] .
+
+# === Q8 — a structure's operation and axioms =============================== #
+
+ex:cqStructureOperationAxioms a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/structure-operation-axioms.rq" ;
+    gmeow:cqDataFile "tests/fixtures/algebra.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A structure reports the operation and axioms that define it; over the fixture the answer is exactly {exampleGroup → groupOp / assocAxiom}." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqStructOpShape ;
+    gmeow:cqExpectRow ex:rowStructOp .
+
+ex:cqStructOpShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "structure" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "operation" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "axiom" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowStructOp a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "structure" ; gmeow:cellValueIri exf:exampleGroup ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "operation" ; gmeow:cellValueIri exf:groupOp ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "axiom" ; gmeow:cellValueIri exf:assocAxiom ] .
+
+# === Q9 — a homomorphism's preserved operation and kernel ================== #
+
+ex:cqHomomorphismKernel a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/homomorphism-preserved-operation-and-kernel.rq" ;
+    gmeow:cqDataFile "tests/fixtures/algebra.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A homomorphism reports the operation it preserves and its kernel; over the fixture the answer is exactly {detHom → matrixMultiplication / sl2}." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqHomKernelShape ;
+    gmeow:cqExpectRow ex:rowHomKernel .
+
+ex:cqHomKernelShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "hom" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "operation" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "kernel" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowHomKernel a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "hom" ; gmeow:cellValueIri exf:detHom ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "operation" ; gmeow:cellValueIri exf:matrixMultiplication ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kernel" ; gmeow:cellValueIri exf:sl2 ] .
+
+# === Q10 — which ring op / hardness / noise for an HE scheme (flagship 2) === #
+
+ex:cqHeSchemeFrame a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/he-scheme-frame.rq" ;
+    gmeow:cqDataFile "tests/fixtures/algebra.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A homomorphic-encryption scheme reports the operation it is homomorphic over, its hardness assumption, and its noise model; over the fixture the answer is exactly {heScheme → ringMultiplication / RLWE / gaussianNoise}." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqHeFrameShape ;
+    gmeow:cqExpectRow ex:rowHeFrame .
+
+ex:cqHeFrameShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "scheme" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "operation" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "assumption" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "noise" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowHeFrame a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "scheme" ; gmeow:cellValueIri exf:heScheme ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "operation" ; gmeow:cellValueIri exf:ringMultiplication ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "assumption" ; gmeow:cellValueIri math:ringLearningWithErrors ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "noise" ; gmeow:cellValueIri exf:gaussianNoise ] .
+
+# === Q11 — which structures are isomorphic ================================= #
+
+ex:cqIsomorphicStructures a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/isomorphic-structures.rq" ;
+    gmeow:cqDataFile "tests/fixtures/algebra.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "An isomorphism reports the two structures it identifies; over the fixture the answer is exactly {sampleIso → structA / structB}." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqIsoShape ;
+    gmeow:cqExpectRow ex:rowIso .
+
+ex:cqIsoShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "iso" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "a" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "b" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowIso a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "iso" ; gmeow:cellValueIri exf:sampleIso ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "a" ; gmeow:cellValueIri exf:structA ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "b" ; gmeow:cellValueIri exf:structB ] .

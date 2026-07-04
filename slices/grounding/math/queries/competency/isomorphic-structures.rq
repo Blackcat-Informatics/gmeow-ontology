@@ -1,0 +1,10 @@
+# Competency question: "Which structures are isomorphic, and by which declared
+# isomorphism?"  Over the fixture the answer is exactly {sampleIso → structA / structB}.
+PREFIX math: <https://blackcatinformatics.ca/math/>
+
+SELECT ?iso ?a ?b WHERE {
+    ?iso a math:Isomorphism ;
+         math:domain ?a ;
+         math:codomain ?b .
+}
+ORDER BY ?iso

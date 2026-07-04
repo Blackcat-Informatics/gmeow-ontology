@@ -394,7 +394,7 @@ anyone else consumes.
 *Embodied in:* the `logic:` implementation — the [`crates/logic`](./crates/logic) Rust core
 (the reasoning authority) and the Python runner / oracle in
 [`src/gmeow_tools/`](./src/gmeow_tools/), authored from the GMEOW Logic design set
-([`slices/core/logic/design/LOGIC.md`](./slices/core/logic/design/LOGIC.md) and its semantics /
+([`slices/grounding/logic/design/LOGIC.md`](./slices/grounding/logic/design/LOGIC.md) and its semantics /
 runtime / migration / conformance siblings). The logic EPIC has landed. *Tested by:* the logic
 conformance corpus (native solver ≡ committed goldens,
 Principle 7 — `meta:gate-logic-conformance`), the `logic:` → OWL / Datalog / N3 / gUFO round-trip
@@ -579,12 +579,12 @@ consumers lives in the generated projections (Principle 4), never in the canon.
 **Extends Principle 17.**
 
 *Embodied in:* the three grounding design sets —
-[`slices/core/logic/design/LOGIC.md`](./slices/core/logic/design/LOGIC.md),
+[`slices/grounding/logic/design/LOGIC.md`](./slices/grounding/logic/design/LOGIC.md),
 [`slices/grounding/math/design/MATHEMATICS.md`](./slices/grounding/math/design/MATHEMATICS.md),
 and [`slices/grounding/lang/design/LANG.md`](./slices/grounding/lang/design/LANG.md), with their
 sibling charters — the `slices/grounding/` group is the layers' home (the group segment is human
-organization the build never reads; `logic`'s relocation from `slices/core/logic` is queued
-mechanical work). *Tested by:* for the `logic:` layer, the Principle 17 gates
+organization the build never reads); all three grounding charters — `logic`, `math`, and `lang` —
+now live under `slices/grounding/`. *Tested by:* for the `logic:` layer, the Principle 17 gates
 (`meta:gate-logic-conformance`, `meta:gate-logic-round-trip`); the `math:` and `lang:` layers are
 design-stage — enforced by design-set review practice (`meta:practice-grounding-design`) until
 their slices land with the conformance charters their design sets already specify, at which point

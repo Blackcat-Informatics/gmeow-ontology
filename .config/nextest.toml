@@ -33,9 +33,32 @@
 #     82.351 s in CI shard 1; it runs the real production spine through
 #     `stage-snapshot`, which is full-DAG / ontology-size work. Focused per-stage
 #     and carrier tests keep the failure modes covered on-gate.
-#   - gmeow-pipeline gts_sink blob-input serialization test:
-#     25.8 s in CI shard 3; it exercises the terminal carrier serialization and
-#     import round-trip, which is codec/I-O-bound and has no remaining headroom.
+#   - gmeow-foundation-corpus imported_graph_conforms_to_shapes:
+#     26.065 s in CI shard 2; it validates the importer output unioned with the
+#     WHOLE merged ontology (every slices/*/*/module.ttl) against the ENTIRE SHACL
+#     shape corpus — genuinely-irreducible whole-ontology conformance. The H8
+#     migration folded 9 new sh:sparql constraint shapes (each a full-graph scan)
+#     into that corpus, nudging it just past budget. No coverage class leaves the
+#     gate: the importer's graph-shape parity stays on-gate via the four sibling
+#     SPARQL acceptance tests (scores/roles/trajectory) in the same file, and
+#     whole-ontology SHACL conformance stays on-gate via the ~35 fixture-only
+#     domain conformance_* validate tests (the four whole-ontology-union
+#     conformance binaries join this off-gate group — see next entry — for the
+#     same reason).
+#   - gmeow-validate conformance_{finance,agentic,ai_claims,music_analysis}:
+#     ~8.8 s locally / 24-26 s in CI. These are exactly the domain conformance
+#     binaries whose cases use Case::with_ontology(): each unions its fixture with
+#     the WHOLE merged ontology (every slices/*/*/module.ttl) and validates that
+#     entire graph — not just the fixture — against the ENTIRE shape corpus, so it
+#     carries the same H8 sh:sparql-constraint cost as imported_graph_conforms_to_shapes
+#     above. Measured: fixture-only conformance cases run in ~0.05 s, so the whole
+#     cost is the ontology-union validation and is independent of which fixture is
+#     under test — the four ride the 25 s cliff together and CI jitter alone decides
+#     which trip on a given run, so the whole class is carved out rather than the
+#     cases that happened to trip. No coverage class leaves the gate: the ~35
+#     fixture-only conformance_* domain tests stay on-gate against the same full
+#     shape corpus, and the whole-ontology-union path stays covered on maint-heavy
+#     alongside imported_graph_conforms_to_shapes.
 #   - gmeow-logic whole_bundle_coherence_gate_catches_injected_clash:
 #     ~95 s locally; it imports the WHOLE committed `gmeow.gts` bundle and drives
 #     the native Nemo chase over it twice (once benign, once with an injected
@@ -52,7 +75,8 @@ default-filter = '''
     | test(/w3c_rdfc10_heavy_offgate/)
     | (package(gmeow-logic) & test(/whole_bundle_.*gate/))
     | (package(gmeow-pipeline) & binary(end_to_end))
-    | (package(gmeow-pipeline) & test(/stages::gts_sink::tests::sink_serializes_the_snapshot_carrier_with_blob_inputs/))
+    | (package(gmeow-foundation-corpus) & test(/imported_graph_conforms_to_shapes/))
+    | (package(gmeow-validate) & (binary(conformance_finance) | binary(conformance_agentic) | binary(conformance_ai_claims) | binary(conformance_music_analysis)))
   )
 '''
 slow-timeout = { period = "60s", "terminate-after" = 2, "grace-period" = "30s" }
@@ -99,12 +123,16 @@ mapping-stage = { max-threads = 1 }
 # via nemo's run_chase) plus EVERY gmeow-logic test that drives Nemo or Scryer:
 # - Nemo (run_chase / run_reasoning): nemo_engine, materialize, reason, verify, certify
 # - Scryer (run_scryer, directly or via dispatch_query): scryer_engine, dispatch,
-#   profile_gate, counterfactual, sparql_path_lower (S8 #914, the lowered property-path
+#   profile_gate, counterfactual, sparql_path_lower (the lowered property-path
 #   evaluator) — so the scryer nightly alloc-abort insurance above actually covers all
 #   scryer execution, not just the scryer_engine module. The sparql_path_parity binary
-#   (#914) drives run_scryer per fixture and is serialized for the same reason.
+#   drives run_scryer per fixture and is serialized for the same reason.
+# - The oracle boundary: `oracle` (the Nemo/Scryer adapter tests drive a real chase or
+#   run_scryer) and `physical::parity` (the divergence harness runs an engine oracle
+#   against the native core per fragment). Matched by module so membership is by design,
+#   not by a test name happening to contain another module's substring.
 # foundation/stablemodel unit tests use the NATIVE rust chase (no engine) and stay parallel.
-filter = 'package(gmeow-conformance) | (package(gmeow-logic) & (binary(sparql_path_parity) | test(/nemo_engine|scryer_engine|materialize|reason|verify|certify|dispatch|profile_gate|counterfactual|sparql_path_lower/)))'
+filter = 'package(gmeow-conformance) | (package(gmeow-logic) & (binary(sparql_path_parity) | test(/nemo_engine|scryer_engine|materialize|reason|verify|certify|dispatch|profile_gate|counterfactual|sparql_path_lower|oracle|parity/)))'
 test-group = 'engine'
 
 [[profile.default.overrides]]
@@ -112,7 +140,13 @@ test-group = 'engine'
 # serialized with engine work so full-DAG reasoning does not contend with
 # concurrent chases. The over-budget full-fold / end-to-end binaries are
 # off-gated via `default-filter`, but this override still applies in maint-heavy.
-filter = 'package(gmeow-pipeline) & binary(/fold_parity|end_to_end|dag_dogfood/)'
+# fanout_parity stays ON-gate (~8 s standalone, not irreducible) but joins the
+# serialized group: unserialized it piled onto concurrent Nemo chases in the
+# shared shard and rode the 25 s cliff over on CI jitter (measured 27.9 s while a
+# 20 s entailment chase ran alongside). Serializing it against engine work removes
+# the contention without off-gating the fanout write-idempotence coverage — the
+# bias is fix-not-off-gate for a test this cheap standalone.
+filter = 'package(gmeow-pipeline) & binary(/fold_parity|end_to_end|dag_dogfood|fanout_parity/)'
 test-group = 'engine'
 slow-timeout = { period = "300s", "terminate-after" = 4, "grace-period" = "30s" }
 
@@ -152,11 +186,11 @@ slow-timeout = { period = "180s", "terminate-after" = 3, "grace-period" = "30s" 
 
 [[profile.default.overrides]]
 # Full-carrier round-trip tests decode the committed `gmeow.gts` and re-emit /
-# extract it back through the native gmeow-gts codecs (#909). The exact
-# blob-input `gts_sink` terminal serialization test is off-gated via
-# `default-filter`; the remaining carrier tests are on-gate. Keep a longer
-# runaway cliff because they are codec / I-O-bound and not protected by the
-# `engine` memory group.
+# extract it back through the native gmeow-gts codecs. All are on-gate
+# (the blob-input `gts_sink` serialization test rejoined the gate at ~0.3 s once
+# its docs-model seam removed the whole-ontology discovery). Keep a longer runaway
+# cliff because they are codec / I-O-bound and not protected by the `engine`
+# memory group.
 filter = 'package(gmeow-pipeline) & test(/gts_sink|stages::carrier::ustar_tests::build_docs_archive_packs_the_rendered_site|stages::carrier::native_assembly_tests::authored_default_assembles_natively/)'
 slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
 

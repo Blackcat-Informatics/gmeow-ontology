@@ -1,16 +1,16 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Multilingual render-selection tests (R3 of #859): fr/zh fallback.
+//! Multilingual render-selection tests (R3): fr/zh fallback.
 //!
-//! Uses controlled `Translations::from_entries` fixtures (the PR #676 precedent),
+//! Uses controlled `Translations::from_entries` fixtures (the precedent),
 //! NOT live `.po` content, so the assertions are deterministic and decoupled from
 //! translation churn. Verifies that `render_site_lang` emits the translated
 //! label/definition where a catalog entry exists and falls back to the English
 //! carrier per-term where it does not, and that the page graph (and the
 //! no-dangling-link invariant) is language-independent.
 
-// Rich colored line-diffs on assert_eq! failure (#871); shadows the std macro
+// Rich colored line-diffs on assert_eq! failure; shadows the std macro
 // for this file. Identical behaviour on pass; insta snapshots are unaffected.
 use pretty_assertions::assert_eq;
 

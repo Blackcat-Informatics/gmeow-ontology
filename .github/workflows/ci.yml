@@ -71,6 +71,13 @@ jobs:
           restore-keys: |
             pre-commit-${{ runner.os }}-
 
+      # `make lint` runs scripts/lint-issue-refs.sh, which hard-requires ripgrep;
+      # it is not present on the runner image by default.
+      - name: Install ripgrep
+        uses: taiki-e/install-action@ace6ebe54a6a0c86dfb5f7764b17f793b6925bc3 # v2
+        with:
+          tool: ripgrep
+
       - name: Lint gate
         run: make lint
 

@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The `catalog` export leaf (#861 P4): the OASIS XML catalog (`catalog-v001.xml`).
+//! The `catalog` export leaf (P4): the OASIS XML catalog (`catalog-v001.xml`).
 //!
 //! A genuine port of `src/gmeow_tools/catalog_gen.py` (no Rust existed): the
 //! IRI→file map is 100% derived from the slice manifests + a static upper-ontology
@@ -53,7 +53,7 @@ pub fn render_catalog(root: &Path) -> Result<String, PipelineError> {
     out.push_str("     import closure (gUFO spine + GMEOW slices) resolves offline for\n");
     out.push_str("     ROBOT, Protégé, and the reasoning pipeline. Paths are relative\n");
     out.push_str("     to this file (the repository root). Derived from the slice\n");
-    out.push_str("     manifests by src/gmeow_tools/catalog_gen.py (#331). -->\n");
+    out.push_str("     manifests by src/gmeow_tools/catalog_gen.py. -->\n");
     out.push_str(
         "<catalog prefer=\"public\" xmlns=\"urn:oasis:names:tc:entity:xmlns:xml:catalog\">\n",
     );
@@ -72,7 +72,7 @@ pub fn render_catalog(root: &Path) -> Result<String, PipelineError> {
     }
     if !profiles.is_empty() {
         out.push('\n');
-        out.push_str("    <!-- Named profiles (generated, #330) -->\n");
+        out.push_str("    <!-- Named profiles (generated) -->\n");
         for name in &profiles {
             out.push_str(&format!(
                 "    <uri name=\"{GMEOW}/profiles/{name}\" uri=\"generated/profiles/{name}.ttl\"/>\n"

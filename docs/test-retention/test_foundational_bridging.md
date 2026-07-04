@@ -1,15 +1,21 @@
 # Retention: `tests/test_foundational_bridging.py`
 
-**Category:** Projection / alignment → Correspondence Calculus
+**Category:** Merged-graph guard
 
 ## What it tests
 
-Tests for the gUFO↔BFO foundational-spine bridge (issue #40).
+Tests for the gUFO↔BFO foundational-spine bridge.
 
-## Why it cannot move to Rust today
+Retained dynamic tests:
 
-Exercises the FnO/EDOAL/SPARQL projection or up-projection (alignment) layer — live Python engine output.
+- `test_expected_cells_present_in_alignment_graph` — Retained dynamic test.
+- `test_bridge_uses_closematch_only` — Retained dynamic test.
+- `test_every_bfo_iri_is_a_real_class_in_the_snapshot` — Principle 7: each emitted BFO IRI is a declared owl:Class with the stated label, verified offline against the vendored snapshot.
+- `test_bridge_is_link_only_no_import` — No BFO class enters the reasoned import closure — the bridge is by reference.
+- `test_bfo_is_import_ok_upper_ontology` — Retained dynamic test.
+- `test_coverage_reported` — Retained dynamic test.
+- `test_vendored_snapshot_matches_live_bfo` — The offline snapshot must not silently rot: every BFO IRI we reference still exists, as a class, with the same label, in the live ontology.
 
-## What is needed to move it to Rust
+## Why it cannot be deleted or moved to Rust today
 
-Subsumed by the Correspondence Calculus (`docs/APPLIED_CATEGORY_THEORY/take1.md`): projections become lowerings of one `logic:Correspondence` get/put leg pair; up-projection is the derived `put` leg. When the lowering engine + `conformance/correspondence` round-trip/overclaim gates regenerate these outputs byte/graph-iso, the file is deleted under equivalence-before-deletion.
+Whole-merged-graph sweeps over terms declared across many slice modules; cannot be faithfully scoped to a single slice module.

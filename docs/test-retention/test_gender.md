@@ -1,15 +1,16 @@
 # Retention: `tests/test_gender.py`
 
-**Category:** Domain invariant → slicetest cells
+**Category:** Static repo guard
 
 ## What it tests
 
 Structural guards for the gender building block — RETAINED pytest tests only.
 
-## Why it cannot move to Rust today
+Retained dynamic tests:
 
-Structural / competency / cross-slice invariants over the module (or merged) graph — ontology *shape*, not Python logic.
+- `test_displayable_generalised_to_cover_identity` — displayable is now domain-free — it covers both Appellation and IdentityFacet.
+- `test_competency_gender_values_query` — Retained dynamic test.
 
-## What is needed to move it to Rust
+## Why it cannot be deleted or moved to Rust today
 
-Author the assertions as slicetest cells in the **owning** slice (`structural.ttl` MUST/MUST-NOT, `competency.ttl` ASK/SELECT) per `docs/SLICE_QA.md`; cross-slice subjects go in the slice that *defines* the term. Confirm `make slicetest`, then delete this file. No new Rust — the harness exists.
+Structural guards for the gender building block — RETAINED pytest tests only.

@@ -1,13 +1,13 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The reasoning-contract **compatibility feature model** (#767, Task 3).
+//! The reasoning-contract **compatibility feature model** (Task 3).
 //!
 //! A [`ReasoningContract`] selects values across orthogonal reasoning facets.  Not
 //! every combination is soundly evaluable: some facet pairs name semantics that
 //! cannot coexist (the LOGIC-CONTRACT.md "forbidden combination" examples).  This
 //! module is the **authority** for which contracts are supported; the ontology
-//! surface (`logic:CompatibilityRule` individuals in `slices/core/logic/module.ttl`)
+//! surface (`logic:CompatibilityRule` individuals in `slices/grounding/logic/module.ttl`)
 //! is a lossy documentation projection of the [`RULES`] table (Principle 17).
 //!
 //! # Design — a data table, not a cascade of `if`s
@@ -428,7 +428,7 @@ pub fn check(contract: &ReasoningContract) -> ContractVerdict {
 /// Build the expanded facet contract for each of the six named presets, as the
 /// front-end would after expanding `logic:expandsToFacet`.  Used by the tests to
 /// assert every preset's contract is supported.  Mirrors the `expandsToFacet`
-/// bundles in `slices/core/logic/module.ttl`.
+/// bundles in `slices/grounding/logic/module.ttl`.
 #[cfg(test)]
 fn preset_contracts() -> Vec<ReasoningContract> {
     use super::ir::SemanticProfileId;
@@ -754,7 +754,7 @@ logic:strict rdf:type logic:ReasoningContract ; logic:admissibleValuation logic:
         assert!(ContradictionPolicy::for_contract(&garbled).is_err());
     }
 
-    // ── Facet-combination completeness sweep (#766 ME1 watch-item) ────────────
+    // ── Facet-combination completeness sweep (ME1 watch-item) ────────────
     //
     // The unit tests above each pin ONE forbidden combination. They do not answer
     // the meta-epic's standing question: as facets multiply, is the feature model

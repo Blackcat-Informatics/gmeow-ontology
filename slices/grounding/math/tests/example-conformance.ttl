@@ -1,0 +1,204 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative example-conformance fixtures for the mathematics slice — the test-DSL
+# twin of the SHACL shapes in slices/grounding/math/shapes.ttl ("this instance
+# must validate, that counter-example must be rejected"). The harness
+# (crates/slicetest run_conformance_cell) validates mathematics/module.ttl + the one
+# bound gmeow:exampleFile against mathematics/shapes.ttl and compares finding codes.
+#
+# Each counter-example isolates ONE violation, so the (fixture, code) pair pins the
+# specific constraint. The conforming fixtures live under tests/conformance-fixtures/
+# and the counter-examples under tests/counter-examples/, so the global
+# `make validate` gate never loads the intentional violations as data.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/math/tests/> .
+
+# === Rule 1: a number declares its number system ============================ #
+
+ex:ecNumberSituated a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/number-situated.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:RationalNumber situated in math:rationalNumbers with math:isExact true satisfies math:NumberSituatedShape and validates with no findings." .
+
+ex:ecNumberMissingSystem a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/number-missing-system.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example omits math:inNumberSystem (sh:minCount 1 on math:NumberSituatedShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UnsituatedNumber)." .
+
+# === Rule 2: an approximation names what it approximates and its error ====== #
+
+ex:ecApproximationFramed a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/approximation-framed.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:ApproximateValue naming its exact math:Number and its math:approximationError satisfies math:ApproximateValueShape and validates with no findings." .
+
+ex:ecApproximationMissingError a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/approximation-missing-error.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example omits math:approximationError (sh:minCount 1 on math:ApproximateValueShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:ExactApproximateConflation)." .
+
+# === Rule 3: a named constant is an exact individual, not a decimal ========= #
+
+ex:ecConstantExact a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/constant-exact.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:MathematicalConstant that is exact and carries no raw math:quantityValue satisfies math:MathematicalConstantShape and validates with no findings." .
+
+ex:ecConstantAsDecimal a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/constant-as-decimal.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MaxCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example carries a raw math:quantityValue on a math:MathematicalConstant (sh:maxCount 0 on math:MathematicalConstantShape), so validation MUST emit shacl.MaxCountConstraintComponent and NO other finding (math:ConstantAsDecimalLiteral)." .
+
+# === Rule 4: an intensional condition denotes a logic: formula ============== #
+
+ex:ecIntensionalSet a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/intensional-set.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:SetBuilderExpression whose math:memberCondition is a resource denoting a logic: formula satisfies math:IntensionalSetShape and validates with no findings." .
+
+ex:ecIntensionalConditionString a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/intensional-condition-string.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.NodeKindConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example gives math:memberCondition an opaque string literal (sh:nodeKind sh:BlankNodeOrIRI on math:IntensionalSetShape), so validation MUST emit shacl.NodeKindConstraintComponent and NO other finding (math:StringOnlyMemberCondition)." .
+
+# === Rule 5: a complement names its ambient set ============================= #
+
+ex:ecComplementQualified a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/complement-qualified.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:Complement naming its ambient set through math:complementWithin satisfies math:ComplementShape and validates with no findings." .
+
+ex:ecComplementUnqualified a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/complement-unqualified.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example omits math:complementWithin on a math:Complement (sh:minCount 1 on math:ComplementShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UnqualifiedComplement)." .
+
+# === Rule 6: a set is extensional or intensional, not both ================== #
+
+ex:ecExtensionalSet a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/extensional-set.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:FiniteSet given extensionally by math:hasElement, with no math:memberCondition, satisfies math:SetExtentShape and validates with no findings." .
+
+ex:ecSetBothExtents a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/set-both-extents.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example carries both math:hasElement and math:memberCondition on one set (the SPARQL constraint of math:SetExtentShape), so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (math:AmbiguousSetExtent)." .
+
+# === Rule 7: a function declares its domain and codomain =================== #
+
+ex:ecFunctionFramed a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/function-framed.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:Function declaring both math:domain and math:codomain satisfies math:FunctionFramingShape and validates with no findings." .
+
+ex:ecFunctionMissingCodomain a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/function-missing-codomain.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example omits math:codomain on a math:Function (sh:minCount 1 on math:FunctionFramingShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UnframedFunction)." .
+
+# === Rule 8: an algebraic structure declares carrier, operation, and axioms = #
+
+ex:ecStructureComplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/structure-complete.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:Group declaring its math:underlyingSet, a math:structureOperation, and a math:satisfiesAxiom law satisfies math:AlgebraicStructureShape and validates with no findings." .
+
+ex:ecStructureMissingOperation a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/structure-missing-operation.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example omits math:structureOperation on a math:Group (sh:minCount 1 on math:AlgebraicStructureShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:IncompleteAlgebraicStructure)." .
+
+# === Rule 9/10: a homomorphism declares preserved operation + logic: law ==== #
+
+ex:ecHomomorphismLawful a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/homomorphism-lawful.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:GroupHomomorphism declaring a math:preservedOperation and a math:preservationLaw as a resource satisfies math:HomomorphismShape and math:PreservationLawShape and validates with no findings." .
+
+ex:ecHomomorphismMissingLaw a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/homomorphism-missing-law.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example omits math:preservationLaw on a math:GroupHomomorphism (sh:minCount 1 on math:HomomorphismShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UnderspecifiedHomomorphism)." .
+
+ex:ecHomomorphismLawString a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/homomorphism-law-string.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.NodeKindConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example gives math:preservationLaw an opaque string literal (sh:nodeKind sh:BlankNodeOrIRI on math:PreservationLawShape), so validation MUST emit shacl.NodeKindConstraintComponent and NO other finding (math:StringOnlyPreservationLaw)." .
+
+# === Rule 11/12: a Lie group / root system declares its root-system data ==== #
+
+ex:ecLieStructureComplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/lie-structure-complete.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:LieGroup declaring math:hasRootSystem, whose math:RootSystem declares its math:cartanMatrix, math:weylGroup, and math:rootSystemRank, and whose math:WeylGroup carries its math:AlgebraicStructure frame and is anchored through math:automorphismGroupOf, satisfies math:LieStructureShape, math:RootSystemShape, math:AutomorphismGroupShape, and math:AlgebraicStructureShape and validates with no findings (a rank-2 A₂ system, not the E8 fingerprint, so the E8 value gate stays inert)." .
+
+ex:ecLieMissingRootSystem a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/lie-group-missing-root-system.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example omits math:hasRootSystem on a math:LieGroup (sh:minCount 1 on math:LieStructureShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:IncompleteLieStructure)." .
+
+# === Rule 12b: an automorphism group is anchored to the structure it is symmetry of #
+
+ex:ecAutomorphismGroupAnchored a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/automorphism-group-anchored.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:AutomorphismGroup declaring math:automorphismGroupOf (the structure whose symmetries it collects) alongside its math:AlgebraicStructure frame satisfies math:AutomorphismGroupShape and math:AlgebraicStructureShape and validates with no findings." .
+
+ex:ecAutomorphismGroupUnanchored a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/automorphism-group-unanchored.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example omits math:automorphismGroupOf on a math:AutomorphismGroup (sh:minCount 1 on math:AutomorphismGroupShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UnanchoredAutomorphismGroup). It carries the full math:AlgebraicStructure frame so the structure gate is satisfied, isolating the anchoring violation." .
+
+# === Rule 12c: a root system claiming the E8 fingerprint declares the true Weyl order #
+
+ex:ecE8WeylCanonical a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/e8-weyl-canonical.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:RootSystem with the E8 fingerprint (240 roots, rank 8) whose math:weylGroup declares math:groupOrder 696729600 — the true order of W(E8) — satisfies math:E8WeylOrderShape (and math:RootSystemShape, math:AutomorphismGroupShape, math:AlgebraicStructureShape) and validates with no findings." .
+
+ex:ecE8WrongWeylOrder a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/e8-wrong-weyl-order.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example carries the E8 fingerprint (240 roots, rank 8) but declares a math:weylGroup of math:groupOrder 696729599 instead of 696729600 (the SPARQL constraint of math:E8WeylOrderShape), so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (math:WrongE8WeylOrder). The root system and Weyl group are otherwise complete, isolating the wrong-value violation — the flagship invariant is checked by value." .
+
+# === Rule 13: a homomorphic-encryption scheme declares op + hardness + noise = #
+
+ex:ecHeSchemeComplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/he-scheme-complete.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:HomomorphicEncryptionScheme declaring math:homomorphicOver, math:securityAssumption, math:noiseModel, and — as a math:RingHomomorphism — math:preservedOperation and a resource-valued math:preservationLaw satisfies math:HomomorphicEncryptionSchemeShape, math:HomomorphismShape, and math:PreservationLawShape and validates with no findings." .
+
+ex:ecHeMissingNoiseModel a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/he-scheme-missing-noise-model.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example omits math:noiseModel on a math:HomomorphicEncryptionScheme (sh:minCount 1 on math:HomomorphicEncryptionSchemeShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UnderspecifiedEncryptionScheme). It declares math:preservedOperation, math:homomorphicOver, math:preservationLaw, and math:securityAssumption so the homomorphism and hardness gates are satisfied, isolating the noise-model violation." .
+
+# === Rule 14: a ring declares the distributivity law tying its two operations = #
+
+ex:ecRingDistributive a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/ring-distributive.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:Ring declaring math:satisfiesDistributivity (the distributivity law) alongside its carrier, operations, and an axiom satisfies math:RingDistributivityShape and math:AlgebraicStructureShape and validates with no findings." .
+
+ex:ecRingMissingDistributivity a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/ring-missing-distributivity.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example omits math:satisfiesDistributivity on a math:Ring (sh:minCount 1 on math:RingDistributivityShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:NonDistributiveRing). It declares its carrier, both operations, and an axiom so the general math:AlgebraicStructureShape is satisfied, isolating the distributivity violation." .

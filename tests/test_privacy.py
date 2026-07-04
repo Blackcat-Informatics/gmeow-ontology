@@ -9,10 +9,9 @@ coverage fixture.
 
 from __future__ import annotations
 
-from itertools import combinations
 from pathlib import Path
 
-from purrdf.compat.rdflib import OWL, RDF, RDFS, Graph, Namespace, URIRef
+from purrdf.compat.rdflib import RDF, Graph, Namespace, URIRef
 
 from gmeow_tools.config import NAMESPACE
 from gmeow_tools.graph import load_merged_graph
@@ -22,7 +21,6 @@ from gmeow_tools.slices import module_path
 GM = Namespace(NAMESPACE)
 ODRL = Namespace("http://www.w3.org/ns/odrl/2/")
 EX = Namespace("https://example.org/privacy/")
-LOGIC = Namespace("https://blackcatinformatics.ca/logic/")
 
 COVERAGE_FIXTURES = Path(__file__).parent / "fixtures" / "coverage"
 
@@ -35,94 +33,6 @@ def _projection_source() -> Graph:
     graph = load_merged_graph(include_imports=False)
     graph.parse(COVERAGE_FIXTURES / "privacy.ttl", format="turtle")
     return graph
-
-
-# --------------------------------------------------------------------------- #
-# Ontology structure
-# --------------------------------------------------------------------------- #
-
-
-def test_sensitivity_level_class_structure() -> None:
-    """After #694 migration: gufo: stereotype → logic: stereotype."""
-    g = _graph()
-    assert (GM.SensitivityLevel, RDF.type, OWL.Class) in g
-    assert (GM.SensitivityLevel, RDF.type, LOGIC.AbstractIndividualType) in g
-    assert (GM.SensitivityLevel, RDFS.subClassOf, LOGIC.QualityValue) in g
-
-
-def test_has_sensitivity_property_structure() -> None:
-    g = _graph()
-    assert (GM.hasSensitivity, RDF.type, OWL.ObjectProperty) in g
-    assert (GM.hasSensitivity, RDFS.range, GM.SensitivityLevel) in g
-    # Domain-free (universal, like hasGranularity).
-    assert g.value(GM.hasSensitivity, RDFS.domain) is None
-    # NOT functional: multi-source claims coexist (Principle 9).
-    assert (GM.hasSensitivity, RDF.type, OWL.FunctionalProperty) not in g
-
-
-def test_value_vocab_spans_five_seeds() -> None:
-    g = _graph()
-    members = set(g.subjects(RDF.type, GM.SensitivityLevel))
-    assert members == {
-        GM.sensitivityPublic,
-        GM.sensitivityInternal,
-        GM.sensitivityConfidential,
-        GM.sensitivityRestricted,
-        GM.sensitivitySensitivePersonal,
-    }
-
-
-def test_privacy_roles_declared() -> None:
-    g = _graph()
-    # hasDataSubject / hasDataController are ObjectProperty on RightsStatement.
-    assert (GM.hasDataSubject, RDF.type, OWL.ObjectProperty) in g
-    assert (GM.hasDataSubject, RDFS.domain, GM.RightsStatement) in g
-    assert (GM.hasDataSubject, RDFS.range, GM.Agent) in g
-    assert (GM.hasDataController, RDF.type, OWL.ObjectProperty) in g
-    assert (GM.hasDataController, RDFS.domain, GM.RightsStatement) in g
-    assert (GM.hasDataController, RDFS.range, GM.Agent) in g
-
-
-def test_privacy_notice_is_information_object() -> None:
-    g = _graph()
-    assert (GM.PrivacyNotice, RDF.type, OWL.Class) in g
-    assert (GM.PrivacyNotice, RDFS.subClassOf, GM.InformationObject) in g
-
-
-def test_has_privacy_notice_is_domain_free() -> None:
-    g = _graph()
-    assert (GM.hasPrivacyNotice, RDF.type, OWL.ObjectProperty) in g
-    assert (GM.hasPrivacyNotice, RDFS.range, GM.PrivacyNotice) in g
-    assert g.value(GM.hasPrivacyNotice, RDFS.domain) is None
-
-
-def test_action_process_personal_data_is_rights_action() -> None:
-    g = _graph()
-    assert (GM.actionProcessPersonalData, RDF.type, GM.RightsAction) in g
-
-
-# --------------------------------------------------------------------------- #
-# Orthogonality (Principle 9)
-# --------------------------------------------------------------------------- #
-
-
-def test_sensitivity_orthogonal_to_other_axes() -> None:
-    """hasSensitivity ⟂ hasDeterminacy ⟂ confidence: no inferential bridge."""
-    g = _graph()
-    axes = [GM.hasSensitivity, GM.hasDeterminacy, GM.confidence]
-    for a, b in combinations(axes, 2):
-        assert (a, RDFS.subPropertyOf, b) not in g
-        assert (b, RDFS.subPropertyOf, a) not in g
-        assert (a, OWL.equivalentProperty, b) not in g
-        assert (b, OWL.equivalentProperty, a) not in g
-
-
-def test_sensitivity_orthogonal_to_granularity() -> None:
-    """hasSensitivity ⟂ hasGranularity: distinct axes."""
-    g = _graph()
-    assert (GM.hasSensitivity, RDFS.subPropertyOf, GM.hasGranularity) not in g
-    assert (GM.hasGranularity, RDFS.subPropertyOf, GM.hasSensitivity) not in g
-    assert (GM.hasSensitivity, OWL.equivalentProperty, GM.hasGranularity) not in g
 
 
 # --------------------------------------------------------------------------- #

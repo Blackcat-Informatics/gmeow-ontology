@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 //! Projection of logic-compile parse diagnostics into the canonical
-//! `gmeow-diagnostics` `Report` (#856).
+//! `gmeow-diagnostics` `Report`.
 //!
-//! This is the RUNTIME-SIDE seam (#732): the [`diagnostics_report`] projection
+//! This is the RUNTIME-SIDE seam: the [`diagnostics_report`] projection
 //! returns a `gmeow_diagnostics::Report`, and `gmeow-diagnostics` carries an
 //! unconditional PyO3 dependency, so this function CANNOT live in the wasm-able
 //! `gmeow-logic-compile` crate. It stays here in the runtime crate, consuming the
@@ -13,8 +13,8 @@
 
 use gmeow_logic_compile::frontend::{Diagnostic, Severity};
 
-/// Project parse [`Diagnostic`]s into the canonical `gmeow-diagnostics` `Report`
-/// (issue #856).
+/// Projects logic-compile [`Diagnostic`]s into the canonical `gmeow-diagnostics`
+/// `Report`.
 ///
 /// This is the RUST-FIRST seam: the `Finding`/`Report` construction the `logic:`
 /// compile surface used to do in Python now happens here, in the Rust core, and

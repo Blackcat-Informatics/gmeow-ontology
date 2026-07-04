@@ -1,0 +1,71 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# A NON-contested inhabitation, asserted in the base graph (INHABITED-TOPOLOGY.md):
+# a subject stood in an inhabitation relationship with a host over an interval,
+# in a time-scoped configuration whose embodiment facet is a core
+# EmbodimentAssignment and whose deployment facet rides the OPEN
+# gmeow:configurationFacet (so a profile mints nothing). The tenure is a
+# logic:Situation ⊑ TimeScopedRelation, closed by ending its interval — never by
+# gmeow:hasDestructionEvent. Migration out is a lifecycle-value Event with
+# gmeow:portalFrom / gmeow:portalTo and a gmeow:TransferManifest.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/inhabitation/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:lillithBot a gmeow:SoftwareAgent .
+ex:serverH a gmeow:PhysicalObject .
+
+# --- The relationship over time. inhabitationSubject/inhabitedHost are
+#     functional; the native rule derives gmeow:Inhabitant / gmeow:InhabitedSystem.
+ex:tenure-1 a gmeow:InhabitationTenure ;
+    gmeow:inhabitationSubject ex:lillithBot ;
+    gmeow:inhabitedHost ex:serverH ;
+    gmeow:inhabitationLocusKind gmeow:locusVessel ;
+    gmeow:duringInterval ex:tenure1Interval .
+
+ex:tenure1Interval a gmeow:TimeInterval ;
+    gmeow:startedAtTime "2026-01-01T00:00:00Z"^^xsd:dateTime ;
+    gmeow:endedAtTime "2026-06-01T00:00:00Z"^^xsd:dateTime ;
+    gmeow:hasTemporalFrame gmeow:temporalFrameUTCGregorian .
+
+# --- A constant-configuration sub-interval: one embodiment (core facet, typed)
+#     and one deployment (extension-ranged facet, ridden through the open property).
+ex:configEarly a gmeow:InhabitationConfiguration ;
+    gmeow:configurationOfTenure ex:tenure-1 ;
+    gmeow:configurationEmbodiment ex:phoneUse ;
+    gmeow:configurationFacet ex:opus48Deployment ;   # open facet — no minted typed glue
+    gmeow:duringInterval ex:configEarlyInterval .
+
+ex:configEarlyInterval a gmeow:TimeInterval ;
+    gmeow:startedAtTime "2026-01-01T00:00:00Z"^^xsd:dateTime ;
+    gmeow:hasTemporalFrame gmeow:temporalFrameUTCGregorian .
+
+ex:phoneUse a gmeow:EmbodimentAssignment ;
+    gmeow:assignmentSubject ex:lillithBot ;
+    gmeow:assignmentCarrier ex:voiceEndpointRole .
+
+ex:voiceEndpointRole a gmeow:EmbodimentCarrierRole .
+
+# --- Migration out: a lifecycle-value Event, NOT an Event subclass.
+ex:migration-7 a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypeInhabitationTransition ;
+    gmeow:portalFrom ex:tenure-1 ;
+    gmeow:portalTo ex:tenure-2 ;
+    gmeow:hasTransferManifest ex:manifest-7 .
+
+ex:tenure-1 gmeow:tenureEndedBy ex:migration-7 .   # causal link; the tenure is closed by its interval
+
+ex:manifest-7 a gmeow:TransferManifest ;
+    gmeow:transferredView ex:viewCheckpoint-before .   # coarse reference to the carried state
+
+ex:tenure-2 a gmeow:InhabitationTenure ;
+    gmeow:inhabitationSubject ex:lillithBot ;
+    gmeow:inhabitedHost ex:serverK ;
+    gmeow:inhabitationLocusKind gmeow:locusVessel ;
+    gmeow:duringInterval ex:tenure2Interval .
+
+ex:serverK a gmeow:PhysicalObject .
+ex:tenure2Interval a gmeow:TimeInterval ;
+    gmeow:startedAtTime "2026-06-01T00:00:00Z"^^xsd:dateTime ;
+    gmeow:hasTemporalFrame gmeow:temporalFrameUTCGregorian .

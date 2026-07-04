@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 //! The DAG loader: read the dogfooded build graph from `gmeow:` individuals,
-//! validate it, and bind each stage to its Rust implementation (#861).
+//! validate it, and bind each stage to its Rust implementation.
 //!
 //! The build DAG is authored as data — `gmeow:Pipeline` / `gmeow:PipelineStage`
 //! individuals in `slices/core/pipeline/` — and read back here, so the build is

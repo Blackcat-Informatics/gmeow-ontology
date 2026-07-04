@@ -769,7 +769,7 @@ mod tests {
 
     #[test]
     fn gate_red_excluded_term_is_never_lifted_by_the_executor() {
-        // The parity guard (issue #1145 invariant). `foaf:bad` has a direct EDOAL path on
+        // The parity guard (invariant). `foaf:bad` has a direct EDOAL path on
         // <gmeow:forward> and an inverse EDOAL path on a DIFFERENT predicate <gmeow:notInverse>:
         // the reverse path does NOT invert the forward path, so the correspondence round-trip
         // gate RED-excludes it (audit tier = red_excluded). `foaf:good` has a matching

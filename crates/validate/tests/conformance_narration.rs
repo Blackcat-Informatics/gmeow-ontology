@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Conformance twins migrated from tests/test_narration.py (#867)
+//! Conformance twins migrated from tests/test_narration.py
 //!
 //! Migrated tests (SHACL fixture-based):
 //!   - `test_wellformed_narration_fixture_conforms`  → `wellformed_narration_fixture_conforms`

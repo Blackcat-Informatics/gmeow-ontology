@@ -126,7 +126,7 @@ Canonical computable content is the expression AST; the string is one of its ren
 Third, **a probability is not a confidence.** The `logic:` layer already draws — as a hard design
 boundary — a distinction the rest of the world routinely collapses: between a **probability** (a
 measure over an event in a probability space), a **confidence** assigned by a source or process, a
-**solver/ranking weight**, and **evidential support** (`slices/core/logic/design/LOGIC-SEMANTICS.md`).
+**solver/ranking weight**, and **evidential support** (`slices/grounding/logic/design/LOGIC-SEMANTICS.md`).
 The mathematics slice names the probability spaces, measures, distributions, and dependency models
 that give probability its meaning — and it must never let that machinery silently make `confidence`
 mean `probability`. A probability value that cannot name its probability frame is ill-formed, not
@@ -183,7 +183,7 @@ A skeleton manifest — the actual `manifest.ttl` is authored when implementatio
 the identity, tier, and dependency contract now:
 
 ```ttl
-<https://blackcatinformatics.ca/gmeow/slices/mathematics>
+<https://blackcatinformatics.ca/gmeow/slices/math>
     a gmeow:Slice ;
     rdfs:label "mathematics"@x-gmeow-english ;
     dcterms:title "GMEOW Mathematics and Statistics Module"@x-gmeow-english ;

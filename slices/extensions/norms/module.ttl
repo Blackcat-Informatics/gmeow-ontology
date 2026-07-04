@@ -145,7 +145,7 @@ gmeow:CriterionPole
     rdfs:subClassOf gmeow:InformationObject ;
     skos:definition "A NAMED extreme of a criterion — a small information object carrying its own label and definition. Poles are content, not numbers: 'Power from the Bottom' names what the high end rewards; 'Passive Victimhood' names what the low end penalizes. The numeric mapping lives on the scale and anchors."@x-gmeow-english ;
     skos:example "ex:powerFromBottom a gmeow:CriterionPole ; rdfs:label \"Power from the Bottom\"@en ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid reducing a pole to a bare number (the numeric mapping lives on gmeow:ScoreScale and gmeow:ScoreAnchor) and avoid reusing the same pole for both ends — reward and penalty poles must differ (SHACL)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reducing a pole to a bare number (the numeric mapping lives on gmeow:ScoreScale and gmeow:ScoreAnchor) and avoid reusing the same pole for both ends — reward and penalty poles must differ (the logic:criterionPoleDistinctness axiom, projected to SHACL)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:howToUse "Mint each pole with its own label and definition, then attach it to a criterion via gmeow:rewardPole or gmeow:penaltyPole."@x-gmeow-english ;
     gmeow:useWhen "Use for a named extreme of a criterion — a small information object with its own label and definition naming what one end rewards or penalizes."@x-gmeow-english .
@@ -1049,7 +1049,7 @@ gmeow:penaltyPole
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "penalty pole"@x-gmeow-english ;
     rdfs:range gmeow:CriterionPole ;
-    skos:definition "The named pole this criterion penalizes. Functional and mandatory (SHACL — no poles is no axis); must differ from the reward pole (SHACL)."@x-gmeow-english ;
+    skos:definition "The named pole this criterion penalizes. Functional and mandatory (SHACL — no poles is no axis); must differ from the reward pole (the logic:criterionPoleDistinctness axiom, projected to SHACL)."@x-gmeow-english ;
     skos:example "ex:agency gmeow:penaltyPole ex:passiveVictimhood ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid omitting it or giving more than one (it is functional and mandatory — no poles is no axis) and avoid pointing it at the same pole as gmeow:rewardPole (they must differ — SHACL)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -1125,9 +1125,9 @@ gmeow:precedenceLower
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "precedence lower"@x-gmeow-english ;
     rdfs:range gmeow:Norm ;
-    skos:definition "The norm that yields during this tenure. Functional, and distinct from precedenceHigher (SHACL)."@x-gmeow-english ;
+    skos:definition "The norm that yields during this tenure. Functional, and distinct from precedenceHigher (the logic:precedenceTenureDistinctness axiom, projected to SHACL)."@x-gmeow-english ;
     skos:example "ex:pt1 gmeow:precedenceLower ex:xN ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid more than one yielding norm (it is functional) and avoid pointing it at the prevailing norm — it must differ from gmeow:precedenceHigher (SHACL)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid more than one yielding norm (it is functional) and avoid pointing it at the prevailing norm — it must differ from gmeow:precedenceHigher (the logic:precedenceTenureDistinctness axiom, projected to SHACL)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Assert gmeow:precedenceLower once from the tenure to the yielding norm, paired with a distinct gmeow:precedenceHigher and a gmeow:precedenceScope."@x-gmeow-english ;
     gmeow:useWhen "Use on a PrecedenceTenure to name the single norm that yields during the tenure."@x-gmeow-english .
@@ -1200,7 +1200,7 @@ gmeow:rewardPole
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "reward pole"@x-gmeow-english ;
     rdfs:range gmeow:CriterionPole ;
-    skos:definition "The named pole this criterion rewards. Functional and mandatory (SHACL — no poles is no axis); must differ from the penalty pole (SHACL)."@x-gmeow-english ;
+    skos:definition "The named pole this criterion rewards. Functional and mandatory (SHACL — no poles is no axis); must differ from the penalty pole (the logic:criterionPoleDistinctness axiom, projected to SHACL)."@x-gmeow-english ;
     skos:example "ex:agency gmeow:rewardPole ex:powerFromBottom ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid omitting it or giving more than one (it is functional and mandatory — no poles is no axis) and avoid pointing it at the same pole as gmeow:penaltyPole (they must differ — SHACL)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;

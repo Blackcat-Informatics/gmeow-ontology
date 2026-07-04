@@ -19,12 +19,14 @@
 # Reasoned-graph result is the complete six-member set below, so cqExactRows true.
 ex:cqAgentKinds a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "queries/competency/agents.rq" ;
-    gmeow:cqRationale "GMEOW must be able to answer 'what kinds of agent does it model?'. The reasoned answer is the complete reflexive-transitive subclass closure of gmeow:Agent: Agent itself plus Builder, Organization, Person, Sensor, and SoftwareAgent." ;
+    gmeow:cqRationale "GMEOW must be able to answer 'what kinds of agent does it model?'. The reasoned answer is the complete reflexive-transitive subclass closure of gmeow:Agent: Agent itself plus Builder, Organization, Person, Sensor, and SoftwareAgent (the rigid Kinds), plus the inhabitation-slice role-mixins DigitalSubject and Inhabitant, both grounded as rdfs:subClassOf gmeow:Agent (a digital subject, and an agent occupying an inhabitation, IS an agent) and so genuine members of the closure." ;
     gmeow:cqExactRows true ;
     gmeow:cqResultShape ex:cqAgentKindsShape ;
     gmeow:cqExpectRow
         ex:cqAgentRowAgent ,
         ex:cqAgentRowBuilder ,
+        ex:cqAgentRowDigitalSubject ,
+        ex:cqAgentRowInhabitant ,
         ex:cqAgentRowOrganization ,
         ex:cqAgentRowPerson ,
         ex:cqAgentRowSensor ,
@@ -44,6 +46,16 @@ ex:cqAgentRowBuilder a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ;
         gmeow:cellVar "agentKind" ;
         gmeow:cellValueIri gmeow:Builder ] .
+
+ex:cqAgentRowDigitalSubject a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ;
+        gmeow:cellVar "agentKind" ;
+        gmeow:cellValueIri gmeow:DigitalSubject ] .
+
+ex:cqAgentRowInhabitant a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ;
+        gmeow:cellVar "agentKind" ;
+        gmeow:cellValueIri gmeow:Inhabitant ] .
 
 ex:cqAgentRowOrganization a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ;

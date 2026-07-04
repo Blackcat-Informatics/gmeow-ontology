@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 //! PyO3 binding for the foundation-corpus importer — the
-//! `gmeow_native.foundation` submodule (#944).
+//! `gmeow_native.foundation` submodule.
 //!
 //! Only this module imports `pyo3`, gated by the `python` feature, so the engine
 //! core stays PyO3-free. `import_foundation` is the single Python surface that
@@ -29,7 +29,7 @@ fn import_foundation(jsonl: String, out_dir: String, nq: Option<String>) -> PyRe
 }
 
 /// Register the `gmeow_native.foundation` submodule. Called by the unified
-/// `gmeow_native` cdylib (#630); exposes `import_foundation`.
+/// `gmeow_native` cdylib; exposes `import_foundation`.
 pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(import_foundation, m)?)?;
     Ok(())

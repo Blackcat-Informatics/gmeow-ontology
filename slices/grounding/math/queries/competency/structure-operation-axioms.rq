@@ -1,0 +1,9 @@
+# Competency question: "What operation and axioms define this structure?"  Over the
+# fixture the answer is exactly {exampleGroup → groupOp / assocAxiom}.
+PREFIX math: <https://blackcatinformatics.ca/math/>
+
+SELECT ?structure ?operation ?axiom WHERE {
+    ?structure math:structureOperation ?operation ;
+               math:satisfiesAxiom ?axiom .
+}
+ORDER BY ?structure ?operation ?axiom

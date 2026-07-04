@@ -5,7 +5,7 @@ SPDX-License-Identifier: CC-BY-4.0
 
 # profiles/probabilistic-marginal-independent
 
-**Acceptance criterion (#506):** marginals computed correctly under a declared
+**Acceptance criterion:** marginals computed correctly under a declared
 independence model.
 
 `rain` and `sprinkler` are independent Bernoulli probabilistic facts, each with

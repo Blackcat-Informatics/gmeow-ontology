@@ -1,0 +1,17 @@
+# Competency question: "Which word forms carry a Number value, and of what lexeme are
+# they an inflection?"  This exercises typed morphology drawn from a feature inventory
+# (lang:featureKey / lang:featureValue as lang:FeatureKey / lang:FeatureValue
+# individuals, never bare strings) together with the lexeme/word-form split. Scoped to
+# the fixture namespace so the answer is exactly {wfCats → (cat, Plur), wfSleep →
+# (sleep, Plur)}.
+PREFIX lang: <https://blackcatinformatics.ca/lang/>
+
+SELECT ?wf ?lex ?val WHERE {
+    ?wf a lang:WordForm ;
+        lang:inflectionOf ?lex ;
+        lang:morphFeature ?mf .
+    ?mf lang:featureKey lang:featNumber ;
+        lang:featureValue ?val .
+    FILTER(STRSTARTS(STR(?wf), "http://example.org/lang/"))
+}
+ORDER BY ?wf

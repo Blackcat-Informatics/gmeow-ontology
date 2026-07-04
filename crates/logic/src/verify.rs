@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Native, Docker-free reasoned-graph verify (issue #695).
+//! Native, Docker-free reasoned-graph verify.
 //!
 //! The closed-world QC half of the hybrid OWL+SHACL architecture, in Rust. It
 //! replaces the ROBOT `verify` Docker step: materialize the reasoned graph (the
@@ -92,7 +92,7 @@ pub fn verify_with_reasoning_result(
     //    queries (class-in-two-disjoint-axes, class-without-stereotype) rely on.
     // The DL coverage gaps are reconstructed from the shared model's
     // unsupported-construct set via the one recipe `verdict_from_inferred` uses,
-    // so the verify findings stay byte-identical (#768). The committed bundle is
+    // so the verify findings stay byte-identical. The committed bundle is
     // gap-zero, so this is empty on a healthy run.
     let gaps = gaps_from_unsupported(result.preservation.unsupported_constructs.iter());
 
@@ -452,10 +452,11 @@ mod tests {
 
     // The committed `.rq` files ARE the queries under test (include_str! keeps the
     // tests in lockstep with what `make verify` runs).
-    const COUNTERPART_Q: &str =
-        include_str!("../../../slices/core/logic/queries/verify/non-entailment-counterpart.rq");
+    const COUNTERPART_Q: &str = include_str!(
+        "../../../slices/grounding/logic/queries/verify/non-entailment-counterpart.rq"
+    );
     const REVIEWER_Q: &str =
-        include_str!("../../../slices/core/logic/queries/verify/reviewer-gate.rq");
+        include_str!("../../../slices/grounding/logic/queries/verify/reviewer-gate.rq");
 
     fn gm(local: &str) -> String {
         format!("{GMEOW}{local}")
@@ -662,10 +663,10 @@ mod tests {
     // ── Typed formalization governance: conditional-carrier verify queries ───────
 
     const NON_ENT_CARRIER_Q: &str = include_str!(
-        "../../../slices/core/logic/queries/verify/non-entailment-carrier-required.rq"
+        "../../../slices/grounding/logic/queries/verify/non-entailment-carrier-required.rq"
     );
     const PROMOTION_CASES_Q: &str =
-        include_str!("../../../slices/core/logic/queries/verify/promotion-cases-required.rq");
+        include_str!("../../../slices/grounding/logic/queries/verify/promotion-cases-required.rq");
 
     #[test]
     fn non_entailment_carrier_required_green_then_red() {

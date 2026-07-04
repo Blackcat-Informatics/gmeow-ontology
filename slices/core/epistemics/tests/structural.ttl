@@ -406,3 +406,34 @@ ASK {
     }
 }""" ;
     gmeow:saRationale "The keystone non-factive spine must stay clean: gmeow:knowsThatIn (locally factive), gmeow:claimsToKnowThat, and gmeow:takesAsKnown (non-factive) MUST NOT be rdfs:subPropertyOf gmeow:knowsThat / gmeow:believes / gmeow:knowsThatIn (a subproperty edge would pollute the spine with factivity), MUST NOT declare an rdfs:range (open-range, Principle 13), and MUST NOT be functional (Principle 9). Factivity rides the world-local gmeow:KnowledgeClaim and is recorded by prose, never an asserted truth bit (saNoTruthBit)." .
+
+# --- 28. Doxastic state / tenure ontology constraints (MUST / MUST-NOT) --------
+# Migrated from tests/test_epistemics_belief_revision.py::test_ontology_constraints_and_functionality.
+ex:saDoxasticStateAndTenureConstraints a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+ASK {
+    gmeow:epistemicAgent a owl:ObjectProperty , owl:FunctionalProperty ;
+        rdfs:domain gmeow:DoxasticState ; rdfs:range gmeow:Agent .
+    gmeow:doxasticContent a owl:ObjectProperty , owl:FunctionalProperty ;
+        rdfs:domain gmeow:DoxasticState ; rdfs:range gmeow:Proposition .
+    gmeow:doxasticClaim a owl:ObjectProperty , owl:FunctionalProperty ;
+        rdfs:domain gmeow:DoxasticState ; rdfs:range gmeow:StandpointClaim .
+    gmeow:credence a owl:DatatypeProperty ;
+        rdfs:domain gmeow:DoxasticState ; rdfs:range xsd:decimal .
+    gmeow:tenureOfDoxasticState a owl:ObjectProperty , owl:FunctionalProperty ;
+        rdfs:domain gmeow:DoxasticTenure ; rdfs:range gmeow:DoxasticState .
+}""" ;
+    gmeow:saRationale "The reified doxastic state and its tenure MUST carry the expected domain/range declarations and functional-property tagging: epistemicAgent, doxasticContent, doxasticClaim and tenureOfDoxasticState are functional object properties; credence is a non-functional datatype property ranging over xsd:decimal. Mirrors test_ontology_constraints_and_functionality (positive constraints)." .
+
+ex:saCredenceNotFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:credence a owl:FunctionalProperty . }""" ;
+    gmeow:saRationale "gmeow:credence MUST NOT be functional — an agent's credence may be reported by multiple sources or updated over time, and those reports coexist (Principle 9). Mirrors test_ontology_constraints_and_functionality (non-functional credence arm)." .

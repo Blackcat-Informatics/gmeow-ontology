@@ -1,0 +1,19 @@
+# mapping_set_id: https://blackcatinformatics.ca/gmeow/mappings/mathlib
+# mapping_set_version: 0.1.0
+# license: https://www.apache.org/licenses/LICENSE-2.0
+# mapping_tool: gmeow regenerate (mappings)
+# mapping_tool_version: 0.1.0
+# mapping_date: 2026-06-03
+# comment: "math: algebra term \u2192 Lean mathlib declaration locators (by reference; link-only). Each cell relates a math: class to the mathlib4 declaration that formalizes the same structure \u2014 the typeclass hierarchy (Monoid \u2192 Group \u2192 Ring \u2192 Field \u2192 Module) and the root-system / Lie-algebra formalizations. mathlib is Apache-2.0 but not RDF-projectable, so the alignment is structural-by-reference (skos:relatedMatch): the Lean formalization is a related resource, not an invertible identity, and each object IRI is a real, curl-validated leanprover-community.github.io mathlib4_docs page."
+# curie_map:
+#   math: https://blackcatinformatics.ca/math/
+#   semapv: https://w3id.org/semapv/vocab/
+#   skos: http://www.w3.org/2004/02/skos/core#
+subject_id	predicate_id	object_id	object_label	mapping_justification	confidence	comment
+math:Field	skos:relatedMatch	https://leanprover-community.github.io/mathlib4_docs/Mathlib/Algebra/Field/Defs.html	Mathlib.Algebra.Field.Defs (Field)	semapv:ManualMappingCuration	0.9	math:Field is formalized by the Field typeclass in mathlib's Algebra.Field.Defs. Structural formalization by reference, so skos:relatedMatch.
+math:Group	skos:relatedMatch	https://leanprover-community.github.io/mathlib4_docs/Mathlib/Algebra/Group/Basic.html	Mathlib.Algebra.Group.Basic (Group)	semapv:ManualMappingCuration	0.9	math:Group is formalized by the Group typeclass in mathlib's Algebra.Group. Structural formalization by reference, so skos:relatedMatch.
+math:LieAlgebra	skos:relatedMatch	https://leanprover-community.github.io/mathlib4_docs/Mathlib/Algebra/Lie/Basic.html	Mathlib.Algebra.Lie.Basic (LieAlgebra)	semapv:ManualMappingCuration	0.9	math:LieAlgebra is formalized by the LieAlgebra/LieRing typeclasses in mathlib's Algebra.Lie.Basic. Structural by reference, so skos:relatedMatch.
+math:Module	skos:relatedMatch	https://leanprover-community.github.io/mathlib4_docs/Mathlib/Algebra/Module/Defs.html	Mathlib.Algebra.Module.Defs (Module)	semapv:ManualMappingCuration	0.9	math:Module is formalized by the Module typeclass in mathlib's Algebra.Module.Defs. Structural formalization by reference, so skos:relatedMatch.
+math:Monoid	skos:relatedMatch	https://leanprover-community.github.io/mathlib4_docs/Mathlib/Algebra/Group/Defs.html	Mathlib.Algebra.Group.Defs (Monoid)	semapv:ManualMappingCuration	0.9	math:Monoid is formalized by the Monoid typeclass in mathlib's Algebra.Group.Defs. Structural formalization by reference (mathlib is Apache-2.0 but not RDF), so skos:relatedMatch.
+math:Ring	skos:relatedMatch	https://leanprover-community.github.io/mathlib4_docs/Mathlib/Algebra/Ring/Defs.html	Mathlib.Algebra.Ring.Defs (Ring)	semapv:ManualMappingCuration	0.9	math:Ring is formalized by the Ring typeclass in mathlib's Algebra.Ring.Defs. Structural formalization by reference, so skos:relatedMatch.
+math:RootSystem	skos:relatedMatch	https://leanprover-community.github.io/mathlib4_docs/Mathlib/LinearAlgebra/RootSystem/Defs.html	Mathlib.LinearAlgebra.RootSystem.Defs	semapv:ManualMappingCuration	0.9	math:RootSystem is formalized by mathlib's RootSystem/RootPairing in LinearAlgebra.RootSystem.Defs — the formalization the E8 flagship aligns to. Structural by reference, so skos:relatedMatch.

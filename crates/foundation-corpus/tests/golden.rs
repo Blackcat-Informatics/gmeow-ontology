@@ -85,7 +85,7 @@ fn nq_reconciliation_is_written_and_orders_by_count() {
     assert_eq!(
         lines.next().unwrap(),
         "  http://lillith.internal/principia/key_event (2): \
-         MAPPED → gmeow:Event + flat gmeow:narrates (#360)"
+         MAPPED → gmeow:Event + flat gmeow:narrates"
     );
     // Unknown predicate maps to UNREVIEWED.
     assert!(report.contains("never_seen (1): UNREVIEWED"));

@@ -1,0 +1,32 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Well-formed: a math:LieGroup declaring its math:hasRootSystem, whose math:RootSystem
+# declares its math:cartanMatrix, math:weylGroup, and math:rootSystemRank, and whose Weyl
+# group carries its math:AlgebraicStructure frame and is anchored to the roots through
+# math:automorphismGroupOf. A generic rank-2 (A₂) system — not the E8 fingerprint — so the
+# E8-specific value gate stays inert. Conforms to math:LieStructureShape, math:RootSystemShape,
+# math:AutomorphismGroupShape, and math:AlgebraicStructureShape. Bound by ex:ecLieStructureComplete.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:a2LieGroup a math:LieGroup ;
+    math:hasRootSystem ex:a2Roots .
+
+ex:a2Roots a math:RootSystem ;
+    math:rootSystemRank 2 ;
+    math:cartanMatrix ex:a2Cartan ;
+    math:weylGroup ex:a2Weyl .
+
+ex:a2Cartan a math:CartanMatrix .
+
+ex:a2Weyl a math:WeylGroup ;
+    math:underlyingSet ex:a2Reflections ;
+    math:structureOperation ex:a2ReflComposition ;
+    math:satisfiesAxiom ex:a2ReflAssoc ;
+    math:automorphismGroupOf ex:a2Roots ;
+    math:groupOrder 6 .
+
+ex:a2Reflections a math:Set .
+ex:a2ReflComposition a math:Operation .
+ex:a2ReflAssoc a math:Axiom .

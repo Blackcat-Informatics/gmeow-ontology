@@ -80,7 +80,7 @@ fn render_artifacts(report: &Report) -> Result<BTreeMap<String, Vec<u8>>, Pipeli
 /// Run SHACL over source-graph N-Quads bytes and return deterministic diagnostics.
 pub fn validate_source_graph(root: &Path, source_nquads: &[u8]) -> Result<Report, PipelineError> {
     // Parse the source graph into the native IR and validate it directly through the
-    // native SHACL engine (`validate_dataset`), oxigraph-free (EPIC #906).
+    // native SHACL engine (`validate_dataset`), oxigraph-free.
     let dataset = purrdf::parse_dataset(source_nquads, "application/n-quads", None)
         .map_err(|e| PipelineError::Parse(format!("source graph parse: {e}")))?;
     let (_shape_store, shapes) =

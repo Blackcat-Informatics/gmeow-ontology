@@ -5,7 +5,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 # gmeow-pipeline
 
-The DAG-driven, single-pass build executor for GMEOW (#861).
+The DAG-driven, single-pass build executor for GMEOW.
 
 The build is a directed acyclic graph of typed **stages** that exchange an
 in-memory RDF dataset / bundle instead of re-parsing `generated/dist/gmeow.gts`

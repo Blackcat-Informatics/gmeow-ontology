@@ -31,6 +31,7 @@ pub mod correspondence_lower;
 // The file-reading edge for the oxigraph-free correspondence soundness pass:
 // the seven correspondence-stack semantic checks (incl. the sole native enforcer of
 // Constitution Principle 5, the equivalence-collapse gate).
+pub mod constraint_shapes;
 pub mod correspondence_soundness;
 pub mod diag_render;
 pub mod docs_render;
@@ -94,6 +95,10 @@ pub fn register_default(registry: &mut StageRegistry) {
     );
     registry.register("profiles", Arc::new(profiles::ProfilesStage));
     registry.register("frame_shapes", Arc::new(frame_shapes::FrameShapesStage));
+    registry.register(
+        "constraint_shapes",
+        Arc::new(constraint_shapes::ConstraintShapesStage),
+    );
     registry.register("result_shapes", Arc::new(result_shapes::ResultShapesStage));
     registry.register(
         "result_shape_composition",
@@ -109,7 +114,7 @@ pub fn register_default(registry: &mut StageRegistry) {
     registry.register("schemas", Arc::new(schemas::SchemasStage::new()));
     registry.register(
         "research-objects",
-        Arc::new(research_objects::ResearchObjectsStage),
+        Arc::new(research_objects::ResearchObjectsStage::new()),
     );
     registry.register("parquet", Arc::new(parquet::ParquetStage::new()));
     registry.register("okf", Arc::new(okf::OkfStage::new()));

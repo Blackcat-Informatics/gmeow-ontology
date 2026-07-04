@@ -11,7 +11,7 @@ use rstest::rstest;
     Case::file("shapes", "rubrics-malformed")
         .fails()
         .violations(&[
-            "reward and penalty poles must be distinct",
+            "gmeow:penaltyPole and gmeow:rewardPole must be distinct",
             "minimum must be strictly below its maximum",
             "at least one gmeow:anchorMeaning",
             "range minimum must not exceed",

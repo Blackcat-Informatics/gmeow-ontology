@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Conformance twins migrated from tests/test_ai_claims.py (#867)
+//! Conformance twins migrated from tests/test_ai_claims.py
 //!
 //! Migrated test:
 //!   - `test_normative_fixture_validates_against_the_full_graph` — MERGED mode:
