@@ -439,6 +439,7 @@ shapes/                  # Authored SHACL (incl. slice-manifest-shapes.ttl)
 queries/                 # Authored SPARQL: competency/, verify/, qc/, codecs/
 imports/                 # Vendored externals (gUFO + validation snapshots)
 docs/                    # Cross-slice doctrine docs (slice guides live IN slices)
+governance/              # Project governance artifacts
 generated/               # EVERY committed generated artifact, one root:
                          #   mappings/ projections/ queries/ statements/ schemas/
                          #   lpg/ metadata/ apache/ module-status.md

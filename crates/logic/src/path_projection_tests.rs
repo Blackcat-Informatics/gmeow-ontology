@@ -384,8 +384,8 @@ fn nearby_orgs_wildcard_runs_on_the_native_engine() {
 // logic:nearbyOrgs over a four-node chain.  GMEOW's native projection lowers that
 // shape to the EXTENDED SPARQL property path `<...linkedTo>{1,2}`; standard SPARQL
 // engines (the native SPARQL engine that runs the competency cell) cannot parse a
-// `{m,n}` quantifier — that is precisely the §9 gap closes — so the.rq embeds
-// the licensed standard-SPARQL down-projection `(linkedTo|linkedTo/linkedTo)`.
+// `{m,n}` quantifier — that is precisely the §9 gap this extension closes — so
+// the `.rq` embeds the licensed standard-SPARQL down-projection `(linkedTo|linkedTo/linkedTo)`.
 // This golden pins the lossless extended-SPARQL projection output: if the
 // projection drifts, this test fails (rust-first anti-drift), independent of the
 // hand-runnable standard-SPARQL form in the .rq.

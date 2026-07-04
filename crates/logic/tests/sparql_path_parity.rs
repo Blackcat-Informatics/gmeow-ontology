@@ -3,7 +3,7 @@
 
 //! S8 parity harness: in-engine ≡ Scryer-lowered property-path evaluation.
 //!
-//! The acceptance criterion for is that the two implementations of one
+//! The acceptance criterion for SPARQL path parity is that the two implementations of one
 //! semantics agree on the corpus property-path shapes:
 //!
 //! - the **in-engine** wasm-safe evaluator (`purrdf::sparql`, via the public

@@ -11,7 +11,7 @@
 //! frozen carrier downstream stages union and project from, with the N-Quads byte
 //! lane published alongside so the pre-carrier byte readers parse it from memory
 //! instead of re-reading `gmeow.gts` from disk per generator (the bottleneck
-//! removes).: oxigraph-free — every parse routes through the native
+//! this removes). Oxigraph-free — every parse routes through the native
 //! `purrdf::parse_dataset` codecs and merges via `RdfDataset::union`.
 
 use std::collections::BTreeMap;

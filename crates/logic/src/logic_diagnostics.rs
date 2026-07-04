@@ -13,8 +13,8 @@
 
 use gmeow_logic_compile::frontend::{Diagnostic, Severity};
 
-/// Project parse [`Diagnostic`]s into the canonical `gmeow-diagnostics` `Report`
-/// .
+/// Projects logic-compile [`Diagnostic`]s into the canonical `gmeow-diagnostics`
+/// `Report`.
 ///
 /// This is the RUST-FIRST seam: the `Finding`/`Report` construction the `logic:`
 /// compile surface used to do in Python now happens here, in the Rust core, and

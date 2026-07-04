@@ -1173,7 +1173,7 @@ fn dataset_from_turtle_and_nt(
 ///
 /// `statement_owl_ttl` is the native statement-stage OWL downcast as Turtle;
 /// `ontology_nt` is the merged ontology as N-Triples. Both are loaded into ONE
-/// oxigraph store (their default-graph union), the four invariants run natively,
+/// merged `RdfDataset` (their default-graph union), the four invariants run natively,
 /// and the violations are returned as a single canonical `Report` pyclass (every
 /// finding is an `Error` — each blocks statement compilation).
 /// Returning the live `Report` lets Python join the messages, render SARIF, or
