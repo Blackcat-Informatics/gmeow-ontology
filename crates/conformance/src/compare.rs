@@ -572,10 +572,7 @@ pub fn diff_case(case_dir: &Path, out: &CaseOutputs) -> Vec<String> {
 
     // ── Budget governor markers (declares-budget ⇒ require-golden) ─────────────
     let budget_path = expected.join("budget.json");
-    let actual_budget = serde_json::json!({
-        "budget_status": out.budget_status,
-        "incomplete": out.incomplete,
-    });
+    let actual_budget = budget_json(out, &profile_val);
     if budget_path.exists() {
         diff_json_golden(&budget_path, &actual_budget, case_id, "budget", &mut diffs);
     } else if declares_budget {
@@ -739,6 +736,50 @@ pub(crate) fn read_profile_value(case_dir: &Path) -> serde_json::Value {
         .and_then(|t| serde_json::from_str(&t).ok())
         .filter(serde_json::Value::is_object)
         .unwrap_or_else(|| serde_json::Value::Object(serde_json::Map::new()))
+}
+
+/// Whether the case declares a step/derivation budget (`max_steps` or
+/// `max_rule_firings`) — the two governor knobs the completion frontier tracks. A pure
+/// `max_answers` cap (a post-fixpoint truncation) or a `time_ms` demotion does not run
+/// the native semi-naive governor, so it carries no frontier and its `budget.json`
+/// keeps the two-key status/incomplete form.
+pub(crate) fn declares_step_budget(profile_val: &serde_json::Value) -> bool {
+    profile_val
+        .get("budget_params")
+        .and_then(|b| b.as_object())
+        .is_some_and(|b| {
+            ["max_steps", "max_rule_firings"]
+                .iter()
+                .any(|k| b.get(*k).is_some_and(|v| !v.is_null()))
+        })
+}
+
+/// Build the `budget.json` value: the always-present `budget_status` / `incomplete`
+/// markers, plus the completion-frontier markers (`strata_completed` / `strata_total` /
+/// `saturated`, deterministically sorted) when the case declares a step/derivation
+/// budget. Shared by the bless writer and the diff reader so the two never drift.
+pub(crate) fn budget_json(out: &CaseOutputs, profile_val: &serde_json::Value) -> serde_json::Value {
+    let mut obj = serde_json::Map::new();
+    obj.insert(
+        "budget_status".to_string(),
+        serde_json::json!(out.budget_status),
+    );
+    obj.insert("incomplete".to_string(), serde_json::json!(out.incomplete));
+    if declares_step_budget(profile_val) {
+        obj.insert(
+            "strata_completed".to_string(),
+            serde_json::json!(out.frontier.completed),
+        );
+        obj.insert(
+            "strata_total".to_string(),
+            serde_json::json!(out.frontier.total),
+        );
+        obj.insert(
+            "saturated".to_string(),
+            serde_json::json!(out.frontier.saturated_preds.iter().collect::<Vec<_>>()),
+        );
+    }
+    serde_json::Value::Object(obj)
 }
 
 /// Read a UTF-8 text file, mapping I/O errors to a short diff string.

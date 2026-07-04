@@ -115,10 +115,7 @@ pub fn write_expected(case_dir: &Path, out: &CaseOutputs) -> Result<(), String> 
     let declares_budget = profile_val.get("budget_params").is_some();
     let budget_path = expected.join("budget.json");
     if init || declares_budget || budget_path.exists() {
-        let actual_budget = serde_json::json!({
-            "budget_status": out.budget_status,
-            "incomplete": out.incomplete,
-        });
+        let actual_budget = crate::compare::budget_json(out, &profile_val);
         write_json(&budget_path, &actual_budget)?;
     }
 

@@ -145,6 +145,20 @@ pub(crate) struct Budgeted<T> {
     pub(crate) consumed_steps: u64,
 }
 
+impl<T> Budgeted<T> {
+    /// Lower the crate-internal governor state ([`StrataProgress`] + `consumed_steps`)
+    /// into the public [`CompletionFrontier`] that crosses the crate boundary on
+    /// [`crate::query_ir::AnswerSet`] / [`crate::materialize::Materialization`].
+    pub(crate) fn frontier(&self) -> crate::query_ir::CompletionFrontier {
+        crate::query_ir::CompletionFrontier {
+            completed: self.progress.completed,
+            total: self.progress.total,
+            saturated_preds: self.progress.saturated_preds.clone(),
+            consumed_steps: self.consumed_steps,
+        }
+    }
+}
+
 /// Whether a stratum's semi-naive fixpoint reached its natural end or was budget-cut.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum FixpointStatus {

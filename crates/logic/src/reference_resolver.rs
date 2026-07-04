@@ -99,6 +99,9 @@ pub fn resolve(
         bindings: state.answers,
         status: state.status,
         preservation: crate::result::PreservationClaim::exact(),
+        // The reference SLD resolver is not the native semi-naive governor, so it
+        // carries no stratum frontier.
+        frontier: crate::query_ir::CompletionFrontier::empty(),
     };
     answer_set.canonicalize();
     Ok(answer_set)
