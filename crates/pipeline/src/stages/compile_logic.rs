@@ -91,6 +91,26 @@ pub const GRAPH_RELATIONAL_CORE: &str =
 /// `skos:exactMatch` / `owl:equivalentClass`); the overclaim gate forbids over-alignment.
 pub const GRAPH_CORRESPONDENCE: &str = "https://blackcatinformatics.ca/gmeow/graph/correspondence";
 
+/// The object-level named graphs this stage contributes to the reasoned EDB and the
+/// carrier fold, in fold order. The SINGLE authority for the set: the carrier's two
+/// fold sites ([`crate::stages::carrier::assemble_object_level_edb`] and the snapshot
+/// assembly), [`crate::stages::reason::ReasonStage`]'s consumed entities, and the
+/// `run.rs` reason-stage dataflow spec all derive from this constant, and the slice
+/// DAG's `gmeow:flowEntity` mirror is bind-checked against the derived entity list.
+pub const OBJECT_LEVEL_GRAPHS: [&str; 3] =
+    [GRAPH_LOGIC, GRAPH_RELATIONAL_CORE, GRAPH_CORRESPONDENCE];
+
+/// The object-level graph set as the sorted entity list the typed-dataflow machinery
+/// compares (the loader's Rust/RDF bind agreement and the slice-DAG mirror).
+pub fn object_level_entity_list() -> Vec<String> {
+    let mut entities: Vec<String> = OBJECT_LEVEL_GRAPHS
+        .iter()
+        .map(|iri| (*iri).to_string())
+        .collect();
+    entities.sort_unstable();
+    entities
+}
+
 /// Committed OWL 2 DL projection.
 pub const OWL_DL_PATH: &str = "generated/owl/gmeow-dl.ttl";
 /// Committed OWL 2 EL projection.

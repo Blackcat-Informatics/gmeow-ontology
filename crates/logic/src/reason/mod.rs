@@ -51,8 +51,10 @@ use purrdf::{RdfDataset, RdfDatasetBuilder};
 ///   `reason_closure` orchestration glue.
 ///
 /// A change to any of these files will produce a different hash, invalidating
-/// cached results produced under the old contract.
-fn native_contract_hash() -> String {
+/// cached results produced under the old contract. Public so a consumer holding a
+/// shipped `graph/reasoning` verdict can refuse one minted under a different
+/// contract than the engine it is about to trust it against.
+pub fn native_contract_hash() -> String {
     let contract = format!(
         "{dl_rules}\n{el_rules}\n{rl_rules}\n{dl_src}\n{mod_src}",
         dl_rules = dl::dl_rules(),

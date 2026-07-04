@@ -4,16 +4,20 @@
 //! The native reasoning commands: `reason`, `verify`, `reason-verify`, `explain`,
 //! and the `certify` static profile check.
 //!
-//! All run the Java/Docker-free Rust EL/DL engine (`gmeow_logic`) over the folded
-//! `gmeow.gts` snapshot: `reason` computes the closure + consistency verdict,
-//! `verify` runs the reasoned-graph negative tests, and `certify` statically
+//! All run over the folded `gmeow.gts` snapshot, whose default graph ALREADY
+//! carries the pipeline's reasoned closure and whose `graph/reasoning` carries the
+//! typed verdict-and-provenance result. The lanes therefore REUSE that shipped
+//! result by default (contract-hash-checked) instead of recomputing the closure
+//! the pipeline just shipped; `--fresh` forces a full re-reasoning pass with the
+//! Java/Docker-free Rust EL/DL engine (`gmeow_logic`). `certify` statically
 //! certifies a `.logic` program against its declared semantic profile.
 
 use std::path::{Path, PathBuf};
 use std::time::Instant;
 
-use gmeow_logic::reason::reason_all;
-use gmeow_logic::verify::verify as verify_reasoned;
+use gmeow_logic::reason::{native_contract_hash, reason_all};
+use gmeow_logic::result::ReasoningResult;
+use gmeow_logic::verify::{verify as verify_reasoned, verify_with_reasoning_result};
 
 use crate::dev_common::{
     elapsed_ms, fail, fail_code, project_root, snapshot_bytes, write_timings_json,
@@ -27,8 +31,46 @@ fn snapshot_dataset(root: &Path) -> Result<std::sync::Arc<purrdf::RdfDataset>, i
     Ok(bundle.dataset)
 }
 
-/// `gmeow-dev reason [--mode --merge …]` — native EL/DL reasoning.
-pub fn reason(mode: &str, timings_json: Option<&Path>) -> i32 {
+/// Re-derive the SHIPPED typed reasoning result from the snapshot's
+/// `graph/reasoning` projection — the SAME reverse parse the pipeline cache uses —
+/// and refuse a verdict minted under a different reasoning contract than this
+/// binary's engine: a stale bundle must be regenerated (or re-reasoned with
+/// `--fresh`), never re-reported as current.
+fn shipped_reasoning_result(dataset: &purrdf::RdfDataset) -> Result<ReasoningResult, String> {
+    let graph = dataset.project_named_graph(gmeow_logic::result_rdf::GRAPH_REASONING);
+    if graph.quad_count() == 0 {
+        return Err(
+            "the snapshot carries no graph/reasoning verdict; run `make regenerate` \
+             (or re-reason with --fresh)"
+                .to_string(),
+        );
+    }
+    // The projected sub-dataset is default-graph only, so its canonical N-Quads
+    // lines are `s p o .` — exactly the N-Triples shape the reverse parser reads.
+    let nt = purrdf::serialize_dataset(
+        &graph,
+        "application/n-quads",
+        purrdf::SerializeGraph::Dataset,
+    )
+    .map_err(|e| format!("serialize graph/reasoning: {e}"))?;
+    let nt = String::from_utf8(nt).map_err(|e| format!("graph/reasoning is not UTF-8: {e}"))?;
+    let result = gmeow_logic::result_rdf::parse_reasoning_graph(&nt)?;
+    let current = native_contract_hash();
+    if result.provenance.contract_hash != current {
+        return Err(format!(
+            "the shipped graph/reasoning verdict was minted under reasoning contract \
+             {shipped} but this binary implements {current}; run `make regenerate` to \
+             re-mint the bundle (or re-reason with --fresh)",
+            shipped = result.provenance.contract_hash,
+        ));
+    }
+    Ok(result)
+}
+
+/// `gmeow-dev reason [--mode --fresh --merge …]` — native EL/DL reasoning. By
+/// default the shipped `graph/reasoning` verdict is reused (contract-hash-checked);
+/// `--fresh` recomputes the closure with the native engine.
+pub fn reason(mode: &str, fresh: bool, timings_json: Option<&Path>) -> i32 {
     if mode == "docker" {
         return fail_code(
             "reason --mode docker needs the classic ELK/HermiT container stack, which the \
@@ -47,9 +89,16 @@ pub fn reason(mode: &str, timings_json: Option<&Path>) -> i32 {
         Ok(d) => d,
         Err(code) => return code,
     };
-    let result = match reason_all(dataset.as_ref()) {
-        Ok(r) => r,
-        Err(e) => return fail(format!("native reasoning failed: {e}")),
+    let (result, phase) = if fresh {
+        match reason_all(dataset.as_ref()) {
+            Ok(r) => (r, "reason-native"),
+            Err(e) => return fail(format!("native reasoning failed: {e}")),
+        }
+    } else {
+        match shipped_reasoning_result(dataset.as_ref()) {
+            Ok(r) => (r, "reason-shipped"),
+            Err(e) => return fail(format!("cannot reuse the shipped verdict: {e}")),
+        }
     };
     let elapsed = elapsed_ms(started);
     let ok = result.is_consistent();
@@ -58,7 +107,7 @@ pub fn reason(mode: &str, timings_json: Option<&Path>) -> i32 {
             "command": "reason",
             "mode": "native",
             "ok": ok,
-            "timings": [{ "phase": "reason-native", "elapsed_ms": elapsed, "metadata": null }],
+            "timings": [{ "phase": phase, "elapsed_ms": elapsed, "metadata": null }],
         });
         let code = write_timings_json(path, &payload);
         if code != 0 {
@@ -67,8 +116,13 @@ pub fn reason(mode: &str, timings_json: Option<&Path>) -> i32 {
     }
     if ok {
         println!(
-            "native EL/DL reasoning (Docker-free): consistent, {} inferred axiom(s)",
-            result.inferred().len()
+            "native EL/DL reasoning (Docker-free, {source}): consistent, {n} inferred axiom(s)",
+            source = if fresh {
+                "fresh closure"
+            } else {
+                "shipped verdict"
+            },
+            n = result.inferred().len()
         );
         0
     } else {
@@ -121,8 +175,11 @@ fn collect_slice_verify(slices: &Path, out: &mut Vec<PathBuf>) {
     }
 }
 
-/// `gmeow-dev verify [--mode …]` — reasoned-graph negative tests.
-pub fn verify(mode: &str, timings_json: Option<&Path>) -> i32 {
+/// `gmeow-dev verify [--mode --fresh …]` — reasoned-graph negative tests. By
+/// default the queries run against the shipped closure + verdict already folded
+/// into the snapshot (contract-hash-checked, no second chase); `--fresh`
+/// recomputes the closure with the native engine first.
+pub fn verify(mode: &str, fresh: bool, timings_json: Option<&Path>) -> i32 {
     if mode == "docker" {
         return fail_code(
             "verify --mode docker needs the classic ROBOT container stack, which the native \
@@ -142,9 +199,20 @@ pub fn verify(mode: &str, timings_json: Option<&Path>) -> i32 {
         Err(code) => return code,
     };
     let queries = discover_verify_queries(&root);
-    let report = match verify_reasoned(dataset.as_ref(), &queries) {
-        Ok(r) => r,
-        Err(e) => return fail(format!("native verify failed: {e}")),
+    let report = if fresh {
+        match verify_reasoned(dataset.as_ref(), &queries) {
+            Ok(r) => r,
+            Err(e) => return fail(format!("native verify failed: {e}")),
+        }
+    } else {
+        let result = match shipped_reasoning_result(dataset.as_ref()) {
+            Ok(r) => r,
+            Err(e) => return fail(format!("cannot reuse the shipped verdict: {e}")),
+        };
+        match verify_with_reasoning_result(dataset.as_ref(), &result, &queries) {
+            Ok(r) => r,
+            Err(e) => return fail(format!("native verify failed: {e}")),
+        }
     };
     let elapsed = elapsed_ms(started);
     let text = gmeow_diagnostics::render::to_text(&report.normalized());
@@ -174,25 +242,41 @@ pub fn verify(mode: &str, timings_json: Option<&Path>) -> i32 {
     }
 }
 
-/// `gmeow-dev reason-verify [--merge --timings-json]` — reason + verify in one pass.
-pub fn reason_verify(timings_json: Option<&Path>) -> i32 {
+/// `gmeow-dev reason-verify [--fresh --merge --timings-json]` — reason + verify in
+/// one pass. By default both halves reuse the shipped closure + verdict
+/// (contract-hash-checked, ONE snapshot import and no chase); `--fresh` recomputes.
+pub fn reason_verify(fresh: bool, timings_json: Option<&Path>) -> i32 {
     let root = project_root();
     let started = Instant::now();
     let dataset = match snapshot_dataset(&root) {
         Ok(d) => d,
         Err(code) => return code,
     };
-    let result = match reason_all(dataset.as_ref()) {
-        Ok(r) => r,
-        Err(e) => return fail(format!("native reason+verify failed: {e}")),
+    let (result, phase) = if fresh {
+        match reason_all(dataset.as_ref()) {
+            Ok(r) => (r, "reason-verify-native"),
+            Err(e) => return fail(format!("native reason+verify failed: {e}")),
+        }
+    } else {
+        match shipped_reasoning_result(dataset.as_ref()) {
+            Ok(r) => (r, "reason-verify-shipped"),
+            Err(e) => return fail(format!("cannot reuse the shipped verdict: {e}")),
+        }
     };
     if !result.is_consistent() {
         return fail("inconsistent ontology");
     }
     let queries = discover_verify_queries(&root);
-    let report = match verify_reasoned(dataset.as_ref(), &queries) {
-        Ok(r) => r,
-        Err(e) => return fail(format!("native reason+verify failed: {e}")),
+    let report = if fresh {
+        match verify_reasoned(dataset.as_ref(), &queries) {
+            Ok(r) => r,
+            Err(e) => return fail(format!("native reason+verify failed: {e}")),
+        }
+    } else {
+        match verify_with_reasoning_result(dataset.as_ref(), &result, &queries) {
+            Ok(r) => r,
+            Err(e) => return fail(format!("native reason+verify failed: {e}")),
+        }
     };
     let elapsed = elapsed_ms(started);
     if let Some(path) = timings_json {
@@ -200,7 +284,7 @@ pub fn reason_verify(timings_json: Option<&Path>) -> i32 {
             "command": "reason-verify",
             "mode": "native",
             "ok": report.ok(),
-            "timings": [{ "phase": "reason-verify-native", "elapsed_ms": elapsed, "metadata": null }],
+            "timings": [{ "phase": phase, "elapsed_ms": elapsed, "metadata": null }],
         });
         let code = write_timings_json(path, &payload);
         if code != 0 {
