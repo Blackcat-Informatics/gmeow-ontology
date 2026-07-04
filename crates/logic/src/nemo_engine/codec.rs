@@ -9,6 +9,15 @@
 //! parity with the Python oracle; do not change their logic without updating
 //! both sides and the conformance corpus.
 //!
+//! # Boundary
+//!
+//! The Nemo adapter ([`crate::nemo_engine`]) is the crate's SOLE fact
+//! stringifier: encode-direction functions are `pub(in crate::nemo_engine)`
+//! wherever the compiler allows, so fact-string rendering cannot leak back
+//! into the core.  Decode-direction functions stay `pub(crate)` — parsing
+//! Nemo's display surface is legitimately shared (rule IR literals, reasoning
+//! artifacts, the PyO3 seam).
+//!
 //! # Encode contract
 //!
 //! **Predicate**: the full IRI string is both the encode key and the `ChaseRow`
@@ -27,12 +36,10 @@
 
 use purrdf::TermValue;
 
-// ── Skolemization (owned by the typed-fact bridge) ───────────────────────────
-
-// The Skolemization primitives live in the typed-fact bridge — Skolemizing is a
-// semantic operation of the fact set, not a codec concern.  Re-exported here so
-// this module's encode path and its downstream consumers keep one authority.
-pub(crate) use crate::facts::{sha1_hex, skolem_iri, SKOLEM_PREFIX};
+// The Skolemization primitives live in the typed-fact bridge
+// ([`crate::facts`]) — Skolemizing is a semantic operation of the fact set,
+// not a codec concern.  The encode path consumes them from that one authority.
+use crate::facts::skolem_iri;
 
 // ── Encode: oxigraph quad → Nemo ground-fact line ────────────────────────────
 
@@ -42,7 +49,7 @@ pub(crate) use crate::facts::{sha1_hex, skolem_iri, SKOLEM_PREFIX};
 /// - `Blank(label)` → Skolemized `<https://...skolem/{sha1}>` (same as an IRI)
 /// - `Literal(value)` → depends on datatype / language (see below)
 /// - `Triple` → unsupported; empty string (gmeow-logic only uses IRI/BNode/Literal)
-pub(crate) fn encode_term(term: &TermValue) -> String {
+pub(in crate::nemo_engine) fn encode_term(term: &TermValue) -> String {
     match term {
         TermValue::Iri(iri) => format!("<{}>", iri),
         TermValue::Blank { label, scope } => {
@@ -62,7 +69,7 @@ pub(crate) fn encode_term(term: &TermValue) -> String {
 ///
 /// A literal subject is invalid RDF; it is encoded the same as its literal form
 /// (callers only ever pass IRI/blank subjects).
-pub(crate) fn encode_subject(subject: &TermValue) -> String {
+pub(in crate::nemo_engine) fn encode_subject(subject: &TermValue) -> String {
     encode_term(subject)
 }
 
@@ -109,7 +116,11 @@ fn escape_backslash_and_quote(s: &str) -> std::borrow::Cow<'_, str> {
 /// and [`decode_string_constant`] is then responsible for reversing the
 /// `quote_string` display escapes (including `\n` → newline and `\r` → CR)
 /// so that the round-trip is exact.
-pub(crate) fn encode_literal(lexical_form: &str, datatype: &str, language: Option<&str>) -> String {
+pub(in crate::nemo_engine) fn encode_literal(
+    lexical_form: &str,
+    datatype: &str,
+    language: Option<&str>,
+) -> String {
     // Escape in the same order as Nemo's quote_string to ensure the .rls
     // source is valid and the round-trip through encode→Nemo→decode is exact:
     //   1. Backslash first (must come before adding new backslashes)
@@ -133,6 +144,12 @@ pub(crate) fn encode_literal(lexical_form: &str, datatype: &str, language: Optio
 /// Encode one native quad as a single Nemo ground-fact line (with trailing `.`).
 ///
 /// Format: `<predicate_iri>(<subject_term>, <object_term>, "world_iri").`
+///
+/// Temporarily `pub(crate)`: the materialize and reasoning paths still render
+/// their EDB lines directly until they migrate onto
+/// [`crate::nemo_engine::run_chase_typed`], the typed adapter surface that is
+/// this function's destination.  Once they do, this tightens to
+/// `pub(in crate::nemo_engine)`.
 pub(crate) fn encode_quad_to_nemo_fact(
     subject: &TermValue,
     predicate: &str,
@@ -152,7 +169,7 @@ pub(crate) fn encode_quad_to_nemo_fact(
 // ── Decode: Nemo ChaseRow → oxigraph quad ────────────────────────────────────
 
 /// Decode an error-prefixed description for decode failures.
-pub(crate) fn decode_err(context: &str, got: &str) -> String {
+fn decode_err(context: &str, got: &str) -> String {
     format!("decode error [{context}]: {got:?}")
 }
 
@@ -169,7 +186,7 @@ pub(crate) fn decode_err(context: &str, got: &str) -> String {
 ///
 /// This function reverses those escapes using a single-pass character scanner
 /// to avoid double-processing (`\\n` must decode to `\n`, not to newline).
-pub(crate) fn unescape_nemo_string(s: &str) -> String {
+fn unescape_nemo_string(s: &str) -> String {
     let mut out = String::with_capacity(s.len());
     let mut chars = s.chars();
     while let Some(c) = chars.next() {
@@ -319,7 +336,7 @@ pub(crate) fn decode_nemo_term(s: &str) -> Result<TermValue, String> {
 ///
 /// `value_part` is the raw escaped content between the opening and closing `"`.
 /// `suffix` is everything after the closing `"` (e.g. `^^<dt>`, `@lang`, or `""`).
-pub(crate) fn split_nemo_literal_content(s: &str) -> Result<(&str, &str), String> {
+fn split_nemo_literal_content(s: &str) -> Result<(&str, &str), String> {
     let bytes = s.as_bytes();
     let mut i = 0;
     while i < bytes.len() {
@@ -342,6 +359,8 @@ pub(crate) fn split_nemo_literal_content(s: &str) -> Result<(&str, &str), String
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    use crate::facts::sha1_hex;
 
     // ── sha1_hex ──────────────────────────────────────────────────────────────
 

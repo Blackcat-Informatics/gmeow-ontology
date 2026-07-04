@@ -70,7 +70,8 @@
 
 use std::collections::HashMap;
 
-use crate::encode::{decode_iri_term, skolem_iri, SKOLEM_PREFIX};
+use crate::facts::{skolem_iri, SKOLEM_PREFIX};
+use crate::nemo_engine::codec::decode_iri_term;
 use crate::nemo_engine::run_chase;
 use purrdf::{RdfDataset, RdfTerm};
 

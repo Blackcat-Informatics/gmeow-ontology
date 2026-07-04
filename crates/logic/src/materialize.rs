@@ -20,7 +20,7 @@ use std::time::Instant;
 
 use purrdf::{parse_dataset, TermValue};
 
-use crate::encode::{
+use crate::nemo_engine::codec::{
     decode_iri_term, decode_nemo_term, decode_string_constant, encode_quad_to_nemo_fact,
 };
 use crate::nemo_engine::{run_chase, ChaseRow, ChaseRowWithProvenance};
