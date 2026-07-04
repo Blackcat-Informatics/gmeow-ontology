@@ -213,3 +213,14 @@ ASK {
     math:UnderspecifiedEncryptionScheme rdfs:subClassOf math:MathConformanceFailure .
 }""" ;
     gmeow:saRationale "The LWE and RLWE hardness assumptions MUST exist as math:LatticeHardnessAssumption individuals, and the HE hard-rule failure MUST be a typed math:MathConformanceFailure." .
+
+# --- 16. Algebra dogfoods GMEOW via the one-way math:formalizes bridge (MUST) ---
+ex:saDogfoodFormalizes a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    math:Lattice math:formalizes gmeow:tuningSystemJustIntonation .
+}""" ;
+    gmeow:saRationale "Algebra MUST ground at least one GMEOW domain concept through the one-way math:formalizes annotation (Principle 19): a prime-limit just-intonation tuning is a free abelian lattice, so math:Lattice formalizes gmeow:tuningSystemJustIntonation — surfaced in the domain term's documentation with the domain slice asserting no math: triple. This makes algebra grounding for the ontology, not a math island." .

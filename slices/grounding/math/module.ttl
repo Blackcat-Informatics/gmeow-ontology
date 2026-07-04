@@ -1236,3 +1236,14 @@ math:UnderspecifiedEncryptionScheme
     rdfs:label "Underspecified Encryption Scheme"@x-gmeow-english ;
     skos:definition "The failure raised when a math:HomomorphicEncryptionScheme does not declare the operation it is math:homomorphicOver, its math:securityAssumption, and its math:noiseModel. These are what make the homomorphic claim meaningful and its security stateable; a scheme asserted without them is ill-formed."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
+
+# =========================================================================== #
+# Dogfooding — algebra grounds GMEOW's own domain concepts (math:formalizes)
+#
+# The one-way bridge (Principle 19): a math: term formalizes a gmeow: domain concept,
+# surfaced in the domain term's documentation without the domain slice asserting any
+# math: triple. This makes algebra grounding for the rest of the ontology, not a
+# math island.
+# =========================================================================== #
+
+math:Lattice math:formalizes gmeow:tuningSystemJustIntonation .
