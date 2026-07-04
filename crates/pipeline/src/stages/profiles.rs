@@ -16,7 +16,7 @@ use purrdf::slice::rdf_query::{Dataset, Object};
 
 use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
-use crate::stages::source_load::module_files;
+use crate::stages::source_load::{all_manifest_files, module_files};
 
 /// Logical-path prefix of the generated profile documents.
 pub const PROFILES_DIR: &str = "generated/profiles";
@@ -29,11 +29,15 @@ const SLICE_TIER: &str = "https://blackcatinformatics.ca/gmeow/sliceTier";
 const SLICE_PROFILE: &str = "https://blackcatinformatics.ca/gmeow/sliceProfile";
 const SLICE_DEPENDS_ON: &str = "https://blackcatinformatics.ca/gmeow/sliceDependsOn";
 const TIER_CORE: &str = "https://blackcatinformatics.ca/gmeow/tierCore";
+const TIER_PROFILE: &str = "https://blackcatinformatics.ca/gmeow/tierProfile";
 
 /// One slice's profile-relevant manifest facts.
 pub(crate) struct SliceMeta {
     iri: String,
     is_core: bool,
+    /// A `gmeow:tierProfile` pure-selection slice: mints nothing (no `module.ttl`),
+    /// and the profiles stage emits its `sliceDependsOn` closure as a profile doc.
+    is_profile: bool,
     pub(crate) profiles: Vec<String>,
     pub(crate) depends_on: Vec<String>,
 }
@@ -92,6 +96,47 @@ pub fn render_profiles(root: &Path) -> Result<BTreeMap<String, String>, Pipeline
             )?,
         );
     }
+
+    // Profile-tier slices — a pure-selection slice (gmeow:tierProfile) that mints
+    // NOTHING (no module.ttl, so it is absent from `slices`/`full.ttl` — no
+    // over-capture) and declares its selection directly via its own manifest's
+    // gmeow:sliceDependsOn. Emit each as its dependency-closed composition ontology,
+    // reusing the same closure + document machinery as named profiles.
+    for profile in discover_profile_slices(root)? {
+        let name = profile_slug(&profile.iri);
+        let imports = dependency_closure(&name, &profile.depends_on, &slices)?;
+        out.insert(
+            format!("{name}.ttl"),
+            profile_document(
+                &profile.iri,
+                &format!("GMEOW — {name} profile"),
+                &format!(
+                    "The {name} profile-tier slice: a pure selection (Principle 16 — mints nothing) aggregating its declared gmeow:sliceDependsOn slices and their closure as one dereferenceable, citable, reasonable sub-ontology for a cohesive audience."
+                ),
+                &imports,
+            )?,
+        );
+    }
+    Ok(out)
+}
+
+/// The short name of a slice IRI — the final path segment (e.g.
+/// `…/slices/agent-runtime` → `agent-runtime`).
+fn profile_slug(iri: &str) -> String {
+    iri.rsplit('/').next().unwrap_or(iri).to_string()
+}
+
+/// Discover the `gmeow:tierProfile` pure-selection slices (manifest-only, no
+/// `module.ttl`). Sorted by IRI for deterministic emission.
+fn discover_profile_slices(root: &Path) -> Result<Vec<SliceMeta>, PipelineError> {
+    let mut out: Vec<SliceMeta> = Vec::new();
+    for manifest in all_manifest_files(root)? {
+        let meta = parse_manifest(&manifest)?;
+        if meta.is_profile {
+            out.push(meta);
+        }
+    }
+    out.sort_by(|a, b| a.iri.cmp(&b.iri));
     Ok(out)
 }
 
@@ -198,12 +243,12 @@ fn parse_manifest(path: &Path) -> Result<SliceMeta, PipelineError> {
         .next_back()
         .ok_or_else(|| PipelineError::Parse(format!("no `a gmeow:Slice` in {}", path.display())))?;
 
-    // sliceTier: core iff any named-node object equals tierCore.
-    let is_core = dataset
+    // sliceTier: core iff any named-node object equals tierCore; profile iff tierProfile.
+    let tiers = dataset
         .object_iris(&iri, SLICE_TIER)
-        .map_err(|e| PipelineError::Parse(e.to_string()))?
-        .iter()
-        .any(|n| n == TIER_CORE);
+        .map_err(|e| PipelineError::Parse(e.to_string()))?;
+    let is_core = tiers.iter().any(|n| n == TIER_CORE);
+    let is_profile = tiers.iter().any(|n| n == TIER_PROFILE);
 
     // sliceProfile: every literal-object lexical value, in dataset order.
     let profiles: Vec<String> = dataset
@@ -224,6 +269,7 @@ fn parse_manifest(path: &Path) -> Result<SliceMeta, PipelineError> {
     Ok(SliceMeta {
         iri,
         is_core,
+        is_profile,
         profiles,
         depends_on,
     })
