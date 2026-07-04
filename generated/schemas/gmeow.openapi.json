@@ -22198,6 +22198,31 @@
                 "@type": {
                   "anyOf": [
                     {
+                      "const": "math:AlgebraicStructure"
+                    },
+                    {
+                      "contains": {
+                        "const": "math:AlgebraicStructure"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/math:AlgebraicStructure"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
                       "const": "math:ApproximateValue"
                     },
                     {
@@ -22215,6 +22240,31 @@
             },
             "then": {
               "$ref": "#/$defs/math:ApproximateValue"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "math:AutomorphismGroup"
+                    },
+                    {
+                      "contains": {
+                        "const": "math:AutomorphismGroup"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/math:AutomorphismGroup"
             }
           },
           {
@@ -22348,6 +22398,56 @@
                 "@type": {
                   "anyOf": [
                     {
+                      "const": "math:HomomorphicEncryptionScheme"
+                    },
+                    {
+                      "contains": {
+                        "const": "math:HomomorphicEncryptionScheme"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/math:HomomorphicEncryptionScheme"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "math:Homomorphism"
+                    },
+                    {
+                      "contains": {
+                        "const": "math:Homomorphism"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/math:Homomorphism"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
                       "const": "math:Integral"
                     },
                     {
@@ -22365,6 +22465,31 @@
             },
             "then": {
               "$ref": "#/$defs/math:Integral"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "math:LieGroup"
+                    },
+                    {
+                      "contains": {
+                        "const": "math:LieGroup"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/math:LieGroup"
             }
           },
           {
@@ -22490,6 +22615,56 @@
             },
             "then": {
               "$ref": "#/$defs/math:Quantity"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "math:Ring"
+                    },
+                    {
+                      "contains": {
+                        "const": "math:Ring"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/math:Ring"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "math:RootSystem"
+                    },
+                    {
+                      "contains": {
+                        "const": "math:RootSystem"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/math:RootSystem"
             }
           },
           {
@@ -35167,6 +35342,130 @@
         ],
         "type": "object"
       },
+      "math:AlgebraicStructure": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "math:satisfiesAxiom": {
+            "anyOf": [
+              {
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          },
+          "math:structureOperation": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "$comment": "external class https://blackcatinformatics.ca/math/Operation",
+                    "type": "string"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
+              },
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "$comment": "external class https://blackcatinformatics.ca/math/Operation",
+                      "type": "string"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    }
+                  ]
+                },
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          },
+          "math:underlyingSet": {
+            "anyOf": [
+              {
+                "$comment": "external class https://blackcatinformatics.ca/math/Set",
+                "type": "string"
+              },
+              {
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              }
+            ]
+          }
+        },
+        "required": [
+          "math:satisfiesAxiom",
+          "math:structureOperation",
+          "math:underlyingSet"
+        ],
+        "type": "object"
+      },
       "math:ApproximateValue": {
         "properties": {
           "@annotation": {
@@ -35221,6 +35520,63 @@
         "required": [
           "math:approximates",
           "math:approximationError"
+        ],
+        "type": "object"
+      },
+      "math:AutomorphismGroup": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "math:automorphismGroupOf": {
+            "anyOf": [
+              {
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          }
+        },
+        "required": [
+          "math:automorphismGroupOf"
         ],
         "type": "object"
       },
@@ -35527,6 +35883,221 @@
         ],
         "type": "object"
       },
+      "math:HomomorphicEncryptionScheme": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "math:homomorphicOver": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "$comment": "external class https://blackcatinformatics.ca/math/Operation",
+                    "type": "string"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
+              },
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "$comment": "external class https://blackcatinformatics.ca/math/Operation",
+                      "type": "string"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    }
+                  ]
+                },
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          },
+          "math:noiseModel": {
+            "anyOf": [
+              {},
+              {
+                "items": {},
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          },
+          "math:securityAssumption": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "$comment": "external class https://blackcatinformatics.ca/math/LatticeHardnessAssumption",
+                    "type": "string"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
+              },
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "$comment": "external class https://blackcatinformatics.ca/math/LatticeHardnessAssumption",
+                      "type": "string"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    }
+                  ]
+                },
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          }
+        },
+        "required": [
+          "math:homomorphicOver",
+          "math:noiseModel",
+          "math:securityAssumption"
+        ],
+        "type": "object"
+      },
+      "math:Homomorphism": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "math:preservationLaw": {
+            "anyOf": [
+              {},
+              {
+                "items": {},
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          },
+          "math:preservedOperation": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "$comment": "external class https://blackcatinformatics.ca/math/Operation",
+                    "type": "string"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
+              },
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "$comment": "external class https://blackcatinformatics.ca/math/Operation",
+                      "type": "string"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    }
+                  ]
+                },
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          }
+        },
+        "required": [
+          "math:preservationLaw",
+          "math:preservedOperation"
+        ],
+        "type": "object"
+      },
       "math:Integral": {
         "properties": {
           "@annotation": {
@@ -35594,6 +36165,79 @@
           "math:integrand",
           "math:integrationDomain",
           "math:withRespectTo"
+        ],
+        "type": "object"
+      },
+      "math:LieGroup": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "math:hasRootSystem": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "$comment": "external class https://blackcatinformatics.ca/math/RootSystem",
+                    "type": "string"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
+              },
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "$comment": "external class https://blackcatinformatics.ca/math/RootSystem",
+                      "type": "string"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    }
+                  ]
+                },
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          }
+        },
+        "required": [
+          "math:hasRootSystem"
         ],
         "type": "object"
       },
@@ -35835,6 +36479,88 @@
         "required": [
           "math:hasDimension"
         ],
+        "type": "object"
+      },
+      "math:Ring": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "math:satisfiesDistributivity": {
+            "anyOf": [
+              {
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          }
+        },
+        "required": [
+          "math:satisfiesDistributivity"
+        ],
+        "type": "object"
+      },
+      "math:RootSystem": {
+        "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          }
+        },
         "type": "object"
       },
       "math:Set": {

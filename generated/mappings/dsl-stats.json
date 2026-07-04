@@ -47,6 +47,7 @@
   "gmeow-lexicon.sssom.tsv": 9,
   "gmeow-lexvo.sssom.tsv": 2,
   "gmeow-lifecycle.sssom.tsv": 8,
+  "gmeow-mathlib.sssom.tsv": 7,
   "gmeow-mentation.sssom.tsv": 1,
   "gmeow-music.sssom.tsv": 49,
   "gmeow-names.sssom.tsv": 55,
@@ -77,10 +78,10 @@
   "gmeow-temporal.sssom.tsv": 66,
   "gmeow-trust.sssom.tsv": 12,
   "gmeow-versions.sssom.tsv": 4,
-  "gmeow-wikidata.sssom.tsv": 89
+  "gmeow-wikidata.sssom.tsv": 123
  },
- "equivalences": 1880,
+ "equivalences": 1921,
  "functions": 59,
- "mapping_sets": 76,
+ "mapping_sets": 77,
  "projections": 527
 }

@@ -1,0 +1,21 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Well-formed: a math:Ring declaring its carrier, both operations, an axiom, and — through
+# math:satisfiesDistributivity — the distributivity law that ties multiplication to
+# addition. Conforms to math:RingDistributivityShape and math:AlgebraicStructureShape.
+# Bound by ex:ecRingDistributive.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:distributiveRing a math:Ring ;
+    math:underlyingSet ex:ringCarrier ;
+    math:structureOperation ex:ringAdd , ex:ringMul ;
+    math:satisfiesAxiom ex:ringAssoc ;
+    math:satisfiesDistributivity ex:ringDistributivity .
+
+ex:ringCarrier a math:Set .
+ex:ringAdd a math:Operation .
+ex:ringMul a math:Operation .
+ex:ringAssoc a math:Axiom .
+ex:ringDistributivity a math:Axiom .

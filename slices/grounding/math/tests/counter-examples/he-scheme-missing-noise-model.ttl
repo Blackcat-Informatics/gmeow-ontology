@@ -1,0 +1,20 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:HomomorphicEncryptionSchemeShape: a scheme that declares its
+# homomorphic operation, its preservation law, and its security assumption but omits its
+# math:noiseModel (sh:minCount 1), so validation MUST emit
+# shacl.MinCountConstraintComponent (and no other finding). It declares math:preservedOperation
+# and math:preservationLaw so the HomomorphismShape / PreservationLawShape are satisfied,
+# isolating the noise-model violation.
+# Bound by tests/example-conformance.ttl (ex:ecHeMissingNoiseModel).
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:noiselessHe a math:HomomorphicEncryptionScheme ;
+    math:preservedOperation ex:ctMul ;
+    math:homomorphicOver ex:ctMul ;
+    math:preservationLaw ex:heLaw ;
+    math:securityAssumption math:ringLearningWithErrors .
+
+ex:ctMul a math:Operation .
