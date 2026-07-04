@@ -228,3 +228,69 @@ fn hex_encode(bytes: &[u8]) -> String {
     }
     s
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn cached_result_write_replaces_cleanly() {
+        let tmp =
+            std::env::temp_dir().join(format!("gmeow_validate_cache_test_{}", std::process::id()));
+        let cache = ValidationCache::new(&tmp);
+        let key = "abc123";
+        let kind = "test-phase";
+
+        let old = CachedResult::from_findings(vec![Finding::new(
+            gmeow_diagnostics::Severity::Error,
+            "old",
+            "old error",
+        )]);
+        let new = CachedResult::from_findings(vec![Finding::new(
+            gmeow_diagnostics::Severity::Warning,
+            "new",
+            "new warning",
+        )]);
+
+        cache.write_cached_result(kind, key, &old).unwrap();
+        cache.write_cached_result(kind, key, &new).unwrap();
+
+        let read = cache
+            .read_cached_result(kind, key)
+            .expect("cached result must exist");
+        assert_eq!(read.findings.len(), 1);
+        assert_eq!(read.findings[0].code, "new");
+
+        // No stray temp files left behind.
+        let tmp_files: Vec<_> = cache
+            .cache_dir()
+            .read_dir()
+            .unwrap()
+            .filter_map(|e| e.ok())
+            .filter(|e| {
+                e.file_name()
+                    .to_string_lossy()
+                    .starts_with(&format!(".{key}.json."))
+            })
+            .collect();
+        assert!(tmp_files.is_empty(), "temp cache files must be cleaned up");
+
+        let _ = std::fs::remove_dir_all(&tmp);
+    }
+
+    #[test]
+    fn cached_result_ignores_non_object_payload() {
+        let tmp = std::env::temp_dir().join(format!(
+            "gmeow_validate_cache_payload_test_{}",
+            std::process::id()
+        ));
+        let cache = ValidationCache::new(&tmp);
+        let path = cache.cache_path("test-phase", "abc123");
+        std::fs::create_dir_all(path.parent().unwrap()).unwrap();
+        std::fs::write(&path, b"[]").unwrap();
+
+        assert!(cache.read_cached_result("test-phase", "abc123").is_none());
+
+        let _ = std::fs::remove_dir_all(&tmp);
+    }
+}
