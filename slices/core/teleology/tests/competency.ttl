@@ -1,0 +1,33 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative competency question for the teleology slice, executed by the native
+# Rust slice-test harness (crates/slicetest). Migrated from
+# tests/test_teleology.py::test_competency_teleology_modes_query.
+#
+# The query asks: "What grades of intentional commitment can GMEOW record, and
+# how do they divide between intrinsic modes and relators?"
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/teleology/tests/> .
+
+ex:cqTeleologyModes a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "queries/competency/teleology-modes.rq" ;
+    gmeow:cqRationale "GMEOW must record the graded intentional-commitment trichotomy: Desire and Intention as subclasses of gmeow:IntentionalMode, and Commitment as a logic:Relator." ;
+    gmeow:cqResultShape ex:cqTeleologyModesShape ;
+    gmeow:cqExpectRow ex:rowDesire, ex:rowIntention, ex:rowCommitment .
+
+ex:cqTeleologyModesShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "mode" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsContains .
+
+ex:rowDesire a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "mode" ; gmeow:cellValueIri gmeow:Desire ] .
+
+ex:rowIntention a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "mode" ; gmeow:cellValueIri gmeow:Intention ] .
+
+ex:rowCommitment a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "mode" ; gmeow:cellValueIri gmeow:Commitment ] .

@@ -1,15 +1,16 @@
 # Retention: `tests/test_aboutness.py`
 
-**Category:** Domain invariant → slicetest cells
+**Category:** Merged-graph guard
 
 ## What it tests
 
-The universal aboutness vocabulary (#349, EPIC #348).
+The universal aboutness vocabulary.
 
-## Why it cannot move to Rust today
+Retained dynamic tests:
 
-Structural / competency / cross-slice invariants over the module (or merged) graph — ontology *shape*, not Python logic.
+- `test_aboutness_orthogonal_to_other_axes` — hasAboutness ⟂ every other kernel axis: no inferential bridge.
+- `test_no_aboutness_truth_bridge` — Enactment never implies assertion: no axiom links aboutness to veridicality or standpoint modality (the licensed-falsehood boundary is a documented bridge, not an entailment).
 
-## What is needed to move it to Rust
+## Why it cannot be deleted or moved to Rust today
 
-Author the assertions as slicetest cells in the **owning** slice (`structural.ttl` MUST/MUST-NOT, `competency.ttl` ASK/SELECT) per `docs/SLICE_QA.md`; cross-slice subjects go in the slice that *defines* the term. Confirm `make slicetest`, then delete this file. No new Rust — the harness exists.
+The two tests RETAINED here assert ABSENCE over the whole merged graph (include_imports=False) — orthogonality across axes (gmeow:confidence, gmeow:hasGranularity, … declared in 10+ slices) and the seeds' exactly-one-type guarantee — which the module-scoped (gmeow:scopeModule) cell DSL cannot express faithfully, so they stay as Python merged-graph assertions.

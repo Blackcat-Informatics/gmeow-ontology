@@ -9,8 +9,8 @@
 > *closed-world* validators.
 > The **LinkML targets** (`gmeow.linkml.yaml`, `gmeow.py`, `gmeow.ts`, `gmeow.graphql`) are
 > projected **OWL → LinkML**.  They are *open-world* structural views.
-> Regenerate: `uv run --package gmeow-dev gmeow-dev regenerate schemas`.
-> CI gate: `uv run --package gmeow-dev gmeow-dev check-generated schemas` (in the `ontology` job).
+> Regenerate: `cargo run -p gmeow-dev-cli -- regenerate schemas`.
+> CI gate: `cargo run -p gmeow-dev-cli -- check-generated schemas` (in the `ontology` job).
 
 GMEOW is an **OWL 2 DL** ontology with a parallel layer of **SHACL** shapes.  OWL is a *logic*
 language (intersection, cardinality, inverse properties, open-world reasoning); SHACL is a
@@ -198,10 +198,10 @@ requiredness, use the **SHACL-derived JSON Schema** (§1), which carries `requir
 
 ```bash
 # Generate all artifacts into dist/schemas/
-uv run --package gmeow-dev gmeow-dev regenerate schemas
+cargo run -p gmeow-dev-cli -- regenerate schemas
 
 # Verify they match the current ontology + shapes (CI gate)
-uv run --package gmeow-dev gmeow-dev check-generated schemas
+cargo run -p gmeow-dev-cli -- check-generated schemas
 
 # Validate an instance document against the SHACL-derived JSON Schema
 gmeow validate --schema dist/schemas/gmeow.schema.json instance.jsonld
@@ -219,4 +219,4 @@ Output files:
 These are **build artifacts** (`dist/` is git-ignored).  Do not edit them by hand.
 If a term is wrong, fix the OWL source in `ontology/modules/` (LinkML targets) or the SHACL
 shapes (JSON Schema / OpenAPI), then re-run
-`uv run --package gmeow-dev gmeow-dev regenerate schemas`.
+`cargo run -p gmeow-dev-cli -- regenerate schemas`.

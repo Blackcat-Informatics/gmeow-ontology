@@ -1,15 +1,17 @@
 # Retention: `tests/test_contact_fields.py`
 
-**Category:** Domain invariant → slicetest cells
+**Category:** Merged-graph guard
 
 ## What it tests
 
 Structural guards for the audited contact-field terms (the small wins).
 
-## Why it cannot move to Rust today
+Retained dynamic tests:
 
-Structural / competency / cross-slice invariants over the module (or merged) graph — ontology *shape*, not Python logic.
+- `test_new_small_terms_exist` — Retained dynamic test.
+- `test_membership_relator_completed` — Retained dynamic test.
+- `test_no_flat_contact_terms` — nickname / birthDate / jobTitle / url / image / depiction are downcasts or deferred — never canonical flat terms.
 
-## What is needed to move it to Rust
+## Why it cannot be deleted or moved to Rust today
 
-Author the assertions as slicetest cells in the **owning** slice (`structural.ttl` MUST/MUST-NOT, `competency.ttl` ASK/SELECT) per `docs/SLICE_QA.md`; cross-slice subjects go in the slice that *defines* the term. Confirm `make slicetest`, then delete this file. No new Rust — the harness exists.
+Whole-merged-graph sweeps over terms declared across many slice modules; cannot be faithfully scoped to a single slice module.

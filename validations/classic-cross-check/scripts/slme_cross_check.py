@@ -234,7 +234,7 @@ def _check_slme_case(case: SlmeCase) -> None:
 
 def _run_gmeow_dev(verify_args: list[str]) -> tuple[bool, str]:
     """Run a ``gmeow-dev`` subcommand; return (clean, combined output)."""
-    cmd = ["uv", "run", "--package", "gmeow-dev", "gmeow-dev", *verify_args]
+    cmd = ["cargo", "run", "-q", "-p", "gmeow-dev-cli", "--", *verify_args]
     proc = subprocess.run(
         cmd,
         cwd=PROJECT_ROOT,

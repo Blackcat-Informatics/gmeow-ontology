@@ -1,15 +1,16 @@
 # Retention: `tests/test_provenance.py`
 
-**Category:** Domain invariant → slicetest cells
+**Category:** Merged-graph guard
 
 ## What it tests
 
 Structural guards for the import-provenance / carrier-time slice.
 
-## Why it cannot move to Rust today
+Retained dynamic tests:
 
-Structural / competency / cross-slice invariants over the module (or merged) graph — ontology *shape*, not Python logic.
+- `test_carrier_and_ingestion_props` — Retained dynamic test.
+- `test_four_clocks_are_distinct_dated_annotations` — Retained dynamic test.
 
-## What is needed to move it to Rust
+## Why it cannot be deleted or moved to Rust today
 
-Author the assertions as slicetest cells in the **owning** slice (`structural.ttl` MUST/MUST-NOT, `competency.ttl` ASK/SELECT) per `docs/SLICE_QA.md`; cross-slice subjects go in the slice that *defines* the term. Confirm `make slicetest`, then delete this file. No new Rust — the harness exists.
+Gmeow:sourceModifiedAt and gmeow:contentDigest are defined in the sources slice, not provenance; cannot be scoped to gmeow:scopeModule for provenance. — gmeow:validFrom, gmeow:validUntil, gmeow:assertedAt, and gmeow:recordedNoLaterThan are all defined in the temporal and sources slices, not provenance.

@@ -1,15 +1,17 @@
 # Retention: `tests/test_suppression_conformance.py`
 
-**Category:** Projection / alignment → Correspondence Calculus
+**Category:** Merged-graph guard
 
 ## What it tests
 
-Generated leak-conformance suite (#282, CONSTITUTION P10).
+Generated leak-conformance suite.
 
-## Why it cannot move to Rust today
+Retained dynamic tests:
 
-Exercises the FnO/EDOAL/SPARQL projection or up-projection (alignment) layer — live Python engine output.
+- `test_suppressed_canary_never_leaks` — displayable false never surfaces — in ANY profile, present or future.
+- `test_precise_coarsened_values_never_leak` — A coarsenTo-marked place's precise coordinates appear in no profile.
+- `test_control_canary_proves_coverage` — The displayable twin DOES project — the leak tests are not vacuous.
 
-## What is needed to move it to Rust
+## Why it cannot be deleted or moved to Rust today
 
-Subsumed by the Correspondence Calculus (`docs/APPLIED_CATEGORY_THEORY/take1.md`): projections become lowerings of one `logic:Correspondence` get/put leg pair; up-projection is the derived `put` leg. When the lowering engine + `conformance/correspondence` round-trip/overclaim gates regenerate these outputs byte/graph-iso, the file is deleted under equivalence-before-deletion.
+Whole-merged-graph sweeps over terms declared across many slice modules; cannot be faithfully scoped to a single slice module.

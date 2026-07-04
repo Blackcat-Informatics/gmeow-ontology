@@ -1,15 +1,29 @@
 # Retention: `tests/test_diagnostics_config.py`
 
-**Category:** PyO3 seam
+**Category:** Python tool algorithm
 
 ## What it tests
 
-Tests for the shared diagnostics output config (#662).
+Tests for the shared diagnostics output config.
 
-## Why it cannot move to Rust today
+Retained dynamic tests:
 
-Tests a PyO3 binding's marshalling / error-surfacing — the seam itself, which Rust cannot test from the inside; the engine substance is already Rust-tested.
+- `test_defaults_resolve_with_no_flags_or_env` — Retained dynamic test.
+- `test_auto_console_resolves_by_tty` — Retained dynamic test.
+- `test_flag_beats_env_for_console` — Retained dynamic test.
+- `test_env_honored_when_no_flag` — Retained dynamic test.
+- `test_stem_precedence` — Retained dynamic test.
+- `test_category_precedence` — Retained dynamic test.
+- `test_artifacts_parsing` — Retained dynamic test.
+- `test_unknown_artifact_token_hard_fails` — Retained dynamic test.
+- `test_invalid_console_token_hard_fails` — Retained dynamic test.
+- `test_directory_default_is_flat_dist_without_a_category` — Retained dynamic test.
+- `test_directory_is_category_scoped_when_category_explicit` — Retained dynamic test.
+- `test_directory_is_category_scoped_when_category_from_env` — Retained dynamic test.
+- `test_explicit_directory_flag_wins_in_both_modes` — Retained dynamic test.
+- `test_env_directory_wins_over_default_off_tty` — Retained dynamic test.
+- `test_is_tty_none_falls_back_to_stderr_isatty` — Retained dynamic test.
 
-## What is needed to move it to Rust
+## Why it cannot be deleted or moved to Rust today
 
-Delete when the Python surface that owns the seam is removed (the binding drops once nothing Python imports it); the engine is covered by its Rust crate.
+Python-only algorithm or generated-artifact checks with no declarative slice-test equivalent.

@@ -1,4 +1,4 @@
-"""Tests for the consumer projection policy / disclosure control facility (#225).
+"""Tests for the consumer projection policy / disclosure control facility.
 
 Covers the ontology structure (ProjectionContext and DisclosurePolicy as universal
 QualityValue types, eligibleForConsumer and hasDisclosurePolicy as domain-free
@@ -9,11 +9,10 @@ gating.
 
 from __future__ import annotations
 
-from itertools import combinations
 from pathlib import Path
 
 import pytest
-from purrdf.compat.rdflib import OWL, RDF, RDFS, Graph, Namespace, URIRef, Variable
+from purrdf.compat.rdflib import Graph, Namespace, URIRef, Variable
 from purrdf.compat.rdflib.query import ResultRow
 
 from gmeow_tools.config import NAMESPACE
@@ -36,100 +35,6 @@ def _projection_source() -> Graph:
     graph = load_merged_graph(include_imports=False)
     graph.parse(COVERAGE_FIXTURES / "disclosure.ttl", format="turtle")
     return graph
-
-
-# --------------------------------------------------------------------------- #
-# Ontology structure
-# --------------------------------------------------------------------------- #
-
-
-def test_projection_context_class_structure() -> None:
-    """After #694 migration: gufo: stereotype → logic: stereotype."""
-    g = _graph()
-    assert (GM.ProjectionContext, RDF.type, OWL.Class) in g
-    assert (GM.ProjectionContext, RDF.type, LOGIC.AbstractIndividualType) in g
-    assert (GM.ProjectionContext, RDFS.subClassOf, LOGIC.QualityValue) in g
-
-
-def test_disclosure_policy_class_structure() -> None:
-    """After #694 migration: gufo: stereotype → logic: stereotype."""
-    g = _graph()
-    assert (GM.DisclosurePolicy, RDF.type, OWL.Class) in g
-    assert (GM.DisclosurePolicy, RDF.type, LOGIC.AbstractIndividualType) in g
-    assert (GM.DisclosurePolicy, RDFS.subClassOf, LOGIC.QualityValue) in g
-
-
-def test_eligible_for_consumer_property_structure() -> None:
-    g = _graph()
-    assert (GM.eligibleForConsumer, RDF.type, OWL.ObjectProperty) in g
-    assert (GM.eligibleForConsumer, RDFS.range, GM.ProjectionContext) in g
-    # Domain-free (universal, like hasGranularity).
-    assert g.value(GM.eligibleForConsumer, RDFS.domain) is None
-    # NOT functional: multi-source claims coexist (Principle 9).
-    assert (GM.eligibleForConsumer, RDF.type, OWL.FunctionalProperty) not in g
-
-
-def test_has_disclosure_policy_property_structure() -> None:
-    g = _graph()
-    assert (GM.hasDisclosurePolicy, RDF.type, OWL.ObjectProperty) in g
-    assert (GM.hasDisclosurePolicy, RDFS.range, GM.DisclosurePolicy) in g
-    # Domain-free (universal, like hasGranularity).
-    assert g.value(GM.hasDisclosurePolicy, RDFS.domain) is None
-    # NOT functional: multi-source claims coexist (Principle 9).
-    assert (GM.hasDisclosurePolicy, RDF.type, OWL.FunctionalProperty) not in g
-
-
-def test_projection_context_seeds_declared() -> None:
-    g = _graph()
-    members = set(g.subjects(RDF.type, GM.ProjectionContext))
-    assert members == {
-        GM.consumerInternalArchive,
-        GM.consumerAgentMemory,
-        GM.consumerWikidata,
-        GM.consumerWikipedia,
-        GM.consumerPublicSite,
-        GM.consumerSchemaOrgJsonLd,
-        GM.consumerFoafExport,
-        GM.consumerResearchQueue,
-        GM.consumerAdviceCatalog,
-    }
-
-
-def test_disclosure_policy_seeds_declared() -> None:
-    g = _graph()
-    members = set(g.subjects(RDF.type, GM.DisclosurePolicy))
-    assert members == {
-        GM.policyInternalOnly,
-        GM.policySensitive,
-        GM.policyPublicCareful,
-        GM.policyPublicSafe,
-        GM.policyNeverPublic,
-        GM.policyPublicOnlyWithIndependentSource,
-    }
-
-
-# --------------------------------------------------------------------------- #
-# Orthogonality (Principle 9)
-# --------------------------------------------------------------------------- #
-
-
-def test_disclosure_orthogonal_to_other_axes() -> None:
-    """hasDisclosurePolicy ⟂ hasSensitivity ⟂ hasDeterminacy ⟂ confidence."""
-    g = _graph()
-    axes = [GM.hasDisclosurePolicy, GM.hasSensitivity, GM.hasDeterminacy, GM.confidence]
-    for a, b in combinations(axes, 2):
-        assert (a, RDFS.subPropertyOf, b) not in g
-        assert (b, RDFS.subPropertyOf, a) not in g
-        assert (a, OWL.equivalentProperty, b) not in g
-        assert (b, OWL.equivalentProperty, a) not in g
-
-
-def test_disclosure_orthogonal_to_granularity() -> None:
-    """hasDisclosurePolicy ⟂ hasGranularity: distinct axes."""
-    g = _graph()
-    assert (GM.hasDisclosurePolicy, RDFS.subPropertyOf, GM.hasGranularity) not in g
-    assert (GM.hasGranularity, RDFS.subPropertyOf, GM.hasDisclosurePolicy) not in g
-    assert (GM.hasDisclosurePolicy, OWL.equivalentProperty, GM.hasGranularity) not in g
 
 
 # --------------------------------------------------------------------------- #

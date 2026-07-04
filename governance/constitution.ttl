@@ -80,7 +80,7 @@ meta:gate-generator-registry a meta:Gate ;
 meta:tests-narrow-waist a meta:Gate ;
     rdfs:label "narrow-waist seal (GTS is the only exit for data)"@x-gmeow-english ;
     meta:artifact "crates/validate/src/repo_static.rs", "docs/gts-narrow-waist.md" ;
-    meta:symbol "check_repo_static", "check_narrow_waist" ;
+    meta:symbol "check_repo_static", "check_no_rdflib_in_runtime" ;
     meta:cliCommand "crate-check" ;
     meta:makeTarget "crate-check" .
 
@@ -145,7 +145,8 @@ meta:tests-suppression a meta:TestSuite ;
 meta:tests-reference-frames a meta:TestSuite ;
     rdfs:label "reference-frame relativity tests"@x-gmeow-english ;
     meta:artifact "crates/validate/tests/conformance_reference_frames.rs",
-        "tests/test_calendar.py", "tests/test_edtf.py" .
+        "tests/test_calendar.py",
+        "slices/core/temporal/tests/structural.ttl" .
 
 meta:lint-reasoning-invariants a meta:Lint ;
     rdfs:label "closed-world reasoning invariants (solver boundary)"@x-gmeow-english ;

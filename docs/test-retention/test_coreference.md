@@ -1,20 +1,15 @@
 # Retention: `tests/test_coreference.py`
 
-**Category:** Domain invariant → slicetest cells
+**Category:** Merged-graph guard
 
 ## What it tests
 
-Universal identity/coreference guards. Only the whole-graph banned-IRI
-absence sweep (`test_no_preferred_or_primary_coreference_terms`) remains. The
-`test_schema_sameas_projection_requires_exact_authority_match` projection check
-was removed in the correspondence-frontend migration: the `schema-org` `sameAs` projection is now enforced by
-the native Rust SPARQL lowering and its byte-iso parity oracle, so the Python
-`project_graph` surface was the redundant dual authority.
+Universal identity/coreference guards.
 
-## Why it cannot move to Rust today
+Retained dynamic tests:
 
-Structural / competency / cross-slice invariants over the module (or merged) graph — ontology *shape*, not Python logic.
+- `test_no_preferred_or_primary_coreference_terms` — Retained dynamic test.
 
-## What is needed to move it to Rust
+## Why it cannot be deleted or moved to Rust today
 
-Author the assertions as slicetest cells in the **owning** slice (`structural.ttl` MUST/MUST-NOT, `competency.ttl` ASK/SELECT) per `docs/SLICE_QA.md`; cross-slice subjects go in the slice that *defines* the term. Confirm `make slicetest`, then delete this file. No new Rust — the harness exists.
+Whole-graph absence sweep over banned IRI names; subjects not home-asserted in module.ttl.

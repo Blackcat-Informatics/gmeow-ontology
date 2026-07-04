@@ -1,15 +1,17 @@
 # Retention: `tests/test_citations.py`
 
-**Category:** Domain invariant → slicetest cells
+**Category:** Python tool algorithm
 
 ## What it tests
 
-Citation & Credit module retained guards (issue #211).
+Citation & Credit module retained guards.
 
-## Why it cannot move to Rust today
+Retained dynamic tests:
 
-Structural / competency / cross-slice invariants over the module (or merged) graph — ontology *shape*, not Python logic.
+- `test_self_description_loader` — Retained dynamic test.
+- `test_self_description_models_project_repository_and_brand_assets` — Retained dynamic test.
+- `test_canonical_description_is_standardized` — One abstract, identical across self-desc / ontology header / CITATION.
 
-## What is needed to move it to Rust
+## Why it cannot be deleted or moved to Rust today
 
-Author the assertions as slicetest cells in the **owning** slice (`structural.ttl` MUST/MUST-NOT, `competency.ttl` ASK/SELECT) per `docs/SLICE_QA.md`; cross-slice subjects go in the slice that *defines* the term. Confirm `make slicetest`, then delete this file. No new Rust — the harness exists.
+Citation & Credit module retained guards.

@@ -1,15 +1,15 @@
 # Retention: `tests/test_quality.py`
 
-**Category:** Domain invariant → slicetest cells
+**Category:** Merged-graph guard
 
 ## What it tests
 
-Data-quality layer — whole-ontology Principle-9 sweep (#99).
+Data-quality layer — whole-ontology Principle-9 sweep.
 
-## Why it cannot move to Rust today
+Retained dynamic tests:
 
-Structural / competency / cross-slice invariants over the module (or merged) graph — ontology *shape*, not Python logic.
+- `test_no_preferred_or_primary_term_is_declared` — No GMEOW vocabulary term is a preferred/primary selector.
 
-## What is needed to move it to Rust
+## Why it cannot be deleted or moved to Rust today
 
-Author the assertions as slicetest cells in the **owning** slice (`structural.ttl` MUST/MUST-NOT, `competency.ttl` ASK/SELECT) per `docs/SLICE_QA.md`; cross-slice subjects go in the slice that *defines* the term. Confirm `make slicetest`, then delete this file. No new Rust — the harness exists.
+What remains is the **whole-ontology** dynamic sweep below: it iterates the entire merged graph's subject set, so it is NOT a quality-module-scoped assertion and a module-scoped slicetest cell would silently narrow it. It is retained here as a dynamic-set sweep.

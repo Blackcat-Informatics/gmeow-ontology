@@ -1,15 +1,20 @@
 # Retention: `tests/test_compliance.py`
 
-**Category:** Validator / governance surface
+**Category:** Oracle / Docker orchestration
 
 ## What it tests
 
-Compliance-report tests (#285).
+Compliance-report tests.
 
-## Why it cannot move to Rust today
+Retained dynamic tests:
 
-A governance/validator surface (constitution gate, compliance render, statement+Jena oracle) whose engine is Rust but whose orchestration is Python.
+- `test_report_is_valid_turtle_covering_every_principle` — Retained dynamic test.
+- `test_report_carries_supersession_edges` — The report flows the manifest's supersession/extends edges per principle.
+- `test_runnable_gates_report_passed_and_failures_propagate` — Retained dynamic test.
+- `test_out_of_process_enforcement_is_gated_in_ci_never_silent` — Retained dynamic test.
+- `test_report_carries_provenance` — Retained dynamic test.
+- `test_prior_gate_evidence_mode_marks_runnable_gates_passed` — Retained dynamic test.
 
-## What is needed to move it to Rust
+## Why it cannot be deleted or moved to Rust today
 
-Move the orchestration into the bundled Rust validator / native path, then delete this file.
+Drives external reasoners or Docker-backed tooling that has no Rust twin by design.
