@@ -9,6 +9,9 @@
 //! * [`ConsoleMode`] — the closed enum choosing the output surface, with the
 //!   DX precedence rule (flag > env > default) and the non-TTY-agents-get-JSONL
 //!   default resolution.
+//! * [`DiagnosticsConfig`] — the resolved diagnostics output policy (console
+//!   mode, artifact kinds, directory, stem, category) with the same flag > env
+//!   > default precedence.
 //! * [`Reporter`] — a small, object-safe trait over "how do I surface a
 //!   [`gmeow_diagnostics::Report`], progress, and a run summary", with a
 //!   human-facing ([`HumanReporter`]) and a machine-facing ([`NdjsonReporter`])
@@ -16,7 +19,9 @@
 //! * [`exit_code`] — the 0/1 process exit convention over a report.
 //! * [`init_tracing`] — the idempotent stderr `tracing` subscriber install.
 
+use std::collections::{BTreeSet, HashMap};
 use std::io::Write;
+use std::path::{Path, PathBuf};
 use std::time::Duration;
 
 use gmeow_diagnostics::render;
@@ -45,6 +50,17 @@ pub enum ConsoleMode {
 }
 
 impl ConsoleMode {
+    /// Return the canonical kebab-case spelling of this mode.
+    pub fn as_str(self) -> &'static str {
+        match self {
+            ConsoleMode::Auto => "auto",
+            ConsoleMode::Pretty => "pretty",
+            ConsoleMode::Text => "text",
+            ConsoleMode::Jsonl => "jsonl",
+            ConsoleMode::Silent => "silent",
+        }
+    }
+
     /// Resolve the effective console mode from, in precedence order: an explicit
     /// `--console` flag, then an environment value (`auto|pretty|text|jsonl|silent`),
     /// then the default ([`ConsoleMode::Auto`]).
@@ -76,6 +92,187 @@ impl ConsoleMode {
             "silent" => Some(ConsoleMode::Silent),
             _ => None,
         }
+    }
+}
+
+/// Errors raised while resolving a [`DiagnosticsConfig`].
+///
+/// Invalid tokens are hard failures: the diagnostics policy has no silent
+/// fallback, so a typo cannot silently degrade output.
+#[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
+pub enum DiagnosticsConfigError {
+    /// An unrecognized `--diagnostics-console` / `GMEOW_DIAGNOSTICS_CONSOLE` token.
+    #[error("unknown diagnostics console mode: {0:?}")]
+    UnknownConsoleMode(String),
+    /// One or more entries in an artifact selector are not known kinds.
+    #[error(
+        "unknown diagnostics artifact kind(s): {unknown:?} \
+         (expected a subset of {expected:?}, or 'none'/'all')"
+    )]
+    UnknownArtifactKind {
+        /// The unrecognized token(s) from the selector.
+        unknown: Vec<String>,
+        /// The canonical artifact kinds the selector may name.
+        expected: Vec<String>,
+    },
+    /// The artifact selector parsed to an empty set.
+    #[error("empty diagnostics artifact selection: {0:?}")]
+    EmptyArtifactSelection(String),
+}
+
+/// Resolved diagnostics output policy (immutable).
+///
+/// This is the Rust twin of the retired `src/gmeow_tools/diagnostics_config.py`.
+/// It owns *where* diagnostics go and *how* they are projected to the console —
+/// console mode, artifact files, output directory, filename stem, and the stable
+/// code-scanning category. The precedence rule is **flag > env > default** for
+/// every knob.
+///
+/// Note: the diagnostics-specific auto mode collapses to [`ConsoleMode::Text`]
+/// off a TTY (matching the original Python policy), whereas the general CLI
+/// [`ConsoleMode::resolve`] collapses to [`ConsoleMode::Jsonl`] off a TTY. The
+/// two surfaces have different defaults because the diagnostics rail is
+/// consumed by humans reading CI logs by default, while the general CLI console
+/// is consumed by agents/pipes that want machine-readable NDJSON.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct DiagnosticsConfig {
+    /// How findings are projected to the console.
+    pub console: ConsoleMode,
+    /// Which artifact projections to write.
+    pub artifacts: BTreeSet<String>,
+    /// Directory receiving artifact files.
+    pub directory: PathBuf,
+    /// Filename stem for artifact files.
+    pub stem: String,
+    /// Stable code-scanning category (e.g. `gmeow`, `lint`, `rust`).
+    pub category: String,
+}
+
+impl DiagnosticsConfig {
+    /// The three artifact projections, in deterministic write order.
+    pub const ARTIFACT_KINDS: &[&str] = &["json", "sarif", "html"];
+    /// Default filename stem.
+    pub const DEFAULT_STEM: &str = "gmeow-feedback";
+    /// Default code-scanning category.
+    pub const DEFAULT_CATEGORY: &str = "gmeow";
+
+    /// Resolve the output policy from flags, environment, and defaults.
+    ///
+    /// Precedence is **flag > env > default** for every knob. `auto` resolves by
+    /// `is_tty`: [`ConsoleMode::Pretty`] on a TTY, [`ConsoleMode::Text`]
+    /// otherwise. Invalid `console`/`artifacts` tokens raise rather than fall
+    /// back.
+    ///
+    /// `dist_dir` is the project `dist/` root used when no explicit directory is
+    /// supplied. An explicit `--diagnostics-category` (or env category) scopes
+    /// the default directory to `dist/diagnostics/<category>/`; otherwise the
+    /// flat `dist/` convention is preserved.
+    #[allow(clippy::too_many_arguments)]
+    pub fn resolve(
+        console: Option<&str>,
+        artifacts: Option<&str>,
+        directory: Option<&Path>,
+        stem: Option<&str>,
+        category: Option<&str>,
+        env: &HashMap<String, String>,
+        is_tty: bool,
+        dist_dir: &Path,
+    ) -> Result<Self, DiagnosticsConfigError> {
+        let console = Self::resolve_console(
+            console
+                .or_else(|| env.get("GMEOW_DIAGNOSTICS_CONSOLE").map(String::as_str))
+                .unwrap_or("auto"),
+            is_tty,
+        )?;
+
+        let artifacts = Self::parse_artifacts(
+            artifacts
+                .or_else(|| env.get("GMEOW_DIAGNOSTICS_ARTIFACTS").map(String::as_str))
+                .unwrap_or("all"),
+        )?;
+
+        let category_flag = category;
+        let resolved_category = category_flag
+            .or_else(|| env.get("GMEOW_DIAGNOSTICS_CATEGORY").map(String::as_str))
+            .unwrap_or(Self::DEFAULT_CATEGORY)
+            .to_owned();
+
+        let stem = stem
+            .or_else(|| env.get("GMEOW_DIAGNOSTICS_STEM").map(String::as_str))
+            .unwrap_or(Self::DEFAULT_STEM)
+            .to_owned();
+
+        // Directory precedence: an explicit flag or env dir is used verbatim.
+        // Otherwise the default is keyed on whether a *category* was explicitly
+        // requested: an aggregate/manual run (no category) keeps the flat
+        // `dist/` convention, while a category run lands under
+        // `dist/diagnostics/<category>/` so per-job artifacts never collide.
+        let explicit_dir = directory
+            .map(Path::to_path_buf)
+            .or_else(|| env.get("GMEOW_DIAGNOSTICS_DIR").map(PathBuf::from));
+        let category_explicit = category_flag.is_some()
+            || env
+                .get("GMEOW_DIAGNOSTICS_CATEGORY")
+                .is_some_and(|s| !s.is_empty());
+        let directory = if let Some(dir) = explicit_dir {
+            dir
+        } else if category_explicit {
+            dist_dir.join("diagnostics").join(&resolved_category)
+        } else {
+            dist_dir.to_path_buf()
+        };
+
+        Ok(Self {
+            console,
+            artifacts,
+            directory,
+            stem,
+            category: resolved_category,
+        })
+    }
+
+    fn resolve_console(raw: &str, is_tty: bool) -> Result<ConsoleMode, DiagnosticsConfigError> {
+        match raw.trim().to_ascii_lowercase().as_str() {
+            "auto" => Ok(if is_tty {
+                ConsoleMode::Pretty
+            } else {
+                ConsoleMode::Text
+            }),
+            "pretty" => Ok(ConsoleMode::Pretty),
+            "text" => Ok(ConsoleMode::Text),
+            "jsonl" => Ok(ConsoleMode::Jsonl),
+            "silent" => Ok(ConsoleMode::Silent),
+            other => Err(DiagnosticsConfigError::UnknownConsoleMode(other.to_owned())),
+        }
+    }
+
+    fn parse_artifacts(raw: &str) -> Result<BTreeSet<String>, DiagnosticsConfigError> {
+        let token = raw.trim().to_ascii_lowercase();
+        if token == "none" {
+            return Ok(BTreeSet::new());
+        }
+        if token == "all" {
+            return Ok(Self::ARTIFACT_KINDS.iter().map(|&s| s.to_owned()).collect());
+        }
+        let kinds: BTreeSet<String> = token
+            .split(',')
+            .map(|s| s.trim().to_owned())
+            .filter(|s| !s.is_empty())
+            .collect();
+        if kinds.is_empty() {
+            return Err(DiagnosticsConfigError::EmptyArtifactSelection(
+                raw.to_owned(),
+            ));
+        }
+        let known: BTreeSet<String> = Self::ARTIFACT_KINDS.iter().map(|&s| s.to_owned()).collect();
+        let unknown: Vec<String> = kinds.difference(&known).cloned().collect();
+        if !unknown.is_empty() {
+            return Err(DiagnosticsConfigError::UnknownArtifactKind {
+                unknown,
+                expected: known.into_iter().collect(),
+            });
+        }
+        Ok(kinds)
     }
 }
 
