@@ -1,0 +1,22 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Counter-example: an indexical denotation whose interpretation act names no anchor
+# (fires lang:UnanchoredIndexical / shacl.SPARQLConstraintComponent).
+
+@prefix lang: <https://blackcatinformatics.ca/lang/> .
+@prefix ex:   <http://example.org/lang/> .
+
+ex:english a lang:SignSystem .
+ex:form a lang:WordForm ; lang:inSignSystem ex:english .
+
+ex:d a lang:Denotation ;
+    lang:denotedForm ex:form ;
+    lang:denotationKind lang:denotesEntity ;
+    lang:denotationTarget ex:speaker ;
+    lang:denotationContext ex:ctx ;
+    lang:isIndexical true .
+
+ex:r a lang:Reading ; lang:readingOf ex:form ; lang:denotation ex:d .
+ex:act a lang:InterpretationAct ;
+    lang:interpretedForm ex:form ;
+    lang:producedReading ex:r .

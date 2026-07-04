@@ -1,0 +1,42 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Principle 14/15 memory flagship: a stored claim's text (a raw lang:SurfaceForm) is
+# lifted to a form, interpreted, and held as a vantage-held reading — the store/recall
+# construct the memory layer consumes (stored claim text -> form -> vantage-held reading).
+
+@prefix lang:  <https://blackcatinformatics.ca/lang/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <http://example.org/lang/> .
+
+ex:english a lang:SignSystem .
+
+# The stored claim bytes, held raw.
+ex:claimSurface a lang:SurfaceForm , lang:UnanalyzedProse ;
+    lang:inSignSystem ex:english ;
+    lang:analysisLevel lang:rawLevel ;
+    lang:surfaceText "The mitochondrion is the powerhouse of the cell." ;
+    lang:inScript lang:latinScript ;
+    lang:unicodeNormalization "NFC" ;
+    lang:collationLocale "en" .
+
+# The analyzed form and its lowering into a logic:Formula.
+ex:claimForm a lang:ComposedForm ; lang:inSignSystem ex:english .
+ex:fClaim a logic:Formula .
+ex:denClaim a lang:Denotation ;
+    lang:denotedForm ex:claimForm ;
+    lang:denotationKind lang:denotesLogicFormula ;
+    lang:denotationTarget ex:fClaim ;
+    lang:denotationContext ex:ctx ;
+    logic:preservationKind logic:ExactPreservation .
+
+ex:act a lang:InterpretationAct ;
+    lang:interpretedForm ex:claimForm ;
+    lang:producedReading ex:r .
+ex:r a lang:Reading ; lang:readingOf ex:claimForm ; lang:denotation ex:denClaim .
+
+# The recalled reading is held from the storing agent's vantage.
+ex:obsMemory a gmeow:Observation ;
+    lang:aboutReading ex:r ;
+    gmeow:vantage ex:agentMemory ;
+    logic:confidence 0.9 .
