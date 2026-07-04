@@ -1,0 +1,16 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Well-formed: a limit naming its expression and its limit point (mode optional).
+# Conforms to math:LimitShape. Bound by ex:ecLimitFramed.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:sincLimit a math:Limit ;
+    math:operator math:limitBinder ;
+    math:limitOf ex:sincExpr ;
+    math:limitPoint ex:zeroPoint ;
+    math:limitMode math:limitTwoSided .
+
+ex:sincExpr a math:MathematicalExpression .
+ex:zeroPoint a math:MathematicalObject .

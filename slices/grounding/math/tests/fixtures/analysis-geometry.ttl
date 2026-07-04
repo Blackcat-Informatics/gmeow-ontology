@@ -65,12 +65,14 @@ exf:minkowski a math:LorentzianManifold ;
     math:metricTensor exf:minkowskiMetric .
 
 exf:inertialChart a math:Chart ;
-    math:chartDomain exf:minkowski ;
+    math:chartDomain exf:inertialRegion ;
     math:coordinateMap exf:inertialCoordinateFn ;
     math:targetCoordinateSpace exf:r4 .
 
+exf:inertialRegion a math:OpenSet .
+
 exf:inertialCoordinateFn a math:CoordinateMap ;
-    math:domain exf:minkowski ;
+    math:domain exf:inertialRegion ;
     math:codomain exf:r4 .
 
 exf:r4 a math:Set ;

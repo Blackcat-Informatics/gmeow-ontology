@@ -1,0 +1,11 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:ContinuousMapShape: a math:ContinuousMap that does not declare
+# math:isContinuous (sh:minCount 1) — continuity assumed from the type, not declared.
+# Validation MUST emit shacl.MinCountConstraintComponent (math:UndeclaredTopologicalProperty).
+# Bound by ex:ecMapContinuityAssumed.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:assumedMap a math:ContinuousMap .

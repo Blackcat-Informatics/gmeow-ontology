@@ -1,0 +1,27 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Well-formed: a chart whose target coordinate space has the same dimension as its
+# manifold, and whose coordinate map goes from an open region (a set) to that space.
+# Conforms to math:ChartShape and math:ChartDimensionShape. Bound by ex:ecChartConsistent.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:planeManifold a math:SmoothManifold ;
+    math:manifoldDimension 2 ;
+    math:manifoldStructureKind math:smoothStructure ;
+    math:hasChart ex:planeChart .
+
+ex:planeChart a math:Chart ;
+    math:chartDomain ex:planeRegion ;
+    math:coordinateMap ex:planeCoordFn ;
+    math:targetCoordinateSpace ex:r2 .
+
+ex:planeRegion a math:OpenSet .
+
+ex:planeCoordFn a math:CoordinateMap ;
+    math:domain ex:planeRegion ;
+    math:codomain ex:r2 .
+
+ex:r2 a math:Set ;
+    math:spaceDimension 2 .
