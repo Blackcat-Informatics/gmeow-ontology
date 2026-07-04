@@ -292,11 +292,11 @@ fn lower_nemo_term(
 /// Parse a literal object's Nemo N3 surface (`"lex"`, `"lex"@lang`,
 /// `"lex"^^<dt>`) into a native [`TermValue`].
 ///
-/// Delegates to [`crate::encode::decode_nemo_term`], the shared decoder for the
+/// Delegates to [`crate::nemo_engine::codec::decode_nemo_term`], the shared decoder for the
 /// `"lex"`/`"lex"@lang`/`"lex"^^<dt>`/`<iri>` surface grammar — same codec as the
 /// rest of the stack, oxigraph-free.
 fn parse_n3_object_literal(n3: &str) -> Result<TermValue, String> {
-    crate::encode::decode_nemo_term(n3)
+    crate::nemo_engine::codec::decode_nemo_term(n3)
         .map_err(|e| format!("rule_ir: cannot parse literal object {n3:?}: {e}"))
 }
 

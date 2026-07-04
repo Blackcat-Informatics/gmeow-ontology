@@ -17,7 +17,7 @@
 //! 4. Serialize the resulting `DerivedQuad`s to Python dicts.
 //!
 //! Encode/decode helpers (native `TermValue` ⇄ Nemo fact string) live in
-//! [`crate::encode`]; this module handles the PyO3 surface.
+//! [`crate::nemo_engine::codec`]; this module handles the PyO3 surface.
 
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyList};
@@ -1681,8 +1681,8 @@ pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
 
 #[cfg(test)]
 mod tests {
-    use crate::encode::decode_nemo_term;
     use crate::materialize::reifier_for_quad;
+    use crate::nemo_engine::codec::decode_nemo_term;
     use crate::provenance::term_n3;
     use purrdf::TermValue;
 
@@ -1712,11 +1712,11 @@ mod tests {
         );
     }
 
-    // ── decode_nemo_term imported from encode ─────────────────────────────────
+    // ── decode_nemo_term imported from the Nemo codec ─────────────────────────
 
     #[test]
     fn py_decode_nemo_term_iri_smoke() {
-        // Verify that py.rs can use decode_nemo_term from crate::encode.
+        // Verify that py.rs can use decode_nemo_term from the Nemo codec.
         let term = decode_nemo_term("<http://example.org/Smoke>").unwrap();
         match term {
             TermValue::Iri(iri) => assert_eq!(iri, "http://example.org/Smoke"),

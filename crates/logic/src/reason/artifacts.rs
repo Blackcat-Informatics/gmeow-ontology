@@ -25,7 +25,7 @@ use purrdf::{
     RdfAnnotation, RdfDataset, RdfLiteral, RdfQuad, RdfReifier, RdfTerm, RdfTriple, TermValue,
 };
 
-use crate::encode::decode_nemo_term;
+use crate::nemo_engine::codec::decode_nemo_term;
 use crate::reason::dl::gaps_from_unsupported;
 use crate::reason::el::InferredAxiom;
 use crate::result::ReasoningResult;
