@@ -23,6 +23,7 @@ ex:qSurface a lang:SurfaceForm ;
 ex:qForm a lang:ComposedForm ; lang:inSignSystem ex:english .
 
 ex:comAct a lang:CommunicativeAct ;
+    lang:performedOn ex:qForm ;
     lang:communicativeForce lang:askForce ;
     lang:isPerformative false .
 
