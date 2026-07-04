@@ -61,6 +61,10 @@ pub enum Commands {
         jobs: Option<usize>,
         #[arg(long = "check")]
         check: bool,
+        #[arg(long = "metadata")]
+        metadata: bool,
+        #[arg(long = "list-paths")]
+        list_paths: bool,
         #[arg(long = "timings-json")]
         timings_json: Option<PathBuf>,
     },
@@ -576,8 +580,17 @@ pub fn run() -> i32 {
         Commands::Regenerate {
             jobs,
             check,
+            metadata,
+            list_paths,
             timings_json,
-        } => dev_build::regenerate(jobs, check, timings_json.as_deref(), console),
+        } => dev_build::regenerate(
+            jobs,
+            check,
+            metadata,
+            list_paths,
+            timings_json.as_deref(),
+            console,
+        ),
         Commands::Fanout { jobs, timings_json } => {
             dev_build::fanout(jobs, timings_json.as_deref(), console)
         }
