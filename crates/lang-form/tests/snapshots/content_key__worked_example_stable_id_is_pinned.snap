@@ -1,0 +1,5 @@
+---
+source: crates/lang-form/tests/content_key.rs
+expression: cats_chase_mice().stable_id()
+---
+9e7e86da1959f829c2173d6e

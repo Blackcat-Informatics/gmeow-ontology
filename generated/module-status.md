@@ -49,6 +49,7 @@ Tier-2 uplift backlog.
 | inhabitation | core | core | 11 | 20 | 34 | 0 | 5 | 20/54 | full |
 | inquiry | core | core | 5 | 3 | 10 | 0 | 2 | 13/13 | full |
 | kernel | core | core | 0 | 17 | 27 | 0 | 1 | 28/44 | full |
+| lang | core | grounding | 3 | 0 | 0 | 0 | 1 | 0/0 | full |
 | language | core | core | 2 | 5 | 5 | 3 | 1 | 10/10 | full |
 | languages | extension | extensions | 6 | 15 | 30 | 0 | 1 | - | full |
 | learning | core | core | 7 | 3 | 8 | 0 | 2 | 11/11 | full |
@@ -86,4 +87,4 @@ Tier-2 uplift backlog.
 | trust | core | core | 2 | 7 | 23 | 0 | 1 | 30/30 | full |
 | versions | core | core | 3 | 6 | 13 | 0 | 1 | 19/19 | full |
 
-**77 slices** · documentation: 77 full guides, 0 stubs remaining (#325); advisory coverage: 1265/1993 core class/property terms (#471).
+**78 slices** · documentation: 78 full guides, 0 stubs remaining (#325); advisory coverage: 1265/1993 core class/property terms (#471).
