@@ -169,21 +169,141 @@ fn adapt_owl_characteristics() {
     }
 }
 
-// ── Unmapped constructs ──────────────────────────────────────────────────────
+// ── OWL restrictions (class-expression lift) ─────────────────────────────────
+
+/// The skolem restriction node an authored class points at (`C logic:subClassOf R`).
+fn restriction_node_of(prog: &LogicProgram, class_suffix: &str) -> String {
+    prog.axioms
+        .iter()
+        .find(|a| a.predicate == logic("subClassOf") && a.subject.ends_with(class_suffix))
+        .map(|a| a.obj.clone())
+        .expect("subClassOf → restriction anchor")
+}
 
 #[test]
-fn blank_node_restriction_emits_unmapped_diagnostic() {
+fn blank_node_restriction_lifts_to_skolem_axioms() {
     let (prog, diags) = adapt(
         "ex:Bird rdfs:subClassOf [ a owl:Restriction ;
             owl:onProperty ex:hasBeak ; owl:someValuesFrom ex:Beak ] .",
     );
-    // The blank-node restriction object cannot be normalized.
-    assert!(prog.axioms.iter().all(|a| !a.obj.is_empty()));
-    let d = diags
+    // No fail-soft skip: the restriction lifts to first-class logic: axioms.
+    assert!(
+        !diags.iter().any(|d| d.code == "UNMAPPED_OWL_CONSTRUCT"),
+        "restriction must not be dropped: {diags:?}"
+    );
+    let r = restriction_node_of(&prog, "/Bird");
+    assert!(
+        r.starts_with(&logic("restriction/")),
+        "anchor must be a deterministic skolem IRI, got {r}"
+    );
+    let has = |s: &str, p: &str, o: &str| {
+        prog.axioms
+            .iter()
+            .any(|a| a.subject == s && a.predicate == p && a.obj == o)
+    };
+    assert!(has(&r, RDF_TYPE, &logic("Restriction")));
+    assert!(has(
+        &r,
+        &logic("onProperty"),
+        "https://example.org/test/hasBeak"
+    ));
+    assert!(has(
+        &r,
+        &logic("someValuesFrom"),
+        "https://example.org/test/Beak"
+    ));
+}
+
+#[test]
+fn restriction_missing_on_property_emits_diagnostic() {
+    let (prog, diags) = adapt(
+        "ex:Bird rdfs:subClassOf [ a owl:Restriction ;
+            owl:someValuesFrom ex:Beak ] .",
+    );
+    assert!(diags.iter().any(|d| d.code == "MALFORMED_RESTRICTION"));
+    assert!(
+        !prog
+            .axioms
+            .iter()
+            .any(|a| a.predicate == logic("someValuesFrom")),
+        "a restriction with no onProperty must not lift a constraint"
+    );
+}
+
+#[test]
+fn two_classes_share_one_restriction_node() {
+    // Identical restriction on two classes → ONE skolem node (structure sharing);
+    // the content key excludes the subject class.
+    let (prog, _) = adapt(
+        "ex:Bird rdfs:subClassOf [ a owl:Restriction ;
+            owl:onProperty ex:hasBeak ; owl:someValuesFrom ex:Beak ] .
+         ex:Duck rdfs:subClassOf [ a owl:Restriction ;
+            owl:onProperty ex:hasBeak ; owl:someValuesFrom ex:Beak ] .",
+    );
+    let bird_r = restriction_node_of(&prog, "/Bird");
+    let duck_r = restriction_node_of(&prog, "/Duck");
+    assert_eq!(bird_r, duck_r, "identical restrictions must share one node");
+    // The shared node's defining axioms appear exactly once (dedup).
+    let type_count = prog
+        .axioms
         .iter()
-        .find(|d| d.code == "UNMAPPED_OWL_CONSTRUCT")
-        .expect("unmapped diagnostic");
-    assert!(d.message.contains("restriction"), "msg: {}", d.message);
+        .filter(|a| a.subject == bird_r && a.predicate == RDF_TYPE)
+        .count();
+    assert_eq!(type_count, 1, "shared restriction internals must dedup");
+}
+
+// ── Round-trip: owl:Restriction ≡ logic:Restriction ──────────────────────────
+
+#[test]
+fn roundtrip_owl_somevaluesfrom_equals_logic() {
+    let prog_logic = logic_prog(
+        "ex:Bird logic:subClassOf [ a logic:Restriction ;
+            logic:onProperty ex:hasBeak ; logic:someValuesFrom ex:Beak ] .",
+    );
+    let prog_owl = adapt(
+        "ex:Bird rdfs:subClassOf [ a owl:Restriction ;
+            owl:onProperty ex:hasBeak ; owl:someValuesFrom ex:Beak ] .",
+    )
+    .0;
+    // Same skolem IRI on both surfaces (the content key agrees byte-for-byte).
+    assert_eq!(
+        restriction_node_of(&prog_logic, "/Bird"),
+        restriction_node_of(&prog_owl, "/Bird")
+    );
+    assert!(assert_ir_isomorphic(&prog_logic, &prog_owl).is_ok());
+}
+
+#[test]
+fn roundtrip_owl_hasvalue_iri_equals_logic() {
+    let prog_logic = logic_prog(
+        "ex:RedThing logic:subClassOf [ a logic:Restriction ;
+            logic:onProperty ex:hasColour ; logic:hasValue ex:Red ] .",
+    );
+    let prog_owl = adapt(
+        "ex:RedThing rdfs:subClassOf [ a owl:Restriction ;
+            owl:onProperty ex:hasColour ; owl:hasValue ex:Red ] .",
+    )
+    .0;
+    assert!(assert_ir_isomorphic(&prog_logic, &prog_owl).is_ok());
+}
+
+#[test]
+fn roundtrip_owl_hasvalue_literal_equals_logic() {
+    let prog_logic = logic_prog(
+        "ex:Adult logic:subClassOf [ a logic:Restriction ;
+            logic:onProperty ex:minAge ; logic:hasValue 18 ] .",
+    );
+    let prog_owl = adapt(
+        "ex:Adult rdfs:subClassOf [ a owl:Restriction ;
+            owl:onProperty ex:minAge ; owl:hasValue 18 ] .",
+    )
+    .0;
+    // The literal filler round-trips (obj_is_literal preserved on both surfaces).
+    assert!(prog_owl
+        .axioms
+        .iter()
+        .any(|a| a.predicate == logic("hasValue") && a.obj_is_literal));
+    assert!(assert_ir_isomorphic(&prog_logic, &prog_owl).is_ok());
 }
 
 // ── IR isomorphism gate ──────────────────────────────────────────────────────

@@ -12,7 +12,11 @@ use std::collections::HashSet;
 
 use purrdf::{serialize_dataset, RdfDatasetBuilder, RdfLiteral, SerializeGraph};
 
+use std::collections::BTreeMap;
+
+use super::super::graphutil::sha256_12;
 use super::super::ir::{Formula, LogicAxiom, LogicModality, LogicProgram, Term};
+use super::super::restriction;
 use super::{
     assert_no_overclaim, contract_drop_notes, generated_banner, is_modal_or_scoped, target_meta,
     OverclaimError, ProjectionResult, GMEOW_NS, LOGIC_NS, OWL_NS, RDFS_NS, RDF_NS, RDF_TYPE,
@@ -134,6 +138,14 @@ fn is_el_safe_pred(pred: &str) -> bool {
 
 fn is_el_safe_char(obj: &str) -> bool {
     obj.strip_prefix(LOGIC_NS) == Some("transitiveProperty")
+}
+
+/// Whether a lifted restriction constraint local name is expressible in OWL 2 EL.
+/// `someValuesFrom` and `hasValue` are EL-safe; the remaining families
+/// (`allValuesFrom`, cardinality, `oneOf`, …) are not and force the whole restriction
+/// to drop from the EL projection.
+fn is_el_safe_restriction_constraint(local: &str) -> bool {
+    matches!(local, "someValuesFrom" | "hasValue")
 }
 
 // --------------------------------------------------------------------------- //
@@ -259,6 +271,65 @@ fn emit_holon_surface(g: &mut TripleSink) {
 }
 
 // --------------------------------------------------------------------------- //
+// Class-expression restrictions (owl:Restriction re-emission)
+// --------------------------------------------------------------------------- //
+
+/// A lifted restriction reconstructed from the flat `logic:` axiom set for OWL
+/// re-emission.  The `node` is the skolem IRI (`logic:restriction/<hash>`) that serves
+/// as the (non-blank) `owl:Restriction` node.
+#[derive(Default)]
+struct LiftedRestriction {
+    on_property: Option<String>,
+    /// `(constraint local name, filler/value, is_literal)`, in axiom order.
+    constraints: Vec<(String, String, bool)>,
+}
+
+/// Collect every lifted restriction from the program's flat axioms, keyed by skolem
+/// node IRI.  A node qualifies once it is typed `logic:Restriction` or carries
+/// `logic:onProperty`; its constraints are the [`restriction::CONSTRAINT_LOCALS`]
+/// predicates on it.  The `BTreeMap` gives a deterministic emission order.
+fn collect_lifted_restrictions(program: &LogicProgram) -> BTreeMap<String, LiftedRestriction> {
+    let restriction_ty = logic(restriction::RESTRICTION_CLASS_LOCAL);
+    let on_property = logic(restriction::ON_PROPERTY_LOCAL);
+    let mut out: BTreeMap<String, LiftedRestriction> = BTreeMap::new();
+    for axiom in &program.axioms {
+        let pred = axiom.predicate.as_str();
+        if pred == RDF_TYPE && axiom.obj == restriction_ty {
+            out.entry(axiom.subject.clone()).or_default();
+        } else if pred == on_property {
+            out.entry(axiom.subject.clone()).or_default().on_property = Some(axiom.obj.clone());
+        } else if let Some(local) = pred.strip_prefix(LOGIC_NS) {
+            if restriction::CONSTRAINT_LOCALS.contains(&local) {
+                out.entry(axiom.subject.clone())
+                    .or_default()
+                    .constraints
+                    .push((local.to_owned(), axiom.obj.clone(), axiom.obj_is_literal));
+            }
+        }
+    }
+    out
+}
+
+/// Emit the `owl:Restriction` graph for one lifted restriction (used by OWL 2 DL,
+/// which expresses every restriction family).  The skolem `node` IRI is the restriction
+/// node; the `C rdfs:subClassOf node` anchor is emitted by the main axiom loop from the
+/// `logic:subClassOf` axiom.  A restriction missing `onProperty` or constraints is
+/// structurally incomplete and is skipped (the lift never produces one).
+fn emit_restriction(g: &mut TripleSink, node: &str, r: &LiftedRestriction) {
+    let Some(on_property) = &r.on_property else {
+        return;
+    };
+    if r.constraints.is_empty() {
+        return;
+    }
+    g.add_iri(node, RDF_TYPE, &owl("Restriction"));
+    g.add_iri(node, &owl(restriction::ON_PROPERTY_LOCAL), on_property);
+    for (local, obj, is_lit) in &r.constraints {
+        g.add_obj(node, &owl(local), obj, *is_lit);
+    }
+}
+
+// --------------------------------------------------------------------------- //
 // OWL 2 DL
 // --------------------------------------------------------------------------- //
 
@@ -282,9 +353,20 @@ pub fn project_owl_dl(program: &LogicProgram) -> Result<ProjectionResult, Overcl
         emit_holon_surface(&mut g);
     }
 
+    // Re-emit class-expression restrictions as owl:Restriction graphs (DL expresses
+    // every restriction family), and skip their flat internals in the axiom loop.
+    let restrictions = collect_lifted_restrictions(program);
+    for (node, r) in &restrictions {
+        emit_restriction(&mut g, node, r);
+    }
+
     for axiom in &program.axioms {
         let pred = &axiom.predicate;
         let obj = &axiom.obj;
+        // Restriction internals (type / onProperty / constraints) are emitted above.
+        if restrictions.contains_key(&axiom.subject) {
+            continue;
+        }
         if pred == RDF_TYPE {
             if let Some(gufo_type) = gufo_for_sort(obj) {
                 g.add_iri(&axiom.subject, RDF_TYPE, &gufo_type);
@@ -390,9 +472,54 @@ pub fn project_owl_el(program: &LogicProgram) -> Result<ProjectionResult, Overcl
         emit_holon_surface(&mut g);
     }
 
+    // Re-emit only the EL-safe class-expression restrictions (someValuesFrom /
+    // hasValue).  A restriction with any non-EL constraint (allValuesFrom, cardinality,
+    // oneOf, …) drops WHOLE — its node and every `subClassOf` edge pointing at it — so
+    // the EL surface never carries a dangling reference.  EL is SoundUnder, so dropping
+    // needs no enum change, only an `actual_drops` note.
+    let restrictions = collect_lifted_restrictions(program);
+    let mut dropped_restrictions: HashSet<String> = HashSet::new();
+    for (node, r) in &restrictions {
+        let well_formed = r.on_property.is_some() && !r.constraints.is_empty();
+        let el_safe = well_formed
+            && r.constraints
+                .iter()
+                .all(|(local, _, _)| is_el_safe_restriction_constraint(local));
+        if el_safe {
+            emit_restriction(&mut g, node, r);
+        } else {
+            dropped_restrictions.insert(node.clone());
+            if well_formed {
+                let kinds = r
+                    .constraints
+                    .iter()
+                    .map(|(local, _, _)| local.as_str())
+                    .collect::<Vec<_>>()
+                    .join(", ");
+                actual_drops.push(format!(
+                    "owl:Restriction <{node}> ({kinds}) is not OWL 2 EL-safe; dropped"
+                ));
+            }
+        }
+    }
+
     for axiom in &program.axioms {
         let pred = &axiom.predicate;
         let obj = &axiom.obj;
+        // Restriction internals are emitted (or dropped) above.
+        if restrictions.contains_key(&axiom.subject) {
+            continue;
+        }
+        // A subClassOf / equivalentClass edge into a dropped restriction node must not
+        // dangle in EL.
+        if dropped_restrictions.contains(obj)
+            && matches!(
+                pred.strip_prefix(LOGIC_NS),
+                Some("subClassOf" | "equivalentClass")
+            )
+        {
+            continue;
+        }
         if pred == RDF_TYPE {
             if let Some(gufo_type) = gufo_for_sort(obj) {
                 g.add_iri(&axiom.subject, RDF_TYPE, &gufo_type);
@@ -1100,16 +1227,4 @@ fn format_decimal(value: f64) -> String {
     } else {
         format!("{s}.0")
     }
-}
-
-/// First 12 hex chars of SHA-256 of `s` — the content-stable reifier key hash
-/// (`sha256(sort_key)[:12]`).
-fn sha256_12(s: &str) -> String {
-    use sha2::{Digest, Sha256};
-    let digest = Sha256::digest(s.as_bytes());
-    let mut out = String::with_capacity(12);
-    for b in digest.iter().take(6) {
-        out.push_str(&format!("{b:02x}"));
-    }
-    out
 }
