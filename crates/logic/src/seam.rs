@@ -19,7 +19,7 @@
 //! cited in explanations as virtual derivation steps keyed by `derivation_id`, never as stored
 //! quads.
 //!
-//! **Two explicit exceptions are deferred to ** and are intentionally absent from this
+//! **Two explicit exceptions are deferred** and are intentionally absent from this
 //! module:
 //! 1. Stratum-C constructed worlds *are* materialized (into a transient named graph).
 //! 2. A query may opt into IDB memoization, writing a clearly-marked derived graph.
@@ -375,7 +375,7 @@ impl ScryerForeign for WorldStoreForeign {
     /// `contradiction_witness(+W, ?WitnessGraph)` — always empty in this implementation.
     ///
     /// Monotonic-vacuous in v4: the monotonic fragment has no within-world contradictions;
-    /// real paraconsistent witnesses arrive with This empty result is vacuously-correct,
+    /// real paraconsistent witnesses arrive later. This empty result is vacuously-correct,
     /// NOT a silent stub.
     fn contradiction_witness<'a>(&'a self, _world: &str) -> Box<dyn Iterator<Item = String> + 'a> {
         Box::new(std::iter::empty())

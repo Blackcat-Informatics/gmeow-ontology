@@ -2,8 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 //! Lowering the **one canonical AST** ([`gmeow_logic_compile::ir`]) directly into the
-//! evaluable rule IR ([`crate::rule_ir::EvalRule`]) — the AST-unification keystone
-//! of.
+//! evaluable rule IR ([`crate::rule_ir::EvalRule`]) — the AST-unification keystone.
 //!
 //! Before this, the evaluable IR could only be obtained by *re-parsing* the
 //! `.rls` text the compiler had just produced

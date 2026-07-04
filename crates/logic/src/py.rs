@@ -170,8 +170,8 @@ fn derived_quad_to_dict(py: Python<'_>, dq: &DerivedQuad) -> PyResult<Py<PyAny>>
 ///
 /// When a ceiling trips, kept rows are a **sound subset** of the full fixpoint —
 /// a prefix of the canonical (graph, S, P, O) sort — never fabricated. With all
-/// three parameters `None` (the default), the output is **byte-identical to
-/// **: every quad keeps `budget_status = "ok"` and the chase-order output
+/// three parameters `None` (the default), the output is **byte-identical to the pre-existing behavior**:
+/// every quad keeps `budget_status = "ok"` and the chase-order output
 /// is preserved unchanged.
 ///
 /// # Errors
