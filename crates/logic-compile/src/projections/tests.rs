@@ -1036,6 +1036,63 @@ fn oneof_enumeration_round_trips_dl_and_drops_in_el() {
 }
 
 #[test]
+fn withrestrictions_datarange_round_trips_dl_and_drops_in_el() {
+    // A datatype restriction round-trips to DL as rdfs:Datatype + owl:onDatatype +
+    // owl:withRestrictions( facet cells ); datatype facets are not OWL 2 EL, so the whole
+    // datarange (node + its anchor) drops from EL with a disclosed loss.
+    let prefixes = "\
+@prefix ex:   <https://example.org/test/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+";
+    let ttl = "ex:PositiveScore owl:equivalentClass [ a rdfs:Datatype ;
+        owl:onDatatype xsd:decimal ;
+        owl:withRestrictions ( [ xsd:minInclusive \"0.0\"^^xsd:decimal ]
+                               [ xsd:maxInclusive \"1.0\"^^xsd:decimal ] ) ] .";
+    let (program, _) =
+        crate::adapter::adapt_legacy_str(&format!("{prefixes}{ttl}"), None).expect("adapt ok");
+
+    let dl = rdf::project_owl_dl(&program).unwrap();
+    for needle in [
+        "http://www.w3.org/2000/01/rdf-schema#Datatype",
+        "http://www.w3.org/2002/07/owl#onDatatype",
+        "http://www.w3.org/2002/07/owl#withRestrictions",
+        "http://www.w3.org/2001/XMLSchema#minInclusive",
+        "http://www.w3.org/2001/XMLSchema#maxInclusive",
+        "https://blackcatinformatics.ca/logic/datarange/",
+        "http://www.w3.org/2002/07/owl#equivalentClass",
+    ] {
+        assert!(
+            dl.content.contains(needle),
+            "missing {needle}:\n{}",
+            dl.content
+        );
+    }
+
+    // Datatype facets are not EL: the whole datarange + its anchor drop.
+    let el = rdf::project_owl_el(&program).unwrap();
+    assert!(
+        !el.content.contains("withRestrictions") && !el.content.contains("datarange/"),
+        "EL must not carry the datarange:\n{}",
+        el.content
+    );
+    assert!(
+        !el.content
+            .contains("http://www.w3.org/2001/XMLSchema#minInclusive"),
+        "no orphan facet triple may remain in EL:\n{}",
+        el.content
+    );
+    assert!(
+        el.actual_drops
+            .iter()
+            .any(|d| d.contains("datatype facets")),
+        "the EL datarange drop must be disclosed: {:?}",
+        el.actual_drops
+    );
+}
+
+#[test]
 fn cardinality_restriction_projects_typed_integer_in_dl() {
     let prefixes = "\
 @prefix ex:   <https://example.org/test/> .

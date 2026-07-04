@@ -471,6 +471,78 @@ fn enumeration_with_broken_list_emits_diagnostic() {
     );
 }
 
+// ── OWL datatype restrictions (owl:withRestrictions dataranges) ──────────────
+
+const XSD: &str = "@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .\n";
+
+#[test]
+fn roundtrip_owl_withrestrictions_equals_logic() {
+    // An owl:withRestrictions datarange and its logic: twin normalize to the same
+    // content-addressed logic:datarange node with a logic:onDatatype base and one axiom
+    // per xsd: facet.
+    let prog_logic = logic_prog(&format!(
+        "{XSD}ex:PositiveScore logic:equivalentClass [ a rdfs:Datatype ;
+            logic:onDatatype xsd:decimal ;
+            logic:withRestrictions ( [ xsd:minInclusive \"0.0\"^^xsd:decimal ]
+                                     [ xsd:maxInclusive \"1.0\"^^xsd:decimal ] ) ] ."
+    ));
+    let prog_owl = adapt(&format!(
+        "{XSD}ex:PositiveScore owl:equivalentClass [ a rdfs:Datatype ;
+            owl:onDatatype xsd:decimal ;
+            owl:withRestrictions ( [ xsd:minInclusive \"0.0\"^^xsd:decimal ]
+                                   [ xsd:maxInclusive \"1.0\"^^xsd:decimal ] ) ] ."
+    ))
+    .0;
+    let d = prog_owl
+        .axioms
+        .iter()
+        .find(|a| a.predicate == logic("equivalentClass") && a.subject.ends_with("/PositiveScore"))
+        .map(|a| a.obj.clone())
+        .expect("equivalentClass → datarange anchor");
+    assert!(
+        d.starts_with(&logic("datarange/")),
+        "anchor must be a deterministic skolem datarange IRI, got {d}"
+    );
+    // The base datatype rides on logic:onDatatype (an IRI object).
+    assert!(prog_owl.axioms.iter().any(|a| a.subject == d
+        && a.predicate == logic("onDatatype")
+        && a.obj.ends_with("XMLSchema#decimal")
+        && !a.obj_is_literal));
+    // Each facet rides on its full xsd: IRI as a literal-valued axiom.
+    let facet_count = prog_owl
+        .axioms
+        .iter()
+        .filter(|a| {
+            a.subject == d
+                && a.predicate.starts_with("http://www.w3.org/2001/XMLSchema#")
+                && a.obj_is_literal
+        })
+        .count();
+    assert_eq!(facet_count, 2, "two facets lift as literal-valued axioms");
+    assert!(assert_ir_isomorphic(&prog_logic, &prog_owl).is_ok());
+}
+
+#[test]
+fn datarange_missing_ondatatype_emits_diagnostic() {
+    // A withRestrictions datarange with no owl:onDatatype base is malformed: the lift must
+    // disclose it and skip rather than mint a base-less node.
+    let (prog, diags) = adapt(&format!(
+        "{XSD}ex:Bad owl:equivalentClass [ a rdfs:Datatype ;
+            owl:withRestrictions ( [ xsd:minInclusive \"0.0\"^^xsd:decimal ] ) ] ."
+    ));
+    assert!(
+        diags.iter().any(|d| d.code == "MALFORMED_DATARANGE"),
+        "a datarange with no onDatatype must surface a MALFORMED_DATARANGE diagnostic: {diags:?}"
+    );
+    assert!(
+        !prog
+            .axioms
+            .iter()
+            .any(|a| a.obj.starts_with(&logic("datarange/"))),
+        "a malformed datarange must not lift a skolem datarange node"
+    );
+}
+
 // ── IR isomorphism gate ──────────────────────────────────────────────────────
 
 #[test]

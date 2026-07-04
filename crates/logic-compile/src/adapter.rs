@@ -47,8 +47,8 @@ use super::ir::{
     LOGIC_NAMESPACE,
 };
 use super::restriction::{
-    enumeration_node_labels, restriction_node_labels, skolemize_enumerations,
-    skolemize_restrictions, LiftedTriple, RestrictionVocab,
+    datarange_node_labels, enumeration_node_labels, restriction_node_labels, skolemize_dataranges,
+    skolemize_enumerations, skolemize_restrictions, LiftedTriple, RestrictionVocab,
 };
 
 const GUFO_NS: &str = "http://purl.org/nemo/gufo#";
@@ -469,16 +469,21 @@ pub fn adapt_legacy_dataset(
     let mut mapped: Vec<MappedAxiom> = Vec::new();
 
     // Lift OWL class-expression restrictions (owl:Restriction + onProperty +
-    // value/cardinality constraints) and owl:oneOf enumerations into deterministic
-    // skolem-keyed logic: axioms.  The combined node set drives the generic extractors'
-    // skip filter so the anchor edges and internals are owned solely by the skolemizers.
+    // value/cardinality constraints), owl:oneOf enumerations, and owl:withRestrictions
+    // datatype restrictions (dataranges) into deterministic skolem-keyed logic: axioms.
+    // The combined node set drives the generic extractors' skip filter so the anchor edges
+    // and internals are owned solely by the skolemizers.
     let owl_vocab = RestrictionVocab::owl();
     let mut handled = restriction_node_labels(store, &owl_vocab);
     handled.extend(enumeration_node_labels(store, &owl_vocab));
+    handled.extend(datarange_node_labels(store, &owl_vocab));
     for lifted in skolemize_restrictions(store, &owl_vocab, &mut diagnostics) {
         mapped.push(lifted.into());
     }
     for lifted in skolemize_enumerations(store, &owl_vocab, &mut diagnostics) {
+        mapped.push(lifted.into());
+    }
+    for lifted in skolemize_dataranges(store, &owl_vocab, &mut diagnostics) {
         mapped.push(lifted.into());
     }
 

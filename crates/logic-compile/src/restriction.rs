@@ -22,7 +22,7 @@
 //! program's `axioms` — never a new collection — so a restriction-free program's
 //! axiom vector and content key are byte-identical (the append-only discipline).
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 
 use purrdf::RdfDataset;
 
@@ -40,6 +40,13 @@ const SEP: char = '\u{0}';
 const OWL_NS: &str = "http://www.w3.org/2002/07/owl#";
 const RDFS_NS: &str = "http://www.w3.org/2000/01/rdf-schema#";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+/// The XSD namespace the constraining facets ([`FACET_LOCALS`]) live under.  Facets are
+/// `xsd:`-namespaced on BOTH the `owl:` and the `logic:` authoring surfaces (unlike the
+/// property-restriction constraints, whose local names are shared between the two
+/// namespaces), so they are keyed and emitted on their FULL `xsd:` IRI.
+const XSD_NS: &str = "http://www.w3.org/2001/XMLSchema#";
+/// The `rdfs:Datatype` type IRI a datatype-restriction (datarange) node carries.
+const RDFS_DATATYPE: &str = "http://www.w3.org/2000/01/rdf-schema#Datatype";
 
 /// The `logic:` local name of the restriction class (`_:r rdf:type logic:Restriction`).
 pub(crate) const RESTRICTION_CLASS_LOCAL: &str = "Restriction";
@@ -49,6 +56,31 @@ pub(crate) const ON_PROPERTY_LOCAL: &str = "onProperty";
 pub(crate) const ENUMERATION_CLASS_LOCAL: &str = "Enumeration";
 /// The `logic:` local name of the enumeration membership predicate (`_:e logic:oneOf m`).
 pub(crate) const ONE_OF_LOCAL: &str = "oneOf";
+/// The `logic:` local name of the datarange class (`_:d rdf:type logic:Datarange`) —
+/// the lifted IR type of an `owl:withRestrictions` datatype restriction.
+pub(crate) const DATARANGE_CLASS_LOCAL: &str = "Datarange";
+/// The `logic:`/`owl:` local name of the base-datatype slot (`_:d <ns>onDatatype D`).
+pub(crate) const ON_DATATYPE_LOCAL: &str = "onDatatype";
+/// The `logic:`/`owl:` local name of the facet-list slot (`_:d <ns>withRestrictions ( … )`).
+pub(crate) const WITH_RESTRICTIONS_LOCAL: &str = "withRestrictions";
+
+/// The XSD constraining-facet local names a datatype restriction may carry, one per
+/// facet cell in its `withRestrictions` list (`[ xsd:minInclusive "0.0"^^xsd:decimal ]`).
+/// These are `xsd:`-namespaced verbatim on both authoring surfaces, so they are keyed and
+/// re-emitted on their full `xsd:` IRI (see [`XSD_NS`]).
+pub(crate) const FACET_LOCALS: &[&str] = &[
+    "minInclusive",
+    "maxInclusive",
+    "minExclusive",
+    "maxExclusive",
+    "minLength",
+    "maxLength",
+    "length",
+    "pattern",
+    "langRange",
+    "totalDigits",
+    "fractionDigits",
+];
 
 const RDF_FIRST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#first";
 const RDF_REST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest";
@@ -557,6 +589,294 @@ fn enumeration_content_key(members: &[(String, bool)]) -> String {
     format!("oneOf={}", parts.join(","))
 }
 
+// --------------------------------------------------------------------------- //
+// Datatype restrictions (owl:withRestrictions dataranges)
+// --------------------------------------------------------------------------- //
+
+/// A single constraining facet lifted off a datarange's `withRestrictions` list: the
+/// full `xsd:` facet IRI and its literal value (`xsd:minInclusive "0.0"`).  A facet value
+/// is always a literal, so no `is_literal` flag is carried.
+struct Facet {
+    /// The full `xsd:` constraining-facet IRI (e.g. `…XMLSchema#minInclusive`).
+    iri: String,
+    /// The facet value's literal lexical form.
+    value: String,
+}
+
+/// The mint-key contribution of a facet: `<facetIRI>=<value>|lit`.  Facet values are
+/// always literals, so the `|lit` tag is unconditional — it keeps a facet key distinct in
+/// shape from an `onDatatype=<IRI>` key.
+fn facet_key(f: &Facet) -> String {
+    format!("{}={}|lit", f.iri, f.value)
+}
+
+/// The frozen datarange `content_key` — a canonical function of meaning only.
+///
+/// Format (do NOT reorder — it pins the skolem IRI): `onDatatype=<D>` then, for each facet
+/// sorted by its [`facet_key`], `␀<facetIRI>=<value>|lit`.  Two identical dataranges (and
+/// an `owl:`- and `logic:`-authored twin) collapse to one node.
+fn datarange_content_key(on_datatype: &str, facets: &[Facet]) -> String {
+    let mut keys: Vec<String> = facets.iter().map(facet_key).collect();
+    keys.sort();
+    let mut base = format!("onDatatype={on_datatype}");
+    for k in keys {
+        base.push(SEP);
+        base.push_str(&k);
+    }
+    base
+}
+
+/// The deterministic skolem IRI for a datarange with the given `content_key`.
+fn datarange_skolem_iri(content_key: &str) -> String {
+    format!("{LOGIC_NAMESPACE}datarange/{}", sha256_12(content_key))
+}
+
+/// Every datatype-restriction (datarange) node under `vocab`: a subject that is
+/// `rdf:type rdfs:Datatype` AND carries `<ns>withRestrictions`.  The `withRestrictions`
+/// requirement is load-bearing — it keeps a plain `rdfs:Datatype` *declaration* (no facet
+/// list) off the lift path.  Such a node holds only datarange internals, so the generic
+/// extractors skip it wholesale via [`datarange_node_labels`].
+fn datarange_nodes(store: &RdfDataset, vocab: &RestrictionVocab) -> Vec<Subject> {
+    let with_restrictions = vocab.iri(WITH_RESTRICTIONS_LOCAL);
+    let mut typed: BTreeSet<String> = BTreeSet::new();
+    let mut has_facets: BTreeSet<String> = BTreeSet::new();
+    let mut subjects: BTreeMap<String, Subject> = BTreeMap::new();
+    for q in default_graph_quads(store) {
+        let label = subject_str(&q.subject);
+        if q.predicate.as_str() == RDF_TYPE && term_str(&q.object) == RDFS_DATATYPE {
+            typed.insert(label.clone());
+            subjects.entry(label).or_insert_with(|| q.subject.clone());
+        } else if q.predicate.as_str() == with_restrictions {
+            has_facets.insert(label.clone());
+            subjects.entry(label).or_insert_with(|| q.subject.clone());
+        }
+    }
+    typed
+        .intersection(&has_facets)
+        .filter_map(|label| subjects.get(label).cloned())
+        .collect()
+}
+
+/// The set of datarange-node labels (for the generic extractors' skip filter).
+pub(crate) fn datarange_node_labels(
+    store: &RdfDataset,
+    vocab: &RestrictionVocab,
+) -> BTreeSet<String> {
+    datarange_nodes(store, vocab)
+        .iter()
+        .map(subject_str)
+        .collect()
+}
+
+/// Collect the constraining facets carried by a single facet cell (`[ xsd:minInclusive
+/// "0.0" ]`).  A well-formed cell carries exactly one facet triple; every recognized
+/// [`FACET_LOCALS`] predicate on it is gathered here.
+fn collect_cell_facets(store: &RdfDataset, cell: &Subject) -> Vec<(String, Node)> {
+    let mut out: Vec<(String, Node)> = Vec::new();
+    for local in FACET_LOCALS {
+        let iri = format!("{XSD_NS}{local}");
+        let pred = crate::graphutil::nn(&iri);
+        for obj in objects(store, cell, &pred) {
+            out.push((iri.clone(), obj));
+        }
+    }
+    out
+}
+
+/// Walk a datarange's `withRestrictions` list into its ordered facets, or `None` (with a
+/// surfaced [`Diagnostic`]) when a cell is malformed — a literal cell, a cell with no
+/// facet triple, or a facet whose value is not a literal.  Whole-datarange skip on any
+/// defect (never a silent partial lift), mirroring the enumeration list discipline.
+fn collect_datarange_facets(
+    store: &RdfDataset,
+    cells: &[Node],
+    node_label: &str,
+    diagnostics: &mut Vec<Diagnostic>,
+) -> Option<Vec<Facet>> {
+    let mut facets: Vec<Facet> = Vec::new();
+    for cell in cells {
+        let Some(cell_subject) = crate::graphutil::term_as_subject(cell) else {
+            diagnostics.push(warn(
+                "MALFORMED_DATARANGE",
+                format!("datarange {node_label:?} has a facet cell that is a literal, not a resource; skipped"),
+                Some(node_label.to_owned()),
+            ));
+            return None;
+        };
+        let cell_facets = collect_cell_facets(store, &cell_subject);
+        if cell_facets.is_empty() {
+            diagnostics.push(warn(
+                "MALFORMED_DATARANGE",
+                format!(
+                    "datarange {node_label:?} has a facet cell with no recognized constraining \
+                     facet; skipped"
+                ),
+                Some(node_label.to_owned()),
+            ));
+            return None;
+        }
+        for (iri, obj) in cell_facets {
+            if !term_is_literal(&obj) {
+                diagnostics.push(warn(
+                    "MALFORMED_DATARANGE",
+                    format!(
+                        "datarange {node_label:?} facet {iri:?} has a non-literal value; skipped"
+                    ),
+                    Some(node_label.to_owned()),
+                ));
+                return None;
+            }
+            facets.push(Facet {
+                iri,
+                value: term_str(&obj),
+            });
+        }
+    }
+    Some(facets)
+}
+
+/// Lift every `owl:`/`logic:` datatype restriction (`[ a rdfs:Datatype ; owl:onDatatype D ;
+/// owl:withRestrictions ( … ) ]`) under `vocab` into flat skolem-keyed [`LiftedTriple`]s,
+/// mirroring [`skolemize_enumerations`].  A well-formed datarange contributes: the
+/// `logic:subClassOf` / `logic:equivalentClass` anchor edge(s) redirected to the skolem
+/// node, the `rdf:type logic:Datarange` typing, the `logic:onDatatype` base slot, and one
+/// axiom per facet keyed on its full `xsd:` IRI (`obj_is_literal = true`).
+///
+/// Every malformedness (a corrupt facet list, a missing `onDatatype`, a facet cell with no
+/// facet triple, a non-literal facet value) is disclosed and the datarange skipped whole;
+/// a nested/anonymous `onDatatype` is disclosed as the documented anonymous-nested
+/// boundary — nothing is silently lost.
+pub(crate) fn skolemize_dataranges(
+    store: &RdfDataset,
+    vocab: &RestrictionVocab,
+    diagnostics: &mut Vec<Diagnostic>,
+) -> Vec<LiftedTriple> {
+    let on_datatype_pred = crate::graphutil::nn(&vocab.iri(ON_DATATYPE_LOCAL));
+    let with_restrictions_pred = crate::graphutil::nn(&vocab.iri(WITH_RESTRICTIONS_LOCAL));
+    let sub_class_of_pred = crate::graphutil::nn(&vocab.sub_class_of);
+    let equivalent_class_pred = crate::graphutil::nn(&vocab.equivalent_class);
+    let mut out: Vec<LiftedTriple> = Vec::new();
+
+    for node in datarange_nodes(store, vocab) {
+        let node_label = subject_str(&node);
+        let on_datatypes = objects(store, &node, &on_datatype_pred);
+        let on_datatype_term = match on_datatypes.as_slice() {
+            // No onDatatype is authored-input malformedness: disclose and skip.
+            [] => {
+                diagnostics.push(warn(
+                    "MALFORMED_DATARANGE",
+                    format!(
+                        "datarange {node_label:?} carries withRestrictions but has no \
+                         onDatatype; skipped"
+                    ),
+                    Some(node_label),
+                ));
+                continue;
+            }
+            // Two or more base datatypes is a wiring contradiction — pick-first would
+            // silently drop one, so hard-fail (the No-optionality invariant), exactly as
+            // the multi-onProperty restriction case does.
+            [_, _, ..] => panic!(
+                "datarange node {node_label:?} has {} onDatatype values (a single base \
+                 datatype is required)",
+                on_datatypes.len()
+            ),
+            [only] => only.clone(),
+        };
+        // A nested/anonymous base datatype has no stable identity to lift — disclose and
+        // skip (the documented anonymous-nested boundary, mirroring the restriction
+        // nested-filler case).
+        if crate::graphutil::term_is_blank(&on_datatype_term) {
+            diagnostics.push(warn(
+                "UNSUPPORTED_NESTED_DATARANGE",
+                format!(
+                    "datarange {node_label:?} has an anonymous onDatatype (nested datatype \
+                     expression); not lifted"
+                ),
+                Some(node_label),
+            ));
+            continue;
+        }
+        let on_datatype = term_str(&on_datatype_term);
+
+        let Some(list_head) = value(store, &node, &with_restrictions_pred) else {
+            continue;
+        };
+        let cells = match rdf_list(store, &list_head) {
+            ListWalk::Complete(cells) => cells,
+            ListWalk::Malformed(why) => {
+                diagnostics.push(warn(
+                    "MALFORMED_DATARANGE",
+                    format!(
+                        "datarange {node_label:?} has a corrupt withRestrictions list ({why}); \
+                         skipped"
+                    ),
+                    Some(node_label),
+                ));
+                continue;
+            }
+        };
+        if cells.is_empty() {
+            diagnostics.push(warn(
+                "MALFORMED_DATARANGE",
+                format!("datarange {node_label:?} has an empty withRestrictions list; skipped"),
+                Some(node_label),
+            ));
+            continue;
+        }
+        let Some(facets) = collect_datarange_facets(store, &cells, &node_label, diagnostics) else {
+            continue;
+        };
+
+        let skolem = datarange_skolem_iri(&datarange_content_key(&on_datatype, &facets));
+
+        // Datarange internals.
+        out.push(LiftedTriple {
+            subject: skolem.clone(),
+            predicate: RDF_TYPE.to_owned(),
+            obj: logic(DATARANGE_CLASS_LOCAL),
+            obj_is_literal: false,
+        });
+        out.push(LiftedTriple {
+            subject: skolem.clone(),
+            predicate: logic(ON_DATATYPE_LOCAL),
+            obj: on_datatype.clone(),
+            obj_is_literal: false,
+        });
+        for f in &facets {
+            out.push(LiftedTriple {
+                subject: skolem.clone(),
+                // Facets keep their full xsd: IRI on both surfaces (unlike the shared-local
+                // restriction constraints), so emit the facet IRI verbatim.
+                predicate: f.iri.clone(),
+                obj: f.value.clone(),
+                obj_is_literal: true,
+            });
+        }
+
+        // Redirect the datarange's anchor edges to the skolem node.
+        let node_term = subject_as_object(&node);
+        for anchor in subjects_with(store, &sub_class_of_pred, &node_term) {
+            out.push(LiftedTriple {
+                subject: subject_str(&anchor),
+                predicate: logic("subClassOf"),
+                obj: skolem.clone(),
+                obj_is_literal: false,
+            });
+        }
+        for anchor in subjects_with(store, &equivalent_class_pred, &node_term) {
+            out.push(LiftedTriple {
+                subject: subject_str(&anchor),
+                predicate: logic("equivalentClass"),
+                obj: skolem.clone(),
+                obj_is_literal: false,
+            });
+        }
+    }
+
+    out
+}
+
 /// View a subject node as an object [`Node`] for a `subjects_with(pred, object)` query.
 fn subject_as_object(s: &Subject) -> Node {
     match s {
@@ -621,5 +941,54 @@ mod tests {
         let k = content_key("P", &[c("someValuesFrom", "C", false)]);
         assert!(k.starts_with("onProperty=P"));
         assert!(!k.contains("subClassOf"));
+    }
+
+    fn f(facet_local: &str, value: &str) -> Facet {
+        Facet {
+            iri: format!("{XSD_NS}{facet_local}"),
+            value: value.to_owned(),
+        }
+    }
+
+    #[test]
+    fn datarange_content_key_is_order_independent() {
+        // The mint key sorts facets, so authored facet order cannot change the id.
+        let a = datarange_content_key(
+            "http://www.w3.org/2001/XMLSchema#decimal",
+            &[f("minInclusive", "0.0"), f("maxInclusive", "1.0")],
+        );
+        let b = datarange_content_key(
+            "http://www.w3.org/2001/XMLSchema#decimal",
+            &[f("maxInclusive", "1.0"), f("minInclusive", "0.0")],
+        );
+        assert_eq!(a, b);
+        assert_eq!(datarange_skolem_iri(&a), datarange_skolem_iri(&b));
+    }
+
+    #[test]
+    fn datarange_content_key_distinguishes_datatype_and_facets() {
+        // A different base datatype, a different facet IRI, and a different facet value
+        // must each mint a distinct node.
+        let base = datarange_content_key(
+            "http://www.w3.org/2001/XMLSchema#decimal",
+            &[f("minInclusive", "0.0")],
+        );
+        let other_dt = datarange_content_key(
+            "http://www.w3.org/2001/XMLSchema#integer",
+            &[f("minInclusive", "0.0")],
+        );
+        let other_facet = datarange_content_key(
+            "http://www.w3.org/2001/XMLSchema#decimal",
+            &[f("minExclusive", "0.0")],
+        );
+        let other_value = datarange_content_key(
+            "http://www.w3.org/2001/XMLSchema#decimal",
+            &[f("minInclusive", "0.5")],
+        );
+        assert!(base.starts_with("onDatatype=http://www.w3.org/2001/XMLSchema#decimal"));
+        assert_ne!(base, other_dt);
+        assert_ne!(base, other_facet);
+        assert_ne!(base, other_value);
+        assert_ne!(datarange_skolem_iri(&base), datarange_skolem_iri(&other_dt));
     }
 }
