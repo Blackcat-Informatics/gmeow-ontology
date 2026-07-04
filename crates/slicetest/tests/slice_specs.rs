@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The native slice-test harness entry point (#784).
+//! The native slice-test harness entry point.
 //!
 //! `datatest-stable` discovers every slice-resident test-DSL spec file under
 //! `slices/**/tests/` and emits one nextest case PER FILE, run in parallel. Each

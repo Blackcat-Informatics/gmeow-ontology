@@ -1,10 +1,10 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The `parquet` export leaf (#861 P4): columnar gts_db tables (dist/, gitignored).
+//! The `parquet` export leaf (P4): columnar gts_db tables (dist/, gitignored).
 //!
 //! A genuine Rust port of `src/gmeow_tools/parquet_gen.py` + the relational
-//! projection in `src/gmeow_tools/gts_db.py` (#377, #12). Projects the folded gts
+//! projection in `src/gmeow_tools/gts_db.py` (#12). Projects the folded gts
 //! `Graph` into one Parquet file per non-empty table of the dictionary-encoded
 //! integer-id schema — `terms`, `quads`, `reifiers`, `annotations`, `blobs` — the
 //! columnar interchange form for DataFrame/SQL consumers (DuckDB, pandas, polars,

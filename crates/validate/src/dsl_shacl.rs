@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Shared native DSL SHACL validation engine (#937).
+//! Shared native DSL SHACL validation engine.
 //!
 //! This module is the single Rust authority for validating merged Turtle DSL
 //! sources against a SHACL shapes graph. It is called from both the standalone

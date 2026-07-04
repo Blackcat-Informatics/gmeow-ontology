@@ -81,3 +81,62 @@ ex:rowMorphSleep a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "wf" ; gmeow:cellValueIri exf:wfSleep ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "lex" ; gmeow:cellValueIri exf:lexSleep ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "val" ; gmeow:cellValueIri lang:valPlur ] .
+
+# === Q4 (meaning) — forms holding more than one co-resident reading ========= #
+
+ex:cqCoresidentReadings a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/lang/queries/competency/coresident-readings.rq" ;
+    gmeow:cqDataFile "tests/conformance-fixtures/meaning-scope-ambiguity.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "An ambiguous form keeps every reading as first-class data; over the scope-ambiguity fixture the one sentence form carrying both the forall-exists and exists-forall readings is exactly {sent}." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqCoresidentShape ;
+    gmeow:cqExpectRow ex:rowCoresidentSent .
+
+ex:cqCoresidentShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "form" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowCoresidentSent a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "form" ; gmeow:cellValueIri exf:sent ] .
+
+# === Q5 (meaning) — forms denoting a logic:Formula (the declarative bridge) == #
+
+ex:cqDenotationsToFormula a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/lang/queries/competency/denotations-to-formula.rq" ;
+    gmeow:cqDataFile "tests/conformance-fixtures/meaning-cats-chase-mice.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A declarative sentence denotes a full-FOL logic:Formula through the one-way bridge; over the cats-chase-mice fixture the denoting form is exactly {sentCatsChaseMice}." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqDenotationsToFormulaShape ;
+    gmeow:cqExpectRow ex:rowDenotesFormula .
+
+ex:cqDenotationsToFormulaShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "form" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowDenotesFormula a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "form" ; gmeow:cellValueIri exf:sentCatsChaseMice ] .
+
+# === Q6 (meaning) — hypernymy resolved as logic: subsumption over denoted types = #
+
+ex:cqHypernymyThroughBridge a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/lang/queries/competency/hypernymy-through-bridge.rq" ;
+    gmeow:cqDataFile "tests/conformance-fixtures/meaning-sense-hypernymy.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "The sense lattice is preserved as logic: linkage: two senses denote two logic:Types and their hypernymy IS the logic: subsumption over those types. Over the sense-hypernymy fixture the answer is exactly the (dog, animal) pair — reasoned in logic:, not a forked lang: edge." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqHypernymyShape ;
+    gmeow:cqExpectRow ex:rowHypernymyDogAnimal .
+
+ex:cqHypernymyShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "narrow" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "broad" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowHypernymyDogAnimal a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "narrow" ; gmeow:cellValueIri exf:wfDog ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "broad" ; gmeow:cellValueIri exf:wfAnimal ] .

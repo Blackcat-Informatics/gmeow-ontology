@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! JSON-Schema instance validator (#700 Task 4).
+//! JSON-Schema instance validator (Task 4).
 //!
 //! Validates a JSON or YAML instance document against a JSON Schema (the
 //! SHACL-derived `generated/schemas/gmeow.schema.json` produced in Task 3, or
@@ -38,7 +38,7 @@ pub enum InstanceFormat {
 ///
 /// Hard errors — a schema that fails to compile or an instance that fails to
 /// parse — are returned as `Err(String)`; they are not validation violations but
-/// caller mistakes that must surface (no fallback, #579).
+/// caller mistakes that must surface (no fallback).
 pub fn validate_instance(
     instance: &[u8],
     format: InstanceFormat,

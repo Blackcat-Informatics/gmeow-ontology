@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Conformance twins migrated from tests/test_agentic.py (#867)
+//! Conformance twins migrated from tests/test_agentic.py
 //!
 //! Migrated:
 //!   - `test_double_valued_toolcall_violates_the_closed_world_twins`:

@@ -5,7 +5,7 @@ SPDX-License-Identifier: CC-BY-4.0
 
 # profiles/probabilistic-confidence-guard
 
-**Acceptance criterion (#506):** a `logic:confidence` annotation is **not**
+**Acceptance criterion:** a `logic:confidence` annotation is **not**
 auto-interpreted as a probability — a guard test that goes **red if violated**.
 
 `diagnosis(patient, flu)` is an asserted fact (in `input.nq`) that also carries a

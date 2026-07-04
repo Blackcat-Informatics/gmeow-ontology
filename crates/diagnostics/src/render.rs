@@ -15,14 +15,14 @@ pub fn to_json(report: &Report) -> Result<String, serde_json::Error> {
 /// Render a report as SARIF 2.1.0.
 ///
 /// Beyond the basic results, this emits the pieces GitHub code-scanning needs to
-/// navigate and de-duplicate findings (#654): every distinct artifact (file or
+/// navigate and de-duplicate findings: every distinct artifact (file or
 /// `.gts` bundle) referenced by a finding is listed under `runs[].artifacts`,
 /// each result carries `logicalLocations` + `properties` for its GTS wire
 /// coordinates, and each result carries a stable `partialFingerprints` value
 /// derived from the deterministic [`Finding::sort_key`] so re-runs dedupe.
 ///
 /// When the report carries a `category` metadata key (set by the Python
-/// diagnostics-output config, #662), the run emits run-level
+/// diagnostics-output config), the run emits run-level
 /// `automationDetails.id` — the stable grouping key GitHub code-scanning keys
 /// per-category SARIF uploads on. Absent the key, no `automationDetails` is
 /// emitted (so existing single-category uploads are unchanged).
@@ -266,7 +266,7 @@ fn nq_escape(value: &str) -> String {
             // Any remaining C0 control character (U+0000–U+001F) is illegal raw
             // in an N-Triples/N-Quads STRING_LITERAL_QUOTE and must be escaped as
             // \uXXXX, else a finding/SHACL message carrying e.g. NUL, backspace,
-            // form-feed, or VT produces a graph rdflib/oxigraph reject (#654).
+            // form-feed, or VT produces a graph rdflib/oxigraph reject.
             c if (c as u32) < 0x20 => out.push_str(&format!("\\u{:04X}", c as u32)),
             c => out.push(c),
         }
@@ -275,7 +275,7 @@ fn nq_escape(value: &str) -> String {
 }
 
 /// Project a report into the `gmeow:` RDF vocabulary as N-Quads, all in the
-/// `gmeow:graph/diagnostics` named graph (#654).
+/// `gmeow:graph/diagnostics` named graph.
 ///
 /// Each finding becomes a `gmeow:Finding` individual carrying `gmeow:findingCode`,
 /// `gmeow:findingMessage`, `gmeow:findingTool`, a `gmeow:findingSeverity`
@@ -554,7 +554,7 @@ pub fn to_text_summarized(report: &Report) -> String {
 
 /// Render ONLY the advisory (Note/Info) findings as text — the block the
 /// legacy CLI appends after its error/warning lines so advisory-tier findings
-/// (#760) are visible on the default `gmeow validate` surface. Reuses the same
+///  are visible on the default `gmeow validate` surface. Reuses the same
 /// per-finding rendering as `to_text` (message line + suggestion/help lines).
 /// Returns an empty string when there are no advisory findings.
 pub fn to_text_advisories(report: &Report) -> String {
@@ -817,7 +817,7 @@ fn sarif_result(finding: &Finding) -> Value {
         props.insert("gmeow.attributions".to_owned(), json!(sorted));
     }
     // Advisory suggestions land in properties as a plain string array.
-    // SARIF `fixes` (with artifactChanges) is deliberately left to D5/#764
+    // SARIF `fixes` (with artifactChanges) is deliberately left to D5
     // where suggestions become concrete edits with file mutations.
     if !finding.suggestions.is_empty() {
         props.insert("gmeow.suggestions".to_owned(), json!(finding.suggestions));
@@ -960,8 +960,8 @@ mod tests {
 
     /// A multi-finding report exercising: GTS wire coordinates (quad + segment)
     /// on a `.gts` bundle, a repo-relative `.ttl` with a focus-IRI logical anchor
-    /// plus a logical-only related `path <iri>` that folds onto the primary
-    /// (#666), two attributions (sorted by role then sliceIri), a `category`
+    /// plus a logical-only related `path <iri>` that folds onto the primary,
+    /// two attributions (sorted by role then sliceIri), a `category`
     /// (yielding run-level `automationDetails.id`), and a fileless legacy warning
     /// (anchored to the ontology root).
     fn comprehensive_report() -> Report {
@@ -1018,7 +1018,7 @@ mod tests {
     /// PRIMARY location is logical-only (the focus IRI) and whose related
     /// locations are the source file (physical) plus a `path <iri>` annotation
     /// (logical-only). GitHub requires the primary to be physical, so the file is
-    /// promoted to primary and every logical entry folds onto it (#666).
+    /// promoted to primary and every logical entry folds onto it.
     fn stale_cache_report() -> Report {
         let mut finding =
             Finding::new(Severity::Error, "shacl.MinCount", "missing property").with_tool("shacl");
@@ -1045,7 +1045,7 @@ mod tests {
         report
     }
 
-    // ── Whole-output snapshot goldens (T8, #789) ─────────────────────────────
+    // ── Whole-output snapshot goldens (T8) ─────────────────────────────
 
     #[test]
     fn sarif_full_snapshot() {
@@ -1087,7 +1087,7 @@ mod tests {
         // A finding with two physical file locations: the first becomes the
         // primary `physicalLocation`, the rest ride as `relatedLocations`
         // (render.rs §"Remaining physical locations"). This is the only shape that
-        // emits `relatedLocations`, so it pins that branch AND makes the #666
+        // emits `relatedLocations`, so it pins that branch AND makes the
         // "every relatedLocation carries a physicalLocation" invariant non-vacuous.
         let mut finding =
             Finding::new(Severity::Error, "shacl.MinCount", "missing property").with_tool("shacl");
@@ -1109,7 +1109,7 @@ mod tests {
         let value: Value = serde_json::from_str(&to_sarif(&report).unwrap()).unwrap();
 
         // The emission branch fired: exactly one related location, carrying a
-        // physicalLocation (the #666 contract, here actually exercised).
+        // physicalLocation (the contract, here actually exercised).
         let related = value["runs"][0]["results"][0]["relatedLocations"]
             .as_array()
             .expect("relatedLocations emitted for a 2+ physical-location finding");
@@ -1153,7 +1153,7 @@ mod tests {
 
     #[test]
     fn sarif_emits_no_absolute_or_angle_bracket_uris() {
-        // #666 code-scanning contract, asserted as a property over the whole rich
+        // code-scanning contract, asserted as a property over the whole rich
         // report (not a single field): NO artifactLocation.uri is angle-bracketed
         // or absolute-scheme, and every emitted relatedLocation carries a
         // physicalLocation (a logical-only related location is rejected by GitHub).
@@ -1261,7 +1261,7 @@ mod tests {
     #[test]
     fn gmeow_rdf_escapes_c0_control_characters() {
         // A message carrying raw C0 controls (NUL, backspace, form-feed, VT)
-        // must escape them as \uXXXX so the projection stays valid N-Quads (#654).
+        // must escape them as \uXXXX so the projection stays valid N-Quads.
         let mut report = Report::new("validate");
         report.add_finding(Finding::new(
             Severity::Error,

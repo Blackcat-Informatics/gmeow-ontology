@@ -210,7 +210,7 @@ impl FoundationImporter {
         let activity = corp("activity/import");
         self.add_type(&activity, &gm("ImportActivity"));
         self.add_iri(&activity, &gm("wasAssociatedWith"), &pipeline);
-        // Basename only: raw local paths leak usernames/layout (PR #389 review).
+        // Basename only: raw local paths leak usernames/layout (review).
         let basename = if source_path.is_empty() {
             String::new()
         } else {
@@ -266,7 +266,7 @@ impl FoundationImporter {
         self.add_label(&iri, goal_id);
         let rubric = self.rubric_iri.clone();
         self.add_iri(&rubric, &gm("hasCriterion"), &iri);
-        // Named poles are the rubric contract; minted as placeholders (#348).
+        // Named poles are the rubric contract; minted as placeholders.
         let up = corp(&format!("pole/{}-embodiment", slug(goal_id)));
         let down = corp(&format!("pole/{}-antithesis", slug(goal_id)));
         for (pole, label) in [(&up, "embodiment"), (&down, "antithesis")] {
@@ -357,7 +357,7 @@ impl FoundationImporter {
         let characters = self.import_characters(record, &work, &frame, &positions, &segments);
         self.import_concepts(record, &segments);
 
-        // thematic_tags (unpromoted — #363 heuristic): count across chapters.
+        // thematic_tags (unpromoted — heuristic): count across chapters.
         let mut tag_total: u64 = 0;
         if let Some(chapters) = &record.corpus_db_chapter_summaries {
             for ch in chapters {
@@ -365,7 +365,7 @@ impl FoundationImporter {
             }
         }
         self.budget
-            .add_skipped("thematic_tags (unpromoted — #363 heuristic)", tag_total);
+            .add_skipped("thematic_tags (unpromoted — heuristic)", tag_total);
 
         let _ = characters; // bound for clarity, all uses inline above
         Ok(())
@@ -421,7 +421,7 @@ impl FoundationImporter {
         // closed-world FrameProfileShape requires every gmeow:hasAxis value to be
         // an Axis (sh:class gmeow:Axis). A bare, untyped axis IRI passes only when
         // SHACL runs fixture-alone (no subclass closure); under the whole-ontology
-        // merged validation it is a genuine violation (#944).
+        // merged validation it is a genuine violation.
         let axis = format!("{frame}/axis");
         self.add_type(&axis, &gm("Axis"));
         self.add_iri(&frame, &gm("hasAxis"), &axis);
@@ -575,7 +575,7 @@ impl FoundationImporter {
                     let criterion = self.criterion(goal_id);
                     self.add_iri(&criterion, &gm("hasScoreAnchor"), &anchor);
                     self.budget
-                        .add_reified("entity exemplars (exemplarSubject, #353/#362)", 1);
+                        .add_reified("entity exemplars (exemplarSubject)", 1);
                 }
             }
         }

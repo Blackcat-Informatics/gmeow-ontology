@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Before/after baseline for the dense-id graph algorithms (#823, Phase 5).
+//! Before/after baseline for the dense-id graph algorithms (Phase 5).
 //!
 //! Two hot graph algorithms are lowered from `BTreeMap<String, …>` adjacency to
 //! dense `u32` ids + `Vec<u64>` bitsets:

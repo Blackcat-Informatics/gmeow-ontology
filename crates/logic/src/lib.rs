@@ -21,19 +21,21 @@ pub mod dag_profile;
 pub(crate) mod dense;
 pub mod derivation_graph;
 pub mod dispatch;
-pub mod encode;
 pub mod entrenchment;
 pub mod explain;
+// The typed-fact bridge: dictionary-interned facts (TermInterner / TypedFactSet)
+// exchanged between the store sweep and the reasoning adapters. Crate-internal.
+pub(crate) mod facts;
 pub mod foundation;
 // Runtime-side projection of compiler parse diagnostics into the PyO3-tainted
-// gmeow-diagnostics Report (#732/#856) — kept out of the wasm-able compiler crate.
+// gmeow-diagnostics Report — kept out of the wasm-able compiler crate.
 pub mod logic_diagnostics;
-// Compiler-IR → runtime EvalRule bridge (#732): depends on crate::rule_ir (Nemo),
+// Compiler-IR → runtime EvalRule bridge: depends on crate::rule_ir (Nemo),
 // so it stays in the runtime crate, not the wasm-able gmeow-logic-compile crate.
 pub mod lower;
 pub mod materialize;
 pub mod obligations;
-// Path-projection runtime tests (#732): they run the projected Datalog through
+// Path-projection runtime tests: they run the projected Datalog through
 // crate::rule_ir (Nemo), so they live runtime-side as an in-crate test module.
 #[cfg(test)]
 mod path_projection_tests;
@@ -77,12 +79,12 @@ pub use wellfounded::{WELL_FOUNDED_ITERATED_PHASE, WELL_FOUNDED_PHASES};
 pub mod py;
 
 // Re-export the module-registration entrypoint so the unified `gmeow_native`
-// cdylib can populate the `gmeow_native.logic` submodule (#630).
+// cdylib can populate the `gmeow_native.logic` submodule.
 #[cfg(feature = "python")]
 pub use py::register;
 
 // Nemo reasoner bridge.
-pub mod nemo_engine;
+pub(crate) mod nemo_engine;
 
 // Static profile / decidability certifier.
 pub mod certify;

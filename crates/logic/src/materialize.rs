@@ -6,11 +6,14 @@
 //! natively (no Python, no FFI).
 //!
 //! The PyO3 wrapper in [`crate::py`] keeps only the marshalling shell: the empty
-//! short-circuit, the non-stratifiable native routing (issue #651, which returns
+//! short-circuit, the non-stratifiable native routing (which returns
 //! Python rows), and the `DerivedQuad → PyDict` serialization. Everything between
-//! — parse N-Quads → encode Nemo facts → run the chase → decode rows to
-//! [`DerivedQuad`]s with real provenance → apply the post-hoc budget governor —
-//! lives here and is exercised by both the FFI and native `#[test]`s.
+//! — parse N-Quads → build the typed EDB ([`TypedFactSet`]) → run the typed
+//! chase ([`run_chase_typed`]) → coerce typed rows to [`DerivedQuad`]s with real
+//! provenance → apply the post-hoc budget governor — lives here and is exercised
+//! by both the FFI and native `#[test]`s.  Fact-string encoding and decoding are
+//! confined to the Nemo adapter ([`crate::nemo_engine`]); this module only ever
+//! sees native [`TermValue`]s.
 //!
 //! The split is behaviour-preserving: with all budget parameters `None` (the
 //! default), [`materialize_core`] produces the exact same `DerivedQuad` sequence
@@ -20,10 +23,8 @@ use std::time::Instant;
 
 use purrdf::{parse_dataset, TermValue};
 
-use crate::encode::{
-    decode_iri_term, decode_nemo_term, decode_string_constant, encode_quad_to_nemo_fact,
-};
-use crate::nemo_engine::{run_chase, ChaseRow, ChaseRowWithProvenance};
+use crate::facts::TypedFactSet;
+use crate::nemo_engine::{run_chase_typed, TypedRow};
 use crate::provenance::{mint_derivation_id, mint_reifier, ASSERT_RULE_IRI, LOGIC_NAMESPACE};
 use crate::result::PreservationClaim;
 use crate::seam::{BudgetStatus, DerivationId, DerivedQuad};
@@ -80,29 +81,30 @@ pub(crate) fn reifier_for_quad(
     mint_reifier(subject, predicate, object)
 }
 
-/// Compute the reifier IRI for an antecedent ChaseRow.
+/// Compute the reifier IRI for a typed antecedent row.
 ///
-/// Decodes the Nemo display-form row (ternary: S, O, world) back to native
-/// terms and calls `mint_reifier`.  Returns an error if decode fails — a
-/// partial antecedent list would produce a wrong derivation_id, which is
-/// worse than failing loudly.
-pub(crate) fn reifier_for_antecedent_row(row: &ChaseRow) -> Result<String, String> {
-    if row.values.len() != 3 {
+/// The row must be ternary (S, O, world) with an IRI — or Skolem-IRI — subject
+/// term; the typed terms feed [`mint_reifier`] directly.  Returns an error for
+/// any other shape — a partial antecedent list would produce a wrong
+/// derivation_id, which is worse than failing loudly.
+pub(crate) fn reifier_for_antecedent_row(row: &TypedRow) -> Result<String, String> {
+    if row.args.len() != 3 {
         return Err(format!(
             "antecedent row has {} values (expected 3): {:?}",
-            row.values.len(),
+            row.args.len(),
             row
         ));
     }
-    // predicate: raw IRI string
-    let predicate = row.predicate.as_str();
-    // subject: IRI
-    let subj_iri = decode_iri_term(&row.values[0])?;
-    let subj_term = TermValue::iri(subj_iri);
-    // object: any term
-    let obj_term = decode_nemo_term(&row.values[1])?;
-
-    mint_reifier(&subj_term, predicate, &obj_term)
+    // subject: must be an IRI (or Skolem IRI) term — a world-scoped quad never
+    // carries a literal subject, so anything else is a malformed antecedent.
+    let subject = &row.args[0];
+    if !matches!(subject, TermValue::Iri(_)) {
+        return Err(format!(
+            "antecedent subject must be an IRI (or Skolem IRI) term, got {subject:?}"
+        ));
+    }
+    // predicate: raw IRI string; object: any term.
+    mint_reifier(subject, &row.predicate, &row.args[1])
 }
 
 /// Determine the `rule_iri` for a derived quad's provenance record.
@@ -121,28 +123,63 @@ fn rule_iri_from_name(rule_name: Option<&str>) -> String {
 
 // ── Core pipeline ───────────────────────────────────────────────────────────────
 
+/// A materialized chase row that is not a world-scoped quad.
+///
+/// The seam contract renders exactly one fact shape as a quad:
+/// `predicate(subject, object, world)` — arity 3.  A rule program may
+/// legitimately declare helper predicates of any other arity (legal Nemo, e.g.
+/// a binary `helper(?x, ?y)` join relation); such a row cannot be a
+/// world-scoped [`DerivedQuad`], so it is surfaced here verbatim instead of
+/// being dropped.
+#[derive(Debug, Clone, PartialEq)]
+pub struct NonQuadRow {
+    /// The relation name (a full predicate IRI, un-bracketed, or a bare
+    /// program-local predicate symbol).
+    pub predicate: String,
+    /// The decoded native terms, one per column (arity ≠ 3).
+    pub args: Vec<TermValue>,
+    /// Whether the row was asserted (EDB) rather than derived by a rule.
+    pub is_edb: bool,
+}
+
+/// The result of [`materialize_core`]: the world-scoped derived quads plus
+/// every chase row that is not a quad.
+///
+/// Nothing the chase materializes is lost silently: an arity-3 row becomes a
+/// [`DerivedQuad`]; every other row — a typed helper-predicate row is legal
+/// Nemo but cannot be a world-scoped quad under the seam contract — lands in
+/// [`MaterializeOutcome::non_quad_rows`] explicitly.
+#[derive(Debug, Clone, PartialEq)]
+pub struct MaterializeOutcome {
+    /// The world-scoped quads (asserted EDB + derived IDB), with provenance.
+    pub quads: Vec<DerivedQuad>,
+    /// The non-ternary rows the chase materialized (helper predicates).
+    pub non_quad_rows: Vec<NonQuadRow>,
+}
+
 /// Materialize `input` N-Quads under `rules`, returning derived quads with real
-/// provenance and (optional) budget bookkeeping.
+/// provenance and (optional) budget bookkeeping, plus any non-quad helper rows.
 ///
 /// This is the pure engine pipeline — no PyO3, no GIL, no Python oracle. The FFI
 /// wrapper in [`crate::py`] handles the empty short-circuit, non-stratifiable
 /// native routing, and the dict marshalling; everything else is here.
 ///
 /// With all of `max_rule_firings`/`max_answers`/`time_ms` set to `None` (the
-/// default), the post-hoc budget governor is skipped entirely and the output is
-/// byte-identical to the pre-#502 chase order with every quad `budget_status = Ok`.
+/// default), the post-hoc budget governor is skipped entirely and the quad
+/// output is byte-identical to the chase order with every quad
+/// `budget_status = Ok`.
 ///
 /// # Errors
 ///
 /// Returns [`MaterializeError::Parse`] for malformed N-Quads input and
-/// [`MaterializeError::Chase`] for chase, decode, or provenance failures.
+/// [`MaterializeError::Chase`] for chase, row-coercion, or provenance failures.
 pub fn materialize_core(
     rules: &str,
     input: &str,
     max_rule_firings: Option<u64>,
     max_answers: Option<u64>,
     time_ms: Option<u64>,
-) -> Result<Vec<DerivedQuad>, MaterializeError> {
+) -> Result<MaterializeOutcome, MaterializeError> {
     // Start the post-fixpoint wall-clock the instant we enter (the chase itself is
     // not interruptible; `time_ms` bounds the post-chase decode/bookkeeping).
     let budget_active = max_rule_firings.is_some() || max_answers.is_some() || time_ms.is_some();
@@ -150,15 +187,18 @@ pub fn materialize_core(
 
     // ── Short-circuit: nothing to do ──────────────────────────────────────────
     if input.trim().is_empty() {
-        return Ok(vec![]);
+        return Ok(MaterializeOutcome {
+            quads: vec![],
+            non_quad_rows: vec![],
+        });
     }
 
     // ── 1. Parse input N-Quads through the native codec into the frozen IR ────
     let dataset = parse_dataset(input.as_bytes(), "application/n-quads", None)
         .map_err(|e| MaterializeError::Parse(format!("N-Quads parse error: {e}")))?;
 
-    // ── 2. Encode each named-graph quad as a Nemo ground-fact line ───────────
-    let mut fact_lines: Vec<String> = Vec::new();
+    // ── 2. Build the typed EDB — one arity-3 fact per named-graph quad ───────
+    let mut edb = TypedFactSet::new();
     for quad in dataset.quads() {
         // Resolve the world IRI (named-graph component).
         // Default and blank-node graphs are skipped — matching the Python oracle
@@ -174,58 +214,75 @@ pub fn materialize_core(
         let subject = dataset.term_value(quad.s);
         let predicate = dataset.term_value(quad.p);
         let object = dataset.term_value(quad.o);
-        // The predicate of an RDF quad is always an IRI; render to its IRI string.
+        // The predicate of an RDF quad is always an IRI; it is the relation name.
         let predicate_iri = match &predicate {
             TermValue::Iri(iri) => iri.as_str(),
-            // Defensive: a non-IRI predicate is invalid RDF and cannot be a fact line.
+            // Defensive: a non-IRI predicate is invalid RDF and cannot be a fact.
             _ => continue,
         };
 
-        let line = encode_quad_to_nemo_fact(&subject, predicate_iri, &object, &world_iri);
-        fact_lines.push(line);
+        // Blank subjects/objects are Skolemized inside `push_quad`; the world
+        // travels as a plain string literal (the Nemo string-constant treatment).
+        edb.push_quad(&subject, predicate_iri, &object, &world_iri);
     }
 
-    // ── 3. Build the complete .rls program ───────────────────────────────────
-    let edb_block = fact_lines.join("\n");
-    let rls = if rules.trim().is_empty() {
-        edb_block
-    } else {
-        format!("{}\n{}", edb_block, rules)
-    };
+    // ── 3. Run the typed Nemo chase (the adapter is the sole stringifier) ────
+    let chase = run_chase_typed(&edb, rules)
+        .map_err(|e| MaterializeError::Chase(format!("chase error: {e}")))?;
 
-    // ── 4. Run the Nemo chase ────────────────────────────────────────────────
-    let rows_with_prov: Vec<ChaseRowWithProvenance> =
-        run_chase(rls).map_err(|e| MaterializeError::Chase(format!("chase error: {e}")))?;
-
-    // ── 5. Decode ChaseRows → DerivedQuads with real provenance ──────────────
+    // ── 4. Coerce typed rows → DerivedQuads with real provenance ─────────────
     // Carry the EDB/IDB flag alongside each quad so the budget governor can bound
     // IDB firings (`max_rule_firings`) without re-deriving provenance.
     let mut derived_quads: Vec<(DerivedQuad, bool)> = Vec::new();
+    let mut non_quad_rows: Vec<NonQuadRow> = Vec::new();
 
-    for (idx, rwp) in rows_with_prov.iter().enumerate() {
-        let row = &rwp.row;
-        let prov = &rwp.provenance;
-
-        // We only handle ternary (arity-3) predicates — the gmeow-logic encoding.
-        if row.values.len() != 3 {
+    for (idx, (row, prov)) in chase.rows.iter().enumerate() {
+        // Only a ternary (arity-3) row is a world-scoped quad under the seam
+        // contract; any other arity is a helper-predicate row — legal Nemo, but
+        // not a quad — surfaced explicitly, never dropped.
+        if row.args.len() != 3 {
+            non_quad_rows.push(NonQuadRow {
+                predicate: row.predicate.clone(),
+                args: row.args.clone(),
+                is_edb: prov.is_edb,
+            });
             continue;
         }
 
         // predicate: raw IRI string (Nemo strips angle brackets in Tag::to_string)
         let predicate_iri = row.predicate.clone();
 
-        // subject: must be an IRI term
-        let subject_iri = decode_iri_term(&row.values[0])
-            .map_err(|e| MaterializeError::Chase(format!("row[{idx}] subject: {e}")))?;
-        let subject_term = TermValue::iri(subject_iri);
+        // subject: must be an IRI (or Skolem-IRI) term — a world-scoped quad
+        // never carries a literal subject.
+        let subject_term = match &row.args[0] {
+            iri @ TermValue::Iri(_) => iri.clone(),
+            other => {
+                return Err(MaterializeError::Chase(format!(
+                    "row[{idx}] subject: a world-scoped quad subject must be an \
+                     IRI (or Skolem IRI) term, got {other:?}"
+                )))
+            }
+        };
 
         // object: IRI, typed literal, language literal, or plain literal
-        let object_term = decode_nemo_term(&row.values[1])
-            .map_err(|e| MaterializeError::Chase(format!("row[{idx}] object: {e}")))?;
+        let object_term = row.args[1].clone();
 
-        // context (world): Nemo string constant → strip outer double-quotes
-        let world_str = decode_string_constant(&row.values[2])
-            .map_err(|e| MaterializeError::Chase(format!("row[{idx}] world: {e}")))?;
+        // context (world): must be a plain string literal (the Nemo
+        // string-constant treatment of the world position).
+        let world_str = match &row.args[2] {
+            TermValue::Literal {
+                lexical_form,
+                datatype,
+                language: None,
+                ..
+            } if datatype == "http://www.w3.org/2001/XMLSchema#string" => lexical_form.clone(),
+            other => {
+                return Err(MaterializeError::Chase(format!(
+                    "row[{idx}] world: the world position of a ternary row must \
+                     be a plain string literal, got {other:?}"
+                )))
+            }
+        };
 
         // ── Real provenance computation ───────────────────────────────────────
         let self_reifier = reifier_for_quad(&subject_term, &predicate_iri, &object_term)
@@ -239,16 +296,18 @@ pub fn materialize_core(
             (rule, sources, deriv)
         } else {
             // Derived (IDB) fact: rule IRI from the rule name, antecedents as sources.
-            // Antecedent decode is fallible — a partial list produces a wrong
-            // derivation_id, which is worse than propagating the error.
+            // Antecedent coercion is fallible — a partial list produces a wrong
+            // derivation_id, which is worse than propagating the error.  A
+            // non-ternary antecedent of a ternary row is a hard error: the
+            // consumed premise is not a world-scoped quad and has no reifier.
             let rule = rule_iri_from_name(prov.rule_name.as_deref());
             let sources: Vec<String> = prov
-                .antecedent_rows
+                .antecedents
                 .iter()
                 .map(reifier_for_antecedent_row)
                 .collect::<Result<Vec<_>, _>>()
                 .map_err(|e| {
-                    MaterializeError::Chase(format!("row[{idx}] antecedent decode error: {e}"))
+                    MaterializeError::Chase(format!("row[{idx}] antecedent error: {e}"))
                 })?;
             let source_refs: Vec<&str> = sources.iter().map(|s: &String| s.as_str()).collect();
             let deriv = mint_derivation_id(&rule, &source_refs);
@@ -272,16 +331,20 @@ pub fn materialize_core(
         derived_quads.push((dq, is_edb));
     }
 
-    // ── 6. Post-hoc budget governor (issue #502) ─────────────────────────────
+    // ── 5. Post-hoc budget governor ─────────────────────────────
     // With no budget params (the default), this whole block is skipped, so the
-    // output is byte-identical to pre-#502: chase order, every quad "ok".
+    // output is byte-identical to: chase order, every quad "ok".  The budget
+    // bounds derived QUADS only; non-quad helper rows are surfaced in full.
     let final_quads: Vec<DerivedQuad> = if budget_active {
         apply_budget(derived_quads, max_rule_firings, max_answers, time_ms, start)
     } else {
         derived_quads.into_iter().map(|(dq, _edb)| dq).collect()
     };
 
-    Ok(final_quads)
+    Ok(MaterializeOutcome {
+        quads: final_quads,
+        non_quad_rows,
+    })
 }
 
 /// Canonical sort key for a derived quad: `(graph, subject, predicate, object)`.
@@ -385,13 +448,13 @@ fn apply_budget(
         .collect()
 }
 
-// ── Profile-routed materialization (issue #785) ──────────────────────────────────
+// ── Profile-routed materialization ──────────────────────────────────
 //
 // The native conformance harness (`crates/conformance`) drives the engine
 // directly, with no PyO3 boundary. It therefore needs ONE public entry point that
 // reproduces the routing the `gmeow_logic.materialize` PyO3 wrapper performs in
 // [`crate::py`]: empty-input short-circuit, the non-stratifiable native routing
-// (well-founded / cautious-stable / declared-StratifiedNAF echo, issue #651), and
+// (well-founded / cautious-stable / declared-StratifiedNAF echo), and
 // otherwise the Nemo [`materialize_core`] chase. The wrapper's routing logic and
 // this function are the SAME native evaluators (`crate::wellfounded`,
 // `crate::stablemodel`, `crate::rule_ir`), so the produced quads are identical by
@@ -430,6 +493,10 @@ fn derived_row_to_quad(row: crate::rule_ir::DerivedRow) -> Result<DerivedQuad, M
 pub struct Materialization {
     /// The derived quads (asserted EDB + any derived IDB).
     pub quads: Vec<DerivedQuad>,
+    /// Non-quad helper rows from the Nemo chase (see
+    /// [`MaterializeOutcome::non_quad_rows`]).  Empty on the native routes,
+    /// whose rule IR derives world-scoped quads only.
+    pub non_quad_rows: Vec<NonQuadRow>,
     /// The preservation judgment for this materialization.
     pub preservation: PreservationClaim,
 }
@@ -489,7 +556,7 @@ fn echo_edb_only(input: &str) -> Result<Vec<crate::rule_ir::DerivedRow>, Materia
 
 /// Materialize the forward chase, routing by declared semantic `profile`.
 ///
-/// This is the public, PyO3-free entry point the conformance harness (#785) calls.
+/// This is the public, PyO3-free entry point the conformance harness calls.
 /// It reproduces the routing of the `gmeow_logic.materialize` wrapper exactly:
 ///
 /// * empty `input` ⇒ empty result;
@@ -520,6 +587,7 @@ pub fn materialize_routed(
     if input.trim().is_empty() {
         return Ok(Materialization {
             quads: vec![],
+            non_quad_rows: vec![],
             preservation,
         });
     }
@@ -590,22 +658,24 @@ pub fn materialize_routed(
             .collect::<Result<Vec<_>, _>>()?;
         return Ok(Materialization {
             quads,
+            non_quad_rows: vec![],
             preservation,
         });
     }
 
     // Stratifiable / projection-only ⇒ the Nemo chase (with the post-hoc governor).
     // The chase is faithful for the positive-Horn fragment, so the claim is exact.
-    let quads = materialize_core(rules, input, max_rule_firings, max_answers, time_ms)?;
+    let outcome = materialize_core(rules, input, max_rule_firings, max_answers, time_ms)?;
     Ok(Materialization {
-        quads,
+        quads: outcome.quads,
+        non_quad_rows: outcome.non_quad_rows,
         preservation,
     })
 }
 
 #[cfg(test)]
 mod tests {
-    //! Native coverage of the materialize engine pipeline (issue #786 / T5).
+    //! Native coverage of the materialize engine pipeline (T5).
     //!
     //! These are the Rust ports of the engine assertions that previously lived in
     //! `tests/test_logic_engine.py` and drove `gmeow_logic.materialize` through
@@ -653,9 +723,11 @@ mod tests {
 
     // ── Helpers ─────────────────────────────────────────────────────────────────
 
-    /// Materialize with the default (no-budget) parameters and unwrap.
+    /// Materialize with the default (no-budget) parameters and unwrap the quads.
     fn run(rules: &str, input: &str) -> Vec<DerivedQuad> {
-        materialize_core(rules, input, None, None, None).expect("materialize_core must not fail")
+        materialize_core(rules, input, None, None, None)
+            .expect("materialize_core must not fail")
+            .quads
     }
 
     /// Collect the `(subject, object)` display pairs for the subClassOf predicate.
@@ -929,6 +1001,98 @@ mod tests {
         );
     }
 
+    // ── non-quad helper-predicate rows: the explicit partition ──────────────────
+
+    /// A binary helper predicate derived FROM the ternary facts, alongside the
+    /// ternary transitivity closure.  The helper rows are legal Nemo but cannot
+    /// be world-scoped quads (arity ≠ 3).
+    const HELPER_RULES: &str = concat!(
+        "helperEdge(?X, ?Y) :- <https://blackcatinformatics.ca/logic/subClassOf>(?X, ?Y, ?W) .\n",
+        "<https://blackcatinformatics.ca/logic/subClassOf>(?X, ?Z, ?C0) :-\n",
+        "    <https://blackcatinformatics.ca/logic/subClassOf>(?X, ?Y, ?C0),\n",
+        "    <https://blackcatinformatics.ca/logic/subClassOf>(?Y, ?Z, ?C1) .\n",
+    );
+
+    /// A ternary rule that consumes the binary helper directly: the derived
+    /// ternary row's immediate antecedent is then a non-ternary row, which has
+    /// no reifier and must hard-error (never fabricate a partial derivation).
+    const HELPER_CONSUMING_RULES: &str = concat!(
+        "helperEdge(?X, ?Y) :- <https://blackcatinformatics.ca/logic/subClassOf>(?X, ?Y, ?W) .\n",
+        "<https://blackcatinformatics.ca/logic/subClassOf>(?X, ?Z, ?W) :-\n",
+        "    helperEdge(?X, ?Y),\n",
+        "    <https://blackcatinformatics.ca/logic/subClassOf>(?Y, ?Z, ?W) .\n",
+    );
+
+    /// Pin the explicit non-quad partition: a program with a binary helper
+    /// predicate (a) still derives its ternary facts correctly, (b) surfaces
+    /// every helper row in the explicit bucket, and (c) loses nothing silently
+    /// — the quads plus the bucket account for every materialized row.
+    #[test]
+    fn materialize_core_helper_rows_surface_in_non_quad_bucket() {
+        let outcome = materialize_core(HELPER_RULES, CHAIN_NQUADS, None, None, None)
+            .expect("materialize_core must not fail");
+
+        // (a) the ternary closure is derived exactly as without the helper.
+        let pairs = sco_pairs(&outcome.quads);
+        let expected_pairs: std::collections::HashSet<(String, String)> = [
+            ("<http://example.org/Dog>", "<http://example.org/Mammal>"),
+            ("<http://example.org/Mammal>", "<http://example.org/Animal>"),
+            ("<http://example.org/Dog>", "<http://example.org/Animal>"),
+        ]
+        .into_iter()
+        .map(|(s, o)| (s.to_owned(), o.to_owned()))
+        .collect();
+        assert_eq!(pairs, expected_pairs, "ternary closure mismatch");
+
+        // (b) every helper row lands in the bucket, typed and derived (IDB):
+        // the helper fires over all three subClassOf facts (incl. the closure).
+        assert_eq!(
+            outcome.non_quad_rows.len(),
+            3,
+            "expected 3 helperEdge rows in the non-quad bucket: {:?}",
+            outcome.non_quad_rows
+        );
+        for row in &outcome.non_quad_rows {
+            assert_eq!(row.predicate, "helperEdge");
+            assert_eq!(row.args.len(), 2, "helperEdge is binary: {row:?}");
+            assert!(!row.is_edb, "helperEdge rows are rule-derived: {row:?}");
+        }
+        let helper_pairs: std::collections::HashSet<(String, String)> = outcome
+            .non_quad_rows
+            .iter()
+            .map(|r| {
+                (
+                    crate::provenance::term_display(&r.args[0]),
+                    crate::provenance::term_display(&r.args[1]),
+                )
+            })
+            .collect();
+        assert_eq!(
+            helper_pairs, expected_pairs,
+            "helper rows must mirror the subClassOf pairs"
+        );
+
+        // (c) nothing silent: 3 quads + 3 helper rows = every materialized row.
+        assert_eq!(outcome.quads.len(), 3);
+        assert_eq!(outcome.quads.len() + outcome.non_quad_rows.len(), 6);
+    }
+
+    /// A non-ternary ANTECEDENT of a ternary row stays a hard error: the
+    /// consumed premise is not a world-scoped quad, has no reifier, and a
+    /// partial source list would mint a wrong derivation_id.
+    #[test]
+    fn materialize_core_non_ternary_antecedent_is_hard_error() {
+        let err = materialize_core(HELPER_CONSUMING_RULES, CHAIN_NQUADS, None, None, None)
+            .expect_err("a ternary row derived from a binary antecedent must hard-error");
+        match &err {
+            MaterializeError::Chase(msg) => assert!(
+                msg.contains("antecedent") && msg.contains("has 2 values (expected 3)"),
+                "error must name the non-ternary antecedent: {msg}"
+            ),
+            other => panic!("expected MaterializeError::Chase, got {other:?}"),
+        }
+    }
+
     // ── downstream disclosure of unsupported (dropped) rules ───────────────────
 
     use gmeow_logic_compile::ir::PreservationKind;
@@ -1139,7 +1303,7 @@ mod tests {
         let oracle = materialize_core(TRANSITIVITY_RULES, CHAIN_NQUADS, Some(0), None, None)
             .expect("budgeted Nemo materialize_core must succeed");
         assert_eq!(
-            m.quads, oracle,
+            m.quads, oracle.quads,
             "budgeted routed materialize must match the Nemo fallback exactly; a native \
              regression would derive the full closure and diverge"
         );

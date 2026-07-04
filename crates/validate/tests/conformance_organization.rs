@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Conformance twins migrated from tests/test_organization.py (#867)
+//! Conformance twins migrated from tests/test_organization.py
 //!
 //! Each test loads a fixture file, converts it to N-Triples, and validates
 //! against the whole shapes corpus.

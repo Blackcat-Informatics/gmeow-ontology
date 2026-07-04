@@ -530,7 +530,7 @@ fn scheduler_runs_diamond_and_caches() {
 }
 
 /// A leaf that reads a raw source file and declares it via `input_files` — its
-/// cache key must reflect the file's CONTENT so an edit busts the cache (#863).
+/// cache key must reflect the file's CONTENT so an edit busts the cache.
 struct FileReadingStage {
     file: std::path::PathBuf,
     runs: Arc<AtomicUsize>,

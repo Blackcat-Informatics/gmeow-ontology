@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Native, Docker-free reasoned-graph verify (issue #695).
+//! Native, Docker-free reasoned-graph verify.
 //!
 //! The closed-world QC half of the hybrid OWL+SHACL architecture, in Rust. It
 //! replaces the ROBOT `verify` Docker step: materialize the reasoned graph (the
@@ -92,7 +92,7 @@ pub fn verify_with_reasoning_result(
     //    queries (class-in-two-disjoint-axes, class-without-stereotype) rely on.
     // The DL coverage gaps are reconstructed from the shared model's
     // unsupported-construct set via the one recipe `verdict_from_inferred` uses,
-    // so the verify findings stay byte-identical (#768). The committed bundle is
+    // so the verify findings stay byte-identical. The committed bundle is
     // gap-zero, so this is empty on a healthy run.
     let gaps = gaps_from_unsupported(result.preservation.unsupported_constructs.iter());
 

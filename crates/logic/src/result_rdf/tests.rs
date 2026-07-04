@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Tests for the `graph/reasoning` RDF projection (#1132 C7): determinism, axis-IRI
+//! Tests for the `graph/reasoning` RDF projection (C7): determinism, axis-IRI
 //! presence, and the faithful verdict+provenance round-trip.
 
 use super::*;

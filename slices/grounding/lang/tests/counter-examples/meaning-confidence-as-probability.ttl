@@ -1,0 +1,20 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Counter-example: a reading-preference claim carrying logic:probability with no
+# declared logic:probabilityModel (fires lang:ConfidenceAsProbability /
+# shacl.SPARQLConstraintComponent). The claim has a vantage, so the grounding rule
+# does not fire — only the confidence-vs-probability rule.
+
+@prefix lang:  <https://blackcatinformatics.ca/lang/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <http://example.org/lang/> .
+
+ex:english a lang:SignSystem .
+ex:form a lang:WordForm ; lang:inSignSystem ex:english .
+ex:r a lang:Reading ; lang:readingOf ex:form .
+
+ex:obs a gmeow:Observation ;
+    lang:aboutReading ex:r ;
+    gmeow:vantage ex:annotator ;
+    logic:probability 0.7 .

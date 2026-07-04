@@ -137,6 +137,12 @@ gmeow:mapsetWikidata a gmeow:MappingSet ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
     gmeow:setComment "GMEOW term to Wikidata Q-item alignments (concept-scheme layer; QIDs validated)." .
 
+gmeow:mapsetOntolex a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-ontolex.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/ontolex" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment "GMEOW lang: meaning terms to OntoLex-Lemon (schema layer). lang:Sense approximates ontolex:LexicalSense and lang:LexicalConcept its ontolex:LexicalConcept; lang:evokes is the ontolex:evokes peer. closeMatch, not identity: the GMEOW terms are the local source of truth and OntoLex is the lexicon-interchange projection target. Terms curl-validated against the OntoLex ontology." .
+
 gmeow:mapsetGlottolog a gmeow:MappingSet ;
     gmeow:sssomFile "gmeow-glottolog.sssom.tsv" ;
     gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/glottolog" ;

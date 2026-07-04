@@ -3,12 +3,12 @@ SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinform
 SPDX-License-Identifier: CC-BY-4.0
 -->
 
-# #697 native ⊇ oracle DL gold
+# native ⊇ oracle DL gold
 
 A frozen, **oracle-generated** conformance corpus proving that GMEOW's native,
 Docker-free reasoner catches every inconsistency / unsatisfiable class the classic
-Java OWL 2 DL oracle (HermiT) catches — `native ⊇ oracle` (issue #697 criteria 2
-and 4). The gold here is the **oracle's** verdict, frozen from a real HermiT run;
+Java OWL 2 DL oracle (HermiT) catches — `native ⊇ oracle` (criteria 2
+and 4 of the cross-check policy). The gold here is the **oracle's** verdict, frozen from a real HermiT run;
 the native engine is then asserted to reproduce it OFFLINE.
 
 ## Layout
@@ -47,7 +47,7 @@ authority).
 * **Dataset license:** CC-BY-4.0 (hand-authored here; same license as the gUFO
   alignment the project dogfoods).
 * The frozen verdicts are **never** hand-typed to match native and **never**
-  edited to make a test pass (issue #697 honesty doctrine). They come straight
+  edited to make a test pass (honesty doctrine). They come straight
   from a real HermiT run.
 
 ## Regenerating the gold

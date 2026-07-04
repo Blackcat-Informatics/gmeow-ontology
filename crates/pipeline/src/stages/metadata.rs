@@ -1,14 +1,14 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The `metadata` export leaf (#861 P4): VoID + DCAT dataset descriptions.
+//! The `metadata` export leaf (P4): VoID + DCAT dataset descriptions.
 //!
 //! A genuine port of `src/gmeow_tools/metadata.py` (no Rust existed). Reads the
 //! composed fold (`gmeow.gts`) and emits two RDF/Turtle artifacts:
 //!   * `generated/metadata/void.ttl` — the VoID dataset description + linksets
 //!     (what the LOD-Cloud submission consumes), and
 //!   * `generated/metadata/dcat.ttl` — a FAIR DCAT dataset / distribution /
-//!     profile view (#330).
+//!     profile view.
 //!
 //! Every data-derived value comes from the GTS snapshot: the version + abstract
 //! from the ontology header in the *default* graph, the linksets from the
@@ -582,7 +582,7 @@ fn build_dcat_quads(store: &RdfDataset, root: &Path) -> Result<Vec<RdfQuad>, Pip
         );
     }
 
-    // Profile IRIs are datasets too (#330).
+    // Profile IRIs are datasets too.
     let slices: BTreeMap<String, SliceMeta> = discover_slices(root)?;
     let full = FULL_PROFILE_IRI;
     add(

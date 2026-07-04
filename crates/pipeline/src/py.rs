@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! PyO3 bindings for the pipeline — the `gmeow_native.pipeline` submodule (#861).
+//! PyO3 bindings for the pipeline — the `gmeow_native.pipeline` submodule.
 //!
 //! Only this module imports `pyo3`, gated by the `python` feature, so the engine
 //! core stays PyO3-free. `run_pipeline` is the single Python surface that
@@ -182,7 +182,7 @@ fn compile_mappings_report(py: Python<'_>, root: String) -> PyResult<Py<PyAny>> 
 /// * `format` — `"jsonld"` for JSON-LD-star, `"yamlld"` for YAML-LD-star.
 ///
 /// Returns the serialized bytes. This is the Python surface for the serializer
-/// used by the `stage-export-yaml-ld` leaf (#699).
+/// used by the `stage-export-yaml-ld` leaf.
 #[pyfunction]
 #[pyo3(signature = (nquads_bytes, format = "jsonld"))]
 fn serialize_yaml_ld(py: Python<'_>, nquads_bytes: &[u8], format: &str) -> PyResult<Py<PyAny>> {
@@ -203,7 +203,7 @@ fn serialize_yaml_ld(py: Python<'_>, nquads_bytes: &[u8], format: &str) -> PyRes
 }
 
 /// Universal RDF-1.2 transcode: convert `data` from one codec to another,
-/// recording loss (#671).
+/// recording loss.
 ///
 /// * `data` — the source document bytes.
 /// * `from_` / `to` — codec names (see `crate::transcode::Codec::from_cli_str`):
@@ -270,7 +270,7 @@ fn parse_jsonld_star_to_gmeow_statement_metadata_nquads(
 ///
 /// Routes the YAML-LD-star document through the Rust native JSON-LD-star
 /// downcast (anchors/aliases hard-fail), so the rdflib-compat up-projection lane
-/// receives quoted-triple-free N-Quads (#699). The Python YAML codec is retired
+/// receives quoted-triple-free N-Quads. The Python YAML codec is retired
 /// in favor of this single Rust authority.
 #[pyfunction]
 #[pyo3(signature = (yaml_bytes))]
@@ -293,7 +293,7 @@ fn parse_yaml_ld_star_to_gmeow_statement_metadata_nquads(
 ///
 /// Returns `True` iff the re-parsed dataset is RDFC-1.0 canonical-equal to the
 /// original. This is the Rust authority for the build-time serialization
-/// isomorphism gate (#699), replacing the Python `_round_trip_star`.
+/// isomorphism gate, replacing the Python `_round_trip_star`.
 #[pyfunction]
 #[pyo3(signature = (nquads_bytes, star_bytes, format))]
 fn roundtrip_isomorphic(nquads_bytes: &[u8], star_bytes: &[u8], format: &str) -> PyResult<bool> {
@@ -301,7 +301,7 @@ fn roundtrip_isomorphic(nquads_bytes: &[u8], star_bytes: &[u8], format: &str) ->
         .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))
 }
 
-/// Fold release evidence into a SIGNED `gmeow.gts` bundle (#673, §18).
+/// Fold release evidence into a SIGNED `gmeow.gts` bundle (§18).
 ///
 /// This is the thin marshalling surface for the standalone release-as-evidence
 /// fold ([`crate::stages::release::fold_release_bundle`]). ALL fold / sign /
@@ -394,7 +394,7 @@ fn fold_release_bundle_native(
 /// Python: a `(signed, valid, kid, fingerprint, artifacts_verified)` tuple.
 type ReleaseVerifyTuple = (usize, usize, Option<String>, Option<String>, usize);
 
-/// Verify a signed release-evidence bundle (#673, §18) — the consumer half of
+/// Verify a signed release-evidence bundle (§18) — the consumer half of
 /// the fold and the body of `make verify-release`.
 ///
 /// Thin marshalling surface for [`crate::stages::release::verify_release_bundle`]:
@@ -757,7 +757,7 @@ fn acceptance(py: Python<'_>, root: String, source: Option<String>) -> PyResult<
     let diagnostics = scoreboards::acceptance_diagnostics(&results);
     let aggregate_recall = scoreboards::corpus_recall_pct(&results);
     // The HARD corpus-aggregate recall floor is owned in Rust (single source of truth,
-    // GAP 3 / #1145). Surface both the floor and the verdict so the Python CLI defaults
+    // GAP 3). Surface both the floor and the verdict so the Python CLI defaults
     // its `--min-recall` to the native figure and hard-fails on the native verdict.
     let min_recall_floor = scoreboards::ACCEPTANCE_MIN_RECALL_PCT;
     let aggregate_gate = scoreboards::aggregate_recall_gate(&results, min_recall_floor);
@@ -765,7 +765,7 @@ fn acceptance(py: Python<'_>, root: String, source: Option<String>) -> PyResult<
     let out = PyDict::new(py);
     out.set_item("markdown", markdown)?;
     // The structured corpus verdict folds in the HARD aggregate-recall floor so it can
-    // NEVER report `passed = true` while the aggregate gate failed (GAP 3 / #1145): it is
+    // NEVER report `passed = true` while the aggregate gate failed (GAP 3): it is
     // `all(per-file hard gates) AND aggregate_recall_gate.passed`. Keep the per-file
     // `Vec<FileAcceptance>` verdicts (see `results` below) unchanged.
     out.set_item(
@@ -928,7 +928,7 @@ fn compact_curie(iri: String) -> String {
 }
 
 /// Register the `gmeow_native.pipeline` submodule. Called by the unified
-/// `gmeow_native` cdylib (#630); exposes `run_pipeline`.
+/// `gmeow_native` cdylib; exposes `run_pipeline`.
 pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(export_views, m)?)?;
     m.add_function(wrap_pyfunction!(bundle_term_summaries, m)?)?;

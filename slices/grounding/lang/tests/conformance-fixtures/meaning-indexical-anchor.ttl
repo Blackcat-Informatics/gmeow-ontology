@@ -1,0 +1,25 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Deixis is anchored, not resolved away: the indexical "I" denotes only relative to a
+# lang:IndexicalAnchor (person deixis) named on the interpretation act.
+
+@prefix lang: <https://blackcatinformatics.ca/lang/> .
+@prefix ex:   <http://example.org/lang/> .
+
+ex:english a lang:SignSystem .
+ex:formI a lang:WordForm ; lang:inSignSystem ex:english .
+
+ex:denI a lang:Denotation ;
+    lang:denotedForm ex:formI ;
+    lang:denotationKind lang:denotesEntity ;
+    lang:denotationTarget ex:speaker ;
+    lang:denotationContext ex:ctxUtterance ;
+    lang:isIndexical true .
+
+ex:readingI a lang:Reading ; lang:readingOf ex:formI ; lang:denotation ex:denI .
+
+ex:anchor a lang:IndexicalAnchor ; lang:anchorKind lang:personDeixis .
+ex:act a lang:InterpretationAct ;
+    lang:interpretedForm ex:formI ;
+    lang:producedReading ex:readingI ;
+    lang:anchorsIndexical ex:anchor .

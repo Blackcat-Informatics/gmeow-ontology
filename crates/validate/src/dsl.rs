@@ -6,7 +6,7 @@
 //! PyO3-free engine core. The legacy Python DSL validation seam used to
 //! build an rdflib graph AND a `node_to_file` map (the first `.ttl` file each
 //! named subject appears in) so a SHACL violation could be attributed to its
-//! source cell. That provenance walk is net-new Rust here (#579): each file is
+//! source cell. That provenance walk is net-new Rust here: each file is
 //! parsed in document order, every named (IRI) subject is recorded against the
 //! first file it is seen in, and all triples are merged into one frozen native
 //! [`purrdf::RdfDataset`] for the (native) SHACL validator.
@@ -62,7 +62,7 @@ impl DslMerge {
 /// Each file is merged under a fresh blank scope ([`RdfDatasetBuilder::push_dataset`])
 /// so anonymous blanks across DSL/competency files stay disjoint (e.g. two
 /// `[ a ExpectedCell ; … ]` blanks never fuse) — the native twin of the old per-source
-/// blank-prefix scoping (#909, C0.2).
+/// blank-prefix scoping (C0.2).
 ///
 /// # Errors
 ///

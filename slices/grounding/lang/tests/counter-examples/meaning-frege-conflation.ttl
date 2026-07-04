@@ -1,0 +1,19 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Counter-example: one node typed as two corners of the Frege triangle
+# (lang:Sense and lang:Denotation) — fires lang:FregeConflation /
+# shacl.SPARQLConstraintComponent (the SECONDARY twin of the OWL disjointness).
+
+@prefix lang: <https://blackcatinformatics.ca/lang/> .
+@prefix ex:   <http://example.org/lang/> .
+
+ex:english a lang:SignSystem .
+ex:lex a lang:Lexeme ; lang:inSignSystem ex:english .
+ex:form a lang:WordForm ; lang:inSignSystem ex:english .
+
+ex:x a lang:Sense , lang:Denotation ;
+    lang:senseOf ex:lex ;
+    lang:denotedForm ex:form ;
+    lang:denotationKind lang:denotesEntity ;
+    lang:denotationTarget ex:entity ;
+    lang:denotationContext ex:ctx .

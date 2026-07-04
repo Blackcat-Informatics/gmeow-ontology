@@ -13,7 +13,7 @@
 //! # Encoding
 //!
 //! Every fact is the ternary `<predicate>(subject, object, "world")` form owned
-//! by [`crate::encode`]; the world IRI threads through unchanged as the `?w`
+//! by [`crate::nemo_engine::codec`]; the world IRI threads through unchanged as the `?w`
 //! variable. Because the predicate is a Nemo *symbol* (not data), this encoding
 //! cannot express entailments that quantify over the predicate position
 //! (domain/range, property chains) — see the [`ElClosure::gaps`] surface.

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Conformance twins migrated from tests/test_reference_frames.py (#867)
+//! Conformance twins migrated from tests/test_reference_frames.py
 //!
 //! Each test builds an inline Turtle graph containing the triples that the
 //! Python test assembled via `g.add(...)`, converts to N-Triples, and validates
