@@ -423,7 +423,7 @@ mod tests {
 
     // ── No-write firewall ──────────────────────────────────────────────────────
     //
-    // Run a terminating cut program through `run_scryer` under the procedural
+    // Run a terminating cut program through the backward oracle under the procedural
     // profile and verify the store quad count is unchanged — cut is virtual-only,
     // no quads are inserted.
 
@@ -478,7 +478,7 @@ mod tests {
         let after = store.quads_in_world(WORLD).len();
         assert_eq!(
             before, after,
-            "store quad count must be UNCHANGED after run_scryer (no-write firewall)"
+            "store quad count must be UNCHANGED after the backward oracle solve (no-write firewall)"
         );
     }
 }
