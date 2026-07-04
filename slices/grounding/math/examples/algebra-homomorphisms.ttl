@@ -1,0 +1,126 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# The determinant as a group homomorphism, with its preservation law authored as a
+# real logic:Formula first-order AST — the charter's worked example and one arm of the
+# unification (det, the E8 Weyl action, and a homomorphic-encryption scheme are all
+# math:Homomorphism instances: a map + a preserved operation + a law). det: GL₂(ℝ) → ℝ*
+# preserves matrix multiplication (det(A·B) = det(A)·det(B)); its kernel SL₂(ℝ) is a
+# normal subgroup, and the first isomorphism theorem gives GL₂/SL₂ ≅ ℝ*.
+# Validates cleanly under the global gate.
+
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix exa:   <https://blackcatinformatics.ca/gmeow/examples/math/algebra/> .
+
+# --- Reified relations for the det law (HiLog reflection) ------------------- #
+
+exa:matMulRel a logic:Type ;
+    rdfs:label "matMul(A,B,C) ⟺ A·B = C in GL₂(ℝ)"@x-gmeow-english ;
+    skos:definition "Matrix multiplication reified as a ternary relation over the general linear group."@x-gmeow-english .
+
+exa:detRel a logic:Type ;
+    rdfs:label "det(A,d) ⟺ det(A) = d"@x-gmeow-english ;
+    skos:definition "The determinant map reified as a binary relation: det(A,d) holds exactly when the determinant of A is the scalar d."@x-gmeow-english .
+
+# --- The three groups (each a well-formed structure) ----------------------- #
+
+exa:GL2R a math:Group ;
+    rdfs:label "GL₂(ℝ) — the general linear group"@x-gmeow-english ;
+    math:underlyingSet exa:invertibleMatrices ;
+    math:structureOperation exa:matrixMultiplication ;
+    math:identityElement exa:identityMatrix ;
+    math:inverseOperation exa:matrixInverse ;
+    math:satisfiesAxiom exa:associativity , exa:identity , exa:inverse .
+
+exa:RstarMult a math:AbelianGroup ;
+    rdfs:label "ℝ* — the non-zero reals under multiplication"@x-gmeow-english ;
+    math:underlyingSet exa:nonzeroReals ;
+    math:structureOperation exa:realMultiplication ;
+    math:identityElement exa:one ;
+    math:inverseOperation exa:reciprocal ;
+    math:satisfiesAxiom exa:associativity , exa:identity , exa:inverse , exa:commutativity .
+
+exa:SL2R a math:Group ;
+    rdfs:label "SL₂(ℝ) — the special linear group (determinant 1)"@x-gmeow-english ;
+    math:underlyingSet exa:unimodularMatrices ;
+    math:structureOperation exa:matrixMultiplication ;
+    math:identityElement exa:identityMatrix ;
+    math:inverseOperation exa:matrixInverse ;
+    math:satisfiesAxiom exa:associativity , exa:identity , exa:inverse ;
+    math:normalSubgroupOf exa:GL2R .
+
+exa:invertibleMatrices a math:Set ; rdfs:label "invertible 2×2 real matrices"@x-gmeow-english .
+exa:unimodularMatrices a math:Set ; rdfs:label "2×2 real matrices of determinant 1"@x-gmeow-english .
+exa:nonzeroReals a math:Set ; rdfs:label "ℝ ∖ {0}"@x-gmeow-english .
+exa:matrixMultiplication a math:Operation ; rdfs:label "matrix multiplication"@x-gmeow-english .
+exa:matrixInverse a math:Operation ; rdfs:label "A ↦ A⁻¹"@x-gmeow-english .
+exa:realMultiplication a math:Operation ; rdfs:label "× on ℝ*"@x-gmeow-english .
+exa:reciprocal a math:Operation ; rdfs:label "x ↦ 1/x"@x-gmeow-english .
+exa:identityMatrix rdfs:label "I₂ (the 2×2 identity matrix)"@x-gmeow-english .
+exa:one rdfs:label "1"@x-gmeow-english .
+
+# --- The determinant homomorphism ------------------------------------------ #
+
+exa:detHom a math:GroupHomomorphism ;
+    rdfs:label "det: GL₂(ℝ) → ℝ*"@x-gmeow-english ;
+    math:domain exa:GL2R ;
+    math:codomain exa:RstarMult ;
+    math:image exa:RstarMult ;
+    math:preservedOperation exa:matrixMultiplication ;
+    math:preservationLaw exa:detProductLaw ;
+    math:kernel exa:SL2R .
+
+# --- The preservation law as a real logic:Formula AST ---------------------- #
+# ∀A,B,AB,dA,dB,dAB: matMul(A,B,AB) ∧ det(A,dA) ∧ det(B,dB) ∧ det(AB,dAB) → mul(dA,dB,dAB)
+
+exa:detProductLaw a logic:Formula ;
+    rdfs:label "det(A·B) = det(A)·det(B)"@x-gmeow-english ;
+    logic:quantifiedVariable
+        [ logic:termIndex 0 ; logic:termVariable "A" ] ,
+        [ logic:termIndex 1 ; logic:termVariable "B" ] ,
+        [ logic:termIndex 2 ; logic:termVariable "AB" ] ,
+        [ logic:termIndex 3 ; logic:termVariable "dA" ] ,
+        [ logic:termIndex 4 ; logic:termVariable "dB" ] ,
+        [ logic:termIndex 5 ; logic:termVariable "dAB" ] ;
+    logic:forall exa:detImpl .
+
+exa:detImpl a logic:Formula ;
+    logic:antecedent exa:detAnte ;
+    logic:consequent exa:detCons .
+
+exa:detAnte a logic:Formula ;
+    logic:and exa:detA1 , exa:detA2 , exa:detA3 , exa:detA4 .
+
+exa:detA1 a logic:Formula ; logic:relation exa:matMulRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "A" ] , [ logic:termIndex 1 ; logic:termVariable "B" ] , [ logic:termIndex 2 ; logic:termVariable "AB" ] .
+exa:detA2 a logic:Formula ; logic:relation exa:detRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "A" ] , [ logic:termIndex 1 ; logic:termVariable "dA" ] .
+exa:detA3 a logic:Formula ; logic:relation exa:detRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "B" ] , [ logic:termIndex 1 ; logic:termVariable "dB" ] .
+exa:detA4 a logic:Formula ; logic:relation exa:detRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "AB" ] , [ logic:termIndex 1 ; logic:termVariable "dAB" ] .
+
+exa:detCons a logic:Formula ; logic:relation exa:mulRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "dA" ] , [ logic:termIndex 1 ; logic:termVariable "dB" ] , [ logic:termIndex 2 ; logic:termVariable "dAB" ] .
+
+# --- The first isomorphism theorem instance: GL₂/SL₂ ≅ ℝ* ------------------ #
+
+exa:GL2modSL2 a math:Quotient ;
+    rdfs:label "GL₂(ℝ) / SL₂(ℝ) — the quotient by the determinant kernel"@x-gmeow-english ;
+    math:underlyingSet exa:cosetSet ;
+    math:structureOperation exa:cosetMultiplication ;
+    math:satisfiesAxiom exa:associativity ;
+    math:substructureOf exa:GL2R .
+
+exa:cosetSet a math:Set ; rdfs:label "the cosets GL₂/SL₂"@x-gmeow-english .
+exa:cosetMultiplication a math:Operation ; rdfs:label "coset multiplication"@x-gmeow-english .
+
+# The isomorphism GL₂/SL₂ ≅ ℝ* witnessing the first isomorphism theorem.
+exa:firstIsoWitness a math:Isomorphism ;
+    rdfs:label "GL₂/SL₂ ≅ ℝ* (first isomorphism theorem for det)"@x-gmeow-english ;
+    math:domain exa:GL2modSL2 ;
+    math:codomain exa:RstarMult ;
+    math:preservedOperation exa:cosetMultiplication ;
+    math:preservationLaw exa:detProductLaw .

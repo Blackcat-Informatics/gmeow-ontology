@@ -1,0 +1,31 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Shared ABox for the algebra competency questions (crates/slicetest). It carries the
+# three arms of the charter's unification — the determinant (a group homomorphism), the
+# E8 Weyl action (an automorphism), and a homomorphic-encryption scheme (a ring
+# homomorphism) — each a map declaring the operation it preserves and its preservation
+# law, so one uniform query returns all three as the same kind of object.
+
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix exf:   <http://example.org/math/> .
+
+exf:detHom a math:GroupHomomorphism ;
+    math:preservedOperation exf:matrixMultiplication ;
+    math:preservationLaw exf:detLaw .
+
+exf:heScheme a math:RingHomomorphism ;
+    math:preservedOperation exf:ringMultiplication ;
+    math:preservationLaw exf:heLaw .
+
+exf:weylAction a math:Automorphism ;
+    math:preservedOperation exf:rootReflection ;
+    math:preservationLaw exf:weylLaw .
+
+exf:matrixMultiplication a math:Operation .
+exf:ringMultiplication a math:Operation .
+exf:rootReflection a math:Operation .
+exf:detLaw a logic:Formula .
+exf:heLaw a logic:Formula .
+exf:weylLaw a logic:Formula .

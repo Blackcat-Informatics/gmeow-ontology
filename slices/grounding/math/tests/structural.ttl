@@ -136,3 +136,31 @@ ASK {
     math:IncompleteAlgebraicStructure rdfs:subClassOf math:MathConformanceFailure .
 }""" ;
     gmeow:saRationale "The algebra hard-rule failure math:IncompleteAlgebraicStructure MUST be a subclass of math:MathConformanceFailure, so a violation is a typed, queryable object." .
+
+# --- 10. The homomorphism hierarchy, incl. AutomorphismGroup ⊑ Group (MUST) ---
+ex:saHomomorphismHierarchy a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    math:Homomorphism      rdfs:subClassOf math:Morphism .
+    math:GroupHomomorphism rdfs:subClassOf math:Homomorphism .
+    math:RingHomomorphism  rdfs:subClassOf math:Homomorphism .
+    math:Isomorphism       rdfs:subClassOf math:Homomorphism .
+    math:Automorphism      rdfs:subClassOf math:Isomorphism .
+    math:AutomorphismGroup rdfs:subClassOf math:Group .
+}""" ;
+    gmeow:saRationale "The structure-preserving maps MUST form the declared hierarchy, and crucially math:AutomorphismGroup MUST be a subclass of math:Group: a symmetry group IS an automorphism group, the identity that lets E8's Weyl action, det, and a homomorphic-encryption scheme be the same kind of object." .
+
+# --- 11. The homomorphism failure classes subclass MathConformanceFailure (MUST) ---
+ex:saHomomorphismFailures a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    math:UnderspecifiedHomomorphism rdfs:subClassOf math:MathConformanceFailure .
+    math:StringOnlyPreservationLaw  rdfs:subClassOf math:MathConformanceFailure .
+}""" ;
+    gmeow:saRationale "Both homomorphism hard-rule failures MUST be subclasses of math:MathConformanceFailure, so a violation is a typed, queryable object." .

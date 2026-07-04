@@ -1,0 +1,16 @@
+# Competency question: "Which structure-preserving maps are declared, and for each,
+# what operation does it preserve and by which preservation law?"  This is the charter's
+# unification made queryable: the determinant, the E8 Weyl action, and a homomorphic-
+# encryption scheme are the SAME kind of object — a map that names a preserved operation
+# and a preservation law (a logic: formula). The query matches that uniform shape by the
+# defining properties (math:preservedOperation + math:preservationLaw), so it returns all
+# three regardless of their specific homomorphism subclass. Over the fixture the answer is
+# exactly {detHom → matrixMultiplication/detLaw, heScheme → ringMultiplication/heLaw,
+# weylAction → rootReflection/weylLaw}.
+PREFIX math: <https://blackcatinformatics.ca/math/>
+
+SELECT ?map ?operation ?law WHERE {
+    ?map math:preservedOperation ?operation ;
+         math:preservationLaw ?law .
+}
+ORDER BY ?map

@@ -206,3 +206,41 @@ math:AlgebraicStructureShape
         sh:severity sh:Violation ;
         sh:message "A math:AlgebraicStructure must declare at least one math:satisfiesAxiom naming a math:Axiom (which denotes a logic: formula); a structure without stated axioms is ill-formed." ;
     ] .
+
+# Rule 9 — a homomorphism declares its preserved operation and preservation law.
+math:HomomorphismShape
+    a sh:NodeShape ;
+    rdfs:label "Homomorphism completeness shape"@x-gmeow-english ;
+    skos:definition "SHACL constraints for math:Homomorphism: it declares at least one math:preservedOperation and at least one math:preservationLaw. A map is a homomorphism only by declaring what it preserves and the law of that preservation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    math:enforcesFailureClass math:UnderspecifiedHomomorphism ;
+    sh:targetClass math:Homomorphism ;
+    sh:property [
+        sh:path math:preservedOperation ;
+        sh:minCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:class math:Operation ;
+        sh:severity sh:Violation ;
+        sh:message "A math:Homomorphism must declare at least one math:preservedOperation naming the operation it carries; a homomorphism without a preserved operation is ill-formed." ;
+    ] ;
+    sh:property [
+        sh:path math:preservationLaw ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:Homomorphism must declare at least one math:preservationLaw; a homomorphism without its law is ill-formed." ;
+    ] .
+
+# Rule 10 — a preservation law denotes a logic: formula, not a string.
+math:PreservationLawShape
+    a sh:NodeShape ;
+    rdfs:label "Preservation-law denotation shape"@x-gmeow-english ;
+    skos:definition "SHACL constraint for math:Homomorphism: its math:preservationLaw denotes a logic: formula (a resource, the denotation seam), never an opaque literal string."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    math:enforcesFailureClass math:StringOnlyPreservationLaw ;
+    sh:targetClass math:Homomorphism ;
+    sh:property [
+        sh:path math:preservationLaw ;
+        sh:nodeKind sh:BlankNodeOrIRI ;
+        sh:severity sh:Violation ;
+        sh:message "A math:Homomorphism must name its math:preservationLaw as a resource denoting a logic: formula, not an opaque literal string." ;
+    ] .

@@ -1,0 +1,14 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Well-formed: a math:GroupHomomorphism declaring its preserved operation and a
+# preservation law that is a resource (denoting a logic: formula). Conforms to
+# math:HomomorphismShape and math:PreservationLawShape. Bound by ex:ecHomomorphismLawful.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:lawfulHom a math:GroupHomomorphism ;
+    math:preservedOperation ex:op ;
+    math:preservationLaw ex:homLaw .
+
+ex:op a math:Operation .
