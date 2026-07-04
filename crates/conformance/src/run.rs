@@ -811,6 +811,7 @@ fn resolve_answers(
     }
 
     let max_answers = budget.as_ref().and_then(|b| b.max_answers);
+    let max_steps = budget.as_ref().and_then(|b| b.max_steps);
     let mut answers = BTreeMap::new();
     for qfile in query_files {
         let stem = qfile
@@ -820,7 +821,14 @@ fn resolve_answers(
             .to_string();
         let qtext = std::fs::read_to_string(&qfile)
             .map_err(|e| format!("case {case_id}: cannot read query {stem}: {e}"))?;
-        let answer = resolve_query(case_id, world_nquads, &qtext, profile_str, max_answers)?;
+        let answer = resolve_query(
+            case_id,
+            world_nquads,
+            &qtext,
+            profile_str,
+            max_answers,
+            max_steps,
+        )?;
         answers.insert(stem, answer);
     }
     Ok(answers)
@@ -835,6 +843,7 @@ fn resolve_query(
     query_text: &str,
     profile_str: &str,
     max_answers: Option<u64>,
+    max_steps: Option<u64>,
 ) -> Result<serde_json::Value, String> {
     let err = |msg: String| format!("case {case_id}: query failed: {msg}");
 
@@ -881,7 +890,7 @@ fn resolve_query(
 
     let budget = Budget {
         max_answers: max_answers_usize,
-        max_steps: None,
+        max_steps,
     };
 
     // Counterfactual vs plain backward goal. Both carry a preservation
