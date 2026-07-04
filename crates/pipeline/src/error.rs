@@ -6,7 +6,7 @@
 //! Convention (mirrors `gmeow-slice`): a hand-written `enum` with manual
 //! `Display` + `std::error::Error` impls and `From<std::io::Error>` — no
 //! `thiserror` dependency. Every DAG defect is a HARD failure surfaced *before*
-//! any stage runs (no-optionality, #861).
+//! any stage runs (no-optionality).
 
 /// All errors that can arise from loading, validating, scheduling, and running
 /// a pipeline DAG.
@@ -18,7 +18,7 @@ pub enum PipelineError {
     Parse(String),
     /// A (de)serialization failure on the on-disk cache: a corrupt `index.json`,
     /// a corrupt cached `StageProduct` blob, or a JSON encode failure on persist
-    /// (#861 P2). Distinct from [`PipelineError::Parse`] (RDF), which it used to
+    /// (P2). Distinct from [`PipelineError::Parse`] (RDF), which it used to
     /// borrow — these are JSON, not RDF, decode failures.
     Decode(String),
     /// A dogfooded RDF declaration carries a value outside its closed set
@@ -79,7 +79,7 @@ pub enum PipelineError {
         rust: Vec<String>,
     },
     /// A cached `StageProduct` failed its self-verifying digest recheck. The
-    /// cache is never silently repaired (no-optionality, #861 P2).
+    /// cache is never silently repaired (no-optionality P2).
     CacheMismatch { expected: String, actual: String },
     /// A stage's `run` failed.
     Stage { stage: String, message: String },

@@ -78,7 +78,7 @@ const BUDGET_RESULT_VAR: &str = "ScryerBudgetResult__";
 /// The atom `call_with_inference_limit/3` binds its result to when the budget is hit.
 const INFERENCE_LIMIT_EXCEEDED: &str = "inference_limit_exceeded";
 
-/// `xsd:integer` datatype IRI — the canonical type of an arithmetic answer (#1009 G2a).
+/// `xsd:integer` datatype IRI — the canonical type of an arithmetic answer (G2a).
 ///
 /// A Scryer `Integer` answer is rendered as the canonical typed-literal string
 /// `"N"^^<…#integer>`, matching the [`crate::provenance::literal_n3`] form so that
@@ -191,7 +191,7 @@ pub fn run_scryer(
                                     // A computed arithmetic answer (e.g. a list length or
                                     // index). Render as the canonical typed integer literal,
                                     // identical to provenance::literal_n3 for xsd:integer, so
-                                    // it reads back like a materialized literal (#1009 G2a).
+                                    // it reads back like a materialized literal (G2a).
                                     // `Integer` is arbitrary-precision; use Display.
                                     bind.insert(v.clone(), format!("\"{i}\"^^<{XSD_INTEGER}>"));
                                 }
@@ -248,7 +248,7 @@ fn build_module(
 
     // Tabling directives for the cyclic IDB predicates (bounded recursion).
     // The arity is taken from the predicate's rule head, so n-ary IDB predicates
-    // (e.g. `get/3`/`idx/3` for list indexing — #1009 G2a) are tabled at the right
+    // (e.g. `get/3`/`idx/3` for list indexing — G2a) are tabled at the right
     // arity, not a hardcoded `/2`.
     for pred in table_preds {
         let arity = program
@@ -320,7 +320,7 @@ fn serialize_atom(atom: &QAtom) -> String {
 /// a `Var` becomes the bare Prolog variable name; a `Num` becomes BARE digits.
 ///
 /// The `Num` arm emits unquoted digits deliberately: a quoted `'1'` is a Prolog atom,
-/// not an integer, and `is`/comparisons would not evaluate it (#1009 G2a).
+/// not an integer, and `is`/comparisons would not evaluate it (G2a).
 fn serialize_term(term: &QTerm) -> String {
     match term {
         QTerm::Const(c) => prolog_quote(c),

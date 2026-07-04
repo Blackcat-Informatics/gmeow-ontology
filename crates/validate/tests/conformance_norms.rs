@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-//! Conformance twins migrated from tests/test_norms.py (#867)
+//! Conformance twins migrated from tests/test_norms.py
 //!
 //! Migrated: the two `run_shacl`-based fixture tests.
 //!

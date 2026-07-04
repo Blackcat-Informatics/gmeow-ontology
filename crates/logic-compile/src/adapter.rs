@@ -3,8 +3,8 @@
 
 //! OWL/gUFO adapter: normalize legacy `owl:*` / `gufo:` source into the IR.
 //!
-//! The OWL/gUFO adapter (#664); the Python duplicate (`logic_adapter.py`) was
-//! retired in #727.  It accepts legacy
+//! The OWL/gUFO adapter; the Python duplicate (`logic_adapter.py`) was
+//! retired.  It accepts legacy
 //! RDF that uses `owl:*` structural vocabulary and/or `gufo:` stereotypes and
 //! normalizes it into the same [`LogicProgram`] IR the `logic:` front-end
 //! produces, enabling the **round-trip isomorphism gate** ([`assert_ir_isomorphic`]):
@@ -24,11 +24,11 @@
 //!   emit a [`Diagnostic`] and skip; nothing is silently lost.
 //! * **Raise** ([`LogicParseError`]) on empty/unreadable input.
 //!
-//! The `gufo: class → logic: term` *coverage* correspondence (the `#663`
-//! "gmeow:logic ⊇ gUFO floor", with its `SUPERSEDED` sentinel) is **not** part of
+//! The `gufo: class → logic: term` *coverage* correspondence (the `gmeow:logic ⊇ gUFO floor`
+//! coverage floor, with its `SUPERSEDED` sentinel) is **not** part of
 //! the compiler runtime — only the 11-stereotype runtime sort map lives in this
 //! module. The coverage floor is enforced natively by the integration test
-//! `crates/logic/tests/gufo_superset.rs` (#731, which retired the Python fixture
+//! `crates/logic/tests/gufo_superset.rs` (which retired the Python fixture
 //! `tests/test_logic_gufo_superset.py`).
 
 use std::collections::{BTreeSet, HashSet};
@@ -187,7 +187,7 @@ fn rule_key(r: &LogicRule) -> String {
     base
 }
 
-/// Stable diff key for a reasoning contract (#767; was `profile_key`).
+/// Stable diff key for a reasoning contract (previously `profile_key`).
 fn contract_key(c: &ReasoningContract) -> String {
     c.sort_key()
 }
@@ -528,7 +528,7 @@ pub fn adapt_legacy_str(
     source_iri: Option<String>,
 ) -> Result<(LogicProgram, Vec<Diagnostic>), LogicParseError> {
     // Native codec parse → frozen wasm-clean IR dataset, straight into the adapter
-    // (no oxigraph Store hop, #909/#732).
+    // (no oxigraph Store hop).
     let dataset = parse_dataset(turtle.as_bytes(), "text/turtle", None)
         .map_err(|e| LogicParseError(format!("Failed to parse Turtle source: {e}")))?;
     adapt_legacy_dataset(dataset.as_ref(), source_iri)

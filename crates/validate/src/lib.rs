@@ -3,7 +3,7 @@
 
 //! `gmeow-validate` — the Rust host for the GMEOW validation-path lints.
 //!
-//! As of EPIC #575 / issue #579 this crate carries the two lowest-risk lints —
+//! This crate carries the two lowest-risk lints —
 //! per-file Turtle syntax checking ([`store::parse_file`]) and the Principle 5
 //! `owl:sameAs`-to-external-entity ban (store-scan consumers) —
 //! routing `src/gmeow_tools/validate.py` through the Rust path and proving the

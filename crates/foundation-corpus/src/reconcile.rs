@@ -17,27 +17,27 @@ use std::path::Path;
 pub const NQ_PREDICATE_STATUS: [(&str, &str); 16] = [
     (
         "http://lillith.internal/principia/active_character",
-        "MAPPED → flat gmeow:narrates (#360)",
+        "MAPPED → flat gmeow:narrates",
     ),
     (
         "http://lillith.internal/principia/key_event",
-        "MAPPED → gmeow:Event + flat gmeow:narrates (#360)",
+        "MAPPED → gmeow:Event + flat gmeow:narrates",
     ),
     (
         "http://lillith.internal/principia/goal_score",
-        "IMPROVED → gmeow:Assessment with vantage/rubric/criterion (#353)",
+        "IMPROVED → gmeow:Assessment with vantage/rubric/criterion",
     ),
     (
         "http://lillith.internal/principia/thematic_tag",
-        "DROPPED-WITH-REASON → unpromoted; #363 heuristic needs curator confirmation (budget-reported)",
+        "DROPPED-WITH-REASON → unpromoted; heuristic needs curator confirmation (budget-reported)",
     ),
     (
         "http://lillith.internal/principia/emotional_state",
-        "IMPROVED → gmeow:ArcSample with vantage + frame-carried position (#361)",
+        "IMPROVED → gmeow:ArcSample with vantage + frame-carried position",
     ),
     (
         "http://lillith.internal/principia/arc_position",
-        "IMPROVED → gmeow:NarrativePosition in a discourse frame (#359)",
+        "IMPROVED → gmeow:NarrativePosition in a discourse frame",
     ),
     (
         "http://lillith.internal/principia/content_mode",
@@ -45,11 +45,11 @@ pub const NQ_PREDICATE_STATUS: [(&str, &str); 16] = [
     ),
     (
         "http://lillith.internal/principia/chapter_index",
-        "IMPROVED → gmeow:positionOrdinal on a frame-carried position (#359)",
+        "IMPROVED → gmeow:positionOrdinal on a frame-carried position",
     ),
     (
         "http://lillith.internal/principia/predicate/exemplifies",
-        "IMPROVED → gmeow:Exemplar with exemplarSubject + polarity + anchor (#353/#362)",
+        "IMPROVED → gmeow:Exemplar with exemplarSubject + polarity + anchor",
     ),
     (
         "http://lillith.internal/principia/predicate/rationale",
@@ -61,7 +61,7 @@ pub const NQ_PREDICATE_STATUS: [(&str, &str); 16] = [
     ),
     (
         "http://lillith.internal/principia/motivation",
-        "DEFERRED → #350 Goal extraction from prose (statement-layer mode)",
+        "DEFERRED → Goal extraction from prose (statement-layer mode)",
     ),
     (
         "http://lillith.internal/principia/emotional_arc",
@@ -69,15 +69,15 @@ pub const NQ_PREDICATE_STATUS: [(&str, &str); 16] = [
     ),
     (
         "http://lillith.internal/principia/predicate/character_role",
-        "IMPROVED → gmeow:RoleInNarrative (scoped, interpretive) (#362)",
+        "IMPROVED → gmeow:RoleInNarrative (scoped, interpretive)",
     ),
     (
         "http://lillith.internal/principia/penalty_boundary",
-        "DEFERRED → anti-score-anchor import with the principia importer (EPIC #348 consumer)",
+        "DEFERRED → anti-score-anchor import with the principia importer (EPIC consumer)",
     ),
     (
         "http://lillith.internal/principia/predicate/paradigm_assignment",
-        "DEFERRED → #355 persona import with the principia importer",
+        "DEFERRED → persona import with the principia importer",
     ),
 ];
 

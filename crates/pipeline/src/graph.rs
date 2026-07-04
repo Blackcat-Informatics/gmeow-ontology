@@ -3,7 +3,7 @@
 
 //! The stage dependency graph: acyclicity (delegated to the shared
 //! `gmeow_logic::dag_profile` DAG-workflow certifier) plus deterministic
-//! topological *levelling* (#861).
+//! topological *levelling*.
 //!
 //! An edge runs **producer → consumer**: if stage `A` declares `B` in its
 //! `dataflowConsumes`, then `B` must run before `A`, so the edge is `B → A`.

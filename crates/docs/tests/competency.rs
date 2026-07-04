@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Competency-style assertions over the rendered docs pages (R1 of #859).
+//! Competency-style assertions over the rendered docs pages (R1).
 //!
 //! Unlike the byte-exact `insta` goldens in `render_golden.rs`, these are
 //! *content-predicate* assertions: they verify the renderer faithfully surfaces
@@ -139,7 +139,7 @@ fn recipe_index_and_page_surface_goal_and_terms() {
     let model = common::cached_model();
     assert!(
         !model.recipes.is_empty(),
-        "the live docs model must carry dogfooded recipes (#853)"
+        "the live docs model must carry dogfooded recipes (seed data)"
     );
     let recipe = {
         let mut r: Vec<_> = model.recipes.iter().collect();
@@ -176,7 +176,7 @@ fn learning_path_index_and_page_sequence_audience_goal_and_recipes() {
     let model = common::cached_model();
     assert!(
         !model.learning_paths.is_empty(),
-        "the live docs model must carry dogfooded learning paths (#853)"
+        "the live docs model must carry dogfooded learning paths (seed data)"
     );
     let path = {
         let mut p: Vec<_> = model.learning_paths.iter().collect();
@@ -212,7 +212,7 @@ fn learning_path_index_and_page_sequence_audience_goal_and_recipes() {
     }
 }
 
-// ── #1020 relational/structural surfaces ────────────────────────────────────────
+// ── relational/structural surfaces ────────────────────────────────────────
 
 /// The live model must actually extract the new reverse-mapped collections, else
 /// every per-term surface below would be vacuously empty.

@@ -1,15 +1,15 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Foundation-corpus importer (#364, EPIC #358) — the Rust port of the consumer
+//! Foundation-corpus importer — the Rust port of the consumer
 //! child `gmeow_tools.foundation_import`.
 //!
 //! Imports a Lillith_Foundation_Docs-shaped JSONL corpus into GMEOW instance data
 //! over the `gmeow-rdf` IR, exercising every interior facility the two EPICs
-//! landed: WEMI spine, claim-spine author facts, #353 Assessments for goal-score
-//! vectors, #359 narrative positions, #360 seam links (FLAT BY DEFAULT — the
-//! efficiency doctrine, budget-reported), #361 arc samples, #362 scoped roles,
-//! #363 motifs, and provenance via ImportActivity.
+//! landed: WEMI spine, claim-spine author facts Assessments for goal-score
+//! vectors narrative positions seam links (FLAT BY DEFAULT — the
+//! efficiency doctrine, budget-reported) arc samples scoped roles,
+//! motifs, and provenance via ImportActivity.
 //!
 //! # Doctrine
 //! - The efficiency doctrine is load-bearing: seam links emit as flat quads; only

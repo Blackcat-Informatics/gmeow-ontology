@@ -3,8 +3,8 @@
 
 //! Tests for the OWL/gUFO adapter, driven by Turtle source strings.
 //!
-//! These are the authoritative adapter tests; the Python
-//! `tests/test_logic_adapter.py` they superseded was retired in #727.
+//! These are the authoritative adapter tests; they supersede the Python
+//! `tests/test_logic_adapter.py`, which was retired.
 
 use super::*;
 use crate::frontend::parse_logic_str;

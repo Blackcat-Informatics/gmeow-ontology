@@ -101,12 +101,12 @@ pub struct ValidateOptions {
     /// per-file Turtle phases (syntax check, `owl:sameAs` ban) are skipped.
     pub gts_bytes: Option<Vec<u8>>,
     /// Optional signature/trust policy configuration for the GTS verification
-    /// pre-gate (#646). When `None`, signature verification is disabled and the
+    /// pre-gate. When `None`, signature verification is disabled and the
     /// orchestration behaves as before.
     pub signature_config: Option<SignatureConfig>,
     /// When `true`, run the native semantic (`--deep`) pass after the structural
     /// phases: reason over the bundle (`gmeow_logic::reason::reason_all`) and read
-    /// the shared `logic:ReasoningResult` (#768) to emit semantic findings —
+    /// the shared `logic:ReasoningResult` to emit semantic findings —
     /// inconsistency (`information=both`), unsatisfiable classes, and undecided DL
     /// constructs. Requires `gts_bytes`. This runs the full reasoner, so it is
     /// opt-in (the structural gate stays fast); the deep pass itself is single-path.
@@ -124,7 +124,7 @@ struct PhaseResult {
 /// and any data Python needs to finish phases that stay Python-side.
 ///
 /// The single diagnostic product is [`ValidationRun::report`] — one canonical
-/// [`Report`] (#654). The legacy `errors`/`warnings` string surfaces are
+/// [`Report`]. The legacy `errors`/`warnings` string surfaces are
 /// *derived* from it ([`ValidationRun::errors`] / [`ValidationRun::warnings`]),
 /// never separately stored, so there is no dual-truth.
 pub struct ValidationRun {
@@ -138,8 +138,8 @@ pub struct ValidationRun {
     pub report: Report,
     /// Declared GMEOW-term IRIs, for Python's `guide_anchor_lint`.
     pub declared_terms: Vec<String>,
-    /// The dual-projection claim hooks for advisory findings (#760 D1);
-    /// D4/#763 materialises them as RDF.
+    /// The dual-projection claim hooks for advisory findings (D1);
+    /// D4 materialises them as RDF.
     pub advisory_claims: Vec<crate::advisory::AdvisoryClaim>,
 }
 
@@ -175,7 +175,7 @@ impl ValidationRun {
         let mut timings: Vec<Timing> = Vec::new();
         // String scratch for the cheap lint phases; the SHACL phases produce
         // structured findings directly. All three fold into ONE report at the
-        // aggregation points below (#654).
+        // aggregation points below.
         let mut errors: Vec<String> = Vec::new();
         let mut warnings: Vec<String> = Vec::new();
         let mut shacl_findings: Vec<Finding> = Vec::new();
@@ -196,7 +196,7 @@ impl ValidationRun {
         };
 
         // Parse every source Turtle file exactly once before the timed store-build
-        // phase (#822). The per-file frozen datasets are reused by:
+        // phase. The per-file frozen datasets are reused by:
         //   • the `build-store` timed phase (merge into the shared dataset),
         //   • Phase 1: syntax check (report Err entries),
         //   • Phase 2: sameAs ban (scan Ok entries).
@@ -231,7 +231,7 @@ impl ValidationRun {
             purrdf::shapes::engine::parse_shapes(shapes_ttl)
         })?;
 
-        // Signature/trust verification pre-gate (#646).
+        // Signature/trust verification pre-gate.
         // Runs after the GTS bundle has been folded into a graph but before any
         // ontology validation phases, so malformed, unsigned, or untrusted bundles
         // are rejected early.
@@ -374,11 +374,11 @@ impl ValidationRun {
         // Phase 8: merged SHACL validation against the shared store.
         //
         // The whole-ontology merged-SHACL source key is the S6a semantic Merkle
-        // PRODUCT key over the slice composition (RFC #820 §12): path-independent
+        // PRODUCT key over the slice composition (RFC §12): path-independent
         // (renaming a slice's group dir does not bust the key) and
         // comment-insensitive (a comment-only module/manifest edit folds the same
         // *semantic* digest). Three mutually exclusive sources, no silent
-        // degraded path (no-optionality, #579):
+        // degraded path (no-optionality):
         //   • gts_graph present  → segment_heads (already content-addressed).
         //   • slices_dir present → semantic Merkle product key over the catalog.
         //   • neither            → shapes-only key (the no-root case is preserved).
@@ -543,16 +543,16 @@ impl ValidationRun {
             }
         }
 
-        // Advisory tier (#760 D1): emit one fixed demonstrator advisory on every
+        // Advisory tier (D1): emit one fixed demonstrator advisory on every
         // normal-completion run, so gmeow validate surfaces a Note finding distinct
         // from compliance errors. The dual-projection-always contract: ONE
         // Advisory::project() call yields BOTH the flat finding AND the in-memory
-        // claim hook D4/#763 materialises. NOT emitted on the two early-return
-        // (hard-fail) paths above. D3/#762 replaces this demonstrator with harvested
+        // claim hook D4 materialises. NOT emitted on the two early-return
+        // (hard-fail) paths above. D3 replaces this demonstrator with harvested
         // advisory rules (find via the "advisory-demonstrator" tag).
         let advisory = Advisory::note(
             crate::codes::ADVICE_TIER_ACTIVE,
-            "Advisory tier active — soft (deonticRecommendation) advice will surface here once advisory rules are harvested (#762).",
+            "Advisory tier active — soft (deonticRecommendation) advice will surface here once advisory rules are harvested.",
         )
         .with_suggestion("Run `gmeow describe <term>` to see modeling guidance (avoidWhen / useWhen / howToUse).")
         .with_help_uri("https://blackcatinformatics.ca/gmeow/advice")
@@ -563,7 +563,7 @@ impl ValidationRun {
         report.add_finding(projection.finding);
         report.add_rule(advisory.rule());
 
-        // Semantic (`--deep`) pass (#768 ME2): reason over the bundle and read the
+        // Semantic (`--deep`) pass (ME2): reason over the bundle and read the
         // shared logic:ReasoningResult, folding its semantic verdict into the same
         // canonical report. Opt-in (runs the full reasoner) and gts-bundle-scoped.
         if options.deep {
@@ -631,7 +631,7 @@ impl ValidationRun {
     }
 }
 
-/// The native semantic (`--deep`) pass (#768 ME2): reason over the GTS bundle and
+/// The native semantic (`--deep`) pass (ME2): reason over the GTS bundle and
 /// read the shared `logic:ReasoningResult`, folding its verdict into `report`.
 ///
 /// Emits an error per contradiction witness when the bundle is inconsistent
@@ -898,7 +898,7 @@ where
 /// from the cache (`cache-hit`), was freshly computed (`cache-miss`), or could
 /// not be cached because no cache root was configured (`cache-disabled`). The
 /// cached unit is the structured [`Finding`] list, so a hit preserves SHACL
-/// focus nodes and wire coordinates exactly as a fresh compute would (#654).
+/// focus nodes and wire coordinates exactly as a fresh compute would.
 fn run_cached<F>(
     cache: Option<&ValidationCache>,
     kind: &str,
@@ -994,7 +994,7 @@ type ParsedSource = (PathBuf, Result<Arc<RdfDataset>, String>);
 /// Merge every successfully-parsed per-file dataset into ONE frozen shared dataset,
 /// each under a fresh blank scope (C0.2), matching [`store::dataset_from_paths`]. A
 /// parse failure propagates with the same `"syntax error in {path}: {msg}"` format the
-/// per-file parse produced, preserving the `build-store` error contract (#822).
+/// per-file parse produced, preserving the `build-store` error contract.
 fn merge_parsed_sources(parsed: &[ParsedSource]) -> Result<Arc<RdfDataset>, String> {
     let mut builder = RdfDatasetBuilder::new();
     for (path, result) in parsed {
@@ -1015,7 +1015,7 @@ fn merge_parsed_sources(parsed: &[ParsedSource]) -> Result<Arc<RdfDataset>, Stri
 /// returned `Err` for that case (propagated via `?`), so in practice this function
 /// only runs when all files parsed successfully and always returns an empty error
 /// list. It is kept as a separate timed phase so the phase label and timing structure
-/// remain identical to the original (#822).
+/// remain identical to the original.
 fn check_syntax_from_parsed(parsed: &[ParsedSource]) -> Result<PhaseResult, String> {
     let mut result = PhaseResult::default();
     for (path, parse_result) in parsed {
@@ -1083,7 +1083,7 @@ fn check_example_coverage(slices_dir: &str) -> Result<PhaseResult, String> {
         if !has_example {
             result.errors.push(format!(
                 "slice {slice_name}: no examples/*.ttl — every slice must \
-                 ship at least one validating example (#579)"
+                 ship at least one validating example"
             ));
         }
     }
@@ -2040,7 +2040,7 @@ ex:governingContract rdf:type logic:ReasoningContract ;
     /// The demonstrator advisory appears on every normal-completion run as a Note
     /// (not an error or warning), proving it is distinct from the compliance surfaces.
     /// Both the flat finding and the in-memory claim hook are emitted together
-    /// (dual-projection-always contract, #760 D1).
+    /// (dual-projection-always contract D1).
     #[test]
     fn clean_run_emits_one_demonstrator_advisory() {
         let bytes = minimal_gts_bytes();

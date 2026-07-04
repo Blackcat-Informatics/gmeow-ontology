@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Conformance twins migrated from tests/test_cognition.py (#867)
+//! Conformance twins migrated from tests/test_cognition.py
 //!
 //! Migrated tests (SHACL fixture-based, `run_shacl(...)` calls):
 //!   - `test_wellformed_knowledge_proficiency_conforms`  →  `wellformed_knowledge_proficiency_conforms`

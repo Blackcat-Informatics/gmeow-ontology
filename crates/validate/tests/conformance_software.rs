@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Conformance twins migrated from tests/test_software.py (#867)
+//! Conformance twins migrated from tests/test_software.py
 //!
 //! Migrated tests (use `run_shacl`):
 //!   - `test_facet_orthogonality_shacl_rejects_two_facets`: inline dual-facet

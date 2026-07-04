@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 //! Native `gmeow:logic ⊇ gUFO` coverage floor — the `meta:gate-logic-gufo-superset`
 //! gate (Principle 17), ported from the retired Python fixture
-//! `tests/test_logic_gufo_superset.py` (#731).
+//! `tests/test_logic_gufo_superset.py`.
 //!
 //! gUFO is a generated, VALIDATION-ONLY lossy down-projection of the canonical
 //! `gmeow:logic` foundation: every gUFO `owl:Class` must therefore be covered by a
@@ -13,7 +13,7 @@
 //! `slices/grounding/logic/examples/criticism-fixes.ttl`.
 //!
 //! Replaces the Python `_GUFO_CLASS_TO_LOGIC` fixture inlined when the Python
-//! compiler was deleted in #727. The 11-stereotype *runtime* sort map stays in
+//! compiler was deleted. The 11-stereotype *runtime* sort map stays in
 //! `crates/logic/src/compile/adapter.rs`; this test owns the full *coverage* floor.
 
 use std::collections::HashSet;

@@ -83,7 +83,7 @@ struct ModelSummary {
     /// ONE fully serialized learning path (first by slug).
     sample_learning_path: Option<DocLearningPath>,
 
-    // ── New (#1020) collections: counts + one sample each ────────────────────
+    // ── New collections: counts + one sample each ────────────────────
     /// Number of SHACL node shapes reverse-mapped to constrained terms.
     shape_count: usize,
     /// Number of competency questions reverse-mapped to exercised terms.

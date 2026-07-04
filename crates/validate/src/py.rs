@@ -12,8 +12,8 @@
 //! # Platform note
 //!
 //! There is no architecture cfg guard on this module: the crate is native-only
-//! by construction (a capability cfg would be optionality, not compliance,
-//! #579). pyo3 cannot link into wasm, so the crate is simply never built for
+//! by construction; a capability cfg would be optionality, not compliance.
+//! pyo3 cannot link into wasm, so the crate is simply never built for
 //! wasm.
 
 use std::collections::{BTreeSet, HashMap, HashSet};
@@ -60,7 +60,7 @@ fn lint_report_dict(py: Python<'_>, report: LintReport) -> PyResult<Py<PyAny>> {
 ///
 /// Constructed in Python from `config.NAMESPACE` / `config.ONTOLOGY_IRI`, the
 /// `_SELECTOR_TOKENS` set, the core-slice IRI list, and the annotation-predicate
-/// list — no untyped dict bag (#579). Shared by `structural_lint`,
+/// list — no untyped dict bag. Shared by `structural_lint`,
 /// `term_naming_lint`, and `declared_terms`.
 #[pyclass(name = "LintConfig", from_py_object)]
 #[derive(Clone)]
@@ -94,7 +94,7 @@ impl PyLintConfig {
             ontology_iri,
             selector_tokens,
             core_slice_iris,
-            // The annotation-predicate registry is owned by this crate (#630):
+            // The annotation-predicate registry is owned by this crate:
             // when the caller omits it, fall back to the canonical Rust set.
             annotation_predicates: annotation_predicates
                 .unwrap_or_else(crate::lint::default_annotation_predicates),
@@ -104,7 +104,7 @@ impl PyLintConfig {
 
 /// The canonical annotation predicates the Check-2 language-tag policy polices.
 ///
-/// This crate is the single source of truth (#630); the Python `language_tags`
+/// This crate is the single source of truth; the Python `language_tags`
 /// helpers read the set from here instead of maintaining a parallel constant.
 #[pyfunction]
 fn annotation_predicates() -> Vec<String> {
@@ -209,9 +209,9 @@ struct PyValidateOptions {
     /// per-file Turtle phases (syntax check, `owl:sameAs` ban) are skipped.
     gts_bytes: Option<Vec<u8>>,
     /// Optional signature/trust policy configuration for the GTS verification
-    /// pre-gate (#646). When `None`, signature verification is disabled.
+    /// pre-gate. When `None`, signature verification is disabled.
     signature_config: Option<PySignatureConfig>,
-    /// When `true`, run the native semantic (`--deep`) pass (#768): reason over
+    /// When `true`, run the native semantic (`--deep`) pass: reason over
     /// the bundle and fold the shared `logic:ReasoningResult` verdict into the
     /// report. Requires `gts_bytes`.
     deep: bool,
@@ -285,8 +285,8 @@ impl PyValidateOptions {
 ///
 /// Python hands the source paths once; the frozen `Arc<RdfDataset>` can then be
 /// validated against parsed SHACL shapes across multiple phases without re-parsing
-/// the sources (#634). The dataset is handed to `purrdf::shapes` by reference through
-/// the `_store_capsule` (EPIC #906: the capsule carries a native `Arc<RdfDataset>`,
+/// the sources. The dataset is handed to `purrdf::shapes` by reference through
+/// the `_store_capsule` (the capsule carries a native `Arc<RdfDataset>`,
 /// not an oxigraph `Store`).
 #[pyclass(name = "ValidationStore")]
 struct PyValidationStore {
@@ -367,14 +367,14 @@ impl PyValidationStore {
 
 /// Build the merged native dataset from `source_paths`, mapping a parse failure to a
 /// Python `ValueError` (a hard failure that must surface — the validation path has no
-/// rdflib fallback, #579).
+/// rdflib fallback).
 fn build_dataset_or_err(source_paths: &[String]) -> PyResult<std::sync::Arc<purrdf::RdfDataset>> {
     let paths: Vec<PathBuf> = source_paths.iter().map(PathBuf::from).collect();
     store::dataset_from_paths(&paths).map_err(pyo3::exceptions::PyValueError::new_err)
 }
 
-/// Build the native dataset from an N-Triples string (the rdflib-free data seam,
-/// #579), mapping a parse failure to a Python `ValueError`. The reasoning checks
+/// Build the native dataset from an N-Triples string (the rdflib-free data seam),
+/// mapping a parse failure to a Python `ValueError`. The reasoning checks
 /// accept graphs as N-Triples now (test shims build a synthetic graph and serialize
 /// it), so this is their ingestion primitive.
 fn build_dataset_from_nt_or_err(data_nt: &str) -> PyResult<std::sync::Arc<purrdf::RdfDataset>> {
@@ -540,7 +540,7 @@ fn errors_dict(py: Python<'_>, errors: Vec<String>) -> PyResult<Py<PyAny>> {
 type GufoCheck = fn(&purrdf::RdfDataset, &GufoConfig) -> Vec<gmeow_diagnostics::model::Finding>;
 
 /// Run one gUFO check over the merged sources (the production `validate_all`
-/// path passes file paths directly — no rdflib graph, #579).
+/// path passes file paths directly — no rdflib graph).
 fn run_reasoning_paths(
     py: Python<'_>,
     check: GufoCheck,
@@ -560,7 +560,7 @@ fn run_reasoning_paths(
 
 /// Run one gUFO check over an N-Triples graph string (the test-shim seam: a
 /// synthetic graph serialized to N-Triples, no rdflib in the validation-path
-/// source files, #579).
+/// source files).
 fn run_reasoning_nt(
     py: Python<'_>,
     check: GufoCheck,
@@ -645,7 +645,7 @@ fn reasoning_relator_mediation_nt(
     run_reasoning_nt(py, gufo::relator_mediation, data_nt, namespace)
 }
 
-/// `coequal_facet_orthogonality` (P9 #281) over an N-Triples graph.
+/// `coequal_facet_orthogonality` (P9) over an N-Triples graph.
 #[pyfunction]
 fn reasoning_coequal_facet_orthogonality_nt(
     py: Python<'_>,
@@ -655,7 +655,7 @@ fn reasoning_coequal_facet_orthogonality_nt(
     run_reasoning_nt(py, gufo::coequal_facet_orthogonality, data_nt, namespace)
 }
 
-/// `frame_declaration_completeness` (P11 #283) over an N-Triples graph.
+/// `frame_declaration_completeness` (P11) over an N-Triples graph.
 #[pyfunction]
 fn reasoning_frame_declaration_completeness_nt(
     py: Python<'_>,
@@ -673,7 +673,7 @@ fn reasoning_frame_declaration_completeness_nt(
 /// Python); `namespace` is `config.NAMESPACE`. Returns a dict with the four
 /// sorted IRI lists: `covered_classes`, `gap_classes`, `covered_predicates`,
 /// `gap_predicates`. A parse failure maps to a Python `ValueError` (a hard
-/// failure that must surface — the coverage path has no rdflib fallback, #579).
+/// failure that must surface — the coverage path has no rdflib fallback).
 #[pyfunction]
 fn coverage_analyze(
     py: Python<'_>,
@@ -1029,7 +1029,7 @@ fn dc_coverage_report(mappings_dir: String, threshold: f64, json_mode: bool) -> 
 }
 
 /// Build the merged graph from `source_paths` and dump it as canonical
-/// N-Triples (legacy/test-only seam, #579/#634).
+/// N-Triples (legacy/test-only seam).
 ///
 /// The production `make validate` path now validates the shared oxigraph store
 /// directly in Rust and no longer uses N-Triples as internal transport. This
@@ -1048,7 +1048,7 @@ fn merge_to_ntriples(source_paths: Vec<String>) -> PyResult<String> {
 }
 
 /// Build the merged DSL graph from `dsl_paths` as N-Triples, plus the focus→file
-/// provenance map (mirrors the legacy `node_to_file` walk, #579).
+/// provenance map (mirrors the legacy `node_to_file` walk).
 ///
 /// Returns `(data_nt, [(named_subject_iri, source_file_path), ...])` where the
 /// pairs record the FIRST `.ttl` file each named subject appears in, in
@@ -1075,16 +1075,16 @@ fn dsl_merge_with_provenance(
     Ok((data_nt, pairs.into_any().unbind()))
 }
 
-/// Native validation orchestration entrypoint (#634).
+/// Native validation orchestration entrypoint.
 ///
 /// Builds the ontology store once, parses the SHACL shapes once, runs every
 /// validation phase, and returns a dict with `errors`, `warnings`, `timings`,
 /// `declared_terms`, and `report` — the single canonical diagnostics report as a
 /// **live `Report` pyclass** (not a JSON string), from which `errors`/`warnings`
 /// are derived and which carries SHACL focus nodes and GTS wire coordinates
-/// (#654). Returning the live object lets Python fold its filesystem-bound lints
+/// . Returning the live object lets Python fold its filesystem-bound lints
 /// in and render SARIF directly, with no JSON round-trip — sound now that all
-/// bindings share one `Report` type in the `gmeow_native` cdylib (#630).
+/// bindings share one `Report` type in the `gmeow_native` cdylib.
 /// Optional phases (example coverage/SHACL, DSL SHACL) are enabled by the
 /// corresponding fields in `options`.
 #[pyfunction]
@@ -1098,7 +1098,7 @@ fn validate_all_native(
     options: PyValidateOptions,
 ) -> PyResult<Py<PyAny>> {
     // Empty source_paths is only valid when a GTS bundle supplies the store
-    // (mirrors ValidationRun::run's own contract, #644).
+    // (mirrors ValidationRun::run's own contract).
     if source_paths.is_empty() && options.gts_bytes.is_none() {
         return Err(pyo3::exceptions::PyValueError::new_err(
             "validate_all_native: source_paths must not be empty unless gts_bytes is provided",
@@ -1133,7 +1133,7 @@ fn validate_all_native(
     // Hand Python the single canonical report as a LIVE pyclass, not a JSON
     // string — Python folds its few filesystem-bound lints straight into it and
     // renders SARIF/JSON/HTML from it directly. No serialize→`from_json`→
-    // `to_json` round-trip (#630). Built last: it moves `run.report`, after the
+    // `to_json` round-trip. Built last: it moves `run.report`, after the
     // borrows above are done.
     out.set_item("report", Py::new(py, PyReport::from_engine(run.report))?)?;
 
@@ -1149,7 +1149,7 @@ fn dataset_from_turtle(ttl: &str) -> PyResult<std::sync::Arc<purrdf::RdfDataset>
 
 /// Merge a Turtle document and an N-Triples document into ONE frozen native dataset
 /// (their default-graph union), each under a fresh blank scope. The Turtle parse error
-/// maps to a `ValueError`, as does the N-Triples one — both are hard failures (#579).
+/// maps to a `ValueError`, as does the N-Triples one — both are hard failures.
 fn dataset_from_turtle_and_nt(
     ttl: &str,
     data_nt: &str,
@@ -1169,15 +1169,15 @@ fn dataset_from_turtle_and_nt(
 }
 
 /// The statement-metadata invariants over the emitted OWL downcast + ontology
-/// (mirrors `statement_lint.statement_invariants`, #630 Gap B3).
+/// (mirrors `statement_lint.statement_invariants` Gap B3).
 ///
 /// `statement_owl_ttl` is the native statement-stage OWL downcast as Turtle;
 /// `ontology_nt` is the merged ontology as N-Triples. Both are loaded into ONE
-/// oxigraph store (their default-graph union), the four invariants run natively,
+/// merged `RdfDataset` (their default-graph union), the four invariants run natively,
 /// and the violations are returned as a single canonical `Report` pyclass (every
 /// finding is an `Error` — each blocks statement compilation).
 /// Returning the live `Report` lets Python join the messages, render SARIF, or
-/// fold the findings in without a JSON round-trip (#630/#654).
+/// fold the findings in without a JSON round-trip.
 #[pyfunction]
 fn check_statement_invariants(
     py: Python<'_>,
@@ -1193,7 +1193,7 @@ fn check_statement_invariants(
     Ok(Py::new(py, PyReport::from_engine(report))?.into_any())
 }
 
-/// Native RDF-1.2 ↔ OWL round-trip lossless check (#809).
+/// Native RDF-1.2 ↔ OWL round-trip lossless check.
 ///
 /// `authored_owl_ttl` is the OWL downcast emitted from the statement DSL;
 /// `normalized_owl_ttl` is the RDF 1.2 lead artifact normalized back to the OWL
@@ -1216,7 +1216,7 @@ fn check_statement_lossless(
     Ok(Py::new(py, PyReport::from_engine(report))?.into_any())
 }
 
-/// Native constitution enforcement-coverage check → diagnostics `Report` (#809).
+/// Native constitution enforcement-coverage check → diagnostics `Report`.
 ///
 /// Parses the manifest Turtle (`governance/constitution.ttl`) into a Store and
 /// runs the graph-resident enforcement-coverage check, emitting granular
@@ -1234,7 +1234,7 @@ fn constitution_enforcement_report(py: Python<'_>, manifest_ttl: &str) -> PyResu
     Ok(Py::new(py, PyReport::from_engine(report))?.into_any())
 }
 
-/// Native full constitution-as-code report → diagnostics `Report` (#939).
+/// Native full constitution-as-code report → diagnostics `Report`.
 ///
 /// Runs every constitution check: enforcement coverage, principle/heading sync,
 /// cited artifact/symbol/target/CLI existence, and supersession marker sync.
@@ -1256,7 +1256,7 @@ fn constitution_full_report(
     Ok(Py::new(py, PyReport::from_engine(report))?.into_any())
 }
 
-/// Native slice-ownership analysis projected into a diagnostics `Report` (#809).
+/// Native slice-ownership analysis projected into a diagnostics `Report`.
 ///
 /// Discovers the slice catalog under `slices_root`, runs the native `gmeow-slice`
 /// ownership + dependency analysis, and projects the structured `OwnershipReport`
@@ -1493,7 +1493,7 @@ fn build_deposit_xml_native(
         .map_err(pyo3::exceptions::PyValueError::new_err)
 }
 
-/// Validate a JSON/YAML instance document against a JSON Schema (#700 Task 4).
+/// Validate a JSON/YAML instance document against a JSON Schema (Task 4).
 ///
 /// `instance_bytes` is the raw instance file; `format` is ``"json"`` or
 /// ``"yaml"`` (an unknown value maps to a Python ``ValueError``); `schema_bytes`
@@ -1585,9 +1585,9 @@ fn license_policy_for(license_id: &str) -> &'static str {
 /// Register the `gmeow-validate` surface on a Python module.
 ///
 /// Exposes the syntax / sameAs lints (Task 1) plus the structural, naming,
-/// ownership, and declared-term lints (Task 2, #579), and the `LintConfig` type
+/// ownership, and declared-term lints (Task 2), and the `LintConfig` type
 /// that carries their typed configuration across the FFI boundary. Called by the
-/// unified `gmeow_native` cdylib (#630) to populate `gmeow_native.validate`.
+/// unified `gmeow_native` cdylib to populate `gmeow_native.validate`.
 pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(license_policy_for, m)?)?;
     m.add_class::<PyLintConfig>()?;

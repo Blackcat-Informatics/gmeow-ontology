@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The `lpg` export leaf (#861 P4): RDF → Labeled Property Graph.
+//! The `lpg` export leaf (P4): RDF → Labeled Property Graph.
 //!
 //! A genuine port of `src/gmeow_tools/lpg.py` (no Rust existed): reads the
 //! statement-layer quads + reifier/annotation fold tables from an `RdfDataset`
@@ -253,7 +253,7 @@ impl PropVal {
             PropVal::One(v) => v.clone(),
             // The objects of a property are an RDF SET — no inherent order. Emit them in
             // a canonical (deterministic, content-keyed) order so the projection is
-            // independent of carrier-assembly vs gts-round-trip quad ordering (#1132):
+            // independent of carrier-assembly vs gts-round-trip quad ordering:
             // the in-memory carrier and a re-imported `gmeow.gts` then yield identical
             // bytes. Sort by each value's stable JSON rendering.
             PropVal::Many(vs) => {

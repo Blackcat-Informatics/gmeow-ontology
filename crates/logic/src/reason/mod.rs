@@ -89,7 +89,7 @@ pub(crate) fn reason_closure(
 }
 
 /// Run native predicate-as-DATA entailment + DL consistency, returning the typed
-/// [`ReasoningResult`] (#768, ME2) — the single shared result model every
+/// [`ReasoningResult`] (ME2) — the single shared result model every
 /// consumer reads.
 ///
 /// The DL verdict is folded into the result via

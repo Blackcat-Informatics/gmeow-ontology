@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Baseline benchmark for the native foundation chase (#630 acceleration, Phase 0).
+//! Baseline benchmark for the native foundation chase (acceleration, Phase 0).
 //!
 //! Drives [`gmeow_logic::foundation::evaluate`] — the stratified, all-IRI
 //! OntoUML chase that Phase 5 targets for a semi-naive rewrite — over the six
@@ -22,7 +22,7 @@ use gmeow_logic::store::WorldStore;
 
 /// The conformance cases benchmarked here, as `(group, name)` pairs under
 /// `conformance/logic/cases/<group>/`. The holonic discipline corpus lives under
-/// the dedicated `holonic/` group (issue #708, C5); the remaining foundation
+/// the dedicated `holonic/` group (C5); the remaining foundation
 /// lowering cases stay under `foundation/`. The bench id is the case `name`.
 const CASES: [(&str, &str); 9] = [
     ("foundation", "cross-world-rigidity"),

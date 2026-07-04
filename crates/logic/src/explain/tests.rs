@@ -84,7 +84,7 @@ fn reifier_recipe_golden() {
     );
 }
 
-// ── Transitive-derivation prose snapshot (T8, #789) ─────────────────────────────
+// ── Transitive-derivation prose snapshot (T8) ─────────────────────────────
 
 #[test]
 fn transitive_derivation_render_markdown_snapshot() {
@@ -151,7 +151,7 @@ fn explain_all_is_input_order() {
     }
 }
 
-// ── Reflexive self-overlap dedup (#1044) ────────────────────────────────────────
+// ── Reflexive self-overlap dedup ────────────────────────────────────────
 
 /// Build the two rows for a reflexive `overlaps(X, X)` derivation (one asserted
 /// `properPartOf(P, X)` witness + the derived self-overlap).  The shared-part rule
@@ -172,7 +172,7 @@ fn reflexive_self_overlap_rows() -> Vec<Row> {
     let witness_reifier = reifier_from_strings(&part, &proper_part_of, &witness_obj);
 
     // overlaps(Warlord, Warlord) — derived; the single witness fills BOTH conjuncts,
-    // so source_quad_ids lists `witness_reifier` twice (the #1044 condition).
+    // so source_quad_ids lists `witness_reifier` twice (the condition).
     let overlap_obj = format!("<{whole}>");
 
     vec![
@@ -229,7 +229,7 @@ fn reflexive_self_overlap_cites_witness_once() {
 
 #[test]
 fn reflexive_self_overlap_render_markdown_snapshot() {
-    // Byte-level prose snapshot — the SOLE regression guard for the #1044 double-cite.
+    // Byte-level prose snapshot — the SOLE regression guard for the double-cite.
     // The native `crates/conformance` harness compares only the cited-IRI skeleton
     // (a BTreeSet, byte-identical with or without the dedup), so it cannot catch a
     // duplicated `**Asserted fact**` prose block.  This snapshot can.
