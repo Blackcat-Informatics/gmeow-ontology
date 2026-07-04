@@ -1,0 +1,26 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Counter-example (ONE violation): a lang:Rendering that omits its lang:renderedContent
+# (sh:minCount 1 on lang:RenderingRecordShape) → lang:UnderspecifiedRendering. Everything
+# else is fully specified — the produced form, the convention, the preservation, and exactly
+# one lang:RenderingKind individual — so ONLY the MinCount finding fires and the
+# self-identity SPARQL branch cannot match (there is no lang:renderedContent to equal $this).
+
+@prefix lang:  <https://blackcatinformatics.ca/lang/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <http://example.org/lang/> .
+
+ex:turtle a lang:SignSystem .
+ex:latin a lang:Script .
+ex:turtleGrammar a lang:Grammar .
+
+ex:producedForm a lang:UnanalyzedProse ; lang:inSignSystem ex:turtle ;
+    lang:surfaceText "ex:cat a ex:Animal ." ; lang:inScript ex:latin ;
+    lang:unicodeNormalization "NFC" ; lang:collationLocale "en" ;
+    lang:analysisLevel lang:rawLevel .
+
+ex:renderNoContent a lang:Rendering ;
+    lang:renderingForm ex:producedForm ;
+    lang:renderingKind lang:renderingSerialization ;
+    lang:renderingConvention ex:turtleGrammar ;
+    lang:renderingPreservation logic:ExactPreservation .

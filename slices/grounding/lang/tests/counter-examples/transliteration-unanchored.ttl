@@ -1,0 +1,23 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Counter-example (ONE violation): a lang:TransliterationMap that declares no
+# lang:transliterationScheme (sh:minCount 1 on lang:TransliterationAnchorShape) →
+# lang:UnanchoredTransliteration. A transliteration with no named scheme maps nothing
+# reconstructible — the scheme is what fixes the letter-for-letter convention. Both
+# orthographies are declared, so ONLY the MinCount finding for the missing scheme fires.
+
+@prefix lang:  <https://blackcatinformatics.ca/lang/> .
+@prefix ex:    <http://example.org/lang/> .
+
+ex:russian a lang:SignSystem .
+ex:cyrillic a lang:Script .
+ex:latin a lang:Script .
+
+ex:srcOrth a lang:Orthography ;
+    lang:orthographyFor ex:russian ; lang:usesScript ex:cyrillic .
+ex:tgtOrth a lang:Orthography ;
+    lang:orthographyFor ex:russian ; lang:usesScript ex:latin .
+
+ex:mapNoScheme a lang:TransliterationMap ;
+    lang:transliterationSourceOrthography ex:srcOrth ;
+    lang:transliterationTargetOrthography ex:tgtOrth .

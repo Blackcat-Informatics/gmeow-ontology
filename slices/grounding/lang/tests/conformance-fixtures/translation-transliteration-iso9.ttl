@@ -1,0 +1,48 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Round-trippable transliteration: a lang:TransliterationMap grafting the ISO 9 scheme maps
+# Russian written in Cyrillic to Russian written in the Latin orthography. ISO 9 is a
+# bijective, fully reversible letter-for-letter scheme, so its application — held as a
+# lang:Rendering of kind lang:renderingTransliteration whose lang:renderingConvention is the
+# map — carries logic:ExactPreservation honestly (the Cyrillic source is recoverable from
+# the Latin form with no loss). Both orthographies name the one Russian sign system; the map
+# crosses orthographies, never form identity.
+# Conforms to lang:TransliterationAnchorShape (source/target orthography + scheme) and
+# lang:RenderingRecordShape / lang:RenderingNotIdentityShape.
+
+@prefix lang:  <https://blackcatinformatics.ca/lang/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <http://example.org/lang/> .
+
+ex:russian a lang:SignSystem .
+ex:cyrillic a lang:Script .
+ex:latin a lang:Script .
+
+ex:russianCyrillic a lang:Orthography ;
+    lang:orthographyFor ex:russian ; lang:usesScript ex:cyrillic .
+ex:russianLatinISO9 a lang:Orthography ;
+    lang:orthographyFor ex:russian ; lang:usesScript ex:latin .
+
+ex:schemeISO9 a gmeow:TransliterationScheme .
+
+ex:mapISO9 a lang:TransliterationMap ;
+    lang:transliterationSourceOrthography ex:russianCyrillic ;
+    lang:transliterationTargetOrthography ex:russianLatinISO9 ;
+    lang:transliterationScheme ex:schemeISO9 .
+
+# ── The round-trippable application, held as a rendering of the map ──
+ex:nameCyrillic a lang:UnanalyzedProse ; lang:inSignSystem ex:russian ;
+    lang:surfaceText "Толстой" ; lang:inScript ex:cyrillic ;
+    lang:unicodeNormalization "NFC" ; lang:collationLocale "ru" ;
+    lang:analysisLevel lang:rawLevel .
+ex:nameLatin a lang:UnanalyzedProse ; lang:inSignSystem ex:russian ;
+    lang:surfaceText "Tolstoj" ; lang:inScript ex:latin ;
+    lang:unicodeNormalization "NFC" ; lang:collationLocale "ru" ;
+    lang:analysisLevel lang:rawLevel .
+ex:renderISO9 a lang:Rendering ;
+    lang:renderedContent ex:nameCyrillic ;
+    lang:renderingForm ex:nameLatin ;
+    lang:renderingKind lang:renderingTransliteration ;
+    lang:renderingConvention ex:mapISO9 ;
+    lang:renderingPreservation logic:ExactPreservation .
