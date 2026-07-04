@@ -1,0 +1,16 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:PreservationLawShape: a math:GroupHomomorphism whose
+# math:preservationLaw is given as an opaque string literal instead of a resource
+# denoting a logic: formula (sh:nodeKind sh:BlankNodeOrIRI), so validation MUST emit
+# shacl.NodeKindConstraintComponent (and no other finding).
+# Bound by tests/example-conformance.ttl (ex:ecHomomorphismLawString).
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:stringLawHom a math:GroupHomomorphism ;
+    math:preservedOperation ex:op ;
+    math:preservationLaw "phi(a*b) = phi(a)*phi(b)" .
+
+ex:op a math:Operation .
