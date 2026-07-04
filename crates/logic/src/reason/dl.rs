@@ -20,7 +20,7 @@
 
 use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 
-use crate::encode::skolem_iri;
+use crate::facts::skolem_iri;
 use crate::reason::el::EL_RULES;
 use crate::reason::InferredAxiom;
 use purrdf::{RdfDataset, RdfLiteral, RdfLoss, RdfQuad, RdfTerm};
@@ -663,7 +663,7 @@ fn has_fact(
 /// ordinals yield distinct IRIs, giving the `n` distinct fillers a `≥n`
 /// obligation needs.
 ///
-/// We reuse the project Skolem namespace ([`crate::encode::SKOLEM_PREFIX`]) so the
+/// We reuse the project Skolem namespace ([`crate::facts::SKOLEM_PREFIX`]) so the
 /// witness is indistinguishable from a Skolemized blank node downstream.
 fn witness_iri(world: &str, property: &str, filler_class: &str, ordinal: usize) -> String {
     let key = format!("dl-exists\u{1f}{world}\u{1f}{property}\u{1f}{filler_class}\u{1f}{ordinal}");
@@ -2765,7 +2765,7 @@ mod tests {
             verdict
                 .inconsistencies
                 .iter()
-                .any(|w| w.individual.starts_with(crate::encode::SKOLEM_PREFIX)),
+                .any(|w| w.individual.starts_with(crate::facts::SKOLEM_PREFIX)),
             "the inconsistency witness must be the invented Skolem filler: {:?}",
             verdict.inconsistencies
         );

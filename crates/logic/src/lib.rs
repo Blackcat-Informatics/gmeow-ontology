@@ -21,7 +21,6 @@ pub mod dag_profile;
 pub(crate) mod dense;
 pub mod derivation_graph;
 pub mod dispatch;
-pub mod encode;
 pub mod entrenchment;
 pub mod explain;
 // The typed-fact bridge: dictionary-interned facts (TermInterner / TypedFactSet)
@@ -91,7 +90,7 @@ pub mod py;
 pub use py::register;
 
 // Nemo reasoner bridge.
-pub mod nemo_engine;
+pub(crate) mod nemo_engine;
 
 // Static profile / decidability certifier.
 pub mod certify;
