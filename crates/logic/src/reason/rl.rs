@@ -25,8 +25,8 @@
 //! so the closure is computed RDF-1.2-first (world-scoped, per-graph), never
 //! flattened to a world-less RDF-1.0 representation.
 //!
-//! The chase machinery is the shared typed [`crate::nemo_engine::run_chase_typed`]
-//! adapter — the same one [`crate::reason::el`]/[`crate::reason::dl`] and
+//! The chase machinery is the shared forward oracle (`crate::oracle::ForwardOracle`)
+//! — the same one [`crate::reason::el`]/[`crate::reason::dl`] and
 //! `gmeow_logic.materialize` drive. Only the encoding and the (fixed,
 //! ontology-independent) RL rule set differ; the 4-ary `triple` facts here are
 //! the live exercise of the typed bridge's n-ary capability.
@@ -72,7 +72,7 @@
 use std::collections::HashMap;
 
 use crate::facts::{skolem_iri, TypedFactSet, SKOLEM_PREFIX};
-use crate::nemo_engine::run_chase_typed;
+use crate::oracle::{forward_oracle, ForwardBudget, ForwardOracle};
 use purrdf::{RdfDataset, RdfTerm, TermValue};
 
 /// IRI scheme prefix for an interned-literal surrogate (see [`encode_generic_edb`]).
@@ -536,8 +536,8 @@ fn rl_iri(term: &TermValue, position: &str) -> Result<String, String> {
 
 /// Compute the OWL 2 RL/RDF deductive closure of `edb` via the Nemo chase.
 ///
-/// Loads `edb` into the typed generic-triple encoding, runs the typed
-/// [`run_chase_typed`] adapter once over [`RL_RULES`], and coerces every
+/// Loads `edb` into the typed generic-triple encoding, runs the forward oracle
+/// (`forward_oracle`) once over [`RL_RULES`], and coerces every
 /// `triple/4` typed row back into an [`RlTriple`] (asserted + derived). The
 /// closure is world-scoped: derived triples carry the world IRI of the facts
 /// they were derived from.
@@ -553,7 +553,7 @@ pub fn rl_closure(edb: &RdfDataset) -> Result<RlClosure, String> {
     if edb_facts.is_empty() {
         return Ok(RlClosure { triples: vec![] });
     }
-    let chase = run_chase_typed(&edb_facts, RL_RULES)?;
+    let chase = forward_oracle().materialize(&edb_facts, RL_RULES, &ForwardBudget::UNBOUNDED)?;
 
     let mut triples: Vec<RlTriple> = Vec::new();
     for (row, prov) in &chase.rows {

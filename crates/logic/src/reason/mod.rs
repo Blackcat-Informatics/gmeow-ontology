@@ -30,7 +30,8 @@ pub use ledger::{
 pub use rl::{rl_closure, RlClosure, RlTriple};
 
 use crate::facts::TypedFactSet;
-use crate::nemo_engine::{run_chase_typed, TypedRow};
+use crate::nemo_engine::TypedRow;
+use crate::oracle::{forward_oracle, ForwardBudget, ForwardOracle};
 use crate::result::{ReasoningResult, ResultProvenance};
 use crate::store::WorldStore;
 use purrdf::{RdfDataset, RdfDatasetBuilder, TermValue};
@@ -307,8 +308,9 @@ pub(crate) fn run_reasoning(edb: &RdfDataset, rules: &str) -> Result<Vec<Inferre
         }
     }
 
-    // 3. Run the typed chase (the adapter renders the fact lines internally).
-    let chase = run_chase_typed(&edb_facts, rules)?;
+    // 3. Run the typed chase through the forward oracle (the adapter renders the
+    //    fact lines internally).
+    let chase = forward_oracle().materialize(&edb_facts, rules, &ForwardBudget::UNBOUNDED)?;
 
     // 4. Coerce each ternary typed row into an InferredAxiom.
     let mut inferred: Vec<InferredAxiom> = Vec::new();
