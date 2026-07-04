@@ -1029,8 +1029,15 @@ fn check_math_dimension_invariants(ds: &RdfDataset, report: &mut LintReport) {
     for expr in ds_subjects_of_type(ds, &math_iri("DimensionalExpression")) {
         let operands = ds_object_iris_sorted(ds, &expr, &math_iri("homogeneousOperand"));
         let mut seen: Vec<(DimVector, String)> = Vec::new();
+        let mut undimensioned: Vec<String> = Vec::new();
         for operand in operands {
             let Some(dim_iri) = node_dimension_iri(ds, &operand) else {
+                // No math:hasDimension at all: an undimensioned operand cannot be shown
+                // homogeneous with a dimensioned one. Do not fail open — collect it.
+                // (A malformed dimension — hasDimension present but structurally broken —
+                // is reported by the zero-denominator scan / SHACL, so `dimension_vector`
+                // returning None below is a deliberate skip, not a fail-open.)
+                undimensioned.push(operand);
                 continue;
             };
             let Some(vec) = dimension_vector(ds, &dim_iri) else {
@@ -1039,6 +1046,14 @@ fn check_math_dimension_invariants(ds: &RdfDataset, report: &mut LintReport) {
             if !seen.iter().any(|(v, _)| *v == vec) {
                 seen.push((vec, dim_iri));
             }
+        }
+        if !undimensioned.is_empty() {
+            report.errors.push(format!(
+                "math:DimensionalInhomogeneity: dimensional expression {expr} combines \
+                 undimensioned operand(s) [{}] — every math:homogeneousOperand must carry a \
+                 math:hasDimension to be shown homogeneous",
+                undimensioned.join(", ")
+            ));
         }
         if seen.len() >= 2 {
             let mut dims: Vec<String> = seen.into_iter().map(|(_, d)| d).collect();
@@ -1063,12 +1078,21 @@ fn check_math_dimension_invariants(ds: &RdfDataset, report: &mut LintReport) {
             .into_iter()
             .next();
         let (Some(integrand), Some(measure)) = (integrand, measure) else {
+            // Missing integrand/measure is math:IncompleteIntegral (SHACL IntegralShape).
             continue;
         };
         let (Some(idim), Some(mdim)) = (
             node_dimension_iri(ds, &integrand),
             node_dimension_iri(ds, &measure),
         ) else {
+            // The integral declares a result dimension but its integrand or measure carries
+            // none, so the composition cannot be checked. Do not fail open — an integral
+            // engaged in dimensional bookkeeping must dimension the parts it composes.
+            report.errors.push(format!(
+                "math:DimensionalInhomogeneity: integral {integral} declares result dimension \
+                 {result_dim} but its integrand ({integrand}) or measure ({measure}) carries no \
+                 math:hasDimension, so the composition cannot be verified"
+            ));
             continue;
         };
         let (Some(rv), Some(iv), Some(mv)) = (
@@ -1996,6 +2020,49 @@ mod tests {
                 .iter()
                 .any(|e| e.contains("math:MalformedDimension")),
             "a non-zero denominator must not raise math:MalformedDimension; errors: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn undimensioned_operand_is_flagged() {
+        // An operand carrying no math:hasDimension must not let the expression fail open:
+        // mixing a dimensioned operand with an undimensioned one is not homogeneous.
+        let ds = dataset_from(&format!(
+            "{MATH_PREFIXES}{TIME_QUANTITIES}\
+             ex:mystery a math:Quantity .\n\
+             ex:bad a math:DimensionalExpression ;\n\
+               math:homogeneousOperand ex:t1 , ex:mystery .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            has_inhomogeneity(&report)
+                && report
+                    .errors
+                    .iter()
+                    .any(|e| e.contains("undimensioned operand")),
+            "an undimensioned operand must raise math:DimensionalInhomogeneity; errors: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn integral_with_undimensioned_part_is_flagged() {
+        // The integral declares a result dimension but its measure carries none — the
+        // composition cannot be verified, so it must not fail open.
+        let ds = dataset_from(&format!(
+            "{MATH_PREFIXES}{ENERGY_INTEGRAL}\
+             ex:vol2 a math:Measure .\n\
+             ex:energy a math:Integral ;\n\
+               math:integrand ex:density ;\n\
+               math:withRespectTo ex:vol2 ;\n\
+               math:hasDimension ex:energyDim .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            has_inhomogeneity(&report) && report.errors.iter().any(|e| e.contains("carries no")),
+            "an integral with an undimensioned measure must raise math:DimensionalInhomogeneity; \
+             errors: {:?}",
             report.errors
         );
     }
