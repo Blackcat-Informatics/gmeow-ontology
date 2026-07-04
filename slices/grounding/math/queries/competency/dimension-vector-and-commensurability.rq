@@ -14,5 +14,6 @@ SELECT ?quantity ?dimension ?commensurate WHERE {
                   math:hasDimension ?dimension .
     FILTER(?quantity != ?commensurate)
     FILTER(STRSTARTS(STR(?quantity), "http://example.org/math/"))
+    FILTER(STRSTARTS(STR(?commensurate), "http://example.org/math/"))
 }
 ORDER BY ?quantity ?commensurate
