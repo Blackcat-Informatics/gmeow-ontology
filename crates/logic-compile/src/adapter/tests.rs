@@ -368,6 +368,68 @@ fn roundtrip_owl_qualified_cardinality_equals_logic() {
     );
 }
 
+#[test]
+fn nested_class_expression_filler_is_disclosed_not_lifted() {
+    // someValuesFrom of an anonymous class expression (a nested union) has no stable
+    // filler identity: the restriction must be DISCLOSED (surfaced), never lifted with a
+    // non-deterministic blank label.
+    let (prog, diags) = adapt(
+        "ex:Weird rdfs:subClassOf [ a owl:Restriction ;
+            owl:onProperty ex:rel ;
+            owl:someValuesFrom [ a owl:Class ; owl:unionOf ( ex:A ex:B ) ] ] .",
+    );
+    assert!(
+        diags
+            .iter()
+            .any(|d| d.code == "UNSUPPORTED_NESTED_RESTRICTION"),
+        "a nested-filler restriction must be disclosed: {diags:?}"
+    );
+    assert!(
+        !prog
+            .axioms
+            .iter()
+            .any(|a| a.predicate == logic("someValuesFrom")),
+        "no blank-labelled filler may leak into the IR"
+    );
+}
+
+// ── OWL enumerations (owl:oneOf) ─────────────────────────────────────────────
+
+#[test]
+fn roundtrip_owl_oneof_enumeration_equals_logic() {
+    // An anonymous owl:oneOf enumeration and its logic: twin normalize to the same
+    // content-addressed logic:enumeration node with individual logic:oneOf axioms.
+    let prog_logic = logic_prog(
+        "ex:Season logic:equivalentClass [ a logic:Enumeration ;
+            logic:oneOf ( ex:Spring ex:Summer ex:Autumn ex:Winter ) ] .",
+    );
+    let prog_owl = adapt(
+        "ex:Season owl:equivalentClass [ a owl:Class ;
+            owl:oneOf ( ex:Spring ex:Summer ex:Autumn ex:Winter ) ] .",
+    )
+    .0;
+    let e = prog_owl
+        .axioms
+        .iter()
+        .find(|a| a.predicate == logic("equivalentClass") && a.subject.ends_with("/Season"))
+        .map(|a| a.obj.clone())
+        .expect("equivalentClass → enumeration anchor");
+    assert!(
+        e.starts_with(&logic("enumeration/")),
+        "anchor must be a deterministic skolem enumeration IRI, got {e}"
+    );
+    assert_eq!(
+        prog_owl
+            .axioms
+            .iter()
+            .filter(|a| a.subject == e && a.predicate == logic("oneOf"))
+            .count(),
+        4,
+        "four members lift as individual oneOf axioms"
+    );
+    assert!(assert_ir_isomorphic(&prog_logic, &prog_owl).is_ok());
+}
+
 // ── IR isomorphism gate ──────────────────────────────────────────────────────
 
 #[test]

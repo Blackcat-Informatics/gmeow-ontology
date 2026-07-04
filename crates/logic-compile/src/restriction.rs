@@ -29,7 +29,7 @@ use purrdf::RdfDataset;
 use crate::frontend::{Diagnostic, Severity};
 use crate::graphutil::{
     default_graph_quads, objects, sha256_12, subject_str, subjects_with, term_is_literal, term_str,
-    Node, Subject,
+    value, Node, Subject,
 };
 use crate::ir::LOGIC_NAMESPACE;
 
@@ -45,6 +45,14 @@ const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 pub(crate) const RESTRICTION_CLASS_LOCAL: &str = "Restriction";
 /// The `logic:` local name of the property slot (`_:r logic:onProperty P`).
 pub(crate) const ON_PROPERTY_LOCAL: &str = "onProperty";
+/// The `logic:` local name of the enumeration class (`_:e rdf:type logic:Enumeration`).
+pub(crate) const ENUMERATION_CLASS_LOCAL: &str = "Enumeration";
+/// The `logic:` local name of the enumeration membership predicate (`_:e logic:oneOf m`).
+pub(crate) const ONE_OF_LOCAL: &str = "oneOf";
+
+const RDF_FIRST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#first";
+const RDF_REST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest";
+const RDF_NIL: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil";
 
 /// The single-valued restriction *constraint* predicates handled by the lift, as
 /// local names (shared verbatim by the `owl:` and `logic:` namespaces).  A restriction
@@ -142,6 +150,11 @@ struct Constraint {
     value: String,
     /// Whether `value` is a literal (`owl:hasValue` of a data value).
     is_literal: bool,
+    /// Whether the filler is itself an anonymous node (a nested class / datatype
+    /// expression, e.g. `someValuesFrom [ owl:unionOf … ]` or a `withRestrictions`
+    /// datarange).  Such fillers have no stable identity here and take the restriction
+    /// to the fail-soft disclosure path — the documented anonymous-nested boundary.
+    is_blank: bool,
 }
 
 /// The mint key contribution of a constraint: `<local>=<value>[|lit]`.  Sorting these
@@ -222,6 +235,7 @@ fn collect_constraints(
                 local: (*local).to_owned(),
                 value: term_str(&obj),
                 is_literal: term_is_literal(&obj),
+                is_blank: crate::graphutil::term_is_blank(&obj),
             });
         }
     }
@@ -266,6 +280,21 @@ pub(crate) fn skolemize_restrictions(
                 format!(
                     "restriction node {node_label:?} on {on_property:?} has no recognized \
                      value/cardinality constraint; skipped"
+                ),
+                Some(node_label),
+            ));
+            continue;
+        }
+        // A filler that is itself an anonymous class / datatype expression has no stable
+        // identity to lift — disclose and skip the whole restriction (the documented
+        // anonymous-nested-filler boundary; nested class expressions are the covering /
+        // datarange machinery's concern, not the property-restriction lift).
+        if constraints.iter().any(|c| c.is_blank) {
+            diagnostics.push(warn(
+                "UNSUPPORTED_NESTED_RESTRICTION",
+                format!(
+                    "restriction node {node_label:?} on {on_property:?} has an anonymous \
+                     class/datatype filler (nested class expression); not lifted"
                 ),
                 Some(node_label),
             ));
@@ -321,6 +350,173 @@ pub(crate) fn skolemize_restrictions(
     out
 }
 
+// --------------------------------------------------------------------------- //
+// Class enumerations (owl:oneOf)
+// --------------------------------------------------------------------------- //
+
+/// Walk an `rdf:first`/`rdf:rest`/`rdf:nil` list from `head`, returning its members in
+/// order.  A malformed / cyclic list terminates at the first missing `rdf:rest` or on
+/// revisiting a node (the visited guard keeps a corrupt input from looping).
+fn rdf_list(store: &RdfDataset, head: &Node) -> Vec<Node> {
+    let first = crate::graphutil::nn(RDF_FIRST);
+    let rest = crate::graphutil::nn(RDF_REST);
+    let mut out: Vec<Node> = Vec::new();
+    let mut seen: BTreeSet<String> = BTreeSet::new();
+    let mut cursor = head.clone();
+    while let Some(node) = crate::graphutil::term_as_subject(&cursor) {
+        if subject_str(&node) == RDF_NIL || !seen.insert(subject_str(&node)) {
+            break;
+        }
+        if let Some(item) = value(store, &node, &first) {
+            out.push(item);
+        }
+        match value(store, &node, &rest) {
+            Some(next) => cursor = next,
+            None => break,
+        }
+    }
+    out
+}
+
+/// Every ANONYMOUS class enumeration under `vocab`: a blank subject carrying
+/// `<ns>oneOf` (the `[ owl:oneOf ( … ) ]` form anchored via `equivalentClass` /
+/// `subClassOf`).  Scoped to blank nodes because such a node holds ONLY enumeration
+/// internals, so the generic extractors can skip it wholesale (as they do restriction
+/// nodes) without dropping unrelated axioms.  A NAMED class carrying `oneOf` may also
+/// carry ordinary domain axioms, so it stays on the fail-soft disclosure path — the
+/// same anonymous-vs-named boundary the nested-filler case draws.
+fn enumeration_nodes(store: &RdfDataset, vocab: &RestrictionVocab) -> Vec<Subject> {
+    let one_of = vocab.iri(ONE_OF_LOCAL);
+    let mut seen: BTreeSet<String> = BTreeSet::new();
+    let mut out: Vec<Subject> = Vec::new();
+    for q in default_graph_quads(store) {
+        if q.predicate.as_str() == one_of
+            && matches!(q.subject, Subject::Blank { .. })
+            && seen.insert(subject_str(&q.subject))
+        {
+            out.push(q.subject.clone());
+        }
+    }
+    out
+}
+
+/// The set of enumeration-node labels (for the generic extractors' skip filter).
+pub(crate) fn enumeration_node_labels(
+    store: &RdfDataset,
+    vocab: &RestrictionVocab,
+) -> BTreeSet<String> {
+    enumeration_nodes(store, vocab)
+        .iter()
+        .map(subject_str)
+        .collect()
+}
+
+/// Lift every `owl:oneOf` class enumeration under `vocab` into flat `logic:oneOf`
+/// axioms on a stable node — a named class keeps its own IRI; an anonymous enumeration
+/// is content-addressed as `logic:enumeration/<hash>` (members sorted + deduped, so the
+/// id is order-independent and owl:/logic: authoring collide).  Members are emitted as
+/// individual `logic:oneOf` axioms (no RDF-list reification in the IR).
+///
+/// Enumerations are a CLOSED-world construct the `logic:` layer treats as a projection
+/// artifact (gmeow's own slices never author them — that policy is enforced elsewhere);
+/// the adapter lifts them only so external OWL round-trips faithfully.
+pub(crate) fn skolemize_enumerations(
+    store: &RdfDataset,
+    vocab: &RestrictionVocab,
+    diagnostics: &mut Vec<Diagnostic>,
+) -> Vec<LiftedTriple> {
+    let one_of_pred = crate::graphutil::nn(&vocab.iri(ONE_OF_LOCAL));
+    let sub_class_of_pred = crate::graphutil::nn(&vocab.sub_class_of);
+    let equivalent_class_pred = crate::graphutil::nn(&vocab.equivalent_class);
+    let mut out: Vec<LiftedTriple> = Vec::new();
+
+    for node in enumeration_nodes(store, vocab) {
+        let node_label = subject_str(&node);
+        let Some(list_head) = value(store, &node, &one_of_pred) else {
+            continue;
+        };
+        let members = rdf_list(store, &list_head);
+        if members.is_empty() {
+            diagnostics.push(warn(
+                "MALFORMED_ENUMERATION",
+                format!("enumeration {node_label:?} has an empty oneOf list; skipped"),
+                Some(node_label),
+            ));
+            continue;
+        }
+        // Anonymous members have no stable identity — disclose and skip (a oneOf of
+        // blank nodes is not a well-formed nominal enumeration).
+        if members.iter().any(crate::graphutil::term_is_blank) {
+            diagnostics.push(warn(
+                "UNSUPPORTED_NESTED_ENUMERATION",
+                format!("enumeration {node_label:?} has an anonymous member; not lifted"),
+                Some(node_label),
+            ));
+            continue;
+        }
+        // (value, is_literal) members, sorted + deduped for a stable content key.
+        let mut mem: Vec<(String, bool)> = members
+            .iter()
+            .map(|m| (term_str(m), term_is_literal(m)))
+            .collect();
+        mem.sort();
+        mem.dedup();
+
+        // Content-address the anonymous enumeration (members only → order-independent,
+        // and owl:/logic: authoring collide on the same node).
+        let enum_node = format!(
+            "{LOGIC_NAMESPACE}enumeration/{}",
+            sha256_12(&enumeration_content_key(&mem))
+        );
+
+        out.push(LiftedTriple {
+            subject: enum_node.clone(),
+            predicate: RDF_TYPE.to_owned(),
+            obj: logic(ENUMERATION_CLASS_LOCAL),
+            obj_is_literal: false,
+        });
+        for (member, is_literal) in &mem {
+            out.push(LiftedTriple {
+                subject: enum_node.clone(),
+                predicate: logic(ONE_OF_LOCAL),
+                obj: member.clone(),
+                obj_is_literal: *is_literal,
+            });
+        }
+
+        // Redirect the enumeration's anchor edges to the skolem node.
+        let node_term = subject_as_object(&node);
+        for anchor in subjects_with(store, &sub_class_of_pred, &node_term) {
+            out.push(LiftedTriple {
+                subject: subject_str(&anchor),
+                predicate: logic("subClassOf"),
+                obj: enum_node.clone(),
+                obj_is_literal: false,
+            });
+        }
+        for anchor in subjects_with(store, &equivalent_class_pred, &node_term) {
+            out.push(LiftedTriple {
+                subject: subject_str(&anchor),
+                predicate: logic("equivalentClass"),
+                obj: enum_node.clone(),
+                obj_is_literal: false,
+            });
+        }
+    }
+
+    out
+}
+
+/// The frozen enumeration content key — `oneOf=<m1>[|lit],<m2>[|lit],…` over the sorted,
+/// deduped member list.  Do NOT reorder: it pins the anonymous-enumeration skolem IRI.
+fn enumeration_content_key(members: &[(String, bool)]) -> String {
+    let parts: Vec<String> = members
+        .iter()
+        .map(|(m, lit)| if *lit { format!("{m}|lit") } else { m.clone() })
+        .collect();
+    format!("oneOf={}", parts.join(","))
+}
+
 /// View a subject node as an object [`Node`] for a `subjects_with(pred, object)` query.
 fn subject_as_object(s: &Subject) -> Node {
     match s {
@@ -350,6 +546,7 @@ mod tests {
             local: local.to_owned(),
             value: value.to_owned(),
             is_literal,
+            is_blank: false,
         }
     }
 

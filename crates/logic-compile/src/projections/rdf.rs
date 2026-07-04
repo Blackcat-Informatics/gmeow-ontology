@@ -340,6 +340,41 @@ fn emit_restriction(g: &mut TripleSink, node: &str, r: &LiftedRestriction) {
     }
 }
 
+/// Collect every lifted anonymous enumeration (`logic:enumeration/<hash>` typed
+/// `logic:Enumeration`, carrying `logic:oneOf` members), keyed by skolem node IRI.  The
+/// `(member, is_literal)` pairs are gathered in sorted-and-deduped axiom order (the IR
+/// stored them sorted), giving a deterministic `owl:oneOf` list.
+fn collect_lifted_enumerations(program: &LogicProgram) -> BTreeMap<String, Vec<(String, bool)>> {
+    let enumeration_ty = logic(restriction::ENUMERATION_CLASS_LOCAL);
+    let one_of = logic(restriction::ONE_OF_LOCAL);
+    let mut out: BTreeMap<String, Vec<(String, bool)>> = BTreeMap::new();
+    for axiom in &program.axioms {
+        let pred = axiom.predicate.as_str();
+        if pred == RDF_TYPE && axiom.obj == enumeration_ty {
+            out.entry(axiom.subject.clone()).or_default();
+        } else if pred == one_of {
+            out.entry(axiom.subject.clone())
+                .or_default()
+                .push((axiom.obj.clone(), axiom.obj_is_literal));
+        }
+    }
+    out
+}
+
+/// Emit the `owl:oneOf` enumeration graph for one lifted enumeration (OWL 2 DL): the
+/// skolem node typed `owl:Class` with an `owl:oneOf` `rdf:List` of the members (minted
+/// as deterministic list-cell IRIs, never blank nodes).  Literal members are not valid
+/// OWL individuals, so an enumeration is emitted only when all members are IRIs.
+fn emit_enumeration(g: &mut TripleSink, node: &str, members: &[(String, bool)]) {
+    if members.is_empty() || members.iter().any(|(_, is_lit)| *is_lit) {
+        return;
+    }
+    let iris: Vec<String> = members.iter().map(|(m, _)| m.clone()).collect();
+    let list_head = emit_class_list(g, node, &iris);
+    g.add_iri(node, RDF_TYPE, &owl("Class"));
+    g.add_iri(node, &owl(restriction::ONE_OF_LOCAL), &list_head);
+}
+
 // --------------------------------------------------------------------------- //
 // OWL 2 DL
 // --------------------------------------------------------------------------- //
@@ -364,18 +399,23 @@ pub fn project_owl_dl(program: &LogicProgram) -> Result<ProjectionResult, Overcl
         emit_holon_surface(&mut g);
     }
 
-    // Re-emit class-expression restrictions as owl:Restriction graphs (DL expresses
-    // every restriction family), and skip their flat internals in the axiom loop.
+    // Re-emit class-expression restrictions as owl:Restriction graphs and anonymous
+    // enumerations as owl:oneOf graphs (DL expresses both), and skip their flat
+    // internals in the axiom loop.
     let restrictions = collect_lifted_restrictions(program);
     for (node, r) in &restrictions {
         emit_restriction(&mut g, node, r);
+    }
+    let enumerations = collect_lifted_enumerations(program);
+    for (node, members) in &enumerations {
+        emit_enumeration(&mut g, node, members);
     }
 
     for axiom in &program.axioms {
         let pred = &axiom.predicate;
         let obj = &axiom.obj;
-        // Restriction internals (type / onProperty / constraints) are emitted above.
-        if restrictions.contains_key(&axiom.subject) {
+        // Restriction / enumeration internals are emitted above.
+        if restrictions.contains_key(&axiom.subject) || enumerations.contains_key(&axiom.subject) {
             continue;
         }
         if pred == RDF_TYPE {
@@ -489,7 +529,7 @@ pub fn project_owl_el(program: &LogicProgram) -> Result<ProjectionResult, Overcl
     // the EL surface never carries a dangling reference.  EL is SoundUnder, so dropping
     // needs no enum change, only an `actual_drops` note.
     let restrictions = collect_lifted_restrictions(program);
-    let mut dropped_restrictions: HashSet<String> = HashSet::new();
+    let mut dropped_class_exprs: HashSet<String> = HashSet::new();
     for (node, r) in &restrictions {
         let well_formed = r.on_property.is_some() && !r.constraints.is_empty();
         let el_safe = well_formed
@@ -499,7 +539,7 @@ pub fn project_owl_el(program: &LogicProgram) -> Result<ProjectionResult, Overcl
         if el_safe {
             emit_restriction(&mut g, node, r);
         } else {
-            dropped_restrictions.insert(node.clone());
+            dropped_class_exprs.insert(node.clone());
             if well_formed {
                 let kinds = r
                     .constraints
@@ -513,17 +553,26 @@ pub fn project_owl_el(program: &LogicProgram) -> Result<ProjectionResult, Overcl
             }
         }
     }
+    // Enumerations are nominals (owl:oneOf) — not OWL 2 EL. Every anonymous enumeration
+    // drops whole, along with the subClassOf/equivalentClass edges into it.
+    let enumerations = collect_lifted_enumerations(program);
+    for node in enumerations.keys() {
+        dropped_class_exprs.insert(node.clone());
+        actual_drops.push(format!(
+            "owl:oneOf enumeration <{node}> is not OWL 2 EL-safe (nominals); dropped"
+        ));
+    }
 
     for axiom in &program.axioms {
         let pred = &axiom.predicate;
         let obj = &axiom.obj;
-        // Restriction internals are emitted (or dropped) above.
-        if restrictions.contains_key(&axiom.subject) {
+        // Restriction / enumeration internals are emitted (or dropped) above.
+        if restrictions.contains_key(&axiom.subject) || enumerations.contains_key(&axiom.subject) {
             continue;
         }
-        // A subClassOf / equivalentClass edge into a dropped restriction node must not
+        // A subClassOf / equivalentClass edge into a dropped class expression must not
         // dangle in EL.
-        if dropped_restrictions.contains(obj)
+        if dropped_class_exprs.contains(obj)
             && matches!(
                 pred.strip_prefix(LOGIC_NS),
                 Some("subClassOf" | "equivalentClass")
