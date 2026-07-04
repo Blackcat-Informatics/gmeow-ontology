@@ -1521,6 +1521,13 @@ lang:anchorKind
     skos:definition "Names the kind of deixis an indexical anchor resolves. Domain lang:IndexicalAnchor, range lang:IndexicalAnchorKind (stated in prose)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+lang:isIndexical
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "is indexical"@x-gmeow-english ;
+    skos:definition "Whether a denotation is indexical — its referent varies with a lang:IndexicalAnchor. Domain lang:Denotation, range xsd:boolean (stated in prose). An indexical denotation (this is true) denotes only relative to an anchor on its interpretation act; an indexical denotation whose act names no anchor is ill-formed. Declared, like the analysis level, rather than inferred."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 lang:introducesReferent
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
