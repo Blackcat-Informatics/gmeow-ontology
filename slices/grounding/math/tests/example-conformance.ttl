@@ -145,3 +145,11 @@ ex:ecLieMissingRootSystem a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
     gmeow:conformanceRationale "The counter-example omits math:hasRootSystem on a math:LieGroup (sh:minCount 1 on math:LieStructureShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:IncompleteLieStructure)." .
+
+# === Rule 13: a homomorphic-encryption scheme declares op + hardness + noise = #
+
+ex:ecHeMissingNoiseModel a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/he-scheme-missing-noise-model.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example omits math:noiseModel on a math:HomomorphicEncryptionScheme (sh:minCount 1 on math:HomomorphicEncryptionSchemeShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UnderspecifiedEncryptionScheme). It declares math:preservedOperation, math:homomorphicOver, math:preservationLaw, and math:securityAssumption so the homomorphism and hardness gates are satisfied, isolating the noise-model violation." .

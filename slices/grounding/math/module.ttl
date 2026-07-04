@@ -1137,3 +1137,102 @@ math:IncompleteLieStructure
     rdfs:label "Incomplete Lie Structure"@x-gmeow-english ;
     skos:definition "The failure raised when a math:LieGroup does not declare its math:hasRootSystem, or a math:RootSystem does not declare its math:cartanMatrix, math:weylGroup, and math:rootSystemRank. The root-system data is what makes a Lie structure expressible and its symmetry an automorphism group; a Lie structure asserted without it is ill-formed."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
+
+# =========================================================================== #
+# Algebra — homomorphic encryption (the HE flagship) and secret sharing
+#
+# Homomorphic encryption is a ring homomorphism whose preservation law
+# (Dec(E(a) ⊗ E(b)) = a ⊕ b) is exactly what makes it useful — a logic: formula over
+# the ring/lattice structure. It names the operation it is homomorphic over, its
+# lattice-hardness assumption, and its noise model; encrypt/evaluate/decrypt are
+# activities. The purest exercise of the one-way math: → logic: bridge.
+# =========================================================================== #
+
+math:EncryptionScheme
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Encryption Scheme"@x-gmeow-english ;
+    skos:definition "A scheme mapping plaintexts to ciphertexts under a key, with encrypt and decrypt operations. The parent of math:HomomorphicEncryptionScheme; an ordinary scheme need not preserve any algebraic operation."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:HomomorphicEncryptionScheme
+    a owl:Class ;
+    rdfs:subClassOf math:EncryptionScheme , math:RingHomomorphism ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Homomorphic Encryption Scheme"@x-gmeow-english ;
+    skos:definition "An encryption scheme that is (partially or fully) a math:RingHomomorphism — computation on ciphertexts corresponds to computation on plaintexts. It names the operation it is math:homomorphicOver, its math:securityAssumption (a math:LatticeHardnessAssumption), and its math:noiseModel; its math:preservationLaw is Dec(E(a) ⊗ E(b)) = a ⊕ b as a logic: formula; and its encrypt/evaluate/decrypt steps are gmeow:Activity processes. Both a math:EncryptionScheme and a math:RingHomomorphism — the same map+law object as det and the Weyl action."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:LatticeHardnessAssumption
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Lattice Hardness Assumption"@x-gmeow-english ;
+    skos:definition "A computational-hardness assumption over lattices on which a scheme's security rests — Learning With Errors (LWE) or its ring variant (RLWE). Its instances are math:learningWithErrors and math:ringLearningWithErrors. A homomorphic-encryption scheme names one through math:securityAssumption."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:learningWithErrors
+    a owl:NamedIndividual , math:LatticeHardnessAssumption ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Learning With Errors (LWE)"@x-gmeow-english ;
+    skos:definition "The Learning With Errors problem: recovering a secret from noisy linear equations mod q, conjectured hard even for quantum computers. The hardness assumption of many lattice-based schemes."@x-gmeow-english .
+
+math:ringLearningWithErrors
+    a owl:NamedIndividual , math:LatticeHardnessAssumption ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Ring Learning With Errors (RLWE)"@x-gmeow-english ;
+    skos:definition "The ring variant of Learning With Errors, over a math:PolynomialRing — more efficient and the basis of most practical homomorphic-encryption schemes."@x-gmeow-english .
+
+# --- Homomorphic-encryption properties ------------------------------------- #
+
+math:homomorphicOver
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf math:preservedOperation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "homomorphic over"@x-gmeow-english ;
+    skos:definition "Names the ring operation a homomorphic-encryption scheme carries from plaintext to ciphertext — the operation the homomorphic property holds for. Domain math:HomomorphicEncryptionScheme, range math:Operation (stated in prose). A refinement of math:preservedOperation: being homomorphic over an operation is preserving it."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:securityAssumption
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "security assumption"@x-gmeow-english ;
+    skos:definition "Names the hardness assumption a scheme's security rests on. Domain math:EncryptionScheme, range math:LatticeHardnessAssumption (stated in prose). A homomorphic-encryption scheme without a stated hardness assumption is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:noiseModel
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "noise model"@x-gmeow-english ;
+    skos:definition "Names the noise-growth model of a lattice-based scheme — noise accumulates with each homomorphic operation and must stay below a decryption threshold. Domain math:HomomorphicEncryptionScheme, range a noise-model object (stated in prose). A homomorphic scheme without a noise model is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:encryptOperation
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "encrypt operation"@x-gmeow-english ;
+    skos:definition "Relates an encryption scheme to its encryption process — a gmeow:Activity mapping plaintext to ciphertext. Domain math:EncryptionScheme, range gmeow:Activity (stated in prose). The process, not the result or the claim."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:evaluateOperation
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "evaluate operation"@x-gmeow-english ;
+    skos:definition "Relates a homomorphic-encryption scheme to its homomorphic-evaluation process — a gmeow:Activity computing on ciphertexts. Domain math:HomomorphicEncryptionScheme, range gmeow:Activity (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:decryptOperation
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "decrypt operation"@x-gmeow-english ;
+    skos:definition "Relates an encryption scheme to its decryption process — a gmeow:Activity mapping ciphertext back to plaintext. Domain math:EncryptionScheme, range gmeow:Activity (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# --- Homomorphic-encryption conformance failure ---------------------------- #
+
+math:UnderspecifiedEncryptionScheme
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Underspecified Encryption Scheme"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:HomomorphicEncryptionScheme does not declare the operation it is math:homomorphicOver, its math:securityAssumption, and its math:noiseModel. These are what make the homomorphic claim meaningful and its security stateable; a scheme asserted without them is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .

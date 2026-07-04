@@ -1,0 +1,9 @@
+# Competency question: "What operation does this homomorphism preserve, and what is its
+# kernel?"  Over the fixture the answer is exactly {detHom → matrixMultiplication / sl2}.
+PREFIX math: <https://blackcatinformatics.ca/math/>
+
+SELECT ?hom ?operation ?kernel WHERE {
+    ?hom math:preservedOperation ?operation ;
+         math:kernel ?kernel .
+}
+ORDER BY ?hom

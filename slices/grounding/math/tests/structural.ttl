@@ -187,3 +187,29 @@ ASK {
     math:IncompleteLieStructure rdfs:subClassOf math:MathConformanceFailure .
 }""" ;
     gmeow:saRationale "The Lie hard-rule failure math:IncompleteLieStructure MUST be a subclass of math:MathConformanceFailure, so a violation is a typed, queryable object." .
+
+# --- 14. Homomorphic encryption IS a ring homomorphism (the bridge) (MUST) ---
+ex:saHeIsRingHomomorphism a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    math:HomomorphicEncryptionScheme rdfs:subClassOf math:EncryptionScheme .
+    math:HomomorphicEncryptionScheme rdfs:subClassOf math:RingHomomorphism .
+    math:homomorphicOver rdfs:subPropertyOf math:preservedOperation .
+}""" ;
+    gmeow:saRationale "A homomorphic-encryption scheme MUST be both a math:EncryptionScheme and a math:RingHomomorphism, and math:homomorphicOver MUST refine math:preservedOperation — so HE is the same map+law object as det and the Weyl action, and its homomorphic property is a preserved operation." .
+
+# --- 15. The lattice-hardness assumptions and HE failure exist (MUST) ---
+ex:saHeVocabulary a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    math:learningWithErrors     a math:LatticeHardnessAssumption .
+    math:ringLearningWithErrors a math:LatticeHardnessAssumption .
+    math:UnderspecifiedEncryptionScheme rdfs:subClassOf math:MathConformanceFailure .
+}""" ;
+    gmeow:saRationale "The LWE and RLWE hardness assumptions MUST exist as math:LatticeHardnessAssumption individuals, and the HE hard-rule failure MUST be a typed math:MathConformanceFailure." .

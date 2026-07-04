@@ -196,3 +196,97 @@ ex:rowE8 a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "rootCount" ; gmeow:cellValueLiteral "240" ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "rank" ; gmeow:cellValueLiteral "8" ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "weylOrder" ; gmeow:cellValueLiteral "696729600" ] .
+
+# === Q8 — a structure's operation and axioms =============================== #
+
+ex:cqStructureOperationAxioms a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/structure-operation-axioms.rq" ;
+    gmeow:cqDataFile "tests/fixtures/algebra.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A structure reports the operation and axioms that define it; over the fixture the answer is exactly {exampleGroup → groupOp / assocAxiom}." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqStructOpShape ;
+    gmeow:cqExpectRow ex:rowStructOp .
+
+ex:cqStructOpShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "structure" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "operation" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "axiom" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowStructOp a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "structure" ; gmeow:cellValueIri exf:exampleGroup ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "operation" ; gmeow:cellValueIri exf:groupOp ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "axiom" ; gmeow:cellValueIri exf:assocAxiom ] .
+
+# === Q9 — a homomorphism's preserved operation and kernel ================== #
+
+ex:cqHomomorphismKernel a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/homomorphism-preserved-operation-and-kernel.rq" ;
+    gmeow:cqDataFile "tests/fixtures/algebra.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A homomorphism reports the operation it preserves and its kernel; over the fixture the answer is exactly {detHom → matrixMultiplication / sl2}." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqHomKernelShape ;
+    gmeow:cqExpectRow ex:rowHomKernel .
+
+ex:cqHomKernelShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "hom" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "operation" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "kernel" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowHomKernel a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "hom" ; gmeow:cellValueIri exf:detHom ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "operation" ; gmeow:cellValueIri exf:matrixMultiplication ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kernel" ; gmeow:cellValueIri exf:sl2 ] .
+
+# === Q10 — which ring op / hardness / noise for an HE scheme (flagship 2) === #
+
+ex:cqHeSchemeFrame a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/he-scheme-frame.rq" ;
+    gmeow:cqDataFile "tests/fixtures/algebra.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A homomorphic-encryption scheme reports the operation it is homomorphic over, its hardness assumption, and its noise model; over the fixture the answer is exactly {heScheme → ringMultiplication / RLWE / gaussianNoise}." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqHeFrameShape ;
+    gmeow:cqExpectRow ex:rowHeFrame .
+
+ex:cqHeFrameShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "scheme" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "operation" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "assumption" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "noise" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowHeFrame a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "scheme" ; gmeow:cellValueIri exf:heScheme ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "operation" ; gmeow:cellValueIri exf:ringMultiplication ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "assumption" ; gmeow:cellValueIri math:ringLearningWithErrors ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "noise" ; gmeow:cellValueIri exf:gaussianNoise ] .
+
+# === Q11 — which structures are isomorphic ================================= #
+
+ex:cqIsomorphicStructures a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/isomorphic-structures.rq" ;
+    gmeow:cqDataFile "tests/fixtures/algebra.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "An isomorphism reports the two structures it identifies; over the fixture the answer is exactly {sampleIso → structA / structB}." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqIsoShape ;
+    gmeow:cqExpectRow ex:rowIso .
+
+ex:cqIsoShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "iso" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "a" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "b" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowIso a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "iso" ; gmeow:cellValueIri exf:sampleIso ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "a" ; gmeow:cellValueIri exf:structA ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "b" ; gmeow:cellValueIri exf:structB ] .
