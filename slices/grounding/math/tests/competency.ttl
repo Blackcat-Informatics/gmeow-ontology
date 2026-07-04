@@ -140,3 +140,36 @@ ex:cqConstantsShape a logic:ResultShape ;
 ex:rowPiAnchor a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "constant" ; gmeow:cellValueIri math:pi ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "anchor" ; gmeow:cellValueIri wd:Q167 ] .
+
+# === Q6 — the unification: structure-preserving maps (det, Weyl, HE) ======== #
+
+ex:cqStructurePreservingMaps a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/structure-preserving-maps.rq" ;
+    gmeow:cqDataFile "tests/fixtures/algebra.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "The charter's unification made queryable: det (a group homomorphism), the E8 Weyl action (an automorphism), and a homomorphic-encryption scheme (a ring homomorphism) are the same kind of object — a map naming a preserved operation and a preservation law. Over the fixture the answer is exactly the three maps with their operation and law." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqMapsShape ;
+    gmeow:cqExpectRow ex:rowDetMap , ex:rowHeMap , ex:rowWeylMap .
+
+ex:cqMapsShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "map" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "operation" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "law" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowDetMap a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "map" ; gmeow:cellValueIri exf:detHom ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "operation" ; gmeow:cellValueIri exf:matrixMultiplication ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "law" ; gmeow:cellValueIri exf:detLaw ] .
+
+ex:rowHeMap a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "map" ; gmeow:cellValueIri exf:heScheme ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "operation" ; gmeow:cellValueIri exf:ringMultiplication ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "law" ; gmeow:cellValueIri exf:heLaw ] .
+
+ex:rowWeylMap a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "map" ; gmeow:cellValueIri exf:weylAction ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "operation" ; gmeow:cellValueIri exf:rootReflection ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "law" ; gmeow:cellValueIri exf:weylLaw ] .

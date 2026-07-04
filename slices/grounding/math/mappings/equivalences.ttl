@@ -258,3 +258,85 @@ gmeow:eqMathIdeal a gmeow:TermEquivalence ;
     gmeow:objectLabel "ideal" ;
     gmeow:comment "math:Ideal is an additive subgroup of a ring closed under multiplication by any ring element; wd:Q44649 (ideal, ring theory) is the same concept. Identity, so skos:exactMatch." ;
     gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+# --- Structure-preserving maps → Wikidata (concept identity) --------------- #
+
+gmeow:eqMathMorphism a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:Morphism ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q1948412 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "morphism" ;
+    gmeow:comment "math:Morphism is a structure-preserving map between objects; wd:Q1948412 (morphism) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathHomomorphism a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:Homomorphism ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q215111 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "homomorphism" ;
+    gmeow:comment "math:Homomorphism is a structure-preserving map between algebraic structures; wd:Q215111 (homomorphism) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathGroupHomomorphism a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:GroupHomomorphism ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q868169 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "group homomorphism" ;
+    gmeow:comment "math:GroupHomomorphism preserves the group operation; wd:Q868169 (group homomorphism) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathRingHomomorphism a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:RingHomomorphism ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q1194212 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "ring homomorphism" ;
+    gmeow:comment "math:RingHomomorphism preserves both ring operations; wd:Q1194212 (ring homomorphism) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathIsomorphism a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:Isomorphism ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q189112 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "isomorphism" ;
+    gmeow:comment "math:Isomorphism is an invertible structure-preserving map; wd:Q189112 (isomorphism) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathAutomorphism a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:Automorphism ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q782566 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "automorphism" ;
+    gmeow:comment "math:Automorphism is an isomorphism of a structure with itself; wd:Q782566 (automorphism) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathAutomorphismGroup a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:AutomorphismGroup ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q60790315 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "automorphism group" ;
+    gmeow:comment "math:AutomorphismGroup is the group of a structure's automorphisms — its symmetry group; wd:Q60790315 (automorphism group) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathQuotient a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:Quotient ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q1138961 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "quotient group" ;
+    gmeow:comment "math:Quotient is the general quotient of a structure by a compatible substructure; wd:Q1138961 (quotient group) is its canonical group instance. closeMatch, not identity: math:Quotient is broader (ring and module quotients too), so the map to the group-specific concept is a close but non-invertible counterpart." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .

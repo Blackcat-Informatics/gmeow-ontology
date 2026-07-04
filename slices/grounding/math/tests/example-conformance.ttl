@@ -118,3 +118,22 @@ ex:ecStructureMissingOperation a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
     gmeow:conformanceRationale "The counter-example omits math:structureOperation on a math:Group (sh:minCount 1 on math:AlgebraicStructureShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:IncompleteAlgebraicStructure)." .
+
+# === Rule 9/10: a homomorphism declares preserved operation + logic: law ==== #
+
+ex:ecHomomorphismLawful a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/homomorphism-lawful.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:GroupHomomorphism declaring a math:preservedOperation and a math:preservationLaw as a resource satisfies math:HomomorphismShape and math:PreservationLawShape and validates with no findings." .
+
+ex:ecHomomorphismMissingLaw a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/homomorphism-missing-law.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example omits math:preservationLaw on a math:GroupHomomorphism (sh:minCount 1 on math:HomomorphismShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UnderspecifiedHomomorphism)." .
+
+ex:ecHomomorphismLawString a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/homomorphism-law-string.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.NodeKindConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example gives math:preservationLaw an opaque string literal (sh:nodeKind sh:BlankNodeOrIRI on math:PreservationLawShape), so validation MUST emit shacl.NodeKindConstraintComponent and NO other finding (math:StringOnlyPreservationLaw)." .

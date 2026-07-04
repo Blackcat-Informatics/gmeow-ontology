@@ -859,3 +859,118 @@ math:IncompleteAlgebraicStructure
     rdfs:label "Incomplete Algebraic Structure"@x-gmeow-english ;
     skos:definition "The failure raised when a math:AlgebraicStructure does not declare its constituting parts — a math:underlyingSet, at least one math:structureOperation, and at least one math:satisfiesAxiom law. A group is a set with an operation satisfying stated axioms; a structure asserted without them is ill-formed."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
+
+# =========================================================================== #
+# Algebra — structure-preserving maps (homomorphisms) and the quotient/kernel
+#
+# A homomorphism is a map with a declared preserved operation and a preservation
+# law that is a logic: formula (math: expresses, logic: reasons). A symmetry group
+# IS an automorphism group; that identity is what makes E8's Weyl action, det, and
+# a homomorphic-encryption scheme the same kind of object.
+# =========================================================================== #
+
+math:Homomorphism
+    a owl:Class ;
+    rdfs:subClassOf math:Morphism ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Homomorphism"@x-gmeow-english ;
+    skos:definition "A structure-preserving map between algebraic structures of the same kind: it names, through math:preservedOperation, the operation it carries and, through math:preservationLaw, the logic: formula stating that carrying (φ(a·b) = φ(a)·φ(b)). A subclass of math:Morphism; its math:domain and math:codomain are math:AlgebraicStructure. math:kernel and math:image are first-class. A homomorphism asserted without a preserved operation and law is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:GroupHomomorphism
+    a owl:Class ;
+    rdfs:subClassOf math:Homomorphism ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Group Homomorphism"@x-gmeow-english ;
+    skos:definition "A homomorphism between groups: it preserves the single group operation (φ(a·b) = φ(a)·φ(b)), and its math:kernel is a normal subgroup of the domain. A subclass of math:Homomorphism; the determinant map det: GLₙ → ℝ* is one."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:RingHomomorphism
+    a owl:Class ;
+    rdfs:subClassOf math:Homomorphism ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Ring Homomorphism"@x-gmeow-english ;
+    skos:definition "A homomorphism between rings: it preserves both addition and multiplication, so it carries two preservation laws, and its math:kernel is an ideal. A subclass of math:Homomorphism; a homomorphic-encryption scheme is a (partial or full) ring homomorphism."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Isomorphism
+    a owl:Class ;
+    rdfs:subClassOf math:Homomorphism ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Isomorphism"@x-gmeow-english ;
+    skos:definition "A bijective homomorphism — a structure-preserving map with a structure-preserving inverse, so its domain and codomain are the same structure up to relabelling. A subclass of math:Homomorphism; two structures are isomorphic exactly when a declared math:Isomorphism relates them."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Automorphism
+    a owl:Class ;
+    rdfs:subClassOf math:Isomorphism ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Automorphism"@x-gmeow-english ;
+    skos:definition "An isomorphism of a structure with itself — a symmetry. A subclass of math:Isomorphism whose math:domain and math:codomain are the same structure. The automorphisms of a structure form a math:AutomorphismGroup under composition."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:AutomorphismGroup
+    a owl:Class ;
+    rdfs:subClassOf math:Group ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Automorphism Group"@x-gmeow-english ;
+    skos:definition "The group of all automorphisms of a structure under composition — the symmetries of that structure. A subclass of math:Group: a symmetry group IS an automorphism group, the identity that makes E8's math:WeylGroup and every symmetry expressible with the same machinery as det and a homomorphic-encryption scheme."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Quotient
+    a owl:Class ;
+    rdfs:subClassOf math:AlgebraicStructure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Quotient"@x-gmeow-english ;
+    skos:definition "The quotient structure G/N of a structure by a substructure that is compatible with its operation (a normal subgroup, or an ideal) — the structure whose elements are the cosets of N. A subclass of math:AlgebraicStructure. The first isomorphism theorem states G/ker φ ≅ image φ, authored as a logic: formula the reasoner owns."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+# --- Homomorphism properties ----------------------------------------------- #
+
+math:preservedOperation
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf math:preservesStructure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "preserved operation"@x-gmeow-english ;
+    skos:definition "Names an operation a homomorphism carries from domain to codomain (φ(a·b) = φ(a)·φ(b)). Domain math:Homomorphism, range math:Operation (stated in prose). A group homomorphism names one; a ring homomorphism names two (addition and multiplication). The order-agnostic refinement of math:preservesStructure. A homomorphism without a preserved operation is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:preservationLaw
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "preservation law"@x-gmeow-english ;
+    skos:definition "Names the law a homomorphism (or a homomorphic-encryption scheme) preserves, as a logic: formula — φ(a·b) = φ(a)·φ(b), or Dec(E(a) ⊗ E(b)) = a ⊕ b. Domain math:Homomorphism, range a logic: formula (stated in prose). The value denotes a logic: formula (the denotation seam, a resource), never an opaque string: math: declares the law and logic: owns reasoning over it. A homomorphism without a preservation law is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:kernel
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "kernel"@x-gmeow-english ;
+    skos:definition "Names the kernel of a homomorphism — the substructure of the domain mapped to the identity (for a group homomorphism a normal subgroup, for a ring homomorphism an ideal). Domain math:Homomorphism, range math:AlgebraicStructure (stated in prose). The kernel is a math:substructureOf the domain; the first isomorphism theorem relates it to the math:image through a math:Quotient."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:normalSubgroupOf
+    a owl:ObjectProperty , owl:TransitiveProperty ;
+    rdfs:subPropertyOf math:substructureOf ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "normal subgroup of"@x-gmeow-english ;
+    skos:definition "Relates a normal subgroup to the group that contains it (gNg⁻¹ = N for all g) — the kind of subgroup one can quotient by. Domain and range math:Group (stated in prose); a refinement of math:substructureOf, transitive. The math:kernel of a group homomorphism is a math:normalSubgroupOf its domain."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# --- Homomorphism conformance failures ------------------------------------- #
+
+math:UnderspecifiedHomomorphism
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Underspecified Homomorphism"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:Homomorphism does not declare both the operation it carries (math:preservedOperation) and its preservation law (math:preservationLaw). A map is a homomorphism only by declaring what it preserves and the law of that preservation; a homomorphism asserted without them is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:StringOnlyPreservationLaw
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "String-Only Preservation Law"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:Homomorphism gives its math:preservationLaw as an opaque literal instead of denoting a logic: formula. The preservation law is the denotation seam to logic: reasoning; it must denote a formula (a resource), never a string."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
