@@ -1,0 +1,15 @@
+# Competency question: "Which unit (QUDT/OM/D-SI) realizes this dimension for this
+# quantity?"  A math:Quantity carries both its math:Dimension (through
+# math:hasDimension) and the unit that realizes it within that dimension (gmeow:unit,
+# aligned to QUDT). Scoped to the fixture namespace so the answer is exactly
+# {sampleMassQ → unit QUDT KiloGM, dimension mass}.
+PREFIX math:  <https://blackcatinformatics.ca/math/>
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?quantity ?unit ?dimension WHERE {
+    ?quantity a math:Quantity ;
+              math:hasDimension ?dimension ;
+              gmeow:unit ?unit .
+    FILTER(STRSTARTS(STR(?quantity), "http://example.org/math/"))
+}
+ORDER BY ?quantity

@@ -1,0 +1,12 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Well-formed: a quantity carrying its dimension. Conforms to
+# math:QuantityDimensionShape. Bound by ex:ecQuantityDimensioned.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:aMass a math:Quantity ;
+    math:hasDimension ex:massDim .
+
+ex:massDim a math:Dimension .
