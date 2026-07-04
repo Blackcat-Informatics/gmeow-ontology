@@ -140,3 +140,138 @@ ex:cqConstantsShape a logic:ResultShape ;
 ex:rowPiAnchor a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "constant" ; gmeow:cellValueIri math:pi ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "anchor" ; gmeow:cellValueIri wd:Q167 ] .
+
+# === Q6 — measure: space, total mass, and whether it is a probability measure = #
+
+ex:cqMeasureSpaceAndMass a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/measure-space-and-mass.rq" ;
+    gmeow:cqDataFile "tests/fixtures/bedrock.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "Each measure reports the measurable space it acts on, its total mass, and whether it is a probability measure; over the fixture the answer is exactly {coinMeasure → coinSpace, mass 1, a probability measure; lengthMeasure → lineSpace, mass +∞ (math:PositiveInfinity), not a probability measure}." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqMeasureShape ;
+    gmeow:cqExpectRow ex:rowCoinMeasure , ex:rowLengthMeasure .
+
+ex:cqMeasureShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "measure" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "space" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "mass" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ; logic:columnDatatype xsd:string ] ,
+        [ logic:columnVariable "isProbability" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ; logic:columnDatatype xsd:string ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowCoinMeasure a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "measure" ; gmeow:cellValueIri exf:coinMeasure ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "space" ; gmeow:cellValueIri exf:coinSpace ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "mass" ; gmeow:cellValueLiteral "1" ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "isProbability" ; gmeow:cellValueLiteral "true" ] .
+
+ex:rowLengthMeasure a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "measure" ; gmeow:cellValueIri exf:lengthMeasure ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "space" ; gmeow:cellValueIri exf:lineSpace ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "mass" ; gmeow:cellValueLiteral "https://blackcatinformatics.ca/math/PositiveInfinity" ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "isProbability" ; gmeow:cellValueLiteral "false" ] .
+
+# === Q7 — integral: integrand, domain, and measure ========================= #
+
+ex:cqIntegralFraming a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/integral-integrand-domain-measure.rq" ;
+    gmeow:cqDataFile "tests/fixtures/bedrock.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "An integral reports its integrand, integration domain, and the measure it integrates against; over the fixture the answer is exactly {expectation → integrand densityFn, domain coinSpace, measure coinMeasure}." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqIntegralShape ;
+    gmeow:cqExpectRow ex:rowExpectation .
+
+ex:cqIntegralShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "integral" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "integrand" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "domain" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "measure" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowExpectation a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "integral" ; gmeow:cellValueIri exf:expectation ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "integrand" ; gmeow:cellValueIri exf:densityFn ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "domain" ; gmeow:cellValueIri exf:coinSpace ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "measure" ; gmeow:cellValueIri exf:coinMeasure ] .
+
+# === Q8 — dimension and derived commensurability class ===================== #
+
+ex:cqDimensionAndCommensurability a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/dimension-vector-and-commensurability.rq" ;
+    gmeow:cqDataFile "tests/fixtures/bedrock.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "Each quantity reports its dimension and the quantities commensurable with it (same dimension, computed not asserted); over the fixture the answer is exactly the two ordered energy pairs {kineticEnergyQ ↔ restEnergyQ}; the mass quantity has no peer." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqCommensurabilityShape ;
+    gmeow:cqExpectRow ex:rowKineticCommensurate , ex:rowRestCommensurate .
+
+ex:cqCommensurabilityShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "quantity" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "dimension" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "commensurate" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowKineticCommensurate a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "quantity" ; gmeow:cellValueIri exf:kineticEnergyQ ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dimension" ; gmeow:cellValueIri exf:energyDim ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "commensurate" ; gmeow:cellValueIri exf:restEnergyQ ] .
+
+ex:rowRestCommensurate a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "quantity" ; gmeow:cellValueIri exf:restEnergyQ ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dimension" ; gmeow:cellValueIri exf:energyDim ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "commensurate" ; gmeow:cellValueIri exf:kineticEnergyQ ] .
+
+# === Q9 — dimensional expressions and their operands ======================= #
+
+ex:cqDimensionalExpressionOperands a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/dimensional-expressions-and-operands.rq" ;
+    gmeow:cqDataFile "tests/fixtures/bedrock.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "Each dimensional expression reports its operands and their dimension; over the fixture the answer is exactly {totalEnergyExpr → operands kineticEnergyQ and restEnergyQ, both of the energy dimension}." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqExpressionOperandShape ;
+    gmeow:cqExpectRow ex:rowExprKinetic , ex:rowExprRest .
+
+ex:cqExpressionOperandShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "expression" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "operand" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "dimension" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowExprKinetic a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "expression" ; gmeow:cellValueIri exf:totalEnergyExpr ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "operand" ; gmeow:cellValueIri exf:kineticEnergyQ ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dimension" ; gmeow:cellValueIri exf:energyDim ] .
+
+ex:rowExprRest a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "expression" ; gmeow:cellValueIri exf:totalEnergyExpr ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "operand" ; gmeow:cellValueIri exf:restEnergyQ ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dimension" ; gmeow:cellValueIri exf:energyDim ] .
+
+# === Q10 — the unit realizing a quantity's dimension ======================= #
+
+ex:cqUnitRealizingDimension a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/unit-realizing-dimension.rq" ;
+    gmeow:cqDataFile "tests/fixtures/bedrock.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A quantity reports the unit that realizes its dimension; over the fixture the answer is exactly {sampleMassQ → unit QUDT KiloGM, dimension math:massDimension}." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqUnitShape ;
+    gmeow:cqExpectRow ex:rowSampleMass .
+
+ex:cqUnitShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "quantity" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "unit" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "dimension" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowSampleMass a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "quantity" ; gmeow:cellValueIri exf:sampleMassQ ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "unit" ; gmeow:cellValueIri <http://qudt.org/vocab/unit/KiloGM> ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dimension" ; gmeow:cellValueIri math:massDimension ] .
