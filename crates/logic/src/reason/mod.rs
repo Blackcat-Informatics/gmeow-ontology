@@ -29,13 +29,11 @@ pub use ledger::{
 };
 pub use rl::{rl_closure, RlClosure, RlTriple};
 
-use crate::nemo_engine::codec::{
-    decode_iri_term, decode_nemo_term, decode_string_constant, encode_quad_to_nemo_fact,
-};
-use crate::nemo_engine::{run_chase, ChaseRow};
+use crate::facts::TypedFactSet;
+use crate::nemo_engine::{run_chase_typed, TypedRow};
 use crate::result::{ReasoningResult, ResultProvenance};
 use crate::store::WorldStore;
-use purrdf::{RdfDataset, RdfDatasetBuilder};
+use purrdf::{RdfDataset, RdfDatasetBuilder, TermValue};
 
 /// The content-addressed identity of the native EL/DL/RL reasoning contract —
 /// the `contract_hash` every native-reason result is produced under.
@@ -212,30 +210,63 @@ pub(crate) fn typed_result(
     ReasoningResult::from_dl_verdict(inferred, verdict, provenance)
 }
 
-/// Decode one antecedent chase row into a `(subject, predicate, object)` triple.
+/// The bare IRI string of a typed subject term.
+///
+/// A world-scoped reasoning fact never carries a literal (or triple-term)
+/// subject — blanks were Skolemized to IRIs before the chase — so any other
+/// shape is a hard error.
+fn subject_iri(term: &TermValue) -> Result<String, String> {
+    match term {
+        TermValue::Iri(iri) => Ok(iri.clone()),
+        other => Err(format!(
+            "reasoning row subject must be an IRI (or Skolem IRI) term, got {other:?}"
+        )),
+    }
+}
+
+/// The raw world string of a typed world term.
+///
+/// The world position of a ternary reasoning fact is always a plain string
+/// literal (the Nemo string-constant treatment); any other shape is a hard error.
+fn world_string(term: &TermValue) -> Result<String, String> {
+    match term {
+        TermValue::Literal {
+            lexical_form,
+            datatype,
+            language: None,
+            ..
+        } if datatype == "http://www.w3.org/2001/XMLSchema#string" => Ok(lexical_form.clone()),
+        other => Err(format!(
+            "reasoning row world must be a plain string literal, got {other:?}"
+        )),
+    }
+}
+
+/// Decode one typed antecedent row into a `(subject, predicate, object)` triple.
 ///
 /// The antecedent rows are the same ternary shape as derived rows: subject is
-/// an IRI term, object is any Nemo term (decoded to its display string), and
+/// an IRI term, object is any typed term (surfaced as its display string), and
 /// the third value is the world string constant (dropped here — premises carry
 /// only the triple shape).
-fn decode_premise(row: &ChaseRow) -> Result<(String, String, String), String> {
-    if row.values.len() != 3 {
+fn decode_premise(row: &TypedRow) -> Result<(String, String, String), String> {
+    if row.args.len() != 3 {
         return Err(format!(
             "antecedent row has arity {} (expected 3): {row:?}",
-            row.values.len()
+            row.args.len()
         ));
     }
-    let subject = decode_iri_term(&row.values[0])?;
-    let object = crate::provenance::term_display(&decode_nemo_term(&row.values[1])?);
+    let subject = subject_iri(&row.args[0])?;
+    let object = crate::provenance::term_display(&row.args[1]);
     Ok((subject, row.predicate.clone(), object))
 }
 
 /// Run a fixed entailment rule set over `edb` through the Nemo chase.
 ///
-/// Loads `edb` into a fresh [`WorldStore`], encodes every quad of every world
-/// into the ternary gmeow EDB, prepends those facts to `rules`, runs the chase,
-/// and decodes every 3-arity chase row into an [`InferredAxiom`] carrying its
-/// raw provenance (EDB/IDB flag, firing rule name, immediate premises).
+/// Loads `edb` into a fresh [`WorldStore`], pushes every IRI-object quad of
+/// every world into a typed EDB ([`TypedFactSet`]), runs the typed chase (the
+/// Nemo adapter is the sole fact stringifier), and coerces every ternary typed
+/// row into an [`InferredAxiom`] carrying its raw provenance (EDB/IDB flag,
+/// firing rule name, immediate premises).
 ///
 /// This is the shared chase machinery both [`el::el_closure`] and
 /// [`dl::dl_consistency`] build on: the rule set is the only difference.
@@ -243,60 +274,69 @@ fn decode_premise(row: &ChaseRow) -> Result<(String, String, String), String> {
 /// # Errors
 ///
 /// Returns `Err(String)` if the source store cannot be loaded, if the Nemo
-/// chase fails to parse/validate/evaluate, or if a derived row fails to decode.
+/// chase fails to parse/validate/evaluate/decode, or if a materialized row is
+/// not the ternary reasoning shape.
 pub(crate) fn run_reasoning(edb: &RdfDataset, rules: &str) -> Result<Vec<InferredAxiom>, String> {
     // 1. Load the source into a fresh world-indexed store.
     let store = WorldStore::new();
     store.load_dataset(edb)?;
 
-    // 2. Encode every IRI-object quad of every world into ternary EDB fact lines.
-    //    The fixed EL/DL calculi only fire on axioms whose object is an IRI
-    //    (subClassOf, type, disjointWith, equivalentClass, subPropertyOf), so a
-    //    literal-object quad (an annotation such as rdfs:comment / dc:creator)
-    //    can never participate in any rule. Skipping them is therefore sound for
-    //    the closure AND the verdict, and it is also necessary: real ontology
-    //    annotations carry embedded newlines that would split the line-based Nemo
-    //    .rls program (`encode_literal` escapes `\`/`"` but not control chars).
-    let mut edb_facts: Vec<String> = Vec::new();
+    // 2. Push every IRI-object quad of every world into the typed EDB.
+    //    The IRI-object filter is a SEMANTIC EL/DL restriction: the fixed
+    //    calculi only fire on axioms whose object is an IRI (subClassOf, type,
+    //    disjointWith, equivalentClass, subPropertyOf), so a literal-object
+    //    quad (an annotation such as rdfs:comment / dc:creator) can never
+    //    participate in any rule, and skipping them is sound for the closure
+    //    AND the verdict. It is no longer a transport necessity: the typed
+    //    adapter carries literal objects — control characters included —
+    //    losslessly through the chase.
+    let mut edb_facts = TypedFactSet::new();
     for world in store.worlds() {
         for quad in store.quads_for_pattern_in_world(&world, None, None, None) {
             if !quad.o.is_iri() {
                 continue;
             }
             // The predicate is always an IRI (RDF invariant); a non-IRI predicate
-            // cannot encode as a Nemo predicate symbol, so skip it defensively.
+            // cannot be a relation name, so skip it defensively.
             let Some(predicate) = quad.p.as_iri() else {
                 continue;
             };
-            edb_facts.push(encode_quad_to_nemo_fact(
-                &quad.s, predicate, &quad.o, &world,
-            ));
+            // Blank subjects/objects are Skolemized inside `push_quad`; the
+            // world travels as a plain string literal.
+            edb_facts.push_quad(&quad.s, predicate, &quad.o, &world);
         }
     }
 
-    // 3. Build the program and run the chase.
-    let rls = format!("{}\n{}", edb_facts.join("\n"), rules);
-    let rows = run_chase(rls)?;
+    // 3. Run the typed chase (the adapter renders the fact lines internally).
+    let chase = run_chase_typed(&edb_facts, rules)?;
 
-    // 4. Decode each ternary row into an InferredAxiom.
+    // 4. Coerce each ternary typed row into an InferredAxiom.
     let mut inferred: Vec<InferredAxiom> = Vec::new();
-    for rwp in &rows {
-        let row = &rwp.row;
-        // Every reasoning fact is the ternary `predicate(subject, object, world)`;
-        // a row with any other arity is not an inferred axiom (e.g. an internal
-        // bookkeeping atom the chase may surface), so skip it rather than misdecode.
-        if row.values.len() != 3 {
-            continue;
+    for (row, prov) in &chase.rows {
+        // Every reasoning fact is the ternary `predicate(subject, object, world)`.
+        // The rule texts this chase runs — EL_RULES, dl_rules(), and the ternary
+        // projections reason_program appends — are repo-owned and declare ONLY
+        // ternary relations, so a non-ternary row indicates a rule-text bug and
+        // is a hard error. (This differs from materialize's explicit non-quad
+        // bucket: there the rule text is caller-supplied and may legitimately
+        // declare helper predicates of other arities.)
+        if row.args.len() != 3 {
+            return Err(format!(
+                "reasoning chase produced a non-ternary row for predicate \
+                 {:?} (arity {}): the fixed reasoning rule texts declare only \
+                 ternary relations, so this is a rule-text bug",
+                row.predicate,
+                row.args.len()
+            ));
         }
 
         let predicate = row.predicate.clone();
-        let subject = decode_iri_term(&row.values[0])?;
-        let object = crate::provenance::term_display(&decode_nemo_term(&row.values[1])?);
-        let world = decode_string_constant(&row.values[2])?;
+        let subject = subject_iri(&row.args[0])?;
+        let object = crate::provenance::term_display(&row.args[1]);
+        let world = world_string(&row.args[2])?;
 
-        let prov = &rwp.provenance;
         let mut premises = prov
-            .antecedent_rows
+            .antecedents
             .iter()
             .map(decode_premise)
             .collect::<Result<Vec<_>, String>>()?;

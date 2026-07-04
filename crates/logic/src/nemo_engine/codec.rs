@@ -65,14 +65,6 @@ pub(in crate::nemo_engine) fn encode_term(term: &TermValue) -> String {
     }
 }
 
-/// Encode a subject term (IRI or blank node) as a Nemo argument.
-///
-/// A literal subject is invalid RDF; it is encoded the same as its literal form
-/// (callers only ever pass IRI/blank subjects).
-pub(in crate::nemo_engine) fn encode_subject(subject: &TermValue) -> String {
-    encode_term(subject)
-}
-
 /// Escape `\` and `"` in a single pass, producing the same output as
 /// `.replace('\\', "\\\\").replace('"', "\\\"")` but with one allocation.
 #[inline]
@@ -113,9 +105,8 @@ fn escape_backslash_and_quote(s: &str) -> std::borrow::Cow<'_, str> {
 ///
 /// Our encode writes control characters raw into the `.rls` source (they are
 /// valid in Nemo string literals).  The decode path in [`decode_nemo_term`]
-/// and [`decode_string_constant`] is then responsible for reversing the
-/// `quote_string` display escapes (including `\n` → newline and `\r` → CR)
-/// so that the round-trip is exact.
+/// is then responsible for reversing the `quote_string` display escapes
+/// (including `\n` → newline and `\r` → CR) so that the round-trip is exact.
 pub(in crate::nemo_engine) fn encode_literal(
     lexical_form: &str,
     datatype: &str,
@@ -145,19 +136,18 @@ pub(in crate::nemo_engine) fn encode_literal(
 ///
 /// Format: `<predicate_iri>(<subject_term>, <object_term>, "world_iri").`
 ///
-/// Temporarily `pub(crate)`: the reasoning path ([`crate::reason`]) still
-/// renders its EDB lines directly until it migrates onto
-/// [`crate::nemo_engine::run_chase_typed`], the typed adapter surface that is
-/// this function's destination (the materialize path already did).  Once it
-/// does, this tightens to `pub(in crate::nemo_engine)`.
-pub(crate) fn encode_quad_to_nemo_fact(
+/// Test-only byte-contract pin: production fact lines are rendered per-term by
+/// [`crate::nemo_engine::run_chase_typed`] (via [`encode_term`]); this whole-line
+/// form exists so the escape-contract tests can pin the exact ternary line shape.
+#[cfg(test)]
+pub(in crate::nemo_engine) fn encode_quad_to_nemo_fact(
     subject: &TermValue,
     predicate: &str,
     object: &TermValue,
     world_iri: &str,
 ) -> String {
     let pred = format!("<{}>", predicate);
-    let subj = encode_subject(subject);
+    let subj = encode_term(subject);
     let obj = encode_term(object);
     // World IRI is encoded as a Nemo string constant (double-quoted).
     // Escape any backslashes or double-quotes inside the IRI (IRIs don't normally
@@ -212,52 +202,6 @@ fn unescape_nemo_string(s: &str) -> String {
         }
     }
     out
-}
-
-/// Decode a Nemo display-form IRI term (`<iri>`) to an IRI string.
-///
-/// Nemo displays IRI values as `<http://...>`.  This strips the angle brackets.
-pub(crate) fn decode_iri_term(s: &str) -> Result<String, String> {
-    if s.starts_with('<') && s.ends_with('>') {
-        Ok(s[1..s.len() - 1].to_owned())
-    } else {
-        Err(decode_err("expected <iri>", s))
-    }
-}
-
-/// Decode a Nemo display-form string constant (`"value"`) to the raw string.
-///
-/// Nemo displays plain string datavalues as `"value"` (the outer double-quotes
-/// are part of the display representation, not the value).  This strips them
-/// and reverses the `quote_string` escape sequences emitted by Nemo:
-///
-/// | Display sequence  | Decoded value            |
-/// |-------------------|--------------------------|
-/// | `\\`              | `\` (backslash)          |
-/// | `\"`              | `"` (double-quote)       |
-/// | `\n` (two chars)  | U+000A (newline)         |
-/// | `\r` (two chars)  | U+000D (carriage return) |
-///
-/// Tabs appear as literal tab characters in the display form (Nemo's
-/// `quote_string` does not escape them) and pass through unchanged.
-///
-/// The un-escape order is: `\\` → `\` last (after all other two-char
-/// sequences have been processed) to avoid double-consuming backslashes.
-/// We do it in the reverse order of Nemo's encoding:
-///   1. `\"` → `"` (before `\\` so we don't break `\\\"` → `\"`)
-///   2. `\n` → newline
-///   3. `\r` → CR
-///   4. `\\` → `\` (must be last — processes the remaining escaped backslashes)
-pub(crate) fn decode_string_constant(s: &str) -> Result<String, String> {
-    if s.starts_with('"') && s.ends_with('"') && s.len() >= 2 {
-        let inner = &s[1..s.len() - 1];
-        // Un-escape in reverse-encode order so backslash unescaping is last.
-        // Using a single-pass approach to avoid double-processing:
-        let value = unescape_nemo_string(inner);
-        Ok(value)
-    } else {
-        Err(decode_err("expected \"string\"", s))
-    }
 }
 
 /// Decode a Nemo display-form term to a native [`TermValue`].
@@ -475,20 +419,23 @@ mod tests {
         }
     }
 
-    // ── decode_string_constant ────────────────────────────────────────────────
+    // ── world string constant (decoded via decode_nemo_term) ─────────────────
 
     #[test]
     fn decode_world_constant() {
         let encoded = r#""http://world/Alpha""#;
-        let world = decode_string_constant(encoded).unwrap();
-        assert_eq!(world, "http://world/Alpha");
-    }
-
-    #[test]
-    fn decode_default_constant() {
-        let encoded = r#""default""#;
-        let s = decode_string_constant(encoded).unwrap();
-        assert_eq!(s, "default");
+        match decode_nemo_term(encoded).unwrap() {
+            TermValue::Literal {
+                lexical_form,
+                datatype,
+                language: None,
+                ..
+            } => {
+                assert_eq!(lexical_form, "http://world/Alpha");
+                assert_eq!(datatype, "http://www.w3.org/2001/XMLSchema#string");
+            }
+            other => panic!("expected plain string literal, got {other:?}"),
+        }
     }
 
     // ── encode/decode roundtrip ───────────────────────────────────────────────

@@ -25,10 +25,11 @@
 //! so the closure is computed RDF-1.2-first (world-scoped, per-graph), never
 //! flattened to a world-less RDF-1.0 representation.
 //!
-//! The chase machinery is the shared [`crate::nemo_engine::run_chase`] Nemo
-//! engine — the same one [`crate::reason::el`]/[`crate::reason::dl`] and
+//! The chase machinery is the shared typed [`crate::nemo_engine::run_chase_typed`]
+//! adapter — the same one [`crate::reason::el`]/[`crate::reason::dl`] and
 //! `gmeow_logic.materialize` drive. Only the encoding and the (fixed,
-//! ontology-independent) RL rule set differ.
+//! ontology-independent) RL rule set differ; the 4-ary `triple` facts here are
+//! the live exercise of the typed bridge's n-ary capability.
 //!
 //! # Rule families implemented
 //!
@@ -70,13 +71,21 @@
 
 use std::collections::HashMap;
 
-use crate::facts::{skolem_iri, SKOLEM_PREFIX};
-use crate::nemo_engine::codec::decode_iri_term;
-use crate::nemo_engine::run_chase;
-use purrdf::{RdfDataset, RdfTerm};
+use crate::facts::{skolem_iri, TypedFactSet, SKOLEM_PREFIX};
+use crate::nemo_engine::run_chase_typed;
+use purrdf::{RdfDataset, RdfTerm, TermValue};
 
 /// IRI scheme prefix for an interned-literal surrogate (see [`encode_generic_edb`]).
 const LIT_SURROGATE_PREFIX: &str = "urn:gmeow-rl-lit:";
+
+/// The relation name of the 4-ary generic-triple encoding: every closure fact
+/// is `triple(subject, predicate-as-data, object, world)`.
+const TRIPLE_RELATION: &str = "triple";
+
+/// The relation name of the RDF-list membership helper [`RL_RULES`] declares
+/// (`list_member(?l, ?x, ?w)`) — internal bookkeeping for the finite
+/// class-expression rules, never a closure fact.
+const LIST_MEMBER_RELATION: &str = "list_member";
 
 /// The sentinel world IRI a default-graph (un-named) triple is encoded under.
 ///
@@ -216,7 +225,7 @@ triple(?u1, ?p, ?u3, ?w) :-
 % `R onProperty P; R someValuesFrom C; x P y; y a C` ⇒ `x a R`. With the
 % restriction node R bound, the rule classifies an individual into the anonymous
 % restriction class — the engine that drives owl:equivalentClass defined-class
-% recognition (e.g. PlaceNaming ≡ NameUsage ⊓ ∃usageNamed.Place, #105).
+% recognition (e.g. PlaceNaming ≡ NameUsage ⊓ ∃usageNamed.Place).
 #[name("rl:cls-svf1")]
 triple(?x, <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>, ?r, ?w) :-
     triple(?r, <http://www.w3.org/2002/07/owl#onProperty>, ?p, ?w),
@@ -395,11 +404,6 @@ fn skolem_label(tail: &str) -> String {
     label
 }
 
-/// Escape a value for a Nemo string-literal body (the `quote_string` contract).
-fn nemo_escape(value: &str) -> String {
-    value.replace('\\', "\\\\").replace('"', "\\\"")
-}
-
 /// Render a literal as its N-Triples object form (`"v"`, `"v"@lang`,
 /// `"v"^^<dt>`) — the form rdflib parses back losslessly.
 fn literal_nt(lit: &purrdf::RdfLiteral) -> String {
@@ -465,82 +469,113 @@ impl Interner {
     }
 }
 
-/// Render a subject/object IRI-or-bnode term as a Nemo `<iri>` argument; a
+/// Coerce a subject/object IRI-or-bnode term to a typed resource term; a
 /// literal is interned to its surrogate IRI; a triple term is unsupported.
-fn render_resource(term: &RdfTerm, interner: &mut Interner) -> Option<String> {
+fn resource_term(term: &RdfTerm, interner: &mut Interner) -> Option<TermValue> {
     match term {
-        RdfTerm::Iri(iri) => Some(format!("<{iri}>")),
-        RdfTerm::BlankNode(id) => Some(format!("<{}>", skolem_iri(id))),
-        RdfTerm::Literal(lit) => Some(format!("<{}>", interner.intern_literal(lit))),
+        RdfTerm::Iri(iri) => Some(TermValue::iri(iri)),
+        RdfTerm::BlankNode(id) => Some(TermValue::Iri(skolem_iri(id))),
+        RdfTerm::Literal(lit) => Some(TermValue::Iri(interner.intern_literal(lit))),
         RdfTerm::Triple(_) => None,
     }
 }
 
-/// Encode an [`RdfDataset`] into generic-triple `triple(?s,?p,?o,?w)` EDB facts.
+/// Encode an [`RdfDataset`] into a typed generic-triple `triple(?s,?p,?o,?w)`
+/// EDB — the live proof of the typed bridge's n-ary capability.
 ///
 /// Every quad becomes a 4-ary `triple` fact with the predicate as DATA (so RL's
-/// property-quantifying rules can bind it). IRIs/bnodes go through verbatim
-/// (bnodes skolemized); literal objects are interned to opaque surrogate IRIs
-/// via `interner` (literals never reach Nemo's string lexer — see [`Interner`]).
-/// The named graph is the world; a default-graph (or blank-node-graph) triple is
-/// encoded under [`DEFAULT_WORLD`] so an un-named rdflib graph still closes in a
-/// single world (RDF-1.2-first; the world axis is never flattened away). A
-/// triple-term subject/object is skipped — unsupported in the Nemo chase and
-/// absent from the suites' RL fixtures.
-fn encode_generic_edb(store: &RdfDataset, interner: &mut Interner) -> Vec<String> {
-    let mut facts: Vec<String> = Vec::new();
+/// property-quantifying rules can bind it): the predicate IRI travels in the
+/// second ARGUMENT position as an IRI term, while the relation NAME is the
+/// constant `triple`. IRIs/bnodes go through verbatim (bnodes skolemized);
+/// literal objects are interned to opaque surrogate IRIs via `interner` (RL
+/// rules never inspect a literal value — see [`Interner`]). The named graph is
+/// the world, interned as a plain string literal; a default-graph (or
+/// blank-node-graph) triple is encoded under [`DEFAULT_WORLD`] so an un-named
+/// rdflib graph still closes in a single world (RDF-1.2-first; the world axis
+/// is never flattened away). A triple-term subject/object is skipped —
+/// unsupported in the Nemo chase and absent from the suites' RL fixtures.
+fn encode_generic_edb(store: &RdfDataset, interner: &mut Interner) -> TypedFactSet {
+    let mut facts = TypedFactSet::new();
     for quad in store.owned_quads() {
-        let Some(subj) = render_resource(&quad.subject, interner) else {
+        let Some(subj) = resource_term(&quad.subject, interner) else {
             continue;
         };
-        let Some(obj) = render_resource(&quad.object, interner) else {
+        let Some(obj) = resource_term(&quad.object, interner) else {
             continue;
         };
-        let pred = format!("<{}>", quad.predicate);
+        let pred = TermValue::iri(&quad.predicate);
 
         let world = match &quad.graph_name {
             Some(RdfTerm::Iri(iri)) => iri.clone(),
             _ => DEFAULT_WORLD.to_owned(),
         };
-        let world_escaped = nemo_escape(&world);
 
-        facts.push(format!(
-            "triple({subj}, {pred}, {obj}, \"{world_escaped}\")."
-        ));
+        let s = facts.intern(&subj);
+        let p = facts.intern(&pred);
+        let o = facts.intern(&obj);
+        let w = facts.intern(&TermValue::simple_literal(&world));
+        facts.push_fact(TRIPLE_RELATION, vec![s, p, o, w]);
     }
     facts
 }
 
+/// The bare IRI string of a typed generic-triple argument.
+///
+/// Every subject/predicate/object position of the `triple/4` encoding carries
+/// an IRI term (literals were interned to surrogate IRIs before the chase), so
+/// any other shape is a hard error.
+fn rl_iri(term: &TermValue, position: &str) -> Result<String, String> {
+    match term {
+        TermValue::Iri(iri) => Ok(iri.clone()),
+        other => Err(format!(
+            "RL closure row {position} must be an IRI term \
+             (literals are interned to surrogate IRIs), got {other:?}"
+        )),
+    }
+}
+
 /// Compute the OWL 2 RL/RDF deductive closure of `edb` via the Nemo chase.
 ///
-/// Loads `edb` into the generic-triple encoding, prepends [`RL_RULES`], runs the
-/// shared [`run_chase`] engine once, and decodes every `triple/4` chase row back
-/// into an [`RlTriple`] (asserted + derived). The closure is world-scoped:
-/// derived triples carry the world IRI of the facts they were derived from.
+/// Loads `edb` into the typed generic-triple encoding, runs the typed
+/// [`run_chase_typed`] adapter once over [`RL_RULES`], and coerces every
+/// `triple/4` typed row back into an [`RlTriple`] (asserted + derived). The
+/// closure is world-scoped: derived triples carry the world IRI of the facts
+/// they were derived from.
 ///
 /// # Errors
 ///
-/// Returns `Err(String)` if the chase fails to parse/validate/evaluate or a row
-/// fails to decode.
+/// Returns `Err(String)` if the chase fails to parse/validate/evaluate/decode
+/// or if a materialized row is not one of the two relations [`RL_RULES`]
+/// declares (`triple/4`, `list_member/3`).
 pub fn rl_closure(edb: &RdfDataset) -> Result<RlClosure, String> {
     let mut interner = Interner::default();
     let edb_facts = encode_generic_edb(edb, &mut interner);
     if edb_facts.is_empty() {
         return Ok(RlClosure { triples: vec![] });
     }
-    let rls = format!("{}\n{}", edb_facts.join("\n"), RL_RULES);
-    let rows = run_chase(rls)?;
+    let chase = run_chase_typed(&edb_facts, RL_RULES)?;
 
     let mut triples: Vec<RlTriple> = Vec::new();
-    for rwp in &rows {
-        let row = &rwp.row;
-        // Only the generic `triple/4` relation is a closure fact; any other
-        // arity is internal bookkeeping (none, for RL_RULES) — skip, never
-        // misdecode.
-        if row.predicate != "triple" || row.values.len() != 4 {
-            continue;
+    for (row, prov) in &chase.rows {
+        // The RL rule text is repo-owned and declares exactly TWO relations:
+        // the 4-ary generic-triple closure relation and the ternary RDF-list
+        // membership helper. The helper is internal bookkeeping — explicitly
+        // not a closure fact — and any OTHER row shape indicates a rule-text
+        // bug: hard-error, never skip silently (same doctrine as
+        // `crate::reason::run_reasoning`; materialize's non-quad bucket exists
+        // for caller-supplied rule texts, which these are not).
+        match (row.predicate.as_str(), row.args.len()) {
+            (TRIPLE_RELATION, 4) => {}
+            (LIST_MEMBER_RELATION, 3) => continue,
+            (pred, arity) => {
+                return Err(format!(
+                    "RL chase produced an unexpected row {pred:?} (arity {arity}): \
+                     the fixed RL rule text declares only triple/4 and \
+                     list_member/3, so this is a rule-text bug"
+                ));
+            }
         }
-        let subject = decode_iri_term(&row.values[0])?;
+        let subject = rl_iri(&row.args[0], "subject")?;
         // A literal surrogate in the SUBJECT position is a derived literal-typing
         // entailment (e.g. `prp-rng` typing an interned literal object) with no
         // standard-RDF form — a literal can never be a triple subject. owlrl emits
@@ -550,20 +585,33 @@ pub fn rl_closure(edb: &RdfDataset) -> Result<RlClosure, String> {
         if subject.starts_with(LIT_SURROGATE_PREFIX) {
             continue;
         }
-        let predicate = decode_iri_term(&row.values[1])?;
+        let predicate = rl_iri(&row.args[1], "predicate")?;
         // The object is always an IRI in the chase (literals were interned to
         // surrogate IRIs); resolve a surrogate back to its original literal.
-        let object = interner.resolve_object(&decode_iri_term(&row.values[2])?);
-        // The world is the 4th value: a Nemo string constant. Strip the quotes.
-        let world = row.values[3].trim_matches('"').to_owned();
+        let object = interner.resolve_object(&rl_iri(&row.args[2], "object")?);
+        // The world is the 4th argument: a plain string literal (the Nemo
+        // string-constant treatment of the world position).
+        let world = match &row.args[3] {
+            TermValue::Literal {
+                lexical_form,
+                datatype,
+                language: None,
+                ..
+            } if datatype == "http://www.w3.org/2001/XMLSchema#string" => lexical_form.clone(),
+            other => {
+                return Err(format!(
+                    "RL closure row world must be a plain string literal, got {other:?}"
+                ))
+            }
+        };
 
         triples.push(RlTriple {
             subject,
             predicate,
             object,
             world,
-            is_edb: rwp.provenance.is_edb,
-            rule_name: rwp.provenance.rule_name.clone(),
+            is_edb: prov.is_edb,
+            rule_name: prov.rule_name.clone(),
         });
     }
     Ok(RlClosure { triples })
