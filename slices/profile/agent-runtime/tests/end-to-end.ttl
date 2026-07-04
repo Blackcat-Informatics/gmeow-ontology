@@ -1,0 +1,43 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# The TRUE end-to-end cross-slice fixture for the agent-runtime profile. It exists
+# ONLY here, in the profile corpus, because it needs BOTH slices present:
+# extensions/model-serving (the served artifact · deployment · execution · session
+# · invocation) AND core/inhabitation (the durable gmeow:SubjectStage /
+# gmeow:SubjectLineage). Model-serving alone is standalone (gmeow:sessionSubjectStage
+# is open-range) and can only reach the session's subject STAGE; here the chain
+# continues via gmeow:stageOfLineage to the durable LINEAGE. The flat one-hop
+# gmeow:generatedForSubject shortcut is asserted (the projection-layer
+# materialization stand-in) as the durable lineage, so the projection-agreement
+# gate proves the shortcut equals the full cross-slice collapse (Principle 7).
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/agent-runtime/> .
+
+# --- core/inhabitation layer: the durable subject ----------------------------
+ex:lillithBot a gmeow:SoftwareAgent .
+ex:lillithLineage a gmeow:SubjectLineage .
+ex:lillithStage a gmeow:SubjectStage ;
+    gmeow:stageBearer ex:lillithBot ;
+    gmeow:stageOfLineage ex:lillithLineage .
+ex:configA a gmeow:InhabitationConfiguration .
+
+# --- extensions/model-serving layer: the served runtime ----------------------
+ex:opusArtifact a gmeow:ModelArtifact .
+ex:opusDeployment a gmeow:ModelDeployment ;
+    gmeow:deploymentArtifact ex:opusArtifact .
+ex:execution1 a gmeow:RuntimeExecution ;
+    gmeow:executionOfDeployment ex:opusDeployment .
+ex:session1 a gmeow:AgentSession ;
+    gmeow:sessionSubjectStage ex:lillithStage ;      # session → inhabitation subject stage
+    gmeow:sessionConfiguration ex:configA .
+ex:invocation1 a gmeow:ModelInvocation ;
+    gmeow:invocationInExecution ex:execution1 ;
+    gmeow:subEventOf ex:session1 .
+
+# --- the output, with the flat cross-slice shortcut (materialization stand-in)-
+ex:output a gmeow:InformationObject ;
+    gmeow:wasGeneratedBy ex:invocation1 ;
+    gmeow:generatedForSubject ex:lillithLineage ;    # == collapse(→ stage → stageOfLineage → lineage)
+    gmeow:generatedUnderConfiguration ex:configA .
