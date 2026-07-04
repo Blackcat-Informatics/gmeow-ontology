@@ -131,3 +131,27 @@ ASK {
     gmeow:usedCapability rdfs:domain gmeow:Activity ; rdfs:range logic:ActionSchema .
 }""" ;
     gmeow:saRationale "gmeow:usedCapability (the passive half of the CQ5 discriminator) MUST range over logic:ActionSchema with domain gmeow:Activity — passive capability use, as opposed to a delegated gmeow:ToolCall → gmeow:usedTool → gmeow:SoftwareAgent." .
+
+# --- 10. The upper-projections are declared object properties (MUST) ----------
+ex:saUpperProjectionsDeclared a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    gmeow:generatedForSubject a owl:ObjectProperty .
+    gmeow:generatedUnderConfiguration a owl:ObjectProperty .
+}""" ;
+    gmeow:saRationale "gmeow:generatedForSubject and gmeow:generatedUnderConfiguration MUST be declared owl:ObjectProperty — the flat, materialized upper-projections of the de-conflation path (computed, not authored; Principle 12). Their agreement with the nested canon is proven by the projection-agreement gate (tests/perf-recall.ttl + queries/competency/audit.rq)." .
+
+# --- 11. The upper-projections are open-range (standalone) (MUST-NOT) ---------
+ex:saUpperProjectionsOpenRange a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    VALUES ?p { gmeow:generatedForSubject gmeow:generatedUnderConfiguration gmeow:sessionSubjectStage gmeow:sessionConfiguration }
+    ?p rdfs:range ?anyRange .
+}""" ;
+    gmeow:saRationale "The inhabitation-facing projections and session properties MUST NOT declare an rdfs:range — a range axiom to an inhabitation term would make this extension depend on core/inhabitation, breaking 'reusable beyond inhabitation' (INHABITED-CONSUMER.md). The terminus is typed at the instance level in the agent-runtime profile, where both slices are present." .

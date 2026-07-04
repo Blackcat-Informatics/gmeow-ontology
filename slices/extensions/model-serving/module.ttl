@@ -186,6 +186,26 @@ gmeow:executionOfDeployment
     gmeow:graphBoxRole gmeow:boxCBox ,
         gmeow:boxRBox .
 
+gmeow:generatedForSubject
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/model-serving> ;
+    rdfs:label "generated for subject"@x-gmeow-english ;
+    rdfs:comment "COMPUTED PROJECTION, generated not authored (Principle 12). Materialized by a projection-layer rule as the one-hop collapse of the multi-hop path output → gmeow:wasGeneratedBy → invocation → gmeow:subEventOf → session → gmeow:sessionSubjectStage → subject stage (and onward, in the agent-runtime profile, gmeow:stageOfLineage → durable lineage). The canonical nested situations remain the source of truth for deep audits; real-time recall reads this flat shortcut. Never hand-assert it in the authored corpus — the projection-agreement gate (tests/perf-recall.ttl + queries/competency/audit.rq) proves the shortcut equals the collapse of the canon (Principle 7)."@x-gmeow-english ;
+    skos:definition "The durable subject (stage, and in the profile its lineage) an output is FOR — the flat, materialized upper-projection of the de-conflation chain, so agent-memory recall need not walk the full 8–10 hop nested path. Open-range so the slice stays standalone: the terminus is a session's gmeow:sessionSubjectStage (a subject stage) here, extended to the inhabitation lineage in the agent-runtime profile."@x-gmeow-english ;
+    skos:example "ex:output gmeow:generatedForSubject ex:lillithStage .   # computed: = collapse(output → invocation → session → sessionSubjectStage)"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox .
+
+gmeow:generatedUnderConfiguration
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/model-serving> ;
+    rdfs:label "generated under configuration"@x-gmeow-english ;
+    rdfs:comment "COMPUTED PROJECTION, generated not authored (Principle 12). Materialized by a projection-layer rule as the one-hop collapse of output → gmeow:wasGeneratedBy → invocation → gmeow:subEventOf → session → gmeow:sessionConfiguration → active configuration. Never hand-assert it in the authored corpus; the projection-agreement gate proves it equals the collapse of the canon (Principle 7)."@x-gmeow-english ;
+    skos:definition "The active configuration an output was generated UNDER — the flat, materialized upper-projection of the session → configuration path, for fast recall without walking the nested situations. Open-range so the slice stays standalone."@x-gmeow-english ;
+    skos:example "ex:output gmeow:generatedUnderConfiguration ex:configA .   # computed: = collapse(output → invocation → session → sessionConfiguration)"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox .
+
 gmeow:invocationInExecution
     a owl:ObjectProperty ;
     rdfs:domain gmeow:ModelInvocation ;

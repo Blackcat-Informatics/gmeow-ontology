@@ -106,3 +106,39 @@ ex:cqProvenanceChainRow a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "deployment" ; gmeow:cellValueIri exd:opusDeployment ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "artifact" ; gmeow:cellValueIri exd:opusArtifact ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "session" ; gmeow:cellValueIri exd:session1 ] .
+
+# --- Upper-projection agreement: flat shortcut == collapse of the canon --------
+# The soundness centerpiece (INHABITED-RUNTIME-STACK.md §Upper-projections). Over
+# perf-recall.ttl the audit query returns the flat gmeow:generatedForSubject /
+# gmeow:generatedUnderConfiguration shortcut values AND the values obtained by
+# walking the full nested canon (→ session → sessionSubjectStage / sessionConfiguration).
+# RowsExact pins ALL FOUR columns to the SAME two IRIs, so the shortcut and the
+# collapse of the canon provably AGREE (Principle 7): the commuting diagram
+# commutes. A disagreement (a stale or wrong projection) changes the row and fails.
+# The perf-recall fixture lives under tests/ (consumed via cqDataFile, not the
+# example sweep). The subject terminus here is the STAGE (standalone-resolvable);
+# the agent-runtime profile corpus extends the collapse to the durable lineage.
+ex:cqProjectionAgreement a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/extensions/model-serving/queries/competency/audit.rq" ;
+    gmeow:cqDataFile "tests/perf-recall.ttl" ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqProjectionAgreementShape ;
+    gmeow:cqRationale "GMEOW must guarantee that the flat, materialized upper-projection an agent-memory engine reads for real-time recall AGREES with the deep audit that walks the full nested de-conflation canon (Principle 7). Over perf-recall.ttl the one-hop gmeow:generatedForSubject (ex:lillithStage) equals the collapse output → invocation → session → gmeow:sessionSubjectStage (ex:lillithStage), and gmeow:generatedUnderConfiguration (ex:configA) equals output → invocation → session → gmeow:sessionConfiguration (ex:configA). Pinning shortcut and audit columns to the same IRIs is the executable proof that the projection and the canon commute; a stale or wrong projection would fail this row." ;
+    gmeow:cqExpectRow ex:cqProjectionAgreementRow .
+
+ex:cqProjectionAgreementShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "shortcutSubject" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:declaresColumn
+        [ logic:columnVariable "auditSubject" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:declaresColumn
+        [ logic:columnVariable "shortcutConfig" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:declaresColumn
+        [ logic:columnVariable "auditConfig" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:cqProjectionAgreementRow a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "shortcutSubject" ; gmeow:cellValueIri exd:lillithStage ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "auditSubject" ; gmeow:cellValueIri exd:lillithStage ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "shortcutConfig" ; gmeow:cellValueIri exd:configA ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "auditConfig" ; gmeow:cellValueIri exd:configA ] .
