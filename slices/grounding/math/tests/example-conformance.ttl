@@ -105,3 +105,16 @@ ex:ecFunctionMissingCodomain a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
     gmeow:conformanceRationale "The counter-example omits math:codomain on a math:Function (sh:minCount 1 on math:FunctionFramingShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UnframedFunction)." .
+
+# === Rule 8: an algebraic structure declares carrier, operation, and axioms = #
+
+ex:ecStructureComplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/structure-complete.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:Group declaring its math:underlyingSet, a math:structureOperation, and a math:satisfiesAxiom law satisfies math:AlgebraicStructureShape and validates with no findings." .
+
+ex:ecStructureMissingOperation a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/structure-missing-operation.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example omits math:structureOperation on a math:Group (sh:minCount 1 on math:AlgebraicStructureShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:IncompleteAlgebraicStructure)." .

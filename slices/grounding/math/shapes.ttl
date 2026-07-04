@@ -162,3 +162,47 @@ math:FunctionFramingShape
         sh:severity sh:Violation ;
         sh:message "A math:Function must declare exactly one math:codomain naming the target set; a function without a codomain, or with several, is ill-formed." ;
     ] .
+
+# =========================================================================== #
+# Algebra slice SHACL shapes — the algebra hard-rule gates (ALGEBRA charter)
+#
+# A structure declares its operation, carrier, and axioms; a homomorphism declares
+# its preserved operation and preservation law (a logic: formula, not a string); a
+# root system declares its Cartan matrix, Weyl group, and rank; a homomorphic-
+# encryption scheme declares its homomorphic operation, hardness assumption, and
+# noise model. Each shape names, through math:enforcesFailureClass, the typed
+# math:MathConformanceFailure it raises.
+# =========================================================================== #
+
+# Rule 8 — an algebraic structure declares its carrier, operation, and axioms.
+math:AlgebraicStructureShape
+    a sh:NodeShape ;
+    rdfs:label "Algebraic structure completeness shape"@x-gmeow-english ;
+    skos:definition "SHACL constraints for math:AlgebraicStructure: it declares a math:underlyingSet, at least one math:structureOperation, and at least one math:satisfiesAxiom law. A group is a set with an operation satisfying stated axioms; a structure asserted without them is ill-formed."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    math:enforcesFailureClass math:IncompleteAlgebraicStructure ;
+    sh:targetClass math:AlgebraicStructure ;
+    sh:property [
+        sh:path math:underlyingSet ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:class math:Set ;
+        sh:severity sh:Violation ;
+        sh:message "A math:AlgebraicStructure must declare exactly one math:underlyingSet naming its carrier; a structure without a carrier is ill-formed." ;
+    ] ;
+    sh:property [
+        sh:path math:structureOperation ;
+        sh:minCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:class math:Operation ;
+        sh:severity sh:Violation ;
+        sh:message "A math:AlgebraicStructure must declare at least one math:structureOperation; a structure without an operation is ill-formed." ;
+    ] ;
+    sh:property [
+        sh:path math:satisfiesAxiom ;
+        sh:minCount 1 ;
+        sh:nodeKind sh:BlankNodeOrIRI ;
+        sh:severity sh:Violation ;
+        sh:message "A math:AlgebraicStructure must declare at least one math:satisfiesAxiom naming a math:Axiom (which denotes a logic: formula); a structure without stated axioms is ill-formed." ;
+    ] .

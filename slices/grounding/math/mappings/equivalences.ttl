@@ -133,3 +133,128 @@ gmeow:eqMathComplexNumbers a gmeow:TermEquivalence ;
     gmeow:objectLabel "complex number" ;
     gmeow:comment "math:complexNumbers is the system ℂ; wd:Q11567 (complex number) names the number-type concept. closeMatch: the system individual and the number-type concept are close counterparts, not invertibly the same object." ;
     gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+# --- Algebraic-structure classes → Wikidata (concept identity) ------------- #
+# Each math: structure class denotes the same concept as its Wikidata item — a
+# clean 1:1 identity (the class IS the concept "group", "ring", …), so
+# skos:exactMatch at confidence 1.0. All QIDs curl-validated July 2026.
+
+gmeow:eqMathAlgebraicStructure a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:AlgebraicStructure ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q205464 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "algebraic structure" ;
+    gmeow:comment "math:AlgebraicStructure is a set equipped with operations satisfying axioms; wd:Q205464 (algebraic structure) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathSemigroup a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:Semigroup ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q207348 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "semigroup" ;
+    gmeow:comment "math:Semigroup is a magma with an associative operation; wd:Q207348 (semigroup) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathMonoid a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:Monoid ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q208237 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "monoid" ;
+    gmeow:comment "math:Monoid is a semigroup with an identity element; wd:Q208237 (monoid) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathGroup a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:Group ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q83478 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "group" ;
+    gmeow:comment "math:Group is a monoid in which every element has an inverse; wd:Q83478 (group) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathAbelianGroup a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:AbelianGroup ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q181296 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "abelian group" ;
+    gmeow:comment "math:AbelianGroup is a group with a commutative operation; wd:Q181296 (abelian group) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathRing a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:Ring ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q161172 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "ring" ;
+    gmeow:comment "math:Ring is an abelian additive group with a distributive multiplication; wd:Q161172 (ring) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathCommutativeRing a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:CommutativeRing ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q858656 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "commutative ring" ;
+    gmeow:comment "math:CommutativeRing is a ring whose multiplication commutes; wd:Q858656 (commutative ring) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathField a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:Field ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q190109 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "field" ;
+    gmeow:comment "math:Field is a commutative ring whose non-zero elements form a multiplicative group; wd:Q190109 (field) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathModule a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:Module ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q18848 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "module" ;
+    gmeow:comment "math:Module is an abelian group with a compatible ring-scalar action; wd:Q18848 (module) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathVectorSpace a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:VectorSpace ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q125977 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "vector space" ;
+    gmeow:comment "math:VectorSpace is a module over a field; wd:Q125977 (vector space) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathPolynomialRing a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:PolynomialRing ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q1455652 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "polynomial ring" ;
+    gmeow:comment "math:PolynomialRing is the ring R[x] of polynomials over a base ring; wd:Q1455652 (polynomial ring) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathIdeal a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:Ideal ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q44649 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "ideal" ;
+    gmeow:comment "math:Ideal is an additive subgroup of a ring closed under multiplication by any ring element; wd:Q44649 (ideal, ring theory) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .

@@ -83,3 +83,56 @@ ASK {
     math:compositionInner rdfs:subPropertyOf math:functionComposition .
 }""" ;
     gmeow:saRationale "Function composition is non-commutative (g ∘ f ≠ f ∘ g), so the composite→component relation MUST carry order: math:compositionOuter (applied second) and math:compositionInner (applied first) refine math:functionComposition. A single order-agnostic property would lose which component is inner and which is outer." .
+
+# --- 6. The group subsumption tower Magma ⊒ … ⊒ AbelianGroup (MUST) ---
+ex:saGroupTower a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    math:Magma        rdfs:subClassOf math:AlgebraicStructure .
+    math:Semigroup    rdfs:subClassOf math:Magma .
+    math:Monoid       rdfs:subClassOf math:Semigroup .
+    math:Group        rdfs:subClassOf math:Monoid .
+    math:AbelianGroup rdfs:subClassOf math:Group .
+}""" ;
+    gmeow:saRationale "The algebraic hierarchy MUST be subsumption: an AbelianGroup is a Group is a Monoid is a Semigroup is a Magma is an AlgebraicStructure, each an rdfs:subClassOf edge, so an instance of a lower structure is entailed to be an instance of every weaker one." .
+
+# --- 7. The ring/module towers Field ⊑ … ⊑ Ring and VectorSpace ⊑ Module (MUST) ---
+ex:saRingModuleTower a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    math:Ring            rdfs:subClassOf math:AlgebraicStructure .
+    math:CommutativeRing rdfs:subClassOf math:Ring .
+    math:Field           rdfs:subClassOf math:CommutativeRing .
+    math:PolynomialRing  rdfs:subClassOf math:CommutativeRing .
+    math:Module          rdfs:subClassOf math:AlgebraicStructure .
+    math:VectorSpace     rdfs:subClassOf math:Module .
+}""" ;
+    gmeow:saRationale "The ring and module towers MUST be subsumption: a Field is a CommutativeRing is a Ring, a PolynomialRing is a CommutativeRing, and a VectorSpace is a Module — so a field is entailed to be a ring and every ring-level axiom applies." .
+
+# --- 8. A morphism is NOT a function (avoids the set-typed framing gate) (MUST-NOT) ---
+ex:saMorphismNotFunction a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    math:Morphism rdfs:subClassOf math:Function .
+}""" ;
+    gmeow:saRationale "A math:Morphism MUST NOT be a subclass of math:Function: a morphism's domain and codomain range over algebraic structures, not bare sets, so making it a function would let the set-typed math:FunctionFramingShape misfire on structure-typed domains. Morphism is its own object-layer parent." .
+
+# --- 9. The algebra failure classes subclass math:MathConformanceFailure (MUST) ---
+ex:saAlgebraFailureHierarchy a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    math:IncompleteAlgebraicStructure rdfs:subClassOf math:MathConformanceFailure .
+}""" ;
+    gmeow:saRationale "The algebra hard-rule failure math:IncompleteAlgebraicStructure MUST be a subclass of math:MathConformanceFailure, so a violation is a typed, queryable object." .
