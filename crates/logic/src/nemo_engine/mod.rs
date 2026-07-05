@@ -651,7 +651,6 @@ pub(crate) fn run_chase(rls: String) -> Result<Vec<ChaseRowWithProvenance>, Stri
 ///
 /// Phase surface: consumed by the existential-chase parity gate today and by
 /// `materialize_routed` once the EL→existential-rule projection lands.
-#[allow(dead_code)]
 pub(crate) fn run_chase_rows(rls: String) -> Result<Vec<ChaseRow>, String> {
     let _guard = CHASE_LOCK
         .lock()
@@ -696,7 +695,6 @@ pub(crate) fn run_chase_rows(rls: String) -> Result<Vec<ChaseRow>, String> {
 /// WITHOUT provenance (see [`run_chase_rows`]).  The Nemo counterpart of the native
 /// existential chase mints labeled nulls the provenance trace cannot follow, so the
 /// parity oracle uses this path and the parity gate compares facts null-blind.
-#[allow(dead_code)]
 pub(crate) fn run_chase_typed_facts_only(
     edb: &crate::facts::TypedFactSet,
     rules: &str,
@@ -739,7 +737,6 @@ pub(crate) fn run_chase_typed_facts_only(
 /// value-invented facts carry labeled nulls.  Here each `_:label` becomes a stable,
 /// null-recognizable IRI so the fact survives to the null-blind parity gate; every other
 /// term decodes normally.
-#[allow(dead_code)]
 fn typed_row_from_chase_row_nullable(row: &ChaseRow) -> Result<TypedRow, String> {
     let args = row
         .values

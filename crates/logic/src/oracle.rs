@@ -213,7 +213,6 @@ pub(crate) fn forward_oracle() -> impl ForwardOracle {
 ///
 /// Phase surface: consumed by the existential-chase parity gate today and by
 /// `materialize_routed` once the EL→existential-rule projection lands.
-#[allow(dead_code)]
 pub(crate) struct NemoFactsOracle;
 
 impl ForwardOracle for NemoFactsOracle {
