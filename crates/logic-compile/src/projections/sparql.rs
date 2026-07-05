@@ -311,8 +311,7 @@ fn emit_sparql(
 /// The local name of a cell IRI (after the last `#`/`/`) — the per-correspondence key
 /// stem for its ledger row.
 pub(crate) fn local_cell(iri: &str) -> String {
-    let cut = iri.rfind(['#', '/']).map(|i| i + 1).unwrap_or(0);
-    iri[cut..].to_owned()
+    iri.rsplit(['#', '/']).next().unwrap_or(iri).to_owned()
 }
 
 pub(crate) fn class_var(p: &MappingPattern) -> String {
