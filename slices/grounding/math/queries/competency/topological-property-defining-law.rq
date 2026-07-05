@@ -1,0 +1,18 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Competency question: "For each grounded topological property, what is its
+# defining law or boundary record?" This surfaces the machine-audited backing
+# edge math:definingLaw: every declared topological property concept
+# (math:ContinuousMap, math:ConnectedSpace, math:CompactSpace, and the T0-T4
+# separation-axiom individuals) reports the logic:Formula defining law that
+# grounds it — or, for compactness, the recorded logic:expressivenessBoundary
+# boundary record math:compactnessBoundary. Read over the merged ontology (no
+# fixture), the answer is exactly the eight property -> backing pairs. This is
+# the query twin of the open, type-checked law-backing audit in structural.ttl.
+PREFIX math: <https://blackcatinformatics.ca/math/>
+
+SELECT ?property ?backing WHERE {
+    ?property <https://blackcatinformatics.ca/math/definingLaw> ?backing .
+}
+ORDER BY ?property ?backing
