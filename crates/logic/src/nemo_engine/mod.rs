@@ -223,30 +223,8 @@ pub(crate) fn run_chase_typed(
     edb: &crate::facts::TypedFactSet,
     rules: &str,
 ) -> Result<TypedChaseResult, String> {
-    // ── 1. Render the EDB — the last-moment, sole stringification site ────────
-    let mut program = String::new();
-    let interner = edb.interner();
-    for fact in edb.facts() {
-        let mut rendered_args: Vec<String> = Vec::with_capacity(fact.args.len());
-        for &id in &fact.args {
-            let term = interner.resolve(id);
-            let rendered = codec::encode_term(term);
-            if rendered.is_empty() {
-                return Err(format!(
-                    "nemo typed-encode error: fact {}/{} carries a term with no \
-                     Nemo encoding (RDF-star triple terms are unsupported): {term:?}",
-                    fact.predicate,
-                    fact.args.len()
-                ));
-            }
-            rendered_args.push(rendered);
-        }
-        program.push_str(&render_predicate(&fact.predicate));
-        program.push('(');
-        program.push_str(&rendered_args.join(", "));
-        program.push_str(").\n");
-    }
-    program.push_str(rules);
+    // ── 1. Render the EDB + rules — the last-moment, sole stringification site ─
+    let program = render_typed_program(edb, rules)?;
 
     // ── 2. Run the existing chase machinery verbatim ──────────────────────────
     let raw_rows = run_chase(program)?;
@@ -273,6 +251,78 @@ pub(crate) fn run_chase_typed(
     }
 
     Ok(TypedChaseResult { rows })
+}
+
+/// Render a typed EDB plus `rules` into a Nemo `.rls` program string — the last-moment,
+/// sole stringification site shared by [`run_chase_typed`] and
+/// [`run_chase_typed_facts_only`]. A term with no Nemo encoding (e.g. an RDF-star triple
+/// term) is a hard error, never silently dropped.
+fn render_typed_program(edb: &crate::facts::TypedFactSet, rules: &str) -> Result<String, String> {
+    let mut program = String::new();
+    let interner = edb.interner();
+    for fact in edb.facts() {
+        let mut rendered_args: Vec<String> = Vec::with_capacity(fact.args.len());
+        for &id in &fact.args {
+            let term = interner.resolve(id);
+            let rendered = codec::encode_term(term);
+            if rendered.is_empty() {
+                return Err(format!(
+                    "nemo typed-encode error: fact {}/{} carries a term with no \
+                     Nemo encoding (RDF-star triple terms are unsupported): {term:?}",
+                    fact.predicate,
+                    fact.args.len()
+                ));
+            }
+            rendered_args.push(rendered);
+        }
+        program.push_str(&render_predicate(&fact.predicate));
+        program.push('(');
+        program.push_str(&rendered_args.join(", "));
+        program.push_str(").\n");
+    }
+    program.push_str(rules);
+    Ok(program)
+}
+
+/// Load `rls`, run the chase to fixpoint, and collect every derived row — the shared
+/// load→reason→collect core of [`run_chase`] and [`run_chase_rows`]. Returns the live
+/// engine alongside the rows so a caller needing provenance can `trace` on it; a
+/// caller that only wants facts drops the engine.
+async fn load_reason_collect(rls: String) -> Result<(nemo::api::Engine, Vec<ChaseRow>), String> {
+    // ── 1. Parse and initialise the engine ───────────────────────────────────
+    let mut engine = load_string(rls)
+        .await
+        .map_err(|e| format!("nemo load error: {e:?}"))?;
+
+    // ── 2. Run the chase ─────────────────────────────────────────────────────
+    reason(&mut engine)
+        .await
+        .map_err(|e| format!("nemo reason error: {e:?}"))?;
+
+    // ── 3. Collect all derived facts ─────────────────────────────────────────
+    // `engine.program()` is the logical `Program` (implements `ProgramRead`) so
+    // `derived_predicates()` yields every predicate head after the chase — EDB included.
+    let predicates: Vec<Tag> = engine.program().derived_predicates().into_iter().collect();
+    let mut rows: Vec<ChaseRow> = Vec::new();
+    for tag in predicates {
+        if let Some(iter) = engine
+            .predicate_rows(&tag)
+            .await
+            .map_err(|e| format!("nemo predicate_rows error: {e:?}"))?
+        {
+            for row_vals in iter {
+                let values: Vec<String> = row_vals
+                    .iter()
+                    .map(|v: &AnyDataValue| v.to_string())
+                    .collect();
+                rows.push(ChaseRow {
+                    predicate: tag.to_string(),
+                    values,
+                });
+            }
+        }
+    }
+    Ok((engine, rows))
 }
 
 // ── Internal helper: reconstruct a parseable Nemo fact string ─────────────────
@@ -538,41 +588,8 @@ pub(crate) fn run_chase(rls: String) -> Result<Vec<ChaseRowWithProvenance>, Stri
         let rt = cell.borrow();
 
         rt.block_on(async {
-            // ── 1. Parse and initialise the engine ───────────────────────────
-            let mut engine = load_string(rls)
-                .await
-                .map_err(|e| format!("nemo load error: {e:?}"))?;
-
-            // ── 2. Run the chase ─────────────────────────────────────────────
-            reason(&mut engine)
-                .await
-                .map_err(|e| format!("nemo reason error: {e:?}"))?;
-
-            // ── 3. Collect all derived facts ─────────────────────────────────
-            // `engine.program()` is the logical `Program` (implements
-            // `ProgramRead`) so we can call `derived_predicates()` to get every
-            // predicate head that exists after the chase — including EDB facts.
-            let predicates: Vec<Tag> = engine.program().derived_predicates().into_iter().collect();
-
-            let mut rows: Vec<ChaseRow> = Vec::new();
-            for tag in predicates {
-                if let Some(iter) = engine
-                    .predicate_rows(&tag)
-                    .await
-                    .map_err(|e| format!("nemo predicate_rows error: {e:?}"))?
-                {
-                    for row_vals in iter {
-                        let values: Vec<String> = row_vals
-                            .iter()
-                            .map(|v: &AnyDataValue| v.to_string())
-                            .collect();
-                        rows.push(ChaseRow {
-                            predicate: tag.to_string(),
-                            values,
-                        });
-                    }
-                }
-            }
+            // ── 1-3. Load, chase, and collect every derived row ──────────────
+            let (mut engine, rows) = load_reason_collect(rls).await?;
 
             // ── 4. Trace each fact for provenance ────────────────────────────
             // Build Nemo Fact objects from our ChaseRows for the trace call.
@@ -635,6 +652,76 @@ pub(crate) fn run_chase(rls: String) -> Result<Vec<ChaseRowWithProvenance>, Stri
 
             Ok(result)
         })
+    })
+}
+
+/// Run the chase and collect derived facts WITHOUT provenance tracing.
+///
+/// The provenance trace (`engine.trace`) cannot follow **existential labeled nulls**
+/// (`_:0`, …): it hard-errors "no trace tree" on a value-invented fact.  Forward
+/// PARITY compares the FACT set only (provenance divergence is exempt), so the oracle
+/// that gates the native existential chase needs the facts, not the trace.  This is that
+/// facts-only path — steps 1-3 of [`run_chase`], no trace.
+///
+/// The facts-only chase primitive underneath [`run_chase_typed_facts_only`], whose
+/// consumers — the existential-chase parity gate and `materialize_routed`'s
+/// uncertified-existential demotion — compare/emit facts only, never the trace.
+pub(crate) fn run_chase_rows(rls: String) -> Result<Vec<ChaseRow>, String> {
+    let _guard = CHASE_LOCK
+        .lock()
+        .unwrap_or_else(|poisoned| poisoned.into_inner());
+
+    NEMO_RUNTIME.with(|cell| {
+        let rt = cell.borrow();
+        // Facts only: drop the engine, keep the rows (no provenance trace).
+        rt.block_on(async { load_reason_collect(rls).await.map(|(_engine, rows)| rows) })
+    })
+}
+
+/// Facts-only typed forward materialization: decode every derived row to native terms,
+/// WITHOUT provenance (see [`run_chase_rows`]).  The Nemo counterpart of the native
+/// existential chase mints labeled nulls the provenance trace cannot follow, so the
+/// parity oracle uses this path and the parity gate compares facts null-blind.
+pub(crate) fn run_chase_typed_facts_only(
+    edb: &crate::facts::TypedFactSet,
+    rules: &str,
+) -> Result<Vec<TypedRow>, String> {
+    let program = render_typed_program(edb, rules)?;
+    let raw_rows = run_chase_rows(program)?;
+    raw_rows
+        .iter()
+        .map(typed_row_from_chase_row_nullable)
+        .collect()
+}
+
+/// Decode a chase row, mapping a labeled null (`_:label`) to a stable null IRI.
+///
+/// The standard [`typed_row_from_chase_row`] rejects `_:label` (the codec has no blank
+/// term), which is correct for the Datalog path but not for the existential chase, whose
+/// value-invented facts carry labeled nulls.  Here each `_:label` becomes a stable,
+/// null-recognizable IRI so the fact survives to the null-blind parity gate; every other
+/// term decodes normally.
+fn typed_row_from_chase_row_nullable(row: &ChaseRow) -> Result<TypedRow, String> {
+    let args = row
+        .values
+        .iter()
+        .map(|value| {
+            if let Some(label) = value.strip_prefix("_:") {
+                Ok(TermValue::iri(format!("urn:gmeow:nemo-null:{label}")))
+            } else {
+                codec::decode_nemo_term(value).map_err(|e| {
+                    format!(
+                        "nemo typed-decode error: row {}({}) has undecodable term {value:?}: {e}",
+                        row.predicate,
+                        row.values.join(", ")
+                    )
+                })
+            }
+        })
+        .collect::<Result<Vec<TermValue>, String>>()?;
+    Ok(TypedRow {
+        predicate: row.predicate.clone(),
+        args,
     })
 }
 
