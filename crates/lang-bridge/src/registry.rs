@@ -26,7 +26,7 @@ use gmeow_logic_compile::ir::{
 use gmeow_logic_compile::projections::ProjectionResult;
 
 use crate::bcp47::Bcp47Target;
-use crate::bridge::{Bridge, IngestDiagnostic, LangFailure};
+use crate::bridge::{IngestDiagnostic, LangFailure};
 use crate::conllu::{conllu_correspondence, conllu_leg_pair, ConlluBridge};
 use crate::emit::digest16;
 use crate::grammar::{
@@ -34,7 +34,7 @@ use crate::grammar::{
     serialize_grammar, EbnfBridge, Formalism, Grammar, RuleExpr,
 };
 use crate::nif::NifBridge;
-use crate::ontolex::OntoLexBridge;
+use crate::ontolex::OntoLexTarget;
 use crate::semaf::SemafBridge;
 use crate::tei::TeiBridge;
 
@@ -199,67 +199,6 @@ pub fn assert_registry_covers(lang_class: &str) -> Result<(), String> {
             "no registered projection target covers emission-worthy class lang:{lang_class} \
              (expected one of {targets:?})"
         ))
-    }
-}
-
-// ── OntoLex-Lemon ────────────────────────────────────────────────────────────────
-
-/// The OntoLex-Lemon lexical projection target. Lowers a `lang:Lexeme`/`lang:Sense`
-/// inventory to OntoLex through the existing [`OntoLexBridge`] — SoundUnder, whose residue
-/// is the sense glosses plus the flattened epistemic strata (vantage / interpretation /
-/// denotation-beyond-reference).
-struct OntoLexTarget;
-
-impl LangProjectionTarget for OntoLexTarget {
-    fn name(&self) -> &'static str {
-        "ontolex-lemon"
-    }
-
-    fn emit(&self, input: &LangProjectionInput) -> Result<Vec<LangEmission>, IngestDiagnostic> {
-        let mut emissions = Vec::new();
-        for source in &input.lexicons {
-            let bridge = OntoLexBridge {
-                source_vantage: format!("{EXAMPLE_BASE}ontolex-source/{}", source.name),
-            };
-            let lifted = bridge.lift(&source.bytes)?;
-            let rdf = bridge.emit(&lifted);
-            let source_iri = format!(
-                "{EXAMPLE_BASE}ontolex-lift/lexicon/{}",
-                digest16("lang-ontolex-lexicon", &source.name)
-            );
-            // The flattened epistemic strata Lemon has no slot for — enumerated so the
-            // form-view flattening is carried and flagged, never hidden.
-            let mut unsupported = vec![
-                "denotesLogicFormula and non-reference denotation kinds have no OntoLex-Lemon \
-                 target"
-                    .to_owned(),
-                "lang:vantage / gmeow:vantage epistemic stratum flattens: senses fold to flat \
-                 lexical structure"
-                    .to_owned(),
-                "lang:InterpretationAct and co-resident readings have no Lemon form".to_owned(),
-            ];
-            // The concrete gloss residue the bridge recorded, carried verbatim.
-            for row in &lifted.ledger {
-                unsupported.extend(row.actual_drops.iter().cloned());
-            }
-            emissions.push(LangEmission {
-                artifacts: vec![EmittedArtifact {
-                    path_suffix: format!("ontolex-lemon/{}.ttl", source.name),
-                    bytes: rdf,
-                    is_rdf: true,
-                }],
-                correspondence: lifted.correspondence.clone(),
-                ledger: lifted.ledger.clone(),
-                leg_pair: None,
-                emitted_reading_count: None,
-                source_iri,
-                unsupported,
-                round_trip_holds: false,
-                lossy_kind: PreservationKind::SoundUnder,
-                source_rdf: Vec::new(),
-            });
-        }
-        Ok(emissions)
     }
 }
 

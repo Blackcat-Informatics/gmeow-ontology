@@ -37,6 +37,9 @@ use purrdf::{parse_dataset, DatasetView, GraphMatch, RdfDataset, TermId, TermRef
 
 use crate::bridge::{Bridge, IngestDiagnostic, LangFailure, Lifted};
 use crate::emit::{digest16, ntriples_sorted};
+use crate::registry::{
+    EmittedArtifact, LangEmission, LangProjectionInput, LangProjectionTarget, NamedSource,
+};
 
 /// The `lang:` namespace base, byte-identical to the other `lang:` producers so every
 /// `lang:` local name resolves to the same IRI across bridges.
@@ -86,6 +89,14 @@ const ONTOLEX_PUT_LEG: &str = "https://blackcatinformatics.ca/lang/ontolexRender
 
 /// The ledger target name for the single OntoLex-lift preservation row.
 const ONTOLEX_TARGET: &str = "ontolex";
+
+/// The example-instance base every minted OntoLex-Lemon PROJECTION individual (lexicon, entry,
+/// form, sense) lives under — the forward `lang: → OntoLex` peer of [`ONTOLEX_LIFT_BASE`].
+const ONTOLEX_FORWARD_BASE: &str = "http://example.org/lang/ontolex/";
+
+/// The `logic:getLeg` program IRI for the FORWARD projection: lower the `lang:` lexeme
+/// inventory out to an OntoLex-Lemon lexicon (the put leg the charter names).
+const ONTOLEX_PROJECT_LEG: &str = "https://blackcatinformatics.ca/lang/ontolexProjectLeg";
 
 /// Hard-fail helper: an OntoLex construct the bridge cannot represent is named exactly, never
 /// silently dropped (the `lang:SilentIngestDrop` floor).
@@ -631,5 +642,441 @@ impl Bridge for OntoLexBridge {
             .find(|row| row.target == ONTOLEX_TARGET)
             .map(|row| row.content.clone().into_bytes())
             .unwrap_or_default()
+    }
+}
+
+// ── Forward projection: lang: model → OntoLex-Lemon ─────────────────────────────────
+
+/// Every epistemic stratum OntoLex-Lemon has no slot for — enumerated per emission so the
+/// form-view flattening is carried and flagged, never hidden (charter §OntoLex declared loss).
+const ONTOLEX_FLATTENED_STRATA: &[&str] = &[
+    "lang:vantage / perspectival standpoint has no OntoLex-Lemon target: the sense inventory \
+     flattens to unattributed lexical structure",
+    "lang:InterpretationAct and co-resident lang:Reading alternatives with held support have no \
+     OntoLex-Lemon form",
+    "preservation-judged lang:Translation has no OntoLex-Lemon target",
+    "lang:denotationKind beyond entity/class reference (lang:denotesLogicFormula and kin) has no \
+     ontolex:denotes / ontolex:reference target",
+];
+
+/// The OntoLex-Lemon lexical PROJECTION target: lowers the canonical `lang:Lexeme` /
+/// `lang:WordForm` / `lang:Sense` inventory in the composed model FORWARD to an OntoLex-Lemon
+/// lexicon (the charter's primary lexical projection). A lossy lens (`SoundUnder`): the
+/// form/sense/reference structure is faithful, the epistemic layer flattens (enumerated).
+///
+/// This is the forward peer of [`OntoLexBridge`] (which lifts OntoLex INTO the model for the
+/// ingestion/runtime surface); it reads the model through the shared [`crate::rdf_scan`] surface
+/// exactly as [`crate::tei`] / [`crate::semaf`] do, and never re-implements the scan.
+pub struct OntoLexTarget;
+
+impl LangProjectionTarget for OntoLexTarget {
+    fn name(&self) -> &'static str {
+        "ontolex-lemon"
+    }
+
+    fn emit(&self, input: &LangProjectionInput) -> Result<Vec<LangEmission>, IngestDiagnostic> {
+        let mut emissions = Vec::new();
+        for source in &input.lang_models {
+            if let Some(emission) = emit_lexicon(source)? {
+                emissions.push(emission);
+            }
+        }
+        Ok(emissions)
+    }
+}
+
+/// One OntoLex-Lemon lexicon emission per `lang:` surface that carries ≥1 `lang:Lexeme`; a
+/// surface with no lexemes yields `None` (the target simply does not fire for it — no empty
+/// lexicon artifact). HARD FAILS naming the construct on model structure it cannot represent.
+fn emit_lexicon(source: &NamedSource) -> Result<Option<LangEmission>, IngestDiagnostic> {
+    let ds = crate::rdf_scan::parse_lang_turtle(&source.bytes, &source.name)?;
+    let lexemes = crate::rdf_scan::subjects_of_type(&ds, &format!("{LANG_NS}Lexeme"));
+    if lexemes.is_empty() {
+        return Ok(None);
+    }
+
+    let mut lines: Vec<String> = Vec::new();
+    let mut unmapped: Vec<String> = Vec::new();
+
+    for lex in lexemes {
+        let lex_iri = crate::rdf_scan::iri_of(&ds, lex).unwrap_or_else(|| {
+            format!(
+                "{ONTOLEX_FORWARD_BASE}anon/{}",
+                digest16("lang-ontolex-anon", &crate::rdf_scan::term_label(&ds, lex))
+            )
+        });
+        let entry_iri = format!(
+            "{ONTOLEX_FORWARD_BASE}entry/{}",
+            digest16("lang-ontolex-fwd-entry", &lex_iri)
+        );
+        let form_iri = format!(
+            "{ONTOLEX_FORWARD_BASE}form/{}",
+            digest16("lang-ontolex-fwd-canon", &lex_iri)
+        );
+        let lemma = crate::rdf_scan::label_of(&ds, lex).unwrap_or_default();
+
+        lines.push(format!(
+            "<{entry_iri}> <{RDF_TYPE}> <{ONTOLEX_NS}LexicalEntry> ."
+        ));
+        if !lemma.is_empty() {
+            lines.push(format!(
+                "<{entry_iri}> <{RDFS_LABEL}> \"{}\" .",
+                escape_literal(&lemma)
+            ));
+        }
+        // Part of speech: the UD-aligned lexinfo class where the lang: POS maps, else the lang:
+        // POS IRI carried verbatim + enumerated as an unmapped residue (never silently dropped).
+        if let Some(pos_iri) =
+            crate::rdf_scan::object_iri(&ds, lex, &format!("{LANG_NS}partOfSpeech"))
+        {
+            match map_pos(crate::rdf_scan::local_name(&pos_iri)) {
+                Some(lexinfo_pos) => lines.push(format!(
+                    "<{entry_iri}> <{LEXINFO_NS}partOfSpeech> <{LEXINFO_NS}{lexinfo_pos}> ."
+                )),
+                None => {
+                    lines.push(format!(
+                        "<{entry_iri}> <{LANG_NS}partOfSpeech> <{pos_iri}> ."
+                    ));
+                    unmapped.push(format!(
+                        "lang:partOfSpeech <{pos_iri}> has no lexinfo class mapping; carried \
+                         verbatim, not lowered to a UD-aligned lexinfo:partOfSpeech"
+                    ));
+                }
+            }
+        }
+        // Canonical form: the lemma surface.
+        lines.push(format!(
+            "<{entry_iri}> <{ONTOLEX_NS}canonicalForm> <{form_iri}> ."
+        ));
+        lines.push(format!("<{form_iri}> <{RDF_TYPE}> <{ONTOLEX_NS}Form> ."));
+        if !lemma.is_empty() {
+            lines.push(format!(
+                "<{form_iri}> <{ONTOLEX_NS}writtenRep> \"{}\" .",
+                escape_literal(&lemma)
+            ));
+        }
+
+        // Inflected forms: every lang:WordForm whose lang:inflectionOf is this lexeme, with its
+        // morphological features lowered to lexinfo properties where mapped.
+        for wf in crate::rdf_scan::subjects_with_object(&ds, &format!("{LANG_NS}inflectionOf"), lex)
+        {
+            let wf_iri = crate::rdf_scan::iri_of(&ds, wf).unwrap_or_else(|| {
+                format!(
+                    "{ONTOLEX_FORWARD_BASE}anon-wf/{}",
+                    digest16(
+                        "lang-ontolex-anon-wf",
+                        &crate::rdf_scan::term_label(&ds, wf)
+                    )
+                )
+            });
+            let other_iri = format!(
+                "{ONTOLEX_FORWARD_BASE}form/{}",
+                digest16("lang-ontolex-fwd-other", &wf_iri)
+            );
+            let wf_label = crate::rdf_scan::label_of(&ds, wf).unwrap_or_default();
+            lines.push(format!(
+                "<{entry_iri}> <{ONTOLEX_NS}otherForm> <{other_iri}> ."
+            ));
+            lines.push(format!("<{other_iri}> <{RDF_TYPE}> <{ONTOLEX_NS}Form> ."));
+            if !wf_label.is_empty() {
+                lines.push(format!(
+                    "<{other_iri}> <{ONTOLEX_NS}writtenRep> \"{}\" .",
+                    escape_literal(&wf_label)
+                ));
+            }
+            for feat in crate::rdf_scan::objects(&ds, wf, &format!("{LANG_NS}morphFeature")) {
+                let key = crate::rdf_scan::object_iri(&ds, feat, &format!("{LANG_NS}featureKey"));
+                let val = crate::rdf_scan::object_iri(&ds, feat, &format!("{LANG_NS}featureValue"));
+                match (key.as_deref(), val.as_deref()) {
+                    (Some(k), Some(v)) => {
+                        let kl = crate::rdf_scan::local_name(k);
+                        let vl = crate::rdf_scan::local_name(v);
+                        match map_feature(kl, vl) {
+                            Some((prop, value)) => lines.push(format!(
+                                "<{other_iri}> <{LEXINFO_NS}{prop}> <{LEXINFO_NS}{value}> ."
+                            )),
+                            None => unmapped.push(format!(
+                                "lang:MorphFeature {kl}={vl} on word form <{wf_iri}> has no lexinfo \
+                                 mapping; not lowered to a UD-aligned lexinfo property"
+                            )),
+                        }
+                    }
+                    _ => unmapped.push(format!(
+                        "lang:MorphFeature on word form <{wf_iri}> is missing lang:featureKey or \
+                         lang:featureValue; not lowered"
+                    )),
+                }
+            }
+        }
+
+        // Senses: every lang:Sense whose lang:senseOf is this lexeme, its gloss carried as
+        // skos:definition (the forward projection DOES carry the gloss the ingest lift shed).
+        for sense in crate::rdf_scan::subjects_with_object(&ds, &format!("{LANG_NS}senseOf"), lex) {
+            let sense_src = crate::rdf_scan::iri_of(&ds, sense).unwrap_or_else(|| {
+                format!(
+                    "{ONTOLEX_FORWARD_BASE}anon-sense/{}",
+                    digest16(
+                        "lang-ontolex-anon-sense",
+                        &crate::rdf_scan::term_label(&ds, sense)
+                    )
+                )
+            });
+            let sense_iri = format!(
+                "{ONTOLEX_FORWARD_BASE}sense/{}",
+                digest16("lang-ontolex-fwd-sense", &sense_src)
+            );
+            lines.push(format!("<{entry_iri}> <{ONTOLEX_NS}sense> <{sense_iri}> ."));
+            lines.push(format!(
+                "<{sense_iri}> <{RDF_TYPE}> <{ONTOLEX_NS}LexicalSense> ."
+            ));
+            if let Some(gloss) = crate::rdf_scan::label_of(&ds, sense) {
+                lines.push(format!(
+                    "<{sense_iri}> <{SKOS_NS}definition> \"{}\" .",
+                    escape_literal(&gloss)
+                ));
+            }
+        }
+    }
+
+    unmapped.sort();
+    unmapped.dedup();
+
+    let source_iri = format!(
+        "{ONTOLEX_FORWARD_BASE}lexicon/{}",
+        digest16("lang-ontolex-fwd-lexicon", &source.name)
+    );
+    let bytes = ntriples_sorted(lines);
+    let content_key = format!("{source_iri}\u{1f}{}", String::from_utf8_lossy(&bytes));
+
+    let mut residue: Vec<String> = ONTOLEX_FLATTENED_STRATA
+        .iter()
+        .map(|s| (*s).to_owned())
+        .collect();
+    residue.extend(unmapped);
+    residue.sort();
+    residue.dedup();
+
+    let corr = crate::rdf_scan::lossy_lens_correspondence(
+        ONTOLEX_CORR_BASE,
+        &content_key,
+        ONTOLEX_PROJECT_LEG,
+        None,
+    );
+
+    Ok(Some(LangEmission {
+        artifacts: vec![EmittedArtifact {
+            path_suffix: format!("ontolex-lemon/{}.ttl", source.name),
+            bytes,
+            is_rdf: true,
+        }],
+        correspondence: corr,
+        ledger: vec![ProjectionResult {
+            target: format!("ontolex-lemon:{}", source.name),
+            content: String::new(),
+            is_rdf: true,
+            preservation: PreservationKind::SoundUnder,
+            complexity: "n/a".to_owned(),
+            lossy_drops: Vec::new(),
+            actual_drops: residue.clone(),
+        }],
+        leg_pair: None,
+        emitted_reading_count: None,
+        source_iri,
+        unsupported: residue,
+        round_trip_holds: false,
+        lossy_kind: PreservationKind::SoundUnder,
+        source_rdf: Vec::new(),
+    }))
+}
+
+/// Map a `lang:partOfSpeech` local name to its UD-aligned LexInfo class local name, or `None`
+/// where no faithful mapping exists (the caller carries the lang: POS verbatim + flags it).
+fn map_pos(local: &str) -> Option<&'static str> {
+    Some(match local {
+        "noun" => "noun",
+        "verb" => "verb",
+        "adjective" => "adjective",
+        "adverb" => "adverb",
+        "pronoun" => "pronoun",
+        "adposition" => "adposition",
+        "determiner" => "determiner",
+        "numeral" => "numeral",
+        "conjunction" => "conjunction",
+        "interjection" => "interjection",
+        _ => return None,
+    })
+}
+
+/// Map a `lang:MorphFeature` (`featureKey` / `featureValue` local names) to a LexInfo
+/// (property, value) local-name pair, or `None` where no faithful mapping exists.
+fn map_feature(key: &str, value: &str) -> Option<(&'static str, &'static str)> {
+    let prop = match key {
+        "featNumber" => "number",
+        "featTense" => "tense",
+        "featGender" => "gender",
+        "featPerson" => "person",
+        "featCase" => "case",
+        _ => return None,
+    };
+    let val = match (key, value) {
+        ("featNumber", "valPlur") => "plural",
+        ("featNumber", "valSing") => "singular",
+        ("featNumber", "valDual") => "dual",
+        ("featTense", "valPres") => "present",
+        ("featTense", "valPast") => "past",
+        ("featTense", "valFut") => "future",
+        ("featGender", "valMasc") => "masculine",
+        ("featGender", "valFem") => "feminine",
+        ("featGender", "valNeut") => "neuter",
+        _ => return None,
+    };
+    Some((prop, val))
+}
+
+#[cfg(test)]
+mod forward_tests {
+    use super::*;
+    use crate::is_exact_correspondence;
+
+    const LEXICON: &str = r#"
+@prefix lang: <https://blackcatinformatics.ca/lang/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex:   <http://example.org/lang/> .
+
+ex:lexCat a lang:Lexeme ; rdfs:label "cat" ; lang:partOfSpeech lang:noun .
+ex:senseCat a lang:Sense ; rdfs:label "the animal sense of 'cat'" ; lang:senseOf ex:lexCat .
+ex:wfCats a lang:WordForm ; rdfs:label "cats" ; lang:inflectionOf ex:lexCat ;
+    lang:morphFeature ex:featPlur .
+ex:featPlur a lang:MorphFeature ; lang:featureKey lang:featNumber ; lang:featureValue lang:valPlur .
+"#;
+
+    fn source() -> NamedSource {
+        NamedSource {
+            name: "lex".to_owned(),
+            bytes: LEXICON.as_bytes().to_vec(),
+        }
+    }
+
+    #[test]
+    fn lexeme_inventory_projects_forward_to_ontolex() {
+        let input = LangProjectionInput {
+            lang_models: vec![source()],
+            ..Default::default()
+        };
+        let emissions = OntoLexTarget.emit(&input).expect("emit");
+        assert_eq!(
+            emissions.len(),
+            1,
+            "one lexicon emission for a lexeme-bearing surface"
+        );
+        let e = &emissions[0];
+        let ttl = String::from_utf8(e.artifacts[0].bytes.clone()).unwrap();
+
+        // Faithful form/sense/reference structure: entry, canonical form + writtenRep, sense.
+        assert!(
+            ttl.contains(&format!("<{ONTOLEX_NS}LexicalEntry>")),
+            "{ttl}"
+        );
+        assert!(
+            ttl.contains(&format!("<{ONTOLEX_NS}canonicalForm>")),
+            "{ttl}"
+        );
+        assert!(
+            ttl.contains(&format!("<{ONTOLEX_NS}writtenRep> \"cat\"")),
+            "{ttl}"
+        );
+        assert!(ttl.contains(&format!("<{ONTOLEX_NS}otherForm>")), "{ttl}");
+        assert!(
+            ttl.contains(&format!("<{ONTOLEX_NS}writtenRep> \"cats\"")),
+            "{ttl}"
+        );
+        assert!(
+            ttl.contains(&format!("<{ONTOLEX_NS}LexicalSense>")),
+            "{ttl}"
+        );
+        // The gloss the ingest lift shed is carried FORWARD as skos:definition.
+        assert!(
+            ttl.contains(&format!(
+                "<{SKOS_NS}definition> \"the animal sense of 'cat'\""
+            )),
+            "{ttl}"
+        );
+        // UD-aligned features lowered to lexinfo: POS + number/plural.
+        assert!(
+            ttl.contains(&format!("<{LEXINFO_NS}partOfSpeech> <{LEXINFO_NS}noun>")),
+            "{ttl}"
+        );
+        assert!(
+            ttl.contains(&format!("<{LEXINFO_NS}number> <{LEXINFO_NS}plural>")),
+            "{ttl}"
+        );
+        assert!(e.artifacts[0].is_rdf);
+        assert!(e.artifacts[0].path_suffix.starts_with("ontolex-lemon/"));
+
+        // Honest preservation: never exact; SoundUnder with the flattened epistemic strata named.
+        assert!(!is_exact_correspondence(&e.correspondence));
+        assert_eq!(e.lossy_kind, PreservationKind::SoundUnder);
+        let joined = e.unsupported.join("\n");
+        assert!(joined.contains("vantage"), "{joined}");
+        assert!(joined.contains("lang:InterpretationAct"), "{joined}");
+    }
+
+    #[test]
+    fn unmapped_pos_is_carried_verbatim_and_flagged() {
+        let src = r#"
+@prefix lang: <https://blackcatinformatics.ca/lang/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex:   <http://example.org/lang/> .
+ex:lexOnom a lang:Lexeme ; rdfs:label "meow" ; lang:partOfSpeech lang:onomatopoeia .
+"#;
+        let input = LangProjectionInput {
+            lang_models: vec![NamedSource {
+                name: "x".to_owned(),
+                bytes: src.as_bytes().to_vec(),
+            }],
+            ..Default::default()
+        };
+        let e = &OntoLexTarget.emit(&input).expect("emit")[0];
+        let ttl = String::from_utf8(e.artifacts[0].bytes.clone()).unwrap();
+        // No lexinfo POS invented; the lang: POS is carried verbatim and flagged as residue.
+        assert!(
+            ttl.contains(&format!("<{LANG_NS}partOfSpeech> <{LANG_NS}onomatopoeia>")),
+            "{ttl}"
+        );
+        assert!(
+            e.unsupported
+                .iter()
+                .any(|r| r.contains("no lexinfo class mapping")),
+            "{:?}",
+            e.unsupported
+        );
+    }
+
+    #[test]
+    fn no_lexeme_surface_does_not_emit() {
+        let src = r#"
+@prefix lang: <https://blackcatinformatics.ca/lang/> .
+@prefix ex:   <http://example.org/lang/> .
+ex:sys a lang:SignSystem .
+"#;
+        let input = LangProjectionInput {
+            lang_models: vec![NamedSource {
+                name: "nolex".to_owned(),
+                bytes: src.as_bytes().to_vec(),
+            }],
+            ..Default::default()
+        };
+        assert!(OntoLexTarget.emit(&input).expect("emit").is_empty());
+    }
+
+    #[test]
+    fn emitter_is_byte_reproducible() {
+        let input = LangProjectionInput {
+            lang_models: vec![source()],
+            ..Default::default()
+        };
+        let a = OntoLexTarget.emit(&input).expect("a");
+        let b = OntoLexTarget.emit(&input).expect("b");
+        assert_eq!(a[0].artifacts[0].bytes, b[0].artifacts[0].bytes);
     }
 }
