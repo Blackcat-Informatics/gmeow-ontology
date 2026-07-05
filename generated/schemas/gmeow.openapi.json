@@ -22873,6 +22873,31 @@
                 "@type": {
                   "anyOf": [
                     {
+                      "const": "math:MetricSignature"
+                    },
+                    {
+                      "contains": {
+                        "const": "math:MetricSignature"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/math:MetricSignature"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
                       "const": "math:Number"
                     },
                     {
@@ -37461,6 +37486,31 @@
           "math:measureOn",
           "math:totalMass"
         ],
+        "type": "object"
+      },
+      "math:MetricSignature": {
+        "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          }
+        },
         "type": "object"
       },
       "math:Number": {

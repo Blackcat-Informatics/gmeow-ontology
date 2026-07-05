@@ -890,3 +890,56 @@ math:TangentSpaceDimensionShape
             }
         """ ;
     ] .
+
+# A metric signature (p, q) has p + q equal to its manifold's dimension, and its
+# (p, q) split agrees with the manifold's structure kind: Riemannian ⇒ q = 0
+# (positive-definite), Lorentzian ⇒ exactly one timelike direction (p = 1 or q = 1).
+math:MetricSignatureDimensionShape
+    a sh:NodeShape ;
+    rdfs:label "Metric-signature dimension-consistency shape"@x-gmeow-english ;
+    skos:definition "SHACL-SPARQL constraint: a math:MetricSignature's math:signaturePositive p and math:signatureNegative q sum to its manifold's math:manifoldDimension, and the (p, q) split agrees with the manifold's math:manifoldStructureKind — a math:riemannianStructure metric is positive-definite (q = 0) and a math:lorentzianStructure metric has exactly one timelike direction (p = 1 or q = 1). A signature that miscounts the dimension or contradicts the structure kind is a silent-error class the charter forbids (math:DimensionMismatch)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    math:enforcesFailureClass math:DimensionMismatch ;
+    sh:targetClass math:MetricSignature ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "A math:MetricSignature's math:signaturePositive plus math:signatureNegative does not equal its manifold's math:manifoldDimension (math:DimensionMismatch)." ;
+        sh:select """
+            SELECT DISTINCT $this WHERE {
+                ?mt <https://blackcatinformatics.ca/math/metricSignature> $this .
+                ?m <https://blackcatinformatics.ca/math/metricTensor> ?mt .
+                ?m <https://blackcatinformatics.ca/math/manifoldDimension> ?md .
+                $this <https://blackcatinformatics.ca/math/signaturePositive> ?p .
+                $this <https://blackcatinformatics.ca/math/signatureNegative> ?q .
+                BIND((?p + ?q) AS ?s)
+                FILTER(?s != ?md)
+            }
+        """ ;
+    ] ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "A math:lorentzianStructure manifold's math:MetricSignature does not have exactly one timelike direction (math:signaturePositive = 1 or math:signatureNegative = 1) (math:DimensionMismatch)." ;
+        sh:select """
+            SELECT DISTINCT $this WHERE {
+                ?mt <https://blackcatinformatics.ca/math/metricSignature> $this .
+                ?m <https://blackcatinformatics.ca/math/metricTensor> ?mt .
+                ?m <https://blackcatinformatics.ca/math/manifoldStructureKind> <https://blackcatinformatics.ca/math/lorentzianStructure> .
+                $this <https://blackcatinformatics.ca/math/signaturePositive> ?p .
+                $this <https://blackcatinformatics.ca/math/signatureNegative> ?q .
+                FILTER(?p != 1 && ?q != 1)
+            }
+        """ ;
+    ] ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "A math:riemannianStructure manifold's math:MetricSignature is not positive-definite (math:signatureNegative = 0) (math:DimensionMismatch)." ;
+        sh:select """
+            SELECT DISTINCT $this WHERE {
+                ?mt <https://blackcatinformatics.ca/math/metricSignature> $this .
+                ?m <https://blackcatinformatics.ca/math/metricTensor> ?mt .
+                ?m <https://blackcatinformatics.ca/math/manifoldStructureKind> <https://blackcatinformatics.ca/math/riemannianStructure> .
+                $this <https://blackcatinformatics.ca/math/signatureNegative> ?q .
+                FILTER(?q != 0)
+            }
+        """ ;
+    ] .
