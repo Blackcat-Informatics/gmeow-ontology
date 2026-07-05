@@ -1,0 +1,11 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Well-formed: a continuous map that declares its continuity (not assumed).
+# Conforms to math:ContinuousMapShape. Bound by ex:ecContinuousMapDeclared.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:inclusion a math:ContinuousMap ;
+    math:isContinuous true ;
+    math:preservesStructure math:continuityLaw .
