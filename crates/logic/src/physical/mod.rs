@@ -47,5 +47,5 @@ pub(crate) use magic::resolve_native;
 // are consumed by the forward/backward evaluators wired on the next rungs.
 #[allow(unused_imports)]
 pub(crate) use builtin_eval::{
-    emit_integer_surface, eval as eval_builtin, BuiltinError, BuiltinOutcome,
+    emit_integer_surface, eval as eval_builtin, BuiltinError, BuiltinOutcome, XSD_INTEGER,
 };
