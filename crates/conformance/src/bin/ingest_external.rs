@@ -649,6 +649,8 @@ fn write_ontouml_case(
             derivation_id: q.derivation_id.clone(),
             rule_iri: q.rule_iri.clone(),
             source_quad_ids: q.source_quad_ids.clone(),
+            // The foundation chase runs to completion (no governor) ⇒ every quad `ok`.
+            budget_status: gmeow_logic::seam::BudgetStatus::Ok.as_str().to_string(),
         })
         .collect();
 

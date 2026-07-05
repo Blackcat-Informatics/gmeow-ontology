@@ -1,0 +1,22 @@
+[
+  {
+    "quad": "<https://gmeow.example/753/szs-mini/unknown-budget/a> <https://gmeow.example/753/szs-mini/unknown-budget/edge> <https://gmeow.example/753/szs-mini/unknown-budget/b> <https://gmeow.example/753/szs-mini/unknown-budget/chain> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://gmeow.example/753/szs-mini/unknown-budget/a> <https://gmeow.example/753/szs-mini/unknown-budget/tc> <https://gmeow.example/753/szs-mini/unknown-budget/b> <https://gmeow.example/753/szs-mini/unknown-budget/chain> .",
+    "status": "exhausted"
+  },
+  {
+    "quad": "<https://gmeow.example/753/szs-mini/unknown-budget/b> <https://gmeow.example/753/szs-mini/unknown-budget/edge> <https://gmeow.example/753/szs-mini/unknown-budget/c> <https://gmeow.example/753/szs-mini/unknown-budget/chain> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://gmeow.example/753/szs-mini/unknown-budget/b> <https://gmeow.example/753/szs-mini/unknown-budget/tc> <https://gmeow.example/753/szs-mini/unknown-budget/c> <https://gmeow.example/753/szs-mini/unknown-budget/chain> .",
+    "status": "exhausted"
+  },
+  {
+    "quad": "<https://gmeow.example/753/szs-mini/unknown-budget/c> <https://gmeow.example/753/szs-mini/unknown-budget/edge> <https://gmeow.example/753/szs-mini/unknown-budget/d> <https://gmeow.example/753/szs-mini/unknown-budget/chain> .",
+    "status": "ok"
+  }
+]
