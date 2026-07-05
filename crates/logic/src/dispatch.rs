@@ -6,21 +6,26 @@
 //! # Primary path + fallback router
 //!
 //! `dispatch_query` resolves a `QProgram` native-first, falling back to the legacy
-//! two-path router for a declared native gap OR a step budget:
+//! two-path router only for a declared native gap:
 //!
 //! - **Native physical core** (the primary path): `crate::physical::resolve_native`
 //!   magic-transforms the query and evaluates it bottom-up over the columnar
 //!   `RelationStore`. It is authoritative for the binary positive query fragment it
 //!   decides; a `NativeOutcome::Unsupported` (cut / arithmetic / non-binary / demand-
 //!   breaks-stratification) is a declared gap that falls through to the router below.
-//!   The native core has no step governor, so a `budget.max_steps` request is also
-//!   demoted to the fallback (which honours it) before native runs; a `max_answers`-only
-//!   budget stays native. A step budget further forces the EDB `Fast` path to Scryer,
-//!   since `fast_path` honours only `max_answers`.
+//!   The native core now HONOURS `budget.max_steps`: its semi-naive governor stamps
+//!   `BudgetStatus::Exhausted` at the step ceiling (a sound partial answer, never a
+//!   wrong verdict), so a step-budgeted query is NOT demoted for lack of a step
+//!   governor — it runs native for the fragments native decides. `max_answers` and
+//!   `max_steps` budgets both stay native; only a declared native gap falls through.
 //!
 //! - **Fast path** (`Dispatch::Fast`): the goal contains only EDB atoms (no rule in the
 //!   program defines any goal predicate). Resolved directly via a single SPARQL
-//!   `SELECT DISTINCT` query against the native store — no Prolog overhead.
+//!   `SELECT DISTINCT` query against the native store — no Prolog overhead. Reached
+//!   ONLY on the fallback (after a declared native gap) and ONLY without a step budget:
+//!   `fast_path` honours just `max_answers`, so a step-budgeted goal that fell through
+//!   is routed to Scryer instead (which does honour the step ceiling). A step-budgeted
+//!   pure-EDB goal never falls through — native decides it (settled stratum 0).
 //!
 //! - **Scryer path** (`Dispatch::Scryer`): the goal hits at least one IDB predicate
 //!   (a predicate defined as a rule head). Delegated to `scryer_engine::run_scryer`
