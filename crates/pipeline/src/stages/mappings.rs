@@ -845,7 +845,15 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
         // `.put.rq`; when a slice authors ml-schema, both sides move to 1 in lockstep with
         // no gate edit. Kept as a distinct counter so `.put.rq` never inflates the forward
         // `sparql == 46` count.
-        let expected_put = correspondence_lower::lower_all(&root)
+        // Mirror the production stage's single-catalog discovery so the lowering sees
+        // the slice-authored ingest-claim terms (a `None` catalog would drop them and
+        // undercount the `.put.rq` oracle).
+        let catalog = purrdf::slice::SliceCatalog::discover(
+            &root.join("slices"),
+            crate::gmeow_ns::gmeow_slice_vocab(),
+        )
+        .expect("slice catalog discovery");
+        let expected_put = correspondence_lower::lower_all(&root, Some(&catalog))
             .expect("lower_all")
             .sparql_put
             .len();
