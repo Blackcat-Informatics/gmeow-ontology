@@ -678,6 +678,9 @@ mod tests {
                 edoal_target_kind: Some("class".to_owned()),
                 // … but the correspondence is authored as a by-reference BridgeView.
                 morphism_class: Some(MorphismClass::BridgeView),
+                ingest_claim: None,
+                ingest_residue: Vec::new(),
+                mnemomorphic: false,
             }],
         };
         let tag_map = BTreeMap::new();
