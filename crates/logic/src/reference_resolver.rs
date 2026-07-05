@@ -93,7 +93,16 @@ pub fn resolve(
     // Seen-goal memo: (pred, subject_canonical, object_canonical)
     let mut seen: BTreeSet<(String, String, String)> = BTreeSet::new();
 
-    state.resolve_conjunct(&program.goal.atoms, &initial_subst, &mut seen)?;
+    // The goal is a conjunction of atoms; lift it into the body-literal sequence the
+    // resolver walks (rule bodies interleave atoms with arithmetic/comparison builtins).
+    let goal_lits: Vec<QBodyLit> = program
+        .goal
+        .atoms
+        .iter()
+        .cloned()
+        .map(QBodyLit::Atom)
+        .collect();
+    state.resolve_conjunct(&goal_lits, &initial_subst, &mut seen)?;
 
     let mut answer_set = AnswerSet {
         bindings: state.answers,
@@ -141,7 +150,7 @@ impl<'a> ResolveState<'a> {
     /// Collects all answer bindings into `self.answers`.
     fn resolve_conjunct(
         &mut self,
-        atoms: &[QAtom],
+        lits: &[QBodyLit],
         subst: &Binding,
         seen: &mut BTreeSet<(String, String, String)>,
     ) -> Result<(), String> {
@@ -156,19 +165,20 @@ impl<'a> ResolveState<'a> {
             return Ok(());
         }
 
-        if atoms.is_empty() {
-            // All atoms satisfied — record the answer binding.
+        if lits.is_empty() {
+            // All body literals satisfied — record the answer binding.
             // Extract only the variables that appear in the goal.
             let goal_vars = goal_vars(&self.program.goal);
             let answer: Binding = goal_vars
                 .into_iter()
                 .filter_map(|v| {
                     // Chase through the substitution (including aliases) to get the
-                    // final bound value for each goal variable.
+                    // final bound value for each goal variable.  A builtin-generated
+                    // value is stored as a typed-integer literal surface, so it chases
+                    // to a `Const` and surfaces here like any other constant.
                     match chase_var(v.as_str(), subst, 0) {
                         QTerm::Const(c) => Some((v, c)),
-                        // The oracle never binds a goal variable to a bare number
-                        // (it rejects builtin programs before resolution); omit.
+                        // An unbound goal variable produces no binding row.
                         QTerm::Var(_) | QTerm::Num(_) => None,
                     }
                 })
@@ -183,27 +193,79 @@ impl<'a> ResolveState<'a> {
             return Ok(());
         }
 
-        let (first, rest) = atoms.split_first().unwrap();
+        let (first, rest) = lits.split_first().unwrap();
 
-        // Apply the current substitution to the first atom.
-        let applied = apply_subst(first, subst);
-
-        if self.idb.contains(&applied.pred) {
-            // IDB predicate: expand matching rules.
-            self.resolve_idb(&applied, rest, subst, seen)?;
-        } else {
-            // EDB predicate: look up in the world.
-            self.resolve_edb(&applied, rest, subst, seen)?;
+        match first {
+            QBodyLit::Cut => Err(
+                "cut is procedural; not supported by the declarative reference oracle \
+                 (use the Scryer engine)"
+                    .to_owned(),
+            ),
+            QBodyLit::Builtin(b) => self.resolve_builtin(b, rest, subst, seen),
+            QBodyLit::Atom(atom) => {
+                // Apply the current substitution to the first atom.
+                let applied = apply_subst(atom, subst);
+                if self.idb.contains(&applied.pred) {
+                    // IDB predicate: expand matching rules.
+                    self.resolve_idb(&applied, rest, subst, seen)
+                } else {
+                    // EDB predicate: look up in the world.
+                    self.resolve_edb(&applied, rest, subst, seen)
+                }
+            }
         }
+    }
 
-        Ok(())
+    /// Evaluate an arithmetic/comparison builtin against the current substitution
+    /// (body order), via the shared moded evaluator, then continue with `rest`.
+    ///
+    /// A generator extends the substitution with its computed value (stored as the
+    /// canonical typed-integer surface, so it chases like a `Const`); a filter
+    /// keeps or prunes the branch.  An unbound operand or a domain/precision error
+    /// (÷0, overflow) is a declared gap — an `Err` the caller routes to the Scryer
+    /// engine, exactly as cut is (never a wrong answer).
+    fn resolve_builtin(
+        &mut self,
+        builtin: &crate::query_ir::QBuiltin,
+        rest: &[QBodyLit],
+        subst: &Binding,
+        seen: &mut BTreeSet<(String, String, String)>,
+    ) -> Result<(), String> {
+        let lookup = |name: &str| match chase_var(name, subst, 0) {
+            QTerm::Const(c) => Some(c),
+            QTerm::Var(_) | QTerm::Num(_) => None,
+        };
+        match crate::physical::eval_builtin(builtin, &lookup) {
+            crate::physical::BuiltinOutcome::Filter(true) => {
+                self.resolve_conjunct(rest, subst, seen)
+            }
+            crate::physical::BuiltinOutcome::Filter(false) => Ok(()), // prune this branch
+            crate::physical::BuiltinOutcome::Generate { var, value } => {
+                let mut new_subst = subst.clone();
+                // The target may be aliased (via `__ALIAS__`) to an outer unbound
+                // variable; bind the alias ROOT so the value propagates to whatever
+                // the caller reads.  A free (unaliased) target chases to itself.
+                let root = match chase_var(&var, subst, 0) {
+                    QTerm::Var(root) => root,
+                    QTerm::Const(_) | QTerm::Num(_) => var,
+                };
+                new_subst.insert(root, crate::physical::emit_integer_surface(value));
+                self.resolve_conjunct(rest, &new_subst, seen)
+            }
+            crate::physical::BuiltinOutcome::Unbound
+            | crate::physical::BuiltinOutcome::Error(_) => Err(
+                "arithmetic/comparison builtin has an unbound operand or domain error in \
+                 the declarative reference oracle (use the Scryer engine)"
+                    .to_owned(),
+            ),
+        }
     }
 
     /// Resolve an IDB atom by expanding matching rules.
     fn resolve_idb(
         &mut self,
         atom: &QAtom,
-        rest: &[QAtom],
+        rest: &[QBodyLit],
         subst: &Binding,
         seen: &mut BTreeSet<(String, String, String)>,
     ) -> Result<(), String> {
@@ -254,33 +316,18 @@ impl<'a> ResolveState<'a> {
                 );
             }
 
-            // Detect an arithmetic/comparison builtin — reject immediately, the same
-            // way cut is rejected: the declarative oracle has no arithmetic engine, so
-            // Scryer is the sole evaluator for builtin programs (G2a).
-            if rule.body.iter().any(|b| matches!(b, QBodyLit::Builtin(_))) {
-                return Err(
-                    "arithmetic/comparison builtins are not supported by the declarative \
-                     reference oracle (use the Scryer engine)"
-                        .to_owned(),
-                );
-            }
+            // Arithmetic/comparison builtins are no longer rejected — they are
+            // evaluated in body order by `resolve_builtin` when reached (the shared
+            // moded evaluator).  Cut remains rejected above.
 
             // Try to unify the rule head with `atom`.
             // Rename rule variables to avoid collisions with the current substitution.
             let renamed_rule = rename_rule(rule);
 
             if let Some(new_subst) = unify_atoms(&renamed_rule.head, atom, subst) {
-                // Build the new body goal: renamed rule body ++ rest.
-                let body_atoms: Vec<QAtom> = renamed_rule
-                    .body
-                    .iter()
-                    .filter_map(|b| match b {
-                        QBodyLit::Atom(a) => Some(a.clone()),
-                        QBodyLit::Cut | QBodyLit::Builtin(_) => None, // already rejected above
-                    })
-                    .collect();
-
-                let mut combined = body_atoms;
+                // Build the new body goal: renamed rule body (atoms AND builtins, in
+                // order) ++ the remaining literals.
+                let mut combined: Vec<QBodyLit> = renamed_rule.body.clone();
                 combined.extend_from_slice(rest);
 
                 self.resolve_conjunct(&combined, &new_subst, seen)?;
@@ -295,7 +342,7 @@ impl<'a> ResolveState<'a> {
     fn resolve_edb(
         &mut self,
         atom: &QAtom,
-        rest: &[QAtom],
+        rest: &[QBodyLit],
         subst: &Binding,
         seen: &mut BTreeSet<(String, String, String)>,
     ) -> Result<(), String> {
@@ -396,30 +443,30 @@ fn unify_atoms(head: &QAtom, goal: &QAtom, subst: &Binding) -> Option<Binding> {
 
     let mut new_subst = subst.clone();
     for (h, g) in head.args.iter().zip(goal.args.iter()) {
-        let h_val = resolve_term(h, &new_subst);
-        let g_val = resolve_term(g, &new_subst);
+        // Normalize a bare integer operand to its canonical typed-integer surface so
+        // it unifies with a variable (binding it) or an equal literal constant —
+        // e.g. the `0` in a base fact `len(nil, 0)` binds a recursive call's length
+        // variable.  After this, only Const/Var remain.
+        let norm = |t: QTerm| match t {
+            QTerm::Num(n) => QTerm::Const(crate::physical::emit_integer_surface(n)),
+            other => other,
+        };
+        let h_val = norm(resolve_term(h, &new_subst));
+        let g_val = norm(resolve_term(g, &new_subst));
         match (h_val, g_val) {
             (QTerm::Const(hc), QTerm::Const(gc)) => {
                 if hc != gc {
                     return None;
                 }
             }
-            // Numeric operands are never unified by the oracle (it rejects builtin
-            // programs up front). A `Num` only unifies with an identical `Num`; any
-            // mismatch — including against a Const or Var — fails unification.
-            (QTerm::Num(hn), QTerm::Num(gn)) => {
-                if hn != gn {
-                    return None;
-                }
-            }
-            (QTerm::Num(_), _) | (_, QTerm::Num(_)) => {
-                return None;
-            }
             (QTerm::Var(hv), QTerm::Const(gc)) => {
                 new_subst.insert(hv, gc);
             }
             (QTerm::Const(hc), QTerm::Var(gv)) => {
                 new_subst.insert(gv, hc);
+            }
+            (QTerm::Num(_), _) | (_, QTerm::Num(_)) => {
+                unreachable!("Num normalized to Const above")
             }
             (QTerm::Var(hv), QTerm::Var(gv)) => {
                 // Both unbound variables: we alias the head variable to the goal
@@ -805,5 +852,95 @@ mod tests {
             err.contains("cut is procedural"),
             "error must mention 'cut is procedural': {err:?}"
         );
+    }
+
+    // ── Arithmetic/comparison builtins in the declarative oracle ─────────────
+
+    #[test]
+    fn arithmetic_builtin_list_length_resolves() {
+        // Over the list l0→l1→l2→nil (rdf:rest chain), len(l0) = 3 via the
+        // recursive `N is M + 1` generator, now evaluated by the oracle in body order.
+        let base = "https://example.org/";
+        let rdf = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
+        let (store, world_nn) = make_world(&[
+            (
+                &format!("{base}l0"),
+                &format!("{rdf}rest"),
+                &format!("{base}l1"),
+            ),
+            (
+                &format!("{base}l1"),
+                &format!("{rdf}rest"),
+                &format!("{base}l2"),
+            ),
+            (
+                &format!("{base}l2"),
+                &format!("{rdf}rest"),
+                &format!("{rdf}nil"),
+            ),
+        ]);
+        let foreign = WorldStoreForeign::from_world(&store, W, PROFILE).unwrap();
+        let src = format!(
+            ":- prefix(ex, '{base}').\n\
+             :- prefix(rdf, '{rdf}').\n\
+             ex:len(rdf:nil, 0).\n\
+             ex:len(L, N) :- rdf:rest(L, R), ex:len(R, M), N is M + 1.\n\
+             ?- ex:len(ex:l0, N).\n"
+        );
+        let prog = parse_query_program(&src).unwrap();
+        let ans = resolve(&foreign, &world_nn, &prog, &Budget::default()).unwrap();
+        assert_eq!(ans.status, BudgetStatus::Ok);
+        assert_eq!(ans.bindings.len(), 1, "one length answer: {ans:?}");
+        assert_eq!(
+            ans.bindings[0]["N"],
+            "\"3\"^^<http://www.w3.org/2001/XMLSchema#integer>"
+        );
+    }
+
+    #[test]
+    fn comparison_builtin_filters_in_oracle() {
+        // A comparison over a generated value keeps or prunes the branch.  The
+        // passing rule (N = 5 > 4) yields an answer; the failing rule (N = 2 > 5)
+        // yields none — proving `resolve_builtin` both generates and filters.
+        let base = "https://example.org/";
+        let (store, world_nn) = make_world(&[(
+            &format!("{base}a"),
+            &format!("{base}kind"),
+            &format!("{base}item"),
+        )]);
+        let foreign = WorldStoreForeign::from_world(&store, W, PROFILE).unwrap();
+
+        let pass_src = format!(
+            ":- prefix(ex, '{base}').\n\
+             ex:pass(X, N) :- ex:kind(X, ex:item), N is 2 + 3, N > 4.\n\
+             ?- ex:pass(X, N).\n"
+        );
+        let pass = resolve(
+            &foreign,
+            &world_nn,
+            &parse_query_program(&pass_src).unwrap(),
+            &Budget::default(),
+        )
+        .unwrap();
+        assert_eq!(pass.bindings.len(), 1, "5 > 4 keeps the branch: {pass:?}");
+        assert_eq!(pass.bindings[0]["X"], format!("<{base}a>"));
+        assert_eq!(
+            pass.bindings[0]["N"],
+            "\"5\"^^<http://www.w3.org/2001/XMLSchema#integer>"
+        );
+
+        let fail_src = format!(
+            ":- prefix(ex, '{base}').\n\
+             ex:blocked(X, N) :- ex:kind(X, ex:item), N is 1 + 1, N > 5.\n\
+             ?- ex:blocked(X, N).\n"
+        );
+        let fail = resolve(
+            &foreign,
+            &world_nn,
+            &parse_query_program(&fail_src).unwrap(),
+            &Budget::default(),
+        )
+        .unwrap();
+        assert_eq!(fail.bindings.len(), 0, "2 > 5 prunes the branch: {fail:?}");
     }
 }
