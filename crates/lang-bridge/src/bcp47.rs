@@ -36,7 +36,7 @@ use crate::bridge::IngestDiagnostic;
 use crate::emit::{digest16, ntriples_sorted};
 use crate::rdf_scan::{
     iri_of, object_literal, objects, parse_lang_turtle, subjects_of_type, subjects_with_object,
-    term_label, LANG_NS,
+    term_label, unrepresentable, LANG_NS,
 };
 use crate::registry::{EmittedArtifact, LangEmission, LangProjectionInput, LangProjectionTarget};
 
@@ -102,6 +102,19 @@ impl LangProjectionTarget for Bcp47Target {
         }
         derivations.sort_by(|a, b| a.variety_iri.cmp(&b.variety_iri));
         derivations.dedup();
+        // After collapsing byte-identical derivations, any remaining same-variety pair carries a
+        // CONFLICTING derivation (a different tag/context for one lang:LanguageVariety across the
+        // scanned surfaces) — a hard fail, never a silently doubled or arbitrarily-picked tag.
+        if let Some(conflict) = derivations
+            .windows(2)
+            .find(|w| w[0].variety_iri == w[1].variety_iri)
+        {
+            return Err(unrepresentable(format!(
+                "lang:LanguageVariety <{}> yields conflicting BCP-47 derivations across the scanned \
+                 surfaces; a variety must derive exactly one registry tag",
+                conflict[0].variety_iri
+            )));
+        }
         Ok(vec![emit_tag_set(&derivations)])
     }
 }

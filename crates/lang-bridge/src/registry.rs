@@ -164,8 +164,10 @@ pub const EMISSION_WORTHY_CLASSES: &[(&str, &[&str])] = &[
     ("LanguageVariety", &["bcp47"]),
 ];
 
-/// Whether the registry covers `lang_class` — every emission-worthy class maps to at least
-/// one REGISTERED target. `Err` names the gap (functor totality failure).
+/// Whether the registry covers `lang_class` — EVERY target `EMISSION_WORTHY_CLASSES` declares
+/// for the class must be registered (functor totality). Requiring all, not merely one, means
+/// dropping a projection target (e.g. `abnf` for `Grammar`, `tei` for `ComposedForm`) is a hard
+/// fail, not a silent loss of that surface. `Err` names the missing target(s).
 pub fn assert_registry_covers(lang_class: &str) -> Result<(), String> {
     let registered: Vec<&str> = registry().iter().map(|t| t.name()).collect();
     let Some((_, targets)) = EMISSION_WORTHY_CLASSES
@@ -177,12 +179,17 @@ pub fn assert_registry_covers(lang_class: &str) -> Result<(), String> {
              target(s) that project it"
         ));
     };
-    if targets.iter().any(|t| registered.contains(t)) {
+    let missing: Vec<&str> = targets
+        .iter()
+        .filter(|t| !registered.contains(t))
+        .copied()
+        .collect();
+    if missing.is_empty() {
         Ok(())
     } else {
         Err(format!(
-            "no registered projection target covers emission-worthy class lang:{lang_class} \
-             (expected one of {targets:?})"
+            "emission-worthy class lang:{lang_class} declares projection target(s) {missing:?} \
+             that are not registered (functor totality: every declared target must be registered)"
         ))
     }
 }

@@ -121,6 +121,16 @@ fn emit_composed_form(
         tokens.push((idx, text, is_head));
     }
     tokens.sort_by_key(|(idx, _, _)| *idx);
+    // Constituent order is identity-bearing: a duplicate lang:slotIndex is ambiguous word order
+    // and a HARD FAIL (as the doc promises), never a silently-serialized token order.
+    if let Some(dup) = tokens.windows(2).find(|w| w[0].0 == w[1].0) {
+        return Err(crate::rdf_scan::unrepresentable(format!(
+            "duplicate lang:slotIndex {} among the slots of composed form {} — TEI word order is \
+             the slot-index order and a repeated index is ambiguous",
+            dup[0].0,
+            term_label(ds, composed)
+        )));
+    }
 
     let local = local_name(&source_iri).to_owned();
     let xml = render_tei(&sentence, &tokens, &source_iri);
