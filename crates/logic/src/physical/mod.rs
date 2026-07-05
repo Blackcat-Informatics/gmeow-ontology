@@ -16,6 +16,7 @@
 //! that would be unwound the next rung.
 #![allow(dead_code)]
 
+mod builtin_eval;
 mod magic;
 mod parity;
 mod seminaive;
@@ -38,3 +39,13 @@ pub(crate) use seminaive::{evaluate, materialize_native, NativeOutcome, Unsuppor
 // `resolve_native`, the oracle-parity sibling of `reference_resolver::resolve`. The primary
 // backward path consumed by `dispatch::dispatch_query`.
 pub(crate) use magic::resolve_native;
+
+// The shared moded builtin evaluator: one arithmetic/comparison semantics called
+// by every native engine. `emit_integer_surface` is the single canonical
+// computed-value surface, reused by the dispatch/Scryer surface emitters so
+// byte-identity is by construction. `eval_builtin`/`BuiltinOutcome`/`BuiltinError`
+// are consumed by the forward/backward evaluators wired on the next rungs.
+#[allow(unused_imports)]
+pub(crate) use builtin_eval::{
+    emit_integer_surface, eval as eval_builtin, BuiltinError, BuiltinOutcome, XSD_INTEGER,
+};

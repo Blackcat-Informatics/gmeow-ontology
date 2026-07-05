@@ -55,10 +55,13 @@
 //! module-internally rather than scattering per-item attributes.
 #![allow(dead_code)]
 
+use std::borrow::Cow;
 use std::collections::{BTreeSet, HashMap, HashSet};
 
+use crate::physical::builtin_eval::{emit_integer_surface, eval as eval_builtin, BuiltinOutcome};
 use crate::physical::store::{Bound, RelationStore};
 use crate::provenance::mint_derivation_id;
+use crate::query_ir::QBuiltin;
 use crate::rule_ir::{
     distinct_pairs_satisfied, echo_asserted, ground, ground_head, match_atom, sort_rows,
     world_edb_facts, DerivedRow, EvalAtom, EvalRule, Fact, FactKey, FactStore, RuleRoundCandidate,
@@ -331,6 +334,7 @@ fn join_body_indexed(
     rel: &RelationStore,
     accumulated: &RelationStore,
     delta: &HashSet<FactKey>,
+    gap: &mut bool,
 ) -> Vec<Solution> {
     let positive: Vec<&EvalAtom> = rule.body.iter().filter(|a| !a.negated).collect();
     let negated: Vec<&EvalAtom> = rule.body.iter().filter(|a| a.negated).collect();
@@ -367,6 +371,15 @@ fn join_body_indexed(
         all
     };
 
+    // Post-join constraint stage: evaluate the rule's arithmetic/comparison
+    // builtins in body order.  A generator (`is` with a free target) binds its
+    // target — available to `ground_head` and to the negated check below; a filter
+    // prunes the solution.  This runs BEFORE the NAF retain so a negated atom over
+    // a generator-bound variable sees the binding.
+    if !rule.builtins.is_empty() {
+        solutions = apply_builtins(&rule.builtins, solutions, gap);
+    }
+
     if !negated.is_empty() {
         solutions.retain(|sol| {
             !negated
@@ -376,6 +389,46 @@ fn join_body_indexed(
     }
 
     solutions
+}
+
+/// Evaluate a rule's arithmetic/comparison builtins against each candidate
+/// solution, in body order, via the shared moded evaluator.
+///
+/// A generator extends the solution's bindings with the computed value in the
+/// canonical typed-integer surface; a filter keeps or prunes the solution. An
+/// operand that is still unbound, or a domain/precision error (÷0, overflow),
+/// sets `gap` and drops the solution — the caller then re-demotes the WHOLE
+/// program to the oracle rather than present an incomplete native answer, so a
+/// dropped solution is never a wrong answer.
+fn apply_builtins(builtins: &[QBuiltin], sols: Vec<Solution>, gap: &mut bool) -> Vec<Solution> {
+    let mut out: Vec<Solution> = Vec::with_capacity(sols.len());
+    'next_sol: for mut sol in sols {
+        for b in builtins {
+            // Scope the immutable borrow of `sol` to the evaluation so the binding
+            // can be extended after the outcome is known. The lookup borrows the
+            // bound surface directly (no per-lookup allocation).
+            let outcome = {
+                let lookup = |name: &str| sol.get(name).map(Cow::Borrowed);
+                eval_builtin(b, &lookup)
+            };
+            match outcome {
+                BuiltinOutcome::Filter(true) => {}
+                BuiltinOutcome::Filter(false) => continue 'next_sol,
+                BuiltinOutcome::Generate { var, value } => {
+                    sol.bindings.push((var, emit_integer_surface(value)));
+                }
+                BuiltinOutcome::Unbound | BuiltinOutcome::Error(_) => {
+                    // A single unbound operand / domain error re-demotes the WHOLE
+                    // program to the oracle, so the remaining solutions cannot
+                    // change the outcome — stop evaluating them.
+                    *gap = true;
+                    return Vec::new();
+                }
+            }
+        }
+        out.push(sol);
+    }
+    out
 }
 
 /// Whether a negated atom is satisfied (blocks the rule) — its grounded form is
@@ -617,6 +670,9 @@ fn eval_world_stratified(
     let total = rules_by_stratum.len();
     let mut completed = 0usize;
     let mut status = BudgetStatus::Ok;
+    // The forward `.rls` materialization carries no arithmetic builtins (the ontology
+    // corpus has none), so this stays false; assert that invariant below.
+    let mut builtin_gap = false;
     for stratum_rules in rules_by_stratum {
         if stratum_rules.is_empty() {
             completed += 1; // an empty stratum is trivially saturated
@@ -629,6 +685,7 @@ fn eval_world_stratified(
             &mut depth,
             &mut derivations,
             governor,
+            &mut builtin_gap,
         )? {
             FixpointStatus::Complete => {
                 // This stratum reached its natural fixpoint: its head predicates are now
@@ -646,6 +703,11 @@ fn eval_world_stratified(
             }
         }
     }
+
+    debug_assert!(
+        !builtin_gap,
+        "forward materialization rules carry no arithmetic builtins"
+    );
 
     Ok(Budgeted {
         rows: derivations,
@@ -673,6 +735,7 @@ fn eval_stratum_fixpoint(
     depth: &mut HashMap<FactKey, u32>,
     derivations: &mut Vec<DerivedRow>,
     governor: &mut StepGovernor,
+    builtin_gap: &mut bool,
 ) -> Result<FixpointStatus, String> {
     // Seed delta with ALL currently-known keys so this stratum's rules fire against
     // the seed in round 1 (mirrors `least_model_of_reduct`'s `delta = key_set()`).
@@ -682,7 +745,7 @@ fn eval_stratum_fixpoint(
         let mut round: HashMap<FactKey, RuleRoundCandidate> = HashMap::new();
 
         for rule in rules {
-            for sol in join_body_indexed(rule, rel, rel, &delta) {
+            for sol in join_body_indexed(rule, rel, rel, &delta, builtin_gap) {
                 if !distinct_pairs_satisfied(&rule.distinct_pairs, &sol)? {
                     continue;
                 }
@@ -882,6 +945,11 @@ pub(crate) fn evaluate(
     let mut completed = 0usize;
     let mut status = BudgetStatus::Ok;
     let mut derivations: Vec<DerivedRow> = Vec::new();
+    // Set iff a builtin could not be evaluated in its binding mode, or hit a
+    // domain/precision error (÷0, overflow).  Such a program is a declared native
+    // gap: the whole query re-demotes to the oracle rather than present an
+    // incomplete answer set — never a wrong answer.
+    let mut builtin_gap = false;
     for stratum_rules in &rules_by_stratum {
         if stratum_rules.is_empty() {
             completed += 1;
@@ -894,6 +962,7 @@ pub(crate) fn evaluate(
             &mut depth,
             &mut derivations,
             &mut governor,
+            &mut builtin_gap,
         )? {
             FixpointStatus::Complete => {
                 for rule in stratum_rules {
@@ -906,6 +975,10 @@ pub(crate) fn evaluate(
                 break;
             }
         }
+    }
+
+    if builtin_gap {
+        return Ok(NativeOutcome::Unsupported(UnsupportedKind::Arithmetic));
     }
 
     Ok(NativeOutcome::Decided(Budgeted {
@@ -924,7 +997,7 @@ pub(crate) fn evaluate(
 mod tests {
     use super::*;
     use crate::provenance::term_display;
-    use crate::rule_ir::{least_model_of_reduct, parse_eval_rules};
+    use crate::rule_ir::{least_model_of_reduct, parse_eval_rules, EvalTerm};
     use crate::store::WorldStore;
     use purrdf::TermValue;
 
@@ -1428,6 +1501,153 @@ mod tests {
                 .iter()
                 .all(|r| r.predicate.as_str() != unreach),
             "no unreachable row may be derived after the budget cut"
+        );
+    }
+
+    // ── Arithmetic/comparison builtin evaluation in the seminaive engine ──────
+    //
+    // These drive the post-join constraint stage directly by constructing an
+    // `EvalRule` carrying builtins (the shape the magic backward transform
+    // produces), independent of the magic front-end.
+
+    const XSD_INT: &str = "http://www.w3.org/2001/XMLSchema#integer";
+
+    fn int_lit(n: i64) -> TermValue {
+        TermValue::typed_literal(n.to_string(), XSD_INT)
+    }
+
+    fn var_atom(subject: &str, pred: &str, object: &str) -> EvalAtom {
+        EvalAtom {
+            subject: EvalTerm::Var(subject.to_owned()),
+            predicate: nn(pred),
+            object: EvalTerm::Var(object.to_owned()),
+            negated: false,
+        }
+    }
+
+    /// A single-fact `RelationStore` EDB `val(<a>, <n as xsd:integer>)`.
+    fn val_edb(pairs: &[(&str, i64)]) -> RelationStore {
+        let mut edb = RelationStore::new();
+        for (s, n) in pairs {
+            edb.insert(&nn("val"), term(s), int_lit(*n));
+        }
+        edb
+    }
+
+    fn is_builtin(
+        target: &str,
+        lhs: &str,
+        op: crate::query_ir::ArithOp,
+        rhs: QBuiltinRhs,
+    ) -> QBuiltin {
+        use crate::query_ir::QTerm;
+        QBuiltin::Is {
+            target: QTerm::Var(target.to_owned()),
+            lhs: QTerm::Var(lhs.to_owned()),
+            op,
+            rhs: match rhs {
+                QBuiltinRhs::Var(v) => QTerm::Var(v.to_owned()),
+                QBuiltinRhs::Num(n) => QTerm::Num(n),
+            },
+        }
+    }
+
+    enum QBuiltinRhs {
+        Var(&'static str),
+        Num(i64),
+    }
+
+    /// The `evaluate` result facts as a set of `(subject, predicate, object)` displays.
+    fn fact_keys(facts: &[Fact]) -> std::collections::BTreeSet<FactKey> {
+        facts.iter().map(Fact::key).collect()
+    }
+
+    #[test]
+    fn seminaive_generator_binds_head_from_arithmetic() {
+        use crate::query_ir::ArithOp;
+        // result(?X, ?D) :- val(?X, ?N), D is N + 10 .
+        let rule = EvalRule {
+            head: var_atom("?X", "result", "?D"),
+            body: vec![var_atom("?X", "val", "?N")],
+            rule_iri: nn("rule/result"),
+            distinct_pairs: vec![],
+            builtins: vec![is_builtin("?D", "?N", ArithOp::Add, QBuiltinRhs::Num(10))],
+        };
+        let out = evaluate(val_edb(&[("a", 2)]), &[rule], None).expect("evaluate");
+        let NativeOutcome::Decided(budgeted) = out else {
+            panic!("expected Decided, got a gap");
+        };
+        let keys = fact_keys(&budgeted.rows);
+        // The generator bound ?D = 12, surfaced as the canonical typed integer.
+        assert!(
+            keys.contains(&(
+                format!("<{}>", nn("a")),
+                nn("result"),
+                format!("\"12\"^^<{XSD_INT}>"),
+            )),
+            "expected result(a, 12): {keys:?}"
+        );
+    }
+
+    #[test]
+    fn seminaive_comparison_filters_solutions() {
+        use crate::query_ir::{CmpOp, QTerm};
+        // big(?X) as big(?X, ?X) :- val(?X, ?N), N > 5 .   (binary head encoding)
+        let rule = EvalRule {
+            head: var_atom("?X", "big", "?X"),
+            body: vec![var_atom("?X", "val", "?N")],
+            rule_iri: nn("rule/big"),
+            distinct_pairs: vec![],
+            builtins: vec![QBuiltin::Compare {
+                lhs: QTerm::Var("?N".to_owned()),
+                op: CmpOp::Gt,
+                rhs: QTerm::Num(5),
+            }],
+        };
+        let out = evaluate(val_edb(&[("a", 2), ("b", 9)]), &[rule], None).expect("evaluate");
+        let NativeOutcome::Decided(budgeted) = out else {
+            panic!("expected Decided, got a gap");
+        };
+        let keys = fact_keys(&budgeted.rows);
+        // Only b (9 > 5) survives the filter; a (2) is pruned.
+        assert!(
+            keys.contains(&(
+                format!("<{}>", nn("b")),
+                nn("big"),
+                format!("<{}>", nn("b"))
+            )),
+            "b passes the filter: {keys:?}"
+        );
+        assert!(
+            !keys.contains(&(
+                format!("<{}>", nn("a")),
+                nn("big"),
+                format!("<{}>", nn("a"))
+            )),
+            "a must be filtered out: {keys:?}"
+        );
+    }
+
+    #[test]
+    fn seminaive_overflow_is_declared_gap_not_wrong_answer() {
+        use crate::query_ir::ArithOp;
+        // over(?X, ?D) :- val(?X, ?N), D is N + i64::MAX .  → overflow → declared gap.
+        let rule = EvalRule {
+            head: var_atom("?X", "over", "?D"),
+            body: vec![var_atom("?X", "val", "?N")],
+            rule_iri: nn("rule/over"),
+            distinct_pairs: vec![],
+            builtins: vec![is_builtin(
+                "?D",
+                "?N",
+                ArithOp::Add,
+                QBuiltinRhs::Num(i64::MAX),
+            )],
+        };
+        let out = evaluate(val_edb(&[("a", 1)]), &[rule], None).expect("evaluate");
+        assert!(
+            matches!(out, NativeOutcome::Unsupported(UnsupportedKind::Arithmetic)),
+            "overflow must be a declared Arithmetic gap, never a wrong answer"
         );
     }
 }

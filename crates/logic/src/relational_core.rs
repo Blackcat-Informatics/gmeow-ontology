@@ -102,6 +102,8 @@ fn rc_rule_to_eval(rc: &RcRule) -> Result<EvalRule, String> {
         body: body?,
         rule_iri,
         distinct_pairs: rc.distinct_pairs.clone(),
+        // The relational-core lowering carries no arithmetic builtins.
+        builtins: Vec::new(),
     })
 }
 
