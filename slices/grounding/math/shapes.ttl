@@ -694,6 +694,7 @@ math:DerivativeShape
     sh:property [
         sh:path math:derivativeOf ;
         sh:minCount 1 ;
+        sh:maxCount 1 ;
         sh:nodeKind sh:IRI ;
         sh:severity sh:Violation ;
         sh:message "A math:Derivative must name what it differentiates through math:derivativeOf." ;
@@ -701,6 +702,7 @@ math:DerivativeShape
     sh:property [
         sh:path math:withRespectToVariable ;
         sh:minCount 1 ;
+        sh:maxCount 1 ;
         sh:nodeKind sh:IRI ;
         sh:severity sh:Violation ;
         sh:message "A math:Derivative must name its variable of differentiation through math:withRespectToVariable." ;
@@ -726,6 +728,7 @@ math:LimitShape
     sh:property [
         sh:path math:limitOf ;
         sh:minCount 1 ;
+        sh:maxCount 1 ;
         sh:nodeKind sh:IRI ;
         sh:severity sh:Violation ;
         sh:message "A math:Limit must name the expression whose limit is taken through math:limitOf." ;
@@ -733,6 +736,7 @@ math:LimitShape
     sh:property [
         sh:path math:limitPoint ;
         sh:minCount 1 ;
+        sh:maxCount 1 ;
         sh:severity sh:Violation ;
         sh:message "A math:Limit must name the point its variable approaches through math:limitPoint." ;
     ] .
@@ -781,6 +785,22 @@ math:SeriesShape
         sh:class math:Convergence ;
         sh:severity sh:Violation ;
         sh:message "A math:Series must carry a math:Convergence through math:hasConvergence naming its mode of convergence." ;
+    ] .
+
+# A sequence carries a convergence naming its mode.
+math:SequenceShape
+    a sh:NodeShape ;
+    rdfs:label "Sequence convergence framing shape"@x-gmeow-english ;
+    skos:definition "SHACL constraint for math:Sequence: it carries a math:Convergence through math:hasConvergence naming what it converges to and in which mode. A sequence asserted to converge without a math:Convergence naming the mode is ill-formed (math:UnderspecifiedConvergence)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    math:enforcesFailureClass math:UnderspecifiedConvergence ;
+    sh:targetClass math:Sequence ;
+    sh:property [
+        sh:path math:hasConvergence ;
+        sh:minCount 1 ;
+        sh:class math:Convergence ;
+        sh:severity sh:Violation ;
+        sh:message "A math:Sequence must carry a math:Convergence through math:hasConvergence naming its mode of convergence (math:UnderspecifiedConvergence)." ;
     ] .
 
 # --- Topology: declared, not assumed ---------------------------------------- #
@@ -870,6 +890,7 @@ math:ChartShape
     sh:property [
         sh:path math:chartDomain ;
         sh:minCount 1 ;
+        sh:maxCount 1 ;
         sh:nodeKind sh:IRI ;
         sh:severity sh:Violation ;
         sh:message "A math:Chart must name the region it covers through math:chartDomain." ;
@@ -877,6 +898,7 @@ math:ChartShape
     sh:property [
         sh:path math:coordinateMap ;
         sh:minCount 1 ;
+        sh:maxCount 1 ;
         sh:nodeKind sh:IRI ;
         sh:severity sh:Violation ;
         sh:message "A math:Chart must name its coordinate map through math:coordinateMap." ;
@@ -884,6 +906,7 @@ math:ChartShape
     sh:property [
         sh:path math:targetCoordinateSpace ;
         sh:minCount 1 ;
+        sh:maxCount 1 ;
         sh:nodeKind sh:IRI ;
         sh:severity sh:Violation ;
         sh:message "A math:Chart must name its target coordinate space through math:targetCoordinateSpace." ;

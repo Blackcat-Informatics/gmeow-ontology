@@ -1,0 +1,31 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Well-formed: a math:Sequence — a subclass of math:Function, so it declares its
+# math:domain and math:codomain (both math:Set) — carrying a math:Convergence
+# through math:hasConvergence that names what it converges to and its mode.
+# Conforms to math:SequenceShape, math:FunctionFramingShape, and math:ConvergenceShape.
+# Bound by ex:ecSequenceConvergent.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:harmonicSequence a math:Sequence ;
+    rdfs:label "Harmonic sequence 1/n"@x-gmeow-english ;
+    math:domain ex:naturalNumbers ;
+    math:codomain ex:rationalNumbers ;
+    math:hasConvergence ex:harmonicSequenceConvergence .
+
+ex:naturalNumbers a math:Set ;
+    rdfs:label "Natural numbers (index set)"@x-gmeow-english .
+
+ex:rationalNumbers a math:Set ;
+    rdfs:label "Rational numbers (value set)"@x-gmeow-english .
+
+ex:harmonicSequenceConvergence a math:Convergence ;
+    rdfs:label "Convergence of the harmonic sequence to zero"@x-gmeow-english ;
+    math:convergesTo ex:zeroValue ;
+    math:convergenceMode math:pointwiseConvergence .
+
+ex:zeroValue a math:MathematicalObject ;
+    rdfs:label "The limit value zero"@x-gmeow-english .

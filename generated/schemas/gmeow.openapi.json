@@ -23313,6 +23313,31 @@
                 "@type": {
                   "anyOf": [
                     {
+                      "const": "math:Sequence"
+                    },
+                    {
+                      "contains": {
+                        "const": "math:Sequence"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/math:Sequence"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
                       "const": "math:Series"
                     },
                     {
@@ -36882,34 +36907,15 @@
             ]
           },
           "math:derivativeOf": {
-            "anyOf": [
-              {
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
-                "minItems": 1,
-                "type": "array"
+            "properties": {
+              "@id": {
+                "type": "string"
               }
-            ]
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
           },
           "math:derivativeOrder": {
             "anyOf": [
@@ -36932,34 +36938,15 @@
             "minimum": 1.0
           },
           "math:withRespectToVariable": {
-            "anyOf": [
-              {
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
-                "minItems": 1,
-                "type": "array"
+            "properties": {
+              "@id": {
+                "type": "string"
               }
-            ]
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
           }
         },
         "required": [
@@ -37614,45 +37601,17 @@
             ]
           },
           "math:limitOf": {
-            "anyOf": [
-              {
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
-                "minItems": 1,
-                "type": "array"
+            "properties": {
+              "@id": {
+                "type": "string"
               }
-            ]
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
           },
-          "math:limitPoint": {
-            "anyOf": [
-              {},
-              {
-                "items": {},
-                "minItems": 1,
-                "type": "array"
-              }
-            ]
-          }
+          "math:limitPoint": {}
         },
         "required": [
           "math:limitOf",
@@ -38044,6 +38003,49 @@
             ]
           }
         },
+        "type": "object"
+      },
+      "math:Sequence": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "math:hasConvergence": {
+            "anyOf": [
+              {
+                "$comment": "external class https://blackcatinformatics.ca/math/Convergence",
+                "type": "string"
+              },
+              {
+                "items": {
+                  "$comment": "external class https://blackcatinformatics.ca/math/Convergence",
+                  "type": "string"
+                },
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          }
+        },
+        "required": [
+          "math:hasConvergence"
+        ],
         "type": "object"
       },
       "math:Series": {
