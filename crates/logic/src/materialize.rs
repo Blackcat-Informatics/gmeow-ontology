@@ -732,9 +732,29 @@ pub fn materialize_routed(
             .map(derived_row_to_quad)
             .map(|dq| {
                 dq.map(|mut q| {
-                    // Stamp the native governor's status onto every emitted quad (the
-                    // seam carries budget-incompleteness per quad, mirroring the Nemo path).
-                    q.budget_status = status;
+                    // Frontier-aware per-quad budget stamp. The overall `status` is the
+                    // whole-run verdict; a single quad can be MORE settled than the run.
+                    //
+                    // - `Ok` (natural fixpoint) ⇒ every quad stays `Ok` (unchanged).
+                    // - `Exhausted` (a step cut) ⇒ a quad whose PREDICATE reached its
+                    //   stratum's natural fixpoint has a FINAL least-model extension
+                    //   (`frontier.saturated_preds`, matched on the bare-IRI predicate name
+                    //   `seminaive` inserts — the head/EDB `predicate.as_str()`), so it is
+                    //   conclusive / complete-for-fragment and keeps `Ok`; only a quad from
+                    //   the cut or unreached strata is genuinely incomplete → `Exhausted`.
+                    //   This is the difference between a blanket "undetermined" and the
+                    //   sound per-stratum verdict the frontier records.
+                    // - `Partial` (a `max_answers` answer-cap) is owned by the backward leg
+                    //   and never reaches this forward native path; the catch-all preserves
+                    //   it verbatim regardless, so the frontier never overrides an answer-cap.
+                    q.budget_status = match status {
+                        BudgetStatus::Exhausted
+                            if frontier.saturated_preds.contains(&q.predicate) =>
+                        {
+                            BudgetStatus::Ok
+                        }
+                        other => other,
+                    };
                     q
                 })
             })
@@ -1423,10 +1443,15 @@ mod tests {
             m.frontier.consumed_steps, 0,
             "a 0-firing budget commits no derivation"
         );
-        let sub_class_of = "https://blackcatinformatics.ca/logic/subClassOf";
+        // `subClassOf` is SELF-RECURSIVE — both the asserted EDB and the recursive rule
+        // head — so its full least-model extension includes the (undrawn) transitive
+        // closure. A 0-firing cut leaves that stratum unsaturated, so the predicate is NOT
+        // settled: the frontier under-claims rather than over-claiming a complete
+        // extension. Consequently every emitted quad (the EDB echoes) is correctly stamped
+        // `Exhausted` above — the frontier-aware stamp does not spuriously promote them.
         assert!(
-            m.frontier.saturated_preds.contains(sub_class_of),
-            "the EDB predicate is settled from the seed: {:?}",
+            !m.frontier.saturated_preds.contains(sub_class_of),
+            "a cut self-recursive head is NOT settled from the EDB seed alone: {:?}",
             m.frontier.saturated_preds
         );
     }
@@ -1466,6 +1491,176 @@ mod tests {
             m.frontier.consumed_steps >= 1,
             "the closure edge is one committed derivation: {:?}",
             m.frontier
+        );
+    }
+
+    // ── Frontier-aware per-quad stamping under a MID-stratum cut ──────────────────
+    //
+    // A two-stratum stratified-negation program: `reachable` (stratum 0, seed + edge
+    // step) then `unreachable` (stratum 1, `~reachable`). Over nodes {a, b, c, d} with
+    // `reachableSeed(a)` and `edge(a, b)`: `reachable = {a, b}` (2 derivations) and
+    // `unreachable = {c, d}` (2 derivations). A 3-firing budget saturates stratum 0 (2
+    // derivations) then commits ONE `unreachable` derivation before the cut — so the two
+    // strata are observably differently settled in the SAME run.
+
+    /// Two-stratum reach/unreach program in the 3-ary (world-column) rule syntax.
+    const REACH_RULES: &str = concat!(
+        "#[name(\"http://example.org/rules/reachSeed\")]\n",
+        "<http://example.org/reachable>(?X, ?X, ?C) :-\n",
+        "    <http://example.org/reachableSeed>(?X, ?X, ?C) .\n",
+        "#[name(\"http://example.org/rules/reachStep\")]\n",
+        "<http://example.org/reachable>(?Y, ?Y, ?C) :-\n",
+        "    <http://example.org/reachable>(?X, ?X, ?C),\n",
+        "    <http://example.org/edge>(?X, ?Y, ?C) .\n",
+        "#[name(\"http://example.org/rules/unreach\")]\n",
+        "<http://example.org/unreachable>(?X, ?X, ?C) :-\n",
+        "    <http://example.org/node>(?X, ?X, ?C),\n",
+        "    ~<http://example.org/reachable>(?X, ?X, ?C) .\n",
+    );
+
+    /// EDB for [`REACH_RULES`]: four self-loop `node` facts, one `reachableSeed`, one
+    /// `edge` a→b, all in world `W`.
+    const REACH_NQUADS: &str = concat!(
+        "<http://example.org/a> <http://example.org/node> <http://example.org/a> <http://world/W> .\n",
+        "<http://example.org/b> <http://example.org/node> <http://example.org/b> <http://world/W> .\n",
+        "<http://example.org/c> <http://example.org/node> <http://example.org/c> <http://world/W> .\n",
+        "<http://example.org/d> <http://example.org/node> <http://example.org/d> <http://world/W> .\n",
+        "<http://example.org/a> <http://example.org/reachableSeed> <http://example.org/a> <http://world/W> .\n",
+        "<http://example.org/a> <http://example.org/edge> <http://example.org/b> <http://world/W> .\n",
+    );
+
+    const REACHABLE_PRED: &str = "http://example.org/reachable";
+    const UNREACHABLE_PRED: &str = "http://example.org/unreachable";
+
+    /// GAP B (forward). Under an `Exhausted` mid-stratum cut, a quad whose predicate's
+    /// stratum SATURATED carries `Ok` (its extension is final — complete-for-fragment),
+    /// while a quad from the CUT stratum carries `Exhausted`. The old blanket stamp
+    /// over-claimed `Exhausted` on the settled stratum too; this is exactly the verdict
+    /// the completion frontier makes observable.
+    #[test]
+    fn materialize_routed_forward_frontier_aware_per_quad_status() {
+        let m = materialize_routed(
+            REACH_RULES,
+            REACH_NQUADS,
+            Some(3), // saturate `reachable` (2), commit 1 `unreachable`, then cut
+            None,
+            None,
+            Some("StratifiedNAFProfile"),
+        )
+        .expect("budgeted routed materialize must not fail (native governor handles it)");
+
+        // The run is incomplete overall: stratum 1 (`unreachable`) was cut mid-fixpoint.
+        assert_eq!(
+            m.frontier.completed, 1,
+            "only stratum 0 (reachable) saturated: {:?}",
+            m.frontier
+        );
+        assert_eq!(m.frontier.total, 2, "reachable + unreachable strata");
+        assert_eq!(
+            m.frontier.consumed_steps, 3,
+            "2 reachable + 1 unreachable derivation before the cut: {:?}",
+            m.frontier
+        );
+        assert!(
+            m.frontier.saturated_preds.contains(REACHABLE_PRED),
+            "reachable's stratum completed ⇒ settled: {:?}",
+            m.frontier.saturated_preds
+        );
+        assert!(
+            !m.frontier.saturated_preds.contains(UNREACHABLE_PRED),
+            "unreachable's stratum was cut ⇒ NOT settled: {:?}",
+            m.frontier.saturated_preds
+        );
+
+        // Every `reachable` (and EDB `node`/`edge`/`reachableSeed`) quad is conclusive:
+        // stamped `Ok` even though the RUN exhausted. This also proves the predicate-name
+        // membership test actually matches (a silent no-op would leave these `Exhausted`).
+        let reachable_quads: Vec<_> = m
+            .quads
+            .iter()
+            .filter(|q| q.predicate.as_str() == REACHABLE_PRED)
+            .collect();
+        assert_eq!(
+            reachable_quads.len(),
+            2,
+            "reachable = {{a, b}}: {:?}",
+            m.quads
+        );
+        assert!(
+            reachable_quads
+                .iter()
+                .all(|q| q.budget_status == BudgetStatus::Ok),
+            "saturated-stratum quads are conclusive (Ok) under an exhausted run"
+        );
+        assert!(
+            m.quads
+                .iter()
+                .filter(|q| {
+                    let p = q.predicate.as_str();
+                    p != REACHABLE_PRED && p != UNREACHABLE_PRED
+                })
+                .all(|q| q.budget_status == BudgetStatus::Ok),
+            "EDB predicates are settled from the seed ⇒ their echoes are Ok"
+        );
+
+        // The committed `unreachable` quad is from the CUT stratum: genuinely incomplete,
+        // stamped `Exhausted`. Exactly one was committed before the budget tripped.
+        let unreachable_quads: Vec<_> = m
+            .quads
+            .iter()
+            .filter(|q| q.predicate.as_str() == UNREACHABLE_PRED)
+            .collect();
+        assert_eq!(
+            unreachable_quads.len(),
+            1,
+            "budget 3 commits one unreachable derivation before the cut: {:?}",
+            m.quads
+        );
+        assert!(
+            unreachable_quads
+                .iter()
+                .all(|q| q.budget_status == BudgetStatus::Exhausted),
+            "cut-stratum quads are incomplete (Exhausted)"
+        );
+    }
+
+    /// GAP B determinism: the frontier-aware stamping is a pure function of the inputs, so
+    /// a re-run is byte-identical (same quads, same per-quad statuses, same frontier).
+    #[test]
+    fn materialize_routed_forward_frontier_aware_is_deterministic() {
+        let run = || {
+            materialize_routed(
+                REACH_RULES,
+                REACH_NQUADS,
+                Some(3),
+                None,
+                None,
+                Some("StratifiedNAFProfile"),
+            )
+            .expect("materialize must not fail")
+        };
+        let a = run();
+        let b = run();
+        let key = |m: &Materialization| {
+            let mut rows: Vec<(String, String, String, String)> = m
+                .quads
+                .iter()
+                .map(|q| {
+                    (
+                        crate::provenance::term_display(&q.subject),
+                        q.predicate.clone(),
+                        crate::provenance::term_display(&q.object),
+                        format!("{:?}", q.budget_status),
+                    )
+                })
+                .collect();
+            rows.sort();
+            rows
+        };
+        assert_eq!(key(&a), key(&b), "re-run must be identical");
+        assert_eq!(
+            a.frontier, b.frontier,
+            "the frontier is deterministic across runs"
         );
     }
 

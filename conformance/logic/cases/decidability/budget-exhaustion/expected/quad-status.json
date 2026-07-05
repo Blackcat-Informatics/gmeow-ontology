@@ -1,0 +1,22 @@
+[
+  {
+    "quad": "<https://example.org/decidability/budget-exhaustion/a> <https://example.org/decidability/budget-exhaustion/edge> <https://example.org/decidability/budget-exhaustion/b> <https://example.org/decidability/budget-exhaustion/world-chain> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://example.org/decidability/budget-exhaustion/a> <https://example.org/decidability/budget-exhaustion/tc> <https://example.org/decidability/budget-exhaustion/b> <https://example.org/decidability/budget-exhaustion/world-chain> .",
+    "status": "exhausted"
+  },
+  {
+    "quad": "<https://example.org/decidability/budget-exhaustion/b> <https://example.org/decidability/budget-exhaustion/edge> <https://example.org/decidability/budget-exhaustion/c> <https://example.org/decidability/budget-exhaustion/world-chain> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://example.org/decidability/budget-exhaustion/b> <https://example.org/decidability/budget-exhaustion/tc> <https://example.org/decidability/budget-exhaustion/c> <https://example.org/decidability/budget-exhaustion/world-chain> .",
+    "status": "exhausted"
+  },
+  {
+    "quad": "<https://example.org/decidability/budget-exhaustion/c> <https://example.org/decidability/budget-exhaustion/edge> <https://example.org/decidability/budget-exhaustion/d> <https://example.org/decidability/budget-exhaustion/world-chain> .",
+    "status": "ok"
+  }
+]

@@ -627,6 +627,35 @@ pub(crate) fn resolve_native(
         preservation: crate::result::PreservationClaim::exact(),
         frontier,
     };
+
+    // (6) Frontier-aware conclusive-`neither` consult. When the fixpoint was step-cut
+    //     (`Exhausted`) yet the GOAL predicate's stratum reached its natural fixpoint —
+    //     its least-model extension is FINAL, recorded in `saturated_preds` under the
+    //     bare-IRI head name `seminaive` inserts (`rule.head.predicate.as_str()`), which
+    //     is exactly `goal_atom.predicate.as_str()` for the goal relation's modified
+    //     rules — an EMPTY witness is a sound negative answer: the conclusive four-valued
+    //     `neither`, NOT the `undetermined` of an unfinished search. So the answer is
+    //     complete-for-fragment and its status collapses to `Ok`.
+    //
+    //     In the present positive-Horn / stratified-negation backward fragment the goal
+    //     predicate is the ROOT of the demand transform (every demanded predicate is
+    //     reachable FROM it), so it is at the maximal demanded stratum: it saturates only
+    //     when the whole demanded run completes, at which point `status` is already `Ok`
+    //     and this guard is a correct no-op. The consult is nonetheless PRESENT and
+    //     correct so that any future fragment which can settle the goal predicate under a
+    //     global (multi-world) cut yields the sound `neither` rather than over-claiming
+    //     `undetermined`. A `Partial` (answer-cap) status is only ever set on a NON-empty
+    //     witness, so the `is_empty()` guard also keeps this from touching `Partial`.
+    if answer.status == BudgetStatus::Exhausted
+        && answer.bindings.is_empty()
+        && answer
+            .frontier
+            .saturated_preds
+            .contains(goal_atom.predicate.as_str())
+    {
+        answer.status = BudgetStatus::Ok;
+    }
+
     answer.canonicalize();
     Ok(NativeOutcome::Decided(answer))
 }
@@ -750,6 +779,49 @@ mod tests {
             "missing d: {ys:?}"
         );
         assert_eq!(native.bindings.len(), 3);
+    }
+
+    // ── GAP B: the frontier-aware conclusive-`neither` consult ───────────────────
+    //
+    // A 0-step budget cuts the `ancestor` fixpoint before ANY derivation: the goal
+    // predicate's stratum never saturates. An empty witness is therefore genuinely
+    // UNDETERMINED (the search was cut mid-fixpoint), NOT the conclusive four-valued
+    // `neither`. The consult must NOT fire — the answer stays `Exhausted`. This is the
+    // usual recursive-goal case the doc calls out: the goal predicate is the ROOT of the
+    // demand transform, so it settles only when the whole run completes (then the status
+    // is already `Ok`), and can never be settled on an `Exhausted` run. The guard is
+    // present and correct, and this test proves it correctly does NOT over-collapse.
+
+    #[test]
+    fn magic_backward_exhausted_recursive_goal_is_not_over_collapsed() {
+        let (store, world_nn) = tc_world();
+        let foreign = WorldStoreForeign::from_world(&store, W, PROFILE).unwrap();
+        let prog = tc_program(); // ?- ancestor(a, Y)
+        let budget = Budget {
+            max_answers: None,
+            max_steps: Some(0), // cut before any ancestor derivation
+        };
+
+        let native = decided(resolve_native(&foreign, &world_nn, &prog, &budget).unwrap());
+
+        assert_eq!(
+            native.status,
+            BudgetStatus::Exhausted,
+            "a 0-step cut mid-search is Exhausted (undetermined), not a conclusive Ok"
+        );
+        assert!(
+            native.bindings.is_empty(),
+            "no derivation committed ⇒ empty witness"
+        );
+        // The consult's precondition is the goal predicate being SETTLED. It is the root of
+        // the demand transform and its stratum was cut, so it is NOT in the settled
+        // frontier — the guard therefore correctly does not fire.
+        let goal_pred = format!("{BASE}ancestor");
+        assert!(
+            !native.frontier.saturated_preds.contains(&goal_pred),
+            "the cut goal predicate must NOT be reported settled: {:?}",
+            native.frontier.saturated_preds
+        );
     }
 
     // ── Test 3a: bb (both-bound) ground goal parity ──────────────────────────────

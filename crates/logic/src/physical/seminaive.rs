@@ -159,6 +159,24 @@ impl<T> Budgeted<T> {
     }
 }
 
+/// The set of predicates that appear as a rule HEAD (i.e. are IDB-derivable).
+///
+/// A predicate in this set is NOT settled merely by seeding its EDB facts: its full
+/// least-model extension also includes whatever its stratum derives, so it becomes
+/// settled only when that stratum reaches its natural fixpoint.  Only a *pure-EDB*
+/// predicate — one that is never a rule head — is final from the seed alone.  This
+/// distinction matters for a **self-recursive** predicate (both an EDB fact set and a
+/// recursive head, e.g. `subClassOf(X,Z) :- subClassOf(X,Y), subClassOf(Y,Z)`): seeding
+/// it as saturated would OVER-claim a settled extension while its closure is still being
+/// (or was never) derived.  The frontier under-claims rather than over-claims.
+fn head_predicates(rules_by_stratum: &[Vec<&EvalRule>]) -> BTreeSet<String> {
+    rules_by_stratum
+        .iter()
+        .flatten()
+        .map(|r| r.head.predicate.as_str().to_owned())
+        .collect()
+}
+
 /// Whether a stratum's semi-naive fixpoint reached its natural end or was budget-cut.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum FixpointStatus {
@@ -576,9 +594,16 @@ fn eval_world_stratified(
     let mut rel = RelationStore::new();
     let mut depth: HashMap<FactKey, u32> = HashMap::new();
 
-    // Every EDB predicate is settled from the seed (stratum 0 by construction).
-    let mut saturated_preds: BTreeSet<String> =
-        edb_facts.iter().map(|f| f.predicate.clone()).collect();
+    // A PURE-EDB predicate (never a rule head) is settled from the seed; a predicate that
+    // is also a rule head is settled only when its stratum completes (below), so exclude
+    // it here — otherwise a self-recursive predicate would over-claim while its closure is
+    // still unbuilt.
+    let head_preds = head_predicates(rules_by_stratum);
+    let mut saturated_preds: BTreeSet<String> = edb_facts
+        .iter()
+        .map(|f| f.predicate.clone())
+        .filter(|p| !head_preds.contains(p))
+        .collect();
 
     for f in edb_facts {
         depth.insert(f.key(), 0);
@@ -831,9 +856,15 @@ pub(crate) fn evaluate(
     let mut rel = RelationStore::new();
     let mut depth: HashMap<FactKey, u32> = HashMap::new();
 
-    // Every EDB predicate is settled from the seed.
-    let mut saturated_preds: BTreeSet<String> =
-        edb_facts.iter().map(|f| f.predicate.clone()).collect();
+    // A PURE-EDB predicate (never a rule head) is settled from the seed; a self-recursive
+    // or otherwise IDB-derived predicate becomes settled only when its stratum completes
+    // (below), so exclude the head predicates here to avoid over-claiming.
+    let head_preds = head_predicates(&rules_by_stratum);
+    let mut saturated_preds: BTreeSet<String> = edb_facts
+        .iter()
+        .map(|f| f.predicate.clone())
+        .filter(|p| !head_preds.contains(p))
+        .collect();
 
     for f in &edb_facts {
         depth.insert(f.key(), 0);

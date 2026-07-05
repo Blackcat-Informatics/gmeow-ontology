@@ -1,0 +1,84 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: decidability/budget-frontier-strata
+# AC: decidability — a step budget that cuts BETWEEN strata yields a
+# frontier-aware partial: the LOWER stratum is saturated (its extension is FINAL,
+# so its quads are conclusive) while the UPPER stratum is cut (its quads are
+# incomplete). The per-quad budget verdict differs across the strata — NOT a
+# blanket "undetermined" over every derived quad.
+#
+# Two strata over a 4-node graph a -> b (nodes a,b,c,d):
+#   Stratum 0 (`reachable`): seed `reachable(a)` then close over `edge` — the two
+#     derivations `reachable(a)` and `reachable(b)`.
+#   Stratum 1 (`unreachable`, NAF over stratum 0): a node NOT reachable is
+#     unreachable — the two derivations `unreachable(c)` and `unreachable(d)`.
+# Unbounded the chase derives all four. profile.json sets
+# budget_params.max_rule_firings = 3, so the governor saturates stratum 0 (two
+# derivations), commits ONE stratum-1 derivation, then trips. The frontier reports
+# strata_completed 1 / strata_total 2 with `reachable` (and the EDB predicates)
+# saturated; the per-quad `quad-status.json` stamps the saturated-stratum quads
+# `ok` (conclusive) and the single cut-stratum quad `exhausted` — the exact
+# per-stratum verdict a blanket run-status stamp would erase.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/decidability/budget-frontier-strata/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+# Schema: the sort used by the projection back-ends.
+ex:Node a logic:Kind .
+
+# Rule 1 (stratum 0): the seed node is reachable.
+#   ?X reachable ?X  :-  ?X reachableSeed ?X
+ex:ruleReachSeed a logic:Rule ;
+    logic:provenance ex:ruleReachSeed ;
+    logic:head [
+        rdf:subject   "?X" ;
+        rdf:predicate ex:reachable ;
+        rdf:object    "?X"
+    ] ;
+    logic:body [
+        rdf:subject   "?X" ;
+        rdf:predicate ex:reachableSeed ;
+        rdf:object    "?X"
+    ] .
+
+# Rule 2 (stratum 0): reachability closes forward along `edge`.
+#   ?Y reachable ?Y  :-  ?X reachable ?X , ?X edge ?Y
+ex:ruleReachStep a logic:Rule ;
+    logic:provenance ex:ruleReachStep ;
+    logic:head [
+        rdf:subject   "?Y" ;
+        rdf:predicate ex:reachable ;
+        rdf:object    "?Y"
+    ] ;
+    logic:body [
+        rdf:subject   "?X" ;
+        rdf:predicate ex:reachable ;
+        rdf:object    "?X"
+    ] ;
+    logic:body [
+        rdf:subject   "?X" ;
+        rdf:predicate ex:edge ;
+        rdf:object    "?Y"
+    ] .
+
+# Rule 3 (stratum 1): a node NOT reachable is unreachable (NAF over stratum 0).
+#   ?X unreachable ?X  :-  ?X node ?X , NOT ?X reachable ?X
+ex:ruleUnreach a logic:Rule ;
+    logic:provenance ex:ruleUnreach ;
+    logic:head [
+        rdf:subject   "?X" ;
+        rdf:predicate ex:unreachable ;
+        rdf:object    "?X"
+    ] ;
+    logic:body [
+        rdf:subject   "?X" ;
+        rdf:predicate ex:node ;
+        rdf:object    "?X"
+    ] ;
+    logic:negatedBody [
+        rdf:subject   "?X" ;
+        rdf:predicate ex:reachable ;
+        rdf:object    "?X"
+    ] .

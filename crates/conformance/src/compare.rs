@@ -582,6 +582,29 @@ pub fn diff_case(case_dir: &Path, out: &CaseOutputs) -> Vec<String> {
         ));
     }
 
+    // ── Per-quad budget stamps (frontier-aware; step-budget forward ⇒ require) ─
+    // The frontier-aware PER-QUAD stamp is invisible in `materialized.nq` (graph
+    // isomorphism, no status column), so a dedicated golden carries it. A case that
+    // declares a step/derivation budget AND materializes quads MUST pin it — that is
+    // exactly where a saturated-stratum quad (`ok`) differs from a cut-stratum one
+    // (`exhausted`).
+    let quad_status_path = expected.join("quad-status.json");
+    if quad_status_path.exists() {
+        diff_json_golden(
+            &quad_status_path,
+            &out.materialized_quad_status,
+            case_id,
+            "quad-status",
+            &mut diffs,
+        );
+    } else if declares_step_budget(&profile_val) && !out.materialized_nquads.is_empty() {
+        diffs.push(format!(
+            "[{case_id}] quad-status: golden quad-status.json is missing from expected/ but \
+             profile.json declares a step/derivation budget and the case materializes quads — \
+             run the bless mode to generate it"
+        ));
+    }
+
     // ── Materialized N-Quads (per-world graph isomorphism) ────────────────────
     let mat_path = expected.join("materialized.nq");
     if mat_path.exists() {
