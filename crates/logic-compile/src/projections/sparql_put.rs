@@ -21,6 +21,21 @@
 //!   `gmeow:ImportActivity`) so the lifted claim is honestly marked import-derived, not
 //!   extracted fact.
 //!
+//! **The epistemic strength of the `ValidationOnly` marking (settled design rationale).** The
+//! CONSTRUCT head asserts the gmeow source atoms (`?anchor a gmeow:ModelArtifact`) *directly
+//! into the base graph* and qualifies them only with the provenance envelope. The marking is
+//! therefore *provenance-annotation strength*: `gmeow:mappedFrom` is an annotation property a
+//! reasoner does not consult, so a reasoner sees the class-lift as an asserted base-graph fact
+//! carrying out-of-band provenance — not as a claim scoped to its import. This is the honest
+//! `ValidationOnly` FLOOR for an up-lift the source cannot itself express: it does not
+//! overclaim *equivalence* (no `owl:equivalentClass`/`skos:exactMatch` is emitted; the
+//! round-trip gate is correctly NotApplicable under the lossy lens and the overclaim gate stays
+//! green), and the import-derivation is disclosed in-band on every minted anchor. Scoping the
+//! lifted triples into a named-graph / RDF-star *reasoned* claim — so a reasoner treats them as
+//! asserted-by-import rather than asserted-fact — is a strictly stronger, distinct capability
+//! that composes this ingest lowering with the reason lane; it is out of scope for this
+//! in-band-marking lowering by design, not an unfinished part of it.
+//!
 //! The up-lift polarity is decided by the SINGLE authority
 //! [`crate::projections::put_derivation::classify_put`]: a mnemomorphic witness on an
 //! injective-enough rung is a `CompleteOver` recovery; a co-authored ingest claim without a
@@ -122,6 +137,19 @@ pub(crate) fn emit_put(
                             )
                             })?;
                     let target_curie = curie(target);
+                    // Provenance-annotation strength — the honest floor, stated precisely.
+                    // These three triples land the source lift in the BASE graph and qualify it
+                    // ONLY with out-of-band provenance: `gmeow:mappedFrom` is an annotation
+                    // property, so a reasoner uses none of the envelope and reads the class-lift
+                    // as an asserted base-graph fact. That is the honest legalization for an
+                    // up-lift the source cannot itself express: no equivalence is claimed
+                    // (`owl:equivalentClass`/`skos:exactMatch` are never emitted — round-trip
+                    // NotApplicable under the lossy lens, overclaim gate green) and the
+                    // import-derivation is disclosed IN-BAND on every minted anchor. Promoting
+                    // the lift to a named-graph / RDF-star reasoned claim (reasoner sees
+                    // asserted-by-import, not asserted-fact) is a strictly stronger, distinct
+                    // capability that composes ingest with the reason lane — out of scope for
+                    // this in-band-marking lowering by design, not an unfinished part of it.
                     for anchor in suppression_anchors(&cell.pattern) {
                         for env in [
                             format!("?{anchor} gmeow:wasGeneratedBy _:imp ."),
