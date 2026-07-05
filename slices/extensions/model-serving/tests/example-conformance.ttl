@@ -1,0 +1,26 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Example-conformance cells for the model-serving slice. Each cell unions the
+# module with the named fixture and validates it against slices/extensions/
+# model-serving/shapes.ttl under the native Rust SHACL harness
+# (crates/slicetest). gmeow:exampleFile is SLICE-RELATIVE; gmeow:expectedViolationCode
+# is the native finding code finding_from_shacl builds as
+# "shacl.<ConstraintComponentLocalName>" (crates/validate/src/findings.rs). These
+# pin the counter-examples that MUST reject; the conformant examples/*.ttl are
+# exercised as competency cqDataFiles.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/model-serving/tests/> .
+
+ex:ecDeploymentTwoArtifacts a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/deployment-two-artifacts.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MaxCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example declares one gmeow:ModelDeployment with two gmeow:deploymentArtifact values. gmeow:ModelDeploymentShape bounds gmeow:deploymentArtifact at sh:maxCount 1 (a deployment serves exactly one artifact; two served models are two deployments), so validation MUST emit shacl.MaxCountConstraintComponent. Both artifacts are typed gmeow:ModelArtifact so the cardinality is the sole violation." .
+
+# NOTE: the deployment / awareness-subject disjointness is enforced at the TBox by
+# gmeow:ModelDeployment owl:disjointWith gmeow:Agent (module.ttl) and pinned by
+# tests/structural.ttl, NOT by a SHACL sh:not counter-example here — a node-level
+# sh:not (or a second NodeShape) on gmeow:ModelDeployment would suppress the
+# closed-world JSON-schema property projection for the class.

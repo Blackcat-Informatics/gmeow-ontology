@@ -5,19 +5,20 @@ expression: summary
 {
   "title": "GMEOW Ontology Documentation",
   "version": "7",
-  "slice_count": 78,
-  "term_count": 2389,
-  "dependency_edge_count": 913,
+  "slice_count": 80,
+  "term_count": 2406,
+  "dependency_edge_count": 952,
   "term_count_by_category": {
-    "Class": 725,
+    "Class": 729,
     "Datatype": 1,
     "Individual": 3,
-    "Property": 1660
+    "Property": 1673
   },
   "slice_iris": [
     "https://blackcatinformatics.ca/gmeow/slices/accessibility",
     "https://blackcatinformatics.ca/gmeow/slices/accounts",
     "https://blackcatinformatics.ca/gmeow/slices/affect",
+    "https://blackcatinformatics.ca/gmeow/slices/agent-runtime",
     "https://blackcatinformatics.ca/gmeow/slices/agentic",
     "https://blackcatinformatics.ca/gmeow/slices/aggregation",
     "https://blackcatinformatics.ca/gmeow/slices/agreements",
@@ -66,6 +67,7 @@ expression: summary
     "https://blackcatinformatics.ca/gmeow/slices/math",
     "https://blackcatinformatics.ca/gmeow/slices/mentation",
     "https://blackcatinformatics.ca/gmeow/slices/metacognition",
+    "https://blackcatinformatics.ca/gmeow/slices/model-serving",
     "https://blackcatinformatics.ca/gmeow/slices/music",
     "https://blackcatinformatics.ca/gmeow/slices/names",
     "https://blackcatinformatics.ca/gmeow/slices/narrative",
@@ -296,11 +298,11 @@ expression: summary
       ]
     }
   ],
-  "mapping_set_count": 78,
-  "linkage_count": 1921,
-  "example_count": 129,
+  "mapping_set_count": 79,
+  "linkage_count": 1928,
+  "example_count": 133,
   "concern_count": 7,
-  "external_term_count": 1657,
+  "external_term_count": 1662,
   "sample_mapping_set": {
     "iri": "https://blackcatinformatics.ca/gmeow/mapsetAccessibility",
     "curie": "gmeow:mapsetAccessibility",
@@ -418,8 +420,8 @@ expression: summary
       "schema"
     ]
   },
-  "shape_count": 305,
-  "competency_count": 98,
+  "shape_count": 308,
+  "competency_count": 103,
   "sample_shape": {
     "shape_iri": "https://blackcatinformatics.ca/gmeow/RetractedAccessibilityAssertionShape",
     "target_term": "https://blackcatinformatics.ca/gmeow/AccessibilityAssertion",
