@@ -94,7 +94,7 @@ gmeow:mapMlsExecutes a gmeow:ProjectionMapping ;
         gmeow:atom ( [ gmeow:subjectVar "mlsExec" ; gmeow:predicate gmeow:executionOfDeployment ; gmeow:objectVar "mlsImpl" ] ) ;
         gmeow:edoalSource gmeow:executionOfDeployment ] ;
     gmeow:hasBinding [
-        gmeow:profile "ml-schema" ; gmeow:toPredicate mls:executes ; gmeow:relation "<=" ; gmeow:confidence 0.5 ;
+        gmeow:profile "ml-schema" ; gmeow:toPredicate mls:executes ; gmeow:edoalTargetKind "relation" ; gmeow:relation "<=" ; gmeow:confidence 0.5 ;
         gmeow:lossyDrop "mls:executes carries only the run→implementation link; the gmeow deployment's artifact·host·endpoint·interval binding beyond the bare executable realization is not re-expressed by the flat mls:executes relation" ;
         gmeow:templateAtoms (
             [ gmeow:tSubj "mlsExec" ; gmeow:tPred mls:executes ; gmeow:tObj "mlsImpl" ] ) ] .
