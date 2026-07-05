@@ -547,7 +547,7 @@ mod tests {
         ForwardBudget, ForwardOracle, NemoFactsOracle, NemoForwardOracle, ReferenceBackwardOracle,
         TypedChaseResult, TypedProvenance, TypedRow,
     };
-    use crate::physical::chase::{route_chase, ExistentialRule};
+    use crate::physical::chase::{chase_world, route_chase, ChaseAdmission, ExistentialRule};
     use crate::physical::magic::resolve_native;
     use crate::physical::seminaive::{materialize_native, NativeOutcome};
     use crate::query_ir::{parse_query_program, Budget, QProgram};
@@ -789,6 +789,323 @@ mod tests {
         );
         assert_eq!(ledger.native_only, 0);
         assert_eq!(ledger.oracle_only, 0);
+    }
+
+    // ── H5: adversarial certifier-SOUNDNESS differential (native ChaseAdmission ≡ Nemo) ──
+    //
+    // The load-bearing safety claim of `ChaseAdmission::certify` is that it NEVER wrongly
+    // certifies: if it returns `WeaklyAcyclic`, the restricted chase genuinely reaches a
+    // fixpoint.  A false `WeaklyAcyclic` would let the router run the chase UNBUDGETED and
+    // loop forever.  The self-disclosed low-confidence mechanism is the bespoke CONSTANT
+    // REFINEMENT — it SPLITS a `type(individual, class)` position by the constant in the
+    // other slot (and can REMOVE the edge that a plain weak-acyclicity check would draw),
+    // exactly where a hidden cycle could slip through as a false certificate — together with
+    // its `add_wildcard_subsumption` over-approximation connecting variable-class (wildcard)
+    // and constant-class refinements of one `(predicate, slot)`.
+    //
+    // This test pins the invariant over a set of ADVERSARIALLY-chosen mixed variable-class /
+    // constant-class `type` programs: for every CERTIFIED fixture the budgeted native chase
+    // MUST reach a natural fixpoint (`BudgetStatus::Ok`) strictly WITHIN a generous budget —
+    // an `Exhausted` here is a FALSE certification (the program loops) and fails the test,
+    // never hangs it — and its facts must agree with Nemo's chase null-blind.  A set of
+    // shapes the certifier correctly REFUSES proves it is discriminating, not vacuous.
+
+    const EX_E: &str = "http://ex/E";
+    const EX_Q: &str = "http://ex/q";
+    const EX_HASKIND: &str = "http://ex/hasKind";
+    const EX_TAGGED: &str = "http://ex/tagged";
+    const EX_HASCLASS: &str = "http://ex/hasClass";
+
+    fn ex_var(name: &str) -> EvalTerm {
+        EvalTerm::Var(name.to_owned())
+    }
+
+    fn ex_named(iri: &str) -> EvalTerm {
+        EvalTerm::ConstNamed(iri.to_owned())
+    }
+
+    /// `type(?x, from) → ∃y. rel(x, y) ∧ type(y, to)` as a native `ExistentialRule` — the
+    /// constant-refined shape (`from`/`to` are class constants co-occurring with a `type`
+    /// subject variable, the exact input the refinement partitions).
+    fn native_restriction(iri: &str, from: &str, rel: &str, to: &str) -> ExistentialRule {
+        ExistentialRule {
+            rule_iri: iri.to_owned(),
+            body: vec![ex_atom(ex_var("?x"), TYPE_IRI, ex_named(from))],
+            head: vec![
+                ex_atom(ex_var("?x"), rel, ex_var("?y")),
+                ex_atom(ex_var("?y"), TYPE_IRI, ex_named(to)),
+            ],
+            distinct: vec![],
+        }
+    }
+
+    /// The ternary (world-carrying) Nemo `.rls` line for [`native_restriction`]; `yvar`
+    /// names the shared invented null so concatenated rules keep distinct existential
+    /// variables.
+    fn nemo_restriction(rel: &str, from: &str, to: &str, yvar: &str) -> String {
+        format!(
+            "<{rel}>(?x, !{yvar}, ?w), <{TYPE_IRI}>(!{yvar}, <{to}>, ?w) :- \
+             <{TYPE_IRI}>(?x, <{from}>, ?w) .\n"
+        )
+    }
+
+    /// A single-individual `type(a, class)` native EDB fact.
+    fn type_fact(individual: &str, class: &str) -> Fact {
+        Fact {
+            subject: ex_iri(individual),
+            predicate: TYPE_IRI.to_owned(),
+            object: ex_iri(class),
+        }
+    }
+
+    /// One adversarial CERTIFIED fixture: a native rule set + EDB the certifier declares
+    /// `WeaklyAcyclic`, paired with the equivalent ternary Nemo `.rls` + typed EDB so the
+    /// certified facts can be cross-checked against Nemo's chase null-blind.
+    struct CertifiedFixture {
+        label: &'static str,
+        rules: Vec<ExistentialRule>,
+        edb: Vec<Fact>,
+        nemo_rls: String,
+        nemo_edb: TypedFactSet,
+    }
+
+    fn certified_fixtures() -> Vec<CertifiedFixture> {
+        // CF1 — plain acyclic mixed-class `C ⊑ ∃p.D`: the D-typed witness lives at the
+        // refined position `(type,S | D)` and never re-triggers the `(type,S | C)`-bodied
+        // rule, so the refinement's SPLIT is exactly what keeps `(type,S)` acyclic.
+        let mut cf1_edb = TypedFactSet::new();
+        cf1_edb.push_quad(&ex_iri(EX_A), TYPE_IRI, &ex_iri(EX_C), EX_WORLD);
+        cf1_edb.push_quad(&ex_iri("http://ex/b"), TYPE_IRI, &ex_iri(EX_C), EX_WORLD);
+        let cf1 = CertifiedFixture {
+            label: "acyclic-mixed-class-CtoD",
+            rules: vec![native_restriction("http://ex/rule/c", EX_C, EX_P, EX_D)],
+            edb: vec![type_fact(EX_A, EX_C), type_fact("http://ex/b", EX_C)],
+            nemo_rls: nemo_restriction(EX_P, EX_C, EX_D, "y"),
+            nemo_edb: cf1_edb,
+        };
+
+        // CF2 — the constant-refinement-is-load-bearing chain `C ⊑ ∃p.D`, `D ⊑ ∃q.E`:
+        // PLAIN weak acyclicity collapses every class into one `(type,S)` node, so each
+        // rule's fresh null lands where the OTHER rule reads and it spuriously reports a
+        // self-cycle → non-terminating.  The refinement splits `(type,S)` into `|C`, `|D`,
+        // `|E`; the D-null feeds only the `|D`-bodied rule and the E-null feeds nothing, so
+        // the certificate holds — and the chase genuinely terminates (finite C→D→E chain).
+        let mut cf2_edb = TypedFactSet::new();
+        cf2_edb.push_quad(&ex_iri(EX_A), TYPE_IRI, &ex_iri(EX_C), EX_WORLD);
+        let cf2 = CertifiedFixture {
+            label: "refinement-makes-acyclic-chain-CtoDtoE",
+            rules: vec![
+                native_restriction("http://ex/rule/c", EX_C, EX_P, EX_D),
+                native_restriction("http://ex/rule/d", EX_D, EX_Q, EX_E),
+            ],
+            edb: vec![type_fact(EX_A, EX_C)],
+            nemo_rls: format!(
+                "{}{}",
+                nemo_restriction(EX_P, EX_C, EX_D, "y1"),
+                nemo_restriction(EX_Q, EX_D, EX_E, "y2")
+            ),
+            nemo_edb: cf2_edb,
+        };
+
+        // CF3 — a CONSTANT-typed witness read by a VARIABLE-class (wildcard) consumer,
+        // exercising `add_wildcard_subsumption`'s connect-both branch.  The existential
+        // rule types its witness with the CONSTANT class D via a NON-`type` predicate
+        // (`hasKind`); a second rule `hasKind(?z, ?c) → tagged(?z, ?c)` reads `hasKind`
+        // with a VARIABLE class, so `(hasKind,S)` carries BOTH the `|D` constant refinement
+        // and the `*` wildcard and the subsumption connects them bidirectionally.  The
+        // wildcard hub does NOT reach back to the existential rule's `(type,S | C)` body
+        // position, so the certificate correctly holds and the chase terminates.
+        let mut cf3_edb = TypedFactSet::new();
+        cf3_edb.push_quad(&ex_iri(EX_A), TYPE_IRI, &ex_iri(EX_C), EX_WORLD);
+        let cf3 = CertifiedFixture {
+            label: "wildcard-subsumption-connect-both-acyclic",
+            rules: vec![
+                ExistentialRule {
+                    rule_iri: "http://ex/rule/kind".to_owned(),
+                    body: vec![ex_atom(ex_var("?x"), TYPE_IRI, ex_named(EX_C))],
+                    head: vec![
+                        ex_atom(ex_var("?x"), EX_P, ex_var("?y")),
+                        ex_atom(ex_var("?y"), EX_HASKIND, ex_named(EX_D)),
+                    ],
+                    distinct: vec![],
+                },
+                ExistentialRule {
+                    rule_iri: "http://ex/rule/tag".to_owned(),
+                    body: vec![ex_atom(ex_var("?z"), EX_HASKIND, ex_var("?k"))],
+                    head: vec![ex_atom(ex_var("?z"), EX_TAGGED, ex_var("?k"))],
+                    distinct: vec![],
+                },
+            ],
+            edb: vec![type_fact(EX_A, EX_C)],
+            nemo_rls: format!(
+                "<{EX_P}>(?x, !y, ?w), <{EX_HASKIND}>(!y, <{EX_D}>, ?w) :- \
+                 <{TYPE_IRI}>(?x, <{EX_C}>, ?w) .\n\
+                 <{EX_TAGGED}>(?z, ?k, ?w) :- <{EX_HASKIND}>(?z, ?k, ?w) .\n"
+            ),
+            nemo_edb: cf3_edb,
+        };
+
+        vec![cf1, cf2, cf3]
+    }
+
+    /// One shape the certifier MUST refuse (`Uncertified`), with why.
+    struct RefusedFixture {
+        label: &'static str,
+        rules: Vec<ExistentialRule>,
+    }
+
+    fn refused_fixtures() -> Vec<RefusedFixture> {
+        vec![
+            // RF1 — a genuinely non-terminating self-cycle `D ⊑ ∃p.D`: the witness is
+            // itself D-typed, so it re-fires the same rule forever.  The refinement gives
+            // both the body and the witness the SAME `(type,S | D)` node — no split can
+            // break this real cycle, and the certifier must not.
+            RefusedFixture {
+                label: "genuine-self-cycle-DtoD",
+                rules: vec![native_restriction(
+                    "http://ex/rule/cyclic",
+                    EX_D,
+                    EX_P,
+                    EX_D,
+                )],
+            },
+            // RF2 — a genuine TWO-rule cycle `C ⊑ ∃p.D`, `D ⊑ ∃q.C`: C invents a D, D
+            // invents a C, forever.  Across rules the refined `(type,S | C)` and
+            // `(type,S | D)` nodes are mutually reachable through the special edges.
+            RefusedFixture {
+                label: "genuine-two-rule-cycle-CtoDtoC",
+                rules: vec![
+                    native_restriction("http://ex/rule/c", EX_C, EX_P, EX_D),
+                    native_restriction("http://ex/rule/d", EX_D, EX_Q, EX_C),
+                ],
+            },
+            // RF3 — the CONSERVATIVE wildcard-subsumption refusal: `C ⊑ ∃p.D` alongside a
+            // VARIABLE-class reader OVER `type` itself (`type(?z, ?c) → hasClass(?z, ?c)`).
+            // The wildcard `(type,S | *)` now co-occurs with the `|C` and `|D` constant
+            // refinements at the SAME `(type,S)`, so `add_wildcard_subsumption` connects
+            // `|C ↔ * ↔ |D` and the special edge `(type,S | C) → (type,S | D)` lands inside
+            // a cycle through the wildcard hub.  This OVER-approximates (the program in fact
+            // terminates), but the certifier errs toward refusal — the sound direction: it
+            // never wrongly certifies.  Included to exercise that connect-both actually
+            // fires and to prove the discrimination is not vacuous.
+            RefusedFixture {
+                label: "conservative-wildcard-hub-refusal",
+                rules: vec![
+                    native_restriction("http://ex/rule/c", EX_C, EX_P, EX_D),
+                    ExistentialRule {
+                        rule_iri: "http://ex/rule/class".to_owned(),
+                        body: vec![ex_atom(ex_var("?z"), TYPE_IRI, ex_var("?c"))],
+                        head: vec![ex_atom(ex_var("?z"), EX_HASCLASS, ex_var("?c"))],
+                        distinct: vec![],
+                    },
+                ],
+            },
+        ]
+    }
+
+    #[test]
+    fn materialize_certifier_soundness_differential_agrees_with_nemo() {
+        // A budget that comfortably exceeds any legitimate fixpoint here (each fixture
+        // saturates in well under a dozen derivations) but BOUNDS a runaway: a
+        // wrongly-certified looping program hits this and reports `Exhausted` — the false
+        // certification this test exists to catch — instead of hanging the run.
+        const BIG: u64 = 100_000;
+
+        for f in certified_fixtures() {
+            // (1) The certifier declares this adversarial shape terminating.
+            let admission = ChaseAdmission::certify(&f.rules);
+            assert!(
+                admission.admits_native(),
+                "[{}] this adversarial mixed-class fixture must certify WeaklyAcyclic; got {:?}",
+                f.label,
+                admission
+            );
+
+            // (2)+(3) The soundness assertion: run the chase under a GENEROUS budget and
+            // demand a NATURAL fixpoint STRICTLY within it.  `Exhausted` on a certified
+            // program is a FALSE certification (it loops), never merely incomplete.
+            let outcome = chase_world(EX_WORLD, &f.edb, &f.rules, Some(BIG))
+                .unwrap_or_else(|e| panic!("[{}] chase errored: {e}", f.label));
+            let budgeted = match outcome {
+                NativeOutcome::Decided(b) => b,
+                NativeOutcome::Unsupported(k) => {
+                    panic!(
+                        "[{}] a certified program must run natively, got {k:?}",
+                        f.label
+                    )
+                }
+            };
+            assert_eq!(
+                budgeted.status,
+                BudgetStatus::Ok,
+                "[{}] SOUNDNESS VIOLATION: the certifier said WeaklyAcyclic but the budgeted \
+                 chase EXHAUSTED at {} of {BIG} steps — a program the certifier declared \
+                 terminating actually LOOPS (a false certification)",
+                f.label,
+                budgeted.consumed_steps
+            );
+            assert!(
+                budgeted.consumed_steps < BIG,
+                "[{}] a certified chase must halt strictly within budget, consumed {}",
+                f.label,
+                budgeted.consumed_steps
+            );
+
+            // (4) The oracle half: the certified facts agree with Nemo's chase null-blind.
+            let ledger = compare_existential_materialization(
+                &budgeted.rows,
+                &NemoFactsOracle,
+                &f.nemo_edb,
+                &f.nemo_rls,
+                EX_WORLD,
+            )
+            .unwrap_or_else(|e| panic!("[{}] nemo facts-only chase failed: {e}", f.label));
+            let verdict = ledger.enforce();
+            assert!(
+                verdict.passed,
+                "[{}] the certified native chase must AGREE with Nemo null-blind; reasons {:?}; \
+                 rows {:#?}",
+                f.label, verdict.reasons, ledger.rows
+            );
+            assert!(
+                ledger.agree > 0,
+                "[{}] non-vacuous: native and Nemo actually agree on ≥1 chased fact",
+                f.label
+            );
+            assert_eq!(
+                ledger.native_only, 0,
+                "[{}] no native-only fact vs Nemo",
+                f.label
+            );
+            assert_eq!(
+                ledger.oracle_only, 0,
+                "[{}] no oracle-only fact vs Nemo",
+                f.label
+            );
+        }
+
+        // Discrimination: the certifier is not vacuously certifying — genuinely cyclic
+        // shapes AND the conservative wildcard-hub over-approximation are REFUSED, each
+        // carrying a weak-acyclicity violation.
+        for f in refused_fixtures() {
+            let admission = ChaseAdmission::certify(&f.rules);
+            assert!(
+                !admission.admits_native(),
+                "[{}] this shape must be REFUSED (not certified terminating); got {:?}",
+                f.label,
+                admission
+            );
+            match admission {
+                ChaseAdmission::Uncertified { violations } => assert!(
+                    !violations.is_empty(),
+                    "[{}] a refusal must carry ≥1 weak-acyclicity violation",
+                    f.label
+                ),
+                ChaseAdmission::WeaklyAcyclic { .. } => {
+                    unreachable!("[{}] just asserted not admits_native", f.label)
+                }
+            }
+        }
     }
 
     // ── Forward corpus: stratifiable binary Datalog± programs ────────────────────────
