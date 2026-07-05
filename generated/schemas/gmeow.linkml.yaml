@@ -4670,7 +4670,7 @@ slots:
   accountsForParameter:
     slot_uri: https://blackcatinformatics.ca/gmeow/accountsForParameter
     title: accounts for parameter
-    range: string
+    range: uriorcurie
     domain: ProjectionLoss
     multivalued: true
   acquireLicensePage:
@@ -4836,7 +4836,7 @@ slots:
   analysisResult:
     slot_uri: https://blackcatinformatics.ca/gmeow/analysisResult
     title: analysis result
-    range: string
+    range: uriorcurie
     domain: MusicAnalysisClaim
     multivalued: false
   analysisScope:
@@ -4848,7 +4848,7 @@ slots:
   analysisTarget:
     slot_uri: https://blackcatinformatics.ca/gmeow/analysisTarget
     title: analysis target
-    range: string
+    range: uriorcurie
     domain: MusicAnalysisClaim
     multivalued: false
   anchorDegree:
@@ -6175,13 +6175,13 @@ slots:
   connectionSource:
     slot_uri: https://blackcatinformatics.ca/gmeow/connectionSource
     title: connection source
-    range: string
+    range: uriorcurie
     domain: Connection
     multivalued: false
   connectionTarget:
     slot_uri: https://blackcatinformatics.ca/gmeow/connectionTarget
     title: connection target
-    range: string
+    range: uriorcurie
     domain: Connection
     multivalued: false
   connectsTo:
@@ -6198,7 +6198,7 @@ slots:
   constraintFunction:
     slot_uri: https://blackcatinformatics.ca/gmeow/constraintFunction
     title: constraint function
-    range: string
+    range: uriorcurie
     domain: TraversalConstraint
     multivalued: true
   constraintLogic:
@@ -7019,7 +7019,7 @@ slots:
   dofConstraintFunction:
     slot_uri: https://blackcatinformatics.ca/gmeow/dofConstraintFunction
     title: degree-of-freedom constraint function
-    range: string
+    range: uriorcurie
     domain: DegreeOfFreedom
     multivalued: true
   dofConstraintText:
@@ -7687,7 +7687,7 @@ slots:
   findingCategory:
     slot_uri: https://blackcatinformatics.ca/gmeow/findingCategory
     title: finding category
-    range: string
+    range: uriorcurie
     domain: Finding
     multivalued: true
   findingCode:
@@ -7910,7 +7910,7 @@ slots:
   generatedForSubject:
     slot_uri: https://blackcatinformatics.ca/gmeow/generatedForSubject
     title: generated for subject
-    description: COMPUTED PROJECTION, generated not authored (Principle 12). Materialized by a projection-layer rule as the one-hop collapse of the multi-hop path output → gmeow:wasGeneratedBy → invocation → gmeow:subEventOf → session → gmeow:sessionSubjectStage → subject stage (and onward, in the agent-runtime profile, gmeow:stageOfLineage → durable lineage). The canonical nested situations remain the source of truth for deep audits; real-time recall reads this flat shortcut. Never hand-assert it in the authored corpus — the projection-agreement gate (tests/perf-recall.ttl + queries/competency/audit.rq) proves the shortcut equals the collapse of the canon (Principle 7).
+    description: COMPUTED PROJECTION, generated not authored (Principle 12). Materialized by the projection CONSTRUCT queries/project/upper-projection.rq as the one-hop collapse of the multi-hop path output → gmeow:wasGeneratedBy → invocation → gmeow:subEventOf → session → gmeow:sessionSubjectStage → subject stage (and onward, where core/inhabitation is composed — the agent-runtime profile — gmeow:stageOfLineage → durable lineage, via the query's COALESCE that prefers the deeper lineage). The canonical nested situations remain the source of truth for deep audits; real-time recall reads this flat shortcut. Never hand-assert it in the authored corpus — the slice-test harness runs the projection over the canon (gmeow:cqProject) so the projection-agreement gate (tests/perf-recall.ttl + queries/competency/audit.rq) compares the MATERIALIZED shortcut against the collapse of the canon (Principle 7); the gate is non-circular precisely because the shortcut is produced by the rule, not typed by hand.
     range: uriorcurie
     multivalued: true
   generatedObservation:
@@ -7922,7 +7922,7 @@ slots:
   generatedUnderConfiguration:
     slot_uri: https://blackcatinformatics.ca/gmeow/generatedUnderConfiguration
     title: generated under configuration
-    description: COMPUTED PROJECTION, generated not authored (Principle 12). Materialized by a projection-layer rule as the one-hop collapse of output → gmeow:wasGeneratedBy → invocation → gmeow:subEventOf → session → gmeow:sessionConfiguration → active configuration. Never hand-assert it in the authored corpus; the projection-agreement gate proves it equals the collapse of the canon (Principle 7).
+    description: COMPUTED PROJECTION, generated not authored (Principle 12). Materialized by the projection CONSTRUCT queries/project/upper-projection.rq as the one-hop collapse of output → gmeow:wasGeneratedBy → invocation → gmeow:subEventOf → session → gmeow:sessionConfiguration → active configuration. Never hand-assert it in the authored corpus; the slice-test harness runs the projection over the canon (gmeow:cqProject) so the projection-agreement gate compares the MATERIALIZED shortcut against the collapse of the canon (Principle 7), non-circularly.
     range: uriorcurie
     multivalued: true
   geocodeFrame:
@@ -10042,13 +10042,13 @@ slots:
   listArchive:
     slot_uri: https://blackcatinformatics.ca/gmeow/listArchive
     title: list archive
-    range: string
+    range: uriorcurie
     domain: EmailMessage
     multivalued: true
   listHelp:
     slot_uri: https://blackcatinformatics.ca/gmeow/listHelp
     title: list help
-    range: string
+    range: uriorcurie
     domain: EmailMessage
     multivalued: true
   listId:
@@ -10072,13 +10072,13 @@ slots:
   listSubscribe:
     slot_uri: https://blackcatinformatics.ca/gmeow/listSubscribe
     title: list subscribe
-    range: string
+    range: uriorcurie
     domain: EmailMessage
     multivalued: true
   listUnsubscribe:
     slot_uri: https://blackcatinformatics.ca/gmeow/listUnsubscribe
     title: list unsubscribe
-    range: string
+    range: uriorcurie
     domain: EmailMessage
     multivalued: true
   localPart:
@@ -11618,7 +11618,7 @@ slots:
   processFunction:
     slot_uri: https://blackcatinformatics.ca/gmeow/processFunction
     title: process function
-    range: string
+    range: uriorcurie
     domain: GenerativeProcess
     multivalued: true
   processKind:
@@ -11778,7 +11778,7 @@ slots:
   projectableExpression:
     slot_uri: https://blackcatinformatics.ca/gmeow/projectableExpression
     title: projectable expression
-    range: string
+    range: uriorcurie
     domain: NotationProjectionProfile
     multivalued: true
   projectedStandpoint:
@@ -12262,7 +12262,7 @@ slots:
   representableParameter:
     slot_uri: https://blackcatinformatics.ca/gmeow/representableParameter
     title: representable parameter
-    range: string
+    range: uriorcurie
     domain: NotationProjectionProfile
     multivalued: true
   requires:
@@ -12402,7 +12402,7 @@ slots:
   routeEnd:
     slot_uri: https://blackcatinformatics.ca/gmeow/routeEnd
     title: route end
-    range: string
+    range: uriorcurie
     domain: Route
     multivalued: false
   routeKind:
@@ -12414,13 +12414,13 @@ slots:
   routeStart:
     slot_uri: https://blackcatinformatics.ca/gmeow/routeStart
     title: route start
-    range: string
+    range: uriorcurie
     domain: Route
     multivalued: false
   routeVia:
     slot_uri: https://blackcatinformatics.ca/gmeow/routeVia
     title: route via
-    range: string
+    range: uriorcurie
     domain: Route
     multivalued: true
   rsvpStatus:
@@ -12444,7 +12444,7 @@ slots:
   ruleCategory:
     slot_uri: https://blackcatinformatics.ca/gmeow/ruleCategory
     title: rule category
-    range: string
+    range: uriorcurie
     domain: ValidationRule
     multivalued: true
   ruleCode:
@@ -12527,7 +12527,7 @@ slots:
   satisfiedBy:
     slot_uri: https://blackcatinformatics.ca/gmeow/satisfiedBy
     title: satisfied by
-    range: string
+    range: uriorcurie
     domain: Goal
     multivalued: true
   scaleMax:
@@ -13188,19 +13188,19 @@ slots:
   stepInput:
     slot_uri: https://blackcatinformatics.ca/gmeow/stepInput
     title: step input
-    range: string
+    range: uriorcurie
     domain: ProcedureStep
     multivalued: true
   stepOutput:
     slot_uri: https://blackcatinformatics.ca/gmeow/stepOutput
     title: step output
-    range: string
+    range: uriorcurie
     domain: ProcedureStep
     multivalued: true
   stepParameter:
     slot_uri: https://blackcatinformatics.ca/gmeow/stepParameter
     title: step parameter
-    range: string
+    range: uriorcurie
     domain: ProcedureStep
     multivalued: true
   storageMedium:
@@ -14043,7 +14043,7 @@ slots:
   underSemantics:
     slot_uri: https://blackcatinformatics.ca/gmeow/underSemantics
     title: under semantics
-    range: string
+    range: uriorcurie
     domain: ArgumentEvaluation
     multivalued: false
   underStandard:
@@ -14061,7 +14061,7 @@ slots:
   unit:
     slot_uri: https://blackcatinformatics.ca/gmeow/unit
     title: unit
-    range: string
+    range: uriorcurie
     multivalued: false
   updatesMentalTenure:
     slot_uri: https://blackcatinformatics.ca/gmeow/updatesMentalTenure
@@ -14146,7 +14146,7 @@ slots:
   usedCapability:
     slot_uri: https://blackcatinformatics.ca/gmeow/usedCapability
     title: used capability
-    range: string
+    range: uriorcurie
     domain: Activity
     multivalued: true
   usedInput:
@@ -14186,7 +14186,7 @@ slots:
   usesTerm:
     slot_uri: https://blackcatinformatics.ca/gmeow/usesTerm
     title: uses term
-    range: string
+    range: uriorcurie
     multivalued: true
   usesTransformCodec:
     slot_uri: https://blackcatinformatics.ca/gmeow/usesTransformCodec
