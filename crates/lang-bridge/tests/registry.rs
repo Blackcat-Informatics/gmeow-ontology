@@ -8,8 +8,8 @@
 //! carried correspondence, and "Exact" is FALSIFIABLE — a perturbed object fails exactness.
 
 use gmeow_lang_bridge::registry::{
-    assert_registry_covers, registry, ConlluSource, LangProjectionInput, LangProjectionTarget,
-    NamedSource, EMISSION_WORTHY_CLASSES,
+    assert_registry_covers, registry, LangProjectionInput, LangProjectionTarget, NamedSource,
+    EMISSION_WORTHY_CLASSES,
 };
 use gmeow_lang_bridge::{
     exact_round_trip_holds, is_exact_correspondence, parse_grammar, serialize_grammar,
@@ -19,7 +19,34 @@ use gmeow_logic_compile::ir::PreservationKind;
 
 const TURTLE_EBNF: &str = include_str!("../../../slices/grounding/lang/grammars/turtle.ebnf");
 const CONLLU_FIXTURE: &[u8] = include_bytes!("fixtures/sample.conllu");
-const ONTOLEX_FIXTURE: &[u8] = include_bytes!("fixtures/lexicon.ontolex.ttl");
+
+/// A minimal `lang:` lexical A-box — the forward OntoLex target's input.
+const LANG_LEXICON: &str = "\
+@prefix lang: <https://blackcatinformatics.ca/lang/> .\n\
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
+@prefix ex:   <http://example.org/lang/> .\n\
+ex:lexCat a lang:Lexeme ; rdfs:label \"cat\" ; lang:partOfSpeech lang:noun .\n\
+ex:senseCat a lang:Sense ; rdfs:label \"the animal sense of 'cat'\" ; lang:senseOf ex:lexCat .\n\
+ex:wfCats a lang:WordForm ; rdfs:label \"cats\" ; lang:inflectionOf ex:lexCat ;\n\
+    lang:morphFeature ex:featPlur .\n\
+ex:featPlur a lang:MorphFeature ; lang:featureKey lang:featNumber ; lang:featureValue lang:valPlur .\n";
+
+/// A `lang:` composed form scoped to TWO co-resident analyses — the forward CoNLL-U target's
+/// input for the no-silent-winner discipline.
+const LANG_AMBIGUOUS: &str = "\
+@prefix lang: <https://blackcatinformatics.ca/lang/> .\n\
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
+@prefix ex:   <http://example.org/lang/> .\n\
+ex:wSaw a lang:WordForm ; rdfs:label \"saw\" .\n\
+ex:wDuck a lang:WordForm ; rdfs:label \"duck\" .\n\
+ex:sent a lang:ComposedForm ; rdfs:label \"saw duck\" ;\n\
+    lang:inAnalysis ex:aBird , ex:aCrouch ; lang:formSlot ex:b0 , ex:b1 , ex:c0 , ex:c1 .\n\
+ex:aBird a lang:Analysis .\n\
+ex:aCrouch a lang:Analysis .\n\
+ex:b0 a lang:FormSlot ; lang:inAnalysis ex:aBird ; lang:slotIndex 0 ; lang:slotForm ex:wSaw ; lang:slotRole lang:predicateRole .\n\
+ex:b1 a lang:FormSlot ; lang:inAnalysis ex:aBird ; lang:slotIndex 1 ; lang:slotForm ex:wDuck ; lang:slotRole lang:objectRole ; lang:dependsOn ex:b0 .\n\
+ex:c0 a lang:FormSlot ; lang:inAnalysis ex:aCrouch ; lang:slotIndex 0 ; lang:slotForm ex:wSaw ; lang:slotRole lang:predicateRole .\n\
+ex:c1 a lang:FormSlot ; lang:inAnalysis ex:aCrouch ; lang:slotIndex 1 ; lang:slotForm ex:wDuck ; lang:slotRole lang:complementRole ; lang:dependsOn ex:c0 .\n";
 
 /// An ABNF-expressible grammar (no verbatim/negated character class, no `A - B` difference)
 /// authored in EBNF notation — the fragment the ABNF target renders exactly.
@@ -142,19 +169,19 @@ fn abnf_target_is_honest_lossy_for_char_class_grammars() {
 // ── OntoLex: SoundUnder, DERIVED from the lossy-lens correspondence ─────────────────
 
 #[test]
-fn ontolex_target_carries_soundunder_with_gloss_residue() {
+fn ontolex_target_carries_soundunder_over_the_lang_lexicon() {
     let input = LangProjectionInput {
-        lexicons: vec![NamedSource {
+        lang_models: vec![NamedSource {
             name: "en".to_owned(),
-            bytes: ONTOLEX_FIXTURE.to_vec(),
+            bytes: LANG_LEXICON.as_bytes().to_vec(),
         }],
         ..Default::default()
     };
     let e = &target("ontolex-lemon").emit(&input).expect("emit")[0];
-    // The lift is a lossy lens — never an exact correspondence.
+    // The forward projection is a lossy lens — never an exact correspondence.
     assert!(
         !is_exact_correspondence(&e.correspondence),
-        "the OntoLex lift flattens glosses + epistemic strata: never exact"
+        "the OntoLex projection flattens the epistemic strata: never exact"
     );
     assert_eq!(e.lossy_kind, PreservationKind::SoundUnder);
     // The flattened epistemic strata are enumerated.
@@ -162,25 +189,26 @@ fn ontolex_target_carries_soundunder_with_gloss_residue() {
         .unsupported
         .iter()
         .any(|u| u.contains("vantage") || u.contains("epistemic")));
-    // The emission carries the lifted OntoLex RDF as an artifact.
-    assert!(e.artifacts.iter().any(|a| a.is_rdf));
+    // The emission carries the emitted OntoLex-Lemon RDF as an artifact.
+    let ttl = e
+        .artifacts
+        .iter()
+        .find(|a| a.is_rdf)
+        .map(|a| String::from_utf8_lossy(&a.bytes).into_owned())
+        .expect("an OntoLex RDF artifact");
+    assert!(ttl.contains("lemon/ontolex#LexicalEntry"), "{ttl}");
+    assert!(ttl.contains("lemon/ontolex#LexicalSense"), "{ttl}");
 }
 
 // ── CoNLL-U: one artifact per co-resident reading (no silent winner) ────────────────
 
 #[test]
 fn conllu_target_emits_one_artifact_per_reading() {
-    // Two DISTINCT readings of the same surface — never collapsed to a single winner.
-    let reading_a = b"1\tsaw\tsee\tVERB\t_\t_\t0\troot\t_\t_\n\
-2\tduck\tduck\tNOUN\t_\t_\t1\tobj\t_\t_\n\n"
-        .to_vec();
-    let reading_b = b"1\tsaw\tsee\tVERB\t_\t_\t0\troot\t_\t_\n\
-2\tduck\tduck\tVERB\t_\t_\t1\txcomp\t_\t_\n\n"
-        .to_vec();
+    // A composed form scoped to two co-resident analyses — never collapsed to one tree.
     let input = LangProjectionInput {
-        treebanks: vec![ConlluSource {
-            name: "saw-her-duck".to_owned(),
-            readings: vec![reading_a.clone(), reading_b.clone()],
+        lang_models: vec![NamedSource {
+            name: "saw-duck".to_owned(),
+            bytes: LANG_AMBIGUOUS.as_bytes().to_vec(),
         }],
         ..Default::default()
     };
@@ -189,11 +217,9 @@ fn conllu_target_emits_one_artifact_per_reading() {
     assert_eq!(
         e.artifacts.len(),
         2,
-        "two readings must emit two artifacts, never one"
+        "two co-resident analyses must emit two artifacts, never one"
     );
-    // Each artifact is the byte-exact round-trip of its reading.
-    assert_eq!(e.artifacts[0].bytes, reading_a);
-    assert_eq!(e.artifacts[1].bytes, reading_b);
+    // The emitted CoNLL-U byte-round-trips, so single-reading morphosyntax is Exact.
     assert!(is_exact_correspondence(&e.correspondence));
     assert!(e.round_trip_holds);
 }

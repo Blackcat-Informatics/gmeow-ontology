@@ -35,18 +35,19 @@
 //!
 //! # Sources
 //!
-//! The authored `slices/grounding/lang/grammars/*.ebnf` are the grammar SOURCE surface
-//! (the `.po` analogue for grammars); each is lifted and re-emitted to EBNF and (where the
-//! canonical grammar is ABNF-expressible) ABNF. The OntoLex-Lemon and CoNLL-U targets are
-//! registered but drive from OntoLex-Lemon lexicon / CoNLL-U treebank source surfaces the
-//! composed non-test model does not carry, so each folds ONE honest no-source ledger row —
-//! exactly as `lang_form` was empty until data appeared. The bridges themselves are fully
-//! exercised (round-trip + teeth) by fixtures in `crates/lang-bridge/tests`.
+//! Every projection here is FORWARD — from the canonical `lang:` model out to an external
+//! ecosystem (the backward ingestion leg lives in the runtime bridges). The authored
+//! `slices/grounding/lang/grammars/*.ebnf` are the grammar SOURCE surface, lifted and
+//! re-emitted to EBNF and (where ABNF-expressible) ABNF. The OntoLex-Lemon, CoNLL-U, TEI,
+//! NIF, and SemAF targets lower the `lang:` A-box carried by the shipped `examples/*.ttl`:
+//! `lang:Lexeme`/`lang:Sense` to OntoLex, analyzed `lang:ComposedForm` to CoNLL-U, and so on.
+//! A target whose individuals the composed model does not carry folds ONE honest no-source
+//! ledger row (as `lang_form` was empty until data appeared).
 
 use purrdf::slice::SliceCatalog;
 
 use gmeow_lang_bridge::registry::{
-    assert_registry_covers, registry, ConlluSource, LangEmission, LangProjectionInput, NamedSource,
+    assert_registry_covers, registry, LangEmission, LangProjectionInput, NamedSource,
     EMISSION_WORTHY_CLASSES,
 };
 use gmeow_lang_bridge::{exact_round_trip_holds, is_exact_correspondence, ntriples_sorted};
@@ -308,9 +309,9 @@ fn no_source_row(target: &str) -> ProjectionResult {
 }
 
 /// Collect the projection input aBox from the shared source catalog: every authored
-/// `*.ebnf` grammar surface (the grammar SOURCE surface). OntoLex-Lemon lexicons and
-/// CoNLL-U treebanks are not authored as source artifacts in the composed model, so those
-/// input slices are empty (each target folds its honest no-source row).
+/// `*.ebnf` grammar surface (the grammar SOURCE surface), and every lang-bearing
+/// `examples/*.ttl` (the `lang:` A-box the OntoLex/CoNLL-U/TEI/NIF/SemAF targets lower FROM,
+/// and — with the lang module surface — the BCP-47 target's variety scan).
 fn collect_input(catalog: Option<&SliceCatalog>) -> Result<LangProjectionInput, PipelineError> {
     let mut grammars: Vec<NamedSource> = Vec::new();
     let mut lang_models: Vec<NamedSource> = Vec::new();
@@ -364,8 +365,6 @@ fn collect_input(catalog: Option<&SliceCatalog>) -> Result<LangProjectionInput, 
 
     Ok(LangProjectionInput {
         grammars,
-        lexicons: Vec::new(),
-        treebanks: Vec::<ConlluSource>::new(),
         lang_models,
         varieties,
     })
