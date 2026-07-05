@@ -182,6 +182,31 @@ lang:ebnfFormalism
     rdfs:label "EBNF"@x-gmeow-english ;
     skos:definition "The ISO/IEC 14977 EBNF grammar-interchange formalism."@x-gmeow-english .
 
+# --- Self-hosting grammar individuals --------------------------------------- #
+# The grammars of GMEOW's own serialization sign systems, held as first-class
+# lang:Grammar individuals. The full grammar bytes are the EBNF renderings under
+# grammars/turtle.ebnf and grammars/gts.ebnf (an EBNF file is a rendering of the
+# grammar object, not the grammar); each individual references its rendering by
+# label and licenses its sign system through lang:grammarFor. This is the semantic
+# statement that the native parse of Turtle and GTS is an interpretation over these
+# grammars — the self-description, not a second parser stack.
+
+lang:turtleGrammar
+    a owl:NamedIndividual , lang:Grammar ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "Turtle grammar"@x-gmeow-english ;
+    skos:definition "The grammar of the W3C Turtle serialization, licensing the lang:turtle sign system the native codec interprets. Its EBNF rendering is grammars/turtle.ebnf; the file is a rendering of this grammar object, never its identity."@x-gmeow-english ;
+    lang:grammarFor lang:turtle ;
+    lang:grammarFormalism lang:ebnfFormalism .
+
+lang:gtsGrammar
+    a owl:NamedIndividual , lang:Grammar ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GTS grammar"@x-gmeow-english ;
+    skos:definition "The grammar of the GTS textual serialization, licensing the lang:gts sign system the native codec interprets. Its EBNF rendering is grammars/gts.ebnf; the file is a rendering of this grammar object, never its identity."@x-gmeow-english ;
+    lang:grammarFor lang:gts ;
+    lang:grammarFormalism lang:ebnfFormalism .
+
 # --- Canonical sign-system and script references ---------------------------- #
 # A minimal set of first-class sign-system individuals the reference layer names
 # and the alignment records anchor to. English and Turtle are sign systems; Latin
@@ -204,17 +229,56 @@ lang:turtle
     lang:signSystemKind lang:formalLanguageKind ;
     lang:modality lang:writtenModality .
 
+lang:gts
+    a owl:NamedIndividual , lang:SignSystem ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GTS"@x-gmeow-english ;
+    skos:definition "The GTS textual serialization as a first-class sign system: a lang:SignSystem of lang:formalLanguageKind in the written modality, licensed by a lang:Grammar. One of GMEOW's own serialization sign systems, the surface the native GTS codec interprets."@x-gmeow-english ;
+    lang:signSystemKind lang:formalLanguageKind ;
+    lang:modality lang:writtenModality .
+
 lang:latinScript
     a owl:NamedIndividual , lang:Script ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "Latin script"@x-gmeow-english ;
-    skos:definition "The Latin script as a first-class character repertoire: a lang:Script. Its ISO 15924 code Latn and Wikidata QID are alignments, never its identity."@x-gmeow-english .
+    skos:notation "Latn"^^xsd:string ;
+    skos:definition "The Latin script as a first-class character repertoire: a lang:Script. Its ISO 15924 code Latn (carried machine-readably as a skos:notation) and Wikidata QID are alignments, never its identity."@x-gmeow-english .
 
 lang:hanScript
     a owl:NamedIndividual , lang:Script ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "Han script"@x-gmeow-english ;
-    skos:definition "The Han (CJK) script as a first-class character repertoire: a lang:Script. Its ISO 15924 code Hani and Wikidata QID are alignments, never its identity."@x-gmeow-english .
+    skos:notation "Hani"^^xsd:string ;
+    skos:definition "The Han (CJK) script as a first-class character repertoire: a lang:Script. Its ISO 15924 code Hani (carried machine-readably as a skos:notation) and Wikidata QID are alignments, never its identity."@x-gmeow-english .
+
+# --- The internal GMEOW English carrier variety and its orthography ---------- #
+# The @x-gmeow-english carrier under which every source prose literal is authored
+# is a language individual, never a bare tag: a lang:LanguageVariety of English
+# (the controlled, RFC-2119-style English GMEOW writes its own prose in), carrying
+# its internal language tag as machine-readable data through lang:carrierTag. Its
+# script is bound through an orthography — the module's designated sign-system-to-
+# script convention — using the existing lang:orthographyFor and lang:usesScript.
+# Resolving a carrier tag to its lang:Script is therefore a pure data lookup over
+# this model; adding a language is adding a variety + orthography here, never a
+# Rust code change.
+
+lang:gmeowEnglish
+    a owl:NamedIndividual , lang:LanguageVariety ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMEOW English carrier"@x-gmeow-english ;
+    skos:definition "The internal GMEOW English carrier: the controlled variety of English under which every @x-gmeow-english source prose literal is authored — a lang:LanguageVariety of lang:english, a language individual rather than a bare tag. Its internal language tag x-gmeow-english is carried machine-readably through lang:carrierTag; its script is bound through lang:gmeowEnglishOrthography. Resolving the carrier tag to its lang:Script is a data lookup over this model, never a hard-coded mapping."@x-gmeow-english ;
+    lang:varietyOf lang:english ;
+    lang:signSystemKind lang:naturalLanguageKind ;
+    lang:modality lang:writtenModality ;
+    lang:carrierTag "x-gmeow-english" .
+
+lang:gmeowEnglishOrthography
+    a owl:NamedIndividual , lang:Orthography ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMEOW English orthography"@x-gmeow-english ;
+    skos:definition "The writing convention binding the internal GMEOW English carrier (lang:gmeowEnglish) to the Latin script: a lang:Orthography that serves that variety through lang:orthographyFor and uses lang:latinScript through lang:usesScript. This is the data edge that makes carrier-tag-to-script resolution a lookup rather than a Rust match."@x-gmeow-english ;
+    lang:orthographyFor lang:gmeowEnglish ;
+    lang:usesScript lang:latinScript .
 
 # =========================================================================== #
 # Form AST — the stratified form calculus
@@ -664,7 +728,7 @@ lang:NonContiguousSlots
     rdfs:subClassOf lang:LangConformanceFailure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "Non-Contiguous Slots"@x-gmeow-english ;
-    skos:definition "The failure raised when a lang:ComposedForm's slot indexes are not zero-based and contiguous in strict canonical mode — a missing index 0, or a maximum index not equal to the slot count minus one. Canonical composed forms have a gap-free zero-based index sequence."@x-gmeow-english ;
+    skos:definition "The failure raised when a lang:ComposedForm's slot indexes are not zero-based and contiguous — a missing index 0, an internal gap, or a maximum index not equal to the slot count minus one. Composed forms have a gap-free zero-based index sequence, enforced unconditionally (there is no lax mode); constituent order is identity-bearing, so a gap or non-zero start is always ill-formed."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 lang:DanglingDependency
@@ -740,6 +804,13 @@ lang:varietyOf
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "variety of"@x-gmeow-english ;
     skos:definition "Relates a language variety to the sign system it is a variety of. Domain lang:LanguageVariety, range lang:SignSystem (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+lang:carrierTag
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "carrier tag"@x-gmeow-english ;
+    skos:definition "The internal language tag under which a sign system's or variety's source prose literals are authored — the machine-readable identifier the pipeline resolves to a lang:Script through the variety's orthography. Domain lang:SignSystem or lang:LanguageVariety, range a string literal (stated in prose). Unlike an external BCP-47 alignment, this is the pipeline's own load-bearing carrier tag (e.g. x-gmeow-english), so it is carried as data on the language individual rather than named as an alignment."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 lang:usesScript
@@ -818,7 +889,14 @@ lang:surfaceText
     a owl:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "surface text"@x-gmeow-english ;
-    skos:definition "The concrete text a surface form carries. Domain lang:SurfaceForm, range a string literal (stated in prose). The only identity-bearing byte content in the AST, and only at the surface stratum."@x-gmeow-english ;
+    skos:definition "The concrete text a surface form carries. Domain lang:SurfaceForm, range a string literal (stated in prose). The only identity-bearing byte content in the AST, and only at the surface stratum. A document-scale surface holds its bytes by reference through lang:surfaceBlob instead, never inline here."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+lang:surfaceBlob
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "surface blob"@x-gmeow-english ;
+    skos:definition "A by-reference handle to the concrete bytes a document-scale surface form carries — the content-addressed blob digest (a \"blake3:<hex>\" reference literal) of those bytes, held in the bundle's content-addressed blob channel rather than inline. Domain lang:SurfaceForm, range a blob-reference string literal (stated in prose). A surface whose text byte-length exceeds the document-scale threshold carries lang:surfaceBlob in place of lang:surfaceText so the graph never inlines document-scale payload bytes; the digest is content-addressed, so the reference is deterministic and the bytes resolve through the blob store. A surface carries exactly one of lang:surfaceText or lang:surfaceBlob."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 lang:inScript
@@ -1514,6 +1592,13 @@ lang:producedReading
     skos:definition "Relates an interpretation act to a reading it produced. Domain lang:InterpretationAct, range lang:Reading (stated in prose). An ambiguous form's act produces multiple co-resident readings, none collapsed."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+lang:interpretationEngine
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "interpretation engine"@x-gmeow-english ;
+    skos:definition "Relates a lang:InterpretationAct to the external NLP engine (a parser, tagger, lemmatizer, or MT system) that produced its readings, carrying the engine and version as provenance. Domain lang:InterpretationAct, range an engine agent (stated in prose). Its presence marks the act as an engine run — an oracle that produces claims, never an authority that produces facts — so every lang:producedReading of such an act MUST be a vantage-held reading (carrying gmeow:vantage); an engine act whose reading carries no vantage has entered engine output as unattributed structure (lang:UnattributedEngineClaim)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 lang:resolvedReading
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
@@ -1828,6 +1913,13 @@ lang:translationCorrespondence
     skos:definition "Relates a lang:TranslationUnit to the single logic:Correspondence node it carries — THE attachment point of the law-spine. Domain lang:TranslationUnit, range logic:Correspondence (stated in prose). Everything about the crossing that is a law rather than a facet lives on that Correspondence: its logic:preservationKind, logic:morphismClass, logic:correspondenceRelation, logic:mnemomorphic witness, logic:hasDeterminacy, and any logic:hasLawClaim with its logic:lawClaimed and logic:lawDischargeVerdict. lang: never shadows those properties; it only points at the node that holds them, and each unit carries exactly one."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+lang:surfaceCorrespondence
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "surface correspondence"@x-gmeow-english ;
+    skos:definition "Relates a lang:SurfaceForm to the single logic:Correspondence node carrying the law-spine of its surface round-trip — THE attachment point when a raw surface is interned as unanalyzed prose. Domain lang:SurfaceForm, range logic:Correspondence (stated in prose). The round-trip that re-emits the surface bytes verbatim is an exact isomorphism, so the carried Correspondence holds its logic:preservationKind, logic:morphismClass, logic:correspondenceRelation, logic:mnemomorphic witness, logic:hasDeterminacy, and logic:hasLawClaim rather than any lang: shadow of them. A surface carries at most one; a raw prose lift always mints exactly one."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 lang:rollsUpFrom
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
@@ -1955,3 +2047,44 @@ lang:SurfaceLeakInContentKey
     rdfs:label "Surface Leak In Content Key"@x-gmeow-english ;
     skos:definition "The failure raised when a crossing's content-level identity is computed over surface-stratum material — a translation, rendering, or paraphrase keyed on script, encoding, casing, normalization, or rendered surface rather than on structural form content. Form identity is computed over structural content alone and is independent of encoding, script, casing, and rendering; a crossing that lets a surface distinction into its content key has leaked the surface into identity."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
+
+lang:InlineBlobPayload
+    a owl:Class ;
+    rdfs:subClassOf lang:LangConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "Inline Blob Payload"@x-gmeow-english ;
+    skos:definition "The failure raised when a document-scale lang:SurfaceForm carries its bytes inline through lang:surfaceText rather than by reference through lang:surfaceBlob — a surface whose lang:surfaceText byte-length exceeds the document-scale threshold. Document-scale surfaces hold a content-addressed blob reference, never inline payload bytes, so the RDF carries a handle and origin rather than growing without bound with the document; a surface that inlines document-scale bytes has folded payload into identity-bearing graph content."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+# --- Ingestion-stratum failure classes (the external-engine handoff) --------- #
+
+lang:UnattributedEngineClaim
+    a owl:Class ;
+    rdfs:subClassOf lang:LangConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "Unattributed Engine Claim"@x-gmeow-english ;
+    skos:definition "The failure raised when an external engine's output enters the graph as unattributed structure rather than a vantage-held reading — a lang:Reading produced by a lang:InterpretationAct (through lang:producedReading) that carries no gmeow:vantage. Parsers, taggers, and MT systems are oracles that produce claims, never authorities that produce facts: every engine reading is held from the engine's vantage, so an engine reading with no vantage has been folded as an unattributed fact, and two engines that disagree can no longer be told apart."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+lang:SilentPromotion
+    a owl:Class ;
+    rdfs:subClassOf lang:LangConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "Silent Promotion"@x-gmeow-english ;
+    skos:definition "The failure raised when an engine-produced lang:Reading is promoted to a slice-level assertion without an accompanying provenance-carrying editorial act — a subject that adopts a reading as canonical (through lang:promotedReading) while itself being neither a gmeow:Activity nor carrying a gmeow:vantage. Promotion from an engine-claimed reading to a slice-asserted analysis is an explicit editorial act with its own provenance; adopting a reading as fact with no such act erases the boundary between what an engine claimed and what the slice stands behind."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+lang:SilentIngestDrop
+    a owl:Class ;
+    rdfs:subClassOf lang:LangConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "Silent Ingest Drop"@x-gmeow-english ;
+    skos:definition "The failure raised when an ingester admits content without accounting for it — a construct that enters the graph neither fully lifted nor hard-failed with a typed diagnostic naming it. An ingester lifts fully or hard-fails; it never silently drops material. The bridges enforce this at the seam (a lift that cannot represent a construct raises a typed diagnostic carrying this class rather than emitting a plausible-but-wrong structure); at the dataset level it surfaces as a lang:SurfaceForm left in limbo — one that neither lang:realizes an analyzed lang:Form nor is typed lang:UnanalyzedProse — a surface whose analysis was silently dropped rather than recorded or refused."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+lang:promotedReading
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "promoted reading"@x-gmeow-english ;
+    skos:definition "Relates an editorial promotion act to the lang:Reading it elevates from an engine-claimed candidate to a slice-asserted analysis. Domain gmeow:Activity, range lang:Reading (stated in prose). Promotion is lawful ONLY as an explicit provenance-carrying act: the promoting subject is a gmeow:Activity carrying a gmeow:vantage naming the editor who stands behind the reading; a lang:promotedReading edge from a subject that is neither an activity nor vantage-held has silently promoted the reading (lang:SilentPromotion)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
