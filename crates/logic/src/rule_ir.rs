@@ -313,7 +313,7 @@ fn parse_n3_object_literal(n3: &str) -> Result<TermValue, String> {
 ///
 /// `terms()[0]` = subject, `terms()[1]` = object; `terms()[2]` (world) is ignored,
 /// exactly like `certify.rs::logical_terms`.
-fn lower_nemo_atom(
+pub(crate) fn lower_nemo_atom(
     atom: &nemo::rule_model::components::atom::Atom,
     negated: bool,
 ) -> Result<EvalAtom, String> {

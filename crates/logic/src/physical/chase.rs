@@ -36,11 +36,11 @@
 //! non-terminating program would loop, so the router only calls this unbudgeted on a
 //! certified-terminating program, and budgeted otherwise (incomplete-never-wrong).
 //!
-//! # Phase dead code
+//! # Routing
 //!
-//! Like the sibling evaluators, the chase lands before the routing that consumes it, so
-//! the not-yet-wired surface allows `dead_code` module-internally.
-#![allow(dead_code)]
+//! [`chase_materialize`] is the forward entry `materialize::materialize_routed` dispatches
+//! to for a value-inventing program (a rule with an existential head variable), sitting
+//! ahead of the Datalog arm because `materialize_native` cannot represent one.
 
 use std::collections::BTreeSet;
 
@@ -218,6 +218,36 @@ pub(crate) fn chase_world(
     rules: &[ExistentialRule],
     max_steps: Option<u64>,
 ) -> Result<ChaseOutcome, String> {
+    let mut governor = StepGovernor::new(max_steps);
+    let mut out: Vec<DerivedRow> = Vec::new();
+    let status = chase_world_into(world, edb_facts, rules, &mut governor, &mut out)?;
+    sort_rows(&mut out);
+    let progress = StrataProgress {
+        completed: usize::from(status == BudgetStatus::Ok),
+        total: 1,
+        saturated_preds: BTreeSet::new(),
+    };
+    Ok(NativeOutcome::Decided(Budgeted {
+        rows: out,
+        status,
+        progress,
+        consumed_steps: governor.consumed,
+    }))
+}
+
+/// Chase ONE world into a shared output buffer under a shared step governor.
+///
+/// Factored out of [`chase_world`] so [`chase_materialize`] can run a single global
+/// budget across the sorted worlds (matching `materialize_native`'s discipline).  Echoes
+/// the world's asserted EDB, runs the restricted-chase fixpoint, and appends the derived
+/// rows (each stamped with `world`) to `out`.  Returns the world's budget status.
+fn chase_world_into(
+    world: &str,
+    edb_facts: &[Fact],
+    rules: &[ExistentialRule],
+    governor: &mut StepGovernor,
+    out: &mut Vec<DerivedRow>,
+) -> Result<BudgetStatus, String> {
     // Seed the columnar store from the EDB; echo the asserted facts as derived rows so
     // the native fact set is directly comparable to an oracle's closure (which includes
     // the EDB).
@@ -225,9 +255,8 @@ pub(crate) fn chase_world(
     for f in edb_facts {
         store.insert(&f.predicate, f.subject.clone(), f.object.clone());
     }
-    let mut out = echo_asserted(world, edb_facts)?;
+    out.extend(echo_asserted(world, edb_facts)?);
 
-    let mut governor = StepGovernor::new(max_steps);
     let mut registry = SkolemRegistry::new();
     let mut committed: BTreeSet<FactKey> = edb_facts.iter().map(Fact::key).collect();
     let mut status = BudgetStatus::Ok;
@@ -313,11 +342,56 @@ pub(crate) fn chase_world(
         }
     }
 
+    Ok(status)
+}
+
+/// Materialize an existential-rule program over a multi-world store: certify termination,
+/// then run the restricted chase world-by-world under ONE global step budget.
+///
+/// This is the forward entry `materialize::materialize_routed` calls for a value-inventing
+/// program, mirroring `materialize_native`'s shape (sorted worlds, a single shared
+/// governor, cross-world under-claiming frontier) so the router treats a chase result
+/// identically to the Datalog one.
+///
+/// - Certified (`WeaklyAcyclic`) ⇒ run the chase (a declared budget still applies).
+/// - Uncertified WITH a budget ⇒ budgeted-partial (incomplete-never-wrong).
+/// - Uncertified with NO budget ⇒ `Unsupported(NonTerminatingExistential)` — the router
+///   demotes it to the oracle rather than looping.
+///
+/// # Errors
+///
+/// Propagates grounding/​provenance failures and EDB extraction errors.
+pub(crate) fn chase_materialize(
+    store: &crate::store::WorldStore,
+    rules: &[ExistentialRule],
+    max_steps: Option<u64>,
+) -> Result<ChaseOutcome, String> {
+    let admission = ChaseAdmission::certify(rules);
+    if !admission.admits_native() && max_steps.is_none() {
+        return Ok(NativeOutcome::Unsupported(
+            UnsupportedKind::NonTerminatingExistential,
+        ));
+    }
+
+    let mut worlds = store.worlds();
+    worlds.sort();
+
+    let mut governor = StepGovernor::new(max_steps);
+    let mut out: Vec<DerivedRow> = Vec::new();
+    let mut status = BudgetStatus::Ok;
+    for world in &worlds {
+        let edb_facts = crate::rule_ir::world_edb_facts(store, world)?;
+        let world_status = chase_world_into(world, &edb_facts, rules, &mut governor, &mut out)?;
+        if world_status == BudgetStatus::Exhausted {
+            status = BudgetStatus::Exhausted;
+            break; // global budget spent — later worlds don't run
+        }
+    }
+
     sort_rows(&mut out);
     let progress = StrataProgress {
-        // The chase has no strata; report a single "stratum" completed iff it ran to
-        // its natural fixpoint, and saturate no predicate (a value-inventing round can
-        // always, in principle, extend any head predicate — under-claim, never over).
+        // The chase has no strata; a value-inventing round can always, in principle,
+        // extend any head predicate, so saturate none (under-claim, never over).
         completed: usize::from(status == BudgetStatus::Ok),
         total: 1,
         saturated_preds: BTreeSet::new(),
@@ -328,6 +402,43 @@ pub(crate) fn chase_world(
         progress,
         consumed_steps: governor.consumed,
     }))
+}
+
+/// Parse a Nemo `.rls` program into [`ExistentialRule`]s, capturing conjunctive heads and
+/// existential (`!Y`) head variables.
+///
+/// [`crate::rule_ir::parse_eval_rules`] takes only the FIRST head atom and cannot represent
+/// a value-inventing rule; this parser keeps every head atom (so a `∃y. p(x,y) ∧ D(y)`
+/// obligation stays ONE rule sharing its witness) and preserves the existential-vs-frontier
+/// distinction structurally (an existential var appears in the head but no body atom).  A
+/// plain Datalog rule parses too — its [`ExistentialRule::is_existential`] is simply false.
+pub(crate) fn parse_existential_rules(rules: &str) -> Result<Vec<ExistentialRule>, String> {
+    use crate::nemo_engine::NemoParsedRules;
+    use nemo::rule_model::programs::ProgramRead;
+
+    let program = NemoParsedRules::parse_unvalidated(rules)?.into_program();
+    let mut out: Vec<ExistentialRule> = Vec::new();
+    for rule in program.rules() {
+        let head: Vec<EvalAtom> = rule
+            .head()
+            .iter()
+            .map(|atom| crate::rule_ir::lower_nemo_atom(atom, false))
+            .collect::<Result<_, _>>()?;
+        let body: Vec<EvalAtom> = rule
+            .body_positive()
+            .map(|atom| crate::rule_ir::lower_nemo_atom(atom, false))
+            .collect::<Result<_, _>>()?;
+        let rule_iri = rule
+            .name()
+            .unwrap_or_else(|| format!("{}rule/anonymous", crate::provenance::LOGIC_NAMESPACE));
+        out.push(ExistentialRule {
+            rule_iri,
+            body,
+            head,
+            distinct: Vec::new(),
+        });
+    }
+    Ok(out)
 }
 
 /// The firing IRI stamped on a chase-derived row.
