@@ -278,10 +278,12 @@ mod tests {
                 .and_then(|l| l.logical.as_deref()),
             Some("https://ex/a")
         );
-        assert!(finding
-            .related_locations
-            .iter()
-            .any(|l| l.logical.as_deref() == Some("path https://ex/p")));
+        assert!(
+            finding
+                .related_locations
+                .iter()
+                .any(|l| l.logical.as_deref() == Some("path https://ex/p"))
+        );
         assert_eq!(
             finding.detail.as_deref(),
             Some("source shape: https://ex/shape")

@@ -15,10 +15,10 @@ use std::collections::{BTreeSet, HashSet};
 use std::path::Path;
 
 use gmeow_diagnostics::render;
-use gmeow_validate::lint::{default_annotation_predicates, LintConfig};
+use gmeow_validate::lint::{LintConfig, default_annotation_predicates};
 use gmeow_validate::validate_all::{SignatureConfig, ValidateOptions, ValidationRun};
 
-use crate::dev_common::{fail, project_root, write_timings_json, NAMESPACE, ONTOLOGY_IRI};
+use crate::dev_common::{NAMESPACE, ONTOLOGY_IRI, fail, project_root, write_timings_json};
 
 /// `gmeow-dev validate [--gts --trust-policy --require-signed --trusted-key --deep …]`.
 #[allow(clippy::too_many_arguments)]
@@ -178,10 +178,10 @@ fn build_signature_config(
             .unwrap_or(false);
         if let Some(key) = policy.get("trusted_key").and_then(|v| v.as_str()) {
             let mut key_path = std::path::PathBuf::from(key);
-            if key_path.is_relative() {
-                if let Some(parent) = policy_path.parent() {
-                    key_path = parent.join(key_path);
-                }
+            if key_path.is_relative()
+                && let Some(parent) = policy_path.parent()
+            {
+                key_path = parent.join(key_path);
             }
             let armor = std::fs::read_to_string(&key_path).map_err(|e| {
                 fail(format!(

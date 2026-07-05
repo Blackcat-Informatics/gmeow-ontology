@@ -33,7 +33,7 @@ use std::cmp::Ordering;
 use gmeow_logic::entrenchment::{Entrenchment, OVERRIDES};
 use gmeow_logic::store::WorldStore;
 use gmeow_logic_compile::adapter::assert_ir_isomorphic;
-use gmeow_logic_compile::compat::{check, ContractVerdict};
+use gmeow_logic_compile::compat::{ContractVerdict, check};
 use gmeow_logic_compile::ir::{
     ContextualScope, LogicAxiom, LogicProgram, LogicRule, ReasoningContract,
 };

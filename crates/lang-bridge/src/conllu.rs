@@ -41,7 +41,7 @@ use gmeow_logic_compile::projections::ProjectionResult;
 
 use crate::bridge::{Bridge, IngestDiagnostic, LangFailure, Lifted};
 use crate::emit::digest16;
-use crate::plain_text::{normalization_label, UNDETERMINED_SCRIPT};
+use crate::plain_text::{UNDETERMINED_SCRIPT, normalization_label};
 
 /// The `lang:` namespace base, byte-identical to the other `lang:` producers so every
 /// `lang:` local name resolves to the same IRI across bridges.
@@ -303,13 +303,14 @@ pub fn parse(bytes: &[u8]) -> Result<ConlluDoc, IngestDiagnostic> {
         // must hard-fail rather than surface a repaired or partial feature set.
         parse_feats(cols[5])?;
         // A syntactic word must carry an integer HEAD or `_`; MWT/empty lines carry `_`.
-        if let TokenId::Simple(_) = id {
-            if cols[6] != "_" && cols[6].parse::<u32>().is_err() {
-                return Err(spec_violation(format!(
-                    "malformed HEAD on a syntactic word: '{}'",
-                    cols[6]
-                )));
-            }
+        if let TokenId::Simple(_) = id
+            && cols[6] != "_"
+            && cols[6].parse::<u32>().is_err()
+        {
+            return Err(spec_violation(format!(
+                "malformed HEAD on a syntactic word: '{}'",
+                cols[6]
+            )));
         }
         tokens.push(ConlluToken {
             id,
@@ -409,12 +410,13 @@ pub fn to_forms(sentence: &ConlluSentence) -> Result<Form, IngestDiagnostic> {
                 let mut spans = Vec::new();
                 let mut j = i + 1;
                 while j < sentence.tokens.len() {
-                    if let TokenId::Simple(n) = sentence.tokens[j].id {
-                        if n >= *a && n <= *b {
-                            spans.push(word_form(&sentence.tokens[j])?);
-                            j += 1;
-                            continue;
-                        }
+                    if let TokenId::Simple(n) = sentence.tokens[j].id
+                        && n >= *a
+                        && n <= *b
+                    {
+                        spans.push(word_form(&sentence.tokens[j])?);
+                        j += 1;
+                        continue;
                     }
                     break;
                 }

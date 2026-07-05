@@ -22,7 +22,7 @@
 //! from `∀x(cat(x) → ∃y(mouse(y) ∧ chase(x, y)))` and `cat(Tom)` the chase derives the witness
 //! `chase(Tom, sk)` and `mouse(sk)`.
 
-use gmeow_lang_bridge::lower::{flagship_svo_sentence, lower_svo, LoweringStage};
+use gmeow_lang_bridge::lower::{LoweringStage, flagship_svo_sentence, lower_svo};
 use gmeow_logic::reason::reason_program;
 use gmeow_logic_compile::ir::{
     ContextualScope, Formula, LogicAxiom, LogicProgram, PreservationKind, Term,
@@ -145,9 +145,11 @@ fn svo_lowering_is_consumed_by_the_native_reasoner_with_staged_preservation() {
         );
     }
     // The compositional stages are exact; only the fragment-lowering Skolemization approximates.
-    assert!(staged[..3]
-        .iter()
-        .all(|s| s.preservation == PreservationKind::Exact));
+    assert!(
+        staged[..3]
+            .iter()
+            .all(|s| s.preservation == PreservationKind::Exact)
+    );
     assert_eq!(staged[3].preservation, PreservationKind::CompleteOver);
 
     // ── 3. Native reasoner consumes it ────────────────────────────────────────────

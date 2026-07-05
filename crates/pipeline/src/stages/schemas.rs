@@ -23,7 +23,7 @@ use serde::Serialize;
 
 use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
-use crate::stages::export::{FoldView, DEFAULT_SCOPE};
+use crate::stages::export::{DEFAULT_SCOPE, FoldView};
 
 /// The carrier producer this leaf reads (GTS is exit-only; no gts re-parse).
 const SNAPSHOT_STAGE: &str = "stage-snapshot";
@@ -296,10 +296,10 @@ fn emit_linkml_model(dataset: &RdfDataset) -> LinkmlSchema {
     }
 
     for (local, super_local) in pending_is_a {
-        if class_names.contains(&super_local) {
-            if let Some(cls) = schema.classes.get_mut(&local) {
-                cls.is_a = super_local;
-            }
+        if class_names.contains(&super_local)
+            && let Some(cls) = schema.classes.get_mut(&local)
+        {
+            cls.is_a = super_local;
         }
     }
 
@@ -538,10 +538,11 @@ fn class_render_order(classes: &BTreeMap<String, LinkmlClass>) -> Vec<String> {
             return;
         }
         temporary.insert(name.to_string());
-        if let Some(class_def) = classes.get(name) {
-            if !class_def.is_a.is_empty() && classes.contains_key(&class_def.is_a) {
-                visit(&class_def.is_a, classes, temporary, permanent, out);
-            }
+        if let Some(class_def) = classes.get(name)
+            && !class_def.is_a.is_empty()
+            && classes.contains_key(&class_def.is_a)
+        {
+            visit(&class_def.is_a, classes, temporary, permanent, out);
         }
         temporary.remove(name);
         permanent.insert(name.to_string());

@@ -33,11 +33,11 @@ use std::sync::Arc;
 
 use gmeow_logic_compile::ingest::DslView;
 use gmeow_logic_compile::projections::correspondence_soundness::{
-    self as soundness, expand_curie, parse_sssom_tsv, prefix_of, Mapping, ProjectionDiagnostic,
+    self as soundness, Mapping, ProjectionDiagnostic, expand_curie, parse_sssom_tsv, prefix_of,
 };
 use purrdf::dataset_view::{DatasetView, GraphMatch};
 use purrdf::slice::{ArtifactRole, SliceCatalog, SliceError};
-use purrdf::{parse_dataset, NativeRdfFormat, RdfDataset, RdfDatasetBuilder, TermRef};
+use purrdf::{NativeRdfFormat, RdfDataset, RdfDatasetBuilder, TermRef, parse_dataset};
 
 const GMEOW_PREFIX: &str = "gmeow:";
 
@@ -459,10 +459,10 @@ fn is_axiom_or_property_type(pred: &str, obj: &TermRef<'_>) -> bool {
     ) {
         return true;
     }
-    if pred == RDF_TYPE {
-        if let TermRef::Iri(o) = obj {
-            return OWL_PROPERTY_TYPES.contains(o);
-        }
+    if pred == RDF_TYPE
+        && let TermRef::Iri(o) = obj
+    {
+        return OWL_PROPERTY_TYPES.contains(o);
     }
     false
 }

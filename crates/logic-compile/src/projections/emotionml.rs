@@ -21,7 +21,7 @@
 //! returning, and the guard's negative unit test proves an unrecorded collapse reds.
 
 use crate::ingest::DslView;
-use crate::projections::{target_meta, OverclaimError, ProjectionResult};
+use crate::projections::{OverclaimError, ProjectionResult, target_meta};
 
 const RDFS_LABEL: &str = "http://www.w3.org/2000/01/rdf-schema#label";
 const GM_EMOTION_TYPE: &str = "https://blackcatinformatics.ca/gmeow/EmotionType";

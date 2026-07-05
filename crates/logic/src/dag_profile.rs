@@ -287,11 +287,13 @@ mod tests {
         // A certified plan carries an exact (loss-free) preservation claim and names
         // the fragment backing the complete-for-fragment claim.
         assert_eq!(result.preservation, PreservationClaim::exact());
-        assert!(result
-            .provenance
-            .certified_fragment
-            .as_deref()
-            .is_some_and(|f| f.ends_with("DagWorkflowResource")));
+        assert!(
+            result
+                .provenance
+                .certified_fragment
+                .as_deref()
+                .is_some_and(|f| f.ends_with("DagWorkflowResource"))
+        );
         assert!(result.validate().is_ok());
     }
 

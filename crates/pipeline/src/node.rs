@@ -20,8 +20,8 @@ use purrdf::provenance::DatasetProvenance;
 use purrdf::{PipelineBundle, RdfDataset};
 
 use crate::bundle::{
-    bundle_artifact, bundle_artifacts, bundle_from_artifacts, bundle_from_artifacts_over,
-    PipelineHandle,
+    PipelineHandle, bundle_artifact, bundle_artifacts, bundle_from_artifacts,
+    bundle_from_artifacts_over,
 };
 use crate::error::PipelineError;
 

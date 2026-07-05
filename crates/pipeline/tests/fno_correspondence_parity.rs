@@ -16,8 +16,8 @@ use gmeow_logic_compile::ingest::DslView;
 use gmeow_logic_compile::projections::fno::lower_fno;
 use purrdf::slice::{ArtifactRole, SliceCatalog};
 use purrdf::{
-    dataset_diff, parse_dataset, serialize_dataset, NativeRdfFormat, RdfDataset, RdfDatasetBuilder,
-    SerializeGraph,
+    NativeRdfFormat, RdfDataset, RdfDatasetBuilder, SerializeGraph, dataset_diff, parse_dataset,
+    serialize_dataset,
 };
 
 const RDFS_SEE_ALSO: &str = "http://www.w3.org/2000/01/rdf-schema#seeAlso";
@@ -174,10 +174,10 @@ fn see_also_by_subject(lines: &[String]) -> std::collections::BTreeMap<String, V
     let mut out: std::collections::BTreeMap<String, Vec<String>> =
         std::collections::BTreeMap::new();
     for line in lines {
-        if line.contains("#seeAlso>") {
-            if let Some(subj) = line.split_whitespace().next() {
-                out.entry(subj.to_owned()).or_default().push(line.clone());
-            }
+        if line.contains("#seeAlso>")
+            && let Some(subj) = line.split_whitespace().next()
+        {
+            out.entry(subj.to_owned()).or_default().push(line.clone());
         }
     }
     out

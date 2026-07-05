@@ -59,7 +59,7 @@
 use std::collections::BTreeSet;
 use std::fmt::Write as _;
 
-use gmeow_logic_compile::ir::{PreservationKind, LOGIC_NAMESPACE};
+use gmeow_logic_compile::ir::{LOGIC_NAMESPACE, PreservationKind};
 use sha2::{Digest, Sha256};
 
 use crate::reason::el::InferredAxiom;
@@ -545,10 +545,10 @@ pub fn result_node_iri(result: &ReasoningResult) -> String {
     let body = project_reasoning_result(result);
     // The node IRI is the unique `RESULT_IRI_BASE`-prefixed subject in the body.
     for line in body.lines() {
-        if let Some(rest) = line.strip_prefix(&format!("<{RESULT_IRI_BASE}")) {
-            if let Some(end) = rest.find('>') {
-                return format!("{RESULT_IRI_BASE}{}", &rest[..end]);
-            }
+        if let Some(rest) = line.strip_prefix(&format!("<{RESULT_IRI_BASE}"))
+            && let Some(end) = rest.find('>')
+        {
+            return format!("{RESULT_IRI_BASE}{}", &rest[..end]);
         }
     }
     // Unreachable: the type triple always carries the node subject.
@@ -655,17 +655,18 @@ pub fn parse_reasoning_graph(nt_body: &str) -> Result<ReasoningResult, String> {
     // preservation: the polarity set + unsupported constructs.
     let mut preservation = PreservationClaim::default();
     for t in &triples {
-        if t.subject == subject && t.predicate == logic("resultPreservationPolarity") {
-            if let Some(iri) = t.object_iri() {
-                if let Some(kind) = preservation_from_iri(&iri) {
-                    preservation.polarities.insert(kind);
-                }
-            }
+        if t.subject == subject
+            && t.predicate == logic("resultPreservationPolarity")
+            && let Some(iri) = t.object_iri()
+            && let Some(kind) = preservation_from_iri(&iri)
+        {
+            preservation.polarities.insert(kind);
         }
-        if t.subject == subject && t.predicate == logic("resultUnsupportedConstruct") {
-            if let Some(s) = t.object_string() {
-                preservation.unsupported_constructs.insert(s);
-            }
+        if t.subject == subject
+            && t.predicate == logic("resultUnsupportedConstruct")
+            && let Some(s) = t.object_string()
+        {
+            preservation.unsupported_constructs.insert(s);
         }
     }
 
@@ -702,12 +703,12 @@ pub fn parse_reasoning_graph(nt_body: &str) -> Result<ReasoningResult, String> {
     prov.certified_fragment = one_iri("resultCertifiedFragment");
     prov.projection_class = preservation.clone();
     for t in &triples {
-        if t.subject == subject && t.predicate == logic("resultAssumption") {
-            if let Some(iri) = t.object_iri() {
-                if let Some(a) = assumption_from_iri(&iri) {
-                    prov.assumptions.insert(a);
-                }
-            }
+        if t.subject == subject
+            && t.predicate == logic("resultAssumption")
+            && let Some(iri) = t.object_iri()
+            && let Some(a) = assumption_from_iri(&iri)
+        {
+            prov.assumptions.insert(a);
         }
     }
     prov.contradiction_witnesses = parse_witnesses(&triples, &subject);
@@ -942,7 +943,7 @@ fn parse_nt(body: &str) -> Result<Vec<ParsedTriple>, String> {
                 return Err(format!(
                     "graph/reasoning: line {} non-IRI predicate",
                     lineno + 1
-                ))
+                ));
             }
         };
         let object = match object {

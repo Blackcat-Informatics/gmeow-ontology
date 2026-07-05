@@ -15,8 +15,8 @@
 use std::collections::BTreeMap;
 use std::sync::Arc;
 
-use purrdf::native_codecs::jsonld;
 use purrdf::RdfDataset;
+use purrdf::native_codecs::jsonld;
 use serde_json::Value;
 
 use crate::error::PipelineError;
@@ -240,7 +240,7 @@ pub fn roundtrip_isomorphic(
         other => {
             return Err(PipelineError::Decode(format!(
                 "unknown star format {other:?}; expected 'jsonld' or 'yamlld'"
-            )))
+            )));
         }
     };
     Ok(canonical_lines(&original) == canonical_lines(&roundtrip))

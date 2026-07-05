@@ -363,7 +363,7 @@ pub fn certify(input_path: &Path, profile: Option<&str>) -> i32 {
             return fail(format!(
                 "certify: cannot read {}: {e}",
                 input_path.display()
-            ))
+            ));
         }
     };
     let (program, _diag) = match gmeow_logic_compile::frontend::parse_logic_str(&source_ttl, None) {
@@ -373,7 +373,7 @@ pub fn certify(input_path: &Path, profile: Option<&str>) -> i32 {
                 "certify: cannot compile {}: {}",
                 input_path.display(),
                 e.0
-            ))
+            ));
         }
     };
     let arts = match gmeow_logic_compile::projections::compile_program(&program) {
@@ -382,7 +382,7 @@ pub fn certify(input_path: &Path, profile: Option<&str>) -> i32 {
             return fail(format!(
                 "certify: cannot compile {}: {e}",
                 input_path.display()
-            ))
+            ));
         }
     };
     let verdict = match gmeow_logic::certify::certify(&arts.nemo_rules, &profile_str, None) {
@@ -430,7 +430,7 @@ fn resolve_profile(input_path: &Path, profile: Option<&str>) -> Result<String, i
                     return Err(fail(format!(
                         "certify: malformed reasoning_contract in {}: expected an object with a string 'preset'",
                         sibling.display()
-                    )))
+                    )));
                 }
             }
         }

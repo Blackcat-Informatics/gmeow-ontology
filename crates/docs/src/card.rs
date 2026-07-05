@@ -97,11 +97,11 @@ pub fn render_card_body(card: &Card) -> String {
     out.push('\n');
 
     // ── Definition ───────────────────────────────────────────────────────────
-    if let Some(def) = &card.definition {
-        if !def.is_empty() {
-            out.push_str(def);
-            out.push_str("\n\n");
-        }
+    if let Some(def) = &card.definition
+        && !def.is_empty()
+    {
+        out.push_str(def);
+        out.push_str("\n\n");
     }
 
     // ── Advisory fields (one canonical convention: **bold**, `; ` delimiter) ──

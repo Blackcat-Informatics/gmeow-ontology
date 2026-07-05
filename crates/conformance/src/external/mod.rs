@@ -45,21 +45,21 @@ pub mod szs;
 pub mod tptp;
 
 pub use corpus::{
-    audit_vendorable, lane_for_case, load_corpus_meta, parse_corpus_meta, CorpusMeta, Lane,
+    CorpusMeta, Lane, audit_vendorable, lane_for_case, load_corpus_meta, parse_corpus_meta,
 };
 pub use lower::runner_verdict_json;
 pub use manifest::{
-    manifest_entries, parse_test_manifest, parse_test_manifest_rdfxml, ManifestEntry,
-    ManifestTestKind, OntologyDoc,
+    ManifestEntry, ManifestTestKind, OntologyDoc, manifest_entries, parse_test_manifest,
+    parse_test_manifest_rdfxml,
 };
 pub use ontouml::{
-    compare, fired_disciplines, lower_and_evaluate, lower_model, native_verdict_string,
-    parse_ontouml_model, DisciplineVerdict, Generalization, Mediation, OntoClass, OntoumlError,
-    OntoumlModel, LOGIC_NS as ONTOUML_LOGIC_NS, ONTOUML_NS, VIOLATION_PRED,
+    DisciplineVerdict, Generalization, LOGIC_NS as ONTOUML_LOGIC_NS, Mediation, ONTOUML_NS,
+    OntoClass, OntoumlError, OntoumlModel, VIOLATION_PRED, compare, fired_disciplines,
+    lower_and_evaluate, lower_model, native_verdict_string, parse_ontouml_model,
 };
-pub use status::{outcome_for_szs, ExternalOutcome};
+pub use status::{ExternalOutcome, outcome_for_szs};
 pub use szs::{outcome_from_szs, parse_szs_status};
 pub use tptp::{
-    lower_and_decide, lower_problem, parse_tptp, AnnotatedFormula, LoweredProblem, LoweringGap,
-    TptpError, TptpRole, TPTP_NS,
+    AnnotatedFormula, LoweredProblem, LoweringGap, TPTP_NS, TptpError, TptpRole, lower_and_decide,
+    lower_problem, parse_tptp,
 };

@@ -16,7 +16,7 @@
 
 use std::collections::BTreeMap;
 
-use criterion::{criterion_group, criterion_main, Criterion};
+use criterion::{Criterion, criterion_group, criterion_main};
 use gmeow_logic::certify::tarjan_scc;
 use gmeow_logic::entrenchment::{Entrenchment, OVERRIDES};
 use gmeow_logic::store::WorldStore;

@@ -16,8 +16,8 @@
 
 use std::path::PathBuf;
 
-use gmeow_docs::render::Site;
 use gmeow_docs::DocsModel;
+use gmeow_docs::render::Site;
 
 /// The repository root, derived from this crate's manifest dir (`<repo>/crates/docs`).
 pub fn repo_root() -> PathBuf {

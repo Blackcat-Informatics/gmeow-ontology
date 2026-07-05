@@ -28,7 +28,7 @@ use std::path::Path;
 use rayon::prelude::*;
 
 use crate::error::PipelineError;
-use crate::run::{write_artifact, GTS_PATH};
+use crate::run::{GTS_PATH, write_artifact};
 use crate::stages::superset::project_bundle;
 
 /// The outcome of one fanout run: how many committed files the bundle projected and

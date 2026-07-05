@@ -830,10 +830,10 @@ pub(crate) fn ui_default(key: &str) -> &'static str {
 /// Resolve a UI-chrome string for `key` in `lang`: a per-language override when
 /// present, else the `'static` English default.
 pub fn ui_string<'a>(key: &str, lang: &str, catalog: &'a UiCatalog) -> &'a str {
-    if lang != ENGLISH {
-        if let Some(value) = catalog.overrides.get(&(lang.to_string(), key.to_string())) {
-            return value.as_str();
-        }
+    if lang != ENGLISH
+        && let Some(value) = catalog.overrides.get(&(lang.to_string(), key.to_string()))
+    {
+        return value.as_str();
     }
     ui_default(key)
 }

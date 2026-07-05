@@ -418,10 +418,12 @@ mod tests {
         );
         let report = check_crate_layering(&crates);
         assert!(!report.ok());
-        assert!(report
-            .errors
-            .iter()
-            .any(|e| e.contains("not a crates/* member")));
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("not a crates/* member"))
+        );
     }
 
     #[test]
@@ -502,9 +504,11 @@ mod tests {
         assert!(!report.ok());
         let diagnostics = to_diagnostics_report(&report);
         assert_eq!(diagnostics.findings.len(), report.errors.len());
-        assert!(diagnostics
-            .findings
-            .iter()
-            .any(|finding| finding.code == "crate-layering.violation"));
+        assert!(
+            diagnostics
+                .findings
+                .iter()
+                .any(|finding| finding.code == "crate-layering.violation")
+        );
     }
 }

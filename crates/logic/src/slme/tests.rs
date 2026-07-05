@@ -250,10 +250,12 @@ ex:A rdfs:subClassOf ex:B .
     );
     let result = run(&ttl, &["A"], "WAT");
     assert_eq!(result.method, Method::Star);
-    assert!(result
-        .findings
-        .iter()
-        .any(|f| f.code == "slme.unknown-method"));
+    assert!(
+        result
+            .findings
+            .iter()
+            .any(|f| f.code == "slme.unknown-method")
+    );
 }
 
 // ── Test 7: predicate ∈ Σ keeps the whole assertion (bug B regression) ───────────

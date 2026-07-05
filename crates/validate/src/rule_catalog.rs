@@ -550,7 +550,9 @@ mod tests {
             .unwrap();
         assert_eq!(
             mediation.help_uri.as_deref(),
-            Some("https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#discipline-relator-mediation")
+            Some(
+                "https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#discipline-relator-mediation"
+            )
         );
         // A dynamic family member's helpUri must point at the FAMILY entry's
         // anchor (the catalog page has no row for the full concrete code), not

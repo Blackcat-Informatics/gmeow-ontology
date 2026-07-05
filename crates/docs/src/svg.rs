@@ -337,7 +337,7 @@ pub fn concern_overview_svg(model: &DocsModel) -> String {
 /// Deterministic and structural: slices are taken in the model's IRI order and
 /// every coordinate derives from that order; every label is XML-escaped.
 pub fn coverage_heatmap_svg(model: &DocsModel) -> String {
-    use crate::coverage::{alignment_subjects, term_coverage, TermCoverage, DIMENSIONS};
+    use crate::coverage::{DIMENSIONS, TermCoverage, alignment_subjects, term_coverage};
 
     let aligned = alignment_subjects(model);
     let mut rows: Vec<(String, usize, [usize; TermCoverage::TOTAL])> = Vec::new();

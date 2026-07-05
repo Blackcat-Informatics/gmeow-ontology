@@ -11,8 +11,8 @@
 
 use std::collections::{BTreeSet, HashSet};
 
-use criterion::{criterion_group, criterion_main, Criterion};
-use gmeow_validate::lint::{collect_typed_terms_dataset, structural_lint_dataset, LintConfig};
+use criterion::{Criterion, criterion_group, criterion_main};
+use gmeow_validate::lint::{LintConfig, collect_typed_terms_dataset, structural_lint_dataset};
 use gmeow_validate::store::dataset_from_nt;
 
 const NS: &str = "https://blackcatinformatics.ca/gmeow#";

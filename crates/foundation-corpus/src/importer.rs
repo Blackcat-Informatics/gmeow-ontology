@@ -25,7 +25,7 @@ use purrdf::model::RdfLiteral;
 use purrdf::prelude::RdfDataset;
 
 use crate::budget::BudgetReport;
-use crate::model::{value_to_index, value_to_iri_component, Record};
+use crate::model::{Record, value_to_index, value_to_iri_component};
 use crate::slug::{char_prefix, char_suffix, slug};
 
 // ---------------------------------------------------------------------------
@@ -333,11 +333,11 @@ impl FoundationImporter {
         self.add_label(&release, &format!("{title} (release)"));
         self.add_iri(&release, &gm("embodies"), &expression);
 
-        if let Some(section_id) = record.section_id.as_deref() {
-            if !section_id.is_empty() {
-                let section = corp(&format!("section/{}", slug(section_id)));
-                self.add_iri(&work, &gm("partOf"), &section);
-            }
+        if let Some(section_id) = record.section_id.as_deref()
+            && !section_id.is_empty()
+        {
+            let section = corp(&format!("section/{}", slug(section_id)));
+            self.add_iri(&work, &gm("partOf"), &section);
         }
 
         let authors_raw = record.author_s.clone().unwrap_or_default();
@@ -462,13 +462,13 @@ impl FoundationImporter {
                 let o = self.typed_lit(&index.to_string(), XSD_INTEGER);
                 self.builder.push_quad(s, p, o, None);
             }
-            if let Some(ct) = chapter.chapter_title.as_deref() {
-                if !ct.is_empty() {
-                    let s = self.iri(&pos);
-                    let p = self.iri(&gm("positionLabel"));
-                    let o = self.plain_lit(ct);
-                    self.builder.push_quad(s, p, o, None);
-                }
+            if let Some(ct) = chapter.chapter_title.as_deref()
+                && !ct.is_empty()
+            {
+                let s = self.iri(&pos);
+                let p = self.iri(&gm("positionLabel"));
+                let o = self.plain_lit(ct);
+                self.builder.push_quad(s, p, o, None);
             }
             let segment = format!("{work}/chapter/{index}");
             self.add_type(&segment, &gm("ContentSegment"));
@@ -527,11 +527,11 @@ impl FoundationImporter {
 
             if let Some(appearances) = &char.chapter_appearances {
                 for idx_v in appearances {
-                    if let Some(index) = value_to_index(idx_v) {
-                        if let Some(segment) = segments.get(&index) {
-                            self.add_iri(&iri, &gm("narratedIn"), segment);
-                            self.budget.add_flat("narratedIn ← appearance", 1);
-                        }
+                    if let Some(index) = value_to_index(idx_v)
+                        && let Some(segment) = segments.get(&index)
+                    {
+                        self.add_iri(&iri, &gm("narratedIn"), segment);
+                        self.budget.add_flat("narratedIn ← appearance", 1);
                     }
                 }
             }
@@ -566,10 +566,10 @@ impl FoundationImporter {
                     self.add_iri(&exemplar, &gm("citationIntent"), &gm("intentSupports"));
                     self.add_iri(&exemplar, &gm("exemplarSubject"), &iri);
                     self.add_iri(&exemplar, &gm("exemplarPolarity"), &gm("polarityPositive"));
-                    if let Some(rationale) = char.exemplar_rationale.as_deref() {
-                        if !rationale.is_empty() {
-                            self.add_lang(&exemplar, &gm("exemplarRationale"), rationale);
-                        }
+                    if let Some(rationale) = char.exemplar_rationale.as_deref()
+                        && !rationale.is_empty()
+                    {
+                        self.add_lang(&exemplar, &gm("exemplarRationale"), rationale);
                     }
                     let anchor = self.anchor(goal_id, &exemplar);
                     let criterion = self.criterion(goal_id);
@@ -669,12 +669,12 @@ impl FoundationImporter {
             self.add_iri(&motif, &gm("motifKind"), &gm("motifKindTheme"));
             if let Some(appearances) = &concept.chapter_appearances {
                 for idx_v in appearances {
-                    if let Some(index) = value_to_index(idx_v) {
-                        if let Some(segment) = segments.get(&index) {
-                            self.add_iri(&motif, &gm("motifOccursIn"), segment);
-                            self.budget
-                                .add_flat("motifOccursIn ← concept appearance", 1);
-                        }
+                    if let Some(index) = value_to_index(idx_v)
+                        && let Some(segment) = segments.get(&index)
+                    {
+                        self.add_iri(&motif, &gm("motifOccursIn"), segment);
+                        self.budget
+                            .add_flat("motifOccursIn ← concept appearance", 1);
                     }
                 }
             }

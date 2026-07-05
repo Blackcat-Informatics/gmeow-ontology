@@ -52,16 +52,16 @@ fn dsl_findings(
         .map(|result| {
             let mut finding = finding_from_shacl(result);
             finding.tool = Some(tool.clone());
-            if let Term::NamedNode(node) = &result.focus_node {
-                if let Some(source) = focus_to_file.get(node.as_str()) {
-                    if let Some(primary) = finding.locations.first_mut() {
-                        primary.path = Some(source.clone());
-                    } else {
-                        finding.add_location(Location {
-                            path: Some(source.clone()),
-                            ..Location::default()
-                        });
-                    }
+            if let Term::NamedNode(node) = &result.focus_node
+                && let Some(source) = focus_to_file.get(node.as_str())
+            {
+                if let Some(primary) = finding.locations.first_mut() {
+                    primary.path = Some(source.clone());
+                } else {
+                    finding.add_location(Location {
+                        path: Some(source.clone()),
+                        ..Location::default()
+                    });
                 }
             }
             finding

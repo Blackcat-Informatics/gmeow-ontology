@@ -33,7 +33,7 @@ use gmeow_logic_compile::ir::{
     LawClaimIr, MorphismClass, MorphismKind, PreservationKind,
 };
 use gmeow_logic_compile::projections::ProjectionResult;
-use purrdf::{parse_dataset, DatasetView, GraphMatch, RdfDataset, TermId, TermRef, TermValue};
+use purrdf::{DatasetView, GraphMatch, RdfDataset, TermId, TermRef, TermValue, parse_dataset};
 
 use crate::bridge::{Bridge, IngestDiagnostic, LangFailure, Lifted};
 use crate::emit::{digest16, ntriples_sorted};
@@ -247,7 +247,7 @@ fn lift_entry(ds: &RdfDataset, entry: TermId) -> Result<LiftedEntry, IngestDiagn
                 "ontolex:LexicalEntry {} has no ontolex:canonicalForm; a lexeme cannot be \
                  lifted without a canonical lemma",
                 term_label(ds, entry)
-            )))
+            )));
         }
         [one] => *one,
         _ => {
@@ -256,7 +256,7 @@ fn lift_entry(ds: &RdfDataset, entry: TermId) -> Result<LiftedEntry, IngestDiagn
                  lemma is singular",
                 term_label(ds, entry),
                 canonical.len()
-            )))
+            )));
         }
     };
     let lemma = written_rep(ds, canonical, "canonicalForm")?;
@@ -278,7 +278,7 @@ fn lift_entry(ds: &RdfDataset, entry: TermId) -> Result<LiftedEntry, IngestDiagn
                  a single part of speech",
                 term_label(ds, entry),
                 pos_ids.len()
-            )))
+            )));
         }
     };
 

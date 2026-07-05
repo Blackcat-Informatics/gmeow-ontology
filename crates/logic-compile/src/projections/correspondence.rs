@@ -36,8 +36,8 @@
 use std::collections::BTreeMap;
 
 use crate::ir::{
-    Correspondence, CorrespondenceRelation, LegPath, MorphismKind, PreservationKind,
-    TransactionProgramIr, LOGIC_NAMESPACE,
+    Correspondence, CorrespondenceRelation, LOGIC_NAMESPACE, LegPath, MorphismKind,
+    PreservationKind, TransactionProgramIr,
 };
 
 use super::OverclaimError;
@@ -843,11 +843,7 @@ fn leg_path_members(
         out.push(parse_leg_path(idx, &item, depth + 1)?);
         cursor = idx.iri_obj(&cell, &gm("pathNext"));
     }
-    if out.is_empty() {
-        None
-    } else {
-        Some(out)
-    }
+    if out.is_empty() { None } else { Some(out) }
 }
 
 /// Extract the leg-program registry: for every `logic:getLeg` / `logic:putLeg` IRI the
@@ -867,10 +863,10 @@ pub fn extract_leg_programs(
     leg_iris.dedup();
     let mut out = Vec::new();
     for leg in leg_iris {
-        if let Some(path_node) = idx.iri_obj(&leg, &gm("path")) {
-            if let Some(body) = parse_leg_path(&idx, &path_node, 0) {
-                out.push(TransactionProgramIr { iri: leg, body });
-            }
+        if let Some(path_node) = idx.iri_obj(&leg, &gm("path"))
+            && let Some(body) = parse_leg_path(&idx, &path_node, 0)
+        {
+            out.push(TransactionProgramIr { iri: leg, body });
         }
     }
     out

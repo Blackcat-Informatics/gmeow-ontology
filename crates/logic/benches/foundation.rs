@@ -16,8 +16,8 @@
 
 use std::fs;
 
-use criterion::{criterion_group, criterion_main, Criterion};
-use gmeow_logic::foundation::{evaluate, AntiRigidityPolicy};
+use criterion::{Criterion, criterion_group, criterion_main};
+use gmeow_logic::foundation::{AntiRigidityPolicy, evaluate};
 use gmeow_logic::store::WorldStore;
 
 /// The conformance cases benchmarked here, as `(group, name)` pairs under

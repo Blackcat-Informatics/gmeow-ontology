@@ -27,11 +27,11 @@ use std::sync::Arc;
 use purrdf::{DatasetView, GraphMatch, RdfDataset, TermId, TermRef, TermValue};
 
 use gmeow_validate::language_tags::{
-    filter_literals, load_tag_map, marked, resolve_lang_input, select_literal, LangSelector,
-    LitDesc,
+    LangSelector, LitDesc, filter_literals, load_tag_map, marked, resolve_lang_input,
+    select_literal,
 };
 
-use crate::card::{render_card, Card};
+use crate::card::{Card, render_card};
 
 /// The GMEOW namespace prefix for term IRIs.
 const NAMESPACE: &str = "https://blackcatinformatics.ca/gmeow/";

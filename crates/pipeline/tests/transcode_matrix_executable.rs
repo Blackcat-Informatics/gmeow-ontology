@@ -14,7 +14,7 @@
 //! content-addressed by the encoder.  It is produced at test start by
 //! transcoding the Turtle fixture through `Codec::Gts`.
 
-use gmeow_pipeline::transcode::{transcode, Codec};
+use gmeow_pipeline::transcode::{Codec, transcode};
 
 // ── Matrix row schema ─────────────────────────────────────────────────────────
 
