@@ -49,7 +49,7 @@
 //! rungs.
 #![allow(dead_code)]
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 
 use crate::facts::TypedFactSet;
 use crate::oracle::{BackwardOracle, ForwardBudget, ForwardOracle, TypedRow};
@@ -260,18 +260,30 @@ fn is_null_surface(surface: &str) -> bool {
         || surface.starts_with("<_:")
 }
 
-/// Canonicalize the invented nulls in a fact-key set by colour refinement, so two
-/// null-equivalent sets become byte-equal.  Named terms pass through unchanged.
-fn canonicalize_nulls(keys: &BTreeSet<FactKey>) -> BTreeSet<FactKey> {
-    use std::collections::BTreeMap;
-
+/// Canonicalize the invented nulls in a fact-key set by colour refinement, returning
+/// the rewritten keys as a **multiset** (`FactKey → occurrence count`) so witness
+/// MULTIPLICITY is preserved.  Named terms pass through unchanged.
+///
+/// Two *automorphic* invented nulls (e.g. two witnesses of the same `≥2 p.D`
+/// obligation on the same frontier) share a colour, hence a canonical token, so their
+/// facts rewrite to the SAME `FactKey`.  Collapsing them to a set element would lose
+/// the witness count and let a genuine `≥n` divergence (native invents 1 where the
+/// oracle invents 2) false-agree; the multiset keeps `min(native, oracle)` as agreement
+/// and the surplus as a native/oracle-only divergence.  The count is over the pre-canon
+/// keys (distinct-named witnesses are distinct comparands), so a consistent renaming of
+/// the SAME number of witnesses still yields byte-equal multisets.
+fn canonicalize_nulls(keys: &BTreeSet<FactKey>) -> BTreeMap<FactKey, usize> {
     let nulls: BTreeSet<String> = keys
         .iter()
         .flat_map(|(s, _, o)| [s.clone(), o.clone()])
         .filter(|t| is_null_surface(t))
         .collect();
     if nulls.is_empty() {
-        return keys.clone();
+        let mut counts: BTreeMap<FactKey, usize> = BTreeMap::new();
+        for key in keys {
+            *counts.entry(key.clone()).or_insert(0) += 1;
+        }
+        return counts;
     }
 
     // Colour every term: a named term is its own surface (a fixed anchor); a null starts
@@ -331,16 +343,29 @@ fn canonicalize_nulls(keys: &BTreeSet<FactKey>) -> BTreeSet<FactKey> {
             t.clone()
         }
     };
-    keys.iter()
-        .map(|(s, p, o)| (rewrite(s), p.clone(), rewrite(o)))
-        .collect()
+    let mut counts: BTreeMap<FactKey, usize> = BTreeMap::new();
+    for (s, p, o) in keys {
+        *counts
+            .entry((rewrite(s), p.clone(), rewrite(o)))
+            .or_insert(0) += 1;
+    }
+    counts
 }
 
 /// Compare the native chase's derived facts against a forward oracle's closure
-/// **null-blind**: both fact sets are canonicalized ([`canonicalize_nulls`]) before the
-/// `Agree` / `NativeOnly` / `OracleOnly` classification, so a consistent renaming of
-/// invented nulls is agreement, not divergence.  Used to oracle-gate the existential
-/// fragment against Nemo.
+/// **null-blind** AND **cardinality-aware**: both fact sets are canonicalized to a
+/// multiset ([`canonicalize_nulls`]) before the `Agree` / `NativeOnly` / `OracleOnly`
+/// classification, so a consistent renaming of the SAME number of invented nulls is
+/// agreement, but a differing witness COUNT — even between automorphic (symmetric)
+/// nulls that share a canonical token — is divergence.  Used to oracle-gate the
+/// existential fragment against Nemo.
+///
+/// For each canonical fact key the `min(native_count, oracle_count)` occurrences are
+/// `Agree`; the native surplus is `NativeOnly` and the oracle surplus is `OracleOnly`
+/// (one emitted row per surplus occurrence).  Without the multiset, a real `≥2`
+/// divergence where native invents 1 witness and the oracle invents 2 (both rewriting
+/// to the same `(a, p, #0)` token) would collapse to one set element on each side and
+/// false-report `Agree`, defeating the oracle-gate's soundness guarantee.
 fn compare_existential_materialization(
     native: &[DerivedRow],
     oracle: &dyn ForwardOracle,
@@ -351,8 +376,8 @@ fn compare_existential_materialization(
     let closure = oracle.materialize(facts, rules, &ForwardBudget::UNBOUNDED)?;
     let oracle_name = oracle.name();
 
-    let native_keys = canonicalize_nulls(&native.iter().map(row_fact_key).collect());
-    let oracle_keys = canonicalize_nulls(
+    let native_counts = canonicalize_nulls(&native.iter().map(row_fact_key).collect());
+    let oracle_counts = canonicalize_nulls(
         &closure
             .rows
             .iter()
@@ -360,45 +385,67 @@ fn compare_existential_materialization(
             .collect(),
     );
 
+    // The sorted union of canonical keys drives a deterministic multiset comparison.
+    let all_keys: BTreeSet<FactKey> = native_counts
+        .keys()
+        .chain(oracle_counts.keys())
+        .cloned()
+        .collect();
+
     let mut rows: Vec<LedgerRow> = Vec::new();
-    for key in native_keys.intersection(&oracle_keys) {
+    // Group by kind (Agree, then NativeOnly, then OracleOnly), each in sorted-key order,
+    // mirroring the set-based comparator's row grouping.
+    for key in &all_keys {
         let (subject, predicate, object) = key.clone();
-        rows.push(LedgerRow {
-            kind: DivergenceKind::Agree,
-            category: "materialization".to_owned(),
-            detail: format!(
-                "native and {oracle_name} agree on fact: {subject} {predicate} {object}"
-            ),
-            subject,
-            object,
-            world: world.to_owned(),
-        });
+        let native_n = native_counts.get(key).copied().unwrap_or(0);
+        let oracle_n = oracle_counts.get(key).copied().unwrap_or(0);
+        let agree = native_n.min(oracle_n);
+        for _ in 0..agree {
+            rows.push(LedgerRow {
+                kind: DivergenceKind::Agree,
+                category: "materialization".to_owned(),
+                detail: format!(
+                    "native and {oracle_name} agree on fact: {subject} {predicate} {object}"
+                ),
+                subject: subject.clone(),
+                object: object.clone(),
+                world: world.to_owned(),
+            });
+        }
     }
-    for key in native_keys.difference(&oracle_keys) {
+    for key in &all_keys {
         let (subject, predicate, object) = key.clone();
-        rows.push(LedgerRow {
-            kind: DivergenceKind::NativeOnly,
-            category: "materialization".to_owned(),
-            detail: format!(
-                "derived natively but not by {oracle_name}: {subject} {predicate} {object}"
-            ),
-            subject,
-            object,
-            world: world.to_owned(),
-        });
+        let native_n = native_counts.get(key).copied().unwrap_or(0);
+        let oracle_n = oracle_counts.get(key).copied().unwrap_or(0);
+        for _ in oracle_n..native_n {
+            rows.push(LedgerRow {
+                kind: DivergenceKind::NativeOnly,
+                category: "materialization".to_owned(),
+                detail: format!(
+                    "derived natively but not by {oracle_name}: {subject} {predicate} {object}"
+                ),
+                subject: subject.clone(),
+                object: object.clone(),
+                world: world.to_owned(),
+            });
+        }
     }
-    for key in oracle_keys.difference(&native_keys) {
+    for key in &all_keys {
         let (subject, predicate, object) = key.clone();
-        rows.push(LedgerRow {
-            kind: DivergenceKind::OracleOnly,
-            category: "materialization".to_owned(),
-            detail: format!(
-                "derived by {oracle_name} but not natively: {subject} {predicate} {object}"
-            ),
-            subject,
-            object,
-            world: world.to_owned(),
-        });
+        let native_n = native_counts.get(key).copied().unwrap_or(0);
+        let oracle_n = oracle_counts.get(key).copied().unwrap_or(0);
+        for _ in native_n..oracle_n {
+            rows.push(LedgerRow {
+                kind: DivergenceKind::OracleOnly,
+                category: "materialization".to_owned(),
+                detail: format!(
+                    "derived by {oracle_name} but not natively: {subject} {predicate} {object}"
+                ),
+                subject: subject.clone(),
+                object: object.clone(),
+                world: world.to_owned(),
+            });
+        }
     }
     Ok(ParityLedger::from_rows(rows))
 }
@@ -613,6 +660,133 @@ mod tests {
         // Non-vacuous: they actually agree on the invented p-edges and D-types, not just
         // the echoed EDB (2 C-types + 2 p-edges + 2 D-types = 6 agreed facts).
         assert_eq!(ledger.agree, 6, "all six facts agree");
+        assert_eq!(ledger.native_only, 0);
+        assert_eq!(ledger.oracle_only, 0);
+    }
+
+    /// Build a native derived row for `subject predicate object` in [`EX_WORLD`], stamped
+    /// with a non-assert rule IRI (so it is a genuine derived fact, not an EDB echo).
+    fn native_derived(subject: &str, predicate: &str, object: &str) -> DerivedRow {
+        DerivedRow {
+            graph: EX_WORLD.to_owned(),
+            subject: ex_iri(subject),
+            predicate: predicate.to_owned(),
+            object: ex_iri(object),
+            rule_iri: "http://ex/rule/svf".to_owned(),
+            source_quad_ids: vec![],
+            derivation_id: format!("http://ex/deriv/{subject}/{predicate}/{object}"),
+        }
+    }
+
+    /// Build a ternary (world-carrying) oracle row `predicate(subject, object, world)` —
+    /// the arity-3 shape [`typed_row_fact_key`] coerces to a `(subject, predicate, object)`
+    /// fact key.
+    fn oracle_quad(subject: &str, predicate: &str, object: &str) -> (TypedRow, TypedProvenance) {
+        (
+            TypedRow {
+                predicate: predicate.to_owned(),
+                args: vec![ex_iri(subject), ex_iri(object), ex_iri(EX_WORLD)],
+            },
+            TypedProvenance {
+                is_edb: false,
+                rule_name: Some("http://ex/rule/svf".to_owned()),
+                antecedents: vec![],
+                attributions: vec![],
+            },
+        )
+    }
+
+    // Distinct invented-null surfaces. `is_null_surface` keys native nulls off `/skolem/`
+    // and Nemo-style nulls off `nemo-null:`; the two same-obligation witnesses are
+    // AUTOMORPHIC (identical neighbourhoods: `a --p--> witness --type--> D`), so colour
+    // refinement gives them one shared canonical token — the exact condition the old
+    // set-based comparator collapsed.
+    const SKOLEM_1: &str = "http://ex/skolem/w1";
+    const NEMO_NULL_1: &str = "urn:gmeow:nemo-null:1";
+    const NEMO_NULL_2: &str = "urn:gmeow:nemo-null:2";
+    const EX_A: &str = "http://ex/a";
+
+    /// C1 REGRESSION: a genuine `≥2` witness-COUNT divergence — native invents ONE witness
+    /// where the oracle invents TWO automorphic (symmetric) witnesses of the same
+    /// `a ⊑ ≥2 p.D` obligation — MUST be caught, not false-agreed.
+    ///
+    /// Both oracle witnesses share the SAME canonical null token (they are automorphic), so
+    /// the pre-fix SET-based comparator canonicalized native `{(a,p,#0),(#0,type,D)}` and
+    /// oracle `{(a,p,#0),(#0,type,D)}` to BYTE-EQUAL sets and reported full `Agree` — a false
+    /// agreement. The multiset comparator keeps the counts: native has each key once, the
+    /// oracle twice, so `min` yields the agreement and the oracle surplus is `OracleOnly`.
+    #[test]
+    fn existential_witness_multiplicity_divergence_is_caught() {
+        // Native: one witness w1 of `a ⊑ ≥2 p.D`.
+        let native = vec![
+            native_derived(EX_A, EX_P, SKOLEM_1),
+            native_derived(SKOLEM_1, TYPE_IRI, EX_D),
+        ];
+        // Oracle: TWO automorphic witnesses of the same obligation.
+        let oracle = DivergentForwardOracle {
+            rows: vec![
+                oracle_quad(EX_A, EX_P, NEMO_NULL_1),
+                oracle_quad(NEMO_NULL_1, TYPE_IRI, EX_D),
+                oracle_quad(EX_A, EX_P, NEMO_NULL_2),
+                oracle_quad(NEMO_NULL_2, TYPE_IRI, EX_D),
+            ],
+        };
+        let facts = TypedFactSet::new();
+        let ledger =
+            compare_existential_materialization(&native, &oracle, &facts, "", EX_WORLD).unwrap();
+        let verdict = ledger.enforce();
+        assert!(
+            !verdict.passed,
+            "a native-1 vs oracle-2 automorphic-witness divergence must FAIL the gate, not \
+             false-agree; rows: {:#?}",
+            ledger.rows
+        );
+        // The one shared witness p-edge + D-type agree; the oracle's extra witness's p-edge
+        // + D-type are the oracle surplus.
+        assert_eq!(
+            ledger.agree, 2,
+            "the single shared witness's two facts agree"
+        );
+        assert_eq!(ledger.native_only, 0, "native invents no surplus witness");
+        assert_eq!(
+            ledger.oracle_only, 2,
+            "the oracle's extra witness contributes two oracle-only facts"
+        );
+    }
+
+    /// The POSITIVE companion: native AND the oracle each invent TWO automorphic witnesses of
+    /// the same `a ⊑ ≥2 p.D` obligation. The witness COUNT matches, so a consistent renaming
+    /// (both sides collapse to the shared token, each with multiplicity 2) is full `Agree` —
+    /// the multiset fix must NOT over-diverge on a matched symmetric multiplicity.
+    #[test]
+    fn existential_symmetric_witnesses_multiplicity_agrees() {
+        let native = vec![
+            native_derived(EX_A, EX_P, "http://ex/skolem/w1"),
+            native_derived("http://ex/skolem/w1", TYPE_IRI, EX_D),
+            native_derived(EX_A, EX_P, "http://ex/skolem/w2"),
+            native_derived("http://ex/skolem/w2", TYPE_IRI, EX_D),
+        ];
+        let oracle = DivergentForwardOracle {
+            rows: vec![
+                oracle_quad(EX_A, EX_P, NEMO_NULL_1),
+                oracle_quad(NEMO_NULL_1, TYPE_IRI, EX_D),
+                oracle_quad(EX_A, EX_P, NEMO_NULL_2),
+                oracle_quad(NEMO_NULL_2, TYPE_IRI, EX_D),
+            ],
+        };
+        let facts = TypedFactSet::new();
+        let ledger =
+            compare_existential_materialization(&native, &oracle, &facts, "", EX_WORLD).unwrap();
+        let verdict = ledger.enforce();
+        assert!(
+            verdict.passed,
+            "matched two-witness multiplicity must AGREE null-blind; reasons: {:?}; rows: {:#?}",
+            verdict.reasons, ledger.rows
+        );
+        assert_eq!(
+            ledger.agree, 4,
+            "both witnesses' p-edge + D-type agree (2 witnesses × 2 facts)"
+        );
         assert_eq!(ledger.native_only, 0);
         assert_eq!(ledger.oracle_only, 0);
     }
