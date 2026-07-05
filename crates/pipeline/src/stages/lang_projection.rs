@@ -688,40 +688,49 @@ mod tests {
         );
     }
 
-    /// A synthetic co-resident CoNLL-U source with two readings must emit two artifacts —
-    /// never a single silently-chosen winner (the saw-her-duck discipline at the projection
-    /// seam).
+    /// A composed form scoped to two co-resident `lang:Analysis` readings must emit two
+    /// CoNLL-U artifacts — never a single silently-chosen winner (the saw-her-duck discipline
+    /// at the projection seam), driven from the `lang:` model through the registered target.
     #[test]
     fn conllu_two_readings_emit_two_artifacts_never_one() {
-        // "saw her duck" — reading A (bird / nominal head), reading B (crouch / verbal head).
-        let reading_a = "1\tsaw\tsee\tVERB\t_\t_\t0\troot\t_\t_\n\
-                         2\ther\ther\tPRON\t_\t_\t1\tnsubj\t_\t_\n\
-                         3\tduck\tduck\tNOUN\t_\t_\t1\tobj\t_\t_\n\n";
-        let reading_b = "1\tsaw\tsee\tVERB\t_\t_\t0\troot\t_\t_\n\
-                         2\ther\ther\tPRON\t_\t_\t3\tnsubj\t_\t_\n\
-                         3\tduck\tduck\tVERB\t_\t_\t1\txcomp\t_\t_\n\n";
+        // "saw duck" scoped to TWO analyses (duck-as-bird / duck-as-crouch), each its own tree.
+        let doc = "\
+@prefix lang: <https://blackcatinformatics.ca/lang/> .\n\
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
+@prefix ex:   <http://example.org/lang/> .\n\
+ex:wSaw a lang:WordForm ; rdfs:label \"saw\" .\n\
+ex:wDuck a lang:WordForm ; rdfs:label \"duck\" .\n\
+ex:sent a lang:ComposedForm ; rdfs:label \"saw duck\" ;\n\
+    lang:inAnalysis ex:aBird , ex:aCrouch ; lang:formSlot ex:b0 , ex:b1 , ex:c0 , ex:c1 .\n\
+ex:aBird a lang:Analysis .\n\
+ex:aCrouch a lang:Analysis .\n\
+ex:b0 a lang:FormSlot ; lang:inAnalysis ex:aBird ; lang:slotIndex 0 ; lang:slotForm ex:wSaw ; lang:slotRole lang:predicateRole .\n\
+ex:b1 a lang:FormSlot ; lang:inAnalysis ex:aBird ; lang:slotIndex 1 ; lang:slotForm ex:wDuck ; lang:slotRole lang:objectRole ; lang:dependsOn ex:b0 .\n\
+ex:c0 a lang:FormSlot ; lang:inAnalysis ex:aCrouch ; lang:slotIndex 0 ; lang:slotForm ex:wSaw ; lang:slotRole lang:predicateRole .\n\
+ex:c1 a lang:FormSlot ; lang:inAnalysis ex:aCrouch ; lang:slotIndex 1 ; lang:slotForm ex:wDuck ; lang:slotRole lang:complementRole ; lang:dependsOn ex:c0 .\n";
         let input = LangProjectionInput {
-            grammars: Vec::new(),
-            lexicons: Vec::new(),
-            treebanks: vec![ConlluSource {
-                name: "saw-her-duck".to_owned(),
-                readings: vec![reading_a.as_bytes().to_vec(), reading_b.as_bytes().to_vec()],
+            lang_models: vec![NamedSource {
+                name: "saw-duck".to_owned(),
+                bytes: doc.as_bytes().to_vec(),
             }],
-            lang_models: Vec::new(),
-            varieties: Vec::new(),
+            ..Default::default()
         };
         let conllu = registry()
             .into_iter()
             .find(|t| t.name() == "conllu")
             .expect("conllu target registered");
         let emissions = conllu.emit(&input).expect("emit");
-        assert_eq!(emissions.len(), 1, "one emission per treebank source");
+        assert_eq!(
+            emissions.len(),
+            1,
+            "one emission per analyzed composed form"
+        );
         let e = &emissions[0];
         assert_eq!(e.emitted_reading_count, Some(2));
         assert_eq!(
             e.artifacts.len(),
             2,
-            "two co-resident readings must emit two CoNLL-U artifacts, never one"
+            "two co-resident analyses must emit two CoNLL-U artifacts, never one"
         );
         // The driver invariant accepts the honest 2-of-2 emission…
         enforce_invariants("conllu", e, derived_kind(e)).expect("2==2 passes");
@@ -731,5 +740,28 @@ mod tests {
         let err = enforce_invariants("conllu", &collapsed, derived_kind(&collapsed))
             .expect_err("1-of-2 must hard-fail");
         assert!(format!("{err}").contains("lang:ProjectionSilentDisambiguation"));
+    }
+
+    #[test]
+    fn conllu_forward_projects_the_composed_form() {
+        let catalog = repo_catalog();
+        let corpus = build_corpus(Some(&catalog)).expect("build corpus");
+        // CoNLL-U is source-driven: the example model's analyzed composed form lowers to a real
+        // conllu/*.reading-0.conllu artifact carrying the UD tree.
+        let conllu = corpus
+            .artifacts
+            .iter()
+            .find(|(p, _)| p.starts_with("generated/projections/lang/conllu/"))
+            .map(|(_, b)| String::from_utf8_lossy(b).into_owned());
+        let text = conllu.expect("the analyzed composed form must drive a CoNLL-U artifact");
+        assert!(text.contains("\tchase\tchase\tVERB\t"), "{text}");
+        assert!(text.contains("\troot\t"), "{text}");
+        assert!(
+            corpus
+                .ledger
+                .iter()
+                .any(|r| r.target.starts_with("conllu:")),
+            "CoNLL-U must fold a source-driven ledger row, not a no-source placeholder"
+        );
     }
 }
