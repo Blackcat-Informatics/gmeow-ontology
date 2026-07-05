@@ -17,6 +17,7 @@
 #![allow(dead_code)]
 
 mod builtin_eval;
+mod chase;
 mod magic;
 mod parity;
 mod seminaive;
@@ -34,6 +35,12 @@ pub(crate) use store::{extract_edb, Bound, RelationStore};
 // `evaluate`/`UnsupportedKind` are consumed by the backward `magic` leg.
 #[allow(unused_imports)]
 pub(crate) use seminaive::{evaluate, materialize_native, NativeOutcome, UnsupportedKind};
+
+// The native restricted (standard) existential-rule chase: value invention for the
+// existential fragment, admitted by the `ChaseAdmission` termination certificate and
+// consumed by `materialize::materialize_routed`.
+#[allow(unused_imports)]
+pub(crate) use chase::{chase_world, ExistentialRule};
 
 // The backward native evaluator: magic-sets demand transformation +
 // `resolve_native`, the oracle-parity sibling of `reference_resolver::resolve`. The primary
