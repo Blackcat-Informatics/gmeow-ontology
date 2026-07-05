@@ -64,45 +64,27 @@ use crate::seam::ScryerForeign;
 // which an opaque hash could express.  It also drives recursive, order-independent
 // null-blind parity against Nemo and an "explain invented individual" surface.
 
-/// The decomposable recipe for a chase-invented null.
+/// The decomposable recipe for a chase-invented null — a Skolem **function** of the
+/// frontier binding, the standard restricted-chase witness.
 ///
-/// The variant *is* the null-addressing strategy the [`ChaseAdmission`](crate)
-/// certificate selects: `Restriction` addresses on the restriction's identity
-/// (instance-independent → a finite witness pool → termination); `Frontier`
-/// addresses on the full frontier tuple (a genuine Skolem function, terminating
-/// exactly when the rule set is weakly acyclic).
+/// The invented value depends on the bound frontier VALUES (never the lexical
+/// variable names), so alpha-variant rules firing on the same data mint the same
+/// null (`content_key` alpha-normalized identity), and — matching Nemo's restricted
+/// chase — two distinct frontier bindings mint two distinct witnesses.  A frontier
+/// slot may itself be a prior invented null (a nested Skolem term), which stays
+/// decomposable via the registry.  Termination is exactly weak acyclicity of the
+/// rule set; the [`ChaseAdmission`](crate) certificate gates admission.
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub(crate) enum SkolemRecipe {
-    /// An EL `≥n p.D` restriction witness: `(world, property, filler-class, ordinal)`,
-    /// deliberately **excluding the parent individual**, so a cyclic `D ⊑ ∃p.D`
-    /// reuses its witness and the chase blocks.  The content key is byte-identical to
-    /// `reason/dl.rs`'s witness scheme.
-    Restriction {
-        /// The world/graph the obligation was raised in.
-        world: String,
-        /// The existential property IRI.
-        property: String,
-        /// The qualifying filler class IRI (`owl:Nothing` when unqualified).
-        filler_class: String,
-        /// The witness ordinal `0..n` (distinct ordinals give distinct witnesses).
-        ordinal: usize,
-    },
-    /// A weakly-acyclic Skolem function of the full frontier tuple: the invented
-    /// value depends on the bound frontier VALUES (never the lexical variable
-    /// names), so alpha-variant rules firing on the same data mint the same null.
-    /// A frontier slot may itself be a prior invented null (nested Skolem term),
-    /// which stays decomposable via the registry.
-    Frontier {
-        /// The content-addressed firing rule IRI (already alpha-normalized).
-        rule_iri: String,
-        /// The existential head-variable ordinal.
-        ordinal: usize,
-        /// The bound frontier terms, in a fixed order.
-        frontier: Vec<TermValue>,
-    },
+pub(crate) struct SkolemTerm {
+    /// The content-addressed firing rule IRI (already alpha-normalized).
+    pub(crate) rule_iri: String,
+    /// The existential head-variable ordinal (distinct ∃-vars ⇒ distinct witnesses).
+    pub(crate) ordinal: usize,
+    /// The bound frontier terms — the Skolem function's arguments, in a fixed order.
+    pub(crate) frontier: Vec<TermValue>,
 }
 
-impl SkolemRecipe {
+impl SkolemTerm {
     /// The content key hashed into the Skolem IRI.
     ///
     /// `\u{1f}` (unit separator) delimits fields so no field value can forge a
@@ -110,28 +92,16 @@ impl SkolemRecipe {
     /// surface, never a source-variable name — preserving `content_key`
     /// alpha-normalized identity.
     fn content_key(&self) -> String {
-        match self {
-            Self::Restriction {
-                world,
-                property,
-                filler_class,
-                ordinal,
-            } => {
-                format!("dl-exists\u{1f}{world}\u{1f}{property}\u{1f}{filler_class}\u{1f}{ordinal}")
-            }
-            Self::Frontier {
-                rule_iri,
-                ordinal,
-                frontier,
-            } => {
-                let args = frontier
-                    .iter()
-                    .map(term_display)
-                    .collect::<Vec<_>>()
-                    .join("\u{1f}");
-                format!("wa-skolem\u{1f}{rule_iri}\u{1f}{ordinal}\u{1f}{args}")
-            }
-        }
+        let args = self
+            .frontier
+            .iter()
+            .map(term_display)
+            .collect::<Vec<_>>()
+            .join("\u{1f}");
+        format!(
+            "wa-skolem\u{1f}{}\u{1f}{}\u{1f}{args}",
+            self.rule_iri, self.ordinal
+        )
     }
 
     /// The invented-null IRI surface for this recipe (deterministic, content-addressed).
@@ -143,12 +113,12 @@ impl SkolemRecipe {
 /// The witnesses a chase has invented, keyed by their IRI surface → recipe.
 ///
 /// A `BTreeMap` so any full sweep is sorted/deterministic.  Minting the same recipe
-/// twice is idempotent (the finite-witness-pool blocking that makes the restricted
-/// chase terminate): the second mint returns the same IRI and asserts the retained
-/// recipe is unchanged.
+/// twice is idempotent (re-firing an obligation on the same frontier recovers the
+/// same witness — the restricted-chase blocking): the second mint returns the same
+/// IRI and asserts the retained recipe is unchanged.
 #[derive(Debug, Clone, Default)]
 pub(crate) struct SkolemRegistry {
-    recipes: BTreeMap<String, SkolemRecipe>,
+    recipes: BTreeMap<String, SkolemTerm>,
 }
 
 impl SkolemRegistry {
@@ -161,7 +131,7 @@ impl SkolemRegistry {
     ///
     /// Deterministic and idempotent: identical recipes collapse to the same witness,
     /// so re-firing an obligation never invents a fresh anonymous individual.
-    pub(crate) fn mint(&mut self, recipe: SkolemRecipe) -> TermValue {
+    pub(crate) fn mint(&mut self, recipe: SkolemTerm) -> TermValue {
         let iri = recipe.witness_iri();
         match self.recipes.get(&iri) {
             Some(existing) => debug_assert_eq!(
@@ -176,7 +146,7 @@ impl SkolemRegistry {
     }
 
     /// The recipe behind an invented-null IRI surface, if this registry minted it.
-    pub(crate) fn recipe(&self, iri: &str) -> Option<&SkolemRecipe> {
+    pub(crate) fn recipe(&self, iri: &str) -> Option<&SkolemTerm> {
         self.recipes.get(iri)
     }
 
@@ -674,67 +644,57 @@ mod tests {
 
     // ── Chase-invented Skolem-term nulls ─────────────────────────────────────────
 
-    fn restriction(ordinal: usize) -> SkolemRecipe {
-        SkolemRecipe::Restriction {
-            world: "http://ex/w".to_owned(),
-            property: "http://ex/p".to_owned(),
-            filler_class: "http://ex/D".to_owned(),
+    fn witness(ordinal: usize, frontier: Vec<TermValue>) -> SkolemTerm {
+        SkolemTerm {
+            rule_iri: "http://ex/rule".to_owned(),
             ordinal,
+            frontier,
         }
     }
 
     #[test]
     fn skolem_mint_is_deterministic_and_idempotent() {
         let mut reg = SkolemRegistry::new();
-        let a = reg.mint(restriction(0));
-        // Re-minting the SAME recipe recovers the SAME witness (finite-pool blocking)
-        // and does not grow the registry — this is what makes the chase terminate.
-        let b = reg.mint(restriction(0));
+        let a = reg.mint(witness(0, vec![term("http://ex/a")]));
+        // Re-firing on the SAME frontier recovers the SAME witness (restricted-chase
+        // blocking) and does not grow the registry — the fixpoint's teeth.
+        let b = reg.mint(witness(0, vec![term("http://ex/a")]));
         assert_eq!(a, b);
         assert_eq!(reg.len(), 1);
         assert!(reg.is_invented(&a));
     }
 
     #[test]
-    fn skolem_distinct_ordinals_give_distinct_witnesses() {
+    fn skolem_distinct_frontiers_give_distinct_witnesses() {
+        // The standard restricted chase mints one fresh witness per frontier binding
+        // (matching Nemo) — distinct frontier values ⇒ distinct nulls.
         let mut reg = SkolemRegistry::new();
-        let w0 = reg.mint(restriction(0));
-        let w1 = reg.mint(restriction(1));
-        assert_ne!(w0, w1, "the n distinct fillers of ≥n p.D must be distinct");
+        let wa = reg.mint(witness(0, vec![term("http://ex/a")]));
+        let wb = reg.mint(witness(0, vec![term("http://ex/b")]));
+        assert_ne!(wa, wb);
         assert_eq!(reg.len(), 2);
     }
 
     #[test]
-    fn skolem_restriction_witness_excludes_the_parent_individual() {
-        // Two different parents raising the SAME restriction share the witness — the
-        // instance-independence that bounds the witness pool.  (The recipe carries no
-        // parent, so there is nothing to vary.)  Byte-identical to the DL pass scheme:
-        // `skolem_iri("dl-exists\u{1f}{world}\u{1f}{property}\u{1f}{class}\u{1f}{ord}")`.
+    fn skolem_distinct_ordinals_give_distinct_witnesses() {
+        // The n distinct existential vars of `≥n p.D` (same frontier) are distinct.
         let mut reg = SkolemRegistry::new();
-        let w = reg.mint(restriction(0));
-        let expected =
-            skolem_iri("dl-exists\u{1f}http://ex/w\u{1f}http://ex/p\u{1f}http://ex/D\u{1f}0");
-        assert_eq!(w, TermValue::iri(&expected));
+        let w0 = reg.mint(witness(0, vec![term("http://ex/a")]));
+        let w1 = reg.mint(witness(1, vec![term("http://ex/a")]));
+        assert_ne!(w0, w1);
+        assert_eq!(reg.len(), 2);
     }
 
     #[test]
-    fn skolem_frontier_addresses_on_values_not_variable_names() {
-        // A weakly-acyclic Skolem function keys on the bound frontier VALUES.  Two
-        // firings of alpha-variant rules (?x vs ?y) that bind the SAME data mint the
-        // byte-identical null — `content_key` alpha-normalized identity.
+    fn skolem_addresses_on_values_not_variable_names() {
+        // The Skolem function keys on the bound frontier VALUES.  Two firings of
+        // alpha-variant rules (?x vs ?y) that bind the SAME data mint the byte-identical
+        // null — `content_key` alpha-normalized identity (no lexical name in the key).
         let mut reg = SkolemRegistry::new();
         let frontier = vec![term("http://ex/a"), term("http://ex/b")];
-        let x_named = SkolemRecipe::Frontier {
-            rule_iri: "http://ex/rule".to_owned(),
-            ordinal: 0,
-            frontier: frontier.clone(),
-        };
-        let y_named = SkolemRecipe::Frontier {
-            rule_iri: "http://ex/rule".to_owned(),
-            ordinal: 0,
-            frontier,
-        };
-        assert_eq!(reg.mint(x_named), reg.mint(y_named));
+        let a = reg.mint(witness(0, frontier.clone()));
+        let b = reg.mint(witness(0, frontier));
+        assert_eq!(a, b);
         assert_eq!(reg.len(), 1);
     }
 
@@ -744,33 +704,23 @@ mod tests {
         // and a frontier slot may itself be a prior invented null (nested Skolem term)
         // that is still decomposable through the registry.
         let mut reg = SkolemRegistry::new();
-        let inner = reg.mint(restriction(0));
+        let inner = reg.mint(witness(0, vec![term("http://ex/a")]));
         let inner_iri = match &inner {
             TermValue::Iri(s) => s.clone(),
             _ => unreachable!("mint returns an IRI"),
         };
-        let outer = reg.mint(SkolemRecipe::Frontier {
-            rule_iri: "http://ex/rule".to_owned(),
-            ordinal: 0,
-            frontier: vec![inner.clone()],
-        });
+        let outer = reg.mint(witness(0, vec![inner.clone()]));
         let outer_iri = match &outer {
             TermValue::Iri(s) => s.clone(),
             _ => unreachable!(),
         };
 
         // The outer recipe decomposes to reveal the inner null in its frontier…
-        let SkolemRecipe::Frontier { frontier, .. } =
-            reg.recipe(&outer_iri).expect("outer recipe retained")
-        else {
-            panic!("outer is a frontier Skolem term");
-        };
-        assert_eq!(frontier, &vec![inner]);
-        // …and the inner null is itself decomposable (a restriction witness).
-        assert!(matches!(
-            reg.recipe(&inner_iri),
-            Some(SkolemRecipe::Restriction { ordinal: 0, .. })
-        ));
+        let outer_recipe = reg.recipe(&outer_iri).expect("outer recipe retained");
+        assert_eq!(outer_recipe.frontier, vec![inner]);
+        // …and the inner null is itself decomposable (its own frontier is `a`).
+        let inner_recipe = reg.recipe(&inner_iri).expect("inner recipe retained");
+        assert_eq!(inner_recipe.frontier, vec![term("http://ex/a")]);
         // A term this registry never minted is not recognized as invented.
         assert!(!reg.is_invented(&term("http://ex/a")));
     }

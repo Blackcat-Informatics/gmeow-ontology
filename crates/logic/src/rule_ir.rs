@@ -842,7 +842,7 @@ fn ground_term_to_value(term: &EvalTerm, sol: &Solution, slot: &str) -> Result<T
 
 /// Re-materialize a native [`TermValue`] from its N3 surface (`<iri>`, `_:blank`, or
 /// a literal).
-fn surface_to_value(surface: &str) -> Result<TermValue, String> {
+pub(crate) fn surface_to_value(surface: &str) -> Result<TermValue, String> {
     if let Some(iri) = surface.strip_prefix('<').and_then(|s| s.strip_suffix('>')) {
         if iri.is_empty() {
             return Err(format!("rule_ir: invalid bound IRI {surface:?}: empty"));
