@@ -136,7 +136,7 @@ ex:onnxCorr a logic:Correspondence ;
     logic:hasDeterminacy logic:Crisp ;
     logic:mnemomorphic true .
 
-# The lifted codomain: the tensor computation graph (the #1260 self-structure object).
+# The lifted codomain: the tensor computation graph (the learning-charter self-structure object).
 ex:selfGraph a math:TensorComputationGraph ;
     math:architectureOf ex:onnxNet ;
     math:computationNode ex:matmulNode ;
