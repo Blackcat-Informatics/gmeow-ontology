@@ -20,6 +20,8 @@ use std::sync::OnceLock;
 
 use std::sync::Arc;
 
+use purrdf::slice::rdf_query::{Dataset as SliceDataset, GraphSel, Object, Subject};
+
 use purrdf::shapes::engine::{parse_shapes, validate_dataset};
 use purrdf::shapes::report::{Severity, ValidationReport};
 use purrdf::shapes::shapes::Shapes;
@@ -577,9 +579,165 @@ impl GraphStore {
             other => panic!("expected SELECT solutions, got {other:?}"),
         }
     }
+
+    // ── Blank-node-aware traversal (purrdf 0.3 `slice::rdf_query`) ─────────────
+    //
+    // The IRI-only helpers above (`has`, `objects`, `subjects`, …) drop blank
+    // nodes: their `subject_iri`/`object_iri` return `None` for a bnode. The
+    // `*_h` helpers below are the bnode-aware twins, built on the native
+    // `purrdf::slice::rdf_query::Dataset` value model (`Subject`/`Object`), so a
+    // blank `owl:Restriction`, an `rdf:List`, or an `owl:Axiom` reifier can be
+    // walked. They construct the slice `Dataset` on demand from the shared frozen
+    // dataset and unwrap the `Result` (panicking on a `SliceError`) exactly as
+    // `ask`/`select` unwrap their SPARQL results.
+
+    /// Build the blank-node-aware slice query surface over this store's quads.
+    ///
+    /// A blank [`Subject`] round-trips (is re-resolvable via `TermValue::blank`)
+    /// only in a *uniquely-owned* frozen dataset: `Dataset::from_frozen` on a
+    /// SHARED `Arc` (which `self.ds` always is — the store hands out clones) falls
+    /// back to `push_dataset`, which scope-qualifies blank labels into a form the
+    /// blank lookup can no longer resolve. So we reconstruct a fresh, uniquely-owned
+    /// dataset from the store's flat quads via `from_owned_quads`; its blank labels
+    /// are assigned deterministically (same quad order → same labels), so a blank
+    /// `Subject` obtained from one call resolves in the next. Cheap for the small
+    /// fixtures the harness queries.
+    fn slice_dataset(&self) -> SliceDataset {
+        let quads = flat_rdf_quads_from_dataset(&self.ds);
+        SliceDataset::from_owned_quads(&quads)
+            .unwrap_or_else(|e| panic!("slice dataset reconstruction failed: {e}"))
+    }
+
+    /// Convert an [`Object`] into the [`Subject`] you would traverse INTO: a named
+    /// or blank object becomes the corresponding subject term, so a blank object
+    /// (e.g. an `rdf:List` head or an `owl:Restriction`) can be walked. A literal
+    /// or quoted triple term is not a subject, so this returns `None`.
+    pub fn object_as_subject(object: &Object) -> Option<Subject> {
+        match object {
+            Object::Named(iri) => Some(Subject::Named(iri.clone())),
+            Object::Blank(label) => Some(Subject::Blank(label.clone())),
+            _ => None,
+        }
+    }
+
+    /// Bnode-aware objects of `<subject> <pred> ?o` in the default graph. The
+    /// subject may be a blank node. Panics on a `SliceError` (as `ask`/`select` do).
+    pub fn objects_h(&self, subject: &Subject, pred: &str) -> Vec<Object> {
+        self.slice_dataset()
+            .objects_of_subject(subject, pred)
+            .unwrap_or_else(|e| panic!("bnode-aware objects failed for {subject:?} <{pred}>: {e}"))
+    }
+
+    /// The first bnode-aware object of `<subject> <pred> ?o`, or `None`.
+    pub fn value_h(&self, subject: &Subject, pred: &str) -> Option<Object> {
+        self.objects_h(subject, pred).into_iter().next()
+    }
+
+    /// Every subject (named OR blank) of `?s a <type_iri>` in the default graph.
+    pub fn subjects_of_type_h(&self, type_iri: &str) -> Vec<Subject> {
+        self.slice_dataset()
+            .subject_terms_of_type(type_iri)
+            .unwrap_or_else(|e| panic!("bnode-aware subjects-of-type failed for <{type_iri}>: {e}"))
+    }
+
+    /// The members of the RDF Collection (`rdf:first`/`rdf:rest`/`rdf:nil`) whose
+    /// head is `head`, in list order. A blank head (the usual case) is walked.
+    pub fn rdf_list_h(&self, head: &Subject) -> Vec<Object> {
+        self.slice_dataset()
+            .rdf_list(head)
+            .unwrap_or_else(|e| panic!("rdf:List walk failed for {head:?}: {e}"))
+    }
+
+    /// The members of the RDF Collection OR Container (`rdf:_n`) whose head is
+    /// `head`, shape-dispatched by the slice walker.
+    pub fn members_h(&self, head: &Subject) -> Vec<Object> {
+        self.slice_dataset()
+            .members(head)
+            .unwrap_or_else(|e| panic!("container/collection walk failed for {head:?}: {e}"))
+    }
+
+    /// True iff the (typically blank) `restriction` has `owl:onProperty on_property`
+    /// AND a `filler_pred` (`owl:someValuesFrom`/`owl:allValuesFrom`, passed as its
+    /// full IRI) whose value is `filler_iri`. Both edges are matched on named-node
+    /// objects; a blank or literal filler never matches an IRI filler.
+    pub fn restriction_matches(
+        &self,
+        restriction: &Subject,
+        on_property: &str,
+        filler_pred: &str,
+        filler_iri: &str,
+    ) -> bool {
+        let ds = self.slice_dataset();
+        let on_property_matches = ds
+            .objects_of_subject(restriction, OWL_ON_PROPERTY)
+            .unwrap_or_else(|e| panic!("restriction owl:onProperty read failed: {e}"))
+            .iter()
+            .any(|o| matches!(o, Object::Named(iri) if iri == on_property));
+        if !on_property_matches {
+            return false;
+        }
+        ds.objects_of_subject(restriction, filler_pred)
+            .unwrap_or_else(|e| panic!("restriction <{filler_pred}> read failed: {e}"))
+            .iter()
+            .any(|o| matches!(o, Object::Named(iri) if iri == filler_iri))
+    }
+
+    /// For every `owl:Axiom` reifier whose `owl:annotatedSource` is `source_iri`,
+    /// return each `(owl:annotatedProperty IRI, owl:annotatedTarget object)` pair.
+    ///
+    /// Graph-agnostic: it scans `GraphSel::Any`, so it finds the reification
+    /// whether it lives in the default graph or a named graph.
+    pub fn axiom_annotations(&self, source_iri: &str) -> Vec<(String, Object)> {
+        let ds = self.slice_dataset();
+        let any = ds.graph(GraphSel::Any);
+        let mut out = Vec::new();
+        for axiom in any
+            .subject_terms_of_type(OWL_AXIOM)
+            .unwrap_or_else(|e| panic!("owl:Axiom enumeration failed: {e}"))
+        {
+            let matches_source = any
+                .objects_of_subject(&axiom, OWL_ANNOTATED_SOURCE)
+                .unwrap_or_else(|e| panic!("owl:annotatedSource read failed: {e}"))
+                .iter()
+                .any(|o| matches!(o, Object::Named(iri) if iri == source_iri));
+            if !matches_source {
+                continue;
+            }
+            let properties = any
+                .objects_of_subject(&axiom, OWL_ANNOTATED_PROPERTY)
+                .unwrap_or_else(|e| panic!("owl:annotatedProperty read failed: {e}"));
+            let targets = any
+                .objects_of_subject(&axiom, OWL_ANNOTATED_TARGET)
+                .unwrap_or_else(|e| panic!("owl:annotatedTarget read failed: {e}"));
+            for property in &properties {
+                let Object::Named(prop_iri) = property else {
+                    continue;
+                };
+                for target in &targets {
+                    out.push((prop_iri.clone(), target.clone()));
+                }
+            }
+        }
+        out
+    }
 }
 
 pub const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+
+/// `owl:onProperty` — the property a restriction constrains.
+pub const OWL_ON_PROPERTY: &str = "http://www.w3.org/2002/07/owl#onProperty";
+/// `owl:someValuesFrom` — the existential filler of a restriction.
+pub const OWL_SOME_VALUES_FROM: &str = "http://www.w3.org/2002/07/owl#someValuesFrom";
+/// `owl:allValuesFrom` — the universal filler of a restriction.
+pub const OWL_ALL_VALUES_FROM: &str = "http://www.w3.org/2002/07/owl#allValuesFrom";
+/// `owl:Axiom` — the type of an OWL annotation-reification node.
+pub const OWL_AXIOM: &str = "http://www.w3.org/2002/07/owl#Axiom";
+/// `owl:annotatedSource` — the subject a reified axiom annotates.
+pub const OWL_ANNOTATED_SOURCE: &str = "http://www.w3.org/2002/07/owl#annotatedSource";
+/// `owl:annotatedProperty` — the predicate a reified axiom annotates.
+pub const OWL_ANNOTATED_PROPERTY: &str = "http://www.w3.org/2002/07/owl#annotatedProperty";
+/// `owl:annotatedTarget` — the object a reified axiom annotates.
+pub const OWL_ANNOTATED_TARGET: &str = "http://www.w3.org/2002/07/owl#annotatedTarget";
 
 // ── Parameterized case harness ──────────────────────────────────────────
 
@@ -840,3 +998,163 @@ impl Case {
         }
     }
 }
+
+// ── Unit tests for the blank-node-aware `GraphStore` helpers ──────────────────
+//
+// This support module is compiled into every sibling integration binary, so plain
+// `#[test]` fns here are collected and run. They exercise the new `*_h` helpers
+// against small inline Turtle fixtures parsed through the existing
+// `GraphStore::parse_ttl` path (the same path the IRI-only helpers use), and never
+// touch the on-disk shapes/ontology corpus.
+
+/// A blank `owl:Restriction`, an `owl:unionOf`/`intersectionOf` `rdf:List` (with a
+/// blank member), and an `owl:Axiom` reification — everything the helpers walk.
+#[cfg(test)]
+const BNODE_FIXTURE_TTL: &str = "\
+@prefix ex: <https://example.org/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+ex:Union owl:unionOf ( ex:A ex:B ) .
+ex:Inter owl:intersectionOf ( ex:A [ a ex:Marker ] ex:C ) .
+ex:Widget a owl:Class .
+ex:C rdfs:subClassOf [
+    a owl:Restriction ;
+    owl:onProperty ex:hasPart ;
+    owl:someValuesFrom ex:Widget
+] .
+[ a owl:Axiom ;
+  owl:annotatedSource ex:C ;
+  owl:annotatedProperty rdfs:label ;
+  owl:annotatedTarget \"a widget-bearing class\" ] .
+";
+
+#[cfg(test)]
+const EX: &str = "https://example.org/";
+
+#[cfg(test)]
+fn ex(local: &str) -> String {
+    format!("{EX}{local}")
+}
+
+#[test]
+fn object_as_subject_converts_named_and_blank_only() {
+    assert_eq!(
+        GraphStore::object_as_subject(&Object::Named(ex("A"))),
+        Some(Subject::Named(ex("A")))
+    );
+    assert_eq!(
+        GraphStore::object_as_subject(&Object::Blank("b0".to_owned())),
+        Some(Subject::Blank("b0".to_owned()))
+    );
+    // A literal is not a subject term.
+    assert_eq!(
+        GraphStore::object_as_subject(&Object::Literal {
+            value: "x".to_owned(),
+            datatype: "http://www.w3.org/2001/XMLSchema#string".to_owned(),
+            language: None,
+            direction: None,
+        }),
+        None
+    );
+}
+
+#[test]
+fn rdf_list_h_walks_union_of_in_order() {
+    let g = GraphStore::parse_ttl(BNODE_FIXTURE_TTL);
+    // The list head is a blank node reached from the named `ex:Union` subject.
+    let head = GraphStore::object_as_subject(
+        &g.value_h(&Subject::Named(ex("Union")), OWL_UNION_OF)
+            .expect("owl:unionOf head present"),
+    )
+    .expect("list head is named or blank");
+    assert!(matches!(head, Subject::Blank(_)), "list head is a bnode");
+    assert_eq!(
+        g.rdf_list_h(&head),
+        vec![Object::Named(ex("A")), Object::Named(ex("B"))]
+    );
+    // `members_h` dispatches to the same Collection walk for an rdf:first head.
+    assert_eq!(g.members_h(&head), g.rdf_list_h(&head));
+}
+
+#[test]
+fn rdf_list_h_preserves_order_with_a_blank_member() {
+    let g = GraphStore::parse_ttl(BNODE_FIXTURE_TTL);
+    let head = GraphStore::object_as_subject(
+        &g.value_h(&Subject::Named(ex("Inter")), OWL_INTERSECTION_OF)
+            .expect("owl:intersectionOf head present"),
+    )
+    .expect("list head is named or blank");
+    let members = g.rdf_list_h(&head);
+    assert_eq!(members.len(), 3, "three list members, order preserved");
+    assert_eq!(members[0], Object::Named(ex("A")));
+    // The middle member is an anonymous `[ a ex:Marker ]` node — proves the walk
+    // yields a blank object we can chain INTO as a subject.
+    assert!(
+        matches!(members[1], Object::Blank(_)),
+        "middle member is a blank node, got {:?}",
+        members[1]
+    );
+    assert_eq!(members[2], Object::Named(ex("C")));
+    // Chain into the blank member and read its own edge.
+    let marker = GraphStore::object_as_subject(&members[1]).expect("blank member as subject");
+    assert_eq!(
+        g.value_h(&marker, RDF_TYPE),
+        Some(Object::Named(ex("Marker")))
+    );
+}
+
+#[test]
+fn subjects_of_type_h_and_restriction_matches_a_blank_restriction() {
+    let g = GraphStore::parse_ttl(BNODE_FIXTURE_TTL);
+    let restrictions = g.subjects_of_type_h(OWL_RESTRICTION);
+    assert_eq!(restrictions.len(), 1, "one blank owl:Restriction");
+    let restriction = &restrictions[0];
+    assert!(
+        matches!(restriction, Subject::Blank(_)),
+        "the restriction is a bnode"
+    );
+    // Matches on onProperty + someValuesFrom.
+    assert!(g.restriction_matches(
+        restriction,
+        &ex("hasPart"),
+        OWL_SOME_VALUES_FROM,
+        &ex("Widget"),
+    ));
+    // Wrong filler property (allValuesFrom) does not match.
+    assert!(!g.restriction_matches(
+        restriction,
+        &ex("hasPart"),
+        OWL_ALL_VALUES_FROM,
+        &ex("Widget"),
+    ));
+    // Wrong onProperty does not match.
+    assert!(!g.restriction_matches(
+        restriction,
+        &ex("hasWhole"),
+        OWL_SOME_VALUES_FROM,
+        &ex("Widget"),
+    ));
+}
+
+#[test]
+fn axiom_annotations_found_by_annotated_source() {
+    let g = GraphStore::parse_ttl(BNODE_FIXTURE_TTL);
+    let annotations = g.axiom_annotations(&ex("C"));
+    assert_eq!(annotations.len(), 1, "one reified axiom over ex:C");
+    let (property, target) = &annotations[0];
+    assert_eq!(property, "http://www.w3.org/2000/01/rdf-schema#label");
+    match target {
+        Object::Literal { value, .. } => assert_eq!(value, "a widget-bearing class"),
+        other => panic!("expected a literal annotatedTarget, got {other:?}"),
+    }
+    // A source with no reified axiom yields nothing.
+    assert!(g.axiom_annotations(&ex("Union")).is_empty());
+}
+
+#[cfg(test)]
+const OWL_UNION_OF: &str = "http://www.w3.org/2002/07/owl#unionOf";
+#[cfg(test)]
+const OWL_INTERSECTION_OF: &str = "http://www.w3.org/2002/07/owl#intersectionOf";
+#[cfg(test)]
+const OWL_RESTRICTION: &str = "http://www.w3.org/2002/07/owl#Restriction";
