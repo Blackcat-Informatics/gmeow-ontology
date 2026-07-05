@@ -67,6 +67,15 @@ pub(crate) const GRAPH_PROJECTION_LEDGER: &str =
 /// self-description corpus, not object-level axioms).
 pub(crate) const GRAPH_LANG_TRANSLATION_CORPUS: &str =
     "https://blackcatinformatics.ca/gmeow/graph/lang-translation-corpus";
+/// The total prose-lift corpus: every distinct `@x-gmeow-english` source literal interned
+/// as a raw `lang:SurfaceForm` carrying its `logic:candidateSourceHash` and an exact
+/// surface-round-trip `logic:Correspondence` (Gate 1: total prose lift). Folded as its own
+/// queryable named graph so a repo-free consumer reaches every source-prose surface without
+/// re-parsing the slice Turtle. Excluded from the reasoned object-level EDB exactly like
+/// `graph/lang-translation-corpus` (it asserts a self-description corpus, not object-level
+/// axioms).
+pub(crate) const GRAPH_LANG_FORM_CORPUS: &str =
+    "https://blackcatinformatics.ca/gmeow/graph/lang-form-corpus";
 /// The authored default graph (root ontology + slice modules + translations + guide
 /// anchors, NO imports) carried as a named graph on the `stage-source-load` product so
 /// the presenter reads it instead of re-loading the sources. It is an INTERNAL transport
@@ -183,6 +192,21 @@ pub(crate) fn serialize_carrier_snapshot_with_docs_model(
         },
     )?;
     blobs.extend(build_guide_blobs(root)?);
+    // The document-scale surface blobs: every `@x-gmeow-english` source literal whose
+    // byte-length crosses the document-scale threshold rides here by content-addressed
+    // reference (the `lang:surfaceBlob "blake3:<hex>"` anchor the lang-form corpus emits),
+    // so a document-scale surface never inlines payload bytes in the graph. Recomputed
+    // from `root` exactly like the guide blobs (its own freshly-discovered catalog, so the
+    // set stays a pure function of the sources); empty until a source literal crosses the
+    // threshold.
+    let lang_form_catalog = purrdf::slice::SliceCatalog::discover(
+        &root.join("slices"),
+        crate::gmeow_ns::gmeow_slice_vocab(),
+    )
+    .map_err(|e| stage_err(&format!("lang-form slice catalog: {e}")))?;
+    blobs.extend(crate::stages::lang_form::build_surface_blobs(Some(
+        &lang_form_catalog,
+    ))?);
     // The provided docs model (reasoning verdict already attached by the caller) drives the
     // OKF-coverage gate, the build-time executable-docs data (the reasoned "try it" diffs and
     // the offline SPARQL playground asset), and the rendered ontology-docs site. This is a
@@ -467,6 +491,7 @@ fn assemble_carrier(
     let projection_ledger = producer_graph(upstream, "stage-mappings", GRAPH_PROJECTION_LEDGER)?;
     let lang_translation_corpus =
         producer_graph(upstream, "stage-mappings", GRAPH_LANG_TRANSLATION_CORPUS)?;
+    let lang_form_corpus = producer_graph(upstream, "stage-mappings", GRAPH_LANG_FORM_CORPUS)?;
 
     // ── the carried graphs ride in from the producers' carriers ────────────────
     let reason = upstream
@@ -491,6 +516,7 @@ fn assemble_carrier(
         std::sync::Arc::new(diagnostics),
         projection_ledger,
         lang_translation_corpus,
+        lang_form_corpus,
     ];
     datasets.extend(compile_logic_object_graphs(upstream)?);
     datasets.push(rooted_in_graph(

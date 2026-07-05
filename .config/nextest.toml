@@ -67,6 +67,20 @@
 #     target, which invokes it with `--ignore-default-filter` plus an explicit `-E`
 #     selector (overriding this `default-filter`) and does not feed its JUnit output
 #     into the 25 s budget gate.
+#   - gmeow-pipeline fanout_parity binary + stages::superset::tests::
+#     project_bundle_reconstructs_the_committed_tree_and_gate_is_clean:
+#     20.4 s / 17.5 s / 16.8 s locally (24-30+ s in CI). These reconstruct the
+#     whole `generated/` tree from the committed `gmeow.gts` bundle alone and
+#     assert the superset gate is clean / the fanout is byte-reproducible and
+#     idempotent — irreducibly O(bundle size), the same whole-committed-bundle
+#     class as `fold_parity`/`end_to_end` above. The total-prose-lift surface
+#     (a `lang:SurfaceForm` per distinct English literal) grew the bundle ~30 %,
+#     nudging these three past budget; the cost is bundle-size, not fixture-
+#     dependent. No coverage class leaves the gate: the superset reconstruction
+#     gate and the fanout reproduction both run on every `make check` via
+#     `make check-generated` (the `stage:superset`/`pipeline-reconcile` and
+#     `fanout` stages, which hard-fail on any drift), and the whole class stays
+#     on-gate on `maint-heavy`.
 default-filter = '''
   not (
     (package(gmeow-validate) & test(/deep_surfaces_entailed_inconsistency.*heavy_offgate/))
@@ -75,6 +89,8 @@ default-filter = '''
     | test(/w3c_rdfc10_heavy_offgate/)
     | (package(gmeow-logic) & test(/whole_bundle_.*gate/))
     | (package(gmeow-pipeline) & binary(end_to_end))
+    | (package(gmeow-pipeline) & binary(fanout_parity))
+    | (package(gmeow-pipeline) & test(/stages::superset::tests::project_bundle_reconstructs_the_committed_tree_and_gate_is_clean/))
     | (package(gmeow-foundation-corpus) & test(/imported_graph_conforms_to_shapes/))
     | (package(gmeow-validate) & (binary(conformance_finance) | binary(conformance_agentic) | binary(conformance_ai_claims) | binary(conformance_music_analysis)))
   )
