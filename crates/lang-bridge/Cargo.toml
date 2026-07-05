@@ -15,6 +15,9 @@ path = "src/lib.rs"
 [dependencies]
 gmeow-lang-form = { path = "../lang-form" }
 gmeow-logic-compile = { path = "../logic-compile" }
+# The OntoLex-Lemon lexicon lift parses RDF Turtle with the ONE canonical parser
+# (never a second, hand-rolled RDF parser) — the same `purrdf` every other crate depends on.
+purrdf = "0.2"
 sha2 = "0.10"
 # The plain-text bridge declares each lifted surface's Unicode normalization form
 # HONESTLY (NFC/NFD/NFKC/NFKD) via a quick-check, never assuming NFC — the declared
