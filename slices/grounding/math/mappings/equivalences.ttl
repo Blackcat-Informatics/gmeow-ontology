@@ -1262,3 +1262,124 @@ gmeow:eqMathTangentSpaceMathlib a gmeow:TermEquivalence ;
     gmeow:objectLabel "Mathlib.Geometry.Manifold.VectorBundle.Tangent" ;
     gmeow:comment "math:TangentSpace is formalized by mathlib's tangent-bundle construction. Structural formalization by reference, so skos:relatedMatch; curl-validated HTTP 200." ;
     gmeow:sssomFile "gmeow-mathlib.sssom.tsv" .
+
+# --- Linear algebra and learning (LINEAR-ALGEBRA-AND-LEARNING charter) ------- #
+# External anchors to Wikidata (identity where the concept coincides, closeMatch
+# where GMEOW's object is a facet of a broader concept). Every QID curl-validated by
+# sense (HTTP 200 + English label match). The decomposition/latent/tensor terms with
+# no external concept — math:LatentSpace, math:EmbeddingDimension, math:ScoreVector,
+# math:LoadingVector, math:ProjectionResidual, math:ResidualInterpretationClaim,
+# math:TensorComputationGraph, math:ParameterSpace, math:WeightTensor,
+# math:CovarianceOperator, math:AttentionOperation — are GMEOW-original and are left
+# unanchored rather than aligned to an approximate match. The OpenMath eigen content
+# dictionary (linalgeig) does not resolve, so eigen alignment rides Wikidata alone.
+
+gmeow:eqMathInnerProductSpace a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:InnerProductSpace ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q214159 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "inner product space" ;
+    gmeow:comment "math:InnerProductSpace is a vector space with an inner product; wd:Q214159 (inner product space) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathSubspace a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:Subspace ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q728435 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "linear subspace" ;
+    gmeow:comment "math:Subspace is a vector subspace; wd:Q728435 (linear subspace) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathOrthogonalComplement a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:OrthogonalComplement ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q1780921 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "orthogonal complement" ;
+    gmeow:comment "math:OrthogonalComplement is S-perp within an inner-product space; wd:Q1780921 (orthogonal complement) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathLinearMap a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:LinearMap ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q207643 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "linear map" ;
+    gmeow:comment "math:LinearMap is a structure-preserving map between vector spaces; wd:Q207643 (linear map) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathEigendecomposition a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:Eigendecomposition ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q190524 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "eigenvectors and eigenvalues" ;
+    gmeow:comment "math:Eigendecomposition factors an operator into its eigenvalue/eigenvector pairs; wd:Q190524 (eigenvectors and eigenvalues) names the underlying concept. The decomposition object is a facet of that concept, so skos:closeMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathSingularValueDecomposition a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:SingularValueDecomposition ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q420904 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "singular value decomposition" ;
+    gmeow:comment "math:SingularValueDecomposition is the A = U-Sigma-V* factorization; wd:Q420904 (singular value decomposition) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathPCAAnalysis a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:PCAAnalysis ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q2873 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "principal component analysis" ;
+    gmeow:comment "math:PCAAnalysis is the principal-component analysis; wd:Q2873 (principal component analysis) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathLossFunction a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:LossFunction ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q1036748 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "loss function" ;
+    gmeow:comment "math:LossFunction is the objective a training problem minimizes; wd:Q1036748 (loss function) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathOptimizationProblem a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:OptimizationProblem ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q141495 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "mathematical optimization" ;
+    gmeow:comment "math:OptimizationProblem is a single minimize-objective-subject-to-constraints specification; wd:Q141495 (mathematical optimization) names the field/activity. The problem is an instance of that concept, so skos:closeMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathKnowledgeGraphEmbedding a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:KnowledgeGraphEmbedding ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q33003557 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "knowledge graph embedding" ;
+    gmeow:comment "math:KnowledgeGraphEmbedding maps a graph into a latent space; wd:Q33003557 (knowledge graph embedding) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathActivationFunction a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:ActivationFunction ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q4677469 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "activation function" ;
+    gmeow:comment "math:ActivationFunction is the elementwise nonlinearity of a neural layer; wd:Q4677469 (activation function) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
