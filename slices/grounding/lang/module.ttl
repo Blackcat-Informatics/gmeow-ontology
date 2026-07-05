@@ -182,6 +182,31 @@ lang:ebnfFormalism
     rdfs:label "EBNF"@x-gmeow-english ;
     skos:definition "The ISO/IEC 14977 EBNF grammar-interchange formalism."@x-gmeow-english .
 
+# --- Self-hosting grammar individuals --------------------------------------- #
+# The grammars of GMEOW's own serialization sign systems, held as first-class
+# lang:Grammar individuals. The full grammar bytes are the EBNF renderings under
+# grammars/turtle.ebnf and grammars/gts.ebnf (an EBNF file is a rendering of the
+# grammar object, not the grammar); each individual references its rendering by
+# label and licenses its sign system through lang:grammarFor. This is the semantic
+# statement that the native parse of Turtle and GTS is an interpretation over these
+# grammars — the self-description, not a second parser stack.
+
+lang:turtleGrammar
+    a owl:NamedIndividual , lang:Grammar ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "Turtle grammar"@x-gmeow-english ;
+    skos:definition "The grammar of the W3C Turtle serialization, licensing the lang:turtle sign system the native codec interprets. Its EBNF rendering is grammars/turtle.ebnf; the file is a rendering of this grammar object, never its identity."@x-gmeow-english ;
+    lang:grammarFor lang:turtle ;
+    lang:grammarFormalism lang:ebnfFormalism .
+
+lang:gtsGrammar
+    a owl:NamedIndividual , lang:Grammar ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GTS grammar"@x-gmeow-english ;
+    skos:definition "The grammar of the GTS textual serialization, licensing the lang:gts sign system the native codec interprets. Its EBNF rendering is grammars/gts.ebnf; the file is a rendering of this grammar object, never its identity."@x-gmeow-english ;
+    lang:grammarFor lang:gts ;
+    lang:grammarFormalism lang:ebnfFormalism .
+
 # --- Canonical sign-system and script references ---------------------------- #
 # A minimal set of first-class sign-system individuals the reference layer names
 # and the alignment records anchor to. English and Turtle are sign systems; Latin
@@ -201,6 +226,14 @@ lang:turtle
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "Turtle"@x-gmeow-english ;
     skos:definition "The W3C Turtle serialization as a first-class sign system: a lang:SignSystem of lang:formalLanguageKind in the written modality, licensed by a lang:Grammar. One of GMEOW's own serialization sign systems."@x-gmeow-english ;
+    lang:signSystemKind lang:formalLanguageKind ;
+    lang:modality lang:writtenModality .
+
+lang:gts
+    a owl:NamedIndividual , lang:SignSystem ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GTS"@x-gmeow-english ;
+    skos:definition "The GTS textual serialization as a first-class sign system: a lang:SignSystem of lang:formalLanguageKind in the written modality, licensed by a lang:Grammar. One of GMEOW's own serialization sign systems, the surface the native GTS codec interprets."@x-gmeow-english ;
     lang:signSystemKind lang:formalLanguageKind ;
     lang:modality lang:writtenModality .
 
