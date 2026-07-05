@@ -1,0 +1,26 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Well-formed: an embedding naming its source, target space, embedding function,
+# and the model that produced it, carrying the math:Function frame (domain/codomain
+# as math:Set) it inherits. Conforms to math:EmbeddingShape and math:FunctionFramingShape.
+# Bound by ex:ecEmbeddingFramed.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:emb a math:Embedding ;
+    math:domain ex:corpusSet ;
+    math:codomain ex:latentSet ;
+    math:embeddingSource ex:corpus ;
+    math:targetSpace ex:latent ;
+    math:embeddingFunction ex:embFn ;
+    math:embeddingModel ex:model .
+
+ex:corpusSet a math:Set .
+ex:latentSet a math:Set .
+ex:corpus a math:MathematicalObject .
+ex:latent a math:MathematicalObject .
+ex:embFn a math:Function ;
+    math:domain ex:corpusSet ;
+    math:codomain ex:latentSet .
+ex:model a math:LearnedModel .

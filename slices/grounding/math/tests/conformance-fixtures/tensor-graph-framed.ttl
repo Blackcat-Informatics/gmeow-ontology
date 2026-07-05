@@ -1,0 +1,40 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Well-formed: a tensor computation graph whose node reuses the expression AST — a
+# math:ApplicationExpression applying the matrix-product operator to two indexed
+# argument slots — with a weight tensor in a declared parameter space. The parameter
+# space, being a vector space, carries the algebra frame it inherits. Conforms to
+# math:TensorComputationGraphShape, math:WeightTensorShape, and the inherited
+# argument-slot and algebra-structure shapes. Bound by ex:ecTensorGraphFramed.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:graph a math:TensorComputationGraph ;
+    math:architectureOf ex:net ;
+    math:computationNode ex:node .
+
+ex:node a math:ApplicationExpression ;
+    math:operator math:matrixProduct ;
+    math:tensorOperation math:matrixProduct ;
+    math:argumentSlot ex:slot0 , ex:slot1 .
+
+ex:slot0 a math:ArgumentSlot ; math:slotIndex 0 ; math:slotExpression ex:inExpr .
+ex:slot1 a math:ArgumentSlot ; math:slotIndex 1 ; math:slotExpression ex:wExpr .
+
+ex:inExpr a math:MathematicalExpression .
+ex:wExpr a math:MathematicalExpression .
+
+ex:net a math:LearnedModel .
+ex:layer a math:NeuralLayer .
+ex:weight a math:WeightTensor ;
+    math:weightOf ex:layer ;
+    math:inParameterSpace ex:params .
+
+ex:params a math:ParameterSpace ;
+    math:underlyingSet ex:paramCarrier ;
+    math:structureOperation ex:paramAdd ;
+    math:satisfiesAxiom ex:paramAxiom .
+ex:paramCarrier a math:Set .
+ex:paramAdd a math:Operation .
+ex:paramAxiom a math:Axiom .

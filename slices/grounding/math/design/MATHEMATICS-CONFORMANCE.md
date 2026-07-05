@@ -169,6 +169,37 @@ an ambient space and a named semantics is ill-formed. A `math:HomologyGroup` is 
 fully-framed abelian group raises `math:IncompleteAlgebraicStructure`, not a
 topology failure.
 
+### Linear-algebra-and-learning rules
+
+Every rule is SHACL Core (or a SHACL-SPARQL uniqueness constraint reused from the
+mathematical-core AST) — none needs a native validator, so `native_contract_hash`
+is untouched. The distinguished discipline is that a decomposition or embedding
+declares its inputs, policy, and outputs, and any *meaning* read off a residual or a
+latent dimension is a `gmeow:Observation` held from a `gmeow:vantage`, never a
+property of the vector.
+
+| Rule | Primary gate | Failure class |
+|---|---|---|
+| A `math:OrthogonalComplement` names its ambient space and complement-semantics (inherited from `math:Complement`) and additionally the inner product defining it (`math:definedByInnerProduct`) | SHACL Core | `math:UnqualifiedOrthogonalComplement` |
+| A `math:PCAAnalysis` declares its input, centering and scaling policy, covariance operator, eigensolver, and its component / loading / score / explained-variance / residual outputs | SHACL Core | `math:IncompletePCAAnalysis` |
+| **The meaning of a residual, component, or latent dimension is a `math:ResidualInterpretationClaim` — a `gmeow:Observation` with a `gmeow:vantage` and a result — never a property (no direct meaning property is minted)** | SHACL Core | `math:ResidualMeaningAsProperty` |
+| A `math:Embedding` names its source, target space, function, and model | SHACL Core | `math:UnderspecifiedEmbedding` |
+| A `math:TensorComputationGraph` declares its computation nodes, which are `math:ApplicationExpression`s reusing the argument-slot AST (so the inherited slot-uniqueness/well-formedness gates bite) | SHACL Core (+ inherited `math:SlotIndexUniquenessShape`) | `math:MalformedTensorComputationGraph` / `math:MalformedArgumentSlot` |
+| A `math:WeightTensor` names the `math:ParameterSpace` it lives in | SHACL Core | `math:UnframedWeightTensor` |
+
+The residual-meaning rule is the charter's distinguished gate: because no direct
+"meaning" property is minted, the only way to state what a residual or latent
+dimension means is a `math:ResidualInterpretationClaim`, which this gate then forces
+to carry its `gmeow:vantage` and result — semantic meaning read off geometry is
+inference from a standpoint (Principle 9), so the property-form of meaning is
+unauthorable by construction. The tensor-computation-graph rule reuses the
+expression AST wholesale rather than minting a parallel structure: a graph node *is*
+a `math:ApplicationExpression`, so a node with duplicate argument-slot indexes trips
+the same `math:SlotIndexUniquenessShape` that guards every application and binder.
+`math:PCAAnalysis` is a `gmeow:Activity` (the analysis process), its components and
+residuals are result objects, and the interpretation is the held claim — the
+process / result / claim separation, realized across the `math:` and `gmeow:` layers.
+
 ### Probability rules
 
 | Rule | Primary gate | Failure class |

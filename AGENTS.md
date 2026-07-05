@@ -289,7 +289,17 @@ committed `generated/dist/gmeow.gts` fold-isomorphism oracle);
 linkage coverage retained by the dedicated C-API CI lane and `maint-heavy`);
 `gmeow-pipeline::end_to_end` (82.351 s in CI shard 1; it runs the real
 production spine through `stage-snapshot`, so focused per-stage and carrier
-tests keep the failure modes covered on-gate); and
+tests keep the failure modes covered on-gate); the `gmeow-pipeline`
+`fanout_parity` binary and
+`gmeow-pipeline::stages::superset::tests::project_bundle_reconstructs_the_committed_tree_and_gate_is_clean`
+(20.4 s / 17.5 s / 16.8 s locally, 24–30+ s in CI; they reconstruct the whole
+`generated/` tree from the committed `gmeow.gts` bundle alone — irreducibly
+O(bundle size), the same whole-committed-bundle class as `fold_parity`/`end_to_end`;
+the `lang:` total-prose-lift surface grew the bundle ~30 % and nudged all three
+past budget, and the cost is bundle-size not fixture-dependent; both the superset
+reconstruction gate and the fanout reproduction run on every `make check` via
+`make check-generated`, which hard-fails on any drift, so no coverage leaves the
+gate); and
 `gmeow-pipeline::stages::gts_sink::tests::sink_serializes_the_snapshot_carrier_with_blob_inputs`
 (25.8 s in CI shard 3; it exercises terminal carrier serialization and import
 round-trip work with no remaining CI headroom);

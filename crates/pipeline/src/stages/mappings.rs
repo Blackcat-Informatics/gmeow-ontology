@@ -79,6 +79,12 @@ pub struct CompiledMappings {
     /// as a named graph by [`MappingsStage::run`], excluded from the reasoned EDB exactly
     /// like the projection-ledger graph.
     pub lang_translation_corpus: Vec<u8>,
+    /// The total prose-lift corpus N-Triples graph (`graph/lang-form-corpus`): every
+    /// distinct `@x-gmeow-english` source literal interned as a raw `lang:SurfaceForm`
+    /// carrying its `logic:candidateSourceHash` and an exact surface-round-trip
+    /// `logic:Correspondence`. Carried as a named graph by [`MappingsStage::run`], excluded
+    /// from the reasoned EDB exactly like the translation-corpus graph.
+    pub lang_form_corpus: Vec<u8>,
 }
 
 /// Compile all five mapping families (SSSOM + FnO + EDOAL + SPARQL + standpoint
@@ -87,6 +93,28 @@ pub struct CompiledMappings {
 pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, PipelineError> {
     let vocab = crate::gmeow_ns::gmeow_slice_vocab();
     let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+
+    // Discover the slice catalog ONCE, here, and share the single in-memory instance across
+    // every source-slice consumer in this stage: the correspondence lowerings (Module +
+    // Mapping merges) AND the total prose-lift corpus (every `@x-gmeow-english` literal,
+    // all roles). Its artifact bytes are resident, so the `slices/` tree is walked once per
+    // run — the total-lift universe is a projection of this composed source, never a second
+    // independent disk read. `None` only when there is no `slices/` tree.
+    let slices_dir = root.join("slices");
+    let catalog = if slices_dir.is_dir() {
+        Some(
+            purrdf::slice::SliceCatalog::discover(
+                &slices_dir,
+                crate::gmeow_ns::gmeow_slice_vocab(),
+            )
+            .map_err(|e| PipelineError::Stage {
+                stage: "stage-mappings".to_string(),
+                message: format!("slice catalog discovery: {e}"),
+            })?,
+        )
+    } else {
+        None
+    };
 
     // Prefix-consistency gate (§2): no authored source may shadow a registry
     // prefix with a foreign namespace — a shadow desynchronizes authored CURIEs from
@@ -135,9 +163,11 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, PipelineError> 
     // (transform functions), EDOAL + SPARQL-CONSTRUCT (one shared get leg, so
     // `spec-drift` is gone by construction). One native parse of the DSL + ontology
     // sources drives all four.
-    let aligned = correspondence_lower::lower_all(root).map_err(|e| PipelineError::Stage {
-        stage: "stage-mappings".to_string(),
-        message: format!("correspondence lowering failed: {e}"),
+    let aligned = correspondence_lower::lower_all(root, catalog.as_ref()).map_err(|e| {
+        PipelineError::Stage {
+            stage: "stage-mappings".to_string(),
+            message: format!("correspondence lowering failed: {e}"),
+        }
     })?;
     for (filename, tsv) in aligned.sssom {
         artifacts.insert(format!("{SSSOM_DIR}/{filename}"), tsv.into_bytes());
@@ -148,6 +178,12 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, PipelineError> 
     }
     for (filename, rq) in aligned.sparql {
         artifacts.insert(format!("{QUERIES_DIR}/{filename}"), rq.into_bytes());
+    }
+    // The inverse ingest leg: each `<profile>.put.rq` SPARQL CONSTRUCT emitted alongside
+    // its forward `.rq`. ml-schema authors the ingest-claim terms today, so this writes the
+    // ml-schema put leg and automatically tracks the emitter (the sole authority for the set).
+    for (filename, put) in aligned.sparql_put {
+        artifacts.insert(format!("{QUERIES_DIR}/{filename}"), put.into_bytes());
     }
     // The EmotionML XML projection of the affect category + dimension vocabularies. Its
     // many-to-one collapse row already rides in `aligned.ledger` (folded into the union
@@ -163,6 +199,15 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, PipelineError> 
     let lang_corpus = crate::stages::lang_translation::build_corpus(root)?;
     ledger.extend(lang_corpus.ledger);
     let lang_translation_corpus = lang_corpus.ntriples;
+
+    // Total prose lift (Gate 1): type every distinct `@x-gmeow-english` source literal as a
+    // raw `lang:SurfaceForm` carrying its prose-hash and an exact surface-round-trip
+    // `logic:Correspondence`, and fold the single honest corpus row into the loss ledger.
+    // The RDF graph rides as a named graph by the stage `run` below (never a `generated/`
+    // file), excluded from the reasoned EDB exactly like the translation corpus.
+    let form_corpus = crate::stages::lang_form::build_corpus(catalog.as_ref())?;
+    ledger.extend(form_corpus.ledger);
+    let lang_form_corpus = form_corpus.ntriples;
 
     // Standpoint projections — the seven fixed `standpoint-*.rq` queries (byte-identical
     // to the Python template-coded emitters; no DSL input).
@@ -215,6 +260,7 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, PipelineError> 
         artifacts,
         ledger,
         lang_translation_corpus,
+        lang_form_corpus,
     })
 }
 
@@ -630,11 +676,22 @@ impl Stage for MappingsStage {
             "application/n-triples",
             crate::stages::carrier::GRAPH_LANG_TRANSLATION_CORPUS,
         )?;
+        // graph/lang-form-corpus — the total prose lift (Gate 1): every distinct
+        // `@x-gmeow-english` source literal typed as a raw `lang:SurfaceForm`. Carried as a
+        // named graph so the presenter reads it via `producer_graph`; like the
+        // translation-corpus graph it stays OUT of the reasoned EDB (`gts_compose` folds only
+        // the default graph).
+        let lang_form_graph = crate::stages::carrier::parse_into_graph(
+            &compiled.lang_form_corpus,
+            "application/n-triples",
+            crate::stages::carrier::GRAPH_LANG_FORM_CORPUS,
+        )?;
         let dataset = std::sync::Arc::new(purrdf::RdfDataset::union(&[
             rdf_dataset.as_ref(),
             ledger_graph.as_ref(),
             alignments_graph.as_ref(),
             lang_translation_graph.as_ref(),
+            lang_form_graph.as_ref(),
         ]));
         Ok(StageOutput {
             product: StageProduct::from_artifacts_over(self.id(), dataset, artifacts),
@@ -781,20 +838,46 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
         // committed counterpart byte-for-byte (the lowerings' parity contract).
         let root = repo_root();
         let artifacts = compile_mappings(&root).expect("compile").artifacts;
+        // Oracle for the inverse ingest leg: the lowering IS the authority for the
+        // `.put.rq` set, so the expected committed put count is exactly the length of the
+        // emitted `sparql_put` map. ml-schema authors the ingest-claim terms today, so
+        // `expected_put == 1` and there is one committed `.put.rq`; both sides move in
+        // lockstep with the emitter with no gate edit. Kept as a distinct counter so
+        // `.put.rq` never inflates the forward `sparql == 46` count.
+        // Mirror the production stage's single-catalog discovery so the lowering sees
+        // the slice-authored ingest-claim terms (a `None` catalog would drop them and
+        // undercount the `.put.rq` oracle).
+        let catalog = purrdf::slice::SliceCatalog::discover(
+            &root.join("slices"),
+            crate::gmeow_ns::gmeow_slice_vocab(),
+        )
+        .expect("slice catalog discovery");
+        let expected_put = correspondence_lower::lower_all(&root, Some(&catalog))
+            .expect("lower_all")
+            .sparql_put
+            .len();
         let mut edoal = 0usize;
         let mut sparql = 0usize;
+        let mut put = 0usize;
         let mut failures: Vec<String> = Vec::new();
         for (path, bytes) in &artifacts {
             let name = path.rsplit('/').next().unwrap_or(path);
             let is_edoal = path.starts_with(EDOAL_DIR) && path.ends_with(".edoal.ttl");
-            // The per-profile SPARQL projections only; the `standpoint-*.rq`
-            // queries and `observation-claim-view.rq` are covered by their own
-            // dedicated parity tests below.
-            let is_sparql = path.starts_with(QUERIES_DIR)
-                && name.ends_with(".rq")
+            // The inverse ingest leg (`.put.rq`) — counted separately below so it never
+            // sweeps into the forward `.rq` count.
+            let is_put = path.starts_with(QUERIES_DIR)
+                && name.ends_with(".put.rq")
                 && !name.starts_with("standpoint-")
                 && name != CLAIM_VIEW_FILE;
-            if !is_edoal && !is_sparql {
+            // The per-profile forward SPARQL projections only; the `standpoint-*.rq`
+            // queries, `observation-claim-view.rq`, and the inverse `.put.rq` are covered
+            // by their own dedicated parity blocks.
+            let is_sparql = path.starts_with(QUERIES_DIR)
+                && name.ends_with(".rq")
+                && !name.ends_with(".put.rq")
+                && !name.starts_with("standpoint-")
+                && name != CLAIM_VIEW_FILE;
+            if !is_edoal && !is_sparql && !is_put {
                 continue;
             }
             let committed = std::fs::read(root.join(path))
@@ -812,6 +895,8 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
                 failures.push(format!("{path}: {detail}"));
             } else if is_edoal {
                 edoal += 1;
+            } else if is_put {
+                put += 1;
             } else {
                 sparql += 1;
             }
@@ -828,6 +913,13 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
         assert_eq!(
             sparql, 46,
             "expected 46 SPARQL files byte-matching, got {sparql}"
+        );
+        // The committed `.put.rq` set count == the emitter-derived oracle, and each
+        // byte-matches (they all passed the `failures` gate above). Passes at 1 today
+        // (ml-schema authored); tracks the emitter automatically.
+        assert_eq!(
+            put, expected_put,
+            "expected {expected_put} `.put.rq` files byte-matching (emitter-derived), got {put}"
         );
     }
 
