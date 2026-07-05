@@ -2578,7 +2578,7 @@ logic:builtinArithmetic
         logic:Builtin ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "arithmetic builtin"@x-gmeow-english ;
-    skos:definition "The native basic-math builtin: derives a value by the arithmetic operations (add, subtract, multiply, divide, compare) over numeric arguments. A derivational builtin (Principle 12, in-logic): the lightweight math a foundation needs, NOT heavy numerical domain computation (n-dimensional vector operations, SLAM, trajectory updates), which stays external by reference. Gated to logic:ProceduralPrologProfile; execution is seamed to the engine."@x-gmeow-english ;
+    skos:definition "The native basic-math builtin: derives a value by the arithmetic operations (add, subtract, multiply, divide, compare) over numeric arguments. A derivational builtin (Principle 12, in-logic): the lightweight math a foundation needs, NOT heavy numerical domain computation (n-dimensional vector operations, SLAM, trajectory updates), which stays external by reference. Gated to logic:ProceduralPrologProfile; the closed operator set is evaluated by the native physical reasoning core as binding-pattern-keyed filters and generators, with residual modes (an unbound operand, division by zero, integer overflow) declared as gaps and routed to the fallback oracle — never a wrong answer."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 logic:builtinDateDifference
