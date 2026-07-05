@@ -528,3 +528,208 @@ lang:ActObservationDisjointShape
         sh:class <https://blackcatinformatics.ca/gmeow/Observation> ;
     ] ;
     sh:message "A lang:InterpretationAct is typed as a gmeow:Observation; the act is not the claim." .
+
+# =========================================================================== #
+# Crossing-stratum gates (rendering, translation, paraphrase, transliteration).
+# Each names its typed lang: failure class. The preservation and morphism class
+# of every crossing lives on the carried logic:Correspondence, so these shapes
+# enforce that the carrier is named and specified, never that lang: shadows the
+# logic:preservationKind judgment. The primary lang:RenderingAsIdentity and the
+# fabrication gates are native Rust gates; the shapes here are structural
+# well-formedness surfaces.
+# =========================================================================== #
+
+lang:RenderingRecordShape
+    a sh:NodeShape ;
+    rdfs:label "Rendering record shape"@x-gmeow-english ;
+    skos:definition "A lang:Rendering is a fully specified reified crossing: it names the content it renders (lang:renderedContent), the convention governing it (lang:renderingConvention), the preservation judgment carried on its logic:Correspondence (lang:renderingPreservation), and exactly one lang:renderingKind that is a lang:RenderingKind individual. A rendering that names neither what it renders, nor its convention, nor its kind realizes nothing inspectable."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    lang:enforcesFailureClass lang:UnderspecifiedRendering ;
+    sh:targetClass lang:Rendering ;
+    sh:property [
+        sh:path lang:renderedContent ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A lang:Rendering must name the lang:renderedContent it renders." ;
+    ] ;
+    sh:property [
+        sh:path lang:renderingConvention ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A lang:Rendering must name the lang:renderingConvention governing it." ;
+    ] ;
+    sh:property [
+        sh:path lang:renderingPreservation ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A lang:Rendering must name its lang:renderingPreservation." ;
+    ] ;
+    sh:property [
+        sh:path lang:renderingKind ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:class lang:RenderingKind ;
+        sh:severity sh:Violation ;
+        sh:message "A lang:Rendering must name exactly one lang:renderingKind individual." ;
+    ] .
+
+lang:RenderingNotIdentityShape
+    a sh:NodeShape ;
+    rdfs:label "Rendering non-identity shape"@x-gmeow-english ;
+    skos:definition "A lang:Rendering never renders itself: a rendering realizes content as a distinct form, so a rendering that is its own lang:renderedContent is a crossing that never happened. A SECONDARY finding surface — the primary lang:RenderingAsIdentity enforcement (content and produced form being one node) is a native gate — so the SHACL harness still fires the self-reference case."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    lang:enforcesFailureClass lang:RenderingAsIdentity ;
+    sh:targetClass lang:Rendering ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "A lang:Rendering is its own lang:renderedContent; a self-identical rendering is a crossing that never happened." ;
+        sh:select """
+            SELECT DISTINCT $this WHERE {
+                $this <https://blackcatinformatics.ca/lang/renderedContent> $this .
+            }
+        """ ;
+    ] .
+
+lang:TranslationUnitShape
+    a sh:NodeShape ;
+    rdfs:label "Translation unit shape"@x-gmeow-english ;
+    skos:definition "A lang:TranslationUnit declares both forms of its crossing — its lang:translationSource and lang:translationTarget — and names the single logic:Correspondence carrying its law-spine through lang:translationCorrespondence. Requiring the carried correspondence is how the unit's preservation judgment is enforced structurally: the logic:preservationKind lives on that Correspondence, so a unit that names none carries no inspectable, judged crossing."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    lang:enforcesFailureClass lang:UnderspecifiedTranslationUnit ;
+    sh:targetClass lang:TranslationUnit ;
+    sh:property [
+        sh:path lang:translationSource ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A lang:TranslationUnit must name its lang:translationSource." ;
+    ] ;
+    sh:property [
+        sh:path lang:translationTarget ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A lang:TranslationUnit must name its lang:translationTarget." ;
+    ] ;
+    sh:property [
+        sh:path lang:translationCorrespondence ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:class logic:Correspondence ;
+        sh:severity sh:Violation ;
+        sh:message "A lang:TranslationUnit must carry exactly one logic:Correspondence through lang:translationCorrespondence." ;
+    ] .
+
+lang:UnmarkedSurfaceTranslationShape
+    a sh:NodeShape ;
+    rdfs:label "Unmarked surface translation shape"@x-gmeow-english ;
+    skos:definition "A lang:TranslationUnit whose lang:translationSource or lang:translationTarget is a lang:SurfaceForm that realizes no analyzed form (no lang:realizes) is honest only if that surface is typed lang:UnanalyzedProse AND its carried logic:Correspondence carries the weakest preservation judgment (logic:Unsupported or logic:ValidationOnly). The gate fires when EITHER conjunct is absent: a surface-only side that is not typed lang:UnanalyzedProse, OR one whose logic:Correspondence claims a stronger-than-weakest preservation over that surface. Either way a strong crossing is claimed over an unmarked or unanalyzed surface — the fabrication risk this gate flags."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    lang:enforcesFailureClass lang:UnmarkedSurfaceTranslation ;
+    sh:targetClass lang:TranslationUnit ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "A surface-only translation side realizes no analyzed form yet is not typed lang:UnanalyzedProse, or carries a stronger-than-weakest preservation judgment on its logic:Correspondence." ;
+        sh:select """
+            SELECT DISTINCT $this WHERE {
+                {
+                    # source surface realizes nothing yet is not typed unanalyzed prose
+                    $this <https://blackcatinformatics.ca/lang/translationSource> ?s .
+                    ?s a <https://blackcatinformatics.ca/lang/SurfaceForm> .
+                    FILTER NOT EXISTS { ?s <https://blackcatinformatics.ca/lang/realizes> ?rf . }
+                    FILTER NOT EXISTS { ?s a <https://blackcatinformatics.ca/lang/UnanalyzedProse> . }
+                } UNION {
+                    # source surface realizes nothing yet claims a stronger-than-weakest crossing
+                    $this <https://blackcatinformatics.ca/lang/translationSource> ?s .
+                    ?s a <https://blackcatinformatics.ca/lang/SurfaceForm> .
+                    $this <https://blackcatinformatics.ca/lang/translationCorrespondence> ?c .
+                    FILTER NOT EXISTS { ?s <https://blackcatinformatics.ca/lang/realizes> ?rf . }
+                    FILTER NOT EXISTS { ?c <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/Unsupported> . }
+                    FILTER NOT EXISTS { ?c <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/ValidationOnly> . }
+                } UNION {
+                    # target surface realizes nothing yet is not typed unanalyzed prose
+                    $this <https://blackcatinformatics.ca/lang/translationTarget> ?t .
+                    ?t a <https://blackcatinformatics.ca/lang/SurfaceForm> .
+                    FILTER NOT EXISTS { ?t <https://blackcatinformatics.ca/lang/realizes> ?rf . }
+                    FILTER NOT EXISTS { ?t a <https://blackcatinformatics.ca/lang/UnanalyzedProse> . }
+                } UNION {
+                    # target surface realizes nothing yet claims a stronger-than-weakest crossing
+                    $this <https://blackcatinformatics.ca/lang/translationTarget> ?t .
+                    ?t a <https://blackcatinformatics.ca/lang/SurfaceForm> .
+                    $this <https://blackcatinformatics.ca/lang/translationCorrespondence> ?c .
+                    FILTER NOT EXISTS { ?t <https://blackcatinformatics.ca/lang/realizes> ?rf . }
+                    FILTER NOT EXISTS { ?c <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/Unsupported> . }
+                    FILTER NOT EXISTS { ?c <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/ValidationOnly> . }
+                }
+            }
+        """ ;
+    ] .
+
+lang:TranslationAttributionShape
+    a sh:NodeShape ;
+    rdfs:label "Translation attribution shape"@x-gmeow-english ;
+    skos:definition "A lang:TranslationUnit names the lang:translationMethod that produced its crossing — a lang:TranslationMethod individual (human, machine, or compositional) — because whether a crossing was made by a human, a machine, or a compositional rule run is provenance the crossing must carry. Where the method is lang:methodMachine, the crossing further names the activity that generated it through gmeow:wasGeneratedBy: a machine translation with no generating activity hides what made it."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    lang:enforcesFailureClass lang:UnattributedTranslation ;
+    sh:targetClass lang:TranslationUnit ;
+    sh:property [
+        sh:path lang:translationMethod ;
+        sh:minCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:class lang:TranslationMethod ;
+        sh:severity sh:Violation ;
+        sh:message "A lang:TranslationUnit must name its lang:translationMethod." ;
+    ] ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "A machine translation (lang:methodMachine) names no gmeow:wasGeneratedBy activity that produced it." ;
+        sh:select """
+            SELECT DISTINCT $this WHERE {
+                $this <https://blackcatinformatics.ca/lang/translationMethod> <https://blackcatinformatics.ca/lang/methodMachine> .
+                FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/wasGeneratedBy> ?a . }
+            }
+        """ ;
+    ] .
+
+lang:ParaphraseKindShape
+    a sh:NodeShape ;
+    rdfs:label "Paraphrase kind shape"@x-gmeow-english ;
+    skos:definition "A lang:Paraphrase names exactly one lang:paraphraseSamenessKind — a lang:ParaphraseSamenessKind individual (same denotation, same sense, or same force and content). A paraphrase that declares no sameness kind claims an equivalence without saying which corner of the Frege triangle it holds fixed, smuggling in an equivalence without content."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    lang:enforcesFailureClass lang:UndeclaredParaphraseKind ;
+    sh:targetClass lang:Paraphrase ;
+    sh:property [
+        sh:path lang:paraphraseSamenessKind ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:class lang:ParaphraseSamenessKind ;
+        sh:severity sh:Violation ;
+        sh:message "A lang:Paraphrase must name exactly one lang:paraphraseSamenessKind individual." ;
+    ] .
+
+lang:TransliterationAnchorShape
+    a sh:NodeShape ;
+    rdfs:label "Transliteration anchor shape"@x-gmeow-english ;
+    skos:definition "A lang:TransliterationMap declares the orthographies it maps between — its lang:transliterationSourceOrthography and lang:transliterationTargetOrthography — and the naming scheme it grafts through lang:transliterationScheme. A transliteration between undeclared orthographies, or with no named scheme, maps nothing reconstructible."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    lang:enforcesFailureClass lang:UnanchoredTransliteration ;
+    sh:targetClass lang:TransliterationMap ;
+    sh:property [
+        sh:path lang:transliterationSourceOrthography ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A lang:TransliterationMap must declare its lang:transliterationSourceOrthography." ;
+    ] ;
+    sh:property [
+        sh:path lang:transliterationTargetOrthography ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A lang:TransliterationMap must declare its lang:transliterationTargetOrthography." ;
+    ] ;
+    sh:property [
+        sh:path lang:transliterationScheme ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A lang:TransliterationMap must declare its lang:transliterationScheme." ;
+    ] .

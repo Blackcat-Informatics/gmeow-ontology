@@ -1,0 +1,35 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Serialization rendering: an English composed form rendered as a concrete Turtle
+# lang:SurfaceForm under the Turtle grammar. Serialization is a lossless crossing — the
+# structural content survives the emit byte-for-byte on round-trip — so the rendering
+# carries logic:ExactPreservation. The rendered content and the produced form are distinct
+# nodes (content is a composed form, the produced form is the Turtle surface), so the
+# self-identity gate does not fire.
+# Conforms to lang:RenderingRecordShape (renderedContent, renderingConvention,
+# renderingPreservation, exactly one lang:RenderingKind) and lang:RenderingNotIdentityShape.
+
+@prefix lang:  <https://blackcatinformatics.ca/lang/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <http://example.org/lang/> .
+
+ex:english a lang:SignSystem .
+ex:turtle a lang:SignSystem .
+ex:latin a lang:Script .
+ex:turtleGrammar a lang:Grammar .
+
+# The abstract content: a sentence-level composed form.
+ex:sentence a lang:ComposedForm ; lang:inSignSystem ex:english .
+
+# The produced form: the concrete Turtle serialization surface.
+ex:turtleSurface a lang:UnanalyzedProse ; lang:inSignSystem ex:turtle ;
+    lang:surfaceText "ex:cat a ex:Animal ." ; lang:inScript ex:latin ;
+    lang:unicodeNormalization "NFC" ; lang:collationLocale "en" ;
+    lang:analysisLevel lang:rawLevel .
+
+ex:renderTurtle a lang:Rendering ;
+    lang:renderedContent ex:sentence ;
+    lang:renderingForm ex:turtleSurface ;
+    lang:renderingKind lang:renderingSerialization ;
+    lang:renderingConvention ex:turtleGrammar ;
+    lang:renderingPreservation logic:ExactPreservation .

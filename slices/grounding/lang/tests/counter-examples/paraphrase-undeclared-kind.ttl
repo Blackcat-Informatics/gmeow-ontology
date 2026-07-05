@@ -1,0 +1,18 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Counter-example (ONE violation): a lang:Paraphrase that names no lang:paraphraseSamenessKind
+# (sh:minCount 1 on lang:ParaphraseKindShape) → lang:UndeclaredParaphraseKind. A paraphrase
+# with no declared sameness kind claims an equivalence without saying which corner of the
+# Frege triangle — denotation, sense, or force-and-content — it holds fixed, smuggling in an
+# equivalence without content. The paraphrased form is a fully-situated English composed
+# form, so ONLY the MinCount finding fires.
+
+@prefix lang:  <https://blackcatinformatics.ca/lang/> .
+@prefix ex:    <http://example.org/lang/> .
+
+ex:english a lang:SignSystem .
+
+ex:origClause a lang:ComposedForm ; lang:inSignSystem ex:english .
+
+ex:paraNoKind a lang:Paraphrase ;
+    lang:paraphraseOf ex:origClause .
