@@ -627,6 +627,12 @@ pub fn structural_lint_dataset(ds: &RdfDataset, cfg: &LintConfig) -> LintReport 
     // one-way lang:->logic: bridge acyclicity.
     check_lang_meaning_invariants(ds, cfg, &mut report);
 
+    // lang: ingestion-stratum native gates (charter primary gates): the external-
+    // engine handoff — engine output enters as vantage-held readings (never
+    // unattributed structure), and promotion from an engine reading to a slice
+    // assertion is an explicit provenance-carrying act.
+    check_lang_ingestion_invariants(ds, cfg, &mut report);
+
     // lang: translation-stratum native gates (charter primary gates): the crossing
     // layer keeps content identity structural (never keyed on surface material) and
     // a rendering names its content without ever standing in for that content's
@@ -767,6 +773,83 @@ fn check_one_way_bridge(ds: &RdfDataset, report: &mut LintReport) {
                 "lang: one-way bridge violated: logic: subject {s} carries lang: predicate {p} \
                  (Principle 19: the lang:->logic: bridge never reverses)"
             ));
+        }
+    }
+}
+
+/// The `lang:` ingestion-stratum invariants the charter designates as native
+/// Rust-validator gates for the external-NLP-engine handoff (realized here rather
+/// than in SHACL, since the engine seam is a Rust seam). Runs over the merged
+/// dataset, so the invariants hold bundle-wide, not merely per fixture.
+fn check_lang_ingestion_invariants(ds: &RdfDataset, cfg: &LintConfig, report: &mut LintReport) {
+    check_unattributed_engine_claim(ds, cfg, report);
+    check_silent_promotion(ds, cfg, report);
+}
+
+/// `lang:UnattributedEngineClaim` — an external engine is an oracle that produces
+/// claims, never an authority that produces facts, so every reading a `lang:
+/// InterpretationAct` marked as an engine run (through `lang:interpretationEngine`)
+/// produces MUST be a vantage-held reading (carrying `gmeow:vantage`). An engine
+/// reading with no vantage has entered engine output as unattributed structure.
+///
+/// Keying on `lang:interpretationEngine` scopes the gate to engine runs, so a manual
+/// or compositional interpretation act — whose co-resident readings are held through
+/// a separate `gmeow:Observation` and may lawfully leave the non-preferred alternative
+/// unclaimed — is never flagged.
+fn check_unattributed_engine_claim(ds: &RdfDataset, cfg: &LintConfig, report: &mut LintReport) {
+    let engine = lang_iri("interpretationEngine");
+    let produced = lang_iri("producedReading");
+    let vantage = format!("{}vantage", cfg.namespace);
+    for act in ds_subjects_of_type(ds, &lang_iri("InterpretationAct")) {
+        if !ds_has_predicate(ds, &act, &engine) {
+            continue;
+        }
+        for reading in ds_object_iris_sorted(ds, &act, &produced) {
+            if !ds_has_predicate(ds, &reading, &vantage) {
+                report.errors.push(format!(
+                    "lang:UnattributedEngineClaim: engine interpretation act {act} produced \
+                     reading {reading} with no gmeow:vantage; engine output enters as \
+                     vantage-held readings, never unattributed structure"
+                ));
+            }
+        }
+    }
+}
+
+/// `lang:SilentPromotion` — promotion from an engine-claimed reading to a slice-
+/// asserted analysis is an explicit provenance-carrying editorial act. A subject that
+/// adopts a reading as canonical (through `lang:promotedReading`) MUST itself be a
+/// `gmeow:Activity` carrying a `gmeow:vantage` (the editor who stands behind it);
+/// a promotion from a subject that is not such an act has silently promoted the
+/// reading, erasing the boundary between what an engine claimed and what the slice
+/// asserts.
+fn check_silent_promotion(ds: &RdfDataset, cfg: &LintConfig, report: &mut LintReport) {
+    let promoted = lang_iri("promotedReading");
+    let activity = format!("{}Activity", cfg.namespace);
+    let vantage = format!("{}vantage", cfg.namespace);
+    let Some(p_id) = ds_iri_id(ds, &promoted) else {
+        return;
+    };
+    let mut subjects: Vec<String> = Vec::new();
+    for q in ds.quads_for_pattern(None, Some(p_id), None, GraphMatch::Any) {
+        if let TermRef::Iri(s) = ds.resolve(q.s) {
+            subjects.push(s.to_owned());
+        }
+    }
+    subjects.sort();
+    subjects.dedup();
+    for subj in subjects {
+        let is_act = ds_has_type(ds, &subj, &activity);
+        let is_vantage_held = ds_has_predicate(ds, &subj, &vantage);
+        if !is_act || !is_vantage_held {
+            for reading in ds_object_iris_sorted(ds, &subj, &promoted) {
+                report.errors.push(format!(
+                    "lang:SilentPromotion: subject {subj} promotes reading {reading} to a slice \
+                     assertion but is not a provenance-carrying editorial act (a gmeow:Activity \
+                     carrying a gmeow:vantage); promotion from an engine reading is an explicit \
+                     provenance-carrying act"
+                ));
+            }
         }
     }
 }
@@ -1886,6 +1969,195 @@ mod tests {
                 .any(|e| e.contains("one-way bridge violated")),
             "errors: {:?}",
             report.errors
+        );
+    }
+
+    // --- lang: ingestion-stratum native gates -------------------------------- #
+
+    #[test]
+    fn unattributed_engine_claim_flags_engine_reading_without_vantage() {
+        // An engine run (lang:interpretationEngine present) whose produced reading
+        // carries no gmeow:vantage — engine output entered as unattributed structure.
+        let ds = dataset_from(&format!(
+            "{LANG_PREFIXES}\
+             ex:act a lang:InterpretationAct ;\n\
+               lang:interpretationEngine ex:udParser ;\n\
+               lang:producedReading ex:r1 .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:UnattributedEngineClaim")),
+            "errors: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn unattributed_engine_claim_clean_when_reading_is_vantage_held() {
+        // The lawful engine handoff: each produced reading carries the engine's vantage.
+        let ds = dataset_from(&format!(
+            "{LANG_PREFIXES}\
+             ex:act a lang:InterpretationAct ;\n\
+               lang:interpretationEngine ex:udParser ;\n\
+               lang:producedReading ex:r1 .\n\
+             ex:r1 a lang:Reading ; gmeow:vantage ex:udVantage .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            !report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:UnattributedEngineClaim")),
+            "errors: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn unattributed_engine_claim_ignores_non_engine_act() {
+        // A manual/compositional act (no lang:interpretationEngine) may lawfully leave
+        // a co-resident reading unclaimed — the gate must NOT fire on it.
+        let ds = dataset_from(&format!(
+            "{LANG_PREFIXES}\
+             ex:act a lang:InterpretationAct ;\n\
+               lang:producedReading ex:r1 , ex:r2 .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            !report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:UnattributedEngineClaim")),
+            "errors: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn silent_promotion_flags_promotion_without_editorial_act() {
+        // A bare subject promotes a reading with no provenance-carrying act.
+        let ds = dataset_from(&format!(
+            "{LANG_PREFIXES}\
+             ex:slice lang:promotedReading ex:r1 .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:SilentPromotion")),
+            "errors: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn silent_promotion_clean_when_promotion_is_a_vantage_held_activity() {
+        // The lawful promotion: an explicit editorial gmeow:Activity carrying a vantage.
+        let ds = dataset_from(&format!(
+            "{LANG_PREFIXES}\
+             ex:promote a gmeow:Activity ;\n\
+               gmeow:vantage ex:editor ;\n\
+               lang:promotedReading ex:r1 .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            !report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:SilentPromotion")),
+            "errors: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn silent_promotion_flags_activity_missing_vantage() {
+        // An activity that promotes but carries no vantage is still a silent promotion.
+        let ds = dataset_from(&format!(
+            "{LANG_PREFIXES}\
+             ex:promote a gmeow:Activity ;\n\
+               lang:promotedReading ex:r1 .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:SilentPromotion")),
+            "errors: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn ingestion_counter_example_fixtures_fire_exactly_their_class() {
+        // The slice-resident counter-examples for the two native ingestion gates each
+        // fire exactly their named failure class (and nothing from the other gate),
+        // so the (fixture, class) pair is load-bearing rather than decorative.
+        let unattributed = include_str!(
+            "../../../slices/grounding/lang/tests/counter-examples/ingestion-unattributed-engine-claim.ttl"
+        );
+        let report = structural_lint_dataset(&dataset_from(unattributed), &cfg());
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:UnattributedEngineClaim")),
+            "errors: {:?}",
+            report.errors
+        );
+        assert!(
+            !report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:SilentPromotion")),
+            "the unattributed-engine fixture must not also fire SilentPromotion: {:?}",
+            report.errors
+        );
+
+        let promotion = include_str!(
+            "../../../slices/grounding/lang/tests/counter-examples/ingestion-silent-promotion.ttl"
+        );
+        let report = structural_lint_dataset(&dataset_from(promotion), &cfg());
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:SilentPromotion")),
+            "errors: {:?}",
+            report.errors
+        );
+        assert!(
+            !report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:UnattributedEngineClaim")),
+            "the silent-promotion fixture keeps its reading vantage-held: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn ambiguity_positive_fixture_is_clean_under_the_native_gates() {
+        // Gate 5 (positive): the co-resident-readings fixture — an engine act producing
+        // TWO vantage-held readings with NO resolved winner — trips none of the lang:
+        // native gates.
+        let fixture = include_str!(
+            "../../../slices/grounding/lang/tests/conformance-fixtures/ambiguity-saw-her-duck.ttl"
+        );
+        let report = structural_lint_dataset(&dataset_from(fixture), &cfg());
+        let lang_errors: Vec<&String> = report
+            .errors
+            .iter()
+            .filter(|e| e.contains("lang:") || e.contains("one-way bridge"))
+            .collect();
+        assert!(
+            lang_errors.is_empty(),
+            "the ambiguity fixture must be clean under the native lang: gates: {lang_errors:?}"
         );
     }
 

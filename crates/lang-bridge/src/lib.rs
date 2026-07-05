@@ -26,6 +26,7 @@
 pub mod bridge;
 pub mod conllu;
 pub mod emit;
+pub mod engine;
 pub mod grammar;
 pub mod lower;
 pub mod plain_text;
@@ -39,6 +40,9 @@ pub use conllu::{
     TokenId, UD_SIGN_SYSTEM,
 };
 pub use emit::{assert_no_digest_collision, digest16, ntriples_sorted};
+pub use engine::{
+    interpretation_act_to_ntriples, EngineError, EngineRegistry, FixtureEngine, NlpEngine, Reading,
+};
 pub use grammar::{
     canonicalize_expr, grammar_correspondence, grammar_leg_pair, grammar_to_ntriples,
     parse_grammar, serialize_grammar, AbnfBridge, EbnfBridge, Formalism, Grammar, GrammarRule,
