@@ -86,10 +86,10 @@ CHECK_TARGETS := lint rust-gate validate check-generated constitution-check \
 	lsp-build lsp-release lsp-sarif diagnostics-rust-sarif \
 	slicetest conformance conformance-report insta-review \
 	fuzz-smoke bench bench-compare rust-coverage mutants compliance-report perf-gate \
-	maint-reason-hermit maint-explain maint-verify-docker maint-crosscheck \
+	maint-crosscheck \
 	maint-extract maint-refresh-target-axioms maint-wikidata-live \
 	maint-wikidata-coverage maint-wikidata-audit maint-test-heavy \
-	maint-test-network maint-pull-images maint-quality maint-evals-score \
+	maint-test-network maint-quality maint-evals-score \
 	maint-compliance-report-full maint-bench-baseline maint-rust-heavy \
 	maint-external-corpora maint-tptp-corpus
 
@@ -133,11 +133,11 @@ verify: native-py ## Run native reasoned-graph negative tests.
 reason-verify: native-py ## Run native reasoning + reasoned-graph verify with one closure.
 	$(GMEOW_DEV) reason-verify
 
-test: native-py ## Run the pytest suite, excluding maintainer and oracle lanes.
-	uv run pytest -n auto --dist loadscope --durations=25 -m "not maintainer and not classic_cross_check"
+test: native-py ## Run the pytest suite, excluding maintainer lanes.
+	uv run pytest -n auto --dist loadscope --durations=25 -m "not maintainer"
 
-test-fast: native-py ## Run the fast pytest suite, excluding maintainer, Docker, and oracle lanes.
-	uv run pytest -n auto --dist loadscope --durations=25 -m "not maintainer and not docker and not classic_cross_check"
+test-fast: native-py ## Run the fast pytest suite, excluding maintainer lanes.
+	uv run pytest -n auto --dist loadscope --durations=25 -m "not maintainer"
 
 rust-build: $(RUST_READY_STAMP) ## Compile Rust workspace test binaries without running them.
 
@@ -249,7 +249,6 @@ full-release: native-py ## Signed release-as-evidence: gate + oracle lane + conf
 		--evidence "dist/compliance-report.ttl:text/turtle:attestationTypeQualityReport:compliance:Compliance report" \
 		--evidence "generated/conformance/verdicts.json:application/json:attestationTypeConformanceVerdict:conformance:Logic conformance suite verdicts" \
 		--evidence "generated/logic/dl-el-crosscheck-report.ttl:text/turtle:attestationTypeCrossCheckAgreement:nativeoracle:Native gap-zero DL-EL agreement ledger" \
-		--evidence "dist/gmeow-classic-cross-check.sarif:application/sarif+json:attestationTypeCrossCheckAgreement:crosscheck:Classic cross-check agreement matrix" \
 		--evidence "bench/baseline.json:application/json:attestationTypeQualityReport:perf:Perf baseline"
 	$(MAKE) verify-release
 	$(MAKE) crossref
@@ -473,16 +472,6 @@ compliance-report: ## Emit dist/compliance-report.ttl from already-passing gates
 
 ##@ Maintainer Tasks
 
-maint-reason-hermit: maint-pull-images native-py ## Run HermiT complete consistency check.
-	$(GMEOW_DEV) reason --mode docker --reasoner hermit
-
-maint-explain: maint-pull-images native-py ## Explain unsatisfiable classes with HermiT.
-	$(GMEOW_DEV) explain
-
-maint-verify-docker: maint-pull-images native-py ## Run ROBOT/ELK reasoned-graph verification.
-	$(GMEOW_DEV) reason --mode docker --reasoner ELK --exclude-tautologies structural
-	$(GMEOW_DEV) verify --mode docker --reasoner ELK --reasoned-input dist/gmeow-reasoned-elk.ttl
-
 maint-crosscheck: native-py ## Cross-check rdflib and native purrdf query answers.
 	$(GMEOW_DEV) crosscheck-queries
 
@@ -502,13 +491,10 @@ maint-wikidata-audit: ## Audit fixtures and modules for Wikidata misuse.
 	$(GMEOW_DEV) wikidata --fixtures
 
 maint-test-heavy: native-py ## Run kept-Python-module maintainer tests.
-	uv run pytest -n auto --dist loadscope -m "maintainer and not classic_cross_check"
+	uv run pytest -n auto --dist loadscope -m "maintainer"
 
 maint-test-network: ## Run live network tests.
 	GMEOW_RUN_NETWORK=1 uv run pytest -m network
-
-maint-pull-images: ## Pull or build pinned Docker oracle images.
-	bash scripts/pull-images.sh
 
 maint-quality: ## Run OOPS! network pitfall scan.
 	$(GMEOW_DEV) quality

@@ -108,9 +108,9 @@ meta:gate-crosscheck a meta:Gate ;
     meta:cliCommand "crosscheck-queries" .
 
 meta:gate-reasoning a meta:Gate ;
-    rdfs:label "OWL 2 DL profile + ELK/HermiT consistency over the full profile"@x-gmeow-english ;
-    meta:artifact "src/gmeow_tools/reason.py" ;
-    meta:makeTarget "reason", "maint-reason-hermit", "verify" .
+    rdfs:label "OWL 2 DL profile + native OWL-Direct consistency (Docker-free) cross-checked against the purrdf-entail oracle"@x-gmeow-english ;
+    meta:artifact "crates/logic/src/reason/dl.rs" ;
+    meta:makeTarget "reason", "reason-verify", "verify" .
 
 meta:gate-fair-metadata a meta:Gate ;
     rdfs:label "VoID/DCAT publication metadata generator"@x-gmeow-english ;
@@ -145,7 +145,7 @@ meta:tests-suppression a meta:TestSuite ;
 meta:tests-reference-frames a meta:TestSuite ;
     rdfs:label "reference-frame relativity tests"@x-gmeow-english ;
     meta:artifact "crates/validate/tests/conformance_reference_frames.rs",
-        "tests/test_calendar.py",
+        "crates/validate/tests/conformance_calendar.rs",
         "slices/core/temporal/tests/structural.ttl" .
 
 meta:lint-reasoning-invariants a meta:Lint ;

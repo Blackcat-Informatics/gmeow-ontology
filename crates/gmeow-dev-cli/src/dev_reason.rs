@@ -301,6 +301,72 @@ pub fn reason_verify(fresh: bool, timings_json: Option<&Path>) -> i32 {
     0
 }
 
+/// `gmeow-dev reason-crosscheck` — the native EL/DL ↔ entail-oracle divergence
+/// cross-check (the Docker-free replacement for the classic ELK/HermiT lane).
+///
+/// Loads the committed bundle EDB (the same snapshot import `reason-verify` uses),
+/// drives gmeow's own native reasoner against the independent `purrdf::entail`
+/// OWL-RL/OWL-Direct oracle, prints the structured divergence ledger, and returns
+/// exit `0` iff the strict `enforce()` verdict passes (no NativeOnly / OracleOnly /
+/// DlGap row). Any divergence is printed with its classification so a red is a
+/// diagnosable disagreement, never an opaque failure.
+pub fn reason_crosscheck() -> i32 {
+    use gmeow_logic::entail_crosscheck::run_entail_crosscheck;
+    use gmeow_logic::reason::ledger::DivergenceKind;
+
+    let root = project_root();
+    let dataset = match snapshot_dataset(&root) {
+        Ok(d) => d,
+        Err(code) => return code,
+    };
+    let outcome = match run_entail_crosscheck(dataset.as_ref()) {
+        Ok(o) => o,
+        Err(e) => return fail(format!("reason-crosscheck failed: {e}")),
+    };
+
+    let ledger = &outcome.ledger;
+    println!(
+        "native EL/DL ↔ entail-oracle cross-check (Docker-free): {worlds} source world(s); \
+         {native} native vs {oracle} oracle subsumption(s)",
+        worlds = outcome.source_worlds,
+        native = outcome.native_subsumptions,
+        oracle = outcome.oracle_subsumptions,
+    );
+    println!(
+        "  ledger: {agree} agree, {native_only} native-only, {oracle_only} oracle-only, \
+         {dl_gap} dl-gap",
+        agree = ledger.agree,
+        native_only = ledger.native_only,
+        oracle_only = ledger.oracle_only,
+        dl_gap = ledger.dl_gap,
+    );
+
+    // Print every NON-Agree row so a divergence is diagnosable, not opaque.
+    for row in &ledger.rows {
+        if row.kind == DivergenceKind::Agree {
+            continue;
+        }
+        let tag = match row.kind {
+            DivergenceKind::NativeOnly => "native-only",
+            DivergenceKind::OracleOnly => "oracle-only",
+            DivergenceKind::DlGap => "dl-gap",
+            DivergenceKind::CorpusOnly => "corpus-only",
+            DivergenceKind::Agree => unreachable!(),
+        };
+        eprintln!("  [{tag}] ({}) {}", row.category, row.detail);
+    }
+
+    if outcome.verdict.passed {
+        println!("reason-crosscheck: native ⊇ oracle — no divergence (native, Docker-free)");
+        0
+    } else {
+        for reason in &outcome.verdict.reasons {
+            eprintln!("reason-crosscheck: {reason}");
+        }
+        fail("reason-crosscheck: native↔oracle divergence")
+    }
+}
+
 /// `gmeow-dev explain` — explain unsatisfiable classes / inconsistency.
 pub fn explain() -> i32 {
     let root = project_root();

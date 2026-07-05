@@ -72,7 +72,8 @@ the no-debug-symbol policy, and `nemo` build-memory caps intact.
 ## Maintainer Tasks
 
 Maintainer-only targets are prefixed with `maint-`. Use `make help` for the
-complete list. Common lanes are `make maint-classic-cross-check`,
-`make maint-reason-hermit`, `make maint-verify-docker`,
-`make maint-wikidata-live`, `make maint-test-heavy`, and
-`make maint-test-network`.
+complete list. Common lanes are `make maint-wikidata-live`,
+`make maint-test-heavy`, and `make maint-test-network`. The native,
+Docker-free reasoning-oracle cross-check (`gmeow-dev reason-crosscheck` over
+`purrdf::entail`) runs on-gate as part of `make reason-verify`, not as a
+`maint-` lane.

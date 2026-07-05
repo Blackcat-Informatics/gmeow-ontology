@@ -25,7 +25,7 @@ found a Rust or slicetest home is a deletion order.
 | Python CLI surface | `gmeow`/`gmeow-dev` are Typer apps; `CliRunner`/subprocess behavior is Python-only | Port the CLI to Rust (`clap`) with integration tests |
 | PyO3 seam | tests the binding's marshalling/error-surfacing, which Rust cannot test from the inside | Delete when the Python surface that owns the seam is removed |
 | Python tool algorithm | the implementation under test is still live Python (up-projection, transform, projections, mappings, language-tags, gts views/producer) | Port the tool to a Rust crate; cover with crate tests |
-| Oracle / Docker orchestration | drives external reasoners (HermiT/ELK/ROBOT) or the rdflib trust-anchor; no Rust twin by design | Retire with the classic-cross-check lane, or reimplement the harness in Rust |
+| Oracle / Docker orchestration | drives external reasoners (HermiT/ELK/ROBOT) or the rdflib trust-anchor; no Rust twin by design | Reimplement the harness in Rust — the reasoning oracle is now the in-process `purrdf::entail` cross-check — or retire with its external lane |
 | Static repo guard | AST / filesystem / workflow assertions about the repo itself | Port the static check into a Rust gate |
 
 **Projection cluster — one migration, not many ports.** The up-projection,
@@ -87,20 +87,22 @@ Removed because a Rust artifact already asserts the same behavior:
 
 Relocated out of the mainline test tree (dossier removed with the test):
 
-- Classic-cross-check oracle lane (8): `test_reasoning_entailments`,
+- Retired reasoning-oracle lane (8): `test_reasoning_entailments`,
   `test_rl_agreement`, `test_classic_cross_check`, `test_reason_verify_chain`,
   `test_reason_native`, `test_logic_foundation_cases`, `test_statements`,
-  `test_runner` → relocated to the standalone `validations/classic-cross-check/`
-  validator-zoo suite. These drove the ELK/HermiT/ROBOT/Jena/owlrl
-  oracle cross-check (the "Oracle / Docker orchestration" retention category) —
-  retired *with* the classic-cross-check lane per that category's migration.
-  The lane now lives outside `make check` / `maint-*` / CI, run on demand via
-  `make -C validations/classic-cross-check`; the native authorities that made
-  the relocation lossless are already in `make check` (native EL/DL reasoning +
-  RL closure in `crates/logic`, the RDF-1.2 statement round-trip in
-  `crates/pipeline`, and the foundation-discipline goldens hand-verified in
-  `crates/logic/src/foundation`). A retention dossier justifies a *kept mainline*
-  pytest, so it does not outlive the test's departure from the mainline tree.
+  `test_runner` → these drove the ELK/HermiT/ROBOT/Jena/owlrl oracle cross-check
+  (the "Oracle / Docker orchestration" retention category). That external Docker/Java
+  lane has since been **removed** and replaced by a native, in-process, Docker-free
+  reasoning oracle over `purrdf::entail` (OWL-RL subsumption + OWL-Direct-tableau
+  consistency, 70/70 W3C-entailment conformance-tested) —
+  `crates/logic/src/entail_oracle.rs` + `crates/logic/src/entail_crosscheck.rs`,
+  exposed as `gmeow-dev reason-crosscheck` and run **on-gate** as part of
+  `make reason-verify`. The native authorities that made the relocation lossless are
+  already in `make check` (native EL/DL reasoning + RL closure in `crates/logic`, the
+  RDF-1.2 statement round-trip in `crates/pipeline`, and the foundation-discipline
+  goldens hand-verified in `crates/logic/src/foundation`). A retention dossier
+  justifies a *kept mainline* pytest, so it does not outlive the test's departure from
+  the mainline tree.
 
 Constitution `meta:artifact` citations of deleted tests were redirected to the
 Rust artifact that now proves the principle.

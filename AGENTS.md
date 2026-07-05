@@ -152,12 +152,13 @@ release workflow explicitly writes the signed copy there before packaging.
 ```bash
 make reason          # Native Docker-free EL/DL reasoning authority
 make verify          # Native reasoned-graph negative tests
-make reason-verify   # Native reasoning + verify from one shared closure
-make maint-reason-hermit # Full complete consistency check with HermiT (Docker oracle)
-make maint-explain   # Explain any unsatisfiable classes (HermiT/Docker oracle)
-make maint-verify-docker # ROBOT/ELK reasoned-graph verification
-make maint-classic-cross-check # Full non-required Docker/Java oracle lane
+make reason-verify   # Native reasoning + verify + on-gate purrdf-entail cross-check oracle, one shared closure
 ```
+
+The reasoning cross-check is native and Docker-free: `gmeow-dev reason-crosscheck`
+runs the in-process `purrdf::entail` engine (OWL-RL subsumption + OWL-Direct-tableau
+consistency, 70/70 W3C-entailment conformance-tested) on-gate as part of
+`make reason-verify` — there is no Java/Docker oracle lane to run separately.
 
 ### Testing & Verification
 
@@ -178,7 +179,6 @@ are intentionally outside the normal local `make check` path unless a workflow
 calls them explicitly.
 
 ```bash
-make maint-classic-cross-check      # Full Docker/Java oracle lane
 make maint-reasoning-cases          # Docker-backed reasoning fixture cases
 make maint-statements-docker-check  # Jena/ROBOT statement artifact oracle checks
 make maint-crosscheck               # rdflib/native query-answer cross-check
@@ -189,7 +189,6 @@ make maint-wikidata-coverage        # Report Wikidata mapping coverage by domain
 make maint-wikidata-audit           # Audit fixtures/modules for Wikidata misuse
 make maint-test-heavy               # Kept Python maintainer tests
 make maint-test-network             # Live network tests
-make maint-pull-images              # Pull/build pinned Docker oracle images
 make maint-quality                  # OOPS! network pitfall scan
 make maint-evals-score              # Score committed model emissions
 make maint-compliance-report-full   # Full compliance-report emission
@@ -225,7 +224,7 @@ The **always-on hard gate is `make rust-test`** (plus `make check`). Benchmarks,
 coverage, and mutation testing are SLOW and **report-only** — they run **off the
 required PR path**, scheduled + `workflow_dispatch` in
 [`.github/workflows/suite-quality.yml`](./.github/workflows/suite-quality.yml),
-exactly like the nightly fuzz job and the HermiT oracle. Keeping slow
+exactly like the nightly fuzz job and the maintainer-only network lanes. Keeping slow
 tools off-gate IS the documented **gate-perf budget**: nothing here can block a
 PR, so the required lane stays fast.
 
@@ -392,7 +391,7 @@ Statement compilation runs inside `gmeow regenerate` (the `statements` generator
 * **Generated outputs**:
   * `generated/statements/gmeow.rdf12.ttl` — RDF 1.2 / RDF* lead artifact, written natively by the `gmeow-rdf` Rust codec (`gmeow_rdf.project_statements_rdf12`); no Java, no Docker, no SPARQL engine. rdflib cannot parse RDF 1.2 triple terms, so the native codec also supplies the OWL normal form for the round-trip check.
   * `generated/statements/gmeow-statements.owl.ttl` — OWL 2 axiom-annotation downcast consumed by OWL 2 DL reasoners.
-* **Important behavior**: the DSL is plain Turtle that structurally mirrors RDF 1.2 reifying statements. The compiler emits the OWL form, projects it to RDF 1.2 natively with `gmeow-rdf`, then normalizes the RDF 1.2 form back to OWL and requires graph isomorphism before writing. Apache Jena re-reads the committed artifact only in the non-required `classic-cross-check` oracle lane.
+* **Important behavior**: the DSL is plain Turtle that structurally mirrors RDF 1.2 reifying statements. The compiler emits the OWL form, projects it to RDF 1.2 natively with `gmeow-rdf`, then normalizes the RDF 1.2 form back to OWL and requires graph isomorphism before writing. Apache Jena re-reads the committed artifact only in the non-required `maint-statements-docker-check` oracle lane.
 * **Drift check**: `make check-generated` performs the registered-generator check and fails if committed statement artifacts are stale.
 
 Do not edit `generated/statements/gmeow.rdf12.ttl` or `generated/statements/gmeow-statements.owl.ttl` directly. If metadata is wrong, fix the `gmeow:StatementMetadata` cells in `dsl/statements/`.
@@ -538,9 +537,8 @@ make check
 ```
 
 All Docker-free local gates must pass: lint, validate, generated-artifact drift
-check, native reasoning, native verify, Rust tests, and Python tests. Run
-`make maint-classic-cross-check` separately when you need the full Docker/Java
-oracle lane.
+check, native reasoning, native verify (including the on-gate in-process
+`purrdf::entail` cross-check oracle), Rust tests, and Python tests.
 
 ### Push
 

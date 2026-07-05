@@ -148,7 +148,7 @@ This is enforced by the annotation-completeness gate (`make validate`) and is no
 generated artifacts (Principles 4 and 7).
 
 *Embodied in:* [`README.md`](./README.md) § Reasoning, § Publishing; `make reason`,
-`make maint-explain`, `make release`, `make crossref`.
+`make reason-verify`, `make release`, `make crossref`.
 
 ## 9. Inclusive without overtyping; anti-colonial in every direction; self-assertion is top authority
 
@@ -408,8 +408,9 @@ The machine-readable enforcement lives in
 ## 18. The reference RDF-1.2 stack — complete, coherent, and Docker-free
 
 > **The authoritative gate runs the native `logic:` solver and nothing heavier: `make check`, CI,
-> the build, and runtime need no Java and no Docker. ELK and HermiT survive only as cross-check
-> oracles, relocated out of the authoritative path into the `classic-cross-check` lane.**
+> the build, and runtime need no Java and no Docker. The external cross-check oracle is now the
+> in-process `purrdf::entail` engine — it confirms the native verdicts on-gate, with no JVM and no
+> container.**
 
 Principle 17 already settled *authority* — the native `logic:` core is the reasoner, OWL is a
 projection. This principle settles the *gate*: the consequence of that authority is that the
@@ -420,15 +421,15 @@ the native↔oracle divergence ledger — and every one of those artifacts is pr
 without spawning a container or a JVM. This extends Principle 13's Docker-free *consumer* gate to
 the *authoring* gate as well: the reasoner is no longer a heavyweight release-only step.
 
-ELK and HermiT are not discarded — they remain the *secondary validators* Principle 17 names, but
-they move off the critical path. The committed divergence ledger
+The *secondary validator* Principle 17 names is now the in-process `purrdf::entail` engine —
+OWL-RL subsumption plus OWL-Direct-tableau consistency, itself 70/70 W3C-entailment
+conformance-tested — not a Java/Docker reasoner. The committed divergence ledger
 (`generated/logic/dl-el-crosscheck-report.ttl`) is built from the native results **only**: it records
 the native consistency verdict, the native-only subsumption entailments, and the native DL coverage
-defect count, which must stay zero for the committed bundle. The oracle comparison runs in the
-`classic-cross-check` lane, which is the home of the Java/Docker oracle pass. The
-authoritative gate thus stays green offline, on any machine, with no privileged daemon — and the
-oracle cross-check becomes an independent, separately-scheduled confirmation rather than a
-prerequisite.
+defect count, which must stay zero for the committed bundle. The oracle comparison runs in-process
+via `gmeow-dev reason-crosscheck` (folded on-gate into `make reason-verify`), with no container and
+no JVM. The authoritative gate thus stays green offline, on any machine, with no privileged daemon —
+and the oracle cross-check rides the same Docker-free path rather than a separately-scheduled Java lane.
 
 This extends Principle 17 (native authority) and Principle 13 (the consumer Docker-free gate) to the
 authoritative gate; the release-as-evidence and reusable-crate-suite clauses are realized below, and a
@@ -436,46 +437,45 @@ later amendment appends the public-receipts clause.
 
 **Extends Principle 17 and Principle 13.**
 
-**Amendment — the two hard-separated lanes, and the lane enforces.** The split foreshadowed
-above is now realized as two lanes that may not bleed into each other. The **primary** lane —
-`make check`, the required CI `quality` gate, the build, and runtime — is rust-first and carries **no
-Java and no Docker**: native EL/DL reasoning (`reason --mode native`), the native OWL 2 RL closure
-(`reason/rl.rs`, replacing the `owlrl` baselines), native RDF-1.2 emission (`gmeow-rdf`), and native
-SHACL/validation. The **`classic-cross-check`** lane — `make maint-classic-cross-check` and a single,
-deliberately **non-required** CI job — is the *sole* Java+Docker surface: it runs the legacy oracles
-(ELK, HermiT, ROBOT, Jena) and `owlrl`, and it **enforces** agreement, strictly and without a knob —
-any `NativeOnly`/`OracleOnly` divergence (native↔ELK/HermiT subsumption + consistency) or native↔`owlrl`
-RL divergence fails the lane; any `DlGap` is a native coverage defect and fails. The lane MUST NOT be a
-requirement of using the repo normally. The committed `dl-el-crosscheck-report.ttl` stays native-built on
-the primary path (built from native results, Docker-free) with `gapCount` required at zero; the lane
-emits its agreement + timing data through the `gmeow-diagnostics` SARIF rail (the gate taxonomy this
-issue owns). Producer inversion of the Jena RDF-1.2 codec is **done**: the
-statement lead artifact (`generated/statements/gmeow.rdf12.ttl`) is written natively by `gmeow-rdf`
-(`gmeow_rdf.project_statements_rdf12`), so the build / `make check` / `check-generated` / `regenerate`
-carry **zero Java and zero Docker** on the statement path; Jena survives only as the lane-side
-`classic-cross-check` oracle that cross-checks the native artifact by RDF-1.2 graph isomorphism. Native
-replication of ROBOT (SLME extraction + verify) is future work — until then those stay maintainer-only, lane-side.
+**Amendment — the cross-check oracle is native, in-process, and on-gate.** The split foreshadowed
+above once ran the oracle comparison in a separate Java+Docker lane; that lane has been retired.
+The authoritative path — `make check`, the required CI `quality` gate, the build, and runtime — is
+rust-first and carries **no Java and no Docker**: native EL/DL reasoning (`reason --mode native`),
+the native OWL 2 RL closure (`reason/rl.rs`, replacing the `owlrl` baselines), native RDF-1.2
+emission (`gmeow-rdf`), and native SHACL/validation. The cross-check oracle now rides that same
+Docker-free path: `gmeow-dev reason-crosscheck` runs the in-process `purrdf::entail` engine —
+OWL-RL subsumption + OWL-Direct-tableau consistency, 70/70 W3C-entailment conformance-tested — as
+an **on-gate** confirmation of the native verdicts, and it **enforces** agreement, strictly and
+without a knob: any subsumption or consistency divergence between the native lane and the entail
+oracle fails the gate; any `DlGap` is a native coverage defect and fails. The committed
+`dl-el-crosscheck-report.ttl` stays native-built (built from native results, Docker-free) with
+`gapCount` required at zero; the cross-check emits its agreement + timing data through the
+`gmeow-diagnostics` SARIF rail (the gate taxonomy this issue owns). Producer inversion of the
+RDF-1.2 codec is **done**: the statement lead artifact (`generated/statements/gmeow.rdf12.ttl`) is
+written natively by `gmeow-rdf` (`gmeow_rdf.project_statements_rdf12`), so the build / `make check`
+/ `check-generated` / `regenerate` carry **zero Java and zero Docker** on the statement path.
 
 *Embodied in:* the native reason lane ([`src/gmeow_tools/reason.py`](./src/gmeow_tools/reason.py)),
 the `reason --mode native` CLI command, the `native-reasoning` registered generator
 ([`src/gmeow_tools/native_reason_gen.py`](./src/gmeow_tools/native_reason_gen.py)), and the enforcing
-`classic-cross-check` lane ([`src/gmeow_tools/oracles/classic_cross_check.py`](./src/gmeow_tools/oracles/classic_cross_check.py),
-[`src/gmeow_tools/oracles/rl_agreement.py`](./src/gmeow_tools/oracles/rl_agreement.py)). *Tested by:* the
+in-process entail cross-check oracle
+([`crates/logic/src/entail_oracle.rs`](./crates/logic/src/entail_oracle.rs),
+[`crates/logic/src/entail_crosscheck.rs`](./crates/logic/src/entail_crosscheck.rs)). *Tested by:* the
 native-reasoning authority gate (`meta:gate-reason-native`), the native gap-zero divergence ledger
 gate (`meta:gate-dl-el-crosscheck`), the native ⊇ oracle anti-regression superset gate
-(`meta:gate-native-oracle-superset`), the enforcing classic-cross-check lane gate
-(`meta:gate-classic-cross-check`), and the executable lane-purity seal
+(`meta:gate-native-oracle-superset`), the on-gate entail cross-check
+(`gmeow-dev reason-crosscheck`, folded into `make reason-verify`), and the executable lane-purity seal
 ([`crates/validate/src/repo_static.rs`](./crates/validate/src/repo_static.rs),
 `meta:tests-lane-purity`) that statically proves the required CI `quality` jobs and
 `make check` carry no Java and no Docker — whose machine-readable enforcement lives in
 [`governance/constitution.ttl`](./governance/constitution.ttl).
 
 **Amendment — release-as-evidence.** A GMEOW release is its own evidence. The `make full-release`
-lane runs, in order, the native authority gate (`make check`), the enforcing Java/Docker
-`classic-cross-check` oracle lane, and the public conformance + perf suites — then **folds every
+lane runs, in order, the native authority gate (`make check`, which now folds in the on-gate
+`purrdf::entail` cross-check), and the public conformance + perf suites — then **folds every
 result into a single signed release bundle as content-addressed, individually-verifiable attestation
 frames**. Each artifact the lane produces — the native↔oracle agreement matrices (the native gap-zero
-DL-EL ledger and the classic ROBOT/HermiT/Jena/ELK cross-check), the public conformance-suite verdicts
+DL-EL ledger and the in-process `purrdf::entail` cross-check), the public conformance-suite verdicts
 (the `gmeow-conformance` corpus rolled up by `make conformance-report`), the SHACL/diagnostics SARIF
 findings, the machine-readable compliance report, and the perf results — rides into the bundle as a
 BLAKE3-content-addressed blob, and is described by a queryable `gmeow:Attestation` envelope (from the
@@ -492,9 +492,9 @@ signed `.gts` + a checksum sidecar + the native `gts heads` digest) and the Cros
 always-latest concept DOI. Signing, publishing, and DOI submission are maintainer-credentialed steps;
 the project tooling never holds signing keys. The fold is **reproducible**: release timestamps are injected
 rather than sampled, blobs and frames are content-hash-sorted, and perf timings are carried as data,
-never as a gate. Two invariants bound this lane. First, the Java/Docker oracle pass stays confined to
-`full-release` (and the maintainer lanes) — it never enters the authoritative `make check`, so
-Principle 18's primary lane stays native and offline. Second, the release fold writes only the
+never as a gate. Two invariants bound this lane. First, the release fold adds no external runtime:
+there is no Java/Docker oracle pass, and the in-process `purrdf::entail` cross-check keeps
+Principle 18's authoritative lane native and offline. Second, the release fold writes only the
 release bundle (`dist/gmeow.gts`, the `--out` path) and **never mutates the committed, drift-gated
 `generated/dist/gmeow.gts`**: the committed snapshot remains the Docker-free narrow waist, and the
 signed evidence bundle is a packaging step layered over it. Perf and timing are folded as data, so
