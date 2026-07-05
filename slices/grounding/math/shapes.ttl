@@ -621,6 +621,22 @@ math:SlotIndexUniquenessShape
         """ ;
     ] .
 
+# An application applies exactly one operator.
+math:ApplicationExpressionShape
+    a sh:NodeShape ;
+    rdfs:label "Application-operator cardinality shape"@x-gmeow-english ;
+    skos:definition "SHACL constraint for math:ApplicationExpression: it applies exactly one math:operator. An application — a tensor computation node or an arithmetic application — names the single operator it invokes; zero operators leave the application undefined and two or more make it ambiguous which operator is applied (math:ApplicationOperatorCardinality). The sibling binder AST (math:BindingExpression: math:Derivative, math:Limit, math:Series, math:Integral) is not a subclass of math:ApplicationExpression, so this shape targets only true applications, never the binders."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    math:enforcesFailureClass math:ApplicationOperatorCardinality ;
+    sh:targetClass math:ApplicationExpression ;
+    sh:property [
+        sh:path math:operator ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:ApplicationExpression must apply exactly one math:operator." ;
+    ] .
+
 # A binding expression names the variable it binds and its body.
 math:BindingExpressionShape
     a sh:NodeShape ;
@@ -1171,7 +1187,7 @@ math:EmbeddingShape
 math:TensorComputationGraphShape
     a sh:NodeShape ;
     rdfs:label "Tensor computation graph node shape"@x-gmeow-english ;
-    skos:definition "SHACL constraint for math:TensorComputationGraph: it declares at least one math:computationNode — a math:ApplicationExpression applying a tensor operator to indexed operands. Because the nodes reuse the expression AST, their one-operator and argument-slot well-formedness is enforced by the inherited application/slot shapes; a graph declaring no node is ill-formed (math:MalformedTensorComputationGraph)."@x-gmeow-english ;
+    skos:definition "SHACL constraint for math:TensorComputationGraph: it declares at least one math:computationNode — a math:ApplicationExpression applying a tensor operator to indexed operands. Because the nodes reuse the expression AST, a node's single-operator well-formedness is enforced by math:ApplicationExpressionShape and its slot well-formedness by math:ArgumentSlotShape and math:SlotIndexUniquenessShape; a graph declaring no node is ill-formed (math:MalformedTensorComputationGraph)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     math:enforcesFailureClass math:MalformedTensorComputationGraph ;
     sh:targetClass math:TensorComputationGraph ;

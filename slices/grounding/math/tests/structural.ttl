@@ -371,8 +371,9 @@ ASK {
     math:UnderspecifiedEmbedding         rdfs:subClassOf math:MathConformanceFailure .
     math:MalformedTensorComputationGraph rdfs:subClassOf math:MathConformanceFailure .
     math:UnframedWeightTensor            rdfs:subClassOf math:MathConformanceFailure .
+    math:ApplicationOperatorCardinality  rdfs:subClassOf math:MathConformanceFailure .
 }""" ;
-    gmeow:saRationale "Each linear-algebra-and-learning hard-rule failure MUST be a subclass of math:MathConformanceFailure, so an unqualified orthogonal complement, an incomplete PCA, a residual meaning stamped as a property, an underspecified embedding, a malformed tensor graph, or an unframed weight tensor is a typed, queryable object." .
+    gmeow:saRationale "Each linear-algebra-and-learning hard-rule failure MUST be a subclass of math:MathConformanceFailure, so an unqualified orthogonal complement, an incomplete PCA, a residual meaning stamped as a property, an underspecified embedding, a malformed tensor graph, an unframed weight tensor, or an application applying other than exactly one operator is a typed, queryable object." .
 
 # --- Meaning is representable only as a vantage-held claim (MUST-NOT) -------- #
 ex:saNoDirectResidualMeaningProperty a gmeow:StructuralAssertion ;
