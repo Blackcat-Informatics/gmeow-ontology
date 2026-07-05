@@ -516,18 +516,40 @@ mod tests {
     }
 
     #[test]
-    fn ontolex_and_conllu_fold_honest_no_source_rows() {
+    fn ontolex_forward_projects_the_lexeme_inventory() {
         let catalog = repo_catalog();
         let corpus = build_corpus(Some(&catalog)).expect("build corpus");
-        for target in ["ontolex-lemon", "conllu"] {
-            assert!(
-                corpus
-                    .ledger
-                    .iter()
-                    .any(|r| r.target == format!("lang-projection:{target}")),
-                "target '{target}' must fold an honest no-source ledger row"
-            );
-        }
+        // OntoLex-Lemon is source-driven: the example model's lang:Lexeme inventory lowers to a
+        // real ontolex-lemon/*.ttl artifact carrying ontolex:LexicalEntry structure.
+        assert!(
+            corpus
+                .artifacts
+                .iter()
+                .any(|(p, _)| p.starts_with("generated/projections/lang/ontolex-lemon/")),
+            "the lang: lexeme inventory must drive an OntoLex-Lemon projection artifact"
+        );
+        let ontolex = corpus
+            .artifacts
+            .iter()
+            .find(|(p, _)| p.starts_with("generated/projections/lang/ontolex-lemon/"))
+            .map(|(_, b)| String::from_utf8_lossy(b).into_owned())
+            .unwrap_or_default();
+        assert!(
+            ontolex.contains("http://www.w3.org/ns/lemon/ontolex#LexicalEntry"),
+            "the OntoLex projection must emit ontolex:LexicalEntry individuals: {ontolex}"
+        );
+        assert!(
+            ontolex.contains("http://www.w3.org/ns/lemon/ontolex#LexicalSense"),
+            "the OntoLex projection must emit ontolex:LexicalSense individuals: {ontolex}"
+        );
+        // A source-driven ledger row (SoundUnder, never the no-source placeholder).
+        assert!(
+            corpus
+                .ledger
+                .iter()
+                .any(|r| r.target.starts_with("ontolex-lemon:")),
+            "OntoLex-Lemon must fold a source-driven ledger row, not a no-source placeholder"
+        );
     }
 
     #[test]
