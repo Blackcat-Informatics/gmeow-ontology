@@ -241,13 +241,44 @@ lang:latinScript
     a owl:NamedIndividual , lang:Script ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "Latin script"@x-gmeow-english ;
-    skos:definition "The Latin script as a first-class character repertoire: a lang:Script. Its ISO 15924 code Latn and Wikidata QID are alignments, never its identity."@x-gmeow-english .
+    skos:notation "Latn"^^xsd:string ;
+    skos:definition "The Latin script as a first-class character repertoire: a lang:Script. Its ISO 15924 code Latn (carried machine-readably as a skos:notation) and Wikidata QID are alignments, never its identity."@x-gmeow-english .
 
 lang:hanScript
     a owl:NamedIndividual , lang:Script ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "Han script"@x-gmeow-english ;
-    skos:definition "The Han (CJK) script as a first-class character repertoire: a lang:Script. Its ISO 15924 code Hani and Wikidata QID are alignments, never its identity."@x-gmeow-english .
+    skos:notation "Hani"^^xsd:string ;
+    skos:definition "The Han (CJK) script as a first-class character repertoire: a lang:Script. Its ISO 15924 code Hani (carried machine-readably as a skos:notation) and Wikidata QID are alignments, never its identity."@x-gmeow-english .
+
+# --- The internal GMEOW English carrier variety and its orthography ---------- #
+# The @x-gmeow-english carrier under which every source prose literal is authored
+# is a language individual, never a bare tag: a lang:LanguageVariety of English
+# (the controlled, RFC-2119-style English GMEOW writes its own prose in), carrying
+# its internal language tag as machine-readable data through lang:carrierTag. Its
+# script is bound through an orthography — the module's designated sign-system-to-
+# script convention — using the existing lang:orthographyFor and lang:usesScript.
+# Resolving a carrier tag to its lang:Script is therefore a pure data lookup over
+# this model; adding a language is adding a variety + orthography here, never a
+# Rust code change.
+
+lang:gmeowEnglish
+    a owl:NamedIndividual , lang:LanguageVariety ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMEOW English carrier"@x-gmeow-english ;
+    skos:definition "The internal GMEOW English carrier: the controlled variety of English under which every @x-gmeow-english source prose literal is authored — a lang:LanguageVariety of lang:english, a language individual rather than a bare tag. Its internal language tag x-gmeow-english is carried machine-readably through lang:carrierTag; its script is bound through lang:gmeowEnglishOrthography. Resolving the carrier tag to its lang:Script is a data lookup over this model, never a hard-coded mapping."@x-gmeow-english ;
+    lang:varietyOf lang:english ;
+    lang:signSystemKind lang:naturalLanguageKind ;
+    lang:modality lang:writtenModality ;
+    lang:carrierTag "x-gmeow-english" .
+
+lang:gmeowEnglishOrthography
+    a owl:NamedIndividual , lang:Orthography ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMEOW English orthography"@x-gmeow-english ;
+    skos:definition "The writing convention binding the internal GMEOW English carrier (lang:gmeowEnglish) to the Latin script: a lang:Orthography that serves that variety through lang:orthographyFor and uses lang:latinScript through lang:usesScript. This is the data edge that makes carrier-tag-to-script resolution a lookup rather than a Rust match."@x-gmeow-english ;
+    lang:orthographyFor lang:gmeowEnglish ;
+    lang:usesScript lang:latinScript .
 
 # =========================================================================== #
 # Form AST — the stratified form calculus
@@ -773,6 +804,13 @@ lang:varietyOf
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "variety of"@x-gmeow-english ;
     skos:definition "Relates a language variety to the sign system it is a variety of. Domain lang:LanguageVariety, range lang:SignSystem (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+lang:carrierTag
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "carrier tag"@x-gmeow-english ;
+    skos:definition "The internal language tag under which a sign system's or variety's source prose literals are authored — the machine-readable identifier the pipeline resolves to a lang:Script through the variety's orthography. Domain lang:SignSystem or lang:LanguageVariety, range a string literal (stated in prose). Unlike an external BCP-47 alignment, this is the pipeline's own load-bearing carrier tag (e.g. x-gmeow-english), so it is carried as data on the language individual rather than named as an alignment."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 lang:usesScript
