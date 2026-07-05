@@ -385,6 +385,18 @@ ex:ecMapContinuityAssumed a gmeow:ExampleConformance ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
     gmeow:conformanceRationale "The counter-example omits math:isContinuous on a math:ContinuousMap (sh:minCount 1 on math:ContinuousMapShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UndeclaredTopologicalProperty)." .
 
+# Topology: connectedness declared, not assumed.
+ex:ecConnectedSpaceDeclared a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/connected-space-declared.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:ConnectedSpace declaring math:isConnected satisfies math:ConnectedSpaceShape and validates with no findings." .
+
+ex:ecConnectednessAssumed a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/connectedness-assumed.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example omits math:isConnected on a math:ConnectedSpace (sh:minCount 1 on math:ConnectedSpaceShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UndeclaredTopologicalProperty)." .
+
 # Geometry: manifold framing and chart dimension-consistency.
 ex:ecManifoldStructured a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/conformance-fixtures/manifold-structured.ttl" ;
