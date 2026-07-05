@@ -44,7 +44,9 @@
 
 use std::collections::BTreeSet;
 
-use crate::physical::seminaive::{Budgeted, NativeOutcome, StepGovernor, StrataProgress};
+use crate::physical::seminaive::{
+    Budgeted, NativeOutcome, StepGovernor, StrataProgress, UnsupportedKind,
+};
 use crate::physical::store::{Bound, RelationStore, SkolemRegistry, SkolemTerm};
 use crate::provenance::{mint_derivation_id, term_display};
 use crate::rule_ir::{
@@ -52,6 +54,9 @@ use crate::rule_ir::{
     DerivedRow, EvalAtom, EvalTerm, Fact, FactKey, Solution,
 };
 use crate::seam::BudgetStatus;
+
+/// A chase attempt's outcome: a decided budgeted derivation, or a declared gap.
+pub(crate) type ChaseOutcome = NativeOutcome<Budgeted<Vec<DerivedRow>>>;
 
 /// A single existential (tuple-generating) rule: a conjunctive body implies a
 /// conjunctive head that may quantify fresh existential variables.
@@ -212,7 +217,7 @@ pub(crate) fn chase_world(
     edb_facts: &[Fact],
     rules: &[ExistentialRule],
     max_steps: Option<u64>,
-) -> Result<NativeOutcome<Budgeted<Vec<DerivedRow>>>, String> {
+) -> Result<ChaseOutcome, String> {
     // Seed the columnar store from the EDB; echo the asserted facts as derived rows so
     // the native fact set is directly comparable to an oracle's closure (which includes
     // the EDB).
@@ -578,6 +583,41 @@ impl ChaseAdmission {
     }
 }
 
+/// Route an existential-rule program: certify termination, then chase or refuse.
+///
+/// This is the `materialize_routed` decision for the value-inventing fragment, kept as a
+/// deterministic function of the certificate and the declared budget (never a runtime
+/// knob):
+/// - **Certified** (`WeaklyAcyclic`) ⇒ run the native chase.  A declared budget still
+///   applies (it just never trips on a terminating program).
+/// - **Uncertified** with a budget ⇒ run the chase **budgeted-partial** — the budget
+///   governor caps it, returning an incomplete-never-wrong prefix.
+/// - **Uncertified** with no budget ⇒ `Unsupported(NonTerminatingExistential)`, refusing
+///   the program to the demoted oracle rather than looping.
+///
+/// The production `materialize::materialize_routed` path never yet carries existential
+/// rules (the `.rls` projector hard-errors on unbound head vars); the EL→existential-rule
+/// projection that feeds this router is the EL→RL→DL promotion's job.  Until then this
+/// router is exercised end-to-end by the native↔Nemo parity gate.
+///
+/// # Errors
+///
+/// Propagates grounding/​provenance failures from [`chase_world`].
+pub(crate) fn route_chase(
+    world: &str,
+    edb_facts: &[Fact],
+    rules: &[ExistentialRule],
+    max_steps: Option<u64>,
+) -> Result<(ChaseAdmission, ChaseOutcome), String> {
+    let admission = ChaseAdmission::certify(rules);
+    let outcome = if admission.admits_native() || max_steps.is_some() {
+        chase_world(world, edb_facts, rules, max_steps)?
+    } else {
+        NativeOutcome::Unsupported(UnsupportedKind::NonTerminatingExistential)
+    };
+    Ok((admission, outcome))
+}
+
 /// Connect wildcard and constant refinements of the same `(predicate, slot)` when BOTH
 /// occur — a conservative over-approximation (a wildcard-typed null could be any class,
 /// and a wildcard consumer reads any class), so reachability is never under-counted.
@@ -913,5 +953,44 @@ mod tests {
         let bad = ChaseAdmission::certify(&[restriction_rule("http://ex/r", D, P, D)]);
         assert!(!good.clone().combine(bad.clone()).admits_native());
         assert!(!bad.combine(good).admits_native());
+    }
+
+    // ── route_chase: certify → chase / refuse / budget ───────────────────────────
+
+    #[test]
+    fn route_certified_program_runs_natively() {
+        let edb = vec![fact("http://ex/a", TYPE, C)];
+        let (admission, outcome) = route_chase(W, &edb, &[some_values_from_rule()], None).unwrap();
+        assert!(admission.admits_native());
+        let b = decided(outcome);
+        assert_eq!(b.status, BudgetStatus::Ok);
+        assert_eq!(count(&b.rows, P), 1);
+    }
+
+    #[test]
+    fn route_uncertified_without_budget_refuses_to_the_oracle() {
+        // Cyclic D⊑∃p.D, no budget ⇒ a first-class declared gap (demote to Nemo), never
+        // a native loop.
+        let cyclic = restriction_rule("http://ex/rule/cyclic", D, P, D);
+        let edb = vec![fact("http://ex/a", TYPE, D)];
+        let (admission, outcome) = route_chase(W, &edb, &[cyclic], None).unwrap();
+        assert!(!admission.admits_native());
+        assert!(matches!(
+            outcome,
+            NativeOutcome::Unsupported(UnsupportedKind::NonTerminatingExistential)
+        ));
+    }
+
+    #[test]
+    fn route_uncertified_with_budget_runs_partial() {
+        // Cyclic program WITH a budget ⇒ budgeted-partial native run (incomplete, never
+        // wrong), deterministically selected by budget config.
+        let cyclic = restriction_rule("http://ex/rule/cyclic", D, P, D);
+        let edb = vec![fact("http://ex/a", TYPE, D)];
+        let (admission, outcome) = route_chase(W, &edb, &[cyclic], Some(2)).unwrap();
+        assert!(!admission.admits_native());
+        let b = decided(outcome);
+        assert_eq!(b.status, BudgetStatus::Exhausted);
+        assert_eq!(b.consumed_steps, 2);
     }
 }
