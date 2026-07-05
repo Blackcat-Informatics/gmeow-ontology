@@ -15,7 +15,10 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use crate::ingest::prefixes::ns_to_prefix;
 use crate::ingest::{DslTerm, DslView};
-use crate::ir::{CorrespondenceRelation, MorphismClass, MorphismKind};
+use crate::ir::{
+    CorrespondenceLaw, CorrespondenceRelation, DischargeVerdict, LawClaimIr, MorphismClass,
+    MorphismKind,
+};
 
 /// The 46 projection profiles. The single authority shared by BOTH the EDOAL and the
 /// SPARQL-CONSTRUCT lowerings — keeping one copy makes "no spec drift between the two
@@ -132,6 +135,11 @@ const GM_LOSSY_DROP: &str = "https://blackcatinformatics.ca/gmeow/lossyDrop";
 const GM_EDOAL_TARGET: &str = "https://blackcatinformatics.ca/gmeow/edoalTarget";
 const GM_EDOAL_TARGET_KIND: &str = "https://blackcatinformatics.ca/gmeow/edoalTargetKind";
 const GM_MORPHISM_CLASS: &str = "https://blackcatinformatics.ca/gmeow/morphismClass";
+const GM_MNEMOMORPHIC: &str = "https://blackcatinformatics.ca/gmeow/mnemomorphic";
+const GM_INGEST_CLAIM: &str = "https://blackcatinformatics.ca/gmeow/ingestClaim";
+const GM_INGEST_LAW: &str = "https://blackcatinformatics.ca/gmeow/ingestLaw";
+const GM_INGEST_VERDICT: &str = "https://blackcatinformatics.ca/gmeow/ingestVerdict";
+const GM_INGEST_RESIDUE: &str = "https://blackcatinformatics.ca/gmeow/ingestResidue";
 
 // ── Model ────────────────────────────────────────────────────────────────────────
 
@@ -245,6 +253,19 @@ pub struct ProfileBinding {
     /// equivalence token `=`, which the overclaim gate then refuses (Principle 5). When
     /// absent the class is DERIVED from the relation lattice ([`relation_lattice`]).
     pub morphism_class: Option<MorphismClass>,
+    /// An optionally co-authored put-with-claim (`gmeow:ingestClaim`): the ingest law and
+    /// its discharge verdict the author declares for the inverse (`put`) leg. Absent in the
+    /// committed corpus (so byte-parity holds); when present it becomes a real
+    /// `law_claims` entry on the derived `logic:Correspondence`, licensing a
+    /// minted-with-claim `put` (a `ValidationOnly` up-lift) rather than an `Unsupported`
+    /// floor.
+    pub ingest_claim: Option<LawClaimIr>,
+    /// The author-declared residue lines for the co-authored ingest claim
+    /// (`gmeow:ingestResidue`), carried for the loss ledger; empty when absent.
+    pub ingest_residue: Vec<String>,
+    /// Whether the lens is authored memory-preserving (`gmeow:mnemomorphic`); default
+    /// `false`. Read directly by the `put` emitter to decide the up-lift polarity.
+    pub mnemomorphic: bool,
 }
 
 impl ProfileBinding {
@@ -561,6 +582,51 @@ fn parse_binding(view: &DslView, node: &DslTerm) -> Result<ProfileBinding, Strin
         }
         None => None,
     };
+    // Whether the lens is authored memory-preserving (`gmeow:mnemomorphic`), a boolean
+    // literal; default false when absent.
+    let mnemomorphic = view
+        .object_literal_of_term(node, GM_MNEMOMORPHIC)
+        .map(|text| text == "true")
+        .unwrap_or(false);
+    // An optional co-authored put-with-claim (`gmeow:ingestClaim`) on a nested node bearing
+    // the ingest law + verdict (IRIs whose local names feed the value enums) and any residue
+    // string literals. Absent in the committed corpus; when present an unknown law/verdict is
+    // a hard error (no silent fallback), and the residue is carried for the loss ledger.
+    let (ingest_claim, ingest_residue) = match view.first_object_of(node, GM_INGEST_CLAIM) {
+        Some(claim_node) => {
+            let Some(law_iri) = view.object_iri_of_term(&claim_node, GM_INGEST_LAW) else {
+                return Err("gmeow:ingestClaim missing gmeow:ingestLaw".to_owned());
+            };
+            let law_local = law_iri.rsplit(['#', '/', ':']).next().unwrap_or(&law_iri);
+            let law = CorrespondenceLaw::from_local(law_local).ok_or_else(|| {
+                format!("gmeow:ingestClaim has unknown gmeow:ingestLaw {law_iri}")
+            })?;
+            let Some(verdict_iri) = view.object_iri_of_term(&claim_node, GM_INGEST_VERDICT) else {
+                return Err("gmeow:ingestClaim missing gmeow:ingestVerdict".to_owned());
+            };
+            let verdict_local = verdict_iri
+                .rsplit(['#', '/', ':'])
+                .next()
+                .unwrap_or(&verdict_iri);
+            let verdict = DischargeVerdict::from_local(verdict_local).ok_or_else(|| {
+                format!("gmeow:ingestClaim has unknown gmeow:ingestVerdict {verdict_iri}")
+            })?;
+            let residue = view
+                .objects_of_term(&claim_node, GM_INGEST_RESIDUE)
+                .into_iter()
+                .filter_map(|t| t.as_literal().map(str::to_owned))
+                .collect();
+            (
+                Some(LawClaimIr {
+                    law,
+                    verdict,
+                    condition: None,
+                }),
+                residue,
+            )
+        }
+        None => (None, Vec::new()),
+    };
     Ok(ProfileBinding {
         profile,
         to_predicate: view.object_iri_of_term(node, GM_TO_PREDICATE),
@@ -574,6 +640,9 @@ fn parse_binding(view: &DslView, node: &DslTerm) -> Result<ProfileBinding, Strin
         edoal_target: view.object_iri_of_term(node, GM_EDOAL_TARGET),
         edoal_target_kind: view.object_literal_of_term(node, GM_EDOAL_TARGET_KIND),
         morphism_class,
+        ingest_claim,
+        ingest_residue,
+        mnemomorphic,
     })
 }
 
