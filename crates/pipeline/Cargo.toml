@@ -78,6 +78,13 @@ gmeow-conformance = { path = "../conformance" }
 # The `docs_render` stage wires the typed documentation model + RDF projection
 # (gmeow_docs::DocsModel::discover / to_gmeow_rdf / render_site) — no port (#853).
 gmeow-docs = { path = "../docs" }
+# The `lang_form` prose-lift corpus drives the shared `lang:` ingester skeleton
+# (`PlainTextBridge` + the deterministic N-Triples / content-address emitter), so there is
+# one digest and one bridge law-spine across every `lang:` producer.
+gmeow-lang-bridge = { path = "../lang-bridge" }
+# The `lang:` form AST: the prose-lift corpus interns each distinct English literal as a
+# `lang:SurfaceForm` addressed by its material `SurfaceForm::surface_key`.
+gmeow-lang-form = { path = "../lang-form" }
 # The `json_schema` export leaf compiles the SHACL shape union into JSON Schema +
 # OpenAPI natively (gmeow_shacl::shape_union::load_shapes + json_schema::compile),
 # replacing the Python LinkML JSON-Schema/OpenAPI generators (#700).
