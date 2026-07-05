@@ -2,15 +2,25 @@
 # SPDX-License-Identifier: CC-BY-4.0
 #
 # Well-formed: an integral naming its integrand (a measurable function), its
-# integration domain, and the measure it integrates against. Conforms to
-# math:IntegralShape. Bound by ex:ecIntegralFramed.
+# integration domain, and the measure it integrates against — and, as a
+# math:BindingExpression, the math:VariableDeclaration it binds (the integration
+# variable) and its body through an indexed math:argumentSlot. Conforms to
+# math:IntegralShape and math:BindingExpressionShape. Bound by ex:ecIntegralFramed.
 @prefix math: <https://blackcatinformatics.ca/math/> .
 @prefix ex:   <http://example.org/math/> .
 
 ex:anIntegral a math:Integral ;
     math:integrand ex:densityFn ;
     math:integrationDomain ex:space ;
-    math:withRespectTo ex:mu .
+    math:withRespectTo ex:mu ;
+    math:boundVariable ex:integrationVarDecl ;
+    math:argumentSlot ex:anIntegralSlot0 .
+
+ex:anIntegralSlot0 a math:ArgumentSlot ;
+    math:slotIndex 0 ;
+    math:slotExpression ex:densityFn .
+
+ex:integrationVarDecl a math:VariableDeclaration .
 
 ex:densityFn a math:MeasurableFunction ;
     math:domain ex:domainSet ;

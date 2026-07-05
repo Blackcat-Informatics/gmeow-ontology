@@ -425,3 +425,127 @@ ex:rowSampleMass a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "quantity" ; gmeow:cellValueIri exf:sampleMassQ ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "unit" ; gmeow:cellValueIri <http://qudt.org/vocab/unit/KiloGM> ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dimension" ; gmeow:cellValueIri math:massDimension ] .
+
+# === Q17 — derivative: what, variable, order (ANALYSIS-AND-GEOMETRY) ======== #
+
+ex:cqDerivativeFraming a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/derivative-differentiates-variable-order.rq" ;
+    gmeow:cqDataFile "tests/fixtures/analysis-geometry.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A derivative reports what it differentiates, its variable, and its order; over the fixture the answer is exactly {dPositionDt → positionExpr, w.r.t. tVar, order 1}." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqDerivativeShape ;
+    gmeow:cqExpectRow ex:rowDPositionDt .
+
+ex:cqDerivativeShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "derivative" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "of" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "variable" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "order" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ; logic:columnDatatype xsd:string ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowDPositionDt a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "derivative" ; gmeow:cellValueIri exf:dPositionDt ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "of" ; gmeow:cellValueIri exf:positionExpr ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "variable" ; gmeow:cellValueIri exf:tVar ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "order" ; gmeow:cellValueLiteral "1" ] .
+
+# === Q18 — series: convergence mode and target ============================== #
+
+ex:cqSeriesConvergence a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/series-convergence-mode-and-target.rq" ;
+    gmeow:cqDataFile "tests/fixtures/analysis-geometry.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A series reports what it converges to and in which mode; over the fixture the answer is exactly {geometricSeries → converges to seriesLimit, absolutely (math:absoluteConvergence)}." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqSeriesShape ;
+    gmeow:cqExpectRow ex:rowGeometricSeries .
+
+ex:cqSeriesShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "series" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "convergesTo" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "mode" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowGeometricSeries a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "series" ; gmeow:cellValueIri exf:geometricSeries ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "convergesTo" ; gmeow:cellValueIri exf:seriesLimit ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "mode" ; gmeow:cellValueIri math:absoluteConvergence ] .
+
+# === Q19 — topological space: open sets and connectedness ================== #
+
+ex:cqSpaceOpenSets a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/space-open-sets-and-map-property.rq" ;
+    gmeow:cqDataFile "tests/fixtures/analysis-geometry.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A space reports its open sets and its declared connectedness; over the fixture the answer is exactly {circleSpace → arcU, connected; circleSpace → arcV, connected}." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqSpaceShape ;
+    gmeow:cqExpectRow ex:rowCircleArcU , ex:rowCircleArcV .
+
+ex:cqSpaceShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "space" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "openSet" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "connected" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ; logic:columnDatatype xsd:string ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowCircleArcU a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "space" ; gmeow:cellValueIri exf:circleSpace ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "openSet" ; gmeow:cellValueIri exf:arcU ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "connected" ; gmeow:cellValueLiteral "true" ] .
+
+ex:rowCircleArcV a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "space" ; gmeow:cellValueIri exf:circleSpace ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "openSet" ; gmeow:cellValueIri exf:arcV ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "connected" ; gmeow:cellValueLiteral "true" ] .
+
+# === Q20 — manifold: dimension, structure kind, charts ===================== #
+
+ex:cqManifoldFraming a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/manifold-dimension-structure-and-charts.rq" ;
+    gmeow:cqDataFile "tests/fixtures/analysis-geometry.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A manifold reports its dimension, structure kind, and covering charts; over the fixture the answer is exactly {minkowski → dim 4, lorentzianStructure, chart inertialChart}." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqManifoldShape ;
+    gmeow:cqExpectRow ex:rowMinkowski .
+
+ex:cqManifoldShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "manifold" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "dimension" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ; logic:columnDatatype xsd:string ] ,
+        [ logic:columnVariable "structureKind" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "chart" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowMinkowski a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "manifold" ; gmeow:cellValueIri exf:minkowski ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dimension" ; gmeow:cellValueLiteral "4" ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "structureKind" ; gmeow:cellValueIri math:lorentzianStructure ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "chart" ; gmeow:cellValueIri exf:inertialChart ] .
+
+# === Q21 — complement: ambient space and semantics ========================= #
+
+ex:cqComplementFraming a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/complement-ambient-and-semantics.rq" ;
+    gmeow:cqDataFile "tests/fixtures/analysis-geometry.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A complement reports its ambient space and its complement-semantics; over the fixture the answer is exactly {evenComplement → ambient naturalsSet, set-theoretic (math:setTheoreticComplement)}." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqComplementShape ;
+    gmeow:cqExpectRow ex:rowEvenComplement .
+
+ex:cqComplementShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "complement" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "ambientSpace" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "semantics" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowEvenComplement a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "complement" ; gmeow:cellValueIri exf:evenComplement ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "ambientSpace" ; gmeow:cellValueIri exf:naturalsSet ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "semantics" ; gmeow:cellValueIri math:setTheoreticComplement ] .

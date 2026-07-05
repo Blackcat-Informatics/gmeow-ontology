@@ -299,10 +299,10 @@ expression: summary
     }
   ],
   "mapping_set_count": 79,
-  "linkage_count": 1928,
-  "example_count": 133,
+  "linkage_count": 1964,
+  "example_count": 134,
   "concern_count": 7,
-  "external_term_count": 1662,
+  "external_term_count": 1695,
   "sample_mapping_set": {
     "iri": "https://blackcatinformatics.ca/gmeow/mapsetAccessibility",
     "curie": "gmeow:mapsetAccessibility",
@@ -421,7 +421,7 @@ expression: summary
     ]
   },
   "shape_count": 308,
-  "competency_count": 103,
+  "competency_count": 108,
   "sample_shape": {
     "shape_iri": "https://blackcatinformatics.ca/gmeow/RetractedAccessibilityAssertionShape",
     "target_term": "https://blackcatinformatics.ca/gmeow/AccessibilityAssertion",

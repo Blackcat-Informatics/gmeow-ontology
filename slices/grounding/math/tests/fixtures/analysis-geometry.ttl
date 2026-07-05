@@ -1,0 +1,96 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Shared competency fixture for the analysis-and-geometry charter. The five
+# competency queries in queries/competency/ run over the mathematics module
+# unioned with this fixture and pin their rows exactly (logic:RowsExact). Every
+# individual is in the http://example.org/math/ namespace so the queries scope to
+# the fixture, and each is well-formed against the slice shapes.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix exf:  <http://example.org/math/> .
+
+# --- Q1: a derivative differentiates an expression, w.r.t. a variable, at an order
+exf:dPositionDt a math:Derivative ;
+    math:operator math:differentiationBinder ;
+    math:derivativeOf exf:positionExpr ;
+    math:withRespectToVariable exf:tVar ;
+    math:derivativeOrder 1 ;
+    math:boundVariable exf:tVar ;
+    math:argumentSlot exf:dPositionDtSlot0 .
+
+exf:dPositionDtSlot0 a math:ArgumentSlot ;
+    math:slotIndex 0 ;
+    math:slotExpression exf:positionExpr .
+
+exf:positionExpr a math:MathematicalExpression .
+exf:tVar a math:VariableDeclaration .
+
+# --- Q2: a series converges to a value in a declared mode
+exf:geometricSeries a math:Series ;
+    math:operator math:summationBinder ;
+    math:seriesTerm exf:geometricTerm ;
+    math:boundVariable exf:nVar ;
+    math:argumentSlot exf:geometricSeriesSlot0 ;
+    math:hasConvergence exf:geometricConvergence .
+
+exf:geometricSeriesSlot0 a math:ArgumentSlot ;
+    math:slotIndex 0 ;
+    math:slotExpression exf:geometricTerm .
+
+exf:geometricTerm a math:MathematicalExpression .
+exf:nVar a math:VariableDeclaration .
+
+exf:geometricConvergence a math:Convergence ;
+    math:convergesTo exf:seriesLimit ;
+    math:convergenceMode math:absoluteConvergence .
+
+exf:seriesLimit a math:MathematicalObject .
+
+# --- Q3: a connected space, its open sets, and its declared connectedness
+exf:circleSpace a math:ConnectedSpace ;
+    math:isConnected true ;
+    math:hasOpenSet exf:arcU , exf:arcV .
+
+exf:arcU a math:OpenSet .
+exf:arcV a math:OpenSet .
+
+# --- Q4: a Lorentzian manifold declares dimension + structure kind + charts
+exf:minkowski a math:LorentzianManifold ;
+    math:manifoldDimension 4 ;
+    math:manifoldStructureKind math:lorentzianStructure ;
+    math:hasChart exf:inertialChart ;
+    math:metricTensor exf:minkowskiMetric .
+
+exf:inertialChart a math:Chart ;
+    math:chartDomain exf:inertialRegion ;
+    math:coordinateMap exf:inertialCoordinateFn ;
+    math:targetCoordinateSpace exf:r4 .
+
+exf:inertialRegion a math:OpenSet .
+
+exf:inertialCoordinateFn a math:CoordinateMap ;
+    math:domain exf:inertialRegion ;
+    math:codomain exf:r4 .
+
+exf:r4 a math:Set ;
+    math:spaceDimension 4 .
+
+exf:minkowskiMetric a math:MetricTensor ;
+    math:tensorFieldOn exf:minkowski ;
+    math:metricSignature exf:lorentzSignature .
+
+exf:lorentzSignature a math:MetricSignature ;
+    math:signaturePositive 3 ;
+    math:signatureNegative 1 .
+
+# --- Q5: a complement names its ambient space and its complement-semantics
+exf:evenComplement a math:Complement ;
+    math:setOperationOn exf:evensSet ;
+    math:ambientSpace exf:naturalsSet ;
+    math:complementSemantics math:setTheoreticComplement .
+
+exf:evensSet a math:Set .
+exf:naturalsSet a math:Set .

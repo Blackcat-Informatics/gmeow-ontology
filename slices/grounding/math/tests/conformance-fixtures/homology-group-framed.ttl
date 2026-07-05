@@ -1,0 +1,17 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Well-formed: a homology group as a fully-framed abelian group — because
+# math:HomologyGroup is a subclass of math:AbelianGroup, it inherits the algebraic-
+# structure gate and must declare its carrier, operation, and an axiom. Conforms to
+# math:AlgebraicStructureShape. Bound by ex:ecHomologyGroupFramed.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:firstHomology a math:HomologyGroup ;
+    math:underlyingSet ex:cycleCarrier ;
+    math:structureOperation ex:cycleAddition ;
+    math:satisfiesAxiom ex:homologyCommutativityAxiom .
+
+ex:cycleCarrier a math:Set .
+ex:cycleAddition a math:Operation .
