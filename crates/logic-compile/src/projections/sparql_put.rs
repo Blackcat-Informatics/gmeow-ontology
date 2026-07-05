@@ -196,3 +196,216 @@ pub(crate) fn emit_put(
         ledger: Vec::new(),
     }))
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::ir::{CorrespondenceLaw, DischargeVerdict, LawClaimIr, MorphismClass};
+    use crate::projections::correspondence_frontend::CorrespondenceLookup;
+    use crate::projections::get_leg::{Atom, Item, MappingPattern, ProfileBinding, ProjectionCell};
+    use crate::projections::sparql::SuppressionVocab;
+
+    const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+    const MLS_MODEL: &str = "http://www.w3.org/ns/mls#Model";
+    const GM_MODEL_ARTIFACT: &str = "https://blackcatinformatics.ca/gmeow/ModelArtifact";
+
+    /// A bare `?x a <class>` source atom (non-optional, so it seeds the anchor).
+    fn type_atom(subject: &str, class_iri: &str) -> Atom {
+        Atom {
+            subject_var: subject.to_owned(),
+            predicate: Some(RDF_TYPE.to_owned()),
+            predicate_var: None,
+            path: None,
+            path_alts: Vec::new(),
+            object_var: None,
+            object_value: Some(class_iri.to_owned()),
+            object_literal: None,
+            optional: false,
+        }
+    }
+
+    /// A one-atom class cell: the gmeow source `?x a gmeow:ModelArtifact` mapping to the
+    /// external `?x a mls:Model` (via `to_class`), authored with the given up-lift knobs.
+    fn class_cell(
+        relation: &str,
+        mnemomorphic: bool,
+        ingest_claim: Option<LawClaimIr>,
+    ) -> ProjectionCell {
+        let pattern = MappingPattern {
+            anchor: "x".to_owned(),
+            value: None,
+            atoms: vec![Item::Atom(type_atom("x", GM_MODEL_ARTIFACT))],
+            suppress_when: Vec::new(),
+            project_when: Vec::new(),
+            exclude_when: Vec::new(),
+            filters: Vec::new(),
+            binds: Vec::new(),
+            mints: Vec::new(),
+            edoal_source: None,
+            edoal_source_kind: "relation".to_owned(),
+            edoal_path: false,
+        };
+        let binding = ProfileBinding {
+            profile: "ml-schema".to_owned(),
+            to_predicate: None,
+            to_class: Some(MLS_MODEL.to_owned()),
+            template_atoms: Vec::new(),
+            value_class_map: Vec::new(),
+            relation: relation.to_owned(),
+            transform: None,
+            confidence: None,
+            lossy_drops: Vec::new(),
+            edoal_target: None,
+            edoal_target_kind: None,
+            morphism_class: None,
+            ingest_claim,
+            ingest_residue: Vec::new(),
+            mnemomorphic,
+        };
+        ProjectionCell {
+            iri: "https://blackcatinformatics.ca/gmeow/example/mlModelCell".to_owned(),
+            label: String::new(),
+            pattern,
+            bindings: vec![binding],
+        }
+    }
+
+    fn put_get_claim() -> LawClaimIr {
+        LawClaimIr {
+            law: CorrespondenceLaw::PutGet,
+            verdict: DischargeVerdict::ObligationUnknown,
+            condition: None,
+        }
+    }
+
+    fn emit(cells: &[ProjectionCell]) -> Option<EmittedQuery> {
+        let vocab = SuppressionVocab::empty();
+        let lookup = CorrespondenceLookup::default();
+        emit_put(cells, "ml-schema", &vocab, &lookup).expect("emit_put must not hard-fail")
+    }
+
+    #[test]
+    fn validation_only_binding_mints_with_claim_envelope() {
+        // Lossy rung (`<=` → LossyLens) + a co-authored ingest claim → ValidationOnly:
+        // the source lift PLUS the honest import-derived provenance envelope.
+        let cells = [class_cell("<=", false, Some(put_get_claim()))];
+        let q = emit(&cells)
+            .expect("ValidationOnly contributes a put query")
+            .query;
+
+        // The gmeow source lift is reconstructed in the CONSTRUCT head.
+        assert!(
+            q.contains("?x a gmeow:ModelArtifact ."),
+            "missing source lift:\n{q}"
+        );
+        // The mint-with-claim envelope is present.
+        assert!(
+            q.contains("gmeow:wasGeneratedBy"),
+            "missing wasGeneratedBy:\n{q}"
+        );
+        assert!(
+            q.contains("?x gmeow:mappedFrom mls:Model ."),
+            "missing mappedFrom to the external target:\n{q}"
+        );
+        assert!(
+            q.contains("_:imp a gmeow:ImportActivity ."),
+            "missing ImportActivity node:\n{q}"
+        );
+        // It never overclaims equivalence and never stamps a wall-clock time.
+        assert!(
+            !q.contains("owl:equivalentClass"),
+            "must not assert equivalence:\n{q}"
+        );
+        assert!(
+            !q.contains("skos:exactMatch"),
+            "must not assert exactMatch:\n{q}"
+        );
+        assert!(
+            !q.contains("NOW("),
+            "must not stamp a wall-clock time:\n{q}"
+        );
+        // The WHERE matches the external target term.
+        let where_clause = q.split("WHERE").nth(1).expect("query has a WHERE");
+        assert!(
+            where_clause.contains("?x a mls:Model ."),
+            "WHERE must match the external target:\n{q}"
+        );
+    }
+
+    #[test]
+    fn complete_over_binding_is_the_pure_inverse_no_envelope() {
+        // Injective rung (`=` → WellBehavedLens) + a mnemomorphic witness → CompleteOver:
+        // the pure inverse, source lift as CONSTRUCT and template as WHERE, no envelope.
+        let cells = [class_cell("=", true, None)];
+        let q = emit(&cells)
+            .expect("CompleteOver contributes a put query")
+            .query;
+
+        assert!(
+            q.contains("?x a gmeow:ModelArtifact ."),
+            "missing source lift:\n{q}"
+        );
+        let where_clause = q.split("WHERE").nth(1).expect("query has a WHERE");
+        assert!(
+            where_clause.contains("?x a mls:Model ."),
+            "WHERE must match the external template:\n{q}"
+        );
+        // No provenance envelope for a lawful recovery.
+        assert!(
+            !q.contains("gmeow:wasGeneratedBy"),
+            "a CompleteOver recovery must not mint a provenance envelope:\n{q}"
+        );
+        assert!(
+            !q.contains("gmeow:ImportActivity"),
+            "a CompleteOver recovery must not mint an ImportActivity:\n{q}"
+        );
+        // The header must NOT claim a total `put ∘ get = id_S`; it claims identity only on
+        // the displayable image of get.
+        assert!(
+            q.contains("identity on the displayable image"),
+            "header must scope identity to the displayable image:\n{q}"
+        );
+        assert!(
+            !q.contains("= id_S"),
+            "header must not assert a total put ∘ get = id_S:\n{q}"
+        );
+    }
+
+    #[test]
+    fn unsupported_binding_contributes_nothing() {
+        // Lossy rung, no witness, no claim → Unsupported: the honest floor emits nothing.
+        let cells = [class_cell("<=", false, None)];
+        assert!(
+            emit(&cells).is_none(),
+            "an Unsupported-only profile must yield Ok(None)"
+        );
+    }
+
+    #[test]
+    fn emission_is_deterministic_and_clock_free() {
+        let cells = [class_cell("<=", false, Some(put_get_claim()))];
+        let a = emit(&cells).expect("emits").query;
+        let b = emit(&cells).expect("emits").query;
+        assert_eq!(a, b, "the same cells must lower to identical bytes");
+        assert!(!a.contains("NOW("), "the put leg must be clock-free:\n{a}");
+    }
+
+    #[test]
+    fn classify_put_is_the_single_authority_for_the_three_polarities() {
+        // ValidationOnly: no witness on a lossy rung, but a co-authored claim.
+        assert_eq!(
+            classify_put(false, MorphismClass::LossyLens, &[put_get_claim()]),
+            PutClass::ValidationOnly
+        );
+        // CompleteOver: a mnemomorphic witness on an injective rung.
+        assert_eq!(
+            classify_put(true, MorphismClass::WellBehavedLens, &[]),
+            PutClass::CompleteOver
+        );
+        // Unsupported: neither witness nor claim.
+        assert_eq!(
+            classify_put(false, MorphismClass::LossyLens, &[]),
+            PutClass::Unsupported
+        );
+    }
+}

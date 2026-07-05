@@ -107,6 +107,21 @@ pub(crate) struct SuppressionVocab {
     coarsen_guarded: BTreeSet<String>,
 }
 
+impl SuppressionVocab {
+    /// An empty suppression vocabulary. The inverse-ingest (`put`) emitter injects no
+    /// display-guards and so never reads the vocabulary, so a unit test that drives
+    /// `emit_put` directly needs only this placeholder to satisfy the parallel signature.
+    #[cfg(test)]
+    pub(crate) fn empty() -> Self {
+        Self {
+            bearer_props: Vec::new(),
+            appellation_domain_props: BTreeSet::new(),
+            appellation_classes: BTreeSet::new(),
+            coarsen_guarded: BTreeSet::new(),
+        }
+    }
+}
+
 fn iri_pairs(view: &DslView, pred: &str) -> Vec<(String, String)> {
     view.quads_with_predicate(pred)
         .into_iter()

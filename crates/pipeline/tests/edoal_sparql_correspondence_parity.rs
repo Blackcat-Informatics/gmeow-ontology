@@ -360,3 +360,51 @@ fn edoal_and_sparql_share_one_get_leg() {
         "the shared get leg is content-deterministic across extractions",
     );
 }
+
+#[test]
+fn real_corpus_ml_schema_lowers_an_inverse_put_with_mint_envelope() {
+    // End-to-end on the ACTUAL authored `ml-schema` corpus (not a hand-built synthetic
+    // Correspondence): the `gmeow:ingestClaim` parse + `classify_put` + the inverse
+    // emitter must together produce a real `ml-schema.put.rq` carrying the honest
+    // mint-with-claim envelope. This proves the full authored-artifact wiring, the
+    // companion to the byte-parity block in `sparql_lowering_matches_committed_corpus`.
+    let root = repo_root();
+    let dsl = merge_dsl(&root);
+    let onto = merge_ontology(&root);
+    let lookup = build_lookup(&dsl, &onto);
+    let lowering =
+        lower_sparql(&DslView::new(&dsl), &DslView::new(&onto), &lookup).expect("lower sparql");
+    let put = lowering.put_queries;
+
+    let q = put
+        .get("ml-schema.put.rq")
+        .expect("the authored ml-schema corpus lowers an inverse put query");
+
+    // The source lift is recovered and the mint-with-claim envelope is minted.
+    assert!(
+        q.contains("a gmeow:ModelArtifact ."),
+        "put must reconstruct the gmeow source lift:\n{q}"
+    );
+    assert!(
+        q.contains("gmeow:wasGeneratedBy _:imp ."),
+        "put must mint the import provenance link:\n{q}"
+    );
+    assert!(
+        q.contains("gmeow:mappedFrom mls:"),
+        "put must map each lifted claim back to its mls: source term:\n{q}"
+    );
+    assert!(
+        q.contains("_:imp a gmeow:ImportActivity ."),
+        "put must type the generating node as an ImportActivity:\n{q}"
+    );
+    // A ValidationOnly up-lift never overclaims equivalence and never stamps a clock.
+    assert!(
+        !q.contains("owl:equivalentClass"),
+        "a validation-only put must not assert equivalence:\n{q}"
+    );
+    assert!(
+        !q.contains("skos:exactMatch"),
+        "a validation-only put must not assert exactMatch:\n{q}"
+    );
+    assert!(!q.contains("NOW("), "the put leg must be clock-free:\n{q}");
+}
