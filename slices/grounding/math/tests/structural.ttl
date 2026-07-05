@@ -441,3 +441,29 @@ ASK {
     math:ResultRoleConflation         rdfs:subClassOf math:MathConformanceFailure .
 }""" ;
     gmeow:saRationale "Every bridge failure is a typed, queryable object, so each MUST subclass math:MathConformanceFailure — a violation is a first-class failure class, not a log line." .
+
+# --- An inference/analysis process is never an observation (MUST) ----------- #
+ex:saProcessNotObservation a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    math:IngestRun   owl:disjointWith gmeow:Observation .
+    math:PCAAnalysis owl:disjointWith gmeow:Observation .
+}""" ;
+    gmeow:saRationale "An inference or analysis process is a gmeow:Activity, never the claim about its results, so the math process classes MUST be owl:disjointWith gmeow:Observation — the OWL-axiom gate backing math:ProcessObservationConflation, mirroring lang:InterpretationAct owl:disjointWith gmeow:Observation." .
+
+# --- The process/result/claim separation failures are typed (MUST) ---------- #
+ex:saSeparationFailureHierarchy a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    math:ProcessObservationConflation rdfs:subClassOf math:MathConformanceFailure .
+    math:UngroundedResultClaim        rdfs:subClassOf math:MathConformanceFailure .
+    math:ResultRoleConflation         rdfs:subClassOf math:MathConformanceFailure .
+}""" ;
+    gmeow:saRationale "The process / result / claim separation names three typed failures — conflating the process with the claim (math:ProcessObservationConflation), leaving a result claim ungrounded by a vantage (math:UngroundedResultClaim), and roling the result object as the claim (math:ResultRoleConflation) — so each MUST subclass math:MathConformanceFailure as a first-class, queryable object." .
