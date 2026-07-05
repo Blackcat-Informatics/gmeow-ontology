@@ -87,21 +87,32 @@ pub(crate) struct SkolemTerm {
 impl SkolemTerm {
     /// The content key hashed into the Skolem IRI.
     ///
-    /// `\u{1f}` (unit separator) delimits fields so no field value can forge a
-    /// boundary.  Frontier terms are rendered via [`term_display`] — their VALUE
-    /// surface, never a source-variable name — preserving `content_key`
-    /// alpha-normalized identity.
+    /// Length-prefixed (netstring-style) framing: every field is emitted as its
+    /// byte length in decimal, a `\u{1f}` separator, then the field's raw bytes.
+    /// Because a decoder reads the decimal length up to the first `\u{1f}` and
+    /// then consumes EXACTLY that many bytes, no field value can forge a field
+    /// boundary — whatever bytes it holds, `\u{1f}` included.  The frontier is
+    /// preceded by its element COUNT, framed the same way, so a single term whose
+    /// surface contains the separator can never masquerade as several terms.  The
+    /// encoding is therefore injective: distinct `(rule_iri, ordinal, frontier)`
+    /// tuples always yield distinct keys.  Frontier terms are rendered via
+    /// [`term_display`] — their VALUE surface, never a source-variable name —
+    /// preserving `content_key` alpha-normalized identity.
     fn content_key(&self) -> String {
-        let args = self
-            .frontier
-            .iter()
-            .map(term_display)
-            .collect::<Vec<_>>()
-            .join("\u{1f}");
-        format!(
-            "wa-skolem\u{1f}{}\u{1f}{}\u{1f}{args}",
-            self.rule_iri, self.ordinal
-        )
+        /// Append `field` as `<byte-len>\u{1f}<field-bytes>`.
+        fn frame(out: &mut String, field: &str) {
+            out.push_str(&field.len().to_string());
+            out.push('\u{1f}');
+            out.push_str(field);
+        }
+        let mut key = String::from("wa-skolem");
+        frame(&mut key, &self.rule_iri);
+        frame(&mut key, &self.ordinal.to_string());
+        frame(&mut key, &self.frontier.len().to_string());
+        for arg in &self.frontier {
+            frame(&mut key, &term_display(arg));
+        }
+        key
     }
 
     /// The invented-null IRI surface for this recipe (deterministic, content-addressed).
@@ -723,5 +734,29 @@ mod tests {
         assert_eq!(inner_recipe.frontier, vec![term("http://ex/a")]);
         // A term this registry never minted is not recognized as invented.
         assert!(!reg.is_invented(&term("http://ex/a")));
+    }
+
+    #[test]
+    fn skolem_content_key_is_injective_across_frontier_shapes() {
+        // A frontier term whose `term_display` surface itself contains the field
+        // separator MUST NOT be able to forge a boundary.  `term("a>\u{1f}<b")`
+        // renders as `<a>\u{1f}<b>` — byte-identical to the two-term frontier
+        // `[term("a"), term("b")]` rendered as `<a>` `\u{1f}` `<b>` joined.  Under a
+        // naive separator-joined key these two DISTINCT recipes collide to one
+        // witness; the length-prefixed encoding keeps them distinct.
+        let one = witness(0, vec![term("a>\u{1f}<b")]);
+        let two = witness(0, vec![term("a"), term("b")]);
+        assert_ne!(
+            one.witness_iri(),
+            two.witness_iri(),
+            "distinct frontier recipes must mint distinct witnesses"
+        );
+
+        // The same collision, driven through the registry: two mints, two witnesses.
+        let mut reg = SkolemRegistry::new();
+        let w_one = reg.mint(one);
+        let w_two = reg.mint(two);
+        assert_ne!(w_one, w_two);
+        assert_eq!(reg.len(), 2);
     }
 }
