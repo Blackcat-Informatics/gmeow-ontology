@@ -1,0 +1,11 @@
+% SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+% SPDX-License-Identifier: AGPL-3.0-only
+%
+% Backward goal: recursive ancestor with a STEP budget (max_steps=2).
+% The full ancestor set of a over a→b→c→d is {b,c,d}. The native semi-naive
+% governor stops after 2 committed derivations and returns a sound partial subset
+% with status "exhausted" — budgeted backward queries now run on the native core.
+:- prefix(ex, 'https://example.org/profiles/goal-budget-steps/').
+ex:ancestor(X,Y) :- ex:parentOf(X,Y).
+ex:ancestor(X,Y) :- ex:parentOf(X,Z), ex:ancestor(Z,Y).
+?- ex:ancestor(ex:a, Y).

@@ -1,0 +1,12 @@
+{
+  "budget_status": "exhausted",
+  "incomplete": true,
+  "saturated": [
+    "https://example.org/decidability/budget-frontier-strata/edge",
+    "https://example.org/decidability/budget-frontier-strata/node",
+    "https://example.org/decidability/budget-frontier-strata/reachable",
+    "https://example.org/decidability/budget-frontier-strata/reachableSeed"
+  ],
+  "strata_completed": 1,
+  "strata_total": 2
+}

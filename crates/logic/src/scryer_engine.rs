@@ -217,6 +217,9 @@ pub fn run_scryer(
         bindings,
         status,
         preservation: crate::result::PreservationClaim::exact(),
+        // Scryer is the SLD-resolution fallback, not the native semi-naive governor, so
+        // it carries no stratum frontier.
+        frontier: crate::query_ir::CompletionFrontier::empty(),
     };
     answer.canonicalize();
     Ok(answer)
