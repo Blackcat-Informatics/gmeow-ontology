@@ -29,9 +29,13 @@ pub mod emit;
 pub mod engine;
 pub mod grammar;
 pub mod lower;
+pub mod nif;
 pub mod ontolex;
 pub mod plain_text;
+pub mod rdf_scan;
 pub mod registry;
+pub mod semaf;
+pub mod tei;
 
 pub use bridge::{
     exact_round_trip_holds, is_exact_correspondence, Bridge, IngestDiagnostic, LangFailure, Lifted,
@@ -54,6 +58,7 @@ pub use lower::{
     flagship_svo_sentence, grammar_rule_to_derivation, grammar_to_derivation_rules, lower_svo,
     svo_grammar, DerivationRule, Lowering, LoweringError, LoweringStage, REQUIRED_STAGES,
 };
+pub use nif::NifBridge;
 pub use ontolex::{ontolex_correspondence, OntoLexBridge, ONTOLEX_SIGN_SYSTEM};
 pub use plain_text::{
     exact_surface_correspondence, normalization_label, PlainTextBridge, UNDETERMINED_SCRIPT,
@@ -62,3 +67,5 @@ pub use registry::{
     assert_registry_covers, registry, ConlluSource, EmittedArtifact, LangEmission,
     LangProjectionInput, LangProjectionTarget, NamedSource, EMISSION_WORTHY_CLASSES,
 };
+pub use semaf::SemafBridge;
+pub use tei::TeiBridge;

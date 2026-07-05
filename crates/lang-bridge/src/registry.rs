@@ -32,7 +32,10 @@ use crate::grammar::{
     grammar_correspondence, grammar_leg_pair, grammar_to_ntriples, parse_grammar,
     serialize_grammar, EbnfBridge, Formalism, Grammar, RuleExpr,
 };
+use crate::nif::NifBridge;
 use crate::ontolex::OntoLexBridge;
+use crate::semaf::SemafBridge;
+use crate::tei::TeiBridge;
 
 /// The example-instance base every minted projection individual (grammar IRIs,
 /// correspondence IRIs) lives under, matching every other `lang:` producer.
@@ -72,6 +75,11 @@ pub struct LangProjectionInput {
     pub lexicons: Vec<NamedSource>,
     /// CoNLL-U treebanks (one file per co-resident reading) — the CoNLL-U target's input.
     pub treebanks: Vec<ConlluSource>,
+    /// Raw `lang:` RDF surfaces (Turtle) already present in the composed model, each scanned by
+    /// the document/surface/meaning targets (TEI, NIF, SemAF) for the individuals it projects
+    /// (`lang:ComposedForm`, `lang:SurfaceAnchor`, `lang:Denotation`). Empty ⇒ each such target
+    /// folds its honest no-source row.
+    pub lang_models: Vec<NamedSource>,
 }
 
 /// One generated external artifact an emission produces, keyed by the path suffix under
@@ -143,6 +151,9 @@ pub fn registry() -> Vec<Box<dyn LangProjectionTarget>> {
         Box::new(ConlluTarget),
         Box::new(EbnfTarget),
         Box::new(AbnfTarget),
+        Box::new(TeiBridge),
+        Box::new(NifBridge),
+        Box::new(SemafBridge),
     ]
 }
 
@@ -152,7 +163,11 @@ pub fn registry() -> Vec<Box<dyn LangProjectionTarget>> {
 pub const EMISSION_WORTHY_CLASSES: &[(&str, &[&str])] = &[
     ("Grammar", &["ebnf", "abnf"]),
     ("Lexeme", &["ontolex-lemon"]),
-    ("ComposedForm", &["conllu"]),
+    // A composed form lowers to the CoNLL-U morphosyntax surface AND (document-scale) to TEI.
+    ("ComposedForm", &["conllu", "tei"]),
+    ("Rendering", &["tei"]),
+    ("SurfaceAnchor", &["nif"]),
+    ("Denotation", &["semaf"]),
 ];
 
 /// Whether the registry covers `lang_class` — every emission-worthy class maps to at least

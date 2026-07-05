@@ -1026,7 +1026,8 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
         let committed = std::fs::read_to_string(root.join(PROJECTION_REPORT_PATH))
             .expect("committed projection report");
         // The non-logic target prefixes: the four alignment dialects, the EmotionML
-        // lowering, and the lang: projection targets (grammar/lexicon/treebank emissions).
+        // lowering, and the lang: projection targets (grammar/lexicon/treebank emissions
+        // plus the TEI document, NIF anchor, and SemAF/AMR denotation emissions).
         let non_logic = [
             "/target/sssom:",
             "/target/fno:",
@@ -1036,6 +1037,9 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
             "/target/abnf:",
             "/target/conllu:",
             "/target/ontolex",
+            "/target/tei:",
+            "/target/nif:",
+            "/target/semaf:",
             "/target/lang-projection:",
         ];
         // A Turtle subject block is a blank-line-separated group. Drop any block that
