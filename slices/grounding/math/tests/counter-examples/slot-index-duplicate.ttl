@@ -1,0 +1,22 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:SlotIndexUniquenessShape: two math:argumentSlot cells of one
+# binder share math:slotIndex 0, so operand order is ambiguous. Each slot is otherwise
+# well-formed (index + expression), isolating the SPARQL uniqueness violation. Validation
+# MUST emit shacl.SPARQLConstraintComponent (math:MalformedArgumentSlot). Bound by
+# ex:ecSlotIndexDuplicate.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:badBinder a math:BindingExpression ;
+    math:operator math:summationBinder ;
+    math:boundVariable ex:kDecl ;
+    math:argumentSlot ex:badSlotA , ex:badSlotB .
+
+ex:badSlotA a math:ArgumentSlot ; math:slotIndex 0 ; math:slotExpression ex:exprA .
+ex:badSlotB a math:ArgumentSlot ; math:slotIndex 0 ; math:slotExpression ex:exprB .
+
+ex:exprA a math:MathematicalExpression .
+ex:exprB a math:MathematicalExpression .
+ex:kDecl a math:VariableDeclaration .

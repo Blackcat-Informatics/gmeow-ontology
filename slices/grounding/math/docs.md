@@ -138,3 +138,58 @@ The algebra gates:
 | A root system claiming the E8 fingerprint declares the true Weyl order | `math:E8WeylOrderShape` (SHACL-SPARQL) | `math:WrongE8WeylOrder` |
 | An HE scheme declares its homomorphic operation, hardness, and noise | `math:HomomorphicEncryptionSchemeShape` | `math:UnderspecifiedEncryptionScheme` |
 | A ring declares the distributivity law tying its two operations together | `math:RingDistributivityShape` | `math:NonDistributiveRing` |
+
+## Analysis, topology & geometry — the continuous
+
+The analysis-and-geometry charter ([`design/MATHEMATICS-ANALYSIS-AND-GEOMETRY.md`](./design/MATHEMATICS-ANALYSIS-AND-GEOMETRY.md))
+brings the objects of the continuous under the same discipline as the rest of `math:`: **the continuous
+is structured, not evocative.** A derivative is a binder over the expression AST, not the string "dy/dx";
+a manifold declares its dimension and structure kind, not merely the label "manifold"; a complement
+names its ambient space and its complement-semantics. It also lands the subset of the mathematical-core
+binder AST its operators consume, using the canonical reserved names (no near-synonyms).
+
+- **The binder AST** — `math:BindingExpression` over the indexed argument-slot AST (`math:ArgumentSlot`,
+  `math:slotIndex`, `math:slotExpression`, `math:operator`), the declaration/occurrence split
+  (`math:VariableDeclaration`, `math:VariableOccurrence`, `math:boundVariable`, `math:bindsOccurrence`,
+  `math:declaredVariable`) that makes nested and shadowed binders checkable, and the denotation seam
+  (`math:denotationKind` + `math:compilesToLogicTerm`/`Formula`/`Type`) that lowers an expression into
+  `logic:` with a recorded preservation — so the mathematical surface never silently becomes a logical
+  assertion. `math:Integral` (from the measure charter) becomes a binding expression, unifying ∫ with
+  d/dx, ∂, ∑, and lim under one binding form.
+- **Calculus and analysis** — `math:Derivative`, `math:PartialDerivative`, `math:DifferentialOperator`,
+  `math:Limit`, `math:Series`, `math:Sequence`, `math:Convergence`, and `math:SpecialFunction` (Γ, ζ,
+  Bessel, erf as first-class individuals aligned to DLMF and OpenMath). A derivative names what it
+  differentiates, its variable, and its order; a series carries a `math:Convergence` with its mode
+  (pointwise, uniform, absolute, in-measure, …) — "it converges" is meaningless without the mode.
+- **Topology** — `math:TopologicalSpace`, `math:OpenSet`, `math:ContinuousMap` (⊑ `math:Morphism`),
+  `math:Homeomorphism`, `math:CompactSpace`, `math:ConnectedSpace`, `math:Homotopy`, and
+  `math:HomologyGroup` (⊑ `math:AbelianGroup`, so it carries the full algebra frame). Continuity,
+  compactness, and connectedness are declared, not assumed; the defining law that the preimage of an
+  open set is open is authored as a first-order `logic:Formula` (`math:continuityLaw`).
+- **Differential geometry** — the manifold tower `math:Manifold` ⊐ `math:SmoothManifold` ⊐
+  `math:ComplexManifold`/`math:RiemannianManifold`/`math:LorentzianManifold`, with `math:Chart`,
+  `math:Atlas` (carrying transition maps φᵢ∘φⱼ⁻¹ through the landed function composition),
+  `math:CoordinateMap`, `math:TangentSpace`, `math:TensorField`, and `math:MetricTensor` with a
+  structured `math:MetricSignature` (p, q). The **Lorentzian** metric is the math object a physics slice
+  needs for spacetime, and it stays here on the math side of the boundary — spacetime, worldlines, and
+  the SR/GR regimes are physics.
+
+The distinguished hard rule is the **named complement**: a `math:Complement` names its `math:ambientSpace`
+and its `math:complementSemantics` (set-theoretic, orthogonal, complex-linear, topological, or
+quotient/cokernel), generalizing the bedrock set-theoretic complement — an unqualified complement is
+ill-formed. A chart's target space and a tangent space must share the manifold's dimension, a
+SHACL-SPARQL gate (`math:DimensionMismatch`) that is the analysis-geometry analogue of dimensional
+homogeneity.
+
+| Rule | Shape | Failure class |
+|---|---|---|
+| A derivative names what it differentiates, its variable, and order | `math:DerivativeShape` | `math:UnderspecifiedDerivative` |
+| A limit names its expression and its limit point | `math:LimitShape` | `math:UnderspecifiedLimit` |
+| A series carries a convergence naming its mode | `math:SeriesShape` / `math:ConvergenceShape` | `math:UnderspecifiedConvergence` |
+| Continuity/compactness/connectedness are declared, not assumed | `math:ContinuousMapShape` / `math:CompactSpaceShape` / `math:ConnectedSpaceShape` | `math:UndeclaredTopologicalProperty` |
+| A manifold declares its dimension and structure kind | `math:ManifoldShape` | `math:UnderspecifiedManifold` |
+| A chart names its domain, coordinate map, and target space | `math:ChartShape` | `math:UnderspecifiedChart` |
+| A chart's/tangent space's dimension matches its manifold | `math:ChartDimensionShape` / `math:TangentSpaceDimensionShape` (SHACL-SPARQL) | `math:DimensionMismatch` |
+| A complement names its ambient space and complement-semantics | `math:ComplementShape` | `math:UnqualifiedComplement` |
+| An argument slot has exactly one index and expression; slot indexes are unique | `math:ArgumentSlotShape` / `math:SlotIndexUniquenessShape` | `math:MalformedArgumentSlot` |
+| A variable occurrence resolves to a declaration | `math:VariableOccurrenceShape` | `math:UnscopedVariableOccurrence` |

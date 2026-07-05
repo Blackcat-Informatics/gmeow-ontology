@@ -1,0 +1,25 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Well-formed: a limit naming its expression and its limit point (mode optional) —
+# and, as a math:BindingExpression, the math:VariableDeclaration it binds and its
+# body through an indexed math:argumentSlot. Conforms to math:LimitShape and
+# math:BindingExpressionShape. Bound by ex:ecLimitFramed.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:sincLimit a math:Limit ;
+    math:operator math:limitBinder ;
+    math:limitOf ex:sincExpr ;
+    math:limitPoint ex:zeroPoint ;
+    math:limitMode math:limitTwoSided ;
+    math:boundVariable ex:limitVarDecl ;
+    math:argumentSlot ex:sincLimitSlot0 .
+
+ex:sincLimitSlot0 a math:ArgumentSlot ;
+    math:slotIndex 0 ;
+    math:slotExpression ex:sincExpr .
+
+ex:limitVarDecl a math:VariableDeclaration .
+ex:sincExpr a math:MathematicalExpression .
+ex:zeroPoint a math:MathematicalObject .

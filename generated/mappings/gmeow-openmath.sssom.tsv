@@ -1,0 +1,13 @@
+# mapping_tool: gmeow regenerate (mappings)
+# mapping_tool_version: 0.1.0
+# mapping_date: 2026-06-03
+# curie_map:
+#   math: https://blackcatinformatics.ca/math/
+#   semapv: https://w3id.org/semapv/vocab/
+#   skos: http://www.w3.org/2004/02/skos/core#
+subject_id	predicate_id	object_id	object_label	mapping_justification	confidence	comment
+math:SpecialFunction	skos:closeMatch	https://openmath.org/cd/transc1.xhtml	OpenMath transc1 (transcendental functions)	semapv:ManualMappingCuration	0.8	math:SpecialFunction aligns to the OpenMath transc1 transcendental-functions CD, the closest OpenMath home for named analysis functions. closeMatch, full IRI by reference (curl-validated HTTP 200).
+math:differentiationBinder	skos:closeMatch	https://openmath.org/cd/calculus1.xhtml	OpenMath calculus1#diff	semapv:ManualMappingCuration	0.85	math:differentiationBinder aligns to the diff symbol of the OpenMath calculus1 content dictionary. closeMatch, full IRI by reference to the CD page (curl-validated HTTP 200).
+math:limitBinder	skos:closeMatch	https://openmath.org/cd/calculus1.xhtml	OpenMath calculus1#limit	semapv:ManualMappingCuration	0.85	math:limitBinder aligns to the limit symbol of the OpenMath calculus1 CD. closeMatch, full IRI by reference (curl-validated HTTP 200).
+math:partialDifferentiationBinder	skos:closeMatch	https://openmath.org/cd/calculus1.xhtml	OpenMath calculus1#partialdiff	semapv:ManualMappingCuration	0.85	math:partialDifferentiationBinder aligns to the partialdiff symbol of the OpenMath calculus1 CD. closeMatch, full IRI by reference (curl-validated HTTP 200).
+math:summationBinder	skos:closeMatch	https://openmath.org/cd/arith1.xhtml	OpenMath arith1#sum	semapv:ManualMappingCuration	0.85	math:summationBinder aligns to the sum symbol of the OpenMath arith1 CD. closeMatch, full IRI by reference (curl-validated HTTP 200).

@@ -1,0 +1,16 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:DerivativeShape: a math:Derivative naming what it
+# differentiates and its order but omitting math:withRespectToVariable (sh:minCount 1).
+# Validation MUST emit shacl.MinCountConstraintComponent (math:UnderspecifiedDerivative).
+# Bound by ex:ecDerivativeMissingVariable.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:ambiguousDerivative a math:Derivative ;
+    math:operator math:differentiationBinder ;
+    math:derivativeOf ex:someFn ;
+    math:derivativeOrder 1 .
+
+ex:someFn a math:MathematicalExpression .
