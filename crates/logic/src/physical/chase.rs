@@ -437,6 +437,13 @@ pub(crate) fn chase_materialize(
     let mut status = BudgetStatus::Ok;
     for world in &worlds {
         let edb_facts = crate::rule_ir::world_edb_facts(store, world)?;
+        // The budget governs DERIVED steps, not the input: once it is spent, later worlds
+        // run no derivations, but their ASSERTED (EDB) facts are already known and must
+        // still be echoed — dropping them would silently lose input, not just derivations.
+        if status == BudgetStatus::Exhausted {
+            out.extend(echo_asserted(world, &edb_facts)?);
+            continue;
+        }
         let world_status = chase_world_into(
             world,
             &edb_facts,
@@ -447,7 +454,6 @@ pub(crate) fn chase_materialize(
         )?;
         if world_status == BudgetStatus::Exhausted {
             status = BudgetStatus::Exhausted;
-            break; // global budget spent — later worlds don't run
         }
     }
 
@@ -502,7 +508,7 @@ pub(crate) fn parse_existential_rules(rules: &str) -> Result<Vec<ExistentialRule
 
     let program = NemoParsedRules::parse_unvalidated(rules)?.into_program();
     let mut out: Vec<ExistentialRule> = Vec::new();
-    for rule in program.rules() {
+    for (rule_index, rule) in program.rules().enumerate() {
         let head: Vec<EvalAtom> = rule
             .head()
             .iter()
@@ -512,9 +518,16 @@ pub(crate) fn parse_existential_rules(rules: &str) -> Result<Vec<ExistentialRule
             .body_positive()
             .map(|atom| crate::rule_ir::lower_nemo_atom(atom, false))
             .collect::<Result<_, _>>()?;
-        let rule_iri = rule
-            .name()
-            .unwrap_or_else(|| format!("{}rule/anonymous", crate::provenance::LOGIC_NAMESPACE));
+        // Distinct UNNAMED rules must not share one IRI. `SkolemTerm` keys a witness on
+        // `(rule_iri, ordinal, frontier)`, so two anonymous existential rules firing on the
+        // same frontier would otherwise mint the SAME witness — conflating their invented
+        // individuals. Disambiguate the anonymous IRI by the rule's position.
+        let rule_iri = rule.name().unwrap_or_else(|| {
+            format!(
+                "{}rule/anonymous/{rule_index}",
+                crate::provenance::LOGIC_NAMESPACE
+            )
+        });
         let parsed = ExistentialRule {
             rule_iri,
             body,
@@ -524,6 +537,20 @@ pub(crate) fn parse_existential_rules(rules: &str) -> Result<Vec<ExistentialRule
             // for the multi-witness `≥n p.D` shape, never silently kept for the latter.
             distinct: Vec::new(),
         };
+        // A VALUE-INVENTING rule whose body carries a negated (`~atom`) guard cannot be
+        // honored: the restricted chase joins only positive body atoms, so dropping the
+        // guard would invent witnesses the negation forbids — a wrong answer. Refuse it.
+        // (A non-existential rule's negation is harmless HERE — this `ExistentialRule` is
+        // only probed for `is_existential`, never chased; the Datalog path re-parses it via
+        // `parse_eval_rules`, which lowers the negated body faithfully.)
+        if parsed.is_existential() && rule.body_negative().count() > 0 {
+            return Err(format!(
+                "chase: value-inventing rule {} carries a negated body literal (~atom) the \
+                 restricted existential chase cannot honor (it joins only positive body \
+                 atoms); refusing rather than inventing witnesses the guard forbids",
+                parsed.rule_iri
+            ));
+        }
         reject_unrepresentable_distinctness(&parsed)?;
         out.push(parsed);
     }
@@ -1217,6 +1244,93 @@ mod tests {
         assert!(
             !err.contains('#'),
             "the refusal message must carry no process refs: {err}"
+        );
+    }
+
+    #[test]
+    fn parse_existential_rule_with_negated_body_is_refused() {
+        // A VALUE-INVENTING rule whose body carries a negated (~atom) guard cannot be
+        // honored — the restricted chase joins only positive body atoms, so dropping the
+        // guard would invent witnesses it forbids. The parser must REFUSE.
+        let ty = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+        let rls = format!(
+            "<{P}>(?x, !y, ?w), <{ty}>(!y, <{D}>, ?w) :- \
+             <{ty}>(?x, <{C}>, ?w), ~<{ty}>(?x, <{E}>, ?w) ."
+        );
+        let err = parse_existential_rules(&rls)
+            .expect_err("an existential rule with a negated body guard must be refused");
+        assert!(
+            err.contains("negated body literal"),
+            "the refusal must name the negation it protects against: {err}"
+        );
+        assert!(!err.contains('#'), "no process refs in the message: {err}");
+    }
+
+    #[test]
+    fn parse_non_existential_rule_with_negation_still_parses() {
+        // A NON-value-inventing (Datalog) rule with a negated guard is not the chase's
+        // concern: its `ExistentialRule` is only probed for `is_existential` (false) and
+        // never chased; the Datalog path re-parses it with the negation intact. It must
+        // parse here rather than being wrongly refused.
+        let ty = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+        let rls =
+            format!("<{ty}>(?x, <{D}>, ?w) :- <{ty}>(?x, <{C}>, ?w), ~<{ty}>(?x, <{E}>, ?w) .");
+        let rules =
+            parse_existential_rules(&rls).expect("a plain Datalog rule with negation must parse");
+        assert_eq!(rules.len(), 1);
+        assert!(
+            !rules[0].is_existential(),
+            "no invented witness ⇒ not existential"
+        );
+    }
+
+    #[test]
+    fn parse_anonymous_existential_rules_get_distinct_iris() {
+        // Two UNNAMED existential rules must not share `logic:rule/anonymous`: `SkolemTerm`
+        // keys a witness on (rule_iri, ordinal, frontier), so a shared IRI would collide
+        // their invented individuals on the same frontier. Anonymous IRIs are index-suffixed.
+        let ty = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+        let rls = format!(
+            "<{P}>(?x, !y, ?w), <{ty}>(!y, <{D}>, ?w) :- <{ty}>(?x, <{C}>, ?w) .\n\
+             <{Q}>(?x, !z, ?w), <{ty}>(!z, <{E}>, ?w) :- <{ty}>(?x, <{D}>, ?w) ."
+        );
+        let rules =
+            parse_existential_rules(&rls).expect("two anonymous existential rules must parse");
+        assert_eq!(rules.len(), 2);
+        assert_ne!(
+            rules[0].rule_iri, rules[1].rule_iri,
+            "distinct anonymous rules must not share a Skolem-identity IRI"
+        );
+        assert!(rules[0].rule_iri.ends_with("/anonymous/0"));
+        assert!(rules[1].rule_iri.ends_with("/anonymous/1"));
+    }
+
+    #[test]
+    fn chase_materialize_echoes_later_worlds_asserted_facts_after_budget_exhaustion() {
+        // A step budget governs DERIVED steps, not input. When it is spent in an earlier
+        // world, later worlds' ASSERTED (EDB) facts must still be echoed — never dropped
+        // with the derivations.
+        let w1 = "http://ex/world/1";
+        let w2 = "http://ex/world/2";
+        let store = crate::store::WorldStore::new();
+        // Two obligations in world 1 exhaust a 1-step budget before world 2 is reached.
+        store.insert_quad(w1, "http://ex/a1", TYPE, C);
+        store.insert_quad(w1, "http://ex/a2", TYPE, C);
+        store.insert_quad(w2, "http://ex/b", TYPE, C);
+        let (_admission, outcome) =
+            chase_materialize(&store, &[some_values_from_rule()], Some(1)).unwrap();
+        let b = decided(outcome);
+        assert_eq!(
+            b.status,
+            BudgetStatus::Exhausted,
+            "the 1-step budget must exhaust before world 2"
+        );
+        assert!(
+            b.rows.iter().any(|r| r.graph == w2
+                && r.predicate == TYPE
+                && term_display(&r.subject) == "<http://ex/b>"),
+            "world 2's asserted EDB must survive world 1's budget exhaustion; rows: {:#?}",
+            b.rows
         );
     }
 
