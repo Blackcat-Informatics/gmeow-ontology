@@ -334,3 +334,57 @@ ASK {
     math:DimensionMismatch               rdfs:subClassOf math:MathConformanceFailure .
 }""" ;
     gmeow:saRationale "Each analysis-and-geometry hard-rule failure MUST be a subclass of math:MathConformanceFailure, so a violation — a malformed argument slot or binder, a silent logic: lowering, an unscoped occurrence, an underspecified derivative/limit/convergence/manifold/chart, an assumed topological property, or a dimension mismatch — is a typed, queryable object." .
+
+# --- Linear algebra & learning: subsumption and framing invariants (MUST) --- #
+ex:saLinearAlgebraSubsumption a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    math:InnerProductSpace       rdfs:subClassOf math:VectorSpace .
+    math:Subspace                rdfs:subClassOf math:VectorSpace .
+    math:LatentSpace             rdfs:subClassOf math:VectorSpace .
+    math:ParameterSpace          rdfs:subClassOf math:VectorSpace .
+    math:OrthogonalComplement    rdfs:subClassOf math:Complement .
+    math:LinearMap               rdfs:subClassOf math:Function .
+    math:CovarianceOperator      rdfs:subClassOf math:LinearMap .
+    math:Embedding               rdfs:subClassOf math:Function .
+    math:KnowledgeGraphEmbedding rdfs:subClassOf math:Embedding .
+    math:PCAAnalysis             rdfs:subClassOf gmeow:Activity .
+    math:ResidualInterpretationClaim rdfs:subClassOf gmeow:Observation .
+    math:AttentionOperation      rdfs:subClassOf math:Operation .
+}""" ;
+    gmeow:saRationale "The linear-algebra-and-learning terms MUST sit in their proper places in the object hierarchy: the space classes under math:VectorSpace, the orthogonal complement under math:Complement (so it inherits the complement contract), linear/covariance/embedding maps under math:Function, a PCA under gmeow:Activity (a process) and a residual interpretation under gmeow:Observation (a vantage-held claim), and the attention operator under math:Operation (so it applies inside the reused expression AST)." .
+
+# --- Every linear-algebra-and-learning failure is typed (MUST) -------------- #
+ex:saLinearAlgebraFailures a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    math:UnqualifiedOrthogonalComplement rdfs:subClassOf math:MathConformanceFailure .
+    math:IncompletePCAAnalysis           rdfs:subClassOf math:MathConformanceFailure .
+    math:ResidualMeaningAsProperty       rdfs:subClassOf math:MathConformanceFailure .
+    math:UnderspecifiedEmbedding         rdfs:subClassOf math:MathConformanceFailure .
+    math:MalformedTensorComputationGraph rdfs:subClassOf math:MathConformanceFailure .
+    math:UnframedWeightTensor            rdfs:subClassOf math:MathConformanceFailure .
+    math:ApplicationOperatorCardinality  rdfs:subClassOf math:MathConformanceFailure .
+}""" ;
+    gmeow:saRationale "Each linear-algebra-and-learning hard-rule failure MUST be a subclass of math:MathConformanceFailure, so an unqualified orthogonal complement, an incomplete PCA, a residual meaning stamped as a property, an underspecified embedding, a malformed tensor graph, an unframed weight tensor, or an application applying other than exactly one operator is a typed, queryable object." .
+
+# --- Meaning is representable only as a vantage-held claim (MUST-NOT) -------- #
+ex:saNoDirectResidualMeaningProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    ?p a ?ptype .
+    FILTER(?ptype IN (owl:DatatypeProperty, owl:ObjectProperty, rdf:Property))
+    FILTER(?p IN (math:residualMeaning, math:latentDimensionMeaning, math:componentMeaning, math:meaning))
+}""" ;
+    gmeow:saRationale "The slice MUST NOT mint a direct residual/latent/component 'meaning' property — whether minted as a datatype, object, or plain RDF property: semantic meaning read off geometry is a vantage-held math:ResidualInterpretationClaim (a gmeow:Observation), never an intrinsic property of the vector, so the property-form of meaning is unauthorable by construction." .

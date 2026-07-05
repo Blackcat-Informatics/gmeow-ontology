@@ -1,0 +1,23 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:SlotIndexUniquenessShape via a tensor computation node:
+# the tensor node reuses the expression AST wholesale, so two math:argumentSlot cells
+# sharing math:slotIndex 0 trip the SAME inherited uniqueness gate that guards every
+# application/binder — proving the AST is reused, not forked. Each slot is otherwise
+# well-formed, isolating the SPARQL uniqueness violation. Validation MUST emit
+# shacl.SPARQLConstraintComponent and NO other finding (math:MalformedArgumentSlot).
+# Bound by ex:ecTensorNodeDuplicateSlotIndex.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:badTensorNode a math:ApplicationExpression ;
+    math:operator math:matrixProduct ;
+    math:tensorOperation math:matrixProduct ;
+    math:argumentSlot ex:dupSlotA , ex:dupSlotB .
+
+ex:dupSlotA a math:ArgumentSlot ; math:slotIndex 0 ; math:slotExpression ex:tExprA .
+ex:dupSlotB a math:ArgumentSlot ; math:slotIndex 0 ; math:slotExpression ex:tExprB .
+
+ex:tExprA a math:MathematicalExpression .
+ex:tExprB a math:MathematicalExpression .

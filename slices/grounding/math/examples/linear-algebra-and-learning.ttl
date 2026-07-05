@@ -1,0 +1,141 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example for the LINEAR-ALGEBRA-AND-LEARNING charter — the two flagships in
+# one dataset:
+#
+#   (1) KG-projection / PCA-of-residuals: a knowledge-graph embedding into a complex
+#       latent space, the orthogonal complement of the embedded subspace (defined by a
+#       Hermitian inner product) as the residual subspace, a PCA over the residuals
+#       declaring its inputs/policy/outputs, and the MEANING of a principal component
+#       held as a gmeow:Observation from a vantage (never a property of the vector).
+#   (2) AI self-structure: the same model's forward pass AS a math:TensorComputationGraph
+#       — a math:ApplicationExpression over a tensor operator with indexed argument slots
+#       (reusing the expression AST wholesale) and a math:WeightTensor in a declared
+#       math:ParameterSpace; its self-reflection is carried at the logic: metalevel
+#       (a logic:MetaLevelFormula), self-reference without paradox across grounding layers.
+#
+# Exercises all five competency questions:
+#   Q1 orthogonal complement's subspace / ambient space / inner product
+#   Q2 PCA input / policy / covariance / eigensolver / components / variance
+#   Q3 the residual (or latent-dimension) meaning and which vantage claims it
+#   Q4 the embedding's source / target / function / model
+#   Q5 the AI's tensor computation graph / parameter space and where reflection is carried
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex:    <http://example.org/math/> .
+
+# --- (1) The knowledge-graph embedding (Q4) --------------------------------- #
+
+ex:kgEmbedding a math:KnowledgeGraphEmbedding ;
+    rdfs:label "A knowledge graph embedded into a complex latent space"@x-gmeow-english ;
+    math:domain ex:sourceGraph ;
+    math:codomain ex:complexSpace4096 ;
+    math:embeddingSource ex:sourceGraph ;
+    math:targetSpace ex:complexSpace4096 ;
+    math:embeddingFunction ex:nodeRelFn ;
+    math:embeddingModel ex:hyperbolicComplexModelV3 .
+
+ex:sourceGraph a math:MathematicalObject .
+
+ex:complexSpace4096 a math:LatentSpace ;
+    rdfs:label "A 4096-dimensional complex latent space"@x-gmeow-english ;
+    math:innerProduct ex:hermitianInnerProduct .
+
+ex:hermitianInnerProduct a math:HermitianInnerProduct .
+ex:nodeRelFn a math:Function ;
+    math:domain ex:sourceGraph ;
+    math:codomain ex:complexSpace4096 .
+ex:hyperbolicComplexModelV3 a math:LearnedModel .
+
+# --- The residual subspace: an orthogonal complement (Q1) ------------------- #
+# The embedded image is a subspace; its orthogonal complement (defined by the
+# Hermitian inner product, within the complex ambient space) is the residual.
+
+ex:embeddedSubspace a math:Subspace ;
+    math:subspaceOf ex:complexSpace4096 .
+
+ex:residualSubspace a math:OrthogonalComplement ;
+    math:orthogonalComplementOf ex:embeddedSubspace ;
+    math:ambientSpace ex:complexSpace4096 ;
+    math:complementSemantics math:orthogonalComplement ;
+    math:definedByInnerProduct ex:hermitianInnerProduct .
+
+# --- The PCA over the residuals (Q2) ---------------------------------------- #
+# Declares its input, centering and scaling policy, the covariance operator it
+# decomposes, the eigensolver, and its full outputs — components, loadings,
+# scores, explained variance, and its own residual.
+
+ex:residualPCA a math:PCAAnalysis ;
+    rdfs:label "PCA of the KG embedding residuals"@x-gmeow-english ;
+    math:analysisInput ex:residualSubspace ;
+    math:centeringPolicy math:meanCentered ;
+    math:scalingPolicy math:unitVariance ;
+    math:covarianceOperator ex:residualCovariance ;
+    math:eigensolver ex:randomizedSVD ;
+    math:principalComponent ex:pc1 , ex:pc2 , ex:pc3 ;
+    math:loadingVector ex:pc1Loadings ;
+    math:scoreVector ex:sampleScores ;
+    math:explainedVarianceRatio ex:pc1Variance ;
+    math:residualSubspace ex:pcaResidual .
+
+ex:residualCovariance a math:CovarianceOperator ;
+    math:domain ex:residualSubspace ;
+    math:codomain ex:residualSubspace .
+ex:randomizedSVD a math:SingularValueDecomposition .
+ex:pc1 a math:PrincipalComponent .
+ex:pc2 a math:PrincipalComponent .
+ex:pc3 a math:PrincipalComponent .
+ex:pc1Loadings a math:LoadingVector .
+ex:sampleScores a math:ScoreVector .
+ex:pc1Variance a math:ExplainedVariance .
+ex:pcaResidual a math:ProjectionResidual .
+
+# --- The residual meaning: an observation, not a property (Q3) -------------- #
+# What pc1 MEANS is a claim held from a vantage — a gmeow:Observation carrying its
+# vantage, the feature it observes, and a result grounded at the logic: metalevel.
+# No direct "meaning" property is stamped on the vector.
+
+ex:residualMeaning a math:ResidualInterpretationClaim ;
+    rdfs:label "pc1 encodes a latent thematic axis (per the analyst's model commit)"@x-gmeow-english ;
+    gmeow:vantage ex:analystModelCommit ;
+    gmeow:observedFeature ex:pc1 ;
+    gmeow:observationResult ex:latentThemeFormula .
+
+ex:analystModelCommit a gmeow:Standpoint .
+ex:latentThemeFormula a logic:MetaLevelFormula .
+
+# --- (2) The AI self-structure: the model's forward pass as a tensor graph (Q5) #
+# A math:TensorComputationGraph whose node reuses the expression AST wholesale —
+# a math:ApplicationExpression applying the matrix-product operator to two indexed
+# argument slots — with a math:WeightTensor leaf in a declared math:ParameterSpace.
+
+ex:selfModelGraph a math:TensorComputationGraph ;
+    rdfs:label "The forward pass of hyperbolicComplexModelV3 as a tensor computation graph"@x-gmeow-english ;
+    math:architectureOf ex:hyperbolicComplexModelV3 ;
+    math:computationNode ex:attentionNode .
+
+ex:attentionNode a math:ApplicationExpression ;
+    math:operator math:matrixProduct ;
+    math:argumentSlot ex:attnSlot0 , ex:attnSlot1 .
+
+ex:attnSlot0 a math:ArgumentSlot ;
+    math:slotIndex 0 ;
+    math:slotExpression ex:inputActivationExpr .
+
+ex:attnSlot1 a math:ArgumentSlot ;
+    math:slotIndex 1 ;
+    math:slotExpression ex:layer1WeightExpr .
+
+ex:inputActivationExpr a math:MathematicalExpression .
+ex:layer1WeightExpr a math:MathematicalExpression .
+
+ex:layer1 a math:NeuralLayer .
+ex:layer1Weight a math:WeightTensor ;
+    math:weightOf ex:layer1 ;
+    math:inParameterSpace ex:parameterSpace .
+
+ex:parameterSpace a math:ParameterSpace ;
+    math:parameterSpaceOf ex:hyperbolicComplexModelV3 .

@@ -45,7 +45,7 @@ use sha2::{Digest, Sha256};
 
 use crate::ir::{
     Correspondence, CorrespondenceLaw, DischargeCondition, DischargeVerdict, LawClaimIr,
-    PreservationKind, TransactionProgramIr,
+    MorphismClass, PreservationKind, TransactionProgramIr,
 };
 
 use super::correspondence::CorrespondenceProgram;
@@ -108,12 +108,39 @@ pub fn derived_put_iri(get_leg: &str, c: &Correspondence) -> String {
     format!("{get_leg}/put#{short}")
 }
 
-/// Whether the cell is injective enough for a witness retraction — `mnemomorphic` on an
-/// `Isomorphism` / `SectionRetraction` / `WellBehavedLens` rung. Rung membership is the
-/// explicit [`MorphismClass::is_injective_rung`] predicate, never the fragile derived-`Ord`
+/// The three lawful up-lift classes a cell can fall into — the single authority for the
+/// `put` polarity decision, keyed off exactly the three inputs the derivation reads.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum PutClass {
+    /// A lawful recovery: a mnemomorphic witness on an injective-enough rung projects the
+    /// `put` — a `CompleteOver` up-lift.
+    CompleteOver,
+    /// A minted-with-claim candidate preimage: no witness, but a co-authored law status —
+    /// a `ValidationOnly` up-lift.
+    ValidationOnly,
+    /// Neither a witness nor a co-authored claim: the honest legalization floor.
+    Unsupported,
+}
+
+/// Classify one cell's `put` up-lift from the three inputs the derivation reads — the
+/// SINGLE authority for the polarity decision. The `CompleteOver` arm is the
+/// witness-retraction predicate: `mnemomorphic` on an injective-enough rung
+/// (`Isomorphism` / `SectionRetraction` / `WellBehavedLens`), decided by the explicit
+/// [`MorphismClass::is_injective_rung`] predicate rather than the fragile derived-`Ord`
 /// `≤ WellBehavedLens` comparison (a spine reorder must not silently reclassify recovery).
-fn is_recoverable(c: &Correspondence) -> bool {
-    c.mnemomorphic && c.morphism_class.is_injective_rung()
+/// A non-empty `law_claims` without a witness is `ValidationOnly`; otherwise `Unsupported`.
+pub(crate) fn classify_put(
+    mnemomorphic: bool,
+    morphism_class: MorphismClass,
+    law_claims: &[LawClaimIr],
+) -> PutClass {
+    if mnemomorphic && morphism_class.is_injective_rung() {
+        PutClass::CompleteOver
+    } else if !law_claims.is_empty() {
+        PutClass::ValidationOnly
+    } else {
+        PutClass::Unsupported
+    }
 }
 
 /// Derive the lawful `put` leg for one correspondence (which must carry a `get` leg and no
@@ -143,12 +170,12 @@ pub fn derive_put(c: &Correspondence) -> Result<PutDerivation, String> {
 
     let mint = derived_put_iri(get_leg, c);
 
-    if is_recoverable(c) {
+    match classify_put(c.mnemomorphic, c.morphism_class, &c.law_claims) {
         // Source (1): the mnemomorphic witness. put is the projection along it — a lawful
         // recovery. The SectionLaw is discharged PROVISIONALLY (the conformance Round-trip
         // / Law gate confirms it, or degrades it to ObligationUnknown — debugify/Alive2:
         // validate the transform, don't trust it).
-        return Ok(PutDerivation::Derived(DerivedPut {
+        PutClass::CompleteOver => Ok(PutDerivation::Derived(DerivedPut {
             put_leg: mint,
             mnemomorphic_recovery: true,
             section_claim: LawClaimIr {
@@ -158,21 +185,19 @@ pub fn derive_put(c: &Correspondence) -> Result<PutDerivation, String> {
             },
             preservation: PreservationKind::CompleteOver,
             residue: Vec::new(),
-        }));
-    }
+        })),
 
-    // Source (2): a co-authored put-with-claim — signalled by a declared law status
-    // (non-empty law_claims). The put is minted-with-claim: a candidate preimage,
-    // ValidationOnly, ObligationUnknown.
-    //
-    // A `mnemomorphic` flag on a NON-injective rung is NOT a source: the witness cannot
-    // honour the rung, so there is no lawful recovery to project (`is_recoverable` already
-    // rejected it). Minting a put for it would have `derive_put` disagree with the
-    // Mnemomorphism gate, which REDs that incoherent declaration — two sources of truth for
-    // one coherence rule. Instead it falls through to `Unsupported`: no put is minted, and
-    // the gate is the single authority that REDs the bad witness.
-    if !c.law_claims.is_empty() {
-        return Ok(PutDerivation::Derived(DerivedPut {
+        // Source (2): a co-authored put-with-claim — signalled by a declared law status
+        // (non-empty law_claims). The put is minted-with-claim: a candidate preimage,
+        // ValidationOnly, ObligationUnknown.
+        //
+        // A `mnemomorphic` flag on a NON-injective rung is NOT a source: the witness cannot
+        // honour the rung, so there is no lawful recovery to project (`classify_put` already
+        // rejected it from `CompleteOver`). Minting a recovery put for it would have
+        // `derive_put` disagree with the Mnemomorphism gate, which REDs that incoherent
+        // declaration — two sources of truth for one coherence rule. It falls to
+        // `ValidationOnly` only when a claim is authored; otherwise `Unsupported`.
+        PutClass::ValidationOnly => Ok(PutDerivation::Derived(DerivedPut {
             put_leg: mint,
             mnemomorphic_recovery: false,
             section_claim: LawClaimIr {
@@ -187,18 +212,18 @@ pub fn derive_put(c: &Correspondence) -> Result<PutDerivation, String> {
                  architecture (take1 §6.1)"
                     .to_owned(),
             ],
-        }));
-    }
+        })),
 
-    // Neither a witness nor a co-authored claim: the honest legalization floor. The
-    // up-lift is carried and flagged, never minted (LOGIC-IR.md § Lowering).
-    Ok(PutDerivation::Unsupported {
-        residue: vec![
-            "up-lift unsupported: get is non-injective and the cell carries neither a \
-             mnemomorphic witness nor a co-authored put-with-claim (take1 §11)"
-                .to_owned(),
-        ],
-    })
+        // Neither a witness nor a co-authored claim: the honest legalization floor. The
+        // up-lift is carried and flagged, never minted (LOGIC-IR.md § Lowering).
+        PutClass::Unsupported => Ok(PutDerivation::Unsupported {
+            residue: vec![
+                "up-lift unsupported: get is non-injective and the cell carries neither a \
+                 mnemomorphic witness nor a co-authored put-with-claim (take1 §11)"
+                    .to_owned(),
+            ],
+        }),
+    }
 }
 
 /// The per-correspondence outcome of [`CorrespondenceProgram::with_derived_puts`]: the
