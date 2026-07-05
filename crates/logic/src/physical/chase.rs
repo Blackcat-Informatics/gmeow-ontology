@@ -357,6 +357,284 @@ fn fact_rule_iri(_sources: &[String]) -> String {
     CHASE_RULE_IRI.to_owned()
 }
 
+// ── ChaseAdmission: the termination certificate (constant-refined weak acyclicity) ──
+//
+// The chase does not decide termination; the router certifies the program FIRST and
+// only runs a certified-terminating program unbudgeted.  Termination of the restricted
+// chase is decided by a **position dependency graph**: normal edges track how a
+// frontier value flows body→head, special (existential) edges track where a fresh null
+// is placed; the program terminates when no special edge lies inside a cycle (weak
+// acyclicity).  This is the `ExistentialRule`-native port of `certify.rs`'s
+// `certify_weak_acyclicity` — computed on the SAME rules the chase runs, so the
+// existential head vars are actually visible (a `.rls` re-projection would hard-error on
+// them and the certifier would stay vacuous).
+//
+// # Constant refinement (why plain positions are too coarse)
+//
+// The binary `type(individual, class)` encoding puts every class in ONE object slot, so
+// plain weak acyclicity collapses `type(?x, C)` and `type(?y, D)` into the same subject
+// position and spuriously reports the terminating `C ⊑ ∃p.D` as cyclic.  A position is
+// therefore **refined by the constant co-occurring in the other slot**: a null typed `D`
+// lives at `(type, S | D)` and can only be consumed by a body atom matching class `D`, so
+// it never triggers the `type(?x, C)` rule — the refinement tracks class-typed null flow
+// precisely.  The refinement is sound: it only SPLITS positions by a constant that
+// genuinely partitions which body atoms can consume the null; a variable in the other
+// slot stays the wildcard `*`, and where both a wildcard and constants occur for one
+// `(predicate, slot)` they are conservatively connected (over-approximating reachability,
+// never under — so a non-terminating program is never wrongly certified).
+
+/// The class refinement of a position: the constant co-occurring in the atom's other
+/// slot, or the wildcard when that slot is a variable.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+enum ClassKey {
+    /// The other slot is this constant surface.
+    Const(String),
+    /// The other slot is a variable — matches any class.
+    Wildcard,
+}
+
+/// Which column of a binary atom a variable occupies.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+enum Slot {
+    Subject,
+    Object,
+}
+
+/// A node in the position dependency graph: a `(predicate, slot)` refined by the
+/// co-occurring constant class.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+struct Position {
+    predicate: String,
+    slot: Slot,
+    class: ClassKey,
+}
+
+impl Position {
+    fn render(&self) -> String {
+        let slot = match self.slot {
+            Slot::Subject => "S",
+            Slot::Object => "O",
+        };
+        let class = match &self.class {
+            ClassKey::Const(k) => k.as_str(),
+            ClassKey::Wildcard => "*",
+        };
+        format!("{}[{slot}|{class}]", self.predicate)
+    }
+}
+
+/// The refined positions at which `var` occurs across `atoms`.
+fn refined_positions(atoms: &[EvalAtom], var: &str) -> Vec<Position> {
+    let mut out = Vec::new();
+    for atom in atoms {
+        if matches!(&atom.subject, EvalTerm::Var(v) if v == var) {
+            out.push(Position {
+                predicate: atom.predicate.clone(),
+                slot: Slot::Subject,
+                class: class_key(&atom.object),
+            });
+        }
+        if matches!(&atom.object, EvalTerm::Var(v) if v == var) {
+            out.push(Position {
+                predicate: atom.predicate.clone(),
+                slot: Slot::Object,
+                class: class_key(&atom.subject),
+            });
+        }
+    }
+    out
+}
+
+/// The class key contributed by the OTHER slot's term.
+fn class_key(other: &EvalTerm) -> ClassKey {
+    match other {
+        EvalTerm::ConstNamed(iri) => ClassKey::Const(format!("<{iri}>")),
+        EvalTerm::ConstLit(t) => ClassKey::Const(term_display(t)),
+        EvalTerm::Var(_) => ClassKey::Wildcard,
+    }
+}
+
+/// The termination certificate for the restricted chase — a lattice element on an
+/// explicit partial order (`Uncertified` ⊏ `WeaklyAcyclic`; joint-acyclic / guarded /
+/// sticky classes slot in as further elements later).  The order is implemented
+/// explicitly, never derived: a derived `Ord` would order by declaration, not by the
+/// certified-strength meaning.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) enum ChaseAdmission {
+    /// Certified terminating: no existential edge lies inside a cycle.  `evidence`
+    /// records the proof shape (position / existential-edge counts).
+    WeaklyAcyclic {
+        /// Human-readable proof summary folded into the divergence ledger.
+        evidence: String,
+    },
+    /// Not certified terminating; `violations` names each existential-edge-in-cycle,
+    /// deterministically sorted — the router refuses or budgets it.
+    Uncertified {
+        /// The offending special edges, sorted.
+        violations: Vec<String>,
+    },
+}
+
+impl ChaseAdmission {
+    /// Certify `rules` by constant-refined weak acyclicity of the position graph.
+    pub(crate) fn certify(rules: &[ExistentialRule]) -> Self {
+        // Adjacency (normal ∪ special) and the special-edge list.
+        let mut adj: std::collections::BTreeMap<Position, BTreeSet<Position>> =
+            std::collections::BTreeMap::new();
+        let mut special: Vec<(Position, Position)> = Vec::new();
+        let mut all_nodes: BTreeSet<Position> = BTreeSet::new();
+
+        for rule in rules {
+            let body_vars = rule.body_vars();
+            let existentials: BTreeSet<String> = rule.existentials().into_iter().collect();
+
+            // Normal edges: a frontier var's body positions → its head positions.
+            for hv in rule.head_vars() {
+                if !body_vars.contains(&hv) {
+                    continue;
+                }
+                let bpos = refined_positions(&rule.body, &hv);
+                let hpos = refined_positions(&rule.head, &hv);
+                for b in &bpos {
+                    for h in &hpos {
+                        all_nodes.insert(b.clone());
+                        all_nodes.insert(h.clone());
+                        adj.entry(b.clone()).or_default().insert(h.clone());
+                    }
+                }
+            }
+
+            // Special edges: every frontier-var body position → every existential head
+            // position (the fresh null depends on the frontier binding).
+            if !existentials.is_empty() {
+                let mut frontier_bpos: Vec<Position> = Vec::new();
+                for fv in rule.frontier_vars() {
+                    frontier_bpos.extend(refined_positions(&rule.body, &fv));
+                }
+                for e in &existentials {
+                    for h in refined_positions(&rule.head, e) {
+                        for b in &frontier_bpos {
+                            all_nodes.insert(b.clone());
+                            all_nodes.insert(h.clone());
+                            adj.entry(b.clone()).or_default().insert(h.clone());
+                            special.push((b.clone(), h.clone()));
+                        }
+                    }
+                }
+            }
+        }
+
+        add_wildcard_subsumption(&mut adj, &all_nodes);
+
+        // A special edge (u → v) violates weak acyclicity iff v can reach u (the edge
+        // lies in a cycle → the chase may not terminate).
+        let mut violations: Vec<String> = Vec::new();
+        for (u, v) in &special {
+            if reaches(&adj, v, u) {
+                violations.push(format!(
+                    "weak-acyclicity: existential edge {} -> {} lies in a cycle (the restricted chase may not terminate)",
+                    u.render(),
+                    v.render()
+                ));
+            }
+        }
+        violations.sort();
+        violations.dedup();
+
+        if violations.is_empty() {
+            Self::WeaklyAcyclic {
+                evidence: format!(
+                    "weakly acyclic: {} refined position(s), {} existential edge(s), none in a cycle",
+                    all_nodes.len(),
+                    special.len()
+                ),
+            }
+        } else {
+            Self::Uncertified { violations }
+        }
+    }
+
+    /// Whether the native chase may run this program unbudgeted (it terminates).
+    pub(crate) fn admits_native(&self) -> bool {
+        matches!(self, Self::WeaklyAcyclic { .. })
+    }
+
+    /// The certified-strength rank — explicit, NOT a derived `Ord`.
+    fn rank(&self) -> u8 {
+        match self {
+            Self::Uncertified { .. } => 0,
+            Self::WeaklyAcyclic { .. } => 1,
+        }
+    }
+
+    /// The lattice meet toward `Uncertified`: a program is admitted only when every
+    /// part is, so combining two admissions keeps the weaker (lower-ranked) one.
+    pub(crate) fn combine(self, other: Self) -> Self {
+        if self.rank() <= other.rank() {
+            self
+        } else {
+            other
+        }
+    }
+}
+
+/// Connect wildcard and constant refinements of the same `(predicate, slot)` when BOTH
+/// occur — a conservative over-approximation (a wildcard-typed null could be any class,
+/// and a wildcard consumer reads any class), so reachability is never under-counted.
+fn add_wildcard_subsumption(
+    adj: &mut std::collections::BTreeMap<Position, BTreeSet<Position>>,
+    nodes: &BTreeSet<Position>,
+) {
+    use std::collections::BTreeMap;
+    // Group nodes by (predicate, slot).
+    let mut groups: BTreeMap<(String, Slot), (Vec<Position>, bool)> = BTreeMap::new();
+    for n in nodes {
+        let entry = groups.entry((n.predicate.clone(), n.slot)).or_default();
+        if n.class == ClassKey::Wildcard {
+            entry.1 = true;
+        } else {
+            entry.0.push(n.clone());
+        }
+    }
+    for ((predicate, slot), (consts, has_wildcard)) in groups {
+        if !has_wildcard || consts.is_empty() {
+            continue; // refinement stays precise unless both a wildcard and consts occur
+        }
+        let wildcard = Position {
+            predicate,
+            slot,
+            class: ClassKey::Wildcard,
+        };
+        for c in consts {
+            adj.entry(c.clone()).or_default().insert(wildcard.clone());
+            adj.entry(wildcard.clone()).or_default().insert(c);
+        }
+    }
+}
+
+/// Whether `to` is reachable from `from` in `adj` (BFS over ≥1 edges; a self-edge on
+/// `from` therefore counts).
+fn reaches(
+    adj: &std::collections::BTreeMap<Position, BTreeSet<Position>>,
+    from: &Position,
+    to: &Position,
+) -> bool {
+    let mut stack: Vec<&Position> = adj.get(from).into_iter().flatten().collect();
+    let mut seen: BTreeSet<&Position> = BTreeSet::new();
+    while let Some(node) = stack.pop() {
+        if node == to {
+            return true;
+        }
+        if !seen.insert(node) {
+            continue;
+        }
+        if let Some(succs) = adj.get(node) {
+            stack.extend(succs.iter());
+        }
+    }
+    false
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -538,5 +816,102 @@ mod tests {
             "≥2 distinct witnesses, got {}",
             targets.len()
         );
+    }
+
+    // ── ChaseAdmission termination certificate ───────────────────────────────────
+
+    const E: &str = "http://ex/E";
+    const Q: &str = "http://ex/q";
+
+    /// `type(x, from) → ∃y. rel(x, y) ∧ type(y, to)`.
+    fn restriction_rule(iri: &str, from: &str, rel: &str, to: &str) -> ExistentialRule {
+        ExistentialRule {
+            rule_iri: iri.to_owned(),
+            body: vec![atom(var("?x"), TYPE, EvalTerm::ConstNamed(from.to_owned()))],
+            head: vec![
+                atom(var("?x"), rel, var("?y")),
+                atom(var("?y"), TYPE, EvalTerm::ConstNamed(to.to_owned())),
+            ],
+            distinct: vec![],
+        }
+    }
+
+    #[test]
+    fn certify_acyclic_el_restriction_is_weakly_acyclic_and_non_vacuous() {
+        // `C ⊑ ∃p.D` terminates (the D-witness never re-triggers the C-bodied rule).
+        // The certifier must (a) certify it AND (b) actually SEE an existential edge —
+        // the load-bearing non-vacuity check: if the ∃ head var were invisible the
+        // certifier would trivially (vacuously) certify with ZERO special edges.
+        let admission = ChaseAdmission::certify(&[some_values_from_rule()]);
+        match &admission {
+            ChaseAdmission::WeaklyAcyclic { evidence } => {
+                assert!(admission.admits_native());
+                assert!(
+                    !evidence.contains("0 existential edge"),
+                    "certifier must see ≥1 existential edge (non-vacuous): {evidence}"
+                );
+            }
+            ChaseAdmission::Uncertified { violations } => {
+                panic!("acyclic C⊑∃p.D must certify, got violations: {violations:?}")
+            }
+        }
+    }
+
+    #[test]
+    fn certify_cyclic_restriction_is_uncertified() {
+        // `D ⊑ ∃p.D`: the witness is itself D-typed, re-triggering the rule forever.
+        let cyclic = restriction_rule("http://ex/rule/cyclic", D, P, D);
+        let admission = ChaseAdmission::certify(&[cyclic]);
+        match admission {
+            ChaseAdmission::Uncertified { violations } => {
+                assert!(!violations.is_empty());
+                assert!(violations[0].contains("lies in a cycle"));
+            }
+            ChaseAdmission::WeaklyAcyclic { evidence } => {
+                panic!("cyclic D⊑∃p.D must NOT certify, got: {evidence}")
+            }
+        }
+    }
+
+    #[test]
+    fn certify_acyclic_chain_certifies() {
+        // `C ⊑ ∃p.D` and `D ⊑ ∃q.E`: a finite chain C→D→E, terminating.
+        let r1 = restriction_rule("http://ex/rule/c", C, P, D);
+        let r2 = restriction_rule("http://ex/rule/d", D, Q, E);
+        assert!(ChaseAdmission::certify(&[r1, r2]).admits_native());
+    }
+
+    #[test]
+    fn certify_two_rule_cycle_is_uncertified() {
+        // `C ⊑ ∃p.D` and `D ⊑ ∃q.C`: C→D→C invents forever across two rules.
+        let r1 = restriction_rule("http://ex/rule/c", C, P, D);
+        let r2 = restriction_rule("http://ex/rule/d", D, Q, C);
+        assert!(!ChaseAdmission::certify(&[r1, r2]).admits_native());
+    }
+
+    #[test]
+    fn certify_non_existential_program_is_trivially_weakly_acyclic() {
+        // A plain Datalog rule (no ∃ head var) has no special edges → certified.
+        let datalog = ExistentialRule {
+            rule_iri: "http://ex/rule/datalog".to_owned(),
+            body: vec![atom(var("?x"), P, var("?y"))],
+            head: vec![atom(var("?y"), P, var("?x"))],
+            distinct: vec![],
+        };
+        let admission = ChaseAdmission::certify(&[datalog]);
+        assert!(admission.admits_native());
+        assert!(matches!(
+            admission,
+            ChaseAdmission::WeaklyAcyclic { evidence } if evidence.contains("0 existential edge")
+        ));
+    }
+
+    #[test]
+    fn certify_lattice_combine_takes_the_weaker() {
+        // The whole program is admitted only if every part is: combine → the weaker.
+        let good = ChaseAdmission::certify(&[some_values_from_rule()]);
+        let bad = ChaseAdmission::certify(&[restriction_rule("http://ex/r", D, P, D)]);
+        assert!(!good.clone().combine(bad.clone()).admits_native());
+        assert!(!bad.combine(good).admits_native());
     }
 }
