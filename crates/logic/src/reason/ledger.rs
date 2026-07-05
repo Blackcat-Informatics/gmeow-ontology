@@ -350,6 +350,41 @@ pub fn dl_gap_rows(gaps: &[RdfLoss]) -> Vec<LedgerRow> {
         .collect()
 }
 
+/// The ledger category stamped on a native existential-chase capability-gap row.
+///
+/// Distinct from the DL/EL crosscheck categories (`"subsumption"`, `"consistency"`,
+/// `"external-corpus"`) so a refused existential program's gap rows are scoped OUT of the
+/// committed DL/EL crosscheck corpus whose gate asserts `gapCount == 0`: that ledger
+/// (`crate::reason::artifacts::build_dl_el_ledger_ttl`) reconstructs its gaps from the
+/// shared model's unsupported constructs, never from [`existential_gap_rows`].
+pub const EXISTENTIAL_CHASE_CATEGORY: &str = "existential-chase";
+
+/// Emit one [`DivergenceKind::DlGap`] row per weak-acyclicity violation of a refused
+/// (uncertified, unbudgeted) native existential-chase program.
+///
+/// The native restricted chase refuses a program it cannot certify terminating — a
+/// special existential edge lies in a cycle — rather than loop.  Each such refusal is a
+/// native capability-gap (a construct the native path did not decide), so it is exactly a
+/// [`DivergenceKind::DlGap`], reusing the counted divergence-ledger kind rather than a
+/// parallel one.  Each `violation` string (the offending special-edge-in-cycle evidence,
+/// already deterministically sorted by the `ChaseAdmission` certifier) rides verbatim in
+/// the row's `detail`.  The rows carry [`EXISTENTIAL_CHASE_CATEGORY`], so
+/// [`build_ledger`] / [`enforce`] COUNT them as gaps when a caller routes them into a
+/// ledger, while their disjoint category keeps them out of the DL/EL crosscheck corpus.
+pub fn existential_gap_rows(violations: &[String]) -> Vec<LedgerRow> {
+    violations
+        .iter()
+        .map(|violation| LedgerRow {
+            kind: DivergenceKind::DlGap,
+            category: EXISTENTIAL_CHASE_CATEGORY.to_owned(),
+            subject: String::new(),
+            object: String::new(),
+            world: String::new(),
+            detail: violation.clone(),
+        })
+        .collect()
+}
+
 /// One native-vs-published verdict comparison for a single external-corpus
 /// case/world.
 ///
@@ -640,6 +675,48 @@ mod tests {
 
         let ledger = build_ledger(Vec::new(), Vec::new(), rows, Vec::new());
         assert_eq!(ledger.dl_gap, 1, "build_ledger tallies dl_gap == 1");
+    }
+
+    #[test]
+    fn existential_gap_rows_are_counted_dlgaps_scoped_out_of_crosscheck() {
+        // A refused existential program's weak-acyclicity violation becomes a counted
+        // DlGap row carrying the violation evidence verbatim.
+        let violations = vec![
+            "weak-acyclicity: existential edge p[O|<http://ex/D>] -> p[O|<http://ex/D>] \
+             lies in a cycle (the restricted chase may not terminate)"
+                .to_owned(),
+        ];
+        let rows = existential_gap_rows(&violations);
+        assert_eq!(rows.len(), 1, "one DlGap row per violation");
+        assert_eq!(rows[0].kind, DivergenceKind::DlGap);
+        assert_eq!(rows[0].category, EXISTENTIAL_CHASE_CATEGORY);
+        assert!(
+            rows[0].detail.contains("lies in a cycle"),
+            "the violation evidence rides verbatim in detail: {:?}",
+            rows[0].detail
+        );
+
+        // Routed into a ledger they ARE counted as gaps (the counted divergence ledger),
+        // so `enforce` fails on them — the capability-gap is enforced, not dropped.
+        let ledger = build_ledger(Vec::new(), Vec::new(), rows, Vec::new());
+        assert_eq!(ledger.dl_gap, 1, "build_ledger tallies the existential gap");
+        assert!(
+            !enforce(&ledger).passed,
+            "a counted existential capability-gap must fail the strict verdict"
+        );
+
+        // …yet the category is DISJOINT from every DL/EL crosscheck category, so the
+        // committed crosscheck corpus (which sources its gaps from unsupported constructs)
+        // never counts these rows against its gapCount==0 gate.
+        assert_ne!(EXISTENTIAL_CHASE_CATEGORY, "consistency");
+        assert_ne!(EXISTENTIAL_CHASE_CATEGORY, "subsumption");
+        assert_ne!(EXISTENTIAL_CHASE_CATEGORY, "external-corpus");
+    }
+
+    #[test]
+    fn certified_program_has_no_existential_gap_rows() {
+        // No violations ⇒ no gap rows: a certified (WeaklyAcyclic) program is not a gap.
+        assert!(existential_gap_rows(&[]).is_empty());
     }
 
     // ── enforce (the strict native⊇oracle decision criterion 3) ──────────
