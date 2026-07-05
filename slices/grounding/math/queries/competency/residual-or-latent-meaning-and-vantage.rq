@@ -7,16 +7,18 @@
 PREFIX math:  <https://blackcatinformatics.ca/math/>
 PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 
-SELECT ?claim ?feature ?vantage WHERE {
+SELECT ?claim ?feature ?vantage ?meaning WHERE {
     {
         ?claim a math:ResidualInterpretationClaim ;
                gmeow:observedFeature ?feature ;
-               gmeow:vantage ?vantage .
+               gmeow:vantage ?vantage ;
+               gmeow:observationResult ?meaning .
         ?feature a math:PrincipalComponent .
     } UNION {
         ?claim a math:ResidualInterpretationClaim ;
                gmeow:observedFeature ?feature ;
-               gmeow:vantage ?vantage .
+               gmeow:vantage ?vantage ;
+               gmeow:observationResult ?meaning .
         ?feature a math:EmbeddingDimension .
     }
     FILTER(STRSTARTS(STR(?claim), "http://example.org/math/"))

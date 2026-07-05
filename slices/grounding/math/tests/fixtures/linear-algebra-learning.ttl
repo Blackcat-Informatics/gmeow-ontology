@@ -37,10 +37,14 @@ ex:ev1 a math:ExplainedVariance .
 # embedding dimension), each held from a vantage.
 ex:pcMeaning a math:ResidualInterpretationClaim ;
     gmeow:observedFeature ex:pc1 ;
-    gmeow:vantage ex:frameA .
+    gmeow:vantage ex:frameA ;
+    gmeow:observationResult ex:pcThemeFormula .
 ex:dimMeaning a math:ResidualInterpretationClaim ;
     gmeow:observedFeature ex:dim1 ;
-    gmeow:vantage ex:frameB .
+    gmeow:vantage ex:frameB ;
+    gmeow:observationResult ex:dimThemeFormula .
+ex:pcThemeFormula a logic:MetaLevelFormula .
+ex:dimThemeFormula a logic:MetaLevelFormula .
 ex:dim1 a math:EmbeddingDimension .
 ex:frameA a gmeow:Standpoint .
 ex:frameB a gmeow:Standpoint .
@@ -61,7 +65,8 @@ ex:model a math:LearnedModel .
 ex:tgraph a math:TensorComputationGraph ;
     math:computationNode ex:node ;
     math:architectureOf ex:model .
-ex:node a math:ApplicationExpression .
+ex:node a math:ApplicationExpression ;
+    math:operator math:matrixProduct .
 ex:pspace a math:ParameterSpace ;
     math:parameterSpaceOf ex:model .
 ex:selfReflect a math:ResidualInterpretationClaim ;
