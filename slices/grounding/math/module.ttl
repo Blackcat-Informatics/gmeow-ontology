@@ -2521,7 +2521,7 @@ math:UndeclaredTopologicalProperty
     rdfs:subClassOf math:MathConformanceFailure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Undeclared Topological Property"@x-gmeow-english ;
-    skos:definition "The failure raised when a topological property is assumed rather than declared: a math:ContinuousMap without math:isContinuous, a math:CompactSpace without math:isCompact, or a math:ConnectedSpace without math:isConnected. Continuity, compactness, and connectedness are declared properties (backed by their defining law, e.g. math:continuityLaw), never entailments of a bare type."@x-gmeow-english ;
+    skos:definition "The failure raised when a topological property is assumed rather than declared: a math:ContinuousMap without math:isContinuous, a math:CompactSpace without math:isCompact, or a math:ConnectedSpace without math:isConnected. Continuity, connectedness, and the T0–T4 separation axioms are each backed by a real first-order defining law (math:continuityLaw, math:connectednessLaw, math:t0SeparationLaw … math:normalitySeparationLaw); compactness, being genuinely second-order (a finite subcover over an arbitrary family is not first-order axiomatizable), is backed instead by an honest recorded boundary (math:compactnessBoundary, logic:expressivenessBoundary logic:SecondOrder). Every listed property is therefore backed by a law or a recorded boundary, never a bare type. This gate enforces declaration discipline — that the property is declared, not silently assumed — not satisfaction of the law against a model (no logic:Formula model-checker is in scope)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 # --- Topology properties ---------------------------------------------------- #

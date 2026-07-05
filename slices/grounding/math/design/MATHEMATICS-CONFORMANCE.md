@@ -137,10 +137,19 @@ AST its operators consume (`math:BindingExpression` over the indexed argument-sl
 AST, the declaration/occurrence split, and the `math:denotationKind` lowering seam),
 so the binder-AST rules below are enforced here. Every rule is SHACL Core or
 SHACL-SPARQL — none needs a native validator, so `native_contract_hash` is
-untouched. The defining law of continuity (the preimage of an open set is open) is
-authored as a first-order `logic:Formula` (`math:continuityLaw`), the exemplar
-witness that "declared, not assumed" predicates over real structure rather than a
-bare boolean.
+untouched. Every declared topological property is backed by its real defining law,
+not prose: continuity (`math:continuityLaw`), connectedness (`math:connectednessLaw`),
+and the T0–T4 separation axioms (`math:t0SeparationLaw` … `math:normalitySeparationLaw`)
+are each authored as a first-order `logic:Formula`. Compactness is the lone
+second-order property — "every open cover has a finite subcover" quantifies over
+families and appeals to finiteness, which is not first-order axiomatizable — so it is
+not faked as a formula but carried as an honest loss-ledger boundary
+(`math:compactnessBoundary`, `logic:expressivenessBoundary logic:SecondOrder`,
+`logic:preservationKind logic:Unsupported`). The discriminant: quantification over
+individual points/open-sets/closed-sets is first-order over the reified signature;
+quantification over families or an appeal to finiteness is second-order. These gates
+enforce declaration discipline (the property is declared, not assumed), not
+satisfaction of the law against a model.
 
 | Rule | Primary gate | Failure class |
 |---|---|---|
@@ -152,7 +161,7 @@ bare boolean.
 | A `math:Derivative` names what it differentiates, its variable, and its order | SHACL Core | `math:UnderspecifiedDerivative` |
 | A `math:Limit` names its expression and its limit point (mode optional) | SHACL Core | `math:UnderspecifiedLimit` |
 | A `math:Series`/`math:Sequence` carries a `math:Convergence` naming what it converges to and the mode | SHACL Core | `math:UnderspecifiedConvergence` |
-| Continuity/compactness/connectedness are declared, not assumed | SHACL Core (backed by `math:continuityLaw`) | `math:UndeclaredTopologicalProperty` |
+| Continuity/connectedness/separation(T0–T4) are declared, not assumed — each backed by a first-order `logic:Formula` law; compactness backed by a `logic:SecondOrder` boundary record | SHACL Core (backed by `math:continuityLaw`/`math:connectednessLaw`/the separation laws; `math:compactnessBoundary`) | `math:UndeclaredTopologicalProperty` |
 | A `math:Manifold` declares its dimension and its structure kind | SHACL Core | `math:UnderspecifiedManifold` |
 | A `math:Chart` names its domain, coordinate map, and target coordinate space | SHACL Core | `math:UnderspecifiedChart` |
 | A chart's target space (and a tangent space) has the same dimension as its manifold | SHACL-SPARQL | `math:DimensionMismatch` |
