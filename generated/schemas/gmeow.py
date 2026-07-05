@@ -879,6 +879,7 @@ class EventEnum(str, Enum):
 class EventTypeEnum(str, Enum):
     eventTypeAcquisition = "eventTypeAcquisition"
     eventTypeAdoption = "eventTypeAdoption"
+    eventTypeAgentEpisode = "eventTypeAgentEpisode"
     eventTypeAnnulment = "eventTypeAnnulment"
     eventTypeAudit = "eventTypeAudit"
     eventTypeBaptism = "eventTypeBaptism"
@@ -3381,6 +3382,7 @@ class Event(ConfiguredBaseModel):
 class Activity(Event):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/Activity"
     is_a: ClassVar[str] = "Event"
+    usedCapability: list[str] | None = Field(default=None)
     wasAssociatedWith: list[Agent] | None = Field(default=None)
 
 
@@ -3690,6 +3692,13 @@ class Agent(Entity):
     telephone: list[str] | None = Field(default=None)
     understands: list[Entity] | None = Field(default=None)
     wondersWhether: list[str] | None = Field(default=None)
+
+
+class AgentSession(Activity):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/AgentSession"
+    is_a: ClassVar[str] = "Activity"
+    sessionConfiguration: list[str] | None = Field(default=None)
+    sessionSubjectStage: list[str] | None = Field(default=None)
 
 
 class AggregationFunction(ConfiguredBaseModel):
@@ -6407,14 +6416,30 @@ class ModalForce(ConfiguredBaseModel):
     pass
 
 
+class ModelArtifact(InformationObject):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/ModelArtifact"
+    is_a: ClassVar[str] = "InformationObject"
+    pass
+
+
 class ModelCard(InformationObject):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/ModelCard"
     is_a: ClassVar[str] = "InformationObject"
     describesModel: SoftwareAgent | None = Field(default=None)
+    describesModelArtifact: list[ModelArtifact] | None = Field(default=None)
+    describesModelService: list[ModelDeployment] | None = Field(default=None)
     modelContextWindow: list[int] | None = Field(default=None)
     modelProvider: list[str] | None = Field(default=None)
     modelTrainingCutoff: list[str] | None = Field(default=None)
     modelVersionTag: list[str] | None = Field(default=None)
+
+
+class ModelDeployment(ConfiguredBaseModel):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/ModelDeployment"
+    deploymentArtifact: list[ModelArtifact] | None = Field(default=None)
+    deploymentEndpoint: list[str] | None = Field(default=None)
+    deploymentHost: list[Entity] | None = Field(default=None)
+    deploymentService: list[SoftwareAgent] | None = Field(default=None)
 
 
 class ModelInferenceRun(Entity):
@@ -6433,6 +6458,7 @@ class ModelInvocation(Activity):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/ModelInvocation"
     is_a: ClassVar[str] = "Activity"
     hasPrompt: list[Prompt] | None = Field(default=None)
+    invocationInExecution: list[RuntimeExecution] | None = Field(default=None)
     samplingMaxTokens: list[int] | None = Field(default=None)
     samplingTemperature: list[float] | None = Field(default=None)
     samplingTopP: list[float] | None = Field(default=None)
@@ -7576,6 +7602,12 @@ class Rubric(Norm):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/Rubric"
     is_a: ClassVar[str] = "Norm"
     hasCriterion: list[Criterion] | None = Field(default=None)
+
+
+class RuntimeExecution(Activity):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/RuntimeExecution"
+    is_a: ClassVar[str] = "Activity"
+    executionOfDeployment: list[ModelDeployment] | None = Field(default=None)
 
 
 class SLSALevel(ConfiguredBaseModel):

@@ -22,6 +22,7 @@ gmeow:full
         <https://blackcatinformatics.ca/gmeow/slices/images> ,
         <https://blackcatinformatics.ca/gmeow/slices/languages> ,
         <https://blackcatinformatics.ca/gmeow/slices/lexicon> ,
+        <https://blackcatinformatics.ca/gmeow/slices/model-serving> ,
         <https://blackcatinformatics.ca/gmeow/slices/music> ,
         <https://blackcatinformatics.ca/gmeow/slices/narrative> ,
         <https://blackcatinformatics.ca/gmeow/slices/norms> ,

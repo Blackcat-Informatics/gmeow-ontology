@@ -13,7 +13,7 @@
 #   semapv: https://w3id.org/semapv/vocab/
 #   skos: http://www.w3.org/2004/02/skos/core#
 #   vc: https://www.w3.org/2018/credentials#
-# # DEFERRED to extensions/model-serving (Step 2): OpenTelemetry-GenAI (gen_ai.* spans ↔ RuntimeExecution/ModelInvocation/ToolCall), ML-metadata (Model Cards / ML-Schema / Croissant / SPDX-AI / MLflow ↔ ModelArtifact/ModelDeployment). Those terms are not owned here.
+# # OWNED BY extensions/model-serving (landed): OpenTelemetry-GenAI (gen_ai.* spans ↔ RuntimeExecution/AgentSession/ModelDeployment/ModelArtifact) and ML-metadata (ML-Schema / Model Cards / Croissant / SPDX-AI / MLflow ↔ ModelArtifact/ModelDeployment/RuntimeExecution) are authored in slices/extensions/model-serving/mappings/equivalences.ttl, which owns those terms.
 # # GENERATED CONSTRUCT projections owned elsewhere: gUFO down-projection (Principle 17), OWL-Time interval alignment (temporal slice), the PROV activity/agent core (runtime slices).
 # # NO schema.org row: schema.org models no inhabitation-topology concept (subject-continuity, tenure, control, contested inhabitation claim), so aligning one would be a fabricated loose link, not a preservation-honest mapping (Principles 4, 5). The DEPLOYED surfaces that DO have a schema.org analog — an EmbodimentCarrierRole that is specifically an account — reach schema.org / foaf:OnlineAccount BY REFERENCE through the accounts slice that owns that alignment, never re-minted here.
 subject_id	predicate_id	object_id	mapping_justification	confidence	comment

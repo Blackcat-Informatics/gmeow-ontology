@@ -1,0 +1,25 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# The projection-agreement gate (INHABITED-RUNTIME-STACK.md §Upper-projections,
+# INHABITED-COMPETENCY.md §Performance): "the projection and the canon must
+# agree" (Principle 7). The flat one-hop shortcuts gmeow:generatedForSubject /
+# gmeow:generatedUnderConfiguration are COMPUTED projections of the multi-hop
+# de-conflation path. This query returns, side by side, the shortcut's value AND
+# the value obtained by walking the full nested canon
+# (output → gmeow:wasGeneratedBy → invocation → gmeow:subEventOf → session →
+# gmeow:sessionSubjectStage / gmeow:sessionConfiguration). The competency cell
+# pins BOTH columns to the SAME IRI, so any disagreement between the flat shortcut
+# and the collapse of the canon changes the row set and fails the gate — the
+# executable proof that the commuting diagram commutes (flat = collapse(nested)).
+# This is the STANDALONE terminus (the subject STAGE); the agent-runtime profile
+# extends the collapse through gmeow:stageOfLineage to the durable lineage.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+SELECT ?shortcutSubject ?auditSubject ?shortcutConfig ?auditConfig WHERE {
+    ?output gmeow:generatedForSubject ?shortcutSubject ;
+        gmeow:generatedUnderConfiguration ?shortcutConfig ;
+        gmeow:wasGeneratedBy ?invocation .
+    ?invocation gmeow:subEventOf ?session .
+    ?session gmeow:sessionSubjectStage ?auditSubject ;
+        gmeow:sessionConfiguration ?auditConfig .
+}

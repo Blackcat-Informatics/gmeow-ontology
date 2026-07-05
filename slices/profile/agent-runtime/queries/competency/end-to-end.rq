@@ -1,0 +1,21 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# The agent-runtime TRUE end-to-end + projection-agreement query. It resolves an
+# output all the way to its durable subject LINEAGE by walking the cross-slice
+# canon — output → wasGeneratedBy → invocation → subEventOf → session →
+# sessionSubjectStage → (inhabitation) stage → stageOfLineage → lineage — AND
+# returns the flat gmeow:generatedForSubject shortcut. The competency cell pins
+# both to the SAME lineage IRI, proving the shortcut equals the full cross-slice
+# collapse (Principle 7). This resolution is only possible where BOTH
+# extensions/model-serving and core/inhabitation are present — i.e. this profile —
+# because gmeow:stageOfLineage is an inhabitation term the standalone model-serving
+# slice does not depend on.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+SELECT ?shortcutSubject ?auditSubject WHERE {
+    ?output gmeow:generatedForSubject ?shortcutSubject ;
+        gmeow:wasGeneratedBy ?invocation .
+    ?invocation gmeow:subEventOf ?session .
+    ?session gmeow:sessionSubjectStage ?stage .
+    ?stage gmeow:stageOfLineage ?auditSubject .
+}

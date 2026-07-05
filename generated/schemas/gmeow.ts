@@ -855,6 +855,7 @@ export enum EventEnum {
 export enum EventTypeEnum {
     eventTypeAcquisition = "eventTypeAcquisition",
     eventTypeAdoption = "eventTypeAdoption",
+    eventTypeAgentEpisode = "eventTypeAgentEpisode",
     eventTypeAnnulment = "eventTypeAnnulment",
     eventTypeAudit = "eventTypeAudit",
     eventTypeBaptism = "eventTypeBaptism",
@@ -3278,6 +3279,7 @@ export interface AcquaintanceRelationship extends InterpersonalRelationship {
 }
 
 export interface Activity extends Event {
+    usedCapability?: string[],
     wasAssociatedWith?: Agent[],
 }
 
@@ -3405,6 +3407,11 @@ export interface Agent extends Entity {
     telephone?: string[],
     understands?: Entity[],
     wondersWhether?: string[],
+}
+
+export interface AgentSession extends Activity {
+    sessionConfiguration?: string[],
+    sessionSubjectStage?: string[],
 }
 
 export interface AggregationFunction {
@@ -5395,12 +5402,24 @@ export interface MitigationStatus {
 export interface ModalForce {
 }
 
+export interface ModelArtifact extends InformationObject {
+}
+
 export interface ModelCard extends InformationObject {
     describesModel?: SoftwareAgent,
+    describesModelArtifact?: ModelArtifact[],
+    describesModelService?: ModelDeployment[],
     modelContextWindow?: number[],
     modelProvider?: string[],
     modelTrainingCutoff?: string[],
     modelVersionTag?: string[],
+}
+
+export interface ModelDeployment {
+    deploymentArtifact?: ModelArtifact[],
+    deploymentEndpoint?: string[],
+    deploymentHost?: Entity[],
+    deploymentService?: SoftwareAgent[],
 }
 
 export interface ModelInferenceRun extends Entity {
@@ -5415,6 +5434,7 @@ export interface ModelInferenceRun extends Entity {
 
 export interface ModelInvocation extends Activity {
     hasPrompt?: Prompt[],
+    invocationInExecution?: RuntimeExecution[],
     samplingMaxTokens?: number[],
     samplingTemperature?: number[],
     samplingTopP?: number[],
@@ -6289,6 +6309,10 @@ export interface Rule extends Norm {
     ruleConsequence?: Duty[],
     ruleConstraint?: Constraint[],
     ruleTarget?: Entity,
+}
+
+export interface RuntimeExecution extends Activity {
+    executionOfDeployment?: ModelDeployment[],
 }
 
 export interface SLSALevel {

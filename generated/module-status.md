@@ -58,6 +58,7 @@ from the module, documentation status from the guide. STUB guides are the Tier-2
 | math | core | grounding | 1 | 0 | 0 | 0 | 8 | 0/0 | full |
 | mentation | core | core | 4 | 3 | 5 | 0 | 1 | 8/8 | full |
 | metacognition | core | core | 6 | 2 | 5 | 0 | 3 | 7/7 | full |
+| model-serving | extension | extensions | 6 | 4 | 13 | 0 | 4 | - | full |
 | music | extension | extensions | 12 | 59 | 126 | 0 | 1 | - | full |
 | names | core | core | 9 | 16 | 36 | 0 | 1 | 52/52 | full |
 | narrative | extension | extensions | 6 | 17 | 41 | 0 | 1 | - | full |
@@ -86,4 +87,4 @@ from the module, documentation status from the guide. STUB guides are the Tier-2
 | trust | core | core | 2 | 7 | 23 | 0 | 1 | 30/30 | full |
 | versions | core | core | 3 | 6 | 13 | 0 | 1 | 19/19 | full |
 
-**78 slices** · documentation: 78 full guides, 0 stubs remaining; advisory coverage: 1265/1993 core class/property terms.
+**79 slices** · documentation: 79 full guides, 0 stubs remaining; advisory coverage: 1265/1993 core class/property terms.
