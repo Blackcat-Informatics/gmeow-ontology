@@ -3,6 +3,7 @@
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix lang:  <https://blackcatinformatics.ca/lang/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
@@ -208,6 +209,12 @@ lang:latinScript
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "Latin script"@x-gmeow-english ;
     skos:definition "The Latin script as a first-class character repertoire: a lang:Script. Its ISO 15924 code Latn and Wikidata QID are alignments, never its identity."@x-gmeow-english .
+
+lang:hanScript
+    a owl:NamedIndividual , lang:Script ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "Han script"@x-gmeow-english ;
+    skos:definition "The Han (CJK) script as a first-class character repertoire: a lang:Script. Its ISO 15924 code Hani and Wikidata QID are alignments, never its identity."@x-gmeow-english .
 
 # =========================================================================== #
 # Form AST — the stratified form calculus
@@ -1577,3 +1584,374 @@ lang:aboutReading
     rdfs:label "about reading"@x-gmeow-english ;
     skos:definition "Relates a gmeow:Observation to the lang:Reading it is a claim about — the reading-correctness claim's subject. A sub-property of gmeow:observedFeature, so a reading claim is an ordinary vantage-held observation about a feature. Domain gmeow:Observation, range lang:Reading (stated in prose)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
+
+# =========================================================================== #
+# Translation, rendering, transliteration, and paraphrase
+#
+# The sign-system-facet layer of the crossing calculus. A crossing from one form
+# to another — rendering content to a surface, transliterating across scripts,
+# translating across sign systems, or paraphrasing within one — is NOT a new
+# law-spine: every preservation judgment, morphism class, correspondence
+# relation, mnemomorphic witness, determinacy, and law claim is carried by a
+# linked logic:Correspondence node using the real logic: property names
+# (logic:preservationKind, logic:morphismClass, logic:correspondenceRelation,
+# logic:mnemomorphic, logic:hasDeterminacy, logic:hasLawClaim / logic:lawClaimed
+# / logic:lawDischargeVerdict, logic:SectionLaw / logic:GetPut / logic:PutGet).
+# lang: mints ONLY the sign-system-specific facets — what content, what form,
+# what orthographies, what method, what document roll-up — and the single
+# attachment point (lang:translationCorrespondence) that hangs a unit off its
+# logic:Correspondence. No lang: shadow of the law-spine is created here.
+# =========================================================================== #
+
+lang:Rendering
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "Rendering"@x-gmeow-english ;
+    skos:definition "A reified record of realizing content as a form: a content object (a lang:Form, a lang:Denotation, a composed form, a document node) rendered into a concrete lang:Form or lang:SurfaceForm under a declared kind and convention. Names the content it renders through lang:renderedContent, the form it produces through lang:renderingForm, its kind through lang:renderingKind (a lang:RenderingKind individual), the convention governing it through lang:renderingConvention, and — where the crossing is judged — a preservation kind through lang:renderingPreservation, which carries a logic:preservationKind rather than a lang: preservation enum. Rendering is the facet layer over a logic:Correspondence whose two sides are content and form; serializing the ontology to Turtle, lifting prose to a docs page, and transliterating a name are all renderings distinguished by kind, never a subclass ladder."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+lang:RenderingKind
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "Rendering Kind"@x-gmeow-english ;
+    skos:definition "The kind of a rendering — serialization, prose, transliteration, notation, or docs page. Its instances are the named individuals lang:renderingSerialization, lang:renderingProse, lang:renderingTransliteration, lang:renderingNotation, and lang:renderingDocsPage. A lang:Rendering points at one through lang:renderingKind; the kind-individual pattern keeps the TBox small rather than minting a class per rendering mode, and it is a facet only — the preservation and morphism class of the crossing live on the linked logic:Correspondence."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+lang:TransliterationMap
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "Transliteration Map"@x-gmeow-english ;
+    skos:definition "A form-to-form map across orthographies of one sign system — Hepburn Japanese to Latin, Cyrillic Serbian to Latin Serbian. Names its source and target orthographies through lang:transliterationSourceOrthography and lang:transliterationTargetOrthography and the naming scheme it grafts through lang:transliterationScheme, which references a gmeow:TransliterationScheme individual (the FnO-backed romanization scheme in the core language slice). Transliteration is a rendering-layer map that changes the script surface, not form identity: two orthographic surfaces linked by a transliteration map may realize one and the same form. Its preservation is judged on the carried logic:Correspondence, never restated as a lang: kind."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+lang:Translation
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "Translation"@x-gmeow-english ;
+    skos:definition "A document-level translation: a crossing of content from a source sign system to a target sign system, aggregating the reified lang:TranslationUnit pairings that make it up. Names its constituent units through lang:rollsUpFrom and the method that produced it through lang:translationMethod (a lang:TranslationMethod individual). A translation is a whole assembled from units; its adequacy is the join of its units' preservation judgments, each carried by that unit's logic:Correspondence, never a document-level preservation flag minted in lang:. The document roll-up is derived from the units, never asserted independently of them."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+lang:TranslationUnit
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "Translation Unit"@x-gmeow-english ;
+    skos:definition "A reified source-form-to-target-form pairing — the atom of a translation. Names its source form through lang:translationSource, its target form through lang:translationTarget, and the sibling unit it aligns with through lang:translationOf, and it carries the law-spine of the crossing by pointing — through lang:translationCorrespondence — at exactly one logic:Correspondence node. That Correspondence, not the unit, holds the logic:preservationKind, the logic:morphismClass, the logic:correspondenceRelation, the logic:mnemomorphic witness enumerating any untranslatable residue, the logic:hasDeterminacy, and any logic:hasLawClaim. A unit whose target is inadequate is marked through lang:translationGap; the enumerated residue itself lives on the carried Correspondence's mnemomorphic witness, never on the unit."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+lang:TranslationMethod
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "Translation Method"@x-gmeow-english ;
+    skos:definition "How a translation was produced — human, machine, or compositional. Its instances are the named individuals lang:methodHuman, lang:methodMachine, and lang:methodCompositional. A lang:Translation or lang:TranslationUnit points at one through lang:translationMethod; the method is provenance for the crossing, not a substitute for the preservation judgment carried by the logic:Correspondence."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+lang:Paraphrase
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "Paraphrase"@x-gmeow-english ;
+    skos:definition "A form-to-form crossing within one sign system under a declared sameness kind — a restatement, a plain-language rewrite, a definitional gloss. Names the form it paraphrases through lang:paraphraseOf, the sameness it claims to preserve through lang:paraphraseSamenessKind (a lang:ParaphraseSamenessKind individual — same denotation, same sense, or same force and content), and, where the crossing is judged, a preservation kind through lang:paraphrasePreservation, which carries a logic:preservationKind. Sameness is never a bare assertion: a paraphrase claim is vantage-held, so that a paraphrase-correctness claim is a gmeow:Observation from a gmeow:vantage rather than a groundless equivalence. Unlike translation, both forms belong to one sign system; unlike rendering, both sides are forms rather than content and form."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+lang:ParaphraseSamenessKind
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "Paraphrase Sameness Kind"@x-gmeow-english ;
+    skos:definition "The kind of sameness a paraphrase claims to preserve. Its instances are the named individuals lang:sameDenotation, lang:sameSense, and lang:sameForceAndContent. A paraphrase points at one through lang:paraphraseSamenessKind; the kind fixes which corner of the Frege triangle the paraphrase holds fixed, and it is a facet only — how well the crossing preserves that sameness is the logic:preservationKind on the paraphrase's logic:Correspondence, not a second lang: judgment."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+# --- Rendering-kind individuals --------------------------------------------- #
+
+lang:renderingSerialization
+    a owl:NamedIndividual , lang:RenderingKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "serialization"@x-gmeow-english ;
+    skos:definition "The rendering kind that serializes structured content to a formal-language surface — the ontology rendered to Turtle or GTS."@x-gmeow-english .
+
+lang:renderingProse
+    a owl:NamedIndividual , lang:RenderingKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "prose"@x-gmeow-english ;
+    skos:definition "The rendering kind that realizes content as natural-language prose — a denotation or a term description rendered to an @x-gmeow-english surface."@x-gmeow-english .
+
+lang:renderingTransliteration
+    a owl:NamedIndividual , lang:RenderingKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "transliteration"@x-gmeow-english ;
+    skos:definition "The rendering kind that realizes a form in a different orthography of its own sign system, governed by a lang:TransliterationMap — a romanization of a name."@x-gmeow-english .
+
+lang:renderingNotation
+    a owl:NamedIndividual , lang:RenderingKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "notation"@x-gmeow-english ;
+    skos:definition "The rendering kind that realizes content in a notation — a phonological form written in IPA, a formula written in mathematical notation."@x-gmeow-english .
+
+lang:renderingDocsPage
+    a owl:NamedIndividual , lang:RenderingKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "docs page"@x-gmeow-english ;
+    skos:definition "The rendering kind that lifts ontology content into a documentation page — a term or slice rendered to a human-facing docs surface."@x-gmeow-english .
+
+# --- Translation-method individuals ----------------------------------------- #
+
+lang:methodHuman
+    a owl:NamedIndividual , lang:TranslationMethod ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "human"@x-gmeow-english ;
+    skos:definition "The translation method of a human translator."@x-gmeow-english .
+
+lang:methodMachine
+    a owl:NamedIndividual , lang:TranslationMethod ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "machine"@x-gmeow-english ;
+    skos:definition "The translation method of a machine-translation engine."@x-gmeow-english .
+
+lang:methodCompositional
+    a owl:NamedIndividual , lang:TranslationMethod ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "compositional"@x-gmeow-english ;
+    skos:definition "The translation method that builds a target form from an abstract-form tree by composition — the Grammatical Framework mode, where a strong-by-construction preservation rung can be derived from the composition rather than asserted flat. The compositional path is optional and never a mandate; when present it is declared through lang:composedThroughAbstract."@x-gmeow-english .
+
+# --- Paraphrase-sameness-kind individuals ----------------------------------- #
+
+lang:sameDenotation
+    a owl:NamedIndividual , lang:ParaphraseSamenessKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "same denotation"@x-gmeow-english ;
+    skos:definition "The paraphrase sameness kind that holds the referent fixed while sense and form may vary — two forms picking out the same thing (the morning star / the evening star as descriptions of one referent)."@x-gmeow-english .
+
+lang:sameSense
+    a owl:NamedIndividual , lang:ParaphraseSamenessKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "same sense"@x-gmeow-english ;
+    skos:definition "The paraphrase sameness kind that holds the sense fixed while the form varies — a synonymous restatement that means the same way, not merely reaching the same referent."@x-gmeow-english .
+
+lang:sameForceAndContent
+    a owl:NamedIndividual , lang:ParaphraseSamenessKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "same force and content"@x-gmeow-english ;
+    skos:definition "The paraphrase sameness kind that holds both the propositional content and the communicative force fixed — a restatement that asserts, asks, or orders the same thing in the same way, the strongest sameness a paraphrase can claim."@x-gmeow-english .
+
+# --- Rendering properties (sign-system facets) ------------------------------ #
+
+lang:renderedContent
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "rendered content"@x-gmeow-english ;
+    skos:definition "Relates a lang:Rendering to the content it realizes — a lang:Form, a lang:Denotation, a composed form, or a document node. Domain lang:Rendering, range a content resource (stated in prose). The content side of the rendering's crossing; the form side is lang:renderingForm."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+lang:renderingForm
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "rendering form"@x-gmeow-english ;
+    skos:definition "Relates a lang:Rendering to the concrete form it produces — a lang:Form or lang:SurfaceForm. Domain lang:Rendering, range lang:Form (stated in prose). The form side of the rendering's crossing; the content side is lang:renderedContent."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+lang:renderingKind
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "rendering kind"@x-gmeow-english ;
+    skos:definition "Names the kind of a rendering. Domain lang:Rendering, range lang:RenderingKind (stated in prose). A facet only; the preservation and morphism class of the crossing live on the linked logic:Correspondence."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+lang:renderingConvention
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "rendering convention"@x-gmeow-english ;
+    skos:definition "Names the convention governing a rendering — a lang:Grammar, a lang:Orthography, or a gmeow:TransliterationScheme that fixes how content becomes form. Domain lang:Rendering, range a convention resource (stated in prose). The convention licenses the surface; it does not own the rendered form's identity."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+lang:renderingPreservation
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "rendering preservation"@x-gmeow-english ;
+    skos:definition "Relates a lang:Rendering to the preservation judgment of its crossing, carried as a logic:preservationKind on the rendering's logic:Correspondence. Domain lang:Rendering, range logic:PreservationKind (stated in prose). Preservation is never a lang: enum: this property is the facet handle onto the shared logic: judgment, not a second grade."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# --- Transliteration properties --------------------------------------------- #
+
+lang:transliterationSourceOrthography
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "transliteration source orthography"@x-gmeow-english ;
+    skos:definition "Relates a lang:TransliterationMap to the orthography its input surfaces are written in. Domain lang:TransliterationMap, range lang:Orthography (stated in prose). The source side of the orthography-to-orthography map; the target is lang:transliterationTargetOrthography."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+lang:transliterationTargetOrthography
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "transliteration target orthography"@x-gmeow-english ;
+    skos:definition "Relates a lang:TransliterationMap to the orthography its output surfaces are written in. Domain lang:TransliterationMap, range lang:Orthography (stated in prose). The target side of the orthography-to-orthography map; the source is lang:transliterationSourceOrthography."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+lang:transliterationScheme
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "transliteration scheme"@x-gmeow-english ;
+    skos:definition "Relates a lang:TransliterationMap to the named romanization or transliteration scheme it grafts — a gmeow:TransliterationScheme individual in the core language slice, whose FnO transform the projection layer resolves. Domain lang:TransliterationMap, range gmeow:TransliterationScheme (stated in prose). The scheme names the convention; the map's preservation is judged on its logic:Correspondence."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# --- Translation properties ------------------------------------------------- #
+
+lang:translationSource
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "translation source"@x-gmeow-english ;
+    skos:definition "Relates a lang:TranslationUnit to its source form. Domain lang:TranslationUnit, range lang:Form or lang:SurfaceForm (stated in prose). A translation source is a structured form, never a bare string; an unmarked surface source is ill-formed. The target side is lang:translationTarget."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+lang:translationTarget
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "translation target"@x-gmeow-english ;
+    skos:definition "Relates a lang:TranslationUnit to its target form. Domain lang:TranslationUnit, range lang:Form or lang:SurfaceForm (stated in prose). A translation target is a structured form, never a bare string. The source side is lang:translationSource."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+lang:translationOf
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "translation of"@x-gmeow-english ;
+    skos:definition "Relates a lang:TranslationUnit to the unit it is a translation of — the unit-to-unit pairing across the two documents. Domain and range lang:TranslationUnit (stated in prose). The pairing is directional from target unit to source unit; symmetry, where it holds, is documented rather than asserted, to keep the term profile-clean."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+lang:translationMethod
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "translation method"@x-gmeow-english ;
+    skos:definition "Names the method that produced a translation or unit. Domain lang:Translation or lang:TranslationUnit, range lang:TranslationMethod (stated in prose). The method is provenance, never a substitute for the preservation judgment carried by the logic:Correspondence."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+lang:translationCorrespondence
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "translation correspondence"@x-gmeow-english ;
+    skos:definition "Relates a lang:TranslationUnit to the single logic:Correspondence node it carries — THE attachment point of the law-spine. Domain lang:TranslationUnit, range logic:Correspondence (stated in prose). Everything about the crossing that is a law rather than a facet lives on that Correspondence: its logic:preservationKind, logic:morphismClass, logic:correspondenceRelation, logic:mnemomorphic witness, logic:hasDeterminacy, and any logic:hasLawClaim with its logic:lawClaimed and logic:lawDischargeVerdict. lang: never shadows those properties; it only points at the node that holds them, and each unit carries exactly one."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+lang:rollsUpFrom
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "rolls up from"@x-gmeow-english ;
+    skos:definition "Relates a document-level lang:Translation to the constituent lang:TranslationUnits it aggregates — the document roll-up, mirroring the meaning layer's lang:composedFrom for denotations. Domain lang:Translation, range lang:TranslationUnit (stated in prose). A document's adequacy is the derived join of its units' preservation judgments; the roll-up is computed from the units and never asserted independently of them."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+lang:composedThroughAbstract
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "composed through abstract"@x-gmeow-english ;
+    skos:definition "Relates a compositional translation (of lang:methodCompositional) to the abstract-form tree and leaf units it was built through, so the Composition gate can derive a strong-by-construction preservation rung on the carried logic:Correspondence rather than take it on assertion — the Grammatical Framework mode. Domain lang:Translation or lang:TranslationUnit, range the abstract-form tree with its leaf lang:TranslationUnits (stated in prose). An optional path, never a mandate: a non-compositional translation simply omits it and its units carry their preservation directly."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+lang:translationGap
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "translation gap"@x-gmeow-english ;
+    skos:definition "Marks a lang:TranslationUnit whose target is inadequate — an untranslatable term, a lost distinction, a forced approximation. Domain lang:TranslationUnit, range the marked inadequacy (stated in prose). The mark says only that a gap exists; the enumerated residue — what specifically failed to cross — lives on the carried logic:Correspondence's logic:mnemomorphic witness, never on the unit, so the residue is disclosed once in the law-spine and not re-minted as lang: structure."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# --- Paraphrase properties -------------------------------------------------- #
+
+lang:paraphraseOf
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "paraphrase of"@x-gmeow-english ;
+    skos:definition "Relates a lang:Paraphrase to the form it paraphrases. Domain lang:Paraphrase, range lang:Form (stated in prose). Both forms belong to one sign system; the sameness the paraphrase preserves is declared through lang:paraphraseSamenessKind and its degree judged on the paraphrase's logic:Correspondence."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+lang:paraphraseSamenessKind
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "paraphrase sameness kind"@x-gmeow-english ;
+    skos:definition "Names the kind of sameness a paraphrase claims to preserve. Domain lang:Paraphrase, range lang:ParaphraseSamenessKind (stated in prose). The kind fixes which corner of the Frege triangle is held constant; a paraphrase that declares no sameness kind is ill-formed, because an undeclared sameness is an equivalence smuggled in without saying what it preserves."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+lang:paraphrasePreservation
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "paraphrase preservation"@x-gmeow-english ;
+    skos:definition "Relates a lang:Paraphrase to the preservation judgment of its crossing, carried as a logic:preservationKind on the paraphrase's logic:Correspondence. Domain lang:Paraphrase, range logic:PreservationKind (stated in prose). How well the declared sameness is actually preserved is the shared logic: judgment, never a second lang: grade."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# =========================================================================== #
+# Crossing conformance-failure vocabulary (typed, queryable violation objects)
+# =========================================================================== #
+
+lang:UnderspecifiedRendering
+    a owl:Class ;
+    rdfs:subClassOf lang:LangConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "Underspecified Rendering"@x-gmeow-english ;
+    skos:definition "The failure raised when a lang:Rendering does not declare the material a rendering needs — its lang:renderedContent, its lang:renderingForm, or its lang:renderingKind. A rendering that names neither what it renders, nor what it produces, nor its kind realizes nothing inspectable."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+lang:RenderingAsIdentity
+    a owl:Class ;
+    rdfs:subClassOf lang:LangConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "Rendering As Identity"@x-gmeow-english ;
+    skos:definition "The failure raised when a lang:Rendering's lang:renderedContent and lang:renderingForm are the same resource — a rendering that claims to cross content to form while both sides are one node. A rendering realizes content as a distinct form; a self-identical rendering is a crossing that never happened, smuggled in as though it did."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+lang:UnderspecifiedTranslationUnit
+    a owl:Class ;
+    rdfs:subClassOf lang:LangConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "Underspecified Translation Unit"@x-gmeow-english ;
+    skos:definition "The failure raised when a lang:TranslationUnit does not declare its lang:translationSource, its lang:translationTarget, or the single lang:translationCorrespondence carrying its law-spine — or declares more than one correspondence. A unit without both forms and exactly one logic:Correspondence carries no inspectable, judged crossing."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+lang:UnmarkedSurfaceTranslation
+    a owl:Class ;
+    rdfs:subClassOf lang:LangConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "Unmarked Surface Translation"@x-gmeow-english ;
+    skos:definition "The failure raised when a lang:translationSource or lang:translationTarget holds a bare literal or an unanalyzed surface not typed lang:UnanalyzedProse instead of a structured lang:Form — a translation between strings rather than forms. A translation crosses forms; an unmarked surface on either side is the string-only failure in the crossing layer."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+lang:UnattributedTranslation
+    a owl:Class ;
+    rdfs:subClassOf lang:LangConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "Unattributed Translation"@x-gmeow-english ;
+    skos:definition "The failure raised when a lang:Translation or lang:TranslationUnit declares no lang:translationMethod. Whether a crossing was produced by a human, a machine, or a compositional rule run is provenance the crossing must carry; an unattributed translation hides who or what made it."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+lang:AssertedRollup
+    a owl:Class ;
+    rdfs:subClassOf lang:LangConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "Asserted Rollup"@x-gmeow-english ;
+    skos:definition "The failure raised when a lang:Translation asserts a document-level preservation or adequacy directly rather than deriving it from its lang:rollsUpFrom units' judgments — a document grade minted independently of the units it aggregates. The roll-up is the join of the units' logic:Correspondence judgments and is derived, never a free document-level claim."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+lang:FabricatedEquivalence
+    a owl:Class ;
+    rdfs:subClassOf lang:LangConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "Fabricated Equivalence"@x-gmeow-english ;
+    skos:definition "The failure raised when a crossing claims a preservation stronger than its logic:Correspondence discharges — a lang:TranslationUnit, lang:Rendering, or lang:Paraphrase whose carried logic:preservationKind is logic:ExactPreservation (or a logic:hasLawClaim marked logic:ObligationDischarged) with no witness, or upgraded past what the mnemomorphic witness supports. Claiming a sameness the law-spine does not license is fabricating certainty, the crossing-layer form of imposing structure the source never had."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+lang:UndeclaredParaphraseKind
+    a owl:Class ;
+    rdfs:subClassOf lang:LangConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "Undeclared Paraphrase Kind"@x-gmeow-english ;
+    skos:definition "The failure raised when a lang:Paraphrase does not name a lang:paraphraseSamenessKind. A paraphrase that declares no sameness kind claims an equivalence without saying which corner of the Frege triangle — denotation, sense, or force and content — it holds fixed, and so smuggles in an equivalence without content."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+lang:UnanchoredTransliteration
+    a owl:Class ;
+    rdfs:subClassOf lang:LangConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "Unanchored Transliteration"@x-gmeow-english ;
+    skos:definition "The failure raised when a lang:TransliterationMap does not declare its lang:transliterationSourceOrthography, its lang:transliterationTargetOrthography, or the lang:transliterationScheme it grafts. A transliteration between undeclared orthographies, or with no named scheme, maps nothing reconstructible."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+lang:SurfaceLeakInContentKey
+    a owl:Class ;
+    rdfs:subClassOf lang:LangConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "Surface Leak In Content Key"@x-gmeow-english ;
+    skos:definition "The failure raised when a crossing's content-level identity is computed over surface-stratum material — a translation, rendering, or paraphrase keyed on script, encoding, casing, normalization, or rendered surface rather than on structural form content. Form identity is computed over structural content alone and is independent of encoding, script, casing, and rendering; a crossing that lets a surface distinction into its content key has leaked the surface into identity."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .

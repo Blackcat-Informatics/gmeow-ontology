@@ -627,6 +627,12 @@ pub fn structural_lint_dataset(ds: &RdfDataset, cfg: &LintConfig) -> LintReport 
     // one-way lang:->logic: bridge acyclicity.
     check_lang_meaning_invariants(ds, cfg, &mut report);
 
+    // lang: translation-stratum native gates (charter primary gates): the crossing
+    // layer keeps content identity structural (never keyed on surface material) and
+    // a rendering names its content without ever standing in for that content's
+    // identity.
+    check_lang_translation_invariants(ds, cfg, &mut report);
+
     // math: measure-and-dimension reasoned gate — dimensional homogeneity computed
     // from the exact-rational (ℚ⁷) exponent vectors, not asserted data.
     check_math_dimension_invariants(ds, &mut report);
@@ -760,6 +766,86 @@ fn check_one_way_bridge(ds: &RdfDataset, report: &mut LintReport) {
             report.errors.push(format!(
                 "lang: one-way bridge violated: logic: subject {s} carries lang: predicate {p} \
                  (Principle 19: the lang:->logic: bridge never reverses)"
+            ));
+        }
+    }
+}
+
+/// The `lang:` translation-stratum invariants the charter designates as native
+/// Rust-validator primary gates (realized here rather than in SHACL). Runs over the
+/// merged dataset, so the invariants hold bundle-wide, not merely per fixture.
+fn check_lang_translation_invariants(ds: &RdfDataset, _cfg: &LintConfig, report: &mut LintReport) {
+    check_surface_leak_in_content_key(ds, report);
+    check_rendering_as_identity(ds, report);
+}
+
+/// `lang:SurfaceLeakInContentKey` — form identity is computed over structural
+/// content alone and is independent of encoding, script, casing, and rendering. A
+/// crossing (`lang:Translation`, `lang:TranslationUnit`, `lang:Rendering`, or
+/// `lang:Paraphrase`) must reference structural forms and never inline
+/// surface-stratum material as identity input. Flag any crossing subject that
+/// directly carries a surface-stratum predicate.
+fn check_surface_leak_in_content_key(ds: &RdfDataset, report: &mut LintReport) {
+    let crossing_types = [
+        lang_iri("Translation"),
+        lang_iri("TranslationUnit"),
+        lang_iri("Rendering"),
+        lang_iri("Paraphrase"),
+    ];
+    let surface_predicates = [
+        lang_iri("surfaceText"),
+        lang_iri("inScript"),
+        lang_iri("encoding"),
+        lang_iri("unicodeNormalization"),
+        lang_iri("collationLocale"),
+    ];
+    for type_iri in &crossing_types {
+        for subj in ds_subjects_of_type(ds, type_iri) {
+            for surface in &surface_predicates {
+                if ds_has_predicate(ds, &subj, surface) {
+                    report.errors.push(format!(
+                        "lang:SurfaceLeakInContentKey: crossing {subj} directly carries \
+                         surface-stratum predicate {surface} as identity input; form identity \
+                         is computed over structural content alone, independent of encoding, \
+                         script, casing, and rendering"
+                    ));
+                }
+            }
+        }
+    }
+}
+
+/// `lang:RenderingAsIdentity` — a rendering names the content it renders and never
+/// substitutes for that content's identity. Flag a `lang:Rendering` that is its own
+/// `lang:renderedContent` (a), is `owl:sameAs` its own `lang:renderedContent` (b),
+/// or whose `lang:renderingForm` equals its `lang:renderedContent` (c).
+fn check_rendering_as_identity(ds: &RdfDataset, report: &mut LintReport) {
+    const OWL_SAMEAS: &str = "http://www.w3.org/2002/07/owl#sameAs";
+    let rendered_content = lang_iri("renderedContent");
+    let rendering_form = lang_iri("renderingForm");
+    for subj in ds_subjects_of_type(ds, &lang_iri("Rendering")) {
+        let content = ds_object_iris(ds, &subj, &rendered_content);
+        // (a) rendering is its own renderedContent.
+        if content.contains(&subj) {
+            report.errors.push(format!(
+                "lang:RenderingAsIdentity: rendering {subj} is its own lang:renderedContent \
+                 (self-reference); a rendering names the content it renders, never itself"
+            ));
+        }
+        // (b) rendering is owl:sameAs its own renderedContent.
+        let same_as = ds_object_iris(ds, &subj, OWL_SAMEAS);
+        for c in content.intersection(&same_as) {
+            report.errors.push(format!(
+                "lang:RenderingAsIdentity: rendering {subj} is asserted owl:sameAs its own \
+                 lang:renderedContent {c}; the rendering has become identity"
+            ));
+        }
+        // (c) renderingForm equals renderedContent.
+        let form = ds_object_iris(ds, &subj, &rendering_form);
+        for c in content.intersection(&form) {
+            report.errors.push(format!(
+                "lang:RenderingAsIdentity: rendering {subj} has lang:renderingForm equal to its \
+                 lang:renderedContent {c}; the form has collapsed into the content"
             ));
         }
     }
@@ -1681,6 +1767,7 @@ mod tests {
     const LANG_PREFIXES: &str = "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
          @prefix lang: <https://blackcatinformatics.ca/lang/> .\n\
          @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+         @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\
          @prefix ex: <https://example.org/> .\n";
 
     #[test]
@@ -1797,6 +1884,93 @@ mod tests {
                 .errors
                 .iter()
                 .any(|e| e.contains("one-way bridge violated")),
+            "errors: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn surface_leak_flags_crossing_carrying_surface_predicate() {
+        // A translation unit that inlines surface-stratum material (lang:inScript)
+        // as identity input rather than referencing structural forms.
+        let ds = dataset_from(&format!(
+            "{LANG_PREFIXES}\
+             ex:tu a lang:TranslationUnit ;\n\
+               lang:translationSource ex:srcForm ;\n\
+               lang:translationTarget ex:tgtForm ;\n\
+               lang:inScript ex:latinScript .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:SurfaceLeakInContentKey")),
+            "errors: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn surface_leak_clean_when_crossing_references_structural_forms() {
+        // A well-formed crossing over structural forms, with no surface-stratum
+        // predicate carried directly on the crossing itself.
+        let ds = dataset_from(&format!(
+            "{LANG_PREFIXES}\
+             ex:tu a lang:TranslationUnit ;\n\
+               lang:translationSource ex:srcForm ;\n\
+               lang:translationTarget ex:tgtForm ;\n\
+               lang:translationCorrespondence ex:corr .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            !report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:SurfaceLeakInContentKey")),
+            "errors: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn rendering_as_identity_flags_sameas_to_rendered_content() {
+        // A rendering asserted owl:sameAs its own renderedContent — the rendering
+        // becoming identity.
+        let ds = dataset_from(&format!(
+            "{LANG_PREFIXES}\
+             ex:r a lang:Rendering ;\n\
+               lang:renderedContent ex:content ;\n\
+               lang:renderingForm ex:form ;\n\
+               owl:sameAs ex:content .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:RenderingAsIdentity")),
+            "errors: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn rendering_as_identity_clean_when_form_and_content_are_distinct() {
+        // A rendering that names distinct content and form and asserts no identity
+        // between the rendering and its content.
+        let ds = dataset_from(&format!(
+            "{LANG_PREFIXES}\
+             ex:r a lang:Rendering ;\n\
+               lang:renderedContent ex:content ;\n\
+               lang:renderingForm ex:form .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            !report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:RenderingAsIdentity")),
             "errors: {:?}",
             report.errors
         );
