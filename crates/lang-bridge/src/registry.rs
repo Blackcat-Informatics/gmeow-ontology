@@ -26,8 +26,8 @@ use gmeow_logic_compile::ir::{
 use gmeow_logic_compile::projections::ProjectionResult;
 
 use crate::bcp47::Bcp47Target;
-use crate::bridge::{IngestDiagnostic, LangFailure};
-use crate::conllu::{conllu_correspondence, conllu_leg_pair, ConlluBridge};
+use crate::bridge::IngestDiagnostic;
+use crate::conllu::ConlluTarget;
 use crate::emit::digest16;
 use crate::grammar::{
     grammar_correspondence, grammar_leg_pair, grammar_to_ntriples, parse_grammar,
@@ -199,79 +199,6 @@ pub fn assert_registry_covers(lang_class: &str) -> Result<(), String> {
             "no registered projection target covers emission-worthy class lang:{lang_class} \
              (expected one of {targets:?})"
         ))
-    }
-}
-
-// ── CoNLL-U ──────────────────────────────────────────────────────────────────────
-
-/// The Universal-Dependencies / CoNLL-U morphosyntax projection target. Exact byte
-/// round-trip via the existing [`ConlluBridge`]; emits ONE artifact per co-resident
-/// reading — never a silently chosen winner — and records the reading count.
-struct ConlluTarget;
-
-impl LangProjectionTarget for ConlluTarget {
-    fn name(&self) -> &'static str {
-        "conllu"
-    }
-
-    fn emit(&self, input: &LangProjectionInput) -> Result<Vec<LangEmission>, IngestDiagnostic> {
-        let mut emissions = Vec::new();
-        for source in &input.treebanks {
-            if source.readings.is_empty() {
-                return Err(IngestDiagnostic {
-                    failure_class: LangFailure::SilentIngestDrop,
-                    construct: format!(
-                        "CoNLL-U source '{}' carries no readings; a co-resident-reading source \
-                         must carry every reading explicitly",
-                        source.name
-                    ),
-                });
-            }
-            let bridge = ConlluBridge;
-            let mut artifacts = Vec::with_capacity(source.readings.len());
-            let mut round_trip_holds = true;
-            // One artifact per reading (never a single winner). Content-address the carried
-            // correspondence on the concatenated byte round-trip of every reading.
-            let mut corr_key = String::new();
-            for (i, reading) in source.readings.iter().enumerate() {
-                let round = bridge.round_trip(reading)?;
-                if round != *reading {
-                    round_trip_holds = false;
-                }
-                corr_key.push_str(&String::from_utf8_lossy(&round));
-                corr_key.push('\u{1f}');
-                artifacts.push(EmittedArtifact {
-                    path_suffix: format!("conllu/{}.reading-{}.conllu", source.name, i),
-                    bytes: round,
-                    is_rdf: false,
-                });
-            }
-            let source_iri = format!(
-                "{EXAMPLE_BASE}conllu-lift/form/{}",
-                digest16("lang-conllu-form", &source.name)
-            );
-            emissions.push(LangEmission {
-                artifacts,
-                correspondence: conllu_correspondence(&corr_key),
-                ledger: vec![ProjectionResult {
-                    target: format!("conllu:{}", source.name),
-                    content: String::new(),
-                    is_rdf: false,
-                    preservation: PreservationKind::Exact,
-                    complexity: "n/a".to_owned(),
-                    lossy_drops: Vec::new(),
-                    actual_drops: Vec::new(),
-                }],
-                leg_pair: Some(conllu_leg_pair()),
-                emitted_reading_count: Some(source.readings.len() as u64),
-                source_iri,
-                unsupported: Vec::new(),
-                round_trip_holds,
-                lossy_kind: PreservationKind::Exact,
-                source_rdf: Vec::new(),
-            });
-        }
-        Ok(emissions)
     }
 }
 
