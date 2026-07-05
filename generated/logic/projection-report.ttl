@@ -93,6 +93,12 @@
     logic:complexityClass "full first-order (semi-decidable)" ;
     logic:preservationKind logic:ExactPreservation .
 
+<https://blackcatinformatics.ca/logic/target/conllu:forms-and-sign-systems#sentCatsChaseMice>
+    a logic:ProjectionTarget ;
+    rdfs:label "conllu:forms-and-sign-systems#sentCatsChaseMice" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ExactPreservation .
+
 <https://blackcatinformatics.ca/logic/target/datalog>
     a logic:ProjectionTarget ;
     rdfs:label "datalog" ;
@@ -7676,24 +7682,6 @@
     logic:complexityClass "n/a" ;
     logic:preservationKind logic:ExactPreservation .
 
-<https://blackcatinformatics.ca/logic/target/lang-projection:conllu>
-    a logic:ProjectionTarget ;
-    rdfs:label "lang-projection:conllu" ;
-    logic:complexityClass "n/a" ;
-    logic:preservationKind logic:ExactPreservation .
-
-<https://blackcatinformatics.ca/logic/target/lang-projection:ontolex-lemon>
-    a logic:ProjectionTarget ;
-    rdfs:label "lang-projection:ontolex-lemon" ;
-    logic:complexityClass "n/a" ;
-    logic:preservationKind logic:ExactPreservation .
-
-<https://blackcatinformatics.ca/logic/target/lang-projection:semaf>
-    a logic:ProjectionTarget ;
-    rdfs:label "lang-projection:semaf" ;
-    logic:complexityClass "n/a" ;
-    logic:preservationKind logic:ExactPreservation .
-
 <https://blackcatinformatics.ca/logic/target/lang-translation-doc:fr>
     a logic:ProjectionTarget ;
     rdfs:label "lang-translation-doc:fr" ;
@@ -8013,6 +8001,16 @@
     rdfs:label "nif:forms-and-sign-systems#sentAnchor" ;
     gmeow:lossyDrop "actual: offset fragility (declared): NIF/OA offsets [0,15) for anchor <https://blackcatinformatics.ca/gmeow/examples/lang/sentAnchor> bind to surface <https://blackcatinformatics.ca/gmeow/examples/lang/sentSurface> under offsetSpace=lang:codepointOffset, unicodeNormalization=NFC; re-encoding or re-normalizing that surface (NFC↔NFD, codepoint↔byte, a different encoding) shifts the addressed span so the offsets no longer address the same characters — this invalidation is by design, not carried into NIF" ,
         "actual: the lang:Form / lang:Sense / lang:Denotation strata above the surface are not carried into NIF (NIF addresses spans of a surface, not analyzed forms)" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
+<https://blackcatinformatics.ca/logic/target/ontolex-lemon:forms-and-sign-systems>
+    a logic:ProjectionTarget ;
+    rdfs:label "ontolex-lemon:forms-and-sign-systems" ;
+    gmeow:lossyDrop "actual: lang:InterpretationAct and co-resident lang:Reading alternatives with held support have no OntoLex-Lemon form" ,
+        "actual: lang:denotationKind beyond entity/class reference (lang:denotesLogicFormula and kin) has no ontolex:denotes / ontolex:reference target" ,
+        "actual: lang:vantage / perspectival standpoint has no OntoLex-Lemon target: the sense inventory flattens to unattributed lexical structure" ,
+        "actual: preservation-judged lang:Translation has no OntoLex-Lemon target" ;
     logic:complexityClass "n/a" ;
     logic:preservationKind logic:SoundUnderApproximation .
 
@@ -8947,6 +8945,16 @@
         "rules beyond EL expressivity are dropped" ,
         "transaction-path evolution has no faithful OWL EL projection: serial conjunction, executional entailment over a path of states, elementary update as supersession, the hypothetical-execution sandbox and its discarded-run witness, and concurrent composition with conflict-serializability have no OWL axiom form and are dropped — OWL describes a single static state, not a transaction path" ;
     logic:complexityClass "PTIME" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
+<https://blackcatinformatics.ca/logic/target/semaf:forms-and-sign-systems#denCatsChaseMice>
+    a logic:ProjectionTarget ;
+    rdfs:label "semaf:forms-and-sign-systems#denCatsChaseMice" ;
+    gmeow:lossyDrop "actual: AMR / SemAF carry no vantage: perspectival / standpoint support is dropped" ,
+        "actual: AMR has no modality depth: modal operators in the denotation collapse" ,
+        "actual: AMR has no quantifier scope: quantifier scoping in the logic: formula is not carried" ,
+        "actual: SemAF role inventory is coarser than the full logic: predicate-argument structure" ;
+    logic:complexityClass "n/a" ;
     logic:preservationKind logic:SoundUnderApproximation .
 
 <https://blackcatinformatics.ca/logic/target/shacl-af>
@@ -37525,6 +37533,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/canonical-rdf12> ,
         <https://blackcatinformatics.ca/logic/target/cgif> ,
         <https://blackcatinformatics.ca/logic/target/clif> ,
+        <https://blackcatinformatics.ca/logic/target/conllu:forms-and-sign-systems#sentCatsChaseMice> ,
         <https://blackcatinformatics.ca/logic/target/datalog> ,
         <https://blackcatinformatics.ca/logic/target/ebnf:gts> ,
         <https://blackcatinformatics.ca/logic/target/ebnf:turtle> ,
@@ -38159,9 +38168,6 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/lang-docs-translation:ea729607c361a9b4> ,
         <https://blackcatinformatics.ca/logic/target/lang-docs-translation:fb299538cc07f71b> ,
         <https://blackcatinformatics.ca/logic/target/lang-form> ,
-        <https://blackcatinformatics.ca/logic/target/lang-projection:conllu> ,
-        <https://blackcatinformatics.ca/logic/target/lang-projection:ontolex-lemon> ,
-        <https://blackcatinformatics.ca/logic/target/lang-projection:semaf> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation-doc:fr> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation-doc:zh> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:0180e5cc4b5b2fde> ,
@@ -38205,8 +38211,10 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/n3> ,
         <https://blackcatinformatics.ca/logic/target/nemo> ,
         <https://blackcatinformatics.ca/logic/target/nif:forms-and-sign-systems#sentAnchor> ,
+        <https://blackcatinformatics.ca/logic/target/ontolex-lemon:forms-and-sign-systems> ,
         <https://blackcatinformatics.ca/logic/target/owl-dl> ,
         <https://blackcatinformatics.ca/logic/target/owl-el> ,
+        <https://blackcatinformatics.ca/logic/target/semaf:forms-and-sign-systems#denCatsChaseMice> ,
         <https://blackcatinformatics.ca/logic/target/shacl-af> ,
         <https://blackcatinformatics.ca/logic/target/shacl-core> ,
         <https://blackcatinformatics.ca/logic/target/shex> ,
