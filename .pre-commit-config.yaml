@@ -26,6 +26,7 @@ repos:
             tests/fixtures/coverage/external/.*|
             crates/validate/tests/goldens/crossref/.*|
             crates/rdf/tests/corpus/w3c/.*|
+            crates/lang-bridge/tests/fixtures/.*|
             .*\.(tsv|svg)
           )$
       - id: end-of-file-fixer

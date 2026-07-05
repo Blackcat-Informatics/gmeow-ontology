@@ -24,11 +24,17 @@
 //! digest and one line-canonicalization implementation across every `lang:` producer.
 
 pub mod bridge;
+pub mod conllu;
 pub mod emit;
 pub mod plain_text;
 
 pub use bridge::{
     exact_round_trip_holds, is_exact_correspondence, Bridge, IngestDiagnostic, LangFailure, Lifted,
+};
+pub use conllu::{
+    analysis_level, conllu_correspondence, conllu_leg_pair, parse as parse_conllu, parse_feats,
+    serialize as serialize_conllu, to_forms, ConlluBridge, ConlluDoc, ConlluSentence, ConlluToken,
+    TokenId, UD_SIGN_SYSTEM,
 };
 pub use emit::{assert_no_digest_collision, digest16, ntriples_sorted};
 pub use plain_text::{
