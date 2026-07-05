@@ -62,6 +62,8 @@ gmeow-logic-compile = { path = "../logic-compile" }
 # lane's `Report` findings (severity / `verify.<stem>` codes) to build the
 # `gmeow:graph/verify` attestation (#861 P6, two-pass like build_snapshot_bytes).
 gmeow-diagnostics = { path = "../diagnostics" }
+# The perf-gate merge binary surfaces progress through the shared Reporter.
+gmeow-cli-core = { path = "../cli-core" }
 # The statement feedback surface folds the native statement-stage output through
 # the Rust invariant and lossless checks so Python remains only an interface.
 gmeow-validate = { path = "../validate" }

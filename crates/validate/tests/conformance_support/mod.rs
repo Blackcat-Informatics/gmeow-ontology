@@ -14,6 +14,7 @@
 
 #![allow(dead_code)]
 
+use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 use std::sync::OnceLock;
 
@@ -22,9 +23,11 @@ use std::sync::Arc;
 use purrdf::shapes::engine::{parse_shapes, validate_dataset};
 use purrdf::shapes::report::{Severity, ValidationReport};
 use purrdf::shapes::shapes::Shapes;
+use purrdf::sparql::NativeSparqlEngine;
 use purrdf::{
     flat_dataset_from_quads, flat_rdf_quads_from_dataset, parse_dataset, serialize_dataset,
-    RdfDataset, SerializeGraph,
+    DatasetView, GraphMatch, RdfDataset, SerializeGraph, SparqlEngine, SparqlRequest, SparqlResult,
+    TermValue,
 };
 
 // ── Repo-root resolution ──────────────────────────────────────────────────────
@@ -385,6 +388,198 @@ pub fn validate(data_nt: &str) -> ValidationReport {
     let dataset = nt_to_dataset(data_nt);
     validate_dataset(&dataset, whole_shapes()).expect("native SHACL validation must succeed")
 }
+
+// ── Graph query helpers ───────────────────────────────────────────────────────
+
+/// A thin graph-query wrapper over a frozen [`RdfDataset`].
+///
+/// Mirrors the small subset of rdflib graph access that the migrated Python
+/// domain tests used: triple existence, `g.objects()`, `g.subjects()`, and
+/// SPARQL ASK/SELECT. All lookups are default-graph only, matching the
+/// `load_merged_graph(include_imports=False)` and fixture-only graphs the
+/// originals operated on.
+#[derive(Clone)]
+pub struct GraphStore {
+    ds: Arc<RdfDataset>,
+}
+
+impl GraphStore {
+    /// Parse a Turtle file into a fresh store.
+    pub fn parse_ttl_file(path: &Path) -> Self {
+        let ttl = std::fs::read_to_string(path)
+            .unwrap_or_else(|e| panic!("failed to read {}: {e}", path.display()));
+        Self::parse_ttl(&ttl)
+    }
+
+    /// Parse an inline Turtle string into a fresh store.
+    pub fn parse_ttl(ttl: &str) -> Self {
+        let dataset = parse_dataset(ttl.as_bytes(), "text/turtle", None)
+            .unwrap_or_else(|e| panic!("Turtle parse failed: {e}\nInput:\n{ttl}"));
+        Self {
+            ds: flatten_to_default_graph(&dataset),
+        }
+    }
+
+    /// Wrap an already-parsed default-graph dataset.
+    pub fn from_dataset(ds: Arc<RdfDataset>) -> Self {
+        Self { ds }
+    }
+
+    /// The merged ontology store (no imports), mirroring `_graph()`.
+    pub fn ontology() -> Self {
+        Self::from_dataset(base_ontology_dataset().clone())
+    }
+
+    /// Return a new store containing the merged ontology plus the Turtle file at
+    /// `path`, flattened to the default graph. Mirrors Python `_graph() + _fixture()`.
+    pub fn ontology_plus_ttl_file(path: &Path) -> Self {
+        let mut quads: Vec<purrdf::RdfQuad> = flat_rdf_quads_from_dataset(base_ontology_dataset());
+        let ttl = std::fs::read_to_string(path)
+            .unwrap_or_else(|e| panic!("failed to read {}: {e}", path.display()));
+        let fixture = parse_dataset(ttl.as_bytes(), "text/turtle", None)
+            .unwrap_or_else(|e| panic!("fixture parse failed: {e}\n{ttl}"));
+        for mut quad in flat_rdf_quads_from_dataset(&fixture) {
+            quad.graph_name = None;
+            quads.push(quad);
+        }
+        let merged = flat_dataset_from_quads(&quads).expect("merged dataset must freeze");
+        Self { ds: merged }
+    }
+
+    fn term_id(&self, value: &TermValue) -> Option<purrdf::TermId> {
+        self.ds.term_id_by_value(value)
+    }
+
+    fn iri_id(&self, iri: &str) -> Option<purrdf::TermId> {
+        self.term_id(&TermValue::iri(iri))
+    }
+
+    fn subject_iri(quad: &purrdf::QuadIds, ds: &RdfDataset) -> Option<String> {
+        match ds.resolve(quad.s) {
+            purrdf::TermRef::Iri(iri) => Some(iri.to_owned()),
+            _ => None,
+        }
+    }
+
+    fn object_iri(quad: &purrdf::QuadIds, ds: &RdfDataset) -> Option<String> {
+        match ds.resolve(quad.o) {
+            purrdf::TermRef::Iri(iri) => Some(iri.to_owned()),
+            _ => None,
+        }
+    }
+
+    /// Return true if `<s> <p> <o>` exists in the default graph.
+    ///
+    /// Any component may be `None` to act as a wildcard. For literal objects use
+    /// [`Self::has_literal`] or pass a typed [`TermValue`].
+    pub fn has(&self, s: Option<&str>, p: Option<&str>, o: Option<&str>) -> bool {
+        let s_id = s.and_then(|iri| self.iri_id(iri));
+        let p_id = p.and_then(|iri| self.iri_id(iri));
+        let o_id = o.and_then(|iri| self.iri_id(iri));
+        // A bound IRI that is not interned cannot participate in any quad.
+        if s.is_some() && s_id.is_none() {
+            return false;
+        }
+        if p.is_some() && p_id.is_none() {
+            return false;
+        }
+        if o.is_some() && o_id.is_none() {
+            return false;
+        }
+        self.ds
+            .quads_for_pattern(s_id, p_id, o_id, GraphMatch::Default)
+            .next()
+            .is_some()
+    }
+
+    /// Return true if `<s> <p> "lex"^^datatype` exists in the default graph.
+    pub fn has_literal(&self, s: &str, p: &str, lexical: &str, datatype: &str) -> bool {
+        let s_id = self.iri_id(s);
+        let p_id = self.iri_id(p);
+        let o_value = TermValue::typed_literal(lexical, datatype);
+        let o_id = self.term_id(&o_value);
+        self.ds
+            .quads_for_pattern(s_id, p_id, o_id, GraphMatch::Default)
+            .next()
+            .is_some()
+    }
+
+    /// Return every IRI object of `<s> <p> ?o` in the default graph, sorted + deduped.
+    pub fn objects(&self, s: &str, p: &str) -> BTreeSet<String> {
+        let s_id = self.iri_id(s);
+        let p_id = self.iri_id(p);
+        match (s_id, p_id) {
+            (Some(s), Some(p)) => self
+                .ds
+                .quads_for_pattern(Some(s), Some(p), None, GraphMatch::Default)
+                .filter_map(|q| Self::object_iri(&q, &self.ds))
+                .collect(),
+            _ => BTreeSet::new(),
+        }
+    }
+
+    /// Return every IRI subject of `?s <p> <o>` in the default graph, sorted + deduped.
+    pub fn subjects(&self, p: &str, o: &str) -> BTreeSet<String> {
+        let p_id = self.iri_id(p);
+        let o_id = self.iri_id(o);
+        match (p_id, o_id) {
+            (Some(p), Some(o)) => self
+                .ds
+                .quads_for_pattern(None, Some(p), Some(o), GraphMatch::Default)
+                .filter_map(|q| Self::subject_iri(&q, &self.ds))
+                .collect(),
+            _ => BTreeSet::new(),
+        }
+    }
+
+    /// Return the set of `rdf:type` subjects for a given class IRI.
+    pub fn subjects_of_type(&self, type_iri: &str) -> BTreeSet<String> {
+        self.subjects(RDF_TYPE, type_iri)
+    }
+
+    /// Run a SPARQL ASK query against the default-graph-only dataset.
+    pub fn ask(&self, sparql: &str) -> bool {
+        let result = NativeSparqlEngine::new()
+            .query(
+                &self.ds,
+                SparqlRequest {
+                    query: sparql,
+                    base_iri: None,
+                    substitutions: &[],
+                },
+            )
+            .unwrap_or_else(|e| panic!("SPARQL ASK failed: {e}\n{sparql}"));
+        match result {
+            SparqlResult::Boolean(b) => b,
+            other => panic!("expected boolean ASK result, got {other:?}"),
+        }
+    }
+
+    /// Run a SPARQL SELECT query and return the variable names and rows of term values.
+    pub fn select(&self, sparql: &str) -> (Vec<String>, Vec<Vec<Option<TermValue>>>) {
+        let result = NativeSparqlEngine::new()
+            .query(
+                &self.ds,
+                SparqlRequest {
+                    query: sparql,
+                    base_iri: None,
+                    substitutions: &[],
+                },
+            )
+            .unwrap_or_else(|e| panic!("SPARQL SELECT failed: {e}\n{sparql}"));
+        match result {
+            SparqlResult::Solutions {
+                variables, rows, ..
+            } => {
+                let out_rows: Vec<Vec<Option<TermValue>>> = rows;
+                (variables, out_rows)
+            }
+            other => panic!("expected SELECT solutions, got {other:?}"),
+        }
+    }
+}
+
+pub const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 
 // ── Parameterized case harness ──────────────────────────────────────────
 
