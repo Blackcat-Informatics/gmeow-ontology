@@ -217,6 +217,9 @@ pub enum Commands {
         #[arg(long = "timings-json")]
         timings_json: Option<PathBuf>,
     },
+    /// Cross-check the native EL/DL reasoner against the entail oracle (Docker-free).
+    #[command(name = "reason-crosscheck")]
+    ReasonCrosscheck,
     /// Run native reasoning followed by reasoned-graph verify.
     #[command(name = "reason-verify")]
     ReasonVerify {
@@ -688,6 +691,7 @@ pub fn run() -> i32 {
             timings_json,
             ..
         } => dev_reason::verify(&mode, fresh, timings_json.as_deref()),
+        Commands::ReasonCrosscheck => dev_reason::reason_crosscheck(),
         Commands::ReasonVerify {
             fresh,
             merge: _,

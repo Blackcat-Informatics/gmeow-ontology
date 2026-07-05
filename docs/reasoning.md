@@ -46,22 +46,24 @@ GMEOW runs four complementary verification lanes. Each owns a distinct class of 
 | Lane | Tool | World | Owns | Where |
 |---|---|---|---|---|
 | **Native EL/DL gate** | `gmeow_logic` | open | Docker-free profile, consistency, and entailment authority | `make reason` |
-| **Classic DL oracle** | HermiT/ELK (ROBOT, Docker) | open | non-required cross-check of the native lane | `make maint-reason-hermit`, `make maint-classic-cross-check` |
+| **Entailment cross-check oracle** | `purrdf::entail` (in-process OWL-RL + OWL-Direct tableau) | open | on-gate cross-check of the native lane — subsumption + consistency | `gmeow-dev reason-crosscheck`, `make reason-verify` |
 | **Entailment tests** | `owlrl` (pure-Python OWL 2 RL) | open | positive derivations — property chains, transitivity, sub-property closure | `tests/test_reasoning_entailments.py`, `tests/test_competency.py` |
 | **Closed-world validation** | SHACL (`gmeow_shacl`) + native `verify` | closed | cardinality, required shapes, display contract, orthogonality data-checks | `make validate`, `make verify`, `tests/test_shapes.py` |
 
 Reasoning order is **reason first to enrich, then validate the enriched graph**. The native
-`gmeow_logic` lane is the required authority. ELK and HermiT survive as non-required
-Docker/Java oracle checks under `maint-*` targets.
+`gmeow_logic` lane is the required authority. The `purrdf::entail` engine survives as an
+in-process, Docker-free cross-check oracle, run on-gate.
 
-### Lane 1–2 — Native reasoner plus classic oracles
+### Lane 1–2 — Native reasoner plus the entailment cross-check oracle
 
-`make reason` runs the native Docker-free EL/DL authority. `make maint-reason-hermit` runs
-**HermiT** for sound-and-complete oracle comparison, and `make maint-classic-cross-check`
-runs the full ELK/HermiT/ROBOT/Jena/rdflib lane. A contradiction — e.g. an individual
-placed in two disjoint identity axes, or two disjoint Kinds (Person ⊓ Organization) — makes
-the relevant reasoner exit non-zero. These are the *open-world* gates: unsatisfiability and
-inconsistency, nothing else.
+`make reason` runs the native Docker-free EL/DL authority. `gmeow-dev reason-crosscheck` (folded
+into `make reason-verify`) runs the **`purrdf::entail`** engine — an in-process OWL-RL
+subsumption + OWL-Direct-tableau consistency reasoner, itself 70/70 W3C-entailment
+conformance-tested — as a Docker-free oracle that cross-checks the native lane's subsumption
+and consistency verdicts. A contradiction — e.g. an individual placed in two disjoint identity
+axes, or two disjoint Kinds (Person ⊓ Organization) — makes the reasoner report an
+inconsistency. These are the *open-world* gates: unsatisfiability and inconsistency, nothing
+else.
 
 ### Lane 3 — `owlrl` entailment tests (pure-Python, Docker-free)
 
@@ -112,9 +114,9 @@ Two sub-lanes, both closed-world, for the constraints OWL deliberately cannot en
   - no class is a subclass — asserted **or inferred** — of two disjoint axes.
 
   This lane is now on the required path (the `ontology` CI job) and in `make check`, with no
-  Docker. The classic **ROBOT `verify`** survives only as the `verify --mode docker` oracle in
-  the non-required `classic-cross-check` lane, where `scripts/slme_cross_check.py` proves the two
-  agree.
+  Docker. The independent cross-check of the native verdicts is likewise Docker-free: the
+  in-process `purrdf::entail` oracle (`gmeow-dev reason-crosscheck`) confirms the native
+  subsumption and consistency results on-gate.
 
 ## The gUFO grounding reaches outward (foundational bridging)
 
@@ -139,7 +141,7 @@ enforce that contract on data; consumers MUST honour `false` and never surface t
 ```bash
 make validate   # Rust SHACL + syntax + term-annotation lint (always-on)
 make reason     # native Docker-free EL/DL reasoning authority
-make maint-reason-hermit  # sound + complete consistency oracle (Docker)
+make reason-verify  # native reason + verify + on-gate purrdf-entail cross-check oracle
 make verify     # reasoned-graph SPARQL QC — native EL/DL closure (Java/Docker-free)
 uv run pytest   # owlrl entailment tests + SHACL data-shape tests + native verify tests
 ```

@@ -107,8 +107,9 @@ management.
 - Git
 - Python 3.13+
 - `uv`
-- Docker (for ROBOT/WIDOCO/Jena reasoning and documentation; the pure-Python
-  steps run without it)
+- Docker (for the ROBOT `extract` / WIDOCO documentation tooling; native
+  reasoning, the on-gate `purrdf::entail` cross-check, and the pure-Python steps
+  all run without it)
 
 ### Local setup
 
@@ -116,7 +117,6 @@ management.
 git clone https://github.com/<your-username>/gmeow-ontology.git
 cd gmeow-ontology
 make install
-make maint-pull-images   # optional: pre-pull the pinned Docker images
 make help
 ```
 

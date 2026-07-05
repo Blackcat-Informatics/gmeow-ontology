@@ -52,13 +52,14 @@ authority).
 
 ## Regenerating the gold
 
-```sh
-make maint-697-oracle-gold      # non-required maintainer lane; needs Docker + ROBOT image
-```
-
-This re-runs HermiT (and, where the dataset is EL-decidable, ELK) in Docker over
-every `datasets/*.ttl` and rewrites every `expected/*.json`. It is the only step
-that needs Docker/Java; the conformance gate below does not.
+The gold is **permanently frozen** from its historical HermiT run: the Docker/Java
+ELK/HermiT/ROBOT oracle stack (and its regeneration lane) has been **removed**, so the
+`expected/*.json` verdicts are no longer regenerated in-repo. The reasoning oracle that
+now runs continuously is the native, in-process, Docker-free `purrdf::entail` engine
+(OWL-RL subsumption + OWL-Direct-tableau consistency, 70/70 W3C-entailment
+conformance-tested), exercised on-gate by `make reason-verify`; this frozen corpus is
+kept as an independent HermiT-authored oracle baseline that the native reasoner must
+still strictly cover, checked offline by the gate below.
 
 ## The offline gate
 
@@ -73,11 +74,13 @@ runs native `gmeow_logic::reason::reason_all`, and asserts native ⊇ oracle:
 It needs **no Docker, Java, or network** and is deterministic, so it runs in the
 default `cargo nextest` / `make conformance` gate.
 
-## Full-bundle oracle: BLOCKED (documented)
+## Full-bundle oracle: historically BLOCKED, now removed
 
-Running the oracle over the *entire* GMEOW bundle (`gmeow-dev reason --mode docker
---reasoner hermit|ELK`) is currently **blocked** at the ROBOT OWL 2 DL profile
-check, reproduced 2026-06-25:
+Running the external oracle over the *entire* GMEOW bundle was never possible: the
+Docker reasoning path (`gmeow-dev reason --mode docker`) has since been **removed**
+entirely — it now hard-fails, since the native binary embeds no ELK/HermiT container
+stack. Even before removal it was **blocked** at the ROBOT OWL 2 DL profile check
+(reproduced 2026-06-25):
 
 ```text
 PROFILE VIOLATION ERROR https://blackcatinformatics.ca/gmeow/full violates profile DL
@@ -88,7 +91,8 @@ PROFILE VIOLATION ERROR https://blackcatinformatics.ca/gmeow/full violates profi
 ```
 
 `gmeow:usesTerm`'s `rdfs:Resource` range (and a `Declaration(Class(rdfs:Resource))`)
-sit outside OWL 2 DL, so ROBOT/HermiT refuses to reason over the merged bundle.
-This is the PR's known blocker; the curated small datasets above are where
-HermiT/ELK run clean, so the frozen gold is scoped to them — not faked over the
-bundle.
+sit outside OWL 2 DL, so ROBOT/HermiT refused to reason over the merged bundle. The
+curated small datasets above are where HermiT/ELK ran clean, so the frozen gold is
+scoped to them — not faked over the bundle. Full-bundle reasoning is now handled by
+the native EL/DL engine and the in-process `purrdf::entail` cross-check, neither of
+which needs OWL 2 DL profile conformance.

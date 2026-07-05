@@ -27,9 +27,9 @@ use purrdf::shapes::report::{Severity, ValidationReport};
 use purrdf::shapes::shapes::Shapes;
 use purrdf::sparql::NativeSparqlEngine;
 use purrdf::{
-    DatasetView, GraphMatch, RdfDataset, SerializeGraph, SparqlEngine, SparqlRequest, SparqlResult,
-    TermValue, flat_dataset_from_quads, flat_rdf_quads_from_dataset, parse_dataset,
-    serialize_dataset,
+    DatasetView, GraphMatch, RdfDataset, RdfDatasetBuilder, SerializeGraph, SparqlEngine,
+    SparqlRequest, SparqlResult, TermValue, flat_dataset_from_quads, flat_rdf_quads_from_dataset,
+    parse_dataset, serialize_dataset,
 };
 
 // ── Repo-root resolution ──────────────────────────────────────────────────────
@@ -234,20 +234,21 @@ pub fn base_ontology_dataset() -> &'static Arc<RdfDataset> {
         collect_module_ttls(&slices_dir, &mut module_paths);
         module_paths.sort();
 
-        // Accumulate every module's flat quads (graph component re-homed to the
-        // default graph) into one frozen native dataset.
-        let mut merged: Vec<purrdf::RdfQuad> = Vec::new();
+        // Merge every module through the builder's `push_dataset`, which allocates a
+        // FRESH blank-node scope per source dataset (standardize-apart, C0.2): two
+        // modules that both mint `_:b0` — or two distinct `rdf:List` cons cells that
+        // parsed to the same label — stay DISTINCT instead of collapsing into one
+        // over-connected blank node (which corrupts blank `rdf:List`/`owl:Restriction`
+        // walks: a single blank head with multiple `rdf:first` objects). A raw
+        // quad-collect (`flat_rdf_quads_from_dataset` per module → one vec) has no
+        // per-source scope and DOES collide, so build through the interner instead.
+        let mut builder = RdfDatasetBuilder::new();
         for path in &module_paths {
             let ttl = std::fs::read_to_string(path)
                 .unwrap_or_else(|e| panic!("failed to read {}: {e}", path.display()));
             // Native codec parse: lenient on private-use language tags.
             match parse_dataset(ttl.as_bytes(), "text/turtle", None) {
-                Ok(ds) => {
-                    for mut quad in flat_rdf_quads_from_dataset(&ds) {
-                        quad.graph_name = None;
-                        merged.push(quad);
-                    }
-                }
+                Ok(ds) => builder.push_dataset(&ds),
                 // Warn but continue — some module.ttl files import cross-slice
                 // IRIs that are not resolvable in the local parse.
                 Err(e) => eprintln!(
@@ -256,8 +257,13 @@ pub fn base_ontology_dataset() -> &'static Arc<RdfDataset> {
                 ),
             }
         }
-
-        flat_dataset_from_quads(&merged).expect("merged flat dataset must freeze")
+        // Re-home every quad to the default graph so the default-graph-only query
+        // helpers see the whole ontology. The blank labels are already standardized
+        // apart (distinct qualified strings), so flattening cannot re-collide them.
+        let merged = builder
+            .freeze()
+            .expect("merged ontology dataset must freeze");
+        flatten_to_default_graph(&merged)
     })
 }
 
