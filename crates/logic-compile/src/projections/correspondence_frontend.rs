@@ -328,7 +328,10 @@ fn correspondence_for_binding(
         None,
         get_leg,
         put_leg,
-        Vec::new(),
+        // An authored co-authored put-with-claim (`gmeow:ingestClaim`) becomes a real
+        // `law_claims` entry the existing `p_has_law_claim` path round-trips; absent in the
+        // committed corpus, so this is empty there.
+        binding.ingest_claim.iter().cloned().collect(),
         binding.confidence,
         None,
         None,

@@ -5,6 +5,7 @@
 @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix mls:   <http://www.w3.org/ns/mls#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 
 # Projection mappings: GMEOW model-serving → ML-Schema (mls:), the LLM-ops
 # metadata seam. ML-Schema is a real RDF/OWL vocabulary (a lawful
@@ -19,8 +20,14 @@
 #     are the terms model-serving OWNS whose ML-Schema counterpart is
 #     structurally well-posed. Each is a lossy SubsumedBy ("<="), never an
 #     equivalence — the SSSOM rows are closeMatch/relatedMatch, and the derived
-#     morphism rung is a LossyLens; the put (ingest) leg is not carried by EDOAL
-#     (honest residue in the loss ledger).
+#     morphism rung is a LossyLens. The inverse (ingest/put) leg IS materialized:
+#     a validation-only mint-with-claim ingest CONSTRUCT (mappings/ml-schema.put.rq)
+#     that lifts only the class/predicate structure bare mls: triples warrant, each
+#     lifted node attributed gmeow:wasGeneratedBy a gmeow:ImportActivity and
+#     gmeow:mappedFrom its mls: source term — an import-derived claim, never an
+#     extracted fact. The durable subject / gmeow:DigitalSubjectTenure the source
+#     cannot express is NOT synthesized; it is disclosed as residue, and the put
+#     carries an honest PutGet/ObligationUnknown claim, never a lossless recovery.
 #   * gmeow:deploymentArtifact (ModelDeployment→ModelArtifact) has NO lawful mls:
 #     counterpart: in ML-Schema a Model is the OUTPUT of a Run (mls:hasOutput),
 #     not an Implementation-bound artifact — the gmeow serving-binding is not the
@@ -52,7 +59,11 @@ gmeow:mapMlsModel a gmeow:ProjectionMapping ;
         gmeow:profile "ml-schema" ; gmeow:toClass mls:Model ; gmeow:relation "<=" ; gmeow:confidence 0.7 ;
         gmeow:lossyDrop "mls:Model is the learned-model output of a run; gmeow:ModelArtifact adds the content-digest and the distribution/versioning framing (aligned by reference to the software slice) that mls:Model does not carry" ;
         gmeow:templateAtoms (
-            [ gmeow:tSubj "mlsArtifact" ; gmeow:tPred rdf:type ; gmeow:tObjValue mls:Model ] ) ] .
+            [ gmeow:tSubj "mlsArtifact" ; gmeow:tPred rdf:type ; gmeow:tObjValue mls:Model ] ) ;
+        gmeow:ingestClaim [
+            gmeow:ingestLaw     logic:PutGet ;
+            gmeow:ingestVerdict logic:ObligationUnknown ;
+            gmeow:ingestResidue "a bare mls:Model lift mints a gmeow:ModelArtifact whose content-digest, distribution/versioning framing, and the gmeow:DigitalSubjectTenure that would give the artifact a durable subject are not present in the source and are NOT synthesized — disclosed here as residue, never fabricated" ] ] .
 
 # gmeow:ModelDeployment ⊑ mls:Implementation (the executable realization).
 gmeow:mapMlsImplementation a gmeow:ProjectionMapping ;
@@ -65,7 +76,11 @@ gmeow:mapMlsImplementation a gmeow:ProjectionMapping ;
         gmeow:profile "ml-schema" ; gmeow:toClass mls:Implementation ; gmeow:relation "<=" ; gmeow:confidence 0.5 ;
         gmeow:lossyDrop "gmeow:ModelDeployment is a relator binding artifact·service·host·endpoint·interval·operator·policy; mls:Implementation carries only the executable-realization framing — the service identity, host, endpoint, and serving interval drop" ;
         gmeow:templateAtoms (
-            [ gmeow:tSubj "mlsDeployment" ; gmeow:tPred rdf:type ; gmeow:tObjValue mls:Implementation ] ) ] .
+            [ gmeow:tSubj "mlsDeployment" ; gmeow:tPred rdf:type ; gmeow:tObjValue mls:Implementation ] ) ;
+        gmeow:ingestClaim [
+            gmeow:ingestLaw     logic:PutGet ;
+            gmeow:ingestVerdict logic:ObligationUnknown ;
+            gmeow:ingestResidue "a bare mls:Implementation lift mints a gmeow:ModelDeployment whose service·host·endpoint·serving-interval binding and the gmeow:DigitalSubjectTenure the relator would carry are absent from the source and are NOT synthesized — disclosed here as residue, never fabricated" ] ] .
 
 # gmeow:RuntimeExecution ⊑ mls:Run (an execution of an implementation).
 gmeow:mapMlsRun a gmeow:ProjectionMapping ;
@@ -78,7 +93,11 @@ gmeow:mapMlsRun a gmeow:ProjectionMapping ;
         gmeow:profile "ml-schema" ; gmeow:toClass mls:Run ; gmeow:relation "<=" ; gmeow:confidence 0.55 ;
         gmeow:lossyDrop "mls:Run is training/evaluation-centred (executes an implementation on data, producing a model); gmeow:RuntimeExecution is a serving occurrent within which gmeow:ModelInvocation events occur — the durable subject/tenure/attributed-provenance and the invocation sub-events drop" ;
         gmeow:templateAtoms (
-            [ gmeow:tSubj "mlsExecution" ; gmeow:tPred rdf:type ; gmeow:tObjValue mls:Run ] ) ] .
+            [ gmeow:tSubj "mlsExecution" ; gmeow:tPred rdf:type ; gmeow:tObjValue mls:Run ] ) ;
+        gmeow:ingestClaim [
+            gmeow:ingestLaw     logic:PutGet ;
+            gmeow:ingestVerdict logic:ObligationUnknown ;
+            gmeow:ingestResidue "a bare mls:Run lift mints a gmeow:RuntimeExecution whose durable subject, gmeow:DigitalSubjectTenure, attributed provenance, gmeow:InhabitationClaim, and gmeow:ModelInvocation sub-events are not present in the source and are NOT synthesized — disclosed here as residue, never fabricated" ] ] .
 
 # ── Property correspondence (structural EDOAL + forward CONSTRUCT) ────────────
 
@@ -97,4 +116,8 @@ gmeow:mapMlsExecutes a gmeow:ProjectionMapping ;
         gmeow:profile "ml-schema" ; gmeow:toPredicate mls:executes ; gmeow:edoalTargetKind "relation" ; gmeow:relation "<=" ; gmeow:confidence 0.5 ;
         gmeow:lossyDrop "mls:executes carries only the run→implementation link; the gmeow deployment's artifact·host·endpoint·interval binding beyond the bare executable realization is not re-expressed by the flat mls:executes relation" ;
         gmeow:templateAtoms (
-            [ gmeow:tSubj "mlsExec" ; gmeow:tPred mls:executes ; gmeow:tObj "mlsImpl" ] ) ] .
+            [ gmeow:tSubj "mlsExec" ; gmeow:tPred mls:executes ; gmeow:tObj "mlsImpl" ] ) ;
+        gmeow:ingestClaim [
+            gmeow:ingestLaw     logic:PutGet ;
+            gmeow:ingestVerdict logic:ObligationUnknown ;
+            gmeow:ingestResidue "a bare mls:executes link lifts to gmeow:executionOfDeployment; the deployment's artifact·host·endpoint·interval binding and the gmeow:DigitalSubjectTenure that would anchor the execution to a durable subject are not present in the source and are NOT synthesized — disclosed here as residue, never fabricated" ] ] .

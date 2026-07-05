@@ -9342,6 +9342,46 @@
     logic:complexityClass "closed-world shape validation (ShEx, strictly narrower than SHACL Core)" ;
     logic:preservationKind logic:ValidationOnly .
 
+<https://blackcatinformatics.ca/logic/target/sparql-put:0ecf06a76a4e1fd0>
+    a logic:ProjectionTarget ;
+    rdfs:label "sparql-put:0ecf06a76a4e1fd0" ;
+    gmeow:lossyDrop "actual: a bare mls:Implementation lift mints a gmeow:ModelDeployment whose service·host·endpoint·serving-interval binding and the gmeow:DigitalSubjectTenure the relator would carry are absent from the source and are NOT synthesized — disclosed here as residue, never fabricated" ,
+        "actual: correspondence: mapMlsImplementation::ml-schema" ,
+        "durable subject, gmeow:DigitalSubjectTenure, distribution/versioning framing, and attributed provenance absent from the external source are disclosed as residue and NOT synthesized" ,
+        "the inverse-ingest up-lift is validation-only mint-with-claim: minted nodes/edges are marked import-derived (gmeow:wasGeneratedBy / gmeow:mappedFrom), not asserted as extracted fact" ;
+    logic:complexityClass "terminating/PTIME-data" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/sparql-put:15070cd3ee9cb68d>
+    a logic:ProjectionTarget ;
+    rdfs:label "sparql-put:15070cd3ee9cb68d" ;
+    gmeow:lossyDrop "actual: a bare mls:Model lift mints a gmeow:ModelArtifact whose content-digest, distribution/versioning framing, and the gmeow:DigitalSubjectTenure that would give the artifact a durable subject are not present in the source and are NOT synthesized — disclosed here as residue, never fabricated" ,
+        "actual: correspondence: mapMlsModel::ml-schema" ,
+        "durable subject, gmeow:DigitalSubjectTenure, distribution/versioning framing, and attributed provenance absent from the external source are disclosed as residue and NOT synthesized" ,
+        "the inverse-ingest up-lift is validation-only mint-with-claim: minted nodes/edges are marked import-derived (gmeow:wasGeneratedBy / gmeow:mappedFrom), not asserted as extracted fact" ;
+    logic:complexityClass "terminating/PTIME-data" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/sparql-put:5760705e166248fd>
+    a logic:ProjectionTarget ;
+    rdfs:label "sparql-put:5760705e166248fd" ;
+    gmeow:lossyDrop "actual: a bare mls:executes link lifts to gmeow:executionOfDeployment; the deployment's artifact·host·endpoint·interval binding and the gmeow:DigitalSubjectTenure that would anchor the execution to a durable subject are not present in the source and are NOT synthesized — disclosed here as residue, never fabricated" ,
+        "actual: correspondence: mapMlsExecutes::ml-schema" ,
+        "durable subject, gmeow:DigitalSubjectTenure, distribution/versioning framing, and attributed provenance absent from the external source are disclosed as residue and NOT synthesized" ,
+        "the inverse-ingest up-lift is validation-only mint-with-claim: minted nodes/edges are marked import-derived (gmeow:wasGeneratedBy / gmeow:mappedFrom), not asserted as extracted fact" ;
+    logic:complexityClass "terminating/PTIME-data" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/sparql-put:60068eabb023f33e>
+    a logic:ProjectionTarget ;
+    rdfs:label "sparql-put:60068eabb023f33e" ;
+    gmeow:lossyDrop "actual: a bare mls:Run lift mints a gmeow:RuntimeExecution whose durable subject, gmeow:DigitalSubjectTenure, attributed provenance, gmeow:InhabitationClaim, and gmeow:ModelInvocation sub-events are not present in the source and are NOT synthesized — disclosed here as residue, never fabricated" ,
+        "actual: correspondence: mapMlsRun::ml-schema" ,
+        "durable subject, gmeow:DigitalSubjectTenure, distribution/versioning framing, and attributed provenance absent from the external source are disclosed as residue and NOT synthesized" ,
+        "the inverse-ingest up-lift is validation-only mint-with-claim: minted nodes/edges are marked import-derived (gmeow:wasGeneratedBy / gmeow:mappedFrom), not asserted as extracted fact" ;
+    logic:complexityClass "terminating/PTIME-data" ;
+    logic:preservationKind logic:ValidationOnly .
+
 <https://blackcatinformatics.ca/logic/target/sparql:011d28b7ee1ca288>
     a logic:ProjectionTarget ;
     rdfs:label "sparql:011d28b7ee1ca288" ;
@@ -37633,6 +37673,10 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/shacl-af> ,
         <https://blackcatinformatics.ca/logic/target/shacl-core> ,
         <https://blackcatinformatics.ca/logic/target/shex> ,
+        <https://blackcatinformatics.ca/logic/target/sparql-put:0ecf06a76a4e1fd0> ,
+        <https://blackcatinformatics.ca/logic/target/sparql-put:15070cd3ee9cb68d> ,
+        <https://blackcatinformatics.ca/logic/target/sparql-put:5760705e166248fd> ,
+        <https://blackcatinformatics.ca/logic/target/sparql-put:60068eabb023f33e> ,
         <https://blackcatinformatics.ca/logic/target/sparql:011d28b7ee1ca288> ,
         <https://blackcatinformatics.ca/logic/target/sparql:01ef4cd9bbaa3c97> ,
         <https://blackcatinformatics.ca/logic/target/sparql:02ade478d7ee3bf9> ,
