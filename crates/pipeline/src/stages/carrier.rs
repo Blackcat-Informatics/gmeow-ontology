@@ -192,6 +192,13 @@ pub(crate) fn serialize_carrier_snapshot_with_docs_model(
         },
     )?;
     blobs.extend(build_guide_blobs(root)?);
+    // The document-scale surface blobs: every `@x-gmeow-english` source literal whose
+    // byte-length crosses the document-scale threshold rides here by content-addressed
+    // reference (the `lang:surfaceBlob "blake3:<hex>"` anchor the lang-form corpus emits),
+    // so a document-scale surface never inlines payload bytes in the graph. Recomputed
+    // from `root` exactly like the guide blobs; empty until a source literal crosses the
+    // threshold.
+    blobs.extend(crate::stages::lang_form::build_surface_blobs(root)?);
     // The provided docs model (reasoning verdict already attached by the caller) drives the
     // OKF-coverage gate, the build-time executable-docs data (the reasoned "try it" diffs and
     // the offline SPARQL playground asset), and the rendered ontology-docs site. This is a
