@@ -92,6 +92,14 @@ pub struct CompiledMappings {
     /// projects. Carried as a named graph by [`MappingsStage::run`], excluded from the
     /// reasoned EDB exactly like the other `lang:` corpus graphs.
     pub lang_projection_corpus: Vec<u8>,
+    /// The docs-rendering corpus N-Triples graph (`graph/lang-docs-rendering-corpus`): the
+    /// `.po`-derived documentation language trees re-typed as `lang:Rendering`
+    /// (`lang:renderingDocsPage`) per non-English page, a `lang:Translation` per (page,
+    /// language) pairing rolling up the page's `lang:TranslationUnit`s with a DERIVED
+    /// document judgment, and the exec-docs English-only boundary recorded as a declared
+    /// `lang:translationGap`. Carried as a named graph by [`MappingsStage::run`], excluded
+    /// from the reasoned EDB exactly like the other `lang:` corpus graphs.
+    pub lang_docs_rendering_corpus: Vec<u8>,
 }
 
 /// Compile all five mapping families (SSSOM + FnO + EDOAL + SPARQL + standpoint
@@ -222,6 +230,17 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, PipelineError> 
         artifacts.insert(path, bytes);
     }
 
+    // Docs-tree re-typing (Principle 15 consumer wiring): re-type the EXISTING `.po`-derived
+    // documentation language trees — one `lang:Rendering` (`lang:renderingDocsPage`) per
+    // non-English page, one `lang:Translation` per (page, language) pairing that
+    // `lang:rollsUpFrom` the page's live `lang:TranslationUnit`s with a DERIVED document
+    // judgment, and the exec-docs English-only boundary as a declared `lang:translationGap` —
+    // and fold its honest per-page + per-boundary rows into the loss ledger. The RDF graph
+    // rides as a named graph by the stage `run` below (never a `generated/` file).
+    let docs_rendering_corpus = crate::stages::lang_docs_rendering::build_corpus(root)?;
+    ledger.extend(docs_rendering_corpus.ledger);
+    let lang_docs_rendering_corpus = docs_rendering_corpus.ntriples;
+
     // Standpoint projections — the seven fixed `standpoint-*.rq` queries (byte-identical
     // to the Python template-coded emitters; no DSL input).
     let standpoint = emit_standpoint_sets(root, &vocab).map_err(|e| PipelineError::Stage {
@@ -275,6 +294,7 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, PipelineError> 
         lang_translation_corpus,
         lang_form_corpus,
         lang_projection_corpus,
+        lang_docs_rendering_corpus,
     })
 }
 
@@ -710,6 +730,16 @@ impl Stage for MappingsStage {
             "application/n-triples",
             crate::stages::carrier::GRAPH_LANG_PROJECTION_CORPUS,
         )?;
+        // graph/lang-docs-rendering-corpus — the `.po`-derived documentation language trees
+        // re-typed as `lang:Rendering` / `lang:Translation` crossings plus the exec-docs
+        // English-only boundary gap. Carried as a named graph so the presenter reads it via
+        // `producer_graph`; like the other `lang:` corpus graphs it stays OUT of the reasoned
+        // EDB (`gts_compose` folds only the default graph).
+        let lang_docs_rendering_graph = crate::stages::carrier::parse_into_graph(
+            &compiled.lang_docs_rendering_corpus,
+            "application/n-triples",
+            crate::stages::carrier::GRAPH_LANG_DOCS_RENDERING_CORPUS,
+        )?;
         let dataset = std::sync::Arc::new(purrdf::RdfDataset::union(&[
             rdf_dataset.as_ref(),
             ledger_graph.as_ref(),
@@ -717,6 +747,7 @@ impl Stage for MappingsStage {
             lang_translation_graph.as_ref(),
             lang_form_graph.as_ref(),
             lang_projection_graph.as_ref(),
+            lang_docs_rendering_graph.as_ref(),
         ]));
         Ok(StageOutput {
             product: StageProduct::from_artifacts_over(self.id(), dataset, artifacts),
@@ -1042,6 +1073,11 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
             "/target/semaf:",
             "/target/bcp47:",
             "/target/lang-projection:",
+            // The docs-tree re-typing rows: per-page rendering + translation roll-ups and the
+            // exec-docs English-only boundary gap (folded from `lang_docs_rendering`).
+            "/target/lang-docs-rendering:",
+            "/target/lang-docs-translation:",
+            "/target/lang-docs-execgap:",
         ];
         // A Turtle subject block is a blank-line-separated group. Drop any block that
         // MENTIONS a non-logic target IRI anywhere: the non-logic target blocks themselves

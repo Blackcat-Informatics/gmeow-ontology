@@ -85,6 +85,17 @@ pub(crate) const GRAPH_LANG_FORM_CORPUS: &str =
 /// self-description corpus, not object-level axioms).
 pub(crate) const GRAPH_LANG_PROJECTION_CORPUS: &str =
     "https://blackcatinformatics.ca/gmeow/graph/lang-projection-corpus";
+/// The docs-rendering corpus: the `.po`-derived documentation language trees re-typed as
+/// reified crossings — one `lang:Rendering` (`lang:renderingDocsPage`) per non-English page,
+/// one `lang:Translation` per (page, language) pairing rolling up the page's live
+/// `lang:TranslationUnit`s with a DERIVED document judgment, and the exec-docs English-only
+/// asset boundary recorded as a declared `lang:translationGap`. Folded as its own queryable
+/// named graph so a repo-free consumer reads what the documentation translation loses without
+/// re-rendering the site. Excluded from the reasoned object-level EDB exactly like
+/// `graph/lang-projection-corpus` (it asserts a self-description corpus, not object-level
+/// axioms).
+pub(crate) const GRAPH_LANG_DOCS_RENDERING_CORPUS: &str =
+    "https://blackcatinformatics.ca/gmeow/graph/lang-docs-rendering-corpus";
 /// The authored default graph (root ontology + slice modules + translations + guide
 /// anchors, NO imports) carried as a named graph on the `stage-source-load` product so
 /// the presenter reads it instead of re-loading the sources. It is an INTERNAL transport
@@ -503,6 +514,8 @@ fn assemble_carrier(
     let lang_form_corpus = producer_graph(upstream, "stage-mappings", GRAPH_LANG_FORM_CORPUS)?;
     let lang_projection_corpus =
         producer_graph(upstream, "stage-mappings", GRAPH_LANG_PROJECTION_CORPUS)?;
+    let lang_docs_rendering_corpus =
+        producer_graph(upstream, "stage-mappings", GRAPH_LANG_DOCS_RENDERING_CORPUS)?;
 
     // ── the carried graphs ride in from the producers' carriers ────────────────
     let reason = upstream
@@ -529,6 +542,7 @@ fn assemble_carrier(
         lang_translation_corpus,
         lang_form_corpus,
         lang_projection_corpus,
+        lang_docs_rendering_corpus,
     ];
     datasets.extend(compile_logic_object_graphs(upstream)?);
     datasets.push(rooted_in_graph(
