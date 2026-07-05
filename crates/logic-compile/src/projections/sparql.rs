@@ -110,7 +110,7 @@ pub(crate) struct SuppressionVocab {
 impl SuppressionVocab {
     /// An empty suppression vocabulary. The inverse-ingest (`put`) emitter injects no
     /// display-guards and so never reads the vocabulary, so a unit test that drives
-    /// `emit_put` directly needs only this placeholder to satisfy the parallel signature.
+    /// `emit_put` directly needs only this empty value to satisfy the parallel signature.
     #[cfg(test)]
     pub(crate) fn empty() -> Self {
         Self {
