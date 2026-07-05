@@ -239,6 +239,15 @@ fn build_prose(text: &str) -> Result<Prose, PipelineError> {
         collation: "en".to_owned(),
     };
     let surface_key = surface.surface_key();
+    let correspondence =
+        exact_surface_correspondence(&surface).map_err(|d| PipelineError::Stage {
+            stage: "stage-mappings".to_string(),
+            message: format!(
+                "lang-form: exact surface correspondence hard-failed ({}): {}",
+                d.failure_class.as_str(),
+                d.construct
+            ),
+        })?;
 
     Ok(Prose {
         text: text.to_owned(),
@@ -252,7 +261,7 @@ fn build_prose(text: &str) -> Result<Prose, PipelineError> {
         // Hash the RAW literal text (no NFC transform) so the value coincides byte-for-byte
         // with the obligations gate's `candidate_source_hash`.
         source_hash: candidate_source_hash(text),
-        correspondence: exact_surface_correspondence(&surface),
+        correspondence,
     })
 }
 

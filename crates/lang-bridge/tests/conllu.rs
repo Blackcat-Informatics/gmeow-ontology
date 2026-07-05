@@ -61,7 +61,7 @@ fn carried_leg_pair_round_trips_at_the_leg_level() {
 fn form_projection_captures_words_mwt_and_features() {
     let doc = conllu::parse(FIXTURE).expect("parses");
     assert_eq!(doc.sentences.len(), 1);
-    let form = conllu::to_forms(&doc.sentences[0]);
+    let form = conllu::to_forms(&doc.sentences[0]).expect("sentence projects to a form");
     let Form::Composed { level, slots, .. } = &form else {
         panic!("a sentence projects to a Composed form");
     };

@@ -74,7 +74,9 @@ pub fn normalization_label(text: &str) -> &'static str {
 /// identity surface map trivially satisfies them, decidable by syntactic reachability). The
 /// IRI is content-addressed on the surface's material key, so the same surface always
 /// carries the same correspondence.
-pub fn exact_surface_correspondence(surface: &SurfaceForm) -> Correspondence {
+pub fn exact_surface_correspondence(
+    surface: &SurfaceForm,
+) -> Result<Correspondence, IngestDiagnostic> {
     let iri = format!(
         "{PLAIN_TEXT_CORR_BASE}{}",
         digest16("lang-plain-text-corr", &surface.surface_key())
@@ -105,7 +107,10 @@ pub fn exact_surface_correspondence(surface: &SurfaceForm) -> Correspondence {
         None,
         None,
     )
-    .expect("exact surface correspondence is well-formed by construction")
+    .map_err(|construct| IngestDiagnostic {
+        failure_class: LangFailure::SilentIngestDrop,
+        construct: format!("exact surface correspondence is not well-formed: {construct}"),
+    })
 }
 
 impl Bridge for PlainTextBridge {
@@ -128,7 +133,7 @@ impl Bridge for PlainTextBridge {
             normalization: normalization_label(text).to_owned(),
             collation: "und".to_owned(),
         };
-        let correspondence = exact_surface_correspondence(&surface);
+        let correspondence = exact_surface_correspondence(&surface)?;
         // One honest ledger row: the surface stratum round-trips exactly (nothing is
         // dropped). The unanalyzed status is recorded via the raw analysis level, never
         // charged as a projection loss.

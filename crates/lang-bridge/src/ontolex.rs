@@ -589,7 +589,13 @@ impl Bridge for OntoLexBridge {
             .collect();
 
         let ntriples = ntriples_sorted(lift_to_lines(&entries, &self.source_vantage));
-        let content = String::from_utf8(ntriples).expect("the lift emits ASCII/UTF-8 N-Triples");
+        let content = String::from_utf8(ntriples).map_err(|e| IngestDiagnostic {
+            failure_class: LangFailure::NonUtf8Surface,
+            construct: format!(
+                "OntoLex N-Triples projection is not UTF-8: first invalid byte at index {}",
+                e.utf8_error().valid_up_to()
+            ),
+        })?;
         let correspondence = ontolex_correspondence(&content);
 
         // The honest loss ledger: the gloss complement the form view flattens is recorded as
