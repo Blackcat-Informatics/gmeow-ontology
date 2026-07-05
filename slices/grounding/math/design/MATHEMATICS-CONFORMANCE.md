@@ -31,8 +31,7 @@ most declarative to most procedural:
 - **source-lint** — a Rust source-level check over the slice TTL before folding (the discipline that
   catches string-only computable expressions and dangling references early).
 - **Rust validator** — a check in the future native crates (`math-ast`, `stats-model`) that is not
-  expressible as a shape (normalization identity, contiguity in strict mode, kernel totality,
-  lowering-preservation declarations).
+  expressible as a shape (normalization identity, contiguity in strict mode, kernel totality).
 - **competency query** — a `queries/competency/*.rq` that must return the expected answer on the
   slice examples; a competency failure is a coverage gap, not a data violation.
 - **projection test** — an acceptance query over a generated lowering that fails if loss is
@@ -55,7 +54,7 @@ subclasses), so a violation is itself a typed, queryable object, not a log line.
 | Every variable occurrence is bound or explicitly declared free | SHACL-SPARQL | `math:UnscopedVariableOccurrence` |
 | A free variable declares type/domain context | SHACL Core | `math:UntypedFreeVariable` |
 | A `SymbolReference` resolves locally or to a declared external symbol | Rust validator + mapping check | `math:UnresolvedSymbolReference` |
-| A truth-valued expression lowered to `logic:` declares denotation kind and lowering preservation | Rust validator | `math:UndeclaredLogicLowering` |
+| A truth-valued expression lowered to `logic:` declares denotation kind and lowering preservation | SHACL Core | `math:UndeclaredLogicLowering` |
 | A theorem/lemma/… role is asserted under a theory context (not as unconditional truth) | SHACL-SPARQL | `math:UnscopedStatementRole` |
 | A `FormalVerificationResult` is grounded as an observation with a vantage | SHACL Core | `math:UngroundedVerificationResult` |
 
@@ -148,7 +147,8 @@ bare boolean.
 | Each `math:ArgumentSlot` has exactly one index and one expression | SHACL Core | `math:MalformedArgumentSlot` |
 | Slot indexes are unique within one application/binder | SHACL-SPARQL | `math:MalformedArgumentSlot` |
 | A `math:VariableOccurrence` resolves to a declaration (bound or explicitly free) | SHACL Core | `math:UnscopedVariableOccurrence` |
-| A binder binds a variable over a body; a truth-valued lowering into `logic:` declares its denotation kind and preservation | SHACL Core / source-lint | `math:MalformedBindingExpression` / `math:UndeclaredLogicLowering` |
+| A binder binds a variable over a body | SHACL Core | `math:MalformedBindingExpression` |
+| A truth-valued expression lowered into `logic:` (`math:compilesToLogicFormula`) declares its denotation kind and preservation | SHACL Core | `math:UndeclaredLogicLowering` |
 | A `math:Derivative` names what it differentiates, its variable, and its order | SHACL Core | `math:UnderspecifiedDerivative` |
 | A `math:Limit` names its expression and its limit point (mode optional) | SHACL Core | `math:UnderspecifiedLimit` |
 | A `math:Series`/`math:Sequence` carries a `math:Convergence` naming what it converges to and the mode | SHACL Core | `math:UnderspecifiedConvergence` |
