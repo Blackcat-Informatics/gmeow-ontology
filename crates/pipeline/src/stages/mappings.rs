@@ -194,6 +194,12 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, PipelineError> 
     for (filename, rq) in aligned.sparql {
         artifacts.insert(format!("{QUERIES_DIR}/{filename}"), rq.into_bytes());
     }
+    // The inverse ingest leg: each `<profile>.put.rq` SPARQL CONSTRUCT emitted alongside
+    // its forward `.rq`. ml-schema authors the ingest-claim terms today, so this writes the
+    // ml-schema put leg and automatically tracks the emitter (the sole authority for the set).
+    for (filename, put) in aligned.sparql_put {
+        artifacts.insert(format!("{QUERIES_DIR}/{filename}"), put.into_bytes());
+    }
     // The EmotionML XML projection of the affect category + dimension vocabularies. Its
     // many-to-one collapse row already rides in `aligned.ledger` (folded into the union
     // projection-report below), so writing the document is all that remains here.
@@ -894,20 +900,46 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
         // committed counterpart byte-for-byte (the lowerings' parity contract).
         let root = repo_root();
         let artifacts = compile_mappings(&root).expect("compile").artifacts;
+        // Oracle for the inverse ingest leg: the lowering IS the authority for the
+        // `.put.rq` set, so the expected committed put count is exactly the length of the
+        // emitted `sparql_put` map. ml-schema authors the ingest-claim terms today, so
+        // `expected_put == 1` and there is one committed `.put.rq`; both sides move in
+        // lockstep with the emitter with no gate edit. Kept as a distinct counter so
+        // `.put.rq` never inflates the forward `sparql == 46` count.
+        // Mirror the production stage's single-catalog discovery so the lowering sees
+        // the slice-authored ingest-claim terms (a `None` catalog would drop them and
+        // undercount the `.put.rq` oracle).
+        let catalog = purrdf::slice::SliceCatalog::discover(
+            &root.join("slices"),
+            crate::gmeow_ns::gmeow_slice_vocab(),
+        )
+        .expect("slice catalog discovery");
+        let expected_put = correspondence_lower::lower_all(&root, Some(&catalog))
+            .expect("lower_all")
+            .sparql_put
+            .len();
         let mut edoal = 0usize;
         let mut sparql = 0usize;
+        let mut put = 0usize;
         let mut failures: Vec<String> = Vec::new();
         for (path, bytes) in &artifacts {
             let name = path.rsplit('/').next().unwrap_or(path);
             let is_edoal = path.starts_with(EDOAL_DIR) && path.ends_with(".edoal.ttl");
-            // The per-profile SPARQL projections only; the `standpoint-*.rq`
-            // queries and `observation-claim-view.rq` are covered by their own
-            // dedicated parity tests below.
-            let is_sparql = path.starts_with(QUERIES_DIR)
-                && name.ends_with(".rq")
+            // The inverse ingest leg (`.put.rq`) — counted separately below so it never
+            // sweeps into the forward `.rq` count.
+            let is_put = path.starts_with(QUERIES_DIR)
+                && name.ends_with(".put.rq")
                 && !name.starts_with("standpoint-")
                 && name != CLAIM_VIEW_FILE;
-            if !is_edoal && !is_sparql {
+            // The per-profile forward SPARQL projections only; the `standpoint-*.rq`
+            // queries, `observation-claim-view.rq`, and the inverse `.put.rq` are covered
+            // by their own dedicated parity blocks.
+            let is_sparql = path.starts_with(QUERIES_DIR)
+                && name.ends_with(".rq")
+                && !name.ends_with(".put.rq")
+                && !name.starts_with("standpoint-")
+                && name != CLAIM_VIEW_FILE;
+            if !is_edoal && !is_sparql && !is_put {
                 continue;
             }
             let committed = std::fs::read(root.join(path))
@@ -925,6 +957,8 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
                 failures.push(format!("{path}: {detail}"));
             } else if is_edoal {
                 edoal += 1;
+            } else if is_put {
+                put += 1;
             } else {
                 sparql += 1;
             }
@@ -941,6 +975,13 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
         assert_eq!(
             sparql, 46,
             "expected 46 SPARQL files byte-matching, got {sparql}"
+        );
+        // The committed `.put.rq` set count == the emitter-derived oracle, and each
+        // byte-matches (they all passed the `failures` gate above). Passes at 1 today
+        // (ml-schema authored); tracks the emitter automatically.
+        assert_eq!(
+            put, expected_put,
+            "expected {expected_put} `.put.rq` files byte-matching (emitter-derived), got {put}"
         );
     }
 

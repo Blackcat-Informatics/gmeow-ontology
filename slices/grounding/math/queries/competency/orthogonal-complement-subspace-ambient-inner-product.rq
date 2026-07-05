@@ -1,0 +1,17 @@
+# Competency question: "For this orthogonal complement, what subspace is it the
+# complement of, what is its ambient space, and what inner product defines it?"
+# Exercises the hard rule that a math:OrthogonalComplement realizes the complement
+# contract — naming its subspace (math:orthogonalComplementOf), ambient space
+# (math:ambientSpace), and the inner product defining orthogonality
+# (math:definedByInnerProduct). Scoped to the fixture namespace so the answer is
+# exactly {oc -> sub, ipspace, hip}.
+PREFIX math: <https://blackcatinformatics.ca/math/>
+
+SELECT ?complement ?subspace ?ambient ?innerProduct WHERE {
+    ?complement a math:OrthogonalComplement ;
+                math:orthogonalComplementOf ?subspace ;
+                math:ambientSpace ?ambient ;
+                math:definedByInnerProduct ?innerProduct .
+    FILTER(STRSTARTS(STR(?complement), "http://example.org/math/"))
+}
+ORDER BY ?complement
