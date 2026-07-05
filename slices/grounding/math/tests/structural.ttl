@@ -438,5 +438,6 @@ ASK {
     math:UngroundedIngestRun          rdfs:subClassOf math:MathConformanceFailure .
     math:UngroundedVerificationResult rdfs:subClassOf math:MathConformanceFailure .
     math:UnfittedModel                rdfs:subClassOf math:MathConformanceFailure .
+    math:ResultRoleConflation         rdfs:subClassOf math:MathConformanceFailure .
 }""" ;
     gmeow:saRationale "Every bridge failure is a typed, queryable object, so each MUST subclass math:MathConformanceFailure — a violation is a first-class failure class, not a log line." .
