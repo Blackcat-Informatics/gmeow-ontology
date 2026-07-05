@@ -314,6 +314,7 @@ fn no_source_row(target: &str) -> ProjectionResult {
 fn collect_input(catalog: Option<&SliceCatalog>) -> Result<LangProjectionInput, PipelineError> {
     let mut grammars: Vec<NamedSource> = Vec::new();
     let mut lang_models: Vec<NamedSource> = Vec::new();
+    let mut varieties: Vec<NamedSource> = Vec::new();
     if let Some(catalog) = catalog {
         for record in catalog.records() {
             for artifact in &record.artifacts {
@@ -327,13 +328,29 @@ fn collect_input(catalog: Option<&SliceCatalog>) -> Result<LangProjectionInput, 
                 // The `lang:` RDF surfaces the document/surface/meaning targets (TEI, NIF, SemAF)
                 // lower FROM: the shipped `examples/*.ttl` that reference the lang: namespace. The
                 // namespace check scopes the scan to lang-bearing sources (a non-lang example is
-                // not fed to a lang bridge, so it never hard-fails the projection).
+                // not fed to a lang bridge, so it never hard-fails the projection). A lang-bearing
+                // example ALSO feeds the BCP-47 target's variety scan.
                 if artifact.logical_path.starts_with("examples/")
                     && artifact.logical_path.ends_with(".ttl")
                     && contains_lang_namespace(&artifact.content)
                 {
-                    lang_models.push(NamedSource {
+                    let source = NamedSource {
                         name: lang_model_stem(&artifact.logical_path),
+                        bytes: artifact.content.clone(),
+                    };
+                    lang_models.push(source.clone());
+                    varieties.push(source);
+                    continue;
+                }
+                // The lang module's own vocabulary surface carries the framework's
+                // `lang:LanguageVariety` individuals (the GMEOW English carrier). It feeds ONLY the
+                // BCP-47 variety scan — never the document/surface/meaning bridges, whose targets
+                // it carries no instances of. The namespace check scopes this to the lang module.
+                if artifact.logical_path == "module.ttl"
+                    && contains_lang_namespace(&artifact.content)
+                {
+                    varieties.push(NamedSource {
+                        name: variety_module_stem(&record.slice_dir),
                         bytes: artifact.content.clone(),
                     });
                 }
@@ -343,12 +360,14 @@ fn collect_input(catalog: Option<&SliceCatalog>) -> Result<LangProjectionInput, 
     // Deterministic source order (independent of catalog discovery order).
     grammars.sort_by(|a, b| a.name.cmp(&b.name));
     lang_models.sort_by(|a, b| a.name.cmp(&b.name));
+    varieties.sort_by(|a, b| a.name.cmp(&b.name));
 
     Ok(LangProjectionInput {
         grammars,
         lexicons: Vec::new(),
         treebanks: Vec::<ConlluSource>::new(),
         lang_models,
+        varieties,
     })
 }
 
@@ -371,6 +390,16 @@ fn lang_model_stem(logical_path: &str) -> String {
         .strip_suffix(".ttl")
         .unwrap_or(logical_path)
         .to_owned()
+}
+
+/// The variety module source name: the owning slice's directory name suffixed `-module`, so a
+/// module surface is named stably by its slice (e.g. `lang-module`) without a substring scan.
+fn variety_module_stem(slice_dir: &std::path::Path) -> String {
+    let slice = slice_dir
+        .file_name()
+        .and_then(|n| n.to_str())
+        .unwrap_or("slice");
+    format!("{slice}-module")
 }
 
 /// The grammar source stem (the file basename without its `.ebnf` extension), used as the
@@ -555,6 +584,7 @@ mod tests {
                 readings: vec![reading_a.as_bytes().to_vec(), reading_b.as_bytes().to_vec()],
             }],
             lang_models: Vec::new(),
+            varieties: Vec::new(),
         };
         let conllu = registry()
             .into_iter()

@@ -25,6 +25,7 @@ use gmeow_logic_compile::ir::{
 };
 use gmeow_logic_compile::projections::ProjectionResult;
 
+use crate::bcp47::Bcp47Target;
 use crate::bridge::{Bridge, IngestDiagnostic, LangFailure};
 use crate::conllu::{conllu_correspondence, conllu_leg_pair, ConlluBridge};
 use crate::emit::digest16;
@@ -80,6 +81,11 @@ pub struct LangProjectionInput {
     /// (`lang:ComposedForm`, `lang:SurfaceAnchor`, `lang:Denotation`). Empty ⇒ each such target
     /// folds its honest no-source row.
     pub lang_models: Vec<NamedSource>,
+    /// The `lang:` RDF surfaces carrying `lang:LanguageVariety` individuals (the lang module's
+    /// own vocabulary plus lang-bearing examples) — the BCP-47 target's input. Kept separate
+    /// from `lang_models` so the TBox-bearing module surface is scanned ONLY for varieties and
+    /// never fed to a document/surface/meaning bridge.
+    pub varieties: Vec<NamedSource>,
 }
 
 /// One generated external artifact an emission produces, keyed by the path suffix under
@@ -154,6 +160,7 @@ pub fn registry() -> Vec<Box<dyn LangProjectionTarget>> {
         Box::new(TeiBridge),
         Box::new(NifBridge),
         Box::new(SemafBridge),
+        Box::new(Bcp47Target),
     ]
 }
 
@@ -168,6 +175,8 @@ pub const EMISSION_WORTHY_CLASSES: &[(&str, &[&str])] = &[
     ("Rendering", &["tei"]),
     ("SurfaceAnchor", &["nif"]),
     ("Denotation", &["semaf"]),
+    // A language variety lowers to its generated BCP-47 registry identifier.
+    ("LanguageVariety", &["bcp47"]),
 ];
 
 /// Whether the registry covers `lang_class` — every emission-worthy class maps to at least

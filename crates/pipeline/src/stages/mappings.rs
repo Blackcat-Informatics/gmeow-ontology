@@ -1040,6 +1040,7 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
             "/target/tei:",
             "/target/nif:",
             "/target/semaf:",
+            "/target/bcp47:",
             "/target/lang-projection:",
         ];
         // A Turtle subject block is a blank-line-separated group. Drop any block that

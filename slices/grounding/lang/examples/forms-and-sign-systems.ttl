@@ -12,6 +12,7 @@
 @prefix lang: <https://blackcatinformatics.ca/lang/> .
 @prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix ex:   <https://blackcatinformatics.ca/gmeow/examples/lang/> .
 
 # --- Sign-system reference scene -------------------------------------------- #
@@ -28,7 +29,8 @@ ex:french
     rdfs:label "French"@x-gmeow-english ;
     lang:signSystemKind lang:naturalLanguageKind ;
     lang:modality lang:writtenModality ;
-    lang:informalGloss "The French natural language, written in the Latin script." .
+    skos:notation "fr"^^xsd:string ;
+    lang:informalGloss "The French natural language, written in the Latin script. Its ISO 639 code fr is carried machine-readably as a skos:notation so the BCP-47 projection can generate a registry tag from variety structure." .
 
 ex:turtle
     a lang:SignSystem ;
@@ -40,6 +42,7 @@ ex:turtle
 ex:latinScript
     a lang:Script ;
     rdfs:label "Latin"@x-gmeow-english ;
+    skos:notation "Latn"^^xsd:string ;
     lang:hasGrapheme ex:graphemeC , ex:graphemeA , ex:graphemeT , ex:graphemeS .
 
 ex:graphemeC  a lang:Grapheme ; rdfs:label "c"@x-gmeow-english ; lang:inScript ex:latinScript .
@@ -53,11 +56,39 @@ ex:englishLatinOrthography
     lang:orthographyFor ex:english ;
     lang:usesScript ex:latinScript .
 
+ex:frenchLatinOrthography
+    a lang:Orthography ;
+    rdfs:label "French Latin orthography"@x-gmeow-english ;
+    lang:orthographyFor ex:french ;
+    lang:usesScript ex:latinScript .
+
 ex:turtleGrammar
     a lang:Grammar ;
     rdfs:label "Turtle grammar"@x-gmeow-english ;
     lang:grammarFor ex:turtle ;
     lang:grammarFormalism lang:ebnfFormalism .
+
+# --- A language variety whose BCP-47 tag is GENERATED, not asserted ---------- #
+# Quebec French is a lang:LanguageVariety of French differentiated by the region
+# subtag CA (carried machine-readably as a skos:notation). The BCP-47 projection
+# GENERATES the tag "fr-CA" from this structure: the primary subtag fr from the
+# lang:varietyOf parent's notation, the region CA from the variety's own notation,
+# and the Latin script SUPPRESSED because it is French's default-orthography
+# script. The tag is a projection of the variety, never its definition.
+
+ex:quebecFrench
+    a lang:LanguageVariety ;
+    rdfs:label "Quebec French"@x-gmeow-english ;
+    lang:varietyOf ex:french ;
+    lang:signSystemKind lang:naturalLanguageKind ;
+    lang:modality lang:writtenModality ;
+    skos:notation "CA"^^xsd:string .
+
+ex:quebecFrenchOrthography
+    a lang:Orthography ;
+    rdfs:label "Quebec French Latin orthography"@x-gmeow-english ;
+    lang:orthographyFor ex:quebecFrench ;
+    lang:usesScript ex:latinScript .
 
 # --- Lexemes ---------------------------------------------------------------- #
 
@@ -78,6 +109,27 @@ ex:lexMouse
     rdfs:label "mouse"@x-gmeow-english ;
     lang:inSignSystem ex:english ;
     lang:partOfSpeech lang:noun .
+
+# --- Senses (the middle Frege corner) — the alignment surface for Wikidata --- #
+# lexemes/senses and WordNet/ILI. Each sense is a lexicalized way of meaning
+# attached to its lexeme through lang:senseOf; the equivalences file aligns these
+# to Wikidata L-ids/sense-ids and to WordNet synsets via a curl-verified Wikidata
+# pivot — closeMatch, never identity (a synset is coarser than a GMEOW sense).
+
+ex:senseCat
+    a lang:Sense ;
+    rdfs:label "the animal sense of 'cat'"@x-gmeow-english ;
+    lang:senseOf ex:lexCat .
+
+ex:senseChase
+    a lang:Sense ;
+    rdfs:label "the pursuit sense of 'chase'"@x-gmeow-english ;
+    lang:senseOf ex:lexChase .
+
+ex:senseMouse
+    a lang:Sense ;
+    rdfs:label "the rodent sense of 'mouse'"@x-gmeow-english ;
+    lang:senseOf ex:lexMouse .
 
 # --- Morph features --------------------------------------------------------- #
 
