@@ -22213,6 +22213,31 @@
                 "@type": {
                   "anyOf": [
                     {
+                      "const": "lang:ProjectionEmission"
+                    },
+                    {
+                      "contains": {
+                        "const": "lang:ProjectionEmission"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/lang:ProjectionEmission"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
                       "const": "lang:Rendering"
                     },
                     {
@@ -35110,6 +35135,54 @@
         },
         "required": [
           "lang:paraphraseSamenessKind"
+        ],
+        "type": "object"
+      },
+      "lang:ProjectionEmission": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "lang:projectionTargetName": {
+            "anyOf": [
+              {},
+              {
+                "items": {},
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          },
+          "logic:preservationKind": {
+            "anyOf": [
+              {},
+              {
+                "items": {},
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          }
+        },
+        "required": [
+          "lang:projectionTargetName",
+          "logic:preservationKind"
         ],
         "type": "object"
       },

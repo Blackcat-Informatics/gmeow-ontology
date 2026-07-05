@@ -1433,18 +1433,20 @@ fn build_fanout_opaque_blob(
         )?,
     );
 
-    // The `lang:` projection side formats (EBNF / ABNF grammar files under
-    // `generated/projections/lang/`) are non-RDF, so they cannot reconstruct from a
-    // canonical named-graph fold. Carry each as a committed byte projection, read off the
-    // sink-consumed stage-mappings product (rendered once by that stage) — a keyed fold over
-    // the in-memory product, never a disk walk. Their `lang:ProjectionEmission` semantics
-    // ride the `graph/lang-projection-corpus` named graph independently.
+    // The `lang:` projection deliverables under `generated/projections/lang/` are STANDALONE
+    // external-format files a consumer reads — the EBNF/ABNF grammar files, the TEI XML, the
+    // Web-Annotation JSON-LD, AND the RDF side formats (a NIF `.nt` stand-off annotation, the
+    // `bcp47-tags.ttl` tag set). None of them reconstructs from a canonical named-graph fold:
+    // the RDF ones are lowerings a consumer reads as files, not reasoned graphs (their
+    // `lang:ProjectionEmission` semantics ride the `graph/lang-projection-corpus` named graph
+    // independently). So every lang-projection artifact — RDF-extension or not — is carried as
+    // a committed byte projection, read off the sink-consumed stage-mappings product (rendered
+    // once by that stage) via a keyed fold over the in-memory product, never a disk walk.
     for (path, bytes) in producer_artifacts("stage-mappings", upstream)? {
         if path.starts_with(&format!(
             "{}/",
             crate::stages::lang_projection::LANG_PROJECTION_DIR
-        )) && !is_rdf_member(&path)
-        {
+        )) {
             members.insert(path, bytes);
         }
     }
