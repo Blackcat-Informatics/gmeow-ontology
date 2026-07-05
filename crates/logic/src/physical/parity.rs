@@ -698,12 +698,38 @@ mod tests {
         }
     }
 
+    /// (d) a binary ARITHMETIC program: recursive list length via `N is M + 1`.
+    /// Native magic and the reference SLD oracle both evaluate the builtin (via the
+    /// shared moded evaluator), so this proves engine INTEGRATION (both decide and
+    /// agree) — the per-operator SEMANTIC anchor is the hand-verified `builtin_eval`
+    /// golden and the native-vs-Scryer anchor below.
+    fn backward_arithmetic_length() -> BackwardProgram {
+        let rdf = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
+        let src = format!(
+            ":- prefix(ex, '{BASE}').\n\
+             :- prefix(rdf, '{rdf}').\n\
+             ex:len(rdf:nil, 0).\n\
+             ex:len(L, N) :- rdf:rest(L, R), ex:len(R, M), N is M + 1.\n\
+             ?- ex:len(ex:l0, N).\n"
+        );
+        BackwardProgram {
+            label: "arithmetic-length",
+            triples: vec![
+                (p("l0"), format!("{rdf}rest"), p("l1")),
+                (p("l1"), format!("{rdf}rest"), p("l2")),
+                (p("l2"), format!("{rdf}rest"), format!("{rdf}nil")),
+            ],
+            program: parse_query_program(&src).expect("parse arithmetic-length"),
+        }
+    }
+
     fn backward_corpus() -> Vec<BackwardProgram> {
         vec![
             backward_ancestor_ff(),
             backward_ancestor_bf(),
             backward_multi_rule(),
             backward_ground_present(),
+            backward_arithmetic_length(),
         ]
     }
 
@@ -835,6 +861,116 @@ mod tests {
         println!(
             "native-coverage floor: forward decided rows={fwd_decided_rows} \
              (derived={fwd_decided_derived}), backward decided answers={bwd_decided_answers}"
+        );
+    }
+
+    // ── Independent per-operator anchor: native ≡ Scryer (the subsumed engine) ─────────
+    //
+    // Native-magic-vs-native-reference parity proves INTEGRATION but is tautological
+    // for builtin SEMANTICS (both share the moded evaluator).  Scryer is an
+    // INDEPENDENT arithmetic engine, so agreeing with it anchors every operator's
+    // meaning end-to-end.  The `dispatch` token keeps this in the `engine` nextest
+    // group (it drives a Scryer subprocess).
+
+    /// Run a binary arithmetic program through the native core (asserting `Decided`)
+    /// and through Scryer, returning both canonicalized answer sets.
+    fn native_and_scryer(
+        src: &str,
+        triples: &[(String, String, String)],
+    ) -> (AnswerSet, AnswerSet) {
+        const W: &str = "http://logic.test/world/arith-parity";
+        let store = WorldStore::new();
+        for (s, pr, o) in triples {
+            store.insert_quad(W, s, pr, o);
+        }
+        let prof = "https://blackcatinformatics.ca/logic/ProceduralPrologProfile";
+        let foreign = WorldStoreForeign::from_world(&store, W, prof).expect("from_world");
+        let prog = parse_query_program(src).expect("parse arithmetic program");
+
+        let native = match resolve_native(&foreign, W, &prog, &Budget::default())
+            .expect("resolve_native must not error")
+        {
+            NativeOutcome::Decided(a) => a,
+            NativeOutcome::Unsupported(k) => {
+                panic!("native must decide this binary arithmetic program, got Unsupported({k:?})")
+            }
+        };
+        let scryer = crate::scryer_engine::run_scryer(&foreign, W, &prog, &[], &Budget::default())
+            .expect("run_scryer");
+        (native, scryer)
+    }
+
+    #[test]
+    fn dispatch_parity_arithmetic_native_agrees_with_scryer() {
+        let base = BASE;
+        let triples = vec![(p("a"), p("node"), p("b"))];
+
+        // calc covers Add, Sub, Mul, Div: P=2*3=6, Q=6//4=1, D=6-1=5, R=5+1=6.
+        let calc_src = format!(
+            ":- prefix(ex, '{base}').\n\
+             ex:calc(X, R) :- ex:node(X, Y), P is 2 * 3, Q is P // 4, D is P - Q, R is D + 1.\n\
+             ?- ex:calc(ex:a, R).\n"
+        );
+        let (n_calc, s_calc) = native_and_scryer(&calc_src, &triples);
+        assert_eq!(
+            n_calc.bindings, s_calc.bindings,
+            "native ≠ Scryer on Add/Sub/Mul/Div: native={n_calc:?} scryer={s_calc:?}"
+        );
+        assert_eq!(
+            n_calc.bindings[0]["R"],
+            "\"6\"^^<http://www.w3.org/2001/XMLSchema#integer>"
+        );
+
+        // cmp covers Gt, Lt, Ge, Le, Eq: N=3 satisfies every comparison.
+        let cmp_src = format!(
+            ":- prefix(ex, '{base}').\n\
+             ex:cmp(X, N) :- ex:node(X, Y), N is 1 + 2, N > 2, N < 5, N >= 3, N =< 3, N =:= 3.\n\
+             ?- ex:cmp(ex:a, N).\n"
+        );
+        let (n_cmp, s_cmp) = native_and_scryer(&cmp_src, &triples);
+        assert_eq!(
+            n_cmp.bindings, s_cmp.bindings,
+            "native ≠ Scryer on comparisons: native={n_cmp:?} scryer={s_cmp:?}"
+        );
+        assert_eq!(n_cmp.bindings.len(), 1, "N=3 passes every comparison");
+
+        // A comparison that fails prunes the branch on BOTH engines (empty answer).
+        let none_src = format!(
+            ":- prefix(ex, '{base}').\n\
+             ex:cmp(X, N) :- ex:node(X, Y), N is 1 + 1, N =:= 3.\n\
+             ?- ex:cmp(ex:a, N).\n"
+        );
+        let (n_none, s_none) = native_and_scryer(&none_src, &triples);
+        assert_eq!(
+            n_none.bindings, s_none.bindings,
+            "native ≠ Scryer on a failing filter"
+        );
+        assert!(n_none.bindings.is_empty(), "2 =:= 3 prunes the only answer");
+    }
+
+    #[test]
+    fn arithmetic_division_by_zero_is_declared_gap() {
+        // A ÷0 in a supported binary program is a declared native gap
+        // (`Unsupported(Arithmetic)`), routed to the oracle — never a wrong answer.
+        const W: &str = "http://logic.test/world/arith-gap";
+        let store = WorldStore::new();
+        store.insert_quad(W, &p("a"), &p("node"), &p("b"));
+        let prof = "https://blackcatinformatics.ca/logic/ProceduralPrologProfile";
+        let foreign = WorldStoreForeign::from_world(&store, W, prof).expect("from_world");
+        let src = format!(
+            ":- prefix(ex, '{BASE}').\n\
+             ex:bad(X, R) :- ex:node(X, Y), R is 1 // 0.\n\
+             ?- ex:bad(ex:a, R).\n"
+        );
+        let prog = parse_query_program(&src).expect("parse");
+        let outcome =
+            resolve_native(&foreign, W, &prog, &Budget::default()).expect("resolve_native");
+        assert!(
+            matches!(
+                outcome,
+                NativeOutcome::Unsupported(crate::physical::seminaive::UnsupportedKind::Arithmetic)
+            ),
+            "÷0 must be a declared Arithmetic gap, not a wrong answer: {outcome:?}"
         );
     }
 
