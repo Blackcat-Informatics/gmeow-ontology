@@ -822,12 +822,12 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
             failures.join("\n")
         );
         assert_eq!(
-            edoal, 45,
-            "expected 45 EDOAL files byte-matching, got {edoal}"
+            edoal, 46,
+            "expected 46 EDOAL files byte-matching, got {edoal}"
         );
         assert_eq!(
-            sparql, 45,
-            "expected 45 SPARQL files byte-matching, got {sparql}"
+            sparql, 46,
+            "expected 46 SPARQL files byte-matching, got {sparql}"
         );
     }
 

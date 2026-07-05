@@ -1,0 +1,100 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix mls:   <http://www.w3.org/ns/mls#> .
+
+# Projection mappings: GMEOW model-serving → ML-Schema (mls:), the LLM-ops
+# metadata seam. ML-Schema is a real RDF/OWL vocabulary (a lawful
+# logic:Correspondence lens HAS an RDF view to project into), so — unlike the
+# OTel gen_ai.* span-attribute-key targets which stay SSSOM-only — this seam
+# materializes the EDOAL structural + forward SPARQL-CONSTRUCT layers, not just
+# the SSSOM term rows in equivalences.ttl. All correspondences are BY REFERENCE
+# (Principle 5); every mls: IRI was curl-validated against http://www.w3.org/ns/mls.
+#
+# HONESTY (Principle 7 — what is and is NOT projected, and why):
+#   * The three class correspondences and the one property correspondence below
+#     are the terms model-serving OWNS whose ML-Schema counterpart is
+#     structurally well-posed. Each is a lossy SubsumedBy ("<="), never an
+#     equivalence — the SSSOM rows are closeMatch/relatedMatch, and the derived
+#     morphism rung is a LossyLens; the put (ingest) leg is not carried by EDOAL
+#     (honest residue in the loss ledger).
+#   * gmeow:deploymentArtifact (ModelDeployment→ModelArtifact) has NO lawful mls:
+#     counterpart: in ML-Schema a Model is the OUTPUT of a Run (mls:hasOutput),
+#     not an Implementation-bound artifact — the gmeow serving-binding is not the
+#     ML-Schema production-output relation, so projecting it would be an
+#     overclaim. Recorded here, not authored.
+#   * The composed relator path gmeow:RuntimeExecution --executionOfDeployment-->
+#     ModelDeployment --deploymentArtifact--> ModelArtifact (a gmeow:edoalPath
+#     candidate) collapses to mls:hasOutput (Run→Model) ONLY if serving equals
+#     production — it does not (serving an artifact ≠ producing a model), so the
+#     edoalPath composed cell is NOT well-posed and is NOT authored.
+#   * gmeow:valueClassMap (→ edoal:AttributeValueRestriction) is not applicable:
+#     no model-serving value discriminates into distinct mls: subclasses.
+#   * FnO value transforms are not well-posed for this seam: model-serving owns
+#     only owl:ObjectProperty terms; the literal-valued candidates the doctrine
+#     named (sampling temperature, interval → epoch-nanos) are owned by the ai /
+#     agentic / temporal slices and are not re-authored here (scope discipline).
+# The full per-target loss-ledger disposition lives in equivalences.ttl.
+
+# ── Class correspondences (structural EDOAL + forward CONSTRUCT target view) ──
+
+# gmeow:ModelArtifact ⊑ mls:Model (the trained-model output artifact).
+gmeow:mapMlsModel a gmeow:ProjectionMapping ;
+    rdfs:label "ModelArtifact → mls:Model (lossy)"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "mlsArtifact" ;
+        gmeow:atom ( [ gmeow:subjectVar "mlsArtifact" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:ModelArtifact ] ) ;
+        gmeow:edoalSource gmeow:ModelArtifact ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "ml-schema" ; gmeow:toClass mls:Model ; gmeow:relation "<=" ; gmeow:confidence 0.7 ;
+        gmeow:lossyDrop "mls:Model is the learned-model output of a run; gmeow:ModelArtifact adds the content-digest and the distribution/versioning framing (aligned by reference to the software slice) that mls:Model does not carry" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "mlsArtifact" ; gmeow:tPred rdf:type ; gmeow:tObjValue mls:Model ] ) ] .
+
+# gmeow:ModelDeployment ⊑ mls:Implementation (the executable realization).
+gmeow:mapMlsImplementation a gmeow:ProjectionMapping ;
+    rdfs:label "ModelDeployment → mls:Implementation (lossy)"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "mlsDeployment" ;
+        gmeow:atom ( [ gmeow:subjectVar "mlsDeployment" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:ModelDeployment ] ) ;
+        gmeow:edoalSource gmeow:ModelDeployment ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "ml-schema" ; gmeow:toClass mls:Implementation ; gmeow:relation "<=" ; gmeow:confidence 0.5 ;
+        gmeow:lossyDrop "gmeow:ModelDeployment is a relator binding artifact·service·host·endpoint·interval·operator·policy; mls:Implementation carries only the executable-realization framing — the service identity, host, endpoint, and serving interval drop" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "mlsDeployment" ; gmeow:tPred rdf:type ; gmeow:tObjValue mls:Implementation ] ) ] .
+
+# gmeow:RuntimeExecution ⊑ mls:Run (an execution of an implementation).
+gmeow:mapMlsRun a gmeow:ProjectionMapping ;
+    rdfs:label "RuntimeExecution → mls:Run (lossy)"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "mlsExecution" ;
+        gmeow:atom ( [ gmeow:subjectVar "mlsExecution" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:RuntimeExecution ] ) ;
+        gmeow:edoalSource gmeow:RuntimeExecution ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "ml-schema" ; gmeow:toClass mls:Run ; gmeow:relation "<=" ; gmeow:confidence 0.55 ;
+        gmeow:lossyDrop "mls:Run is training/evaluation-centred (executes an implementation on data, producing a model); gmeow:RuntimeExecution is a serving occurrent within which gmeow:ModelInvocation events occur — the durable subject/tenure/attributed-provenance and the invocation sub-events drop" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "mlsExecution" ; gmeow:tPred rdf:type ; gmeow:tObjValue mls:Run ] ) ] .
+
+# ── Property correspondence (structural EDOAL + forward CONSTRUCT) ────────────
+
+# gmeow:executionOfDeployment (Execution→Deployment) ⊑ mls:executes (Run→Implementation).
+# Well-posed: mls:executes is "a relation between a run and an implementation
+# that is being executed during the run" — the same occurrent-points-at-its-
+# realization structure. Lossy: the gmeow deployment binds host·endpoint·interval
+# beyond the bare mls:Implementation.
+gmeow:mapMlsExecutes a gmeow:ProjectionMapping ;
+    rdfs:label "executionOfDeployment → mls:executes (lossy)"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "mlsExec" ; gmeow:value "mlsImpl" ;
+        gmeow:atom ( [ gmeow:subjectVar "mlsExec" ; gmeow:predicate gmeow:executionOfDeployment ; gmeow:objectVar "mlsImpl" ] ) ;
+        gmeow:edoalSource gmeow:executionOfDeployment ] ;
+    gmeow:hasBinding [
+        gmeow:profile "ml-schema" ; gmeow:toPredicate mls:executes ; gmeow:edoalTargetKind "relation" ; gmeow:relation "<=" ; gmeow:confidence 0.5 ;
+        gmeow:lossyDrop "mls:executes carries only the run→implementation link; the gmeow deployment's artifact·host·endpoint·interval binding beyond the bare executable realization is not re-expressed by the flat mls:executes relation" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "mlsExec" ; gmeow:tPred mls:executes ; gmeow:tObj "mlsImpl" ] ) ] .
