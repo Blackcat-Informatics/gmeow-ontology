@@ -372,7 +372,7 @@ pub(crate) fn chase_materialize(
     max_steps: Option<u64>,
 ) -> Result<ChaseOutcome, String> {
     let admission = ChaseAdmission::certify(rules);
-    if !admission.admits_native() && max_steps.is_none() {
+    if !admits_or_budgeted(&admission, max_steps) {
         return Ok(NativeOutcome::Unsupported(
             UnsupportedKind::NonTerminatingExistential,
         ));
@@ -769,11 +769,24 @@ impl ChaseAdmission {
     }
 }
 
-/// Route an existential-rule program: certify termination, then chase or refuse.
+/// The certify→(chase | refuse/budget) DECISION, authored ONCE and shared by both forward
+/// entry points ([`route_chase`], single-world, and [`chase_materialize`], multi-world):
+/// the native chase may run iff the program is certified terminating OR a step budget
+/// bounds it (an uncertified program stays incomplete-never-wrong under the governor).
+/// A certified-negative, unbudgeted program is `Unsupported` — refused to the demoted
+/// oracle rather than looped.  Only this DECISION is unified; each entry point keeps its
+/// own chase scoping.
+fn admits_or_budgeted(admission: &ChaseAdmission, max_steps: Option<u64>) -> bool {
+    admission.admits_native() || max_steps.is_some()
+}
+
+/// Route an existential-rule program over ONE world: certify termination, then chase or
+/// refuse.  The single-world sibling of [`chase_materialize`]; both share the
+/// [`admits_or_budgeted`] decision, differing only in chase scope (one world here, a
+/// governed sweep of all worlds there).
 ///
-/// This is the `materialize_routed` decision for the value-inventing fragment, kept as a
-/// deterministic function of the certificate and the declared budget (never a runtime
-/// knob):
+/// The decision is a deterministic function of the certificate and the declared budget
+/// (never a runtime knob):
 /// - **Certified** (`WeaklyAcyclic`) ⇒ run the native chase.  A declared budget still
 ///   applies (it just never trips on a terminating program).
 /// - **Uncertified** with a budget ⇒ run the chase **budgeted-partial** — the budget
@@ -781,10 +794,10 @@ impl ChaseAdmission {
 /// - **Uncertified** with no budget ⇒ `Unsupported(NonTerminatingExistential)`, refusing
 ///   the program to the demoted oracle rather than looping.
 ///
-/// The production `materialize::materialize_routed` path never yet carries existential
-/// rules (the `.rls` projector hard-errors on unbound head vars); the EL→existential-rule
-/// projection that feeds this router is the EL→RL→DL promotion's job.  Until then this
-/// router is exercised end-to-end by the native↔Nemo parity gate.
+/// `materialize::materialize_routed` reaches the value-inventing fragment through
+/// [`chase_materialize`] (its multi-world sibling), so the production forward path now
+/// carries existential rules; the native↔Nemo parity gate additionally exercises this
+/// single-world router end-to-end against the facts-only oracle.
 ///
 /// # Errors
 ///
@@ -796,7 +809,7 @@ pub(crate) fn route_chase(
     max_steps: Option<u64>,
 ) -> Result<(ChaseAdmission, ChaseOutcome), String> {
     let admission = ChaseAdmission::certify(rules);
-    let outcome = if admission.admits_native() || max_steps.is_some() {
+    let outcome = if admits_or_budgeted(&admission, max_steps) {
         chase_world(world, edb_facts, rules, max_steps)?
     } else {
         NativeOutcome::Unsupported(UnsupportedKind::NonTerminatingExistential)

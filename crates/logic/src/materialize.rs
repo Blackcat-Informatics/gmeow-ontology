@@ -132,6 +132,10 @@ fn rule_iri_from_name(rule_name: Option<&str>) -> String {
 /// a binary `helper(?x, ?y)` join relation); such a row cannot be a
 /// world-scoped [`DerivedQuad`], so it is surfaced here verbatim instead of
 /// being dropped.
+/// A coerced world-scoped quad paired with its EDB/IDB flag, so the budget governor can
+/// bound derived (IDB) firings without re-deriving provenance.
+type QuadWithEdbFlag = (DerivedQuad, bool);
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct NonQuadRow {
     /// The relation name (a full predicate IRI, un-bracketed, or a bare
@@ -263,10 +267,42 @@ pub fn materialize_core(
     // ── 4. Coerce typed rows → DerivedQuads with real provenance ─────────────
     // Carry the EDB/IDB flag alongside each quad so the budget governor can bound
     // IDB firings (`max_rule_firings`) without re-deriving provenance.
-    let mut derived_quads: Vec<(DerivedQuad, bool)> = Vec::new();
+    let (derived_quads, non_quad_rows) = coerce_typed_rows(&chase.rows)?;
+
+    // ── 5. Post-hoc budget governor ─────────────────────────────
+    // With no budget params (the default), this whole block is skipped, so the
+    // output is byte-identical to: chase order, every quad "ok".  The budget
+    // bounds derived QUADS only; non-quad helper rows are surfaced in full.
+    let final_quads: Vec<DerivedQuad> = if budget_active {
+        apply_budget(derived_quads, max_rule_firings, max_answers, time_ms, start)
+    } else {
+        derived_quads.into_iter().map(|(dq, _edb)| dq).collect()
+    };
+
+    Ok(MaterializeOutcome {
+        quads: final_quads,
+        non_quad_rows,
+    })
+}
+
+/// Coerce typed chase rows → `(DerivedQuad, is_edb)` pairs plus the non-quad helper
+/// rows, computing real provenance from each row's [`crate::oracle::TypedProvenance`].
+///
+/// The single authored row→quad coercion, shared by [`materialize_core`] (full
+/// provenance from the Nemo trace) and the existential facts-only demotion in
+/// [`materialize_routed`]. When the driving oracle attributes nothing (the facts-only
+/// path — `is_edb == false`, no rule name, no antecedents), the coercion mints the
+/// honest self-derivation of an unnamed rule with EMPTY sources; it never fabricates
+/// attribution. An arity ≠ 3 row is a helper predicate surfaced in the non-quad bucket,
+/// never dropped; a malformed ternary row (non-IRI subject, non-string world, or an
+/// unreifiable antecedent) is a hard [`MaterializeError::Chase`].
+fn coerce_typed_rows(
+    rows: &[(TypedRow, crate::oracle::TypedProvenance)],
+) -> Result<(Vec<QuadWithEdbFlag>, Vec<NonQuadRow>), MaterializeError> {
+    let mut derived_quads: Vec<QuadWithEdbFlag> = Vec::new();
     let mut non_quad_rows: Vec<NonQuadRow> = Vec::new();
 
-    for (idx, (row, prov)) in chase.rows.iter().enumerate() {
+    for (idx, (row, prov)) in rows.iter().enumerate() {
         // Only a ternary (arity-3) row is a world-scoped quad under the seam
         // contract; any other arity is a helper-predicate row — legal Nemo, but
         // not a quad — surfaced explicitly, never dropped.
@@ -330,6 +366,8 @@ pub fn materialize_core(
             // derivation_id, which is worse than propagating the error.  A
             // non-ternary antecedent of a ternary row is a hard error: the
             // consumed premise is not a world-scoped quad and has no reifier.
+            // (The facts-only demotion carries no antecedents, so `sources` is
+            // empty here — honest, since that oracle attributes nothing.)
             let rule = rule_iri_from_name(prov.rule_name.as_deref());
             let sources: Vec<String> = prov
                 .antecedents
@@ -355,26 +393,13 @@ pub fn materialize_core(
             rule_iri,
             source_quad_ids,
             profile: ASSERTED_PROFILE.to_owned(),
-            // Default-path budget status (overwritten below when a ceiling trips).
+            // Default-path budget status (overwritten by the governor when a ceiling trips).
             budget_status: BudgetStatus::Ok,
         };
         derived_quads.push((dq, is_edb));
     }
 
-    // ── 5. Post-hoc budget governor ─────────────────────────────
-    // With no budget params (the default), this whole block is skipped, so the
-    // output is byte-identical to: chase order, every quad "ok".  The budget
-    // bounds derived QUADS only; non-quad helper rows are surfaced in full.
-    let final_quads: Vec<DerivedQuad> = if budget_active {
-        apply_budget(derived_quads, max_rule_firings, max_answers, time_ms, start)
-    } else {
-        derived_quads.into_iter().map(|(dq, _edb)| dq).collect()
-    };
-
-    Ok(MaterializeOutcome {
-        quads: final_quads,
-        non_quad_rows,
-    })
+    Ok((derived_quads, non_quad_rows))
 }
 
 /// Canonical sort key for a derived quad: `(graph, subject, predicate, object)`.
@@ -684,8 +709,8 @@ pub fn materialize_routed(
             // `parse_eval_rules`/`materialize_native` cannot represent an existential head
             // variable (`ground_head` hard-errors on one).  Certify termination and run
             // the restricted chase; an uncertified program with no budget is a declared
-            // native gap that demotes to the Nemo oracle (`None`), exactly like a
-            // non-stratifiable Datalog program.
+            // native gap that demotes to the Nemo FACTS-ONLY oracle (below), exactly like a
+            // non-stratifiable Datalog program demotes to the provenance-carrying oracle.
             let existential_rules =
                 crate::physical::parse_existential_rules(rules).map_err(MaterializeError::Parse)?;
             if existential_rules.iter().any(|r| r.is_existential()) {
@@ -704,8 +729,17 @@ pub fn materialize_routed(
                         let frontier = budgeted.frontier();
                         Some((budgeted.rows, budgeted.status, frontier))
                     }
-                    // Uncertified with no budget ⇒ demote to the Nemo oracle.
-                    crate::physical::NativeOutcome::Unsupported(_) => None,
+                    // Uncertified with no budget ⇒ a declared native gap: demote to the
+                    // Nemo FACTS-ONLY oracle for a full (unbudgeted) closure. The native
+                    // provenance-carrying oracle (`materialize_core`) would hard-error on
+                    // this program's invented labeled nulls ("no trace tree"); the
+                    // facts-only path materializes the closure as FACTS with EMPTY
+                    // provenance (honest — it attributes nothing, never a fabricated
+                    // trace). This returns the arm's whole result directly rather than
+                    // falling through to the Datalog `materialize_core` fallback.
+                    crate::physical::NativeOutcome::Unsupported(_) => {
+                        return demote_existential_to_facts_only(rules, input, preservation);
+                    }
                 }
             } else if !preservation.unsupported_constructs.is_empty() {
                 Some((
@@ -808,6 +842,49 @@ pub fn materialize_routed(
     })
 }
 
+/// Materialize an uncertified, no-budget existential program via the Nemo FACTS-ONLY
+/// oracle — the honest demotion for the value-inventing fragment the native restricted
+/// chase refuses (`NativeOutcome::Unsupported`) rather than looping.
+///
+/// The provenance-carrying oracle ([`materialize_core`]) cannot drive this program: Nemo's
+/// trace cannot follow the invented labeled nulls ("no trace tree"). [`NemoFactsOracle`]
+/// materializes the full (unbudgeted) closure as FACTS with EMPTY provenance — it attributes
+/// nothing, so the coercion mints the honest unnamed self-derivation and never fabricates a
+/// trace. The rows flow through the SAME [`coerce_typed_rows`] coercion `materialize_core`
+/// uses, so the [`DerivedQuad`] shape is identical; every quad is stamped
+/// [`BudgetStatus::Ok`] (an unbudgeted full closure), matching the `Decided`-path assembly
+/// under an empty frontier. `preservation` is the judgment already derived for `(rules,
+/// profile)`, carried through unchanged.
+///
+/// # Errors
+///
+/// [`MaterializeError::Parse`] for a malformed EDB; [`MaterializeError::Chase`] for a
+/// facts-only chase or row-coercion failure.
+fn demote_existential_to_facts_only(
+    rules: &str,
+    input: &str,
+    preservation: PreservationClaim,
+) -> Result<Materialization, MaterializeError> {
+    use crate::oracle::ForwardOracle;
+
+    let edb = edb_from_nquads(input)?;
+    let chase = crate::oracle::NemoFactsOracle
+        .materialize(&edb, rules, &crate::oracle::ForwardBudget::UNBOUNDED)
+        .map_err(|e| MaterializeError::Chase(format!("facts-only chase error: {e}")))?;
+    let (derived_quads, non_quad_rows) = coerce_typed_rows(&chase.rows)?;
+    // The facts-only closure is unbudgeted: every coerced quad is already `Ok`, so the
+    // per-quad frontier stamp the `Decided` path applies is a no-op here — emit them directly.
+    let quads = derived_quads.into_iter().map(|(dq, _edb)| dq).collect();
+    Ok(Materialization {
+        quads,
+        non_quad_rows,
+        preservation,
+        // Nemo runs to its natural fixpoint outside the native semi-naive governor, so it
+        // exposes no stratum frontier — same as the Datalog Nemo fallback.
+        frontier: crate::query_ir::CompletionFrontier::empty(),
+    })
+}
+
 #[cfg(test)]
 mod tests {
     //! Native coverage of the materialize engine pipeline (T5).
@@ -867,6 +944,67 @@ mod tests {
                 && crate::provenance::term_display(&q.object) == "<http://ex/D>"),
             "the witness is typed D; quads: {:#?}",
             m.quads
+        );
+    }
+
+    #[test]
+    fn materialize_routed_demotes_an_uncertified_existential_to_nemo_facts_only() {
+        // An UNCERTIFIED existential program with NO budget: `chase_materialize` returns
+        // `Unsupported(NonTerminatingExistential)` (the certifier's constant-refined weak
+        // acyclicity, over-approximated by wildcard subsumption, sees the existential
+        // p-position in a cycle back through the `p(<a>, ?z, ?w)` reader). Rather than
+        // hard-erroring in the provenance oracle ("no trace tree" on the invented nulls),
+        // `materialize_routed` must DEMOTE to the Nemo FACTS-ONLY oracle and materialize the
+        // (terminating) closure's FACTS — invented witnesses present, no error.
+        let world = "http://world/W";
+        let ty = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+        // rule A (existential): C(x) ⊑ ∃p.  rule B (Datalog): p(a, z) → C(z).
+        // The B-guard `<http://ex/a>` in SUBJECT position stops the restricted chase after
+        // one witness generation, so Nemo terminates while the native certifier still refuses
+        // the whole program (the wildcard-subsumed position cycle is only an over-approximation).
+        let rules = format!(
+            "<http://ex/p>(?x, !y, ?w) :- <{ty}>(?x, <http://ex/C>, ?w) .\n\
+             <{ty}>(?z, <http://ex/C>, ?w) :- <http://ex/p>(<http://ex/a>, ?z, ?w) .\n"
+        );
+        let input = format!("<http://ex/a> <{ty}> <http://ex/C> <{world}> .\n");
+
+        let m = materialize_routed(
+            &rules,
+            &input,
+            None,
+            None,
+            None,
+            Some("PositiveHornProfile"),
+        )
+        .expect("uncertified existential must demote gracefully, not hard-error");
+
+        // The facts-only Nemo chase invented a p-edge from `a` to a fresh labeled null…
+        let p_edges: Vec<_> = m
+            .quads
+            .iter()
+            .filter(|q| {
+                q.predicate == "http://ex/p"
+                    && crate::provenance::term_display(&q.subject) == "<http://ex/a>"
+            })
+            .collect();
+        assert_eq!(
+            p_edges.len(),
+            1,
+            "exactly one invented p-edge from a; quads: {:#?}",
+            m.quads
+        );
+        let witness = crate::provenance::term_display(&p_edges[0].object);
+        assert!(
+            witness.contains("nemo-null"),
+            "the p-edge target is a Nemo-invented null (proves the facts-only demotion ran), \
+             got: {witness}"
+        );
+        // …with EMPTY provenance — the facts-only oracle attributes nothing, never a
+        // fabricated trace.
+        assert!(
+            p_edges[0].source_quad_ids.is_empty(),
+            "facts-only demotion attributes nothing; source_quad_ids: {:?}",
+            p_edges[0].source_quad_ids
         );
     }
 
