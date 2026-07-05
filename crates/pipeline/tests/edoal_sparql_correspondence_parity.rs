@@ -266,10 +266,10 @@ fn sparql_lowering_matches_committed_corpus_modulo_order() {
     );
 
     // Dedicated inverse-leg block: the committed `.put.rq` set MUST equal the emitter's
-    // `put_queries` key set (the emitter is the authority), and each byte-matches. Today
-    // `put_queries` is empty — no slice authors the ingest-claim terms yet — so there are
-    // zero committed `.put.rq` and this passes at 0; it tracks the emitter automatically
-    // when a slice authors ml-schema (→1) with no gate edit.
+    // `put_queries` key set (the emitter is the authority), and each byte-matches. ml-schema
+    // authors the ingest-claim terms today, so `put_queries` carries one entry, there is one
+    // committed `.put.rq`, and this passes at 1; it tracks the emitter automatically with no
+    // gate edit.
     let emitted_put_keys: BTreeSet<String> = emitted_put.keys().cloned().collect();
     let committed_put_keys = committed_file_set(&committed_dir, ".put.rq");
     assert_eq!(
