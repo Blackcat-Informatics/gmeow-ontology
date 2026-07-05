@@ -1009,3 +1009,192 @@ math:MetricSignatureDimensionShape
             }
         """ ;
     ] .
+
+# =========================================================================== #
+# Linear algebra, learning, and representation (LINEAR-ALGEBRA-AND-LEARNING)
+#
+# A decomposition or embedding declares its inputs, policy, and outputs; an
+# orthogonal complement additionally names the inner product defining it; and any
+# meaning read off a residual, component, or latent dimension is a vantage-held
+# math:ResidualInterpretationClaim (a gmeow:Observation), never a property. The
+# tensor computation graph reuses math:ApplicationExpression, so the inherited
+# application/slot shapes bite its nodes; these shapes add only the graph- and
+# weight-level framing.
+# =========================================================================== #
+
+math:OrthogonalComplementShape
+    a sh:NodeShape ;
+    rdfs:label "Orthogonal-complement inner-product shape"@x-gmeow-english ;
+    skos:definition "SHACL constraint for math:OrthogonalComplement: beyond the ambient space and complement-semantics inherited from math:ComplementShape (math:OrthogonalComplement is a math:Complement), it names the inner product that defines its orthogonality through math:definedByInnerProduct — the math:HermitianInnerProduct in the complex case. An orthogonal complement without a named inner product is ill-formed."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    math:enforcesFailureClass math:UnqualifiedOrthogonalComplement ;
+    sh:targetClass math:OrthogonalComplement ;
+    sh:property [
+        sh:path math:definedByInnerProduct ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A math:OrthogonalComplement must name the inner product defining its orthogonality through math:definedByInnerProduct; an orthogonal complement without it is ill-formed." ;
+    ] .
+
+math:PCAAnalysisShape
+    a sh:NodeShape ;
+    rdfs:label "PCA analysis inputs/policy/outputs shape"@x-gmeow-english ;
+    skos:definition "SHACL constraint for math:PCAAnalysis: it declares its inputs, its policy, and its outputs — math:analysisInput, math:centeringPolicy, math:scalingPolicy, math:covarianceOperator, math:eigensolver, math:principalComponent, math:loadingVector, math:scoreVector, math:explainedVarianceRatio, and math:residualSubspace. A decomposition hiding any of these is ill-formed (math:IncompletePCAAnalysis)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    math:enforcesFailureClass math:IncompletePCAAnalysis ;
+    sh:targetClass math:PCAAnalysis ;
+    sh:property [
+        sh:path math:analysisInput ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:PCAAnalysis must name its input through math:analysisInput." ;
+    ] ;
+    sh:property [
+        sh:path math:centeringPolicy ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class math:CenteringPolicy ;
+        sh:severity sh:Violation ;
+        sh:message "A math:PCAAnalysis must declare exactly one math:centeringPolicy (a math:CenteringPolicy)." ;
+    ] ;
+    sh:property [
+        sh:path math:scalingPolicy ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class math:ScalingPolicy ;
+        sh:severity sh:Violation ;
+        sh:message "A math:PCAAnalysis must declare exactly one math:scalingPolicy (a math:ScalingPolicy)." ;
+    ] ;
+    sh:property [
+        sh:path math:covarianceOperator ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:PCAAnalysis must name the math:CovarianceOperator it decomposes through math:covarianceOperator." ;
+    ] ;
+    sh:property [
+        sh:path math:eigensolver ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:PCAAnalysis must name its math:eigensolver." ;
+    ] ;
+    sh:property [
+        sh:path math:principalComponent ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:PCAAnalysis must produce at least one math:principalComponent." ;
+    ] ;
+    sh:property [
+        sh:path math:loadingVector ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:PCAAnalysis must produce at least one math:loadingVector." ;
+    ] ;
+    sh:property [
+        sh:path math:scoreVector ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:PCAAnalysis must produce at least one math:scoreVector." ;
+    ] ;
+    sh:property [
+        sh:path math:explainedVarianceRatio ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:PCAAnalysis must report at least one math:explainedVarianceRatio." ;
+    ] ;
+    sh:property [
+        sh:path math:residualSubspace ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:PCAAnalysis must name its math:residualSubspace." ;
+    ] .
+
+math:ResidualInterpretationClaimShape
+    a sh:NodeShape ;
+    rdfs:label "Residual-meaning observation shape"@x-gmeow-english ;
+    skos:definition "SHACL constraint for math:ResidualInterpretationClaim: the meaning of a residual, component, or latent dimension is an observation held from a standpoint — it names its gmeow:vantage (whose frame), its gmeow:observedFeature (which residual/component/dimension), and its gmeow:observationResult (the grounded conclusion, typically a logic:MetaLevelFormula). Meaning asserted without its vantage is ill-formed (math:ResidualMeaningAsProperty); no direct meaning property exists, so a meaning is representable only through this vantage-grounded claim."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    math:enforcesFailureClass math:ResidualMeaningAsProperty ;
+    sh:targetClass math:ResidualInterpretationClaim ;
+    sh:property [
+        sh:path gmeow:vantage ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:ResidualInterpretationClaim must name the gmeow:vantage from which the meaning is claimed; a meaning without a standpoint is a property, not an observation (math:ResidualMeaningAsProperty)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:observedFeature ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:ResidualInterpretationClaim must name the residual, component, or latent dimension it is about through gmeow:observedFeature." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:observationResult ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:ResidualInterpretationClaim must ground its meaning in a gmeow:observationResult (the conclusion the claim rests on)." ;
+    ] .
+
+math:EmbeddingShape
+    a sh:NodeShape ;
+    rdfs:label "Embedding source/target/function/model shape"@x-gmeow-english ;
+    skos:definition "SHACL constraint for math:Embedding (and its subclass math:KnowledgeGraphEmbedding): it names its math:embeddingSource, its math:targetSpace, its math:embeddingFunction, and the math:embeddingModel that produced it. An embedding missing any of these is ill-formed (math:UnderspecifiedEmbedding)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    math:enforcesFailureClass math:UnderspecifiedEmbedding ;
+    sh:targetClass math:Embedding ;
+    sh:property [
+        sh:path math:embeddingSource ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:Embedding must name its math:embeddingSource." ;
+    ] ;
+    sh:property [
+        sh:path math:targetSpace ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:Embedding must name its math:targetSpace." ;
+    ] ;
+    sh:property [
+        sh:path math:embeddingFunction ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:Embedding must name its math:embeddingFunction." ;
+    ] ;
+    sh:property [
+        sh:path math:embeddingModel ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:Embedding must name its math:embeddingModel." ;
+    ] .
+
+math:TensorComputationGraphShape
+    a sh:NodeShape ;
+    rdfs:label "Tensor computation graph node shape"@x-gmeow-english ;
+    skos:definition "SHACL constraint for math:TensorComputationGraph: it declares at least one math:computationNode — a math:ApplicationExpression applying a tensor operator to indexed operands. Because the nodes reuse the expression AST, their one-operator and argument-slot well-formedness is enforced by the inherited application/slot shapes; a graph declaring no node is ill-formed (math:MalformedTensorComputationGraph)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    math:enforcesFailureClass math:MalformedTensorComputationGraph ;
+    sh:targetClass math:TensorComputationGraph ;
+    sh:property [
+        sh:path math:computationNode ;
+        sh:minCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A math:TensorComputationGraph must declare at least one math:computationNode (a math:ApplicationExpression)." ;
+    ] .
+
+math:WeightTensorShape
+    a sh:NodeShape ;
+    rdfs:label "Weight-tensor parameter-space shape"@x-gmeow-english ;
+    skos:definition "SHACL constraint for math:WeightTensor: it names the math:ParameterSpace it lives in through math:inParameterSpace. Weights live in a declared parameter space over which optimization searches; a weight tensor without one is ill-formed (math:UnframedWeightTensor)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    math:enforcesFailureClass math:UnframedWeightTensor ;
+    sh:targetClass math:WeightTensor ;
+    sh:property [
+        sh:path math:inParameterSpace ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class math:ParameterSpace ;
+        sh:severity sh:Violation ;
+        sh:message "A math:WeightTensor must name the math:ParameterSpace it lives in through math:inParameterSpace." ;
+    ] .
