@@ -16,7 +16,7 @@
 # --- A chart on a Lorentzian manifold (the charter's worked example) -------- #
 
 ex:minkowski a math:LorentzianManifold ;
-    rdfs:label "Minkowski spacetime (as a math object)" ;
+    rdfs:label "Minkowski spacetime (as a math object)"@x-gmeow-english ;
     math:manifoldDimension 4 ;
     math:manifoldStructureKind math:lorentzianStructure ;
     math:hasChart ex:inertialChart ;
