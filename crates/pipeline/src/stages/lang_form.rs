@@ -41,7 +41,7 @@
 //! row. All identities are content-addressed and the N-Triples are sorted + deduped, so the
 //! corpus is byte-reproducible (no clock, no randomness).
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 
 use purrdf::gts_compose::BlobRow;
 use purrdf::slice::SliceCatalog;
@@ -126,8 +126,15 @@ pub fn build_corpus(catalog: Option<&SliceCatalog>) -> Result<LangFormCorpus, Pi
     let texts = collect_english_literals(catalog)?;
 
     let mut proses: Vec<Prose> = Vec::with_capacity(texts.len());
-    for text in &texts {
-        proses.push(build_prose(text)?);
+    if !texts.is_empty() {
+        // Resolve the carrier tag to its lang:Script ONCE from the parsed source
+        // ontology (never a hard-coded Rust match) — the whole corpus is authored under
+        // the single English carrier tag, so this is one lookup, not one per literal.
+        let bindings = build_script_bindings(catalog)?;
+        let script_local = script_for_tag(ENGLISH_TAG, &bindings)?.to_owned();
+        for text in &texts {
+            proses.push(build_prose(text, &script_local)?);
+        }
     }
     // Deterministic ordering by the content-addressed surface IRI (the texts already arrive
     // sorted, but sort the interned rows explicitly so the ledger + graph are reproducible).
@@ -219,7 +226,7 @@ fn collect_english_literals(
 /// correspondence. Degenerate (empty / whitespace-only / control-char) literals still lift;
 /// only non-UTF-8 is a hard fail (it cannot occur for a parsed RDF literal, but the guard
 /// stays honest).
-fn build_prose(text: &str) -> Result<Prose, PipelineError> {
+fn build_prose(text: &str, script_local: &str) -> Result<Prose, PipelineError> {
     // Drive the shared plain-text bridge: verify the surface round-trip re-emits the bytes
     // verbatim before minting anything (never a silent lossy repair).
     let lifted = PlainTextBridge
@@ -239,9 +246,8 @@ fn build_prose(text: &str) -> Result<Prose, PipelineError> {
         });
     }
 
-    // Resolve the script individual from the language tag, then frame the surface with the
-    // material identity a stable hash needs.
-    let script_local = script_for_tag(ENGLISH_TAG)?;
+    // The script individual is resolved ONCE (data-driven, from the parsed ontology) by the
+    // caller and threaded in; frame the surface with the material identity a stable hash needs.
     let surface = SurfaceForm {
         text: text.to_owned(),
         script: script_local.to_owned(),
@@ -276,22 +282,119 @@ fn build_prose(text: &str) -> Result<Prose, PipelineError> {
     })
 }
 
-/// Resolve the `lang:Script` individual (local name) for a source language tag, structured
-/// as a lookup so adding a language is a one-line data add. An unknown tag is a HARD FAIL,
-/// never a silently-underspecified surface. The universe is `x-gmeow-english` only, so this
-/// never triggers today.
-fn script_for_tag(tag: &str) -> Result<&'static str, PipelineError> {
-    match tag {
-        "x-gmeow-english" => Ok("latinScript"),
-        _ => Err(PipelineError::Stage {
+/// Build the carrier-tag → `lang:Script` (local name) resolution map from the PARSED source
+/// ontology — never a hard-coded Rust match. A carrier tag is authored as machine-readable
+/// data in `slices/grounding/lang/module.ttl`: a language individual (a `lang:SignSystem` or
+/// `lang:LanguageVariety`) carries its tag through `lang:carrierTag`, and its script is bound
+/// through an orthography (`lang:orthographyFor` the language, `lang:usesScript` the script).
+/// This walks the SAME shared in-memory source [`SliceCatalog`] the corpus universe is drawn
+/// from, joins those three edges, and yields `tag → script-local-name` (the local name is the
+/// `lang:` IRI minus the namespace, e.g. `latinScript`). Adding a language is therefore a pure
+/// DATA add — a new variety + orthography in `module.ttl`, zero Rust change. `None` (no
+/// `slices/` tree) yields the empty map. Deterministic (a `BTreeMap`).
+fn build_script_bindings(
+    catalog: Option<&SliceCatalog>,
+) -> Result<BTreeMap<String, String>, PipelineError> {
+    let mut bindings: BTreeMap<String, String> = BTreeMap::new();
+    let Some(catalog) = catalog else {
+        return Ok(bindings);
+    };
+
+    // The three data edges the join reads, all authored in the lang: module.
+    let p_carrier_tag = iri(LANG_NS, "carrierTag");
+    let p_orthography_for = iri(LANG_NS, "orthographyFor");
+    let p_uses_script = iri(LANG_NS, "usesScript");
+
+    // language-individual IRI → its carrier tag literal.
+    let mut carrier_tag: BTreeMap<String, String> = BTreeMap::new();
+    // orthography IRI → the language individual it serves.
+    let mut orthography_for: BTreeMap<String, String> = BTreeMap::new();
+    // orthography IRI → the script IRI it writes in.
+    let mut uses_script: BTreeMap<String, String> = BTreeMap::new();
+
+    for record in catalog.records() {
+        for artifact in &record.artifacts {
+            // The reference model lives in the Turtle sources.
+            if artifact.media_type != "text/turtle" {
+                continue;
+            }
+            let ds = parse_dataset(&artifact.content, "text/turtle", None).map_err(|e| {
+                PipelineError::Parse(format!(
+                    "lang-form script-binding RDF parse of {}: {e}",
+                    artifact.logical_path
+                ))
+            })?;
+            for q in ds.quads_for_pattern(None, None, None, GraphMatch::Any) {
+                let TermRef::Iri(pred) = ds.resolve(q.p) else {
+                    continue;
+                };
+                if pred == p_carrier_tag {
+                    if let (
+                        TermRef::Iri(subj),
+                        TermRef::Literal {
+                            lexical,
+                            language: None,
+                            ..
+                        },
+                    ) = (ds.resolve(q.s), ds.resolve(q.o))
+                    {
+                        carrier_tag.insert(subj.to_owned(), lexical.to_owned());
+                    }
+                } else if pred == p_orthography_for {
+                    if let (TermRef::Iri(subj), TermRef::Iri(obj)) =
+                        (ds.resolve(q.s), ds.resolve(q.o))
+                    {
+                        orthography_for.insert(subj.to_owned(), obj.to_owned());
+                    }
+                } else if pred == p_uses_script {
+                    if let (TermRef::Iri(subj), TermRef::Iri(obj)) =
+                        (ds.resolve(q.s), ds.resolve(q.o))
+                    {
+                        uses_script.insert(subj.to_owned(), obj.to_owned());
+                    }
+                }
+            }
+        }
+    }
+
+    // Join the edges: for each orthography that writes a script AND serves a language whose
+    // carrier tag is declared, resolve tag → script-local-name. A script IRI outside the
+    // lang: namespace is not a resolvable local name and is skipped (an unresolvable tag then
+    // hard-fails at lookup, never a silent default).
+    for (orthography, script_iri) in &uses_script {
+        let Some(language) = orthography_for.get(orthography) else {
+            continue;
+        };
+        let Some(tag) = carrier_tag.get(language) else {
+            continue;
+        };
+        let Some(script_local) = script_iri.strip_prefix(LANG_NS) else {
+            continue;
+        };
+        bindings.insert(tag.clone(), script_local.to_owned());
+    }
+    Ok(bindings)
+}
+
+/// Resolve the `lang:Script` individual (local name) for a source carrier tag from the
+/// data-driven [`build_script_bindings`] map. An unknown / unresolvable tag is a HARD FAIL,
+/// never a silently-underspecified surface — adding a language is a DATA add in `module.ttl`,
+/// never a Rust change.
+fn script_for_tag<'a>(
+    tag: &str,
+    bindings: &'a BTreeMap<String, String>,
+) -> Result<&'a str, PipelineError> {
+    bindings
+        .get(tag)
+        .map(String::as_str)
+        .ok_or_else(|| PipelineError::Stage {
             stage: "stage-mappings".to_string(),
             message: format!(
-                "lang-form: no lang:Script mapping for language tag '{tag}'; add its \
-                 lang:Script individual to slices/grounding/lang/module.ttl and extend \
-                 script_for_tag"
+                "lang-form: no lang:Script binding for language tag '{tag}'; declare its \
+                 carrier variety (lang:carrierTag) and an orthography (lang:orthographyFor + \
+                 lang:usesScript naming its lang:Script) in slices/grounding/lang/module.ttl"
             ),
-        }),
-    }
+        })
 }
 
 /// Emit the sorted, deduped, byte-stable N-Triples for the whole corpus.
@@ -578,13 +681,14 @@ mod tests {
         // The emitted logic:candidateSourceHash equals the obligations gate's recomputation
         // over the SAME raw byte string — the coincidence the prose-hash discipline needs.
         for text in ["A definition prose field.", "café", "", "   "] {
-            let prose = build_prose(text).expect("build prose");
+            let prose = build_prose(text, "latinScript").expect("build prose");
             assert_eq!(
                 prose.source_hash,
                 candidate_source_hash(text),
                 "emitted prose-hash must equal the gate's recomputation for {text:?}"
             );
-            let nt = String::from_utf8(emit_ntriples(&[build_prose(text).unwrap()])).unwrap();
+            let nt = String::from_utf8(emit_ntriples(&[build_prose(text, "latinScript").unwrap()]))
+                .unwrap();
             assert!(
                 nt.contains(&candidate_source_hash(text)),
                 "the corpus must emit the gate's candidate_source_hash for {text:?}"
@@ -601,8 +705,8 @@ mod tests {
         let nfd = "cafe\u{301}"; // "café" with e + combining acute (NFD)
         assert_ne!(nfc, nfd, "the two normalizations are distinct byte strings");
 
-        let p_nfc = build_prose(nfc).expect("nfc");
-        let p_nfd = build_prose(nfd).expect("nfd");
+        let p_nfc = build_prose(nfc, "latinScript").expect("nfc");
+        let p_nfd = build_prose(nfd, "latinScript").expect("nfd");
 
         // Distinct surface literals (distinct material identity → distinct content address).
         assert_ne!(p_nfc.surface_iri, p_nfd.surface_iri);
@@ -620,12 +724,16 @@ mod tests {
         // Small surfaces stay inline; a document-scale surface emits a content-addressed
         // lang:surfaceBlob reference and NEVER inlines its bytes.
         let short = "cats chase mice";
-        let nt_short = String::from_utf8(emit_ntriples(&[build_prose(short).unwrap()])).unwrap();
+        let nt_short =
+            String::from_utf8(emit_ntriples(&[build_prose(short, "latinScript").unwrap()]))
+                .unwrap();
         assert!(nt_short.contains(&iri(LANG_NS, "surfaceText")));
         assert!(!nt_short.contains(&iri(LANG_NS, "surfaceBlob")));
 
         let long = "x".repeat(DOCUMENT_SCALE_BYTES + 1);
-        let nt_long = String::from_utf8(emit_ntriples(&[build_prose(&long).unwrap()])).unwrap();
+        let nt_long =
+            String::from_utf8(emit_ntriples(&[build_prose(&long, "latinScript").unwrap()]))
+                .unwrap();
         assert!(
             nt_long.contains(&surface_blob_digest(&long)),
             "a document-scale surface must carry its content-addressed blob reference"
@@ -699,8 +807,21 @@ mod tests {
 
     #[test]
     fn script_for_tag_maps_english_and_hard_fails_unknown() {
-        assert_eq!(script_for_tag("x-gmeow-english").unwrap(), "latinScript");
-        let err = script_for_tag("qtz").expect_err("unknown tag must hard-fail");
-        assert!(format!("{err}").contains("no lang:Script mapping"));
+        // The binding is DATA-DRIVEN: resolved from the parsed source ontology (the same
+        // in-memory catalog the corpus draws from), never a hard-coded Rust match. The
+        // English carrier tag resolves to lang:latinScript through its variety + orthography,
+        // and an unknown tag hard-fails (no silent default).
+        let catalog = repo_catalog();
+        let bindings = build_script_bindings(Some(&catalog)).expect("build script bindings");
+        assert_eq!(
+            script_for_tag("x-gmeow-english", &bindings).unwrap(),
+            "latinScript",
+            "the English carrier tag must resolve to latinScript from module.ttl data"
+        );
+        let err = script_for_tag("qtz", &bindings).expect_err("unknown tag must hard-fail");
+        assert!(format!("{err}").contains("no lang:Script binding"));
+        // No catalog → empty bindings → the carrier tag still hard-fails (never a default).
+        let empty = build_script_bindings(None).expect("empty bindings");
+        assert!(script_for_tag("x-gmeow-english", &empty).is_err());
     }
 }
