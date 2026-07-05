@@ -1,0 +1,22 @@
+# Competency question: "What is this manifold's dimension and structure kind, and what
+# charts cover it?"  This exercises the geometry discipline that a math:Manifold declares
+# both its dimension (math:manifoldDimension) and its structure kind
+# (math:manifoldStructureKind), and is covered by charts (math:hasChart). Scoped to the
+# fixture namespace so the answer is exactly {minkowski → dim 4, lorentzianStructure,
+# chart inertialChart}.
+PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+# reasoningNone: match the manifold through the subClassOf* edges present in the
+# module (a math:LorentzianManifold is a math:Manifold by asserted subsumption),
+# rather than relying on the reasoner to entail the type.
+SELECT ?manifold ?dimension ?structureKind ?chart WHERE {
+    ?manifold a ?manifoldType .
+    ?manifoldType rdfs:subClassOf* math:Manifold .
+    ?manifold math:manifoldDimension ?dimensionRaw ;
+              math:manifoldStructureKind ?structureKind ;
+              math:hasChart ?chart .
+    FILTER(STRSTARTS(STR(?manifold), "http://example.org/math/"))
+    BIND(STR(?dimensionRaw) AS ?dimension)
+}
+ORDER BY ?manifold ?chart

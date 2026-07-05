@@ -1,0 +1,21 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Well-formed math→logic: lowering: a truth-valued math:MathematicalExpression (the
+# Pythagorean equation) that declares math:denotationKind math:denotesProposition,
+# lowers to a logic:Formula through math:compilesToLogicFormula, and records its
+# math:logicLoweringPreservation as logic:ExactPreservation. Conforms to
+# math:LogicLoweringShape and validates with no findings. Bound by ex:ecLogicLoweringDeclared.
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <http://example.org/math/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+ex:pythagoreanEq a math:MathematicalExpression ;
+    rdfs:label "Pythagorean equation lowered to a logic: formula"@x-gmeow-english ;
+    math:denotationKind math:denotesProposition ;
+    math:compilesToLogicFormula ex:pythagoreanFormula ;
+    math:logicLoweringPreservation logic:ExactPreservation .
+
+ex:pythagoreanFormula a logic:Formula ;
+    rdfs:label "Pythagorean logic: formula target of the lowering"@x-gmeow-english .

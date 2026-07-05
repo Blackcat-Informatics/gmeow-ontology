@@ -1,0 +1,17 @@
+# Competency question: "What does this derivative differentiate, with respect to which
+# variable, and at what order?"  This exercises the calculus discipline that a
+# math:Derivative names what it differentiates (math:derivativeOf), the variable of
+# differentiation (math:withRespectToVariable), and its order (math:derivativeOrder) —
+# a derivative is a binder over the AST, not the string "dy/dx". Scoped to the fixture
+# namespace so the answer is exactly {dPositionDt → positionExpr, w.r.t. tVar, order 1}.
+PREFIX math: <https://blackcatinformatics.ca/math/>
+
+SELECT ?derivative ?of ?variable ?order WHERE {
+    ?derivative a math:Derivative ;
+                math:derivativeOf ?of ;
+                math:withRespectToVariable ?variable ;
+                math:derivativeOrder ?orderRaw .
+    FILTER(STRSTARTS(STR(?derivative), "http://example.org/math/"))
+    BIND(STR(?orderRaw) AS ?order)
+}
+ORDER BY ?derivative
