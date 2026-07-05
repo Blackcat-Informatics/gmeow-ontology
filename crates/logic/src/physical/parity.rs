@@ -237,6 +237,172 @@ fn compare_materialization(
     Ok(ParityLedger::from_rows(rows))
 }
 
+// ── Null-blind existential parity ──────────────────────────────────────────────
+//
+// The native chase and Nemo both value-invent, but name their nulls differently (the
+// native chase mints a content-addressed Skolem IRI; Nemo mints a labeled null `_:0`).
+// A fact-level comparison must therefore be **null-blind**: two fact sets agree when they
+// are equal up to a consistent renaming of invented nulls.  Rather than a surface-position
+// token (which would false-agree on non-isomorphic structures and false-diverge under a
+// different firing order), each null is canonicalized by **colour refinement** of the
+// null-labelled fact graph — a null's colour is the fixpoint of the multiset of
+// `(predicate, role, neighbour-colour)` edges it participates in, grounded in the named
+// (non-null) terms.  Isomorphic null structures converge to equal colours regardless of
+// order or naming; non-isomorphic ones never do.  Named terms are never rewritten.
+
+/// Whether a term surface denotes an invented null: a native chase Skolem IRI
+/// (`…/skolem/…`) or a Nemo labeled null (rendered `<urn:gmeow:nemo-null:…>` by the
+/// facts-only decoder, or a raw `_:…` blank).
+fn is_null_surface(surface: &str) -> bool {
+    surface.contains("/skolem/")
+        || surface.contains("nemo-null:")
+        || surface.starts_with("_:")
+        || surface.starts_with("<_:")
+}
+
+/// Canonicalize the invented nulls in a fact-key set by colour refinement, so two
+/// null-equivalent sets become byte-equal.  Named terms pass through unchanged.
+fn canonicalize_nulls(keys: &BTreeSet<FactKey>) -> BTreeSet<FactKey> {
+    use std::collections::BTreeMap;
+
+    let nulls: BTreeSet<String> = keys
+        .iter()
+        .flat_map(|(s, _, o)| [s.clone(), o.clone()])
+        .filter(|t| is_null_surface(t))
+        .collect();
+    if nulls.is_empty() {
+        return keys.clone();
+    }
+
+    // Colour every term: a named term is its own surface (a fixed anchor); a null starts
+    // from a single uniform colour and is refined by its neighbourhood.
+    let mut colour: BTreeMap<String, String> = BTreeMap::new();
+    for (s, _, o) in keys {
+        for t in [s, o] {
+            colour.entry(t.clone()).or_insert_with(|| {
+                if is_null_surface(t) {
+                    "\u{0}".to_owned()
+                } else {
+                    t.clone()
+                }
+            });
+        }
+    }
+
+    // Refine to a fixpoint (bounded by the null count — colours can only get finer).
+    for _ in 0..=nulls.len() {
+        let mut next = colour.clone();
+        let mut changed = false;
+        for n in &nulls {
+            let mut sig: Vec<String> = Vec::new();
+            for (s, p, o) in keys {
+                if s == n {
+                    sig.push(format!("s\u{1f}{p}\u{1f}{}", colour[o]));
+                }
+                if o == n {
+                    sig.push(format!("o\u{1f}{p}\u{1f}{}", colour[s]));
+                }
+            }
+            sig.sort();
+            let refined = crate::provenance::sha1_hex(&sig.join("\u{1e}"));
+            if next[n] != refined {
+                changed = true;
+                next.insert(n.clone(), refined);
+            }
+        }
+        colour = next;
+        if !changed {
+            break;
+        }
+    }
+
+    // Assign canonical tokens by sorted final colour — identical across both sides for
+    // isomorphic structures, so the rewritten sets compare byte-equal.
+    let distinct: BTreeSet<String> = nulls.iter().map(|n| colour[n].clone()).collect();
+    let token: BTreeMap<String, String> = distinct
+        .into_iter()
+        .enumerate()
+        .map(|(i, c)| (c, format!("gmeow:null#{i}")))
+        .collect();
+    let rewrite = |t: &String| -> String {
+        if is_null_surface(t) {
+            token[&colour[t]].clone()
+        } else {
+            t.clone()
+        }
+    };
+    keys.iter()
+        .map(|(s, p, o)| (rewrite(s), p.clone(), rewrite(o)))
+        .collect()
+}
+
+/// Compare the native chase's derived facts against a forward oracle's closure
+/// **null-blind**: both fact sets are canonicalized ([`canonicalize_nulls`]) before the
+/// `Agree` / `NativeOnly` / `OracleOnly` classification, so a consistent renaming of
+/// invented nulls is agreement, not divergence.  Used to oracle-gate the existential
+/// fragment against Nemo.
+fn compare_existential_materialization(
+    native: &[DerivedRow],
+    oracle: &dyn ForwardOracle,
+    facts: &TypedFactSet,
+    rules: &str,
+    world: &str,
+) -> Result<ParityLedger, String> {
+    let closure = oracle.materialize(facts, rules, &ForwardBudget::UNBOUNDED)?;
+    let oracle_name = oracle.name();
+
+    let native_keys = canonicalize_nulls(&native.iter().map(row_fact_key).collect());
+    let oracle_keys = canonicalize_nulls(
+        &closure
+            .rows
+            .iter()
+            .filter_map(|(row, _prov)| typed_row_fact_key(row))
+            .collect(),
+    );
+
+    let mut rows: Vec<LedgerRow> = Vec::new();
+    for key in native_keys.intersection(&oracle_keys) {
+        let (subject, predicate, object) = key.clone();
+        rows.push(LedgerRow {
+            kind: DivergenceKind::Agree,
+            category: "materialization".to_owned(),
+            detail: format!(
+                "native and {oracle_name} agree on fact: {subject} {predicate} {object}"
+            ),
+            subject,
+            object,
+            world: world.to_owned(),
+        });
+    }
+    for key in native_keys.difference(&oracle_keys) {
+        let (subject, predicate, object) = key.clone();
+        rows.push(LedgerRow {
+            kind: DivergenceKind::NativeOnly,
+            category: "materialization".to_owned(),
+            detail: format!(
+                "derived natively but not by {oracle_name}: {subject} {predicate} {object}"
+            ),
+            subject,
+            object,
+            world: world.to_owned(),
+        });
+    }
+    for key in oracle_keys.difference(&native_keys) {
+        let (subject, predicate, object) = key.clone();
+        rows.push(LedgerRow {
+            kind: DivergenceKind::OracleOnly,
+            category: "materialization".to_owned(),
+            detail: format!(
+                "derived by {oracle_name} but not natively: {subject} {predicate} {object}"
+            ),
+            subject,
+            object,
+            world: world.to_owned(),
+        });
+    }
+    Ok(ParityLedger::from_rows(rows))
+}
+
 /// A comparable answer-binding key: the sorted `var=value` pairs of one [`crate::query_ir::Binding`].
 ///
 /// A binding is a `BTreeMap<String, String>`, so iterating it yields the variable/value pairs in
@@ -331,17 +497,125 @@ mod tests {
 
     use super::*;
     use crate::oracle::{
-        ForwardBudget, ForwardOracle, NemoForwardOracle, ReferenceBackwardOracle, TypedChaseResult,
-        TypedProvenance, TypedRow,
+        ForwardBudget, ForwardOracle, NemoFactsOracle, NemoForwardOracle, ReferenceBackwardOracle,
+        TypedChaseResult, TypedProvenance, TypedRow,
     };
+    use crate::physical::chase::{route_chase, ExistentialRule};
     use crate::physical::magic::resolve_native;
     use crate::physical::seminaive::{materialize_native, NativeOutcome};
     use crate::query_ir::{parse_query_program, Budget, QProgram};
-    use crate::rule_ir::parse_eval_rules;
+    use crate::rule_ir::{parse_eval_rules, EvalAtom, EvalTerm, Fact};
     use crate::seam::{BudgetStatus, WorldStoreForeign};
     use crate::store::WorldStore;
+    use purrdf::TermValue;
 
     const PROFILE: &str = "https://blackcatinformatics.ca/logic/PositiveHornProfile";
+
+    const TYPE_IRI: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+    const EX_C: &str = "http://ex/C";
+    const EX_D: &str = "http://ex/D";
+    const EX_P: &str = "http://ex/p";
+    const EX_WORLD: &str = "urn:world";
+
+    fn ex_iri(s: &str) -> TermValue {
+        TermValue::iri(s)
+    }
+
+    fn ex_atom(subject: EvalTerm, predicate: &str, object: EvalTerm) -> EvalAtom {
+        EvalAtom {
+            subject,
+            predicate: predicate.to_owned(),
+            object,
+            negated: false,
+        }
+    }
+
+    /// The EL `C ⊑ ∃p.D` obligation as an `ExistentialRule` (native) plus the equivalent
+    /// ternary Nemo `.rls` existential rule (`!y` shared across the conjunctive head).
+    fn some_values_from_native() -> ExistentialRule {
+        ExistentialRule {
+            rule_iri: "http://ex/rule/svf".to_owned(),
+            body: vec![ex_atom(
+                EvalTerm::Var("?x".to_owned()),
+                TYPE_IRI,
+                EvalTerm::ConstNamed(EX_C.to_owned()),
+            )],
+            head: vec![
+                ex_atom(
+                    EvalTerm::Var("?x".to_owned()),
+                    EX_P,
+                    EvalTerm::Var("?y".to_owned()),
+                ),
+                ex_atom(
+                    EvalTerm::Var("?y".to_owned()),
+                    TYPE_IRI,
+                    EvalTerm::ConstNamed(EX_D.to_owned()),
+                ),
+            ],
+            distinct: vec![],
+        }
+    }
+
+    fn some_values_from_nemo_rls() -> String {
+        // Ternary (world-carrying) existential rule; `!y` is one shared invented null.
+        format!(
+            "<{EX_P}>(?x, !y, ?w), <{TYPE_IRI}>(!y, <{EX_D}>, ?w) :- <{TYPE_IRI}>(?x, <{EX_C}>, ?w) ."
+        )
+    }
+
+    #[test]
+    fn materialize_existential_parity_native_agrees_with_nemo() {
+        // Two C-individuals in one world.  The native restricted chase and Nemo's chase
+        // must produce the SAME facts up to null renaming (the null-blind gate).
+        let individuals = ["http://ex/a", "http://ex/b"];
+
+        // Native EDB (binary facts) + chase via the router.
+        let native_edb: Vec<Fact> = individuals
+            .iter()
+            .map(|i| Fact {
+                subject: ex_iri(i),
+                predicate: TYPE_IRI.to_owned(),
+                object: ex_iri(EX_C),
+            })
+            .collect();
+        let (admission, outcome) =
+            route_chase(EX_WORLD, &native_edb, &[some_values_from_native()], None).unwrap();
+        assert!(
+            admission.admits_native(),
+            "acyclic EL restriction must certify"
+        );
+        let native_rows = match outcome {
+            NativeOutcome::Decided(b) => b.rows,
+            NativeOutcome::Unsupported(k) => panic!("certified program must run: {k:?}"),
+        };
+
+        // Oracle EDB (ternary typed quads) + the equivalent Nemo existential .rls.
+        let mut oracle_edb = TypedFactSet::new();
+        for i in individuals {
+            oracle_edb.push_quad(&ex_iri(i), TYPE_IRI, &ex_iri(EX_C), EX_WORLD);
+        }
+
+        let ledger = compare_existential_materialization(
+            &native_rows,
+            &NemoFactsOracle,
+            &oracle_edb,
+            &some_values_from_nemo_rls(),
+            EX_WORLD,
+        )
+        .expect("nemo facts-only chase should succeed");
+
+        let verdict = ledger.enforce();
+        assert!(
+            verdict.passed,
+            "native chase must agree with Nemo null-blind; reasons: {:?}; rows: {:#?}",
+            verdict.reasons, ledger.rows
+        );
+        // Non-vacuous: they actually agree on the invented p-edges and D-types, not just
+        // the echoed EDB (2 C-types + 2 p-edges + 2 D-types = 6 agreed facts).
+        assert_eq!(ledger.agree, 6, "all six facts agree");
+        assert_eq!(ledger.native_only, 0);
+        assert_eq!(ledger.oracle_only, 0);
+    }
 
     // ── Forward corpus: stratifiable binary Datalog± programs ────────────────────────
     //
