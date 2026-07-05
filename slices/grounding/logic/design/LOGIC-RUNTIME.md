@@ -364,6 +364,46 @@ are flagged non-incremental in the perf ledger. The full rationale and the MLIR/
 [`docs/APPLIED_CATEGORY_THEORY/take1.md`](../../../../docs/APPLIED_CATEGORY_THEORY/take1.md) §10.1–§10.2;
 the correspondence calculus that rides this engine is in [`LOGIC-CORRESPONDENCE.md`](LOGIC-CORRESPONDENCE.md).
 
+### Native arithmetic and comparison builtins
+
+Arithmetic (`X is Y op Z`) and comparison (`L cmp R`) builtins are the first
+concretely-subsumed fragment of this discipline. The **closed set** is fixed by
+the IR, not open-ended: the arithmetic operators are `+ - * //` (integer
+division) and the comparisons are `> < >= =< =:=` (arithmetic equality). This is
+the entire set the native core evaluates; anything outside it is a declared gap.
+The ontology carries no arithmetic in its shipped or conformance rule bodies —
+the fragment exists to serve list-shaped programs (length, index-of) and to
+pre-position the core for the future `math:`/`lang:` demand for evaluated
+arithmetic inside resolution.
+
+Builtins are **mode-constrained relations** evaluated in body order as part of a
+rule's sideways-information-passing (SIPS): a comparison is the infinite relation
+`{(x,y) | x cmp y}`, evaluable only when both operands are bound, so it is always
+a **filter**; an `is` is a functional relation whose role turns on its target's
+binding — a **filter** when the target is already bound (check equality), a
+**generator** when the target is free and the operands are bound (compute and
+bind). Because a generator's target participates in SIPS, it must contribute a
+bound variable to the adornment of the atoms that follow it, so demand stays
+restricted rather than degrading to the free pattern a naïve post-join filter
+would produce. One shared moded evaluator carries these semantics across the
+forward (semi-naive), backward (magic), and reference (SLD) engines, so they
+cannot diverge from one another; each op is separately anchored to an independent
+oracle so agreement is proven, not assumed.
+
+Evaluation is over checked `i64`. Integer division `//` truncates toward zero
+(ISO `//`, matching the subsumed Scryer semantics), and `=:=` is numeric value
+equality, never structural unification. Three **residual gap kinds** stay
+first-class and route to the oracle without ever producing a wrong answer:
+**mode-unsupported** (an operand is still unbound at evaluation — the core
+declines rather than guessing), **domain-error** (division by zero — the oracle
+raises), and **i64-domain-exceeded** (an intermediate overflows the machine
+integer where the oracle would compute a bignum). Each is a *ledgered*
+re-demotion recorded in the divergence/coverage ledger, distinct in
+attestation even though all three fall back the same way — never a silent
+approximation. The whole path stays confined to the procedural execution profile
+by the same facet gate that confines cut; a builtin under any other profile is a
+hard rejection upstream of the engine.
+
 ## Generated artifacts and the compiler's projection role
 
 The compiler core (see [The compiler/runtime split](#the-compilerruntime-split)) emits a set of

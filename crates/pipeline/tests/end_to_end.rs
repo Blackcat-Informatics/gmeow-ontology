@@ -178,13 +178,27 @@ fn spine() -> PipelineSpec {
             // leaf, never re-rendered in the presenter (the transform-once razor).
             spec("stage-export-profiles", "profiles", &[]),
             spec("stage-export-evals", "evals", &[]),
-            spec("stage-export-research-objects", "research-objects", &[]),
+            spec(
+                "stage-export-research-objects",
+                "research-objects",
+                &["stage-mappings"],
+            ),
+            // The generated constraint catalog / term-content manifest `.nq` producing
+            // Transforms the snapshot folds as graph/fanout/catalog named graphs; each
+            // reads the reasoned closure off `stage-reason`.
+            spec(
+                "stage-constraint-catalog",
+                "constraint_catalog",
+                &["stage-reason"],
+            ),
+            spec("stage-term-manifest", "term_manifest", &["stage-reason"]),
             spec(
                 "stage-snapshot",
                 "snapshot",
                 &[
                     "stage-compile-logic",
                     "stage-conformance",
+                    "stage-constraint-catalog",
                     "stage-docs-render",
                     "stage-export-evals",
                     "stage-export-json-schema",
@@ -195,6 +209,7 @@ fn spine() -> PipelineSpec {
                     "stage-reason",
                     "stage-source-load",
                     "stage-statements",
+                    "stage-term-manifest",
                     "stage-validate",
                 ],
             ),
@@ -213,7 +228,15 @@ fn executor_runs_the_spine_end_to_end() {
     // registry.
     let graph = spec.validate().expect("spine DAG validates");
     let bound = bind(&spec, &graph, &registry()).expect("every spine stage binds");
-    assert_eq!(bound.len(), 15, "all 15 snapshot-spine stages bound");
+    assert_eq!(bound.len(), 17, "all 17 snapshot-spine stages bound");
+    assert!(
+        bound.iter().any(|s| s.id() == "stage-constraint-catalog"),
+        "constraint-catalog stage bound by id, not merely counted"
+    );
+    assert!(
+        bound.iter().any(|s| s.id() == "stage-term-manifest"),
+        "term-manifest stage bound by id, not merely counted"
+    );
 
     // Run over a temp cache so the test never writes into the repo tree.
     let cache_dir = tempfile::tempdir().unwrap();
@@ -221,7 +244,15 @@ fn executor_runs_the_spine_end_to_end() {
     ctx.cache = PipelineCache::open(cache_dir.path()).unwrap();
 
     let result = run(&graph, &bound, &mut ctx).expect("pipeline runs end-to-end");
-    assert_eq!(result.products.len(), 15);
+    assert_eq!(result.products.len(), 17);
+    assert!(
+        result.products.contains_key("stage-constraint-catalog"),
+        "constraint-catalog produced a product, not merely counted"
+    );
+    assert!(
+        result.products.contains_key("stage-term-manifest"),
+        "term-manifest produced a product, not merely counted"
+    );
 
     // The snapshot stage produced the terminal carrier dataset.
     let snapshot = result

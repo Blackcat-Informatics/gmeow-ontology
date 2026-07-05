@@ -22587,6 +22587,31 @@
               "@type": {
                 "anyOf": [
                   {
+                    "const": "math:ApplicationExpression"
+                  },
+                  {
+                    "contains": {
+                      "const": "math:ApplicationExpression"
+                    },
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "@type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/math:ApplicationExpression"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "@type": {
+                "anyOf": [
+                  {
                     "const": "math:ApproximateValue"
                   },
                   {
@@ -22937,6 +22962,31 @@
               "@type": {
                 "anyOf": [
                   {
+                    "const": "math:Embedding"
+                  },
+                  {
+                    "contains": {
+                      "const": "math:Embedding"
+                    },
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "@type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/math:Embedding"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "@type": {
+                "anyOf": [
+                  {
                     "const": "math:Function"
                   },
                   {
@@ -23212,6 +23262,56 @@
               "@type": {
                 "anyOf": [
                   {
+                    "const": "math:OrthogonalComplement"
+                  },
+                  {
+                    "contains": {
+                      "const": "math:OrthogonalComplement"
+                    },
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "@type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/math:OrthogonalComplement"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "@type": {
+                "anyOf": [
+                  {
+                    "const": "math:PCAAnalysis"
+                  },
+                  {
+                    "contains": {
+                      "const": "math:PCAAnalysis"
+                    },
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "@type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/math:PCAAnalysis"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "@type": {
+                "anyOf": [
+                  {
                     "const": "math:ProbabilityMeasure"
                   },
                   {
@@ -23254,6 +23354,31 @@
           },
           "then": {
             "$ref": "#/$defs/math:Quantity"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "@type": {
+                "anyOf": [
+                  {
+                    "const": "math:ResidualInterpretationClaim"
+                  },
+                  {
+                    "contains": {
+                      "const": "math:ResidualInterpretationClaim"
+                    },
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "@type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/math:ResidualInterpretationClaim"
           }
         },
         {
@@ -23437,6 +23562,31 @@
               "@type": {
                 "anyOf": [
                   {
+                    "const": "math:TensorComputationGraph"
+                  },
+                  {
+                    "contains": {
+                      "const": "math:TensorComputationGraph"
+                    },
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "@type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/math:TensorComputationGraph"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "@type": {
+                "anyOf": [
+                  {
                     "const": "math:VariableOccurrence"
                   },
                   {
@@ -23454,6 +23604,31 @@
           },
           "then": {
             "$ref": "#/$defs/math:VariableOccurrence"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "@type": {
+                "anyOf": [
+                  {
+                    "const": "math:WeightTensor"
+                  },
+                  {
+                    "contains": {
+                      "const": "math:WeightTensor"
+                    },
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "@type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/math:WeightTensor"
           }
         },
         {
@@ -36409,6 +36584,34 @@
       ],
       "type": "object"
     },
+    "math:ApplicationExpression": {
+      "properties": {
+        "@annotation": {
+          "$ref": "#/$defs/Annotation"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "@type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ]
+        },
+        "math:operator": {}
+      },
+      "required": [
+        "math:operator"
+      ],
+      "type": "object"
+    },
     "math:ApproximateValue": {
       "properties": {
         "@annotation": {
@@ -37146,6 +37349,76 @@
       ],
       "type": "object"
     },
+    "math:Embedding": {
+      "properties": {
+        "@annotation": {
+          "$ref": "#/$defs/Annotation"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "@type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ]
+        },
+        "math:embeddingFunction": {
+          "anyOf": [
+            {},
+            {
+              "items": {},
+              "minItems": 1,
+              "type": "array"
+            }
+          ]
+        },
+        "math:embeddingModel": {
+          "anyOf": [
+            {},
+            {
+              "items": {},
+              "minItems": 1,
+              "type": "array"
+            }
+          ]
+        },
+        "math:embeddingSource": {
+          "anyOf": [
+            {},
+            {
+              "items": {},
+              "minItems": 1,
+              "type": "array"
+            }
+          ]
+        },
+        "math:targetSpace": {
+          "anyOf": [
+            {},
+            {
+              "items": {},
+              "minItems": 1,
+              "type": "array"
+            }
+          ]
+        }
+      },
+      "required": [
+        "math:embeddingFunction",
+        "math:embeddingModel",
+        "math:embeddingSource",
+        "math:targetSpace"
+      ],
+      "type": "object"
+    },
     "math:Function": {
       "properties": {
         "@annotation": {
@@ -37846,6 +38119,168 @@
       ],
       "type": "object"
     },
+    "math:OrthogonalComplement": {
+      "properties": {
+        "@annotation": {
+          "$ref": "#/$defs/Annotation"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "@type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ]
+        },
+        "math:definedByInnerProduct": {
+          "properties": {
+            "@id": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "@id"
+          ],
+          "type": "object"
+        }
+      },
+      "required": [
+        "math:definedByInnerProduct"
+      ],
+      "type": "object"
+    },
+    "math:PCAAnalysis": {
+      "properties": {
+        "@annotation": {
+          "$ref": "#/$defs/Annotation"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "@type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ]
+        },
+        "math:analysisInput": {
+          "anyOf": [
+            {},
+            {
+              "items": {},
+              "minItems": 1,
+              "type": "array"
+            }
+          ]
+        },
+        "math:centeringPolicy": {
+          "$comment": "external class https://blackcatinformatics.ca/math/CenteringPolicy",
+          "type": "string"
+        },
+        "math:covarianceOperator": {
+          "anyOf": [
+            {},
+            {
+              "items": {},
+              "minItems": 1,
+              "type": "array"
+            }
+          ]
+        },
+        "math:eigensolver": {
+          "anyOf": [
+            {},
+            {
+              "items": {},
+              "minItems": 1,
+              "type": "array"
+            }
+          ]
+        },
+        "math:explainedVarianceRatio": {
+          "anyOf": [
+            {},
+            {
+              "items": {},
+              "minItems": 1,
+              "type": "array"
+            }
+          ]
+        },
+        "math:loadingVector": {
+          "anyOf": [
+            {},
+            {
+              "items": {},
+              "minItems": 1,
+              "type": "array"
+            }
+          ]
+        },
+        "math:principalComponent": {
+          "anyOf": [
+            {},
+            {
+              "items": {},
+              "minItems": 1,
+              "type": "array"
+            }
+          ]
+        },
+        "math:residualSubspace": {
+          "anyOf": [
+            {},
+            {
+              "items": {},
+              "minItems": 1,
+              "type": "array"
+            }
+          ]
+        },
+        "math:scalingPolicy": {
+          "$comment": "external class https://blackcatinformatics.ca/math/ScalingPolicy",
+          "type": "string"
+        },
+        "math:scoreVector": {
+          "anyOf": [
+            {},
+            {
+              "items": {},
+              "minItems": 1,
+              "type": "array"
+            }
+          ]
+        }
+      },
+      "required": [
+        "math:analysisInput",
+        "math:centeringPolicy",
+        "math:covarianceOperator",
+        "math:eigensolver",
+        "math:explainedVarianceRatio",
+        "math:loadingVector",
+        "math:principalComponent",
+        "math:residualSubspace",
+        "math:scalingPolicy",
+        "math:scoreVector"
+      ],
+      "type": "object"
+    },
     "math:ProbabilityMeasure": {
       "properties": {
         "@annotation": {
@@ -37919,6 +38354,65 @@
       },
       "required": [
         "math:hasDimension"
+      ],
+      "type": "object"
+    },
+    "math:ResidualInterpretationClaim": {
+      "properties": {
+        "@annotation": {
+          "$ref": "#/$defs/Annotation"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "@type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ]
+        },
+        "gmeow:observationResult": {
+          "anyOf": [
+            {},
+            {
+              "items": {},
+              "minItems": 1,
+              "type": "array"
+            }
+          ]
+        },
+        "gmeow:observedFeature": {
+          "anyOf": [
+            {},
+            {
+              "items": {},
+              "minItems": 1,
+              "type": "array"
+            }
+          ]
+        },
+        "gmeow:vantage": {
+          "anyOf": [
+            {},
+            {
+              "items": {},
+              "minItems": 1,
+              "type": "array"
+            }
+          ]
+        }
+      },
+      "required": [
+        "gmeow:observationResult",
+        "gmeow:observedFeature",
+        "gmeow:vantage"
       ],
       "type": "object"
     },
@@ -38209,6 +38703,63 @@
       },
       "type": "object"
     },
+    "math:TensorComputationGraph": {
+      "properties": {
+        "@annotation": {
+          "$ref": "#/$defs/Annotation"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "@type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ]
+        },
+        "math:computationNode": {
+          "anyOf": [
+            {
+              "properties": {
+                "@id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@id"
+              ],
+              "type": "object"
+            },
+            {
+              "items": {
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              "minItems": 1,
+              "type": "array"
+            }
+          ]
+        }
+      },
+      "required": [
+        "math:computationNode"
+      ],
+      "type": "object"
+    },
     "math:VariableOccurrence": {
       "properties": {
         "@annotation": {
@@ -38244,6 +38795,37 @@
       },
       "required": [
         "math:declaredVariable"
+      ],
+      "type": "object"
+    },
+    "math:WeightTensor": {
+      "properties": {
+        "@annotation": {
+          "$ref": "#/$defs/Annotation"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "@type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ]
+        },
+        "math:inParameterSpace": {
+          "$comment": "external class https://blackcatinformatics.ca/math/ParameterSpace",
+          "type": "string"
+        }
+      },
+      "required": [
+        "math:inParameterSpace"
       ],
       "type": "object"
     },

@@ -1,0 +1,14 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:WeightTensorShape: a weight tensor naming the layer it
+# parameterizes but omitting the math:ParameterSpace it lives in (sh:minCount 1).
+# Validation MUST emit shacl.MinCountConstraintComponent and NO other finding
+# (math:UnframedWeightTensor). Bound by ex:ecWeightTensorNoParameterSpace.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:unframedWeight a math:WeightTensor ;
+    math:weightOf ex:layer .
+
+ex:layer a math:NeuralLayer .

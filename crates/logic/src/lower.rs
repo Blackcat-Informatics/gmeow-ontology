@@ -87,6 +87,8 @@ pub(crate) fn lower_rule(rule: &LogicRule) -> Result<EvalRule, String> {
         body,
         rule_iri,
         distinct_pairs: rule.distinct_pairs.clone(),
+        // This lowering carries no arithmetic builtins.
+        builtins: Vec::new(),
     })
 }
 
