@@ -303,6 +303,14 @@ fn chase_world_into(
     let mut committed: BTreeSet<FactKey> = edb_facts.iter().map(Fact::key).collect();
     let mut status = BudgetStatus::Ok;
 
+    // A rule's existential/frontier variable sets are loop-invariant (they depend only on
+    // the rule's shape, not the store), so compute them ONCE rather than re-deriving —
+    // with their allocations and string clones — every fixpoint round.
+    let prepared: Vec<(&ExistentialRule, Vec<String>, Vec<String>)> = rules
+        .iter()
+        .map(|rule| (rule, rule.existentials(), rule.frontier_vars()))
+        .collect();
+
     // Naive restricted-chase fixpoint: each round re-derives against the full store,
     // the restricted-satisfaction check skips already-witnessed obligations, and the
     // SkolemRegistry collapses repeat firings — so a weakly-acyclic program converges.
@@ -311,9 +319,7 @@ fn chase_world_into(
         // Gather this round's new facts with their provenance, keyed for deterministic
         // FactKey-sorted commit (the columnar-store determinism doctrine).
         let mut round: Vec<(FactKey, Fact, Vec<String>)> = Vec::new();
-        for rule in rules {
-            let existentials = rule.existentials();
-            let frontier_vars = rule.frontier_vars();
+        for (rule, existentials, frontier_vars) in &prepared {
             for sol in join_atoms(&rule.body, &store, &empty_solution()) {
                 // The rule's `distinct` guards range over the EXISTENTIAL head vars
                 // (the `≥n` distinctness), which are unbound in the body solution.  They
@@ -857,12 +863,29 @@ impl ChaseAdmission {
     }
 
     /// The lattice meet toward `Uncertified`: a program is admitted only when every
-    /// part is, so combining two admissions keeps the weaker (lower-ranked) one.
+    /// part is, so combining two admissions keeps the weaker (lower-ranked) one — and
+    /// when both parts are `Uncertified`, keeps EVERY violation so no termination-failure
+    /// diagnostic is lost to the meet.
     pub(crate) fn combine(self, other: Self) -> Self {
-        if self.rank() <= other.rank() {
-            self
-        } else {
-            other
+        match (self, other) {
+            (
+                Self::Uncertified {
+                    violations: mut merged,
+                },
+                Self::Uncertified { violations: rhs },
+            ) => {
+                merged.extend(rhs);
+                merged.sort();
+                merged.dedup();
+                Self::Uncertified { violations: merged }
+            }
+            (lhs, rhs) => {
+                if lhs.rank() <= rhs.rank() {
+                    lhs
+                } else {
+                    rhs
+                }
+            }
         }
     }
 }
@@ -1292,6 +1315,30 @@ mod tests {
         let bad = ChaseAdmission::certify(&[restriction_rule("http://ex/r", D, P, D)]);
         assert!(!good.clone().combine(bad.clone()).admits_native());
         assert!(!bad.combine(good).admits_native());
+    }
+
+    #[test]
+    fn certify_lattice_combine_merges_uncertified_violations() {
+        // Two uncertified parts meet to Uncertified keeping EVERY violation — merged,
+        // sorted, deduped — so no termination-failure diagnostic is dropped by the meet.
+        let a = ChaseAdmission::Uncertified {
+            violations: vec!["edge y -> z in cycle".to_owned(), "shared".to_owned()],
+        };
+        let b = ChaseAdmission::Uncertified {
+            violations: vec!["edge p -> q in cycle".to_owned(), "shared".to_owned()],
+        };
+        match a.combine(b) {
+            ChaseAdmission::Uncertified { violations } => assert_eq!(
+                violations,
+                vec![
+                    "edge p -> q in cycle".to_owned(),
+                    "edge y -> z in cycle".to_owned(),
+                    "shared".to_owned(),
+                ],
+                "combine keeps every violation, sorted and deduped (no lost diagnostic)"
+            ),
+            other => panic!("two uncertified parts combine to Uncertified, got {other:?}"),
+        }
     }
 
     // ── route_chase: certify → chase / refuse / budget ───────────────────────────
