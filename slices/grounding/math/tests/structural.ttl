@@ -427,6 +427,18 @@ ASK {
 }""" ;
     gmeow:saRationale "A math:FormalVerificationResult MUST NOT be a gmeow:Observation: typing the result object as the held claim is the math:ResultRoleConflation — the verdict is HELD BY a separate observation with the checker as vantage, never IS-A one." .
 
+# --- The QED result object is disjoint from the observation (MUST) ---------- #
+ex:saVerificationResultDisjointObservation a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    math:FormalVerificationResult owl:disjointWith gmeow:Observation .
+}""" ;
+    gmeow:saRationale "The result object of the process / result / claim separation is never the held claim, so math:FormalVerificationResult MUST be owl:disjointWith gmeow:Observation — the OWL-axiom gate backing math:ResultRoleConflation. The native DL coherence gate reads the disjointness directly, forcing any individual typed both a verification result and an observation to owl:Nothing, mirroring lang:InterpretationAct owl:disjointWith gmeow:Observation." .
+
 # --- The bridge failure classes are typed conformance failures (MUST) ------- #
 ex:saBridgeFailureHierarchy a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;

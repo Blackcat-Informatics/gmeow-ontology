@@ -3750,6 +3750,7 @@ math:ProofStep
 math:FormalVerificationResult
     a owl:Class ;
     rdfs:subClassOf math:MathematicalObject ;
+    owl:disjointWith gmeow:Observation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Formal Verification Result"@x-gmeow-english ;
     skos:definition "A formal verification result: the structured RESULT OBJECT of checking a math:Proof — the QED verdict a proof assistant returns. A subclass of math:MathematicalObject, NOT a gmeow:Observation: it is the result object of the process / result / claim separation, and the held verdict is a separate gmeow:Observation naming the checker as gmeow:vantage, the result through gmeow:observationResult, and the run through gmeow:wasGeneratedBy. None is typed as another; a result object roled as the claim is ill-formed (math:ResultRoleConflation), and a result not grounded by such an observation is ill-formed (math:UngroundedVerificationResult)."@x-gmeow-english ;
