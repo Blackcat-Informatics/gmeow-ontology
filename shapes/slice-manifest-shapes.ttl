@@ -27,8 +27,8 @@ gmeow:SliceManifestShape
     sh:property [
         sh:path gmeow:sliceTier ;
         sh:minCount 1 ; sh:maxCount 1 ;
-        sh:in ( gmeow:tierCore gmeow:tierExtension ) ;
-        sh:message "A slice declares exactly one tier: gmeow:tierCore or gmeow:tierExtension (Principle 16)."@x-gmeow-english ;
+        sh:in ( gmeow:tierCore gmeow:tierExtension gmeow:tierProfile ) ;
+        sh:message "A slice declares exactly one tier: gmeow:tierCore, gmeow:tierExtension, or gmeow:tierProfile (a pure-selection profile that mints nothing — Principle 16)."@x-gmeow-english ;
     ] ;
     sh:property [
         sh:path gmeow:sliceConsumer ;

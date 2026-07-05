@@ -875,3 +875,390 @@ gmeow:eqMathDimensionOm2 a gmeow:TermEquivalence ;
     gmeow:objectLabel "om:Dimension" ;
     gmeow:comment "math:Dimension aligns to om-2:Dimension, OM 2's dimension concept. closeMatch (align, don't spine). Full IRI by reference — OM 2's own owl:Class identity (declared in the published om-2.0.rdf); the server 404s the /resource/ form (a Pubby limitation), so it is browsable via the /page/ view." ;
     gmeow:sssomFile "gmeow-om2.sssom.tsv" .
+
+# --- Analysis & geometry classes → Wikidata (identity hub) ----------------- #
+#
+# The topology, calculus, and differential-geometry concepts, anchored to their
+# Wikidata identity (skos:exactMatch) or, where the GMEOW term is more specific
+# or more general than the Wikidata concept, skos:closeMatch. All QIDs
+# curl-validated against the Wikidata search + EntityData APIs (the top hit for
+# a bare "manifold" is a family name Q37554028, so each was checked by sense).
+
+gmeow:eqMathTopologicalSpaceWd a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:TopologicalSpace ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q179899 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "topological space" ;
+    gmeow:comment "math:TopologicalSpace is a space given by its open sets; wd:Q179899 (topological space) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathManifoldWd a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:Manifold ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q2721559 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "topological manifold" ;
+    gmeow:comment "math:Manifold is a space locally homeomorphic to ℝⁿ; wd:Q2721559 (topological manifold) is the base case. closeMatch — the GMEOW class also parents the smooth/complex/Riemannian/Lorentzian refinements." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathSmoothManifoldWd a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:SmoothManifold ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q3552958 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "differentiable manifold" ;
+    gmeow:comment "math:SmoothManifold is a C^∞ manifold; wd:Q3552958 (differentiable manifold) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathComplexManifoldWd a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:ComplexManifold ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q578874 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "complex manifold" ;
+    gmeow:comment "math:ComplexManifold is a manifold with holomorphic transition maps; wd:Q578874 (complex manifold) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathRiemannianManifoldWd a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:RiemannianManifold ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q632814 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "Riemannian manifold" ;
+    gmeow:comment "math:RiemannianManifold is a smooth manifold with a positive-definite metric; wd:Q632814 (Riemannian manifold) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathLorentzianManifoldWd a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:LorentzianManifold ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q1510587 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "pseudo-Riemannian manifold" ;
+    gmeow:comment "math:LorentzianManifold is the signature-(1,n−1) case; wd:Q1510587 (pseudo-Riemannian manifold) is the general indefinite-metric superconcept. closeMatch — Lorentzian is the distinguished pseudo-Riemannian signature spacetime uses." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathHomeomorphismWd a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:Homeomorphism ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q202906 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "homeomorphism" ;
+    gmeow:comment "math:Homeomorphism is a continuous bijection with continuous inverse; wd:Q202906 (homeomorphism) is the same concept. Identity, so skos:exactMatch. Distinct from a homomorphism (curl-verified sense to avoid the homeo/homo confusable)." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathContinuousMapWd a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:ContinuousMap ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q170058 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "continuous function" ;
+    gmeow:comment "math:ContinuousMap is a continuous map of topological spaces; wd:Q170058 (continuous function, 'preimage of an open set is open') is the same notion phrased as a function. closeMatch (map vs function framing)." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathCompactSpaceWd a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:CompactSpace ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q381892 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "compact space" ;
+    gmeow:comment "math:CompactSpace is a space where every open cover has a finite subcover; wd:Q381892 (compact space) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathConnectedSpaceWd a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:ConnectedSpace ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q1491995 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "connected space" ;
+    gmeow:comment "math:ConnectedSpace is a space not the disjoint union of two non-empty open sets; wd:Q1491995 (connected space) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathHomotopyWd a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:Homotopy ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q746083 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "homotopy" ;
+    gmeow:comment "math:Homotopy is a continuous deformation between two continuous maps; wd:Q746083 (homotopy) is the same concept. Identity, so skos:exactMatch (curl-verified to distinguish from homology Q1144780)." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathHomologyGroupWd a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:HomologyGroup ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q1144780 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "homology" ;
+    gmeow:comment "math:HomologyGroup is the n-th homology group Hₙ(X); wd:Q1144780 (homology, 'associating a sequence of algebraic objects') is the theory it belongs to. closeMatch (a group in the sequence vs the theory); curl-verified distinct from homotopy." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathTangentSpaceWd a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:TangentSpace ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q909601 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "tangent space" ;
+    gmeow:comment "math:TangentSpace is the vector space of tangent vectors at a point; wd:Q909601 (tangent space) is the same concept. Identity, so skos:exactMatch (curl-verified distinct from the tangent bundle)." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathMetricTensorWd a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:MetricTensor ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q757269 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "metric tensor" ;
+    gmeow:comment "math:MetricTensor is a symmetric (0,2) tensor field giving lengths and angles; wd:Q757269 (metric tensor) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathDerivativeWd a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:Derivative ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q29175 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "derivative" ;
+    gmeow:comment "math:Derivative is the instantaneous rate of change d/dx; wd:Q29175 (derivative, mathematics) is the same concept. Identity, so skos:exactMatch (the QID disambiguates the financial and chemistry senses)." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathLimitWd a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:Limit ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q33540 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "limit of a function" ;
+    gmeow:comment "math:Limit is a limit binding expression; wd:Q33540 (limit of a function) is the analysis concept it most directly realizes. closeMatch — the GMEOW class also covers limits of sequences." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathSeriesWd a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:Series ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q170198 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "series" ;
+    gmeow:comment "math:Series is an infinite sum ∑ aₙ; wd:Q170198 (series, 'infinite sum') is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathSequenceWd a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:Sequence ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q133250 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "sequence" ;
+    gmeow:comment "math:Sequence is an ordered indexed family (aₙ); wd:Q133250 (sequence) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathGammaWd a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:gammaFunction ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q190573 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "gamma function" ;
+    gmeow:comment "math:gammaFunction is Γ(z), the analytic continuation of the factorial; wd:Q190573 (gamma function) is the same function. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathZetaWd a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:riemannZeta ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q187235 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "Riemann zeta function" ;
+    gmeow:comment "math:riemannZeta is ζ(s); wd:Q187235 (Riemann zeta function) is the same function. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathBesselWd a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:besselJ ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q219637 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "Bessel function" ;
+    gmeow:comment "math:besselJ is the Bessel function of the first kind Jₙ; wd:Q219637 (Bessel function) is the whole family. closeMatch — the GMEOW individual is the first-kind member." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathErfWd a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:errorFunction ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q579262 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "error function" ;
+    gmeow:comment "math:errorFunction is erf(x); wd:Q579262 (error function) is the same function. Identity, so skos:exactMatch (curl-verified distinct from loss function Q1036748)." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+# --- Calculus binders → OpenMath content dictionaries ---------------------- #
+#
+# The binder operators lower to OpenMath CD symbols (align, don't spine —
+# Principle 17). Full IRIs to the CD pages (calculus1, arith1) — all curl-
+# validated HTTP 200; the OpenMath tensor1 CD 404s, so tensor fields align to
+# Wikidata (above) rather than a dead OpenMath link.
+
+gmeow:eqMathDiffBinderOm a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:differentiationBinder ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject <https://openmath.org/cd/calculus1.xhtml> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "OpenMath calculus1#diff" ;
+    gmeow:comment "math:differentiationBinder aligns to the diff symbol of the OpenMath calculus1 content dictionary. closeMatch, full IRI by reference to the CD page (curl-validated HTTP 200)." ;
+    gmeow:sssomFile "gmeow-openmath.sssom.tsv" .
+
+gmeow:eqMathPartialDiffBinderOm a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:partialDifferentiationBinder ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject <https://openmath.org/cd/calculus1.xhtml> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "OpenMath calculus1#partialdiff" ;
+    gmeow:comment "math:partialDifferentiationBinder aligns to the partialdiff symbol of the OpenMath calculus1 CD. closeMatch, full IRI by reference (curl-validated HTTP 200)." ;
+    gmeow:sssomFile "gmeow-openmath.sssom.tsv" .
+
+gmeow:eqMathLimitBinderOm a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:limitBinder ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject <https://openmath.org/cd/calculus1.xhtml> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "OpenMath calculus1#limit" ;
+    gmeow:comment "math:limitBinder aligns to the limit symbol of the OpenMath calculus1 CD. closeMatch, full IRI by reference (curl-validated HTTP 200)." ;
+    gmeow:sssomFile "gmeow-openmath.sssom.tsv" .
+
+gmeow:eqMathSumBinderOm a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:summationBinder ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject <https://openmath.org/cd/arith1.xhtml> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "OpenMath arith1#sum" ;
+    gmeow:comment "math:summationBinder aligns to the sum symbol of the OpenMath arith1 CD. closeMatch, full IRI by reference (curl-validated HTTP 200)." ;
+    gmeow:sssomFile "gmeow-openmath.sssom.tsv" .
+
+gmeow:eqMathSpecialFunctionOm a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:SpecialFunction ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject <https://openmath.org/cd/transc1.xhtml> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:objectLabel "OpenMath transc1 (transcendental functions)" ;
+    gmeow:comment "math:SpecialFunction aligns to the OpenMath transc1 transcendental-functions CD, the closest OpenMath home for named analysis functions. closeMatch, full IRI by reference (curl-validated HTTP 200)." ;
+    gmeow:sssomFile "gmeow-openmath.sssom.tsv" .
+
+# --- Special functions → DLMF (equation-ID locators, link-only) ------------ #
+#
+# NIST DLMF permits no bulk redistribution, so a DLMF chapter is a link-only
+# locator (skos:relatedMatch), not subsumed content. Full IRIs, curl-validated
+# HTTP 200 (DLMF resolves only over https).
+
+gmeow:eqMathGammaDlmf a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:gammaFunction ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject <https://dlmf.nist.gov/5> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "DLMF chapter 5 (gamma function)" ;
+    gmeow:comment "math:gammaFunction is treated in DLMF chapter 5. Link-only locator (NIST DLMF permits no bulk redistribution), so skos:relatedMatch; curl-validated HTTP 200." ;
+    gmeow:sssomFile "gmeow-dlmf.sssom.tsv" .
+
+gmeow:eqMathZetaDlmf a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:riemannZeta ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject <https://dlmf.nist.gov/25> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "DLMF chapter 25 (zeta and related functions)" ;
+    gmeow:comment "math:riemannZeta is treated in DLMF chapter 25. Link-only locator, so skos:relatedMatch; curl-validated HTTP 200." ;
+    gmeow:sssomFile "gmeow-dlmf.sssom.tsv" .
+
+gmeow:eqMathBesselDlmf a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:besselJ ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject <https://dlmf.nist.gov/10> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "DLMF chapter 10 (Bessel functions)" ;
+    gmeow:comment "math:besselJ is treated in DLMF chapter 10. Link-only locator, so skos:relatedMatch; curl-validated HTTP 200." ;
+    gmeow:sssomFile "gmeow-dlmf.sssom.tsv" .
+
+gmeow:eqMathBesselYDlmf a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:besselY ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject <https://dlmf.nist.gov/10> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "DLMF chapter 10 (Bessel functions)" ;
+    gmeow:comment "math:besselY (second kind) is treated in DLMF chapter 10. Link-only locator, so skos:relatedMatch; curl-validated HTTP 200." ;
+    gmeow:sssomFile "gmeow-dlmf.sssom.tsv" .
+
+gmeow:eqMathErfDlmf a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:errorFunction ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject <https://dlmf.nist.gov/7> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "DLMF chapter 7 (error functions)" ;
+    gmeow:comment "math:errorFunction is treated in DLMF chapter 7. Link-only locator, so skos:relatedMatch; curl-validated HTTP 200." ;
+    gmeow:sssomFile "gmeow-dlmf.sssom.tsv" .
+
+# --- Geometry/topology classes → Lean mathlib (structural, by reference) --- #
+#
+# mathlib4 is Apache-2.0 but not RDF-projectable, so a mathlib declaration is a
+# related resource, not an invertible identity (skos:relatedMatch). URLs
+# curl-validated HTTP 200.
+
+gmeow:eqMathManifoldMathlib a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:Manifold ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject <https://leanprover-community.github.io/mathlib4_docs/Mathlib/Geometry/Manifold/IsManifold/Basic.html> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "Mathlib.Geometry.Manifold.IsManifold" ;
+    gmeow:comment "math:Manifold is formalized by mathlib's IsManifold in Geometry.Manifold. Structural formalization by reference, so skos:relatedMatch; curl-validated HTTP 200." ;
+    gmeow:sssomFile "gmeow-mathlib.sssom.tsv" .
+
+gmeow:eqMathContinuousMapMathlib a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:ContinuousMap ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject <https://leanprover-community.github.io/mathlib4_docs/Mathlib/Topology/ContinuousMap/Basic.html> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "Mathlib.Topology.ContinuousMap" ;
+    gmeow:comment "math:ContinuousMap is formalized by mathlib's ContinuousMap bundled morphism. Structural formalization by reference, so skos:relatedMatch; curl-validated HTTP 200." ;
+    gmeow:sssomFile "gmeow-mathlib.sssom.tsv" .
+
+gmeow:eqMathHomologyGroupMathlib a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:HomologyGroup ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject <https://leanprover-community.github.io/mathlib4_docs/Mathlib/AlgebraicTopology/SingularHomology/Basic.html> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "Mathlib.AlgebraicTopology.SingularHomology" ;
+    gmeow:comment "math:HomologyGroup is formalized by mathlib's singular homology construction. Structural formalization by reference, so skos:relatedMatch; curl-validated HTTP 200." ;
+    gmeow:sssomFile "gmeow-mathlib.sssom.tsv" .
+
+gmeow:eqMathTangentSpaceMathlib a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:TangentSpace ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject <https://leanprover-community.github.io/mathlib4_docs/Mathlib/Geometry/Manifold/VectorBundle/Tangent.html> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "Mathlib.Geometry.Manifold.VectorBundle.Tangent" ;
+    gmeow:comment "math:TangentSpace is formalized by mathlib's tangent-bundle construction. Structural formalization by reference, so skos:relatedMatch; curl-validated HTTP 200." ;
+    gmeow:sssomFile "gmeow-mathlib.sssom.tsv" .

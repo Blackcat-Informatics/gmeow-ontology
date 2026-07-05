@@ -352,6 +352,16 @@ fn emit_linkml_model(dataset: &RdfDataset) -> LinkmlSchema {
         ranges.sort();
         if let Some(first) = ranges.first() {
             slot.range = range_for(first, &class_names);
+            // An ObjectProperty's range is always a class/IRI, so its LinkML
+            // range must be an IRI type. When `range_for` cannot resolve the
+            // declared range to a known gmeow class (e.g. `logic:ActionSchema`,
+            // `prov:*`) it falls back to the `string` literal type; for an
+            // object property that fallback is wrong — project it as
+            // `uriorcurie` instead. Datatype properties keep their literal
+            // ranges (including a genuine xsd:string).
+            if is_object && slot.range == "string" {
+                slot.range = "uriorcurie".into();
+            }
             if let Some((min, max)) = xsd_integer_bounds(first) {
                 slot.minimum_value = min;
                 slot.maximum_value = max;
@@ -890,6 +900,47 @@ mod tests {
 
         let ts = String::from_utf8(render_typescript(&schema)).expect("utf8 TS");
         assert!(ts.contains("pixelWidth?: number,"));
+    }
+
+    #[test]
+    fn object_property_with_non_gmeow_range_projects_uriorcurie() {
+        // An ObjectProperty whose declared range is neither an xsd type nor a
+        // known gmeow class (here `logic:ActionSchema`) must still project as an
+        // IRI (`uriorcurie`), never the `string` literal fallback. A datatype
+        // property with an xsd:string range must remain `string`.
+        let ttl = concat!(
+            "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n",
+            "@prefix owl: <http://www.w3.org/2002/07/owl#> .\n",
+            "@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n",
+            "@prefix logic: <https://blackcatinformatics.ca/gmeow/logic/> .\n",
+            "@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .\n",
+            "gmeow:usedCapability a owl:ObjectProperty ;\n",
+            "    rdfs:range logic:ActionSchema .\n",
+            "gmeow:label a owl:DatatypeProperty ;\n",
+            "    rdfs:range xsd:string .\n",
+        );
+        let dataset = purrdf::parse_dataset(
+            ttl.as_bytes(),
+            purrdf::NativeRdfFormat::Turtle.media_type(),
+            None,
+        )
+        .expect("parse synthetic turtle");
+        let schema = emit_linkml_model(dataset.as_ref());
+
+        let used_capability = schema
+            .slots
+            .get("usedCapability")
+            .expect("usedCapability slot");
+        assert_eq!(
+            used_capability.range, "uriorcurie",
+            "ObjectProperty with a non-gmeow range must project to uriorcurie, not string",
+        );
+
+        let label = schema.slots.get("label").expect("label slot");
+        assert_eq!(
+            label.range, "string",
+            "DatatypeProperty with an xsd:string range must remain string",
+        );
     }
 
     #[test]

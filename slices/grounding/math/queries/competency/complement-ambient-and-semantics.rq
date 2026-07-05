@@ -1,0 +1,15 @@
+# Competency question: "For this complement, what is the ambient space and the
+# complement-semantics?"  This exercises the named-complement hard rule that a
+# math:Complement names its ambient space (math:ambientSpace) and which notion of
+# complement it uses (math:complementSemantics) — an unqualified complement is
+# ill-formed. Scoped to the fixture namespace so the answer is exactly {evenComplement →
+# ambient naturalsSet, set-theoretic}.
+PREFIX math: <https://blackcatinformatics.ca/math/>
+
+SELECT ?complement ?ambientSpace ?semantics WHERE {
+    ?complement a math:Complement ;
+                math:ambientSpace ?ambientSpace ;
+                math:complementSemantics ?semantics .
+    FILTER(STRSTARTS(STR(?complement), "http://example.org/math/"))
+}
+ORDER BY ?complement

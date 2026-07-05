@@ -19,7 +19,7 @@
 //! - Predicate IRIs: bare IRI string, no angle brackets.
 //! - Variables: any token starting with uppercase or `_`.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 
 use crate::seam::BudgetStatus;
 
@@ -288,6 +288,46 @@ pub struct QProgram {
 /// A single variable binding: variable name → canonical constant string.
 pub type Binding = BTreeMap<String, String>;
 
+/// The completion frontier of a native (semi-naive) evaluation — the public,
+/// crate-external projection of the physical governor's `StrataProgress` plus its
+/// committed step count.
+///
+/// The least model is built stratum-by-stratum in a fixed order.  When a step budget
+/// exhausts inside stratum *k*, every predicate at a stratum `< k` has its **final**
+/// least-model extension, so the run is *incomplete, never wrong*: [`Self::completed`]
+/// records how many strata reached their natural fixpoint, and [`Self::saturated_preds`]
+/// names the predicates whose extension is settled.  A consumer reads this to tell a
+/// budget-cut partial result (`completed < total`) from a genuinely complete one.
+///
+/// Paths that never run the native governor (the Nemo/Scryer fallback, the fast-path
+/// EDB projection, the ungoverned well-founded / cautious-stable / echo materializers)
+/// carry the empty frontier ([`Self::empty`]) so the field is *always present* — a
+/// consumer never has to assume "no frontier ⇒ complete".
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
+pub struct CompletionFrontier {
+    /// The number of strata fully saturated.  Strata `0..completed` ran to their
+    /// natural fixpoint; a stratum at index `completed`, if any, was cut mid-fixpoint.
+    pub completed: usize,
+    /// The total number of strata in the program.
+    pub total: usize,
+    /// The predicates whose extension is final: the heads of the saturated strata plus
+    /// every EDB predicate.  Sorted (a `BTreeSet`), so output is deterministic.
+    pub saturated_preds: BTreeSet<String>,
+    /// The number of committed derivations (deterministic; a cost probe — identical
+    /// inputs ⇒ identical count).
+    pub consumed_steps: u64,
+}
+
+impl CompletionFrontier {
+    /// The empty frontier for a non-governed / EDB-only path: nothing counted, nothing
+    /// declared saturated.  Distinct from a *complete* frontier (`completed == total`),
+    /// which a governed run reports when it reached its natural fixpoint within budget.
+    #[must_use]
+    pub fn empty() -> Self {
+        Self::default()
+    }
+}
+
 /// The result of resolving a [`QProgram`] against a world.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct AnswerSet {
@@ -302,6 +342,11 @@ pub struct AnswerSet {
     /// always present so a consumer can uniformly read the disclosure on every
     /// answer surface, never having to assume "no lowering ⇒ nothing dropped".
     pub preservation: crate::result::PreservationClaim,
+    /// The completion frontier of the native evaluation: which strata / predicates the
+    /// governor settled and how many derivations it committed.  Empty
+    /// ([`CompletionFrontier::empty`]) on the fast-path / Scryer-fallback surfaces that
+    /// never run the native governor, so the field is always present.
+    pub frontier: CompletionFrontier,
 }
 
 impl AnswerSet {
@@ -1641,6 +1686,7 @@ ex:ancestorOf(X, Y) :- ex:parentOf(X, Z), ex:ancestorOf(Z, Y).\
             bindings: vec![b1.clone(), b3.clone(), b2.clone()],
             status: BudgetStatus::Ok,
             preservation: crate::result::PreservationClaim::exact(),
+            frontier: CompletionFrontier::empty(),
         };
         ans.canonicalize();
         assert_eq!(ans.bindings[0]["Y"], "<https://example.org/a>");

@@ -680,6 +680,32 @@
         ],
         "type": "object"
       },
+      "AgentSession": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "gmeow:sessionConfiguration": {},
+          "gmeow:sessionSubjectStage": {}
+        },
+        "type": "object"
+      },
       "Analogy": {
         "properties": {
           "@annotation": {
@@ -12488,6 +12514,170 @@
         },
         "type": "object"
       },
+      "ModelCard": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "gmeow:describesModelArtifact": {
+            "anyOf": [
+              {
+                "$comment": "gmeow:ModelArtifact has no NodeShape; node reference only",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "gmeow:ModelArtifact has no NodeShape; node reference only",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "gmeow:describesModelService": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/ModelDeployment"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
+              },
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/ModelDeployment"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    }
+                  ]
+                },
+                "type": "array"
+              }
+            ]
+          }
+        },
+        "type": "object"
+      },
+      "ModelDeployment": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "gmeow:deploymentArtifact": {
+            "$comment": "gmeow:ModelArtifact has no NodeShape; node reference only",
+            "properties": {
+              "@id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
+          },
+          "gmeow:deploymentHost": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Entity"
+              },
+              {
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              }
+            ]
+          },
+          "gmeow:deploymentService": {
+            "$comment": "gmeow:SoftwareAgent has no NodeShape; node reference only",
+            "properties": {
+              "@id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
+          }
+        },
+        "type": "object"
+      },
       "ModelInferenceRun": {
         "properties": {
           "@annotation": {
@@ -14040,6 +14230,31 @@
             },
             "then": {
               "$ref": "#/$defs/AffectiveExperience"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:AgentSession"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:AgentSession"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/AgentSession"
             }
           },
           {
@@ -18698,6 +18913,56 @@
                 "@type": {
                   "anyOf": [
                     {
+                      "const": "gmeow:ModelCard"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:ModelCard"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/ModelCard"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:ModelDeployment"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:ModelDeployment"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/ModelDeployment"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
                       "const": "gmeow:ModelInferenceRun"
                     },
                     {
@@ -22348,6 +22613,31 @@
                 "@type": {
                   "anyOf": [
                     {
+                      "const": "math:ArgumentSlot"
+                    },
+                    {
+                      "contains": {
+                        "const": "math:ArgumentSlot"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/math:ArgumentSlot"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
                       "const": "math:AutomorphismGroup"
                     },
                     {
@@ -22373,6 +22663,81 @@
                 "@type": {
                   "anyOf": [
                     {
+                      "const": "math:BindingExpression"
+                    },
+                    {
+                      "contains": {
+                        "const": "math:BindingExpression"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/math:BindingExpression"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "math:Chart"
+                    },
+                    {
+                      "contains": {
+                        "const": "math:Chart"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/math:Chart"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "math:CompactSpace"
+                    },
+                    {
+                      "contains": {
+                        "const": "math:CompactSpace"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/math:CompactSpace"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
                       "const": "math:Complement"
                     },
                     {
@@ -22390,6 +22755,106 @@
             },
             "then": {
               "$ref": "#/$defs/math:Complement"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "math:ConnectedSpace"
+                    },
+                    {
+                      "contains": {
+                        "const": "math:ConnectedSpace"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/math:ConnectedSpace"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "math:ContinuousMap"
+                    },
+                    {
+                      "contains": {
+                        "const": "math:ContinuousMap"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/math:ContinuousMap"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "math:Convergence"
+                    },
+                    {
+                      "contains": {
+                        "const": "math:Convergence"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/math:Convergence"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "math:Derivative"
+                    },
+                    {
+                      "contains": {
+                        "const": "math:Derivative"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/math:Derivative"
             }
           },
           {
@@ -22598,6 +23063,56 @@
                 "@type": {
                   "anyOf": [
                     {
+                      "const": "math:Limit"
+                    },
+                    {
+                      "contains": {
+                        "const": "math:Limit"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/math:Limit"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "math:Manifold"
+                    },
+                    {
+                      "contains": {
+                        "const": "math:Manifold"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/math:Manifold"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
                       "const": "math:MathematicalConstant"
                     },
                     {
@@ -22640,6 +23155,31 @@
             },
             "then": {
               "$ref": "#/$defs/math:Measure"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "math:MetricSignature"
+                    },
+                    {
+                      "contains": {
+                        "const": "math:MetricSignature"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/math:MetricSignature"
             }
           },
           {
@@ -22773,6 +23313,56 @@
                 "@type": {
                   "anyOf": [
                     {
+                      "const": "math:Sequence"
+                    },
+                    {
+                      "contains": {
+                        "const": "math:Sequence"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/math:Sequence"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "math:Series"
+                    },
+                    {
+                      "contains": {
+                        "const": "math:Series"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/math:Series"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
                       "const": "math:Set"
                     },
                     {
@@ -22815,6 +23405,56 @@
             },
             "then": {
               "$ref": "#/$defs/math:SetBuilderExpression"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "math:TangentSpace"
+                    },
+                    {
+                      "contains": {
+                        "const": "math:TangentSpace"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/math:TangentSpace"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "math:VariableOccurrence"
+                    },
+                    {
+                      "contains": {
+                        "const": "math:VariableOccurrence"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/math:VariableOccurrence"
             }
           },
           {
@@ -35827,6 +36467,65 @@
         ],
         "type": "object"
       },
+      "math:ArgumentSlot": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "math:slotExpression": {
+            "properties": {
+              "@id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
+          },
+          "math:slotIndex": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "properties": {
+                  "@type": {
+                    "type": "string"
+                  },
+                  "@value": {}
+                },
+                "required": [
+                  "@value"
+                ],
+                "type": "object"
+              }
+            ],
+            "minimum": 0.0
+          }
+        },
+        "required": [
+          "math:slotExpression",
+          "math:slotIndex"
+        ],
+        "type": "object"
+      },
       "math:AutomorphismGroup": {
         "properties": {
           "@annotation": {
@@ -35884,6 +36583,116 @@
         ],
         "type": "object"
       },
+      "math:BindingExpression": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "math:argumentSlot": {
+            "anyOf": [
+              {},
+              {
+                "items": {},
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          },
+          "math:boundVariable": {}
+        },
+        "required": [
+          "math:argumentSlot",
+          "math:boundVariable"
+        ],
+        "type": "object"
+      },
+      "math:Chart": {
+        "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          }
+        },
+        "type": "object"
+      },
+      "math:CompactSpace": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "math:isCompact": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "properties": {
+                  "@type": {
+                    "type": "string"
+                  },
+                  "@value": {}
+                },
+                "required": [
+                  "@value"
+                ],
+                "type": "object"
+              }
+            ]
+          }
+        },
+        "required": [
+          "math:isCompact"
+        ],
+        "type": "object"
+      },
       "math:Complement": {
         "properties": {
           "@annotation": {
@@ -35905,10 +36714,21 @@
               }
             ]
           },
-          "math:complementWithin": {
+          "math:ambientSpace": {
+            "properties": {
+              "@id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
+          },
+          "math:complementSemantics": {
             "anyOf": [
               {
-                "$comment": "external class https://blackcatinformatics.ca/math/Set",
+                "$comment": "external class https://blackcatinformatics.ca/math/ComplementSemantics",
                 "type": "string"
               },
               {
@@ -35926,7 +36746,213 @@
           }
         },
         "required": [
-          "math:complementWithin"
+          "math:ambientSpace",
+          "math:complementSemantics"
+        ],
+        "type": "object"
+      },
+      "math:ConnectedSpace": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "math:isConnected": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "properties": {
+                  "@type": {
+                    "type": "string"
+                  },
+                  "@value": {}
+                },
+                "required": [
+                  "@value"
+                ],
+                "type": "object"
+              }
+            ]
+          }
+        },
+        "required": [
+          "math:isConnected"
+        ],
+        "type": "object"
+      },
+      "math:ContinuousMap": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "math:isContinuous": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "properties": {
+                  "@type": {
+                    "type": "string"
+                  },
+                  "@value": {}
+                },
+                "required": [
+                  "@value"
+                ],
+                "type": "object"
+              }
+            ]
+          }
+        },
+        "required": [
+          "math:isContinuous"
+        ],
+        "type": "object"
+      },
+      "math:Convergence": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "math:convergenceMode": {
+            "$comment": "external class https://blackcatinformatics.ca/math/ConvergenceMode",
+            "type": "string"
+          },
+          "math:convergesTo": {
+            "anyOf": [
+              {},
+              {
+                "items": {},
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          }
+        },
+        "required": [
+          "math:convergenceMode",
+          "math:convergesTo"
+        ],
+        "type": "object"
+      },
+      "math:Derivative": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "math:derivativeOf": {
+            "properties": {
+              "@id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
+          },
+          "math:derivativeOrder": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "properties": {
+                  "@type": {
+                    "type": "string"
+                  },
+                  "@value": {}
+                },
+                "required": [
+                  "@value"
+                ],
+                "type": "object"
+              }
+            ],
+            "minimum": 1.0
+          },
+          "math:withRespectToVariable": {
+            "properties": {
+              "@id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "math:derivativeOf",
+          "math:derivativeOrder",
+          "math:withRespectToVariable"
         ],
         "type": "object"
       },
@@ -36553,6 +37579,98 @@
         ],
         "type": "object"
       },
+      "math:Limit": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "math:limitOf": {
+            "properties": {
+              "@id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
+          },
+          "math:limitPoint": {}
+        },
+        "required": [
+          "math:limitOf",
+          "math:limitPoint"
+        ],
+        "type": "object"
+      },
+      "math:Manifold": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "math:manifoldDimension": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "properties": {
+                  "@type": {
+                    "type": "string"
+                  },
+                  "@value": {}
+                },
+                "required": [
+                  "@value"
+                ],
+                "type": "object"
+              }
+            ],
+            "minimum": 0.0
+          },
+          "math:manifoldStructureKind": {
+            "$comment": "external class https://blackcatinformatics.ca/math/ManifoldStructureKind",
+            "type": "string"
+          }
+        },
+        "required": [
+          "math:manifoldDimension",
+          "math:manifoldStructureKind"
+        ],
+        "type": "object"
+      },
       "math:MathematicalConstant": {
         "properties": {
           "@annotation": {
@@ -36656,6 +37774,31 @@
           "math:measureOn",
           "math:totalMass"
         ],
+        "type": "object"
+      },
+      "math:MetricSignature": {
+        "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          }
+        },
         "type": "object"
       },
       "math:Number": {
@@ -36862,6 +38005,123 @@
         },
         "type": "object"
       },
+      "math:Sequence": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "math:hasConvergence": {
+            "anyOf": [
+              {
+                "$comment": "external class https://blackcatinformatics.ca/math/Convergence",
+                "type": "string"
+              },
+              {
+                "items": {
+                  "$comment": "external class https://blackcatinformatics.ca/math/Convergence",
+                  "type": "string"
+                },
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          }
+        },
+        "required": [
+          "math:hasConvergence"
+        ],
+        "type": "object"
+      },
+      "math:Series": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "math:hasConvergence": {
+            "anyOf": [
+              {
+                "$comment": "external class https://blackcatinformatics.ca/math/Convergence",
+                "type": "string"
+              },
+              {
+                "items": {
+                  "$comment": "external class https://blackcatinformatics.ca/math/Convergence",
+                  "type": "string"
+                },
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          },
+          "math:seriesTerm": {
+            "anyOf": [
+              {
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          }
+        },
+        "required": [
+          "math:hasConvergence",
+          "math:seriesTerm"
+        ],
+        "type": "object"
+      },
       "math:Set": {
         "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
         "properties": {
@@ -36922,6 +38182,69 @@
         },
         "required": [
           "math:memberCondition"
+        ],
+        "type": "object"
+      },
+      "math:TangentSpace": {
+        "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          }
+        },
+        "type": "object"
+      },
+      "math:VariableOccurrence": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "math:declaredVariable": {
+            "properties": {
+              "@id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "math:declaredVariable"
         ],
         "type": "object"
       },

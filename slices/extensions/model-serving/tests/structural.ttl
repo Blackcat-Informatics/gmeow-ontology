@@ -1,0 +1,168 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative structural assertions for the model-serving slice — the
+# slice-resident MUST / MUST-NOT invariants of the ratified design set
+# (INHABITED-RUNTIME-STACK.md). Each assertion runs as a SPARQL ASK over the
+# model-serving module graph (gmeow:scopeModule) under the native Rust slicetest
+# harness (crates/slicetest).
+#
+# The design's corrected stereotypes are pinned here: ModelArtifact is a
+# logic:Kind aligned to gmeow:Distribution BY REFERENCE (a sibling under
+# gmeow:InformationObject, NOT rdfs:subClassOf gmeow:Distribution — Principle 16);
+# ModelDeployment is a logic:Kind ⊑ logic:Relator; RuntimeExecution and
+# AgentSession are logic:Event ⊑ gmeow:Activity (an event aggregate, never a
+# relator subclassing a situation); and there is NO asserted ordering property.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/model-serving/tests/> .
+
+# --- 1. ModelArtifact is a logic:Kind under InformationObject (MUST) ----------
+ex:saModelArtifactIsKindInformationObject a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:ModelArtifact a owl:Class , logic:Kind ;
+        rdfs:subClassOf gmeow:InformationObject .
+}""" ;
+    gmeow:saRationale "gmeow:ModelArtifact MUST be a logic:Kind subclass of gmeow:InformationObject — aligned to the software slice's gmeow:Distribution by reference (a sibling under the shared parent), documenting WHAT runs (INHABITED-RUNTIME-STACK.md)." .
+
+# --- 2. ModelArtifact is NOT rdfs:subClassOf software's Distribution (MUST-NOT) -
+ex:saModelArtifactNotSubclassDistribution a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:ModelArtifact rdfs:subClassOf gmeow:Distribution .
+}""" ;
+    gmeow:saRationale "gmeow:ModelArtifact MUST NOT be rdfs:subClassOf gmeow:Distribution — a range/subclass axiom is a real dependency regardless of owl:imports, and gmeow:Distribution lives in the software EXTENSION; subclassing it would make model-serving depend on another extension (Principle 16, DAG-illegal). The alignment rides mappings/equivalences.ttl BY REFERENCE." .
+
+# --- 3. ModelDeployment is a logic:Kind subclass of logic:Relator (MUST) ------
+ex:saModelDeploymentIsRelator a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:ModelDeployment a owl:Class , logic:Kind ;
+        rdfs:subClassOf logic:Relator .
+}""" ;
+    gmeow:saRationale "gmeow:ModelDeployment MUST be a logic:Kind subclass of logic:Relator — the served, callable realization that binds artifact·service·host·endpoint·configuration·interval, an endurant relator distinct from the artifact and any one execution." .
+
+# --- 4. RuntimeExecution is a logic:Event subclass of Activity (MUST) ---------
+ex:saRuntimeExecutionIsEventActivity a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:RuntimeExecution a owl:Class , logic:Event ;
+        rdfs:subClassOf gmeow:Activity .
+}""" ;
+    gmeow:saRationale "gmeow:RuntimeExecution MUST be a logic:Event subclass of gmeow:Activity — an occurrent running of a deployment within which invocations occur, distinct from the endurant deployment and the single invocation." .
+
+# --- 5. AgentSession is a logic:Event subclass of Activity (MUST) -------------
+ex:saAgentSessionIsEventActivity a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:AgentSession a owl:Class , logic:Event ;
+        rdfs:subClassOf gmeow:Activity .
+}""" ;
+    gmeow:saRationale "gmeow:AgentSession MUST be a logic:Event subclass of gmeow:Activity — an event aggregate whose sub-events relate via gmeow:subEventOf, NEVER a relator subclassing a situation (which would reproduce the foundational collision, INHABITED-RUNTIME-STACK.md)." .
+
+# --- 6. AgentSession is NOT a logic:Relator or logic:Situation (MUST-NOT) -----
+ex:saAgentSessionNotRelatorSituation a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK {
+    VALUES ?bad { logic:Relator logic:Situation }
+    gmeow:AgentSession a ?bad .
+}""" ;
+    gmeow:saRationale "gmeow:AgentSession MUST NOT be typed logic:Relator or logic:Situation — a session is an event aggregate; typing it as a relator-and-situation is the foundational collision the design corrects." .
+
+# --- 7. No asserted invocation-ordering property (MUST-NOT) -------------------
+ex:saNoAssertedOrdering a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    VALUES ?bad { gmeow:nextInvocation gmeow:nextSpan gmeow:previousInvocation }
+    ?bad a owl:ObjectProperty .
+}""" ;
+    gmeow:saRationale "The model-serving module MUST NOT mint an asserted session/execution ordering property (gmeow:nextInvocation / gmeow:nextSpan / …). Internal order is a logic:Path resolved by the solver over gmeow:subEventOf + atTime (Principle 12), never a nextInvocation chain in triples." .
+
+# --- 8. ModelCard split: describesModelArtifact/Service have the right ranges (MUST)
+ex:saModelCardSplitRanges a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:describesModelArtifact rdfs:domain gmeow:ModelCard ; rdfs:range gmeow:ModelArtifact .
+    gmeow:describesModelService  rdfs:domain gmeow:ModelCard ; rdfs:range gmeow:ModelDeployment .
+}""" ;
+    gmeow:saRationale "The ModelCard split MUST assign artifact facts to gmeow:describesModelArtifact (→ gmeow:ModelArtifact) and service facts to gmeow:describesModelService (→ gmeow:ModelDeployment), so the functional gmeow:describesModel (→ gmeow:SoftwareAgent) is never asked to carry a distribution (INHABITED-RUNTIME-STACK.md)." .
+
+# --- 9. usedCapability ranges over logic:ActionSchema (MUST) ------------------
+ex:saUsedCapabilityRange a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:usedCapability rdfs:domain gmeow:Activity ; rdfs:range logic:ActionSchema .
+}""" ;
+    gmeow:saRationale "gmeow:usedCapability (the passive half of the CQ5 discriminator) MUST range over logic:ActionSchema with domain gmeow:Activity — passive capability use, as opposed to a delegated gmeow:ToolCall → gmeow:usedTool → gmeow:SoftwareAgent." .
+
+# --- 9b. ModelDeployment is disjoint with Agent (the awareness-subject invariant) (MUST)
+ex:saModelDeploymentDisjointAgent a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    gmeow:ModelDeployment owl:disjointWith gmeow:Agent .
+}""" ;
+    gmeow:saRationale "gmeow:ModelDeployment MUST be owl:disjointWith gmeow:Agent — a deployment is a logic:Relator and can never be a gmeow:awarenessSubject (which ranges over gmeow:Agent), so the serving-mode gmeow:AwarenessTenure attaches to the deployment's gmeow:deploymentService SoftwareAgent, never the deployment itself. Enforced at the TBox (EL-valid class disjointness → a node typed both is a DL incoherence) rather than a SHACL sh:not, which is incompatible with the closed-world JSON-schema property projection." .
+
+# --- 10. The upper-projections are declared object properties (MUST) ----------
+ex:saUpperProjectionsDeclared a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    gmeow:generatedForSubject a owl:ObjectProperty .
+    gmeow:generatedUnderConfiguration a owl:ObjectProperty .
+}""" ;
+    gmeow:saRationale "gmeow:generatedForSubject and gmeow:generatedUnderConfiguration MUST be declared owl:ObjectProperty — the flat, materialized upper-projections of the de-conflation path (computed, not authored; Principle 12). Their agreement with the nested canon is proven by the projection-agreement gate (tests/perf-recall.ttl + queries/competency/audit.rq)." .
+
+# --- 11. The upper-projections are open-range (standalone) (MUST-NOT) ---------
+ex:saUpperProjectionsOpenRange a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    VALUES ?p { gmeow:generatedForSubject gmeow:generatedUnderConfiguration gmeow:sessionSubjectStage gmeow:sessionConfiguration }
+    ?p rdfs:range ?anyRange .
+}""" ;
+    gmeow:saRationale "The inhabitation-facing projections and session properties MUST NOT declare an rdfs:range — a range axiom to an inhabitation term would make this extension depend on core/inhabitation, breaking 'reusable beyond inhabitation' (INHABITED-CONSUMER.md). The terminus is typed at the instance level in the agent-runtime profile, where both slices are present." .

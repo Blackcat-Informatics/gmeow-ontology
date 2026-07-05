@@ -1,9 +1,10 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Counter-example for math:ComplementShape: a math:Complement with no
-# math:complementWithin naming its ambient set (sh:minCount 1), so validation MUST
-# emit shacl.MinCountConstraintComponent (and no other finding).
+# Counter-example for math:ComplementShape: a math:Complement that names its
+# ambient space but omits math:complementSemantics (sh:minCount 1), so validation
+# MUST emit shacl.MinCountConstraintComponent (and no other finding). Naming the
+# ambient space isolates the missing-semantics violation to a single finding.
 # Bound by tests/example-conformance.ttl (ex:ecComplementUnqualified).
 @prefix math: <https://blackcatinformatics.ca/math/> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
@@ -12,6 +13,8 @@
 @prefix ex:   <http://example.org/math/> .
 
 ex:unqualifiedComplement a math:Complement ;
-    math:setOperationOn ex:oddNumbers .
+    math:setOperationOn ex:oddNumbers ;
+    math:ambientSpace ex:naturalNumbersSet .
 
 ex:oddNumbers a math:Set .
+ex:naturalNumbersSet a math:Set .

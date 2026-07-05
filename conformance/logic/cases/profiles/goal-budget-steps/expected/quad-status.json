@@ -1,0 +1,14 @@
+[
+  {
+    "quad": "<https://example.org/profiles/goal-budget-steps/a> <https://example.org/profiles/goal-budget-steps/parentOf> <https://example.org/profiles/goal-budget-steps/b> <https://example.org/profiles/goal-budget-steps/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://example.org/profiles/goal-budget-steps/b> <https://example.org/profiles/goal-budget-steps/parentOf> <https://example.org/profiles/goal-budget-steps/c> <https://example.org/profiles/goal-budget-steps/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://example.org/profiles/goal-budget-steps/c> <https://example.org/profiles/goal-budget-steps/parentOf> <https://example.org/profiles/goal-budget-steps/d> <https://example.org/profiles/goal-budget-steps/world> .",
+    "status": "ok"
+  }
+]

@@ -1,0 +1,26 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# The upper-projection MATERIALIZER (Principle 12 / 17): the flat one-hop
+# gmeow:generatedForSubject / gmeow:generatedUnderConfiguration edges are COMPUTED
+# projections of the multi-hop de-conflation canon, never hand-asserted. This
+# CONSTRUCT collapses the nested path output → gmeow:wasGeneratedBy → invocation →
+# gmeow:subEventOf → session → gmeow:sessionSubjectStage / gmeow:sessionConfiguration
+# into those flat edges, projecting the DEEPEST reachable subject: the session's
+# subject STAGE when the slice stands alone, or — when core/inhabitation is composed
+# alongside (the agent-runtime profile) and the stage carries gmeow:stageOfLineage —
+# the durable LINEAGE. The slice-test harness runs this over the overlaid canon
+# (gmeow:cqProject) so the projection-agreement gate compares the shortcut against a
+# MATERIALIZED collapse, not a second hand-typed copy of the same IRI.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+CONSTRUCT {
+    ?output gmeow:generatedForSubject ?subject ;
+        gmeow:generatedUnderConfiguration ?config .
+} WHERE {
+    ?output gmeow:wasGeneratedBy ?invocation .
+    ?invocation gmeow:subEventOf ?session .
+    ?session gmeow:sessionSubjectStage ?stage ;
+        gmeow:sessionConfiguration ?config .
+    OPTIONAL { ?stage gmeow:stageOfLineage ?lineage }
+    BIND(COALESCE(?lineage, ?stage) AS ?subject)
+}

@@ -22,6 +22,7 @@
   "gmeow-deception.sssom.tsv": 22,
   "gmeow-determinacy.sssom.tsv": 6,
   "gmeow-diagnostics.sssom.tsv": 2,
+  "gmeow-dlmf.sssom.tsv": 5,
   "gmeow-dsi.sssom.tsv": 7,
   "gmeow-dublin-core.sssom.tsv": 43,
   "gmeow-email.sssom.tsv": 34,
@@ -47,8 +48,9 @@
   "gmeow-lexicon.sssom.tsv": 9,
   "gmeow-lexvo.sssom.tsv": 2,
   "gmeow-lifecycle.sssom.tsv": 8,
-  "gmeow-mathlib.sssom.tsv": 7,
+  "gmeow-mathlib.sssom.tsv": 11,
   "gmeow-mentation.sssom.tsv": 1,
+  "gmeow-model-serving.sssom.tsv": 7,
   "gmeow-music.sssom.tsv": 49,
   "gmeow-names.sssom.tsv": 55,
   "gmeow-narrative.sssom.tsv": 14,
@@ -60,6 +62,7 @@
   "gmeow-om2.sssom.tsv": 2,
   "gmeow-ontolex.sssom.tsv": 3,
   "gmeow-ontouml.sssom.tsv": 9,
+  "gmeow-openmath.sssom.tsv": 5,
   "gmeow-places.sssom.tsv": 221,
   "gmeow-privacy.sssom.tsv": 24,
   "gmeow-procedures.sssom.tsv": 43,
@@ -78,10 +81,10 @@
   "gmeow-temporal.sssom.tsv": 66,
   "gmeow-trust.sssom.tsv": 12,
   "gmeow-versions.sssom.tsv": 4,
-  "gmeow-wikidata.sssom.tsv": 123
+  "gmeow-wikidata.sssom.tsv": 145
  },
- "equivalences": 1921,
+ "equivalences": 1964,
  "functions": 59,
- "mapping_sets": 77,
+ "mapping_sets": 78,
  "projections": 527
 }

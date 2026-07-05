@@ -1,0 +1,19 @@
+{
+  "bindings": [
+    {
+      "Y": "<https://example.org/profiles/goal-budget-steps/b>"
+    }
+  ],
+  "preservation": {
+    "polarities": [
+      "ExactPreservation"
+    ],
+    "unsupported_constructs": []
+  },
+  "saturated": [
+    "https://example.org/profiles/goal-budget-steps/parentOf"
+  ],
+  "status": "exhausted",
+  "strata_completed": 0,
+  "strata_total": 1
+}

@@ -1,0 +1,14 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:LimitShape: a math:Limit naming its expression but omitting
+# math:limitPoint (sh:minCount 1). Validation MUST emit shacl.MinCountConstraintComponent
+# (math:UnderspecifiedLimit). Bound by ex:ecLimitMissingPoint.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:pointlessLimit a math:Limit ;
+    math:operator math:limitBinder ;
+    math:limitOf ex:someExpr .
+
+ex:someExpr a math:MathematicalExpression .

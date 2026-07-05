@@ -188,6 +188,16 @@ gmeow:cqQueryFile a owl:DatatypeProperty ;
     gmeow:howToUse "Write the path from the REPOSITORY ROOT, e.g. `queries/competency/<name>.rq` for a shared query or `slices/<group>/<name>/queries/competency/<name>.rq` for a slice-local one; the harness resolves it against the repo root in both cases."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
 
+gmeow:cqProject a owl:DatatypeProperty ;
+    rdfs:range xsd:string ;
+    rdfs:label "competency projection query file"@x-gmeow-english ;
+    skos:definition "A REPO-ROOT-RELATIVE path (the same base as gmeow:cqQueryFile) to an existing CONSTRUCT .rq file that MATERIALIZES a computed projection over the overlaid canon BEFORE the competency query runs. The harness runs the CONSTRUCT over the dataset the question is answered against (the merged ontology plus any gmeow:cqDataFile overlay) and UNIONS the constructed triples in, so a computed-projection edge (one that must never be hand-asserted, Principle 12) is present because the projection rule produced it — not because a human typed it. This is what makes a projection-agreement gate NON-CIRCULAR: the flat shortcut column is materialized by the rule and compared against the collapse of the canon, rather than being a second hand-typed copy of the same IRI."@x-gmeow-english ;
+    skos:example "ex:cqAgreement gmeow:cqQueryFile \"slices/extensions/model-serving/queries/competency/audit.rq\" ; gmeow:cqProject \"slices/extensions/model-serving/queries/project/upper-projection.rq\" ; gmeow:cqDataFile \"tests/perf-recall.ttl\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use for a competency question that must exercise a COMPUTED PROJECTION (a generated-not-authored edge) so the projection is materialized by its CONSTRUCT rule over the canon rather than hand-asserted in the fixture — e.g. a projection-agreement gate proving flat == collapse(nested)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for a question whose query reads only authored edges (omit it — there is no projection to materialize) and never point it at an ASK/SELECT query: the projection file MUST be a CONSTRUCT that returns a graph."@x-gmeow-english ;
+    gmeow:howToUse "Write the repo-root-relative path to a CONSTRUCT .rq file (like gmeow:cqQueryFile); the harness runs it over the overlaid dataset, unions the constructed triples in, then runs the competency query over the result."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
+
 gmeow:cqDataFile a owl:DatatypeProperty ;
     rdfs:range xsd:string ;
     rdfs:label "competency data file"@x-gmeow-english ;

@@ -1,0 +1,22 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:SequenceShape: a math:Sequence declaring its math:domain
+# and math:codomain (both math:Set, so it satisfies math:FunctionFramingShape and
+# does NOT trip math:UnframedFunction) but carrying no math:hasConvergence
+# (sh:minCount 1). Validation MUST emit shacl.MinCountConstraintComponent
+# (math:UnderspecifiedConvergence). Bound by ex:ecSequenceMissingConvergence.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:unconvergedSequence a math:Sequence ;
+    rdfs:label "A sequence asserted without naming its convergence"@x-gmeow-english ;
+    math:domain ex:naturalNumbers ;
+    math:codomain ex:realNumbers .
+
+ex:naturalNumbers a math:Set ;
+    rdfs:label "Natural numbers (index set)"@x-gmeow-english .
+
+ex:realNumbers a math:Set ;
+    rdfs:label "Real numbers (value set)"@x-gmeow-english .
