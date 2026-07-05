@@ -66,7 +66,7 @@ fn run_construct(dataset: &Arc<RdfDataset>, query: &str) -> Vec<(String, String,
 fn term_str(term: &RdfTerm) -> String {
     match term {
         RdfTerm::Iri(iri) => iri.clone(),
-        RdfTerm::BlankNode(_) => "_:blank".to_owned(),
+        RdfTerm::BlankNode(id) => format!("_:{id}"),
         RdfTerm::Literal(lit) => format!("\"{}\"", lit.lexical_form),
         RdfTerm::Triple(_) => "<<triple>>".to_owned(),
     }
@@ -194,10 +194,13 @@ fn ml_schema_forward_then_inverse_recovers_gmeow_with_import_envelope() {
             !gen.is_empty(),
             "lifted subject {subj} must carry gmeow:wasGeneratedBy\n{lifted:#?}"
         );
-        // The generating node is typed gmeow:ImportActivity (blank node).
+        // The subject's OWN generating node — the object of its wasGeneratedBy triple —
+        // must be typed gmeow:ImportActivity. Keyed on that exact blank-node label so the
+        // assertion fails if the ImportActivity typing lands on some other node.
+        let import_node = &gen[0].2;
         assert!(
-            has(&lifted, "_:blank", RDF_TYPE, &import_activity),
-            "the generating node must be a gmeow:ImportActivity\n{lifted:#?}"
+            has(&lifted, import_node, RDF_TYPE, &import_activity),
+            "the generating node {import_node} for {subj} must be a gmeow:ImportActivity\n{lifted:#?}"
         );
         // mappedFrom some mls: source term.
         let mapped: Vec<&(String, String, String)> = lifted
