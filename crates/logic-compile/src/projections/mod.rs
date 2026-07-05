@@ -662,6 +662,18 @@ pub(crate) fn target_meta(target: &str) -> (PreservationKind, &'static str, Vec<
                 "world/standpoint scope and the put leg are not carried",
             ],
         ),
+        "sparql-put" => (
+            PreservationKind::ValidationOnly,
+            "terminating/PTIME-data",
+            vec![
+                "the inverse-ingest up-lift is validation-only mint-with-claim: minted \
+                 nodes/edges are marked import-derived (gmeow:wasGeneratedBy / \
+                 gmeow:mappedFrom), not asserted as extracted fact",
+                "durable subject, gmeow:DigitalSubjectTenure, distribution/versioning \
+                 framing, and attributed provenance absent from the external source are \
+                 disclosed as residue and NOT synthesized",
+            ],
+        ),
         "shacl-core" => (
             PreservationKind::ValidationOnly,
             "closed-world shape validation (SHACL Core)",

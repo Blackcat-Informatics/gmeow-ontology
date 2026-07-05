@@ -84,11 +84,15 @@ pub fn lower_sparql(
         ledger.extend(emitted.ledger);
         // The inverse-ingest (put) leg: the role-swap of get. A profile with no
         // put-liftable binding contributes nothing (`Ok(None)`) and stays out of the map,
-        // so the forward `queries` set and the put set are independent.
+        // so the forward `queries` set and the put set are independent. Its
+        // `sparql-put` ledger rows carry the authored gmeow:ingestResidue disclosure into
+        // the shared loss ledger, so the honesty note ships in the bundle rather than
+        // being dropped at the put leg.
         if let Some(put) =
             crate::projections::sparql_put::emit_put(&cells, profile, &vocab, lookup)?
         {
             put_queries.insert(format!("{profile}.put.rq"), put.query);
+            ledger.extend(put.ledger);
         }
     }
     Ok(SparqlLowering {

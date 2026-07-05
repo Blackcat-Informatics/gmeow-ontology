@@ -49,9 +49,10 @@ use crate::projections::correspondence_frontend::CorrespondenceLookup;
 use crate::projections::get_leg::{curie, ProfileBinding, ProjectionCell};
 use crate::projections::put_derivation::{classify_put, PutClass};
 use crate::projections::sparql::{
-    atom_triple, prefix_block, suppression_anchors, templates_of, EmittedQuery, SuppressionVocab,
-    GENERATED_BANNER,
+    atom_triple, local_cell, prefix_block, suppression_anchors, templates_of, EmittedQuery,
+    SuppressionVocab, GENERATED_BANNER,
 };
+use crate::projections::{correspondence_result, ProjectionResult};
 
 /// Render the gmeow SOURCE atoms of a cell as flat CONSTRUCT-head triple strings — the
 /// pattern the forward WHERE reads, minus every guard/OPTIONAL/FILTER/BIND/VALUES. The
@@ -89,6 +90,13 @@ pub(crate) fn emit_put(
     let mut seen_branches: BTreeSet<String> = BTreeSet::new();
     let mut any_validation_only = false;
     let mut contributed = false;
+    // The per-correspondence loss ledger of the inverse-ingest leg. A ValidationOnly
+    // mint-with-claim binding carries the authored gmeow:ingestResidue — the honesty
+    // disclosure of what the external source cannot express (durable subject, tenure,
+    // distribution/versioning framing, attributed provenance) — into a `sparql-put` row
+    // so it survives into the shipped bundle. CompleteOver recoveries mint no envelope and
+    // Unsupported bindings contribute nothing, so neither adds a residue row.
+    let mut ledger: Vec<ProjectionResult> = Vec::new();
 
     for cell in cells {
         for b in &cell.bindings {
@@ -161,6 +169,19 @@ pub(crate) fn emit_put(
                             }
                         }
                     }
+                    // Carry the authored ingest-residue disclosure into the loss ledger —
+                    // one row per ValidationOnly binding that has residue, mirroring the
+                    // forward emitter's one-row-per-binding attribution. This is the honest
+                    // record of what the external source cannot express and is minted here
+                    // only with claim, never fabricated as extracted fact.
+                    if !b.ingest_residue.is_empty() {
+                        let key = format!("{}::{}", local_cell(&cell.iri), b.profile);
+                        ledger.push(correspondence_result(
+                            "sparql-put",
+                            &key,
+                            b.ingest_residue.clone(),
+                        ));
+                    }
                 }
             }
             contributed = true;
@@ -221,7 +242,7 @@ pub(crate) fn emit_put(
     let prefixes = prefix_block(&body);
     Ok(Some(EmittedQuery {
         query: format!("{header}{prefixes}\n\n{body}"),
-        ledger: Vec::new(),
+        ledger,
     }))
 }
 
