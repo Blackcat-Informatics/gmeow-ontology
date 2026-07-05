@@ -379,6 +379,17 @@ ex:ecChartDimensionMismatch a gmeow:ExampleConformance ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
     gmeow:conformanceRationale "The counter-example's chart maps a dimension-2 manifold into a dimension-3 target (the SPARQL constraint of math:ChartDimensionShape); every property is present so only the dimension gate bites, and validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (math:DimensionMismatch)." .
 
+ex:ecMetricSignatureConsistent a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/metric-signature-consistent.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A Lorentzian 4-manifold whose math:MetricTensor carries a math:MetricSignature of (3, 1) — math:signaturePositive + math:signatureNegative = 4 equals math:manifoldDimension and exactly one direction is timelike — satisfies math:MetricSignatureDimensionShape and validates with no findings." .
+
+ex:ecMetricSignatureDimensionMismatch a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/metric-signature-dimension-mismatch.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example's metric signature (3, 2) sums to 5 on a dimension-4 manifold (the p + q SPARQL constraint of math:MetricSignatureDimensionShape), so validation MUST emit shacl.SPARQLConstraintComponent (math:DimensionMismatch)." .
+
 # Algebraic topology: a homology group is a fully-framed abelian group.
 ex:ecHomologyGroupFramed a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/conformance-fixtures/homology-group-framed.ttl" ;

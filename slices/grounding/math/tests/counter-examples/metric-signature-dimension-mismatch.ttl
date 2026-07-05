@@ -1,0 +1,29 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:MetricSignatureDimensionShape: a Lorentzian 4-manifold whose
+# metric signature is (3, 2), so math:signaturePositive + math:signatureNegative = 5 ≠ 4,
+# the manifold's dimension. Every property is present so only the p + q dimension gate
+# bites (q = 2, but a Lorentzian split still admits p = 1 or q = 1 checks — here q = 2 and
+# p = 3, so the one-timelike gate would also fire; the isolated violation is the sum).
+# Validation MUST emit shacl.SPARQLConstraintComponent (math:DimensionMismatch).
+# Bound by ex:ecMetricSignatureDimensionMismatch.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+
+ex:badSpacetime a math:SmoothManifold ;
+    rdfs:label "over-counted 4-manifold"@x-gmeow-english ;
+    math:manifoldDimension "4"^^xsd:integer ;
+    math:manifoldStructureKind math:lorentzianStructure ;
+    math:metricTensor ex:badMetric .
+
+ex:badMetric a math:MetricTensor ;
+    rdfs:label "over-counted metric tensor"@x-gmeow-english ;
+    math:metricSignature ex:badSignature .
+
+ex:badSignature a math:MetricSignature ;
+    rdfs:label "over-counted signature (3, 2)"@x-gmeow-english ;
+    math:signaturePositive "3"^^xsd:integer ;
+    math:signatureNegative "2"^^xsd:integer .
