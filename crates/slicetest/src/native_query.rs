@@ -36,14 +36,34 @@ pub struct Solutions {
     pub rows: Vec<Vec<Option<TermValue>>>,
 }
 
+/// Memoized parse results, keyed by path. A slice test file runs many cells that each
+/// rebuild the same scoped module/example datasets; parsing a multi-thousand-triple
+/// `module.ttl` once per cell dominates the test wall-clock. The fixtures are immutable
+/// for the life of a test run and a frozen [`RdfDataset`] is read-only + `Arc`-shared,
+/// so caching by path is sound and turns O(cells x parse) back into O(files x parse).
+static PARSE_CACHE: std::sync::LazyLock<
+    std::sync::Mutex<std::collections::HashMap<std::path::PathBuf, Arc<RdfDataset>>>,
+> = std::sync::LazyLock::new(|| std::sync::Mutex::new(std::collections::HashMap::new()));
+
 /// Parse one Turtle file into a frozen dataset (the native codec, lenient on the
 /// private-use `@x-gmeow-*` language tags, exactly as `gmeow_validate`'s `parse_file`).
+/// Results are memoized by path (see [`PARSE_CACHE`]).
 ///
 /// # Errors
 /// Returns `Err(String)` if the file cannot be read or parsed.
 pub fn dataset_from_file(path: &std::path::Path) -> Result<Arc<RdfDataset>, String> {
+    let key = path.to_path_buf();
+    if let Some(ds) = PARSE_CACHE.lock().expect("parse cache mutex").get(&key) {
+        return Ok(Arc::clone(ds));
+    }
     let bytes = std::fs::read(path).map_err(|e| format!("read {}: {e}", path.display()))?;
-    parse_dataset(&bytes, "text/turtle", None).map_err(|e| format!("parse {}: {e}", path.display()))
+    let ds = parse_dataset(&bytes, "text/turtle", None)
+        .map_err(|e| format!("parse {}: {e}", path.display()))?;
+    PARSE_CACHE
+        .lock()
+        .expect("parse cache mutex")
+        .insert(key, Arc::clone(&ds));
+    Ok(ds)
 }
 
 /// Build one merged dataset from a set of Turtle sources by parsing each and unioning
