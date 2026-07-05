@@ -99,7 +99,7 @@ meta:tests-alignment a meta:TestSuite ;
     rdfs:label "alignment direction / bridging tests"@x-gmeow-english ;
     meta:artifact "crates/logic-compile/src/projections/correspondence_soundness.rs",
         "crates/pipeline/tests/correspondence_soundness_parity.rs",
-        "tests/test_coreference.py" .
+        "validations/maintainer/tests/test_coreference.py" .
 
 meta:gate-crosscheck a meta:Gate ;
     rdfs:label "dual-engine query crosscheck (rdflib vs native gmeow_rdf)"@x-gmeow-english ;
@@ -123,8 +123,8 @@ meta:lint-no-preferred-rank a meta:Lint ;
 
 meta:tests-identity-orthogonality a meta:TestSuite ;
     rdfs:label "identity-axis orthogonality matrix (7 co-equal axes)"@x-gmeow-english ;
-    meta:artifact "tests/test_identity_orthogonality.py", "tests/test_gender.py",
-        "tests/test_standpoint.py" .
+    meta:artifact "validations/maintainer/tests/test_identity_orthogonality.py", "validations/maintainer/tests/test_gender.py",
+        "validations/maintainer/tests/test_standpoint.py" .
 
 meta:shapes-core a meta:Shape ;
     rdfs:label "core SHACL shapes (identity facets, claim spine, frames)"@x-gmeow-english ;
@@ -139,13 +139,13 @@ meta:gate-suppression a meta:Gate ;
 meta:tests-suppression a meta:TestSuite ;
     rdfs:label "suppression and disclosure tests"@x-gmeow-english ;
     meta:artifact "crates/pipeline/tests/edoal_sparql_correspondence_parity.rs",
-        "tests/test_disclosure.py", "tests/test_privacy.py",
-        "tests/test_suppression_conformance.py" .
+        "validations/maintainer/tests/test_disclosure.py", "validations/maintainer/tests/test_privacy.py",
+        "validations/maintainer/tests/test_suppression_conformance.py" .
 
 meta:tests-reference-frames a meta:TestSuite ;
     rdfs:label "reference-frame relativity tests"@x-gmeow-english ;
     meta:artifact "crates/validate/tests/conformance_reference_frames.rs",
-        "tests/test_calendar.py",
+        "validations/maintainer/tests/test_calendar.py",
         "slices/core/temporal/tests/structural.ttl" .
 
 meta:lint-reasoning-invariants a meta:Lint ;
@@ -171,10 +171,10 @@ meta:tests-products a meta:TestSuite ;
 
 meta:tests-claim-spine a meta:TestSuite ;
     rdfs:label "claim provenance, attestation, and trust tests"@x-gmeow-english ;
-    meta:artifact "tests/test_provenance.py",
+    meta:artifact "validations/maintainer/tests/test_provenance.py",
         "slices/core/attestation/tests/structural.ttl",
         "crates/validate/tests/ontology_conformance.rs",
-        "tests/test_trust.py", "tests/test_evidence.py" .
+        "validations/maintainer/tests/test_trust.py", "validations/maintainer/tests/test_evidence.py" .
 
 meta:practice-consumer-question a meta:Practice ;
     rdfs:label "issue templates ask who the consumer is"@x-gmeow-english ;
@@ -184,12 +184,12 @@ meta:practice-consumer-question a meta:Practice ;
 
 meta:gate-core-profile a meta:Gate ;
     rdfs:label "root ontology = CORE profile exactly; manifests are tier truth"@x-gmeow-english ;
-    meta:artifact "tests/test_vocabulary_surface.py", "slices/vocabulary.ttl" ;
+    meta:artifact "validations/maintainer/tests/test_vocabulary_surface.py", "slices/vocabulary.ttl" ;
     meta:symbol "test_root_imports_are_exactly_the_core_profile" .
 
 meta:tests-slices a meta:TestSuite ;
     rdfs:label "slice anatomy and profile tests"@x-gmeow-english ;
-    meta:artifact "tests/test_slices.py", "crates/validate/tests/conformance_profiles.rs" .
+    meta:artifact "validations/maintainer/tests/test_slices.py", "crates/validate/tests/conformance_profiles.rs" .
 
 meta:gate-crate-layering a meta:Gate ;
     rdfs:label "Rust crate layering: acyclic first-party crate DAG"@x-gmeow-english ;
@@ -220,7 +220,7 @@ meta:gate-suppression-injection a meta:Gate ;
 
 meta:tests-leak-conformance a meta:TestSuite ;
     rdfs:label "generated per-profile leak-conformance suite"@x-gmeow-english ;
-    meta:artifact "tests/test_suppression_conformance.py" .
+    meta:artifact "validations/maintainer/tests/test_suppression_conformance.py" .
 
 meta:shapes-frame-generated a meta:Shape ;
     rdfs:label "frame-relativity SHACL generated from gmeow:requiresFrame"@x-gmeow-english ;
