@@ -1,0 +1,17 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# CQ3 (INHABITED-COMPETENCY.md, INHABITED-RUNTIME-STACK.md): two simultaneous
+# sessions — same subject or shared model? The subject-stage / model-artifact
+# split discriminates. Over two-sessions.ttl the two sessions' invocations trace
+# to the SAME gmeow:ModelArtifact (a shared MODEL), yet each session carries a
+# DISTINCT gmeow:sessionSubjectStage (a different SUBJECT). This query returns
+# each session with its subject stage, so the two distinct stages show the
+# sessions are NOT the same subject despite sharing a model — the discrimination
+# a single collapsed tenure could not express.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+SELECT ?session ?subjectStage WHERE {
+    ?session a gmeow:AgentSession ;
+        gmeow:sessionSubjectStage ?subjectStage .
+}
+ORDER BY ?session

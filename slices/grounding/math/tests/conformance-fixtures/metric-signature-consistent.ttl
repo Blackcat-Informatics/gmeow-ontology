@@ -1,0 +1,26 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Well-formed: a Lorentzian 4-manifold whose metric tensor carries a signature (3, 1) —
+# p + q = 4 equals the manifold's dimension and exactly one direction is timelike, so the
+# split agrees with math:lorentzianStructure. Conforms to math:MetricSignatureDimensionShape.
+# Bound by ex:ecMetricSignatureConsistent.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+
+ex:spacetime a math:SmoothManifold ;
+    rdfs:label "spacetime (Lorentzian 4-manifold)"@x-gmeow-english ;
+    math:manifoldDimension "4"^^xsd:integer ;
+    math:manifoldStructureKind math:lorentzianStructure ;
+    math:metricTensor ex:minkowskiMetric .
+
+ex:minkowskiMetric a math:MetricTensor ;
+    rdfs:label "Minkowski metric tensor"@x-gmeow-english ;
+    math:metricSignature ex:minkowskiSignature .
+
+ex:minkowskiSignature a math:MetricSignature ;
+    rdfs:label "Minkowski signature (3, 1)"@x-gmeow-english ;
+    math:signaturePositive "3"^^xsd:integer ;
+    math:signatureNegative "1"^^xsd:integer .

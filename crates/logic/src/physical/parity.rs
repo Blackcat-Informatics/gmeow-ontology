@@ -338,7 +338,7 @@ mod tests {
     use crate::physical::seminaive::{materialize_native, NativeOutcome};
     use crate::query_ir::{parse_query_program, Budget, QProgram};
     use crate::rule_ir::parse_eval_rules;
-    use crate::seam::WorldStoreForeign;
+    use crate::seam::{BudgetStatus, WorldStoreForeign};
     use crate::store::WorldStore;
 
     const PROFILE: &str = "https://blackcatinformatics.ca/logic/PositiveHornProfile";
@@ -490,10 +490,12 @@ mod tests {
             .unwrap_or_else(|e| panic!("[{}] WorldStore load failed: {e}", p.label));
         let rules = parse_eval_rules(&p.rls)
             .unwrap_or_else(|e| panic!("[{}] parse_eval_rules failed: {e}", p.label));
-        match materialize_native(&store, &rules)
+        // The coverage floor runs unbudgeted (`None`), so the native step governor never
+        // trips: the returned status is always `Ok` and the full least model is produced.
+        match materialize_native(&store, &rules, None)
             .unwrap_or_else(|e| panic!("[{}] materialize_native errored: {e}", p.label))
         {
-            NativeOutcome::Decided(rows) => rows,
+            NativeOutcome::Decided(budgeted) => budgeted.rows,
             NativeOutcome::Unsupported(kind) => panic!(
                 "[{}] native FELL BACK to Unsupported({kind:?}) — the coverage floor demands a \
                  Decided outcome for every stratifiable corpus program",
@@ -833,6 +835,139 @@ mod tests {
         println!(
             "native-coverage floor: forward decided rows={fwd_decided_rows} \
              (derived={fwd_decided_derived}), backward decided answers={bwd_decided_answers}"
+        );
+    }
+
+    // ── Backward parity UNDER a step budget ───────────────────────────────────────────
+
+    /// Run the native backward engine at `budget`, asserting a `Decided` outcome.
+    fn run_native_backward_budget(b: &BackwardProgram, budget: &Budget) -> AnswerSet {
+        let (store, world_nn) = backward_world(b);
+        let foreign = WorldStoreForeign::from_world(&store, &world_nn, PROFILE)
+            .expect("from_world must succeed");
+        match resolve_native(&foreign, &world_nn, &b.program, budget)
+            .unwrap_or_else(|e| panic!("[{}] resolve_native errored: {e}", b.label))
+        {
+            NativeOutcome::Decided(a) => a,
+            NativeOutcome::Unsupported(kind) => {
+                panic!(
+                    "[{}] native backward Unsupported({kind:?}) under budget",
+                    b.label
+                )
+            }
+        }
+    }
+
+    /// Under a step budget the native backward engine is (1) DETERMINISTIC — byte-identical
+    /// run-to-run at the same budget (the cut is the Nth FactKey-sorted committed winner) —
+    /// and (2) SOUND — every budget-cut answer is present in the reference oracle's UNBOUNDED
+    /// answer set.
+    ///
+    /// The soundness comparison is against reference-**unbounded**, NEVER reference-at-the-
+    /// same-budget: the two engines count different step units (native counts committed
+    /// derivations bottom-up; the reference counts rule expansions / EDB lookups top-down), so
+    /// under the same `max_steps` native generally gets further and its answer set can be a
+    /// strict SUPERSET of the reference's at that budget. The contract is outcome soundness
+    /// (sound subset of the full model + `Exhausted`-not-wrong), never cross-engine step-count
+    /// equivalence. Do NOT tighten this to reference-at-same-budget.
+    #[test]
+    fn dispatch_parity_native_sound_subset_and_deterministic_under_step_budget() {
+        let tight = Budget {
+            max_steps: Some(1),
+            max_answers: None,
+        };
+        let mut any_exhausted = false;
+        for b in backward_corpus() {
+            // The reference oracle's UNBOUNDED answer set = the full sound model.
+            let (store, world_nn) = backward_world(&b);
+            let foreign = WorldStoreForeign::from_world(&store, &world_nn, PROFILE)
+                .expect("from_world must succeed");
+            let full = ReferenceBackwardOracle
+                .solve(&foreign, &world_nn, &b.program, &[], &Budget::default())
+                .unwrap_or_else(|e| panic!("[{}] reference solve failed: {e}", b.label));
+            let full_keys: BTreeSet<String> = full.bindings.iter().map(binding_key).collect();
+
+            // Determinism: two runs at the same tight budget are byte-identical.
+            let run1 = run_native_backward_budget(&b, &tight);
+            let run2 = run_native_backward_budget(&b, &tight);
+            assert_eq!(
+                run1.bindings, run2.bindings,
+                "[{}] native backward budget cut must be byte-identical run-to-run",
+                b.label
+            );
+            assert_eq!(
+                run1.status, run2.status,
+                "[{}] status is deterministic",
+                b.label
+            );
+
+            // Soundness: every budget-cut answer is in the reference-UNBOUNDED model.
+            for bind in &run1.bindings {
+                assert!(
+                    full_keys.contains(&binding_key(bind)),
+                    "[{}] budget-cut answer {bind:?} is NOT in the reference-unbounded model \
+                     — a step budget must never fabricate an answer",
+                    b.label
+                );
+            }
+            if run1.status == BudgetStatus::Exhausted {
+                any_exhausted = true;
+            }
+        }
+        assert!(
+            any_exhausted,
+            "a 1-step budget must exhaust at least one recursive corpus program — the native \
+             step governor must actually fire in the parity harness"
+        );
+    }
+
+    /// The frontier win at the query surface: native COMPLETES (`Ok`) a pure-EDB goal under a
+    /// zero-step budget, where the reference oracle — which counts the EDB lookup as a step —
+    /// stamps `Exhausted`. This is the intended, documented divergence (different step units):
+    /// native reports a complete answer needing no derivation; no cross-engine status parity is
+    /// asserted.
+    #[test]
+    fn dispatch_parity_native_completes_where_reference_exhausts() {
+        // A pure-EDB goal (the goal predicate is EDB; the program carries NO rules).
+        let src = format!(
+            ":- prefix(ex, '{BASE}').\n\
+             ?- ex:parentOf(ex:a, Y).\n"
+        );
+        let b = BackwardProgram {
+            label: "pure-edb",
+            triples: vec![
+                (p("a"), p("parentOf"), p("b")),
+                (p("a"), p("parentOf"), p("c")),
+            ],
+            program: parse_query_program(&src).expect("parse pure-edb"),
+        };
+        let (store, world_nn) = backward_world(&b);
+        let foreign = WorldStoreForeign::from_world(&store, &world_nn, PROFILE)
+            .expect("from_world must succeed");
+        let zero = Budget {
+            max_steps: Some(0),
+            max_answers: None,
+        };
+
+        let native = run_native_backward_budget(&b, &zero);
+        assert_eq!(
+            native.status,
+            BudgetStatus::Ok,
+            "a pure-EDB goal needs no derivation ⇒ complete `Ok` under any step budget"
+        );
+        assert_eq!(
+            native.bindings.len(),
+            2,
+            "native returns the complete pure-EDB answer"
+        );
+
+        let reference = ReferenceBackwardOracle
+            .solve(&foreign, &world_nn, &b.program, &[], &zero)
+            .expect("reference solve");
+        assert_eq!(
+            reference.status,
+            BudgetStatus::Exhausted,
+            "the reference oracle exhausts at budget 0 — native intentionally diverges (more faithful)"
         );
     }
 

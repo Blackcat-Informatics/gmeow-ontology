@@ -39,6 +39,8 @@ gmeow-license = { path = "../license" }
 toml = "0.8"
 # The repo HTTP client for the `refresh-target-axioms` re-vendor lane.
 ureq = "3"
+# CBOR public-metadata extraction for the feedback-bundle blob reader.
+ciborium = "0.2"
 
 [dev-dependencies]
 assert_cmd = "2"

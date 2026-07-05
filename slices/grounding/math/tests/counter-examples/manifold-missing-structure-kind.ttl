@@ -1,0 +1,12 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:ManifoldShape: a math:Manifold declaring its dimension but
+# omitting math:manifoldStructureKind (sh:minCount 1). Validation MUST emit
+# shacl.MinCountConstraintComponent (math:UnderspecifiedManifold). Bound by
+# ex:ecManifoldMissingStructureKind.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:formlessManifold a math:Manifold ;
+    math:manifoldDimension 3 .

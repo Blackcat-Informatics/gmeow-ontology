@@ -108,9 +108,10 @@ math:ApproximateValue
 
 math:NumberSystem
     a owl:Class ;
+    rdfs:subClassOf math:Set ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Number System"@x-gmeow-english ;
-    skos:definition "A number system: the domain a number is situated in — ℕ, ℤ, ℚ, ℝ, or ℂ. Its instances are the five named systems math:naturalNumbers, math:integers, math:rationalNumbers, math:realNumbers, and math:complexNumbers, ordered by math:subsystemOf into the containment tower ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ. A math:Number points at one through math:inNumberSystem."@x-gmeow-english ;
+    skos:definition "A number system: the domain a number is situated in — ℕ, ℤ, ℚ, ℝ, or ℂ. A subclass of math:Set — a number system IS the set of its numbers, so it can serve as the math:domain or math:codomain of a function (the complex plane ℂ is the domain of the gamma function). Its instances are the five named systems math:naturalNumbers, math:integers, math:rationalNumbers, math:realNumbers, and math:complexNumbers, ordered by math:subsystemOf into the containment tower ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ. A math:Number points at one through math:inNumberSystem."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 # --- Number-system individuals (the containment tower) ---------------------- #
@@ -298,7 +299,7 @@ math:SetOperation
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Set Operation"@x-gmeow-english ;
-    skos:definition "An operation constructing a set from operand sets — union, intersection, difference, or complement. Its operands are named through math:setOperationOn. The complement construction is the distinguished subclass math:Complement, which additionally names its ambient set through math:complementWithin; an unqualified complement is ill-formed. math:PowerSet and math:CartesianProduct are distinguished constructions with their own classes."@x-gmeow-english ;
+    skos:definition "An operation constructing a set from operand sets — union, intersection, difference, or complement. Its operands are named through math:setOperationOn. The complement construction is the distinguished subclass math:Complement, which additionally names its ambient space through math:ambientSpace and its complement-semantics through math:complementSemantics; an unqualified complement is ill-formed. math:PowerSet and math:CartesianProduct are distinguished constructions with their own classes."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:Complement
@@ -306,7 +307,7 @@ math:Complement
     rdfs:subClassOf math:SetOperation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Complement"@x-gmeow-english ;
-    skos:definition "The complement construction Sᶜ = U ∖ S: the set of elements of an ambient set U that are not in S. A subclass of math:SetOperation that always names its ambient set through math:complementWithin — a complement is relative to an ambient set, so an unqualified complement is ill-formed."@x-gmeow-english ;
+    skos:definition "The complement construction: the elements of an ambient space not in S, under a declared notion of complement. A subclass of math:SetOperation that always names its ambient space through math:ambientSpace and which notion of complement it uses through math:complementSemantics (set-theoretic U ∖ S, orthogonal S⊥, complex-linear, topological, or quotient/cokernel) — a complement is relative to an ambient space under a semantics, so an unqualified complement (missing either) is ill-formed."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:PowerSet
@@ -457,7 +458,7 @@ math:UnqualifiedComplement
     rdfs:subClassOf math:MathConformanceFailure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Unqualified Complement"@x-gmeow-english ;
-    skos:definition "The failure raised when a complement math:SetOperation does not name its ambient set through math:complementWithin. A complement is relative to an ambient set; an unqualified complement is ill-formed."@x-gmeow-english ;
+    skos:definition "The failure raised when a math:Complement does not name its ambient space through math:ambientSpace or its complement-semantics through math:complementSemantics. A complement is relative to an ambient space under a declared notion of complement (set-theoretic, orthogonal, complex-linear, topological, or quotient); a complement missing either is ambiguous and ill-formed."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:AmbiguousSetExtent
@@ -561,12 +562,56 @@ math:setOperationOn
     skos:definition "Relates a set-construction (a math:SetOperation, math:PowerSet, or math:CartesianProduct) to an operand set it is built from. Domain math:SetOperation or its siblings, range math:Set (stated in prose)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
-math:complementWithin
+math:ambientSpace
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
-    rdfs:label "complement within"@x-gmeow-english ;
-    skos:definition "Names the ambient set a complement is taken relative to (the U in Sᶜ = U ∖ S). Domain a complement math:SetOperation, range math:Set (stated in prose). A complement without an ambient set is ill-formed."@x-gmeow-english ;
+    rdfs:label "ambient space"@x-gmeow-english ;
+    skos:definition "Names the ambient space a math:Complement is taken relative to (the U in a complement of S within U). Domain math:Complement, range a math:Set, math:VectorSpace, math:TopologicalSpace, or math:FunctionSpace (stated in prose) — the ambient space generalizes the set-theoretic case to the orthogonal, complex-linear, topological, and quotient cases the math:complementSemantics distinguishes. A complement without an ambient space is ill-formed (math:UnqualifiedComplement). Generalizes the earlier set-only complement predicate: a complement is relative to an ambient space, and which space and which semantics must both be named."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
+
+math:complementSemantics
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "complement semantics"@x-gmeow-english ;
+    skos:definition "Names which notion of complement a math:Complement uses: a math:ComplementSemantics individual — set-theoretic (U ∖ S), orthogonal (S⊥ in an inner-product space), complex-linear (a complementary subspace), topological (the closed complement of an open set), or quotient/cokernel. Domain math:Complement, range math:ComplementSemantics (stated in prose). 'The complement of X' without a named semantics is ambiguous and ill-formed (math:UnqualifiedComplement) — the flagship-adjacent 'complex complement' hazard the charter forbids."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:ComplementSemantics
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Complement Semantics"@x-gmeow-english ;
+    skos:definition "The notion of complement a math:Complement uses: one of math:setTheoreticComplement, math:orthogonalComplement, math:complexLinearComplement, math:topologicalComplement, or math:quotientComplement. A complement names exactly one through math:complementSemantics; the same ambient object admits several inequivalent complements, so the semantics must be declared."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:setTheoreticComplement
+    a owl:NamedIndividual , math:ComplementSemantics ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "set-theoretic (U ∖ S)"@x-gmeow-english ;
+    skos:definition "The set-theoretic complement Sᶜ = U ∖ S: the elements of the ambient set U not in S. The elementary case; the ambient space is a math:Set."@x-gmeow-english .
+
+math:orthogonalComplement
+    a owl:NamedIndividual , math:ComplementSemantics ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "orthogonal (S⊥)"@x-gmeow-english ;
+    skos:definition "The orthogonal complement S⊥ = {v : ⟨v, s⟩ = 0 ∀s ∈ S} in an inner-product space. The ambient space is a math:VectorSpace with an inner product; realized in the linear-algebra charter."@x-gmeow-english .
+
+math:complexLinearComplement
+    a owl:NamedIndividual , math:ComplementSemantics ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "complex-linear"@x-gmeow-english ;
+    skos:definition "A complex-linear complement: a subspace W with V = S ⊕ W over ℂ, not canonical without further structure. The 'complex complement' hazard — ambiguous unless the ambient space and this semantics are named."@x-gmeow-english .
+
+math:topologicalComplement
+    a owl:NamedIndividual , math:ComplementSemantics ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "topological (closed complement)"@x-gmeow-english ;
+    skos:definition "The topological complement: the closed complement X ∖ U of an open set U in a math:TopologicalSpace (a math:ClosedSet). Distinct from the set-theoretic complement in carrying the topology."@x-gmeow-english .
+
+math:quotientComplement
+    a owl:NamedIndividual , math:ComplementSemantics ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "quotient / cokernel"@x-gmeow-english ;
+    skos:definition "A quotient/cokernel complement: the quotient V/S rather than a chosen complementary subspace, canonical where a direct-sum complement is not. The ambient space is the total object; the complement is its cokernel."@x-gmeow-english .
 
 math:hasCardinality
     a owl:ObjectProperty ;
@@ -1797,3 +1842,1094 @@ math:dimensionalHomogeneityLowering
     rdfs:seeAlso math:dimensionalHomogeneityLaw ,
         math:integralDimensionCompositionLaw ,
         math:DimensionalInhomogeneity .
+
+# =========================================================================== #
+# Mathematical-core binder AST (EXPRESSIONS charter — the subset the
+# analysis-and-geometry charter consumes)
+#
+# Calculus operators (d/dx, ∂, ∫, ∑, lim) are binders over the expression AST,
+# not display strings (MATHEMATICS-EXPRESSIONS.md §Expression AST layer). A
+# math:BindingExpression is an application-shaped node: it names its binder
+# operator through math:operator, its body through indexed math:argumentSlot
+# cells, and the variable it binds through math:boundVariable. Binding is modeled
+# with an explicit declaration/occurrence split so nested and shadowed binders —
+# mixed partials ∂²/∂x∂y, a sum ∑ᵢ(xᵢ + ∑ᵢ yᵢ) whose inner i shadows the outer —
+# are checkable: a math:VariableDeclaration is a variable's identity within a
+# scope and a math:VariableOccurrence is a use site resolving to exactly one
+# declaration, making α-equivalence a graph isomorphism rather than a string
+# match. Any expression that crosses into reasoning declares what it denotes
+# (math:denotationKind) and how it lowers (math:compilesToLogicTerm/Formula/Type)
+# with a recorded preservation polarity — the seam that keeps the mathematical
+# surface from silently becoming a logic: assertion. Bedrock landed
+# math:ApplicationExpression + math:operator and deferred this surface; the
+# analysis-and-geometry charter is its first consumer and lands exactly the
+# subset its binders need, using the canonical reserved names (no near-synonyms).
+# =========================================================================== #
+
+# --- Expression AST: argument slots and the binding form -------------------- #
+
+math:ArgumentSlot
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Argument Slot"@x-gmeow-english ;
+    skos:definition "One indexed operand position of a math:ApplicationExpression or math:BindingExpression: it carries exactly one integer math:slotIndex and exactly one math:slotExpression. Operand order is carried by these slots, not by RDF list ordering — swapping two slots' expressions is a different expression, so non-commutative operators (matrix product, function composition, subtraction, the body of a binder) are order-safe. Slot indexes are unique within one application; strict canonical mode additionally requires them zero-based and contiguous. A slot missing its index or expression is ill-formed (math:MalformedArgumentSlot)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:BindingExpression
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalExpression ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Binding Expression"@x-gmeow-english ;
+    skos:definition "A binder: the expression node that binds a variable over a body. Application-shaped — it names its binder operator through math:operator (a math:Operation individual such as the differentiation, integration, summation, or limit binder), its body through indexed math:argumentSlot cells, and the math:VariableDeclaration it introduces through math:boundVariable. It binds math:VariableOccurrence use sites through math:bindsOccurrence, never glyphs, so nested and shadowed binders are checkable. The single binding form d/dx, ∂, ∫, ∑, and lim all specialize: a math:Derivative, a math:Limit, a math:Series, and a math:Integral are binding expressions, so no per-operator binder machinery is minted. A binder without a bound variable and a body is ill-formed (math:MalformedBindingExpression)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:VariableExpression
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalExpression ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Variable Expression"@x-gmeow-english ;
+    skos:definition "A variable used inside an expression: an expression node standing for one math:VariableOccurrence (math:variableOccurrence). Its occurrence is either bound by a math:BindingExpression or resolves to a math:FreeVariableDeclaration; there is no implicit free variable. This is the leaf of the AST where a bound or free variable enters a formula."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:VariableDeclaration
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Variable Declaration"@x-gmeow-english ;
+    skos:definition "The identity of a variable within a scope — the binding site's referent. Introduced by a math:BindingExpression through math:boundVariable, or standing alone as a math:FreeVariableDeclaration carrying a declared type/domain context. Every math:VariableOccurrence points at exactly one declaration through math:declaredVariable, so α-equivalence (same structure up to renaming of declarations) is a graph isomorphism over declarations rather than a string comparison. Two binders that reuse the glyph i introduce two distinct declarations."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:FreeVariableDeclaration
+    a owl:Class ;
+    rdfs:subClassOf math:VariableDeclaration ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Free Variable Declaration"@x-gmeow-english ;
+    skos:definition "A variable declaration not introduced by a binder: a free variable, standing alone with a declared type and domain context. The explicit marker that a variable occurrence is free — there is no implicit free variable, so an occurrence is either bound by a math:BindingExpression or resolves to a math:FreeVariableDeclaration with its type/domain declared."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:VariableOccurrence
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Variable Occurrence"@x-gmeow-english ;
+    skos:definition "A use site of a variable within an expression scope: it names the math:VariableDeclaration it refers to through math:declaredVariable and the scope it occurs in through math:occursInScope. A binder binds occurrences (math:bindsOccurrence), not glyphs, so an occurrence in the body of two nested binders that reuse a glyph resolves to exactly one of the two declarations. An occurrence that resolves to no declaration and is not marked free is ill-formed (math:UnscopedVariableOccurrence)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:DenotationKind
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Denotation Kind"@x-gmeow-english ;
+    skos:definition "What a math:MathematicalExpression denotes when it crosses into reasoning: one of math:denotesObject (a mathematical object/value → a logic: term), math:denotesProposition (a proposition → a logic: formula), math:denotesType (a type/sort → a logic: type), math:denotesOperator (a function/relation/operator → a logic: predicate or function symbol), or math:denotesProof (a proof-term → a logic: proof object). The AST is not a second logic: an expression declares its denotation kind and its lowering so the mathematical surface and the reasoning surface compose instead of duplicating."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+# --- Denotation-kind individuals (the five lowering targets) ---------------- #
+
+math:denotesObject
+    a owl:NamedIndividual , math:DenotationKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "denotes object / value"@x-gmeow-english ;
+    skos:definition "The denotation kind of an expression standing for a mathematical object or value — a number, a limit, a definite integral, a tensor. It lowers to a logic: term through math:compilesToLogicTerm. The default kind of a computed value expression."@x-gmeow-english .
+
+math:denotesProposition
+    a owl:NamedIndividual , math:DenotationKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "denotes proposition / formula"@x-gmeow-english ;
+    skos:definition "The denotation kind of a truth-valued expression — an equation, an inequality, a convergence claim ∀ε∃δ. It lowers to a logic: formula through math:compilesToLogicFormula. A truth-valued expression does not become a logic: assertion until this kind and its lowering preservation are declared; silent promotion is forbidden (math:UndeclaredLogicLowering)."@x-gmeow-english .
+
+math:denotesType
+    a owl:NamedIndividual , math:DenotationKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "denotes type / sort"@x-gmeow-english ;
+    skos:definition "The denotation kind of an expression standing for a type, class, or sort — a function space, a manifold's structure kind. It lowers to a logic: type through math:compilesToLogicType."@x-gmeow-english .
+
+math:denotesOperator
+    a owl:NamedIndividual , math:DenotationKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "denotes operator / function / relation"@x-gmeow-english ;
+    skos:definition "The denotation kind of an expression standing for a function, relation, or operator — the differentiation operator, a continuous map. It lowers to a logic: predicate or function symbol."@x-gmeow-english .
+
+math:denotesProof
+    a owl:NamedIndividual , math:DenotationKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "denotes proof / proof-term"@x-gmeow-english ;
+    skos:definition "The denotation kind of an expression standing for a proof or proof-term. It lowers to a logic: proof object. The rarest kind, used where a proof term is carried as structured content rather than as prose."@x-gmeow-english .
+
+# --- Binder-operator individuals (the binder symbols) ----------------------- #
+
+math:differentiationBinder
+    a owl:NamedIndividual , math:Operation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "d/dx (differentiation binder)"@x-gmeow-english ;
+    skos:definition "The differentiation binder d/dx: the math:operator a math:Derivative binding expression applies, binding the variable of differentiation over the body it differentiates. Anchored to the OpenMath calculus1 diff symbol."@x-gmeow-english .
+
+math:partialDifferentiationBinder
+    a owl:NamedIndividual , math:Operation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "∂ (partial-differentiation binder)"@x-gmeow-english ;
+    skos:definition "The partial-differentiation binder ∂: the math:operator a math:PartialDerivative binding expression applies, binding one variable while others are held. Mixed partials ∂²/∂x∂y are nested binding expressions, each with its own math:VariableDeclaration. Anchored to the OpenMath calculus1 partialdiff symbol."@x-gmeow-english .
+
+math:summationBinder
+    a owl:NamedIndividual , math:Operation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "∑ (summation binder)"@x-gmeow-english ;
+    skos:definition "The summation binder ∑: the math:operator a math:Series binding expression applies, binding the summation index over the summand. A shadowed index ∑ᵢ(xᵢ + ∑ᵢ yᵢ) introduces two distinct math:VariableDeclarations. Anchored to the OpenMath arith1 sum symbol."@x-gmeow-english .
+
+math:limitBinder
+    a owl:NamedIndividual , math:Operation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "lim (limit binder)"@x-gmeow-english ;
+    skos:definition "The limit binder lim: the math:operator a math:Limit binding expression applies, binding the variable that approaches the limit point over the body. Anchored to the OpenMath calculus1 limit symbol."@x-gmeow-english .
+
+# --- Integration binder retrofit (∫ is a binding expression) ---------------- #
+
+math:Integral rdfs:subClassOf math:BindingExpression .
+
+# --- Binder AST conformance failures ---------------------------------------- #
+
+math:MalformedArgumentSlot
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Malformed Argument Slot"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:ArgumentSlot does not carry exactly one math:slotIndex and exactly one math:slotExpression, or when two slots of one application share an index. Operand order is carried by unique indexed slots; a slot missing its index or expression, or a duplicated index, is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:UnscopedVariableOccurrence
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Unscoped Variable Occurrence"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:VariableOccurrence neither resolves to a math:VariableDeclaration through math:declaredVariable nor is marked free through a math:FreeVariableDeclaration. There is no implicit free variable; an occurrence that binds to nothing is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:MalformedBindingExpression
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Malformed Binding Expression"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:BindingExpression does not name the math:VariableDeclaration it binds through math:boundVariable, or does not name its body through math:argumentSlot. A binder binds a variable over a body; a binder missing either is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:UndeclaredLogicLowering
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Undeclared Logic Lowering"@x-gmeow-english ;
+    skos:definition "The failure raised when a truth-valued math:MathematicalExpression is lowered into logic: (math:compilesToLogicFormula) without declaring its math:denotationKind and its math:logicLoweringPreservation. Silent promotion of a mathematical expression to a logical assertion is forbidden — an equation is a denotable object until something declares it a proposition and lowers it, with recorded preservation, into the reasoning layer."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+# --- Binder AST properties -------------------------------------------------- #
+
+math:argumentSlot
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "argument slot"@x-gmeow-english ;
+    skos:definition "Relates a math:ApplicationExpression or math:BindingExpression to one math:ArgumentSlot carrying an indexed operand (or, for a binder, the body). Domain a math:ApplicationExpression or math:BindingExpression, range math:ArgumentSlot (stated in prose). Operand order is carried by the slots' math:slotIndex, never by RDF list ordering."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:slotIndex
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "slot index"@x-gmeow-english ;
+    skos:definition "The integer position of a math:ArgumentSlot within its application — the operand order. Domain math:ArgumentSlot, range xsd:nonNegativeInteger (stated in prose). Unique within one application; strict canonical mode requires the indexes zero-based and contiguous. A slot without exactly one index is ill-formed (math:MalformedArgumentSlot)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:slotExpression
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "slot expression"@x-gmeow-english ;
+    skos:definition "The math:MathematicalExpression filling one math:ArgumentSlot — the operand, or the body of a binder. Domain math:ArgumentSlot, range math:MathematicalExpression (stated in prose). Every slot names exactly one; a slot without an expression is ill-formed (math:MalformedArgumentSlot)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:boundVariable
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "bound variable"@x-gmeow-english ;
+    skos:definition "Relates a math:BindingExpression to the math:VariableDeclaration it introduces and binds — the variable of differentiation, integration, summation, or the limit. Domain math:BindingExpression, range math:VariableDeclaration (stated in prose). Every binder names exactly one bound variable's declaration; a binder without one is ill-formed (math:MalformedBindingExpression). This is the edge through which a binder introduces its variable's scoped identity, over which its bound math:VariableOccurrence use sites resolve."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:bindsOccurrence
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "binds occurrence"@x-gmeow-english ;
+    skos:definition "Relates a math:BindingExpression to a math:VariableOccurrence it binds — a use site of its bound variable within its body. Domain math:BindingExpression, range math:VariableOccurrence (stated in prose). A binder binds occurrences, not glyphs, so under nesting and shadowing each occurrence resolves to exactly one binder."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:declaredVariable
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "declared variable"@x-gmeow-english ;
+    skos:definition "Relates a math:VariableOccurrence to the math:VariableDeclaration it refers to — the binding site or free declaration that gives the occurrence its identity. Domain math:VariableOccurrence, range math:VariableDeclaration (stated in prose). Every occurrence resolves to exactly one declaration; an occurrence resolving to none and not marked free is ill-formed (math:UnscopedVariableOccurrence)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:occursInScope
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "occurs in scope"@x-gmeow-english ;
+    skos:definition "Relates a math:VariableOccurrence to the math:MathematicalExpression scope it occurs in — the binding expression or sub-expression whose body contains the use site. Domain math:VariableOccurrence, range math:MathematicalExpression (stated in prose). Scope is what makes shadowing resolvable: an occurrence in the innermost scope binds to the innermost declaration of its glyph."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:variableOccurrence
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "variable occurrence"@x-gmeow-english ;
+    skos:definition "Relates a math:VariableExpression leaf to the math:VariableOccurrence it stands for. Domain math:VariableExpression, range math:VariableOccurrence (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:denotationKind
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "denotation kind"@x-gmeow-english ;
+    skos:definition "Relates a math:MathematicalExpression to the math:DenotationKind naming what it denotes when it crosses into reasoning — object/value, proposition, type, operator, or proof. Domain math:MathematicalExpression, range math:DenotationKind (stated in prose). A truth-valued expression declares this before lowering to a logic: formula; an undeclared lowering is ill-formed (math:UndeclaredLogicLowering)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:compilesToLogicTerm
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "compiles to logic: term"@x-gmeow-english ;
+    skos:definition "Relates a math:MathematicalExpression that denotes an object/value to the logic: term it lowers to. Domain math:MathematicalExpression (math:denotationKind math:denotesObject), range a logic: term (stated in prose). The explicit, preservation-judged map that keeps the mathematical AST from re-implementing the logic: IR."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:compilesToLogicFormula
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "compiles to logic: formula"@x-gmeow-english ;
+    skos:definition "Relates a truth-valued math:MathematicalExpression to the logic:Formula it lowers to. Domain math:MathematicalExpression (math:denotationKind math:denotesProposition), range logic:Formula (stated in prose). Present only with a declared math:denotationKind and math:logicLoweringPreservation; silent promotion to a logical assertion is forbidden (math:UndeclaredLogicLowering)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:compilesToLogicType
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "compiles to logic: type"@x-gmeow-english ;
+    skos:definition "Relates a math:MathematicalExpression that denotes a type/sort to the logic: type it lowers to. Domain math:MathematicalExpression (math:denotationKind math:denotesType), range a logic: type (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:logicLoweringPreservation
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "logic lowering preservation"@x-gmeow-english ;
+    skos:definition "Relates a math:MathematicalExpression to the preservation polarity of its lowering into logic:, reusing the shared loss-ledger vocabulary (logic:preservationKind values such as logic:ExactPreservation, logic:SoundUnderApproximation, logic:CompleteOverApproximation). Domain math:MathematicalExpression, range a logic:preservationKind value (stated in prose). No near-synonym is minted — mathematics lowering loss is queryable in the same ledger as every other GMEOW projection (Principle 17)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# =========================================================================== #
+# Calculus and analysis (ANALYSIS-AND-GEOMETRY charter)
+#
+# Limits, derivatives, integrals (∫ reused from the measure charter), series,
+# sequences, and special functions. Every operator here is a binder over the
+# expression AST: a math:Derivative, math:Limit, and math:Series are
+# math:BindingExpressions applying the differentiation, limit, and summation
+# binders (math:differentiationBinder, math:limitBinder, math:summationBinder),
+# so the calculus surface reuses the single binding form rather than minting
+# per-operator machinery. A derivative names what it differentiates, with respect
+# to which variable, at which order; a limit names its expression and its limit
+# point (and, where it matters, its direction/mode); a series/sequence carries a
+# math:Convergence with its mode. Special functions are first-class individuals
+# aligned to DLMF and OpenMath (calculus1/transc1), not new OWL classes.
+# =========================================================================== #
+
+# --- Calculus binders and analysis objects ---------------------------------- #
+
+math:Derivative
+    a owl:Class ;
+    rdfs:subClassOf math:BindingExpression ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Derivative"@x-gmeow-english ;
+    skos:definition "The derivative d/dx f of an expression as a first-class binding expression: it applies the math:differentiationBinder (math:operator), names what it differentiates through math:derivativeOf, the variable of differentiation through math:withRespectToVariable (a math:VariableDeclaration it binds), and its order through math:derivativeOrder. A derivative is a map of function spaces, not the string 'dy/dx'. A derivative missing what it differentiates, its variable, or its order is ill-formed (math:UnderspecifiedDerivative)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:PartialDerivative
+    a owl:Class ;
+    rdfs:subClassOf math:Derivative ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Partial Derivative"@x-gmeow-english ;
+    skos:definition "A partial derivative ∂f/∂x: a math:Derivative that applies the math:partialDifferentiationBinder, differentiating with respect to one variable while others are held. Mixed partials ∂²f/∂x∂y are nested partial derivatives, each binding its own math:VariableDeclaration, so order and shadowing are explicit. A subclass of math:Derivative; it declares the same what/variable/order frame."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:DifferentialOperator
+    a owl:Class ;
+    rdfs:subClassOf math:Operation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Differential Operator"@x-gmeow-english ;
+    skos:definition "A differential operator: a map of function spaces built from derivatives — the gradient ∇, the Laplacian Δ, a linear ODE operator. A subclass of math:Operation whose action is differentiation; the math:differentiationBinder is the elementary case it composes. Distinguished from a single math:Derivative, which is one application of the differentiation binder to one expression."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Limit
+    a owl:Class ;
+    rdfs:subClassOf math:BindingExpression ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Limit"@x-gmeow-english ;
+    skos:definition "The limit lim_{x→a} f(x) as a first-class binding expression: it applies the math:limitBinder (math:operator), names the expression whose limit is taken through math:limitOf, the limit point a through math:limitPoint, and — where it matters — the direction/mode through math:limitMode (from the left, from the right, or two-sided). A limit missing its expression or its limit point is ill-formed (math:UnderspecifiedLimit); the mode is optional because a two-sided limit has no direction."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:LimitMode
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Limit Mode"@x-gmeow-english ;
+    skos:definition "The direction in which a math:Limit approaches its limit point: one of math:limitFromLeft (x → a⁻), math:limitFromRight (x → a⁺), or math:limitTwoSided (x → a). A one-sided limit declares its side; a two-sided limit either declares math:limitTwoSided or omits the mode, since it has no direction."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Sequence
+    a owl:Class ;
+    rdfs:subClassOf math:Function ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Sequence"@x-gmeow-english ;
+    skos:definition "A sequence (aₙ): an indexed family, a math:Function whose math:domain is a subset of ℕ. It carries a math:Convergence through math:hasConvergence naming what it converges to and in which mode. A subclass of math:Function, so it declares its domain and codomain; a sequence asserted to converge without a math:Convergence naming the mode is ill-formed (math:UnderspecifiedConvergence)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Series
+    a owl:Class ;
+    rdfs:subClassOf math:BindingExpression ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Series"@x-gmeow-english ;
+    skos:definition "A series ∑ aₙ as a first-class binding expression: it applies the math:summationBinder (math:operator), names its general term through math:seriesTerm (the summand, a body indexed by the bound summation math:VariableDeclaration), and carries a math:Convergence through math:hasConvergence naming what it converges to and in which mode (absolute, conditional, …). A series asserted to converge without a math:Convergence naming the mode is ill-formed (math:UnderspecifiedConvergence)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Convergence
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Convergence"@x-gmeow-english ;
+    skos:definition "The convergence of a sequence or series: names what it converges to through math:convergesTo and the mode through math:convergenceMode (pointwise, uniform, absolute, conditional, in-measure, almost-everywhere, in-Lᵖ-norm, in-distribution). Convergence in which mode is a declared property, not an assumption — 'the series converges' is meaningless without the mode. A convergence without a mode is ill-formed (math:UnderspecifiedConvergence)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:ConvergenceMode
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Convergence Mode"@x-gmeow-english ;
+    skos:definition "The mode in which a sequence or series converges: one of math:pointwiseConvergence, math:uniformConvergence, math:absoluteConvergence, math:conditionalConvergence, math:inMeasureConvergence, math:almostEverywhereConvergence, math:inLpNormConvergence, or math:inDistributionConvergence. The mode is what distinguishes weak from strong convergence and is required on every math:Convergence."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:SpecialFunction
+    a owl:Class ;
+    rdfs:subClassOf math:Function ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Special Function"@x-gmeow-english ;
+    skos:definition "A special function: a named function of analysis — the gamma function Γ, the Riemann zeta function ζ, the Bessel functions, the error function erf — whose identity is the GMEOW individual, aligned to a DLMF equation ID and an OpenMath transc1/calculus1 symbol, not a rendering. The named functions are first-class individuals (math:gammaFunction, math:riemannZeta, …), not per-function OWL subclasses. A subclass of math:Function, so each declares its domain and codomain."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+# --- Limit-mode individuals ------------------------------------------------- #
+
+math:limitFromLeft
+    a owl:NamedIndividual , math:LimitMode ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "from the left (x → a⁻)"@x-gmeow-english ;
+    skos:definition "The one-sided limit from below: x approaches a through values less than a."@x-gmeow-english .
+
+math:limitFromRight
+    a owl:NamedIndividual , math:LimitMode ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "from the right (x → a⁺)"@x-gmeow-english ;
+    skos:definition "The one-sided limit from above: x approaches a through values greater than a."@x-gmeow-english .
+
+math:limitTwoSided
+    a owl:NamedIndividual , math:LimitMode ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "two-sided (x → a)"@x-gmeow-english ;
+    skos:definition "The two-sided limit: x approaches a from both sides, requiring the left and right limits to agree. The default when a math:Limit omits its mode."@x-gmeow-english .
+
+# --- Convergence-mode individuals (the full enumeration) -------------------- #
+
+math:pointwiseConvergence
+    a owl:NamedIndividual , math:ConvergenceMode ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "pointwise"@x-gmeow-english ;
+    skos:definition "Pointwise convergence: fₙ(x) → f(x) at each point x separately. The weakest of the function-convergence modes."@x-gmeow-english .
+
+math:uniformConvergence
+    a owl:NamedIndividual , math:ConvergenceMode ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "uniform"@x-gmeow-english ;
+    skos:definition "Uniform convergence: sup_x |fₙ(x) − f(x)| → 0, one rate for all points. Stronger than pointwise; preserves continuity of the limit."@x-gmeow-english .
+
+math:absoluteConvergence
+    a owl:NamedIndividual , math:ConvergenceMode ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "absolute"@x-gmeow-english ;
+    skos:definition "Absolute convergence of a series: ∑ |aₙ| converges. Implies convergence and permits reordering without changing the sum."@x-gmeow-english .
+
+math:conditionalConvergence
+    a owl:NamedIndividual , math:ConvergenceMode ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "conditional"@x-gmeow-english ;
+    skos:definition "Conditional convergence of a series: ∑ aₙ converges but ∑ |aₙ| diverges. Reordering can change the sum (Riemann rearrangement)."@x-gmeow-english .
+
+math:inMeasureConvergence
+    a owl:NamedIndividual , math:ConvergenceMode ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "in measure"@x-gmeow-english ;
+    skos:definition "Convergence in measure: for every ε, the measure of {x : |fₙ(x) − f(x)| ≥ ε} → 0. A measure-theoretic mode, weaker than almost-everywhere on a finite measure space."@x-gmeow-english .
+
+math:almostEverywhereConvergence
+    a owl:NamedIndividual , math:ConvergenceMode ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "almost everywhere"@x-gmeow-english ;
+    skos:definition "Almost-everywhere convergence: fₙ(x) → f(x) for all x outside a set of measure zero. The measure-theoretic strengthening of pointwise."@x-gmeow-english .
+
+math:inLpNormConvergence
+    a owl:NamedIndividual , math:ConvergenceMode ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "in Lᵖ norm"@x-gmeow-english ;
+    skos:definition "Convergence in Lᵖ norm: ‖fₙ − f‖_p → 0. The mode of the Banach spaces Lᵖ; L² convergence (mean-square) is the Hilbert-space case."@x-gmeow-english .
+
+math:inDistributionConvergence
+    a owl:NamedIndividual , math:ConvergenceMode ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "in distribution"@x-gmeow-english ;
+    skos:definition "Convergence in distribution (weak convergence of measures): the distribution functions converge at every continuity point. The probabilistic mode underlying the central limit theorem; shared with the probability charter."@x-gmeow-english .
+
+# --- Special-function individuals (DLMF/OpenMath anchored in mappings) ------- #
+
+math:gammaFunction
+    a owl:NamedIndividual , math:SpecialFunction ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Γ (gamma function)"@x-gmeow-english ;
+    math:domain math:complexNumbers ;
+    math:codomain math:complexNumbers ;
+    skos:definition "The gamma function Γ(z): the analytic continuation of the factorial, Γ(n) = (n−1)!. Aligned to DLMF chapter 5 and OpenMath transc1; its identity is this individual, not a rendering."@x-gmeow-english .
+
+math:riemannZeta
+    a owl:NamedIndividual , math:SpecialFunction ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "ζ (Riemann zeta function)"@x-gmeow-english ;
+    math:domain math:complexNumbers ;
+    math:codomain math:complexNumbers ;
+    skos:definition "The Riemann zeta function ζ(s) = ∑ n⁻ˢ (Re s > 1), analytically continued. Aligned to DLMF chapter 25 and Wikidata; the subject of the Riemann hypothesis."@x-gmeow-english .
+
+math:besselJ
+    a owl:NamedIndividual , math:SpecialFunction ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Jₙ (Bessel function, first kind)"@x-gmeow-english ;
+    math:domain math:realNumbers ;
+    math:codomain math:realNumbers ;
+    skos:definition "The Bessel function of the first kind Jₙ(x): a solution of Bessel's equation regular at the origin. Aligned to DLMF chapter 10."@x-gmeow-english .
+
+math:besselY
+    a owl:NamedIndividual , math:SpecialFunction ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Yₙ (Bessel function, second kind)"@x-gmeow-english ;
+    math:domain math:realNumbers ;
+    math:codomain math:realNumbers ;
+    skos:definition "The Bessel function of the second kind Yₙ(x): a solution of Bessel's equation singular at the origin. Aligned to DLMF chapter 10."@x-gmeow-english .
+
+math:errorFunction
+    a owl:NamedIndividual , math:SpecialFunction ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "erf (error function)"@x-gmeow-english ;
+    math:domain math:realNumbers ;
+    math:codomain math:realNumbers ;
+    skos:definition "The error function erf(x) = (2/√π) ∫₀ˣ e^(−t²) dt: the Gaussian integral central to probability. Aligned to DLMF chapter 7 and OpenMath transc1."@x-gmeow-english .
+
+# --- Calculus conformance failures ------------------------------------------ #
+
+math:UnderspecifiedDerivative
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Underspecified Derivative"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:Derivative does not name what it differentiates (math:derivativeOf), the variable of differentiation (math:withRespectToVariable), and its order (math:derivativeOrder). A derivative that does not say what, with respect to which variable, and at what order is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:UnderspecifiedLimit
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Underspecified Limit"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:Limit does not name the expression whose limit is taken (math:limitOf) and its limit point (math:limitPoint). A limit that does not say of what and at which point is ill-formed; its direction/mode is optional."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:UnderspecifiedConvergence
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Underspecified Convergence"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:Series or math:Sequence carries a math:Convergence that does not name what it converges to (math:convergesTo) and the mode (math:convergenceMode). 'It converges' is meaningless without the mode; a convergence without a mode is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+# --- Calculus properties ---------------------------------------------------- #
+
+math:derivativeOf
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "derivative of"@x-gmeow-english ;
+    skos:definition "Relates a math:Derivative to the math:MathematicalExpression (or math:Function) it differentiates. Domain math:Derivative, range math:MathematicalExpression (stated in prose). Every derivative names exactly one; a derivative without it is ill-formed (math:UnderspecifiedDerivative)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:withRespectToVariable
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "with respect to variable"@x-gmeow-english ;
+    skos:definition "Relates a math:Derivative to the math:VariableDeclaration it differentiates with respect to — the bound variable of the differentiation binder. Domain math:Derivative, range math:VariableDeclaration (stated in prose). Every derivative names exactly one; a derivative without it is ill-formed (math:UnderspecifiedDerivative)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:derivativeOrder
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "derivative order"@x-gmeow-english ;
+    skos:definition "The order of a math:Derivative — 1 for f′, 2 for f″, and so on. Domain math:Derivative, range xsd:positiveInteger (stated in prose). Every derivative names exactly one; a derivative without an order is ill-formed (math:UnderspecifiedDerivative)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:limitOf
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "limit of"@x-gmeow-english ;
+    skos:definition "Relates a math:Limit to the math:MathematicalExpression whose limit is taken. Domain math:Limit, range math:MathematicalExpression (stated in prose). Every limit names exactly one; a limit without it is ill-formed (math:UnderspecifiedLimit)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:limitPoint
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "limit point"@x-gmeow-english ;
+    skos:definition "Relates a math:Limit to the point its variable approaches — a math:Number, math:PositiveInfinity, or a point of a space. Domain math:Limit, range a math:Number or point (stated in prose). Every limit names exactly one; a limit without a point is ill-formed (math:UnderspecifiedLimit)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:limitMode
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "limit mode"@x-gmeow-english ;
+    skos:definition "Relates a math:Limit to its math:LimitMode — the direction of approach (from the left, from the right, two-sided). Domain math:Limit, range math:LimitMode (stated in prose). Optional: a two-sided limit has no direction, so a limit may omit the mode. Where a one-sided limit is meant, the side is declared, never assumed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:seriesTerm
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "series term"@x-gmeow-english ;
+    skos:definition "Relates a math:Series to its general term aₙ — the summand, a math:MathematicalExpression indexed by the bound summation variable. Domain math:Series, range math:MathematicalExpression (stated in prose). Every series names its general term."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:hasConvergence
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "has convergence"@x-gmeow-english ;
+    skos:definition "Relates a math:Series or math:Sequence to the math:Convergence describing what it converges to and in which mode. Domain a math:Series or math:Sequence, range math:Convergence (stated in prose). A series/sequence asserted to converge names its convergence; the mode is required (math:UnderspecifiedConvergence)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:convergesTo
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "converges to"@x-gmeow-english ;
+    skos:definition "Relates a math:Convergence to the value or expression its sequence/series converges to — a math:Number, a limit function, or a distribution. Domain math:Convergence, range a math:MathematicalObject or value (stated in prose). Every convergence names what it converges to."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:convergenceMode
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "convergence mode"@x-gmeow-english ;
+    skos:definition "Relates a math:Convergence to its math:ConvergenceMode — pointwise, uniform, absolute, conditional, in-measure, almost-everywhere, in-Lᵖ-norm, or in-distribution. Domain math:Convergence, range math:ConvergenceMode (stated in prose). The mode is required; convergence without a declared mode is ill-formed (math:UnderspecifiedConvergence)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# =========================================================================== #
+# Topology (ANALYSIS-AND-GEOMETRY charter)
+#
+# A topological space is given by its open sets (or a basis); continuity is a
+# declared property of a map (preimages of open sets are open), never an
+# assumption; compactness, connectedness, and the separation axioms are
+# first-class declared properties, not entailments of a bare type. Maps lower
+# onto the landed math:Morphism: a math:ContinuousMap is a morphism of spaces and
+# a math:Homeomorphism is an iso. Homotopy and homology give the algebraic-
+# topology bridge — a math:HomologyGroup is a math:AbelianGroup (ALGEBRA charter),
+# so a homology-group individual carries the full abelian-group frame. Little
+# external ontology exists, so the depth is authored and cited (mathlib/AFP). The
+# defining law that continuity is not assumed — the preimage of an open set is
+# open — is authored as a first-order logic:Formula (math:continuityLaw), the
+# exemplar witness that "declared, not assumed" predicates over real structure.
+# =========================================================================== #
+
+# --- Topological spaces and their open/closed sets -------------------------- #
+
+math:TopologicalSpace
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Topological Space"@x-gmeow-english ;
+    skos:definition "A topological space (X, τ): a set X together with a topology τ — its collection of open sets, closed under arbitrary union and finite intersection and containing ∅ and X. Given by its open sets (or a basis) through math:hasOpenSet. The object over which continuity, compactness, connectedness, and the separation axioms are defined; a math:MetricSpace and a manifold's underlying space are topological spaces."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:OpenSet
+    a owl:Class ;
+    rdfs:subClassOf math:Set ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Open Set"@x-gmeow-english ;
+    skos:definition "An open set of a math:TopologicalSpace: a member of the space's topology τ. A subclass of math:Set. Continuity is defined by open sets (preimages of open sets are open), and a math:Neighbourhood of a point contains an open set containing the point."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:ClosedSet
+    a owl:Class ;
+    rdfs:subClassOf math:Set ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Closed Set"@x-gmeow-english ;
+    skos:definition "A closed set of a math:TopologicalSpace: the complement of a math:OpenSet within the space (a math:Complement whose math:complementSemantics is topological). A subclass of math:Set. Closed under finite union and arbitrary intersection, dual to the open sets."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Neighbourhood
+    a owl:Class ;
+    rdfs:subClassOf math:Set ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Neighbourhood"@x-gmeow-english ;
+    skos:definition "A neighbourhood of a point in a math:TopologicalSpace: a set containing an open set that contains the point. A subclass of math:Set. Neighbourhoods are the local structure the separation axioms (math:separationAxiom, e.g. Hausdorff) quantify over."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:ContinuousMap
+    a owl:Class ;
+    rdfs:subClassOf math:Morphism ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Continuous Map"@x-gmeow-english ;
+    rdfs:seeAlso math:continuityLaw ;
+    skos:definition "A continuous map between topological spaces: a map under which the preimage of every open set is open. A subclass of math:Morphism (a structure-preserving map of spaces, its math:sourceObject and math:targetObject the two topological spaces), and it declares its continuity through math:isContinuous — continuity is declared, not assumed (an undeclared continuity is ill-formed, math:UndeclaredTopologicalProperty). The structure it preserves is the topology, whose defining law is math:continuityLaw (preimages of open sets are open), referenced through math:preservesStructure."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Homeomorphism
+    a owl:Class ;
+    rdfs:subClassOf math:ContinuousMap ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Homeomorphism"@x-gmeow-english ;
+    skos:definition "A homeomorphism: a continuous map with a continuous inverse — an isomorphism in the category of topological spaces. A subclass of math:ContinuousMap; two spaces related by a homeomorphism are topologically the same. A chart's coordinate map is a homeomorphism onto its image."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:CompactSpace
+    a owl:Class ;
+    rdfs:subClassOf math:TopologicalSpace ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Compact Space"@x-gmeow-english ;
+    skos:definition "A compact topological space: one in which every open cover has a finite subcover. A subclass of math:TopologicalSpace that declares its compactness through math:isCompact — compactness is declared, not assumed (an undeclared compactness is ill-formed, math:UndeclaredTopologicalProperty). Compactness is the topological generalization of closed-and-bounded (Heine–Borel) and is preserved by continuous images."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:ConnectedSpace
+    a owl:Class ;
+    rdfs:subClassOf math:TopologicalSpace ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Connected Space"@x-gmeow-english ;
+    skos:definition "A connected topological space: one that is not the union of two disjoint non-empty open sets. A subclass of math:TopologicalSpace that declares its connectedness through math:isConnected — connectedness is declared, not assumed (an undeclared connectedness is ill-formed, math:UndeclaredTopologicalProperty). Connectedness is preserved by continuous images (the intermediate value theorem is its avatar on ℝ)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Homotopy
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Homotopy"@x-gmeow-english ;
+    skos:definition "A homotopy between two continuous maps: a continuous deformation H: X×[0,1] → Y from one map to the other. Two spaces are homotopy-equivalent (math:homotopyEquivalentTo) when maps between them compose to maps homotopic to the identities. Homotopy equivalence is coarser than homeomorphism and is the equivalence algebraic topology's invariants (homotopy and math:HomologyGroup) respect."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:HomologyGroup
+    a owl:Class ;
+    rdfs:subClassOf math:AbelianGroup ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Homology Group"@x-gmeow-english ;
+    skos:definition "A homology group Hₙ(X): an abelian group functorially assigned to a topological space, counting n-dimensional holes. A subclass of math:AbelianGroup (ALGEBRA charter), so a homology-group individual carries the full algebraic-structure frame — its underlying set, its abelian operation, and its axioms — like any other abelian group. The algebraic-topology bridge: homotopy-equivalent spaces have isomorphic homology groups. The homology functor itself (the assignment X ↦ Hₙ(X)) belongs to a downstream category charter and is not minted here."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+# --- Topology conformance failure ------------------------------------------- #
+
+math:UndeclaredTopologicalProperty
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Undeclared Topological Property"@x-gmeow-english ;
+    skos:definition "The failure raised when a topological property is assumed rather than declared: a math:ContinuousMap without math:isContinuous, a math:CompactSpace without math:isCompact, or a math:ConnectedSpace without math:isConnected. Continuity, compactness, and connectedness are declared properties (backed by their defining law, e.g. math:continuityLaw), never entailments of a bare type."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+# --- Topology properties ---------------------------------------------------- #
+
+math:hasOpenSet
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "has open set"@x-gmeow-english ;
+    skos:definition "Relates a math:TopologicalSpace to a math:OpenSet of its topology (or a basis element). Domain math:TopologicalSpace, range math:OpenSet (stated in prose). A space is given by its open sets; continuity is defined by them."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:isContinuous
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "is continuous"@x-gmeow-english ;
+    skos:definition "Declares whether a map is continuous — the preimage of every open set is open (math:continuityLaw). Domain math:ContinuousMap, range xsd:boolean (stated in prose). The canonical checkable bearer of continuity; continuity is declared here, not assumed from the math:ContinuousMap type (an undeclared continuity is ill-formed, math:UndeclaredTopologicalProperty)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:separationAxiom
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "separation axiom"@x-gmeow-english ;
+    skos:definition "Relates a math:TopologicalSpace to a separation axiom it satisfies — T0, T1, T2 (Hausdorff), T3, T4. Domain math:TopologicalSpace, range a math:SeparationAxiom individual (stated in prose). The separation axioms grade how finely neighbourhoods distinguish points; math:hausdorffSeparation (T2) is the one manifolds require."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:isCompact
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "is compact"@x-gmeow-english ;
+    skos:definition "Declares whether a space is compact — every open cover has a finite subcover. Domain math:CompactSpace (or math:TopologicalSpace), range xsd:boolean (stated in prose). Compactness is declared, not assumed from the type (an undeclared compactness is ill-formed, math:UndeclaredTopologicalProperty)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:isConnected
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "is connected"@x-gmeow-english ;
+    skos:definition "Declares whether a space is connected — not the union of two disjoint non-empty open sets. Domain math:ConnectedSpace (or math:TopologicalSpace), range xsd:boolean (stated in prose). Connectedness is declared, not assumed from the type (an undeclared connectedness is ill-formed, math:UndeclaredTopologicalProperty)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:homotopyEquivalentTo
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "homotopy equivalent to"@x-gmeow-english ;
+    skos:definition "Relates a math:TopologicalSpace to another it is homotopy-equivalent to — there are maps between them composing to maps homotopic to the identities. Domain and range math:TopologicalSpace (stated in prose). Symmetric mathematically; homotopy-equivalent spaces share homotopy and math:HomologyGroup invariants."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# --- Separation-axiom individuals ------------------------------------------- #
+
+math:SeparationAxiom
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Separation Axiom"@x-gmeow-english ;
+    skos:definition "A separation axiom of a topological space: math:t0Separation, math:t1Separation, math:hausdorffSeparation (T2), math:t3Separation, or math:t4Separation, graded by how finely neighbourhoods separate points. A math:TopologicalSpace names those it satisfies through math:separationAxiom."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:hausdorffSeparation
+    a owl:NamedIndividual , math:SeparationAxiom ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Hausdorff (T2)"@x-gmeow-english ;
+    skos:definition "The Hausdorff separation axiom T2: any two distinct points have disjoint neighbourhoods. The separation a manifold's underlying space requires so limits are unique."@x-gmeow-english .
+
+math:t0Separation
+    a owl:NamedIndividual , math:SeparationAxiom ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "T0 (Kolmogorov)"@x-gmeow-english ;
+    skos:definition "The T0 separation axiom: any two distinct points are topologically distinguishable (some open set contains one but not the other)."@x-gmeow-english .
+
+math:t1Separation
+    a owl:NamedIndividual , math:SeparationAxiom ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "T1 (Fréchet)"@x-gmeow-english ;
+    skos:definition "The T1 separation axiom: for any two distinct points each has a neighbourhood not containing the other; equivalently, singletons are closed."@x-gmeow-english .
+
+# --- Reified relation atoms for the continuity law (HiLog reflection) -------- #
+
+math:isContinuousRel
+    a logic:Type ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "continuous(f) ⟺ map f is continuous"@x-gmeow-english ;
+    rdfs:seeAlso math:isContinuous ;
+    skos:definition "The HiLog reflection of continuity as a unary relation individual, so the continuity law can predicate 'f is continuous' inside a logic:Formula atom. Reflects the existing math:isContinuous declaration (rdfs:seeAlso), minting no second relation."@x-gmeow-english .
+
+math:openSetRel
+    a logic:Type ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "openSet(V) ⟺ V is an open set of its space"@x-gmeow-english ;
+    rdfs:seeAlso math:hasOpenSet ;
+    skos:definition "The HiLog reflection of open-set membership as a unary relation individual, so the continuity law can predicate 'V is open' inside a logic:Formula atom. Reflects math:hasOpenSet / the math:OpenSet type (rdfs:seeAlso)."@x-gmeow-english .
+
+math:preimageRel
+    a logic:Type ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "preimage(U,f,V) ⟺ U is the f-preimage f⁻¹(V) of V"@x-gmeow-english ;
+    skos:definition "The preimage relation the continuity law quantifies over: preimage(U,f,V) holds exactly when U is the preimage f⁻¹(V) = {x : f(x) ∈ V}. A HiLog relation individual over which the law states 'the preimage of an open set is open'; no first-class asserted property is minted, because the preimage is a derived construction, not authored data."@x-gmeow-english .
+
+# --- Law: continuity — the preimage of an open set is open ------------------- #
+# ∀f,U,V: isContinuous(f) ∧ openSet(V) ∧ preimage(U,f,V) → openSet(U)
+# The defining law of a math:ContinuousMap, authored as a first-order logic:Formula
+# exactly as the algebra and measure charters author their hard laws. It is the
+# exemplar that "continuity is declared, not assumed" predicates over real
+# structure: a continuous map references this law through math:preservesStructure,
+# and the SHACL gate requires math:isContinuous to be present.
+
+math:continuityLaw
+    a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "continuity: the preimage of an open set is open"@x-gmeow-english ;
+    skos:definition "The defining law of continuity as a universally-quantified first-order logic:Formula: for a continuous map f, if V is an open set and U is the preimage f⁻¹(V), then U is open. math: expresses the law; logic: owns reasoning over it. It is the structure a math:ContinuousMap preserves (math:preservesStructure), so continuity is backed by a real law rather than a bare boolean."@x-gmeow-english ;
+    logic:quantifiedVariable
+        [ logic:termIndex 0 ; logic:termVariable "f" ] ,
+        [ logic:termIndex 1 ; logic:termVariable "U" ] ,
+        [ logic:termIndex 2 ; logic:termVariable "V" ] ;
+    logic:forall math:continuityImpl .
+
+math:continuityImpl a logic:Formula ;
+    logic:antecedent math:continuityAnte ;
+    logic:consequent math:continuityCons .
+
+math:continuityAnte a logic:Formula ;
+    logic:and math:continuityA1 , math:continuityA2 , math:continuityA3 .
+
+math:continuityA1 a logic:Formula ; logic:relation math:isContinuousRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "f" ] .
+math:continuityA2 a logic:Formula ; logic:relation math:openSetRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "V" ] .
+math:continuityA3 a logic:Formula ; logic:relation math:preimageRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "U" ] , [ logic:termIndex 1 ; logic:termVariable "f" ] , [ logic:termIndex 2 ; logic:termVariable "V" ] .
+
+math:continuityCons a logic:Formula ; logic:relation math:openSetRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "U" ] .
+
+# =========================================================================== #
+# Differential geometry and manifolds (ANALYSIS-AND-GEOMETRY charter)
+#
+# A manifold declares its dimension and its structure kind (topological, smooth,
+# complex, Riemannian, Lorentzian) — a manifold without both is ill-formed. A
+# chart names its domain, coordinate map, and target coordinate space; an atlas
+# is a covering family of charts with their transition maps φᵢ∘φⱼ⁻¹ (reusing the
+# landed math:functionComposition). A metric tensor (Riemannian or Lorentzian) is
+# a tensor field carrying a structured signature (p,q). The Lorentzian metric is
+# the math object a physics slice needs for spacetime, and it stays here on the
+# math side of the boundary — spacetime, worldlines, and SR/GR are physics.
+# =========================================================================== #
+
+# --- Manifolds and their structure kind ------------------------------------- #
+
+math:Manifold
+    a owl:Class ;
+    rdfs:subClassOf math:TopologicalSpace ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Manifold"@x-gmeow-english ;
+    skos:definition "A manifold: a topological space locally homeomorphic to ℝⁿ, Hausdorff and second-countable, covered by a math:Atlas of charts. A subclass of math:TopologicalSpace. It declares both its dimension through math:manifoldDimension and its structure kind through math:manifoldStructureKind (topological, smooth, complex, Riemannian, Lorentzian) — a manifold missing either is ill-formed (math:UnderspecifiedManifold)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:SmoothManifold
+    a owl:Class ;
+    rdfs:subClassOf math:Manifold ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Smooth Manifold"@x-gmeow-english ;
+    skos:definition "A smooth (C^∞) manifold: a manifold whose atlas has smooth transition maps, so differentiation is well-defined. A subclass of math:Manifold; its math:manifoldStructureKind is math:smoothStructure. The setting for tangent spaces, tensor fields, and differential geometry."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:ComplexManifold
+    a owl:Class ;
+    rdfs:subClassOf math:SmoothManifold ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Complex Manifold"@x-gmeow-english ;
+    skos:definition "A complex manifold: a manifold with holomorphic transition maps, locally modeled on ℂⁿ. A subclass of math:SmoothManifold (a complex structure refines a smooth one); its math:manifoldStructureKind is math:complexStructure. Its real dimension is twice its complex dimension."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:RiemannianManifold
+    a owl:Class ;
+    rdfs:subClassOf math:SmoothManifold ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Riemannian Manifold"@x-gmeow-english ;
+    skos:definition "A Riemannian manifold: a smooth manifold with a positive-definite math:MetricTensor giving lengths and angles. A subclass of math:SmoothManifold; its math:manifoldStructureKind is math:riemannianStructure and its metric's math:metricSignature is (n, 0). The setting of curvature, geodesics, and classical differential geometry."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:LorentzianManifold
+    a owl:Class ;
+    rdfs:subClassOf math:SmoothManifold ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Lorentzian Manifold"@x-gmeow-english ;
+    skos:definition "A Lorentzian manifold: a smooth manifold with a metric tensor of signature (1, n−1) (or (n−1, 1)) — one timelike and n−1 spacelike directions. A subclass of math:SmoothManifold (a pseudo-Riemannian manifold, sibling to math:RiemannianManifold, not a subclass of it since the metric is indefinite); its math:manifoldStructureKind is math:lorentzianStructure. The math object a physics slice builds spacetime on — the metric and manifold stay here on the math side; spacetime, worldlines, and proper time are physics."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:ManifoldStructureKind
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Manifold Structure Kind"@x-gmeow-english ;
+    skos:definition "The structure kind a manifold carries: one of math:topologicalStructure, math:smoothStructure, math:complexStructure, math:riemannianStructure, or math:lorentzianStructure. A manifold declares exactly one through math:manifoldStructureKind; the kind fixes what is well-defined on it (continuity only, differentiation, holomorphy, a definite or indefinite metric)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+# --- Structure-kind individuals --------------------------------------------- #
+
+math:topologicalStructure
+    a owl:NamedIndividual , math:ManifoldStructureKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "topological"@x-gmeow-english ;
+    skos:definition "The topological structure kind: a manifold with only a topology — continuity is well-defined, differentiation is not. The weakest structure a math:Manifold can declare."@x-gmeow-english .
+
+math:smoothStructure
+    a owl:NamedIndividual , math:ManifoldStructureKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "smooth"@x-gmeow-english ;
+    skos:definition "The smooth (C^∞) structure kind: a manifold with smooth transition maps, on which differentiation, tangent spaces, and tensor fields are well-defined."@x-gmeow-english .
+
+math:complexStructure
+    a owl:NamedIndividual , math:ManifoldStructureKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "complex"@x-gmeow-english ;
+    skos:definition "The complex structure kind: a manifold with holomorphic transition maps, locally modeled on ℂⁿ."@x-gmeow-english .
+
+math:riemannianStructure
+    a owl:NamedIndividual , math:ManifoldStructureKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Riemannian"@x-gmeow-english ;
+    skos:definition "The Riemannian structure kind: a smooth manifold with a positive-definite metric tensor (signature (n, 0)) giving lengths and angles."@x-gmeow-english .
+
+math:lorentzianStructure
+    a owl:NamedIndividual , math:ManifoldStructureKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Lorentzian"@x-gmeow-english ;
+    skos:definition "The Lorentzian structure kind: a smooth manifold with an indefinite metric tensor of signature (1, n−1) — one timelike direction. The structure spacetime requires; it stays math-side."@x-gmeow-english .
+
+# --- Charts, atlases, and coordinate maps ----------------------------------- #
+
+math:Chart
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Chart"@x-gmeow-english ;
+    skos:definition "A chart (coordinate patch) on a manifold: it names the region it covers through math:chartDomain, the math:CoordinateMap taking that region to coordinates through math:coordinateMap, and the target coordinate space (ℝⁿ or ℂⁿ) through math:targetCoordinateSpace. A chart missing its domain, coordinate map, or target space is ill-formed (math:UnderspecifiedChart). Its coordinate map is a homeomorphism onto its image, and the target space's dimension must match the manifold's (math:DimensionMismatch)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Atlas
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Atlas"@x-gmeow-english ;
+    skos:definition "An atlas of a manifold: a covering family of charts (math:hasChart) whose domains cover the manifold, together with the transition maps φᵢ∘φⱼ⁻¹ on chart overlaps (math:transitionMap, reusing the landed math:functionComposition to express the composite). The transition maps' regularity (continuous, smooth, holomorphic) is what fixes the manifold's structure kind — the real mathematical content of an atlas, not just a bag of charts."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:CoordinateMap
+    a owl:Class ;
+    rdfs:subClassOf math:Function ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Coordinate Map"@x-gmeow-english ;
+    skos:definition "A coordinate map of a chart: a homeomorphism from the chart's domain onto an open subset of the target coordinate space, assigning coordinates to points. A subclass of math:Function, so it declares its math:domain (the chart region) and math:codomain (the coordinate space). Transition maps between charts are compositions of coordinate maps and their inverses."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+# --- Tangent spaces, tensor fields, and metrics ----------------------------- #
+
+math:TangentSpace
+    a owl:Class ;
+    rdfs:subClassOf math:VectorSpace ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Tangent Space"@x-gmeow-english ;
+    skos:definition "The tangent space T_pM at a point p of a manifold M: the vector space of tangent vectors at that point. A subclass of math:VectorSpace; it names its base point through math:tangentSpaceAt and its manifold through math:tangentSpaceOf, and its math:spaceDimension equals the manifold's math:manifoldDimension (math:DimensionMismatch otherwise). Tensor fields are sections over the tangent bundle — the disjoint union of the tangent spaces."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:TensorField
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Tensor Field"@x-gmeow-english ;
+    skos:definition "A tensor field on a manifold: an assignment of a tensor to each point, a section of a tensor bundle over the tangent spaces. Names the manifold it lives on through math:tensorFieldOn. A math:MetricTensor is the distinguished tensor field giving the geometry; vector fields and differential forms are other tensor fields."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:MetricTensor
+    a owl:Class ;
+    rdfs:subClassOf math:TensorField ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Metric Tensor"@x-gmeow-english ;
+    skos:definition "A metric tensor g: a symmetric bilinear form on each tangent space giving lengths and angles. A subclass of math:TensorField carrying a structured math:metricSignature (p, q) through math:metricSignature — positive-definite (q = 0) for a math:RiemannianManifold, indefinite with one timelike direction (p or q = 1) for a math:LorentzianManifold. The Lorentzian metric is the math object a physics slice needs for spacetime and stays math-side."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:MetricSignature
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Metric Signature"@x-gmeow-english ;
+    skos:definition "The signature (p, q) of a math:MetricTensor: the count of positive (math:signaturePositive) and negative (math:signatureNegative) eigenvalues of the metric. Structured, not an opaque string — Riemannian is (n, 0), Lorentzian is (1, n−1) or (n−1, 1), so 'exactly one timelike direction' is checkable against the manifold's structure kind. The sum p + q equals the manifold's dimension."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+# --- Geometry conformance failures ------------------------------------------ #
+
+math:UnderspecifiedManifold
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Underspecified Manifold"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:Manifold does not declare both its dimension (math:manifoldDimension) and its structure kind (math:manifoldStructureKind). A manifold that does not say how many dimensions and which structure it carries is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:UnderspecifiedChart
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Underspecified Chart"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:Chart does not name its domain (math:chartDomain), its coordinate map (math:coordinateMap), and its target coordinate space (math:targetCoordinateSpace). A chart that does not say what it covers, how it coordinatizes, and into which space is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:DimensionMismatch
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Dimension Mismatch"@x-gmeow-english ;
+    skos:definition "The failure raised when a geometric dimension does not agree: a math:Chart on an n-manifold whose math:targetCoordinateSpace does not have dimension n, a math:TangentSpace whose math:spaceDimension differs from its manifold's math:manifoldDimension, or a math:MetricSignature whose p + q does not equal the manifold's dimension. The analysis-geometry analogue of dimensional homogeneity — a silent-error class the charter forbids."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+# --- Geometry properties ---------------------------------------------------- #
+
+math:manifoldDimension
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "manifold dimension"@x-gmeow-english ;
+    skos:definition "The dimension of a math:Manifold — the n such that it is locally homeomorphic to ℝⁿ. Domain math:Manifold, range xsd:nonNegativeInteger (stated in prose). Every manifold declares exactly one; a manifold without a dimension is ill-formed (math:UnderspecifiedManifold). A chart's target space and a tangent space must match it (math:DimensionMismatch)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:manifoldStructureKind
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "manifold structure kind"@x-gmeow-english ;
+    skos:definition "Relates a math:Manifold to the math:ManifoldStructureKind it carries — topological, smooth, complex, Riemannian, or Lorentzian. Domain math:Manifold, range math:ManifoldStructureKind (stated in prose). Every manifold declares exactly one; a manifold without a structure kind is ill-formed (math:UnderspecifiedManifold)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:spaceDimension
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "space dimension"@x-gmeow-english ;
+    skos:definition "The dimension of a coordinate space, vector space, or math:TangentSpace — distinct from the physical math:hasDimension (an SI dimension). Domain a math:Set or math:VectorSpace serving as a coordinate/tangent space, range xsd:nonNegativeInteger (stated in prose). A chart's math:targetCoordinateSpace and a math:TangentSpace carry it; it must equal the manifold's math:manifoldDimension (math:DimensionMismatch)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:hasChart
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "has chart"@x-gmeow-english ;
+    skos:definition "Relates a math:Manifold or math:Atlas to a math:Chart covering part of it. Domain a math:Manifold or math:Atlas, range math:Chart (stated in prose). An atlas is the covering family of charts named through this property."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:chartDomain
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "chart domain"@x-gmeow-english ;
+    skos:definition "Relates a math:Chart to the region of the manifold it covers — an open subset, or the whole manifold for a global chart. Domain math:Chart, range a math:TopologicalSpace or math:OpenSet (stated in prose). Every chart names exactly one; a chart without it is ill-formed (math:UnderspecifiedChart)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:coordinateMap
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "coordinate map"@x-gmeow-english ;
+    skos:definition "Relates a math:Chart to its math:CoordinateMap — the homeomorphism assigning coordinates to points of its domain. Domain math:Chart, range math:CoordinateMap (stated in prose). Every chart names exactly one; a chart without it is ill-formed (math:UnderspecifiedChart)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:targetCoordinateSpace
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "target coordinate space"@x-gmeow-english ;
+    skos:definition "Relates a math:Chart to the coordinate space its map lands in — ℝⁿ for a real manifold, ℂⁿ for a complex one, carrying its math:spaceDimension. Domain math:Chart, range a math:Set or math:VectorSpace (stated in prose). Every chart names exactly one; its dimension must equal the manifold's (math:DimensionMismatch); a chart without it is ill-formed (math:UnderspecifiedChart)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:transitionMap
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "transition map"@x-gmeow-english ;
+    skos:definition "Relates a math:Atlas to a transition map φᵢ∘φⱼ⁻¹ on a chart overlap — a math:Function expressed as a composition (math:functionComposition / math:compositionOuter / math:compositionInner) of one chart's coordinate map with another's inverse. Domain math:Atlas, range math:Function (stated in prose). The transition maps' regularity fixes the manifold's structure kind."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:metricTensor
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "metric tensor"@x-gmeow-english ;
+    skos:definition "Relates a math:RiemannianManifold or math:LorentzianManifold to its math:MetricTensor. Domain a math:Manifold, range math:MetricTensor (stated in prose). The metric gives the manifold its lengths, angles, and — for a Lorentzian metric — its causal structure."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:tensorFieldOn
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "tensor field on"@x-gmeow-english ;
+    skos:definition "Relates a math:TensorField to the math:Manifold it is a field on. Domain math:TensorField, range math:Manifold (stated in prose). Every tensor field names the manifold it lives over."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:tangentSpaceAt
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "tangent space at"@x-gmeow-english ;
+    skos:definition "Relates a math:TangentSpace to the point of the manifold it is the tangent space at — the p in T_pM. Domain math:TangentSpace, range a point (stated in prose). A tangent space is at a point; naming it makes the tangent bundle's fibres explicit."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:tangentSpaceOf
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "tangent space of"@x-gmeow-english ;
+    skos:definition "Relates a math:TangentSpace to the math:Manifold it is a tangent space of. Domain math:TangentSpace, range math:Manifold (stated in prose). Its math:spaceDimension must equal that manifold's math:manifoldDimension (math:DimensionMismatch)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:metricSignature
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "metric signature"@x-gmeow-english ;
+    skos:definition "Relates a math:MetricTensor to its math:MetricSignature (p, q). Domain math:MetricTensor, range math:MetricSignature (stated in prose). Structured, not an opaque string, so a Lorentzian metric's 'exactly one timelike direction' is checkable against the manifold's structure kind."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:signaturePositive
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "signature positive"@x-gmeow-english ;
+    skos:definition "The count p of positive eigenvalues (spacelike directions in the +−−− convention) of a math:MetricSignature. Domain math:MetricSignature, range xsd:nonNegativeInteger (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:signatureNegative
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "signature negative"@x-gmeow-english ;
+    skos:definition "The count q of negative eigenvalues (timelike directions in the +−−− convention) of a math:MetricSignature. Domain math:MetricSignature, range xsd:nonNegativeInteger (stated in prose). A Lorentzian signature has exactly one negative (or, dually, exactly one positive) — the timelike direction spacetime is built on."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .

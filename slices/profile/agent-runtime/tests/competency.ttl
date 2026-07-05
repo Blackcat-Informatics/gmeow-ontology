@@ -1,0 +1,43 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Cross-slice conformance corpus for the agent-runtime profile, executed by the
+# native Rust slice-test harness (crates/slicetest) over the full merged ontology
+# (asserted lane), overlaying the fixture via gmeow:cqDataFile. This is where the
+# profile EARNS its selection: the true end-to-end resolution and the
+# projection-agreement gate that reach the durable gmeow:SubjectLineage need BOTH
+# extensions/model-serving and core/inhabitation present — which is exactly what
+# this profile composes. The profile itself mints nothing (Principle 16); it only
+# proves that the composition works.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/agent-runtime/tests/> .
+@prefix exd:   <https://blackcatinformatics.ca/gmeow/examples/agent-runtime/> .
+
+# --- CQ6 (true end-to-end) + projection agreement across the two slices --------
+# The output resolves to its durable subject LINEAGE both by the flat
+# gmeow:generatedForSubject shortcut and by walking the full cross-slice canon
+# (→ session → sessionSubjectStage → stage → stageOfLineage → lineage). RowsExact
+# pins both columns to the SAME lineage IRI: the shortcut equals the collapse of
+# the canon, and the collapse reaches the durable subject only because
+# core/inhabitation is composed alongside model-serving here.
+ex:cqEndToEndAgreement a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/profile/agent-runtime/queries/competency/end-to-end.rq" ;
+    gmeow:cqProject "slices/extensions/model-serving/queries/project/upper-projection.rq" ;
+    gmeow:cqDataFile "tests/end-to-end.ttl" ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqEndToEndShape ;
+    gmeow:cqRationale "The agent-runtime profile must resolve an output to its DURABLE subject and prove the fast path is honest. Over end-to-end.ttl the flat gmeow:generatedForSubject (ex:lillithLineage) equals the full cross-slice collapse output → invocation → session → gmeow:sessionSubjectStage → gmeow:stageOfLineage → ex:lillithLineage. Pinning shortcut and audit columns to the same gmeow:SubjectLineage is the executable proof that the projection and the canon commute (Principle 7) AND that the model-serving → inhabitation composition resolves end to end — a resolution impossible in the standalone model-serving slice, whose gmeow:sessionSubjectStage is open-range." ;
+    gmeow:cqExpectRow ex:cqEndToEndRow .
+
+ex:cqEndToEndShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "shortcutSubject" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:declaresColumn
+        [ logic:columnVariable "auditSubject" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:cqEndToEndRow a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "shortcutSubject" ; gmeow:cellValueIri exd:lillithLineage ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "auditSubject" ; gmeow:cellValueIri exd:lillithLineage ] .

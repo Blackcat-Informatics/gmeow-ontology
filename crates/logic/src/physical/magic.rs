@@ -99,7 +99,7 @@ impl Adorn {
 /// A `Const("<iri>")` → [`EvalTerm::ConstNamed`] (angle brackets stripped); a `Var(v)` →
 /// `EvalTerm::Var("?v")` (the engine's variable surface carries a leading `?`, matching
 /// `parse_eval_rules`); a `Num` is an arithmetic operand the native core does not carry.
-fn term_of(t: &QTerm) -> Result<EvalTerm, NativeOutcome<AnswerSet>> {
+fn term_of(t: &QTerm) -> Result<EvalTerm, UnsupportedKind> {
     match t {
         QTerm::Const(c) => {
             let iri = c
@@ -110,15 +110,19 @@ fn term_of(t: &QTerm) -> Result<EvalTerm, NativeOutcome<AnswerSet>> {
             Ok(EvalTerm::ConstNamed(iri.to_owned()))
         }
         QTerm::Var(v) => Ok(EvalTerm::Var(format!("?{v}"))),
-        QTerm::Num(_) => Err(NativeOutcome::Unsupported(UnsupportedKind::Arithmetic)),
+        QTerm::Num(_) => Err(UnsupportedKind::Arithmetic),
     }
 }
 
 /// Convert one binary `QAtom` to an [`EvalAtom`] (predicate angle brackets already absent
 /// in `QAtom::pred`), or report the gap.
-fn atom_of(atom: &QAtom) -> Result<EvalAtom, NativeOutcome<AnswerSet>> {
+///
+/// The `Err` carries just the [`UnsupportedKind`]; the caller wraps it in the
+/// `NativeOutcome::Unsupported` gap it returns (keeping the answer-sized outcome off the
+/// `Err` path, which would otherwise bloat every `?`-returning result).
+fn atom_of(atom: &QAtom) -> Result<EvalAtom, UnsupportedKind> {
     if atom.args.len() != 2 {
-        return Err(NativeOutcome::Unsupported(UnsupportedKind::NonBinaryAtom));
+        return Err(UnsupportedKind::NonBinaryAtom);
     }
     // `atom.pred` is already a validated predicate IRI surface; carry it directly.
     let predicate = atom.pred.clone();
@@ -472,13 +476,22 @@ fn project_answers(facts: &[crate::rule_ir::Fact], goal: &QAtom, goal_pred: &str
 /// is a declared gap ([`NativeOutcome::Unsupported`]); the caller routes such requests to
 /// an oracle (no-optionality).
 ///
-/// # Budget precondition
+/// # Budget semantics
 ///
-/// This engine governs only `budget.max_answers` (a sound post-fixpoint truncation); it
-/// has no step governor. A `budget.max_steps` request is a routing decision the dispatch
-/// layer must resolve BEFORE calling here (it demotes such queries to the step-honouring
-/// fallback). Reaching this function with `max_steps` set is therefore a caller-contract
-/// violation, asserted below rather than silently ignored.
+/// This engine governs BOTH budget fields:
+///
+/// - `budget.max_steps` — a step/derivation budget honoured DURING the bottom-up fixpoint
+///   ([`crate::physical::seminaive::evaluate`]).  Exhaustion stamps
+///   [`BudgetStatus::Exhausted`] on the answer; the returned bindings are a sound
+///   (FactKey-ordered) partial slice, never a wrong verdict.  The demand-transformed goal
+///   predicate is the TOP stratum (everything is demanded toward it), so a step cut always
+///   leaves the goal unsaturated — `max_steps` exhaustion is `Exhausted`, and the goal is
+///   `Ok`-complete precisely when the fixpoint runs to its natural end (including the
+///   pure-EDB case, where no derivation fires and the answer is complete under any budget).
+/// - `budget.max_answers` — a sound post-fixpoint truncation stamping [`BudgetStatus::Partial`].
+///
+/// When BOTH fire, the answer cap takes precedence (`Partial`), matching the reference
+/// oracle ([`crate::reference_resolver`]'s `budget_exceeded`/`resolve_conjunct`).
 ///
 /// # Errors
 ///
@@ -490,15 +503,6 @@ pub(crate) fn resolve_native(
     program: &QProgram,
     budget: &Budget,
 ) -> Result<NativeOutcome<AnswerSet>, String> {
-    // Contract: step-budgeted queries are demoted by the router before reaching the
-    // native engine, which cannot honour `max_steps`. Fail loudly if that invariant is
-    // ever broken by a direct caller instead of returning a budget-blind answer.
-    debug_assert!(
-        budget.max_steps.is_none(),
-        "resolve_native must not receive a max_steps budget; the dispatch router demotes \
-         step-budgeted queries to the step-honouring fallback",
-    );
-
     // (0) Gate cut / arithmetic (reuse the structural detectors the dispatch gate uses).
     if profile_gate::has_cut(program) {
         return Ok(NativeOutcome::Unsupported(UnsupportedKind::Cut));
@@ -531,14 +535,14 @@ pub(crate) fn resolve_native(
         }
         let head = match atom_of(&r.head) {
             Ok(a) => a,
-            Err(gap) => return Ok(gap),
+            Err(kind) => return Ok(NativeOutcome::Unsupported(kind)),
         };
         let mut body: Vec<EvalAtom> = Vec::new();
         for lit in &r.body {
             if let QBodyLit::Atom(a) = lit {
                 match atom_of(a) {
                     Ok(ea) => body.push(ea),
-                    Err(gap) => return Ok(gap),
+                    Err(kind) => return Ok(NativeOutcome::Unsupported(kind)),
                 }
             }
         }
@@ -555,7 +559,7 @@ pub(crate) fn resolve_native(
     // (2) Compute the goal adornment and magic-transform.
     let goal_atom = match atom_of(goal) {
         Ok(a) => a,
-        Err(gap) => return Ok(gap),
+        Err(kind) => return Ok(NativeOutcome::Unsupported(kind)),
     };
     let adorn = goal_adornment(goal);
     let transformed = magic_transform(&rules, &goal_atom, adorn);
@@ -568,40 +572,50 @@ pub(crate) fn resolve_native(
         let fact = seed_to_fact(seed)?;
         edb.insert(&fact.predicate, fact.subject, fact.object);
     }
-    let facts = match evaluate(edb, &transformed.rules)? {
-        NativeOutcome::Decided(facts) => facts,
-        NativeOutcome::Unsupported(kind) => {
-            // A demand transform that breaks stratification is the documented gap kind;
-            // surface any non-stratifiable transform under that name.
-            let kind = match kind {
-                UnsupportedKind::NonStratifiable => UnsupportedKind::DemandBreaksStratification,
-                other => other,
-            };
-            return Ok(NativeOutcome::Unsupported(kind));
-        }
-    };
+    // The step/derivation budget is honoured DURING the fixpoint: `Exhausted` on a cut,
+    // `Ok` on a natural fixpoint (including the pure-EDB case, where no rule fires).
+    let (facts, fixpoint_status, frontier) =
+        match evaluate(edb, &transformed.rules, budget.max_steps)? {
+            NativeOutcome::Decided(budgeted) => {
+                // Surface the governor's completion frontier (which strata / predicates are
+                // settled) on the answer instead of dropping it: an `Exhausted` backward goal
+                // is incomplete, and the caller reads `completed < total` to tell that from a
+                // conclusive result.
+                let frontier = budgeted.frontier();
+                (budgeted.rows, budgeted.status, frontier)
+            }
+            NativeOutcome::Unsupported(kind) => {
+                // A demand transform that breaks stratification is the documented gap kind;
+                // surface any non-stratifiable transform under that name.
+                let kind = match kind {
+                    UnsupportedKind::NonStratifiable => UnsupportedKind::DemandBreaksStratification,
+                    other => other,
+                };
+                return Ok(NativeOutcome::Unsupported(kind));
+            }
+        };
 
     // (4) Project the goal predicate's derived tuples into bindings.
     let mut bindings = project_answers(&facts, goal, goal_atom.predicate.as_str());
 
-    // (5) Budget semantics — max_answers truncation only.  The native engine runs to
-    //     fixpoint; it has no step governor.  Step-budget queries (max_steps.is_some())
-    //     are demoted at the dispatch layer before reaching here, so only max_answers
-    //     applies at this point.
-    let mut status = BudgetStatus::Ok;
+    // (5) Budget semantics — compose the step governor (fixpoint `Exhausted`) with the
+    //     post-fixpoint `max_answers` truncation (`Partial`).  Precedence follows the
+    //     reference oracle: when the answer cap is reached, `Partial` takes precedence
+    //     even if the step budget also fired; otherwise a step cut stays `Exhausted`.
+    let mut status = fixpoint_status;
     if let Some(max_a) = budget.max_answers {
         // Deterministic truncation: canonicalize first so the kept prefix is stable.
         let mut tmp = AnswerSet {
             bindings: bindings.clone(),
             status: BudgetStatus::Ok,
             preservation: crate::result::PreservationClaim::exact(),
+            frontier: crate::query_ir::CompletionFrontier::empty(),
         };
         tmp.canonicalize();
-        if tmp.bindings.len() > max_a {
+        if tmp.bindings.len() >= max_a && !tmp.bindings.is_empty() {
+            // The oracle stamps Partial the moment it reaches (or exceeds) max_answers;
+            // the answer cap overrides a concurrent step `Exhausted`.
             tmp.bindings.truncate(max_a);
-            status = BudgetStatus::Partial;
-        } else if tmp.bindings.len() == max_a && !tmp.bindings.is_empty() {
-            // The oracle stamps Partial the moment it reaches exactly max_answers.
             status = BudgetStatus::Partial;
         }
         bindings = tmp.bindings;
@@ -611,7 +625,37 @@ pub(crate) fn resolve_native(
         bindings,
         status,
         preservation: crate::result::PreservationClaim::exact(),
+        frontier,
     };
+
+    // (6) Frontier-aware conclusive-`neither` consult. When the fixpoint was step-cut
+    //     (`Exhausted`) yet the GOAL predicate's stratum reached its natural fixpoint —
+    //     its least-model extension is FINAL, recorded in `saturated_preds` under the
+    //     bare-IRI head name `seminaive` inserts (`rule.head.predicate.as_str()`), which
+    //     is exactly `goal_atom.predicate.as_str()` for the goal relation's modified
+    //     rules — an EMPTY witness is a sound negative answer: the conclusive four-valued
+    //     `neither`, NOT the `undetermined` of an unfinished search. So the answer is
+    //     complete-for-fragment and its status collapses to `Ok`.
+    //
+    //     In the present positive-Horn / stratified-negation backward fragment the goal
+    //     predicate is the ROOT of the demand transform (every demanded predicate is
+    //     reachable FROM it), so it is at the maximal demanded stratum: it saturates only
+    //     when the whole demanded run completes, at which point `status` is already `Ok`
+    //     and this guard is a correct no-op. The consult is nonetheless PRESENT and
+    //     correct so that any future fragment which can settle the goal predicate under a
+    //     global (multi-world) cut yields the sound `neither` rather than over-claiming
+    //     `undetermined`. A `Partial` (answer-cap) status is only ever set on a NON-empty
+    //     witness, so the `is_empty()` guard also keeps this from touching `Partial`.
+    if answer.status == BudgetStatus::Exhausted
+        && answer.bindings.is_empty()
+        && answer
+            .frontier
+            .saturated_preds
+            .contains(goal_atom.predicate.as_str())
+    {
+        answer.status = BudgetStatus::Ok;
+    }
+
     answer.canonicalize();
     Ok(NativeOutcome::Decided(answer))
 }
@@ -735,6 +779,49 @@ mod tests {
             "missing d: {ys:?}"
         );
         assert_eq!(native.bindings.len(), 3);
+    }
+
+    // ── GAP B: the frontier-aware conclusive-`neither` consult ───────────────────
+    //
+    // A 0-step budget cuts the `ancestor` fixpoint before ANY derivation: the goal
+    // predicate's stratum never saturates. An empty witness is therefore genuinely
+    // UNDETERMINED (the search was cut mid-fixpoint), NOT the conclusive four-valued
+    // `neither`. The consult must NOT fire — the answer stays `Exhausted`. This is the
+    // usual recursive-goal case the doc calls out: the goal predicate is the ROOT of the
+    // demand transform, so it settles only when the whole run completes (then the status
+    // is already `Ok`), and can never be settled on an `Exhausted` run. The guard is
+    // present and correct, and this test proves it correctly does NOT over-collapse.
+
+    #[test]
+    fn magic_backward_exhausted_recursive_goal_is_not_over_collapsed() {
+        let (store, world_nn) = tc_world();
+        let foreign = WorldStoreForeign::from_world(&store, W, PROFILE).unwrap();
+        let prog = tc_program(); // ?- ancestor(a, Y)
+        let budget = Budget {
+            max_answers: None,
+            max_steps: Some(0), // cut before any ancestor derivation
+        };
+
+        let native = decided(resolve_native(&foreign, &world_nn, &prog, &budget).unwrap());
+
+        assert_eq!(
+            native.status,
+            BudgetStatus::Exhausted,
+            "a 0-step cut mid-search is Exhausted (undetermined), not a conclusive Ok"
+        );
+        assert!(
+            native.bindings.is_empty(),
+            "no derivation committed ⇒ empty witness"
+        );
+        // The consult's precondition is the goal predicate being SETTLED. It is the root of
+        // the demand transform and its stratum was cut, so it is NOT in the settled
+        // frontier — the guard therefore correctly does not fire.
+        let goal_pred = format!("{BASE}ancestor");
+        assert!(
+            !native.frontier.saturated_preds.contains(&goal_pred),
+            "the cut goal predicate must NOT be reported settled: {:?}",
+            native.frontier.saturated_preds
+        );
     }
 
     // ── Test 3a: bb (both-bound) ground goal parity ──────────────────────────────
@@ -926,8 +1013,8 @@ mod tests {
             let f = seed_to_fact(seed).unwrap();
             edb.insert(&f.predicate, f.subject, f.object);
         }
-        let facts = match evaluate(edb, &transformed.rules).unwrap() {
-            NativeOutcome::Decided(f) => f,
+        let facts = match evaluate(edb, &transformed.rules, None).unwrap() {
+            NativeOutcome::Decided(budgeted) => budgeted.rows,
             other => panic!("expected Decided, got {other:?}"),
         };
 
@@ -1055,5 +1142,116 @@ mod tests {
             native.status, reference.status,
             "status parity under budget"
         );
+    }
+
+    // ── Budget: max_steps (step/derivation governor) ─────────────────────────────
+
+    /// A step budget below the completion cost stamps `Exhausted` and returns a SOUND
+    /// SUBSET of the unbounded answers — never a wrong verdict, never an answer the full
+    /// model does not contain.
+    #[test]
+    fn magic_budget_max_steps_exhausts_with_sound_subset() {
+        let (store, world_nn) = tc_world();
+        let foreign = WorldStoreForeign::from_world(&store, W, PROFILE).unwrap();
+        let prog = tc_program();
+
+        let unbounded =
+            decided(resolve_native(&foreign, &world_nn, &prog, &Budget::default()).unwrap());
+        assert_eq!(unbounded.status, BudgetStatus::Ok);
+        let full: BTreeSet<String> = unbounded.bindings.iter().map(|b| b["Y"].clone()).collect();
+        assert_eq!(full.len(), 3, "a→b→c→d yields ancestors {{b,c,d}}");
+
+        let budget = Budget {
+            max_steps: Some(1),
+            ..Default::default()
+        };
+        let cut = decided(resolve_native(&foreign, &world_nn, &prog, &budget).unwrap());
+        assert_eq!(
+            cut.status,
+            BudgetStatus::Exhausted,
+            "a 1-step budget cannot reach the 3-answer fixpoint ⇒ Exhausted"
+        );
+        for b in &cut.bindings {
+            assert!(
+                full.contains(&b["Y"]),
+                "every budget-cut answer must be sound (present in the full model): {b:?}"
+            );
+        }
+        assert!(
+            cut.bindings.len() < full.len(),
+            "the cut answer set is a strict subset of the full model"
+        );
+    }
+
+    /// A step cut is DETERMINISTIC on the backward leg: the same intermediate budget
+    /// yields byte-identical bindings and status run-to-run (the fixpoint cut is the Nth
+    /// FactKey-sorted committed winner, and `project_answers`+`canonicalize` is a
+    /// deterministic function of the fact cut).
+    #[test]
+    fn magic_budget_max_steps_is_deterministic() {
+        let (store, world_nn) = tc_world();
+        let foreign = WorldStoreForeign::from_world(&store, W, PROFILE).unwrap();
+        let prog = tc_program();
+        let budget = Budget {
+            max_steps: Some(2),
+            ..Default::default()
+        };
+        let run1 = decided(resolve_native(&foreign, &world_nn, &prog, &budget).unwrap());
+        let run2 = decided(resolve_native(&foreign, &world_nn, &prog, &budget).unwrap());
+        assert_eq!(run1.status, run2.status, "status is deterministic");
+        assert_eq!(
+            run1.bindings, run2.bindings,
+            "the backward-leg budget cut is byte-identical run-to-run"
+        );
+    }
+
+    /// When BOTH budgets fire, the answer cap takes precedence (`Partial`), matching the
+    /// reference oracle — a step `Exhausted` does not override a reached `max_answers`.
+    #[test]
+    fn magic_budget_max_steps_and_max_answers_partial_precedence() {
+        let (store, world_nn) = tc_world();
+        let foreign = WorldStoreForeign::from_world(&store, W, PROFILE).unwrap();
+        let prog = tc_program();
+        // A generous step budget so the fixpoint completes, then a max_answers cap of 1.
+        let budget = Budget {
+            max_steps: Some(1_000_000),
+            max_answers: Some(1),
+        };
+        let native = decided(resolve_native(&foreign, &world_nn, &prog, &budget).unwrap());
+        assert_eq!(native.bindings.len(), 1, "capped at 1 answer");
+        assert_eq!(
+            native.status,
+            BudgetStatus::Partial,
+            "the answer cap takes precedence over any step budget"
+        );
+    }
+
+    /// A pure-EDB goal is `Ok`-complete under ANY step budget, including `max_steps = 0`:
+    /// no rule fires (the goal predicate is EDB, i.e. the settled stratum 0), so the
+    /// answer needs no derivation.  This is the frontier win at the query surface — the
+    /// reference oracle would stamp `Exhausted` at 0 (it counts the EDB lookup as a step),
+    /// but native honestly reports a complete answer.
+    #[test]
+    fn magic_pure_edb_goal_is_ok_under_zero_step_budget() {
+        let (store, world_nn) = tc_world();
+        let foreign = WorldStoreForeign::from_world(&store, W, PROFILE).unwrap();
+        // Goal is the EDB predicate parentOf; the program carries NO rules.
+        let src = format!(
+            ":- prefix(ex, '{BASE}').\n\
+             ?- ex:parentOf(ex:a, Y).\n"
+        );
+        let prog = parse_query_program(&src).unwrap();
+        let budget = Budget {
+            max_steps: Some(0),
+            ..Default::default()
+        };
+        let native = decided(resolve_native(&foreign, &world_nn, &prog, &budget).unwrap());
+        assert_eq!(
+            native.status,
+            BudgetStatus::Ok,
+            "a pure-EDB goal derives nothing ⇒ complete under any budget"
+        );
+        assert_eq!(native.bindings.len(), 1, "parentOf(a, b)");
+        assert_eq!(native.bindings[0]["Y"], format!("<{BASE}b>"));
     }
 }

@@ -44,6 +44,12 @@ pub struct RunnerQuad {
     pub derivation_id: String,
     pub rule_iri: String,
     pub source_quad_ids: Vec<String>,
+    /// The native governor's PER-QUAD budget verdict (`ok` / `exhausted` / `partial`).
+    /// A quad whose predicate's stratum settled is `ok` (its extension is final) even when
+    /// the RUN exhausted; a quad from the cut / unreached strata is `exhausted`. Surfaced
+    /// into the `quad-status.json` golden (the only artifact that carries the per-quad
+    /// stamp — `materialized.nq` compares by graph isomorphism, with no status column).
+    pub budget_status: String,
 }
 
 /// One explanation skeleton, keyed by its target quad reifier (the match key the
@@ -90,12 +96,23 @@ pub struct ProjectionOutputs {
 pub struct CaseOutputs {
     pub case_id: String,
     pub materialized_nquads: String,
+    /// The per-quad budget-status golden (`[{quad, status}]`, deterministically sorted).
+    /// Surfaces the frontier-aware PER-QUAD stamp that `materialized_nquads` (compared by
+    /// graph isomorphism, no status column) cannot carry. Empty array when no quads.
+    pub materialized_quad_status: serde_json::Value,
     pub projections: ProjectionOutputs,
     pub explanations: Vec<ExplanationOut>,
     pub verdicts: serde_json::Value,
     pub certification: serde_json::Value,
     pub budget_status: String,
     pub incomplete: bool,
+    /// The native forward governor's completion frontier for this case's world
+    /// materialization: which strata / predicates are settled and how many derivations
+    /// were committed. Surfaced into `budget.json` (as `strata_completed` /
+    /// `strata_total` / `saturated`) ONLY when the case declares a step/derivation budget
+    /// (`max_steps` / `max_rule_firings`) — an ungoverned run reports the trivially
+    /// complete frontier, which adds no diagnostic signal.
+    pub frontier: gmeow_logic::query_ir::CompletionFrontier,
     /// `{query_stem: {"bindings": [...], "status": "...", "preservation": {...}}}` for
     /// each `queries/*.logic`.
     pub answers: BTreeMap<String, serde_json::Value>,
@@ -201,13 +218,14 @@ pub fn run_case(case_dir: &Path) -> Result<CaseOutputs, String> {
 
     // ── Materialization (+ explanations) ─────────────────────────────────────
     let input_nq = read_optional(case_dir, "input.nq")?;
-    let (quads, budget_status, incomplete, mut mat_preservation) = if profile.foundation_lowering {
-        materialize_foundation(&case_id, &input_nq, &profile)?
-    } else if profile.teleology_lowering {
-        materialize_teleology(&case_id, &input_nq, &profile)?
-    } else {
-        materialize_default(&case_id, &nemo_rules, &input_nq, &profile)?
-    };
+    let (quads, budget_status, incomplete, mut mat_preservation, mat_frontier) =
+        if profile.foundation_lowering {
+            materialize_foundation(&case_id, &input_nq, &profile)?
+        } else if profile.teleology_lowering {
+            materialize_teleology(&case_id, &input_nq, &profile)?
+        } else {
+            materialize_default(&case_id, &nemo_rules, &input_nq, &profile)?
+        };
     // Carry the full-FOL formula residue into the runtime preservation claim (maximal
     // information flow): a non-Horn formula that did not lower to an evaluable rule is
     // disclosed here as a SoundUnder construct, never silently absent. A clean (fully
@@ -227,6 +245,9 @@ pub fn run_case(case_dir: &Path) -> Result<CaseOutputs, String> {
 
     // ── N-Quads serialization + downstream artifacts ─────────────────────────
     let materialized_nquads = serialize::materialized_to_nquads(&quads);
+    // The per-quad budget stamp (frontier-aware): the ONLY artifact that carries which
+    // quads are conclusive (`ok`) versus cut (`exhausted`) under an exhausted run.
+    let materialized_quad_status = serialize::quad_status_to_json(&quads);
     // Materialization-mode status: every materializing world is `consistent`,
     // EXCEPT when the budget governor exhausted the chase — then the run is
     // `incomplete` (the external `Unknown`/budget-tripped branch). A clean
@@ -300,12 +321,14 @@ pub fn run_case(case_dir: &Path) -> Result<CaseOutputs, String> {
     Ok(CaseOutputs {
         case_id,
         materialized_nquads,
+        materialized_quad_status,
         projections,
         explanations,
         verdicts,
         certification,
         budget_status,
         incomplete,
+        frontier: mat_frontier,
         answers,
         preservation: serialize::preservation_to_json(&mat_preservation),
         correspondence_gates,
@@ -439,6 +462,8 @@ fn run_cl_roundtrip_case(case_id: &str, case_dir: &Path) -> Result<CaseOutputs, 
     Ok(CaseOutputs {
         case_id: case_id.to_string(),
         materialized_nquads: String::new(),
+        // A CL round-trip case does not materialize, so there are no per-quad stamps.
+        materialized_quad_status: serde_json::Value::Array(Vec::new()),
         projections: ProjectionOutputs {
             rdf,
             report_turtle: String::new(),
@@ -451,6 +476,8 @@ fn run_cl_roundtrip_case(case_id: &str, case_dir: &Path) -> Result<CaseOutputs, 
         certification: serde_json::json!({}),
         budget_status: "ok".to_string(),
         incomplete: false,
+        // A CL round-trip case does not materialize, so no governor ran.
+        frontier: gmeow_logic::query_ir::CompletionFrontier::empty(),
         answers: BTreeMap::new(),
         // A lossless round-trip is Exact by construction (the gate above proved it).
         preservation: serialize::preservation_to_json(&PreservationClaim::exact()),
@@ -475,6 +502,8 @@ fn empty_outputs(case_id: String) -> CaseOutputs {
     CaseOutputs {
         case_id,
         materialized_nquads: String::new(),
+        // An unsupported case is never evaluated, so there are no per-quad stamps.
+        materialized_quad_status: serde_json::Value::Array(Vec::new()),
         projections: ProjectionOutputs {
             rdf,
             report_turtle: String::new(),
@@ -487,6 +516,8 @@ fn empty_outputs(case_id: String) -> CaseOutputs {
         certification: serde_json::json!({}),
         budget_status: "ok".to_string(),
         incomplete: false,
+        // The program was never evaluated, so no governor ran.
+        frontier: gmeow_logic::query_ir::CompletionFrontier::empty(),
         answers: BTreeMap::new(),
         // The case was refused as unsupported and never evaluated — disclose
         // `{unsupported}` (the legalization floor), never a false `{exact}` that would
@@ -617,7 +648,16 @@ fn materialize_default(
     nemo_rules: &str,
     input_nq: &str,
     profile: &Profile,
-) -> Result<(Vec<RunnerQuad>, String, bool, PreservationClaim), String> {
+) -> Result<
+    (
+        Vec<RunnerQuad>,
+        String,
+        bool,
+        PreservationClaim,
+        gmeow_logic::query_ir::CompletionFrontier,
+    ),
+    String,
+> {
     let budget = profile.budget_params.clone().unwrap_or_default();
     let derived = materialize_routed(
         nemo_rules,
@@ -630,6 +670,7 @@ fn materialize_default(
     .map_err(|e| format!("case {case_id}: materialize failed: {e}"))?;
 
     let preservation = derived.preservation;
+    let frontier = derived.frontier;
     let exhausted = derived
         .quads
         .iter()
@@ -645,11 +686,14 @@ fn materialize_default(
             derivation_id: dq.derivation_id.as_str().to_string(),
             rule_iri: dq.rule_iri,
             source_quad_ids: dq.source_quad_ids,
+            // The frontier-aware per-quad stamp: a saturated-stratum quad stays `ok` even
+            // under an exhausted run; only cut/unreached-stratum quads carry `exhausted`.
+            budget_status: dq.budget_status.as_str().to_string(),
         })
         .collect();
 
     let status = if exhausted { "exhausted" } else { "ok" };
-    Ok((quads, status.to_string(), exhausted, preservation))
+    Ok((quads, status.to_string(), exhausted, preservation, frontier))
 }
 
 /// Foundation-lowering materialization via the native OntoUML evaluator. The
@@ -659,7 +703,16 @@ fn materialize_foundation(
     case_id: &str,
     input_nq: &str,
     profile: &Profile,
-) -> Result<(Vec<RunnerQuad>, String, bool, PreservationClaim), String> {
+) -> Result<
+    (
+        Vec<RunnerQuad>,
+        String,
+        bool,
+        PreservationClaim,
+        gmeow_logic::query_ir::CompletionFrontier,
+    ),
+    String,
+> {
     if profile.budget_params.is_some() {
         return Err(format!(
             "case {case_id}: foundation_lowering cases cannot declare budget_params — \
@@ -693,12 +746,22 @@ fn materialize_foundation(
                 derivation_id: q.derivation_id,
                 rule_iri: q.rule_iri,
                 source_quad_ids: q.source_quad_ids,
+                // The foundation chase runs to completion (no governor) ⇒ every quad `ok`.
+                budget_status: BudgetStatus::Ok.as_str().to_string(),
             })
             .collect()
     };
     // The foundation evaluator runs the stratified chase to completion — faithful,
     // nothing dropped, so the materialization is exact.
-    Ok((quads, "ok".to_string(), false, PreservationClaim::exact()))
+    Ok((
+        quads,
+        "ok".to_string(),
+        false,
+        PreservationClaim::exact(),
+        // The foundation evaluator runs the stratified chase to completion outside the
+        // native semi-naive governor, so it exposes no stratum frontier.
+        gmeow_logic::query_ir::CompletionFrontier::empty(),
+    ))
 }
 
 /// Teleology-lowering materialization via the native canonical-process teleology evaluator.
@@ -715,7 +778,16 @@ fn materialize_teleology(
     case_id: &str,
     input_nq: &str,
     profile: &Profile,
-) -> Result<(Vec<RunnerQuad>, String, bool, PreservationClaim), String> {
+) -> Result<
+    (
+        Vec<RunnerQuad>,
+        String,
+        bool,
+        PreservationClaim,
+        gmeow_logic::query_ir::CompletionFrontier,
+    ),
+    String,
+> {
     if profile.budget_params.is_some() {
         return Err(format!(
             "case {case_id}: teleology_lowering cases cannot declare budget_params — \
@@ -743,6 +815,8 @@ fn materialize_teleology(
                 derivation_id: q.derivation_id,
                 rule_iri: q.rule_iri,
                 source_quad_ids: q.source_quad_ids,
+                // The teleology evaluator runs to completion (no governor) ⇒ every quad `ok`.
+                budget_status: BudgetStatus::Ok.as_str().to_string(),
             })
             .collect();
         (quads, claim)
@@ -750,7 +824,14 @@ fn materialize_teleology(
     // The production teleology claim carries the runtime preservation judgment:
     // exact when no satisfiedBy edge was generated; SoundUnder (naming the dropped
     // GoalEvaluation factored axes) when the forward bridge fired.
-    Ok((quads, "ok".to_string(), false, claim))
+    Ok((
+        quads,
+        "ok".to_string(),
+        false,
+        claim,
+        // The teleology evaluator has no budget governor, so it exposes no frontier.
+        gmeow_logic::query_ir::CompletionFrontier::empty(),
+    ))
 }
 
 /// Produce one explanation skeleton per quad. Asserted quads get a trivial
@@ -811,6 +892,7 @@ fn resolve_answers(
     }
 
     let max_answers = budget.as_ref().and_then(|b| b.max_answers);
+    let max_steps = budget.as_ref().and_then(|b| b.max_steps);
     let mut answers = BTreeMap::new();
     for qfile in query_files {
         let stem = qfile
@@ -820,7 +902,14 @@ fn resolve_answers(
             .to_string();
         let qtext = std::fs::read_to_string(&qfile)
             .map_err(|e| format!("case {case_id}: cannot read query {stem}: {e}"))?;
-        let answer = resolve_query(case_id, world_nquads, &qtext, profile_str, max_answers)?;
+        let answer = resolve_query(
+            case_id,
+            world_nquads,
+            &qtext,
+            profile_str,
+            max_answers,
+            max_steps,
+        )?;
         answers.insert(stem, answer);
     }
     Ok(answers)
@@ -835,6 +924,7 @@ fn resolve_query(
     query_text: &str,
     profile_str: &str,
     max_answers: Option<u64>,
+    max_steps: Option<u64>,
 ) -> Result<serde_json::Value, String> {
     let err = |msg: String| format!("case {case_id}: query failed: {msg}");
 
@@ -881,15 +971,17 @@ fn resolve_query(
 
     let budget = Budget {
         max_answers: max_answers_usize,
-        max_steps: None,
+        max_steps,
     };
 
     // Counterfactual vs plain backward goal. Both carry a preservation
-    // claim disclosing what the target evaluated.
-    let (bindings_vec, status, preservation): (
+    // claim disclosing what the target evaluated; the dispatched backward goal also
+    // carries the native governor's completion frontier.
+    let (bindings_vec, status, preservation, frontier): (
         Vec<gmeow_logic::query_ir::Binding>,
         String,
         gmeow_logic::result::PreservationClaim,
+        gmeow_logic::query_ir::CompletionFrontier,
     ) = if gmeow_logic::counterfactual::is_counterfactual(&program) {
         let depth = program
             .counterfactual
@@ -907,7 +999,14 @@ fn resolve_query(
         .map_err(err)?;
         let status = cf.status_str().to_string();
         let preservation = cf.result.preservation.clone();
-        (std::mem::take(&mut cf.bindings), status, preservation)
+        // The counterfactual constructor runs its own bounded search, not the native
+        // semi-naive governor, so it exposes no stratum frontier.
+        (
+            std::mem::take(&mut cf.bindings),
+            status,
+            preservation,
+            gmeow_logic::query_ir::CompletionFrontier::empty(),
+        )
     } else {
         let foreign = WorldStoreForeign::from_world(&store, &world, profile_str).map_err(err)?;
         let answer = gmeow_logic::dispatch::dispatch_query(
@@ -924,6 +1023,7 @@ fn resolve_query(
             answer.bindings,
             answer.status.as_str().to_string(),
             preservation,
+            answer.frontier,
         )
     };
 
@@ -937,11 +1037,33 @@ fn resolve_query(
             serde_json::Value::Object(obj)
         })
         .collect();
-    Ok(serde_json::json!({
+    let mut answer_json = serde_json::json!({
         "bindings": bindings,
         "status": status,
         "preservation": serialize::preservation_to_json(&preservation),
-    }))
+    });
+    // Surface the completion frontier ONLY when the query declared a step budget
+    // (`max_steps`) — the frontier answers "which strata completed" precisely when a
+    // step budget could truncate the backward search. A pure `max_answers` cap
+    // (post-fixpoint truncation) or an ungoverned goal adds no frontier key.
+    if max_steps.is_some() {
+        let obj = answer_json
+            .as_object_mut()
+            .expect("json! object is always an object");
+        obj.insert(
+            "strata_completed".to_string(),
+            serde_json::json!(frontier.completed),
+        );
+        obj.insert(
+            "strata_total".to_string(),
+            serde_json::json!(frontier.total),
+        );
+        obj.insert(
+            "saturated".to_string(),
+            serde_json::json!(frontier.saturated_preds.iter().collect::<Vec<_>>()),
+        );
+    }
+    Ok(answer_json)
 }
 
 /// Whether a quad is an asserted (EDB) input fact rather than a derived one.

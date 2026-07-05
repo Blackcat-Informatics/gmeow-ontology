@@ -1,0 +1,263 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+# ─────────────────────────────────────────────────────────────────────────────
+# GMEOW Model-Serving Module (extension tier).
+#
+# A THIN, STANDALONE vocabulary for LLM operations — reusable by anyone modelling
+# model serving, with nothing to do with inhabitation (INHABITED-CONSUMER.md).
+# It gives the served model, its deployment, a runtime execution, and an agent
+# session each an EXPLICIT identity rather than collapsing them onto a single
+# gmeow:AwarenessTenure that differs only by granularity: a deployment binds an
+# artifact·service·host·endpoint·configuration·interval; a runtime execution is
+# an occurrent; awareness mode is a facet of a served agent, not a substitute for
+# either (INHABITED-RUNTIME-STACK.md).
+#
+# The de-conflation buys correctness at the cost of property-path length: tracing
+# an output to its durable subject is an 8–10 hop traversal (output → invocation
+# → execution → deployment → artifact; and invocation → session → configuration).
+# The flat runtime shortcut (gmeow:generatedForSubject / generatedUnderConfiguration)
+# is a COMPUTED collapse of that canonical path (Principle 12, generated not
+# authored) — the diagram commutes and a drift gate proves it (Task in slice
+# projection; INHABITED-COMPETENCY.md §Performance).
+#
+# Placement (Principle 16): depends ONLY on core (kernel, entities, ai, events,
+# provenance, awareness). gmeow:ModelArtifact is aligned to the software slice's
+# gmeow:Distribution BY REFERENCE (a sibling Kind under gmeow:InformationObject,
+# NOT rdfs:subClassOf gmeow:Distribution) — a range/subclass axiom is a real
+# dependency regardless of owl:imports, and an extension may not depend on another
+# extension. gmeow:ModelInvocation / gmeow:ToolCall / gmeow:usedTool /
+# logic:ActionSchema are REUSED at the instance level, never re-minted
+# (Principle 5); gmeow:usedCapability — the passive-capability discriminator of
+# CQ5 (an Activity USED an ActionSchema, as opposed to a delegated ToolCall) — is
+# minted here because the design names it but no slice had yet declared it.
+# Internal session order is a logic:Path resolved in the solver, never an asserted
+# nextInvocation chain (Principle 12).
+# ─────────────────────────────────────────────────────────────────────────────
+
+<https://blackcatinformatics.ca/gmeow/slices/model-serving>
+    a owl:Ontology ;
+    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
+    rdfs:comment "The model-serving topology: the served model artifact, its deployment (a relator binding artifact·service·host·endpoint·configuration·interval), the runtime execution (an occurrent), and the agent session (an event aggregate) — each with an explicit identity criterion rather than collapsed onto a gmeow:AwarenessTenure. Reusable beyond inhabitation; depends only on core. The multi-hop de-conflation path is projected flat for the hot path by computed, drift-gated upper-projections (Principle 12)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/model-serving> ;
+    rdfs:label "GMEOW Model-Serving Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Model-Serving Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxConfigBox ,
+        gmeow:boxTBox .
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Classes
+# ─────────────────────────────────────────────────────────────────────────────
+
+gmeow:AgentSession
+    a logic:Event ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/model-serving> ;
+    rdfs:label "Agent Session"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:Activity ;
+    skos:definition "A bounded interaction context for a subject — a gmeow:Activity aggregating the gmeow:ModelInvocation, gmeow:ToolCall, message, and retrieval events of one interaction via gmeow:subEventOf, over a session interval. Typed as an event aggregate, NOT a relator subclassing a situation (which would reproduce the foundational collision). It carries gmeow:sessionSubjectStage and gmeow:sessionConfiguration so an output traced through its invocations resolves to the durable subject and the active configuration."@x-gmeow-english ;
+    skos:example "ex:session-7 a gmeow:AgentSession ; gmeow:duringInterval ex:sessionWindow . ex:invocation-7 gmeow:subEventOf ex:session-7 ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid typing a session as a relator-and-situation (a relator cannot subclass a situation), and never assert an internal nextInvocation / nextSpan ordering edge — the order of its sub-events is a logic:Path resolved by the solver over gmeow:subEventOf + atTime (Principle 12)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxTBox ;
+    gmeow:howToUse "Mint the session, scope it with gmeow:duringInterval (Principle 11), relate its invocations / tool calls / episodes to it with gmeow:subEventOf, and bind the subject and active configuration with gmeow:sessionSubjectStage and gmeow:sessionConfiguration (both open-range so the slice stays standalone — type the targets at the instance level)."@x-gmeow-english ;
+    gmeow:useWhen "Use for one bounded interaction context — the aggregate of a subject's invocations, tool calls, and retrievals over a session interval; the anchor a memory package uses to relate an output back to the subject that produced it."@x-gmeow-english .
+
+gmeow:ModelArtifact
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/model-serving> ;
+    rdfs:label "Model Artifact"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    skos:definition "A served model as a concrete, content-digested information artifact — architecture, version, training cutoff, parameter count, context window. Aligned to the software slice's gmeow:Distribution of a gmeow:SoftwareProduct BY REFERENCE (a sibling gmeow:Kind under gmeow:InformationObject, the same parent gmeow:Distribution carries), NOT rdfs:subClassOf gmeow:Distribution — subclassing a term of another extension would make this extension depend on it (Principle 16). Distinct from the deployment (what serves it) and from any one runtime execution (an occurrent)."@x-gmeow-english ;
+    skos:example "ex:opus-artifact a gmeow:ModelArtifact ; rdfs:label \"claude-opus-4-8 @ 2026-01\"@x-gmeow-english ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid rdfs:subClassOf gmeow:Distribution (the software alignment rides mappings/equivalences.ttl BY REFERENCE, keeping the slice a DAG-legal extension → core), and avoid describing an artifact with gmeow:describesModel (functional → gmeow:SoftwareAgent, which would infer the artifact a SoftwareAgent) — use gmeow:describesModelArtifact."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxTBox ;
+    gmeow:howToUse "Mint one per content-digested served model; document it from a gmeow:ModelCard via gmeow:describesModelArtifact; bind it into a deployment with gmeow:deploymentArtifact; carry the software-slice correspondence to gmeow:Distribution in the mapping set, not as an axiom."@x-gmeow-english ;
+    gmeow:useWhen "Use for the artifact identity — WHAT runs, the specific served model an invocation ultimately traces to, distinct from the deployment that serves it and the execution that runs it."@x-gmeow-english .
+
+gmeow:ModelDeployment
+    a logic:Kind ,
+        owl:Class ;
+    logic:mediates gmeow:deploymentArtifact ,
+        gmeow:deploymentService ,
+        gmeow:deploymentHost ;
+    owl:disjointWith gmeow:Agent ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/model-serving> ;
+    rdfs:label "Model Deployment"@x-gmeow-english ;
+    rdfs:subClassOf logic:Relator ;
+    skos:definition "A served, callable realization of a model artifact — the relator binding an artifact, a service identity, a host / runtime, an endpoint, a configuration, an operator, a policy, and a serving interval. Distinct from the artifact (what runs) and from any one execution (an occurrent). Its serving mode over an interval is recorded as a FACET by a gmeow:AwarenessTenure(modeOnlineInference) whose gmeow:awarenessSubject is the deployment's service gmeow:SoftwareAgent, not by the deployment being a tenure."@x-gmeow-english ;
+    skos:example "ex:opusDeployment a gmeow:ModelDeployment ; gmeow:deploymentArtifact ex:opus-artifact ; gmeow:deploymentService ex:opusServiceAgent ; gmeow:deploymentHost ex:usEast1 ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid collapsing a deployment onto a gmeow:AwarenessTenure (a tenure records a processing MODE over an interval and carries none of the deployment's binding structure), and never attach gmeow:awarenessSubject to the deployment itself — it ranges over gmeow:Agent, so it attaches to the deployment's gmeow:deploymentService SoftwareAgent."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxTBox ;
+    gmeow:howToUse "Mint the deployment as the join of what serves the model: gmeow:deploymentArtifact (the ModelArtifact), gmeow:deploymentService (the acting SoftwareAgent), gmeow:deploymentHost (the runtime Entity), gmeow:deploymentEndpoint (the callable address); document it from a gmeow:ModelCard via gmeow:describesModelService; record its serving mode as an AwarenessTenure facet on its service agent."@x-gmeow-english ;
+    gmeow:useWhen "Use for the deployment identity — the served, callable realization that binds an artifact, service, host, endpoint, and interval; the endurant relator a runtime execution is an execution OF."@x-gmeow-english .
+
+gmeow:RuntimeExecution
+    a logic:Event ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/model-serving> ;
+    rdfs:label "Runtime Execution"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:Activity ;
+    skos:definition "A particular running of a deployment — an occurrent process within which gmeow:ModelInvocation events occur. Distinct from the deployment (an endurant relator) and the invocation (a single call). A gmeow:Activity, so it carries provenance and can bear a gmeow:usedCapability edge to the gmeow:ActionSchema it exercised (the passive-capability discriminator of CQ5)."@x-gmeow-english ;
+    skos:example "ex:execution-3 a gmeow:RuntimeExecution ; gmeow:executionOfDeployment ex:opusDeployment . ex:invocation-7 gmeow:invocationInExecution ex:execution-3 ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid conflating an execution with the single gmeow:ModelInvocation it hosts or with the endurant gmeow:ModelDeployment it runs (an execution is the occurrent between them), and never assert an internal ordering of its invocations — the order is a solver logic:Path (Principle 12)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxTBox ;
+    gmeow:howToUse "Mint one per running of a deployment; bind it to the deployment with gmeow:executionOfDeployment; relate the invocations it hosts with gmeow:invocationInExecution; attach a gmeow:usedCapability edge to a gmeow:ActionSchema when it exercises a passive internal capability."@x-gmeow-english ;
+    gmeow:useWhen "Use for the execution identity — a particular occurrent RUNNING of a deployment, the process within which invocations occur, distinct from the deployment and from any single call."@x-gmeow-english .
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Properties
+# ─────────────────────────────────────────────────────────────────────────────
+
+gmeow:deploymentArtifact
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:ModelDeployment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/model-serving> ;
+    rdfs:label "deployment artifact"@x-gmeow-english ;
+    rdfs:range gmeow:ModelArtifact ;
+    skos:definition "The served gmeow:ModelArtifact a gmeow:ModelDeployment realizes — the WHAT that the deployment makes callable. The de-conflation join execution → deployment → artifact bottoms out here."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox .
+
+gmeow:deploymentEndpoint
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:ModelDeployment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/model-serving> ;
+    rdfs:label "deployment endpoint"@x-gmeow-english ;
+    skos:definition "The callable address a gmeow:ModelDeployment is reached at. Open-range: an endpoint is an addressable resource whose typing is a modelling choice the producer makes, so the property imposes no range."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox .
+
+gmeow:deploymentHost
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:ModelDeployment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/model-serving> ;
+    rdfs:label "deployment host"@x-gmeow-english ;
+    rdfs:range gmeow:Entity ;
+    skos:definition "The host / runtime gmeow:Entity a gmeow:ModelDeployment serves on — the placement facet (a region, a cluster, a device) the deployment binds."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox .
+
+gmeow:deploymentService
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:ModelDeployment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/model-serving> ;
+    rdfs:label "deployment service"@x-gmeow-english ;
+    rdfs:range gmeow:SoftwareAgent ;
+    skos:definition "The acting service gmeow:SoftwareAgent a gmeow:ModelDeployment presents — the agent identity that acts, and the bearer of the serving-mode gmeow:AwarenessTenure (which cannot attach to the deployment relator or the execution event because gmeow:awarenessSubject ranges over gmeow:Agent)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox .
+
+gmeow:describesModelArtifact
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:ModelCard ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/model-serving> ;
+    rdfs:label "describes model artifact"@x-gmeow-english ;
+    rdfs:range gmeow:ModelArtifact ;
+    skos:definition "Relates a gmeow:ModelCard to the gmeow:ModelArtifact it documents — architecture, version, training cutoff, parameter count, context window, where those are artifact properties. Splits gmeow:describesModel (functional → gmeow:SoftwareAgent) so a documented artifact is not inferred to be a SoftwareAgent."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox .
+
+gmeow:describesModelService
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:ModelCard ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/model-serving> ;
+    rdfs:label "describes model service"@x-gmeow-english ;
+    rdfs:range gmeow:ModelDeployment ;
+    skos:definition "Relates a gmeow:ModelCard to the served gmeow:ModelDeployment it documents — provider, endpoint, rate limits, geographic placement, where those are deployment properties. The deployment-facing half of the ModelCard split."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox .
+
+gmeow:executionOfDeployment
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:RuntimeExecution ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/model-serving> ;
+    rdfs:label "execution of deployment"@x-gmeow-english ;
+    rdfs:range gmeow:ModelDeployment ;
+    skos:definition "Binds a gmeow:RuntimeExecution to the gmeow:ModelDeployment it is a running of — the execution → deployment hop of the de-conflation chain."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox .
+
+gmeow:generatedForSubject
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/model-serving> ;
+    rdfs:label "generated for subject"@x-gmeow-english ;
+    rdfs:comment "COMPUTED PROJECTION, generated not authored (Principle 12). Materialized by the projection CONSTRUCT queries/project/upper-projection.rq as the one-hop collapse of the multi-hop path output → gmeow:wasGeneratedBy → invocation → gmeow:subEventOf → session → gmeow:sessionSubjectStage → subject stage (and onward, where core/inhabitation is composed — the agent-runtime profile — gmeow:stageOfLineage → durable lineage, via the query's COALESCE that prefers the deeper lineage). The canonical nested situations remain the source of truth for deep audits; real-time recall reads this flat shortcut. Never hand-assert it in the authored corpus — the slice-test harness runs the projection over the canon (gmeow:cqProject) so the projection-agreement gate (tests/perf-recall.ttl + queries/competency/audit.rq) compares the MATERIALIZED shortcut against the collapse of the canon (Principle 7); the gate is non-circular precisely because the shortcut is produced by the rule, not typed by hand."@x-gmeow-english ;
+    skos:definition "The durable subject (stage, and in the profile its lineage) an output is FOR — the flat, materialized upper-projection of the de-conflation chain, so agent-memory recall need not walk the full 8–10 hop nested path. Open-range so the slice stays standalone: the terminus is a session's gmeow:sessionSubjectStage (a subject stage) here, extended to the inhabitation lineage in the agent-runtime profile."@x-gmeow-english ;
+    skos:example "ex:output gmeow:generatedForSubject ex:lillithStage .   # computed: = collapse(output → invocation → session → sessionSubjectStage)"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox .
+
+gmeow:generatedUnderConfiguration
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/model-serving> ;
+    rdfs:label "generated under configuration"@x-gmeow-english ;
+    rdfs:comment "COMPUTED PROJECTION, generated not authored (Principle 12). Materialized by the projection CONSTRUCT queries/project/upper-projection.rq as the one-hop collapse of output → gmeow:wasGeneratedBy → invocation → gmeow:subEventOf → session → gmeow:sessionConfiguration → active configuration. Never hand-assert it in the authored corpus; the slice-test harness runs the projection over the canon (gmeow:cqProject) so the projection-agreement gate compares the MATERIALIZED shortcut against the collapse of the canon (Principle 7), non-circularly."@x-gmeow-english ;
+    skos:definition "The active configuration an output was generated UNDER — the flat, materialized upper-projection of the session → configuration path, for fast recall without walking the nested situations. Open-range so the slice stays standalone."@x-gmeow-english ;
+    skos:example "ex:output gmeow:generatedUnderConfiguration ex:configA .   # computed: = collapse(output → invocation → session → sessionConfiguration)"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox .
+
+gmeow:invocationInExecution
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:ModelInvocation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/model-serving> ;
+    rdfs:label "invocation in execution"@x-gmeow-english ;
+    rdfs:range gmeow:RuntimeExecution ;
+    skos:definition "Binds a reused gmeow:ModelInvocation to the gmeow:RuntimeExecution within which it occurred — the invocation → execution hop of the de-conflation chain. The invocation itself is reused from the ai slice, never re-minted (Principle 5)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox .
+
+gmeow:sessionConfiguration
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:AgentSession ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/model-serving> ;
+    rdfs:label "session configuration"@x-gmeow-english ;
+    skos:definition "The active configuration in force over a gmeow:AgentSession — the session → configuration hop. Open-range (no rdfs:range) so the slice stays standalone and reusable: the target (e.g. an inhabitation gmeow:InhabitationConfiguration) is typed at the instance level, in the agent-runtime profile where both slices are present, not by a range axiom that would make this extension depend on another."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox .
+
+gmeow:sessionSubjectStage
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:AgentSession ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/model-serving> ;
+    rdfs:label "session subject stage"@x-gmeow-english ;
+    skos:definition "The subject stage a gmeow:AgentSession is on behalf of — the session → subject hop that lets an output trace to its durable subject. Open-range (no rdfs:range) so the slice stays standalone: the target (e.g. an inhabitation gmeow:SubjectStage) is typed at the instance level, in the agent-runtime profile, not by a cross-extension range axiom (Principle 16)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox .
+
+gmeow:usedCapability
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Activity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/model-serving> ;
+    rdfs:label "used capability"@x-gmeow-english ;
+    rdfs:range logic:ActionSchema ;
+    skos:definition "Relates a gmeow:Activity (a gmeow:ModelInvocation or a gmeow:RuntimeExecution) to the logic:ActionSchema — an internal function, library, or code path — it exercised PASSIVELY, with no delegation to another agent. The passive half of the CQ5 discriminator: a gmeow:usedCapability edge to a logic:ActionSchema is passive capability use, whereas a gmeow:ToolCall whose gmeow:usedTool points to a distinct gmeow:SoftwareAgent is delegation. Reuses the provenance 'used' pattern rather than minting a CapabilityExercise wrapper class (which would become an operational catch-all)."@x-gmeow-english ;
+    skos:example "ex:invocation-7 gmeow:usedCapability ex:sortSchema ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox .
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Value individuals
+# ─────────────────────────────────────────────────────────────────────────────
+
+gmeow:eventTypeAgentEpisode
+    a gmeow:EventType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/model-serving> ;
+    rdfs:label "agent episode"@x-gmeow-english ;
+    skos:definition "The event-kind VALUE (a gmeow:EventType individual, never a gmeow:Event subclass — Principle 9) marking a gmeow:Activity as an episode: a sub-aggregate of a gmeow:AgentSession, related to it via gmeow:subEventOf, grouping a coherent burst of invocations / tool calls within the session."@x-gmeow-english ;
+    skos:example "ex:episode-3 a gmeow:Activity ; gmeow:eventType gmeow:eventTypeAgentEpisode ; gmeow:subEventOf ex:session-7 ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxCBox .

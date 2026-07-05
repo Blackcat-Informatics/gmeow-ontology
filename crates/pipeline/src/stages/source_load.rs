@@ -198,9 +198,6 @@ pub fn authored_files(root: &Path) -> Result<Vec<PathBuf>, PipelineError> {
 pub fn module_files(root: &Path) -> Result<Vec<PathBuf>, PipelineError> {
     let mut out = Vec::new();
     let slices = root.join("slices");
-    if !slices.is_dir() {
-        return Ok(out);
-    }
     for group in sorted_dirs(&slices)? {
         for slice_dir in sorted_dirs(&group)? {
             let module = slice_dir.join("module.ttl");
@@ -227,12 +224,36 @@ pub fn manifest_files(root: &Path) -> Result<Vec<PathBuf>, PipelineError> {
     Ok(out)
 }
 
-fn ttl_files_in(dir: &Path) -> Result<Vec<PathBuf>, PipelineError> {
+/// Every `slices/<group>/<name>/manifest.ttl`, INCLUDING slices that have no
+/// `module.ttl` — the profile-tier pure-selection slices that mint nothing
+/// (Principle 16) and so carry only a manifest declaring their `sliceDependsOn`
+/// selection. `manifest_files` is deliberately module-gated (a slice that loads
+/// nothing has no composed fold); the profiles stage uses THIS to discover the
+/// selection-only profile slices whose dependency closure it emits.
+pub fn all_manifest_files(root: &Path) -> Result<Vec<PathBuf>, PipelineError> {
     let mut out = Vec::new();
-    if !dir.is_dir() {
-        return Ok(out);
+    let slices = root.join("slices");
+    for group in sorted_dirs(&slices)? {
+        for slice_dir in sorted_dirs(&group)? {
+            let manifest = slice_dir.join("manifest.ttl");
+            if manifest.is_file() {
+                out.push(manifest);
+            }
+        }
     }
-    for entry in std::fs::read_dir(dir)? {
+    Ok(out)
+}
+
+fn ttl_files_in(dir: &Path) -> Result<Vec<PathBuf>, PipelineError> {
+    // Same NotFound-is-empty contract as `sorted_dirs`: an absent directory yields an
+    // empty listing, any other IO error hard-fails.
+    let mut out = Vec::new();
+    let entries = match std::fs::read_dir(dir) {
+        Ok(entries) => entries,
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(out),
+        Err(e) => return Err(e.into()),
+    };
+    for entry in entries {
         let path = entry?.path();
         if path.extension().is_some_and(|x| x == "ttl") {
             out.push(path);
@@ -243,10 +264,17 @@ fn ttl_files_in(dir: &Path) -> Result<Vec<PathBuf>, PipelineError> {
 }
 
 fn sorted_dirs(dir: &Path) -> Result<Vec<PathBuf>, PipelineError> {
-    // Fail-fast on a read_dir entry error: a transient FS error must surface, not
-    // silently drop a slice group/dir (no-optionality).
+    // An absent directory is not an error — the caller iterating an optional tree gets
+    // an empty listing (no manual existence pre-check needed). Any OTHER IO error (e.g.
+    // permission denied) and per-entry errors still fail-fast: a transient FS error must
+    // surface, not silently drop a slice group/dir (no-optionality).
     let mut out: Vec<PathBuf> = Vec::new();
-    for entry in std::fs::read_dir(dir)? {
+    let entries = match std::fs::read_dir(dir) {
+        Ok(entries) => entries,
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(out),
+        Err(e) => return Err(e.into()),
+    };
+    for entry in entries {
         let path = entry?.path();
         if path.is_dir() {
             out.push(path);
@@ -420,5 +448,18 @@ mod tests {
             "expected 50+ authored files, got {}",
             files.len()
         );
+    }
+
+    #[test]
+    fn missing_directory_listings_are_empty_not_errors() {
+        // `sorted_dirs` / `ttl_files_in` treat an absent directory as an empty listing
+        // (NotFound → Ok(empty)), so the discovery helpers on a root with no `slices`/
+        // `imports` tree return empty rather than erroring.
+        let empty = tempfile::tempdir().unwrap();
+        let root = empty.path();
+        assert!(sorted_dirs(&root.join("slices")).unwrap().is_empty());
+        assert!(ttl_files_in(&root.join("imports")).unwrap().is_empty());
+        assert!(module_files(root).unwrap().is_empty());
+        assert!(all_manifest_files(root).unwrap().is_empty());
     }
 }

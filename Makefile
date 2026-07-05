@@ -9,7 +9,7 @@ SHELL := /bin/bash
 TARGET ?= foaf
 
 # Override: make commit MESSAGE="feat: add foaf alignment"
-MESSAGE ?= "chore: regenerate checked-in artifacts"
+MESSAGE ?= chore: regenerate checked-in artifacts
 GMEOW_DEV ?= cargo run -q -p gmeow-dev-cli --
 NPROC ?= $(shell nproc 2>/dev/null || echo 4)
 # check-generated reproduces every committed artifact through the gmeow-pipeline DAG;
@@ -196,8 +196,10 @@ check-generated: native-py ## Drift + orphan check for all registered generators
 	$(GMEOW_DEV) check-generated -j $(CHECK_GENERATED_JOBS)
 
 commit: regenerate ## Regenerate artifacts, stage generator-owned outputs, and commit.
-	@REGENERATED_PATHS=$$(uv run python -c "from gmeow_tools.load_generators import load_all; load_all(); from gmeow_tools.generator import all_regenerated_paths; print(' '.join(all_regenerated_paths()))"); \
-	git add $${REGENERATED_PATHS}; \
+	@REGENERATED_PATHS=$$(GMEOW_CONSOLE=silent $(GMEOW_DEV) regenerate --list-paths); \
+	for p in $${REGENERATED_PATHS}; do \
+	  if [ -e "$$p" ]; then git add "$$p"; fi; \
+	done; \
 	if git diff --cached --quiet; then \
 		echo "Nothing to commit."; exit 1; \
 	else \
@@ -456,7 +458,7 @@ perf-gate: native-py ## Report-only timings for validate, generated drift, reaso
 	$(GMEOW_DEV) validate --timings --timings-json $(PERF_DIR)/validate.json
 	$(GMEOW_DEV) check-generated -j $(CHECK_GENERATED_JOBS) --timings-json $(PERF_DIR)/check-generated.json
 	$(GMEOW_DEV) reason-verify --timings-json $(PERF_DIR)/reason-verify.json
-	uv run python -c 'import json, pathlib; p=pathlib.Path("$(PERF_DIR)"); files=["validate.json","check-generated.json","reason-verify.json"]; out={"commands":[json.loads((p / f).read_text(encoding="utf-8")) for f in files]}; (p / "gate-timings.json").write_text(json.dumps(out, indent=2, sort_keys=True) + "\n", encoding="utf-8")'
+	cargo run -q -p gmeow-pipeline --bin perf_gate_merge -- $(PERF_DIR)
 	@echo "perf gate timings written to $(PERF_DIR)/gate-timings.json"
 
 rust-coverage: ## Generate report-only Rust region coverage.

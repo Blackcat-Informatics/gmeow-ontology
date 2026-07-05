@@ -529,6 +529,12 @@ pub struct Materialization {
     pub non_quad_rows: Vec<NonQuadRow>,
     /// The preservation judgment for this materialization.
     pub preservation: PreservationClaim,
+    /// The completion frontier of the native forward governor: which strata / predicates
+    /// are settled and how many derivations were committed.  Empty
+    /// ([`crate::query_ir::CompletionFrontier::empty`]) on the ungoverned routes (empty
+    /// input, well-founded / cautious-stable / echo, the Nemo fallback), so the field is
+    /// always present — a consumer never has to assume "no frontier ⇒ complete".
+    pub frontier: crate::query_ir::CompletionFrontier,
 }
 
 /// The rule IRIs of a non-stratifiable rule set — the derivation rules the EDB-echo
@@ -619,6 +625,7 @@ pub fn materialize_routed(
             quads: vec![],
             non_quad_rows: vec![],
             preservation,
+            frontier: crate::query_ir::CompletionFrontier::empty(),
         });
     }
 
@@ -626,26 +633,43 @@ pub fn materialize_routed(
     // and cautious-stable evaluators run their native fixpoints; any other profile with
     // a declared set that fails stratification (⇔ `preservation` discloses dropped
     // rules) is echoed asserted-only.
-    let routed: Option<Vec<crate::rule_ir::DerivedRow>> = match profile {
+    // Each native route yields its derived rows plus the budget status the native
+    // governor stamped (`Ok` for the ungoverned well-founded / cautious-stable /
+    // echo paths; the semi-naive governor's `Ok`/`Exhausted` for the PositiveHorn arm).
+    // Each `Some` carries the derived rows, the governor's status, and the completion
+    // frontier.  The ungoverned routes (well-founded / cautious-stable / echo, and the
+    // Nemo fallback below) run to their natural fixpoint outside the semi-naive governor,
+    // so they carry the empty frontier; only the native PositiveHorn arm reports a real
+    // one.
+    type RoutedRows = (
+        Vec<crate::rule_ir::DerivedRow>,
+        BudgetStatus,
+        crate::query_ir::CompletionFrontier,
+    );
+    let routed: Option<RoutedRows> = match profile {
         Some("WellFoundedProfile") => {
             let store = crate::store::WorldStore::new();
             store.load_nquads(input).map_err(MaterializeError::Parse)?;
             let eval_rules =
                 crate::rule_ir::parse_eval_rules(rules).map_err(MaterializeError::Parse)?;
-            Some(
+            Some((
                 crate::wellfounded::materialize(&store, &eval_rules)
                     .map_err(MaterializeError::Chase)?,
-            )
+                BudgetStatus::Ok,
+                crate::query_ir::CompletionFrontier::empty(),
+            ))
         }
         Some("StableModelProfile") => {
             let store = crate::store::WorldStore::new();
             store.load_nquads(input).map_err(MaterializeError::Parse)?;
             let eval_rules =
                 crate::rule_ir::parse_eval_rules(rules).map_err(MaterializeError::Parse)?;
-            Some(
+            Some((
                 crate::stablemodel::cautious_materialize(&store, &eval_rules)
                     .map_err(MaterializeError::Chase)?,
-            )
+                BudgetStatus::Ok,
+                crate::query_ir::CompletionFrontier::empty(),
+            ))
         }
         _ => {
             // PositiveHorn / declared StratifiedNAF / Probabilistic / Procedural / None.
@@ -656,23 +680,44 @@ pub fn materialize_routed(
             // native gap (`NativeOutcome::Unsupported`). `preservation` is exact for this
             // arm, so the native and Nemo paths disclose the same judgment.
             if !preservation.unsupported_constructs.is_empty() {
-                Some(echo_edb_only(input)?)
-            } else if max_rule_firings.is_some() || max_answers.is_some() || time_ms.is_some() {
-                // Budget-constrained materialization stays on the Nemo fallback: the
-                // native core decides the WHOLE stratifiable least model and does not yet
-                // reproduce the oracle's post-hoc budget governor (the truncation cut and
-                // the exhausted / incomplete disclosure it stamps). An unbudgeted call is
-                // native's competence; a budgeted one is a declared native gap → Nemo.
+                Some((
+                    echo_edb_only(input)?,
+                    BudgetStatus::Ok,
+                    crate::query_ir::CompletionFrontier::empty(),
+                ))
+            } else if time_ms.is_some() {
+                // A wall-clock budget is a genuine native gap: the semi-naive governor
+                // counts committed derivations, not elapsed time, so a `time_ms` request
+                // demotes to the Nemo post-hoc governor. (A step/derivation budget —
+                // `max_rule_firings` / `max_answers` — is now native's competence, below.)
                 None
             } else {
                 let store = crate::store::WorldStore::new();
                 store.load_nquads(input).map_err(MaterializeError::Parse)?;
                 let eval_rules =
                     crate::rule_ir::parse_eval_rules(rules).map_err(MaterializeError::Parse)?;
-                match crate::physical::materialize_native(&store, &eval_rules)
+                // The forward step/derivation budget: a rule firing IS a committed
+                // derivation, so `max_rule_firings` maps to the native governor's
+                // `max_steps`; `max_answers` is the same derivation cap under another
+                // name, so the ceiling is their `min` (matching the Nemo `derived_cap`).
+                // Exhaustion stamps `Exhausted` on every emitted quad — incomplete, never
+                // wrong.
+                let max_steps = match (max_rule_firings, max_answers) {
+                    (Some(a), Some(b)) => Some(a.min(b)),
+                    (Some(a), None) => Some(a),
+                    (None, Some(b)) => Some(b),
+                    (None, None) => None,
+                };
+                match crate::physical::materialize_native(&store, &eval_rules, max_steps)
                     .map_err(MaterializeError::Chase)?
                 {
-                    crate::physical::NativeOutcome::Decided(rows) => Some(rows),
+                    crate::physical::NativeOutcome::Decided(budgeted) => {
+                        // Surface the forward governor's completion frontier instead of
+                        // dropping it: an `Exhausted` chase is incomplete, and the caller
+                        // reads `completed < total` to tell which strata are settled.
+                        let frontier = budgeted.frontier();
+                        Some((budgeted.rows, budgeted.status, frontier))
+                    }
                     // A declared native gap (e.g. non-stratifiable after parse) falls
                     // through to the demoted Nemo fallback / conformance oracle.
                     crate::physical::NativeOutcome::Unsupported(_) => None,
@@ -681,15 +726,44 @@ pub fn materialize_routed(
         }
     };
 
-    if let Some(rows) = routed {
+    if let Some((rows, status, frontier)) = routed {
         let quads = rows
             .into_iter()
             .map(derived_row_to_quad)
+            .map(|dq| {
+                dq.map(|mut q| {
+                    // Frontier-aware per-quad budget stamp. The overall `status` is the
+                    // whole-run verdict; a single quad can be MORE settled than the run.
+                    //
+                    // - `Ok` (natural fixpoint) ⇒ every quad stays `Ok` (unchanged).
+                    // - `Exhausted` (a step cut) ⇒ a quad whose PREDICATE reached its
+                    //   stratum's natural fixpoint has a FINAL least-model extension
+                    //   (`frontier.saturated_preds`, matched on the bare-IRI predicate name
+                    //   `seminaive` inserts — the head/EDB `predicate.as_str()`), so it is
+                    //   conclusive / complete-for-fragment and keeps `Ok`; only a quad from
+                    //   the cut or unreached strata is genuinely incomplete → `Exhausted`.
+                    //   This is the difference between a blanket "undetermined" and the
+                    //   sound per-stratum verdict the frontier records.
+                    // - `Partial` (a `max_answers` answer-cap) is owned by the backward leg
+                    //   and never reaches this forward native path; the catch-all preserves
+                    //   it verbatim regardless, so the frontier never overrides an answer-cap.
+                    q.budget_status = match status {
+                        BudgetStatus::Exhausted
+                            if frontier.saturated_preds.contains(&q.predicate) =>
+                        {
+                            BudgetStatus::Ok
+                        }
+                        other => other,
+                    };
+                    q
+                })
+            })
             .collect::<Result<Vec<_>, _>>()?;
         return Ok(Materialization {
             quads,
             non_quad_rows: vec![],
             preservation,
+            frontier,
         });
     }
 
@@ -700,6 +774,9 @@ pub fn materialize_routed(
         quads: outcome.quads,
         non_quad_rows: outcome.non_quad_rows,
         preservation,
+        // The Nemo chase runs its own post-hoc governor, not the native semi-naive one,
+        // so it exposes no stratum frontier.
+        frontier: crate::query_ir::CompletionFrontier::empty(),
     })
 }
 
@@ -1311,31 +1388,302 @@ mod tests {
         );
     }
 
-    /// Budget-constrained materialization must route to the Nemo fallback, not the native
-    /// core: native decides the WHOLE least model and cannot reproduce the oracle's
-    /// post-hoc truncation. The routed result under a budget must match `materialize_core`
-    /// (the Nemo governor) EXACTLY — a regression back to the native arm would derive the
-    /// full closure and diverge from the budgeted oracle, so this equality is what proves
-    /// the fallback (not merely the asserted-EDB echo, which the native arm also emits).
-    /// The exact truncation/exhausted-disclosure semantics are pinned by the
-    /// `external/szs-mini/unknown-budget` conformance case.
+    /// A step/derivation budget (`max_rule_firings`) now runs on the NATIVE core, not the
+    /// Nemo fallback: the semi-naive governor honours the ceiling and stamps `Exhausted`.
+    /// A zero-firing budget derives NO IDB (only the asserted EDB echo) and marks every
+    /// emitted quad `Exhausted` — incomplete, never wrong.
     #[test]
-    fn materialize_routed_budget_uses_nemo_fallback() {
+    fn materialize_routed_forward_budget_runs_native() {
         let m = materialize_routed(
             TRANSITIVITY_RULES,
             CHAIN_NQUADS,
-            Some(0), // a zero rule-firing budget the native core has no governor for
+            Some(0), // zero rule firings — the native governor stops before any derivation
             None,
             None,
             Some("PositiveHornProfile"),
         )
-        .expect("budgeted routed materialize must not fail (Nemo governor handles it)");
-        let oracle = materialize_core(TRANSITIVITY_RULES, CHAIN_NQUADS, Some(0), None, None)
-            .expect("budgeted Nemo materialize_core must succeed");
+        .expect("budgeted routed materialize must not fail (native governor handles it)");
+
+        // The two asserted EDB edges are echoed; no derived subClassOf edge is produced.
+        assert_eq!(
+            m.quads.len(),
+            2,
+            "0-firing budget ⇒ only the 2 EDB echoes: {:?}",
+            m.quads
+        );
+        let sub_class_of = "https://blackcatinformatics.ca/logic/subClassOf";
+        let derived_present = m.quads.iter().any(|q| {
+            crate::provenance::term_display(&q.subject) == "<http://example.org/Dog>"
+                && q.predicate.as_str() == sub_class_of
+                && crate::provenance::term_display(&q.object) == "<http://example.org/Animal>"
+        });
+        assert!(
+            !derived_present,
+            "Dog ⊑ Animal must NOT be derived under a 0-firing budget"
+        );
+        assert!(
+            m.quads
+                .iter()
+                .all(|q| q.budget_status == BudgetStatus::Exhausted),
+            "every emitted quad must be stamped Exhausted under an exceeded budget"
+        );
+        // GAP A: the completion frontier crosses the PUBLIC `Materialization` boundary.
+        // A 0-firing cut leaves the single subClassOf stratum unsaturated (0 of 1); only
+        // the EDB predicate is settled, and no derivation was committed.
+        assert_eq!(
+            m.frontier.completed, 0,
+            "the cut stratum is not saturated: {:?}",
+            m.frontier
+        );
+        assert_eq!(
+            m.frontier.total, 1,
+            "one stratum in the transitivity program"
+        );
+        assert_eq!(
+            m.frontier.consumed_steps, 0,
+            "a 0-firing budget commits no derivation"
+        );
+        // `subClassOf` is SELF-RECURSIVE — both the asserted EDB and the recursive rule
+        // head — so its full least-model extension includes the (undrawn) transitive
+        // closure. A 0-firing cut leaves that stratum unsaturated, so the predicate is NOT
+        // settled: the frontier under-claims rather than over-claiming a complete
+        // extension. Consequently every emitted quad (the EDB echoes) is correctly stamped
+        // `Exhausted` above — the frontier-aware stamp does not spuriously promote them.
+        assert!(
+            !m.frontier.saturated_preds.contains(sub_class_of),
+            "a cut self-recursive head is NOT settled from the EDB seed alone: {:?}",
+            m.frontier.saturated_preds
+        );
+    }
+
+    /// A budget LARGER than the completion cost completes on native with `Ok`: the full
+    /// closure is derived and no quad is stamped `Exhausted`.
+    #[test]
+    fn materialize_routed_forward_budget_completes_ok() {
+        // The chain closure needs exactly one derivation (Dog ⊑ Animal); a budget of 1
+        // (or more) reaches the fixpoint.
+        let m = materialize_routed(
+            TRANSITIVITY_RULES,
+            CHAIN_NQUADS,
+            Some(8),
+            None,
+            None,
+            Some("PositiveHornProfile"),
+        )
+        .expect("budgeted routed materialize must not fail");
+        assert_eq!(m.quads.len(), 3, "2 EDB + 1 derived closure edge");
+        assert!(
+            m.quads.iter().all(|q| q.budget_status == BudgetStatus::Ok),
+            "an ample budget completes ⇒ every quad Ok"
+        );
+        // GAP A: an ample budget saturates every stratum, so the public frontier reports
+        // `completed == total` — a complete run, distinct from the cut one above.
+        assert_eq!(
+            m.frontier.completed, m.frontier.total,
+            "an ample budget saturates the whole program: {:?}",
+            m.frontier
+        );
+        assert_eq!(
+            m.frontier.total, 1,
+            "one stratum in the transitivity program"
+        );
+        assert!(
+            m.frontier.consumed_steps >= 1,
+            "the closure edge is one committed derivation: {:?}",
+            m.frontier
+        );
+    }
+
+    // ── Frontier-aware per-quad stamping under a MID-stratum cut ──────────────────
+    //
+    // A two-stratum stratified-negation program: `reachable` (stratum 0, seed + edge
+    // step) then `unreachable` (stratum 1, `~reachable`). Over nodes {a, b, c, d} with
+    // `reachableSeed(a)` and `edge(a, b)`: `reachable = {a, b}` (2 derivations) and
+    // `unreachable = {c, d}` (2 derivations). A 3-firing budget saturates stratum 0 (2
+    // derivations) then commits ONE `unreachable` derivation before the cut — so the two
+    // strata are observably differently settled in the SAME run.
+
+    /// Two-stratum reach/unreach program in the 3-ary (world-column) rule syntax.
+    const REACH_RULES: &str = concat!(
+        "#[name(\"http://example.org/rules/reachSeed\")]\n",
+        "<http://example.org/reachable>(?X, ?X, ?C) :-\n",
+        "    <http://example.org/reachableSeed>(?X, ?X, ?C) .\n",
+        "#[name(\"http://example.org/rules/reachStep\")]\n",
+        "<http://example.org/reachable>(?Y, ?Y, ?C) :-\n",
+        "    <http://example.org/reachable>(?X, ?X, ?C),\n",
+        "    <http://example.org/edge>(?X, ?Y, ?C) .\n",
+        "#[name(\"http://example.org/rules/unreach\")]\n",
+        "<http://example.org/unreachable>(?X, ?X, ?C) :-\n",
+        "    <http://example.org/node>(?X, ?X, ?C),\n",
+        "    ~<http://example.org/reachable>(?X, ?X, ?C) .\n",
+    );
+
+    /// EDB for [`REACH_RULES`]: four self-loop `node` facts, one `reachableSeed`, one
+    /// `edge` a→b, all in world `W`.
+    const REACH_NQUADS: &str = concat!(
+        "<http://example.org/a> <http://example.org/node> <http://example.org/a> <http://world/W> .\n",
+        "<http://example.org/b> <http://example.org/node> <http://example.org/b> <http://world/W> .\n",
+        "<http://example.org/c> <http://example.org/node> <http://example.org/c> <http://world/W> .\n",
+        "<http://example.org/d> <http://example.org/node> <http://example.org/d> <http://world/W> .\n",
+        "<http://example.org/a> <http://example.org/reachableSeed> <http://example.org/a> <http://world/W> .\n",
+        "<http://example.org/a> <http://example.org/edge> <http://example.org/b> <http://world/W> .\n",
+    );
+
+    const REACHABLE_PRED: &str = "http://example.org/reachable";
+    const UNREACHABLE_PRED: &str = "http://example.org/unreachable";
+
+    /// GAP B (forward). Under an `Exhausted` mid-stratum cut, a quad whose predicate's
+    /// stratum SATURATED carries `Ok` (its extension is final — complete-for-fragment),
+    /// while a quad from the CUT stratum carries `Exhausted`. The old blanket stamp
+    /// over-claimed `Exhausted` on the settled stratum too; this is exactly the verdict
+    /// the completion frontier makes observable.
+    #[test]
+    fn materialize_routed_forward_frontier_aware_per_quad_status() {
+        let m = materialize_routed(
+            REACH_RULES,
+            REACH_NQUADS,
+            Some(3), // saturate `reachable` (2), commit 1 `unreachable`, then cut
+            None,
+            None,
+            Some("StratifiedNAFProfile"),
+        )
+        .expect("budgeted routed materialize must not fail (native governor handles it)");
+
+        // The run is incomplete overall: stratum 1 (`unreachable`) was cut mid-fixpoint.
+        assert_eq!(
+            m.frontier.completed, 1,
+            "only stratum 0 (reachable) saturated: {:?}",
+            m.frontier
+        );
+        assert_eq!(m.frontier.total, 2, "reachable + unreachable strata");
+        assert_eq!(
+            m.frontier.consumed_steps, 3,
+            "2 reachable + 1 unreachable derivation before the cut: {:?}",
+            m.frontier
+        );
+        assert!(
+            m.frontier.saturated_preds.contains(REACHABLE_PRED),
+            "reachable's stratum completed ⇒ settled: {:?}",
+            m.frontier.saturated_preds
+        );
+        assert!(
+            !m.frontier.saturated_preds.contains(UNREACHABLE_PRED),
+            "unreachable's stratum was cut ⇒ NOT settled: {:?}",
+            m.frontier.saturated_preds
+        );
+
+        // Every `reachable` (and EDB `node`/`edge`/`reachableSeed`) quad is conclusive:
+        // stamped `Ok` even though the RUN exhausted. This also proves the predicate-name
+        // membership test actually matches (a silent no-op would leave these `Exhausted`).
+        let reachable_quads: Vec<_> = m
+            .quads
+            .iter()
+            .filter(|q| q.predicate.as_str() == REACHABLE_PRED)
+            .collect();
+        assert_eq!(
+            reachable_quads.len(),
+            2,
+            "reachable = {{a, b}}: {:?}",
+            m.quads
+        );
+        assert!(
+            reachable_quads
+                .iter()
+                .all(|q| q.budget_status == BudgetStatus::Ok),
+            "saturated-stratum quads are conclusive (Ok) under an exhausted run"
+        );
+        assert!(
+            m.quads
+                .iter()
+                .filter(|q| {
+                    let p = q.predicate.as_str();
+                    p != REACHABLE_PRED && p != UNREACHABLE_PRED
+                })
+                .all(|q| q.budget_status == BudgetStatus::Ok),
+            "EDB predicates are settled from the seed ⇒ their echoes are Ok"
+        );
+
+        // The committed `unreachable` quad is from the CUT stratum: genuinely incomplete,
+        // stamped `Exhausted`. Exactly one was committed before the budget tripped.
+        let unreachable_quads: Vec<_> = m
+            .quads
+            .iter()
+            .filter(|q| q.predicate.as_str() == UNREACHABLE_PRED)
+            .collect();
+        assert_eq!(
+            unreachable_quads.len(),
+            1,
+            "budget 3 commits one unreachable derivation before the cut: {:?}",
+            m.quads
+        );
+        assert!(
+            unreachable_quads
+                .iter()
+                .all(|q| q.budget_status == BudgetStatus::Exhausted),
+            "cut-stratum quads are incomplete (Exhausted)"
+        );
+    }
+
+    /// GAP B determinism: the frontier-aware stamping is a pure function of the inputs, so
+    /// a re-run is byte-identical (same quads, same per-quad statuses, same frontier).
+    #[test]
+    fn materialize_routed_forward_frontier_aware_is_deterministic() {
+        let run = || {
+            materialize_routed(
+                REACH_RULES,
+                REACH_NQUADS,
+                Some(3),
+                None,
+                None,
+                Some("StratifiedNAFProfile"),
+            )
+            .expect("materialize must not fail")
+        };
+        let a = run();
+        let b = run();
+        let key = |m: &Materialization| {
+            let mut rows: Vec<(String, String, String, String)> = m
+                .quads
+                .iter()
+                .map(|q| {
+                    (
+                        crate::provenance::term_display(&q.subject),
+                        q.predicate.clone(),
+                        crate::provenance::term_display(&q.object),
+                        format!("{:?}", q.budget_status),
+                    )
+                })
+                .collect();
+            rows.sort();
+            rows
+        };
+        assert_eq!(key(&a), key(&b), "re-run must be identical");
+        assert_eq!(
+            a.frontier, b.frontier,
+            "the frontier is deterministic across runs"
+        );
+    }
+
+    /// A wall-clock budget (`time_ms`) remains a native gap and demotes to the Nemo
+    /// post-hoc governor: the native semi-naive engine counts committed derivations, not
+    /// elapsed time. The routed result must equal `materialize_core` (the Nemo path)
+    /// exactly, proving the demotion.
+    #[test]
+    fn materialize_routed_time_budget_uses_nemo_fallback() {
+        let m = materialize_routed(
+            TRANSITIVITY_RULES,
+            CHAIN_NQUADS,
+            None,
+            None,
+            Some(0), // a zero wall-clock budget the native core has no governor for
+            Some("PositiveHornProfile"),
+        )
+        .expect("time-budgeted routed materialize must not fail (Nemo governor handles it)");
+        let oracle = materialize_core(TRANSITIVITY_RULES, CHAIN_NQUADS, None, None, Some(0))
+            .expect("time-budgeted Nemo materialize_core must succeed");
         assert_eq!(
             m.quads, oracle.quads,
-            "budgeted routed materialize must match the Nemo fallback exactly; a native \
-             regression would derive the full closure and diverge"
+            "a time_ms budget must demote to the Nemo fallback exactly"
         );
     }
 }

@@ -142,6 +142,37 @@ pub fn budget_to_json(budget_status: &str, incomplete: bool) -> serde_json::Valu
     serde_json::json!({ "budget_status": budget_status, "incomplete": incomplete })
 }
 
+/// Build the per-quad budget-status JSON: a deterministically sorted array of
+/// `{ "quad": "<s> <p> obj <g> .", "status": "ok"|"exhausted"|"partial" }`.
+///
+/// This is the ONLY golden that surfaces the frontier-aware PER-QUAD budget stamp.
+/// `materialized.nq` compares by graph isomorphism and carries no status column, so a
+/// quad whose predicate's stratum SATURATED (`ok` — its least-model extension is final)
+/// is indistinguishable there from one in the CUT stratum (`exhausted`). Emitting the
+/// stamp per quad makes the frontier-aware verdict golden-observable, so a regression to
+/// the old blanket "stamp the run status on every quad" is caught. Sorted by the quad key
+/// (subject/predicate/object/graph) so output is deterministic run to run.
+pub fn quad_status_to_json(quads: &[RunnerQuad]) -> serde_json::Value {
+    let mut rows: Vec<(String, String)> = quads
+        .iter()
+        .map(|q| {
+            (
+                format!(
+                    "<{}> <{}> {} <{}> .",
+                    q.subject, q.predicate, q.obj, q.graph
+                ),
+                q.budget_status.clone(),
+            )
+        })
+        .collect();
+    rows.sort();
+    serde_json::Value::Array(
+        rows.into_iter()
+            .map(|(quad, status)| serde_json::json!({ "quad": quad, "status": status }))
+            .collect(),
+    )
+}
+
 /// Build the **runtime** preservation-disclosure JSON from a result's
 /// [`gmeow_logic::result::PreservationClaim`]: `{ polarities: [...], unsupported_constructs: [...] }`,
 /// both sorted for determinism. This is the runtime judgment a result carries —
@@ -174,6 +205,7 @@ mod tests {
             derivation_id: String::new(),
             rule_iri: String::new(),
             source_quad_ids: Vec::new(),
+            budget_status: "ok".to_string(),
         }
     }
 
@@ -182,6 +214,39 @@ mod tests {
         assert_eq!(VerdictStatus::Consistent.as_str(), "consistent");
         assert_eq!(VerdictStatus::Inconsistent.as_str(), "inconsistent");
         assert_eq!(VerdictStatus::Incomplete.as_str(), "incomplete");
+    }
+
+    #[test]
+    fn quad_status_json_sorts_and_carries_per_quad_stamp() {
+        // Two quads with DIFFERENT per-quad stamps (the frontier-aware verdict): the
+        // saturated-stratum quad is `ok`, the cut-stratum quad `exhausted`. The output is
+        // sorted by the quad key and carries each stamp verbatim.
+        let mut ok_quad = rq("https://example.org/w");
+        ok_quad.subject = "https://example.org/b".to_string();
+        ok_quad.predicate = "https://example.org/reachable".to_string();
+        ok_quad.obj = "<https://example.org/b>".to_string();
+        ok_quad.budget_status = "ok".to_string();
+        let mut cut_quad = rq("https://example.org/w");
+        cut_quad.subject = "https://example.org/c".to_string();
+        cut_quad.predicate = "https://example.org/unreachable".to_string();
+        cut_quad.obj = "<https://example.org/c>".to_string();
+        cut_quad.budget_status = "exhausted".to_string();
+
+        // Pass cut before ok to prove deterministic re-sort by the quad key.
+        let json = quad_status_to_json(&[cut_quad, ok_quad]);
+        assert_eq!(
+            json,
+            serde_json::json!([
+                {
+                    "quad": "<https://example.org/b> <https://example.org/reachable> <https://example.org/b> <https://example.org/w> .",
+                    "status": "ok"
+                },
+                {
+                    "quad": "<https://example.org/c> <https://example.org/unreachable> <https://example.org/c> <https://example.org/w> .",
+                    "status": "exhausted"
+                }
+            ])
+        );
     }
 
     #[test]

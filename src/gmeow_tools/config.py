@@ -560,6 +560,8 @@ PREFIXES: dict[str, str] = {
     "fibo-fbc-pas-fpas": "https://spec.edmcouncil.org/fibo/ontology/FBC/ProductsAndServices/FinancialProductsAndServices/",
     # Machine Learning (ML-Schema)
     "mls": "http://www.w3.org/ns/mls#",
+    # OpenTelemetry GenAI semantic conventions (model-serving observability seam)
+    "otelgenai": "https://opentelemetry.io/docs/specs/semconv/registry/attributes/gen-ai/",
     # Biological-sequence realm (FALDO, Sequence Ontology)
     "faldo": "http://biohackathon.org/resource/faldo#",
     "so": "http://purl.obolibrary.org/obo/SO_",

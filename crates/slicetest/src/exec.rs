@@ -176,30 +176,59 @@ fn run_competency_cell(
     slice_dir: &Path,
 ) -> Result<(), String> {
     let query = load_query(cq)?;
-    let Some(rel) = &cq.data_file else {
-        // No overlay: run the query directly over the (asserted or RDFS) dataset.
-        return execute_competency_query(store, cq, &query);
+
+    // The dataset the cqQuery runs over starts as the (asserted or RDFS) merged store.
+    // A gmeow:cqDataFile overlays a slice-relative ABox fixture by UNION (the IR is
+    // immutable — `RdfDataset::union` produces a fresh dataset, standardizing the
+    // fixture's blanks apart, so the shared base is never mutated and there is nothing
+    // to remove afterwards).
+    let base: Arc<RdfDataset> = match &cq.data_file {
+        None => Arc::clone(store),
+        Some(rel) => {
+            if cq.reasoning != ReasoningProfile::None {
+                // The RDFS closure is computed BEFORE the overlay, so an overlaid
+                // fixture's entailments would be invisible. Refuse rather than silently
+                // under-answer.
+                return Err(format!(
+                    "{}: gmeow:cqDataFile is only honoured in the asserted (reasoningNone) lane, \
+                     not gmeow:reasoningRdfs",
+                    cq.iri
+                ));
+            }
+            let fixture_path = paths::example_file(slice_dir, rel);
+            let fixture = native_query::dataset_from_file(&fixture_path)
+                .map_err(|e| format!("parsing cqDataFile {}: {e}", fixture_path.display()))?;
+            union(&[Arc::clone(store), fixture])
+        }
     };
 
-    // Overlay lane: a slice-relative ABox fixture is UNIONED onto the asserted merged
-    // graph for this one query. The IR is immutable — `RdfDataset::union` produces a
-    // fresh dataset (standardizing the fixture's blanks apart), so the shared base is
-    // never mutated and there is nothing to remove afterwards (the old in-place
-    // OverlayGuard insert/remove is unnecessary on the frozen IR).
-    if cq.reasoning != ReasoningProfile::None {
-        // The RDFS closure is computed BEFORE the overlay, so an overlaid fixture's
-        // entailments would be invisible. Refuse rather than silently under-answer.
-        return Err(format!(
-            "{}: gmeow:cqDataFile is only honoured in the asserted (reasoningNone) lane, \
-             not gmeow:reasoningRdfs",
-            cq.iri
-        ));
-    }
-    let fixture_path = paths::example_file(slice_dir, rel);
-    let fixture = native_query::dataset_from_file(&fixture_path)
-        .map_err(|e| format!("parsing cqDataFile {}: {e}", fixture_path.display()))?;
-    let overlaid = union(&[Arc::clone(store), fixture]);
-    execute_competency_query(&overlaid, cq, &query)
+    // Optional projection step: a gmeow:cqProject names a CONSTRUCT query that
+    // MATERIALIZES a computed projection (e.g. the flat upper-projection edges that
+    // are the one-hop collapse of the de-conflation canon) over the overlaid dataset
+    // BEFORE the cqQuery runs. Its constructed triples are UNIONED in, so the question
+    // is answered against the materialized projection rather than a hand-asserted copy
+    // — which is what makes the projection-agreement gate non-circular.
+    let dataset: Arc<RdfDataset> = match &cq.project_query_file {
+        None => base,
+        Some(rel) => {
+            let path = paths::query_file(rel);
+            let construct = std::fs::read_to_string(&path)
+                .map_err(|e| format!("cannot read cqProject {}: {e}", path.display()))?;
+            match native_query::query(&base, &construct)
+                .map_err(|e| format!("cqProject query error: {e}"))?
+            {
+                SparqlResult::Graph(g) => union(&[base, g]),
+                _ => {
+                    return Err(format!(
+                        "{}: gmeow:cqProject must be a CONSTRUCT query (returning a graph)",
+                        cq.iri
+                    ));
+                }
+            }
+        }
+    };
+
+    execute_competency_query(&dataset, cq, &query)
 }
 
 /// Execute a competency question's (already-resolved) query over `store` and
@@ -529,6 +558,7 @@ mod tests {
             iri: "https://example.org/cqShape".to_owned(),
             query_inline: Some(query.to_owned()),
             query_file: None,
+            project_query_file: None,
             expect_ask: None,
             expect_row_count: None,
             exact_rows: false,
@@ -634,6 +664,7 @@ mod tests {
                     .to_owned(),
             ),
             query_file: None,
+            project_query_file: None,
             expect_ask: None,
             expect_row_count: None,
             exact_rows: false,
