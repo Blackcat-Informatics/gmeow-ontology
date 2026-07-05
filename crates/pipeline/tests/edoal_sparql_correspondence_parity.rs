@@ -182,7 +182,7 @@ fn edoal_lowering_matches_committed_corpus() {
         .alignments;
     assert!(
         emitted.len() >= 40,
-        "expected ~45 EDOAL files, got {}",
+        "expected ~46 EDOAL files, got {}",
         emitted.len()
     );
     assert_corpus(
@@ -237,7 +237,7 @@ fn sparql_lowering_matches_committed_corpus_modulo_order() {
         .queries;
     assert!(
         emitted.len() >= 40,
-        "expected ~45 .rq files, got {}",
+        "expected ~46 .rq files, got {}",
         emitted.len()
     );
 

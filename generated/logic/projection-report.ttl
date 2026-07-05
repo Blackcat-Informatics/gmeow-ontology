@@ -1078,6 +1078,18 @@
     logic:complexityClass "N/A (alignment)" ;
     logic:preservationKind logic:SoundUnderApproximation .
 
+<https://blackcatinformatics.ca/logic/target/edoal:2b4ee0b19d26913b>
+    a logic:ProjectionTarget ;
+    rdfs:label "edoal:2b4ee0b19d26913b" ;
+    gmeow:lossyDrop "EDOAL carries the get leg + relation + measure only" ,
+        "actual: correspondence: mapMlsRun::ml-schema" ,
+        "actual: get-leg profile loss: mls:Run is training/evaluation-centred (executes an implementation on data, producing a model); gmeow:RuntimeExecution is a serving occurrent within which gmeow:ModelInvocation events occur — the durable subject/tenure/attributed-provenance and the invocation sub-events drop" ,
+        "actual: get-leg: the put leg is not carried by EDOAL" ,
+        "actual: get-leg: world/standpoint scope is not carried by EDOAL" ,
+        "the SOL caveats, the put leg, and world/standpoint scope are dropped" ;
+    logic:complexityClass "N/A (alignment)" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
 <https://blackcatinformatics.ca/logic/target/edoal:2cd034b1849a93a5>
     a logic:ProjectionTarget ;
     rdfs:label "edoal:2cd034b1849a93a5" ;
@@ -1165,6 +1177,18 @@
     gmeow:lossyDrop "EDOAL carries the get leg + relation + measure only" ,
         "actual: correspondence: mapMarkdownMentions::markdown" ,
         "actual: get-leg profile loss: mentions → directed wikilink edge only" ,
+        "actual: get-leg: the put leg is not carried by EDOAL" ,
+        "actual: get-leg: world/standpoint scope is not carried by EDOAL" ,
+        "the SOL caveats, the put leg, and world/standpoint scope are dropped" ;
+    logic:complexityClass "N/A (alignment)" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
+<https://blackcatinformatics.ca/logic/target/edoal:2f3dd55c14f44a16>
+    a logic:ProjectionTarget ;
+    rdfs:label "edoal:2f3dd55c14f44a16" ;
+    gmeow:lossyDrop "EDOAL carries the get leg + relation + measure only" ,
+        "actual: correspondence: mapMlsExecutes::ml-schema" ,
+        "actual: get-leg profile loss: mls:executes carries only the run→implementation link; the gmeow deployment's artifact·host·endpoint·interval binding beyond the bare executable realization is not re-expressed by the flat mls:executes relation" ,
         "actual: get-leg: the put leg is not carried by EDOAL" ,
         "actual: get-leg: world/standpoint scope is not carried by EDOAL" ,
         "the SOL caveats, the put leg, and world/standpoint scope are dropped" ;
@@ -3150,6 +3174,18 @@
     logic:complexityClass "N/A (alignment)" ;
     logic:preservationKind logic:SoundUnderApproximation .
 
+<https://blackcatinformatics.ca/logic/target/edoal:821b7962f67f17ca>
+    a logic:ProjectionTarget ;
+    rdfs:label "edoal:821b7962f67f17ca" ;
+    gmeow:lossyDrop "EDOAL carries the get leg + relation + measure only" ,
+        "actual: correspondence: mapMlsModel::ml-schema" ,
+        "actual: get-leg profile loss: mls:Model is the learned-model output of a run; gmeow:ModelArtifact adds the content-digest and the distribution/versioning framing (aligned by reference to the software slice) that mls:Model does not carry" ,
+        "actual: get-leg: the put leg is not carried by EDOAL" ,
+        "actual: get-leg: world/standpoint scope is not carried by EDOAL" ,
+        "the SOL caveats, the put leg, and world/standpoint scope are dropped" ;
+    logic:complexityClass "N/A (alignment)" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
 <https://blackcatinformatics.ca/logic/target/edoal:82486ea458ecc043>
     a logic:ProjectionTarget ;
     rdfs:label "edoal:82486ea458ecc043" ;
@@ -3388,6 +3424,18 @@
     gmeow:lossyDrop "EDOAL carries the get leg + relation + measure only" ,
         "actual: correspondence: mapSchemaSubOrganization::schema-org" ,
         "actual: get-leg profile loss: the inverse reading: the parent gains schema:subOrganization pointing at each child" ,
+        "actual: get-leg: the put leg is not carried by EDOAL" ,
+        "actual: get-leg: world/standpoint scope is not carried by EDOAL" ,
+        "the SOL caveats, the put leg, and world/standpoint scope are dropped" ;
+    logic:complexityClass "N/A (alignment)" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
+<https://blackcatinformatics.ca/logic/target/edoal:90a6e683d87d62fb>
+    a logic:ProjectionTarget ;
+    rdfs:label "edoal:90a6e683d87d62fb" ;
+    gmeow:lossyDrop "EDOAL carries the get leg + relation + measure only" ,
+        "actual: correspondence: mapMlsImplementation::ml-schema" ,
+        "actual: get-leg profile loss: gmeow:ModelDeployment is a relator binding artifact·service·host·endpoint·interval·operator·policy; mls:Implementation carries only the executable-realization framing — the service identity, host, endpoint, and serving interval drop" ,
         "actual: get-leg: the put leg is not carried by EDOAL" ,
         "actual: get-leg: world/standpoint scope is not carried by EDOAL" ,
         "the SOL caveats, the put leg, and world/standpoint scope are dropped" ;
@@ -10155,6 +10203,18 @@
     logic:complexityClass "terminating/PTIME-data" ;
     logic:preservationKind logic:SoundUnderApproximation .
 
+<https://blackcatinformatics.ca/logic/target/sparql:23dec4f95e75f321>
+    a logic:ProjectionTarget ;
+    rdfs:label "sparql:23dec4f95e75f321" ;
+    gmeow:lossyDrop "actual: correspondence: mapMlsModel::ml-schema" ,
+        "actual: get-leg profile loss: mls:Model is the learned-model output of a run; gmeow:ModelArtifact adds the content-digest and the distribution/versioning framing (aligned by reference to the software slice) that mls:Model does not carry" ,
+        "actual: get-leg: the put leg is not carried by the SPARQL CONSTRUCT down-projection" ,
+        "actual: get-leg: world/standpoint scope is not carried by the SPARQL down-projection" ,
+        "the faithful executable down-projection; per-profile losses are made explicit in the query header (`# Lossy and directional by design; drops:`)" ,
+        "world/standpoint scope and the put leg are not carried" ;
+    logic:complexityClass "terminating/PTIME-data" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
 <https://blackcatinformatics.ca/logic/target/sparql:23f5f35ce5ac0a7b>
     a logic:ProjectionTarget ;
     rdfs:label "sparql:23f5f35ce5ac0a7b" ;
@@ -10718,6 +10778,18 @@
     rdfs:label "sparql:4010f9389e05f876" ;
     gmeow:lossyDrop "actual: correspondence: mapBfWork::bibframe" ,
         "actual: get-leg profile loss: the Expression/Manifestation/Item tiers below the Work are not re-expressed as bf:Instance/bf:Item here (declared partiality)" ,
+        "actual: get-leg: the put leg is not carried by the SPARQL CONSTRUCT down-projection" ,
+        "actual: get-leg: world/standpoint scope is not carried by the SPARQL down-projection" ,
+        "the faithful executable down-projection; per-profile losses are made explicit in the query header (`# Lossy and directional by design; drops:`)" ,
+        "world/standpoint scope and the put leg are not carried" ;
+    logic:complexityClass "terminating/PTIME-data" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
+<https://blackcatinformatics.ca/logic/target/sparql:4046f1f2671abed3>
+    a logic:ProjectionTarget ;
+    rdfs:label "sparql:4046f1f2671abed3" ;
+    gmeow:lossyDrop "actual: correspondence: mapMlsRun::ml-schema" ,
+        "actual: get-leg profile loss: mls:Run is training/evaluation-centred (executes an implementation on data, producing a model); gmeow:RuntimeExecution is a serving occurrent within which gmeow:ModelInvocation events occur — the durable subject/tenure/attributed-provenance and the invocation sub-events drop" ,
         "actual: get-leg: the put leg is not carried by the SPARQL CONSTRUCT down-projection" ,
         "actual: get-leg: world/standpoint scope is not carried by the SPARQL down-projection" ,
         "the faithful executable down-projection; per-profile losses are made explicit in the query header (`# Lossy and directional by design; drops:`)" ,
@@ -12802,6 +12874,18 @@
     rdfs:label "sparql:9b5a5d1bfc64fd77" ;
     gmeow:lossyDrop "actual: correspondence: mapOaiDcHasVersion::oai_dc" ,
         "actual: get-leg profile loss: all relation refinements collapse to dc:relation" ,
+        "actual: get-leg: the put leg is not carried by the SPARQL CONSTRUCT down-projection" ,
+        "actual: get-leg: world/standpoint scope is not carried by the SPARQL down-projection" ,
+        "the faithful executable down-projection; per-profile losses are made explicit in the query header (`# Lossy and directional by design; drops:`)" ,
+        "world/standpoint scope and the put leg are not carried" ;
+    logic:complexityClass "terminating/PTIME-data" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
+<https://blackcatinformatics.ca/logic/target/sparql:9baf1245fa36e111>
+    a logic:ProjectionTarget ;
+    rdfs:label "sparql:9baf1245fa36e111" ;
+    gmeow:lossyDrop "actual: correspondence: mapMlsImplementation::ml-schema" ,
+        "actual: get-leg profile loss: gmeow:ModelDeployment is a relator binding artifact·service·host·endpoint·interval·operator·policy; mls:Implementation carries only the executable-realization framing — the service identity, host, endpoint, and serving interval drop" ,
         "actual: get-leg: the put leg is not carried by the SPARQL CONSTRUCT down-projection" ,
         "actual: get-leg: world/standpoint scope is not carried by the SPARQL down-projection" ,
         "the faithful executable down-projection; per-profile losses are made explicit in the query header (`# Lossy and directional by design; drops:`)" ,
@@ -15239,6 +15323,18 @@
     a logic:ProjectionTarget ;
     rdfs:label "sparql:f998001ce1996f8b" ;
     gmeow:lossyDrop "actual: correspondence: mapGedcomFamily::gedcom" ,
+        "actual: get-leg: the put leg is not carried by the SPARQL CONSTRUCT down-projection" ,
+        "actual: get-leg: world/standpoint scope is not carried by the SPARQL down-projection" ,
+        "the faithful executable down-projection; per-profile losses are made explicit in the query header (`# Lossy and directional by design; drops:`)" ,
+        "world/standpoint scope and the put leg are not carried" ;
+    logic:complexityClass "terminating/PTIME-data" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
+<https://blackcatinformatics.ca/logic/target/sparql:f9a497d7cacb3f8c>
+    a logic:ProjectionTarget ;
+    rdfs:label "sparql:f9a497d7cacb3f8c" ;
+    gmeow:lossyDrop "actual: correspondence: mapMlsExecutes::ml-schema" ,
+        "actual: get-leg profile loss: mls:executes carries only the run→implementation link; the gmeow deployment's artifact·host·endpoint·interval binding beyond the bare executable realization is not re-expressed by the flat mls:executes relation" ,
         "actual: get-leg: the put leg is not carried by the SPARQL CONSTRUCT down-projection" ,
         "actual: get-leg: world/standpoint scope is not carried by the SPARQL down-projection" ,
         "the faithful executable down-projection; per-profile losses are made explicit in the query header (`# Lossy and directional by design; drops:`)" ,
@@ -36464,6 +36560,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/edoal:29f02eb3d441a2ea> ,
         <https://blackcatinformatics.ca/logic/target/edoal:2a3f6fbb3b1f4eef> ,
         <https://blackcatinformatics.ca/logic/target/edoal:2a5fd52a3026595d> ,
+        <https://blackcatinformatics.ca/logic/target/edoal:2b4ee0b19d26913b> ,
         <https://blackcatinformatics.ca/logic/target/edoal:2cd034b1849a93a5> ,
         <https://blackcatinformatics.ca/logic/target/edoal:2d3ad7325141c210> ,
         <https://blackcatinformatics.ca/logic/target/edoal:2e3bd62261d693e3> ,
@@ -36472,6 +36569,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/edoal:2e8a207fce628777> ,
         <https://blackcatinformatics.ca/logic/target/edoal:2eae5ad42cb1980e> ,
         <https://blackcatinformatics.ca/logic/target/edoal:2f350ee80aa36672> ,
+        <https://blackcatinformatics.ca/logic/target/edoal:2f3dd55c14f44a16> ,
         <https://blackcatinformatics.ca/logic/target/edoal:2f50d07bb3703c3b> ,
         <https://blackcatinformatics.ca/logic/target/edoal:2f71dbeea80c170d> ,
         <https://blackcatinformatics.ca/logic/target/edoal:2faf7e6fd470cb77> ,
@@ -36643,6 +36741,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/edoal:816a4d12085b7684> ,
         <https://blackcatinformatics.ca/logic/target/edoal:81b2e55ece73af58> ,
         <https://blackcatinformatics.ca/logic/target/edoal:820cd9f85f849c08> ,
+        <https://blackcatinformatics.ca/logic/target/edoal:821b7962f67f17ca> ,
         <https://blackcatinformatics.ca/logic/target/edoal:82486ea458ecc043> ,
         <https://blackcatinformatics.ca/logic/target/edoal:83a9c1224259f998> ,
         <https://blackcatinformatics.ca/logic/target/edoal:840028c041a8a159> ,
@@ -36664,6 +36763,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/edoal:8cceea40a9a2f3be> ,
         <https://blackcatinformatics.ca/logic/target/edoal:8dec595a4fba387b> ,
         <https://blackcatinformatics.ca/logic/target/edoal:906d627f19e0f22e> ,
+        <https://blackcatinformatics.ca/logic/target/edoal:90a6e683d87d62fb> ,
         <https://blackcatinformatics.ca/logic/target/edoal:9173a719f4d7d0bb> ,
         <https://blackcatinformatics.ca/logic/target/edoal:91c1541c4bf6742b> ,
         <https://blackcatinformatics.ca/logic/target/edoal:91fed2e9c3a3fd3a> ,
@@ -37084,6 +37184,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sparql:22d9a4653928489d> ,
         <https://blackcatinformatics.ca/logic/target/sparql:2318f6a85c89dcf1> ,
         <https://blackcatinformatics.ca/logic/target/sparql:234174aad375c0e5> ,
+        <https://blackcatinformatics.ca/logic/target/sparql:23dec4f95e75f321> ,
         <https://blackcatinformatics.ca/logic/target/sparql:23f5f35ce5ac0a7b> ,
         <https://blackcatinformatics.ca/logic/target/sparql:24fc24b03ee41370> ,
         <https://blackcatinformatics.ca/logic/target/sparql:257955f000dc8c84> ,
@@ -37133,6 +37234,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sparql:3f36b3114cab5a47> ,
         <https://blackcatinformatics.ca/logic/target/sparql:3f758b414001450e> ,
         <https://blackcatinformatics.ca/logic/target/sparql:4010f9389e05f876> ,
+        <https://blackcatinformatics.ca/logic/target/sparql:4046f1f2671abed3> ,
         <https://blackcatinformatics.ca/logic/target/sparql:408e5a6093b37a07> ,
         <https://blackcatinformatics.ca/logic/target/sparql:40d2fb7f8d3b62b6> ,
         <https://blackcatinformatics.ca/logic/target/sparql:41bbd2e718fd41dd> ,
@@ -37313,6 +37415,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sparql:9a3a708094e7321d> ,
         <https://blackcatinformatics.ca/logic/target/sparql:9b566ef8c81689e9> ,
         <https://blackcatinformatics.ca/logic/target/sparql:9b5a5d1bfc64fd77> ,
+        <https://blackcatinformatics.ca/logic/target/sparql:9baf1245fa36e111> ,
         <https://blackcatinformatics.ca/logic/target/sparql:9be59db2f437a8b2> ,
         <https://blackcatinformatics.ca/logic/target/sparql:9ccc46573c29c5dd> ,
         <https://blackcatinformatics.ca/logic/target/sparql:9d9f719b3c4b15d5> ,
@@ -37524,6 +37627,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sparql:f9719708ca396ecb> ,
         <https://blackcatinformatics.ca/logic/target/sparql:f98b7a2d47b6fa5e> ,
         <https://blackcatinformatics.ca/logic/target/sparql:f998001ce1996f8b> ,
+        <https://blackcatinformatics.ca/logic/target/sparql:f9a497d7cacb3f8c> ,
         <https://blackcatinformatics.ca/logic/target/sparql:f9d346912d9b2391> ,
         <https://blackcatinformatics.ca/logic/target/sparql:fa61d7263d017e84> ,
         <https://blackcatinformatics.ca/logic/target/sparql:faa9d0607cd68bc3> ,
