@@ -1,0 +1,35 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# A well-formed lang:ProjectionEmission: the OntoLex-Lemon lowering of a lang:Lexeme. It is
+# an honest lossy projection — the form/sense/reference view survives (SoundUnder), while the
+# epistemic strata the lexicon surface cannot carry (vantage, interpretation acts, co-resident
+# readings) are ENUMERATED as lang:unsupportedConstruct rather than silently dropped. The
+# emission declares its logic:preservationKind (satisfying lang:ProjectionEmissionDeclaredShape:
+# projectionTargetName + preservationKind present), so it trips none of the projection contract
+# failure classes — not lang:MissingPreservationKind (preservationKind present), not
+# lang:UndeclaredUnsupportedConstruct (a lossy emission that enumerates its drops), not
+# lang:UnrecordedEpistemicLoss (the flattened epistemic strata are named), not
+# lang:ExactPreservationViolated (it claims SoundUnder, not ExactPreservation, so no round-trip
+# obligation). This is the positive witness of the projection contract: declare what you
+# preserve, enumerate what you drop.
+
+@prefix lang:  <https://blackcatinformatics.ca/lang/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <http://example.org/lang/> .
+
+# The lexeme is a lang:Form, so it names its sign system (lang:FormSituatedShape).
+ex:english a lang:SignSystem .
+ex:catLexeme a lang:Lexeme ;
+    lang:inSignSystem ex:english ;
+    lang:partOfSpeech lang:noun .
+
+ex:ontolexEmission a lang:ProjectionEmission ;
+    lang:projectionTargetName "ontolex-lemon" ;
+    lang:projectsSource ex:catLexeme ;
+    logic:preservationKind logic:SoundUnderApproximation ;
+    lang:unsupportedConstruct "vantage" ,
+        "interpretation acts" ,
+        "co-resident held-support readings" ,
+        "denotesLogicFormula" ;
+    lang:roundTripHolds false .

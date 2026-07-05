@@ -378,6 +378,16 @@ ex:ecTransliterationUnanchored a gmeow:ExampleConformance ;
 
 # === Rule: every projection declares its logic:preservationKind ============= #
 
+ex:ecComposedFormCodeSwitch a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/composed-form-code-switch.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A code-switched lang:ComposedForm (English matrix with an embedded French constituent) whose slots realize word forms in DIFFERENT sign systems, with contiguous zero-based lang:slotIndex and structural lang:slotForm resources, satisfies the slot shapes and lang:FormSituatedShape and validates with NO findings — code-switching is native data, never collapsed to one language." .
+
+ex:ecProjectionOntolexLemonEmission a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/projection-ontolex-lemon-emission.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A well-formed lang:ProjectionEmission (the OntoLex-Lemon lowering of a lang:Lexeme) declares its lang:projectionTargetName and logic:preservationKind (logic:SoundUnderApproximation) and enumerates every flattened epistemic stratum as lang:unsupportedConstruct, so it satisfies lang:ProjectionEmissionDeclaredShape and validates with NO findings — the positive witness of the projection contract (declare what you preserve, enumerate what you drop)." .
+
 ex:ecProjectionMissingPreservationKind a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/projection-missing-preservation-kind.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;

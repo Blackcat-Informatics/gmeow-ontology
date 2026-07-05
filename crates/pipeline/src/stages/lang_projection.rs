@@ -564,6 +564,108 @@ mod tests {
         assert!(assert_registry_covers("NotAClass").is_err());
     }
 
+    /// Loss-ledger bijection totality (the completeness claim, made a test): over the real
+    /// composed model, every registered target is covered by a ledger row, every emission
+    /// corresponds to exactly one `lang:ProjectionEmission` record and vice versa, every
+    /// generated artifact is carried, and no record names a target outside the registry.
+    /// Surjective both ways — the loss ledger accounts for every lang surface and nothing it
+    /// does not emit.
+    #[test]
+    fn loss_ledger_is_bijective_and_total_over_the_registry() {
+        use std::collections::BTreeSet;
+
+        let catalog = repo_catalog();
+        let input = collect_input(Some(&catalog)).expect("collect input");
+
+        // Drive each target directly to count the emissions + artifacts the driver folds,
+        // and record which targets are source-driven (produce ≥1 emission) vs no-source.
+        let registry_names: BTreeSet<String> =
+            registry().iter().map(|t| t.name().to_owned()).collect();
+        let mut total_emissions = 0usize;
+        let mut total_artifacts = 0usize;
+        let mut source_driven: BTreeSet<String> = BTreeSet::new();
+        for target in registry() {
+            let emissions = target.emit(&input).expect("emit");
+            if !emissions.is_empty() {
+                source_driven.insert(target.name().to_owned());
+            }
+            for emission in &emissions {
+                // Every emission carries a non-empty ledger row (a target never emits an
+                // artifact or record with no accounting).
+                assert!(
+                    !emission.ledger.is_empty(),
+                    "target '{}' emitted with an empty ledger",
+                    target.name()
+                );
+                total_emissions += 1;
+                total_artifacts += emission.artifacts.len();
+            }
+        }
+
+        let corpus = build_corpus(Some(&catalog)).expect("corpus");
+        let nt = String::from_utf8(corpus.ntriples).expect("utf8");
+
+        // emission ↔ record: exactly one `lang:ProjectionEmission` per driven emission.
+        let record_count = nt
+            .matches(&format!("<{}> .", iri(LANG_NS, "ProjectionEmission")))
+            .count();
+        assert_eq!(
+            record_count, total_emissions,
+            "every emission must fold exactly one lang:ProjectionEmission record"
+        );
+
+        // artifact ↔ carried: every generated artifact rides the corpus, keyed under the
+        // projection dir, and the count matches what the targets produced (nothing dropped,
+        // nothing conjured).
+        assert_eq!(
+            corpus.artifacts.len(),
+            total_artifacts,
+            "every emitted artifact must be carried by the corpus"
+        );
+        for (path, bytes) in &corpus.artifacts {
+            assert!(
+                path.starts_with(LANG_PROJECTION_DIR),
+                "artifact {path} is outside the projection dir"
+            );
+            assert!(!bytes.is_empty(), "artifact {path} carries no bytes");
+        }
+
+        // Target coverage (surjective): every registered target is covered by either a
+        // source-driven ProjectionEmission record or an honest no-source ledger row.
+        let no_source: BTreeSet<String> = corpus
+            .ledger
+            .iter()
+            .filter_map(|r| r.target.strip_prefix("lang-projection:").map(str::to_owned))
+            .collect();
+        for name in &registry_names {
+            assert!(
+                source_driven.contains(name) || no_source.contains(name),
+                "registry target '{name}' is covered by neither a projection record nor a \
+                 no-source ledger row (loss-ledger totality gap)"
+            );
+        }
+
+        // No orphan record: every emitted projectionTargetName is a real registry target.
+        let target_marker = format!("<{}> ", iri(LANG_NS, "projectionTargetName"));
+        for line in nt.lines() {
+            if let Some(idx) = line.find(&target_marker) {
+                let obj = &line[idx + target_marker.len()..];
+                // object literal: "name" .  — strip quotes + trailing " ."
+                let name = obj.trim_end_matches(" .").trim_matches('"');
+                assert!(
+                    registry_names.contains(name),
+                    "orphan lang:ProjectionEmission names non-registry target {name:?}"
+                );
+            }
+        }
+
+        // The ledger accounts for at least one row per registered target.
+        assert!(
+            corpus.ledger.len() >= registry_names.len(),
+            "the loss ledger must carry at least one row per registered target"
+        );
+    }
+
     /// A synthetic co-resident CoNLL-U source with two readings must emit two artifacts —
     /// never a single silently-chosen winner (the saw-her-duck discipline at the projection
     /// seam).
