@@ -416,3 +416,30 @@ ex:rowDnaSocialInformationOverlap a gmeow:ExpectedRow ;
     gmeow:rowCell
         [ a gmeow:ExpectedCell ; gmeow:cellVar "candidate" ; gmeow:cellValueIri logic:candidateSocialInformationOverlap ] ,
         [ a gmeow:ExpectedCell ; gmeow:cellVar "category" ; gmeow:cellValueIri logic:CategoryDeliberateOverlap ] .
+
+# ── Native arithmetic/comparison builtin fragment ────────────────────────────────
+# Is the closed arithmetic/comparison builtin fragment a first-class, structured,
+# box-typed individual of the reasoning ontology — the thing the native physical
+# reasoning core actually decides — and not merely a Rust implementation detail? The
+# question runs over the production ontology (the merged logic module, no synthetic
+# data file) and pins, by IRI, that logic:builtinArithmetic exists as a logic:Builtin
+# whose gmeow:graphBoxRole is gmeow:boxABox. The FILTER isolates the arithmetic
+# builtin so the answer is drift-proof against the broader logic:Builtin population
+# (the date-difference and string-concat builtins are box-typed the same way and must
+# not leak into this row). Exactly one row is expected.
+ex:cqNativeArithmeticDecided a gmeow:CompetencyQuestion ;
+    gmeow:cqQuery "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX logic: <https://blackcatinformatics.ca/logic/> SELECT ?b WHERE { ?b a logic:Builtin ; gmeow:graphBoxRole gmeow:boxABox . FILTER(?b = logic:builtinArithmetic) }" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "The closed arithmetic/comparison builtin fragment — arithmetic operators + - * // (integer division, truncating toward zero) and comparisons > < >= =< =:= (arithmetic equality) over checked i64 numeric arguments — is decided by the native physical reasoning core as binding-pattern-keyed filters and generators, not demoted to the embedded Scryer oracle. It surfaces in the production ontology as a first-class, box-typed individual, logic:builtinArithmetic, a logic:Builtin whose gmeow:graphBoxRole is gmeow:boxABox, so a query pinned to that IRI returns exactly one row. The residual modes — an unbound operand, division by zero, and i64 overflow — are declared as gaps and routed to the fallback oracle rather than answered wrongly, so native decision never costs a wrong answer."@x-gmeow-english ;
+    gmeow:cqExactRows true ;
+    gmeow:cqExpectRowCount 1 ;
+    gmeow:cqResultShape ex:cqNativeArithmeticDecidedShape ;
+    gmeow:cqExpectRow ex:rowNativeArithmeticBuiltin .
+
+ex:cqNativeArithmeticDecidedShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "b" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowNativeArithmeticBuiltin a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "b" ; gmeow:cellValueIri logic:builtinArithmetic ] .

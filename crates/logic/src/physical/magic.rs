@@ -60,7 +60,7 @@ use crate::physical::seminaive::{evaluate, NativeOutcome, UnsupportedKind};
 use crate::physical::store::extract_edb;
 use crate::profile_gate;
 use crate::provenance::term_display;
-use crate::query_ir::{AnswerSet, Binding, Budget, QAtom, QBodyLit, QProgram, QTerm};
+use crate::query_ir::{AnswerSet, Binding, Budget, QAtom, QBodyLit, QBuiltin, QProgram, QTerm};
 use crate::rule_ir::{EvalAtom, EvalRule, EvalTerm};
 use crate::seam::{BudgetStatus, ScryerForeign};
 
@@ -110,7 +110,48 @@ fn term_of(t: &QTerm) -> Result<EvalTerm, UnsupportedKind> {
             Ok(EvalTerm::ConstNamed(iri.to_owned()))
         }
         QTerm::Var(v) => Ok(EvalTerm::Var(format!("?{v}"))),
-        QTerm::Num(_) => Err(UnsupportedKind::Arithmetic),
+        // An integer constant in an atom argument (e.g. the `0` in `len(nil, 0)` or a
+        // list index) lowers to the canonical typed-integer literal — byte-identical
+        // to a computed arithmetic answer's surface, so a fact-carried constant and a
+        // builtin-generated value unify.
+        QTerm::Num(n) => Ok(EvalTerm::ConstLit(TermValue::typed_literal(
+            n.to_string(),
+            crate::physical::XSD_INTEGER,
+        ))),
+    }
+}
+
+/// Rewrite a builtin operand's variable to the engine's `?`-prefixed surface,
+/// matching the [`EvalTerm::Var`] keys the body atoms carry (constants unchanged).
+fn prefix_builtin_term(t: &QTerm) -> QTerm {
+    match t {
+        QTerm::Var(v) => QTerm::Var(format!("?{v}")),
+        QTerm::Const(_) | QTerm::Num(_) => t.clone(),
+    }
+}
+
+/// Lower a `QBuiltin` into the engine surface: every variable operand `?`-prefixed
+/// so the seminaive constraint stage's `lookup` resolves it against the solution
+/// bindings.  The shared evaluator is namespace-neutral, so only the variable
+/// surface changes.
+fn builtin_of(b: &QBuiltin) -> QBuiltin {
+    match b {
+        QBuiltin::Is {
+            target,
+            lhs,
+            op,
+            rhs,
+        } => QBuiltin::Is {
+            target: prefix_builtin_term(target),
+            lhs: prefix_builtin_term(lhs),
+            op: *op,
+            rhs: prefix_builtin_term(rhs),
+        },
+        QBuiltin::Compare { lhs, op, rhs } => QBuiltin::Compare {
+            lhs: prefix_builtin_term(lhs),
+            op: *op,
+            rhs: prefix_builtin_term(rhs),
+        },
     }
 }
 
@@ -240,6 +281,7 @@ fn rule(head: EvalAtom, body: Vec<EvalAtom>, rule_iri: String) -> EvalRule {
         body,
         rule_iri,
         distinct_pairs: vec![],
+        builtins: vec![],
     }
 }
 
@@ -360,8 +402,18 @@ fn magic_transform(rules: &[EvalRule], goal: &EvalAtom, goal_adorn: Adorn) -> Ma
                 bind_atom_vars(atom, &mut bound);
             }
 
+            // The modified rule carries the ORIGINAL rule's builtins: the shared
+            // constraint stage evaluates them post-join, generating the head's
+            // arithmetic answer (or filtering).  The magic (demand) rules carry NO
+            // builtins — magic-sets is sound and complete under ANY sideways-
+            // information-passing strategy, so adorning a builtin-bound variable as
+            // free merely loosens demand (never changes the goal answers), and for
+            // the binary arithmetic fragment the builtin is terminal, so the
+            // adornment is in fact exact.
             let iri = format!("{}::mod/{}#{ri}", r.head.predicate.as_str(), adorn_code);
-            out.push(rule(r.head.clone(), mod_body, iri));
+            let mut modified = rule(r.head.clone(), mod_body, iri);
+            modified.builtins = r.builtins.clone();
+            out.push(modified);
         }
     }
 
@@ -503,12 +555,13 @@ pub(crate) fn resolve_native(
     program: &QProgram,
     budget: &Budget,
 ) -> Result<NativeOutcome<AnswerSet>, String> {
-    // (0) Gate cut / arithmetic (reuse the structural detectors the dispatch gate uses).
+    // (0) Gate cut (reuse the structural detector the dispatch gate uses).  Arithmetic
+    // is no longer a whole-program gap — the closed builtin set is evaluated natively;
+    // any residual (unbound operand / ÷0 / overflow) surfaces as a gap DURING the
+    // fixpoint (see `seminaive::evaluate`).  Profile confinement is upstream in
+    // `dispatch::dispatch_query` (`profile_gate::check_builtin_profile`), unchanged.
     if profile_gate::has_cut(program) {
         return Ok(NativeOutcome::Unsupported(UnsupportedKind::Cut));
-    }
-    if profile_gate::has_builtin(program) {
-        return Ok(NativeOutcome::Unsupported(UnsupportedKind::Arithmetic));
     }
 
     // The corpus goal is a single binary atom; the native backward leg handles exactly
@@ -521,29 +574,30 @@ pub(crate) fn resolve_native(
         return Ok(NativeOutcome::Unsupported(UnsupportedKind::NonBinaryAtom));
     }
 
-    // (1) Convert program rules → binary EvalRules.
+    // (1) Convert program rules → binary EvalRules, splitting each body into its atoms
+    // (the join structure) and its arithmetic/comparison builtins (the post-join
+    // constraint stage, evaluated in the modified rules by the shared moded evaluator).
     let mut rules: Vec<EvalRule> = Vec::with_capacity(program.rules.len());
     for r in &program.rules {
-        for lit in &r.body {
-            match lit {
-                QBodyLit::Atom(_) => {}
-                QBodyLit::Cut => return Ok(NativeOutcome::Unsupported(UnsupportedKind::Cut)),
-                QBodyLit::Builtin(_) => {
-                    return Ok(NativeOutcome::Unsupported(UnsupportedKind::Arithmetic))
-                }
-            }
+        // Cut is procedural — still a declared gap.
+        if r.body.iter().any(|lit| matches!(lit, QBodyLit::Cut)) {
+            return Ok(NativeOutcome::Unsupported(UnsupportedKind::Cut));
         }
         let head = match atom_of(&r.head) {
             Ok(a) => a,
             Err(kind) => return Ok(NativeOutcome::Unsupported(kind)),
         };
         let mut body: Vec<EvalAtom> = Vec::new();
+        let mut builtins: Vec<QBuiltin> = Vec::new();
         for lit in &r.body {
-            if let QBodyLit::Atom(a) = lit {
-                match atom_of(a) {
+            match lit {
+                QBodyLit::Atom(a) => match atom_of(a) {
                     Ok(ea) => body.push(ea),
                     Err(kind) => return Ok(NativeOutcome::Unsupported(kind)),
-                }
+                },
+                QBodyLit::Builtin(b) => builtins.push(builtin_of(b)),
+                // Cut already returned above.
+                QBodyLit::Cut => unreachable!("cut handled above"),
             }
         }
         // A synthesized stable rule IRI for the modified/original rule.
@@ -553,6 +607,7 @@ pub(crate) fn resolve_native(
             body,
             rule_iri,
             distinct_pairs: vec![],
+            builtins,
         });
     }
 
@@ -1003,6 +1058,7 @@ mod tests {
                 body,
                 rule_iri: format!("{}::rule", atom_of(&r.head).unwrap().predicate.as_str()),
                 distinct_pairs: vec![],
+                builtins: vec![],
             });
         }
         let goal = &prog.goal.atoms[0];
@@ -1073,7 +1129,11 @@ mod tests {
     }
 
     #[test]
-    fn magic_arithmetic_is_unsupported() {
+    fn magic_binary_arithmetic_is_decided_natively() {
+        // The binary arithmetic list-length program is now DECIDED by the native
+        // magic core (no longer an Arithmetic gap): the builtin `N is M + 1` is
+        // evaluated as a post-join generator in the modified rules.  Over the
+        // single-cell list l0→rest→nil, len(l0) = 1.
         let (store, world_nn) = make_world(&[(
             &format!("{BASE}l0"),
             "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest",
@@ -1089,12 +1149,13 @@ mod tests {
         );
         let prog = parse_query_program(&src).unwrap();
         let outcome = resolve_native(&foreign, &world_nn, &prog, &Budget::default()).unwrap();
-        assert!(
-            matches!(
-                outcome,
-                NativeOutcome::Unsupported(UnsupportedKind::Arithmetic)
-            ),
-            "arithmetic builtin must be Unsupported(Arithmetic): {outcome:?}"
+        let NativeOutcome::Decided(answer) = outcome else {
+            panic!("binary arithmetic must be Decided natively, not a gap: {outcome:?}");
+        };
+        assert_eq!(answer.bindings.len(), 1, "one length answer: {answer:?}");
+        assert_eq!(
+            answer.bindings[0]["N"],
+            "\"1\"^^<http://www.w3.org/2001/XMLSchema#integer>"
         );
     }
 
