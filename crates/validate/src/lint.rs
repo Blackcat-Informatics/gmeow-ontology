@@ -645,6 +645,14 @@ pub fn structural_lint_dataset(ds: &RdfDataset, cfg: &LintConfig) -> LintReport 
     // identity.
     check_lang_translation_invariants(ds, cfg, &mut report);
 
+    // lang: projection-stratum native gates (charter primary gates): the lossy-
+    // lowering contract over the projection corpus — every emission declares its
+    // preservation kind, a lossy emission enumerates the constructs it drops, a
+    // form-view emission enumerates the epistemic strata it flattens, a per-reading
+    // emission emits one row per co-resident reading (never a silent winner), and a
+    // declared-exact emission whose measured round-trip is refuted is caught.
+    check_lang_projection_invariants(ds, cfg, &mut report);
+
     // math: measure-and-dimension reasoned gate — dimensional homogeneity computed
     // from the exact-rational (ℚ⁷) exponent vectors, not asserted data.
     check_math_dimension_invariants(ds, &mut report);
@@ -1039,6 +1047,192 @@ fn check_rendering_as_identity(ds: &RdfDataset, report: &mut LintReport) {
             report.errors.push(format!(
                 "lang:RenderingAsIdentity: rendering {subj} has lang:renderingForm equal to its \
                  lang:renderedContent {c}; the form has collapsed into the content"
+            ));
+        }
+    }
+}
+
+/// The `lang:` projection-stratum invariants the charter designates as native
+/// Rust-validator/projection-test primary gates (realized here rather than in SHACL,
+/// since each carries a join the SHACL Core surface cannot express). Runs over the
+/// merged dataset, so the lossy-lowering contract holds bundle-wide over the whole
+/// projection corpus, not merely per fixture.
+fn check_lang_projection_invariants(ds: &RdfDataset, cfg: &LintConfig, report: &mut LintReport) {
+    check_missing_preservation_kind(ds, report);
+    check_undeclared_unsupported_construct(ds, report);
+    check_unrecorded_epistemic_loss(ds, cfg, report);
+    check_projection_silent_disambiguation(ds, report);
+    check_exact_preservation_violated(ds, report);
+}
+
+/// `lang:MissingPreservationKind` — every `lang:ProjectionEmission` declares a
+/// `logic:preservationKind` (reusing the `logic:` loss-ledger vocabulary verbatim). An
+/// emission with none has entered the loss ledger carrying an undeclared preservation
+/// judgment, so its semiotic loss is unqueryable.
+fn check_missing_preservation_kind(ds: &RdfDataset, report: &mut LintReport) {
+    let preservation_kind = logic_iri("preservationKind");
+    for emission in ds_subjects_of_type(ds, &lang_iri("ProjectionEmission")) {
+        if !ds_has_predicate(ds, &emission, &preservation_kind) {
+            report.errors.push(format!(
+                "lang:MissingPreservationKind: projection emission {emission} declares no \
+                 logic:preservationKind; every projection declares its preservation kind (the \
+                 logic: loss-ledger vocabulary, reused verbatim)"
+            ));
+        }
+    }
+}
+
+/// Whether an emission's declared `logic:preservationKind` set marks it lossy: it names
+/// at least one preservation kind and NONE of them is `logic:ExactPreservation`. An
+/// emission with no preservation kind is out of scope here (that is
+/// `lang:MissingPreservationKind`), so a lossy verdict is always over a declared kind.
+fn emission_is_lossy(ds: &RdfDataset, emission: &str) -> bool {
+    let preservation_kind = logic_iri("preservationKind");
+    let exact = logic_iri("ExactPreservation");
+    let kinds = ds_object_iris(ds, emission, &preservation_kind);
+    !kinds.is_empty() && !kinds.contains(&exact)
+}
+
+/// The co-resident reading count of a source form: the number of distinct `lang:Reading`
+/// subjects reading it through `lang:readingOf`, or — when no reading points at the form
+/// directly — the number of distinct `lang:Analysis` nodes the form is scoped to through
+/// `lang:inAnalysis`. Both encode ambiguity multiplicity; the larger is the count.
+fn source_reading_count(ds: &RdfDataset, source: &str) -> usize {
+    let reading_of = lang_iri("readingOf");
+    let in_analysis = lang_iri("inAnalysis");
+    let mut readings: HashSet<String> = HashSet::new();
+    if let (Some(p_id), Some(o_id)) = (ds_iri_id(ds, &reading_of), ds_iri_id(ds, source)) {
+        for q in ds.quads_for_pattern(None, Some(p_id), Some(o_id), GraphMatch::Any) {
+            if let TermRef::Iri(r) = ds.resolve(q.s) {
+                readings.insert(r.to_owned());
+            }
+        }
+    }
+    let analyses = ds_object_iris(ds, source, &in_analysis);
+    readings.len().max(analyses.len())
+}
+
+/// `lang:UndeclaredUnsupportedConstruct` — a lossy `lang:ProjectionEmission` (a declared
+/// `logic:preservationKind` that is not `logic:ExactPreservation`) enumerates every
+/// construct it drops through `lang:unsupportedConstruct`. A lossy emission naming none has
+/// claimed a completeness its own preservation kind denies — the overclaim floor, over
+/// bundle data.
+fn check_undeclared_unsupported_construct(ds: &RdfDataset, report: &mut LintReport) {
+    let unsupported = lang_iri("unsupportedConstruct");
+    for emission in ds_subjects_of_type(ds, &lang_iri("ProjectionEmission")) {
+        if emission_is_lossy(ds, &emission)
+            && ds_object_literals(ds, &emission, &unsupported).is_empty()
+        {
+            report.errors.push(format!(
+                "lang:UndeclaredUnsupportedConstruct: lossy projection emission {emission} (a \
+                 logic:preservationKind other than logic:ExactPreservation) enumerates no \
+                 lang:unsupportedConstruct; a projection drops nothing or names everything it drops"
+            ));
+        }
+    }
+}
+
+/// `lang:UnrecordedEpistemicLoss` — a form-view-flattening (lossy) `lang:ProjectionEmission`
+/// whose `lang:projectsSource` carries epistemic structure (a `gmeow:vantage`, a
+/// `lang:InterpretationAct`, two or more co-resident readings, or a `lang:Translation`) MUST
+/// name that flattened stratum among its `lang:unsupportedConstruct` entries. An emission
+/// that flattens the epistemic layer yet enumerates none of it has hidden the loss.
+fn check_unrecorded_epistemic_loss(ds: &RdfDataset, cfg: &LintConfig, report: &mut LintReport) {
+    let projects_source = lang_iri("projectsSource");
+    let unsupported = lang_iri("unsupportedConstruct");
+    let vantage = format!("{}vantage", cfg.namespace);
+    for emission in ds_subjects_of_type(ds, &lang_iri("ProjectionEmission")) {
+        // Flattening is a loss; an exact emission preserves everything and flattens nothing.
+        if !emission_is_lossy(ds, &emission) {
+            continue;
+        }
+        let drops: Vec<String> = ds_object_literals(ds, &emission, &unsupported)
+            .into_iter()
+            .map(|d| d.to_lowercase())
+            .collect();
+        for source in ds_object_iris_sorted(ds, &emission, &projects_source) {
+            // The epistemic strata the source carries, each paired with the keyword the drop
+            // list must name to record having flattened it.
+            let mut strata: Vec<&str> = Vec::new();
+            if ds_has_predicate(ds, &source, &vantage) {
+                strata.push("vantage");
+            }
+            if ds_has_type(ds, &source, &lang_iri("InterpretationAct")) {
+                strata.push("interpretation");
+            }
+            if source_reading_count(ds, &source) >= 2 {
+                strata.push("reading");
+            }
+            if ds_has_type(ds, &source, &lang_iri("Translation")) {
+                strata.push("translation");
+            }
+            if strata.is_empty() {
+                continue;
+            }
+            let names_a_stratum = strata.iter().any(|kw| drops.iter().any(|d| d.contains(kw)));
+            if !names_a_stratum {
+                report.errors.push(format!(
+                    "lang:UnrecordedEpistemicLoss: form-view projection emission {emission} projects \
+                     source {source} carrying epistemic structure ({strata:?}) but names none of it \
+                     among its lang:unsupportedConstruct entries; a form-view emission enumerates the \
+                     epistemic strata it flattens"
+                ));
+            }
+        }
+    }
+}
+
+/// `lang:ProjectionSilentDisambiguation` — a per-reading `lang:ProjectionEmission` (one that
+/// declares a `lang:emittedReadingCount`) emits one row per co-resident reading its
+/// `lang:projectsSource` form holds. An emitted count LESS than the source's co-resident
+/// reading count has collapsed the readings to a silently-chosen winner at the projection
+/// seam — distinct from the bundle-wide `lang:SilentDisambiguation` (a meaning-layer collapse).
+fn check_projection_silent_disambiguation(ds: &RdfDataset, report: &mut LintReport) {
+    let projects_source = lang_iri("projectsSource");
+    let emitted_reading_count = lang_iri("emittedReadingCount");
+    for emission in ds_subjects_of_type(ds, &lang_iri("ProjectionEmission")) {
+        // Only per-reading emissions declare an emitted-reading count; others are out of scope.
+        let Some(emitted) = ds_object_literals(ds, &emission, &emitted_reading_count)
+            .iter()
+            .filter_map(|l| l.trim().parse::<i64>().ok())
+            .max()
+        else {
+            continue;
+        };
+        for source in ds_object_iris_sorted(ds, &emission, &projects_source) {
+            let co_resident = source_reading_count(ds, &source) as i64;
+            if emitted < co_resident {
+                report.errors.push(format!(
+                    "lang:ProjectionSilentDisambiguation: per-reading projection emission {emission} \
+                     declares lang:emittedReadingCount {emitted} for source {source} holding \
+                     {co_resident} co-resident readings; a per-reading projection emits one row per \
+                     reading, never a silently-chosen winner"
+                ));
+            }
+        }
+    }
+}
+
+/// `lang:ExactPreservationViolated` — a `lang:ProjectionEmission` claiming
+/// `logic:preservationKind` `logic:ExactPreservation` whose MEASURED `lang:roundTripHolds`
+/// is false has made an exactness claim its own round-trip refutes. The measurement is
+/// computed, not asserted; the exactness claim, not the measurement, is the fault.
+fn check_exact_preservation_violated(ds: &RdfDataset, report: &mut LintReport) {
+    let preservation_kind = logic_iri("preservationKind");
+    let exact = logic_iri("ExactPreservation");
+    let round_trip_holds = lang_iri("roundTripHolds");
+    for emission in ds_subjects_of_type(ds, &lang_iri("ProjectionEmission")) {
+        if !ds_object_iris(ds, &emission, &preservation_kind).contains(&exact) {
+            continue;
+        }
+        let refuted = ds_object_literals(ds, &emission, &round_trip_holds)
+            .iter()
+            .any(|v| v.trim().eq_ignore_ascii_case("false"));
+        if refuted {
+            report.errors.push(format!(
+                "lang:ExactPreservationViolated: projection emission {emission} claims \
+                 logic:ExactPreservation but its measured lang:roundTripHolds is false; an exactness \
+                 claim its own round-trip refutes"
             ));
         }
     }
@@ -2269,6 +2463,307 @@ mod tests {
             lang_errors.is_empty(),
             "the ambiguity fixture must be clean under the native lang: gates: {lang_errors:?}"
         );
+    }
+
+    // ---- lang: projection-stratum native gates (the lossy-lowering contract) ----
+
+    #[test]
+    fn projection_missing_preservation_kind_fires() {
+        let ds = dataset_from(&format!(
+            "{LANG_PREFIXES}\
+             ex:em a lang:ProjectionEmission ;\n\
+               lang:projectionTargetName \"OntoLex-Lemon\" ;\n\
+               lang:projectsSource ex:lexeme .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:MissingPreservationKind")),
+            "errors: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn projection_missing_preservation_kind_clean_when_declared() {
+        let ds = dataset_from(&format!(
+            "{LANG_PREFIXES}\
+             ex:em a lang:ProjectionEmission ;\n\
+               lang:projectionTargetName \"OntoLex-Lemon\" ;\n\
+               lang:projectsSource ex:lexeme ;\n\
+               logic:preservationKind logic:ExactPreservation .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            !report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:MissingPreservationKind")),
+            "errors: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn projection_undeclared_unsupported_fires() {
+        let ds = dataset_from(&format!(
+            "{LANG_PREFIXES}\
+             ex:grammarSrc a lang:Grammar .\n\
+             ex:em a lang:ProjectionEmission ;\n\
+               lang:projectionTargetName \"EBNF\" ;\n\
+               lang:projectsSource ex:grammarSrc ;\n\
+               logic:preservationKind logic:SoundUnderApproximation .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:UndeclaredUnsupportedConstruct")),
+            "errors: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn projection_undeclared_unsupported_clean_when_enumerated() {
+        let ds = dataset_from(&format!(
+            "{LANG_PREFIXES}\
+             ex:grammarSrc a lang:Grammar .\n\
+             ex:em a lang:ProjectionEmission ;\n\
+               lang:projectionTargetName \"EBNF\" ;\n\
+               lang:projectsSource ex:grammarSrc ;\n\
+               logic:preservationKind logic:SoundUnderApproximation ;\n\
+               lang:unsupportedConstruct \"left-recursion\" .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            !report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:UndeclaredUnsupportedConstruct")),
+            "errors: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn projection_unrecorded_epistemic_loss_fires() {
+        let ds = dataset_from(&format!(
+            "{LANG_PREFIXES}\
+             ex:lexemeSrc a lang:Lexeme ;\n\
+               gmeow:vantage ex:annotatorVantage .\n\
+             ex:em a lang:ProjectionEmission ;\n\
+               lang:projectionTargetName \"OntoLex-Lemon\" ;\n\
+               lang:projectsSource ex:lexemeSrc ;\n\
+               logic:preservationKind logic:SoundUnderApproximation ;\n\
+               lang:unsupportedConstruct \"inflection-tables\" .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:UnrecordedEpistemicLoss")),
+            "errors: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn projection_unrecorded_epistemic_loss_clean_when_stratum_named() {
+        let ds = dataset_from(&format!(
+            "{LANG_PREFIXES}\
+             ex:lexemeSrc a lang:Lexeme ;\n\
+               gmeow:vantage ex:annotatorVantage .\n\
+             ex:em a lang:ProjectionEmission ;\n\
+               lang:projectionTargetName \"OntoLex-Lemon\" ;\n\
+               lang:projectsSource ex:lexemeSrc ;\n\
+               logic:preservationKind logic:SoundUnderApproximation ;\n\
+               lang:unsupportedConstruct \"vantage-held-readings\" .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            !report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:UnrecordedEpistemicLoss")),
+            "errors: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn projection_silent_disambiguation_fires() {
+        let ds = dataset_from(&format!(
+            "{LANG_PREFIXES}\
+             ex:form a lang:ComposedForm .\n\
+             ex:r1 a lang:Reading ; lang:readingOf ex:form .\n\
+             ex:r2 a lang:Reading ; lang:readingOf ex:form .\n\
+             ex:em a lang:ProjectionEmission ;\n\
+               lang:projectionTargetName \"CoNLL-U\" ;\n\
+               lang:projectsSource ex:form ;\n\
+               logic:preservationKind logic:ExactPreservation ;\n\
+               lang:emittedReadingCount 1 .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:ProjectionSilentDisambiguation")),
+            "errors: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn projection_silent_disambiguation_clean_when_all_readings_emitted() {
+        let ds = dataset_from(&format!(
+            "{LANG_PREFIXES}\
+             ex:form a lang:ComposedForm .\n\
+             ex:r1 a lang:Reading ; lang:readingOf ex:form .\n\
+             ex:r2 a lang:Reading ; lang:readingOf ex:form .\n\
+             ex:em a lang:ProjectionEmission ;\n\
+               lang:projectionTargetName \"CoNLL-U\" ;\n\
+               lang:projectsSource ex:form ;\n\
+               logic:preservationKind logic:ExactPreservation ;\n\
+               lang:emittedReadingCount 2 .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            !report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:ProjectionSilentDisambiguation")),
+            "errors: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn projection_exact_preservation_violated_fires() {
+        let ds = dataset_from(&format!(
+            "{LANG_PREFIXES}\
+             ex:grammar a lang:Grammar .\n\
+             ex:em a lang:ProjectionEmission ;\n\
+               lang:projectionTargetName \"GTS-grammar-surface\" ;\n\
+               lang:projectsSource ex:grammar ;\n\
+               logic:preservationKind logic:ExactPreservation ;\n\
+               lang:roundTripHolds false .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:ExactPreservationViolated")),
+            "errors: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn projection_exact_preservation_violated_clean_when_round_trip_holds() {
+        let ds = dataset_from(&format!(
+            "{LANG_PREFIXES}\
+             ex:grammar a lang:Grammar .\n\
+             ex:em a lang:ProjectionEmission ;\n\
+               lang:projectionTargetName \"GTS-grammar-surface\" ;\n\
+               lang:projectsSource ex:grammar ;\n\
+               logic:preservationKind logic:ExactPreservation ;\n\
+               lang:roundTripHolds true .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            !report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:ExactPreservationViolated")),
+            "errors: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn projection_counter_example_fixtures_fire_exactly_their_class() {
+        // The four native-gate projection counter-examples each fire exactly their named
+        // failure class (and no OTHER projection class), so each (fixture, class) pair is
+        // load-bearing. (The MissingPreservationKind fixture rides the SHACL harness and is
+        // covered by its inline native test above.)
+        let cases: [(&str, &str, [&str; 3]); 4] = [
+            (
+                include_str!(
+                    "../../../slices/grounding/lang/tests/counter-examples/projection-undeclared-unsupported.ttl"
+                ),
+                "lang:UndeclaredUnsupportedConstruct",
+                [
+                    "lang:UnrecordedEpistemicLoss",
+                    "lang:ProjectionSilentDisambiguation",
+                    "lang:ExactPreservationViolated",
+                ],
+            ),
+            (
+                include_str!(
+                    "../../../slices/grounding/lang/tests/counter-examples/projection-unrecorded-epistemic-loss.ttl"
+                ),
+                "lang:UnrecordedEpistemicLoss",
+                [
+                    "lang:UndeclaredUnsupportedConstruct",
+                    "lang:ProjectionSilentDisambiguation",
+                    "lang:ExactPreservationViolated",
+                ],
+            ),
+            (
+                include_str!(
+                    "../../../slices/grounding/lang/tests/counter-examples/projection-silent-disambiguation.ttl"
+                ),
+                "lang:ProjectionSilentDisambiguation",
+                [
+                    "lang:UndeclaredUnsupportedConstruct",
+                    "lang:UnrecordedEpistemicLoss",
+                    "lang:ExactPreservationViolated",
+                ],
+            ),
+            (
+                include_str!(
+                    "../../../slices/grounding/lang/tests/counter-examples/projection-exact-preservation-violated.ttl"
+                ),
+                "lang:ExactPreservationViolated",
+                [
+                    "lang:UndeclaredUnsupportedConstruct",
+                    "lang:UnrecordedEpistemicLoss",
+                    "lang:ProjectionSilentDisambiguation",
+                ],
+            ),
+        ];
+        for (ttl, expected, forbidden) in cases {
+            let report = structural_lint_dataset(&dataset_from(ttl), &cfg());
+            assert!(
+                report.errors.iter().any(|e| e.contains(expected)),
+                "fixture must fire {expected}: {:?}",
+                report.errors
+            );
+            // The MissingPreservationKind gate must also stay silent (every fixture declares
+            // its preservation kind).
+            assert!(
+                !report
+                    .errors
+                    .iter()
+                    .any(|e| e.contains("lang:MissingPreservationKind")),
+                "fixture for {expected} declares a preservation kind: {:?}",
+                report.errors
+            );
+            for other in forbidden {
+                assert!(
+                    !report.errors.iter().any(|e| e.contains(other)),
+                    "fixture for {expected} must not also fire {other}: {:?}",
+                    report.errors
+                );
+            }
+        }
     }
 
     #[test]

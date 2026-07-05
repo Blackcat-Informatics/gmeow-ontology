@@ -2088,3 +2088,87 @@ lang:promotedReading
     rdfs:label "promoted reading"@x-gmeow-english ;
     skos:definition "Relates an editorial promotion act to the lang:Reading it elevates from an engine-claimed candidate to a slice-asserted analysis. Domain gmeow:Activity, range lang:Reading (stated in prose). Promotion is lawful ONLY as an explicit provenance-carrying act: the promoting subject is a gmeow:Activity carrying a gmeow:vantage naming the editor who stands behind the reading; a lang:promotedReading edge from a subject that is neither an activity nor vantage-held has silently promoted the reading (lang:SilentPromotion)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
+
+# --- Projection-stratum vocabulary + failure classes (the lossy-lowering contract) --- #
+
+lang:ProjectionEmission
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "Projection Emission"@x-gmeow-english ;
+    skos:definition "A recorded emission of a lang: structure to an external target — OntoLex-Lemon, CoNLL-U, EBNF, TEI, NIF, SemAF/AMR, BCP-47, and their siblings — carrying its honest per-emission preservation judgment. Every projection out of the canonical lang: core is lossy or exact, but never silent: an emission names the target it lowers to through lang:projectionTargetName, the lang: structure it projects through lang:projectsSource, its logic:preservationKind, and — where it drops anything — the constructs it cannot carry through lang:unsupportedConstruct. Instances live in the projection corpus graph (boxABox in that graph), so the loss ledger is queryable alongside every other GMEOW lowering rather than hidden in generator code."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+lang:projectionTargetName
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "projection target name"@x-gmeow-english ;
+    skos:definition "Names the external target a lang:ProjectionEmission lowers to — OntoLex-Lemon, CoNLL-U, EBNF, TEI, NIF, SemAF/AMR, BCP-47, and the like. Domain lang:ProjectionEmission, range xsd:string (stated in prose). The target is the addressee of the loss judgment: what preservation kind and unsupported constructs mean is fixed relative to it."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+lang:projectsSource
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "projects source"@x-gmeow-english ;
+    skos:definition "Relates a lang:ProjectionEmission to the source lang: structure it projects — a lang:Form, lang:ComposedForm, lang:Grammar, lang:Lexeme, or lang:Sense. Domain lang:ProjectionEmission, range a lang: structure (stated in prose). The emission's honesty is judged against what this source carries: an epistemic stratum on the source that the target cannot hold must be enumerated as dropped, and a per-reading emission must produce one emission per co-resident reading the source form holds."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+lang:unsupportedConstruct
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "unsupported construct"@x-gmeow-english ;
+    skos:definition "Names one enumerated construct a lang:ProjectionEmission cannot carry into its target — one entry of the emission's honest drop list. Domain lang:ProjectionEmission, range xsd:string (stated in prose), multi-valued. A lossy emission (any logic:preservationKind other than logic:ExactPreservation) enumerates every construct it drops; an undeclared unsupported construct is a conformance failure (lang:UndeclaredUnsupportedConstruct), the overclaim floor carried as bundle data rather than trusted to generator prose."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+lang:emittedReadingCount
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "emitted reading count"@x-gmeow-english ;
+    skos:definition "For a per-reading projection (CoNLL-U and its kin), the number of co-resident readings a lang:ProjectionEmission actually produced. Domain lang:ProjectionEmission, range xsd:nonNegativeInteger (stated in prose). It MUST equal the co-resident reading count of the source form (the distinct lang:Reading objects reading it, or the lang:Analysis nodes over it): a per-reading projection emits one row per reading and never silently picks a single winner (lang:ProjectionSilentDisambiguation)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+lang:roundTripHolds
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "round trip holds"@x-gmeow-english ;
+    skos:definition "The MEASURED round-trip verdict of a lang:ProjectionEmission — whether re-parsing the emitted artifact reconstructs an object isomorphic to the source. Domain lang:ProjectionEmission, range xsd:boolean (stated in prose). It is computed by re-reading the emission on the corpus, never asserted: an emission claiming logic:ExactPreservation whose measured lang:roundTripHolds is false has made an exactness claim its own round-trip refutes (lang:ExactPreservationViolated)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+lang:MissingPreservationKind
+    a owl:Class ;
+    rdfs:subClassOf lang:LangConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "Missing Preservation Kind"@x-gmeow-english ;
+    skos:definition "The failure raised when a lang:ProjectionEmission declares no logic:preservationKind. Every projection out of the canonical core declares its preservation kind, reusing the logic: loss-ledger vocabulary verbatim; an emission with none has entered the loss ledger carrying an undeclared preservation judgment, so its semiotic loss is unqueryable and its target cannot be trusted to know what it received."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+lang:UndeclaredUnsupportedConstruct
+    a owl:Class ;
+    rdfs:subClassOf lang:LangConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "Undeclared Unsupported Construct"@x-gmeow-english ;
+    skos:definition "The failure raised when a lang:ProjectionEmission whose logic:preservationKind is NOT logic:ExactPreservation — an emission that admits dropping something — enumerates NO lang:unsupportedConstruct. A lossy projection that declares nothing dropped has claimed a completeness its own preservation kind denies: the overclaim floor, enforced over bundle data. A projection drops nothing (exact) or names everything it drops; it never drops silently."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+lang:UnrecordedEpistemicLoss
+    a owl:Class ;
+    rdfs:subClassOf lang:LangConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "Unrecorded Epistemic Loss"@x-gmeow-english ;
+    skos:definition "The failure raised when a form-view-flattening lang:ProjectionEmission — one whose lang:projectsSource carries epistemic structure (a gmeow:vantage, a lang:InterpretationAct, two or more co-resident readings, or a lang:Translation) — omits that flattened stratum from its lang:unsupportedConstruct set. Lemon-family and other form-view emissions flatten the epistemic layer, folding vantage-held readings into flat lexical structure; an emission that flattens the epistemic stratum yet names none of it as dropped has hidden the loss the reader most needs to see."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+lang:ProjectionSilentDisambiguation
+    a owl:Class ;
+    rdfs:subClassOf lang:LangConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "Projection Silent Disambiguation"@x-gmeow-english ;
+    skos:definition "The failure raised when a per-reading lang:ProjectionEmission declares a lang:emittedReadingCount LESS than the number of co-resident readings its lang:projectsSource form holds — the distinct lang:Reading objects reading the form, or the lang:Analysis nodes over it. Distinct from the bundle-wide lang:SilentDisambiguation, which flags a structural collapse in the meaning layer, this failure is projection-scoped: a per-reading emission (CoNLL-U) that produced fewer rows than there are readings has collapsed co-resident readings to a silently-chosen winner at the projection seam, the projection-layer form of fabricating certainty."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+lang:ExactPreservationViolated
+    a owl:Class ;
+    rdfs:subClassOf lang:LangConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "Exact Preservation Violated"@x-gmeow-english ;
+    skos:definition "The failure raised when a lang:ProjectionEmission claiming logic:preservationKind logic:ExactPreservation carries a measured lang:roundTripHolds of false — an exactness claim its own round-trip refutes. A declared-exact projection (an EBNF/ABNF or GTS/Turtle grammar surface) round-trips on the corpus by construction; when the measured re-parse is not isomorphic to the source, the emission has claimed an isomorphism it does not discharge, and the claim, not the measurement, is the fault."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
