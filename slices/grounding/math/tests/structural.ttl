@@ -321,7 +321,9 @@ ex:saAnalysisGeometryFailures a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
+    math:MalformedArgumentSlot           rdfs:subClassOf math:MathConformanceFailure .
     math:MalformedBindingExpression      rdfs:subClassOf math:MathConformanceFailure .
+    math:UndeclaredLogicLowering         rdfs:subClassOf math:MathConformanceFailure .
     math:UnscopedVariableOccurrence      rdfs:subClassOf math:MathConformanceFailure .
     math:UnderspecifiedDerivative        rdfs:subClassOf math:MathConformanceFailure .
     math:UnderspecifiedLimit             rdfs:subClassOf math:MathConformanceFailure .
@@ -331,4 +333,4 @@ ASK {
     math:UnderspecifiedChart             rdfs:subClassOf math:MathConformanceFailure .
     math:DimensionMismatch               rdfs:subClassOf math:MathConformanceFailure .
 }""" ;
-    gmeow:saRationale "Each analysis-and-geometry hard-rule failure MUST be a subclass of math:MathConformanceFailure, so a violation — a malformed binder, an unscoped occurrence, an underspecified derivative/limit/convergence/manifold/chart, an assumed topological property, or a dimension mismatch — is a typed, queryable object." .
+    gmeow:saRationale "Each analysis-and-geometry hard-rule failure MUST be a subclass of math:MathConformanceFailure, so a violation — a malformed argument slot or binder, a silent logic: lowering, an unscoped occurrence, an underspecified derivative/limit/convergence/manifold/chart, an assumed topological property, or a dimension mismatch — is a typed, queryable object." .
