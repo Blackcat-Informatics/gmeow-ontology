@@ -6,13 +6,18 @@
 //!
 //! # Extraction universe
 //!
-//! Every DISTINCT `@x-gmeow-english`-tagged literal across the SOURCE slices: this parses
-//! every `text/turtle` artifact the [`SliceCatalog`] discovers under `slices/` (module,
-//! shapes, manifest, example, counter-example, and Turtle mapping artifacts) and collects
-//! each language-tagged literal whose tag is `x-gmeow-english` into a `BTreeSet<String>`
-//! (deterministic, deduplicated by material identity). The `.po` translation catalogs are
-//! not Turtle and carry no `@x-gmeow-english` RDF literal, so the English canon is exactly
-//! the Turtle literal set — never re-derived from the translations.
+//! Every DISTINCT `@x-gmeow-english`-tagged literal across the SOURCE slices. The universe
+//! is drawn from the SHARED, already-discovered in-memory [`SliceCatalog`] the mappings
+//! stage holds (the same catalog the correspondence lowerings consume) — NOT a second disk
+//! walk. Its artifact bytes are already resident, so this parses every `text/turtle`
+//! artifact the catalog carries (module, shapes, manifest, example, counter-example, and
+//! Turtle mapping artifacts) straight from memory and collects each language-tagged literal
+//! whose tag is `x-gmeow-english` into a `BTreeSet<String>` (deterministic, deduplicated by
+//! material identity). Because the extraction universe IS the in-memory source the pipeline
+//! composes from, "total lift" is total over what actually composes into the bundle — never
+//! a fresh, independent re-read of `slices/`. The `.po` translation catalogs are not Turtle
+//! and carry no `@x-gmeow-english` RDF literal, so the English canon is exactly the Turtle
+//! literal set — never re-derived from the translations.
 //!
 //! # What each literal becomes
 //!
@@ -37,7 +42,6 @@
 //! corpus is byte-reproducible (no clock, no randomness).
 
 use std::collections::BTreeSet;
-use std::path::Path;
 
 use purrdf::gts_compose::BlobRow;
 use purrdf::slice::SliceCatalog;
@@ -114,9 +118,12 @@ struct Prose {
 }
 
 /// Build the total prose-lift corpus by interning every distinct `@x-gmeow-english` literal
-/// under `root` as a reachable raw `lang:SurfaceForm`.
-pub fn build_corpus(root: &Path) -> Result<LangFormCorpus, PipelineError> {
-    let texts = collect_english_literals(root)?;
+/// carried by the shared in-memory source [`SliceCatalog`] as a reachable raw
+/// `lang:SurfaceForm`. The catalog is the one the mappings stage already discovered (its
+/// artifact bytes are resident), so the universe is a projection of the composed source —
+/// never a second disk walk. `None` (no `slices/` tree) yields an empty corpus.
+pub fn build_corpus(catalog: Option<&SliceCatalog>) -> Result<LangFormCorpus, PipelineError> {
+    let texts = collect_english_literals(catalog)?;
 
     let mut proses: Vec<Prose> = Vec::with_capacity(texts.len());
     for text in &texts {
@@ -136,12 +143,14 @@ pub fn build_corpus(root: &Path) -> Result<LangFormCorpus, PipelineError> {
 /// [`DOCUMENT_SCALE_BYTES`], one [`BlobRow`] carrying the raw bytes, keyed (by the gts
 /// writer's `digest_string`) under the SAME `blake3:<hex>` digest the corpus emits — so
 /// adding the same bytes resolves the reference and no document-scale payload rides
-/// inline in the graph. Recomputed from `root` (the guide-blob pattern: blobs are rebuilt
-/// in the carrier, independent of the stage product), so the set is a pure function of the
-/// sources. Deterministic (sorted by bytes) and — until a source literal actually crosses
-/// the threshold — empty, exactly as the total-prose corpus is all-inline today.
-pub fn build_surface_blobs(root: &Path) -> Result<Vec<BlobRow>, PipelineError> {
-    let texts = collect_english_literals(root)?;
+/// inline in the graph. Recomputed from the SAME shared in-memory source [`SliceCatalog`]
+/// the corpus draws its universe from (the guide-blob pattern: blobs are rebuilt in the
+/// carrier, independent of the stage product), so the set is a pure function of the
+/// composed sources — never a second disk walk. Deterministic (sorted by bytes) and —
+/// until a source literal actually crosses the threshold — empty, exactly as the
+/// total-prose corpus is all-inline today.
+pub fn build_surface_blobs(catalog: Option<&SliceCatalog>) -> Result<Vec<BlobRow>, PipelineError> {
+    let texts = collect_english_literals(catalog)?;
     let mut blobs: Vec<BlobRow> = texts
         .iter()
         .filter(|text| text.len() > DOCUMENT_SCALE_BYTES)
@@ -163,17 +172,19 @@ fn surface_blob_digest(text: &str) -> String {
     format!("blake3:{}", blake3::hash(text.as_bytes()).to_hex())
 }
 
-/// Collect every DISTINCT `@x-gmeow-english` literal across the source slices' Turtle
-/// artifacts. Deterministic (a `BTreeSet`), deduplicated by material identity.
-fn collect_english_literals(root: &Path) -> Result<BTreeSet<String>, PipelineError> {
-    let catalog =
-        SliceCatalog::discover(&root.join("slices"), crate::gmeow_ns::gmeow_slice_vocab())
-            .map_err(|e| PipelineError::Stage {
-                stage: "stage-mappings".to_string(),
-                message: format!("lang-form slice catalog: {e}"),
-            })?;
-
+/// Collect every DISTINCT `@x-gmeow-english` literal across the SHARED in-memory source
+/// [`SliceCatalog`]'s Turtle artifacts. The catalog was discovered ONCE upstream (the
+/// mappings stage holds it, and the correspondence lowerings consume the same instance), so
+/// this parses only the already-resident artifact bytes — never a second `SliceCatalog::
+/// discover` disk walk. `None` (no `slices/` tree) yields the empty set. Deterministic (a
+/// `BTreeSet`), deduplicated by material identity.
+fn collect_english_literals(
+    catalog: Option<&SliceCatalog>,
+) -> Result<BTreeSet<String>, PipelineError> {
     let mut texts: BTreeSet<String> = BTreeSet::new();
+    let Some(catalog) = catalog else {
+        return Ok(texts);
+    };
     for record in catalog.records() {
         for artifact in &record.artifacts {
             // The English canon lives in the Turtle sources; only Turtle carries an
@@ -468,6 +479,7 @@ fn nt_literal(value: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::path::Path;
 
     fn repo_root() -> std::path::PathBuf {
         Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -477,17 +489,32 @@ mod tests {
             .unwrap()
     }
 
+    /// The shared in-memory source catalog — discovered ONCE, exactly as the mappings stage
+    /// discovers it, so every test drives off the SAME composed-source universe the
+    /// production `compile_mappings` path holds (never a fresh, independent disk walk).
+    fn repo_catalog() -> SliceCatalog {
+        SliceCatalog::discover(
+            &repo_root().join("slices"),
+            crate::gmeow_ns::gmeow_slice_vocab(),
+        )
+        .expect("discover slice catalog")
+    }
+
     #[test]
     fn gate1_every_distinct_english_literal_has_a_surface_form() {
         use std::collections::HashSet;
 
-        let root = repo_root();
-        let universe = collect_english_literals(&root).expect("collect universe");
+        // Draw the universe from the SHARED in-memory source catalog — the same composed
+        // source the production path interns from — so this genuinely checks "every English
+        // literal reachable in the composed carrier has exactly one SurfaceForm", not a
+        // tautology over an independent second disk read.
+        let catalog = repo_catalog();
+        let universe = collect_english_literals(Some(&catalog)).expect("collect universe");
         assert!(
             !universe.is_empty(),
             "the source bundle must carry @x-gmeow-english prose"
         );
-        let corpus = build_corpus(&root).expect("build corpus");
+        let corpus = build_corpus(Some(&catalog)).expect("build corpus");
         let nt = String::from_utf8(corpus.ntriples).expect("utf8");
 
         // Index every emitted lang:surfaceText OBJECT literal ONCE (set membership, not a
@@ -611,9 +638,9 @@ mod tests {
     #[test]
     fn surface_blobs_resolve_every_document_scale_reference() {
         use std::collections::HashSet;
-        let root = repo_root();
-        let nt = String::from_utf8(build_corpus(&root).expect("corpus").ntriples).unwrap();
-        let blobs = build_surface_blobs(&root).expect("blobs");
+        let catalog = repo_catalog();
+        let nt = String::from_utf8(build_corpus(Some(&catalog)).expect("corpus").ntriples).unwrap();
+        let blobs = build_surface_blobs(Some(&catalog)).expect("blobs");
 
         // Every emitted lang:surfaceBlob reference in the corpus (the object literal,
         // stripped of its N-Triples quoting) is backed by exactly one registered blob whose
@@ -637,7 +664,7 @@ mod tests {
         );
 
         // Deterministic: the blob set is a pure function of the sources.
-        let again = build_surface_blobs(&root).expect("blobs again");
+        let again = build_surface_blobs(Some(&catalog)).expect("blobs again");
         let data: Vec<&Vec<u8>> = blobs.iter().map(|b| &b.data).collect();
         let data2: Vec<&Vec<u8>> = again.iter().map(|b| &b.data).collect();
         assert_eq!(data, data2, "build_surface_blobs must be deterministic");
@@ -645,15 +672,16 @@ mod tests {
 
     #[test]
     fn corpus_is_byte_reproducible() {
-        let root = repo_root();
-        let a = build_corpus(&root).expect("build a").ntriples;
-        let b = build_corpus(&root).expect("build b").ntriples;
+        let catalog = repo_catalog();
+        let a = build_corpus(Some(&catalog)).expect("build a").ntriples;
+        let b = build_corpus(Some(&catalog)).expect("build b").ntriples;
         assert_eq!(a, b, "corpus N-Triples must be deterministic");
     }
 
     #[test]
     fn corpus_ledger_is_one_exact_row_with_no_drops() {
-        let corpus = build_corpus(&repo_root()).expect("build corpus");
+        let catalog = repo_catalog();
+        let corpus = build_corpus(Some(&catalog)).expect("build corpus");
         assert_eq!(corpus.ledger.len(), 1, "one corpus ledger row");
         let row = &corpus.ledger[0];
         assert_eq!(row.target, "lang-form");

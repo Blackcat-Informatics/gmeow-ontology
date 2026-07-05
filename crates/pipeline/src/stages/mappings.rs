@@ -94,6 +94,28 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, PipelineError> 
     let vocab = crate::gmeow_ns::gmeow_slice_vocab();
     let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
 
+    // Discover the slice catalog ONCE, here, and share the single in-memory instance across
+    // every source-slice consumer in this stage: the correspondence lowerings (Module +
+    // Mapping merges) AND the total prose-lift corpus (every `@x-gmeow-english` literal,
+    // all roles). Its artifact bytes are resident, so the `slices/` tree is walked once per
+    // run — the total-lift universe is a projection of this composed source, never a second
+    // independent disk read. `None` only when there is no `slices/` tree.
+    let slices_dir = root.join("slices");
+    let catalog = if slices_dir.is_dir() {
+        Some(
+            purrdf::slice::SliceCatalog::discover(
+                &slices_dir,
+                crate::gmeow_ns::gmeow_slice_vocab(),
+            )
+            .map_err(|e| PipelineError::Stage {
+                stage: "stage-mappings".to_string(),
+                message: format!("slice catalog discovery: {e}"),
+            })?,
+        )
+    } else {
+        None
+    };
+
     // Prefix-consistency gate (§2): no authored source may shadow a registry
     // prefix with a foreign namespace — a shadow desynchronizes authored CURIEs from
     // the registry-driven shortener. Hard-fail before emitting any artifact
@@ -141,9 +163,11 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, PipelineError> 
     // (transform functions), EDOAL + SPARQL-CONSTRUCT (one shared get leg, so
     // `spec-drift` is gone by construction). One native parse of the DSL + ontology
     // sources drives all four.
-    let aligned = correspondence_lower::lower_all(root).map_err(|e| PipelineError::Stage {
-        stage: "stage-mappings".to_string(),
-        message: format!("correspondence lowering failed: {e}"),
+    let aligned = correspondence_lower::lower_all(root, catalog.as_ref()).map_err(|e| {
+        PipelineError::Stage {
+            stage: "stage-mappings".to_string(),
+            message: format!("correspondence lowering failed: {e}"),
+        }
     })?;
     for (filename, tsv) in aligned.sssom {
         artifacts.insert(format!("{SSSOM_DIR}/{filename}"), tsv.into_bytes());
@@ -175,7 +199,7 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, PipelineError> 
     // `logic:Correspondence`, and fold the single honest corpus row into the loss ledger.
     // The RDF graph rides as a named graph by the stage `run` below (never a `generated/`
     // file), excluded from the reasoned EDB exactly like the translation corpus.
-    let form_corpus = crate::stages::lang_form::build_corpus(root)?;
+    let form_corpus = crate::stages::lang_form::build_corpus(catalog.as_ref())?;
     ledger.extend(form_corpus.ledger);
     let lang_form_corpus = form_corpus.ntriples;
 
