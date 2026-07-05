@@ -179,9 +179,9 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, PipelineError> 
     for (filename, rq) in aligned.sparql {
         artifacts.insert(format!("{QUERIES_DIR}/{filename}"), rq.into_bytes());
     }
-    // The inverse ingest leg: each `<profile>.put.rq` SPARQL INSERT emitted alongside its
-    // forward `.rq`. Empty until a slice authors the ingest-claim terms, so this writes
-    // nothing today and automatically tracks the emitter (the sole authority for the set).
+    // The inverse ingest leg: each `<profile>.put.rq` SPARQL CONSTRUCT emitted alongside
+    // its forward `.rq`. ml-schema authors the ingest-claim terms today, so this writes the
+    // ml-schema put leg and automatically tracks the emitter (the sole authority for the set).
     for (filename, put) in aligned.sparql_put {
         artifacts.insert(format!("{QUERIES_DIR}/{filename}"), put.into_bytes());
     }
@@ -840,11 +840,10 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
         let artifacts = compile_mappings(&root).expect("compile").artifacts;
         // Oracle for the inverse ingest leg: the lowering IS the authority for the
         // `.put.rq` set, so the expected committed put count is exactly the length of the
-        // emitted `sparql_put` map. Today that map is empty (no slice authors the
-        // ingest-claim terms yet), so `expected_put == 0` and there are zero committed
-        // `.put.rq`; when a slice authors ml-schema, both sides move to 1 in lockstep with
-        // no gate edit. Kept as a distinct counter so `.put.rq` never inflates the forward
-        // `sparql == 46` count.
+        // emitted `sparql_put` map. ml-schema authors the ingest-claim terms today, so
+        // `expected_put == 1` and there is one committed `.put.rq`; both sides move in
+        // lockstep with the emitter with no gate edit. Kept as a distinct counter so
+        // `.put.rq` never inflates the forward `sparql == 46` count.
         // Mirror the production stage's single-catalog discovery so the lowering sees
         // the slice-authored ingest-claim terms (a `None` catalog would drop them and
         // undercount the `.put.rq` oracle).
@@ -916,8 +915,8 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
             "expected 46 SPARQL files byte-matching, got {sparql}"
         );
         // The committed `.put.rq` set count == the emitter-derived oracle, and each
-        // byte-matches (they all passed the `failures` gate above). Passes at 0 today;
-        // tracks the emitter automatically when a slice authors the ingest leg.
+        // byte-matches (they all passed the `failures` gate above). Passes at 1 today
+        // (ml-schema authored); tracks the emitter automatically.
         assert_eq!(
             put, expected_put,
             "expected {expected_put} `.put.rq` files byte-matching (emitter-derived), got {put}"
