@@ -249,7 +249,9 @@ pub(crate) fn emit_put(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::ir::{CorrespondenceLaw, DischargeVerdict, LawClaimIr, MorphismClass};
+    use crate::ir::{
+        CorrespondenceLaw, DischargeVerdict, LawClaimIr, MorphismClass, PreservationKind,
+    };
     use crate::projections::correspondence_frontend::CorrespondenceLookup;
     use crate::projections::get_leg::{Atom, Item, MappingPattern, ProfileBinding, ProjectionCell};
     use crate::projections::sparql::SuppressionVocab;
@@ -437,6 +439,74 @@ mod tests {
         let b = emit(&cells).expect("emits").query;
         assert_eq!(a, b, "the same cells must lower to identical bytes");
         assert!(!a.contains("NOW("), "the put leg must be clock-free:\n{a}");
+    }
+
+    #[test]
+    fn validation_only_binding_carries_residue_into_the_ledger() {
+        // A ValidationOnly mint-with-claim binding that has an authored ingest-residue
+        // disclosure must surface exactly one loss-ledger row carrying that disclosure
+        // verbatim — the honest record of what the external source cannot express.
+        let residue = "a bare mls:Model lift carries no durable subject or tenure; \
+                       never fabricated"
+            .to_owned();
+        let mut cell = class_cell("<=", false, Some(put_get_claim()));
+        cell.bindings[0].ingest_residue = vec![residue.clone()];
+        let emitted = emit(&[cell]).expect("ValidationOnly contributes a put query");
+
+        assert_eq!(
+            emitted.ledger.len(),
+            1,
+            "one ValidationOnly binding with residue must emit exactly one ledger row"
+        );
+        let row = &emitted.ledger[0];
+        assert!(
+            row.target.starts_with("sparql-put:"),
+            "the residue row must be a sparql-put correspondence row, got {:?}",
+            row.target
+        );
+        assert_eq!(
+            row.preservation,
+            PreservationKind::ValidationOnly,
+            "the inverse-ingest up-lift is validation-only"
+        );
+        assert!(
+            row.actual_drops.contains(&residue),
+            "the authored disclosure must survive verbatim into actual_drops:\n{:?}",
+            row.actual_drops
+        );
+        assert!(
+            row.actual_drops
+                .iter()
+                .any(|d| d.starts_with("correspondence: ") && d.ends_with("::ml-schema")),
+            "the row must carry its per-correspondence key note:\n{:?}",
+            row.actual_drops
+        );
+    }
+
+    #[test]
+    fn complete_over_binding_emits_no_residue_row() {
+        // A CompleteOver recovery mints no provenance envelope and carries no residue —
+        // even a stray residue on the binding must not produce a ledger row.
+        let mut cell = class_cell("=", true, None);
+        cell.bindings[0].ingest_residue = vec!["should be ignored".to_owned()];
+        let emitted = emit(&[cell]).expect("CompleteOver contributes a put query");
+        assert!(
+            emitted.ledger.is_empty(),
+            "a CompleteOver recovery must not emit a residue row:\n{:?}",
+            emitted.ledger
+        );
+    }
+
+    #[test]
+    fn unsupported_binding_emits_no_residue_row() {
+        // An Unsupported binding contributes nothing — even with a stray residue set, the
+        // profile yields no query at all, so there is no ledger to carry residue.
+        let mut cell = class_cell("<=", false, None);
+        cell.bindings[0].ingest_residue = vec!["should be ignored".to_owned()];
+        assert!(
+            emit(&[cell]).is_none(),
+            "an Unsupported-only profile must yield Ok(None), carrying no residue"
+        );
     }
 
     #[test]
