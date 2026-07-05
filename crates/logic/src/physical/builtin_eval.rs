@@ -24,6 +24,7 @@
 //! error ([`BuiltinOutcome::Error`]) — never a wrong answer or a panic.
 
 use crate::query_ir::{ArithOp, CmpOp, QBuiltin, QTerm};
+use std::borrow::Cow;
 
 /// The canonical `xsd:integer` datatype IRI — the type of every computed
 /// arithmetic answer. The surface form produced by [`emit_integer_surface`] is
@@ -99,7 +100,7 @@ pub(crate) enum BuiltinOutcome {
 }
 
 /// Resolve one operand `term` to its binding state under `lookup`.
-fn resolve_operand(term: &QTerm, lookup: &impl Fn(&str) -> Option<String>) -> Operand {
+fn resolve_operand<'a>(term: &QTerm, lookup: &impl Fn(&str) -> Option<Cow<'a, str>>) -> Operand {
     match term {
         QTerm::Num(n) => Operand::Num(*n),
         QTerm::Var(v) => match lookup(v) {
@@ -151,7 +152,10 @@ fn apply_compare(lhs: i64, op: CmpOp, rhs: i64) -> bool {
 
 /// Evaluate `builtin` against the current substitution, resolving variables via
 /// `lookup` (variable name → bound surface, or `None` when unbound).
-pub(crate) fn eval(builtin: &QBuiltin, lookup: &impl Fn(&str) -> Option<String>) -> BuiltinOutcome {
+pub(crate) fn eval<'a>(
+    builtin: &QBuiltin,
+    lookup: &impl Fn(&str) -> Option<Cow<'a, str>>,
+) -> BuiltinOutcome {
     match builtin {
         QBuiltin::Is {
             target,
@@ -208,7 +212,7 @@ mod tests {
     use super::*;
 
     /// Build a `lookup` from a small set of (var, surface) pairs.
-    fn env(pairs: &[(&str, &str)]) -> impl Fn(&str) -> Option<String> {
+    fn env(pairs: &[(&str, &str)]) -> impl Fn(&str) -> Option<Cow<'static, str>> {
         let owned: Vec<(String, String)> = pairs
             .iter()
             .map(|(n, s)| ((*n).to_owned(), (*s).to_owned()))
@@ -217,7 +221,7 @@ mod tests {
             owned
                 .iter()
                 .find(|(name, _)| name == v)
-                .map(|(_, surface)| surface.clone())
+                .map(|(_, surface)| Cow::Owned(surface.clone()))
         }
     }
 

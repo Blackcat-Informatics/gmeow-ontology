@@ -55,6 +55,7 @@
 //! module-internally rather than scattering per-item attributes.
 #![allow(dead_code)]
 
+use std::borrow::Cow;
 use std::collections::{BTreeSet, HashMap, HashSet};
 
 use crate::physical::builtin_eval::{emit_integer_surface, eval as eval_builtin, BuiltinOutcome};
@@ -404,9 +405,10 @@ fn apply_builtins(builtins: &[QBuiltin], sols: Vec<Solution>, gap: &mut bool) ->
     'next_sol: for mut sol in sols {
         for b in builtins {
             // Scope the immutable borrow of `sol` to the evaluation so the binding
-            // can be extended after the outcome is known.
+            // can be extended after the outcome is known. The lookup borrows the
+            // bound surface directly (no per-lookup allocation).
             let outcome = {
-                let lookup = |name: &str| sol.get(name).map(str::to_owned);
+                let lookup = |name: &str| sol.get(name).map(Cow::Borrowed);
                 eval_builtin(b, &lookup)
             };
             match outcome {
@@ -416,8 +418,11 @@ fn apply_builtins(builtins: &[QBuiltin], sols: Vec<Solution>, gap: &mut bool) ->
                     sol.bindings.push((var, emit_integer_surface(value)));
                 }
                 BuiltinOutcome::Unbound | BuiltinOutcome::Error(_) => {
+                    // A single unbound operand / domain error re-demotes the WHOLE
+                    // program to the oracle, so the remaining solutions cannot
+                    // change the outcome — stop evaluating them.
                     *gap = true;
-                    continue 'next_sol;
+                    return Vec::new();
                 }
             }
         }

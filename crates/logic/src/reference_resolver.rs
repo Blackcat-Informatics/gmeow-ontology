@@ -232,7 +232,7 @@ impl<'a> ResolveState<'a> {
         seen: &mut BTreeSet<(String, String, String)>,
     ) -> Result<(), String> {
         let lookup = |name: &str| match chase_var(name, subst, 0) {
-            QTerm::Const(c) => Some(c),
+            QTerm::Const(c) => Some(std::borrow::Cow::Owned(c)),
             QTerm::Var(_) | QTerm::Num(_) => None,
         };
         match crate::physical::eval_builtin(builtin, &lookup) {
