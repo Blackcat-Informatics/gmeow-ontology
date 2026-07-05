@@ -383,7 +383,8 @@ ex:saNoDirectResidualMeaningProperty a gmeow:StructuralAssertion ;
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK {
-    ?p a owl:DatatypeProperty .
+    ?p a ?ptype .
+    FILTER(?ptype IN (owl:DatatypeProperty, owl:ObjectProperty, rdf:Property))
     FILTER(?p IN (math:residualMeaning, math:latentDimensionMeaning, math:componentMeaning, math:meaning))
 }""" ;
-    gmeow:saRationale "The slice MUST NOT mint a direct residual/latent/component 'meaning' datatype property: semantic meaning read off geometry is a vantage-held math:ResidualInterpretationClaim (a gmeow:Observation), never an intrinsic property of the vector, so the property-form of meaning is unauthorable by construction." .
+    gmeow:saRationale "The slice MUST NOT mint a direct residual/latent/component 'meaning' property — whether minted as a datatype, object, or plain RDF property: semantic meaning read off geometry is a vantage-held math:ResidualInterpretationClaim (a gmeow:Observation), never an intrinsic property of the vector, so the property-form of meaning is unauthorable by construction." .
