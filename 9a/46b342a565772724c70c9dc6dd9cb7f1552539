@@ -1,0 +1,17 @@
+ghprsq structured squash audit metadata
+
+parent_hashes: e6a55a612a92d894f569ad8d921bf479039deac3
+
+GhpRsq-Schema: 1
+GhpRsq-Merge-Style: structured-squash
+GhpRsq-GitHub-Repo: Blackcat-Informatics/gmeow-ontology
+GhpRsq-GitHub-Pull-Request: 1335
+GhpRsq-GitHub-PR-URL: https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1335
+GhpRsq-Base-Ref: main
+GhpRsq-Base-OID: f7709221cce3ec865ab543b3939c1edd29f2a1cc
+GhpRsq-Head-Ref: paudley/1260-math-linear-algebra-learning
+GhpRsq-Head-OID: e6a55a612a92d894f569ad8d921bf479039deac3
+GhpRsq-Result-Tree: 61d47201f367bb3c5306b13e6a8b3117bafb28bc
+GhpRsq-Result-Commit: 9a46b342a565772724c70c9dc6dd9cb7f1552539
+GhpRsq-Parent-Hashes: e6a55a612a92d894f569ad8d921bf479039deac3
+GhpRsq-Squash-Notes-SHA256: ec237b8c65cd755d307589abe4ff8890e200c3e4f31012b96003a74746e1ebc3
