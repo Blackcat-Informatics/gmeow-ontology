@@ -2494,7 +2494,8 @@ math:ConnectedSpace
     rdfs:subClassOf math:TopologicalSpace ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Connected Space"@x-gmeow-english ;
-    skos:definition "A connected topological space: one that is not the union of two disjoint non-empty open sets. A subclass of math:TopologicalSpace that declares its connectedness through math:isConnected — connectedness is declared, not assumed (an undeclared connectedness is ill-formed, math:UndeclaredTopologicalProperty). Connectedness is preserved by continuous images (the intermediate value theorem is its avatar on ℝ)."@x-gmeow-english ;
+    rdfs:seeAlso math:connectednessLaw ;
+    skos:definition "A connected topological space: one that is not the union of two disjoint non-empty open sets. A subclass of math:TopologicalSpace that declares its connectedness through math:isConnected — connectedness is declared, not assumed (an undeclared connectedness is ill-formed, math:UndeclaredTopologicalProperty). The structure it preserves is the topology's connectedness, whose defining law is math:connectednessLaw (no splitting into two disjoint non-empty open sets covering the space), referenced through math:preservesStructure. Connectedness is preserved by continuous images (the intermediate value theorem is its avatar on ℝ)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:Homotopy
@@ -2556,7 +2557,8 @@ math:isConnected
     a owl:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "is connected"@x-gmeow-english ;
-    skos:definition "Declares whether a space is connected — not the union of two disjoint non-empty open sets. Domain math:ConnectedSpace (or math:TopologicalSpace), range xsd:boolean (stated in prose). Connectedness is declared, not assumed from the type (an undeclared connectedness is ill-formed, math:UndeclaredTopologicalProperty)."@x-gmeow-english ;
+    rdfs:seeAlso math:connectednessLaw ;
+    skos:definition "Declares whether a space is connected — not the union of two disjoint non-empty open sets (math:connectednessLaw). Domain math:ConnectedSpace (or math:TopologicalSpace), range xsd:boolean (stated in prose). The canonical checkable bearer of connectedness; connectedness is declared here, not assumed from the math:ConnectedSpace type (an undeclared connectedness is ill-formed, math:UndeclaredTopologicalProperty)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:homotopyEquivalentTo
@@ -2615,6 +2617,33 @@ math:preimageRel
     rdfs:label "preimage(U,f,V) ⟺ U is the f-preimage f⁻¹(V) of V"@x-gmeow-english ;
     skos:definition "The preimage relation the continuity law quantifies over: preimage(U,f,V) holds exactly when U is the preimage f⁻¹(V) = {x : f(x) ∈ V}. A HiLog relation individual over which the law states 'the preimage of an open set is open'; no first-class asserted property is minted, because the preimage is a derived construction, not authored data."@x-gmeow-english .
 
+# --- Reified relation atoms for the connectedness law (HiLog reflection) ----- #
+
+math:isConnectedRel
+    a logic:Type ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "connected(X) ⟺ space X is connected"@x-gmeow-english ;
+    rdfs:seeAlso math:isConnected ;
+    skos:definition "The HiLog reflection of connectedness as a unary relation individual, so the connectedness law can predicate 'X is connected' inside a logic:Formula atom. Reflects the existing math:isConnected declaration (rdfs:seeAlso), minting no second relation."@x-gmeow-english .
+
+math:disjointRel
+    a logic:Type ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "disjoint(U,V) ⟺ U and V share no element"@x-gmeow-english ;
+    skos:definition "The disjointness relation the connectedness law quantifies over: disjoint(U,V) holds exactly when U ∩ V = ∅. A HiLog relation individual over which the law states the two open sets of a splitting are disjoint; no first-class asserted property is minted, because disjointness is a derived construction over set membership, not authored data."@x-gmeow-english .
+
+math:nonEmptyRel
+    a logic:Type ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "nonEmpty(U) ⟺ U has an element"@x-gmeow-english ;
+    skos:definition "The non-emptiness relation the connectedness law quantifies over: nonEmpty(U) holds exactly when ∃x ∈ U. A HiLog relation individual over which the law requires each half of a splitting to be inhabited; no first-class asserted property is minted, because non-emptiness is a derived construction over set membership, not authored data."@x-gmeow-english .
+
+math:coversSpaceRel
+    a logic:Type ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "coversSpace(U,V,X) ⟺ U ∪ V = X"@x-gmeow-english ;
+    skos:definition "The covering relation the connectedness law quantifies over: coversSpace(U,V,X) holds exactly when U ∪ V equals the whole space X. A ternary HiLog relation individual over which the law states the two open sets of a splitting cover the space; no first-class asserted property is minted, because covering is a derived construction over union and equality, not authored data."@x-gmeow-english .
+
 # --- Law: continuity — the preimage of an open set is open ------------------- #
 # ∀f,U,V: isContinuous(f) ∧ openSet(V) ∧ preimage(U,f,V) → openSet(U)
 # The defining law of a math:ContinuousMap, authored as a first-order logic:Formula
@@ -2650,6 +2679,56 @@ math:continuityA3 a logic:Formula ; logic:relation math:preimageRel ;
 
 math:continuityCons a logic:Formula ; logic:relation math:openSetRel ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "U" ] .
+
+# --- Law: connectedness — no splitting into two disjoint non-empty open sets - #
+# ∀X: isConnected(X) → ¬∃U,V: openSet(U) ∧ openSet(V) ∧ nonEmpty(U) ∧ nonEmpty(V)
+#                              ∧ disjoint(U,V) ∧ coversSpace(U,V,X)
+# The defining law of a math:ConnectedSpace, authored as a first-order logic:Formula
+# exactly as the continuity law above. Connectedness is the negation of the
+# existence of a separation: a connected space cannot be written as the union of
+# two disjoint non-empty open sets. A connected space references this law through
+# math:preservesStructure, and the SHACL gate requires math:isConnected to be present.
+
+math:connectednessLaw
+    a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "connectedness: a connected space is not two disjoint non-empty open sets covering it"@x-gmeow-english ;
+    skos:definition "The defining law of connectedness as a universally-quantified first-order logic:Formula over the reified point/open-set signature: for a connected space X, there do not exist two open sets U and V that are non-empty, disjoint, and together cover X. math: expresses the law; logic: owns reasoning over it. It is the structure a math:ConnectedSpace preserves (math:preservesStructure), so connectedness is backed by a real law rather than a bare boolean."@x-gmeow-english ;
+    logic:quantifiedVariable
+        [ logic:termIndex 0 ; logic:termVariable "X" ] ;
+    logic:forall math:connectednessImpl .
+
+math:connectednessImpl a logic:Formula ;
+    logic:antecedent math:connectednessAnte ;
+    logic:consequent math:connectednessCons .
+
+math:connectednessAnte a logic:Formula ; logic:relation math:isConnectedRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "X" ] .
+
+math:connectednessCons a logic:Formula ;
+    logic:not math:connectednessSplit .
+
+math:connectednessSplit a logic:Formula ;
+    logic:quantifiedVariable
+        [ logic:termIndex 0 ; logic:termVariable "U" ] ,
+        [ logic:termIndex 1 ; logic:termVariable "V" ] ;
+    logic:exists math:connectednessSplitBody .
+
+math:connectednessSplitBody a logic:Formula ;
+    logic:and math:cnA1 , math:cnA2 , math:cnA3 , math:cnA4 , math:cnA5 , math:cnA6 .
+
+math:cnA1 a logic:Formula ; logic:relation math:openSetRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "U" ] .
+math:cnA2 a logic:Formula ; logic:relation math:openSetRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "V" ] .
+math:cnA3 a logic:Formula ; logic:relation math:nonEmptyRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "U" ] .
+math:cnA4 a logic:Formula ; logic:relation math:nonEmptyRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "V" ] .
+math:cnA5 a logic:Formula ; logic:relation math:disjointRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "U" ] , [ logic:termIndex 1 ; logic:termVariable "V" ] .
+math:cnA6 a logic:Formula ; logic:relation math:coversSpaceRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "U" ] , [ logic:termIndex 1 ; logic:termVariable "V" ] , [ logic:termIndex 2 ; logic:termVariable "X" ] .
 
 # =========================================================================== #
 # Differential geometry and manifolds (ANALYSIS-AND-GEOMETRY charter)
