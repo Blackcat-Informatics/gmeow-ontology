@@ -39,12 +39,184 @@
 //! the oxigraph blackboard ([`crate::seam::ScryerForeign`]) into the columnar form.
 
 use std::cmp::Ordering;
-use std::collections::{BTreeSet, HashMap, HashSet};
+use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 
 use purrdf::TermValue;
 
-use crate::facts::{TermId, TermInterner};
+use crate::facts::{TermId, TermInterner, skolem_iri};
+use crate::provenance::term_display;
 use crate::seam::ScryerForeign;
+
+// ── Chase-invented nulls: recipe-carrying Skolem terms ──────────────────────────
+//
+// The existential chase value-invents a fresh witness for a head variable not
+// bound by the body.  A witness is a **Skolem constant, not a blank node** (the
+// same doctrine `relational_core` follows: the clausifier "mints Skolem constants,
+// never blanks (no-optionality)").  Every witness IRI is minted through the single
+// [`crate::facts::skolem_iri`] surface — the one value-invention interning point,
+// shared with `reason/dl.rs`'s TBox witness pass — so null identity has ONE source
+// of truth.
+//
+// Beyond the opaque interned IRI, each witness retains a **decomposable recipe**
+// ([`SkolemRecipe`]).  An interned IRI is a hash and cannot be unified structurally;
+// the recipe can.  Keeping it is what leaves the door open for later Skolem
+// FUNCTIONS, full-FOL backward resolution, and provenance-semiring worlds — none of
+// which an opaque hash could express.  It also drives recursive, order-independent
+// null-blind parity against Nemo and an "explain invented individual" surface.
+
+/// The decomposable recipe for a chase-invented null — a Skolem **function** of the
+/// frontier binding, the standard restricted-chase witness.
+///
+/// The invented value depends on the bound frontier VALUES (never the lexical
+/// variable names), so alpha-variant rules firing on the same data mint the same
+/// null (`content_key` alpha-normalized identity), and — matching Nemo's restricted
+/// chase — two distinct frontier bindings mint two distinct witnesses.  A frontier
+/// slot may itself be a prior invented null (a nested Skolem term), which stays
+/// decomposable via the registry.  Termination is exactly weak acyclicity of the
+/// rule set; the [`ChaseAdmission`](crate) certificate gates admission.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) struct SkolemTerm {
+    /// The content-addressed firing rule IRI (already alpha-normalized).
+    pub(crate) rule_iri: String,
+    /// The existential head-variable ordinal (distinct ∃-vars ⇒ distinct witnesses).
+    pub(crate) ordinal: usize,
+    /// The bound frontier terms — the Skolem function's arguments, in a fixed order.
+    pub(crate) frontier: Vec<TermValue>,
+}
+
+impl SkolemTerm {
+    /// The content key hashed into the Skolem IRI.
+    ///
+    /// Length-prefixed (netstring-style) framing: every field is emitted as its
+    /// byte length in decimal, a `\u{1f}` separator, then the field's raw bytes.
+    /// Because a decoder reads the decimal length up to the first `\u{1f}` and
+    /// then consumes EXACTLY that many bytes, no field value can forge a field
+    /// boundary — whatever bytes it holds, `\u{1f}` included.  The frontier is
+    /// preceded by its element COUNT, framed the same way, so a single term whose
+    /// surface contains the separator can never masquerade as several terms.  The
+    /// encoding is therefore injective: distinct `(rule_iri, ordinal, frontier)`
+    /// tuples always yield distinct keys.  Frontier terms are rendered via
+    /// [`term_display`] — their VALUE surface, never a source-variable name —
+    /// preserving `content_key` alpha-normalized identity.
+    fn content_key(&self) -> String {
+        /// Append `field` as `<byte-len>\u{1f}<field-bytes>`.
+        fn frame(out: &mut String, field: &str) {
+            out.push_str(&field.len().to_string());
+            out.push('\u{1f}');
+            out.push_str(field);
+        }
+        let mut key = String::from("wa-skolem");
+        frame(&mut key, &self.rule_iri);
+        frame(&mut key, &self.ordinal.to_string());
+        frame(&mut key, &self.frontier.len().to_string());
+        for arg in &self.frontier {
+            frame(&mut key, &term_display(arg));
+        }
+        key
+    }
+
+    /// The invented-null IRI surface for this recipe (deterministic, content-addressed).
+    fn witness_iri(&self) -> String {
+        skolem_iri(&self.content_key())
+    }
+}
+
+/// A decomposable explanation of one chase-invented witness null — the Skolem
+/// **function** application that minted it: the firing rule, the existential ordinal, and
+/// the bound frontier VALUES it is addressed on.
+///
+/// A frontier value may itself be a prior invented null, so an explanation is recursively
+/// decomposable through the same registry ([`SkolemRegistry::explain`]).  This is the
+/// "explain invented individual" surface the recipe is retained per witness precisely to
+/// support: an opaque interned IRI is a hash and cannot be decomposed; this can.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) struct WitnessDerivation {
+    /// The invented-null IRI surface being explained.
+    pub(crate) witness: String,
+    /// The content-addressed firing rule IRI that invented the witness.
+    pub(crate) rule_iri: String,
+    /// The existential head-variable ordinal (distinct ∃-vars ⇒ distinct witnesses).
+    pub(crate) ordinal: usize,
+    /// The Skolem-function arguments: the bound frontier terms, in a fixed order.
+    pub(crate) frontier: Vec<TermValue>,
+}
+
+/// The witnesses a chase has invented, keyed by their IRI surface → recipe.
+///
+/// A `BTreeMap` so any full sweep is sorted/deterministic.  Minting the same recipe
+/// twice is idempotent (re-firing an obligation on the same frontier recovers the
+/// same witness — the restricted-chase blocking): the second mint returns the same
+/// IRI and asserts the retained recipe is unchanged.
+#[derive(Debug, Clone, Default)]
+pub(crate) struct SkolemRegistry {
+    recipes: BTreeMap<String, SkolemTerm>,
+}
+
+impl SkolemRegistry {
+    /// A fresh, empty registry.
+    pub(crate) fn new() -> Self {
+        Self::default()
+    }
+
+    /// Mint (or recover) the witness for `recipe`, returning its `TermValue` IRI.
+    ///
+    /// Deterministic and idempotent: identical recipes collapse to the same witness,
+    /// so re-firing an obligation never invents a fresh anonymous individual.
+    pub(crate) fn mint(&mut self, recipe: SkolemTerm) -> TermValue {
+        let iri = recipe.witness_iri();
+        match self.recipes.get(&iri) {
+            Some(existing) => debug_assert_eq!(
+                existing, &recipe,
+                "skolem IRI collision: two distinct recipes hashed to {iri}"
+            ),
+            None => {
+                self.recipes.insert(iri.clone(), recipe);
+            }
+        }
+        TermValue::iri(&iri)
+    }
+
+    /// The recipe behind an invented-null IRI surface, if this registry minted it.
+    pub(crate) fn recipe(&self, iri: &str) -> Option<&SkolemTerm> {
+        self.recipes.get(iri)
+    }
+
+    /// Explain a chase-invented null: recover its decomposable derivation — the firing
+    /// rule, the existential ordinal, and the bound frontier values — from the retained
+    /// recipe, or `None` if this registry never minted `iri`.
+    ///
+    /// The single "explain invented individual" surface: it is non-vacuous because every
+    /// witness retains its Skolem-function recipe, so an invented individual can always be
+    /// decomposed back to the rule firing and frontier binding that produced it.
+    pub(crate) fn explain(&self, iri: &str) -> Option<WitnessDerivation> {
+        self.recipe(iri).map(|recipe| WitnessDerivation {
+            witness: iri.to_owned(),
+            rule_iri: recipe.rule_iri.clone(),
+            ordinal: recipe.ordinal,
+            frontier: recipe.frontier.clone(),
+        })
+    }
+
+    /// Whether `term` is a null this registry invented.
+    pub(crate) fn is_invented(&self, term: &TermValue) -> bool {
+        matches!(term, TermValue::Iri(iri) if self.recipes.contains_key(iri))
+    }
+
+    /// The number of distinct witnesses invented so far.
+    pub(crate) fn len(&self) -> usize {
+        self.recipes.len()
+    }
+
+    /// Whether no witness has been invented yet.
+    pub(crate) fn is_empty(&self) -> bool {
+        self.recipes.is_empty()
+    }
+
+    /// Every invented-null IRI surface, in sorted order.
+    pub(crate) fn witnesses(&self) -> impl Iterator<Item = &str> {
+        self.recipes.keys().map(String::as_str)
+    }
+}
 
 /// A position-pattern over a binary relation's `(subject, object)` columns.
 ///
@@ -515,5 +687,112 @@ mod tests {
             ],
         );
         assert!(edb.contains("http://ex/likes", "<http://ex/a>", "<http://ex/c>"));
+    }
+
+    // ── Chase-invented Skolem-term nulls ─────────────────────────────────────────
+
+    fn witness(ordinal: usize, frontier: Vec<TermValue>) -> SkolemTerm {
+        SkolemTerm {
+            rule_iri: "http://ex/rule".to_owned(),
+            ordinal,
+            frontier,
+        }
+    }
+
+    #[test]
+    fn skolem_mint_is_deterministic_and_idempotent() {
+        let mut reg = SkolemRegistry::new();
+        let a = reg.mint(witness(0, vec![term("http://ex/a")]));
+        // Re-firing on the SAME frontier recovers the SAME witness (restricted-chase
+        // blocking) and does not grow the registry — the fixpoint's teeth.
+        let b = reg.mint(witness(0, vec![term("http://ex/a")]));
+        assert_eq!(a, b);
+        assert_eq!(reg.len(), 1);
+        assert!(reg.is_invented(&a));
+    }
+
+    #[test]
+    fn skolem_distinct_frontiers_give_distinct_witnesses() {
+        // The standard restricted chase mints one fresh witness per frontier binding
+        // (matching Nemo) — distinct frontier values ⇒ distinct nulls.
+        let mut reg = SkolemRegistry::new();
+        let wa = reg.mint(witness(0, vec![term("http://ex/a")]));
+        let wb = reg.mint(witness(0, vec![term("http://ex/b")]));
+        assert_ne!(wa, wb);
+        assert_eq!(reg.len(), 2);
+    }
+
+    #[test]
+    fn skolem_distinct_ordinals_give_distinct_witnesses() {
+        // The n distinct existential vars of `≥n p.D` (same frontier) are distinct.
+        let mut reg = SkolemRegistry::new();
+        let w0 = reg.mint(witness(0, vec![term("http://ex/a")]));
+        let w1 = reg.mint(witness(1, vec![term("http://ex/a")]));
+        assert_ne!(w0, w1);
+        assert_eq!(reg.len(), 2);
+    }
+
+    #[test]
+    fn skolem_addresses_on_values_not_variable_names() {
+        // The Skolem function keys on the bound frontier VALUES.  Two firings of
+        // alpha-variant rules (?x vs ?y) that bind the SAME data mint the byte-identical
+        // null — `content_key` alpha-normalized identity (no lexical name in the key).
+        let mut reg = SkolemRegistry::new();
+        let frontier = vec![term("http://ex/a"), term("http://ex/b")];
+        let a = reg.mint(witness(0, frontier.clone()));
+        let b = reg.mint(witness(0, frontier));
+        assert_eq!(a, b);
+        assert_eq!(reg.len(), 1);
+    }
+
+    #[test]
+    fn skolem_recipe_round_trips_and_nests() {
+        // The IRI → recipe lookup recovers the structured recipe (decomposability),
+        // and a frontier slot may itself be a prior invented null (nested Skolem term)
+        // that is still decomposable through the registry.
+        let mut reg = SkolemRegistry::new();
+        let inner = reg.mint(witness(0, vec![term("http://ex/a")]));
+        let inner_iri = match &inner {
+            TermValue::Iri(s) => s.clone(),
+            _ => unreachable!("mint returns an IRI"),
+        };
+        let outer = reg.mint(witness(0, vec![inner.clone()]));
+        let outer_iri = match &outer {
+            TermValue::Iri(s) => s.clone(),
+            _ => unreachable!(),
+        };
+
+        // The outer recipe decomposes to reveal the inner null in its frontier…
+        let outer_recipe = reg.recipe(&outer_iri).expect("outer recipe retained");
+        assert_eq!(outer_recipe.frontier, vec![inner]);
+        // …and the inner null is itself decomposable (its own frontier is `a`).
+        let inner_recipe = reg.recipe(&inner_iri).expect("inner recipe retained");
+        assert_eq!(inner_recipe.frontier, vec![term("http://ex/a")]);
+        // A term this registry never minted is not recognized as invented.
+        assert!(!reg.is_invented(&term("http://ex/a")));
+    }
+
+    #[test]
+    fn skolem_content_key_is_injective_across_frontier_shapes() {
+        // A frontier term whose `term_display` surface itself contains the field
+        // separator MUST NOT be able to forge a boundary.  `term("a>\u{1f}<b")`
+        // renders as `<a>\u{1f}<b>` — byte-identical to the two-term frontier
+        // `[term("a"), term("b")]` rendered as `<a>` `\u{1f}` `<b>` joined.  Under a
+        // naive separator-joined key these two DISTINCT recipes collide to one
+        // witness; the length-prefixed encoding keeps them distinct.
+        let one = witness(0, vec![term("a>\u{1f}<b")]);
+        let two = witness(0, vec![term("a"), term("b")]);
+        assert_ne!(
+            one.witness_iri(),
+            two.witness_iri(),
+            "distinct frontier recipes must mint distinct witnesses"
+        );
+
+        // The same collision, driven through the registry: two mints, two witnesses.
+        let mut reg = SkolemRegistry::new();
+        let w_one = reg.mint(one);
+        let w_two = reg.mint(two);
+        assert_ne!(w_one, w_two);
+        assert_eq!(reg.len(), 2);
     }
 }

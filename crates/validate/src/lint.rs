@@ -621,6 +621,18 @@ pub fn structural_lint_dataset(ds: &RdfDataset, cfg: &LintConfig) -> LintReport 
     // one-way lang:->logic: bridge acyclicity.
     check_lang_meaning_invariants(ds, cfg, &mut report);
 
+    // lang: form-stratum native gates (charter primary gates): a document-scale
+    // surface holds its bytes by reference (never inline payload), and a composed
+    // form's slot indexes are zero-based and contiguous (enforced unconditionally).
+    check_lang_form_invariants(ds, &mut report);
+
+    // lang: ingestion-stratum native gates (charter primary gates): the external-
+    // engine handoff — engine output enters as vantage-held readings (never
+    // unattributed structure), promotion from an engine reading to a slice
+    // assertion is an explicit provenance-carrying act, and an ingested surface is
+    // never left in analysis limbo (silently dropped content).
+    check_lang_ingestion_invariants(ds, cfg, &mut report);
+
     // lang: translation-stratum native gates (charter primary gates): the crossing
     // layer keeps content identity structural (never keyed on surface material) and
     // a rendering names its content without ever standing in for that content's
@@ -637,6 +649,14 @@ pub fn structural_lint_dataset(ds: &RdfDataset, cfg: &LintConfig) -> LintReport 
 /// Namespace roots for the `lang:`/`logic:` meaning-stratum invariants.
 const LANG_NS: &str = "https://blackcatinformatics.ca/lang/";
 const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
+
+/// The document-scale threshold, in bytes, for the `lang:InlineBlobPayload` gate: a
+/// `lang:SurfaceForm` whose inline `lang:surfaceText` exceeds this holds document-scale
+/// payload inline instead of by reference (`lang:surfaceBlob`). This MUST equal the
+/// pipeline's `DOCUMENT_SCALE_BYTES` (`crates/pipeline/src/stages/lang_form.rs`, which
+/// mints the `lang:surfaceBlob` handle once a surface crosses it); the two are kept in
+/// sync by hand — one hard-coded, documented constant, never a tunable knob.
+const DOCUMENT_SCALE_BYTES: usize = 4096;
 
 fn lang_iri(term: &str) -> String {
     format!("{LANG_NS}{term}")
@@ -761,6 +781,179 @@ fn check_one_way_bridge(ds: &RdfDataset, report: &mut LintReport) {
                 "lang: one-way bridge violated: logic: subject {s} carries lang: predicate {p} \
                  (Principle 19: the lang:->logic: bridge never reverses)"
             ));
+        }
+    }
+}
+
+/// The `lang:` ingestion-stratum invariants the charter designates as native
+/// Rust-validator gates for the external-NLP-engine handoff (realized here rather
+/// than in SHACL, since the engine seam is a Rust seam). Runs over the merged
+/// dataset, so the invariants hold bundle-wide, not merely per fixture.
+fn check_lang_ingestion_invariants(ds: &RdfDataset, cfg: &LintConfig, report: &mut LintReport) {
+    check_unattributed_engine_claim(ds, cfg, report);
+    check_silent_promotion(ds, cfg, report);
+    check_silent_ingest_drop(ds, report);
+}
+
+/// `lang:SilentIngestDrop` — an ingester lifts fully or hard-fails; it never silently
+/// drops material. The bridges enforce this at the seam (a lift that cannot represent a
+/// construct raises a typed `IngestDiagnostic` carrying this class rather than emitting a
+/// plausible-but-wrong structure). At the dataset level the honest complement is a
+/// surface left in analysis limbo: a `lang:SurfaceForm` that neither `lang:realizes` an
+/// analyzed `lang:Form` NOR is typed `lang:UnanalyzedProse` has entered the graph with its
+/// analysis silently dropped — neither lifted nor explicitly marked unanalyzed. A surface
+/// is analyzed or explicitly unanalyzed, never silently either.
+fn check_silent_ingest_drop(ds: &RdfDataset, report: &mut LintReport) {
+    let realizes = lang_iri("realizes");
+    let unanalyzed = lang_iri("UnanalyzedProse");
+    for surface in ds_subjects_of_type(ds, &lang_iri("SurfaceForm")) {
+        let realizes_a_form = ds_has_predicate(ds, &surface, &realizes);
+        let is_unanalyzed = ds_has_type(ds, &surface, &unanalyzed);
+        if !realizes_a_form && !is_unanalyzed {
+            report.errors.push(format!(
+                "lang:SilentIngestDrop: surface {surface} neither lang:realizes an analyzed \
+                 lang:Form nor is typed lang:UnanalyzedProse; an ingested surface left in \
+                 analysis limbo has silently dropped its content (an ingester lifts fully or \
+                 hard-fails, never silently either)"
+            ));
+        }
+    }
+}
+
+/// The `lang:` form-stratum invariants the charter designates as native Rust-validator
+/// primary gates (realized here rather than in SHACL). Runs over the merged dataset, so
+/// the invariants hold bundle-wide, not merely per fixture.
+fn check_lang_form_invariants(ds: &RdfDataset, report: &mut LintReport) {
+    check_inline_blob_payload(ds, report);
+    check_noncontiguous_form_slots(ds, report);
+}
+
+/// `lang:InlineBlobPayload` — document-scale surfaces hold a content-addressed blob
+/// reference (`lang:surfaceBlob`), never inline payload bytes. Flag a `lang:SurfaceForm`
+/// whose inline `lang:surfaceText` byte-length EXCEEDS [`DOCUMENT_SCALE_BYTES`] — a
+/// document-scale surface that inlined its bytes instead of holding them by reference. The
+/// threshold is the SAME value the pipeline's lang-form producer mints the
+/// `lang:surfaceBlob` handle at, so the gate and the producer agree on the boundary.
+fn check_inline_blob_payload(ds: &RdfDataset, report: &mut LintReport) {
+    let surface_text = lang_iri("surfaceText");
+    for surface in ds_subjects_of_type(ds, &lang_iri("SurfaceForm")) {
+        for text in ds_object_literals(ds, &surface, &surface_text) {
+            if text.len() > DOCUMENT_SCALE_BYTES {
+                report.errors.push(format!(
+                    "lang:InlineBlobPayload: surface {surface} carries a document-scale \
+                     lang:surfaceText inline ({} bytes > {DOCUMENT_SCALE_BYTES}); document-scale \
+                     surfaces hold their bytes by reference through lang:surfaceBlob, never inline",
+                    text.len()
+                ));
+            }
+        }
+    }
+}
+
+/// `lang:NonContiguousSlots` — a `lang:ComposedForm`'s `lang:formSlot` slot indexes
+/// (`lang:slotIndex`) are zero-based and contiguous, enforced UNCONDITIONALLY (there is no
+/// lax mode). Flag a composed form whose multiset of declared slot indexes is not exactly
+/// `0, 1, …, n-1` for its `n` slots — a missing index 0, an internal gap, a non-zero
+/// start, or a maximum index not equal to the slot count minus one. Constituent order is
+/// identity-bearing, so a gap or non-zero start is always ill-formed.
+fn check_noncontiguous_form_slots(ds: &RdfDataset, report: &mut LintReport) {
+    let form_slot = lang_iri("formSlot");
+    let slot_index = lang_iri("slotIndex");
+    for form in ds_subjects_of_type(ds, &lang_iri("ComposedForm")) {
+        let slots = ds_object_iris_sorted(ds, &form, &form_slot);
+        if slots.is_empty() {
+            continue;
+        }
+        // Collect the declared integer indexes across the form's slots. A slot with no
+        // integer index cannot take a place in the contiguous order, so a missing index is
+        // itself non-contiguity (the count of indexes then falls short of the slot count).
+        let mut indexes: Vec<i64> = Vec::new();
+        for slot in &slots {
+            for lex in ds_object_literals(ds, slot, &slot_index) {
+                if let Ok(i) = lex.trim().parse::<i64>() {
+                    indexes.push(i);
+                }
+            }
+        }
+        indexes.sort_unstable();
+        // Zero-based and contiguous: the sorted index multiset is exactly 0..slot_count.
+        let contiguous = indexes.len() == slots.len()
+            && indexes.iter().enumerate().all(|(i, &idx)| idx == i as i64);
+        if !contiguous {
+            report.errors.push(format!(
+                "lang:NonContiguousSlots: composed form {form} has slot indexes {indexes:?} over \
+                 {} slot(s); slot indexes are zero-based and contiguous (0, 1, …, n-1), enforced \
+                 unconditionally — a gap, a non-zero start, or a missing index is ill-formed",
+                slots.len()
+            ));
+        }
+    }
+}
+
+/// `lang:UnattributedEngineClaim` — an external engine is an oracle that produces
+/// claims, never an authority that produces facts, so every reading a `lang:
+/// InterpretationAct` marked as an engine run (through `lang:interpretationEngine`)
+/// produces MUST be a vantage-held reading (carrying `gmeow:vantage`). An engine
+/// reading with no vantage has entered engine output as unattributed structure.
+///
+/// Keying on `lang:interpretationEngine` scopes the gate to engine runs, so a manual
+/// or compositional interpretation act — whose co-resident readings are held through
+/// a separate `gmeow:Observation` and may lawfully leave the non-preferred alternative
+/// unclaimed — is never flagged.
+fn check_unattributed_engine_claim(ds: &RdfDataset, cfg: &LintConfig, report: &mut LintReport) {
+    let engine = lang_iri("interpretationEngine");
+    let produced = lang_iri("producedReading");
+    let vantage = format!("{}vantage", cfg.namespace);
+    for act in ds_subjects_of_type(ds, &lang_iri("InterpretationAct")) {
+        if !ds_has_predicate(ds, &act, &engine) {
+            continue;
+        }
+        for reading in ds_object_iris_sorted(ds, &act, &produced) {
+            if !ds_has_predicate(ds, &reading, &vantage) {
+                report.errors.push(format!(
+                    "lang:UnattributedEngineClaim: engine interpretation act {act} produced \
+                     reading {reading} with no gmeow:vantage; engine output enters as \
+                     vantage-held readings, never unattributed structure"
+                ));
+            }
+        }
+    }
+}
+
+/// `lang:SilentPromotion` — promotion from an engine-claimed reading to a slice-
+/// asserted analysis is an explicit provenance-carrying editorial act. A subject that
+/// adopts a reading as canonical (through `lang:promotedReading`) MUST itself be a
+/// `gmeow:Activity` carrying a `gmeow:vantage` (the editor who stands behind it);
+/// a promotion from a subject that is not such an act has silently promoted the
+/// reading, erasing the boundary between what an engine claimed and what the slice
+/// asserts.
+fn check_silent_promotion(ds: &RdfDataset, cfg: &LintConfig, report: &mut LintReport) {
+    let promoted = lang_iri("promotedReading");
+    let activity = format!("{}Activity", cfg.namespace);
+    let vantage = format!("{}vantage", cfg.namespace);
+    let Some(p_id) = ds_iri_id(ds, &promoted) else {
+        return;
+    };
+    let mut subjects: Vec<String> = Vec::new();
+    for q in ds.quads_for_pattern(None, Some(p_id), None, GraphMatch::Any) {
+        if let TermRef::Iri(s) = ds.resolve(q.s) {
+            subjects.push(s.to_owned());
+        }
+    }
+    subjects.sort();
+    subjects.dedup();
+    for subj in subjects {
+        let is_act = ds_has_type(ds, &subj, &activity);
+        let is_vantage_held = ds_has_predicate(ds, &subj, &vantage);
+        if !is_act || !is_vantage_held {
+            for reading in ds_object_iris_sorted(ds, &subj, &promoted) {
+                report.errors.push(format!(
+                    "lang:SilentPromotion: subject {subj} promotes reading {reading} to a slice \
+                     assertion but is not a provenance-carrying editorial act (a gmeow:Activity \
+                     carrying a gmeow:vantage); promotion from an engine reading is an explicit \
+                     provenance-carrying act"
+                ));
+            }
         }
     }
 }
@@ -1891,6 +2084,195 @@ mod tests {
         );
     }
 
+    // --- lang: ingestion-stratum native gates -------------------------------- #
+
+    #[test]
+    fn unattributed_engine_claim_flags_engine_reading_without_vantage() {
+        // An engine run (lang:interpretationEngine present) whose produced reading
+        // carries no gmeow:vantage — engine output entered as unattributed structure.
+        let ds = dataset_from(&format!(
+            "{LANG_PREFIXES}\
+             ex:act a lang:InterpretationAct ;\n\
+               lang:interpretationEngine ex:udParser ;\n\
+               lang:producedReading ex:r1 .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:UnattributedEngineClaim")),
+            "errors: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn unattributed_engine_claim_clean_when_reading_is_vantage_held() {
+        // The lawful engine handoff: each produced reading carries the engine's vantage.
+        let ds = dataset_from(&format!(
+            "{LANG_PREFIXES}\
+             ex:act a lang:InterpretationAct ;\n\
+               lang:interpretationEngine ex:udParser ;\n\
+               lang:producedReading ex:r1 .\n\
+             ex:r1 a lang:Reading ; gmeow:vantage ex:udVantage .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            !report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:UnattributedEngineClaim")),
+            "errors: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn unattributed_engine_claim_ignores_non_engine_act() {
+        // A manual/compositional act (no lang:interpretationEngine) may lawfully leave
+        // a co-resident reading unclaimed — the gate must NOT fire on it.
+        let ds = dataset_from(&format!(
+            "{LANG_PREFIXES}\
+             ex:act a lang:InterpretationAct ;\n\
+               lang:producedReading ex:r1 , ex:r2 .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            !report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:UnattributedEngineClaim")),
+            "errors: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn silent_promotion_flags_promotion_without_editorial_act() {
+        // A bare subject promotes a reading with no provenance-carrying act.
+        let ds = dataset_from(&format!(
+            "{LANG_PREFIXES}\
+             ex:slice lang:promotedReading ex:r1 .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:SilentPromotion")),
+            "errors: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn silent_promotion_clean_when_promotion_is_a_vantage_held_activity() {
+        // The lawful promotion: an explicit editorial gmeow:Activity carrying a vantage.
+        let ds = dataset_from(&format!(
+            "{LANG_PREFIXES}\
+             ex:promote a gmeow:Activity ;\n\
+               gmeow:vantage ex:editor ;\n\
+               lang:promotedReading ex:r1 .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            !report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:SilentPromotion")),
+            "errors: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn silent_promotion_flags_activity_missing_vantage() {
+        // An activity that promotes but carries no vantage is still a silent promotion.
+        let ds = dataset_from(&format!(
+            "{LANG_PREFIXES}\
+             ex:promote a gmeow:Activity ;\n\
+               lang:promotedReading ex:r1 .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:SilentPromotion")),
+            "errors: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn ingestion_counter_example_fixtures_fire_exactly_their_class() {
+        // The slice-resident counter-examples for the two native ingestion gates each
+        // fire exactly their named failure class (and nothing from the other gate),
+        // so the (fixture, class) pair is load-bearing rather than decorative.
+        let unattributed = include_str!(
+            "../../../slices/grounding/lang/tests/counter-examples/ingestion-unattributed-engine-claim.ttl"
+        );
+        let report = structural_lint_dataset(&dataset_from(unattributed), &cfg());
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:UnattributedEngineClaim")),
+            "errors: {:?}",
+            report.errors
+        );
+        assert!(
+            !report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:SilentPromotion")),
+            "the unattributed-engine fixture must not also fire SilentPromotion: {:?}",
+            report.errors
+        );
+
+        let promotion = include_str!(
+            "../../../slices/grounding/lang/tests/counter-examples/ingestion-silent-promotion.ttl"
+        );
+        let report = structural_lint_dataset(&dataset_from(promotion), &cfg());
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:SilentPromotion")),
+            "errors: {:?}",
+            report.errors
+        );
+        assert!(
+            !report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:UnattributedEngineClaim")),
+            "the silent-promotion fixture keeps its reading vantage-held: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn ambiguity_positive_fixture_is_clean_under_the_native_gates() {
+        // Gate 5 (positive): the co-resident-readings fixture — an engine act producing
+        // TWO vantage-held readings with NO resolved winner — trips none of the lang:
+        // native gates.
+        let fixture = include_str!(
+            "../../../slices/grounding/lang/tests/conformance-fixtures/ambiguity-saw-her-duck.ttl"
+        );
+        let report = structural_lint_dataset(&dataset_from(fixture), &cfg());
+        let lang_errors: Vec<&String> = report
+            .errors
+            .iter()
+            .filter(|e| e.contains("lang:") || e.contains("one-way bridge"))
+            .collect();
+        assert!(
+            lang_errors.is_empty(),
+            "the ambiguity fixture must be clean under the native lang: gates: {lang_errors:?}"
+        );
+    }
+
     #[test]
     fn surface_leak_flags_crossing_carrying_surface_predicate() {
         // A translation unit that inlines surface-stratum material (lang:inScript)
@@ -1976,6 +2358,232 @@ mod tests {
             "errors: {:?}",
             report.errors
         );
+    }
+
+    // --- lang: form-stratum native gates (blob-by-reference + slot contiguity) - #
+
+    #[test]
+    fn inline_blob_payload_flags_document_scale_surface_text() {
+        // A lang:SurfaceForm whose inline lang:surfaceText exceeds the document-scale
+        // threshold — payload folded inline instead of held by reference.
+        let big = "x".repeat(DOCUMENT_SCALE_BYTES + 1);
+        let ds = dataset_from(&format!(
+            "{LANG_PREFIXES}\
+             ex:s a lang:SurfaceForm , lang:UnanalyzedProse ;\n\
+               lang:surfaceText \"{big}\" .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:InlineBlobPayload")),
+            "errors: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn inline_blob_payload_clean_for_small_surface_and_for_blob_reference() {
+        // A small inline surface stays inline (clean); a document-scale surface holding
+        // its bytes by reference (lang:surfaceBlob, no inline lang:surfaceText) is also
+        // clean — the gate flags only inline document-scale payload.
+        let ds = dataset_from(&format!(
+            "{LANG_PREFIXES}\
+             ex:small a lang:SurfaceForm , lang:UnanalyzedProse ;\n\
+               lang:surfaceText \"cats chase mice\" .\n\
+             ex:doc a lang:SurfaceForm , lang:UnanalyzedProse ;\n\
+               lang:surfaceBlob \"blake3:deadbeef\" .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            !report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:InlineBlobPayload")),
+            "errors: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn noncontiguous_slots_flags_internal_gap() {
+        // A composed form with slot indexes 0, 1, 3 — an internal gap at 2.
+        let ds = dataset_from(&format!(
+            "{LANG_PREFIXES}\
+             ex:cf a lang:ComposedForm ; lang:formSlot ex:s0 , ex:s1 , ex:s3 .\n\
+             ex:s0 a lang:FormSlot ; lang:slotIndex 0 .\n\
+             ex:s1 a lang:FormSlot ; lang:slotIndex 1 .\n\
+             ex:s3 a lang:FormSlot ; lang:slotIndex 3 .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:NonContiguousSlots")),
+            "errors: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn noncontiguous_slots_clean_for_zero_based_contiguous() {
+        // A composed form with zero-based contiguous slot indexes 0, 1.
+        let ds = dataset_from(&format!(
+            "{LANG_PREFIXES}\
+             ex:cf a lang:ComposedForm ; lang:formSlot ex:s0 , ex:s1 .\n\
+             ex:s0 a lang:FormSlot ; lang:slotIndex 0 .\n\
+             ex:s1 a lang:FormSlot ; lang:slotIndex 1 .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            !report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:NonContiguousSlots")),
+            "errors: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn silent_ingest_drop_flags_surface_in_limbo() {
+        // A lang:SurfaceForm that neither realizes a form nor is typed UnanalyzedProse.
+        let ds = dataset_from(&format!(
+            "{LANG_PREFIXES}\
+             ex:s a lang:SurfaceForm ;\n\
+               lang:surfaceText \"cats chase mice\" .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:SilentIngestDrop")),
+            "errors: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn silent_ingest_drop_clean_when_realizes_or_unanalyzed() {
+        // Either honest analysis status clears the gate: a surface that realizes an
+        // analyzed form, and a surface explicitly typed unanalyzed prose.
+        let ds = dataset_from(&format!(
+            "{LANG_PREFIXES}\
+             ex:s1 a lang:SurfaceForm ; lang:realizes ex:form .\n\
+             ex:s2 a lang:SurfaceForm , lang:UnanalyzedProse ;\n\
+               lang:surfaceText \"cats chase mice\" .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            !report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:SilentIngestDrop")),
+            "errors: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn form_and_ingest_counter_example_fixtures_fire_exactly_their_class() {
+        // Each slice-resident counter-example for the native form/ingestion gates fires
+        // exactly its named failure class (and none of the sibling classes), so the
+        // (fixture, class) pair is load-bearing. The blob-payload gate reuses slot-gap.ttl
+        // for contiguity — the shipped non-contiguous (0, 1, 3) counter-example.
+        let inline_blob = include_str!(
+            "../../../slices/grounding/lang/tests/counter-examples/surface-inline-blob-payload.ttl"
+        );
+        let report = structural_lint_dataset(&dataset_from(inline_blob), &cfg());
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:InlineBlobPayload")),
+            "errors: {:?}",
+            report.errors
+        );
+        assert!(
+            !report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:SilentIngestDrop")
+                    || e.contains("lang:NonContiguousSlots")),
+            "the inline-blob fixture must fire only lang:InlineBlobPayload: {:?}",
+            report.errors
+        );
+
+        let gap =
+            include_str!("../../../slices/grounding/lang/tests/counter-examples/slot-gap.ttl");
+        let report = structural_lint_dataset(&dataset_from(gap), &cfg());
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:NonContiguousSlots")),
+            "errors: {:?}",
+            report.errors
+        );
+        assert!(
+            !report.errors.iter().any(
+                |e| e.contains("lang:InlineBlobPayload") || e.contains("lang:SilentIngestDrop")
+            ),
+            "the slot-gap fixture must fire only lang:NonContiguousSlots: {:?}",
+            report.errors
+        );
+
+        let drop = include_str!(
+            "../../../slices/grounding/lang/tests/counter-examples/ingest-silent-drop.ttl"
+        );
+        let report = structural_lint_dataset(&dataset_from(drop), &cfg());
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:SilentIngestDrop")),
+            "errors: {:?}",
+            report.errors
+        );
+        assert!(
+            !report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:InlineBlobPayload")
+                    || e.contains("lang:NonContiguousSlots")),
+            "the silent-drop fixture must fire only lang:SilentIngestDrop: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn form_and_ingest_positive_controls_are_clean() {
+        // The shipped conforming fixtures clear the native form/ingestion gates: a
+        // zero-based contiguous composed form, and a raw surface typed unanalyzed prose.
+        for fixture in [
+            include_str!(
+                "../../../slices/grounding/lang/tests/conformance-fixtures/slot-contiguous.ttl"
+            ),
+            include_str!(
+                "../../../slices/grounding/lang/tests/conformance-fixtures/surface-analyzed.ttl"
+            ),
+        ] {
+            let report = structural_lint_dataset(&dataset_from(fixture), &cfg());
+            let hits: Vec<&String> = report
+                .errors
+                .iter()
+                .filter(|e| {
+                    e.contains("lang:InlineBlobPayload")
+                        || e.contains("lang:NonContiguousSlots")
+                        || e.contains("lang:SilentIngestDrop")
+                })
+                .collect();
+            assert!(
+                hits.is_empty(),
+                "positive control must clear the native form/ingestion gates: {hits:?}"
+            );
+        }
     }
 
     // --- math: measure-and-dimension reasoned gate --------------------------- #

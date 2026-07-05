@@ -16,6 +16,8 @@
 //! that would be unwound the next rung.
 #![allow(dead_code)]
 
+mod builtin_eval;
+mod chase;
 mod magic;
 mod parity;
 mod seminaive;
@@ -34,7 +36,26 @@ pub(crate) use store::{Bound, RelationStore, extract_edb};
 #[allow(unused_imports)]
 pub(crate) use seminaive::{NativeOutcome, UnsupportedKind, evaluate, materialize_native};
 
+// The native restricted (standard) existential-rule chase: value invention for the
+// existential fragment, admitted by the `ChaseAdmission` termination certificate and
+// consumed by `materialize::materialize_routed`.
+#[allow(unused_imports)]
+pub(crate) use chase::{
+    ChaseAdmission, ExistentialRule, chase_materialize, chase_world, parse_existential_rules,
+    route_chase,
+};
+
 // The backward native evaluator: magic-sets demand transformation +
 // `resolve_native`, the oracle-parity sibling of `reference_resolver::resolve`. The primary
 // backward path consumed by `dispatch::dispatch_query`.
 pub(crate) use magic::resolve_native;
+
+// The shared moded builtin evaluator: one arithmetic/comparison semantics called
+// by every native engine. `emit_integer_surface` is the single canonical
+// computed-value surface, reused by the dispatch/Scryer surface emitters so
+// byte-identity is by construction. `eval_builtin`/`BuiltinOutcome`/`BuiltinError`
+// are consumed by the forward/backward evaluators wired on the next rungs.
+#[allow(unused_imports)]
+pub(crate) use builtin_eval::{
+    BuiltinError, BuiltinOutcome, XSD_INTEGER, emit_integer_surface, eval as eval_builtin,
+};

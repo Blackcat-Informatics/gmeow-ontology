@@ -55,6 +55,7 @@ use purrdf::TermValue;
 use crate::provenance::{
     ASSERT_RULE_IRI, LOGIC_NAMESPACE, mint_derivation_id, mint_reifier, term_display,
 };
+use crate::query_ir::QBuiltin;
 
 // ── Evaluable term / atom / rule ────────────────────────────────────────────────
 
@@ -100,6 +101,14 @@ pub(crate) struct EvalRule {
     /// Inequality guards `(?A, ?B)`.  The WFS/stable corpus has none, so this is
     /// empty for every corpus case (see the NOTE in [`parse_eval_rules`]).
     pub(crate) distinct_pairs: Vec<(String, String)>,
+    /// Arithmetic / comparison builtins, in body order, with variable operands in
+    /// the engine's `?`-prefixed surface (matching the body atoms' [`EvalTerm::Var`]
+    /// keys).  Evaluated as a post-join constraint stage: a generator (`is` with a
+    /// free target) binds its target before the head is grounded, a filter prunes
+    /// the solution.  Empty for every forward `.rls` rule — populated solely by the
+    /// backward magic transform ([`crate::physical::magic`]), the only path that
+    /// carries arithmetic.
+    pub(crate) builtins: Vec<QBuiltin>,
 }
 
 // ── Ground fact + store (oxigraph-term based, insertion-ordered, first-wins) ─────
@@ -304,7 +313,7 @@ fn parse_n3_object_literal(n3: &str) -> Result<TermValue, String> {
 ///
 /// `terms()[0]` = subject, `terms()[1]` = object; `terms()[2]` (world) is ignored,
 /// exactly like `certify.rs::logical_terms`.
-fn lower_nemo_atom(
+pub(crate) fn lower_nemo_atom(
     atom: &nemo::rule_model::components::atom::Atom,
     negated: bool,
 ) -> Result<EvalAtom, String> {
@@ -373,6 +382,8 @@ pub(crate) fn parse_eval_rules(rules: &str) -> Result<Vec<EvalRule>, String> {
             body,
             rule_iri,
             distinct_pairs: Vec::new(),
+            // Forward `.rls` rules carry no arithmetic (the ontology corpus has none).
+            builtins: Vec::new(),
         });
     }
     Ok(out)
@@ -831,7 +842,7 @@ fn ground_term_to_value(term: &EvalTerm, sol: &Solution, slot: &str) -> Result<T
 
 /// Re-materialize a native [`TermValue`] from its N3 surface (`<iri>`, `_:blank`, or
 /// a literal).
-fn surface_to_value(surface: &str) -> Result<TermValue, String> {
+pub(crate) fn surface_to_value(surface: &str) -> Result<TermValue, String> {
     if let Some(iri) = surface.strip_prefix('<').and_then(|s| s.strip_suffix('>')) {
         if iri.is_empty() {
             return Err(format!("rule_ir: invalid bound IRI {surface:?}: empty"));
@@ -1084,6 +1095,7 @@ mod tests {
             body: vec![],
             rule_iri: format!("{NS}rule/fact"),
             distinct_pairs: vec![],
+            builtins: vec![],
         };
         let rendered = eval_rules_to_rls(&[fact_rule]);
         assert!(
