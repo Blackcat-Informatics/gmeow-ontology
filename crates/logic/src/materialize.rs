@@ -326,7 +326,7 @@ fn coerce_typed_rows(
                 return Err(MaterializeError::Chase(format!(
                     "row[{idx}] subject: a world-scoped quad subject must be an \
                      IRI (or Skolem IRI) term, got {other:?}"
-                )))
+                )));
             }
         };
 
@@ -346,7 +346,7 @@ fn coerce_typed_rows(
                 return Err(MaterializeError::Chase(format!(
                     "row[{idx}] world: the world position of a ternary row must \
                      be a plain string literal, got {other:?}"
-                )))
+                )));
             }
         };
 
@@ -722,9 +722,10 @@ pub fn materialize_routed(
                     (None, Some(b)) => Some(b),
                     (None, None) => None,
                 };
-                match crate::physical::chase_materialize(&store, &existential_rules, max_steps)
-                    .map_err(MaterializeError::Chase)?
-                {
+                let (admission, chase_outcome) =
+                    crate::physical::chase_materialize(&store, &existential_rules, max_steps)
+                        .map_err(MaterializeError::Chase)?;
+                match chase_outcome {
                     crate::physical::NativeOutcome::Decided(budgeted) => {
                         let frontier = budgeted.frontier();
                         Some((budgeted.rows, budgeted.status, frontier))
@@ -738,6 +739,16 @@ pub fn materialize_routed(
                     // trace). This returns the arm's whole result directly rather than
                     // falling through to the Datalog `materialize_core` fallback.
                     crate::physical::NativeOutcome::Unsupported(_) => {
+                        // The refusal is a native capability-gap, not a silent drop: the
+                        // certificate's weak-acyclicity violations are the counted
+                        // `reason::ledger` DlGap surface (`capability_gap_rows`), scoped
+                        // out of the DL/EL crosscheck by their `existential-chase` category.
+                        // Production emits no existential rules today, so the audit sink is
+                        // the parity/oracle harness; here we assert the invariant and demote.
+                        debug_assert!(
+                            !admission.capability_gap_rows().is_empty(),
+                            "a refused existential program must surface ≥1 counted capability-gap row"
+                        );
                         return demote_existential_to_facts_only(rules, input, preservation);
                     }
                 }

@@ -121,6 +121,26 @@ impl SkolemTerm {
     }
 }
 
+/// A decomposable explanation of one chase-invented witness null — the Skolem
+/// **function** application that minted it: the firing rule, the existential ordinal, and
+/// the bound frontier VALUES it is addressed on.
+///
+/// A frontier value may itself be a prior invented null, so an explanation is recursively
+/// decomposable through the same registry ([`SkolemRegistry::explain`]).  This is the
+/// "explain invented individual" surface the recipe is retained per witness precisely to
+/// support: an opaque interned IRI is a hash and cannot be decomposed; this can.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) struct WitnessDerivation {
+    /// The invented-null IRI surface being explained.
+    pub(crate) witness: String,
+    /// The content-addressed firing rule IRI that invented the witness.
+    pub(crate) rule_iri: String,
+    /// The existential head-variable ordinal (distinct ∃-vars ⇒ distinct witnesses).
+    pub(crate) ordinal: usize,
+    /// The Skolem-function arguments: the bound frontier terms, in a fixed order.
+    pub(crate) frontier: Vec<TermValue>,
+}
+
 /// The witnesses a chase has invented, keyed by their IRI surface → recipe.
 ///
 /// A `BTreeMap` so any full sweep is sorted/deterministic.  Minting the same recipe
@@ -159,6 +179,22 @@ impl SkolemRegistry {
     /// The recipe behind an invented-null IRI surface, if this registry minted it.
     pub(crate) fn recipe(&self, iri: &str) -> Option<&SkolemTerm> {
         self.recipes.get(iri)
+    }
+
+    /// Explain a chase-invented null: recover its decomposable derivation — the firing
+    /// rule, the existential ordinal, and the bound frontier values — from the retained
+    /// recipe, or `None` if this registry never minted `iri`.
+    ///
+    /// The single "explain invented individual" surface: it is non-vacuous because every
+    /// witness retains its Skolem-function recipe, so an invented individual can always be
+    /// decomposed back to the rule firing and frontier binding that produced it.
+    pub(crate) fn explain(&self, iri: &str) -> Option<WitnessDerivation> {
+        self.recipe(iri).map(|recipe| WitnessDerivation {
+            witness: iri.to_owned(),
+            rule_iri: recipe.rule_iri.clone(),
+            ordinal: recipe.ordinal,
+            frontier: recipe.frontier.clone(),
+        })
     }
 
     /// Whether `term` is a null this registry invented.

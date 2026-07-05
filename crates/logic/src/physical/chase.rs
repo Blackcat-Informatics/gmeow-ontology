@@ -44,6 +44,8 @@
 
 use std::collections::BTreeSet;
 
+use gmeow_diagnostics::{Finding, Severity};
+
 use crate::physical::seminaive::{
     Budgeted, NativeOutcome, StepGovernor, StrataProgress, UnsupportedKind,
 };
@@ -223,21 +225,51 @@ pub(crate) fn chase_world(
     rules: &[ExistentialRule],
     max_steps: Option<u64>,
 ) -> Result<ChaseOutcome, String> {
+    let (outcome, _registry) = chase_world_explained(world, edb_facts, rules, max_steps)?;
+    Ok(outcome)
+}
+
+/// Run the restricted chase for one world like [`chase_world`], but ALSO return the
+/// [`SkolemRegistry`] of invented witnesses so a caller can EXPLAIN an invented null —
+/// recover its decomposable Skolem-function recipe (rule, ordinal, frontier binding) via
+/// [`SkolemRegistry::explain`].  [`chase_world`] delegates here and discards the registry;
+/// the "explain invented individual" surface keeps it.
+///
+/// # Errors
+///
+/// Propagates provenance/​grounding failures from the shared `rule_ir` helpers.
+pub(crate) fn chase_world_explained(
+    world: &str,
+    edb_facts: &[Fact],
+    rules: &[ExistentialRule],
+    max_steps: Option<u64>,
+) -> Result<(ChaseOutcome, SkolemRegistry), String> {
     let mut governor = StepGovernor::new(max_steps);
+    let mut registry = SkolemRegistry::new();
     let mut out: Vec<DerivedRow> = Vec::new();
-    let status = chase_world_into(world, edb_facts, rules, &mut governor, &mut out)?;
+    let status = chase_world_into(
+        world,
+        edb_facts,
+        rules,
+        &mut governor,
+        &mut registry,
+        &mut out,
+    )?;
     sort_rows(&mut out);
     let progress = StrataProgress {
         completed: usize::from(status == BudgetStatus::Ok),
         total: 1,
         saturated_preds: BTreeSet::new(),
     };
-    Ok(NativeOutcome::Decided(Budgeted {
-        rows: out,
-        status,
-        progress,
-        consumed_steps: governor.consumed,
-    }))
+    Ok((
+        NativeOutcome::Decided(Budgeted {
+            rows: out,
+            status,
+            progress,
+            consumed_steps: governor.consumed,
+        }),
+        registry,
+    ))
 }
 
 /// Chase ONE world into a shared output buffer under a shared step governor.
@@ -246,11 +278,17 @@ pub(crate) fn chase_world(
 /// budget across the sorted worlds (matching `materialize_native`'s discipline).  Echoes
 /// the world's asserted EDB, runs the restricted-chase fixpoint, and appends the derived
 /// rows (each stamped with `world`) to `out`.  Returns the world's budget status.
+///
+/// The caller owns the [`SkolemRegistry`] so the invented witnesses survive the run and
+/// can be EXPLAINED afterward (and, in [`chase_materialize`], so ONE registry spans the
+/// sorted worlds — witness IRIs are content-addressed on rule+frontier, world-independent,
+/// so a shared registry only dedups the recipe map, never changes a fact).
 fn chase_world_into(
     world: &str,
     edb_facts: &[Fact],
     rules: &[ExistentialRule],
     governor: &mut StepGovernor,
+    registry: &mut SkolemRegistry,
     out: &mut Vec<DerivedRow>,
 ) -> Result<BudgetStatus, String> {
     // Seed the columnar store from the EDB; echo the asserted facts as derived rows so
@@ -262,7 +300,6 @@ fn chase_world_into(
     }
     out.extend(echo_asserted(world, edb_facts)?);
 
-    let mut registry = SkolemRegistry::new();
     let mut committed: BTreeSet<FactKey> = edb_facts.iter().map(Fact::key).collect();
     let mut status = BudgetStatus::Ok;
 
@@ -370,11 +407,16 @@ pub(crate) fn chase_materialize(
     store: &crate::store::WorldStore,
     rules: &[ExistentialRule],
     max_steps: Option<u64>,
-) -> Result<ChaseOutcome, String> {
+) -> Result<(ChaseAdmission, ChaseOutcome), String> {
     let admission = ChaseAdmission::certify(rules);
     if !admits_or_budgeted(&admission, max_steps) {
-        return Ok(NativeOutcome::Unsupported(
-            UnsupportedKind::NonTerminatingExistential,
+        // Surface the certificate alongside the refusal rather than discarding it: the
+        // caller reads its `Uncertified` violations off the returned admission (as a
+        // counted `reason::ledger` capability-gap via `ChaseAdmission::capability_gap_rows`
+        // and as a `gmeow:Finding` via `ChaseAdmission::to_finding`).
+        return Ok((
+            admission,
+            NativeOutcome::Unsupported(UnsupportedKind::NonTerminatingExistential),
         ));
     }
 
@@ -382,11 +424,21 @@ pub(crate) fn chase_materialize(
     worlds.sort();
 
     let mut governor = StepGovernor::new(max_steps);
+    // ONE registry spans the sorted worlds (witness IRIs are world-independent), so any
+    // invented witness stays explainable across the whole materialization.
+    let mut registry = SkolemRegistry::new();
     let mut out: Vec<DerivedRow> = Vec::new();
     let mut status = BudgetStatus::Ok;
     for world in &worlds {
         let edb_facts = crate::rule_ir::world_edb_facts(store, world)?;
-        let world_status = chase_world_into(world, &edb_facts, rules, &mut governor, &mut out)?;
+        let world_status = chase_world_into(
+            world,
+            &edb_facts,
+            rules,
+            &mut governor,
+            &mut registry,
+            &mut out,
+        )?;
         if world_status == BudgetStatus::Exhausted {
             status = BudgetStatus::Exhausted;
             break; // global budget spent — later worlds don't run
@@ -401,12 +453,15 @@ pub(crate) fn chase_materialize(
         total: 1,
         saturated_preds: BTreeSet::new(),
     };
-    Ok(NativeOutcome::Decided(Budgeted {
-        rows: out,
-        status,
-        progress,
-        consumed_steps: governor.consumed,
-    }))
+    Ok((
+        admission,
+        NativeOutcome::Decided(Budgeted {
+            rows: out,
+            status,
+            progress,
+            consumed_steps: governor.consumed,
+        }),
+    ))
 }
 
 /// Parse a Nemo `.rls` program into [`ExistentialRule`]s, capturing conjunctive heads and
@@ -748,6 +803,49 @@ impl ChaseAdmission {
     /// Whether the native chase may run this program unbudgeted (it terminates).
     pub(crate) fn admits_native(&self) -> bool {
         matches!(self, Self::WeaklyAcyclic { .. })
+    }
+
+    /// The COUNTED capability-gap rows for this certificate: one
+    /// [`crate::reason::ledger::DivergenceKind::DlGap`] row per weak-acyclicity violation
+    /// when [`Self::Uncertified`], and NONE when [`Self::WeaklyAcyclic`] (a certified
+    /// program has no gap).
+    ///
+    /// A refused existential program is a native coverage defect, so its gap is routed to
+    /// the counted `reason::ledger` DlGap surface (reusing the existing kind — never the
+    /// uncounted `physical::parity::ParityLedger`) and categorized
+    /// [`crate::reason::ledger::EXISTENTIAL_CHASE_CATEGORY`] so it stays out of the
+    /// committed DL/EL crosscheck `gapCount == 0` gate.
+    pub(crate) fn capability_gap_rows(&self) -> Vec<crate::reason::ledger::LedgerRow> {
+        match self {
+            Self::Uncertified { violations } => {
+                crate::reason::ledger::existential_gap_rows(violations)
+            }
+            Self::WeaklyAcyclic { .. } => Vec::new(),
+        }
+    }
+
+    /// Project this termination certificate into a [`gmeow_diagnostics::Finding`] — the
+    /// certificate class AND its evidence as a first-class surfaced diagnostic, reusing the
+    /// canonical Finding machinery the divergence ledger uses, never an internal boolean.
+    ///
+    /// A [`Self::WeaklyAcyclic`] certificate is an informational finding carrying its proof
+    /// evidence; an [`Self::Uncertified`] one is an error finding carrying the joined
+    /// weak-acyclicity violations.
+    pub(crate) fn to_finding(&self) -> Finding {
+        match self {
+            Self::WeaklyAcyclic { evidence } => Finding::new(
+                Severity::Info,
+                "chase.certificate.weakly-acyclic".to_owned(),
+                evidence.clone(),
+            )
+            .with_tool("chase"),
+            Self::Uncertified { violations } => Finding::new(
+                Severity::Error,
+                "chase.certificate.uncertified".to_owned(),
+                violations.join("; "),
+            )
+            .with_tool("chase"),
+        }
     }
 
     /// The certified-strength rank — explicit, NOT a derived `Ord`.
@@ -1233,5 +1331,114 @@ mod tests {
         let b = decided(outcome);
         assert_eq!(b.status, BudgetStatus::Exhausted);
         assert_eq!(b.consumed_steps, 2);
+    }
+
+    // ── H3: capability-gap counting, invented-individual explain, certificate Finding ──
+
+    #[test]
+    fn refused_existential_program_counts_a_reason_ledger_dlgap() {
+        // A cyclic `D ⊑ ∃p.D` is uncertified; its refusal is a COUNTED reason::ledger
+        // DlGap carrying the weak-acyclicity violation evidence — never silently dropped.
+        let cyclic = restriction_rule("http://ex/rule/cyclic", D, P, D);
+        let admission = ChaseAdmission::certify(&[cyclic]);
+        assert!(
+            !admission.admits_native(),
+            "cyclic program must be uncertified"
+        );
+
+        let rows = admission.capability_gap_rows();
+        assert_eq!(rows.len(), 1, "one DlGap row per violation");
+        assert_eq!(rows[0].kind, crate::reason::ledger::DivergenceKind::DlGap);
+        assert_eq!(
+            rows[0].category,
+            crate::reason::ledger::EXISTENTIAL_CHASE_CATEGORY,
+            "scoped out of the DL/EL crosscheck corpus by category"
+        );
+        assert!(
+            rows[0].detail.contains("lies in a cycle"),
+            "the violation evidence rides in detail: {:?}",
+            rows[0].detail
+        );
+
+        // Routed into the counted divergence ledger it IS tallied and fails enforce…
+        let ledger = crate::reason::ledger::build_ledger(Vec::new(), Vec::new(), rows, Vec::new());
+        assert_eq!(ledger.dl_gap, 1, "counted as a DL gap in reason::ledger");
+        assert!(!crate::reason::ledger::enforce(&ledger).passed);
+
+        // …but a CERTIFIED program contributes no gap rows.
+        assert!(
+            ChaseAdmission::certify(&[some_values_from_rule()])
+                .capability_gap_rows()
+                .is_empty(),
+            "a weakly-acyclic program is not a capability-gap"
+        );
+    }
+
+    #[test]
+    fn explain_recovers_the_recipe_of_a_chase_invented_witness() {
+        use crate::physical::store::WitnessDerivation;
+
+        // Run the chase on `C ⊑ ∃p.D` for one C-individual, then EXPLAIN the invented null:
+        // its recipe must name the firing rule and the frontier binding (the C-individual).
+        let edb = vec![fact("http://ex/a", TYPE, C)];
+        let (outcome, registry) =
+            chase_world_explained(W, &edb, &[some_values_from_rule()], None).unwrap();
+        let b = decided(outcome);
+
+        // The one p-edge's object is the invented witness.
+        let witness = b
+            .rows
+            .iter()
+            .find(|r| r.predicate == P)
+            .map(|r| term_display(&r.object))
+            .expect("the chase must invent a p-target witness");
+        let witness_iri = witness
+            .strip_prefix('<')
+            .and_then(|s| s.strip_suffix('>'))
+            .expect("witness is an IRI display form");
+
+        assert_eq!(registry.len(), 1, "exactly one witness invented");
+        let derivation = registry
+            .explain(witness_iri)
+            .expect("the invented witness must be explainable from the registry");
+        assert_eq!(
+            derivation,
+            WitnessDerivation {
+                witness: witness_iri.to_owned(),
+                rule_iri: "http://ex/rule/svf".to_owned(),
+                ordinal: 0,
+                frontier: vec![TermValue::iri("http://ex/a")],
+            },
+            "the recipe recovers the firing rule + the C-individual frontier binding"
+        );
+
+        // A never-invented term is not explainable.
+        assert!(registry.explain("http://ex/a").is_none());
+    }
+
+    #[test]
+    fn certificate_finding_carries_evidence_or_violations() {
+        // WeaklyAcyclic ⇒ an informational Finding carrying the proof evidence.
+        let good = ChaseAdmission::certify(&[some_values_from_rule()]);
+        let good_finding = good.to_finding();
+        assert_eq!(good_finding.severity, Severity::Info);
+        assert_eq!(good_finding.code, "chase.certificate.weakly-acyclic");
+        assert_eq!(good_finding.tool.as_deref(), Some("chase"));
+        assert!(
+            good_finding.message.contains("weakly acyclic"),
+            "the WeaklyAcyclic finding carries its evidence: {}",
+            good_finding.message
+        );
+
+        // Uncertified ⇒ an error Finding carrying the weak-acyclicity violations.
+        let bad = ChaseAdmission::certify(&[restriction_rule("http://ex/rule/cyclic", D, P, D)]);
+        let bad_finding = bad.to_finding();
+        assert_eq!(bad_finding.severity, Severity::Error);
+        assert_eq!(bad_finding.code, "chase.certificate.uncertified");
+        assert!(
+            bad_finding.message.contains("lies in a cycle"),
+            "the Uncertified finding carries its violations: {}",
+            bad_finding.message
+        );
     }
 }
