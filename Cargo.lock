@@ -1914,6 +1914,7 @@ dependencies = [
  "insta",
  "proptest",
  "sha2",
+ "unicode-normalization",
 ]
 
 [[package]]
@@ -2017,6 +2018,8 @@ dependencies = [
  "gmeow-conformance",
  "gmeow-diagnostics",
  "gmeow-docs",
+ "gmeow-lang-bridge",
+ "gmeow-lang-form",
  "gmeow-logic",
  "gmeow-logic-compile",
  "gmeow-validate",
