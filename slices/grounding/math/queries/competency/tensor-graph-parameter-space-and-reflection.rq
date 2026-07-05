@@ -2,8 +2,10 @@
 # space, and where is its self-reflection carried?" Exercises the self-structure
 # flagship: the tensor graph reuses the expression AST (its math:computationNode),
 # weights live in a math:ParameterSpace (math:parameterSpaceOf the model), and the
-# reflection is a logic:MetaLevelFormula held as the result of a residual-interpretation
-# observation. Scoped so the answer is exactly {tgraph -> node, pspace, reflectFormula}.
+# reflection is a logic:MetaLevelFormula held as the result of the observation whose
+# gmeow:observedFeature is the graph itself. Scoping the reflection to the observation
+# OF the graph (not any residual/latent-dimension observation) keeps the answer exactly
+# {tgraph -> node, pspace, reflectFormula}.
 PREFIX math:  <https://blackcatinformatics.ca/math/>
 PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX logic: <https://blackcatinformatics.ca/logic/>
@@ -13,7 +15,8 @@ SELECT ?graph ?node ?parameterSpace ?reflection WHERE {
            math:computationNode ?node ;
            math:architectureOf ?model .
     ?parameterSpace math:parameterSpaceOf ?model .
-    ?claim gmeow:observationResult ?reflection .
+    ?claim gmeow:observedFeature ?graph ;
+           gmeow:observationResult ?reflection .
     ?reflection a logic:MetaLevelFormula .
     FILTER(STRSTARTS(STR(?graph), "http://example.org/math/"))
 }
