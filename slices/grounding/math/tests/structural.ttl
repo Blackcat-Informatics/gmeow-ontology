@@ -388,3 +388,55 @@ ASK {
     FILTER(?p IN (math:residualMeaning, math:latentDimensionMeaning, math:componentMeaning, math:meaning))
 }""" ;
     gmeow:saRationale "The slice MUST NOT mint a direct residual/latent/component 'meaning' property — whether minted as a datatype, object, or plain RDF property: semantic meaning read off geometry is a vantage-held math:ResidualInterpretationClaim (a gmeow:Observation), never an intrinsic property of the vector, so the property-form of meaning is unauthorable by construction." .
+
+# --- Bridge runs are activities; the three bridges subclass the unifier (MUST) --- #
+ex:saIngestRunActivityHierarchy a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    math:IngestRun     rdfs:subClassOf gmeow:Activity .
+    math:RIngestRun    rdfs:subClassOf math:IngestRun .
+    math:ONNXIngestRun rdfs:subClassOf math:IngestRun .
+    math:ProofIngestRun rdfs:subClassOf math:IngestRun .
+}""" ;
+    gmeow:saRationale "A bridge run is the executed put-leg occurrence of a lift — a process — so math:IngestRun MUST be a gmeow:Activity, and the three concrete bridges (R, ONNX, proof) MUST subclass the shared unifier, carrying the shared bridge contract once on the abstract run." .
+
+# --- The QED result is a result object, NOT an observation (MUST) ----------- #
+ex:saVerificationResultIsObject a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    math:FormalVerificationResult rdfs:subClassOf math:MathematicalObject .
+}""" ;
+    gmeow:saRationale "A math:FormalVerificationResult is the structured RESULT OBJECT of checking a proof, so it MUST be a math:MathematicalObject — distinct from the process (the run) and the held claim (the observation)." .
+
+# --- The QED result MUST NOT be typed an observation (MUST-NOT) ------------- #
+ex:saVerificationResultNotObservation a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    math:FormalVerificationResult rdfs:subClassOf gmeow:Observation .
+}""" ;
+    gmeow:saRationale "A math:FormalVerificationResult MUST NOT be a gmeow:Observation: typing the result object as the held claim is the math:ResultRoleConflation — the verdict is HELD BY a separate observation with the checker as vantage, never IS-A one." .
+
+# --- The bridge failure classes are typed conformance failures (MUST) ------- #
+ex:saBridgeFailureHierarchy a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    math:UnliftableIngest             rdfs:subClassOf math:MathConformanceFailure .
+    math:UngroundedIngestRun          rdfs:subClassOf math:MathConformanceFailure .
+    math:UngroundedVerificationResult rdfs:subClassOf math:MathConformanceFailure .
+    math:UnfittedModel                rdfs:subClassOf math:MathConformanceFailure .
+}""" ;
+    gmeow:saRationale "Every bridge failure is a typed, queryable object, so each MUST subclass math:MathConformanceFailure — a violation is a first-class failure class, not a log line." .

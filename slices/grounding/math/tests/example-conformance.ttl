@@ -507,3 +507,42 @@ ex:ecWeightTensorNoParameterSpace a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
     gmeow:conformanceRationale "The counter-example names the layer the weight parameterizes but omits the math:ParameterSpace it lives in (sh:minCount 1 on math:WeightTensorShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UnframedWeightTensor)." .
+
+# === Bridges: ingest-run grounding (parseSource + schema/plan witness) ======= #
+
+ex:ecIngestRunGrounded a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/ingest-run-grounded.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:IngestRun that retains its source through math:parseSource and carries the process-layer in-band witness through logic:instantiatesSchema and logic:instantiatesPlan satisfies math:IngestRunShape and validates with no findings." .
+
+ex:ecIngestRunUngrounded a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/ingest-run-ungrounded.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example carries the process-layer witness (logic:instantiatesSchema / logic:instantiatesPlan) but omits math:parseSource (sh:minCount 1 on math:IngestRunShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UngroundedIngestRun)." .
+
+# === Bridges: fitted-model data-and-specification =========================== #
+
+ex:ecFittedModelFitted a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/fitted-model-fitted.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:FittedModel that references its data through math:fittedToData and its specification through math:modelFormula (a math:ModelFormula with indexed math:ArgumentSlot operands) satisfies math:FittedModelShape and math:ModelFormulaShape and validates with no findings." .
+
+ex:ecFittedModelUnfitted a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/fitted-model-unfitted.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example names its specification but omits the data through math:fittedToData (sh:minCount 1 on math:FittedModelShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UnfittedModel)." .
+
+# === Bridges: verification-result grounding ================================= #
+
+ex:ecVerificationResultGrounded a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/verification-result-grounded.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:FormalVerificationResult grounded BY a gmeow:Observation that names it through gmeow:observationResult and carries a gmeow:vantage satisfies math:FormalVerificationResultShape and validates with no findings." .
+
+ex:ecVerificationResultUngrounded a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/verification-result-ungrounded.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is a math:FormalVerificationResult with no grounding observation, so it fails the sh:sparql grounding constraint on math:FormalVerificationResultShape. Validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (math:UngroundedVerificationResult)." .
