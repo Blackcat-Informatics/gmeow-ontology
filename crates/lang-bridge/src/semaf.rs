@@ -22,9 +22,9 @@ use purrdf::{RdfDataset, TermId};
 use crate::bridge::IngestDiagnostic;
 use crate::emit::digest16;
 use crate::rdf_scan::{
-    iri_of, label_of, local_name, lossy_lens_correspondence, object_iri, object_literal, objects,
-    parse_lang_turtle, subjects_with_object, term_label, unrepresentable, EXAMPLE_BASE, LANG_NS,
-    LOGIC_NS,
+    has_type, iri_id, iri_of, label_of, local_name, lossy_lens_correspondence, object_iri,
+    object_literal, objects, parse_lang_turtle, subjects_with_object, term_label, unrepresentable,
+    EXAMPLE_BASE, LANG_NS, LOGIC_NS,
 };
 use crate::registry::{
     EmittedArtifact, LangEmission, LangProjectionInput, LangProjectionTarget, NamedSource,
@@ -50,6 +50,10 @@ struct Denotation {
     kind: String,
     /// The `lang:denotationTarget` IRI (a `logic:` formula for the lowerable case).
     target: Option<String>,
+    /// Whether the target is a `logic:Formula` — either an IRI in the `logic:` namespace or an
+    /// individual typed `logic:Formula` (a properly-modelled example formula lives in the example
+    /// namespace, so the type — not the IRI's namespace — decides lowerability).
+    target_is_formula: bool,
     /// The denoted form's label, for the AMR `::snt` header.
     form_label: Option<String>,
     /// Whether the denotation is indexical (`lang:isIndexical` = true) — indexicality is not
@@ -106,6 +110,18 @@ fn parse_denotation(ds: &RdfDataset, den: TermId) -> Result<Denotation, IngestDi
             ))
         })?;
     let target = object_iri(ds, den, &format!("{LANG_NS}denotationTarget"));
+    // The target is a logic:Formula if its IRI is in the logic: namespace OR it is an individual
+    // typed logic:Formula (the properly-modelled example case — the DenotationKindMatchShape
+    // requires this typing, so the type is the authoritative test, not the IRI's namespace).
+    let target_is_formula = target
+        .as_deref()
+        .map(|t| {
+            t.starts_with(LOGIC_NS)
+                || iri_id(ds, t)
+                    .map(|tid| has_type(ds, tid, &format!("{LOGIC_NS}Formula")))
+                    .unwrap_or(false)
+        })
+        .unwrap_or(false);
     let denoted = objects(ds, den, &format!("{LANG_NS}denotedForm"))
         .into_iter()
         .next();
@@ -127,6 +143,7 @@ fn parse_denotation(ds: &RdfDataset, den: TermId) -> Result<Denotation, IngestDi
         iri,
         kind,
         target,
+        target_is_formula,
         form_label,
         indexical,
         dialogue_act,
@@ -153,13 +170,9 @@ fn diaml_act(force_local: &str) -> String {
 fn emit_denotation(source: &NamedSource, d: &Denotation) -> LangEmission {
     let local = local_name(&d.iri).to_owned();
     let is_formula = d.kind == "denotesLogicFormula";
-    // A logic: formula target is required for the lowerable case; a formula-kind denotation whose
-    // target is not in the logic: namespace is treated as non-lowerable (disclosed, not faked).
-    let target_is_logic = d
-        .target
-        .as_deref()
-        .map(|t| t.starts_with(LOGIC_NS))
-        .unwrap_or(false);
+    // A logic:Formula target is required for the lowerable case; a formula-kind denotation whose
+    // target is not a logic:Formula is treated as non-lowerable (disclosed, not faked).
+    let target_is_logic = d.target_is_formula;
 
     if is_formula && target_is_logic && !d.indexical {
         // Lowerable: emit the coarse AMR graph + SemAF dialogue act; SoundUnder.
@@ -319,6 +332,38 @@ ex:q a lang:Denotation ;
         assert!(joined.contains("no quantifier scope"), "{joined}");
         assert!(joined.contains("no modality depth"), "{joined}");
         assert!(joined.contains("no vantage"), "{joined}");
+    }
+
+    /// A properly-modelled denotation whose target is an EXAMPLE-namespace individual TYPED
+    /// `logic:Formula` (the dogfooded case the DenotationKindMatchShape requires) must lower —
+    /// the target's type, not its IRI namespace, decides lowerability.
+    #[test]
+    fn example_namespace_typed_formula_lowers_to_amr() {
+        const TYPED: &str = r#"
+@prefix lang:  <https://blackcatinformatics.ca/lang/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/lang/> .
+ex:sent a lang:ComposedForm ; rdfs:label "cats chase mice" .
+ex:formula a logic:Formula .
+ex:den a lang:Denotation ;
+    lang:denotedForm ex:sent ;
+    lang:denotationKind lang:denotesLogicFormula ;
+    lang:denotationTarget ex:formula ;
+    lang:isIndexical false .
+"#;
+        let input = LangProjectionInput {
+            lang_models: vec![src("typed", TYPED)],
+            ..Default::default()
+        };
+        let e = &SemafBridge.emit(&input).expect("emit")[0];
+        assert_eq!(
+            e.artifacts.len(),
+            1,
+            "a typed logic:Formula target lowers to one AMR graph"
+        );
+        assert_eq!(e.lossy_kind, PreservationKind::SoundUnder);
+        assert!(e.artifacts[0].path_suffix.ends_with(".amr"));
     }
 
     #[test]

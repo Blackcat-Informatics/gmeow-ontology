@@ -122,6 +122,15 @@ pub(crate) fn subjects_of_type(ds: &RdfDataset, class_iri: &str) -> Vec<TermId> 
     out
 }
 
+/// Whether `subject` is declared `rdf:type class_iri` — the type test the meaning targets use to
+/// decide, e.g., whether a `lang:denotationTarget` is a `logic:Formula` (by TYPE, not by the IRI's
+/// namespace, so a properly-modelled example individual typed `logic:Formula` is recognized).
+pub(crate) fn has_type(ds: &RdfDataset, subject: TermId, class_iri: &str) -> bool {
+    objects(ds, subject, RDF_TYPE)
+        .into_iter()
+        .any(|o| iri_of(ds, o).as_deref() == Some(class_iri))
+}
+
 /// The object [`TermId`]s of every `(subject, predicate)` quad, deterministically ordered.
 pub(crate) fn objects(ds: &RdfDataset, subject: TermId, predicate_iri: &str) -> Vec<TermId> {
     let Some(pid) = iri_id(ds, predicate_iri) else {

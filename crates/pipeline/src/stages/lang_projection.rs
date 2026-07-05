@@ -763,4 +763,23 @@ ex:c1 a lang:FormSlot ; lang:inAnalysis ex:aCrouch ; lang:slotIndex 1 ; lang:slo
             "CoNLL-U must fold a source-driven ledger row, not a no-source placeholder"
         );
     }
+
+    #[test]
+    fn semaf_forward_projects_the_denotation() {
+        let catalog = repo_catalog();
+        let corpus = build_corpus(Some(&catalog)).expect("build corpus");
+        // SemAF is source-driven: the example model's logic-formula lang:Denotation lowers to a
+        // real semaf/*.amr meaning-graph artifact (dogfooding the meaning-annotation surface).
+        let amr = corpus
+            .artifacts
+            .iter()
+            .find(|(p, _)| p.starts_with("generated/projections/lang/semaf/"))
+            .map(|(_, b)| String::from_utf8_lossy(b).into_owned());
+        let text = amr.expect("the logic-formula denotation must drive a SemAF/AMR artifact");
+        assert!(text.contains("::snt cats chase mice"), "{text}");
+        assert!(
+            corpus.ledger.iter().any(|r| r.target.starts_with("semaf:")),
+            "SemAF must fold a source-driven ledger row, not a no-source placeholder"
+        );
+    }
 }
