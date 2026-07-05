@@ -641,6 +641,129 @@ pub(crate) fn run_chase(rls: String) -> Result<Vec<ChaseRowWithProvenance>, Stri
     })
 }
 
+/// Run the chase and collect derived facts WITHOUT provenance tracing.
+///
+/// The provenance trace (`engine.trace`) cannot follow **existential labeled nulls**
+/// (`_:0`, …): it hard-errors "no trace tree" on a value-invented fact.  Forward
+/// PARITY compares the FACT set only (provenance divergence is exempt), so the oracle
+/// that gates the native existential chase needs the facts, not the trace.  This is that
+/// facts-only path — steps 1-3 of [`run_chase`], no trace.
+///
+/// Phase surface: consumed by the existential-chase parity gate today and by
+/// `materialize_routed` once the EL→existential-rule projection lands.
+#[allow(dead_code)]
+pub(crate) fn run_chase_rows(rls: String) -> Result<Vec<ChaseRow>, String> {
+    let _guard = CHASE_LOCK
+        .lock()
+        .unwrap_or_else(|poisoned| poisoned.into_inner());
+
+    NEMO_RUNTIME.with(|cell| {
+        let rt = cell.borrow();
+        rt.block_on(async {
+            let mut engine = load_string(rls)
+                .await
+                .map_err(|e| format!("nemo load error: {e:?}"))?;
+            reason(&mut engine)
+                .await
+                .map_err(|e| format!("nemo reason error: {e:?}"))?;
+
+            let predicates: Vec<Tag> = engine.program().derived_predicates().into_iter().collect();
+            let mut rows: Vec<ChaseRow> = Vec::new();
+            for tag in predicates {
+                if let Some(iter) = engine
+                    .predicate_rows(&tag)
+                    .await
+                    .map_err(|e| format!("nemo predicate_rows error: {e:?}"))?
+                {
+                    for row_vals in iter {
+                        let values: Vec<String> = row_vals
+                            .iter()
+                            .map(|v: &AnyDataValue| v.to_string())
+                            .collect();
+                        rows.push(ChaseRow {
+                            predicate: tag.to_string(),
+                            values,
+                        });
+                    }
+                }
+            }
+            Ok(rows)
+        })
+    })
+}
+
+/// Facts-only typed forward materialization: decode every derived row to native terms,
+/// WITHOUT provenance (see [`run_chase_rows`]).  The Nemo counterpart of the native
+/// existential chase mints labeled nulls the provenance trace cannot follow, so the
+/// parity oracle uses this path and the parity gate compares facts null-blind.
+#[allow(dead_code)]
+pub(crate) fn run_chase_typed_facts_only(
+    edb: &crate::facts::TypedFactSet,
+    rules: &str,
+) -> Result<Vec<TypedRow>, String> {
+    // Render the EDB + rules exactly as `run_chase_typed`'s step 1.
+    let mut program = String::new();
+    let interner = edb.interner();
+    for fact in edb.facts() {
+        let mut rendered_args: Vec<String> = Vec::with_capacity(fact.args.len());
+        for &id in &fact.args {
+            let term = interner.resolve(id);
+            let rendered = codec::encode_term(term);
+            if rendered.is_empty() {
+                return Err(format!(
+                    "nemo typed-encode error: fact {}/{} carries a term with no Nemo encoding: {term:?}",
+                    fact.predicate,
+                    fact.args.len()
+                ));
+            }
+            rendered_args.push(rendered);
+        }
+        program.push_str(&render_predicate(&fact.predicate));
+        program.push('(');
+        program.push_str(&rendered_args.join(", "));
+        program.push_str(").\n");
+    }
+    program.push_str(rules);
+
+    let raw_rows = run_chase_rows(program)?;
+    raw_rows
+        .iter()
+        .map(typed_row_from_chase_row_nullable)
+        .collect()
+}
+
+/// Decode a chase row, mapping a labeled null (`_:label`) to a stable null IRI.
+///
+/// The standard [`typed_row_from_chase_row`] rejects `_:label` (the codec has no blank
+/// term), which is correct for the Datalog path but not for the existential chase, whose
+/// value-invented facts carry labeled nulls.  Here each `_:label` becomes a stable,
+/// null-recognizable IRI so the fact survives to the null-blind parity gate; every other
+/// term decodes normally.
+#[allow(dead_code)]
+fn typed_row_from_chase_row_nullable(row: &ChaseRow) -> Result<TypedRow, String> {
+    let args = row
+        .values
+        .iter()
+        .map(|value| {
+            if let Some(label) = value.strip_prefix("_:") {
+                Ok(TermValue::iri(format!("urn:gmeow:nemo-null:{label}")))
+            } else {
+                codec::decode_nemo_term(value).map_err(|e| {
+                    format!(
+                        "nemo typed-decode error: row {}({}) has undecodable term {value:?}: {e}",
+                        row.predicate,
+                        row.values.join(", ")
+                    )
+                })
+            }
+        })
+        .collect::<Result<Vec<TermValue>, String>>()?;
+    Ok(TypedRow {
+        predicate: row.predicate.clone(),
+        args,
+    })
+}
+
 // ── Legacy synchronous parse/validate surface ─────────────────────────────────
 
 /// A parsed Nemo rule program ready to be handed to a tokio runtime

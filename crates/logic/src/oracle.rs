@@ -203,6 +203,63 @@ pub(crate) fn forward_oracle() -> impl ForwardOracle {
     NemoForwardOracle
 }
 
+/// A facts-only Nemo forward adapter for the **existential** fragment.
+///
+/// The value-inventing chase mints labeled nulls that Nemo's provenance trace cannot
+/// follow (`run_chase_typed` hard-errors "no trace tree"), so this oracle uses the
+/// facts-only path ([`crate::nemo_engine::run_chase_typed_facts_only`]) and reports
+/// `provides_provenance() == false`.  It is the parity oracle for the native existential
+/// chase, where the gate compares FACTS null-blind (provenance is exempt).
+///
+/// Phase surface: consumed by the existential-chase parity gate today and by
+/// `materialize_routed` once the EL→existential-rule projection lands.
+#[allow(dead_code)]
+pub(crate) struct NemoFactsOracle;
+
+impl ForwardOracle for NemoFactsOracle {
+    fn name(&self) -> &'static str {
+        "nemo"
+    }
+
+    fn materialize(
+        &self,
+        facts: &crate::facts::TypedFactSet,
+        rules: &str,
+        budget: &ForwardBudget,
+    ) -> Result<TypedChaseResult, String> {
+        if budget.is_bounded() {
+            return Err(format!(
+                "NemoFactsOracle cannot honor a forward budget inline ({budget:?}); \
+                 forward-budget governance is a router/native-governor concern above \
+                 the oracle boundary"
+            ));
+        }
+        let rows = crate::nemo_engine::run_chase_typed_facts_only(facts, rules)?;
+        // `provides_provenance() == false`, so every row carries EMPTY provenance
+        // (never a fabricated attribution — the no-optionality doctrine).
+        Ok(TypedChaseResult {
+            rows: rows
+                .into_iter()
+                .map(|row| {
+                    (
+                        row,
+                        TypedProvenance {
+                            is_edb: false,
+                            rule_name: None,
+                            antecedents: Vec::new(),
+                            attributions: Vec::new(),
+                        },
+                    )
+                })
+                .collect(),
+        })
+    }
+
+    fn provides_provenance(&self) -> bool {
+        false
+    }
+}
+
 // ── Backward oracle ───────────────────────────────────────────────────────────
 
 /// A backward reasoner: resolve `program`'s goal against `world`'s facts.
