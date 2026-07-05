@@ -3600,6 +3600,13 @@ math:parseSource
     skos:definition "Relates a math:IngestRun to the in-band source witness it retains — the mnemomorphic complement that lets the up-projection (put) leg recover the source rather than synthesize a plausible one. Domain math:IngestRun; range the retained source witness, a structured node marked logic:loadBearing true and carrying enough of the source to recover what the lift did not map (never a bare droppable string — an opaque blob is the amnesic case), stated in prose. The witness is why 'retain the source' is a law (the Mnemomorphism gate), not a decoration."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+math:ingestCorrespondence
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "ingest correspondence"@x-gmeow-english ;
+    skos:definition "Relates a math:IngestRun to the single logic:Correspondence node it carries — THE attachment point of the lift's law-spine. Domain math:IngestRun, range logic:Correspondence (stated in prose). Everything about the lift that is a law rather than a facet lives on that Correspondence: its logic:morphismClass (the ordered law-spine rung), logic:preservationKind, logic:mnemomorphic witness flag, logic:correspondenceRelation, logic:hasDeterminacy, and any logic:LawClaim with its logic:DischargeVerdict. math: never shadows those properties; it only points at the node that holds them, exactly as the language slice's lang:translationCorrespondence attaches a translation unit to its crossing. A bridge run carries exactly one."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 # --- R-bridge codomain: statistical objects (STATISTICS-charter vocabulary) --- #
 
 math:StatisticalModel

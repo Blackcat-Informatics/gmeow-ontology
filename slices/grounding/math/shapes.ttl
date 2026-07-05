@@ -1249,6 +1249,13 @@ math:IngestRunShape
         sh:minCount 1 ;
         sh:severity sh:Violation ;
         sh:message "A math:IngestRun must carry the process-layer in-band witness through logic:instantiatesPlan (the plan it was executed under)." ;
+    ] ;
+    sh:property [
+        sh:path math:ingestCorrespondence ;
+        sh:minCount 1 ;
+        sh:class logic:Correspondence ;
+        sh:severity sh:Violation ;
+        sh:message "A math:IngestRun must carry its lift's law-spine on a logic:Correspondence through math:ingestCorrespondence (where its rung, preservation, and loss are recorded)." ;
     ] .
 
 math:FittedModelShape

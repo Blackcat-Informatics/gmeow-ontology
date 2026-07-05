@@ -1,0 +1,232 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example for the BRIDGES charter — the three ingestion bridges in one dataset,
+# each the mnemomorphic put leg of a logic:Correspondence (GMEOW is the source, the
+# external artifact the view, the lift is the up-projection put — never a get run
+# backward). Each bridge run is a gmeow:Activity that retains its source as a
+# logic:loadBearing math:parseSource witness, carries the process-layer in-band witness
+# through logic:instantiatesSchema / logic:instantiatesPlan, ties its produced math:
+# codomain back through gmeow:wasGeneratedBy, and carries its law-spine on a
+# logic:Correspondence (reused verbatim — no math: shadow). Because no get (down-
+# projection) leg is authored yet, the correspondences honestly sit at the LossyLens rung
+# with logic:mnemomorphic true (the witness IS retained, so each is climbable to section
+# the moment a get leg lands) — never a fabricated verified section.
+#
+# Exercises all six competency questions:
+#   Q1 from which R script (at what fidelity) a model was lifted, what it lost, what routed to logic:
+#   Q2 the tensor computation graph + parameter space an ONNX model lifted into
+#   Q3 the proof dependency DAG + its decomposition into sub-goals and steps
+#   Q4 which ingests hard-failed as unliftable, with what diagnostic (see the counter-example fixtures)
+#   Q5 which bridge results are held as observations, by which activity and vantage
+#   Q6 which bridges round-trip losslessly (rung) and which drop what (residue)
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex:    <http://example.org/math/> .
+
+# =========================================================================== #
+# (1) The R bridge (Q1, Q5, Q6) — lm(mpg ~ wt + hp, data=mtcars)              #
+# =========================================================================== #
+
+ex:rRun a math:RIngestRun ;
+    rdfs:label "Lifting an R lm() call into the statistical codomain"@x-gmeow-english ;
+    math:parseSource ex:rSrcWitness ;
+    logic:instantiatesSchema ex:rBridgeSchema ;
+    logic:instantiatesPlan ex:rBridgePlan ;
+    math:ingestCorrespondence ex:rCorr .
+
+# The retained in-band witness: the R source, marked load-bearing so the put leg can
+# recover the formula/data/coefficient sub-fragment (never an opaque droppable string).
+ex:rSrcWitness a math:MathematicalObject ;
+    rdfs:label "lm(mpg ~ wt + hp, data = mtcars)"@x-gmeow-english ;
+    logic:loadBearing true .
+
+ex:rBridgeSchema a logic:ActionSchema .
+ex:rBridgePlan a logic:Plan .
+
+# The lift's law-spine: the fit is non-injective (IO/plotting drop), so the assertable
+# rung is a lossy lens; the retained witness (mnemomorphic true) makes it climbable to
+# section on the recoverable formula/data/coefficient sub-fragment once a get leg lands.
+ex:rCorr a logic:Correspondence ;
+    logic:preservationKind logic:ValidationOnly ;
+    logic:correspondenceRelation logic:RelatedMatch ;
+    logic:morphismClass logic:LossyLens ;
+    logic:hasDeterminacy logic:Vague ;
+    logic:mnemomorphic true .
+
+# The model formula (the ~ is a binder over indexed argument slots, never a string).
+ex:mpgFormula a math:ModelFormula ;
+    rdfs:label "mpg ~ wt + hp"@x-gmeow-english ;
+    math:argumentSlot ex:respSlot , ex:wtSlot , ex:hpSlot .
+ex:respSlot a math:ArgumentSlot ; math:slotIndex 0 ; math:slotExpression ex:mpgVar .
+ex:wtSlot   a math:ArgumentSlot ; math:slotIndex 1 ; math:slotExpression ex:wtVar .
+ex:hpSlot   a math:ArgumentSlot ; math:slotIndex 2 ; math:slotExpression ex:hpVar .
+ex:mpgVar a math:VariableExpression .
+ex:wtVar  a math:VariableExpression .
+ex:hpVar  a math:VariableExpression .
+
+# The data, held BY REFERENCE (never inlined).
+ex:mtcarsMatrix a math:DatasetMatrix ;
+    rdfs:label "mtcars data frame (by reference)"@x-gmeow-english ;
+    gmeow:wasGeneratedBy ex:rRun .
+
+# The fitted model (the lifted codomain), specified by the formula and bound to the data.
+ex:mtcarsFit a math:FittedModel ;
+    math:modelFormula ex:mpgFormula ;
+    math:fittedToData ex:mtcarsMatrix ;
+    gmeow:wasGeneratedBy ex:rRun .
+
+# The broom tidy triple → estimates; the augment triple → residuals.
+ex:wtEstimate a math:Estimate ;
+    math:estimatesEstimand ex:wtEffect ;
+    math:estimatedParameter ex:betaWt ;
+    math:estimateValue ex:betaWtValue ;
+    math:estimator ex:ols ;
+    gmeow:wasGeneratedBy ex:rRun .
+ex:wtEffect a math:MathematicalObject .
+ex:betaWt a math:MathematicalObject .
+ex:betaWtValue a math:Quantity ; math:hasDimension math:dimensionless .
+ex:ols a math:MathematicalObject .
+
+ex:obs1Residual a math:Residual ;
+    math:residualOf ex:mtcarsFit ;
+    gmeow:wasGeneratedBy ex:rRun .
+
+# The computation (the fitting algorithm) routes to logic: (the math:/logic: split).
+ex:fitComputation a math:MathematicalExpression ;
+    math:compilesToLogicFormula ex:fitLogicFormula ;
+    math:logicLoweringPreservation logic:SoundUnderApproximation ;
+    math:denotationKind math:denotesProposition .
+ex:fitLogicFormula a logic:Formula .
+
+# The held claim (Q5): the fit summary as a vantage-grounded observation.
+ex:rFitClaim a gmeow:Observation ;
+    gmeow:observedFeature ex:mtcarsFit ;
+    gmeow:observationResult ex:rFitSummary ;
+    gmeow:vantage ex:rEngine ;
+    gmeow:wasGeneratedBy ex:rRun .
+ex:rFitSummary a math:MathematicalObject .
+ex:rEngine a gmeow:Standpoint .
+
+# =========================================================================== #
+# (2) The ONNX bridge (Q2, Q6) — a model graph as a tensor computation graph  #
+# =========================================================================== #
+
+ex:onnxRun a math:ONNXIngestRun ;
+    rdfs:label "Lifting an ONNX model graph into its self-structure"@x-gmeow-english ;
+    math:parseSource ex:onnxSource ;
+    logic:instantiatesSchema ex:onnxBridgeSchema ;
+    logic:instantiatesPlan ex:onnxBridgePlan ;
+    math:ingestCorrespondence ex:onnxCorr .
+ex:onnxSource a math:MathematicalObject ;
+    rdfs:label "model.onnx (opset 18, by reference)"@x-gmeow-english ;
+    logic:loadBearing true .
+ex:onnxBridgeSchema a logic:ActionSchema .
+ex:onnxBridgePlan a logic:Plan .
+
+# The structure lifts faithfully and is recoverable from the witness, so the correspondence
+# is climbable to section (mnemomorphic true); until a get leg verifies the round-trip its
+# assertable rung is a lossy lens with a load-bearing witness.
+ex:onnxCorr a logic:Correspondence ;
+    logic:preservationKind logic:ValidationOnly ;
+    logic:correspondenceRelation logic:RelatedMatch ;
+    logic:morphismClass logic:LossyLens ;
+    logic:hasDeterminacy logic:Crisp ;
+    logic:mnemomorphic true .
+
+# The lifted codomain: the tensor computation graph (the #1260 self-structure object).
+ex:selfGraph a math:TensorComputationGraph ;
+    math:architectureOf ex:onnxNet ;
+    math:computationNode ex:matmulNode ;
+    gmeow:wasGeneratedBy ex:onnxRun .
+ex:matmulNode a math:ApplicationExpression ;
+    math:operator math:matrixProduct ;
+    math:tensorOperation math:matrixProduct ;
+    math:argumentSlot ex:onnxSlot0 , ex:onnxSlot1 .
+ex:onnxSlot0 a math:ArgumentSlot ; math:slotIndex 0 ; math:slotExpression ex:onnxInExpr .
+ex:onnxSlot1 a math:ArgumentSlot ; math:slotIndex 1 ; math:slotExpression ex:onnxWExpr .
+ex:onnxInExpr a math:MathematicalExpression .
+ex:onnxWExpr a math:MathematicalExpression .
+ex:onnxNet a math:LearnedModel .
+
+ex:onnxWeight a math:WeightTensor ;
+    math:weightOf ex:onnxLayer ;
+    math:inParameterSpace ex:onnxParams ;
+    gmeow:wasGeneratedBy ex:onnxRun .
+ex:onnxLayer a math:NeuralLayer .
+ex:onnxParams a math:ParameterSpace ;
+    math:parameterSpaceOf ex:onnxNet ;
+    math:underlyingSet ex:onnxParamSet ;
+    math:structureOperation ex:onnxParamAdd ;
+    math:satisfiesAxiom ex:onnxParamAxiom .
+ex:onnxParamSet a math:Set .
+ex:onnxParamAdd a math:Operation .
+ex:onnxParamAxiom a math:Axiom .
+
+# =========================================================================== #
+# (3) The proof-as-process bridge (Q3, Q5, Q6) — a proof dependency DAG       #
+# =========================================================================== #
+
+ex:proofRun a math:ProofIngestRun ;
+    rdfs:label "Lifting a proof-assistant dependency DAG as a process"@x-gmeow-english ;
+    math:parseSource ex:proofSource ;
+    logic:instantiatesSchema ex:proofBridgeSchema ;
+    logic:instantiatesPlan ex:proofBridgePlan ;
+    math:ingestCorrespondence ex:proofCorr .
+ex:proofSource a math:MathematicalObject ;
+    rdfs:label "mathlib declaration graph for the Pythagorean theorem (by reference)"@x-gmeow-english ;
+    logic:loadBearing true .
+ex:proofBridgeSchema a logic:ActionSchema .
+ex:proofBridgePlan a logic:Plan .
+
+ex:proofCorr a logic:Correspondence ;
+    logic:preservationKind logic:ValidationOnly ;
+    logic:correspondenceRelation logic:RelatedMatch ;
+    logic:morphismClass logic:LossyLens ;
+    logic:hasDeterminacy logic:Crisp ;
+    logic:mnemomorphic true .
+
+# The lifted codomain: the dependency graph and the proof it underlies.
+ex:pythagorasDAG a math:ProofDependencyGraph ;
+    rdfs:label "Pythagorean theorem dependency DAG"@x-gmeow-english ;
+    gmeow:wasGeneratedBy ex:proofRun .
+ex:pythagorasProof a math:Proof ;
+    math:provesStatement ex:pythagorasStatement ;
+    math:dependsOnAxiom ex:euclidParallelAxiom ;
+    math:proofStep ex:similarTrianglesStep ;
+    math:provesGoal ex:pythagorasGoal ;
+    gmeow:wasGeneratedBy ex:proofRun .
+ex:pythagorasStatement a math:MathematicalObject .
+ex:euclidParallelAxiom a math:Axiom .
+ex:similarTrianglesStep a math:ProofStep ;
+    math:hasPremise ex:similarTrianglesLemma ;
+    math:hasConclusion ex:ratioEquality ;
+    math:dependsOnAxiom ex:euclidParallelAxiom ;
+    math:provesGoal ex:similarTrianglesGoal .
+ex:similarTrianglesLemma a math:MathematicalObject .
+ex:ratioEquality a math:MathematicalObject .
+
+# Each lemma is a logic:GoalExpression sub-goal (kind logic:AchievementGoal — the target
+# first obtains), reached through math:provesGoal. The kind is a VALUE, not a class.
+ex:pythagorasGoal a logic:GoalExpression ;
+    logic:goalExpressionKind logic:AchievementGoal ;
+    logic:boundSituationType ex:pythagorasProvedSituation .
+ex:similarTrianglesGoal a logic:GoalExpression ;
+    logic:goalExpressionKind logic:AchievementGoal ;
+    logic:boundSituationType ex:similarTrianglesProvedSituation .
+ex:pythagorasProvedSituation a logic:Situation .
+ex:similarTrianglesProvedSituation a logic:Situation .
+
+# The QED verdict is a RESULT OBJECT (not an observation), grounded BY a separate
+# observation whose vantage is the proof checker (Q5). Result / claim kept distinct.
+ex:qedResult a math:FormalVerificationResult ;
+    rdfs:label "Pythagorean theorem: verified"@x-gmeow-english ;
+    gmeow:wasGeneratedBy ex:proofRun .
+ex:qedObservation a gmeow:Observation ;
+    gmeow:observedFeature ex:pythagorasProof ;
+    gmeow:observationResult ex:qedResult ;
+    gmeow:vantage ex:leanChecker ;
+    gmeow:wasGeneratedBy ex:proofRun .
+ex:leanChecker a gmeow:Standpoint .
