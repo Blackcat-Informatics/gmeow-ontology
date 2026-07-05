@@ -1,0 +1,20 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Counter-example: a lang:SurfaceForm left in analysis limbo — it neither lang:realizes
+# an analyzed lang:Form nor is typed lang:UnanalyzedProse, so its content was silently
+# dropped rather than lifted or explicitly marked unanalyzed (fires lang:SilentIngestDrop,
+# a native crates/validate structural_lint gate).
+
+@prefix lang: <https://blackcatinformatics.ca/lang/> .
+@prefix ex:   <http://example.org/lang/> .
+
+ex:latinScript a lang:Script .
+
+# The surface carries its bytes and full material identity, but declares no analysis
+# status at all: it neither realizes a form nor is typed lang:UnanalyzedProse.
+ex:limboSurface a lang:SurfaceForm ;
+    lang:surfaceText "cats chase mice" ;
+    lang:inScript ex:latinScript ;
+    lang:encoding "UTF-8" ;
+    lang:unicodeNormalization "NFC" ;
+    lang:collationLocale "en" .

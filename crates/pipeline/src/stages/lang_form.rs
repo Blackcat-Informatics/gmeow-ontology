@@ -18,7 +18,11 @@
 //!
 //! Each distinct literal is interned (in sorted order) as one `lang:SurfaceForm`, typed
 //! `lang:UnanalyzedProse` at `lang:rawLevel`, addressed by its material
-//! [`SurfaceForm::surface_key`] via [`digest16`]. The surface carries a
+//! [`SurfaceForm::surface_key`] via [`digest16`]. A surface whose text byte-length exceeds
+//! [`DOCUMENT_SCALE_BYTES`] carries its bytes BY REFERENCE — a content-addressed
+//! `lang:surfaceBlob "blake3:<hex>"` handle whose bytes ride the bundle blob channel
+//! ([`build_surface_blobs`]) — rather than inline `lang:surfaceText`, so document-scale
+//! payloads never inflate the graph; smaller surfaces stay inline. The surface carries a
 //! `logic:candidateSourceHash` computed by [`candidate_source_hash`] over the RAW literal
 //! text — byte-identical to what the obligations gate recomputes — so the prose-hash
 //! discipline resolves THROUGH the lifted surface. The `lang:unicodeNormalization` frame is
@@ -35,6 +39,7 @@
 use std::collections::BTreeSet;
 use std::path::Path;
 
+use purrdf::gts_compose::BlobRow;
 use purrdf::slice::SliceCatalog;
 use purrdf::{parse_dataset, DatasetView, GraphMatch, TermRef};
 
@@ -58,6 +63,25 @@ const XSD_BOOLEAN: &str = "http://www.w3.org/2001/XMLSchema#boolean";
 const EXAMPLE_BASE: &str = "http://example.org/lang/";
 /// The internal English carrier language tag every source-prose literal is written under.
 const ENGLISH_TAG: &str = "x-gmeow-english";
+
+/// The document-scale threshold, in bytes: a surface whose text byte-length EXCEEDS
+/// this holds its bytes by reference (`lang:surfaceBlob`) rather than inline
+/// (`lang:surfaceText`), so the RDF never inlines document-scale payload bytes (the
+/// blob-by-reference doctrine — the graph carries a handle and origin, never multi-KB
+/// payloads that grow without bound with the document).
+///
+/// This is ONE hard-coded, documented constant — never a tunable knob. 4096 bytes is a
+/// 4 KiB page: prose fields (labels, definitions, competency questions) sit comfortably
+/// below it and stay inline for direct reading, while a genuine document-scale surface (a
+/// lifted docs page, a treebank text, a whole section) crosses it and is held by
+/// content-addressed reference. The native `lang:InlineBlobPayload` gate in
+/// `crates/validate` shares this exact value; the two MUST stay in sync.
+const DOCUMENT_SCALE_BYTES: usize = 4096;
+
+/// The bundle blob-channel representation label for a document-scale surface's bytes.
+/// Like the per-slice `doc-guide` guide-blob channel, this only tags the channel — the
+/// blob is resolved by its content-addressed digest, not by rep.
+const REP_LANG_SURFACE: &str = "lang-surface-blob";
 
 /// The assembled prose-lift corpus: the sorted, byte-stable N-Triples graph plus the single
 /// honest loss-ledger row (nothing is dropped — the round-trip is exact).
@@ -105,6 +129,38 @@ pub fn build_corpus(root: &Path) -> Result<LangFormCorpus, PipelineError> {
     let ntriples = emit_ntriples(&proses);
     let ledger = vec![corpus_ledger_row(&proses)];
     Ok(LangFormCorpus { ntriples, ledger })
+}
+
+/// The bundle blob rows backing every document-scale surface's `lang:surfaceBlob`
+/// reference: for each distinct `@x-gmeow-english` literal whose byte-length exceeds
+/// [`DOCUMENT_SCALE_BYTES`], one [`BlobRow`] carrying the raw bytes, keyed (by the gts
+/// writer's `digest_string`) under the SAME `blake3:<hex>` digest the corpus emits — so
+/// adding the same bytes resolves the reference and no document-scale payload rides
+/// inline in the graph. Recomputed from `root` (the guide-blob pattern: blobs are rebuilt
+/// in the carrier, independent of the stage product), so the set is a pure function of the
+/// sources. Deterministic (sorted by bytes) and — until a source literal actually crosses
+/// the threshold — empty, exactly as the total-prose corpus is all-inline today.
+pub fn build_surface_blobs(root: &Path) -> Result<Vec<BlobRow>, PipelineError> {
+    let texts = collect_english_literals(root)?;
+    let mut blobs: Vec<BlobRow> = texts
+        .iter()
+        .filter(|text| text.len() > DOCUMENT_SCALE_BYTES)
+        .map(|text| BlobRow {
+            data: text.clone().into_bytes(),
+            media_type: "text/plain; charset=utf-8".to_string(),
+            rep: REP_LANG_SURFACE.to_string(),
+        })
+        .collect();
+    blobs.sort_by(|a, b| a.data.cmp(&b.data));
+    Ok(blobs)
+}
+
+/// The content-addressed `blake3:<hex>` blob reference for a surface's bytes — the SAME
+/// digest the gts writer's `digest_string` assigns the registered [`BlobRow`] (mirroring
+/// the per-slice `gmeow:guideBlob` anchor), so the emitted reference resolves to the
+/// registered bytes.
+fn surface_blob_digest(text: &str) -> String {
+    format!("blake3:{}", blake3::hash(text.as_bytes()).to_hex())
 }
 
 /// Collect every DISTINCT `@x-gmeow-english` literal across the source slices' Turtle
@@ -234,11 +290,26 @@ fn emit_ntriples(proses: &[Prose]) -> Vec<u8> {
             RDF_TYPE,
             &iri(LANG_NS, "UnanalyzedProse"),
         ));
-        lines.push(triple_lit(
-            &prose.surface_iri,
-            &iri(LANG_NS, "surfaceText"),
-            &prose.text,
-        ));
+        // Document-scale surfaces hold their bytes BY REFERENCE (blob-by-reference
+        // doctrine): a surface whose text byte-length exceeds DOCUMENT_SCALE_BYTES emits
+        // a content-addressed `lang:surfaceBlob "blake3:<hex>"` handle instead of inline
+        // `lang:surfaceText`, and its bytes ride the bundle blob channel (registered by
+        // `build_surface_blobs`). Small surfaces stay inline for direct reading. The
+        // digest is content-addressed, so the reference is deterministic and the emitted
+        // graph never inlines document-scale payload bytes.
+        if prose.text.len() > DOCUMENT_SCALE_BYTES {
+            lines.push(triple_lit(
+                &prose.surface_iri,
+                &iri(LANG_NS, "surfaceBlob"),
+                &surface_blob_digest(&prose.text),
+            ));
+        } else {
+            lines.push(triple_lit(
+                &prose.surface_iri,
+                &iri(LANG_NS, "surfaceText"),
+                &prose.text,
+            ));
+        }
         lines.push(triple(
             &prose.surface_iri,
             &iri(LANG_NS, "inScript"),
@@ -419,11 +490,31 @@ mod tests {
                     .map(|idx| &line[idx + pred_marker.len()..line.len() - 2])
             })
             .collect();
+        // A document-scale surface holds its bytes BY REFERENCE (lang:surfaceBlob) rather
+        // than inline, so index the emitted blob references the same way and resolve each
+        // universe literal through whichever channel its byte-length selects.
+        let blob_marker = format!("<{}> ", iri(LANG_NS, "surfaceBlob"));
+        let blobs: HashSet<&str> = nt
+            .lines()
+            .filter_map(|line| {
+                line.find(&blob_marker)
+                    .map(|idx| &line[idx + blob_marker.len()..line.len() - 2])
+            })
+            .collect();
         for text in &universe {
-            assert!(
-                emitted.contains(nt_literal(text).as_str()),
-                "Gate 1: distinct @x-gmeow-english literal has no lang:SurfaceForm: {text:?}"
-            );
+            if text.len() > DOCUMENT_SCALE_BYTES {
+                let digest = nt_literal(&surface_blob_digest(text));
+                assert!(
+                    blobs.contains(digest.as_str()),
+                    "Gate 1: document-scale @x-gmeow-english literal has no lang:surfaceBlob \
+                     reference: {text:?}"
+                );
+            } else {
+                assert!(
+                    emitted.contains(nt_literal(text).as_str()),
+                    "Gate 1: distinct @x-gmeow-english literal has no lang:SurfaceForm: {text:?}"
+                );
+            }
         }
         // Exactly one lang:SurfaceForm per distinct literal — total, not partial.
         let surface_forms = nt
@@ -483,6 +574,61 @@ mod tests {
         // The declared normalization frame is honest for each (never a blanket "NFC").
         assert_eq!(p_nfc.normalization, "NFC");
         assert_eq!(p_nfd.normalization, "NFD");
+    }
+
+    #[test]
+    fn document_scale_surface_holds_bytes_by_reference() {
+        // Small surfaces stay inline; a document-scale surface emits a content-addressed
+        // lang:surfaceBlob reference and NEVER inlines its bytes.
+        let short = "cats chase mice";
+        let nt_short = String::from_utf8(emit_ntriples(&[build_prose(short).unwrap()])).unwrap();
+        assert!(nt_short.contains(&iri(LANG_NS, "surfaceText")));
+        assert!(!nt_short.contains(&iri(LANG_NS, "surfaceBlob")));
+
+        let long = "x".repeat(DOCUMENT_SCALE_BYTES + 1);
+        let nt_long = String::from_utf8(emit_ntriples(&[build_prose(&long).unwrap()])).unwrap();
+        assert!(
+            nt_long.contains(&surface_blob_digest(&long)),
+            "a document-scale surface must carry its content-addressed blob reference"
+        );
+        assert!(!nt_long.contains(&iri(LANG_NS, "surfaceText")));
+        // The document-scale payload never rides inline in the graph.
+        assert!(!nt_long.contains(&long));
+    }
+
+    #[test]
+    fn surface_blobs_resolve_every_document_scale_reference() {
+        use std::collections::HashSet;
+        let root = repo_root();
+        let nt = String::from_utf8(build_corpus(&root).expect("corpus").ntriples).unwrap();
+        let blobs = build_surface_blobs(&root).expect("blobs");
+
+        // Every emitted lang:surfaceBlob reference in the corpus (the object literal,
+        // stripped of its N-Triples quoting) is backed by exactly one registered blob whose
+        // bytes hash to that same content-addressed digest — no dangling reference, no
+        // orphan blob.
+        let blob_marker = format!("<{}> ", iri(LANG_NS, "surfaceBlob"));
+        let refs: HashSet<String> = nt
+            .lines()
+            .filter_map(|line| {
+                line.find(&blob_marker)
+                    .map(|idx| line[idx + blob_marker.len()..line.len() - 2].to_owned())
+            })
+            .collect();
+        let digests: HashSet<String> = blobs
+            .iter()
+            .map(|b| nt_literal(&surface_blob_digest(std::str::from_utf8(&b.data).unwrap())))
+            .collect();
+        assert_eq!(
+            refs, digests,
+            "every surfaceBlob reference must be backed by a registered blob, and vice versa"
+        );
+
+        // Deterministic: the blob set is a pure function of the sources.
+        let again = build_surface_blobs(&root).expect("blobs again");
+        let data: Vec<&Vec<u8>> = blobs.iter().map(|b| &b.data).collect();
+        let data2: Vec<&Vec<u8>> = again.iter().map(|b| &b.data).collect();
+        assert_eq!(data, data2, "build_surface_blobs must be deterministic");
     }
 
     #[test]

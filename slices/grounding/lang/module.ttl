@@ -697,7 +697,7 @@ lang:NonContiguousSlots
     rdfs:subClassOf lang:LangConformanceFailure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "Non-Contiguous Slots"@x-gmeow-english ;
-    skos:definition "The failure raised when a lang:ComposedForm's slot indexes are not zero-based and contiguous in strict canonical mode — a missing index 0, or a maximum index not equal to the slot count minus one. Canonical composed forms have a gap-free zero-based index sequence."@x-gmeow-english ;
+    skos:definition "The failure raised when a lang:ComposedForm's slot indexes are not zero-based and contiguous — a missing index 0, an internal gap, or a maximum index not equal to the slot count minus one. Composed forms have a gap-free zero-based index sequence, enforced unconditionally (there is no lax mode); constituent order is identity-bearing, so a gap or non-zero start is always ill-formed."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 lang:DanglingDependency
@@ -851,7 +851,14 @@ lang:surfaceText
     a owl:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "surface text"@x-gmeow-english ;
-    skos:definition "The concrete text a surface form carries. Domain lang:SurfaceForm, range a string literal (stated in prose). The only identity-bearing byte content in the AST, and only at the surface stratum."@x-gmeow-english ;
+    skos:definition "The concrete text a surface form carries. Domain lang:SurfaceForm, range a string literal (stated in prose). The only identity-bearing byte content in the AST, and only at the surface stratum. A document-scale surface holds its bytes by reference through lang:surfaceBlob instead, never inline here."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+lang:surfaceBlob
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "surface blob"@x-gmeow-english ;
+    skos:definition "A by-reference handle to the concrete bytes a document-scale surface form carries — the content-addressed blob digest (a \"blake3:<hex>\" reference literal) of those bytes, held in the bundle's content-addressed blob channel rather than inline. Domain lang:SurfaceForm, range a blob-reference string literal (stated in prose). A surface whose text byte-length exceeds the document-scale threshold carries lang:surfaceBlob in place of lang:surfaceText so the graph never inlines document-scale payload bytes; the digest is content-addressed, so the reference is deterministic and the bytes resolve through the blob store. A surface carries exactly one of lang:surfaceText or lang:surfaceBlob."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 lang:inScript
@@ -2003,6 +2010,14 @@ lang:SurfaceLeakInContentKey
     skos:definition "The failure raised when a crossing's content-level identity is computed over surface-stratum material — a translation, rendering, or paraphrase keyed on script, encoding, casing, normalization, or rendered surface rather than on structural form content. Form identity is computed over structural content alone and is independent of encoding, script, casing, and rendering; a crossing that lets a surface distinction into its content key has leaked the surface into identity."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+lang:InlineBlobPayload
+    a owl:Class ;
+    rdfs:subClassOf lang:LangConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "Inline Blob Payload"@x-gmeow-english ;
+    skos:definition "The failure raised when a document-scale lang:SurfaceForm carries its bytes inline through lang:surfaceText rather than by reference through lang:surfaceBlob — a surface whose lang:surfaceText byte-length exceeds the document-scale threshold. Document-scale surfaces hold a content-addressed blob reference, never inline payload bytes, so the RDF carries a handle and origin rather than growing without bound with the document; a surface that inlines document-scale bytes has folded payload into identity-bearing graph content."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
 # --- Ingestion-stratum failure classes (the external-engine handoff) --------- #
 
 lang:UnattributedEngineClaim
@@ -2019,6 +2034,14 @@ lang:SilentPromotion
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "Silent Promotion"@x-gmeow-english ;
     skos:definition "The failure raised when an engine-produced lang:Reading is promoted to a slice-level assertion without an accompanying provenance-carrying editorial act — a subject that adopts a reading as canonical (through lang:promotedReading) while itself being neither a gmeow:Activity nor carrying a gmeow:vantage. Promotion from an engine-claimed reading to a slice-asserted analysis is an explicit editorial act with its own provenance; adopting a reading as fact with no such act erases the boundary between what an engine claimed and what the slice stands behind."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+lang:SilentIngestDrop
+    a owl:Class ;
+    rdfs:subClassOf lang:LangConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "Silent Ingest Drop"@x-gmeow-english ;
+    skos:definition "The failure raised when an ingester admits content without accounting for it — a construct that enters the graph neither fully lifted nor hard-failed with a typed diagnostic naming it. An ingester lifts fully or hard-fails; it never silently drops material. The bridges enforce this at the seam (a lift that cannot represent a construct raises a typed diagnostic carrying this class rather than emitting a plausible-but-wrong structure); at the dataset level it surfaces as a lang:SurfaceForm left in limbo — one that neither lang:realizes an analyzed lang:Form nor is typed lang:UnanalyzedProse — a surface whose analysis was silently dropped rather than recorded or refused."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 lang:promotedReading
