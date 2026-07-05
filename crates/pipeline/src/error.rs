@@ -116,7 +116,10 @@ impl std::fmt::Display for PipelineError {
                 "stage {stage}: RDF gmeow:hasCapability {rdf:?} disagrees with the Rust impl capabilities() {rust:?}"
             ),
             PipelineError::CacheMismatch { expected, actual } => {
-                write!(f, "pipeline cache digest mismatch: expected {expected}, got {actual}")
+                write!(
+                    f,
+                    "pipeline cache digest mismatch: expected {expected}, got {actual}"
+                )
             }
             PipelineError::Stage { stage, message } => {
                 write!(f, "stage {stage} failed: {message}")

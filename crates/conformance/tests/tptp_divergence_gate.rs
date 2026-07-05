@@ -17,7 +17,7 @@
 
 use std::path::Path;
 
-use gmeow_conformance::external::tptp::{lower_and_decide, parse_tptp, TptpError};
+use gmeow_conformance::external::tptp::{TptpError, lower_and_decide, parse_tptp};
 use gmeow_conformance::external::{outcome_from_szs, parse_szs_status};
 use gmeow_conformance::paths::cases_root;
 

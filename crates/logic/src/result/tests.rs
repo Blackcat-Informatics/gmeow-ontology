@@ -341,14 +341,16 @@ fn from_dl_verdict_unsupported_constructs_drop_completeness() {
         prov(),
     );
     assert_eq!(r.completeness, CompletenessStatus::Incomplete);
-    assert!(r
-        .preservation
-        .unsupported_constructs
-        .contains("http://www.w3.org/2002/07/owl#someValuesFrom"));
-    assert!(r
-        .preservation
-        .polarities
-        .contains(&PreservationKind::SoundUnder));
+    assert!(
+        r.preservation
+            .unsupported_constructs
+            .contains("http://www.w3.org/2002/07/owl#someValuesFrom")
+    );
+    assert!(
+        r.preservation
+            .polarities
+            .contains(&PreservationKind::SoundUnder)
+    );
     // Still conclusive (the run completed), so Supported, not Undetermined.
     assert_eq!(r.information, InformationState::Supported);
 }

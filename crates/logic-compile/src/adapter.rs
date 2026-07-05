@@ -35,20 +35,20 @@ use std::collections::{BTreeSet, HashSet};
 #[cfg(not(target_arch = "wasm32"))]
 use std::path::Path;
 
-use purrdf::{parse_dataset, RdfDataset};
+use purrdf::{RdfDataset, parse_dataset};
 
 use super::frontend::{Diagnostic, LogicParseError, Severity};
 use super::graphutil::{
-    default_graph_quads, iri_of, is_empty, nn, subject_is_blank, subject_of, subject_str,
-    subjects_with, term_is_blank, term_is_literal, term_str, Node, RDF_TYPE,
+    Node, RDF_TYPE, default_graph_quads, iri_of, is_empty, nn, subject_is_blank, subject_of,
+    subject_str, subjects_with, term_is_blank, term_is_literal, term_str,
 };
 use super::ir::{
-    ContextualScope, Formula, LogicAxiom, LogicProgram, LogicRule, ReasoningContract,
-    LOGIC_NAMESPACE,
+    ContextualScope, Formula, LOGIC_NAMESPACE, LogicAxiom, LogicProgram, LogicRule,
+    ReasoningContract,
 };
 use super::restriction::{
-    datarange_node_labels, enumeration_node_labels, restriction_node_labels, skolemize_dataranges,
-    skolemize_enumerations, skolemize_restrictions, LiftedTriple, RestrictionVocab,
+    LiftedTriple, RestrictionVocab, datarange_node_labels, enumeration_node_labels,
+    restriction_node_labels, skolemize_dataranges, skolemize_enumerations, skolemize_restrictions,
 };
 
 const GUFO_NS: &str = "http://purl.org/nemo/gufo#";
@@ -144,11 +144,7 @@ impl std::fmt::Display for IRIsomorphismError {
 impl std::error::Error for IRIsomorphismError {}
 
 fn py_bool(b: bool) -> &'static str {
-    if b {
-        "True"
-    } else {
-        "False"
-    }
+    if b { "True" } else { "False" }
 }
 
 /// Stable diff key for an axiom (mirrors Python `_axiom_key`: subject, predicate,

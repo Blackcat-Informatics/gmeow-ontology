@@ -304,10 +304,10 @@ impl<'a> DslView<'a> {
         let mut seen: std::collections::HashSet<DslTerm> = std::collections::HashSet::new();
         let mut node = head.cloned();
         while let Some(cur) = node {
-            if let DslTerm::Iri(iri) = &cur {
-                if iri == RDF_NIL {
-                    break;
-                }
+            if let DslTerm::Iri(iri) = &cur
+                && iri == RDF_NIL
+            {
+                break;
             }
             // Guard against a cyclic rest chain over any list node (IRI or blank):
             // break on the first back-edge to a node already visited.

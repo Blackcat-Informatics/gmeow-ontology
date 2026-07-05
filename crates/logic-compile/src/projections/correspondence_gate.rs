@@ -110,23 +110,27 @@ mod tests {
     #[test]
     fn equiv_correspondence_may_emit_exact_match() {
         // The honest case: a genuine equivalence emits exactMatch — allowed.
-        assert!(assert_relation_no_overclaim(
-            "sssom",
-            CorrespondenceRelation::Equiv,
-            MorphismClass::Isomorphism,
-            MorphismKind::InstitutionMorphism,
-            "skos:exactMatch",
-        )
-        .is_ok());
+        assert!(
+            assert_relation_no_overclaim(
+                "sssom",
+                CorrespondenceRelation::Equiv,
+                MorphismClass::Isomorphism,
+                MorphismKind::InstitutionMorphism,
+                "skos:exactMatch",
+            )
+            .is_ok()
+        );
         // A weaker relation emitting a weaker predicate is fine too.
-        assert!(assert_relation_no_overclaim(
-            "sssom",
-            CorrespondenceRelation::Overlaps,
-            MorphismClass::LossyLens,
-            MorphismKind::InstitutionMorphism,
-            "skos:closeMatch",
-        )
-        .is_ok());
+        assert!(
+            assert_relation_no_overclaim(
+                "sssom",
+                CorrespondenceRelation::Overlaps,
+                MorphismClass::LossyLens,
+                MorphismKind::InstitutionMorphism,
+                "skos:closeMatch",
+            )
+            .is_ok()
+        );
     }
 
     #[test]
@@ -178,13 +182,15 @@ mod tests {
         assert!(err.0.contains("Overlaps"), "{}", err.0);
         assert!(err.0.contains("equivalence"), "{}", err.0);
         // The honest closeMatch a GoEmotions bridge actually emits is never flagged.
-        assert!(assert_relation_no_overclaim(
-            "sssom",
-            CorrespondenceRelation::Overlaps,
-            MorphismClass::LossyLens,
-            MorphismKind::InstitutionMorphism,
-            "skos:closeMatch",
-        )
-        .is_ok());
+        assert!(
+            assert_relation_no_overclaim(
+                "sssom",
+                CorrespondenceRelation::Overlaps,
+                MorphismClass::LossyLens,
+                MorphismKind::InstitutionMorphism,
+                "skos:closeMatch",
+            )
+            .is_ok()
+        );
     }
 }

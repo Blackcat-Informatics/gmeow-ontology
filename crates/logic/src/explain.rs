@@ -38,7 +38,7 @@
 
 use std::collections::{BTreeSet, HashMap};
 
-use crate::provenance::{reifier_from_strings, ASSERT_RULE_IRI};
+use crate::provenance::{ASSERT_RULE_IRI, reifier_from_strings};
 
 // ── Input row ────────────────────────────────────────────────────────────────
 

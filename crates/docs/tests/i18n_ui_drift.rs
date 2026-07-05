@@ -21,7 +21,7 @@ use std::collections::BTreeSet;
 use serde_json::json;
 
 use gmeow_docs::i18n::{ENGLISH, UI_TEMPLATES};
-use gmeow_docs::{ui_string, UiCatalog};
+use gmeow_docs::{UiCatalog, ui_string};
 
 mod common;
 

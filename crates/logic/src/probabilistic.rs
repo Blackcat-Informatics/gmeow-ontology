@@ -34,7 +34,7 @@
 //! [`ProbStatus::Unknown`]) rather than silently assuming independence.
 
 use std::collections::{BTreeMap, BTreeSet, HashSet};
-use std::simd::{cmp::SimdPartialEq, Select, Simd};
+use std::simd::{Select, Simd, cmp::SimdPartialEq};
 
 use crate::profile_gate::is_probabilistic_profile;
 use crate::query_ir::{QAtom, QBodyLit, QGoal, QProbModel, QProgram, QRule, QTerm};
@@ -266,10 +266,10 @@ pub fn evaluate(
         deterministic.insert((pred, q[0].clone(), q[2].clone()));
     }
     for rule in &program.rules {
-        if rule.body.is_empty() {
-            if let Some(f) = ground_atom_to_fact(&rule.head) {
-                deterministic.insert(f);
-            }
+        if rule.body.is_empty()
+            && let Some(f) = ground_atom_to_fact(&rule.head)
+        {
+            deterministic.insert(f);
         }
     }
     for c in &program.confidences {
@@ -578,10 +578,10 @@ fn closure(mut facts: HashSet<Fact>, rules: &[&QRule]) -> HashSet<Fact> {
                 .filter_map(|l| l.clone().into_atom())
                 .collect();
             for binding in solve_conjunction(&body, &facts) {
-                if let Some(f) = instantiate_head(&rule.head, &binding) {
-                    if facts.insert(f) {
-                        added = true;
-                    }
+                if let Some(f) = instantiate_head(&rule.head, &binding)
+                    && facts.insert(f)
+                {
+                    added = true;
                 }
             }
         }

@@ -58,7 +58,7 @@ use std::collections::BTreeSet;
 
 use purrdf::sparql::PropertyPathExpression;
 
-use crate::oracle::{backward_oracle, BackwardOracle};
+use crate::oracle::{BackwardOracle, backward_oracle};
 use crate::query_ir::{AnswerSet, Budget, QAtom, QBodyLit, QGoal, QProgram, QRule, QTerm};
 use crate::seam::{BudgetStatus, WorldStoreForeign};
 use crate::store::WorldStore;
@@ -664,7 +664,10 @@ mod tests {
     fn negated_and_wildcard_are_not_lowerable() {
         let edges = [edge("a", "p", "b")];
         let neg =
-            PropertyPathExpression::NegatedPropertySet(vec![AlgNamedNode::new_unchecked(iri("p"))]);
+            PropertyPathExpression::NegatedPropertySet(vec![purrdf::sparql::NegatedPathElement {
+                predicate: AlgNamedNode::new_unchecked(iri("p")),
+                inverse: false,
+            }]);
         assert!(
             evaluate_path_lowered(&edges, &neg, &PathEnd::Iri(iri("a")), &PathEnd::Variable)
                 .is_err()

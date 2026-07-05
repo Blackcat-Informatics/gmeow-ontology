@@ -19,8 +19,8 @@ use std::path::PathBuf;
 use std::sync::Arc;
 
 use purrdf::{
-    parse_dataset, serialize_dataset, DatasetView, GraphMatch, RdfDataset, RdfDatasetBuilder,
-    SerializeGraph, TermRef,
+    DatasetView, GraphMatch, RdfDataset, RdfDatasetBuilder, SerializeGraph, TermRef, parse_dataset,
+    serialize_dataset,
 };
 
 /// The merged DSL graph plus the focus→file provenance pairs.
@@ -80,10 +80,10 @@ pub fn merge_with_provenance(paths: &[PathBuf]) -> Result<DslMerge, String> {
         // Record the first source file for each named-IRI subject, in document order
         // (the parsed per-file dataset preserves source order in its quad table).
         for q in dataset.quads_for_pattern(None, None, None, GraphMatch::Any) {
-            if let TermRef::Iri(iri) = dataset.resolve(q.s) {
-                if seen.insert(iri.to_owned()) {
-                    focus_to_file.push((iri.to_owned(), path_str.clone()));
-                }
+            if let TermRef::Iri(iri) = dataset.resolve(q.s)
+                && seen.insert(iri.to_owned())
+            {
+                focus_to_file.push((iri.to_owned(), path_str.clone()));
             }
         }
         builder.push_dataset(&dataset);

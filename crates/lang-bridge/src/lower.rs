@@ -34,10 +34,10 @@
 //! relation IS a datalog chart, not a separate hand-rolled parser.
 
 use gmeow_lang_form::{Form, MorphFeature, Slot};
-use gmeow_logic_compile::ir::{Formula, PreservationKind, Term, LOGIC_NAMESPACE};
+use gmeow_logic_compile::ir::{Formula, LOGIC_NAMESPACE, PreservationKind, Term};
 
 use crate::emit::{digest16, ntriples_sorted};
-use crate::grammar::{canonicalize_expr, Formalism, Grammar, GrammarRule, RuleExpr};
+use crate::grammar::{Formalism, Grammar, GrammarRule, RuleExpr, canonicalize_expr};
 
 /// The `lang:` namespace base, byte-identical to the other `lang:` producers.
 const LANG_NS: &str = "https://blackcatinformatics.ca/lang/";
@@ -798,10 +798,10 @@ mod tests {
     fn existential_subject_reads_as_and_not_implies() {
         // "some cat chases a mouse" → ∃x(cat(x) ∧ ∃y(mouse(y) ∧ chase(x,y))).
         let mut sentence = flagship_svo_sentence();
-        if let Form::Composed { slots, .. } = &mut sentence {
-            if let Form::Composed { slots: np, .. } = &mut slots[0].form {
-                np[0].form = lexeme("some", "DET");
-            }
+        if let Form::Composed { slots, .. } = &mut sentence
+            && let Form::Composed { slots: np, .. } = &mut slots[0].form
+        {
+            np[0].form = lexeme("some", "DET");
         }
         let lowering = lower_svo(&sentence).expect("existential subject lowers");
         let cat_x = predicate_atom("cat", vec![Term::var("x").unwrap()]).unwrap();
@@ -832,10 +832,10 @@ mod tests {
     fn unmodeled_determiner_hard_fails() {
         // "most cats chase a mouse" — 'most' is not a modeled first-order determiner.
         let mut sentence = flagship_svo_sentence();
-        if let Form::Composed { slots, .. } = &mut sentence {
-            if let Form::Composed { slots: np, .. } = &mut slots[0].form {
-                np[0].form = lexeme("most", "DET");
-            }
+        if let Form::Composed { slots, .. } = &mut sentence
+            && let Form::Composed { slots: np, .. } = &mut slots[0].form
+        {
+            np[0].form = lexeme("most", "DET");
         }
         let err = lower_svo(&sentence).expect_err("'most' is unmodeled");
         assert!(err.construct.contains("unmodeled determiner"), "{err}");

@@ -27,7 +27,7 @@ use std::collections::BTreeMap;
 
 use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
-use crate::stages::conformance::{TallyRecord, AGREEMENT_TALLIES_PATH};
+use crate::stages::conformance::{AGREEMENT_TALLIES_PATH, TallyRecord};
 
 /// Committed, drift-gated agreement-matrix dashboard artifact. Lives at the
 /// `generated/` root (a committed surface, like `generated/module-status.md`) — NOT

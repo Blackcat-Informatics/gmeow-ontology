@@ -444,11 +444,7 @@ impl Reporter for NdjsonReporter {
 /// This preserves the 0/1/2 convention: `2` is reserved for clap usage errors,
 /// which clap emits itself (this function never returns it).
 pub fn exit_code(report: &Report) -> i32 {
-    if report.ok() {
-        0
-    } else {
-        1
-    }
+    if report.ok() { 0 } else { 1 }
 }
 
 /// Install a stderr `tracing` subscriber with an `EnvFilter` sourced from

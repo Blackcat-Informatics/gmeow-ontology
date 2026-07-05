@@ -323,7 +323,7 @@ fn parse_cell(ds: &RdfDataset, cell: &Iri) -> Result<Vec<StatementCell>, Pipelin
             return Err(cell_err(
                 cell,
                 "needs exactly one of qObject / qObjectLiteral",
-            ))
+            ));
         }
     };
     let triple = QuotedTriple {
@@ -518,7 +518,7 @@ fn all_named(
             _ => {
                 return Err(PipelineError::Parse(format!(
                     "{subject} {predicate} must be an IRI"
-                )))
+                )));
             }
         }
     }

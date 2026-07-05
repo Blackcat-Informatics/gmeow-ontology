@@ -10,7 +10,7 @@
 //! tooling emits the latter). Hard-fail (no-optionality): a source with no
 //! `SZS status` line, or with an unrecognised status token, is an error.
 
-use crate::external::status::{outcome_for_szs, ExternalOutcome};
+use crate::external::status::{ExternalOutcome, outcome_for_szs};
 
 /// Extract the raw SZS status token from a TPTP result document.
 ///

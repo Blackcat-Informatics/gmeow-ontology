@@ -23,7 +23,7 @@ use std::path::Path;
 use gmeow_diagnostics::Severity;
 
 use crate::constitution::{
-    collect_enforcements, collect_principles, constitution_full_report, Enforcement, Principle,
+    Enforcement, Principle, collect_enforcements, collect_principles, constitution_full_report,
 };
 
 /// The governance meta namespace.

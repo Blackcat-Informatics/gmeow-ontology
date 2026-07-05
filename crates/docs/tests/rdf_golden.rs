@@ -12,8 +12,8 @@
 // Rich colored line-diffs on assert_eq! failure; shadows the std macro
 // for this file. Identical behaviour on pass; insta snapshots are unaffected.
 use gmeow_docs::{
-    to_gmeow_rdf, DocConcern, DocMappingSet, DocSlice, DocTerm, DocTermCategory, DocsModel,
-    Translations, UiCatalog,
+    DocConcern, DocMappingSet, DocSlice, DocTerm, DocTermCategory, DocsModel, Translations,
+    UiCatalog, to_gmeow_rdf,
 };
 use pretty_assertions::assert_eq;
 

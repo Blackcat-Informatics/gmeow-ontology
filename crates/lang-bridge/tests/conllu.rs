@@ -6,7 +6,7 @@
 //! it carries its own SPDX header as CoNLL-U comment lines.
 
 use gmeow_lang_bridge::conllu::{self, ConlluBridge, TokenId};
-use gmeow_lang_bridge::{exact_round_trip_holds, is_exact_correspondence, Bridge, LangFailure};
+use gmeow_lang_bridge::{Bridge, LangFailure, exact_round_trip_holds, is_exact_correspondence};
 use gmeow_lang_form::{AnalysisLevel, Form};
 use gmeow_logic_compile::ir::{MorphismClass, PreservationKind};
 
@@ -175,10 +175,11 @@ fn complement_comment_and_misc_are_preserved_verbatim() {
     // And the parsed model actually holds them on the right structures.
     let doc = conllu::parse(FIXTURE).expect("parses");
     let s = &doc.sentences[0];
-    assert!(s
-        .comments
-        .iter()
-        .any(|c| c == "# text = Their cats cannot sleep."));
+    assert!(
+        s.comments
+            .iter()
+            .any(|c| c == "# text = Their cats cannot sleep.")
+    );
     let sleep = s
         .tokens
         .iter()

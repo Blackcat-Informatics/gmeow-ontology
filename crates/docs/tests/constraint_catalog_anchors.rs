@@ -21,7 +21,7 @@
 
 use std::collections::BTreeSet;
 
-use gmeow_docs::render::{to_html, Page};
+use gmeow_docs::render::{Page, to_html};
 
 mod common;
 

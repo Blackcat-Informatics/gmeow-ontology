@@ -27,22 +27,22 @@ mod store;
 // forward/backward evaluators landing on the next rung. Until then the re-export is
 // unused crate-wide, so allow it here rather than dropping the intended API.
 #[allow(unused_imports)]
-pub(crate) use store::{extract_edb, Bound, RelationStore};
+pub(crate) use store::{Bound, RelationStore, extract_edb};
 
 // The forward native evaluator: the stratified semi-naive core, its
 // `RelationStore`-seeded backward entry, and the declared-gap outcome. `materialize_native`
 // + `NativeOutcome` are the primary forward path consumed by `materialize::materialize_routed`;
 // `evaluate`/`UnsupportedKind` are consumed by the backward `magic` leg.
 #[allow(unused_imports)]
-pub(crate) use seminaive::{evaluate, materialize_native, NativeOutcome, UnsupportedKind};
+pub(crate) use seminaive::{NativeOutcome, UnsupportedKind, evaluate, materialize_native};
 
 // The native restricted (standard) existential-rule chase: value invention for the
 // existential fragment, admitted by the `ChaseAdmission` termination certificate and
 // consumed by `materialize::materialize_routed`.
 #[allow(unused_imports)]
 pub(crate) use chase::{
-    chase_materialize, chase_world, parse_existential_rules, route_chase, ChaseAdmission,
-    ExistentialRule,
+    ChaseAdmission, ExistentialRule, chase_materialize, chase_world, parse_existential_rules,
+    route_chase,
 };
 
 // The backward native evaluator: magic-sets demand transformation +
@@ -57,5 +57,5 @@ pub(crate) use magic::resolve_native;
 // are consumed by the forward/backward evaluators wired on the next rungs.
 #[allow(unused_imports)]
 pub(crate) use builtin_eval::{
-    emit_integer_surface, eval as eval_builtin, BuiltinError, BuiltinOutcome, XSD_INTEGER,
+    BuiltinError, BuiltinOutcome, XSD_INTEGER, emit_integer_surface, eval as eval_builtin,
 };

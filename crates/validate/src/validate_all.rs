@@ -22,15 +22,15 @@ use gmeow_diagnostics::{Finding, FindingCategory, Report, Severity};
 use gmeow_logic::certificate::ContradictionPolicy;
 use purrdf::gts::model::Graph;
 use purrdf::{
-    pair_loss_ledger, RdfDataset, RdfDatasetBuilder, RdfLiteral, RdfQuad, RdfTerm, RdfTriple,
-    PROJECTION_CODECS,
+    PROJECTION_CODECS, RdfDataset, RdfDatasetBuilder, RdfLiteral, RdfQuad, RdfTerm, RdfTriple,
+    pair_loss_ledger,
 };
 use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
 
 use purrdf::slice::catalog::SliceCatalog;
 use purrdf::slice::ownership::{DependencyEdge, OwnershipAnalyzer, OwnershipReport};
-use purrdf::slice::{product_unit_key, Phase, ToolchainContext};
+use purrdf::slice::{Phase, ToolchainContext, product_unit_key};
 
 use crate::advisory::Advisory;
 use crate::cache::{CachedResult, ValidationCache};
@@ -1265,13 +1265,13 @@ fn materialize_subclass_type_closure(data: &RdfDataset) -> Result<Arc<RdfDataset
     //    superclass is an anonymous OWL class expression, not a `sh:class` target).
     let mut direct_supers: BTreeMap<&str, BTreeSet<&str>> = BTreeMap::new();
     for q in &quads {
-        if q.predicate.as_str() == RDFS_SUBCLASSOF {
-            if let (RdfTerm::Iri(sub), RdfTerm::Iri(sup)) = (&q.subject, &q.object) {
-                direct_supers
-                    .entry(sub.as_str())
-                    .or_default()
-                    .insert(sup.as_str());
-            }
+        if q.predicate.as_str() == RDFS_SUBCLASSOF
+            && let (RdfTerm::Iri(sub), RdfTerm::Iri(sup)) = (&q.subject, &q.object)
+        {
+            direct_supers
+                .entry(sub.as_str())
+                .or_default()
+                .insert(sup.as_str());
         }
     }
 
@@ -1311,15 +1311,15 @@ fn materialize_subclass_type_closure(data: &RdfDataset) -> Result<Arc<RdfDataset
     let mut builder = RdfDatasetBuilder::new();
     builder.push_dataset(data);
     for q in &quads {
-        if q.predicate.as_str() == RDF_TYPE {
-            if let RdfTerm::Iri(cls) = &q.object {
-                for sup in supers_of(cls.as_str(), &direct_supers, &mut cache, &mut in_progress) {
-                    builder.push_owned_quad(&RdfQuad::new(
-                        q.subject.clone(),
-                        RDF_TYPE,
-                        RdfTerm::iri(sup),
-                    ));
-                }
+        if q.predicate.as_str() == RDF_TYPE
+            && let RdfTerm::Iri(cls) = &q.object
+        {
+            for sup in supers_of(cls.as_str(), &direct_supers, &mut cache, &mut in_progress) {
+                builder.push_owned_quad(&RdfQuad::new(
+                    q.subject.clone(),
+                    RDF_TYPE,
+                    RdfTerm::iri(sup),
+                ));
             }
         }
     }
@@ -1339,12 +1339,14 @@ fn run_example_shacl(
     let example_ds = match store::parse_file_dataset(path) {
         Ok(ds) => ds,
         Err(e) => {
-            return Ok(vec![Finding::new(
-                Severity::Error,
-                crate::codes::EXAMPLE_PARSE,
-                format!("example {name}: failed to parse {}: {e}", path.display()),
-            )
-            .with_tool("validate")]);
+            return Ok(vec![
+                Finding::new(
+                    Severity::Error,
+                    crate::codes::EXAMPLE_PARSE,
+                    format!("example {name}: failed to parse {}: {e}", path.display()),
+                )
+                .with_tool("validate"),
+            ]);
         }
     };
     let example_projected = purrdf::shapes::engine::project_dataset(example_ds.as_ref())
@@ -1622,7 +1624,7 @@ mod tests {
     use super::*;
     use std::collections::{BTreeSet, HashSet};
 
-    use purrdf::{parse_dataset, DatasetView, GraphMatch};
+    use purrdf::{DatasetView, GraphMatch, parse_dataset};
 
     fn write_tmp(name: &str, contents: &str) -> PathBuf {
         let path = std::env::temp_dir().join(name);

@@ -434,7 +434,7 @@ impl<'a> Parser<'a> {
             other => {
                 return Err(TptpError::Syntax(format!(
                     "expected a `fof`/`cnf` annotated formula, found {other:?}"
-                )))
+                )));
             }
         };
         match kw.as_str() {
@@ -461,7 +461,7 @@ impl<'a> Parser<'a> {
             other => {
                 return Err(TptpError::Syntax(format!(
                     "expected a formula role, found {other:?}"
-                )))
+                )));
             }
         };
         let role = TptpRole::parse(&role_word)?;
@@ -584,7 +584,7 @@ impl<'a> Parser<'a> {
                 other => {
                     return Err(TptpError::Syntax(format!(
                         "expected a quantified variable (upper-case), found {other:?}"
-                    )))
+                    )));
                 }
             }
             match self.peek() {
@@ -595,7 +595,7 @@ impl<'a> Parser<'a> {
                 other => {
                     return Err(TptpError::Syntax(format!(
                         "expected `,` or `]` in quantifier variable list, found {other:?}"
-                    )))
+                    )));
                 }
             }
         }
@@ -617,13 +617,13 @@ impl<'a> Parser<'a> {
     /// An atomic formula: a predicate application, or an equality (unsupported).
     fn atom(&mut self) -> Result<Formula, TptpError> {
         // A `$`-defined atom (e.g. `$true`, `$false`) is out of fragment.
-        if let Some(Tok::Lower(w)) = self.peek() {
-            if w.starts_with('$') {
-                let w = w.clone();
-                return Err(TptpError::Unsupported(format!(
-                    "defined atom `{w}` ($-prefixed defined predicates are out of fragment)"
-                )));
-            }
+        if let Some(Tok::Lower(w)) = self.peek()
+            && w.starts_with('$')
+        {
+            let w = w.clone();
+            return Err(TptpError::Unsupported(format!(
+                "defined atom `{w}` ($-prefixed defined predicates are out of fragment)"
+            )));
         }
         let head = self.pterm()?;
         // Equality / disequality over terms.
@@ -721,7 +721,7 @@ impl<'a> Parser<'a> {
                             other => {
                                 return Err(TptpError::Syntax(format!(
                                     "expected `,` or `)` in argument list, found {other:?}"
-                                )))
+                                )));
                             }
                         }
                     }
@@ -765,10 +765,10 @@ pub(crate) fn collect_free_vars(
     match f {
         Formula::Atom { args, .. } => {
             for a in args {
-                if let Term::Var(v) = a {
-                    if !bound.contains(v) {
-                        out.insert(v.clone());
-                    }
+                if let Term::Var(v) = a
+                    && !bound.contains(v)
+                {
+                    out.insert(v.clone());
                 }
             }
         }

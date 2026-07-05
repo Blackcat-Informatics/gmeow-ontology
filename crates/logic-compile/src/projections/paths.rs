@@ -31,7 +31,7 @@
 use purrdf::sparql::{NamedNode as SparqlNamedNode, PropertyPathExpression};
 
 use super::super::ir::{LegPath, LogicProgram, PathBase, PathShapeIr};
-use super::{target_meta, LedgerEntry};
+use super::{LedgerEntry, target_meta};
 
 /// Lower a correspondence [`LegPath`] body to the SPARQL property-path algebra (the lossy
 /// projection of the canonical `logic:` composite-path form). Used only to derive the

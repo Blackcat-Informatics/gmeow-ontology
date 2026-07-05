@@ -13,11 +13,11 @@ use std::path::{Path, PathBuf};
 
 use gmeow_cli_core::{ConsoleMode, Reporter};
 use gmeow_pipeline::fanout::fanout as run_fanout;
-use gmeow_pipeline::run::{run_full, RunMode, RunReport};
+use gmeow_pipeline::run::{RunMode, RunReport, run_full};
 
 use crate::dev_common::{
-    fail, project_root, reporter_for, resolve_console, resolve_jobs, write_timings_json,
-    GTS_SNAPSHOT_REL,
+    GTS_SNAPSHOT_REL, fail, project_root, reporter_for, resolve_console, resolve_jobs,
+    write_timings_json,
 };
 
 /// Emit each pipeline timing record + any drift finding through the reporter, then
@@ -410,7 +410,7 @@ pub fn release_bundle(
             return fail(format!(
                 "source snapshot {} is unreadable: {e}",
                 source.display()
-            ))
+            ));
         }
     };
     let secret_armor = match std::fs::read_to_string(sign_key) {
@@ -419,7 +419,7 @@ pub fn release_bundle(
             return fail(format!(
                 "signing key {} is unreadable: {e}",
                 sign_key.display()
-            ))
+            ));
         }
     };
     let public_armor = match std::fs::read_to_string(public_key) {
@@ -428,7 +428,7 @@ pub fn release_bundle(
             return fail(format!(
                 "public key {} is unreadable: {e}",
                 public_key.display()
-            ))
+            ));
         }
     };
     let signer = match purrdf::gts::openpgp::parse_secret_signing_key(&secret_armor, None) {

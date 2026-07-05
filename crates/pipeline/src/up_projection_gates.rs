@@ -50,13 +50,13 @@ use gmeow_logic_compile::ir::{
 };
 use gmeow_logic_compile::projections::correspondence::CorrespondenceProgram;
 use gmeow_logic_compile::projections::correspondence_gates::{
-    evaluate_gates, liftability, GateReport,
+    GateReport, evaluate_gates, liftability,
 };
 
 use crate::up_projection_corpus::{
-    canon_qname, combined_class, decimal_confidence, edoalpath_pairs, prefix, run_audit_nt,
-    sssom_best_buckets_pub, sssom_clean_pairs, sssom_closematch_pairs, structural_best_classes_pub,
-    structural_pairs, AuditReport,
+    AuditReport, canon_qname, combined_class, decimal_confidence, edoalpath_pairs, prefix,
+    run_audit_nt, sssom_best_buckets_pub, sssom_clean_pairs, sssom_closematch_pairs,
+    structural_best_classes_pub, structural_pairs,
 };
 
 /// The `logic:` namespace the minted audit-correspondence and leg IRIs live under.
@@ -208,13 +208,11 @@ pub fn classify_term(evidence: &LiftEvidence) -> Option<TermShape> {
 /// asserted/claimed/unsupported tier.
 fn evidence_for(bucket: &str, direct: Option<&str>, inverse: Option<&str>) -> LiftEvidence {
     let liftable = matches!(bucket, "clean" | "liftable-with-claim");
-    if liftable {
-        if let (Some(d), Some(i)) = (direct, inverse) {
-            return LiftEvidence::VerifiableRoundTrip {
-                direct: d.to_owned(),
-                inverse: i.to_owned(),
-            };
-        }
+    if liftable && let (Some(d), Some(i)) = (direct, inverse) {
+        return LiftEvidence::VerifiableRoundTrip {
+            direct: d.to_owned(),
+            inverse: i.to_owned(),
+        };
     }
     match bucket {
         "clean" => LiftEvidence::CleanAsserted,

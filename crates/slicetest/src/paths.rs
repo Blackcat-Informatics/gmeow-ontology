@@ -46,8 +46,8 @@ pub fn slice_dir(test_file: &Path) -> PathBuf {
     let dir = test_file
         .parent() // .../<name>/tests
         .and_then(Path::parent); // .../<name>
-                                 // The datatest-stable harness only ever feeds paths matching
-                                 // `.../tests/<file>.ttl`, so a missing grandparent means a caller bug.
+    // The datatest-stable harness only ever feeds paths matching
+    // `.../tests/<file>.ttl`, so a missing grandparent means a caller bug.
     debug_assert!(
         dir.is_some(),
         "slice_dir expects .../<name>/tests/<file>.ttl, got {}",

@@ -327,10 +327,10 @@ fn blob_meta_rep(meta: &ciborium::value::Value) -> Option<String> {
         return None;
     };
     for (k, v) in entries {
-        if let (Value::Text(key), Value::Text(val)) = (k, v) {
-            if key == "rep" {
-                return Some(val.clone());
-            }
+        if let (Value::Text(key), Value::Text(val)) = (k, v)
+            && key == "rep"
+        {
+            return Some(val.clone());
         }
     }
     None

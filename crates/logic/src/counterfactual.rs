@@ -37,7 +37,7 @@ use crate::query_ir::{Binding, Budget, QAtom, QProgram, QTerm};
 use crate::result::ReasoningResult;
 use crate::seam::{BudgetStatus, WorldStoreForeign};
 use crate::store::WorldStore;
-use crate::versioning::{counterfactual_world_key, CounterfactualKeyInputs};
+use crate::versioning::{CounterfactualKeyInputs, counterfactual_world_key};
 
 /// Default hard cap on nested-counterfactual depth when a query does not declare
 /// its own `depth_budget(N)`.
@@ -610,11 +610,7 @@ fn worst_status(a: CfStatus, b: CfStatus) -> CfStatus {
             CfStatus::Unknown => 4,
         }
     }
-    if rank(a) >= rank(b) {
-        a
-    } else {
-        b
-    }
+    if rank(a) >= rank(b) { a } else { b }
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────

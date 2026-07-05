@@ -20,6 +20,6 @@ default = []
 python = ["dep:pyo3"]
 
 [dependencies]
-purrdf = "0.2"
+purrdf = "0.3"
 pyo3 = { version = "0.29", features = ["abi3-py313"], optional = true }
 roxmltree = "0.20"

@@ -59,7 +59,7 @@ fn foundation_ttl_is_written() {
 
 #[test]
 fn nq_reconciliation_is_written_and_orders_by_count() {
-    use gmeow_foundation_corpus::{reconcile_nq, NQ_PREDICATE_STATUS};
+    use gmeow_foundation_corpus::{NQ_PREDICATE_STATUS, reconcile_nq};
 
     let tmp = tempfile::tempdir().expect("tempdir");
     let nq = tmp.path().join("corpus.nq");

@@ -43,7 +43,7 @@ use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 
 use purrdf::TermValue;
 
-use crate::facts::{skolem_iri, TermId, TermInterner};
+use crate::facts::{TermId, TermInterner, skolem_iri};
 use crate::provenance::term_display;
 use crate::seam::ScryerForeign;
 

@@ -25,7 +25,7 @@
 //! job is solely to read the manifest and report the declared outcome (the external
 //! ground truth the soundness gate cross-checks the engine against).
 
-use purrdf::{parse_dataset, TermRef};
+use purrdf::{TermRef, parse_dataset};
 
 use crate::external::status::ExternalOutcome;
 
@@ -239,10 +239,10 @@ pub fn manifest_entries(ds: &purrdf::RdfDataset) -> Result<Vec<ManifestEntry>, S
             if let TermRef::Literal { lexical, .. } = q.o {
                 row.otest_premise = Some(lexical.to_owned());
             }
-        } else if pred == p_otest_conclusion {
-            if let TermRef::Literal { lexical, .. } = q.o {
-                row.otest_conclusion = Some(lexical.to_owned());
-            }
+        } else if pred == p_otest_conclusion
+            && let TermRef::Literal { lexical, .. } = q.o
+        {
+            row.otest_conclusion = Some(lexical.to_owned());
         }
     }
 

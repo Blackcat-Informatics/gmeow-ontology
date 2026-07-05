@@ -23,7 +23,7 @@
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
-use purrdf::{parse_dataset, RdfDataset, RdfDatasetBuilder};
+use purrdf::{RdfDataset, RdfDatasetBuilder, parse_dataset};
 
 use crate::model::owl;
 

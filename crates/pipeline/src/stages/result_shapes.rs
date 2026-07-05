@@ -257,18 +257,18 @@ pub fn render_result_shapes(root: &Path) -> Result<String, PipelineError> {
                 lines.push("    ] ;".to_string());
             }
             // Pinned datatype: for literal columns with a logic:columnDatatype IRI.
-            if col.kind == Kind::Literal {
-                if let Some(dt) = &col.datatype {
-                    lines.push("    sh:sparql [".to_string());
-                    lines.push("        sh:severity sh:Violation ;".to_string());
-                    lines.push(format!(
+            if col.kind == Kind::Literal
+                && let Some(dt) = &col.datatype
+            {
+                lines.push("    sh:sparql [".to_string());
+                lines.push("        sh:severity sh:Violation ;".to_string());
+                lines.push(format!(
                         "        sh:message \"result column ?{v} must bind a literal of datatype <{dt}>\" ;"
                     ));
-                    lines.push(format!(
+                lines.push(format!(
                         "        sh:select \"\"\"PREFIX gmeow: <{GMEOW_NS}> SELECT $this WHERE {{ $this gmeow:rowCell ?c . ?c gmeow:cellVar '{v}' ; gmeow:cellValueLiteral ?val . FILTER ( datatype(?val) != <{dt}> ) }}\"\"\" ;"
                     ));
-                    lines.push("    ] ;".to_string());
-                }
+                lines.push("    ] ;".to_string());
             }
         }
 
@@ -522,14 +522,16 @@ plant:badRow gmeow:rowCell [ gmeow:cellVar \"{iri_col_var}\" ; gmeow:cellValueLi
 
         // Hand-built projection for a single literal column "tag" pinned to xsd:string.
         let xsd_string = "http://www.w3.org/2001/XMLSchema#string";
-        let shapes_ttl = format!("\
+        let shapes_ttl = format!(
+            "\
             @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
             @prefix sh: <http://www.w3.org/ns/shacl#> .\n\
             gmeow:DT a sh:NodeShape ;\n\
                 sh:target [ a sh:SPARQLTarget ; sh:select \"\"\"PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> SELECT ?this WHERE {{ ?cq gmeow:cqResultShape <https://example.org/dt> . ?cq gmeow:cqExpectRow ?this }}\"\"\" ] ;\n\
                 sh:sparql [ sh:severity sh:Violation ; sh:message \"result column ?tag must bind a literal of datatype <{xsd_string}>\" ;\n\
                     sh:select \"\"\"PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> SELECT $this WHERE {{ $this gmeow:rowCell ?c . ?c gmeow:cellVar 'tag' ; gmeow:cellValueLiteral ?val . FILTER ( datatype(?val) != <{xsd_string}> ) }}\"\"\" ] .\n\
-        ");
+        "
+        );
         let shapes = parse_shapes(&shapes_ttl).expect("parse datatype-constraint shapes");
 
         // ex:good has "hello"^^xsd:string (correct); ex:bad has "5"^^xsd:integer (wrong)

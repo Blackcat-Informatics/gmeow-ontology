@@ -468,10 +468,12 @@ mod tests {
             Some("RelatorMediatesOne")
         );
         // Absent ⇒ None.
-        assert!(parse_profile("c", &json!({}))
-            .unwrap()
-            .documented_antipattern
-            .is_none());
+        assert!(
+            parse_profile("c", &json!({}))
+                .unwrap()
+                .documented_antipattern
+                .is_none()
+        );
         // A non-string or empty label is a hard error (no silent coercion).
         assert!(parse_profile("c", &json!({ "documented_antipattern": 7 })).is_err());
         assert!(parse_profile("c", &json!({ "documented_antipattern": "" })).is_err());

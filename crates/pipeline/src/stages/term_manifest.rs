@@ -229,10 +229,10 @@ fn read_prior_manifest(root: &Path) -> Result<Option<BTreeMap<String, PriorTerm>
     // Enumerate the manifest's terms: every named subject carrying a digest.
     let mut term_iris: BTreeSet<String> = BTreeSet::new();
     dataset.for_each_quad(|subject, predicate, _object, _graph| {
-        if predicate == DEFINITION_DIGEST {
-            if let Subject::Named(iri) = subject {
-                term_iris.insert(iri);
-            }
+        if predicate == DEFINITION_DIGEST
+            && let Subject::Named(iri) = subject
+        {
+            term_iris.insert(iri);
         }
     });
 
@@ -268,7 +268,7 @@ fn read_prior_manifest(root: &Path) -> Result<Option<BTreeMap<String, PriorTerm>
                 .objects_of_subject(&node, ENTRY_VERSION)
                 .map_err(|e| PipelineError::Parse(e.to_string()))?
             {
-                if let Object::Literal { value } = value {
+                if let Object::Literal { value, .. } = value {
                     changed_versions.push(value);
                 }
             }

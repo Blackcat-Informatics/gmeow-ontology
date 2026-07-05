@@ -12,7 +12,7 @@ use std::path::Path;
 
 use gmeow_pipeline::bundle_blobs;
 use gmeow_pipeline::projections::{
-    self, MaximalInputs, TagMap, UpProjectionInputs, GTS_VIEW_ALL, GTS_VIEW_GMEOW,
+    self, GTS_VIEW_ALL, GTS_VIEW_GMEOW, MaximalInputs, TagMap, UpProjectionInputs,
 };
 
 use crate::dev_common::{fail, project_root, snapshot_bytes};

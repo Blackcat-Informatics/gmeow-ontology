@@ -16,7 +16,7 @@ use pretty_assertions::assert_eq;
 
 use gmeow_docs::lint::lint;
 use gmeow_docs::model::{DocTerm, DocTermCategory};
-use gmeow_docs::render::{render_site_lang, term_slug, Page};
+use gmeow_docs::render::{Page, render_site_lang, term_slug};
 use gmeow_docs::{DocsModel, Translations};
 
 mod common;
