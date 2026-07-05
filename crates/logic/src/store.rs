@@ -14,7 +14,7 @@ use std::cell::RefCell;
 use std::sync::Arc;
 
 use purrdf::{
-    parse_dataset, DatasetMut, GraphMatchValue, MutableDataset, QuadValues, RdfDataset, TermValue,
+    DatasetMut, GraphMatchValue, MutableDataset, QuadValues, RdfDataset, TermValue, parse_dataset,
 };
 
 /// A world-indexed RDF store.

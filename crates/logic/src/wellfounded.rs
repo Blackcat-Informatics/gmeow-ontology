@@ -36,7 +36,7 @@
 #![allow(dead_code)]
 
 use crate::rule_ir::{
-    echo_asserted, least_model_of_reduct, world_edb_facts, DerivedRow, EvalRule, FactStore,
+    DerivedRow, EvalRule, FactStore, echo_asserted, least_model_of_reduct, world_edb_facts,
 };
 
 /// The ordered intra-engine phases [`materialize`] runs per world — the runtime

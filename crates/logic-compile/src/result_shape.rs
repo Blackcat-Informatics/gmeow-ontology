@@ -496,13 +496,13 @@ impl ResultShape {
         &self,
         rows: &[Vec<ObservedBinding>],
     ) -> Result<(), ContractViolation> {
-        if let RowCardinality::Count(expected) = self.cardinality {
-            if rows.len() as u64 != expected {
-                return Err(ContractViolation::RowCount {
-                    expected,
-                    found: rows.len(),
-                });
-            }
+        if let RowCardinality::Count(expected) = self.cardinality
+            && rows.len() as u64 != expected
+        {
+            return Err(ContractViolation::RowCount {
+                expected,
+                found: rows.len(),
+            });
         }
         let declared: BTreeMap<&str, &ResultColumn> =
             self.columns.iter().map(|c| (c.var.as_str(), c)).collect();
@@ -641,14 +641,13 @@ fn check_term(col: &ResultColumn, term: &ObservedTerm) -> Result<(), ContractVio
         },
         ObservedTerm::Literal { datatype: got },
     ) = (&col.kind, term)
+        && want != got
     {
-        if want != got {
-            return Err(ContractViolation::DatatypeMismatch {
-                var: col.var.clone(),
-                expected: want.clone(),
-                found: got.clone(),
-            });
-        }
+        return Err(ContractViolation::DatatypeMismatch {
+            var: col.var.clone(),
+            expected: want.clone(),
+            found: got.clone(),
+        });
     }
     Ok(())
 }

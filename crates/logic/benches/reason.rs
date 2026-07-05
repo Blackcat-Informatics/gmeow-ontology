@@ -18,7 +18,7 @@
 //!   `subClassOf` chain (O(n^2) derived facts), reusing the materialize.rs test
 //!   ruleset.
 
-use criterion::{criterion_group, criterion_main, Criterion};
+use criterion::{Criterion, criterion_group, criterion_main};
 use gmeow_logic::materialize::materialize_core;
 use gmeow_logic::reason::{el_closure, reason_all};
 use purrdf::{RdfDataset, RdfDatasetBuilder, RdfQuad, RdfTerm};

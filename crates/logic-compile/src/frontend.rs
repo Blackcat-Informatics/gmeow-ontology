@@ -33,20 +33,20 @@ use std::fmt;
 #[cfg(not(target_arch = "wasm32"))]
 use std::path::Path;
 
-use purrdf::{parse_dataset, RdfDataset};
+use purrdf::{RdfDataset, parse_dataset};
 
 use super::compat;
 use super::graphutil::{
-    canonicalize_blank_nodes, contains, default_graph_quads, has_predicate, has_predicate_object,
-    is_empty, nn, objects, subject_is_blank, subject_str, subjects_with, term_as_subject,
-    term_is_literal, term_str, value, Iri, Node, Subject, RDF_OBJECT, RDF_PREDICATE, RDF_REIFIES,
-    RDF_STATEMENT, RDF_SUBJECT, RDF_TYPE,
+    Iri, Node, RDF_OBJECT, RDF_PREDICATE, RDF_REIFIES, RDF_STATEMENT, RDF_SUBJECT, RDF_TYPE,
+    Subject, canonicalize_blank_nodes, contains, default_graph_quads, has_predicate,
+    has_predicate_object, is_empty, nn, objects, subject_is_blank, subject_str, subjects_with,
+    term_as_subject, term_is_literal, term_str, value,
 };
 use super::ir::{
     AggregateSpec, ComplexityClass, ConstraintComponent, ConstraintProvenance, ContextualScope,
-    Correspondence, Formula, LogicAxiom, LogicModality, LogicProgram, LogicRule, PathBase,
-    PathShapeIr, PropertyConstraintIr, ReasoningContract, SemanticProfileId, ShaclNodeKind,
-    ShapeTarget, Term, ValidationShapeIr, LOGIC_NAMESPACE,
+    Correspondence, Formula, LOGIC_NAMESPACE, LogicAxiom, LogicModality, LogicProgram, LogicRule,
+    PathBase, PathShapeIr, PropertyConstraintIr, ReasoningContract, SemanticProfileId,
+    ShaclNodeKind, ShapeTarget, Term, ValidationShapeIr,
 };
 use super::restriction;
 
@@ -142,12 +142,11 @@ impl std::error::Error for LogicParseError {}
 // --------------------------------------------------------------------------- //
 
 fn confidence_from_term(term: &Node) -> Option<f64> {
-    if let Node::Lit(lexical) = term {
-        if let Ok(val) = lexical.parse::<f64>() {
-            if (0.0..=1.0).contains(&val) {
-                return Some(val);
-            }
-        }
+    if let Node::Lit(lexical) = term
+        && let Ok(val) = lexical.parse::<f64>()
+        && (0.0..=1.0).contains(&val)
+    {
+        return Some(val);
     }
     None
 }
@@ -174,17 +173,17 @@ fn scope_from_node(
 
     let conf_node = value(store, node, &nn(&logic_iri("confidence")));
     let confidence = conf_node.as_ref().and_then(confidence_from_term);
-    if let Some(cn) = &conf_node {
-        if confidence.is_none() {
-            diagnostics.push(Diagnostic::warning(
-                "INVALID_CONFIDENCE",
-                format!(
-                    "confidence value {:?} is not a float in [0, 1]; ignored",
-                    term_str(cn)
-                ),
-                Some(subject_str(node)),
-            ));
-        }
+    if let Some(cn) = &conf_node
+        && confidence.is_none()
+    {
+        diagnostics.push(Diagnostic::warning(
+            "INVALID_CONFIDENCE",
+            format!(
+                "confidence value {:?} is not a float in [0, 1]; ignored",
+                term_str(cn)
+            ),
+            Some(subject_str(node)),
+        ));
     }
 
     let modality = modality_from_term(value(store, node, &nn(&logic_iri("modality"))).as_ref());
@@ -563,10 +562,10 @@ fn facet_class_of(store: &RdfDataset, value_iri: &str) -> Option<String> {
     let subject = Subject::Iri(value_iri.to_owned());
     for ty in objects(store, &subject, &nn(RDF_TYPE)) {
         let ty_str = term_str(&ty);
-        if let Some(local) = ty_str.strip_prefix(LOGIC_NAMESPACE) {
-            if is_facet_class(local) {
-                return Some(local.to_owned());
-            }
+        if let Some(local) = ty_str.strip_prefix(LOGIC_NAMESPACE)
+            && is_facet_class(local)
+        {
+            return Some(local.to_owned());
         }
     }
     None

@@ -25,7 +25,7 @@
 use std::path::{Path, PathBuf};
 
 use gmeow_pipeline::stages::yaml_ld::{parse_jsonld_star, yaml_ld_star_to_json};
-use gmeow_pipeline::transcode::{realized_loss_json, transcode, Codec};
+use gmeow_pipeline::transcode::{Codec, realized_loss_json, transcode};
 use purrdf::NativeRdfFormat;
 
 // ── Minimum corpus size guard ──────────────────────────────────────────────────

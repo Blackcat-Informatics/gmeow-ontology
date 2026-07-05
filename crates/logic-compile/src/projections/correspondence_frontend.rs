@@ -39,11 +39,11 @@ use sha2::{Digest, Sha256};
 
 use crate::ingest::DslView;
 use crate::ir::{
-    Correspondence, CorrespondenceRelation, MorphismClass, MorphismKind, PreservationKind,
-    LOGIC_NAMESPACE,
+    Correspondence, CorrespondenceRelation, LOGIC_NAMESPACE, MorphismClass, MorphismKind,
+    PreservationKind,
 };
 use crate::projections::correspondence::CorrespondenceProgram;
-use crate::projections::get_leg::{projections, ProfileBinding};
+use crate::projections::get_leg::{ProfileBinding, projections};
 use crate::projections::sssom::{equivalence_cells, sssom_band};
 
 /// The semapv justification under which a curator established a mapping — the

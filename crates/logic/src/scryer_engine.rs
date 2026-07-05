@@ -153,11 +153,11 @@ pub fn run_scryer(
         let mut query_state = machine.run_query(query);
         loop {
             // Output cap: stop before pulling another solution.
-            if let Some(max_a) = budget.max_answers {
-                if bindings.len() >= max_a {
-                    status = BudgetStatus::Partial;
-                    break;
-                }
+            if let Some(max_a) = budget.max_answers
+                && bindings.len() >= max_a
+            {
+                status = BudgetStatus::Partial;
+                break;
             }
 
             match query_state.next() {
@@ -407,10 +407,10 @@ fn goal_vars(goal: &QGoal) -> Vec<String> {
     let mut seen: HashSet<&str> = HashSet::new();
     for atom in &goal.atoms {
         for t in &atom.args {
-            if let QTerm::Var(v) = t {
-                if seen.insert(v.as_str()) {
-                    vars.push(v.clone());
-                }
+            if let QTerm::Var(v) = t
+                && seen.insert(v.as_str())
+            {
+                vars.push(v.clone());
             }
         }
     }

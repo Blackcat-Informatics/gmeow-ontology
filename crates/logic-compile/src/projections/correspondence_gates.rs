@@ -24,10 +24,10 @@ use std::collections::BTreeMap;
 
 use crate::ir::{Correspondence, DischargeVerdict, MorphismClass};
 
+use super::OverclaimError;
 use super::correspondence::CorrespondenceProgram;
 use super::correspondence_gate::assert_relation_no_overclaim;
 use super::paths::leg_path_canonical;
-use super::OverclaimError;
 
 const SKOS_EXACT_MATCH: &str = "http://www.w3.org/2004/02/skos/core#exactMatch";
 

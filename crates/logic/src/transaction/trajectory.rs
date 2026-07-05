@@ -34,13 +34,12 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use crate::provenance::{mint_derivation_id, sha1_hex, LOGIC_NAMESPACE};
-use crate::teleology::{n3, triple_reifier, TeleologyQuad, WorldFacts};
+use crate::provenance::{LOGIC_NAMESPACE, mint_derivation_id, sha1_hex};
+use crate::teleology::{TeleologyQuad, WorldFacts, n3, triple_reifier};
 
 use super::{
-    emit_program_outcome, logic, plan_path, root_execution_mode, root_start, ExecutionMode,
-    StepCounter, TransactionProgram, INSTANTIATES_SCHEMA, TRANSACTION_RULE_IRI,
-    TRANSITION_FROM_STATE,
+    ExecutionMode, INSTANTIATES_SCHEMA, StepCounter, TRANSACTION_RULE_IRI, TRANSITION_FROM_STATE,
+    TransactionProgram, emit_program_outcome, logic, plan_path, root_execution_mode, root_start,
 };
 
 /// The `gmeow:` namespace.
@@ -98,13 +97,13 @@ pub(crate) fn trajectory_roots(facts: &WorldFacts) -> Result<Vec<TrajectoryRoot>
                     "bound gmeow:ToolCall {call:?} has no logic:properPartOf trajectory anchor \
                      (a bound ToolCall must be a proper part of an anchor bearing \
                      logic:transitionFromState)"
-                ))
+                ));
             }
             n => {
                 return Err(format!(
                     "bound gmeow:ToolCall {call:?} has {n} logic:properPartOf anchors \
                      (exactly one trajectory anchor required)"
-                ))
+                ));
             }
         };
         if facts
@@ -148,13 +147,13 @@ fn order_steps(
                     "gmeow:ToolCall {call:?} in trajectory {anchor:?} declares no \
                      gmeow:eventTemporalFrame (Principle 11: every crisp timestamp names its \
                      frame)"
-                ))
+                ));
             }
             n => {
                 return Err(format!(
                     "gmeow:ToolCall {call:?} in trajectory {anchor:?} has {n} \
                      gmeow:eventTemporalFrame values (exactly one is required)"
-                ))
+                ));
             }
         }
     }
@@ -175,13 +174,13 @@ fn order_steps(
             0 => {
                 return Err(format!(
                     "gmeow:ToolCall {call:?} in trajectory {anchor:?} has no gmeow:atTime"
-                ))
+                ));
             }
             n => {
                 return Err(format!(
                     "gmeow:ToolCall {call:?} in trajectory {anchor:?} has {n} gmeow:atTime \
                      values (exactly one is required)"
-                ))
+                ));
             }
         };
         let schemas = facts.objects(&call, &logic(INSTANTIATES_SCHEMA));
@@ -191,13 +190,13 @@ fn order_steps(
                 return Err(format!(
                     "gmeow:ToolCall {call:?} in trajectory {anchor:?} lost its \
                      logic:instantiatesSchema target"
-                ))
+                ));
             }
             n => {
                 return Err(format!(
                     "gmeow:ToolCall {call:?} in trajectory {anchor:?} has {n} \
                      logic:instantiatesSchema values (exactly one is required)"
-                ))
+                ));
             }
         };
         keyed.push((at_time, call, schema));
@@ -346,7 +345,7 @@ pub(crate) fn emit_trajectory_audits(
                     "start state {start:?} is shared by {} trajectories; conflict-serializability \
                      composes exactly two concurrent legs (split a >2-way schedule into pairs)",
                     many.len()
-                ))
+                ));
             }
         }
     }

@@ -25,9 +25,9 @@ use purrdf::shapes::report::{Severity, ValidationReport};
 use purrdf::shapes::shapes::Shapes;
 use purrdf::sparql::NativeSparqlEngine;
 use purrdf::{
-    flat_dataset_from_quads, flat_rdf_quads_from_dataset, parse_dataset, serialize_dataset,
     DatasetView, GraphMatch, RdfDataset, SerializeGraph, SparqlEngine, SparqlRequest, SparqlResult,
-    TermValue,
+    TermValue, flat_dataset_from_quads, flat_rdf_quads_from_dataset, parse_dataset,
+    serialize_dataset,
 };
 
 // ── Repo-root resolution ──────────────────────────────────────────────────────

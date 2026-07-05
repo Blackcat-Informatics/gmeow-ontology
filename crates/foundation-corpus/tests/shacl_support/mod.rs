@@ -12,10 +12,10 @@
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, OnceLock};
 
+use purrdf::RdfDataset;
 use purrdf::parse_dataset;
 use purrdf::shapes::engine::validate_dataset_graphs;
 use purrdf::shapes::report::{Severity, ValidationReport};
-use purrdf::RdfDataset;
 
 // ── Repo-root resolution ──────────────────────────────────────────────────────
 

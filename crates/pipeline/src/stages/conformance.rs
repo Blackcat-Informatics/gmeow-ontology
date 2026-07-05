@@ -30,7 +30,7 @@
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
-use gmeow_conformance::divergence::{agreement_tally, emit_divergence_nq, AgreementTally};
+use gmeow_conformance::divergence::{AgreementTally, agreement_tally, emit_divergence_nq};
 use gmeow_conformance::external::{outcome_from_szs, parse_test_manifest};
 use gmeow_logic::reason::ExternalComparison;
 use serde::{Deserialize, Serialize};

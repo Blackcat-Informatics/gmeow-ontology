@@ -11,8 +11,8 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use purrdf::model::{RdfLiteral, RdfTerm};
 use purrdf::RdfDataset;
+use purrdf::model::{RdfLiteral, RdfTerm};
 use sha2::{Digest, Sha256};
 
 use crate::error::PipelineError;
@@ -349,13 +349,13 @@ fn build_lpg(store: &RdfDataset) -> Result<(Vec<Node>, Vec<Edge>), PipelineError
             if reifier_iris.contains(subject) {
                 continue;
             }
-            if let Some(type_iri) = term_iri(&q.object) {
-                if !SKIP_LABELS.contains(&type_iri) {
-                    node_labels
-                        .entry(subject.clone())
-                        .or_default()
-                        .insert(curie(type_iri));
-                }
+            if let Some(type_iri) = term_iri(&q.object)
+                && !SKIP_LABELS.contains(&type_iri)
+            {
+                node_labels
+                    .entry(subject.clone())
+                    .or_default()
+                    .insert(curie(type_iri));
             }
             node_labels.entry(subject.clone()).or_default();
         } else if let RdfTerm::Literal(_) = &q.object {

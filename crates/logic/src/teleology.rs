@@ -421,22 +421,22 @@ pub fn ordered_states(facts: &WorldFacts) -> Result<Vec<String>, String> {
     let mut pred_of: BTreeMap<String, String> = BTreeMap::new();
     let mut nodes: BTreeSet<String> = BTreeSet::new();
     for t in &facts.triples {
-        if t.predicate == succ_iri {
-            if let Some(a) = t.object_iri.as_deref() {
-                let b = t.subject.clone();
-                if succ_of.insert(a.to_owned(), b.clone()).is_some() {
-                    return Err(format!(
-                        "logic:Path is not linear: state {a:?} has two successors"
-                    ));
-                }
-                if pred_of.insert(b.clone(), a.to_owned()).is_some() {
-                    return Err(format!(
-                        "logic:Path is not linear: state {b:?} has two predecessors"
-                    ));
-                }
-                nodes.insert(a.to_owned());
-                nodes.insert(b);
+        if t.predicate == succ_iri
+            && let Some(a) = t.object_iri.as_deref()
+        {
+            let b = t.subject.clone();
+            if succ_of.insert(a.to_owned(), b.clone()).is_some() {
+                return Err(format!(
+                    "logic:Path is not linear: state {a:?} has two successors"
+                ));
             }
+            if pred_of.insert(b.clone(), a.to_owned()).is_some() {
+                return Err(format!(
+                    "logic:Path is not linear: state {b:?} has two predecessors"
+                ));
+            }
+            nodes.insert(a.to_owned());
+            nodes.insert(b);
         }
     }
     // A path may consist of a SINGLE state with no temporallySucceeds edge: gather
@@ -779,10 +779,10 @@ fn eval_optimization(
 /// Extract the lexical form from an N3 literal (`"lex"^^<dt>` or `"lex"`), or pass an
 /// IRI/bare form through unchanged.
 fn literal_lexical(value: &str) -> &str {
-    if let Some(rest) = value.strip_prefix('"') {
-        if let Some(end) = rest.find('"') {
-            return &rest[..end];
-        }
+    if let Some(rest) = value.strip_prefix('"')
+        && let Some(end) = rest.find('"')
+    {
+        return &rest[..end];
     }
     value
 }
@@ -2144,7 +2144,7 @@ fn parse_xsd_duration_seconds(lex: &str) -> Result<i64, String> {
                 _ => {
                     return Err(format!(
                         "xsd:duration {lex:?} has an unexpected designator {c:?}"
-                    ))
+                    ));
                 }
             };
             *total += secs;

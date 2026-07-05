@@ -3,7 +3,7 @@
 
 use std::collections::BTreeMap;
 
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 
 use crate::model::{Finding, Location, Report, Rule};
 
@@ -386,15 +386,15 @@ pub fn to_gmeow_rdf_in_graph(report: &Report, graph_iri: &str) -> String {
             );
         }
         // Advisory: help URI from the rule registry, if present.
-        if let Some(rule) = rules.get(finding.code.as_str()) {
-            if let Some(uri) = &rule.help_uri {
-                triple(
-                    &subject,
-                    &format!("{GMEOW}findingHelpUri"),
-                    &format!("\"{}\"^^<{XSD_ANY_URI}>", nq_escape(uri)),
-                    &mut lines,
-                );
-            }
+        if let Some(rule) = rules.get(finding.code.as_str())
+            && let Some(uri) = &rule.help_uri
+        {
+            triple(
+                &subject,
+                &format!("{GMEOW}findingHelpUri"),
+                &format!("\"{}\"^^<{XSD_ANY_URI}>", nq_escape(uri)),
+                &mut lines,
+            );
         }
         for (loc_index, location) in finding.locations.iter().enumerate() {
             // An IRI (not a blank node) so the findings graph round-trips
@@ -474,10 +474,10 @@ fn finding_text_lines(finding: &Finding, rules: &BTreeMap<&str, &Rule>, out: &mu
         out.push(format!("  ↳ suggestion: {suggestion}"));
     }
     // Help URI from the rule, if present.
-    if let Some(rule) = rules.get(finding.code.as_str()) {
-        if let Some(uri) = &rule.help_uri {
-            out.push(format!("  ↳ help: {uri}"));
-        }
+    if let Some(rule) = rules.get(finding.code.as_str())
+        && let Some(uri) = &rule.help_uri
+    {
+        out.push(format!("  ↳ help: {uri}"));
     }
 }
 
@@ -614,13 +614,13 @@ pub fn to_html(report: &Report) -> String {
             }
             msg_cell.push_str("</ul>");
         }
-        if let Some(rule) = rules.get(finding.code.as_str()) {
-            if let Some(uri) = &rule.help_uri {
-                msg_cell.push_str(&format!(
-                    "<a class=\"help\" href=\"{}\">\u{2139} help</a>",
-                    escape_html(uri)
-                ));
-            }
+        if let Some(rule) = rules.get(finding.code.as_str())
+            && let Some(uri) = &rule.help_uri
+        {
+            msg_cell.push_str(&format!(
+                "<a class=\"help\" href=\"{}\">\u{2139} help</a>",
+                escape_html(uri)
+            ));
         }
         rows.push_str(&format!("<td>{msg_cell}</td>"));
 

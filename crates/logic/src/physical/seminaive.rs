@@ -60,9 +60,9 @@ use std::collections::{BTreeSet, HashMap, HashSet};
 use crate::physical::store::{Bound, RelationStore};
 use crate::provenance::mint_derivation_id;
 use crate::rule_ir::{
+    DerivedRow, EvalAtom, EvalRule, Fact, FactKey, FactStore, RuleRoundCandidate, Solution,
     distinct_pairs_satisfied, echo_asserted, ground, ground_head, match_atom, sort_rows,
-    world_edb_facts, DerivedRow, EvalAtom, EvalRule, Fact, FactKey, FactStore, RuleRoundCandidate,
-    Solution,
+    world_edb_facts,
 };
 use crate::seam::BudgetStatus;
 

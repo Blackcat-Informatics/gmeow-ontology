@@ -10,8 +10,8 @@
 
 use gmeow_logic::store::WorldStore;
 use gmeow_logic::transition::{
-    apply_elementary_transition, ElementaryUpdate, TransitionFact, ACTIVE_IN_STATE,
-    RETIRED_BY_TRANSACTION, SUPERSEDED_BY, VALID_UNTIL_STATE,
+    ACTIVE_IN_STATE, ElementaryUpdate, RETIRED_BY_TRANSACTION, SUPERSEDED_BY, TransitionFact,
+    VALID_UNTIL_STATE, apply_elementary_transition,
 };
 
 const BASE: &str = "https://example.org/state/base";
@@ -59,9 +59,11 @@ fn elementary_transition_materializes_successor_and_retirement_provenance() {
         1,
         "base state is preserved"
     );
-    assert!(store
-        .quads_for_pattern_in_world(NEXT, Some(SUBJECT), Some(PREDICATE), Some(OLD_OBJECT))
-        .is_empty());
+    assert!(
+        store
+            .quads_for_pattern_in_world(NEXT, Some(SUBJECT), Some(PREDICATE), Some(OLD_OBJECT))
+            .is_empty()
+    );
     assert_eq!(
         store
             .quads_for_pattern_in_world(NEXT, Some(SUBJECT), Some(PREDICATE), Some(NEW_OBJECT))

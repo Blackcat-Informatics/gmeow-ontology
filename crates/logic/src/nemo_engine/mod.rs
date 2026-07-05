@@ -69,10 +69,10 @@ use nemo::execution::tracing::trace::{ExecutionTraceTree, TraceTreeRuleApplicati
 use nemo::rule_model::components::atom::Atom;
 use nemo::rule_model::components::fact::Fact;
 use nemo::rule_model::components::tag::Tag;
-use nemo::rule_model::programs::program::Program;
 use nemo::rule_model::programs::ProgramRead;
-use purrdf::provenance::Attribution;
+use nemo::rule_model::programs::program::Program;
 use purrdf::TermValue;
+use purrdf::provenance::Attribution;
 use tokio::runtime::Runtime;
 
 use std::cell::RefCell;
@@ -615,17 +615,14 @@ pub(crate) fn run_chase(rls: String) -> Result<Vec<ChaseRowWithProvenance>, Stri
                     .map_err(|e| format!("nemo trace error: {e:?}"))?;
 
                 for ((row_idx, _), handle) in parseable_facts.iter().zip(handles.iter()) {
-                    if let Some(tree) = trace.tree(*handle) {
+                    match trace.tree(*handle) { Some(tree) => {
                         provenance_map[*row_idx] = extract_provenance_from_tree(&tree)?;
-                    }
-                    // tree == None means Nemo could not find the fact in the
-                    // trace; that is also a faithfulness failure — propagate it.
-                    else {
+                    } _ => {
                         return Err(format!(
                             "nemo trace error: no trace tree for derived fact at index {row_idx} ({})",
                             rows[*row_idx]
                         ));
-                    }
+                    }}
                 }
             }
 
@@ -677,8 +674,8 @@ impl NemoParsedRules {
     /// Returns a string error if Nemo cannot lex/parse the program text.
     pub fn parse_unvalidated(rules: &str) -> Result<Self, String> {
         use nemo::rule_file::RuleFile;
-        use nemo::rule_model::programs::handle::ProgramHandle;
         use nemo::rule_model::programs::ProgramWrite;
+        use nemo::rule_model::programs::handle::ProgramHandle;
 
         let file = RuleFile::new(rules.to_owned(), "<gmeow-logic-certify>".to_owned());
         let warned = ProgramHandle::from_file(&file)

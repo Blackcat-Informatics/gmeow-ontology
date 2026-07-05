@@ -56,7 +56,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use purrdf::TermValue;
 
-use crate::physical::seminaive::{evaluate, NativeOutcome, UnsupportedKind};
+use crate::physical::seminaive::{NativeOutcome, UnsupportedKind, evaluate};
 use crate::physical::store::extract_edb;
 use crate::profile_gate;
 use crate::provenance::term_display;
@@ -218,15 +218,15 @@ fn bind_atom_vars(atom: &EvalAtom, bound: &mut BTreeSet<String>) {
 /// The bound-variable set induced by the head's adornment (the head-bound arguments).
 fn head_bound_vars(head: &EvalAtom, adorn: Adorn) -> BTreeSet<String> {
     let mut bound = BTreeSet::new();
-    if adorn.subj_bound {
-        if let Some(v) = var_name(&head.subject) {
-            bound.insert(v.to_owned());
-        }
+    if adorn.subj_bound
+        && let Some(v) = var_name(&head.subject)
+    {
+        bound.insert(v.to_owned());
     }
-    if adorn.obj_bound {
-        if let Some(v) = var_name(&head.object) {
-            bound.insert(v.to_owned());
-        }
+    if adorn.obj_bound
+        && let Some(v) = var_name(&head.object)
+    {
+        bound.insert(v.to_owned());
     }
     bound
 }
@@ -437,15 +437,15 @@ fn project_answers(facts: &[crate::rule_ir::Fact], goal: &QAtom, goal_pred: &str
         let s_surface = term_display(&f.subject);
         let o_surface = term_display(&f.object);
         // Apply the goal's constant constraints.
-        if let Some(c) = &s_const {
-            if &s_surface != c {
-                continue;
-            }
+        if let Some(c) = &s_const
+            && &s_surface != c
+        {
+            continue;
         }
-        if let Some(c) = &o_const {
-            if &o_surface != c {
-                continue;
-            }
+        if let Some(c) = &o_const
+            && &o_surface != c
+        {
+            continue;
         }
         // Build the binding for this fact's goal variables. If the goal repeats a
         // variable across both positions, the two surfaces must agree.
@@ -529,7 +529,7 @@ pub(crate) fn resolve_native(
                 QBodyLit::Atom(_) => {}
                 QBodyLit::Cut => return Ok(NativeOutcome::Unsupported(UnsupportedKind::Cut)),
                 QBodyLit::Builtin(_) => {
-                    return Ok(NativeOutcome::Unsupported(UnsupportedKind::Arithmetic))
+                    return Ok(NativeOutcome::Unsupported(UnsupportedKind::Arithmetic));
                 }
             }
         }

@@ -16,7 +16,7 @@ use lsp_types::{
     CodeDescription, Diagnostic, DiagnosticSeverity, NumberOrString, Position, Range, Uri,
 };
 use purrdf::RdfDiagnostic;
-use purrdf::{parse_dataset, NativeRdfFormat};
+use purrdf::{NativeRdfFormat, parse_dataset};
 
 // ─── Language discriminant ───────────────────────────────────────────────────
 

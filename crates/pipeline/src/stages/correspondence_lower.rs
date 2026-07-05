@@ -18,10 +18,10 @@ use std::sync::Arc;
 use gmeow_logic_compile::ingest::DslView;
 use gmeow_logic_compile::projections::correspondence::CorrespondenceProgram;
 use gmeow_logic_compile::projections::correspondence_frontend::transpile_correspondences_indexed;
-use gmeow_logic_compile::projections::{edoal, emotionml, fno, sparql, sssom, ProjectionResult};
+use gmeow_logic_compile::projections::{ProjectionResult, edoal, emotionml, fno, sparql, sssom};
 use purrdf::dataset_view::{DatasetView, GraphMatch};
 use purrdf::slice::{ArtifactRole, SliceCatalog, SliceError};
-use purrdf::{parse_dataset, NativeRdfFormat, RdfDataset, RdfDatasetBuilder, TermRef, TermValue};
+use purrdf::{NativeRdfFormat, RdfDataset, RdfDatasetBuilder, TermRef, TermValue, parse_dataset};
 
 const GM_VERSION_FINGERPRINT: &str = "https://blackcatinformatics.ca/gmeow/versionFingerprint";
 const GM_DATE_PUBLISHED: &str = "https://blackcatinformatics.ca/gmeow/datePublished";
@@ -225,7 +225,7 @@ fn read_self_metadata(root: &Path) -> Result<(String, String), SliceError> {
         _ => {
             return Err(SliceError::Parse(
                 "gmeow-self.ttl: versionFingerprint subject is not an IRI".to_owned(),
-            ))
+            ));
         }
     };
     let view = DslView::new(&ds);

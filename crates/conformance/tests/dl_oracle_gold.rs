@@ -35,7 +35,7 @@ use std::collections::BTreeSet;
 use std::path::PathBuf;
 
 use gmeow_logic::reason::reason_all;
-use purrdf::{dataset_from_bytes, NativeRdfFormat};
+use purrdf::{NativeRdfFormat, dataset_from_bytes};
 use serde_json::Value;
 
 /// The frozen-gold root, `coverage/external/697-dl-oracle-gold/`.

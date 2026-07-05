@@ -21,8 +21,8 @@
 use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 
 use crate::facts::skolem_iri;
-use crate::reason::el::EL_RULES;
 use crate::reason::InferredAxiom;
+use crate::reason::el::EL_RULES;
 use purrdf::{RdfDataset, RdfLiteral, RdfLoss, RdfQuad, RdfTerm};
 
 // ── OWL/RDF IRI constants ──────────────────────────────────────────────────────
@@ -613,7 +613,7 @@ fn objects_for<'a>(
     world: &str,
     subject: &str,
     predicate: &str,
-) -> impl Iterator<Item = &'a String> {
+) -> impl Iterator<Item = &'a String> + use<'a> {
     index
         .get(&(world.to_owned(), subject.to_owned(), predicate.to_owned()))
         .into_iter()
@@ -624,7 +624,7 @@ fn edges_for<'a>(
     index: &'a HashMap<(String, String), Vec<(String, String)>>,
     world: &str,
     predicate: &str,
-) -> impl Iterator<Item = &'a (String, String)> {
+) -> impl Iterator<Item = &'a (String, String)> + use<'a> {
     index
         .get(&(world.to_owned(), predicate.to_owned()))
         .into_iter()
@@ -1538,8 +1538,29 @@ pub(crate) fn augment_inferred_with_dl(
                 if restriction_world != world {
                     continue;
                 }
-                if let Some(filler) = restriction.some_values_from.as_deref() {
-                    if has_fact(&facts, world, filler, RDFS_SUBCLASSOF, OWL_NOTHING) {
+                if let Some(filler) = restriction.some_values_from.as_deref()
+                    && has_fact(&facts, world, filler, RDFS_SUBCLASSOF, OWL_NOTHING)
+                {
+                    add_inferred_fact(
+                        inferred,
+                        &mut facts,
+                        Fact::new(
+                            restriction_node.clone(),
+                            RDFS_SUBCLASSOF.to_owned(),
+                            OWL_NOTHING.to_owned(),
+                            world.clone(),
+                        ),
+                        "dl:someValuesFrom-unsat-filler",
+                        vec![],
+                    );
+                }
+                for (min, on_class) in cardinality_minima(restriction) {
+                    if min == 0 {
+                        continue;
+                    }
+                    if let Some(class) = on_class
+                        && has_fact(&facts, world, class, RDFS_SUBCLASSOF, OWL_NOTHING)
+                    {
                         add_inferred_fact(
                             inferred,
                             &mut facts,
@@ -1549,30 +1570,9 @@ pub(crate) fn augment_inferred_with_dl(
                                 OWL_NOTHING.to_owned(),
                                 world.clone(),
                             ),
-                            "dl:someValuesFrom-unsat-filler",
+                            "dl:min-cardinality-unsat-filler",
                             vec![],
                         );
-                    }
-                }
-                for (min, on_class) in cardinality_minima(restriction) {
-                    if min == 0 {
-                        continue;
-                    }
-                    if let Some(class) = on_class {
-                        if has_fact(&facts, world, class, RDFS_SUBCLASSOF, OWL_NOTHING) {
-                            add_inferred_fact(
-                                inferred,
-                                &mut facts,
-                                Fact::new(
-                                    restriction_node.clone(),
-                                    RDFS_SUBCLASSOF.to_owned(),
-                                    OWL_NOTHING.to_owned(),
-                                    world.clone(),
-                                ),
-                                "dl:min-cardinality-unsat-filler",
-                                vec![],
-                            );
-                        }
                     }
                 }
             }
@@ -3097,10 +3097,12 @@ mod tests {
             "bottomObjectProperty is decided, not a gap: {:?}",
             verdict.gaps
         );
-        assert!(verdict
-            .coverage
-            .decided
-            .contains(&"bottomObjectProperty".to_owned()));
+        assert!(
+            verdict
+                .coverage
+                .decided
+                .contains(&"bottomObjectProperty".to_owned())
+        );
     }
 
     /// The data-property analog: `i : ∃ owl:bottomDataProperty . rdfs:Literal`.
@@ -3140,10 +3142,12 @@ mod tests {
         let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
         assert!(!verdict.consistent, "NPA contradicted by its positive");
         assert!(verdict.gaps.is_empty(), "NPA is decided");
-        assert!(verdict
-            .coverage
-            .decided
-            .contains(&"negativePropertyAssertion".to_owned()));
+        assert!(
+            verdict
+                .coverage
+                .decided
+                .contains(&"negativePropertyAssertion".to_owned())
+        );
     }
 
     /// The data analog: NPA(Meg, hasAge, "5") + hasAge(Meg, "5") ⇒ inconsistent,
@@ -3212,10 +3216,12 @@ mod tests {
             !verdict.consistent,
             "two distinct literal values on a functional property clash"
         );
-        assert!(verdict
-            .coverage
-            .decided
-            .contains(&"functionalProperty".to_owned()));
+        assert!(
+            verdict
+                .coverage
+                .decided
+                .contains(&"functionalProperty".to_owned())
+        );
 
         let store_ok = dataset(vec![
             quad(has_name, TYPE, OWL_FUNCTIONAL_PROPERTY),

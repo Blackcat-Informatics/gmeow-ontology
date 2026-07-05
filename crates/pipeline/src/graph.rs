@@ -17,7 +17,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use gmeow_logic::dag_profile::{certify_acyclic, DagCertification};
+use gmeow_logic::dag_profile::{DagCertification, certify_acyclic};
 
 use crate::error::PipelineError;
 

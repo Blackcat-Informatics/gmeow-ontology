@@ -37,7 +37,7 @@
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
-use gmeow_pipeline::{run_full, RunMode};
+use gmeow_pipeline::{RunMode, run_full};
 
 fn repo_root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -161,7 +161,7 @@ fn full_run_reproduces_every_committed_artifact() {
 /// `pipeline/` dataflow, the gitignored `dist/*`, and `gmeow.gts` (folded above).
 /// Byte-deterministic text compares by bytes; RDF leaves by graph isomorphism.
 fn non_schemas_leaf_drifts(root: &Path) -> Vec<String> {
-    use gmeow_pipeline::{bind, default_registry, full_spec, run, PipelineSpec, RunContext};
+    use gmeow_pipeline::{PipelineSpec, RunContext, bind, default_registry, full_spec, run};
     let spec = full_spec();
     let pre = PipelineSpec {
         id: spec.id.clone(),
@@ -267,7 +267,7 @@ fn dist_determinism_mismatches(root: &Path) -> Vec<String> {
 /// Run the pre-schemas full DAG over a fresh ephemeral cache and collect every
 /// gitignored `dist/**` artifact (the export leaves' on-disk-only outputs).
 fn run_dist_artifacts(root: &Path) -> BTreeMap<String, Vec<u8>> {
-    use gmeow_pipeline::{bind, default_registry, full_spec, run, PipelineSpec, RunContext};
+    use gmeow_pipeline::{PipelineSpec, RunContext, bind, default_registry, full_spec, run};
     let spec = full_spec();
     let pre = PipelineSpec {
         id: spec.id.clone(),
@@ -383,7 +383,7 @@ fn fold_shape(bytes: &[u8]) -> FoldShape {
 /// Re-derive the snapshot fold the way `run_full` does (the pre-sink spine over a
 /// fresh ephemeral cache), without writing into the repo tree.
 fn regen_gts_fold(root: &Path) -> FoldShape {
-    use gmeow_pipeline::{bind, default_registry, full_spec, run, PipelineSpec, RunContext};
+    use gmeow_pipeline::{PipelineSpec, RunContext, bind, default_registry, full_spec, run};
     let spec = full_spec();
     let pre = PipelineSpec {
         id: spec.id.clone(),

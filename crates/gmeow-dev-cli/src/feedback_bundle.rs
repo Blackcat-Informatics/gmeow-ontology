@@ -15,10 +15,10 @@
 use std::collections::BTreeMap;
 
 use ciborium::value::Value as CborValue;
-use gmeow_diagnostics::{render, Report};
+use gmeow_diagnostics::{Report, render};
 use purrdf::gts::dataset_from_gts_graph;
 use purrdf::gts::reader::read;
-use purrdf::gts_compose::{emit_gts, BlobRow, SnapshotBuilder, DEFAULT_RSYNCABLE_THRESHOLD};
+use purrdf::gts_compose::{BlobRow, DEFAULT_RSYNCABLE_THRESHOLD, SnapshotBuilder, emit_gts};
 use purrdf::parse_dataset;
 use serde_json::Value;
 
@@ -94,10 +94,10 @@ pub fn read_report_blobs(
 
     let mut out = BTreeMap::new();
     for (digest, meta) in &graph.blob_meta {
-        if let Some(rep) = meta_text(meta, "rep") {
-            if let Some(&bytes) = by_digest.get(digest.as_str()) {
-                out.insert(rep, bytes.to_vec());
-            }
+        if let Some(rep) = meta_text(meta, "rep")
+            && let Some(&bytes) = by_digest.get(digest.as_str())
+        {
+            out.insert(rep, bytes.to_vec());
         }
     }
     Ok(out)

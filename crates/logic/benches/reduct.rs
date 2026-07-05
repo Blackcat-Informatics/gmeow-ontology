@@ -24,7 +24,7 @@
 //! parsing + the reduct fixpoint materialize — the code path the SoA index is
 //! designed to accelerate.
 
-use criterion::{criterion_group, criterion_main, Criterion};
+use criterion::{Criterion, criterion_group, criterion_main};
 use gmeow_logic::store::WorldStore;
 use gmeow_logic::wellfounded::bench_wf_materialize;
 

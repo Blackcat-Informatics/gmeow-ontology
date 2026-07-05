@@ -23,7 +23,7 @@
 
 use std::collections::{BTreeMap, HashSet};
 
-use crate::coverage::{term_coverage, TermCoverage};
+use crate::coverage::{TermCoverage, term_coverage};
 use crate::model::{DocTerm, DocTermCategory, DocTermStability, DocsModel, ReasoningVerdict};
 
 /// A resolved badge: its display label, the colors, and the stable family/value
@@ -143,11 +143,7 @@ pub fn coverage_fraction_color(num: usize, den: usize) -> &'static str {
 /// authority both the badges and the coverage heatmap read, so a heatmap cell and
 /// a badge of the same fill never disagree on legibility.
 pub fn text_color_for(fill: &str) -> &'static str {
-    if fill == C_COMPLETE_MID {
-        INK
-    } else {
-        WHITE
-    }
+    if fill == C_COMPLETE_MID { INK } else { WHITE }
 }
 
 /// The completeness badge for a coverage score (0..=6).
@@ -433,9 +429,11 @@ mod tests {
         assert!(!badges.iter().any(|b| b.family == "reasoning"));
         assert_eq!(badges[1].family, "stability");
         assert_eq!(badges[2].family, "category");
-        assert!(badges
-            .iter()
-            .any(|b| b.family == "framework" && b.label == "Holonic"));
+        assert!(
+            badges
+                .iter()
+                .any(|b| b.family == "framework" && b.label == "Holonic")
+        );
     }
 
     #[test]
@@ -466,9 +464,11 @@ mod tests {
 
         // The badge only appears when a verdict is attached.
         let aligned = HashSet::new();
-        assert!(term_badges(&class, &aligned, None)
-            .iter()
-            .all(|b| b.family != "reasoning"));
+        assert!(
+            term_badges(&class, &aligned, None)
+                .iter()
+                .all(|b| b.family != "reasoning")
+        );
         assert_eq!(
             term_badges(&class, &aligned, Some(&good))
                 .iter()

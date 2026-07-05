@@ -67,18 +67,18 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
 use gmeow_conformance::external::lower::premise_ds_to_world_nquads;
-use gmeow_conformance::external::tptp::{lower_and_decide, parse_tptp, TptpError};
+use gmeow_conformance::external::tptp::{TptpError, lower_and_decide, parse_tptp};
 use gmeow_conformance::external::{
-    compare, fired_disciplines, lower_and_evaluate, native_verdict_string, outcome_from_szs,
+    DisciplineVerdict, ExternalOutcome, ManifestTestKind, OntologyDoc, OntoumlError, compare,
+    fired_disciplines, lower_and_evaluate, native_verdict_string, outcome_from_szs,
     parse_ontouml_model, parse_szs_status, parse_test_manifest, parse_test_manifest_rdfxml,
-    runner_verdict_json, DisciplineVerdict, ExternalOutcome, ManifestTestKind, OntologyDoc,
-    OntoumlError,
+    runner_verdict_json,
 };
 use gmeow_conformance::run::RunnerQuad;
 use gmeow_conformance::serialize::{
-    build_verdicts, count_worlds, materialized_to_nquads, VerdictStatus,
+    VerdictStatus, build_verdicts, count_worlds, materialized_to_nquads,
 };
-use gmeow_license::{policy_for_license, LicensePolicy};
+use gmeow_license::{LicensePolicy, policy_for_license};
 use gmeow_logic::foundation::{AntiRigidityPolicy, FoundationQuad};
 use purrdf::TermRef;
 
@@ -240,14 +240,12 @@ fn main() -> Result<(), String> {
 
 /// The SPDX header prepended to every generated TPTP-corpus stub/derived file
 /// (self-authored, CC-BY-4.0 — the same license the corpus.json declares).
-const TPTP_SPDX_HEADER: &str =
-    "# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>\n\
+const TPTP_SPDX_HEADER: &str = "# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>\n\
      # SPDX-License-Identifier: CC-BY-4.0\n";
 
 /// The SPDX header prepended to every generated OntoUML-corpus stub/derived file
 /// (self-authored, CC-BY-4.0 — the same license the corpus.json declares).
-const ONTOUML_SPDX_HEADER: &str =
-    "# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>\n\
+const ONTOUML_SPDX_HEADER: &str = "# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>\n\
      # SPDX-License-Identifier: CC-BY-4.0\n";
 
 /// Regenerate the derived anatomy of a self-authored TPTP Lane-A corpus from its
@@ -822,8 +820,7 @@ fn lower_entry(
 }
 
 /// The W3C SPDX header prepended to every vendored source/stub file.
-const W3C_SPDX_HEADER: &str =
-    "# SPDX-FileCopyrightText: 2009 W3C (Massachusetts Institute of Technology, ERCIM, Keio, Beihang)\n# SPDX-License-Identifier: W3C\n";
+const W3C_SPDX_HEADER: &str = "# SPDX-FileCopyrightText: 2009 W3C (Massachusetts Institute of Technology, ERCIM, Keio, Beihang)\n# SPDX-License-Identifier: W3C\n";
 
 /// Frozen-verdict provenance for one vendored case: the native verdict the
 /// committed golden re-asserts, and the W3C published expected verdict.
@@ -949,48 +946,48 @@ fn expand_xml_entities(src: &str) -> String {
     // Extract entity definitions from an internal DOCTYPE subset (if present).
     let mut entities: Vec<(String, String)> = Vec::new();
 
-    if let Some(dt_start) = src.find("<!DOCTYPE") {
-        if let Some(bracket_open) = src[dt_start..].find('[') {
-            let bracket_open_abs = dt_start + bracket_open;
-            if let Some(bracket_close) = src[bracket_open_abs..].find(']') {
-                let bracket_close_abs = bracket_open_abs + bracket_close;
-                let inner = &src[bracket_open_abs + 1..bracket_close_abs];
-                // Extract `<!ENTITY name 'value'>` and `<!ENTITY name "value">`.
-                let mut rest = inner;
-                while let Some(start) = rest.find("<!ENTITY") {
-                    rest = &rest[start + 8..];
-                    rest = rest.trim_start();
-                    // Read entity name (up to first whitespace).
-                    let name_end = rest
-                        .find(|c: char| c.is_ascii_whitespace())
-                        .unwrap_or(rest.len());
-                    let name = rest[..name_end].to_string();
-                    rest = rest[name_end..].trim_start();
-                    // Read entity value (quoted).
-                    let value = if rest.starts_with('\'') {
-                        let end = rest[1..].find('\'').map(|i| i + 1);
-                        if let Some(e) = end {
-                            let v = rest[1..e].to_string();
-                            rest = &rest[e + 1..];
-                            v
-                        } else {
-                            break;
-                        }
-                    } else if rest.starts_with('"') {
-                        let end = rest[1..].find('"').map(|i| i + 1);
-                        if let Some(e) = end {
-                            let v = rest[1..e].to_string();
-                            rest = &rest[e + 1..];
-                            v
-                        } else {
-                            break;
-                        }
+    if let Some(dt_start) = src.find("<!DOCTYPE")
+        && let Some(bracket_open) = src[dt_start..].find('[')
+    {
+        let bracket_open_abs = dt_start + bracket_open;
+        if let Some(bracket_close) = src[bracket_open_abs..].find(']') {
+            let bracket_close_abs = bracket_open_abs + bracket_close;
+            let inner = &src[bracket_open_abs + 1..bracket_close_abs];
+            // Extract `<!ENTITY name 'value'>` and `<!ENTITY name "value">`.
+            let mut rest = inner;
+            while let Some(start) = rest.find("<!ENTITY") {
+                rest = &rest[start + 8..];
+                rest = rest.trim_start();
+                // Read entity name (up to first whitespace).
+                let name_end = rest
+                    .find(|c: char| c.is_ascii_whitespace())
+                    .unwrap_or(rest.len());
+                let name = rest[..name_end].to_string();
+                rest = rest[name_end..].trim_start();
+                // Read entity value (quoted).
+                let value = if rest.starts_with('\'') {
+                    let end = rest[1..].find('\'').map(|i| i + 1);
+                    if let Some(e) = end {
+                        let v = rest[1..e].to_string();
+                        rest = &rest[e + 1..];
+                        v
                     } else {
                         break;
-                    };
-                    if !name.is_empty() && !value.is_empty() {
-                        entities.push((name, value));
                     }
+                } else if rest.starts_with('"') {
+                    let end = rest[1..].find('"').map(|i| i + 1);
+                    if let Some(e) = end {
+                        let v = rest[1..e].to_string();
+                        rest = &rest[e + 1..];
+                        v
+                    } else {
+                        break;
+                    }
+                } else {
+                    break;
+                };
+                if !name.is_empty() && !value.is_empty() {
+                    entities.push((name, value));
                 }
             }
         }
@@ -1293,10 +1290,10 @@ fn load_quarantine_slugs(quarantine_dir: &Path) -> Result<BTreeSet<String>, Stri
     })?;
     for entry in rd {
         let entry = entry.map_err(|e| format!("dir entry error in quarantine dir: {e}"))?;
-        if entry.path().is_dir() {
-            if let Some(name) = entry.file_name().to_str() {
-                slugs.insert(name.to_owned());
-            }
+        if entry.path().is_dir()
+            && let Some(name) = entry.file_name().to_str()
+        {
+            slugs.insert(name.to_owned());
         }
     }
     Ok(slugs)
@@ -1395,12 +1392,11 @@ fn tptp_declared_status(text: &str) -> Result<String, String> {
             continue;
         };
         let rest = rest.trim_start();
-        if let Some(after) = rest.strip_prefix("Status") {
-            if let Some(colon) = after.trim_start().strip_prefix(':') {
-                if let Some(token) = colon.split_whitespace().next() {
-                    return Ok(token.to_string());
-                }
-            }
+        if let Some(after) = rest.strip_prefix("Status")
+            && let Some(colon) = after.trim_start().strip_prefix(':')
+            && let Some(token) = colon.split_whitespace().next()
+        {
+            return Ok(token.to_string());
         }
     }
     Err("no `% SZS status` or `% Status :` line found in the TPTP problem".to_string())
@@ -2616,7 +2612,9 @@ _:b <http://example.org/p> <http://example.org/o2> . \n\
         std::fs::create_dir_all(&base).expect("create case dir");
 
         let world = "https://gmeow.example/ontouml-mini/free-role/w";
-        let input_nq = format!("<https://ex/Wanderer> <https://blackcatinformatics.ca/logic/subClassOf> <https://ex/Wanderer> <{world}> .\n");
+        let input_nq = format!(
+            "<https://ex/Wanderer> <https://blackcatinformatics.ca/logic/subClassOf> <https://ex/Wanderer> <{world}> .\n"
+        );
         let quads = vec![fq(
             "https://ex/Wanderer",
             "https://blackcatinformatics.ca/logic/violation",
@@ -2701,7 +2699,9 @@ _:b <http://example.org/p> <http://example.org/o2> . \n\
         std::fs::create_dir_all(&base).expect("create case dir");
 
         let world = "https://gmeow.example/ontouml-mini/clean/w";
-        let input_nq = format!("<https://ex/Person> <https://blackcatinformatics.ca/logic/subClassOf> <https://ex/Person> <{world}> .\n");
+        let input_nq = format!(
+            "<https://ex/Person> <https://blackcatinformatics.ca/logic/subClassOf> <https://ex/Person> <{world}> .\n"
+        );
 
         super::write_ontouml_case(&base, &input_nq, &[], None)
             .expect("write_ontouml_case must succeed");
