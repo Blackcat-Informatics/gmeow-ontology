@@ -59,6 +59,10 @@ pub mod shacl_af;
 pub mod shapes;
 // The SPARQL-CONSTRUCT correspondence lowering (get leg → executable CONSTRUCT).
 pub mod sparql;
+// The inverse-ingest ("put") SPARQL-CONSTRUCT lowering: the role-swap of `sparql` (external
+// template atoms → gmeow source atoms + mint-with-claim envelope), derived from the same
+// get-leg model so the two legs cannot drift.
+pub mod sparql_put;
 // The SSSOM correspondence lowering (1:1 lattice band → SSSOM TSV).
 pub mod sssom;
 pub mod text;
@@ -656,6 +660,18 @@ pub(crate) fn target_meta(target: &str) -> (PreservationKind, &'static str, Vec<
                 "the faithful executable down-projection; per-profile losses are made \
                  explicit in the query header (`# Lossy and directional by design; drops:`)",
                 "world/standpoint scope and the put leg are not carried",
+            ],
+        ),
+        "sparql-put" => (
+            PreservationKind::ValidationOnly,
+            "terminating/PTIME-data",
+            vec![
+                "the inverse-ingest up-lift is validation-only mint-with-claim: minted \
+                 nodes/edges are marked import-derived (gmeow:wasGeneratedBy / \
+                 gmeow:mappedFrom), not asserted as extracted fact",
+                "durable subject, gmeow:DigitalSubjectTenure, distribution/versioning \
+                 framing, and attributed provenance absent from the external source are \
+                 disclosed as residue and NOT synthesized",
             ],
         ),
         "shacl-core" => (

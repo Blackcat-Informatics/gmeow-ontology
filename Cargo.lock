@@ -1804,7 +1804,7 @@ dependencies = [
  "gmeow-pipeline",
  "gmeow-validate",
  "predicates",
- "purrdf",
+ "purrdf 0.3.2",
  "serde_json",
  "tempfile",
  "trycmd",
@@ -1836,7 +1836,7 @@ dependencies = [
  "gmeow-license",
  "gmeow-logic",
  "gmeow-logic-compile",
- "purrdf",
+ "purrdf 0.3.2",
  "serde_json",
 ]
 
@@ -1858,7 +1858,7 @@ dependencies = [
  "gmeow-pipeline",
  "gmeow-validate",
  "predicates",
- "purrdf",
+ "purrdf 0.3.2",
  "serde_json",
  "toml",
  "trycmd",
@@ -1887,7 +1887,7 @@ dependencies = [
  "minijinja",
  "pretty_assertions",
  "pulldown-cmark",
- "purrdf",
+ "purrdf 0.3.2",
  "pyo3",
  "regex",
  "serde",
@@ -1899,11 +1899,24 @@ dependencies = [
 name = "gmeow-foundation-corpus"
 version = "0.1.0"
 dependencies = [
- "purrdf",
+ "purrdf 0.3.2",
  "pyo3",
  "serde",
  "serde_json",
  "tempfile",
+ "unicode-normalization",
+]
+
+[[package]]
+name = "gmeow-lang-bridge"
+version = "0.1.0"
+dependencies = [
+ "gmeow-lang-form",
+ "gmeow-logic-compile",
+ "insta",
+ "proptest",
+ "purrdf 0.2.1",
+ "sha2",
  "unicode-normalization",
 ]
 
@@ -1933,7 +1946,7 @@ dependencies = [
  "nemo",
  "petgraph",
  "proptest",
- "purrdf",
+ "purrdf 0.3.2",
  "pyo3",
  "rayon",
  "scryer-prolog",
@@ -1948,7 +1961,7 @@ name = "gmeow-logic-compile"
 version = "0.1.0"
 dependencies = [
  "insta",
- "purrdf",
+ "purrdf 0.3.2",
  "roxmltree",
  "serde",
  "serde_json",
@@ -1965,7 +1978,7 @@ dependencies = [
  "insta",
  "lsp-server",
  "lsp-types 0.97.0",
- "purrdf",
+ "purrdf 0.3.2",
  "serde",
  "serde_json",
  "url",
@@ -1975,7 +1988,7 @@ dependencies = [
 name = "gmeow-music"
 version = "0.1.0"
 dependencies = [
- "purrdf",
+ "purrdf 0.3.2",
  "pyo3",
  "roxmltree",
 ]
@@ -2009,13 +2022,15 @@ dependencies = [
  "gmeow-conformance",
  "gmeow-diagnostics",
  "gmeow-docs",
+ "gmeow-lang-bridge",
+ "gmeow-lang-form",
  "gmeow-logic",
  "gmeow-logic-compile",
  "gmeow-validate",
  "insta",
  "jsonschema",
  "parquet",
- "purrdf",
+ "purrdf 0.3.2",
  "pyo3",
  "rayon",
  "serde",
@@ -2034,7 +2049,7 @@ dependencies = [
  "datatest-stable",
  "gmeow-logic-compile",
  "gmeow-validate",
- "purrdf",
+ "purrdf 0.3.2",
 ]
 
 [[package]]
@@ -2053,7 +2068,7 @@ dependencies = [
  "gmeow-logic",
  "insta",
  "jsonschema",
- "purrdf",
+ "purrdf 0.3.2",
  "pyo3",
  "rayon",
  "regex",
@@ -3889,23 +3904,55 @@ checksum = "007d8adb5ddab6f8e3f491ac63566a7d5002cc7ed73901f72057943fa71ae1ae"
 
 [[package]]
 name = "purrdf"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c0e5922fba3622e28dd082f25d28966eb35215e1d90a9c6d62637c5ec00b8d62"
+dependencies = [
+ "purrdf-events 0.2.1",
+ "purrdf-gts 0.2.1",
+ "purrdf-iri 0.2.1",
+ "purrdf-rdf 0.2.1",
+ "purrdf-shapes 0.2.1",
+ "purrdf-shex 0.2.1",
+ "purrdf-slice 0.2.1",
+ "purrdf-sparql-algebra 0.2.1",
+ "purrdf-sparql-eval 0.2.1",
+ "purrdf-sparql-results 0.2.1",
+ "purrdf-xsd 0.2.1",
+]
+
+[[package]]
+name = "purrdf"
 version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fdc175b70446b88fd16d2dd392e8b023314574a105b69f84204e7e44a4df9e4e"
 dependencies = [
  "purrdf-entail",
- "purrdf-events",
- "purrdf-gts",
- "purrdf-iri",
- "purrdf-rdf",
- "purrdf-shapes",
- "purrdf-shex",
- "purrdf-slice",
- "purrdf-sparql-algebra",
- "purrdf-sparql-eval",
- "purrdf-sparql-results",
+ "purrdf-events 0.3.2",
+ "purrdf-gts 0.3.2",
+ "purrdf-iri 0.3.2",
+ "purrdf-rdf 0.3.2",
+ "purrdf-shapes 0.3.2",
+ "purrdf-shex 0.3.2",
+ "purrdf-slice 0.3.2",
+ "purrdf-sparql-algebra 0.3.2",
+ "purrdf-sparql-eval 0.3.2",
+ "purrdf-sparql-results 0.3.2",
  "purrdf-validate",
- "purrdf-xsd",
+ "purrdf-xsd 0.3.2",
+]
+
+[[package]]
+name = "purrdf-core"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "51495e30a8c178eb59865a245646a4fab2af71bd953149a45b181f0f65f4079f"
+dependencies = [
+ "ahash",
+ "csv",
+ "hashbrown 0.15.5",
+ "purrdf-events 0.2.1",
+ "sha2",
 ]
 
 [[package]]
@@ -3917,7 +3964,7 @@ dependencies = [
  "ahash",
  "csv",
  "hashbrown 0.15.5",
- "purrdf-events",
+ "purrdf-events 0.3.2",
  "sha2",
  "smallvec",
 ]
@@ -3928,14 +3975,39 @@ version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "71490c3684c82b46c6f69002abaec439cb2139b7c90bac97197c08a80aab7fbe"
 dependencies = [
- "purrdf-core",
+ "purrdf-core 0.3.2",
 ]
+
+[[package]]
+name = "purrdf-events"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "588e30d07f56b0c3f551ac34f2f09689be6930fe6e6d8741bc532ef6af62d1a6"
 
 [[package]]
 name = "purrdf-events"
 version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "63100dfa62fba9221ca3888bf60cb9cf6a723dc6ad91bbd4d8554e271380d710"
+
+[[package]]
+name = "purrdf-gts"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "42b98f808856fb59666721c55c4b1b16b7c788f94127bcde0945cd1fdc67ad00"
+dependencies = [
+ "aes-gcm",
+ "blake3",
+ "ciborium",
+ "ed25519-dalek",
+ "filetime",
+ "flate2",
+ "rayon",
+ "sha1",
+ "structured-zstd",
+ "time",
+ "visual-hashing",
+]
 
 [[package]]
 name = "purrdf-gts"
@@ -3958,9 +4030,37 @@ dependencies = [
 
 [[package]]
 name = "purrdf-iri"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "92c9bfb6aaff54aecddb56b7a58dbbc9e60ed583cc59ec2263d0a5d5bb979a9c"
+
+[[package]]
+name = "purrdf-iri"
 version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fea897e68b1c3cc5996b92914f57e60671a831dedb8a86ff20d0e62f65fd21f0"
+
+[[package]]
+name = "purrdf-rdf"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ca9c5b7add723a9d6df07f8dd961bf9d2d3d3d41e7f38b75817088c5655fd3fb"
+dependencies = [
+ "ahash",
+ "ciborium",
+ "ed25519-dalek",
+ "hashbrown 0.15.5",
+ "purrdf-core 0.2.1",
+ "purrdf-events 0.2.1",
+ "purrdf-gts 0.2.1",
+ "purrdf-sparql-algebra 0.2.1",
+ "purrdf-sparql-eval 0.2.1",
+ "purrdf-xsd 0.2.1",
+ "rayon",
+ "roxmltree",
+ "serde_json",
+ "serde_yaml_ng",
+]
 
 [[package]]
 name = "purrdf-rdf"
@@ -3973,13 +4073,13 @@ dependencies = [
  "ed25519-dalek",
  "hashbrown 0.15.5",
  "memchr",
- "purrdf-core",
- "purrdf-events",
- "purrdf-gts",
- "purrdf-iri",
- "purrdf-sparql-algebra",
- "purrdf-sparql-eval",
- "purrdf-xsd",
+ "purrdf-core 0.3.2",
+ "purrdf-events 0.3.2",
+ "purrdf-gts 0.3.2",
+ "purrdf-iri 0.3.2",
+ "purrdf-sparql-algebra 0.3.2",
+ "purrdf-sparql-eval 0.3.2",
+ "purrdf-xsd 0.3.2",
  "rayon",
  "roxmltree",
  "serde_json",
@@ -3988,17 +4088,45 @@ dependencies = [
 
 [[package]]
 name = "purrdf-shapes"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "619c41482e1cf58cb2052d16883dd6d580f76f6378c6bcf75b882a7666cf445d"
+dependencies = [
+ "purrdf-rdf 0.2.1",
+ "purrdf-sparql-algebra 0.2.1",
+ "purrdf-sparql-eval 0.2.1",
+ "purrdf-xsd 0.2.1",
+ "regex",
+ "serde_json",
+]
+
+[[package]]
+name = "purrdf-shapes"
 version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "daee07f88622d8b107fc3a99d1133904779b771c2bb76aec0c807f434d7c3e3b"
 dependencies = [
- "purrdf-rdf",
- "purrdf-sparql-algebra",
- "purrdf-sparql-eval",
- "purrdf-xsd",
+ "purrdf-rdf 0.3.2",
+ "purrdf-sparql-algebra 0.3.2",
+ "purrdf-sparql-eval 0.3.2",
+ "purrdf-xsd 0.3.2",
  "regex",
  "serde_json",
  "smallvec",
+]
+
+[[package]]
+name = "purrdf-shex"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "082e254c6d490156cbc39fb034ab69cd5d8d4c8c7e51b601b97acadba168cc98"
+dependencies = [
+ "purrdf-core 0.2.1",
+ "purrdf-iri 0.2.1",
+ "purrdf-xsd 0.2.1",
+ "regex",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]
@@ -4007,12 +4135,28 @@ version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "081cc411f3944112c01108d355b2e3cd472980c3f6aae4d409bb4b5fec9b8920"
 dependencies = [
- "purrdf-core",
- "purrdf-iri",
- "purrdf-xsd",
+ "purrdf-core 0.3.2",
+ "purrdf-iri 0.3.2",
+ "purrdf-xsd 0.3.2",
  "regex",
  "serde",
  "serde_json",
+]
+
+[[package]]
+name = "purrdf-slice"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d47ba77087329cc640796fe7a4118e826eeed83170b946a6dc8e35e296adeb4b"
+dependencies = [
+ "hex",
+ "petgraph",
+ "purrdf-rdf 0.2.1",
+ "purrdf-sparql-algebra 0.2.1",
+ "rayon",
+ "regex",
+ "serde",
+ "sha2",
 ]
 
 [[package]]
@@ -4023,12 +4167,22 @@ checksum = "64252e0efe2951d71289aa5b9599817a9ddbeff7e38f802484ff1c0f0c083bf2"
 dependencies = [
  "hex",
  "petgraph",
- "purrdf-rdf",
- "purrdf-sparql-algebra",
+ "purrdf-rdf 0.3.2",
+ "purrdf-sparql-algebra 0.3.2",
  "rayon",
  "regex",
  "serde",
  "sha2",
+]
+
+[[package]]
+name = "purrdf-sparql-algebra"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ac99cc4a1a9c83ffa987551acb86dfb480ffc7ba7805452304d571710dcdadd1"
+dependencies = [
+ "purrdf-iri 0.2.1",
+ "purrdf-xsd 0.2.1",
 ]
 
 [[package]]
@@ -4038,9 +4192,28 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "32d1b7a5bfcd9cb6e25ea852cd8dcf75c7399446bb0fde3bb21901cc08a181cb"
 dependencies = [
  "memchr",
- "purrdf-iri",
- "purrdf-xsd",
+ "purrdf-iri 0.3.2",
+ "purrdf-xsd 0.3.2",
  "smallvec",
+]
+
+[[package]]
+name = "purrdf-sparql-eval"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5ac62cf5fdfa12b870904c549fac5bf79035af6a0d3af2bd1ece6fc55d17d766"
+dependencies = [
+ "ahash",
+ "getrandom 0.3.4",
+ "js-sys",
+ "md-5",
+ "purrdf-core 0.2.1",
+ "purrdf-sparql-algebra 0.2.1",
+ "purrdf-sparql-results 0.2.1",
+ "purrdf-xsd 0.2.1",
+ "regex",
+ "sha1",
+ "sha2",
 ]
 
 [[package]]
@@ -4053,11 +4226,11 @@ dependencies = [
  "getrandom 0.3.4",
  "js-sys",
  "md-5",
- "purrdf-core",
- "purrdf-iri",
- "purrdf-sparql-algebra",
- "purrdf-sparql-results",
- "purrdf-xsd",
+ "purrdf-core 0.3.2",
+ "purrdf-iri 0.3.2",
+ "purrdf-sparql-algebra 0.3.2",
+ "purrdf-sparql-results 0.3.2",
+ "purrdf-xsd 0.3.2",
  "rayon",
  "regex",
  "sha1",
@@ -4067,11 +4240,20 @@ dependencies = [
 
 [[package]]
 name = "purrdf-sparql-results"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8cacd2ab23ea5629261ee29bd81adf18a120b6c2658caa984da9ac385e0aacba"
+dependencies = [
+ "purrdf-core 0.2.1",
+]
+
+[[package]]
+name = "purrdf-sparql-results"
 version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7161f9c3ce766d49e2b3eccb0e39f3240e8dd67e9dd3d1c327d6b1fea557d1d8"
 dependencies = [
- "purrdf-core",
+ "purrdf-core 0.3.2",
 ]
 
 [[package]]
@@ -4080,13 +4262,19 @@ version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f8c69f8bade879620beda234c29a93686bc4787a8ce1bba49d33f78b44eb3e47"
 dependencies = [
- "purrdf-core",
- "purrdf-iri",
- "purrdf-rdf",
- "purrdf-shapes",
+ "purrdf-core 0.3.2",
+ "purrdf-iri 0.3.2",
+ "purrdf-rdf 0.3.2",
+ "purrdf-shapes 0.3.2",
  "serde",
  "serde_json",
 ]
+
+[[package]]
+name = "purrdf-xsd"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "58371b0656c10eaa0dc8a8285f0416f4b612fb60091e5fb7c091dca524aa5ef5"
 
 [[package]]
 name = "purrdf-xsd"

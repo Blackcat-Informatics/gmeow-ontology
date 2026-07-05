@@ -540,7 +540,13 @@ pub fn formalization_coverage(store: &Arc<RdfDataset>) -> Result<Vec<Finding>, S
 /// The `sha256:`-prefixed lowercase-hex digest of `prose`, matching the recorded
 /// `logic:candidateSourceHash` lexical form byte-for-byte (the digest is over the raw
 /// UTF-8 lexical text — no language tag, no surrounding quotes, no trailing newline).
-fn candidate_source_hash(prose: &str) -> String {
+///
+/// Public so the prose-lift corpus (`lang-form`) mints the SAME `logic:candidateSourceHash`
+/// value for a lifted `lang:SurfaceForm` that this gate recomputes for the term it lifts:
+/// the prose-hash discipline resolves through the lifted surface. The algorithm is fixed —
+/// the byte-identical output is the whole point, so callers MUST hash the raw literal text
+/// (no normalization) they read from the RDF.
+pub fn candidate_source_hash(prose: &str) -> String {
     let digest = Sha256::digest(prose.as_bytes());
     let mut hex = String::with_capacity(digest.len() * 2);
     for b in digest {
