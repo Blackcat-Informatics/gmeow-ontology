@@ -76,6 +76,15 @@ pub(crate) const GRAPH_LANG_TRANSLATION_CORPUS: &str =
 /// axioms).
 pub(crate) const GRAPH_LANG_FORM_CORPUS: &str =
     "https://blackcatinformatics.ca/gmeow/graph/lang-form-corpus";
+/// The `lang:` projection corpus: one `lang:ProjectionEmission` per (source, target) —
+/// the honest per-emission preservation judgment of every lowering to an external
+/// linguistic ecosystem (OntoLex-Lemon, CoNLL-U, EBNF, ABNF) plus the lifted `lang:Grammar`
+/// structure it projects. Folded as its own queryable named graph so a repo-free consumer
+/// reads what each projection loses without re-running the projection registry. Excluded
+/// from the reasoned object-level EDB exactly like `graph/lang-form-corpus` (it asserts a
+/// self-description corpus, not object-level axioms).
+pub(crate) const GRAPH_LANG_PROJECTION_CORPUS: &str =
+    "https://blackcatinformatics.ca/gmeow/graph/lang-projection-corpus";
 /// The authored default graph (root ontology + slice modules + translations + guide
 /// anchors, NO imports) carried as a named graph on the `stage-source-load` product so
 /// the presenter reads it instead of re-loading the sources. It is an INTERNAL transport
@@ -492,6 +501,8 @@ fn assemble_carrier(
     let lang_translation_corpus =
         producer_graph(upstream, "stage-mappings", GRAPH_LANG_TRANSLATION_CORPUS)?;
     let lang_form_corpus = producer_graph(upstream, "stage-mappings", GRAPH_LANG_FORM_CORPUS)?;
+    let lang_projection_corpus =
+        producer_graph(upstream, "stage-mappings", GRAPH_LANG_PROJECTION_CORPUS)?;
 
     // ── the carried graphs ride in from the producers' carriers ────────────────
     let reason = upstream
@@ -517,6 +528,7 @@ fn assemble_carrier(
         projection_ledger,
         lang_translation_corpus,
         lang_form_corpus,
+        lang_projection_corpus,
     ];
     datasets.extend(compile_logic_object_graphs(upstream)?);
     datasets.push(rooted_in_graph(
@@ -1406,6 +1418,22 @@ fn build_fanout_opaque_blob(
             upstream,
         )?,
     );
+
+    // The `lang:` projection side formats (EBNF / ABNF grammar files under
+    // `generated/projections/lang/`) are non-RDF, so they cannot reconstruct from a
+    // canonical named-graph fold. Carry each as a committed byte projection, read off the
+    // sink-consumed stage-mappings product (rendered once by that stage) — a keyed fold over
+    // the in-memory product, never a disk walk. Their `lang:ProjectionEmission` semantics
+    // ride the `graph/lang-projection-corpus` named graph independently.
+    for (path, bytes) in producer_artifacts("stage-mappings", upstream)? {
+        if path.starts_with(&format!(
+            "{}/",
+            crate::stages::lang_projection::LANG_PROJECTION_DIR
+        )) && !is_rdf_member(&path)
+        {
+            members.insert(path, bytes);
+        }
+    }
 
     let mut members: Vec<(String, Vec<u8>)> = members.into_iter().collect();
     members.sort_by(|a, b| a.0.cmp(&b.0));

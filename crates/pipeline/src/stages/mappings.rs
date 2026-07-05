@@ -85,6 +85,13 @@ pub struct CompiledMappings {
     /// `logic:Correspondence`. Carried as a named graph by [`MappingsStage::run`], excluded
     /// from the reasoned EDB exactly like the translation-corpus graph.
     pub lang_form_corpus: Vec<u8>,
+    /// The `lang:` projection corpus N-Triples graph (`graph/lang-projection-corpus`):
+    /// one `lang:ProjectionEmission` per (source, target) — the honest per-emission
+    /// preservation judgment of every lowering to an external linguistic ecosystem
+    /// (OntoLex-Lemon, CoNLL-U, EBNF, ABNF) plus the lifted `lang:Grammar` structure it
+    /// projects. Carried as a named graph by [`MappingsStage::run`], excluded from the
+    /// reasoned EDB exactly like the other `lang:` corpus graphs.
+    pub lang_projection_corpus: Vec<u8>,
 }
 
 /// Compile all five mapping families (SSSOM + FnO + EDOAL + SPARQL + standpoint
@@ -203,6 +210,18 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, PipelineError> 
     ledger.extend(form_corpus.ledger);
     let lang_form_corpus = form_corpus.ntriples;
 
+    // `lang:` projection corpus (the projection contract): lower the canonical `lang:`
+    // model out to the external linguistic ecosystems through the correspondence-carrying
+    // registry, fold every emission's honest preservation judgment into the loss ledger,
+    // write the generated external artifacts, and carry the `lang:ProjectionEmission`
+    // records as a named graph by the stage `run` below (never a `generated/` file).
+    let projection_corpus = crate::stages::lang_projection::build_corpus(catalog.as_ref())?;
+    ledger.extend(projection_corpus.ledger);
+    let lang_projection_corpus = projection_corpus.ntriples;
+    for (path, bytes) in projection_corpus.artifacts {
+        artifacts.insert(path, bytes);
+    }
+
     // Standpoint projections — the seven fixed `standpoint-*.rq` queries (byte-identical
     // to the Python template-coded emitters; no DSL input).
     let standpoint = emit_standpoint_sets(root, &vocab).map_err(|e| PipelineError::Stage {
@@ -255,6 +274,7 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, PipelineError> 
         ledger,
         lang_translation_corpus,
         lang_form_corpus,
+        lang_projection_corpus,
     })
 }
 
@@ -680,12 +700,23 @@ impl Stage for MappingsStage {
             "application/n-triples",
             crate::stages::carrier::GRAPH_LANG_FORM_CORPUS,
         )?;
+        // graph/lang-projection-corpus — the `lang:ProjectionEmission` records (every
+        // lowering to an external linguistic ecosystem) plus the lifted `lang:Grammar`
+        // structure. Carried as a named graph so the presenter reads it via
+        // `producer_graph`; like the other `lang:` corpus graphs it stays OUT of the
+        // reasoned EDB (`gts_compose` folds only the default graph).
+        let lang_projection_graph = crate::stages::carrier::parse_into_graph(
+            &compiled.lang_projection_corpus,
+            "application/n-triples",
+            crate::stages::carrier::GRAPH_LANG_PROJECTION_CORPUS,
+        )?;
         let dataset = std::sync::Arc::new(purrdf::RdfDataset::union(&[
             rdf_dataset.as_ref(),
             ledger_graph.as_ref(),
             alignments_graph.as_ref(),
             lang_translation_graph.as_ref(),
             lang_form_graph.as_ref(),
+            lang_projection_graph.as_ref(),
         ]));
         Ok(StageOutput {
             product: StageProduct::from_artifacts_over(self.id(), dataset, artifacts),
@@ -982,29 +1013,49 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
             );
         }
 
-        // Byte-stability invariant: dropping every correspondence `ProjectionTarget`
-        // block (and its `hasProjection` link) from the freshly assembled report and
-        // from the committed report must leave byte-identical logic rows — the
-        // correspondence union must never perturb the logic projection. (The committed
-        // report itself carries the union, so both sides are filtered the same way.)
+        // Byte-stability invariant: dropping every NON-logic `ProjectionTarget` block
+        // (the correspondence dialects PLUS the lang:-projection emission-ledger rows)
+        // from the freshly assembled report and from the committed report must leave
+        // byte-identical logic rows — the correspondence + projection union must never
+        // perturb the logic projection. The strip is BLOCK-aware (a Turtle subject block
+        // is a blank-line-separated group), so a target block present only on the fresh
+        // side is removed wholesale rather than leaving orphaned continuation lines. (The
+        // committed report carries its own union; both sides are filtered the same way, so
+        // this stays green independent of which projection targets are wired — the
+        // committed golden itself is re-blessed at regeneration.)
         let committed = std::fs::read_to_string(root.join(PROJECTION_REPORT_PATH))
             .expect("committed projection report");
-        let is_correspondence = |line: &str| {
-            ["sssom:", "fno:", "edoal:", "sparql:"]
-                .iter()
-                .any(|d| line.contains(&format!("/target/{d}")))
-        };
-        let strip_correspondence = |text: &str| -> String {
-            text.lines()
-                .filter(|l| !is_correspondence(l))
-                .map(|l| format!("{l}\n"))
-                .collect()
+        // The non-logic target prefixes: the four alignment dialects, the EmotionML
+        // lowering, and the lang: projection targets (grammar/lexicon/treebank emissions).
+        let non_logic = [
+            "/target/sssom:",
+            "/target/fno:",
+            "/target/edoal:",
+            "/target/sparql:",
+            "/target/ebnf:",
+            "/target/abnf:",
+            "/target/conllu:",
+            "/target/ontolex",
+            "/target/lang-projection:",
+        ];
+        // A Turtle subject block is a blank-line-separated group. Drop any block that
+        // MENTIONS a non-logic target IRI anywhere: the non-logic target blocks themselves
+        // AND the `logic:projection-report` summary block (whose `hasProjection` list
+        // enumerates every target and so churns whenever a projection target is added). The
+        // surviving blocks — the header prefixes and the pure logic target blocks — must be
+        // byte-identical.
+        let strip_non_logic = |text: &str| -> String {
+            text.split("\n\n")
+                .filter(|block| !non_logic.iter().any(|p| block.contains(p)))
+                .collect::<Vec<_>>()
+                .join("\n\n")
         };
         assert_eq!(
-            strip_correspondence(report),
-            strip_correspondence(&committed),
+            strip_non_logic(report),
+            strip_non_logic(&committed),
             "the logic projection rows must be byte-identical between the freshly \
-             assembled report and the committed report; only correspondence rows differ"
+             assembled report and the committed report; only correspondence + lang: \
+             projection rows differ"
         );
     }
 
