@@ -2188,6 +2188,16 @@ gmeow:GenResultRowShape_examples_math_tests_cqResidualMeaningShape
     ] ;
     sh:sparql [
         sh:severity sh:Violation ;
+        sh:message "result column ?meaning must be present and bind an IRI" ;
+        sh:select """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> SELECT $this WHERE { FILTER NOT EXISTS { $this gmeow:rowCell ?c . ?c gmeow:cellVar 'meaning' ; gmeow:cellValueIri ?val } }""" ;
+    ] ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "result column ?meaning must bind an IRI" ;
+        sh:select """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> SELECT $this WHERE { $this gmeow:rowCell ?c . ?c gmeow:cellVar 'meaning' ; gmeow:cellValueLiteral ?val }""" ;
+    ] ;
+    sh:sparql [
+        sh:severity sh:Violation ;
         sh:message "result column ?vantage must be present and bind an IRI" ;
         sh:select """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> SELECT $this WHERE { FILTER NOT EXISTS { $this gmeow:rowCell ?c . ?c gmeow:cellVar 'vantage' ; gmeow:cellValueIri ?val } }""" ;
     ] ;

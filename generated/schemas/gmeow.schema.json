@@ -22587,6 +22587,31 @@
               "@type": {
                 "anyOf": [
                   {
+                    "const": "math:ApplicationExpression"
+                  },
+                  {
+                    "contains": {
+                      "const": "math:ApplicationExpression"
+                    },
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "@type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/math:ApplicationExpression"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "@type": {
+                "anyOf": [
+                  {
                     "const": "math:ApproximateValue"
                   },
                   {
@@ -36556,6 +36581,34 @@
         "math:satisfiesAxiom",
         "math:structureOperation",
         "math:underlyingSet"
+      ],
+      "type": "object"
+    },
+    "math:ApplicationExpression": {
+      "properties": {
+        "@annotation": {
+          "$ref": "#/$defs/Annotation"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "@type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ]
+        },
+        "math:operator": {}
+      },
+      "required": [
+        "math:operator"
       ],
       "type": "object"
     },
