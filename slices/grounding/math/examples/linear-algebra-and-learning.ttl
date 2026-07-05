@@ -119,7 +119,6 @@ ex:selfModelGraph a math:TensorComputationGraph ;
 
 ex:attentionNode a math:ApplicationExpression ;
     math:operator math:matrixProduct ;
-    math:tensorOperation math:matrixProduct ;
     math:argumentSlot ex:attnSlot0 , ex:attnSlot1 .
 
 ex:attnSlot0 a math:ArgumentSlot ;
