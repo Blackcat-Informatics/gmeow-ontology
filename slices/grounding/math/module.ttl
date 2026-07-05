@@ -3797,6 +3797,16 @@ math:provesGoal
     skos:definition "Relates a math:Proof or math:ProofStep to the logic:GoalExpression sub-goal it discharges — binding the proof layer to logic:'s teleology so a complex proof is a goal-decomposed process. Domain a math:Proof or math:ProofStep, range logic:GoalExpression (stated in prose). Each lemma is a logic:GoalExpression whose logic:goalExpressionKind is logic:AchievementGoal (the target first obtains) — the kind is a value carried by the property, never a class the goal is typed with."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+# --- Process / observation disjointness (process is never the claim) --------- #
+# The OWL-axiom gate backing math:ProcessObservationConflation: an inference or
+# analysis process is a gmeow:Activity and is NEVER typed as a gmeow:Observation —
+# the process half of the process / result / claim separation. Mirrors the
+# language slice's lang:InterpretationAct owl:disjointWith gmeow:Observation; the
+# native DL coherence gate reads the disjointness directly, forcing any individual
+# typed both a bridge/analysis process and an observation to owl:Nothing.
+math:IngestRun owl:disjointWith gmeow:Observation .
+math:PCAAnalysis owl:disjointWith gmeow:Observation .
+
 # --- Bridge failure classes -------------------------------------------------- #
 
 math:UnliftableIngest
@@ -3837,4 +3847,20 @@ math:ResultRoleConflation
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Result Role Conflation"@x-gmeow-english ;
     skos:definition "The failure raised when a structured result object — a math:FormalVerificationResult, an estimate, a p-value, a posterior — is roled as the held claim it stands for: typed as, or asserted to BE, the gmeow:Observation that holds the verdict, rather than remaining the result object of the process / result / claim separation. A result object is what a checking or estimation process returns; the held claim is a SEPARATE gmeow:Observation naming the checker as gmeow:vantage, the result through gmeow:observationResult, and the run through gmeow:wasGeneratedBy. Roling the result object as its own claim — collapsing the three-way separation of process, result object, and observation-borne claim into a single conflated node — is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:ProcessObservationConflation
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Process Observation Conflation"@x-gmeow-english ;
+    skos:definition "The failure raised when an inference or analysis process — a gmeow:Activity such as a math:IngestRun or a math:PCAAnalysis — is typed as a gmeow:Observation, collapsing the process half of the process / result / claim separation into the held claim. A process is the executed occurrence that produces result objects and grounds claims; it is NEVER the observation that holds a claim about what it produced. Primary gate: the OWL disjointness of the math process classes and gmeow:Observation (mirroring the language slice's lang:InterpretationAct owl:disjointWith gmeow:Observation) — an individual typed BOTH a bridge or analysis process and an observation is forced to owl:Nothing by the native DL coherence gate."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:UngroundedResultClaim
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Ungrounded Result Claim"@x-gmeow-english ;
+    skos:definition "The failure raised when a held statistical or probabilistic result claim — that an estimate, a p-value, a posterior, a component's meaning, or a verdict holds — is stated without a gmeow:Observation carrying a gmeow:vantage, so the claim floats free of the standpoint that holds it. The claim leg of the process / result / claim separation is a gmeow:Observation naming its gmeow:vantage (whose frame), its gmeow:observedFeature (which result), and its gmeow:observationResult (the grounded conclusion); a result claim asserted as an unconditional property rather than a vantage-held observation is ill-formed. Primary gate: the SHACL Core requirement that a held result claim carry a gmeow:vantage (math:ResidualInterpretationClaimShape)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
