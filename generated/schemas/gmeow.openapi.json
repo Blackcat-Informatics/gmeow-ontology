@@ -22398,6 +22398,31 @@
                 "@type": {
                   "anyOf": [
                     {
+                      "const": "math:BindingExpression"
+                    },
+                    {
+                      "contains": {
+                        "const": "math:BindingExpression"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/math:BindingExpression"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
                       "const": "math:Chart"
                     },
                     {
@@ -36265,6 +36290,45 @@
         },
         "required": [
           "math:automorphismGroupOf"
+        ],
+        "type": "object"
+      },
+      "math:BindingExpression": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "math:argumentSlot": {
+            "anyOf": [
+              {},
+              {
+                "items": {},
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          },
+          "math:boundVariable": {}
+        },
+        "required": [
+          "math:argumentSlot",
+          "math:boundVariable"
         ],
         "type": "object"
       },

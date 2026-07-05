@@ -296,7 +296,7 @@ ex:ecDimensionalExpressionSingleton a gmeow:ExampleConformance ;
 ex:ecBindingScoped a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/conformance-fixtures/binding-expression-scoped.ttl" ;
     gmeow:expectedOutcome gmeow:conforms ;
-    gmeow:conformanceRationale "A math:BindingExpression with a bound math:VariableDeclaration, an indexed math:ArgumentSlot, and a math:VariableOccurrence resolving to the declaration satisfies math:ArgumentSlotShape and math:VariableOccurrenceShape and validates with no findings." .
+    gmeow:conformanceRationale "A math:BindingExpression with a bound math:VariableDeclaration, an indexed math:ArgumentSlot, and a math:VariableOccurrence resolving to the declaration satisfies math:BindingExpressionShape, math:ArgumentSlotShape, and math:VariableOccurrenceShape and validates with no findings." .
 
 ex:ecSlotIndexDuplicate a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/slot-index-duplicate.ttl" ;
@@ -309,6 +309,12 @@ ex:ecVariableUnscoped a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
     gmeow:conformanceRationale "The counter-example omits math:declaredVariable on a math:VariableOccurrence (sh:minCount 1 on math:VariableOccurrenceShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UnscopedVariableOccurrence)." .
+
+ex:ecMalformedBindingExpression a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/malformed-binding-expression.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example omits math:boundVariable on a math:BindingExpression that names its operator and a well-formed math:argumentSlot (sh:minCount 1 on math:BindingExpressionShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:MalformedBindingExpression)." .
 
 # Calculus: derivative, limit, series framing.
 ex:ecDerivativeFramed a gmeow:ExampleConformance ;

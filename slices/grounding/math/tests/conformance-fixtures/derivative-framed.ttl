@@ -2,7 +2,9 @@
 # SPDX-License-Identifier: CC-BY-4.0
 #
 # Well-formed: a derivative naming what it differentiates, its variable, and its
-# order. Conforms to math:DerivativeShape. Bound by ex:ecDerivativeFramed.
+# order — and, as a math:BindingExpression, the math:VariableDeclaration it binds
+# and its body through an indexed math:argumentSlot. Conforms to
+# math:DerivativeShape and math:BindingExpressionShape. Bound by ex:ecDerivativeFramed.
 @prefix math: <https://blackcatinformatics.ca/math/> .
 @prefix ex:   <http://example.org/math/> .
 
@@ -10,7 +12,13 @@ ex:velocity a math:Derivative ;
     math:operator math:differentiationBinder ;
     math:derivativeOf ex:positionFn ;
     math:withRespectToVariable ex:timeDecl ;
-    math:derivativeOrder 1 .
+    math:derivativeOrder 1 ;
+    math:boundVariable ex:timeDecl ;
+    math:argumentSlot ex:velocitySlot0 .
+
+ex:velocitySlot0 a math:ArgumentSlot ;
+    math:slotIndex 0 ;
+    math:slotExpression ex:positionFn .
 
 ex:positionFn a math:MathematicalExpression .
 ex:timeDecl a math:VariableDeclaration .
