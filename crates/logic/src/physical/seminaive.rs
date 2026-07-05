@@ -87,6 +87,11 @@ pub(crate) enum UnsupportedKind {
     NonBinaryAtom,
     /// A demand (magic-set) transformation that would break stratification.
     DemandBreaksStratification,
+    /// An existential-rule program whose termination the acyclicity certifier could
+    /// not establish (outside the certified-terminating chase fragment).  The router
+    /// refuses it to the oracle, or runs it budgeted-partial — never a wrong or
+    /// non-terminating native result.
+    NonTerminatingExistential,
 }
 
 /// The result of a native-execution attempt: a decided value or a declared gap.
@@ -203,15 +208,15 @@ enum FixpointStatus {
 /// (`LOGIC-CONFORMANCE.md` leaves the budget unit open — "time, depth, or iteration
 /// limit"); only the *outcome semantics* (incomplete-not-wrong, deterministic) must
 /// match the docs, never a cross-engine step-count equivalence.
-struct StepGovernor {
+pub(crate) struct StepGovernor {
     /// The step ceiling; `None` is unbounded.
     limit: Option<u64>,
     /// Committed derivations so far.
-    consumed: u64,
+    pub(crate) consumed: u64,
 }
 
 impl StepGovernor {
-    fn new(max_steps: Option<u64>) -> Self {
+    pub(crate) fn new(max_steps: Option<u64>) -> Self {
         Self {
             limit: max_steps,
             consumed: 0,
@@ -223,12 +228,12 @@ impl StepGovernor {
     /// Checked *before* committing each winner, so `limit == Some(0)` stops before the
     /// first derivation (zero derived rows, immediate `Exhausted`), and `limit ==
     /// Some(n)` admits exactly `n` committed derivations.
-    fn spent(&self) -> bool {
+    pub(crate) fn spent(&self) -> bool {
         matches!(self.limit, Some(l) if self.consumed >= l)
     }
 
     /// Record one committed derivation.
-    fn charge(&mut self) {
+    pub(crate) fn charge(&mut self) {
         self.consumed = self.consumed.saturating_add(1);
     }
 }

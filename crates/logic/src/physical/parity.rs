@@ -49,7 +49,7 @@
 //! rungs.
 #![allow(dead_code)]
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 
 use crate::facts::TypedFactSet;
 use crate::oracle::{BackwardOracle, ForwardBudget, ForwardOracle, TypedRow};
@@ -237,6 +237,219 @@ fn compare_materialization(
     Ok(ParityLedger::from_rows(rows))
 }
 
+// ── Null-blind existential parity ──────────────────────────────────────────────
+//
+// The native chase and Nemo both value-invent, but name their nulls differently (the
+// native chase mints a content-addressed Skolem IRI; Nemo mints a labeled null `_:0`).
+// A fact-level comparison must therefore be **null-blind**: two fact sets agree when they
+// are equal up to a consistent renaming of invented nulls.  Rather than a surface-position
+// token (which would false-agree on non-isomorphic structures and false-diverge under a
+// different firing order), each null is canonicalized by **colour refinement** of the
+// null-labelled fact graph — a null's colour is the fixpoint of the multiset of
+// `(predicate, role, neighbour-colour)` edges it participates in, grounded in the named
+// (non-null) terms.  Isomorphic null structures converge to equal colours regardless of
+// order or naming; non-isomorphic ones never do.  Named terms are never rewritten.
+
+/// Whether a term surface denotes an invented null: a native chase Skolem IRI
+/// (`…/skolem/…`) or a Nemo labeled null (rendered `<urn:gmeow:nemo-null:…>` by the
+/// facts-only decoder, or a raw `_:…` blank).
+fn is_null_surface(surface: &str) -> bool {
+    surface.contains("/skolem/")
+        || surface.contains("nemo-null:")
+        || surface.starts_with("_:")
+        || surface.starts_with("<_:")
+}
+
+/// Canonicalize the invented nulls in a fact-key set by colour refinement, returning
+/// the rewritten keys as a **multiset** (`FactKey → occurrence count`) so witness
+/// MULTIPLICITY is preserved.  Named terms pass through unchanged.
+///
+/// Two *automorphic* invented nulls (e.g. two witnesses of the same `≥2 p.D`
+/// obligation on the same frontier) share a colour, hence a canonical token, so their
+/// facts rewrite to the SAME `FactKey`.  Collapsing them to a set element would lose
+/// the witness count and let a genuine `≥n` divergence (native invents 1 where the
+/// oracle invents 2) false-agree; the multiset keeps `min(native, oracle)` as agreement
+/// and the surplus as a native/oracle-only divergence.  The count is over the pre-canon
+/// keys (distinct-named witnesses are distinct comparands), so a consistent renaming of
+/// the SAME number of witnesses still yields byte-equal multisets.
+fn canonicalize_nulls(keys: &BTreeSet<FactKey>) -> BTreeMap<FactKey, usize> {
+    let nulls: BTreeSet<String> = keys
+        .iter()
+        .flat_map(|(s, _, o)| [s.clone(), o.clone()])
+        .filter(|t| is_null_surface(t))
+        .collect();
+    if nulls.is_empty() {
+        let mut counts: BTreeMap<FactKey, usize> = BTreeMap::new();
+        for key in keys {
+            *counts.entry(key.clone()).or_insert(0) += 1;
+        }
+        return counts;
+    }
+
+    // Colour every term: a named term is its own surface (a fixed anchor); a null starts
+    // from a single uniform colour and is refined by its neighbourhood.
+    let mut colour: BTreeMap<String, String> = BTreeMap::new();
+    for (s, _, o) in keys {
+        for t in [s, o] {
+            colour.entry(t.clone()).or_insert_with(|| {
+                if is_null_surface(t) {
+                    "\u{0}".to_owned()
+                } else {
+                    t.clone()
+                }
+            });
+        }
+    }
+
+    // Refine to a fixpoint (bounded by the null count — colours can only get finer).
+    for _ in 0..=nulls.len() {
+        let mut next = colour.clone();
+        let mut changed = false;
+        for n in &nulls {
+            let mut sig: Vec<String> = Vec::new();
+            for (s, p, o) in keys {
+                if s == n {
+                    sig.push(format!("s\u{1f}{p}\u{1f}{}", colour[o]));
+                }
+                if o == n {
+                    sig.push(format!("o\u{1f}{p}\u{1f}{}", colour[s]));
+                }
+            }
+            sig.sort();
+            let refined = crate::provenance::sha1_hex(&sig.join("\u{1e}"));
+            if next[n] != refined {
+                changed = true;
+                next.insert(n.clone(), refined);
+            }
+        }
+        colour = next;
+        if !changed {
+            break;
+        }
+    }
+
+    // Assign canonical tokens by sorted final colour — identical across both sides for
+    // isomorphic structures, so the rewritten sets compare byte-equal.
+    let distinct: BTreeSet<String> = nulls.iter().map(|n| colour[n].clone()).collect();
+    let token: BTreeMap<String, String> = distinct
+        .into_iter()
+        .enumerate()
+        .map(|(i, c)| (c, format!("gmeow:null#{i}")))
+        .collect();
+    let rewrite = |t: &String| -> String {
+        if is_null_surface(t) {
+            token[&colour[t]].clone()
+        } else {
+            t.clone()
+        }
+    };
+    let mut counts: BTreeMap<FactKey, usize> = BTreeMap::new();
+    for (s, p, o) in keys {
+        *counts
+            .entry((rewrite(s), p.clone(), rewrite(o)))
+            .or_insert(0) += 1;
+    }
+    counts
+}
+
+/// Compare the native chase's derived facts against a forward oracle's closure
+/// **null-blind** AND **cardinality-aware**: both fact sets are canonicalized to a
+/// multiset ([`canonicalize_nulls`]) before the `Agree` / `NativeOnly` / `OracleOnly`
+/// classification, so a consistent renaming of the SAME number of invented nulls is
+/// agreement, but a differing witness COUNT — even between automorphic (symmetric)
+/// nulls that share a canonical token — is divergence.  Used to oracle-gate the
+/// existential fragment against Nemo.
+///
+/// For each canonical fact key the `min(native_count, oracle_count)` occurrences are
+/// `Agree`; the native surplus is `NativeOnly` and the oracle surplus is `OracleOnly`
+/// (one emitted row per surplus occurrence).  Without the multiset, a real `≥2`
+/// divergence where native invents 1 witness and the oracle invents 2 (both rewriting
+/// to the same `(a, p, #0)` token) would collapse to one set element on each side and
+/// false-report `Agree`, defeating the oracle-gate's soundness guarantee.
+fn compare_existential_materialization(
+    native: &[DerivedRow],
+    oracle: &dyn ForwardOracle,
+    facts: &TypedFactSet,
+    rules: &str,
+    world: &str,
+) -> Result<ParityLedger, String> {
+    let closure = oracle.materialize(facts, rules, &ForwardBudget::UNBOUNDED)?;
+    let oracle_name = oracle.name();
+
+    let native_counts = canonicalize_nulls(&native.iter().map(row_fact_key).collect());
+    let oracle_counts = canonicalize_nulls(
+        &closure
+            .rows
+            .iter()
+            .filter_map(|(row, _prov)| typed_row_fact_key(row))
+            .collect(),
+    );
+
+    // The sorted union of canonical keys drives a deterministic multiset comparison.
+    let all_keys: BTreeSet<FactKey> = native_counts
+        .keys()
+        .chain(oracle_counts.keys())
+        .cloned()
+        .collect();
+
+    let mut rows: Vec<LedgerRow> = Vec::new();
+    // Group by kind (Agree, then NativeOnly, then OracleOnly), each in sorted-key order,
+    // mirroring the set-based comparator's row grouping.
+    for key in &all_keys {
+        let (subject, predicate, object) = key.clone();
+        let native_n = native_counts.get(key).copied().unwrap_or(0);
+        let oracle_n = oracle_counts.get(key).copied().unwrap_or(0);
+        let agree = native_n.min(oracle_n);
+        for _ in 0..agree {
+            rows.push(LedgerRow {
+                kind: DivergenceKind::Agree,
+                category: "materialization".to_owned(),
+                detail: format!(
+                    "native and {oracle_name} agree on fact: {subject} {predicate} {object}"
+                ),
+                subject: subject.clone(),
+                object: object.clone(),
+                world: world.to_owned(),
+            });
+        }
+    }
+    for key in &all_keys {
+        let (subject, predicate, object) = key.clone();
+        let native_n = native_counts.get(key).copied().unwrap_or(0);
+        let oracle_n = oracle_counts.get(key).copied().unwrap_or(0);
+        for _ in oracle_n..native_n {
+            rows.push(LedgerRow {
+                kind: DivergenceKind::NativeOnly,
+                category: "materialization".to_owned(),
+                detail: format!(
+                    "derived natively but not by {oracle_name}: {subject} {predicate} {object}"
+                ),
+                subject: subject.clone(),
+                object: object.clone(),
+                world: world.to_owned(),
+            });
+        }
+    }
+    for key in &all_keys {
+        let (subject, predicate, object) = key.clone();
+        let native_n = native_counts.get(key).copied().unwrap_or(0);
+        let oracle_n = oracle_counts.get(key).copied().unwrap_or(0);
+        for _ in native_n..oracle_n {
+            rows.push(LedgerRow {
+                kind: DivergenceKind::OracleOnly,
+                category: "materialization".to_owned(),
+                detail: format!(
+                    "derived by {oracle_name} but not natively: {subject} {predicate} {object}"
+                ),
+                subject: subject.clone(),
+                object: object.clone(),
+                world: world.to_owned(),
+            });
+        }
+    }
+    Ok(ParityLedger::from_rows(rows))
+}
+
 /// A comparable answer-binding key: the sorted `var=value` pairs of one [`crate::query_ir::Binding`].
 ///
 /// A binding is a `BTreeMap<String, String>`, so iterating it yields the variable/value pairs in
@@ -331,17 +544,569 @@ mod tests {
 
     use super::*;
     use crate::oracle::{
-        ForwardBudget, ForwardOracle, NemoForwardOracle, ReferenceBackwardOracle, TypedChaseResult,
-        TypedProvenance, TypedRow,
+        ForwardBudget, ForwardOracle, NemoFactsOracle, NemoForwardOracle, ReferenceBackwardOracle,
+        TypedChaseResult, TypedProvenance, TypedRow,
     };
+    use crate::physical::chase::{ChaseAdmission, ExistentialRule, chase_world, route_chase};
     use crate::physical::magic::resolve_native;
     use crate::physical::seminaive::{NativeOutcome, materialize_native};
     use crate::query_ir::{Budget, QProgram, parse_query_program};
-    use crate::rule_ir::parse_eval_rules;
+    use crate::rule_ir::{EvalAtom, EvalTerm, Fact, parse_eval_rules};
     use crate::seam::{BudgetStatus, WorldStoreForeign};
     use crate::store::WorldStore;
+    use purrdf::TermValue;
 
     const PROFILE: &str = "https://blackcatinformatics.ca/logic/PositiveHornProfile";
+
+    const TYPE_IRI: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+    const EX_C: &str = "http://ex/C";
+    const EX_D: &str = "http://ex/D";
+    const EX_P: &str = "http://ex/p";
+    const EX_WORLD: &str = "urn:world";
+
+    fn ex_iri(s: &str) -> TermValue {
+        TermValue::iri(s)
+    }
+
+    fn ex_atom(subject: EvalTerm, predicate: &str, object: EvalTerm) -> EvalAtom {
+        EvalAtom {
+            subject,
+            predicate: predicate.to_owned(),
+            object,
+            negated: false,
+        }
+    }
+
+    /// The EL `C ⊑ ∃p.D` obligation as an `ExistentialRule` (native) plus the equivalent
+    /// ternary Nemo `.rls` existential rule (`!y` shared across the conjunctive head).
+    fn some_values_from_native() -> ExistentialRule {
+        ExistentialRule {
+            rule_iri: "http://ex/rule/svf".to_owned(),
+            body: vec![ex_atom(
+                EvalTerm::Var("?x".to_owned()),
+                TYPE_IRI,
+                EvalTerm::ConstNamed(EX_C.to_owned()),
+            )],
+            head: vec![
+                ex_atom(
+                    EvalTerm::Var("?x".to_owned()),
+                    EX_P,
+                    EvalTerm::Var("?y".to_owned()),
+                ),
+                ex_atom(
+                    EvalTerm::Var("?y".to_owned()),
+                    TYPE_IRI,
+                    EvalTerm::ConstNamed(EX_D.to_owned()),
+                ),
+            ],
+            distinct: vec![],
+        }
+    }
+
+    fn some_values_from_nemo_rls() -> String {
+        // Ternary (world-carrying) existential rule; `!y` is one shared invented null.
+        format!(
+            "<{EX_P}>(?x, !y, ?w), <{TYPE_IRI}>(!y, <{EX_D}>, ?w) :- <{TYPE_IRI}>(?x, <{EX_C}>, ?w) ."
+        )
+    }
+
+    #[test]
+    fn materialize_existential_parity_native_agrees_with_nemo() {
+        // Two C-individuals in one world.  The native restricted chase and Nemo's chase
+        // must produce the SAME facts up to null renaming (the null-blind gate).
+        let individuals = ["http://ex/a", "http://ex/b"];
+
+        // Native EDB (binary facts) + chase via the router.
+        let native_edb: Vec<Fact> = individuals
+            .iter()
+            .map(|i| Fact {
+                subject: ex_iri(i),
+                predicate: TYPE_IRI.to_owned(),
+                object: ex_iri(EX_C),
+            })
+            .collect();
+        let (admission, outcome) =
+            route_chase(EX_WORLD, &native_edb, &[some_values_from_native()], None).unwrap();
+        assert!(
+            admission.admits_native(),
+            "acyclic EL restriction must certify"
+        );
+        let native_rows = match outcome {
+            NativeOutcome::Decided(b) => b.rows,
+            NativeOutcome::Unsupported(k) => panic!("certified program must run: {k:?}"),
+        };
+
+        // Oracle EDB (ternary typed quads) + the equivalent Nemo existential .rls.
+        let mut oracle_edb = TypedFactSet::new();
+        for i in individuals {
+            oracle_edb.push_quad(&ex_iri(i), TYPE_IRI, &ex_iri(EX_C), EX_WORLD);
+        }
+
+        let ledger = compare_existential_materialization(
+            &native_rows,
+            &NemoFactsOracle,
+            &oracle_edb,
+            &some_values_from_nemo_rls(),
+            EX_WORLD,
+        )
+        .expect("nemo facts-only chase should succeed");
+
+        let verdict = ledger.enforce();
+        assert!(
+            verdict.passed,
+            "native chase must agree with Nemo null-blind; reasons: {:?}; rows: {:#?}",
+            verdict.reasons, ledger.rows
+        );
+        // Non-vacuous: they actually agree on the invented p-edges and D-types, not just
+        // the echoed EDB (2 C-types + 2 p-edges + 2 D-types = 6 agreed facts).
+        assert_eq!(ledger.agree, 6, "all six facts agree");
+        assert_eq!(ledger.native_only, 0);
+        assert_eq!(ledger.oracle_only, 0);
+    }
+
+    /// Build a native derived row for `subject predicate object` in [`EX_WORLD`], stamped
+    /// with a non-assert rule IRI (so it is a genuine derived fact, not an EDB echo).
+    fn native_derived(subject: &str, predicate: &str, object: &str) -> DerivedRow {
+        DerivedRow {
+            graph: EX_WORLD.to_owned(),
+            subject: ex_iri(subject),
+            predicate: predicate.to_owned(),
+            object: ex_iri(object),
+            rule_iri: "http://ex/rule/svf".to_owned(),
+            source_quad_ids: vec![],
+            derivation_id: format!("http://ex/deriv/{subject}/{predicate}/{object}"),
+        }
+    }
+
+    /// Build a ternary (world-carrying) oracle row `predicate(subject, object, world)` —
+    /// the arity-3 shape [`typed_row_fact_key`] coerces to a `(subject, predicate, object)`
+    /// fact key.
+    fn oracle_quad(subject: &str, predicate: &str, object: &str) -> (TypedRow, TypedProvenance) {
+        (
+            TypedRow {
+                predicate: predicate.to_owned(),
+                args: vec![ex_iri(subject), ex_iri(object), ex_iri(EX_WORLD)],
+            },
+            TypedProvenance {
+                is_edb: false,
+                rule_name: Some("http://ex/rule/svf".to_owned()),
+                antecedents: vec![],
+                attributions: vec![],
+            },
+        )
+    }
+
+    // Distinct invented-null surfaces. `is_null_surface` keys native nulls off `/skolem/`
+    // and Nemo-style nulls off `nemo-null:`; the two same-obligation witnesses are
+    // AUTOMORPHIC (identical neighbourhoods: `a --p--> witness --type--> D`), so colour
+    // refinement gives them one shared canonical token — the exact condition the old
+    // set-based comparator collapsed.
+    const SKOLEM_1: &str = "http://ex/skolem/w1";
+    const NEMO_NULL_1: &str = "urn:gmeow:nemo-null:1";
+    const NEMO_NULL_2: &str = "urn:gmeow:nemo-null:2";
+    const EX_A: &str = "http://ex/a";
+
+    /// C1 REGRESSION: a genuine `≥2` witness-COUNT divergence — native invents ONE witness
+    /// where the oracle invents TWO automorphic (symmetric) witnesses of the same
+    /// `a ⊑ ≥2 p.D` obligation — MUST be caught, not false-agreed.
+    ///
+    /// Both oracle witnesses share the SAME canonical null token (they are automorphic), so
+    /// the pre-fix SET-based comparator canonicalized native `{(a,p,#0),(#0,type,D)}` and
+    /// oracle `{(a,p,#0),(#0,type,D)}` to BYTE-EQUAL sets and reported full `Agree` — a false
+    /// agreement. The multiset comparator keeps the counts: native has each key once, the
+    /// oracle twice, so `min` yields the agreement and the oracle surplus is `OracleOnly`.
+    #[test]
+    fn existential_witness_multiplicity_divergence_is_caught() {
+        // Native: one witness w1 of `a ⊑ ≥2 p.D`.
+        let native = vec![
+            native_derived(EX_A, EX_P, SKOLEM_1),
+            native_derived(SKOLEM_1, TYPE_IRI, EX_D),
+        ];
+        // Oracle: TWO automorphic witnesses of the same obligation.
+        let oracle = DivergentForwardOracle {
+            rows: vec![
+                oracle_quad(EX_A, EX_P, NEMO_NULL_1),
+                oracle_quad(NEMO_NULL_1, TYPE_IRI, EX_D),
+                oracle_quad(EX_A, EX_P, NEMO_NULL_2),
+                oracle_quad(NEMO_NULL_2, TYPE_IRI, EX_D),
+            ],
+        };
+        let facts = TypedFactSet::new();
+        let ledger =
+            compare_existential_materialization(&native, &oracle, &facts, "", EX_WORLD).unwrap();
+        let verdict = ledger.enforce();
+        assert!(
+            !verdict.passed,
+            "a native-1 vs oracle-2 automorphic-witness divergence must FAIL the gate, not \
+             false-agree; rows: {:#?}",
+            ledger.rows
+        );
+        // The one shared witness p-edge + D-type agree; the oracle's extra witness's p-edge
+        // + D-type are the oracle surplus.
+        assert_eq!(
+            ledger.agree, 2,
+            "the single shared witness's two facts agree"
+        );
+        assert_eq!(ledger.native_only, 0, "native invents no surplus witness");
+        assert_eq!(
+            ledger.oracle_only, 2,
+            "the oracle's extra witness contributes two oracle-only facts"
+        );
+    }
+
+    /// The POSITIVE companion: native AND the oracle each invent TWO automorphic witnesses of
+    /// the same `a ⊑ ≥2 p.D` obligation. The witness COUNT matches, so a consistent renaming
+    /// (both sides collapse to the shared token, each with multiplicity 2) is full `Agree` —
+    /// the multiset fix must NOT over-diverge on a matched symmetric multiplicity.
+    #[test]
+    fn existential_symmetric_witnesses_multiplicity_agrees() {
+        let native = vec![
+            native_derived(EX_A, EX_P, "http://ex/skolem/w1"),
+            native_derived("http://ex/skolem/w1", TYPE_IRI, EX_D),
+            native_derived(EX_A, EX_P, "http://ex/skolem/w2"),
+            native_derived("http://ex/skolem/w2", TYPE_IRI, EX_D),
+        ];
+        let oracle = DivergentForwardOracle {
+            rows: vec![
+                oracle_quad(EX_A, EX_P, NEMO_NULL_1),
+                oracle_quad(NEMO_NULL_1, TYPE_IRI, EX_D),
+                oracle_quad(EX_A, EX_P, NEMO_NULL_2),
+                oracle_quad(NEMO_NULL_2, TYPE_IRI, EX_D),
+            ],
+        };
+        let facts = TypedFactSet::new();
+        let ledger =
+            compare_existential_materialization(&native, &oracle, &facts, "", EX_WORLD).unwrap();
+        let verdict = ledger.enforce();
+        assert!(
+            verdict.passed,
+            "matched two-witness multiplicity must AGREE null-blind; reasons: {:?}; rows: {:#?}",
+            verdict.reasons, ledger.rows
+        );
+        assert_eq!(
+            ledger.agree, 4,
+            "both witnesses' p-edge + D-type agree (2 witnesses × 2 facts)"
+        );
+        assert_eq!(ledger.native_only, 0);
+        assert_eq!(ledger.oracle_only, 0);
+    }
+
+    // ── H5: adversarial certifier-SOUNDNESS differential (native ChaseAdmission ≡ Nemo) ──
+    //
+    // The load-bearing safety claim of `ChaseAdmission::certify` is that it NEVER wrongly
+    // certifies: if it returns `WeaklyAcyclic`, the restricted chase genuinely reaches a
+    // fixpoint.  A false `WeaklyAcyclic` would let the router run the chase UNBUDGETED and
+    // loop forever.  The self-disclosed low-confidence mechanism is the bespoke CONSTANT
+    // REFINEMENT — it SPLITS a `type(individual, class)` position by the constant in the
+    // other slot (and can REMOVE the edge that a plain weak-acyclicity check would draw),
+    // exactly where a hidden cycle could slip through as a false certificate — together with
+    // its `add_wildcard_subsumption` over-approximation connecting variable-class (wildcard)
+    // and constant-class refinements of one `(predicate, slot)`.
+    //
+    // This test pins the invariant over a set of ADVERSARIALLY-chosen mixed variable-class /
+    // constant-class `type` programs: for every CERTIFIED fixture the budgeted native chase
+    // MUST reach a natural fixpoint (`BudgetStatus::Ok`) strictly WITHIN a generous budget —
+    // an `Exhausted` here is a FALSE certification (the program loops) and fails the test,
+    // never hangs it — and its facts must agree with Nemo's chase null-blind.  A set of
+    // shapes the certifier correctly REFUSES proves it is discriminating, not vacuous.
+
+    const EX_E: &str = "http://ex/E";
+    const EX_Q: &str = "http://ex/q";
+    const EX_HASKIND: &str = "http://ex/hasKind";
+    const EX_TAGGED: &str = "http://ex/tagged";
+    const EX_HASCLASS: &str = "http://ex/hasClass";
+
+    fn ex_var(name: &str) -> EvalTerm {
+        EvalTerm::Var(name.to_owned())
+    }
+
+    fn ex_named(iri: &str) -> EvalTerm {
+        EvalTerm::ConstNamed(iri.to_owned())
+    }
+
+    /// `type(?x, from) → ∃y. rel(x, y) ∧ type(y, to)` as a native `ExistentialRule` — the
+    /// constant-refined shape (`from`/`to` are class constants co-occurring with a `type`
+    /// subject variable, the exact input the refinement partitions).
+    fn native_restriction(iri: &str, from: &str, rel: &str, to: &str) -> ExistentialRule {
+        ExistentialRule {
+            rule_iri: iri.to_owned(),
+            body: vec![ex_atom(ex_var("?x"), TYPE_IRI, ex_named(from))],
+            head: vec![
+                ex_atom(ex_var("?x"), rel, ex_var("?y")),
+                ex_atom(ex_var("?y"), TYPE_IRI, ex_named(to)),
+            ],
+            distinct: vec![],
+        }
+    }
+
+    /// The ternary (world-carrying) Nemo `.rls` line for [`native_restriction`]; `yvar`
+    /// names the shared invented null so concatenated rules keep distinct existential
+    /// variables.
+    fn nemo_restriction(rel: &str, from: &str, to: &str, yvar: &str) -> String {
+        format!(
+            "<{rel}>(?x, !{yvar}, ?w), <{TYPE_IRI}>(!{yvar}, <{to}>, ?w) :- \
+             <{TYPE_IRI}>(?x, <{from}>, ?w) .\n"
+        )
+    }
+
+    /// A single-individual `type(a, class)` native EDB fact.
+    fn type_fact(individual: &str, class: &str) -> Fact {
+        Fact {
+            subject: ex_iri(individual),
+            predicate: TYPE_IRI.to_owned(),
+            object: ex_iri(class),
+        }
+    }
+
+    /// One adversarial CERTIFIED fixture: a native rule set + EDB the certifier declares
+    /// `WeaklyAcyclic`, paired with the equivalent ternary Nemo `.rls` + typed EDB so the
+    /// certified facts can be cross-checked against Nemo's chase null-blind.
+    struct CertifiedFixture {
+        label: &'static str,
+        rules: Vec<ExistentialRule>,
+        edb: Vec<Fact>,
+        nemo_rls: String,
+        nemo_edb: TypedFactSet,
+    }
+
+    fn certified_fixtures() -> Vec<CertifiedFixture> {
+        // CF1 — plain acyclic mixed-class `C ⊑ ∃p.D`: the D-typed witness lives at the
+        // refined position `(type,S | D)` and never re-triggers the `(type,S | C)`-bodied
+        // rule, so the refinement's SPLIT is exactly what keeps `(type,S)` acyclic.
+        let mut cf1_edb = TypedFactSet::new();
+        cf1_edb.push_quad(&ex_iri(EX_A), TYPE_IRI, &ex_iri(EX_C), EX_WORLD);
+        cf1_edb.push_quad(&ex_iri("http://ex/b"), TYPE_IRI, &ex_iri(EX_C), EX_WORLD);
+        let cf1 = CertifiedFixture {
+            label: "acyclic-mixed-class-CtoD",
+            rules: vec![native_restriction("http://ex/rule/c", EX_C, EX_P, EX_D)],
+            edb: vec![type_fact(EX_A, EX_C), type_fact("http://ex/b", EX_C)],
+            nemo_rls: nemo_restriction(EX_P, EX_C, EX_D, "y"),
+            nemo_edb: cf1_edb,
+        };
+
+        // CF2 — the constant-refinement-is-load-bearing chain `C ⊑ ∃p.D`, `D ⊑ ∃q.E`:
+        // PLAIN weak acyclicity collapses every class into one `(type,S)` node, so each
+        // rule's fresh null lands where the OTHER rule reads and it spuriously reports a
+        // self-cycle → non-terminating.  The refinement splits `(type,S)` into `|C`, `|D`,
+        // `|E`; the D-null feeds only the `|D`-bodied rule and the E-null feeds nothing, so
+        // the certificate holds — and the chase genuinely terminates (finite C→D→E chain).
+        let mut cf2_edb = TypedFactSet::new();
+        cf2_edb.push_quad(&ex_iri(EX_A), TYPE_IRI, &ex_iri(EX_C), EX_WORLD);
+        let cf2 = CertifiedFixture {
+            label: "refinement-makes-acyclic-chain-CtoDtoE",
+            rules: vec![
+                native_restriction("http://ex/rule/c", EX_C, EX_P, EX_D),
+                native_restriction("http://ex/rule/d", EX_D, EX_Q, EX_E),
+            ],
+            edb: vec![type_fact(EX_A, EX_C)],
+            nemo_rls: format!(
+                "{}{}",
+                nemo_restriction(EX_P, EX_C, EX_D, "y1"),
+                nemo_restriction(EX_Q, EX_D, EX_E, "y2")
+            ),
+            nemo_edb: cf2_edb,
+        };
+
+        // CF3 — a CONSTANT-typed witness read by a VARIABLE-class (wildcard) consumer,
+        // exercising `add_wildcard_subsumption`'s connect-both branch.  The existential
+        // rule types its witness with the CONSTANT class D via a NON-`type` predicate
+        // (`hasKind`); a second rule `hasKind(?z, ?c) → tagged(?z, ?c)` reads `hasKind`
+        // with a VARIABLE class, so `(hasKind,S)` carries BOTH the `|D` constant refinement
+        // and the `*` wildcard and the subsumption connects them bidirectionally.  The
+        // wildcard hub does NOT reach back to the existential rule's `(type,S | C)` body
+        // position, so the certificate correctly holds and the chase terminates.
+        let mut cf3_edb = TypedFactSet::new();
+        cf3_edb.push_quad(&ex_iri(EX_A), TYPE_IRI, &ex_iri(EX_C), EX_WORLD);
+        let cf3 = CertifiedFixture {
+            label: "wildcard-subsumption-connect-both-acyclic",
+            rules: vec![
+                ExistentialRule {
+                    rule_iri: "http://ex/rule/kind".to_owned(),
+                    body: vec![ex_atom(ex_var("?x"), TYPE_IRI, ex_named(EX_C))],
+                    head: vec![
+                        ex_atom(ex_var("?x"), EX_P, ex_var("?y")),
+                        ex_atom(ex_var("?y"), EX_HASKIND, ex_named(EX_D)),
+                    ],
+                    distinct: vec![],
+                },
+                ExistentialRule {
+                    rule_iri: "http://ex/rule/tag".to_owned(),
+                    body: vec![ex_atom(ex_var("?z"), EX_HASKIND, ex_var("?k"))],
+                    head: vec![ex_atom(ex_var("?z"), EX_TAGGED, ex_var("?k"))],
+                    distinct: vec![],
+                },
+            ],
+            edb: vec![type_fact(EX_A, EX_C)],
+            nemo_rls: format!(
+                "<{EX_P}>(?x, !y, ?w), <{EX_HASKIND}>(!y, <{EX_D}>, ?w) :- \
+                 <{TYPE_IRI}>(?x, <{EX_C}>, ?w) .\n\
+                 <{EX_TAGGED}>(?z, ?k, ?w) :- <{EX_HASKIND}>(?z, ?k, ?w) .\n"
+            ),
+            nemo_edb: cf3_edb,
+        };
+
+        vec![cf1, cf2, cf3]
+    }
+
+    /// One shape the certifier MUST refuse (`Uncertified`), with why.
+    struct RefusedFixture {
+        label: &'static str,
+        rules: Vec<ExistentialRule>,
+    }
+
+    fn refused_fixtures() -> Vec<RefusedFixture> {
+        vec![
+            // RF1 — a genuinely non-terminating self-cycle `D ⊑ ∃p.D`: the witness is
+            // itself D-typed, so it re-fires the same rule forever.  The refinement gives
+            // both the body and the witness the SAME `(type,S | D)` node — no split can
+            // break this real cycle, and the certifier must not.
+            RefusedFixture {
+                label: "genuine-self-cycle-DtoD",
+                rules: vec![native_restriction(
+                    "http://ex/rule/cyclic",
+                    EX_D,
+                    EX_P,
+                    EX_D,
+                )],
+            },
+            // RF2 — a genuine TWO-rule cycle `C ⊑ ∃p.D`, `D ⊑ ∃q.C`: C invents a D, D
+            // invents a C, forever.  Across rules the refined `(type,S | C)` and
+            // `(type,S | D)` nodes are mutually reachable through the special edges.
+            RefusedFixture {
+                label: "genuine-two-rule-cycle-CtoDtoC",
+                rules: vec![
+                    native_restriction("http://ex/rule/c", EX_C, EX_P, EX_D),
+                    native_restriction("http://ex/rule/d", EX_D, EX_Q, EX_C),
+                ],
+            },
+            // RF3 — the CONSERVATIVE wildcard-subsumption refusal: `C ⊑ ∃p.D` alongside a
+            // VARIABLE-class reader OVER `type` itself (`type(?z, ?c) → hasClass(?z, ?c)`).
+            // The wildcard `(type,S | *)` now co-occurs with the `|C` and `|D` constant
+            // refinements at the SAME `(type,S)`, so `add_wildcard_subsumption` connects
+            // `|C ↔ * ↔ |D` and the special edge `(type,S | C) → (type,S | D)` lands inside
+            // a cycle through the wildcard hub.  This OVER-approximates (the program in fact
+            // terminates), but the certifier errs toward refusal — the sound direction: it
+            // never wrongly certifies.  Included to exercise that connect-both actually
+            // fires and to prove the discrimination is not vacuous.
+            RefusedFixture {
+                label: "conservative-wildcard-hub-refusal",
+                rules: vec![
+                    native_restriction("http://ex/rule/c", EX_C, EX_P, EX_D),
+                    ExistentialRule {
+                        rule_iri: "http://ex/rule/class".to_owned(),
+                        body: vec![ex_atom(ex_var("?z"), TYPE_IRI, ex_var("?c"))],
+                        head: vec![ex_atom(ex_var("?z"), EX_HASCLASS, ex_var("?c"))],
+                        distinct: vec![],
+                    },
+                ],
+            },
+        ]
+    }
+
+    #[test]
+    fn materialize_certifier_soundness_differential_agrees_with_nemo() {
+        // A budget that comfortably exceeds any legitimate fixpoint here (each fixture
+        // saturates in well under a dozen derivations) but BOUNDS a runaway: a
+        // wrongly-certified looping program hits this and reports `Exhausted` — the false
+        // certification this test exists to catch — instead of hanging the run.
+        const BIG: u64 = 100_000;
+
+        for f in certified_fixtures() {
+            // (1) The certifier declares this adversarial shape terminating.
+            let admission = ChaseAdmission::certify(&f.rules);
+            assert!(
+                admission.admits_native(),
+                "[{}] this adversarial mixed-class fixture must certify WeaklyAcyclic; got {:?}",
+                f.label,
+                admission
+            );
+
+            // (2)+(3) The soundness assertion: run the chase under a GENEROUS budget and
+            // demand a NATURAL fixpoint STRICTLY within it.  `Exhausted` on a certified
+            // program is a FALSE certification (it loops), never merely incomplete.
+            let outcome = chase_world(EX_WORLD, &f.edb, &f.rules, Some(BIG))
+                .unwrap_or_else(|e| panic!("[{}] chase errored: {e}", f.label));
+            let budgeted = match outcome {
+                NativeOutcome::Decided(b) => b,
+                NativeOutcome::Unsupported(k) => {
+                    panic!(
+                        "[{}] a certified program must run natively, got {k:?}",
+                        f.label
+                    )
+                }
+            };
+            assert_eq!(
+                budgeted.status,
+                BudgetStatus::Ok,
+                "[{}] SOUNDNESS VIOLATION: the certifier said WeaklyAcyclic but the budgeted \
+                 chase EXHAUSTED at {} of {BIG} steps — a program the certifier declared \
+                 terminating actually LOOPS (a false certification)",
+                f.label,
+                budgeted.consumed_steps
+            );
+            assert!(
+                budgeted.consumed_steps < BIG,
+                "[{}] a certified chase must halt strictly within budget, consumed {}",
+                f.label,
+                budgeted.consumed_steps
+            );
+
+            // (4) The oracle half: the certified facts agree with Nemo's chase null-blind.
+            let ledger = compare_existential_materialization(
+                &budgeted.rows,
+                &NemoFactsOracle,
+                &f.nemo_edb,
+                &f.nemo_rls,
+                EX_WORLD,
+            )
+            .unwrap_or_else(|e| panic!("[{}] nemo facts-only chase failed: {e}", f.label));
+            let verdict = ledger.enforce();
+            assert!(
+                verdict.passed,
+                "[{}] the certified native chase must AGREE with Nemo null-blind; reasons {:?}; \
+                 rows {:#?}",
+                f.label, verdict.reasons, ledger.rows
+            );
+            assert!(
+                ledger.agree > 0,
+                "[{}] non-vacuous: native and Nemo actually agree on ≥1 chased fact",
+                f.label
+            );
+            assert_eq!(
+                ledger.native_only, 0,
+                "[{}] no native-only fact vs Nemo",
+                f.label
+            );
+            assert_eq!(
+                ledger.oracle_only, 0,
+                "[{}] no oracle-only fact vs Nemo",
+                f.label
+            );
+        }
+
+        // Discrimination: the certifier is not vacuously certifying — genuinely cyclic
+        // shapes AND the conservative wildcard-hub over-approximation are REFUSED, each
+        // carrying a weak-acyclicity violation.
+        for f in refused_fixtures() {
+            let admission = ChaseAdmission::certify(&f.rules);
+            assert!(
+                !admission.admits_native(),
+                "[{}] this shape must be REFUSED (not certified terminating); got {:?}",
+                f.label,
+                admission
+            );
+            match admission {
+                ChaseAdmission::Uncertified { violations } => assert!(
+                    !violations.is_empty(),
+                    "[{}] a refusal must carry ≥1 weak-acyclicity violation",
+                    f.label
+                ),
+                ChaseAdmission::WeaklyAcyclic { .. } => {
+                    unreachable!("[{}] just asserted not admits_native", f.label)
+                }
+            }
+        }
+    }
 
     // ── Forward corpus: stratifiable binary Datalog± programs ────────────────────────
     //
