@@ -37,7 +37,7 @@ subclasses), so a violation is itself a typed, queryable object, not a log line.
 | Every `lang:Form` names exactly one sign system | SHACL Core | `lang:FormWithoutSignSystem` |
 | A sign system is an individual; a bare tag used as a system is ill-formed | source-lint | `lang:TagAsSignSystem` |
 | Form-slot indexes are unique per composed form | SHACL-SPARQL | `lang:DuplicateFormSlotIndex` |
-| Strict-mode slot indexes are zero-based and contiguous | Rust validator | `lang:NonContiguousFormSlots` |
+| Slot indexes are zero-based and contiguous (unconditional) | Rust validator | `lang:NonContiguousSlots` |
 | Morphological content is typed feature pairs, never an unparsed feature string | SHACL Core | `lang:UntypedMorphology` |
 | A hashing-facing surface form declares script, encoding, and normalization | SHACL Core | `lang:UnframedSurfaceForm` |
 | A `lang:WordForm` names its lexeme | SHACL Core | `lang:OrphanWordForm` |
