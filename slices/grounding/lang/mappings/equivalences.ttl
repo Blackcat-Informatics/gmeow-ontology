@@ -9,6 +9,7 @@
 @prefix lexvo:     <http://lexvo.org/id/> .
 @prefix glottolog: <https://glottolog.org/resource/languoid/id/> .
 @prefix ontolex:   <http://www.w3.org/ns/lemon/ontolex#> .
+@prefix ex:        <https://blackcatinformatics.ca/gmeow/examples/lang/> .
 
 # Term equivalences (authored in-slice; source of alignment linkage).
 #
@@ -293,3 +294,120 @@ gmeow:eqLangCorefersWith a gmeow:TermEquivalence ;
     gmeow:objectLabel "coreference" ;
     gmeow:comment "lang:corefersWith links two referring expressions naming one discourse referent; wd:Q63087 (coreference — when two or more expressions refer to the same thing) is the same relation. A concept-scoped match, so skos:closeMatch." ;
     gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+# =========================================================================== #
+# Wikidata lexemes — the authority surface for the worked example lexemes and
+# senses. The example lang:Lexeme / lang:Sense individuals (the "cats chase mice"
+# scene) align to Wikidata LEXEMES (wd:L…) and SENSES (wd:L…-S…) — the
+# lexicographic authority. External identifiers name alignments, not identity:
+# the GMEOW example lexeme is a minimal illustrative record and the GMEOW term
+# stays the local source of truth, so closeMatch, never exactMatch. Every L-id
+# and sense-id is curl-validated (Principle 5): the lexeme lemma, language, and
+# lexical category match, and the sense gloss matches the sense claimed.
+# =========================================================================== #
+
+gmeow:eqLexCatWikidata a gmeow:TermEquivalence ;
+    gmeow:alignSubject ex:lexCat ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:L7 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "cat (English noun lexeme)" ;
+    gmeow:comment "ex:lexCat is the English noun lexeme 'cat'; wd:L7 is the Wikidata lexeme cat (English, noun, lexical category Q1084). The example is a minimal illustrative lexeme, so closeMatch, not identity." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqLexChaseWikidata a gmeow:TermEquivalence ;
+    gmeow:alignSubject ex:lexChase ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:L14462 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "chase (English verb lexeme)" ;
+    gmeow:comment "ex:lexChase is the English verb lexeme 'chase'; wd:L14462 is the Wikidata lexeme chase (English, verb, lexical category Q24905). A minimal illustrative lexeme, so closeMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqLexMouseWikidata a gmeow:TermEquivalence ;
+    gmeow:alignSubject ex:lexMouse ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:L1119 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "mouse (English noun lexeme)" ;
+    gmeow:comment "ex:lexMouse is the English noun lexeme 'mouse'; wd:L1119 is the Wikidata lexeme mouse (English, noun, lexical category Q1084). A minimal illustrative lexeme, so closeMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqSenseCatWikidata a gmeow:TermEquivalence ;
+    gmeow:alignSubject ex:senseCat ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:L7-S1 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "cat sense: domesticated feline kept as a house pet" ;
+    gmeow:comment "ex:senseCat is the animal sense of the lexeme 'cat'; wd:L7-S1 is the Wikidata sense 'domesticated subspecies of feline animal, commonly kept as a house pet'. A GMEOW sense carries contexts a Wikidata sense flattens, so closeMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqSenseChaseWikidata a gmeow:TermEquivalence ;
+    gmeow:alignSubject ex:senseChase ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:L14462-S2 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "chase sense: follow, pursue" ;
+    gmeow:comment "ex:senseChase is the pursuit sense of the lexeme 'chase'; wd:L14462-S2 is the Wikidata sense 'follow, pursue'. closeMatch, not identity." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqSenseMouseWikidata a gmeow:TermEquivalence ;
+    gmeow:alignSubject ex:senseMouse ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:L1119-S1 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "mouse sense: any small rodent of the genus Mus" ;
+    gmeow:comment "ex:senseMouse is the rodent sense of the lexeme 'mouse'; wd:L1119-S1 is the Wikidata sense 'any small rodent of the genus Mus'. closeMatch, not identity." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+# =========================================================================== #
+# WordNet / ILI — the sense-inventory alignment surface (NOT an emission target).
+# A lang:Sense aligns to the WordNet synset / interlingual-index concept it
+# approximates. WordNet synset offsets are unstable across versions, so the
+# alignment pivots through a curl-validated Wikidata QID for the concept the
+# synset names — the stable cross-reference. A synset is COARSER than a GMEOW
+# sense-with-contexts, so this is closeMatch, NEVER exactMatch, and synset
+# membership is never imported as sense identity.
+# =========================================================================== #
+
+gmeow:mapsetWordnet a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-wordnet.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/wordnet" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment "GMEOW lang:Sense → WordNet synset / interlingual-index (ILI) alignments, pivoted through a curl-validated Wikidata QID for the synset concept (synset offsets are version-unstable; the QID is the stable pivot). A synset is coarser than a GMEOW sense-with-contexts — closeMatch, never identity, and synset membership is never imported as sense identity." .
+
+gmeow:eqSenseCatWordnet a gmeow:TermEquivalence ;
+    gmeow:alignSubject ex:senseCat ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q146 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "cat (small domesticated carnivorous mammal)" ;
+    gmeow:comment "ex:senseCat aligns to the WordNet 'cat' (feline) synset, pivoted through wd:Q146 (cat — small domesticated carnivorous mammal). The synset is coarser than the GMEOW sense, so closeMatch." ;
+    gmeow:sssomFile "gmeow-wordnet.sssom.tsv" .
+
+gmeow:eqSenseChaseWordnet a gmeow:TermEquivalence ;
+    gmeow:alignSubject ex:senseChase ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q101574237 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "chase (activity where one party tries to catch the other)" ;
+    gmeow:comment "ex:senseChase aligns to the WordNet 'chase/pursuit' synset, pivoted through wd:Q101574237 (chase — activity where one party tries to catch the other). The synset is coarser than the GMEOW sense, so closeMatch." ;
+    gmeow:sssomFile "gmeow-wordnet.sssom.tsv" .
+
+gmeow:eqSenseMouseWordnet a gmeow:TermEquivalence ;
+    gmeow:alignSubject ex:senseMouse ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q39275 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "Mus (genus of mammals)" ;
+    gmeow:comment "ex:senseMouse aligns to the WordNet 'mouse' (rodent) synset, pivoted through wd:Q39275 (Mus — genus of mammals), matching the sense gloss 'any small rodent of the genus Mus'. The synset is coarser than the GMEOW sense, so closeMatch." ;
+    gmeow:sssomFile "gmeow-wordnet.sssom.tsv" .
