@@ -1169,13 +1169,17 @@ fn check_unrecorded_epistemic_loss(ds: &RdfDataset, cfg: &LintConfig, report: &m
             if strata.is_empty() {
                 continue;
             }
-            let names_a_stratum = strata.iter().any(|kw| drops.iter().any(|d| d.contains(kw)));
-            if !names_a_stratum {
+            // EVERY flattened stratum must be recorded — not merely one of them. A source
+            // carrying `[vantage, reading, translation]` that enumerates only `vantage`
+            // silently flattens `reading` and `translation`, which is exactly the
+            // `lang:UnrecordedEpistemicLoss` this gate forbids; `all` (not `any`) enforces it.
+            let names_all_strata = strata.iter().all(|kw| drops.iter().any(|d| d.contains(kw)));
+            if !names_all_strata {
                 report.errors.push(format!(
                     "lang:UnrecordedEpistemicLoss: form-view projection emission {emission} projects \
-                     source {source} carrying epistemic structure ({strata:?}) but names none of it \
-                     among its lang:unsupportedConstruct entries; a form-view emission enumerates the \
-                     epistemic strata it flattens"
+                     source {source} carrying epistemic structure ({strata:?}) but does not name all \
+                     of it among its lang:unsupportedConstruct entries; a form-view emission \
+                     enumerates every epistemic stratum it flattens"
                 ));
             }
         }
@@ -2583,6 +2587,57 @@ mod tests {
                lang:projectsSource ex:lexemeSrc ;\n\
                logic:preservationKind logic:SoundUnderApproximation ;\n\
                lang:unsupportedConstruct \"vantage-held-readings\" .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            !report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:UnrecordedEpistemicLoss")),
+            "errors: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn projection_unrecorded_epistemic_loss_fires_when_only_one_of_many_strata_named() {
+        // A source flattening TWO strata (vantage + interpretation) whose emission names only
+        // ONE (vantage) leaves interpretation silently unrecorded — the gate must fire. Under
+        // the earlier `any` semantics this escaped; `all` closes it.
+        let ds = dataset_from(&format!(
+            "{LANG_PREFIXES}\
+             ex:lexemeSrc a lang:Lexeme, lang:InterpretationAct ;\n\
+               gmeow:vantage ex:annotatorVantage .\n\
+             ex:em a lang:ProjectionEmission ;\n\
+               lang:projectionTargetName \"OntoLex-Lemon\" ;\n\
+               lang:projectsSource ex:lexemeSrc ;\n\
+               logic:preservationKind logic:SoundUnderApproximation ;\n\
+               lang:unsupportedConstruct \"vantage-flattened\" .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:UnrecordedEpistemicLoss")),
+            "errors: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn projection_unrecorded_epistemic_loss_clean_when_all_strata_named() {
+        // The same two-stratum source is clean only when the emission names BOTH strata.
+        let ds = dataset_from(&format!(
+            "{LANG_PREFIXES}\
+             ex:lexemeSrc a lang:Lexeme, lang:InterpretationAct ;\n\
+               gmeow:vantage ex:annotatorVantage .\n\
+             ex:em a lang:ProjectionEmission ;\n\
+               lang:projectionTargetName \"OntoLex-Lemon\" ;\n\
+               lang:projectsSource ex:lexemeSrc ;\n\
+               logic:preservationKind logic:SoundUnderApproximation ;\n\
+               lang:unsupportedConstruct \"vantage-flattened\" ;\n\
+               lang:unsupportedConstruct \"interpretation-act-dropped\" .\n"
         ));
         let report = structural_lint_dataset(&ds, &cfg());
         assert!(
