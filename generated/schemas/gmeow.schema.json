@@ -22987,6 +22987,56 @@
               "@type": {
                 "anyOf": [
                   {
+                    "const": "math:FittedModel"
+                  },
+                  {
+                    "contains": {
+                      "const": "math:FittedModel"
+                    },
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "@type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/math:FittedModel"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "@type": {
+                "anyOf": [
+                  {
+                    "const": "math:FormalVerificationResult"
+                  },
+                  {
+                    "contains": {
+                      "const": "math:FormalVerificationResult"
+                    },
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "@type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/math:FormalVerificationResult"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "@type": {
+                "anyOf": [
+                  {
                     "const": "math:Function"
                   },
                   {
@@ -23054,6 +23104,31 @@
           },
           "then": {
             "$ref": "#/$defs/math:Homomorphism"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "@type": {
+                "anyOf": [
+                  {
+                    "const": "math:IngestRun"
+                  },
+                  {
+                    "contains": {
+                      "const": "math:IngestRun"
+                    },
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "@type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/math:IngestRun"
           }
         },
         {
@@ -23229,6 +23304,31 @@
           },
           "then": {
             "$ref": "#/$defs/math:MetricSignature"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "@type": {
+                "anyOf": [
+                  {
+                    "const": "math:ModelFormula"
+                  },
+                  {
+                    "contains": {
+                      "const": "math:ModelFormula"
+                    },
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "@type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/math:ModelFormula"
           }
         },
         {
@@ -37419,6 +37519,91 @@
       ],
       "type": "object"
     },
+    "math:FittedModel": {
+      "properties": {
+        "@annotation": {
+          "$ref": "#/$defs/Annotation"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "@type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ]
+        },
+        "math:fittedToData": {
+          "anyOf": [
+            {
+              "$comment": "external class https://blackcatinformatics.ca/math/DatasetMatrix",
+              "type": "string"
+            },
+            {
+              "items": {
+                "$comment": "external class https://blackcatinformatics.ca/math/DatasetMatrix",
+                "type": "string"
+              },
+              "minItems": 1,
+              "type": "array"
+            }
+          ]
+        },
+        "math:modelFormula": {
+          "anyOf": [
+            {
+              "$comment": "external class https://blackcatinformatics.ca/math/ModelFormula",
+              "type": "string"
+            },
+            {
+              "items": {
+                "$comment": "external class https://blackcatinformatics.ca/math/ModelFormula",
+                "type": "string"
+              },
+              "minItems": 1,
+              "type": "array"
+            }
+          ]
+        }
+      },
+      "required": [
+        "math:fittedToData",
+        "math:modelFormula"
+      ],
+      "type": "object"
+    },
+    "math:FormalVerificationResult": {
+      "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
+      "properties": {
+        "@annotation": {
+          "$ref": "#/$defs/Annotation"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "@type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ]
+        }
+      },
+      "type": "object"
+    },
     "math:Function": {
       "properties": {
         "@annotation": {
@@ -37697,6 +37882,82 @@
       "required": [
         "math:preservationLaw",
         "math:preservedOperation"
+      ],
+      "type": "object"
+    },
+    "math:IngestRun": {
+      "properties": {
+        "@annotation": {
+          "$ref": "#/$defs/Annotation"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "@type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ]
+        },
+        "logic:instantiatesPlan": {
+          "anyOf": [
+            {},
+            {
+              "items": {},
+              "minItems": 1,
+              "type": "array"
+            }
+          ]
+        },
+        "logic:instantiatesSchema": {
+          "anyOf": [
+            {},
+            {
+              "items": {},
+              "minItems": 1,
+              "type": "array"
+            }
+          ]
+        },
+        "math:ingestCorrespondence": {
+          "anyOf": [
+            {
+              "$comment": "external class https://blackcatinformatics.ca/logic/Correspondence",
+              "type": "string"
+            },
+            {
+              "items": {
+                "$comment": "external class https://blackcatinformatics.ca/logic/Correspondence",
+                "type": "string"
+              },
+              "minItems": 1,
+              "type": "array"
+            }
+          ]
+        },
+        "math:parseSource": {
+          "anyOf": [
+            {},
+            {
+              "items": {},
+              "minItems": 1,
+              "type": "array"
+            }
+          ]
+        }
+      },
+      "required": [
+        "logic:instantiatesPlan",
+        "logic:instantiatesSchema",
+        "math:ingestCorrespondence",
+        "math:parseSource"
       ],
       "type": "object"
     },
@@ -38071,6 +38332,49 @@
           ]
         }
       },
+      "type": "object"
+    },
+    "math:ModelFormula": {
+      "properties": {
+        "@annotation": {
+          "$ref": "#/$defs/Annotation"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "@type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ]
+        },
+        "math:argumentSlot": {
+          "anyOf": [
+            {
+              "$comment": "external class https://blackcatinformatics.ca/math/ArgumentSlot",
+              "type": "string"
+            },
+            {
+              "items": {
+                "$comment": "external class https://blackcatinformatics.ca/math/ArgumentSlot",
+                "type": "string"
+              },
+              "minItems": 1,
+              "type": "array"
+            }
+          ]
+        }
+      },
+      "required": [
+        "math:argumentSlot"
+      ],
       "type": "object"
     },
     "math:Number": {
