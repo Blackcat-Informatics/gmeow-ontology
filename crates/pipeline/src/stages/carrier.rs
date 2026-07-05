@@ -3167,8 +3167,9 @@ mod xsd_canon_tests {
     fn recognized_xsd_literal_is_canonicalized() {
         for (lex, datatype, expected) in [
             ("0.90", XSD_DECIMAL, "0.9"),
-            ("415.0", XSD_DECIMAL, "415.0"),
-            ("-200.0", XSD_DECIMAL, "-200.0"),
+            // XSD 1.1 canonical decimal drops the trailing `.0` for whole values.
+            ("415.0", XSD_DECIMAL, "415"),
+            ("-200.0", XSD_DECIMAL, "-200"),
             (
                 "2024-06-01T10:00:00+00:00",
                 XSD_DATETIME,
