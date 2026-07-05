@@ -124,12 +124,17 @@ def test_full_profile_imports_every_slice() -> None:
         str(o) for o in full.objects(predicate=OWL.imports) if isinstance(o, URIRef)
     }
     slices = discover_slices()
-    extensions = {s.iri for s in slices.values() if not s.is_core}
+    # The full profile is the root (core) plus every EXTENSION. Profile-tier
+    # slices (pure selections that mint nothing) are compositions of
+    # already-included slices and are deliberately excluded from the
+    # everything-aggregation.
+    extensions = {s.iri for s in slices.values() if s.tier == "extension"}
     assert imports == {ONTOLOGY_IRI} | extensions
 
-    # closure sanity: root(core) + extensions covers every discovered slice
+    # closure sanity: root(core) + extensions + profiles covers every discovered slice
     core = {s.iri for s in slices.values() if s.is_core}
-    assert core | extensions == {s.iri for s in slices.values()}
+    profiles = {s.iri for s in slices.values() if s.tier == "profile"}
+    assert core | extensions | profiles == {s.iri for s in slices.values()}
 
 
 def test_claims_profile_is_genuinely_sub_core() -> None:

@@ -69,6 +69,11 @@ gmeow:tierExtension a gmeow:SliceTier ;
     skos:definition "An opt-in slice serving a focused domain: it depends only on core slices (never on another extension — enforced by the dependency gate), reasons as extension ∪ core, and may ship as its own sub-profiled GTS package."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> .
 
+gmeow:tierProfile a gmeow:SliceTier ;
+    rdfs:label "profile tier"@x-gmeow-english ;
+    skos:definition "A pure-selection slice that MINTS NOTHING (Principle 16): a dependency-closed subset of core and extension terms forming an internally consistent sub-ontology for one cohesive audience, selected via gmeow:sliceDependsOn. A profile may depend on core AND extension slices; nothing depends on a profile (the dependency DAG gate permits profile→core and profile→extension, forbids the reverse). It is a projection view — not a new core/extension category and not a place to mint terms; if a design asks where a profile's minted terms live, it is mis-designed (INHABITED-CONSUMER.md)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> .
+
 # --------------------------------------------------------------------------- #
 # Dependencies & consumer (the two gated fields)
 # --------------------------------------------------------------------------- #
@@ -178,6 +183,7 @@ gmeow:sliceProfile gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:sliceTier gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:tierCore gmeow:graphBoxRole gmeow:boxABox, gmeow:boxConfigBox .
 gmeow:tierExtension gmeow:graphBoxRole gmeow:boxABox, gmeow:boxConfigBox .
+gmeow:tierProfile gmeow:graphBoxRole gmeow:boxABox, gmeow:boxConfigBox .
 gmeow:computedSliceDependency gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
 gmeow:computedProfileMembership gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:dependencyEvidence gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .

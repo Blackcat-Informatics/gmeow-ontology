@@ -1,0 +1,22 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# CQ6 (INHABITED-COMPETENCY.md, INHABITED-RUNTIME-STACK.md): which
+# artifact / deployment / runtime / session / invocation produced an output? The
+# de-conflation chain resolves end to end, each hop named. Over
+# provenance-chain.ttl this walks output → invocation → execution → deployment →
+# artifact, and invocation → session, so an output is traced to the exact served
+# artifact and the session it belonged to. This is the STANDALONE-resolvable
+# prefix of the chain (the session → durable-subject terminus lives in the
+# agent-runtime profile, where core/inhabitation is present). The flat one-hop
+# gmeow:generatedForSubject shortcut is a computed projection of this same path;
+# the projection-agreement gate proves the two agree (Principle 12 / 7).
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+SELECT ?output ?invocation ?execution ?deployment ?artifact ?session WHERE {
+    ?output gmeow:wasGeneratedBy ?invocation .
+    ?invocation gmeow:invocationInExecution ?execution ;
+        gmeow:subEventOf ?session .
+    ?execution gmeow:executionOfDeployment ?deployment .
+    ?deployment gmeow:deploymentArtifact ?artifact .
+    ?session a gmeow:AgentSession .
+}
