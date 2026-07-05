@@ -1,0 +1,20 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Well-formed: an orthogonal complement naming its ambient space, its
+# complement-semantics (orthogonal), AND the inner product defining its
+# orthogonality. Conforms to math:ComplementShape and math:OrthogonalComplementShape.
+# The referenced subspace/space are typed minimally (math:MathematicalObject) so the
+# fixture isolates the orthogonal-complement rule. Bound by ex:ecOrthogonalComplementQualified.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:residualPerp a math:OrthogonalComplement ;
+    math:orthogonalComplementOf ex:embeddedSub ;
+    math:ambientSpace ex:complexSpace ;
+    math:complementSemantics math:orthogonalComplement ;
+    math:definedByInnerProduct ex:hermInner .
+
+ex:embeddedSub a math:MathematicalObject .
+ex:complexSpace a math:MathematicalObject .
+ex:hermInner a math:HermitianInnerProduct .
