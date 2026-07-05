@@ -1,0 +1,46 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# An ORIGINAL, self-attributed OntoLex-Lemon lexicon authored as repo content — a few
+# entries with a canonical form, an inflected other form, and glossed senses that evoke a
+# shared concept. No external Wiktionary/CC-BY import: the lexicon is minted here, so there
+# is no third-party lexical data to license.
+
+@prefix ontolex: <http://www.w3.org/ns/lemon/ontolex#> .
+@prefix lexinfo: <http://www.lexinfo.net/ontology/2.0/lexinfo#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix ex:      <http://example.org/lexicon/en/> .
+
+# "cat": a noun with a plural other form and one glossed sense evoking a shared concept.
+ex:cat a ontolex:LexicalEntry ;
+    lexinfo:partOfSpeech lexinfo:noun ;
+    ontolex:canonicalForm ex:cat_form ;
+    ontolex:otherForm ex:cats_form ;
+    ontolex:sense ex:cat_sense .
+
+ex:cat_form a ontolex:Form ;
+    ontolex:writtenRep "cat" .
+
+ex:cats_form a ontolex:Form ;
+    ontolex:writtenRep "cats" ;
+    lexinfo:number lexinfo:plural .
+
+ex:cat_sense a ontolex:LexicalSense ;
+    ontolex:evokes ex:feline_concept ;
+    skos:definition "A small domesticated carnivorous mammal." .
+
+# "feline": an adjective whose single sense evokes the same shared concept as "cat" — so
+# synonymy is DERIVED (two senses evoking one concept), never asserted flat.
+ex:feline a ontolex:LexicalEntry ;
+    lexinfo:partOfSpeech lexinfo:adjective ;
+    ontolex:canonicalForm ex:feline_form ;
+    ontolex:sense ex:feline_sense .
+
+ex:feline_form a ontolex:Form ;
+    ontolex:writtenRep "feline" .
+
+ex:feline_sense a ontolex:LexicalSense ;
+    ontolex:evokes ex:feline_concept ;
+    skos:definition "Of or relating to cats." .
+
+ex:feline_concept a ontolex:LexicalConcept .
