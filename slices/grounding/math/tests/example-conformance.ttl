@@ -362,6 +362,17 @@ ex:ecSeriesMissingConvergence a gmeow:ExampleConformance ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
     gmeow:conformanceRationale "The counter-example omits math:hasConvergence on a math:Series (sh:minCount 1 on math:SeriesShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UnderspecifiedConvergence)." .
 
+ex:ecSequenceConvergent a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/sequence-convergent.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:Sequence — a subclass of math:Function declaring its math:domain and math:codomain — carrying a math:Convergence (math:convergesTo + math:convergenceMode) through math:hasConvergence satisfies math:SequenceShape, math:FunctionFramingShape, and math:ConvergenceShape and validates with no findings." .
+
+ex:ecSequenceMissingConvergence a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/sequence-missing-convergence.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example declares math:domain and math:codomain (so math:FunctionFramingShape is satisfied and math:UnframedFunction does not fire) but omits math:hasConvergence on a math:Sequence (sh:minCount 1 on math:SequenceShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UnderspecifiedConvergence)." .
+
 # Topology: continuity declared, not assumed.
 ex:ecContinuousMapDeclared a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/conformance-fixtures/continuous-map-declared.ttl" ;

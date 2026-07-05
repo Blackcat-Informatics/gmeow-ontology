@@ -1,8 +1,10 @@
-# Competency question: "What are the open sets of this space, and is it
-# continuous/compact/connected?"  This exercises the topology discipline that a
-# math:TopologicalSpace is given by its open sets (math:hasOpenSet) and that
-# connectedness is a declared property (math:isConnected), not an assumption. Scoped to
-# the fixture namespace so the answer is exactly {circleSpace → {arcU, arcV}, connected}.
+# Competency question: "What are the open sets of this space, and is it connected?"
+# This exercises the topology discipline that a math:TopologicalSpace is given by its
+# open sets (math:hasOpenSet) and that connectedness is a declared property
+# (math:isConnected), not an assumption. It reads only the declared open sets and the
+# declared connectedness flag — it does not probe compactness or any continuous-map
+# property. Scoped to the fixture namespace so the answer is exactly
+# {circleSpace → {arcU, arcV}, connected}.
 PREFIX math: <https://blackcatinformatics.ca/math/>
 
 SELECT ?space ?openSet ?connected WHERE {
