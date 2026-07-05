@@ -143,6 +143,36 @@ overflow-checks = true
 strip = "symbols"
 opt-level = 1
 
+# Build third-party DEPENDENCIES optimized in dev/test — `package."*"` matches
+# dependencies only, never our own workspace crates, so those keep the opt-1 +
+# debug-assertions/overflow-checks contract above (test coverage unchanged). The
+# conformance-gated purrdf engine (parse + id-native SHACL + SPARQL eval) is far
+# slower under opt-1 + overflow-checks than at release; left unoptimized the
+# compute-bound whole-bundle tests blow their per-test timeout cliffs. nemo /
+# nemo-physical are pinned back to opt-1 because their generic monomorphization is
+# the build-RAM driver (opt-3 restores the ~64 GB peak the profiles above cap).
+[profile.dev.package."*"]
+opt-level = 3
+debug-assertions = false
+overflow-checks = false
+
+[profile.dev.package.nemo]
+opt-level = 1
+
+[profile.dev.package.nemo-physical]
+opt-level = 1
+
+[profile.test.package."*"]
+opt-level = 3
+debug-assertions = false
+overflow-checks = false
+
+[profile.test.package.nemo]
+opt-level = 1
+
+[profile.test.package.nemo-physical]
+opt-level = 1
+
 # Workspace-wide thin-LTO (#828 item 3). `lto` is profile-global — it cannot be
 # scoped away from nemo the way codegen-units is — so enabling it was gated on a
 # measurement of peak link RSS against the 16 GB `ubuntu-latest` wheel runner.
