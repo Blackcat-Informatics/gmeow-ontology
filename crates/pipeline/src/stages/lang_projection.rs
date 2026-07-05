@@ -313,28 +313,64 @@ fn no_source_row(target: &str) -> ProjectionResult {
 /// input slices are empty (each target folds its honest no-source row).
 fn collect_input(catalog: Option<&SliceCatalog>) -> Result<LangProjectionInput, PipelineError> {
     let mut grammars: Vec<NamedSource> = Vec::new();
+    let mut lang_models: Vec<NamedSource> = Vec::new();
     if let Some(catalog) = catalog {
         for record in catalog.records() {
             for artifact in &record.artifacts {
-                if !artifact.logical_path.ends_with(".ebnf") {
+                if artifact.logical_path.ends_with(".ebnf") {
+                    grammars.push(NamedSource {
+                        name: grammar_stem(&artifact.logical_path),
+                        bytes: artifact.content.clone(),
+                    });
                     continue;
                 }
-                let name = grammar_stem(&artifact.logical_path);
-                grammars.push(NamedSource {
-                    name,
-                    bytes: artifact.content.clone(),
-                });
+                // The `lang:` RDF surfaces the document/surface/meaning targets (TEI, NIF, SemAF)
+                // lower FROM: the shipped `examples/*.ttl` that reference the lang: namespace. The
+                // namespace check scopes the scan to lang-bearing sources (a non-lang example is
+                // not fed to a lang bridge, so it never hard-fails the projection).
+                if artifact.logical_path.starts_with("examples/")
+                    && artifact.logical_path.ends_with(".ttl")
+                    && contains_lang_namespace(&artifact.content)
+                {
+                    lang_models.push(NamedSource {
+                        name: lang_model_stem(&artifact.logical_path),
+                        bytes: artifact.content.clone(),
+                    });
+                }
             }
         }
     }
     // Deterministic source order (independent of catalog discovery order).
     grammars.sort_by(|a, b| a.name.cmp(&b.name));
+    lang_models.sort_by(|a, b| a.name.cmp(&b.name));
 
     Ok(LangProjectionInput {
         grammars,
         lexicons: Vec::new(),
         treebanks: Vec::<ConlluSource>::new(),
+        lang_models,
     })
+}
+
+/// Whether a source references the `lang:` namespace — the cheap scope filter that keeps the
+/// TEI/NIF/SemAF scan to lang-bearing examples and never feeds an unrelated example to a lang
+/// bridge (which would hard-fail the projection).
+fn contains_lang_namespace(content: &[u8]) -> bool {
+    const LANG_NS_BYTES: &[u8] = b"blackcatinformatics.ca/lang/";
+    content
+        .windows(LANG_NS_BYTES.len())
+        .any(|w| w == LANG_NS_BYTES)
+}
+
+/// The `lang:` model source stem (the file basename without its `.ttl` extension).
+fn lang_model_stem(logical_path: &str) -> String {
+    logical_path
+        .rsplit('/')
+        .next()
+        .unwrap_or(logical_path)
+        .strip_suffix(".ttl")
+        .unwrap_or(logical_path)
+        .to_owned()
 }
 
 /// The grammar source stem (the file basename without its `.ebnf` extension), used as the
@@ -518,6 +554,7 @@ mod tests {
                 name: "saw-her-duck".to_owned(),
                 readings: vec![reading_a.as_bytes().to_vec(), reading_b.as_bytes().to_vec()],
             }],
+            lang_models: Vec::new(),
         };
         let conllu = registry()
             .into_iter()
