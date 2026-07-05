@@ -2486,7 +2486,8 @@ math:CompactSpace
     rdfs:subClassOf math:TopologicalSpace ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Compact Space"@x-gmeow-english ;
-    skos:definition "A compact topological space: one in which every open cover has a finite subcover. A subclass of math:TopologicalSpace that declares its compactness through math:isCompact — compactness is declared, not assumed (an undeclared compactness is ill-formed, math:UndeclaredTopologicalProperty). Compactness is the topological generalization of closed-and-bounded (Heine–Borel) and is preserved by continuous images."@x-gmeow-english ;
+    rdfs:seeAlso math:compactnessBoundary ;
+    skos:definition "A compact topological space: one in which every open cover has a finite subcover. A subclass of math:TopologicalSpace that declares its compactness through math:isCompact — compactness is declared, not assumed (an undeclared compactness is ill-formed, math:UndeclaredTopologicalProperty). Unlike math:ConnectedSpace, whose defining law math:connectednessLaw is a first-order logic:Formula, compactness is genuinely second-order (it quantifies over open covers and appeals to finiteness) and so is backed not by a first-order law but by the honest recorded boundary math:compactnessBoundary (logic:expressivenessBoundary logic:SecondOrder, logic:preservationKind logic:Unsupported), referenced through math:preservesStructure. Compactness is the topological generalization of closed-and-bounded (Heine–Borel) and is preserved by continuous images."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:ConnectedSpace
@@ -2550,7 +2551,8 @@ math:isCompact
     a owl:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "is compact"@x-gmeow-english ;
-    skos:definition "Declares whether a space is compact — every open cover has a finite subcover. Domain math:CompactSpace (or math:TopologicalSpace), range xsd:boolean (stated in prose). Compactness is declared, not assumed from the type (an undeclared compactness is ill-formed, math:UndeclaredTopologicalProperty)."@x-gmeow-english ;
+    rdfs:seeAlso math:compactnessBoundary ;
+    skos:definition "Declares whether a space is compact — every open cover has a finite subcover. Domain math:CompactSpace (or math:TopologicalSpace), range xsd:boolean (stated in prose). Compactness is declared, not assumed from the type (an undeclared compactness is ill-formed, math:UndeclaredTopologicalProperty). The declaration is backed not by a first-order law but by the honest recorded second-order boundary math:compactnessBoundary — compactness genuinely exceeds first-order logic (open covers plus finiteness), so the boundary is carried in the loss ledger (logic:preservationKind logic:Unsupported), never faked as a first-order logic:Formula."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:isConnected
@@ -2746,6 +2748,24 @@ math:cnA5 a logic:Formula ; logic:relation math:disjointRel ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "U" ] , [ logic:termIndex 1 ; logic:termVariable "V" ] .
 math:cnA6 a logic:Formula ; logic:relation math:coversSpaceRel ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "U" ] , [ logic:termIndex 1 ; logic:termVariable "V" ] , [ logic:termIndex 2 ; logic:termVariable "X" ] .
+
+# --- Boundary: compactness — an honest recorded second-order boundary --------- #
+# Compactness ("every open cover has a finite subcover") is genuinely SECOND-ORDER:
+# it ∀-quantifies over open COVERS (families of open sets) AND requires a FINITE
+# subfamily. Finiteness is not first-order axiomatizable (FOL compactness theorem),
+# so — unlike math:continuityLaw/math:connectednessLaw, which ARE first-order —
+# compactness has NO first-order logic:Formula to author. It is recorded here as an
+# honest loss-ledger boundary carrying logic:expressivenessBoundary logic:SecondOrder
+# and logic:preservationKind logic:Unsupported, never faked as a first-order formula.
+# math:CompactSpace references it through math:preservesStructure (see the fixture),
+# and the SHACL gate still requires math:isCompact to be present.
+
+math:compactnessBoundary
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "compactness: an honest recorded second-order boundary (no first-order formula)"@x-gmeow-english ;
+    logic:expressivenessBoundary logic:SecondOrder ;
+    logic:preservationKind logic:Unsupported ;
+    skos:definition "The loss-ledger boundary record backing math:CompactSpace/math:isCompact: compactness ('every open cover has a finite subcover') is genuinely second-order — it ∀-quantifies over open COVERS (families of open sets) AND requires a FINITE subfamily. HiLog reflection could reify the covers, but finiteness is not first-order axiomatizable (the FOL compactness theorem), so a first-order witness would be an unsound uninterpreted predicate. Hence compactness is carried as an honest boundary (logic:expressivenessBoundary logic:SecondOrder, logic:preservationKind logic:Unsupported), residue disclosed in the ledger and never silent prose (Principle 17). Contrast its siblings math:continuityLaw and math:connectednessLaw, which ARE first-order logic:Formula laws."@x-gmeow-english .
 
 # --- Reified relation atoms for the separation-axiom laws (HiLog reflection) - #
 

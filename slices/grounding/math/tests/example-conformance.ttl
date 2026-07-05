@@ -397,6 +397,18 @@ ex:ecConnectednessAssumed a gmeow:ExampleConformance ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
     gmeow:conformanceRationale "The counter-example omits math:isConnected on a math:ConnectedSpace (sh:minCount 1 on math:ConnectedSpaceShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UndeclaredTopologicalProperty)." .
 
+# Topology: compactness declared, backed by an honest recorded second-order boundary.
+ex:ecCompactSpaceDeclared a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/compact-space-declared.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:CompactSpace declaring math:isCompact satisfies math:CompactSpaceShape and validates with no findings. Compactness is genuinely second-order (open covers plus finiteness) and so has no first-order law; the fixture instead references the honest recorded boundary math:compactnessBoundary through math:preservesStructure — the boundary is carried in the loss ledger (logic:preservationKind logic:Unsupported), never faked as a first-order logic:Formula." .
+
+ex:ecCompactnessAssumed a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/compactness-assumed.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example omits math:isCompact on a math:CompactSpace (sh:minCount 1 on math:CompactSpaceShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UndeclaredTopologicalProperty)." .
+
 # Topology: the separation-axiom family is law-backed (T2 the conforming witness).
 ex:ecHausdorffSpaceDeclared a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/conformance-fixtures/hausdorff-space-declared.ttl" ;
