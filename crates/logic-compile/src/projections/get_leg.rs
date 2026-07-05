@@ -17,7 +17,7 @@ use crate::ingest::prefixes::ns_to_prefix;
 use crate::ingest::{DslTerm, DslView};
 use crate::ir::{CorrespondenceRelation, MorphismClass, MorphismKind};
 
-/// The 45 projection profiles. The single authority shared by BOTH the EDOAL and the
+/// The 46 projection profiles. The single authority shared by BOTH the EDOAL and the
 /// SPARQL-CONSTRUCT lowerings — keeping one copy makes "no spec drift between the two
 /// dialects" structurally true.
 pub const PROFILES: &[&str] = &[
@@ -66,6 +66,7 @@ pub const PROFILES: &[&str] = &[
     "mo",
     "pon",
     "jams",
+    "ml-schema",
 ];
 
 pub(crate) const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
