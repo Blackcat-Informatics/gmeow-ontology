@@ -211,8 +211,9 @@ pub(crate) fn forward_oracle() -> impl ForwardOracle {
 /// `provides_provenance() == false`.  It is the parity oracle for the native existential
 /// chase, where the gate compares FACTS null-blind (provenance is exempt).
 ///
-/// Phase surface: consumed by the existential-chase parity gate today and by
-/// `materialize_routed` once the EL→existential-rule projection lands.
+/// Consumed by the existential-chase parity gate and by `materialize_routed`, which
+/// demotes an uncertified existential program to this facts-only path (the provenance
+/// oracle would hard-error on its invented nulls).
 pub(crate) struct NemoFactsOracle;
 
 impl ForwardOracle for NemoFactsOracle {
