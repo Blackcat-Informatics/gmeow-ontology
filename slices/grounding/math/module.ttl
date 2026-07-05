@@ -3540,3 +3540,11 @@ math:UnframedWeightTensor
     rdfs:label "Unframed Weight Tensor"@x-gmeow-english ;
     skos:definition "The failure raised when a math:WeightTensor does not name the math:ParameterSpace it lives in through math:inParameterSpace. Weights live in a declared parameter space over which optimization searches; a weight tensor without one is ill-formed."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
+
+math:ApplicationOperatorCardinality
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Application Operator Cardinality"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:ApplicationExpression does not apply exactly one math:operator — zero operators leave the application undefined, two or more make it ambiguous which operator is applied. Every application (a tensor computation node or an arithmetic application) names the single operator it invokes through math:operator; the sibling binder AST (math:BindingExpression) is not an application and is exempt."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .

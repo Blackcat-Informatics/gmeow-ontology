@@ -490,6 +490,18 @@ ex:ecTensorNodeDuplicateSlotIndex a gmeow:ExampleConformance ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
     gmeow:conformanceRationale "A tensor computation node reuses the expression AST wholesale, so two math:argumentSlot cells sharing math:slotIndex 0 trip the inherited math:SlotIndexUniquenessShape SPARQL constraint exactly as any application/binder would; validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (math:MalformedArgumentSlot)." .
 
+ex:ecApplicationTwoOperators a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/application-two-operators.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MaxCountConstraintComponent" ;
+    gmeow:conformanceRationale "A math:ApplicationExpression carrying two math:operator values (math:matrixProduct and math:tensorContraction) is ambiguous which operator it applies; its two math:argumentSlot cells are well-formed with distinct indexes, so it trips only math:ApplicationExpressionShape (sh:maxCount 1 on math:operator). Validation MUST emit shacl.MaxCountConstraintComponent and NO other finding (math:ApplicationOperatorCardinality)." .
+
+ex:ecTensorGraphNoNode a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/tensor-graph-no-node.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "A math:TensorComputationGraph declaring no math:computationNode has an empty forward pass and no operator to apply; it names its architecture but omits the required node, so it trips only math:TensorComputationGraphShape (sh:minCount 1 on math:computationNode). Validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:MalformedTensorComputationGraph)." .
+
 ex:ecWeightTensorNoParameterSpace a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/weight-tensor-no-parameter-space.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
