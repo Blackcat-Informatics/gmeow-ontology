@@ -48,7 +48,10 @@ fn parse_integer_surface(surface: &str) -> Option<i64> {
         // `"N"^^<datatype>` — take the lexical form up to the closing quote and
         // require the integer datatype tag.
         let (lex, tag) = rest.split_once('"')?;
-        if tag == format!("^^<{XSD_INTEGER}>") {
+        // Match the `^^<datatype>` tag without allocating: strip the delimiters
+        // and compare the datatype IRI directly (no raw indexing, so no
+        // out-of-bounds path).
+        if tag.strip_prefix("^^<").and_then(|t| t.strip_suffix('>')) == Some(XSD_INTEGER) {
             return lex.parse::<i64>().ok();
         }
         return None;
