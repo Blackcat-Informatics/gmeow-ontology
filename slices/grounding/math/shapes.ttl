@@ -3,6 +3,7 @@
 
 @prefix math:  <https://blackcatinformatics.ca/math/> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix sh:    <http://www.w3.org/ns/shacl#> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
@@ -1213,4 +1214,96 @@ math:WeightTensorShape
         sh:class math:ParameterSpace ;
         sh:severity sh:Violation ;
         sh:message "A math:WeightTensor must name the math:ParameterSpace it lives in through math:inParameterSpace." ;
+    ] .
+
+# =========================================================================== #
+# Bridges slice SHACL shapes — the ingestion-bridge hard-rule gates            #
+# (BRIDGES charter). A bridge run retains its source witness and the process-  #
+# layer in-band witness; a fitted model references data and specification; a   #
+# formal-verification result is grounded BY a separate observation (result ≠   #
+# claim). The hard-fail on the unliftable (math:UnliftableIngest) is a native  #
+# lint gate, not a SHACL shape.                                                #
+# =========================================================================== #
+
+math:IngestRunShape
+    a sh:NodeShape ;
+    rdfs:label "Ingest-run grounding shape"@x-gmeow-english ;
+    skos:definition "SHACL constraints for math:IngestRun: it retains its source witness through math:parseSource and carries the process-layer in-band witness through logic:instantiatesSchema and logic:instantiatesPlan. A bridge run without its retained source and schema/plan witness cannot support the lawful put leg and is ill-formed (math:UngroundedIngestRun)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    math:enforcesFailureClass math:UngroundedIngestRun ;
+    sh:targetClass math:IngestRun ;
+    sh:property [
+        sh:path math:parseSource ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:IngestRun must retain its source witness through math:parseSource — the in-band mnemomorphic complement that makes the lift a lawful put, not a backward-execution guess." ;
+    ] ;
+    sh:property [
+        sh:path logic:instantiatesSchema ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:IngestRun must carry the process-layer in-band witness through logic:instantiatesSchema (the reusable bridge action schema)." ;
+    ] ;
+    sh:property [
+        sh:path logic:instantiatesPlan ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:IngestRun must carry the process-layer in-band witness through logic:instantiatesPlan (the plan it was executed under)." ;
+    ] .
+
+math:FittedModelShape
+    a sh:NodeShape ;
+    rdfs:label "Fitted-model data-and-specification shape"@x-gmeow-english ;
+    skos:definition "SHACL constraint for math:FittedModel: it references the data it was fitted to through math:fittedToData and the specification it fits through math:modelFormula. A fitted model missing its data or specification is ill-formed (math:UnfittedModel)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    math:enforcesFailureClass math:UnfittedModel ;
+    sh:targetClass math:FittedModel ;
+    sh:property [
+        sh:path math:fittedToData ;
+        sh:minCount 1 ;
+        sh:class math:DatasetMatrix ;
+        sh:severity sh:Violation ;
+        sh:message "A math:FittedModel must reference the math:DatasetMatrix it was fitted to through math:fittedToData." ;
+    ] ;
+    sh:property [
+        sh:path math:modelFormula ;
+        sh:minCount 1 ;
+        sh:class math:ModelFormula ;
+        sh:severity sh:Violation ;
+        sh:message "A math:FittedModel must reference its math:ModelFormula specification through math:modelFormula." ;
+    ] .
+
+math:ModelFormulaShape
+    a sh:NodeShape ;
+    rdfs:label "Model-formula binder shape"@x-gmeow-english ;
+    skos:definition "SHACL constraint for math:ModelFormula: its body is a math:BindingExpression AST (the ~ is a binder over indexed operands), reached through math:argumentSlot — never a bare string. A model formula without its binder structure is ill-formed."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    math:enforcesFailureClass math:UnframedFunction ;
+    sh:targetClass math:ModelFormula ;
+    sh:property [
+        sh:path math:argumentSlot ;
+        sh:minCount 1 ;
+        sh:class math:ArgumentSlot ;
+        sh:severity sh:Violation ;
+        sh:message "A math:ModelFormula must carry its response/term structure as indexed math:ArgumentSlot operands (a math:BindingExpression AST), never a bare string." ;
+    ] .
+
+math:FormalVerificationResultShape
+    a sh:NodeShape ;
+    rdfs:label "Formal-verification-result grounding shape"@x-gmeow-english ;
+    skos:definition "SHACL constraint for math:FormalVerificationResult: it is grounded BY a separate gmeow:Observation carrying a gmeow:vantage (the checker's standpoint), through the inverse of gmeow:observationResult. The result object is not the held claim; a verification result stated as unconditional truth rather than a vantage-held verdict is ill-formed (math:UngroundedVerificationResult)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    math:enforcesFailureClass math:UngroundedVerificationResult ;
+    sh:targetClass math:FormalVerificationResult ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "A math:FormalVerificationResult must be grounded by a gmeow:Observation that names it through gmeow:observationResult and carries a gmeow:vantage; an unheld result is ill-formed (math:UngroundedVerificationResult)." ;
+        sh:select """
+            SELECT $this WHERE {
+                FILTER NOT EXISTS {
+                    ?obs <https://blackcatinformatics.ca/gmeow/observationResult> $this .
+                    ?obs <https://blackcatinformatics.ca/gmeow/vantage> ?vantage .
+                }
+            }
+        """ ;
     ] .
