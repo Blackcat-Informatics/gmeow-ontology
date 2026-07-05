@@ -277,6 +277,340 @@ fn test_dsl_shacl_runs_in_orchestration() {
     );
 }
 
+#[test]
+fn syntax_error_is_caught_before_structural_phases() {
+    let bad_path = write_tmp(
+        "gmeow_validate_all_syntax_bad.ttl",
+        "this is not turtle @@@ <<<",
+    );
+    let shapes_ttl = mini_shapes_ttl();
+
+    let result = ValidationRun::run(
+        &[bad_path.to_string_lossy().to_string()],
+        &shapes_ttl,
+        "",
+        "",
+        &lint_config(),
+        &ValidateOptions::default(),
+    );
+
+    std::fs::remove_file(&bad_path).ok();
+
+    let msg = match result {
+        Err(e) => e,
+        Ok(_) => panic!("orchestration must fail on syntax error"),
+    };
+    assert!(
+        msg.contains("syntax error in") && msg.contains("gmeow_validate_all_syntax_bad"),
+        "syntax error must be reported; got: {msg}"
+    );
+}
+
+#[test]
+fn validate_all_short_circuits_when_sameas_ban_fails() {
+    let sameas_path = write_tmp(
+        "gmeow_validate_all_sameas_bad.ttl",
+        "@prefix ex: <https://example.org/> .\n\
+         @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\
+         ex:a owl:sameAs ex:b .\n",
+    );
+    let shapes_ttl = mini_shapes_ttl();
+
+    let run = ValidationRun::run(
+        &[sameas_path.to_string_lossy().to_string()],
+        &shapes_ttl,
+        "",
+        "",
+        &lint_config(),
+        &ValidateOptions::default(),
+    )
+    .expect("orchestration must complete (reporting sameAs ban)");
+
+    std::fs::remove_file(&sameas_path).ok();
+
+    assert!(
+        run.errors().iter().any(|e| {
+            e.contains("banned owl:sameAs to external entity")
+                && e.contains("https://example.org/a")
+        }),
+        "sameAs ban must flag external entity: {:?}",
+        run.errors()
+    );
+    // Store-based phases are skipped once the sameAs ban reports errors.
+    assert!(
+        run.declared_terms.is_empty(),
+        "declared terms must be empty after sameAs failure"
+    );
+}
+
+#[test]
+fn sameas_ban_allows_internal_sameas() {
+    let ttl = format!(
+        "@prefix gmeow: <{NS}> .\n\
+         @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\
+         gmeow:A owl:sameAs gmeow:B .\n"
+    );
+    let path = write_tmp("gmeow_validate_all_sameas_internal.ttl", &ttl);
+    let shapes_ttl = mini_shapes_ttl();
+
+    let run = ValidationRun::run(
+        &[path.to_string_lossy().to_string()],
+        &shapes_ttl,
+        "",
+        "",
+        &lint_config(),
+        &ValidateOptions::default(),
+    )
+    .expect("orchestration must complete");
+
+    std::fs::remove_file(&path).ok();
+
+    assert!(
+        !run.errors().iter().any(|e| e.contains("banned owl:sameAs")),
+        "internal sameAs must be allowed: {:?}",
+        run.errors()
+    );
+}
+
+#[test]
+fn sameas_ban_respects_allowlist() {
+    let ttl = "@prefix ex: <https://example.org/> .\n\
+               @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\
+               ex:a owl:sameAs ex:b .\n"
+        .to_owned();
+    let path = write_tmp("gmeow_validate_all_sameas_allowed.ttl", &ttl);
+    let shapes_ttl = mini_shapes_ttl();
+
+    let options = ValidateOptions {
+        sameas_allowlist: vec![(
+            "https://example.org/a".to_owned(),
+            "https://example.org/b".to_owned(),
+        )],
+        ..ValidateOptions::default()
+    };
+
+    let run = ValidationRun::run(
+        &[path.to_string_lossy().to_string()],
+        &shapes_ttl,
+        "",
+        "",
+        &lint_config(),
+        &options,
+    )
+    .expect("orchestration must complete");
+
+    std::fs::remove_file(&path).ok();
+
+    assert!(
+        run.errors().is_empty(),
+        "allowlisted sameAs must pass: {:?}",
+        run.errors()
+    );
+}
+
+#[test]
+fn empty_source_paths_rejected() {
+    let shapes_ttl = mini_shapes_ttl();
+    let result = ValidationRun::run(
+        &[],
+        &shapes_ttl,
+        "",
+        "",
+        &lint_config(),
+        &ValidateOptions::default(),
+    );
+    assert!(result.is_err(), "empty source paths must fail fast");
+    let msg = match result {
+        Err(e) => e,
+        Ok(_) => panic!("expected an error"),
+    };
+    assert!(
+        msg.contains("source_paths must not be empty"),
+        "error should mention empty source_paths; got: {msg}"
+    );
+}
+
+#[test]
+fn structural_lint_flags_missing_annotations_in_orchestration() {
+    // A GMEOW class with label and isDefinedBy but no skos:definition.
+    let ttl = format!(
+        "@prefix gmeow: <{NS}> .\n\
+         @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\
+         @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
+         @prefix skos: <http://www.w3.org/2004/02/skos/core#> .\n\
+         gmeow:Undocumented a owl:Class ;\n\
+           rdfs:label \"x\" ;\n\
+           rdfs:isDefinedBy <{NS}> ;\n\
+           rdfs:subClassOf owl:Thing .\n"
+    );
+    let path = write_tmp("gmeow_validate_all_structural.ttl", &ttl);
+    let shapes_ttl = mini_shapes_ttl();
+
+    let run = ValidationRun::run(
+        &[path.to_string_lossy().to_string()],
+        &shapes_ttl,
+        "",
+        "",
+        &lint_config(),
+        &ValidateOptions::default(),
+    )
+    .expect("orchestration must complete");
+
+    std::fs::remove_file(&path).ok();
+
+    assert!(
+        run.errors().iter().any(|e| e.contains("skos:definition")),
+        "structural lint must flag missing definition: {:?}",
+        run.errors()
+    );
+}
+
+#[test]
+fn mapping_dsl_shacl_runs_in_orchestration() {
+    let ttl = format!(
+        "@prefix gmeow: <{NS}> .\n\
+         @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\
+         @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
+         @prefix skos: <http://www.w3.org/2004/02/skos/core#> .\n\
+         gmeow:Thing a owl:Class ;\n\
+           rdfs:label \"Thing\" ;\n\
+           skos:definition \"A thing.\" ;\n\
+           rdfs:isDefinedBy <{NS}> .\n"
+    );
+    let source_path = write_tmp("gmeow_validate_all_mapping_source.ttl", &ttl);
+    let shapes_ttl = mini_shapes_ttl();
+
+    let mapping_dsl_shapes = "@prefix sh: <http://www.w3.org/ns/shacl#> .\n\
+                              @prefix ex: <https://example.org/> .\n\
+                              ex:MappingShape a sh:NodeShape ;\n\
+                                sh:targetClass ex:Mapping ;\n\
+                                sh:property [ sh:path ex:source ; sh:minCount 1 ] ."
+        .to_owned();
+
+    let vocab_dir = std::env::temp_dir().join(format!(
+        "gmeow_validate_all_mapping_dsl_vocab_{}",
+        std::process::id()
+    ));
+    std::fs::create_dir_all(&vocab_dir).unwrap();
+    std::fs::write(
+        vocab_dir.join("vocabulary.ttl"),
+        "@prefix owl: <http://www.w3.org/2002/07/owl#> .\n\
+         @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
+         @prefix skos: <http://www.w3.org/2004/02/skos/core#> .\n\
+         @prefix ex: <https://example.org/> .\n\
+         ex:Mapping a owl:Class ;\n\
+           rdfs:label \"Mapping\" ;\n\
+           skos:definition \"A mapping.\" ;\n\
+           rdfs:isDefinedBy <https://example.org/> .\n",
+    )
+    .unwrap();
+    std::fs::write(
+        vocab_dir.join("bad.ttl"),
+        "@prefix ex: <https://example.org/> .\n\
+         ex:badMapping a ex:Mapping .\n",
+    )
+    .unwrap();
+
+    let options = ValidateOptions {
+        mapping_shapes_ttl: Some(mapping_dsl_shapes),
+        ..ValidateOptions::default()
+    };
+
+    let run = ValidationRun::run(
+        &[source_path.to_string_lossy().to_string()],
+        &shapes_ttl,
+        &vocab_dir.to_string_lossy(),
+        "",
+        &lint_config(),
+        &options,
+    )
+    .expect("orchestration must complete");
+
+    std::fs::remove_file(&source_path).ok();
+    std::fs::remove_dir_all(&vocab_dir).ok();
+
+    assert!(
+        run.errors()
+            .iter()
+            .any(|e| e == "SHACL constraint violated"),
+        "mapping DSL SHACL phase must flag the missing ex:source violation: {:?}",
+        run.errors()
+    );
+}
+
+#[test]
+fn statement_dsl_shacl_runs_in_orchestration() {
+    let ttl = format!(
+        "@prefix gmeow: <{NS}> .\n\
+         @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\
+         @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
+         @prefix skos: <http://www.w3.org/2004/02/skos/core#> .\n\
+         gmeow:Thing a owl:Class ;\n\
+           rdfs:label \"Thing\" ;\n\
+           skos:definition \"A thing.\" ;\n\
+           rdfs:isDefinedBy <{NS}> .\n"
+    );
+    let source_path = write_tmp("gmeow_validate_all_statement_source.ttl", &ttl);
+    let shapes_ttl = mini_shapes_ttl();
+
+    let statement_dsl_shapes = "@prefix sh: <http://www.w3.org/ns/shacl#> .\n\
+                                @prefix ex: <https://example.org/> .\n\
+                                ex:StatementShape a sh:NodeShape ;\n\
+                                  sh:targetClass ex:Statement ;\n\
+                                  sh:property [ sh:path ex:subject ; sh:minCount 1 ] ."
+        .to_owned();
+
+    let vocab_dir = std::env::temp_dir().join(format!(
+        "gmeow_validate_all_statement_dsl_vocab_{}",
+        std::process::id()
+    ));
+    std::fs::create_dir_all(&vocab_dir).unwrap();
+    std::fs::write(
+        vocab_dir.join("vocabulary.ttl"),
+        "@prefix owl: <http://www.w3.org/2002/07/owl#> .\n\
+         @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
+         @prefix skos: <http://www.w3.org/2004/02/skos/core#> .\n\
+         @prefix ex: <https://example.org/> .\n\
+         ex:Statement a owl:Class ;\n\
+           rdfs:label \"Statement\" ;\n\
+           skos:definition \"A statement.\" ;\n\
+           rdfs:isDefinedBy <https://example.org/> .\n",
+    )
+    .unwrap();
+    std::fs::write(
+        vocab_dir.join("bad.ttl"),
+        "@prefix ex: <https://example.org/> .\n\
+         ex:badStatement a ex:Statement .\n",
+    )
+    .unwrap();
+
+    let options = ValidateOptions {
+        statement_shapes_ttl: Some(statement_dsl_shapes),
+        ..ValidateOptions::default()
+    };
+
+    let run = ValidationRun::run(
+        &[source_path.to_string_lossy().to_string()],
+        &shapes_ttl,
+        "",
+        &vocab_dir.to_string_lossy(),
+        &lint_config(),
+        &options,
+    )
+    .expect("orchestration must complete");
+
+    std::fs::remove_file(&source_path).ok();
+    std::fs::remove_dir_all(&vocab_dir).ok();
+
+    assert!(
+        run.errors()
+            .iter()
+            .any(|e| e == "SHACL constraint violated"),
+        "statement DSL SHACL phase must flag the missing ex:subject violation: {:?}",
+        run.errors()
+    );
+}
+
 /// Helper: build a frozen native dataset from a list of Turtle file paths.
 fn build_store(paths: &[String]) -> std::sync::Arc<purrdf::RdfDataset> {
     let path_bufs: Vec<PathBuf> = paths.iter().map(PathBuf::from).collect();

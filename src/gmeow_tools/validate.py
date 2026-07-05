@@ -16,12 +16,12 @@ import re
 from dataclasses import dataclass, field
 from functools import lru_cache
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import gmeow_diagnostics
 import gmeow_validate
+from purrdf.purrdf_native import shacl as gmeow_shacl
 
-from gmeow_tools import shacl_engine
 from gmeow_tools.config import (
     _SAMEAS_ALLOWLIST,
     DSL_TESTS_DIR,
@@ -111,7 +111,7 @@ def _shapes_turtle(shapes_path: Path) -> str:
         raise FileNotFoundError(msg)
     files += generated_shapes
     files += iter_slice_shape_files()
-    return shacl_engine.shapes_files_to_turtle(files)
+    return "\n".join(path.read_text(encoding="utf-8") for path in files)
 
 
 @lru_cache(maxsize=2)
@@ -388,12 +388,12 @@ def run_shacl(data_nt: str, *, shapes_path: Path = SHAPES_FILE) -> ValidationRes
         raise FileNotFoundError(f"SHACL shapes not found: {shapes_path}")
 
     shapes_ttl = _shapes_turtle(shapes_path)
-    report = shacl_engine.validate_nt(data_nt, shapes_ttl)
+    report = gmeow_shacl.validate(shapes_ttl=shapes_ttl, data_nt=data_nt)
     result = ValidationResult()
     if report["conforms"]:
         return result
 
-    violations, warnings = shacl_engine.partition_results(report["results"])
+    violations, warnings = _partition_shacl_results(report["results"])
     if violations:
         result.errors.append("SHACL violations:\n" + "\n".join(violations))
     if warnings:
@@ -404,6 +404,63 @@ def run_shacl(data_nt: str, *, shapes_path: Path = SHAPES_FILE) -> ValidationRes
     if not violations and not warnings:
         result.errors.append("SHACL validation failed: non-conforming with no results")
     return result
+
+
+_SH = "http://www.w3.org/ns/shacl#"
+_SH_VIOLATION = _SH + "Violation"
+_SH_WARNING = _SH + "Warning"
+_SH_INFO = _SH + "Info"
+
+_GMEOW = "https://blackcatinformatics.ca/gmeow/"
+_BOX_LABELS = {
+    _GMEOW + "boxABox": "ABox",
+    _GMEOW + "boxTBox": "TBox",
+    _GMEOW + "boxRBox": "RBox",
+    _GMEOW + "boxCBox": "CBox",
+    _GMEOW + "boxConfigBox": "ConfigBox",
+}
+
+
+def _term_to_str(term: str | None) -> str:
+    """Render a gmeow_shacl N-Triples term as a bare ``str(term)`` would."""
+    if term is None:
+        return "None"
+    if term.startswith("<") and term.endswith(">"):
+        return term[1:-1]
+    if term.startswith("_:"):
+        return term[2:]
+    return term
+
+
+def _role_prefix(result: dict[str, object]) -> str:
+    roles = cast(list[str], result.get("result_box_roles") or [])
+    labels = sorted(
+        {
+            _BOX_LABELS.get(role, role.rsplit("/", 1)[-1].rsplit("#", 1)[-1])
+            for role in roles
+        }
+    )
+    return f"[{'/'.join(labels)}] " if labels else ""
+
+
+def _partition_shacl_results(
+    results: list[dict[str, object]],
+) -> tuple[list[str], list[str]]:
+    """Split structured ``gmeow_shacl`` results into (violations, warnings)."""
+    violations: list[str] = []
+    warnings: list[str] = []
+    for r in results:
+        focus = _term_to_str(cast(str | None, r.get("focus")))
+        message = cast(str | None, r.get("message"))
+        prefix = _role_prefix(r)
+        line = (
+            f"{prefix}{focus}: {message}" if message is not None else f"{prefix}{focus}"
+        )
+        if r.get("severity") in (_SH_WARNING, _SH_INFO):
+            warnings.append(line)
+        else:
+            violations.append(line)
+    return violations, warnings
 
 
 def native_ownership_report(root: Path | None = None) -> Any:

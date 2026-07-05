@@ -51,8 +51,20 @@ Removed because a Rust artifact already asserts the same behavior:
   `make validate` reasoning-invariants gate.
 - Migration stubs (`test_reference_frames`, `test_profiles`, `test_accessibility`,
   `test_lexicon`) → slicetest cells + `conformance_*.rs`.
-- `test_images`, `test_music_analysis/collections/pitch`, `test_procedures` →
-  slice `structural.ttl` cells + `conformance_*.rs`.
+- `test_feedback_bundle` → `crates/gmeow-dev-cli/src/feedback_bundle.rs` +
+  `crates/gmeow-dev-cli/tests/feedback_bundle.rs` (self-describing GTS feedback
+  bundle with findings RDF snapshot, SARIF/JSON blobs, snapshot-content-id
+  self-attestation, and robust verifier).
+- `test_diagnostics_config` → `crates/cli-core/tests/diagnostics_config.rs`
+  (resolved diagnostics output policy: console mode, artifact kinds, directory,
+  stem, category, with flag > env > default precedence).
+- `test_constitution` → `crates/validate/tests/constitution.rs` (all 16 cases:
+  granular codes, real-manifest pass, principle/heading sync, P18 RDF-1.2
+  enforcement, honor-system visibility, and every failure mode the gate exists
+  to catch: zero enforcement, stale artifact/symbol/make-target/CLI, orphaned
+  enforcement, title drift, undeclared enforcement, practice-only warning,
+  supersession/extends drift). The manifest parser data model is subsumed by
+  `gmeow_validate::constitution::{Principle, Enforcement, collect_principles}`.
 - `test_mcp_server`, `test_mcp_server_consumer`, `test_mcp_memory`: the MCP
   read-surface, stdio server loop, startup-lang validation, and grounded-memory
   triad are Rust — `crates/pipeline/src/mcp.rs` plus `export.rs`, asserted by
@@ -64,13 +76,14 @@ Removed because a Rust artifact already asserts the same behavior:
   repository static guards now live in `crates/validate/src/repo_static.rs` and
   run through `make crate-check`, covering the narrow-waist, Java/Docker
   lane-purity, and first-party upstream-`rdflib` import seals.
-- `test_saturate`: the equivalence-saturation engine E(G) is Rust
-  (`crates/pipeline/src/transform.rs::saturate_nt`); its strong-only class/property
-  edges, `skos:closeMatch`-hint refusal, lint denial, suppression safety,
-  `owl:sameAs` mirroring, `mappedFrom`/`confidence` provenance, and determinism are
-  asserted by the inline saturation parity tests in that module. `saturate.py`
-  remains only as the PyO3 surface adapter its consumers (`transform.py`,
-  `gts_producer.py`) call.
+- `test_validate`: syntax checking, structural lint, annotation-completeness
+  gate, `owl:sameAs` ban (internal/external/allowlist/empty-paths), cache
+  read/write, and mapping/statement/test DSL SHACL are now asserted by
+  `crates/validate` (`store.rs`, `lint.rs`, `cache.rs`, and
+  `tests/validate_all.rs`). The consumer-facing `gmeow validate <data>` surface
+  is covered by `crates/validate/tests/data_validate.rs`. `src/gmeow_tools/validate.py`
+  is retained as the Python orchestration wrapper until its remaining consumers
+  are migrated.
 
 Relocated out of the mainline test tree (dossier removed with the test):
 

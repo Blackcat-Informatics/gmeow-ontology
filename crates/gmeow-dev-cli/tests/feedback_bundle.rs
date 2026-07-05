@@ -1,0 +1,182 @@
+// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+// SPDX-License-Identifier: AGPL-3.0-only
+
+//! Rust twin of the retired `tests/test_feedback_bundle.py`.
+//!
+//! These integration tests cover the self-describing diagnostics feedback bundle:
+//! the findings RDF as the snapshot graph plus SARIF and flat-JSON blobs, the
+//! snapshot-content-id self-attestation, byte determinism, empty-report round-trip,
+//! and verifier robustness on garbage / truncated input.
+
+use gmeow_dev_cli::feedback_bundle::{
+    build_feedback_bundle, read_report_blobs, verify_feedback_bundle, META_SNAPSHOT_ID,
+    REP_FINDINGS, REP_SARIF,
+};
+use gmeow_diagnostics::{Finding, Location, Report, Severity};
+
+fn sample_report() -> Report {
+    let mut report = Report::new("validate");
+    let mut finding =
+        Finding::new(Severity::Error, "shacl.MinCount", "missing property").with_tool("shacl");
+    finding.add_location(Location::new(
+        Some("core/ai/examples/grounded-claim.ttl".to_owned()),
+        Some(12),
+        Some(3),
+        Some("gts:quad".to_owned()),
+    ));
+    report.add_finding(finding);
+    report
+}
+
+#[test]
+fn bundle_carries_sarif_and_findings_blobs() {
+    let bundle = build_feedback_bundle(&sample_report()).expect("build feedback bundle");
+    let mut graph = purrdf::gts::reader::read(&bundle, true, None);
+    let blobs = read_report_blobs(&mut graph).expect("read report blobs");
+
+    assert!(blobs.contains_key(REP_SARIF), "bundle carries SARIF blob");
+    assert!(
+        blobs.contains_key(REP_FINDINGS),
+        "bundle carries findings blob"
+    );
+
+    let sarif: serde_json::Value =
+        serde_json::from_slice(&blobs[REP_SARIF]).expect("SARIF parses as JSON");
+    assert_eq!(sarif["version"], "2.1.0");
+
+    let flat: serde_json::Value =
+        serde_json::from_slice(&blobs[REP_FINDINGS]).expect("findings JSON parses");
+    assert_eq!(
+        flat["findings"].as_array().expect("findings array")[0]["code"],
+        "shacl.MinCount"
+    );
+}
+
+#[test]
+fn bundle_self_attests() {
+    let bundle = build_feedback_bundle(&sample_report()).expect("build feedback bundle");
+
+    let mut graph = purrdf::gts::reader::read(&bundle, true, None);
+    let blobs = read_report_blobs(&mut graph).expect("read report blobs");
+    let flat: serde_json::Value =
+        serde_json::from_slice(&blobs[REP_FINDINGS]).expect("findings JSON parses");
+
+    assert!(
+        flat["metadata"][META_SNAPSHOT_ID]
+            .as_str()
+            .expect("snapshot content id is a string")
+            .starts_with("blake3:"),
+        "metadata stamps a blake3 content id"
+    );
+
+    assert!(
+        verify_feedback_bundle(&bundle),
+        "bundle verifies against its own snapshot content id"
+    );
+}
+
+#[test]
+fn bundle_is_deterministic() {
+    let a = build_feedback_bundle(&sample_report()).expect("build feedback bundle");
+    let b = build_feedback_bundle(&sample_report()).expect("build feedback bundle again");
+    assert_eq!(
+        a, b,
+        "two bundles built from the same report must be byte-identical"
+    );
+}
+
+#[test]
+fn empty_report_bundle_round_trips() {
+    let bundle = build_feedback_bundle(&Report::new("validate")).expect("build empty bundle");
+    assert!(
+        verify_feedback_bundle(&bundle),
+        "empty-report bundle self-attests"
+    );
+}
+
+#[test]
+fn verify_returns_false_on_garbage_bytes() {
+    assert!(!verify_feedback_bundle(b""), "empty bytes do not verify");
+    assert!(
+        !verify_feedback_bundle(b"not a gts bundle at all"),
+        "plain text does not verify"
+    );
+    assert!(
+        !verify_feedback_bundle(&(0_u8..=255_u8).collect::<Vec<_>>()),
+        "random bytes do not verify"
+    );
+}
+
+#[test]
+fn verify_returns_false_on_truncated_bundle() {
+    let bundle = build_feedback_bundle(&sample_report()).expect("build feedback bundle");
+    let truncated = &bundle[..bundle.len() / 2];
+    assert!(
+        !verify_feedback_bundle(truncated),
+        "a truncated bundle does not verify"
+    );
+}
+
+#[test]
+fn verify_returns_false_when_snapshot_id_is_tampered() {
+    let bundle = build_feedback_bundle(&sample_report()).expect("build feedback bundle");
+    let mut graph = purrdf::gts::reader::read(&bundle, true, None);
+    let blobs = read_report_blobs(&mut graph).expect("read report blobs");
+    let mut flat: serde_json::Value =
+        serde_json::from_slice(&blobs[REP_FINDINGS]).expect("findings JSON parses");
+
+    // Corrupt the attested content id; the verifier must not accept it.
+    if let Some(metadata) = flat["metadata"].as_object_mut() {
+        metadata.insert(
+            META_SNAPSHOT_ID.to_owned(),
+            serde_json::Value::String(
+                "blake3:0000000000000000000000000000000000000000000000000000000000000000"
+                    .to_owned(),
+            ),
+        );
+    }
+
+    let snapshot_dataset =
+        purrdf::gts::dataset_from_gts_graph(&graph).expect("fold graph back to dataset");
+    let mut builder = purrdf::gts_compose::SnapshotBuilder::new();
+    builder
+        .add_dataset(&snapshot_dataset)
+        .expect("re-add findings dataset");
+    let snapshot_bytes = purrdf::gts_compose::emit_gts(
+        &builder,
+        "dist",
+        None,
+        Vec::new(),
+        {
+            let mut report_blobs = Vec::new();
+            for (rep, bytes) in &blobs {
+                let data = if rep == REP_FINDINGS {
+                    serde_json::to_vec_pretty(&flat).expect("serialize mutated findings")
+                } else {
+                    bytes.clone()
+                };
+                let media_type = if rep == REP_SARIF {
+                    "application/sarif+json"
+                } else {
+                    "application/json"
+                };
+                report_blobs.push(purrdf::gts_compose::BlobRow {
+                    data,
+                    media_type: media_type.to_owned(),
+                    rep: rep.clone(),
+                });
+            }
+            report_blobs
+        },
+        None,
+        None,
+        None,
+        purrdf::gts_compose::DEFAULT_RSYNCABLE_THRESHOLD,
+    )
+    .expect("re-emit bundle");
+
+    assert!(
+        !verify_feedback_bundle(&snapshot_bytes),
+        "a bundle with a forged snapshot content id does not verify"
+    );
+}
