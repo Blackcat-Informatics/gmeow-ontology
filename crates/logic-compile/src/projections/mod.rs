@@ -59,6 +59,10 @@ pub mod shacl_af;
 pub mod shapes;
 // The SPARQL-CONSTRUCT correspondence lowering (get leg → executable CONSTRUCT).
 pub mod sparql;
+// The inverse-ingest ("put") SPARQL-CONSTRUCT lowering: the role-swap of `sparql` (external
+// template atoms → gmeow source atoms + mint-with-claim envelope), derived from the same
+// get-leg model so the two legs cannot drift.
+pub mod sparql_put;
 // The SSSOM correspondence lowering (1:1 lattice band → SSSOM TSV).
 pub mod sssom;
 pub mod text;
