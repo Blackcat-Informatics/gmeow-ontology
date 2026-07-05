@@ -1,0 +1,49 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Lossy romanization: a lang:TransliterationMap grafting an Arabic romanization scheme maps
+# the native Arabic orthography to a Latin one. Arabic script routinely omits short vowels,
+# so romanization must supply them and drops the ة/ه and hamza-seat distinctions — the
+# original is NOT recoverable from the romanized form. The crossing, held as a
+# lang:Rendering of the map, therefore carries logic:SoundUnderApproximation, NOT
+# logic:ExactPreservation: the loss is declared as data through the non-Exact preservation
+# polarity (the residue — unrecoverable short vowels and letter-seat distinctions — is what
+# the weaker rung records), never hidden behind a silent Exact default.
+# Conforms to lang:TransliterationAnchorShape and lang:RenderingRecordShape /
+# lang:RenderingNotIdentityShape.
+
+@prefix lang:  <https://blackcatinformatics.ca/lang/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <http://example.org/lang/> .
+
+ex:arabic a lang:SignSystem .
+ex:arabicScript a lang:Script .
+ex:latin a lang:Script .
+
+ex:arabicNative a lang:Orthography ;
+    lang:orthographyFor ex:arabic ; lang:usesScript ex:arabicScript .
+ex:arabicRomanized a lang:Orthography ;
+    lang:orthographyFor ex:arabic ; lang:usesScript ex:latin .
+
+ex:schemeALALC a gmeow:TransliterationScheme .
+
+ex:mapRomanize a lang:TransliterationMap ;
+    lang:transliterationSourceOrthography ex:arabicNative ;
+    lang:transliterationTargetOrthography ex:arabicRomanized ;
+    lang:transliterationScheme ex:schemeALALC .
+
+# ── The lossy application, held as a rendering of the map ──
+ex:wordArabic a lang:UnanalyzedProse ; lang:inSignSystem ex:arabic ;
+    lang:surfaceText "محمد" ; lang:inScript ex:arabicScript ;
+    lang:unicodeNormalization "NFC" ; lang:collationLocale "ar" ;
+    lang:analysisLevel lang:rawLevel .
+ex:wordRomanized a lang:UnanalyzedProse ; lang:inSignSystem ex:arabic ;
+    lang:surfaceText "Muhammad" ; lang:inScript ex:latin ;
+    lang:unicodeNormalization "NFC" ; lang:collationLocale "ar" ;
+    lang:analysisLevel lang:rawLevel .
+ex:renderRomanize a lang:Rendering ;
+    lang:renderedContent ex:wordArabic ;
+    lang:renderingForm ex:wordRomanized ;
+    lang:renderingKind lang:renderingTransliteration ;
+    lang:renderingConvention ex:mapRomanize ;
+    lang:renderingPreservation logic:SoundUnderApproximation .

@@ -1,0 +1,42 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Counter-example (ONE violation): a lang:TranslationUnit whose lang:translationSource is a
+# lang:SurfaceForm that realizes no analyzed form and is NOT typed lang:UnanalyzedProse,
+# while the carried logic:Correspondence claims a STRONG preservation (logic:ExactPreservation,
+# not the weakest logic:Unsupported / logic:ValidationOnly) → lang:UnmarkedSurfaceTranslation
+# (the sh:sparql constraint of lang:UnmarkedSurfaceTranslationShape). Claiming an exact
+# crossing over an un-analyzed, un-marked surface is the fabrication risk this gate flags.
+# The source's analysis level is lang:segmentedLevel (neither raw nor parsed) so the
+# surface-analysis gate does not also fire; the target is fully-marked UnanalyzedProse; both
+# forms and the method are present so no cardinality finding fires — ONLY the SPARQL finding.
+
+@prefix lang:  <https://blackcatinformatics.ca/lang/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <http://example.org/lang/> .
+
+ex:english a lang:SignSystem .
+ex:french a lang:SignSystem .
+ex:latin a lang:Script .
+
+# Surface-only source: a SurfaceForm that is NOT UnanalyzedProse and realizes nothing.
+ex:src a lang:SurfaceForm ; lang:inSignSystem ex:english ;
+    lang:surfaceText "cat" ; lang:inScript ex:latin ;
+    lang:unicodeNormalization "NFC" ; lang:collationLocale "en" ;
+    lang:analysisLevel lang:segmentedLevel .
+ex:tgt a lang:UnanalyzedProse ; lang:inSignSystem ex:french ;
+    lang:surfaceText "chat" ; lang:inScript ex:latin ;
+    lang:unicodeNormalization "NFC" ; lang:collationLocale "fr" ;
+    lang:analysisLevel lang:rawLevel .
+
+ex:corrStrong a logic:Correspondence ;
+    logic:preservationKind logic:ExactPreservation ;
+    logic:correspondenceRelation logic:Equiv ;
+    logic:morphismClass logic:SectionRetraction ;
+    logic:hasDeterminacy logic:Crisp ;
+    logic:mnemomorphic true .
+
+ex:unitUnmarked a lang:TranslationUnit ;
+    lang:translationSource ex:src ;
+    lang:translationTarget ex:tgt ;
+    lang:translationMethod lang:methodHuman ;
+    lang:translationCorrespondence ex:corrStrong .

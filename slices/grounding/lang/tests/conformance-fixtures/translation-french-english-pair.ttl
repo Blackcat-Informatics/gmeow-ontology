@@ -1,0 +1,69 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Flagship translation fixture: an English→French document with two lang:TranslationUnits,
+# each pairing an English lang:SurfaceForm with a French one and carrying its law-spine on
+# exactly one logic:Correspondence. The two crossings are machine-unanalyzed string pairs,
+# so each is honestly logic:ValidationOnly (present, but sense/register preservation is NOT
+# machine-verified) — never a fabricated logic:ExactPreservation. A document-level
+# lang:Translation rolls up from the units through lang:rollsUpFrom and asserts NO
+# document-level preservation (its adequacy is the derived join of its units' judgments).
+# The competency query projection-loss-against-canon.rq runs over this fixture: its answer
+# is exactly the non-Exact units {unitCat, unitDog}, each logic:ValidationOnly.
+# Conforms to every rendering/translation/paraphrase gate: lang:TranslationUnitShape,
+# lang:UnmarkedSurfaceTranslationShape, and lang:TranslationAttributionShape.
+
+@prefix lang:  <https://blackcatinformatics.ca/lang/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <http://example.org/lang/> .
+
+ex:english a lang:SignSystem .
+ex:french a lang:SignSystem .
+ex:latin a lang:Script .
+
+# ── Unit 1: "the cat" → "le chat" ────────────────────────────────────────────
+ex:enCat a lang:UnanalyzedProse ; lang:inSignSystem ex:english ;
+    lang:surfaceText "the cat" ; lang:inScript ex:latin ;
+    lang:unicodeNormalization "NFC" ; lang:collationLocale "en" ;
+    lang:analysisLevel lang:rawLevel .
+ex:frChat a lang:UnanalyzedProse ; lang:inSignSystem ex:french ;
+    lang:surfaceText "le chat" ; lang:inScript ex:latin ;
+    lang:unicodeNormalization "NFC" ; lang:collationLocale "fr" ;
+    lang:analysisLevel lang:rawLevel .
+ex:corrCat a logic:Correspondence ;
+    logic:preservationKind logic:ValidationOnly ;
+    logic:correspondenceRelation logic:RelatedMatch ;
+    logic:morphismClass logic:AffineCorrespondence ;
+    logic:hasDeterminacy logic:Vague ;
+    logic:mnemomorphic false .
+ex:unitCat a lang:TranslationUnit ;
+    lang:translationSource ex:enCat ;
+    lang:translationTarget ex:frChat ;
+    lang:translationMethod lang:methodHuman ;
+    lang:translationCorrespondence ex:corrCat .
+
+# ── Unit 2: "the dog" → "le chien" ───────────────────────────────────────────
+ex:enDog a lang:UnanalyzedProse ; lang:inSignSystem ex:english ;
+    lang:surfaceText "the dog" ; lang:inScript ex:latin ;
+    lang:unicodeNormalization "NFC" ; lang:collationLocale "en" ;
+    lang:analysisLevel lang:rawLevel .
+ex:frChien a lang:UnanalyzedProse ; lang:inSignSystem ex:french ;
+    lang:surfaceText "le chien" ; lang:inScript ex:latin ;
+    lang:unicodeNormalization "NFC" ; lang:collationLocale "fr" ;
+    lang:analysisLevel lang:rawLevel .
+ex:corrDog a logic:Correspondence ;
+    logic:preservationKind logic:ValidationOnly ;
+    logic:correspondenceRelation logic:RelatedMatch ;
+    logic:morphismClass logic:AffineCorrespondence ;
+    logic:hasDeterminacy logic:Vague ;
+    logic:mnemomorphic false .
+ex:unitDog a lang:TranslationUnit ;
+    lang:translationSource ex:enDog ;
+    lang:translationTarget ex:frChien ;
+    lang:translationMethod lang:methodHuman ;
+    lang:translationCorrespondence ex:corrDog .
+
+# ── Document roll-up (derived adequacy, no minted document-level preservation) ─
+ex:frDoc a lang:Translation ;
+    lang:translationMethod lang:methodHuman ;
+    lang:rollsUpFrom ex:unitCat , ex:unitDog .
