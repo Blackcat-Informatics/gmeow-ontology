@@ -397,6 +397,12 @@ ex:ecConnectednessAssumed a gmeow:ExampleConformance ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
     gmeow:conformanceRationale "The counter-example omits math:isConnected on a math:ConnectedSpace (sh:minCount 1 on math:ConnectedSpaceShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UndeclaredTopologicalProperty)." .
 
+# Topology: the separation-axiom family is law-backed (T2 the conforming witness).
+ex:ecHausdorffSpaceDeclared a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/hausdorff-space-declared.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:TopologicalSpace declaring its separation axiom through math:separationAxiom math:hausdorffSeparation and backing it with the first-order law math:hausdorffLaw through math:preservesStructure, with its two points sitting in disjoint open neighbourhoods, validates with no findings. Separation axioms are declared through the math:separationAxiom object property (not a boolean isX) and there is no MinCount gate over them, so the conforming fixture and the well-formed math:hausdorffLaw are the honest witness; the T5 audit verifies each axiom is law-backed." .
+
 # Geometry: manifold framing and chart dimension-consistency.
 ex:ecManifoldStructured a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/conformance-fixtures/manifold-structured.ttl" ;

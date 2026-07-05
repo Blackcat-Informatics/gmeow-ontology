@@ -1,0 +1,31 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Well-formed: a Hausdorff (T2) topological space that declares its separation
+# axiom through math:separationAxiom and backs it with the first-order law
+# math:hausdorffLaw through math:preservesStructure. Its two points sit in
+# disjoint open neighbourhoods (the T2 witnesses).
+# Conforms with no findings. Bound by ex:ecHausdorffSpaceDeclared.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+ex:plane a math:TopologicalSpace ;
+    rdfs:label "the Euclidean plane ℝ² (a Hausdorff space)"@x-gmeow-english ;
+    math:separationAxiom math:hausdorffSeparation ;
+    math:preservesStructure math:hausdorffLaw ;
+    math:hasOpenSet ex:nbhdOfP , ex:nbhdOfQ .
+
+ex:pointP
+    rdfs:label "the point P of the plane"@x-gmeow-english .
+
+ex:pointQ
+    rdfs:label "the point Q of the plane, distinct from P"@x-gmeow-english .
+
+ex:nbhdOfP a math:OpenSet ;
+    rdfs:label "an open disc around P (disjoint from the disc around Q)"@x-gmeow-english ;
+    math:hasElement ex:pointP .
+
+ex:nbhdOfQ a math:OpenSet ;
+    rdfs:label "an open disc around Q (disjoint from the disc around P)"@x-gmeow-english ;
+    math:hasElement ex:pointQ .
