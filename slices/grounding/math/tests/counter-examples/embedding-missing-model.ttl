@@ -1,0 +1,26 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:EmbeddingShape: an embedding naming its source, target
+# space, function (and its inherited math:Function domain/codomain frame) but omitting
+# the math:embeddingModel that produced it (sh:minCount 1). Every other role is present
+# and referenced nodes are typed minimally, so ONLY the missing-model violation fires.
+# Validation MUST emit shacl.MinCountConstraintComponent and NO other finding
+# (math:UnderspecifiedEmbedding). Bound by ex:ecEmbeddingMissingModel.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:emb a math:Embedding ;
+    math:domain ex:corpusSet ;
+    math:codomain ex:latentSet ;
+    math:embeddingSource ex:corpus ;
+    math:targetSpace ex:latent ;
+    math:embeddingFunction ex:embFn .
+
+ex:corpusSet a math:Set .
+ex:latentSet a math:Set .
+ex:corpus a math:MathematicalObject .
+ex:latent a math:MathematicalObject .
+ex:embFn a math:Function ;
+    math:domain ex:corpusSet ;
+    math:codomain ex:latentSet .
