@@ -31,6 +31,8 @@
 
 ex:kgEmbedding a math:KnowledgeGraphEmbedding ;
     rdfs:label "A knowledge graph embedded into a complex latent space"@x-gmeow-english ;
+    math:domain ex:sourceGraph ;
+    math:codomain ex:complexSpace4096 ;
     math:embeddingSource ex:sourceGraph ;
     math:targetSpace ex:complexSpace4096 ;
     math:embeddingFunction ex:nodeRelFn ;
@@ -79,7 +81,9 @@ ex:residualPCA a math:PCAAnalysis ;
     math:explainedVarianceRatio ex:pc1Variance ;
     math:residualSubspace ex:pcaResidual .
 
-ex:residualCovariance a math:CovarianceOperator .
+ex:residualCovariance a math:CovarianceOperator ;
+    math:domain ex:residualSubspace ;
+    math:codomain ex:residualSubspace .
 ex:randomizedSVD a math:SingularValueDecomposition .
 ex:pc1 a math:PrincipalComponent .
 ex:pc2 a math:PrincipalComponent .
