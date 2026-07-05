@@ -205,6 +205,7 @@ pub const PREFIX_REGISTRY: &[(&str, &str)] = &[
     ("fibo-fbc-fi-fi", "https://spec.edmcouncil.org/fibo/ontology/FBC/FinancialInstruments/FinancialInstruments/"),
     ("fibo-fbc-pas-fpas", "https://spec.edmcouncil.org/fibo/ontology/FBC/ProductsAndServices/FinancialProductsAndServices/"),
     ("mls", "http://www.w3.org/ns/mls#"),
+    ("otelgenai", "https://opentelemetry.io/docs/specs/semconv/registry/attributes/gen-ai/"),
     ("faldo", "http://biohackathon.org/resource/faldo#"),
     ("so", "http://purl.obolibrary.org/obo/SO_"),
     ("ladm", "http://www.opengis.net/ont/ladm#"),
