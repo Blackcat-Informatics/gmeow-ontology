@@ -58,7 +58,7 @@
                 edoal:uri gmeow:executionOfDeployment ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
+                a edoal:Relation ;
                 edoal:uri mls:executes ;
             ] ;
             align:relation "<=" ;
