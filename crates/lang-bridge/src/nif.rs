@@ -62,8 +62,11 @@ struct Anchor {
     offset_space: String,
     /// The owning surface form's IRI, where one anchors it through `lang:surfaceAnchor`.
     surface: Option<String>,
-    /// The owning surface's text, where present.
-    surface_text: Option<String>,
+    /// The ANCHORED substring — the owning surface's text sliced to `[start, end)` in the
+    /// declared offset space, where the surface text is present. This is what `nif:anchorOf`
+    /// and the Web-Annotation `exact` quote denote (the string the anchor represents), NOT the
+    /// whole surface text.
+    anchored_text: Option<String>,
     /// The owning surface's `lang:unicodeNormalization`, where present.
     normalization: Option<String>,
 }
@@ -135,6 +138,27 @@ fn parse_anchor(ds: &RdfDataset, anchor: TermId) -> Result<Anchor, IngestDiagnos
         None => (None, None, None),
     };
 
+    // The span must be well-formed: non-negative (the NIF begin/endIndex are
+    // xsd:nonNegativeInteger) and non-inverted. An ill-formed span is a hard fail, never a
+    // silently emitted invalid selector.
+    if start < 0 {
+        return Err(unrepresentable(format!(
+            "lang:anchorStart {start} on {} is negative; a NIF offset is non-negative",
+            iri
+        )));
+    }
+    if end < start {
+        return Err(unrepresentable(format!(
+            "lang:anchorEnd {end} on {iri} precedes lang:anchorStart {start}; the span is inverted"
+        )));
+    }
+    // The anchored substring the anchor represents (sliced in its declared offset space), or a
+    // hard fail if the span is out of range for the surface text.
+    let anchored_text = match &surface_text {
+        Some(text) => Some(anchored_substring(text, start, end, &offset_space, &iri)?),
+        None => None,
+    };
+
     Ok(Anchor {
         iri,
         source,
@@ -142,7 +166,7 @@ fn parse_anchor(ds: &RdfDataset, anchor: TermId) -> Result<Anchor, IngestDiagnos
         end,
         offset_space,
         surface,
-        surface_text,
+        anchored_text,
         normalization,
     })
 }
@@ -161,6 +185,46 @@ fn int_component(ds: &RdfDataset, anchor: TermId, local: &str) -> Result<i64, In
             term_label(ds, anchor)
         ))
     })
+}
+
+/// Slice `text` to the anchored substring `[start, end)` in the declared offset space, or HARD
+/// FAIL. `start >= 0` and `end >= start` are guaranteed by the caller; this bound-checks against
+/// the text length in the offset unit and refuses a span it cannot represent (grapheme-cluster
+/// slicing needs a Unicode segmentation pass this bridge does not carry — refused, never faked).
+fn anchored_substring(
+    text: &str,
+    start: i64,
+    end: i64,
+    offset_space: &str,
+    anchor_iri: &str,
+) -> Result<String, IngestDiagnostic> {
+    let (s, e) = (start as usize, end as usize);
+    match offset_space {
+        "codepointOffset" => {
+            let chars: Vec<char> = text.chars().collect();
+            if e > chars.len() {
+                return Err(unrepresentable(format!(
+                    "lang:anchorEnd {end} exceeds the {} codepoint(s) of the anchored surface text \
+                     for {anchor_iri}",
+                    chars.len()
+                )));
+            }
+            Ok(chars[s..e].iter().collect())
+        }
+        "byteOffset" => text.get(s..e).map(str::to_owned).ok_or_else(|| {
+            unrepresentable(format!(
+                "lang:anchor byte span [{start}, {end}) is out of range or not on a UTF-8 \
+                 character boundary of the anchored surface text for {anchor_iri}"
+            ))
+        }),
+        "graphemeClusterOffset" => Err(unrepresentable(format!(
+            "lang:offsetSpace lang:graphemeClusterOffset cannot be sliced without a Unicode \
+             segmentation pass for {anchor_iri}; the anchored substring is refused, not faked"
+        ))),
+        other => Err(unrepresentable(format!(
+            "unknown lang:offsetSpace lang:{other} for {anchor_iri}"
+        ))),
+    }
 }
 
 /// Emit one anchor as a NIF string (RDF) plus a Web-Annotation JSON-LD companion, DISCLOSING the
@@ -189,7 +253,7 @@ fn emit_anchor(source: &NamedSource, a: &Anchor) -> LangEmission {
             a.offset_space
         ),
     ];
-    if let Some(text) = &a.surface_text {
+    if let Some(text) = &a.anchored_text {
         lines.push(format!(
             "<{nif_iri}> <{NIF_NS}anchorOf> {} .",
             nt_literal(text)
@@ -283,7 +347,7 @@ fn render_web_annotation(anno_iri: &str, a: &Anchor) -> String {
     out.push_str("  \"@context\": \"http://www.w3.org/ns/anno.jsonld\",\n");
     out.push_str(&format!("  \"id\": {},\n", json_str(anno_iri)));
     out.push_str("  \"type\": \"Annotation\",\n");
-    if let Some(text) = &a.surface_text {
+    if let Some(text) = &a.anchored_text {
         out.push_str("  \"body\": {\n");
         out.push_str("    \"type\": \"TextualBody\",\n");
         out.push_str("    \"purpose\": \"identifying\",\n");
@@ -301,7 +365,7 @@ fn render_web_annotation(anno_iri: &str, a: &Anchor) -> String {
         json_str(&format!("lang:{}", a.offset_space))
     ));
     out.push_str("    }");
-    if let Some(text) = &a.surface_text {
+    if let Some(text) = &a.anchored_text {
         out.push_str(",\n    \"refinedBy\": {\n");
         out.push_str("      \"type\": \"TextQuoteSelector\",\n");
         out.push_str(&format!("      \"exact\": {}\n", json_str(text)));
@@ -418,6 +482,60 @@ ex:anc a lang:SurfaceAnchor ;
         // Honest preservation: never exact; SoundUnder.
         assert!(!is_exact_correspondence(&e.correspondence));
         assert_eq!(e.lossy_kind, PreservationKind::SoundUnder);
+    }
+
+    #[test]
+    fn anchor_of_is_the_selected_substring_not_the_whole_text() {
+        let input = LangProjectionInput {
+            lang_models: vec![source()],
+            ..Default::default()
+        };
+        let e = &NifBridge.emit(&input).expect("emit")[0];
+        let nif = String::from_utf8(e.artifacts[0].bytes.clone()).unwrap();
+        // "café bar" sliced to [0,4) codepoints is "café" — anchorOf is the SELECTED substring,
+        // never the whole surface text.
+        assert!(nif.contains("anchorOf> \"café\" ."), "{nif}");
+        assert!(
+            !nif.contains("café bar"),
+            "anchorOf must be the anchored substring, not the whole surface text: {nif}"
+        );
+        let anno = String::from_utf8(e.artifacts[1].bytes.clone()).unwrap();
+        assert!(anno.contains("\"exact\": \"café\""), "{anno}");
+        assert!(!anno.contains("café bar"), "{anno}");
+    }
+
+    #[test]
+    fn inverted_span_hard_fails() {
+        let bad = CAFE
+            .replace("lang:anchorStart 0", "lang:anchorStart 3")
+            .replace("lang:anchorEnd 4", "lang:anchorEnd 2");
+        let input = LangProjectionInput {
+            lang_models: vec![NamedSource {
+                name: "bad".to_owned(),
+                bytes: bad.into_bytes(),
+            }],
+            ..Default::default()
+        };
+        let err = NifBridge
+            .emit(&input)
+            .expect_err("an inverted span must hard-fail");
+        assert!(err.construct.contains("inverted"), "{err:?}");
+    }
+
+    #[test]
+    fn out_of_range_span_hard_fails() {
+        let bad = CAFE.replace("lang:anchorEnd 4", "lang:anchorEnd 99");
+        let input = LangProjectionInput {
+            lang_models: vec![NamedSource {
+                name: "oob".to_owned(),
+                bytes: bad.into_bytes(),
+            }],
+            ..Default::default()
+        };
+        let err = NifBridge
+            .emit(&input)
+            .expect_err("an out-of-range span must hard-fail");
+        assert!(err.construct.contains("exceeds"), "{err:?}");
     }
 
     #[test]

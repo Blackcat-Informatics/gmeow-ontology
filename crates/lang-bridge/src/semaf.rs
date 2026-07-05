@@ -60,8 +60,11 @@ struct Denotation {
     /// carried into a context-free AMR graph.
     indexical: bool,
     /// The SemAF dialogue-act label derived from a `lang:CommunicativeAct` performed on the
-    /// denoted form, where one is declared.
+    /// denoted form, where one is declared AND its force has a DiAML mapping.
     dialogue_act: Option<String>,
+    /// A declared `lang:communicativeForce` local name that has NO SemAF DiAML mapping — carried
+    /// so an unmapped force is enumerated as residue rather than silently defaulted to `Inform`.
+    unmapped_force: Option<String>,
 }
 
 /// The SemAF / AMR meaning-annotation projection target.
@@ -131,13 +134,20 @@ fn parse_denotation(ds: &RdfDataset, den: TermId) -> Result<Denotation, IngestDi
         .unwrap_or(false);
 
     // The dialogue act: a lang:CommunicativeAct performed on the denoted form, mapped to a SemAF
-    // DiAML dialogue-act class from its lang:communicativeForce.
-    let dialogue_act = denoted.and_then(|form| {
+    // DiAML dialogue-act class from its lang:communicativeForce. An unmapped force is NOT
+    // defaulted to Inform (that would fabricate a judgment) — it is enumerated as residue.
+    let force = denoted.and_then(|form| {
         subjects_with_object(ds, &format!("{LANG_NS}performedOn"), form)
             .into_iter()
             .find_map(|act| object_iri(ds, act, &format!("{LANG_NS}communicativeForce")))
-            .map(|force| diaml_act(local_name(&force)))
     });
+    let (dialogue_act, unmapped_force) = match force.as_deref().map(local_name) {
+        Some(local) => match diaml_act(local) {
+            Some(act) => (Some(act.to_owned()), None),
+            None => (None, Some(local.to_owned())),
+        },
+        None => (None, None),
+    };
 
     Ok(Denotation {
         iri,
@@ -147,21 +157,22 @@ fn parse_denotation(ds: &RdfDataset, den: TermId) -> Result<Denotation, IngestDi
         form_label,
         indexical,
         dialogue_act,
+        unmapped_force,
     })
 }
 
 /// Map a `lang:communicativeForce` individual to its ISO-24617 DiAML dialogue-act class. The
 /// SemAF classes are coarser than the flat force vocabulary (carried as alignment, not identity).
-fn diaml_act(force_local: &str) -> String {
-    match force_local {
+fn diaml_act(force_local: &str) -> Option<&'static str> {
+    Some(match force_local {
         "assertForce" => "Inform",
         "askForce" => "Question",
         "orderForce" => "Instruct",
         "promiseForce" => "Commissive",
         "defineForce" => "Inform.Definition",
-        _ => "Inform",
-    }
-    .to_owned()
+        // An unmapped force is NOT fabricated into Inform — the caller enumerates it as residue.
+        _ => return None,
+    })
 }
 
 /// Emit one denotation. A `denotesLogicFormula` denotation lowers to an AMR/SemAF graph
@@ -183,7 +194,17 @@ fn emit_denotation(source: &NamedSource, d: &Denotation) -> LangEmission {
             SEMAF_GET_LEG,
             None,
         );
-        let residue: Vec<String> = SEMAF_UNSUPPORTED.iter().map(|s| (*s).to_owned()).collect();
+        let mut residue: Vec<String> = SEMAF_UNSUPPORTED.iter().map(|s| (*s).to_owned()).collect();
+        // A declared communicative force with no DiAML mapping is enumerated, never defaulted to
+        // Inform: the dialogue-act line is omitted and the unmapped force is carried as residue.
+        if let Some(force) = &d.unmapped_force {
+            residue.push(format!(
+                "lang:communicativeForce lang:{force} has no SemAF DiAML dialogue-act mapping; the \
+                 dialogue act is omitted from the AMR header, not defaulted to Inform"
+            ));
+        }
+        residue.sort();
+        residue.dedup();
         LangEmission {
             artifacts: vec![EmittedArtifact {
                 path_suffix: format!("semaf/{}.{}.amr", source.name, local),
@@ -261,11 +282,14 @@ fn emit_denotation(source: &NamedSource, d: &Denotation) -> LangEmission {
 /// expanded — AMR is the coarse surface, and the full structure stays in logic:.
 fn render_amr(d: &Denotation) -> String {
     let snt = d.form_label.as_deref().unwrap_or("(unlabelled form)");
-    let act = d.dialogue_act.as_deref().unwrap_or("Inform");
     let target = d.target.as_deref().unwrap_or("(no target)");
     let mut out = String::new();
     out.push_str(&format!("# ::snt {snt}\n"));
-    out.push_str(&format!("# ::semaf-dialogue-act {act}\n"));
+    // The dialogue-act header is emitted ONLY when a mapped force is present — a missing or
+    // unmapped force omits the line rather than fabricating an `Inform` judgment.
+    if let Some(act) = &d.dialogue_act {
+        out.push_str(&format!("# ::semaf-dialogue-act {act}\n"));
+    }
     out.push_str(&format!("# ::denotation {}\n", d.iri));
     out.push_str("(a / assert-01\n");
     out.push_str("      :ARG1 (f / logic-formula\n");
@@ -364,6 +388,41 @@ ex:den a lang:Denotation ;
         );
         assert_eq!(e.lossy_kind, PreservationKind::SoundUnder);
         assert!(e.artifacts[0].path_suffix.ends_with(".amr"));
+    }
+
+    #[test]
+    fn unmapped_communicative_force_is_not_defaulted_to_inform() {
+        // A declared force with no DiAML mapping must NOT fabricate an `Inform` dialogue act:
+        // the AMR header omits the dialogue-act line and the unmapped force is residue.
+        const UNMAPPED: &str = r#"
+@prefix lang:  <https://blackcatinformatics.ca/lang/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/lang/> .
+ex:sent a lang:ComposedForm ; rdfs:label "brrr" .
+ex:formula a logic:Formula .
+ex:act a lang:CommunicativeAct ; lang:performedOn ex:sent ; lang:communicativeForce lang:exclaimForce .
+ex:den a lang:Denotation ;
+    lang:denotedForm ex:sent ;
+    lang:denotationKind lang:denotesLogicFormula ;
+    lang:denotationTarget ex:formula ;
+    lang:isIndexical false .
+"#;
+        let input = LangProjectionInput {
+            lang_models: vec![src("unmapped", UNMAPPED)],
+            ..Default::default()
+        };
+        let e = &SemafBridge.emit(&input).expect("emit")[0];
+        let amr = String::from_utf8(e.artifacts[0].bytes.clone()).unwrap();
+        assert!(
+            !amr.contains("::semaf-dialogue-act"),
+            "an unmapped force must omit the dialogue-act line, not default to Inform: {amr}"
+        );
+        assert!(
+            e.unsupported.iter().any(|r| r.contains("exclaimForce")),
+            "the unmapped force must be enumerated as residue: {:?}",
+            e.unsupported
+        );
     }
 
     #[test]

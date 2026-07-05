@@ -817,6 +817,16 @@ fn build_sentence(
         slots.push((idx, slot));
     }
     slots.sort_by_key(|(idx, _)| *idx);
+    // Constituent order is identity-bearing: a duplicate lang:slotIndex is ambiguous word order
+    // and a HARD FAIL, never a silently-chosen token order.
+    if let Some(dup) = slots.windows(2).find(|w| w[0].0 == w[1].0) {
+        return Err(crate::rdf_scan::unrepresentable(format!(
+            "duplicate lang:slotIndex {} among the slots of composed form {} — CoNLL-U token order \
+             is the slot-index order and a repeated index is ambiguous",
+            dup[0].0,
+            crate::rdf_scan::term_label(ds, form)
+        )));
+    }
 
     // The index→ID map (CoNLL-U is 1-based) so a slot's HEAD points at the right token.
     let id_of: std::collections::BTreeMap<i64, u32> = slots
@@ -1154,6 +1164,35 @@ ex:s0 a lang:FormSlot ; lang:slotForm ex:w .
             .emit(&input)
             .expect_err("missing slot index must hard-fail");
         assert!(err.construct.contains("no lang:slotIndex"), "{err:?}");
+    }
+
+    #[test]
+    fn duplicate_slot_index_hard_fails() {
+        // Two slots claim index 0 — ambiguous word order is a hard fail, never a silent pick.
+        let dup = r#"
+@prefix lang: <https://blackcatinformatics.ca/lang/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex:   <http://example.org/lang/> .
+ex:wA a lang:WordForm ; rdfs:label "a" .
+ex:wB a lang:WordForm ; rdfs:label "b" .
+ex:sent a lang:ComposedForm ; lang:formSlot ex:s0 , ex:s1 .
+ex:s0 a lang:FormSlot ; lang:slotIndex 0 ; lang:slotForm ex:wA .
+ex:s1 a lang:FormSlot ; lang:slotIndex 0 ; lang:slotForm ex:wB .
+"#;
+        let input = LangProjectionInput {
+            lang_models: vec![NamedSource {
+                name: "dup".to_owned(),
+                bytes: dup.as_bytes().to_vec(),
+            }],
+            ..Default::default()
+        };
+        let err = ConlluTarget
+            .emit(&input)
+            .expect_err("duplicate slot index must hard-fail");
+        assert!(
+            err.construct.contains("duplicate lang:slotIndex"),
+            "{err:?}"
+        );
     }
 
     #[test]

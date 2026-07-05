@@ -608,18 +608,25 @@ impl Stage for MappingsStage {
         let mut files = Vec::new();
         collect_files_recursive(&root.join("dsl").join("mappings"), &mut files)?;
         files.extend(crate::stages::source_load::module_files(root)?);
-        // The slice Mapping cells (slices/**/mappings/*.ttl) are read directly by
-        // compile_mappings (correspondence_lower::lower_all merges every
-        // ArtifactRole::Mapping artifact) AND by fold_up_projection_audit, yet
-        // module_files only declares each slice's module.ttl. Declare every slice
-        // `mappings/` .ttl so an edit to a slice equivalence cell busts the cache
-        // (a missing edge here silently ignores a guard→combinator correspondence
-        // edit until the cache is cleared).
+        // Several slice source surfaces are read DIRECTLY by this stage yet are reflected by no
+        // upstream product, so each must bust the cache on edit:
+        //   - slices/**/mappings/*.ttl — the Mapping cells compile_mappings
+        //     (correspondence_lower::lower_all) and fold_up_projection_audit merge; module_files
+        //     only declares each slice's module.ttl.
+        //   - slices/**/grammars/*.ebnf and slices/**/examples/*.ttl — the grammar SOURCE surfaces
+        //     and the lang: example A-boxes the lang: projection corpus (build_corpus) lowers FROM
+        //     (OntoLex / CoNLL-U / TEI / NIF / SemAF / BCP-47); without these an edit to a
+        //     projected grammar or example serves a stale projection past the drift gate.
+        //   - slices/**/*.po — the documentation-language catalogs the docs re-typing reads.
         let mut slice_files: Vec<std::path::PathBuf> = Vec::new();
         collect_files_recursive(&root.join("slices"), &mut slice_files)?;
         files.extend(slice_files.into_iter().filter(|p| {
-            p.extension().is_some_and(|e| e == "ttl")
-                && p.components().any(|c| c.as_os_str() == "mappings")
+            let ext = p.extension().and_then(|e| e.to_str());
+            let in_dir = |name: &str| p.components().any(|c| c.as_os_str() == name);
+            (ext == Some("ttl") && in_dir("mappings"))
+                || ext == Some("ebnf")
+                || (ext == Some("ttl") && in_dir("examples"))
+                || ext == Some("po")
         }));
         for name in ["bii", "paudley"] {
             files.push(
