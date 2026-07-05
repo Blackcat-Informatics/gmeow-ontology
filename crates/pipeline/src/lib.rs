@@ -34,6 +34,7 @@ pub mod cache;
 pub mod cli_ops;
 pub mod error;
 pub mod fanout;
+pub mod generator_registry;
 pub(crate) mod gmeow_ns;
 pub mod graph;
 pub mod loader;
@@ -61,6 +62,10 @@ pub use bundle::{bundle_artifact, bundle_artifacts, PipelineHandle};
 pub use cache::PipelineCache;
 pub use error::PipelineError;
 pub use fanout::{fanout, FanoutReport};
+pub use generator_registry::{
+    all_output_paths, committed_generated_paths, generator_by_name, generator_metadata,
+    generator_names, generator_order, GeneratorInfo, GeneratorMetadata, GENERATORS,
+};
 pub use graph::StageGraph;
 pub use loader::{bind, PipelineSpec, StageSpec};
 pub use node::{

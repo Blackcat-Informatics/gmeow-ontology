@@ -64,6 +64,7 @@ use crate::rule_ir::{
     world_edb_facts, DerivedRow, EvalAtom, EvalRule, Fact, FactKey, FactStore, RuleRoundCandidate,
     Solution,
 };
+use crate::seam::BudgetStatus;
 
 /// A native-execution combination the forward core cannot decide.
 ///
@@ -96,6 +97,137 @@ pub(crate) enum NativeOutcome<T> {
     Decided(T),
     /// The request falls outside the native core's competence (named by the kind).
     Unsupported(UnsupportedKind),
+}
+
+// ── Step/derivation budget governor + completion frontier ─────────────────────────
+
+/// The completion frontier of a stratified evaluation.
+///
+/// The least model is built stratum-by-stratum in a fixed order.  When a step budget
+/// exhausts inside stratum *k*, every predicate at a stratum `< k` has its **final**
+/// least-model extension (stratification guarantees a stratum-*k* rule only depends on,
+/// and only negates, strata `< k`).  Those predicates — plus every EDB predicate — are
+/// therefore genuinely decided even though the overall run is incomplete, and are
+/// recorded in [`StrataProgress::saturated_preds`].  A goal predicate found there yields
+/// a sound `neither` on an empty witness (a conclusive four-valued verdict), NOT the
+/// `undetermined` of an unfinished search (`LOGIC-SEMANTICS.md` §five-field).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) struct StrataProgress {
+    /// The number of strata fully saturated (the frontier).  Strata `0..completed`
+    /// ran to their natural fixpoint; a stratum at index `completed`, if any, was cut
+    /// mid-fixpoint by the step budget.
+    pub(crate) completed: usize,
+    /// The total number of strata in the program.
+    pub(crate) total: usize,
+    /// The predicates whose extension is final: the heads of the saturated strata plus
+    /// every EDB predicate.  Under-claims rather than over-claims (a cut multi-world
+    /// forward run reports only what is provably settled), never the reverse.
+    pub(crate) saturated_preds: BTreeSet<String>,
+}
+
+/// A native evaluation outcome plus how far the step budget got.
+///
+/// `status` is the seam's canonical [`BudgetStatus`]: `Ok` when the fixpoint reached its
+/// natural end within budget, `Exhausted` when a `max_steps` cut stopped it early
+/// (`Partial` is a post-fixpoint `max_answers` concern owned by the backward leg).  An
+/// `Exhausted` outcome is **incomplete, never wrong**: every committed derivation is
+/// genuinely in the least model; the budget only bounds how many were produced.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) struct Budgeted<T> {
+    /// The evaluation payload (derived rows, or the full fact set).
+    pub(crate) rows: T,
+    /// The budget status at the point evaluation stopped.
+    pub(crate) status: BudgetStatus,
+    /// The completion frontier (which strata / predicates are settled).
+    pub(crate) progress: StrataProgress,
+    /// The number of committed derivations (deterministic; a cost probe and the
+    /// determinism check — identical inputs ⇒ identical count).
+    pub(crate) consumed_steps: u64,
+}
+
+impl<T> Budgeted<T> {
+    /// Lower the crate-internal governor state ([`StrataProgress`] + `consumed_steps`)
+    /// into the public [`CompletionFrontier`] that crosses the crate boundary on
+    /// [`crate::query_ir::AnswerSet`] / [`crate::materialize::Materialization`].
+    pub(crate) fn frontier(&self) -> crate::query_ir::CompletionFrontier {
+        crate::query_ir::CompletionFrontier {
+            completed: self.progress.completed,
+            total: self.progress.total,
+            saturated_preds: self.progress.saturated_preds.clone(),
+            consumed_steps: self.consumed_steps,
+        }
+    }
+}
+
+/// The set of predicates that appear as a rule HEAD (i.e. are IDB-derivable).
+///
+/// A predicate in this set is NOT settled merely by seeding its EDB facts: its full
+/// least-model extension also includes whatever its stratum derives, so it becomes
+/// settled only when that stratum reaches its natural fixpoint.  Only a *pure-EDB*
+/// predicate — one that is never a rule head — is final from the seed alone.  This
+/// distinction matters for a **self-recursive** predicate (both an EDB fact set and a
+/// recursive head, e.g. `subClassOf(X,Z) :- subClassOf(X,Y), subClassOf(Y,Z)`): seeding
+/// it as saturated would OVER-claim a settled extension while its closure is still being
+/// (or was never) derived.  The frontier under-claims rather than over-claims.
+fn head_predicates(rules_by_stratum: &[Vec<&EvalRule>]) -> BTreeSet<String> {
+    rules_by_stratum
+        .iter()
+        .flatten()
+        .map(|r| r.head.predicate.as_str().to_owned())
+        .collect()
+}
+
+/// Whether a stratum's semi-naive fixpoint reached its natural end or was budget-cut.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum FixpointStatus {
+    /// The fixpoint reached `round.is_empty()` within budget.
+    Complete,
+    /// The `max_steps` budget was exhausted mid-fixpoint; the committed prefix is a
+    /// sound (FactKey-ordered) partial least model.
+    Exhausted,
+}
+
+/// Governs the step/derivation budget for the native fixpoint.
+///
+/// A native "step" is **one committed derivation** — a winner inserted in the
+/// FactKey-sorted commit loop of [`eval_stratum_fixpoint`].  That is the only provably
+/// reproducible counting point (the join-solution loop and the round map are not
+/// order-stable across rules), so counting there keeps the `Exhausted`/`Ok` boundary
+/// deterministic.  `limit == None` is unbounded: the counter never trips and the status
+/// stays `Ok`, so an unbudgeted run is byte-identical to the pre-governor engine.
+///
+/// The unit is intentionally NOT the reference oracle's rule-expansion/EDB-lookup step
+/// (`LOGIC-CONFORMANCE.md` leaves the budget unit open — "time, depth, or iteration
+/// limit"); only the *outcome semantics* (incomplete-not-wrong, deterministic) must
+/// match the docs, never a cross-engine step-count equivalence.
+struct StepGovernor {
+    /// The step ceiling; `None` is unbounded.
+    limit: Option<u64>,
+    /// Committed derivations so far.
+    consumed: u64,
+}
+
+impl StepGovernor {
+    fn new(max_steps: Option<u64>) -> Self {
+        Self {
+            limit: max_steps,
+            consumed: 0,
+        }
+    }
+
+    /// Whether the budget is spent — the next derivation may NOT be committed.
+    ///
+    /// Checked *before* committing each winner, so `limit == Some(0)` stops before the
+    /// first derivation (zero derived rows, immediate `Exhausted`), and `limit ==
+    /// Some(n)` admits exactly `n` committed derivations.
+    fn spent(&self) -> bool {
+        matches!(self.limit, Some(l) if self.consumed >= l)
+    }
+
+    /// Record one committed derivation.
+    fn charge(&mut self) {
+        self.consumed = self.consumed.saturating_add(1);
+    }
 }
 
 // ── Index-selected semi-naive join ────────────────────────────────────────────────
@@ -344,7 +476,8 @@ fn stratify(rules: &[EvalRule]) -> Option<HashMap<String, usize>> {
 pub(crate) fn materialize_native(
     store: &crate::store::WorldStore,
     rules: &[EvalRule],
-) -> Result<NativeOutcome<Vec<DerivedRow>>, String> {
+    max_steps: Option<u64>,
+) -> Result<NativeOutcome<Budgeted<Vec<DerivedRow>>>, String> {
     // Stratification is a property of the rules alone; decide it once.
     let Some(stratum_of) = stratify(rules) else {
         return Ok(NativeOutcome::Unsupported(UnsupportedKind::NonStratifiable));
@@ -367,22 +500,77 @@ pub(crate) fn materialize_native(
     let mut worlds = store.worlds();
     worlds.sort();
 
+    // `max_steps` is a SINGLE GLOBAL budget across the sorted worlds (not reset per
+    // world): the correct bundle-guard semantics and deterministic because world order
+    // is fixed.  Worlds run until the shared counter is spent; later worlds then never
+    // run (their strata stay unsaturated).
+    let mut governor = StepGovernor::new(max_steps);
+    let total = rules_by_stratum.len();
+    let world_count = worlds.len();
     let mut out: Vec<DerivedRow> = Vec::new();
-    for world in &worlds {
+    let mut status = BudgetStatus::Ok;
+    // Cross-world frontier.  A predicate is settled bundle-wide only when it is settled
+    // in EVERY world that will contribute, so the frontier is the INTERSECTION of the
+    // per-world settled sets.  If the global budget is spent before the last world runs,
+    // the not-yet-run worlds could still extend any predicate, so the bundle frontier
+    // under-claims to empty (never assert a predicate settled that an unrun world could
+    // grow).  A cut on the LAST world leaves no unrun world, so that world's own frontier
+    // (its settled lower strata) stands.
+    let mut partial_completed = 0usize;
+    let mut frontier: Option<BTreeSet<String>> = None;
+    let mut every_world_complete = true;
+    let mut untouched_worlds_remain = false;
+    for (idx, world) in worlds.iter().enumerate() {
         let edb_facts = world_edb_facts(store, world)?;
 
         // Asserted-EDB echo (identical to wellfounded::materialize).
         out.extend(echo_asserted(world, &edb_facts)?);
 
-        let derived = eval_world_stratified(&edb_facts, &rules_by_stratum)?;
-        for mut row in derived {
+        let budgeted = eval_world_stratified(&edb_facts, &rules_by_stratum, &mut governor)?;
+        for mut row in budgeted.rows {
             row.graph = world.clone();
             out.push(row);
         }
+        // Running intersection across the worlds that actually ran.
+        frontier = Some(match frontier {
+            None => budgeted.progress.saturated_preds,
+            Some(f) => f
+                .intersection(&budgeted.progress.saturated_preds)
+                .cloned()
+                .collect(),
+        });
+        if budgeted.status == BudgetStatus::Exhausted {
+            status = BudgetStatus::Exhausted;
+            every_world_complete = false;
+            partial_completed = budgeted.progress.completed;
+            untouched_worlds_remain = idx + 1 < world_count;
+            break; // global budget spent — later worlds don't run
+        }
     }
 
+    let saturated_preds = if untouched_worlds_remain {
+        // Later worlds never ran; nothing is provably settled bundle-wide.
+        BTreeSet::new()
+    } else {
+        frontier.unwrap_or_default()
+    };
+    let progress = StrataProgress {
+        completed: if every_world_complete {
+            total
+        } else {
+            partial_completed
+        },
+        total,
+        saturated_preds,
+    };
+
     sort_rows(&mut out);
-    Ok(NativeOutcome::Decided(out))
+    Ok(NativeOutcome::Decided(Budgeted {
+        rows: out,
+        status,
+        progress,
+        consumed_steps: governor.consumed,
+    }))
 }
 
 /// Run the stratified semi-naive fixpoint for ONE world's EDB, returning the derived
@@ -398,12 +586,24 @@ pub(crate) fn materialize_native(
 fn eval_world_stratified(
     edb_facts: &[Fact],
     rules_by_stratum: &[Vec<&EvalRule>],
-) -> Result<Vec<DerivedRow>, String> {
+    governor: &mut StepGovernor,
+) -> Result<Budgeted<Vec<DerivedRow>>, String> {
     // Shared accumulated store (both forms), seeded from the EDB in sorted-key order
     // (world_edb_facts already sorted), so seeding matches the reference.
     let mut store = FactStore::new();
     let mut rel = RelationStore::new();
     let mut depth: HashMap<FactKey, u32> = HashMap::new();
+
+    // A PURE-EDB predicate (never a rule head) is settled from the seed; a predicate that
+    // is also a rule head is settled only when its stratum completes (below), so exclude
+    // it here — otherwise a self-recursive predicate would over-claim while its closure is
+    // still unbuilt.
+    let head_preds = head_predicates(rules_by_stratum);
+    let mut saturated_preds: BTreeSet<String> = edb_facts
+        .iter()
+        .map(|f| f.predicate.clone())
+        .filter(|p| !head_preds.contains(p))
+        .collect();
 
     for f in edb_facts {
         depth.insert(f.key(), 0);
@@ -414,20 +614,49 @@ fn eval_world_stratified(
 
     let mut derivations: Vec<DerivedRow> = Vec::new();
 
+    let total = rules_by_stratum.len();
+    let mut completed = 0usize;
+    let mut status = BudgetStatus::Ok;
     for stratum_rules in rules_by_stratum {
         if stratum_rules.is_empty() {
+            completed += 1; // an empty stratum is trivially saturated
             continue;
         }
-        eval_stratum_fixpoint(
+        match eval_stratum_fixpoint(
             stratum_rules,
             &mut store,
             &mut rel,
             &mut depth,
             &mut derivations,
-        )?;
+            governor,
+        )? {
+            FixpointStatus::Complete => {
+                // This stratum reached its natural fixpoint: its head predicates are now
+                // final and join the settled frontier.
+                for rule in stratum_rules {
+                    saturated_preds.insert(rule.head.predicate.as_str().to_owned());
+                }
+                completed += 1;
+            }
+            FixpointStatus::Exhausted => {
+                // The budget cut this stratum mid-fixpoint: it is NOT saturated, and no
+                // later stratum runs.  The committed prefix stays (sound partial model).
+                status = BudgetStatus::Exhausted;
+                break;
+            }
+        }
     }
 
-    Ok(derivations)
+    Ok(Budgeted {
+        rows: derivations,
+        status,
+        progress: StrataProgress {
+            completed,
+            total,
+            saturated_preds,
+        },
+        consumed_steps: governor.consumed,
+    })
 }
 
 /// Run the semi-naive fixpoint for the rules of ONE stratum into the shared stores.
@@ -443,7 +672,8 @@ fn eval_stratum_fixpoint(
     rel: &mut RelationStore,
     depth: &mut HashMap<FactKey, u32>,
     derivations: &mut Vec<DerivedRow>,
-) -> Result<(), String> {
+    governor: &mut StepGovernor,
+) -> Result<FixpointStatus, String> {
     // Seed delta with ALL currently-known keys so this stratum's rules fire against
     // the seed in round 1 (mirrors `least_model_of_reduct`'s `delta = key_set()`).
     let mut delta: HashSet<FactKey> = store.key_set();
@@ -521,6 +751,15 @@ fn eval_stratum_fixpoint(
         let mut winners: Vec<(FactKey, RuleRoundCandidate)> = round.into_iter().collect();
         winners.sort_by(|(a, _), (b, _)| a.cmp(b));
         for (_key, winner) in winners {
+            // The step/derivation budget is charged HERE — one step per committed
+            // derivation, at the deterministic FactKey-sorted boundary.  When the budget
+            // is spent we stop BEFORE committing this winner, leaving a sound
+            // (FactKey-ordered) partial prefix: `max_steps = n` admits exactly `n`
+            // derivations, `max_steps = 0` admits none.  Every committed fact is
+            // genuinely in the least model — the outcome is incomplete, never wrong.
+            if governor.spent() {
+                return Ok(FixpointStatus::Exhausted);
+            }
             let winner_depth = winner.max_src_depth.saturating_add(1);
             depth.insert(winner.key.clone(), winner_depth);
             // Insert into both stores in lockstep so the columnar index order tracks
@@ -546,12 +785,13 @@ fn eval_stratum_fixpoint(
                 source_quad_ids: winner.sources, // body-order, NEVER the sorted copy
                 derivation_id: winner.deriv,
             });
+            governor.charge();
         }
 
         delta = new_delta;
     }
 
-    Ok(())
+    Ok(FixpointStatus::Complete)
 }
 
 // ── RelationStore-seeded bottom-up entry (the backward leg's evaluator) ───────────
@@ -578,7 +818,8 @@ fn eval_stratum_fixpoint(
 pub(crate) fn evaluate(
     edb: RelationStore,
     rules: &[EvalRule],
-) -> Result<NativeOutcome<Vec<Fact>>, String> {
+    max_steps: Option<u64>,
+) -> Result<NativeOutcome<Budgeted<Vec<Fact>>>, String> {
     let Some(stratum_of) = stratify(rules) else {
         return Ok(NativeOutcome::Unsupported(UnsupportedKind::NonStratifiable));
     };
@@ -615,6 +856,16 @@ pub(crate) fn evaluate(
     let mut rel = RelationStore::new();
     let mut depth: HashMap<FactKey, u32> = HashMap::new();
 
+    // A PURE-EDB predicate (never a rule head) is settled from the seed; a self-recursive
+    // or otherwise IDB-derived predicate becomes settled only when its stratum completes
+    // (below), so exclude the head predicates here to avoid over-claiming.
+    let head_preds = head_predicates(&rules_by_stratum);
+    let mut saturated_preds: BTreeSet<String> = edb_facts
+        .iter()
+        .map(|f| f.predicate.clone())
+        .filter(|p| !head_preds.contains(p))
+        .collect();
+
     for f in &edb_facts {
         depth.insert(f.key(), 0);
         if store.insert(f.clone()) {
@@ -623,22 +874,50 @@ pub(crate) fn evaluate(
     }
 
     // This leg returns the full fact set (`store.facts()`); the derivation rows are
-    // unused here but the shared fixpoint records them for the forward leg.
+    // unused here but the shared fixpoint records them for the forward leg.  The step
+    // governor is honoured identically to the forward path (single EDB, so the frontier
+    // is exact — no cross-world under-claim).
+    let mut governor = StepGovernor::new(max_steps);
+    let total = rules_by_stratum.len();
+    let mut completed = 0usize;
+    let mut status = BudgetStatus::Ok;
     let mut derivations: Vec<DerivedRow> = Vec::new();
     for stratum_rules in &rules_by_stratum {
         if stratum_rules.is_empty() {
+            completed += 1;
             continue;
         }
-        eval_stratum_fixpoint(
+        match eval_stratum_fixpoint(
             stratum_rules,
             &mut store,
             &mut rel,
             &mut depth,
             &mut derivations,
-        )?;
+            &mut governor,
+        )? {
+            FixpointStatus::Complete => {
+                for rule in stratum_rules {
+                    saturated_preds.insert(rule.head.predicate.as_str().to_owned());
+                }
+                completed += 1;
+            }
+            FixpointStatus::Exhausted => {
+                status = BudgetStatus::Exhausted;
+                break;
+            }
+        }
     }
 
-    Ok(NativeOutcome::Decided(store.facts().to_vec()))
+    Ok(NativeOutcome::Decided(Budgeted {
+        rows: store.facts().to_vec(),
+        status,
+        progress: StrataProgress {
+            completed,
+            total,
+            saturated_preds,
+        },
+        consumed_steps: governor.consumed,
+    }))
 }
 
 #[cfg(test)]
@@ -768,8 +1047,8 @@ mod tests {
 
         // Native path via a WorldStore.
         let store = tc_store();
-        let outcome = materialize_native(&store, &rules).expect("materialize_native");
-        let NativeOutcome::Decided(rows) = outcome else {
+        let outcome = materialize_native(&store, &rules, None).expect("materialize_native");
+        let NativeOutcome::Decided(Budgeted { rows, .. }) = outcome else {
             panic!("expected Decided for a stratifiable positive program");
         };
         let mut native_rows: Vec<_> = derived_only(&rows).iter().map(|r| row_key(r)).collect();
@@ -790,8 +1069,8 @@ mod tests {
     fn physical_transitive_closure_reaches_all_pairs() {
         let rules = tc_rules();
         let store = tc_store();
-        let outcome = materialize_native(&store, &rules).expect("materialize_native");
-        let NativeOutcome::Decided(rows) = outcome else {
+        let outcome = materialize_native(&store, &rules, None).expect("materialize_native");
+        let NativeOutcome::Decided(Budgeted { rows, .. }) = outcome else {
             panic!("expected Decided");
         };
 
@@ -867,8 +1146,8 @@ mod tests {
             &format!("{NS}b"),
         );
 
-        let outcome = materialize_native(&store, &rules).expect("materialize_native");
-        let NativeOutcome::Decided(rows) = outcome else {
+        let outcome = materialize_native(&store, &rules, None).expect("materialize_native");
+        let NativeOutcome::Decided(Budgeted { rows, .. }) = outcome else {
             panic!("expected Decided for a stratifiable program");
         };
 
@@ -922,7 +1201,7 @@ mod tests {
             &format!("{NS}a"),
         );
 
-        let outcome = materialize_native(&store, &rules).expect("materialize_native");
+        let outcome = materialize_native(&store, &rules, None).expect("materialize_native");
         assert!(
             matches!(
                 outcome,
@@ -949,6 +1228,206 @@ mod tests {
         assert!(
             s_c > s_b,
             "c negates b, so stratum(c) ({s_c}) must exceed stratum(b) ({s_b})"
+        );
+    }
+
+    // ── Step/derivation budget governor ────────────────────────────────────────────
+
+    /// Run the forward engine, asserting a `Decided` outcome, and return the budget carrier.
+    fn materialize_budgeted(
+        store: &WorldStore,
+        rules: &[EvalRule],
+        max_steps: Option<u64>,
+    ) -> Budgeted<Vec<DerivedRow>> {
+        match materialize_native(store, rules, max_steps).expect("materialize_native") {
+            NativeOutcome::Decided(b) => b,
+            other => panic!("expected Decided, got {other:?}"),
+        }
+    }
+
+    /// A two-stratum program: `reachable` (stratum 0) via seed + edge-step, then
+    /// `unreachable` (stratum 1) via stratified negation of `reachable`.  Over
+    /// `reachableSeed(a)` and `edge(a,b)` with nodes {a,b,c}: `reachable = {a,b}` (two
+    /// derivations) and `unreachable = {c}` (one derivation) — three derivations total,
+    /// with the `unreachable` derivation strictly after both `reachable` derivations.
+    fn reach_program() -> (Vec<EvalRule>, WorldStore) {
+        let rls = format!(
+            "#[name(\"{NS}rReachSeed\")]\n\
+             <{NS}reachable>(?X, ?X, ?W) :- <{NS}reachableSeed>(?X, ?X, ?W) .\n\
+             #[name(\"{NS}rReachStep\")]\n\
+             <{NS}reachable>(?Y, ?Y, ?W) :-\n\
+                 <{NS}reachable>(?X, ?X, ?W),\n\
+                 <{NS}edge>(?X, ?Y, ?W) .\n\
+             #[name(\"{NS}rUnreach\")]\n\
+             <{NS}unreachable>(?X, ?X, ?W) :-\n\
+                 <{NS}node>(?X, ?X, ?W),\n\
+                 ~<{NS}reachable>(?X, ?X, ?W) .\n"
+        );
+        let rules = parse_eval_rules(&rls).expect("parse reach program");
+        let store = WorldStore::new();
+        for x in ["a", "b", "c"] {
+            store.insert_quad(WORLD, &nn(x), &nn("node"), &nn(x));
+        }
+        store.insert_quad(WORLD, &nn("a"), &nn("reachableSeed"), &nn("a"));
+        store.insert_quad(WORLD, &nn("a"), &nn("edge"), &nn("b"));
+        (rules, store)
+    }
+
+    /// A zero step budget derives NOTHING: `Exhausted`, no strata saturated, and zero
+    /// DERIVED rows (the EDB echo still emits — the budget bounds derivations, not the
+    /// asserted base facts).  This is the boundary the reference oracle stamps at 0.
+    #[test]
+    fn physical_materialize_zero_budget_derives_nothing() {
+        let rules = tc_rules();
+        let store = tc_store();
+        let b = materialize_budgeted(&store, &rules, Some(0));
+        assert_eq!(
+            b.status,
+            BudgetStatus::Exhausted,
+            "0-step budget ⇒ Exhausted"
+        );
+        assert_eq!(
+            b.consumed_steps, 0,
+            "no derivation may be committed at budget 0"
+        );
+        assert_eq!(b.progress.completed, 0, "no stratum saturated at budget 0");
+        assert!(
+            derived_only(&b.rows).is_empty(),
+            "0-step budget must derive zero rows (EDB echo aside)"
+        );
+        // The EDB echo is still present — the budget governs derivations, not base facts.
+        assert!(
+            b.rows.len() >= 3,
+            "the three asserted edges must still be echoed"
+        );
+    }
+
+    /// A budget larger than the completion cost is byte-identical to the unbounded run:
+    /// `Ok`, every stratum saturated, and the SAME derived rows.  The governor never
+    /// trips, so an over-budgeted run cannot diverge from the pre-governor engine.
+    #[test]
+    fn physical_materialize_huge_budget_matches_unbounded() {
+        let rules = tc_rules();
+        let store = tc_store();
+        let unbounded = materialize_budgeted(&store, &rules, None);
+        let huge = materialize_budgeted(&store, &rules, Some(1_000_000));
+        assert_eq!(huge.status, BudgetStatus::Ok, "an ample budget completes");
+        assert_eq!(
+            huge.progress.completed, huge.progress.total,
+            "every stratum saturated under an ample budget"
+        );
+        assert!(huge.consumed_steps > 0, "TC derives at least one path");
+        assert_eq!(
+            unbounded.consumed_steps, huge.consumed_steps,
+            "consumed-step count is the deterministic completion cost"
+        );
+        let key = |rows: &[DerivedRow]| -> Vec<_> {
+            let mut k: Vec<_> = derived_only(rows).iter().map(|r| row_key(r)).collect();
+            k.sort();
+            k
+        };
+        assert_eq!(
+            key(&unbounded.rows),
+            key(&huge.rows),
+            "an over-budgeted run must be byte-identical to the unbounded run"
+        );
+    }
+
+    /// A mid-run budget is DETERMINISTIC: run twice at the same intermediate budget and
+    /// the derived prefix, status, and consumed-step count are identical (the cut is the
+    /// Nth FactKey-sorted committed winner).  The prefix is also a strict, sound subset
+    /// of the unbounded derivations.
+    #[test]
+    fn physical_materialize_mid_budget_is_deterministic() {
+        let rules = tc_rules();
+        let store = tc_store();
+        let full = materialize_budgeted(&store, &rules, None);
+        let full_derived = derived_only(&full.rows).len();
+        assert!(full_derived > 2, "TC must derive more than 2 paths");
+
+        let run1 = materialize_budgeted(&store, &rules, Some(2));
+        let run2 = materialize_budgeted(&store, &rules, Some(2));
+        assert_eq!(
+            run1.status,
+            BudgetStatus::Exhausted,
+            "budget 2 < {full_derived} ⇒ Exhausted"
+        );
+        assert_eq!(run1.consumed_steps, 2, "exactly 2 derivations committed");
+        let key = |rows: &[DerivedRow]| -> Vec<_> {
+            let mut k: Vec<_> = derived_only(rows).iter().map(|r| row_key(r)).collect();
+            k.sort();
+            k
+        };
+        assert_eq!(
+            key(&run1.rows),
+            key(&run2.rows),
+            "the mid-budget prefix must be byte-identical run-to-run"
+        );
+        assert_eq!(
+            derived_only(&run1.rows).len(),
+            2,
+            "the prefix holds exactly `max_steps` derivations"
+        );
+        // Soundness: every prefix derivation is genuinely in the unbounded model.
+        let full_keys: BTreeSet<_> = derived_only(&full.rows)
+            .iter()
+            .map(|r| row_key(r))
+            .collect();
+        for r in derived_only(&run1.rows) {
+            assert!(
+                full_keys.contains(&row_key(r)),
+                "a budget-cut derivation must be sound (present in the full model)"
+            );
+        }
+    }
+
+    /// The completion frontier records which strata are settled: a budget that saturates
+    /// the LOWER stratum (`reachable`) but cuts the higher one (`unreachable`) reports
+    /// `reachable` (and the EDB predicates) as saturated and `unreachable` as NOT — the
+    /// per-stratum settledness the frontier-aware 5-field mapping reads.
+    #[test]
+    fn physical_materialize_frontier_records_saturated_lower_stratum() {
+        let (rules, store) = reach_program();
+
+        // Full run: both strata saturate; `unreachable(c)` is derived.
+        let full = materialize_budgeted(&store, &rules, None);
+        assert_eq!(full.status, BudgetStatus::Ok);
+        assert!(full.progress.saturated_preds.contains(&nn("reachable")));
+        assert!(full.progress.saturated_preds.contains(&nn("unreachable")));
+
+        // Budget 2 saturates `reachable` (two derivations) then cuts before the single
+        // `unreachable` derivation.
+        let cut = materialize_budgeted(&store, &rules, Some(2));
+        assert_eq!(
+            cut.status,
+            BudgetStatus::Exhausted,
+            "budget 2 cuts stratum 1"
+        );
+        assert_eq!(cut.consumed_steps, 2);
+        assert_eq!(
+            cut.progress.completed, 1,
+            "only the lower stratum saturated"
+        );
+        assert!(
+            cut.progress.saturated_preds.contains(&nn("reachable")),
+            "reachable's stratum completed ⇒ it is settled"
+        );
+        assert!(
+            cut.progress.saturated_preds.contains(&nn("node"))
+                && cut.progress.saturated_preds.contains(&nn("edge")),
+            "EDB predicates are settled from the seed"
+        );
+        assert!(
+            !cut.progress.saturated_preds.contains(&nn("unreachable")),
+            "unreachable's stratum was cut ⇒ it is NOT settled"
+        );
+        // The unreachable fact must NOT have been derived under the cut budget.
+        let unreach = nn("unreachable");
+        assert!(
+            derived_only(&cut.rows)
+                .iter()
+                .all(|r| r.predicate.as_str() != unreach),
+            "no unreachable row may be derived after the budget cut"
         );
     }
 }

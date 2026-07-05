@@ -1,22 +1,19 @@
 # Retention: `tests/test_shacl_engine.py`
 
-**Category:** Python tool algorithm
+**Status:** Migrated to Rust (`crates/validate/tests/shacl_engine.rs`) by issue 1314 Task 8.
 
-## What it tests
+The Python N-Triples→SHACL seam tests have been retired; the native Rust twin
+covers the same adapter contract:
 
-Unit tests for the N-Triples→gmeow_shacl validation seam.
+- `test_version_is_reported`
+- `test_conforming_graph_has_no_results`
+- `test_violation_partitions_to_errors_with_stable_line`
+- `test_warning_severity_buckets_to_warnings`
+- `test_partition_results_prefixes_box_roles_when_present`
+- `test_partition_results_uses_hash_iri_local_name_for_unknown_roles`
+- `test_parse_error_hard_fails`
+- `test_term_normalization`
 
-Retained dynamic tests:
-
-- `test_version_is_reported` — Retained dynamic test.
-- `test_conforming_graph_has_no_results` — Retained dynamic test.
-- `test_violation_partitions_to_errors_with_stable_line` — Retained dynamic test.
-- `test_warning_severity_buckets_to_warnings` — Retained dynamic test.
-- `test_partition_results_prefixes_box_roles_when_present` — Retained dynamic test.
-- `test_partition_results_uses_hash_iri_local_name_for_unknown_roles` — Retained dynamic test.
-- `test_parse_error_hard_fails` — Retained dynamic test.
-- `test_term_normalization` — Retained dynamic test.
-
-## Why it cannot be deleted or moved to Rust today
-
-Python-only algorithm or generated-artifact checks with no declarative slice-test equivalent.
+The remaining Python `run_shacl` helper in `src/gmeow_tools/validate.py` now
+calls `purrdf.purrdf_native.shacl.validate` directly and applies the same
+legacy partitioning logic inline.

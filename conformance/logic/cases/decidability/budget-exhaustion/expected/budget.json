@@ -1,4 +1,9 @@
 {
   "budget_status": "exhausted",
-  "incomplete": true
+  "incomplete": true,
+  "saturated": [
+    "https://example.org/decidability/budget-exhaustion/edge"
+  ],
+  "strata_completed": 0,
+  "strata_total": 1
 }

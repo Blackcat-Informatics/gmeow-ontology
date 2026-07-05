@@ -60,24 +60,35 @@ fn timings_payload(command: &str, report: &RunReport) -> serde_json::Value {
     })
 }
 
-/// `gmeow-dev regenerate [-j --check --timings-json]`.
+/// `gmeow-dev regenerate [-j --check --metadata --list-paths --timings-json]`.
 pub fn regenerate(
     jobs: Option<usize>,
     check: bool,
+    metadata: bool,
+    list_paths: bool,
     timings_json: Option<&Path>,
     console: Option<ConsoleMode>,
 ) -> i32 {
+    let root = project_root();
+    let reporter = reporter_for(resolve_console(console));
+
+    if list_paths {
+        return list_committed_paths(reporter.as_ref(), &root);
+    }
+
+    if metadata {
+        return emit_generator_metadata(reporter.as_ref(), &root);
+    }
+
     let jobs = match resolve_jobs(jobs) {
         Ok(j) => j,
         Err(code) => return code,
     };
-    let root = project_root();
     let mode = if check {
         RunMode::Check
     } else {
         RunMode::Regenerate
     };
-    let reporter = reporter_for(resolve_console(console));
     let report = match run_full(&root, jobs, mode) {
         Ok(r) => r,
         Err(e) => return fail(format!("pipeline {mode:?} failed: {e}")),
@@ -104,6 +115,42 @@ pub fn regenerate(
             "pipeline regenerate: produced {}, reproduced {}, written {}, unchanged {}",
             report.produced, report.reproduced, report.written, report.skipped_writes
         );
+    }
+    0
+}
+
+/// Print the space-separated union of committed generated artifact paths.
+///
+/// The paths are product data (what `make commit` stages), so they go to stdout.
+/// Progress/status is routed through the reporter.
+fn list_committed_paths(reporter: &dyn Reporter, _root: &Path) -> i32 {
+    use std::time::Instant;
+    let started = Instant::now();
+    reporter.stage_start("regenerate-list-paths");
+    let paths = gmeow_pipeline::committed_generated_paths();
+    reporter.stage_end("regenerate-list-paths", started.elapsed());
+    println!("{}", paths.join(" "));
+    0
+}
+
+/// Emit NDJSON metadata for every registered generator.
+///
+/// Each line is one generator's metadata record. Progress/status is routed
+/// through the reporter; the metadata itself is product data on stdout.
+fn emit_generator_metadata(reporter: &dyn Reporter, root: &Path) -> i32 {
+    use std::time::Instant;
+    let started = Instant::now();
+    reporter.stage_start("regenerate-metadata");
+    let records = match gmeow_pipeline::generator_metadata(root) {
+        Ok(r) => r,
+        Err(e) => return fail(format!("generator metadata failed: {e}")),
+    };
+    reporter.stage_end("regenerate-metadata", started.elapsed());
+    for record in records {
+        match serde_json::to_string(&record) {
+            Ok(line) => println!("{line}"),
+            Err(e) => return fail(format!("cannot serialize generator metadata: {e}")),
+        }
     }
     0
 }
