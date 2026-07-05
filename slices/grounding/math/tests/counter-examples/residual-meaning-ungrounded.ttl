@@ -1,0 +1,19 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:ResidualInterpretationClaimShape: a residual-meaning claim
+# naming its observed feature and result but omitting the gmeow:vantage from which the
+# meaning is held (sh:minCount 1) — meaning asserted without a standpoint is a property,
+# not an observation. Validation MUST emit shacl.MinCountConstraintComponent and NO
+# other finding (math:ResidualMeaningAsProperty). Bound by ex:ecResidualMeaningUngrounded.
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <http://example.org/math/> .
+
+ex:ungroundedMeaning a math:ResidualInterpretationClaim ;
+    gmeow:observedFeature ex:pc1 ;
+    gmeow:observationResult ex:themeFormula .
+
+ex:pc1 a math:PrincipalComponent .
+ex:themeFormula a logic:MetaLevelFormula .
