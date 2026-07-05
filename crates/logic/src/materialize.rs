@@ -679,7 +679,35 @@ pub fn materialize_routed(
             // what it decides) and fall through to the Nemo fallback ONLY for a declared
             // native gap (`NativeOutcome::Unsupported`). `preservation` is exact for this
             // arm, so the native and Nemo paths disclose the same judgment.
-            if !preservation.unsupported_constructs.is_empty() {
+            // A value-inventing (existential-rule) program is the native chase's
+            // competence — routed HERE, before the Datalog arm, because
+            // `parse_eval_rules`/`materialize_native` cannot represent an existential head
+            // variable (`ground_head` hard-errors on one).  Certify termination and run
+            // the restricted chase; an uncertified program with no budget is a declared
+            // native gap that demotes to the Nemo oracle (`None`), exactly like a
+            // non-stratifiable Datalog program.
+            let existential_rules =
+                crate::physical::parse_existential_rules(rules).map_err(MaterializeError::Parse)?;
+            if existential_rules.iter().any(|r| r.is_existential()) {
+                let store = crate::store::WorldStore::new();
+                store.load_nquads(input).map_err(MaterializeError::Parse)?;
+                let max_steps = match (max_rule_firings, max_answers) {
+                    (Some(a), Some(b)) => Some(a.min(b)),
+                    (Some(a), None) => Some(a),
+                    (None, Some(b)) => Some(b),
+                    (None, None) => None,
+                };
+                match crate::physical::chase_materialize(&store, &existential_rules, max_steps)
+                    .map_err(MaterializeError::Chase)?
+                {
+                    crate::physical::NativeOutcome::Decided(budgeted) => {
+                        let frontier = budgeted.frontier();
+                        Some((budgeted.rows, budgeted.status, frontier))
+                    }
+                    // Uncertified with no budget ⇒ demote to the Nemo oracle.
+                    crate::physical::NativeOutcome::Unsupported(_) => None,
+                }
+            } else if !preservation.unsupported_constructs.is_empty() {
                 Some((
                     echo_edb_only(input)?,
                     BudgetStatus::Ok,
@@ -792,6 +820,55 @@ mod tests {
     //! marshalling smoke (`tests/test_logic_engine.py`).
 
     use super::*;
+
+    #[test]
+    fn materialize_routed_runs_the_native_chase_on_an_existential_program() {
+        // A value-inventing program (`C ⊑ ∃p.D`) is now routed to the native restricted
+        // chase THROUGH materialize_routed — the wiring that makes the chase live, not a
+        // hard-fail on the unbound head var.
+        let world = "http://world/W";
+        let ty = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+        let input = format!("<http://ex/a> <{ty}> <http://ex/C> <{world}> .\n");
+        let rules = format!(
+            "<http://ex/p>(?x, !y, ?w), <{ty}>(!y, <http://ex/D>, ?w) :- <{ty}>(?x, <http://ex/C>, ?w) ."
+        );
+
+        let m = materialize_routed(
+            &rules,
+            &input,
+            None,
+            None,
+            None,
+            Some("PositiveHornProfile"),
+        )
+        .expect("existential materialize should route to the native chase");
+
+        // The chase invented a `p`-edge from `a` to a fresh witness…
+        let p_edges: Vec<_> = m
+            .quads
+            .iter()
+            .filter(|q| q.predicate == "http://ex/p")
+            .collect();
+        assert_eq!(
+            p_edges.len(),
+            1,
+            "one invented p-edge; quads: {:#?}",
+            m.quads
+        );
+        let witness = crate::provenance::term_display(&p_edges[0].object);
+        assert!(
+            witness.contains("/skolem/"),
+            "the p-edge target is an invented null: {witness}"
+        );
+        // …and typed that witness `D`.
+        assert!(
+            m.quads.iter().any(|q| q.predicate == ty
+                && crate::provenance::term_display(&q.subject) == witness
+                && crate::provenance::term_display(&q.object) == "<http://ex/D>"),
+            "the witness is typed D; quads: {:#?}",
+            m.quads
+        );
+    }
 
     // ── Fixtures ────────────────────────────────────────────────────────────────
 

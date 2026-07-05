@@ -40,7 +40,10 @@ pub(crate) use seminaive::{evaluate, materialize_native, NativeOutcome, Unsuppor
 // existential fragment, admitted by the `ChaseAdmission` termination certificate and
 // consumed by `materialize::materialize_routed`.
 #[allow(unused_imports)]
-pub(crate) use chase::{chase_world, route_chase, ChaseAdmission, ExistentialRule};
+pub(crate) use chase::{
+    chase_materialize, chase_world, parse_existential_rules, route_chase, ChaseAdmission,
+    ExistentialRule,
+};
 
 // The backward native evaluator: magic-sets demand transformation +
 // `resolve_native`, the oracle-parity sibling of `reference_resolver::resolve`. The primary
