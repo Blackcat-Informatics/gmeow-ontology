@@ -1,0 +1,19 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:OrthogonalComplementShape: an orthogonal complement
+# naming its ambient space and complement-semantics (so math:ComplementShape passes)
+# but omitting math:definedByInnerProduct (sh:minCount 1). Referenced nodes are typed
+# minimally so ONLY the missing-inner-product violation fires. Validation MUST emit
+# shacl.MinCountConstraintComponent and NO other finding (math:UnqualifiedOrthogonalComplement).
+# Bound by ex:ecOrthogonalComplementMissingInnerProduct.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:unqualifiedPerp a math:OrthogonalComplement ;
+    math:orthogonalComplementOf ex:embeddedSub ;
+    math:ambientSpace ex:complexSpace ;
+    math:complementSemantics math:orthogonalComplement .
+
+ex:embeddedSub a math:MathematicalObject .
+ex:complexSpace a math:MathematicalObject .

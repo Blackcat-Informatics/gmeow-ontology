@@ -424,3 +424,74 @@ ex:ecHomologyGroupFramed a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/conformance-fixtures/homology-group-framed.ttl" ;
     gmeow:expectedOutcome gmeow:conforms ;
     gmeow:conformanceRationale "A math:HomologyGroup — a subclass of math:AbelianGroup — declaring its math:underlyingSet, math:structureOperation, and a math:satisfiesAxiom satisfies the inherited math:AlgebraicStructureShape and validates with no findings." .
+
+# === Linear algebra & learning: orthogonal complement names its inner product == #
+
+ex:ecOrthogonalComplementQualified a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/orthogonal-complement-qualified.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:OrthogonalComplement naming its math:ambientSpace, math:complementSemantics math:orthogonalComplement, and math:definedByInnerProduct satisfies both the inherited math:ComplementShape and math:OrthogonalComplementShape and validates with no findings." .
+
+ex:ecOrthogonalComplementMissingInnerProduct a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/orthogonal-complement-missing-inner-product.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example names the ambient space and complement-semantics (so the inherited math:ComplementShape passes) but omits math:definedByInnerProduct (sh:minCount 1 on math:OrthogonalComplementShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UnqualifiedOrthogonalComplement)." .
+
+# === PCA names its inputs, policy, and outputs =============================== #
+
+ex:ecPCAAnalysisComplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/pca-analysis-complete.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:PCAAnalysis declaring its math:analysisInput, math:centeringPolicy, math:scalingPolicy, math:covarianceOperator, math:eigensolver, and its math:principalComponent / math:loadingVector / math:scoreVector / math:explainedVarianceRatio / math:residualSubspace outputs satisfies math:PCAAnalysisShape and validates with no findings." .
+
+ex:ecPCAAnalysisMissingCovariance a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/pca-analysis-missing-covariance.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example declares every required PCA role except the math:covarianceOperator it decomposes (sh:minCount 1 on math:PCAAnalysisShape); every other role is present, so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:IncompletePCAAnalysis)." .
+
+# === Residual meaning is an observation, not a property ===================== #
+
+ex:ecResidualMeaningObserved a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/residual-meaning-observed.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:ResidualInterpretationClaim naming its gmeow:vantage, gmeow:observedFeature, and gmeow:observationResult satisfies math:ResidualInterpretationClaimShape and validates with no findings — the meaning is held from a standpoint, not stamped on the vector." .
+
+ex:ecResidualMeaningUngrounded a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/residual-meaning-ungrounded.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example names the observed feature and result but omits the gmeow:vantage (sh:minCount 1 on math:ResidualInterpretationClaimShape) — a meaning without a standpoint is a property, not an observation — so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:ResidualMeaningAsProperty)." .
+
+# === Embedding names its source, target, function, and model ================ #
+
+ex:ecEmbeddingFramed a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/embedding-framed.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:Embedding naming its math:embeddingSource, math:targetSpace, math:embeddingFunction, and math:embeddingModel (and its inherited math:Function math:domain/math:codomain) satisfies math:EmbeddingShape and math:FunctionShape and validates with no findings." .
+
+ex:ecEmbeddingMissingModel a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/embedding-missing-model.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example names the embedding's source, target, function, and its math:Function frame, but omits the math:embeddingModel (sh:minCount 1 on math:EmbeddingShape); every other role is present, so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UnderspecifiedEmbedding)." .
+
+# === Tensor computation graph reuses the expression AST ===================== #
+
+ex:ecTensorGraphFramed a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/tensor-graph-framed.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:TensorComputationGraph declaring a math:computationNode that is a well-formed math:ApplicationExpression over indexed math:ArgumentSlot operands, with a math:WeightTensor in a declared math:ParameterSpace, satisfies math:TensorComputationGraphShape, math:WeightTensorShape, and the inherited argument-slot shapes, and validates with no findings." .
+
+ex:ecTensorNodeDuplicateSlotIndex a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/tensor-node-duplicate-slot-index.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "A tensor computation node reuses the expression AST wholesale, so two math:argumentSlot cells sharing math:slotIndex 0 trip the inherited math:SlotIndexUniquenessShape SPARQL constraint exactly as any application/binder would; validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (math:MalformedArgumentSlot)." .
+
+ex:ecWeightTensorNoParameterSpace a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/weight-tensor-no-parameter-space.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example names the layer the weight parameterizes but omits the math:ParameterSpace it lives in (sh:minCount 1 on math:WeightTensorShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UnframedWeightTensor)." .
