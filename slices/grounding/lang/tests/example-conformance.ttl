@@ -375,3 +375,15 @@ ex:ecTransliterationUnanchored a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
     gmeow:conformanceRationale "The lang:TransliterationMap declares no lang:transliterationScheme (sh:minCount 1 on lang:TransliterationAnchorShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (lang:UnanchoredTransliteration); both orthographies are declared." .
+
+# =========================================================================== #
+# Ingestion-stratum fixtures — the external-engine handoff. lang:UnattributedEngineClaim
+# and lang:SilentPromotion are native Rust gates (crates/validate structural_lint,
+# keyed on lang:interpretationEngine and lang:promotedReading) tested in-crate, not
+# SHACL, so they have no example-conformance cell here; their counter-examples
+# (tests/counter-examples/ingestion-unattributed-engine-claim.ttl and
+# ingestion-silent-promotion.ttl) and the positive co-resident-readings fixture
+# (tests/conformance-fixtures/ambiguity-saw-her-duck.ttl) are exercised by the native
+# lint tests. lang:SilentDisambiguation (the co-resident-reading collapse) is likewise
+# a native gate, noted with the meaning-stratum fixtures above.
+# =========================================================================== #

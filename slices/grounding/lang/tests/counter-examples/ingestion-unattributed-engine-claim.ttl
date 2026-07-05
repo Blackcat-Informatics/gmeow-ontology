@@ -1,0 +1,20 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Counter-example: an engine interpretation act (marked by lang:interpretationEngine)
+# whose produced reading carries NO gmeow:vantage — engine output entered as
+# unattributed structure rather than a vantage-held reading (fires
+# lang:UnattributedEngineClaim, a native crates/validate structural_lint gate).
+
+@prefix lang:  <https://blackcatinformatics.ca/lang/> .
+@prefix ex:    <http://example.org/lang/> .
+
+ex:english a lang:SignSystem .
+ex:form a lang:WordForm ; lang:inSignSystem ex:english .
+
+# The reading is produced by an ENGINE act but is attributed to no vantage.
+ex:reading a lang:Reading ; lang:readingOf ex:form .
+
+ex:act a lang:InterpretationAct ;
+    lang:interpretedForm ex:form ;
+    lang:interpretationEngine ex:udParser ;
+    lang:producedReading ex:reading .
