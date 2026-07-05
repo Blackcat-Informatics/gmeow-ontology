@@ -621,6 +621,28 @@ math:SlotIndexUniquenessShape
         """ ;
     ] .
 
+# A binding expression names the variable it binds and its body.
+math:BindingExpressionShape
+    a sh:NodeShape ;
+    rdfs:label "Binding-expression well-formedness shape"@x-gmeow-english ;
+    skos:definition "SHACL constraints for math:BindingExpression: a binder names the math:VariableDeclaration it introduces through exactly one math:boundVariable and names its body through at least one indexed math:argumentSlot cell. A binder without its bound variable, or without a body, is ill-formed (math:MalformedBindingExpression). Subclass-aware: math:Derivative, math:Limit, math:Series, and math:Integral are binding expressions, so this shape also targets them — each must name the variable it binds and its body as a generic binder, alongside its calculus-specific frame."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    math:enforcesFailureClass math:MalformedBindingExpression ;
+    sh:targetClass math:BindingExpression ;
+    sh:property [
+        sh:path math:boundVariable ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:BindingExpression must name exactly one math:VariableDeclaration it binds through math:boundVariable; a binder without its bound variable is ill-formed (math:MalformedBindingExpression)." ;
+    ] ;
+    sh:property [
+        sh:path math:argumentSlot ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:BindingExpression must name its body through at least one indexed math:argumentSlot cell; a binder without a body is ill-formed (math:MalformedBindingExpression)." ;
+    ] .
+
 # A variable occurrence resolves to a declaration.
 math:VariableOccurrenceShape
     a sh:NodeShape ;
