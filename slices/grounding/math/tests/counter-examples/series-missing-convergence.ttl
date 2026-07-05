@@ -1,0 +1,15 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:SeriesShape: a math:Series naming its general term but
+# carrying no math:hasConvergence (sh:minCount 1). Validation MUST emit
+# shacl.MinCountConstraintComponent (math:UnderspecifiedConvergence). Bound by
+# ex:ecSeriesMissingConvergence.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:divergentSeries a math:Series ;
+    math:operator math:summationBinder ;
+    math:seriesTerm ex:harmonicTerm .
+
+ex:harmonicTerm a math:MathematicalExpression .

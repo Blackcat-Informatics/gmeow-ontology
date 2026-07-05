@@ -1,0 +1,29 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:ChartDimensionShape: a well-framed chart whose target
+# coordinate space has dimension 3 while its manifold has dimension 2. Every property is
+# present (so math:ChartShape and math:FunctionFramingShape pass), isolating the SPARQL
+# dimension violation. Validation MUST emit shacl.SPARQLConstraintComponent
+# (math:DimensionMismatch). Bound by ex:ecChartDimensionMismatch.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:mismatchManifold a math:SmoothManifold ;
+    math:manifoldDimension 2 ;
+    math:manifoldStructureKind math:smoothStructure ;
+    math:hasChart ex:mismatchChart .
+
+ex:mismatchChart a math:Chart ;
+    math:chartDomain ex:mismatchRegion ;
+    math:coordinateMap ex:mismatchCoordFn ;
+    math:targetCoordinateSpace ex:r3 .
+
+ex:mismatchRegion a math:OpenSet .
+
+ex:mismatchCoordFn a math:CoordinateMap ;
+    math:domain ex:mismatchRegion ;
+    math:codomain ex:r3 .
+
+ex:r3 a math:Set ;
+    math:spaceDimension 3 .

@@ -99,22 +99,30 @@ math:IntensionalSetShape
         sh:message "A math:SetBuilderExpression must name exactly one math:memberCondition as a resource denoting a logic: formula (a single defining condition, which may itself be a compound formula), not an opaque literal string." ;
     ] .
 
-# Rule 5 — a complement names its ambient set.
+# Rule 5 — a complement names its ambient space AND its complement-semantics.
 math:ComplementShape
     a sh:NodeShape ;
-    rdfs:label "Complement ambient-set shape"@x-gmeow-english ;
-    skos:definition "SHACL constraint for math:Complement: it names the ambient set it is taken relative to through math:complementWithin. An unqualified complement is ill-formed."@x-gmeow-english ;
+    rdfs:label "Complement ambient-space and semantics shape"@x-gmeow-english ;
+    skos:definition "SHACL constraint for math:Complement: it names the ambient space it is taken relative to through math:ambientSpace and which notion of complement it uses through math:complementSemantics (set-theoretic, orthogonal, complex-linear, topological, or quotient). A complement missing either is ill-formed."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     math:enforcesFailureClass math:UnqualifiedComplement ;
     sh:targetClass math:Complement ;
     sh:property [
-        sh:path math:complementWithin ;
+        sh:path math:ambientSpace ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
         sh:nodeKind sh:IRI ;
-        sh:class math:Set ;
         sh:severity sh:Violation ;
-        sh:message "A math:Complement must name its ambient set through math:complementWithin; an unqualified complement is ill-formed." ;
+        sh:message "A math:Complement must name its ambient space through math:ambientSpace; an unqualified complement is ill-formed." ;
+    ] ;
+    sh:property [
+        sh:path math:complementSemantics ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:class math:ComplementSemantics ;
+        sh:severity sh:Violation ;
+        sh:message "A math:Complement must name its complement-semantics through math:complementSemantics (one of set-theoretic, orthogonal, complex-linear, topological, quotient); an unqualified complement is ill-formed." ;
     ] .
 
 # Rule 6 — a set is extensional or intensional, not silently both.
@@ -549,4 +557,455 @@ math:DimensionalExpressionShape
         sh:minCount 2 ;
         sh:severity sh:Violation ;
         sh:message "A math:DimensionalExpression must carry at least two math:homogeneousOperand — dimensional homogeneity is vacuous for zero or one operand." ;
+    ] .
+
+# =========================================================================== #
+# Analysis-and-geometry hard-rule gates (ANALYSIS-AND-GEOMETRY charter)
+#
+# Binder AST: argument slots and variable occurrences are well-formed. Calculus:
+# a derivative/limit/series names its subject and variable/mode. Topology:
+# continuity/compactness/connectedness are declared, not assumed. Geometry: a
+# manifold declares dimension and structure kind, a chart names its frame, and
+# the chart/tangent dimensions agree with the manifold (a SHACL-SPARQL gate, the
+# analysis-geometry analogue of dimensional homogeneity). Each shape names the
+# typed math:MathConformanceFailure it raises through math:enforcesFailureClass.
+# =========================================================================== #
+
+# --- Binder AST -------------------------------------------------------------- #
+
+# An argument slot carries exactly one index and one expression.
+math:ArgumentSlotShape
+    a sh:NodeShape ;
+    rdfs:label "Argument-slot well-formedness shape"@x-gmeow-english ;
+    skos:definition "SHACL constraints for math:ArgumentSlot: it carries exactly one math:slotIndex (a non-negative integer) and exactly one math:slotExpression. A slot missing its index or expression is ill-formed."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    math:enforcesFailureClass math:MalformedArgumentSlot ;
+    sh:targetClass math:ArgumentSlot ;
+    sh:property [
+        sh:path math:slotIndex ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:integer ;
+        sh:minInclusive 0 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:ArgumentSlot must carry exactly one math:slotIndex (a non-negative integer)." ;
+    ] ;
+    sh:property [
+        sh:path math:slotExpression ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A math:ArgumentSlot must name exactly one math:slotExpression — its operand or a binder's body." ;
+    ] .
+
+# Slot indexes are unique within one application.
+math:SlotIndexUniquenessShape
+    a sh:NodeShape ;
+    rdfs:label "Slot-index uniqueness shape"@x-gmeow-english ;
+    skos:definition "SHACL-SPARQL constraint: within one application/binder node the math:slotIndex of its math:argumentSlot cells are unique — two slots sharing an index make operand order ambiguous."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    math:enforcesFailureClass math:MalformedArgumentSlot ;
+    sh:targetSubjectsOf math:argumentSlot ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "Two math:argumentSlot cells of one application share a math:slotIndex; slot indexes must be unique so operand order is well-defined." ;
+        sh:select """
+            SELECT DISTINCT $this WHERE {
+                $this <https://blackcatinformatics.ca/math/argumentSlot> ?s1 .
+                $this <https://blackcatinformatics.ca/math/argumentSlot> ?s2 .
+                ?s1 <https://blackcatinformatics.ca/math/slotIndex> ?i .
+                ?s2 <https://blackcatinformatics.ca/math/slotIndex> ?i .
+                FILTER(?s1 != ?s2)
+            }
+        """ ;
+    ] .
+
+# A binding expression names the variable it binds and its body.
+math:BindingExpressionShape
+    a sh:NodeShape ;
+    rdfs:label "Binding-expression well-formedness shape"@x-gmeow-english ;
+    skos:definition "SHACL constraints for math:BindingExpression: a binder names the math:VariableDeclaration it introduces through exactly one math:boundVariable and names its body through at least one indexed math:argumentSlot cell. A binder without its bound variable, or without a body, is ill-formed (math:MalformedBindingExpression). Subclass-aware: math:Derivative, math:Limit, math:Series, and math:Integral are binding expressions, so this shape also targets them — each must name the variable it binds and its body as a generic binder, alongside its calculus-specific frame."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    math:enforcesFailureClass math:MalformedBindingExpression ;
+    sh:targetClass math:BindingExpression ;
+    sh:property [
+        sh:path math:boundVariable ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:BindingExpression must name exactly one math:VariableDeclaration it binds through math:boundVariable; a binder without its bound variable is ill-formed (math:MalformedBindingExpression)." ;
+    ] ;
+    sh:property [
+        sh:path math:argumentSlot ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:BindingExpression must name its body through at least one indexed math:argumentSlot cell; a binder without a body is ill-formed (math:MalformedBindingExpression)." ;
+    ] .
+
+# A variable occurrence resolves to a declaration.
+math:VariableOccurrenceShape
+    a sh:NodeShape ;
+    rdfs:label "Variable-occurrence scoping shape"@x-gmeow-english ;
+    skos:definition "SHACL constraint for math:VariableOccurrence: it resolves to exactly one math:VariableDeclaration through math:declaredVariable (a bound declaration or a math:FreeVariableDeclaration). There is no implicit free variable."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    math:enforcesFailureClass math:UnscopedVariableOccurrence ;
+    sh:targetClass math:VariableOccurrence ;
+    sh:property [
+        sh:path math:declaredVariable ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A math:VariableOccurrence must resolve to exactly one math:VariableDeclaration through math:declaredVariable; an unscoped occurrence is ill-formed." ;
+    ] .
+
+# A truth-valued expression lowered into logic: declares its denotation and preservation.
+math:LogicLoweringShape
+    a sh:NodeShape ;
+    rdfs:label "Logic-lowering declaration shape"@x-gmeow-english ;
+    skos:definition "SHACL constraints for the math→logic: lowering seam: any math:MathematicalExpression that names a logic:Formula through math:compilesToLogicFormula must also declare its math:denotationKind (that it denotes a proposition) and its math:logicLoweringPreservation (the loss-ledger polarity of the lowering, a logic:preservationKind value). Silent promotion of a mathematical expression to a logical assertion — lowering without either declaration — is forbidden (math:UndeclaredLogicLowering)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    math:enforcesFailureClass math:UndeclaredLogicLowering ;
+    sh:targetSubjectsOf math:compilesToLogicFormula ;
+    sh:property [
+        sh:path math:denotationKind ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "An expression lowered to a logic:Formula through math:compilesToLogicFormula must declare its math:denotationKind; silent promotion to a logical assertion is forbidden (math:UndeclaredLogicLowering)." ;
+    ] ;
+    sh:property [
+        sh:path math:logicLoweringPreservation ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "An expression lowered to a logic:Formula through math:compilesToLogicFormula must declare its math:logicLoweringPreservation (a logic:preservationKind value); an unrecorded lowering is forbidden (math:UndeclaredLogicLowering)." ;
+    ] .
+
+# --- Calculus ---------------------------------------------------------------- #
+
+# A derivative names what it differentiates, its variable, and its order.
+math:DerivativeShape
+    a sh:NodeShape ;
+    rdfs:label "Derivative framing shape"@x-gmeow-english ;
+    skos:definition "SHACL constraints for math:Derivative: it names math:derivativeOf, math:withRespectToVariable, and math:derivativeOrder. A derivative that does not say what, with respect to which variable, and at what order is ill-formed."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    math:enforcesFailureClass math:UnderspecifiedDerivative ;
+    sh:targetClass math:Derivative ;
+    sh:property [
+        sh:path math:derivativeOf ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A math:Derivative must name what it differentiates through math:derivativeOf." ;
+    ] ;
+    sh:property [
+        sh:path math:withRespectToVariable ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A math:Derivative must name its variable of differentiation through math:withRespectToVariable." ;
+    ] ;
+    sh:property [
+        sh:path math:derivativeOrder ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:integer ;
+        sh:minInclusive 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:Derivative must declare its order through math:derivativeOrder (a positive integer)." ;
+    ] .
+
+# A limit names its expression and its limit point.
+math:LimitShape
+    a sh:NodeShape ;
+    rdfs:label "Limit framing shape"@x-gmeow-english ;
+    skos:definition "SHACL constraints for math:Limit: it names math:limitOf (the expression) and math:limitPoint (the point approached). Its math:limitMode (direction) is optional — a two-sided limit has no direction."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    math:enforcesFailureClass math:UnderspecifiedLimit ;
+    sh:targetClass math:Limit ;
+    sh:property [
+        sh:path math:limitOf ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A math:Limit must name the expression whose limit is taken through math:limitOf." ;
+    ] ;
+    sh:property [
+        sh:path math:limitPoint ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:Limit must name the point its variable approaches through math:limitPoint." ;
+    ] .
+
+# A convergence names what it converges to and in which mode.
+math:ConvergenceShape
+    a sh:NodeShape ;
+    rdfs:label "Convergence framing shape"@x-gmeow-english ;
+    skos:definition "SHACL constraints for math:Convergence: it names math:convergesTo and math:convergenceMode (a math:ConvergenceMode). 'It converges' is meaningless without the mode."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    math:enforcesFailureClass math:UnderspecifiedConvergence ;
+    sh:targetClass math:Convergence ;
+    sh:property [
+        sh:path math:convergesTo ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:Convergence must name what it converges to through math:convergesTo." ;
+    ] ;
+    sh:property [
+        sh:path math:convergenceMode ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class math:ConvergenceMode ;
+        sh:severity sh:Violation ;
+        sh:message "A math:Convergence must name its mode through math:convergenceMode (pointwise, uniform, absolute, conditional, in-measure, almost-everywhere, in-Lᵖ-norm, or in-distribution)." ;
+    ] .
+
+# A series names its general term and carries a convergence.
+math:SeriesShape
+    a sh:NodeShape ;
+    rdfs:label "Series framing shape"@x-gmeow-english ;
+    skos:definition "SHACL constraints for math:Series: it names its math:seriesTerm and carries a math:Convergence through math:hasConvergence naming what it converges to and in which mode."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    math:enforcesFailureClass math:UnderspecifiedConvergence ;
+    sh:targetClass math:Series ;
+    sh:property [
+        sh:path math:seriesTerm ;
+        sh:minCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A math:Series must name its general term through math:seriesTerm." ;
+    ] ;
+    sh:property [
+        sh:path math:hasConvergence ;
+        sh:minCount 1 ;
+        sh:class math:Convergence ;
+        sh:severity sh:Violation ;
+        sh:message "A math:Series must carry a math:Convergence through math:hasConvergence naming its mode of convergence." ;
+    ] .
+
+# A sequence carries a convergence naming its mode.
+math:SequenceShape
+    a sh:NodeShape ;
+    rdfs:label "Sequence convergence framing shape"@x-gmeow-english ;
+    skos:definition "SHACL constraint for math:Sequence: it carries a math:Convergence through math:hasConvergence naming what it converges to and in which mode. A sequence asserted to converge without a math:Convergence naming the mode is ill-formed (math:UnderspecifiedConvergence)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    math:enforcesFailureClass math:UnderspecifiedConvergence ;
+    sh:targetClass math:Sequence ;
+    sh:property [
+        sh:path math:hasConvergence ;
+        sh:minCount 1 ;
+        sh:class math:Convergence ;
+        sh:severity sh:Violation ;
+        sh:message "A math:Sequence must carry a math:Convergence through math:hasConvergence naming its mode of convergence (math:UnderspecifiedConvergence)." ;
+    ] .
+
+# --- Topology: declared, not assumed ---------------------------------------- #
+
+math:ContinuousMapShape
+    a sh:NodeShape ;
+    rdfs:label "Continuous-map declaration shape"@x-gmeow-english ;
+    skos:definition "SHACL constraint for math:ContinuousMap: it declares its continuity through math:isContinuous — continuity is declared (backed by math:continuityLaw), not assumed from the type."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    math:enforcesFailureClass math:UndeclaredTopologicalProperty ;
+    sh:targetClass math:ContinuousMap ;
+    sh:property [
+        sh:path math:isContinuous ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:boolean ;
+        sh:severity sh:Violation ;
+        sh:message "A math:ContinuousMap must declare math:isContinuous; continuity is declared, not assumed." ;
+    ] .
+
+math:CompactSpaceShape
+    a sh:NodeShape ;
+    rdfs:label "Compact-space declaration shape"@x-gmeow-english ;
+    skos:definition "SHACL constraint for math:CompactSpace: it declares its compactness through math:isCompact — compactness is declared, not assumed from the type."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    math:enforcesFailureClass math:UndeclaredTopologicalProperty ;
+    sh:targetClass math:CompactSpace ;
+    sh:property [
+        sh:path math:isCompact ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:boolean ;
+        sh:severity sh:Violation ;
+        sh:message "A math:CompactSpace must declare math:isCompact; compactness is declared, not assumed." ;
+    ] .
+
+math:ConnectedSpaceShape
+    a sh:NodeShape ;
+    rdfs:label "Connected-space declaration shape"@x-gmeow-english ;
+    skos:definition "SHACL constraint for math:ConnectedSpace: it declares its connectedness through math:isConnected — connectedness is declared, not assumed from the type."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    math:enforcesFailureClass math:UndeclaredTopologicalProperty ;
+    sh:targetClass math:ConnectedSpace ;
+    sh:property [
+        sh:path math:isConnected ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:boolean ;
+        sh:severity sh:Violation ;
+        sh:message "A math:ConnectedSpace must declare math:isConnected; connectedness is declared, not assumed." ;
+    ] .
+
+# --- Geometry: manifold and chart framing ----------------------------------- #
+
+math:ManifoldShape
+    a sh:NodeShape ;
+    rdfs:label "Manifold framing shape"@x-gmeow-english ;
+    skos:definition "SHACL constraints for math:Manifold: it declares its dimension (math:manifoldDimension) and its structure kind (math:manifoldStructureKind, one of the five kinds). A manifold missing either is ill-formed."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    math:enforcesFailureClass math:UnderspecifiedManifold ;
+    sh:targetClass math:Manifold ;
+    sh:property [
+        sh:path math:manifoldDimension ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:integer ;
+        sh:minInclusive 0 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:Manifold must declare its dimension through math:manifoldDimension (a non-negative integer)." ;
+    ] ;
+    sh:property [
+        sh:path math:manifoldStructureKind ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class math:ManifoldStructureKind ;
+        sh:severity sh:Violation ;
+        sh:message "A math:Manifold must declare its structure kind through math:manifoldStructureKind (topological, smooth, complex, Riemannian, or Lorentzian)." ;
+    ] .
+
+math:ChartShape
+    a sh:NodeShape ;
+    rdfs:label "Chart framing shape"@x-gmeow-english ;
+    skos:definition "SHACL constraints for math:Chart: it names its domain (math:chartDomain), its coordinate map (math:coordinateMap), and its target coordinate space (math:targetCoordinateSpace). A chart missing any is ill-formed."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    math:enforcesFailureClass math:UnderspecifiedChart ;
+    sh:targetClass math:Chart ;
+    sh:property [
+        sh:path math:chartDomain ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A math:Chart must name the region it covers through math:chartDomain." ;
+    ] ;
+    sh:property [
+        sh:path math:coordinateMap ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A math:Chart must name its coordinate map through math:coordinateMap." ;
+    ] ;
+    sh:property [
+        sh:path math:targetCoordinateSpace ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A math:Chart must name its target coordinate space through math:targetCoordinateSpace." ;
+    ] .
+
+# --- Geometry: dimension-consistency (SHACL-SPARQL, → math:DimensionMismatch) - #
+
+# A chart on an n-manifold maps into a target of dimension n.
+math:ChartDimensionShape
+    a sh:NodeShape ;
+    rdfs:label "Chart dimension-consistency shape"@x-gmeow-english ;
+    skos:definition "SHACL-SPARQL constraint: a math:Chart's math:targetCoordinateSpace has the same math:spaceDimension as its manifold's math:manifoldDimension. A chart into the wrong-dimensional space is a silent-error class the charter forbids."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    math:enforcesFailureClass math:DimensionMismatch ;
+    sh:targetClass math:Chart ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "A math:Chart's target coordinate space dimension does not equal its manifold's dimension (math:DimensionMismatch)." ;
+        sh:select """
+            SELECT DISTINCT $this WHERE {
+                ?m <https://blackcatinformatics.ca/math/hasChart> $this .
+                ?m <https://blackcatinformatics.ca/math/manifoldDimension> ?md .
+                $this <https://blackcatinformatics.ca/math/targetCoordinateSpace> ?t .
+                ?t <https://blackcatinformatics.ca/math/spaceDimension> ?sd .
+                FILTER(?md != ?sd)
+            }
+        """ ;
+    ] .
+
+# A tangent space has the same dimension as its manifold.
+math:TangentSpaceDimensionShape
+    a sh:NodeShape ;
+    rdfs:label "Tangent-space dimension-consistency shape"@x-gmeow-english ;
+    skos:definition "SHACL-SPARQL constraint: a math:TangentSpace's math:spaceDimension equals its manifold's math:manifoldDimension. A tangent space of the wrong dimension is ill-formed."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    math:enforcesFailureClass math:DimensionMismatch ;
+    sh:targetClass math:TangentSpace ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "A math:TangentSpace's dimension does not equal its manifold's dimension (math:DimensionMismatch)." ;
+        sh:select """
+            SELECT DISTINCT $this WHERE {
+                $this <https://blackcatinformatics.ca/math/tangentSpaceOf> ?m .
+                ?m <https://blackcatinformatics.ca/math/manifoldDimension> ?md .
+                $this <https://blackcatinformatics.ca/math/spaceDimension> ?sd .
+                FILTER(?md != ?sd)
+            }
+        """ ;
+    ] .
+
+# A metric signature (p, q) has p + q equal to its manifold's dimension, and its
+# (p, q) split agrees with the manifold's structure kind: Riemannian ⇒ q = 0
+# (positive-definite), Lorentzian ⇒ exactly one timelike direction (p = 1 or q = 1).
+math:MetricSignatureDimensionShape
+    a sh:NodeShape ;
+    rdfs:label "Metric-signature dimension-consistency shape"@x-gmeow-english ;
+    skos:definition "SHACL-SPARQL constraint: a math:MetricSignature's math:signaturePositive p and math:signatureNegative q sum to its manifold's math:manifoldDimension, and the (p, q) split agrees with the manifold's math:manifoldStructureKind — a math:riemannianStructure metric is positive-definite (q = 0) and a math:lorentzianStructure metric has exactly one timelike direction (p = 1 or q = 1). A signature that miscounts the dimension or contradicts the structure kind is a silent-error class the charter forbids (math:DimensionMismatch)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    math:enforcesFailureClass math:DimensionMismatch ;
+    sh:targetClass math:MetricSignature ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "A math:MetricSignature's math:signaturePositive plus math:signatureNegative does not equal its manifold's math:manifoldDimension (math:DimensionMismatch)." ;
+        sh:select """
+            SELECT DISTINCT $this WHERE {
+                ?mt <https://blackcatinformatics.ca/math/metricSignature> $this .
+                ?m <https://blackcatinformatics.ca/math/metricTensor> ?mt .
+                ?m <https://blackcatinformatics.ca/math/manifoldDimension> ?md .
+                $this <https://blackcatinformatics.ca/math/signaturePositive> ?p .
+                $this <https://blackcatinformatics.ca/math/signatureNegative> ?q .
+                BIND((?p + ?q) AS ?s)
+                FILTER(?s != ?md)
+            }
+        """ ;
+    ] ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "A math:lorentzianStructure manifold's math:MetricSignature does not have exactly one timelike direction (math:signaturePositive = 1 or math:signatureNegative = 1) (math:DimensionMismatch)." ;
+        sh:select """
+            SELECT DISTINCT $this WHERE {
+                ?mt <https://blackcatinformatics.ca/math/metricSignature> $this .
+                ?m <https://blackcatinformatics.ca/math/metricTensor> ?mt .
+                ?m <https://blackcatinformatics.ca/math/manifoldStructureKind> <https://blackcatinformatics.ca/math/lorentzianStructure> .
+                $this <https://blackcatinformatics.ca/math/signaturePositive> ?p .
+                $this <https://blackcatinformatics.ca/math/signatureNegative> ?q .
+                FILTER(?p != 1 && ?q != 1)
+            }
+        """ ;
+    ] ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "A math:riemannianStructure manifold's math:MetricSignature is not positive-definite (math:signatureNegative = 0) (math:DimensionMismatch)." ;
+        sh:select """
+            SELECT DISTINCT $this WHERE {
+                ?mt <https://blackcatinformatics.ca/math/metricSignature> $this .
+                ?m <https://blackcatinformatics.ca/math/metricTensor> ?mt .
+                ?m <https://blackcatinformatics.ca/math/manifoldStructureKind> <https://blackcatinformatics.ca/math/riemannianStructure> .
+                $this <https://blackcatinformatics.ca/math/signatureNegative> ?q .
+                FILTER(?q != 0)
+            }
+        """ ;
     ] .
