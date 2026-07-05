@@ -612,7 +612,7 @@ ex:cqResidualMeaning a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "slices/grounding/math/queries/competency/residual-or-latent-meaning-and-vantage.rq" ;
     gmeow:cqDataFile "tests/fixtures/linear-algebra-learning.ttl" ;
     gmeow:cqReasoning gmeow:reasoningNone ;
-    gmeow:cqRationale "The meaning of a residual/principal component or a latent dimension is a vantage-held math:ResidualInterpretationClaim; over the fixture the answer is exactly {dimMeaning -> dim1, frameB} and {pcMeaning -> pc1, frameA}." ;
+    gmeow:cqRationale "The meaning of a residual/principal component or a latent dimension is a vantage-held math:ResidualInterpretationClaim whose gmeow:observationResult is a logic:MetaLevelFormula carrying that meaning; over the fixture the answer is exactly {dimMeaning -> dim1, frameB, dimThemeFormula} and {pcMeaning -> pc1, frameA, pcThemeFormula}." ;
     gmeow:cqExactRows true ;
     gmeow:cqResultShape ex:cqResidualMeaningShape ;
     gmeow:cqExpectRow ex:rowDimMeaning , ex:rowPcMeaning .
@@ -621,18 +621,21 @@ ex:cqResidualMeaningShape a logic:ResultShape ;
     logic:declaresColumn
         [ logic:columnVariable "claim" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
         [ logic:columnVariable "feature" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
-        [ logic:columnVariable "vantage" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+        [ logic:columnVariable "vantage" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "meaning" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
     logic:shapeCardinality logic:RowsExact .
 
 ex:rowDimMeaning a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "claim" ; gmeow:cellValueIri exf:dimMeaning ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "feature" ; gmeow:cellValueIri exf:dim1 ] ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "vantage" ; gmeow:cellValueIri exf:frameB ] .
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "vantage" ; gmeow:cellValueIri exf:frameB ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "meaning" ; gmeow:cellValueIri exf:dimThemeFormula ] .
 
 ex:rowPcMeaning a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "claim" ; gmeow:cellValueIri exf:pcMeaning ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "feature" ; gmeow:cellValueIri exf:pc1 ] ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "vantage" ; gmeow:cellValueIri exf:frameA ] .
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "vantage" ; gmeow:cellValueIri exf:frameA ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "meaning" ; gmeow:cellValueIri exf:pcThemeFormula ] .
 
 # === Q25 — embedding source, target space, function, and model ============== #
 
