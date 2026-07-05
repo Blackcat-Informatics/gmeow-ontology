@@ -1,4 +1,9 @@
 {
   "budget_status": "exhausted",
-  "incomplete": true
+  "incomplete": true,
+  "saturated": [
+    "https://gmeow.example/753/szs-mini/unknown-budget/edge"
+  ],
+  "strata_completed": 0,
+  "strata_total": 1
 }

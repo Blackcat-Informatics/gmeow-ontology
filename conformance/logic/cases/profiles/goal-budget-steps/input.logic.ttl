@@ -1,0 +1,16 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: profiles/goal-budget-steps
+# Budget governor: max_steps=2 caps the recursive ancestor query's native
+# semi-naive fixpoint at 2 committed derivations. The chain a→b→c→d has 3
+# ancestors of a; the native governor stops early and returns a sound partial
+# subset with status "exhausted" — the backward-track step budget now runs on the
+# native core (no Scryer/Nemo demotion), incomplete but never wrong.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/profiles/goal-budget-steps/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+# Schema: sort used by the projection back-ends.
+ex:Person a logic:Kind .

@@ -1822,6 +1822,7 @@ dependencies = [
  "indicatif",
  "serde",
  "serde_json",
+ "thiserror 1.0.69",
  "tracing",
  "tracing-subscriber",
 ]
@@ -1844,6 +1845,7 @@ name = "gmeow-dev-cli"
 version = "0.1.0"
 dependencies = [
  "assert_cmd",
+ "ciborium",
  "clap",
  "gmeow-cli-core",
  "gmeow-diagnostics",
@@ -2003,6 +2005,7 @@ dependencies = [
  "bytes",
  "ciborium",
  "ed25519-dalek",
+ "gmeow-cli-core",
  "gmeow-conformance",
  "gmeow-diagnostics",
  "gmeow-docs",

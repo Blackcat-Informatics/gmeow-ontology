@@ -45,6 +45,13 @@ pub struct CompetencyQuestion {
     pub query_inline: Option<String>,
     /// `gmeow:cqQueryFile` — REPO-ROOT-relative path to a `.rq` file.
     pub query_file: Option<String>,
+    /// `gmeow:cqProject` — REPO-ROOT-relative path to a CONSTRUCT `.rq` file that
+    /// MATERIALIZES a computed projection over the overlaid canon BEFORE the cqQuery
+    /// runs. The harness runs the CONSTRUCT and unions its triples into the dataset
+    /// the question is answered against, so a projection-agreement question compares
+    /// the flat shortcut against a materialized collapse of the canon rather than a
+    /// second hand-asserted copy of the same IRI (defeating the circular gate).
+    pub project_query_file: Option<String>,
     /// `gmeow:cqExpectAsk` — expected ASK boolean (ASK questions only).
     pub expect_ask: Option<bool>,
     /// `gmeow:cqExpectRowCount` — coarse expected SELECT row count.
@@ -156,10 +163,11 @@ pub enum ReasoningProfile {
 const PREFIX: &str = "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>\n";
 
 const Q_COMPETENCY: &str = "
-SELECT ?cq ?queryFile ?query ?expectAsk ?rowCount ?exactRows ?reasoning ?dataFile ?resultShape ?inputShape ?consumes ?rationale WHERE {
+SELECT ?cq ?queryFile ?query ?project ?expectAsk ?rowCount ?exactRows ?reasoning ?dataFile ?resultShape ?inputShape ?consumes ?rationale WHERE {
   ?cq a gmeow:CompetencyQuestion .
   OPTIONAL { ?cq gmeow:cqQueryFile ?queryFile }
   OPTIONAL { ?cq gmeow:cqQuery ?query }
+  OPTIONAL { ?cq gmeow:cqProject ?project }
   OPTIONAL { ?cq gmeow:cqExpectAsk ?expectAsk }
   OPTIONAL { ?cq gmeow:cqExpectRowCount ?rowCount }
   OPTIONAL { ?cq gmeow:cqExactRows ?exactRows }
@@ -228,6 +236,7 @@ fn parse_competency(store: &Arc<RdfDataset>) -> Result<Vec<CompetencyQuestion>, 
             iri: iri.clone(),
             query_inline: opt_string(&sol, "query"),
             query_file: opt_string(&sol, "queryFile"),
+            project_query_file: opt_string(&sol, "project"),
             expect_ask: opt_bool(&sol, "expectAsk")?,
             expect_row_count: opt_u64(&sol, "rowCount")?,
             exact_rows: opt_bool(&sol, "exactRows")?.unwrap_or(false),

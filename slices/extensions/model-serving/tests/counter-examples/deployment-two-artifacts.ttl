@@ -1,0 +1,20 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for gmeow:ModelDeploymentShape: a ModelDeployment realizes AT
+# MOST ONE gmeow:deploymentArtifact (a deployment serves one artifact; two
+# distinct served models are two deployments). This fixture declares one
+# deployment with two gmeow:deploymentArtifact values over one deployment, so
+# native SHACL MUST reject it with shacl.MaxCountConstraintComponent. Both
+# artifacts are correctly typed gmeow:ModelArtifact so the ONLY violation is the
+# cardinality, not a class mismatch.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/model-serving/tests/> .
+
+ex:deploymentBad a gmeow:ModelDeployment ;
+    gmeow:deploymentArtifact ex:artifactA ;
+    gmeow:deploymentArtifact ex:artifactB .   # <-- the second value trips sh:maxCount 1
+
+ex:artifactA a gmeow:ModelArtifact .
+ex:artifactB a gmeow:ModelArtifact .

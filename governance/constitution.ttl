@@ -239,7 +239,7 @@ meta:lint-frame-completeness a meta:Lint ;
 
 meta:gate-compliance-report a meta:Gate ;
     rdfs:label "machine-readable per-principle compliance report"@x-gmeow-english ;
-    meta:artifact "src/gmeow_tools/compliance.py" ;
+    meta:artifact "crates/validate/src/compliance.rs", "crates/validate/tests/compliance.rs" ;
     meta:symbol "build_report" ;
     meta:cliCommand "compliance-report" ;
     meta:makeTarget "compliance-report" .

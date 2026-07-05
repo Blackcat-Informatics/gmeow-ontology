@@ -855,6 +855,7 @@ enum EventEnum {
 enum EventTypeEnum {
   eventTypeAcquisition
   eventTypeAdoption
+  eventTypeAgentEpisode
   eventTypeAnnulment
   eventTypeAudit
   eventTypeBaptism
@@ -3294,6 +3295,7 @@ type AcquaintanceRelationship {
 type Activity {
   id: String
   iri: String
+  usedCapability: [String!]
   wasAssociatedWith: [Agent!]
 }
 
@@ -3459,6 +3461,13 @@ type Agent {
   telephone: [String!]
   understands: [Entity!]
   wondersWhether: [String!]
+}
+
+type AgentSession {
+  id: String
+  iri: String
+  sessionConfiguration: [String!]
+  sessionSubjectStage: [String!]
 }
 
 type AggregationFunction {
@@ -6205,14 +6214,30 @@ type ModalForce {
   iri: String
 }
 
+type ModelArtifact {
+  id: String
+  iri: String
+}
+
 type ModelCard {
   id: String
   iri: String
   describesModel: SoftwareAgent
+  describesModelArtifact: [ModelArtifact!]
+  describesModelService: [ModelDeployment!]
   modelContextWindow: [Int!]
   modelProvider: [String!]
   modelTrainingCutoff: [String!]
   modelVersionTag: [String!]
+}
+
+type ModelDeployment {
+  id: String
+  iri: String
+  deploymentArtifact: [ModelArtifact!]
+  deploymentEndpoint: [String!]
+  deploymentHost: [Entity!]
+  deploymentService: [SoftwareAgent!]
 }
 
 type ModelInferenceRun {
@@ -6231,6 +6256,7 @@ type ModelInvocation {
   id: String
   iri: String
   hasPrompt: [Prompt!]
+  invocationInExecution: [RuntimeExecution!]
   samplingMaxTokens: [Int!]
   samplingTemperature: [Float!]
   samplingTopP: [Float!]
@@ -7437,6 +7463,12 @@ type Rule {
   ruleConsequence: [Duty!]
   ruleConstraint: [Constraint!]
   ruleTarget: Entity
+}
+
+type RuntimeExecution {
+  id: String
+  iri: String
+  executionOfDeployment: [ModelDeployment!]
 }
 
 type SLSALevel {

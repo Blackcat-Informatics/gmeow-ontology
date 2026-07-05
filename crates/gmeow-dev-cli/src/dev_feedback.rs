@@ -10,15 +10,15 @@
 //! `slice-fix-deps` renders the native ownership analyzer's manifest patches as a
 //! reviewable unified diff.
 
+use std::collections::HashMap;
+use std::io::IsTerminal;
 use std::path::Path;
 use std::process::Command;
 
-use gmeow_cli_core::ConsoleMode;
+use gmeow_cli_core::{ConsoleMode, DiagnosticsConfig};
 use gmeow_diagnostics::{render, Finding, Report, Severity};
 
-use crate::dev_common::{
-    fail, project_root, reporter_for, resolve_console, NAMESPACE, ONTOLOGY_IRI,
-};
+use crate::dev_common::{fail, project_root, reporter_for, NAMESPACE, ONTOLOGY_IRI};
 
 /// Logs at or under this many characters ride verbatim in a finding's detail;
 /// larger logs are digested (head + tail + a SHA-256 of the full bytes).
@@ -26,63 +26,23 @@ const DEFAULT_DETAIL_LIMIT: usize = 4096;
 
 // ── external-tool ─────────────────────────────────────────────────────────────
 
-/// Resolved diagnostics output policy (flag > `GMEOW_DIAGNOSTICS_*` env > default).
-struct DiagnosticsConfig {
-    console: ConsoleMode,
-    artifacts: Vec<String>,
-    directory: std::path::PathBuf,
-    stem: String,
-    category: String,
-}
-
-impl DiagnosticsConfig {
-    /// Resolve the five `--diagnostics-*` knobs against their env fallbacks.
-    fn resolve(
-        console: Option<ConsoleMode>,
-        artifacts: Option<&str>,
-        directory: Option<&Path>,
-        stem: Option<&str>,
-        category: Option<&str>,
-    ) -> Self {
-        let console = resolve_console(console);
-        let artifacts_raw = artifacts
-            .map(str::to_owned)
-            .or_else(|| std::env::var("GMEOW_DIAGNOSTICS_ARTIFACTS").ok())
-            .unwrap_or_else(|| "all".to_owned());
-        let artifacts = parse_artifacts(&artifacts_raw);
-        let stem = stem
-            .map(str::to_owned)
-            .or_else(|| std::env::var("GMEOW_DIAGNOSTICS_STEM").ok())
-            .unwrap_or_else(|| "gmeow-feedback".to_owned());
-        let category = category
-            .map(str::to_owned)
-            .or_else(|| std::env::var("GMEOW_DIAGNOSTICS_CATEGORY").ok())
-            .unwrap_or_else(|| "default".to_owned());
-        let directory = directory
-            .map(Path::to_path_buf)
-            .or_else(|| std::env::var("GMEOW_DIAGNOSTICS_DIR").ok().map(Into::into))
-            .unwrap_or_else(|| std::path::PathBuf::from("dist").join("diagnostics"));
-        Self {
-            console,
-            artifacts,
-            directory,
-            stem,
-            category,
+/// Read the `GMEOW_DIAGNOSTICS_*` environment variables into a map for
+/// [`DiagnosticsConfig::resolve`]. Only variables the config cares about are
+/// captured; everything else is ignored.
+fn diagnostics_env() -> HashMap<String, String> {
+    let mut env = HashMap::new();
+    for key in [
+        "GMEOW_DIAGNOSTICS_CONSOLE",
+        "GMEOW_DIAGNOSTICS_ARTIFACTS",
+        "GMEOW_DIAGNOSTICS_CATEGORY",
+        "GMEOW_DIAGNOSTICS_STEM",
+        "GMEOW_DIAGNOSTICS_DIR",
+    ] {
+        if let Ok(value) = std::env::var(key) {
+            env.insert(key.to_owned(), value);
         }
     }
-}
-
-/// Parse the `none|all|comma-list` artifact selector into the set of kinds.
-fn parse_artifacts(raw: &str) -> Vec<String> {
-    match raw.trim() {
-        "none" => Vec::new(),
-        "all" | "" => vec!["json".into(), "sarif".into(), "html".into()],
-        list => list
-            .split(',')
-            .map(|s| s.trim().to_owned())
-            .filter(|s| !s.is_empty())
-            .collect(),
-    }
+    env
 }
 
 /// Deterministic head/tail digest of an over-budget log (mirrors `_digest_detail`).
@@ -146,7 +106,20 @@ pub fn external_tool(
     stem: Option<&str>,
     category: Option<&str>,
 ) -> i32 {
-    let config = DiagnosticsConfig::resolve(console, artifacts, directory, stem, category);
+    let dist_dir = project_root().join("dist");
+    let config = match DiagnosticsConfig::resolve(
+        console.map(ConsoleMode::as_str),
+        artifacts,
+        directory,
+        stem,
+        category,
+        &diagnostics_env(),
+        std::io::stderr().is_terminal(),
+        &dist_dir,
+    ) {
+        Ok(c) => c,
+        Err(e) => return fail(e.to_string()),
+    };
 
     let (code, stdout, stderr) = if command.is_empty() {
         (127, String::new(), "empty command list provided".to_owned())
@@ -199,8 +172,11 @@ fn write_artifacts(report: &Report, config: &DiagnosticsConfig) -> Result<(), i3
         )));
     }
     let normalized = report.normalized();
-    for kind in &config.artifacts {
-        let (ext, body) = match kind.as_str() {
+    for kind in DiagnosticsConfig::ARTIFACT_KINDS {
+        if !config.artifacts.contains(*kind) {
+            continue;
+        }
+        let (ext, body) = match *kind {
             "json" => (
                 "json",
                 render::to_json(&normalized).map_err(|e| fail(format!("json render: {e}")))?,
@@ -236,8 +212,20 @@ pub fn feedback(
     stem: Option<&str>,
     category: Option<&str>,
 ) -> i32 {
-    let config = DiagnosticsConfig::resolve(console, artifacts, directory, stem, category);
     let root = project_root();
+    let config = match DiagnosticsConfig::resolve(
+        console.map(ConsoleMode::as_str),
+        artifacts,
+        directory,
+        stem,
+        category,
+        &diagnostics_env(),
+        std::io::stderr().is_terminal(),
+        &root.join("dist"),
+    ) {
+        Ok(c) => c,
+        Err(e) => return fail(e.to_string()),
+    };
 
     let mut report = Report::new("feedback");
     for (label, thunk) in surfaces() {
@@ -276,27 +264,11 @@ pub fn feedback(
 }
 
 /// Write the self-describing `<stem>.gts` bundle: the report's JSON + SARIF
-/// projections as content-addressed blobs in a fresh GTS package.
+/// projections as content-addressed blobs in a GTS package whose snapshot graph
+/// IS the findings RDF and whose metadata stamps the snapshot content id.
 fn write_feedback_bundle(report: &Report, config: &DiagnosticsConfig) -> Result<(), i32> {
-    let normalized = report.normalized();
-    let json = render::to_json(&normalized).map_err(|e| fail(format!("json render: {e}")))?;
-    let sarif = render::to_sarif(&normalized).map_err(|e| fail(format!("sarif render: {e}")))?;
-
-    // The findings JSON + SARIF projections ARE the self-describing payload; each
-    // rides as a content-addressed blob keyed by its `rep` label.
-    let mut writer = purrdf::gts::writer::Writer::new("feedback");
-    writer.add_blob(
-        json.as_bytes(),
-        Some("application/json"),
-        Some("feedback.json"),
-    );
-    writer.add_blob(
-        sarif.as_bytes(),
-        Some("application/sarif+json"),
-        Some("feedback.sarif"),
-    );
-    writer.add_index();
-    let bytes = writer.to_bytes();
+    let bytes = crate::feedback_bundle::build_feedback_bundle(report)
+        .map_err(|e| fail(format!("build feedback bundle: {e}")))?;
 
     if let Err(e) = std::fs::create_dir_all(&config.directory) {
         return Err(fail(format!(
