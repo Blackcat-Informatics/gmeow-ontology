@@ -20,10 +20,10 @@ use purrdf::fno::{
     self, FnFunction, FnImpl, FnMapping, FnOutput, FnParam, FnParamMapping, FnReturnMapping,
     FnoCatalog,
 };
-use purrdf::{turtle, RdfQuad, RdfTerm};
+use purrdf::{RdfQuad, RdfTerm, turtle};
 
 use crate::ingest::{DslTerm, DslView};
-use crate::projections::{correspondence_result, ProjectionResult};
+use crate::projections::{ProjectionResult, correspondence_result};
 
 const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
 const ONTOLOGY_IRI: &str = "https://blackcatinformatics.ca/gmeow";
@@ -649,16 +649,16 @@ const PURRDF_FNO_ENGLISH_PLACEHOLDER: &str = "x-purrdf-english";
 const GMEOW_INTERNAL_ENGLISH: &str = "x-gmeow-english";
 
 fn retag_quad(mut quad: RdfQuad, tag_map: &BTreeMap<String, String>) -> RdfQuad {
-    if let RdfTerm::Literal(lit) = &mut quad.object {
-        if let Some(lang) = &lit.language {
-            let internal = if lang == PURRDF_FNO_ENGLISH_PLACEHOLDER {
-                GMEOW_INTERNAL_ENGLISH
-            } else {
-                lang.as_str()
-            };
-            if let Some(ext) = tag_map.get(internal) {
-                lit.language = Some(ext.clone());
-            }
+    if let RdfTerm::Literal(lit) = &mut quad.object
+        && let Some(lang) = &lit.language
+    {
+        let internal = if lang == PURRDF_FNO_ENGLISH_PLACEHOLDER {
+            GMEOW_INTERNAL_ENGLISH
+        } else {
+            lang.as_str()
+        };
+        if let Some(ext) = tag_map.get(internal) {
+            lit.language = Some(ext.clone());
         }
     }
     quad
@@ -691,7 +691,7 @@ mod tests {
 
     #[test]
     fn lower_fno_extracts_nested_collection_atoms() {
-        use purrdf::{parse_dataset, NativeRdfFormat, RdfDatasetBuilder};
+        use purrdf::{NativeRdfFormat, RdfDatasetBuilder, parse_dataset};
         let dsl_ttl = r#"
             @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
             @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .

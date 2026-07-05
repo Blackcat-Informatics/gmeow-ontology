@@ -575,7 +575,12 @@ pub mod deposit_config {
             "http://www.ontologydesignpatterns.org/ont/dul/DUL.owl#",
             "upper",
         ),
-        ("bfo", "BFO", "http://purl.obolibrary.org/obo/bfo.owl", "upper"),
+        (
+            "bfo",
+            "BFO",
+            "http://purl.obolibrary.org/obo/bfo.owl",
+            "upper",
+        ),
         ("foaf", "FOAF", "http://xmlns.com/foaf/0.1/", "schema"),
         (
             "rel",
@@ -595,7 +600,12 @@ pub mod deposit_config {
             "http://purl.org/dc/terms/",
             "schema",
         ),
-        ("mo", "Music Ontology", "http://purl.org/ontology/mo/", "schema"),
+        (
+            "mo",
+            "Music Ontology",
+            "http://purl.org/ontology/mo/",
+            "schema",
+        ),
         ("mbz", "MusicBrainz", "https://musicbrainz.org/", "schema"),
         ("discogs", "Discogs", "https://www.discogs.com/", "schema"),
         (
@@ -634,7 +644,12 @@ pub mod deposit_config {
             "http://www.w3.org/2000/10/swap/pim/gedcom#",
             "schema",
         ),
-        ("vcard", "vCard", "http://www.w3.org/2006/vcard/ns#", "schema"),
+        (
+            "vcard",
+            "vCard",
+            "http://www.w3.org/2006/vcard/ns#",
+            "schema",
+        ),
         (
             "geo",
             "GeoSPARQL",
@@ -659,7 +674,12 @@ pub mod deposit_config {
             "http://vocab.getty.edu/ontology#",
             "concept_scheme",
         ),
-        ("frbr", "FRBRcore", "http://purl.org/vocab/frbr/core#", "schema"),
+        (
+            "frbr",
+            "FRBRcore",
+            "http://purl.org/vocab/frbr/core#",
+            "schema",
+        ),
         ("fabio", "FaBiO", "http://purl.org/spar/fabio/", "schema"),
         (
             "lrmoo",
@@ -879,7 +899,12 @@ pub mod deposit_config {
             "http://www.ics.forth.gr/isl/CRMdig/",
             "schema",
         ),
-        ("exif", "W3C EXIF", "http://www.w3.org/2003/12/exif/ns#", "schema"),
+        (
+            "exif",
+            "W3C EXIF",
+            "http://www.w3.org/2003/12/exif/ns#",
+            "schema",
+        ),
         (
             "iiif",
             "IIIF Presentation API",

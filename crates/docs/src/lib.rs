@@ -36,9 +36,9 @@ pub mod svg;
 #[cfg(feature = "python")]
 pub mod py;
 
-pub use describe::{build_card, describe, resolve_term, DescribeGraph};
-pub use exec::{example_key, ExecutableDocsData, InferenceDiff};
-pub use i18n::{available_languages, ui_string, Translations, UiCatalog};
+pub use describe::{DescribeGraph, build_card, describe, resolve_term};
+pub use exec::{ExecutableDocsData, InferenceDiff, example_key};
+pub use i18n::{Translations, UiCatalog, available_languages, ui_string};
 pub use lint::lint;
 pub use llms::{GMEOW_SUMMARY, LLMS_NOTE_CAP};
 pub use model::{
@@ -48,8 +48,8 @@ pub use model::{
 };
 pub use rdf::to_gmeow_rdf;
 pub use render::{
-    okf_doc_reference, render_site, render_site_lang, render_site_lang_exec, to_html, to_markdown,
-    Page, Site,
+    Page, Site, okf_doc_reference, render_site, render_site_lang, render_site_lang_exec, to_html,
+    to_markdown,
 };
 // Re-export the module-registration entrypoint so the unified `gmeow_native`
 // cdylib can populate the `gmeow_native.docs` submodule.

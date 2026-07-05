@@ -383,7 +383,7 @@ fn cyclic_core_without_base_is_not_self_justifying() {
 
 #[test]
 fn from_foundation_quads_builds_assertions_and_derivations() {
-    use crate::foundation::{FoundationQuad, ASSERT_RULE_IRI};
+    use crate::foundation::{ASSERT_RULE_IRI, FoundationQuad};
 
     // An asserted quad and a derived quad whose source is the asserted quad's
     // reifier. We compute the asserted reifier via the public helper so the

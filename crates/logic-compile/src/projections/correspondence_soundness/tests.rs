@@ -12,7 +12,7 @@
 use std::collections::BTreeMap;
 use std::sync::Arc;
 
-use purrdf::{parse_dataset, NativeRdfFormat, RdfDataset};
+use purrdf::{NativeRdfFormat, RdfDataset, parse_dataset};
 
 use super::*;
 
@@ -62,9 +62,11 @@ fn strong_property_predicates_contain_expected_curies() {
 
 #[test]
 fn dcterms_refinements_and_grandfathered_dc_are_present() {
-    assert!(DCTERMS_REFINEMENTS
-        .iter()
-        .any(|(r, b)| *r == "dcterms:abstract" && *b == "dcterms:description"));
+    assert!(
+        DCTERMS_REFINEMENTS
+            .iter()
+            .any(|(r, b)| *r == "dcterms:abstract" && *b == "dcterms:description")
+    );
     assert!(GRANDFATHERED_DC.contains(&"dc:rights"));
 }
 
@@ -126,9 +128,11 @@ fn detects_self_contradicting_inverse_mapping() {
         Some("https://schema.org/subOrganization")
     );
     assert!(flagged.message.contains("schema:parentOrganization"));
-    assert!(flagged
-        .message
-        .contains("did you mean schema:parentOrganization?"));
+    assert!(
+        flagged
+            .message
+            .contains("did you mean schema:parentOrganization?")
+    );
 }
 
 /// A symmetric target (T owl:inverseOf T) must not self-contradict.
@@ -214,9 +218,11 @@ fn domain_range_synthetic() {
         "expected one inverted domain-range finding"
     );
     assert_eq!(inverted[0].severity, "WARNING");
-    assert!(inverted[0]
-        .message
-        .contains("domain/range are inverted relative to the target term"));
+    assert!(
+        inverted[0]
+            .message
+            .contains("domain/range are inverted relative to the target term")
+    );
 
     let unavailable: Vec<_> = findings
         .iter()
@@ -230,9 +236,11 @@ fn domain_range_synthetic() {
         !unavailable.is_empty(),
         "expected an INFO for unavailable axioms"
     );
-    assert!(unavailable[0]
-        .message
-        .contains("no axioms available for target 'foaf'"));
+    assert!(
+        unavailable[0]
+            .message
+            .contains("no axioms available for target 'foaf'")
+    );
 }
 
 /// Property-character: object-vs-datatype conflict is ERROR, characteristic mismatch is
@@ -286,9 +294,11 @@ fn property_character_mismatches_and_skips() {
         errors[0].instance.as_deref(),
         Some("http://xmlns.com/foaf/0.1/objProp")
     );
-    assert!(errors[0]
-        .message
-        .contains("GMEOW datatype property vs target object property"));
+    assert!(
+        errors[0]
+            .message
+            .contains("GMEOW datatype property vs target object property")
+    );
 
     let warnings: Vec<_> = findings
         .iter()
@@ -299,9 +309,11 @@ fn property_character_mismatches_and_skips() {
         warnings[0].instance.as_deref(),
         Some("http://xmlns.com/foaf/0.1/plainObj")
     );
-    assert!(warnings[0]
-        .message
-        .contains("GMEOW declares FunctionalProperty but the target does not"));
+    assert!(
+        warnings[0]
+            .message
+            .contains("GMEOW declares FunctionalProperty but the target does not")
+    );
 
     let schema_character: Vec<_> = findings
         .iter()
@@ -522,9 +534,10 @@ fn run_soundness_combines_and_sorts() {
     };
     let out = run_soundness(&inputs);
     // Sorted: ERROR (equivalence-collapse) appears before any INFO; severity-first.
-    assert!(out
-        .iter()
-        .any(|f| f.check == "equivalence-collapse" && f.severity == "ERROR"));
+    assert!(
+        out.iter()
+            .any(|f| f.check == "equivalence-collapse" && f.severity == "ERROR")
+    );
     // The list is non-decreasing under the canonical comparator.
     for w in out.windows(2) {
         assert!(

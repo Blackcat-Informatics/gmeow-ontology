@@ -183,10 +183,10 @@ fn run_sarif(argv: &[String]) -> io::Result<()> {
 }
 
 fn repo_relative_path(path: &Path) -> String {
-    if let Ok(cwd) = env::current_dir() {
-        if let Ok(rel) = path.strip_prefix(&cwd) {
-            return rel.to_string_lossy().into_owned();
-        }
+    if let Ok(cwd) = env::current_dir()
+        && let Ok(rel) = path.strip_prefix(&cwd)
+    {
+        return rel.to_string_lossy().into_owned();
     }
     path.to_string_lossy().into_owned()
 }

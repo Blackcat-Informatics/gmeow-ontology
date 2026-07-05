@@ -17,7 +17,7 @@
 mod conformance_support;
 use conformance_support::*;
 
-use purrdf::{flat_rdf_quads_from_dataset, parse_dataset, RdfTerm};
+use purrdf::{RdfTerm, flat_rdf_quads_from_dataset, parse_dataset};
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 

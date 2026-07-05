@@ -992,12 +992,12 @@ fn try_parse_builtin(
     // `L cmp R` — only when `tok` is NOT a `pred(...)` atom (atoms own outer parens).
     // Multi-char comparison operators are checked FIRST so `>=`/`=<`/`=:=` are not
     // mistaken for `>`/`<`/`=`.
-    if !is_atom_shaped(tok) {
-        if let Some((lhs_str, op, rhs_str)) = split_compare(tok) {
-            let lhs = parse_term(lhs_str.trim(), prefixes)?;
-            let rhs = parse_term(rhs_str.trim(), prefixes)?;
-            return Ok(Some(QBuiltin::Compare { lhs, op, rhs }));
-        }
+    if !is_atom_shaped(tok)
+        && let Some((lhs_str, op, rhs_str)) = split_compare(tok)
+    {
+        let lhs = parse_term(lhs_str.trim(), prefixes)?;
+        let rhs = parse_term(rhs_str.trim(), prefixes)?;
+        return Ok(Some(QBuiltin::Compare { lhs, op, rhs }));
     }
 
     Ok(None)

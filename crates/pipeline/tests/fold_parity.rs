@@ -15,8 +15,8 @@ use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
 use gmeow_pipeline::{
-    bind, default_registry, run, PipelineCache, PipelineSpec, RunContext, StageSpec,
-    ENGINE_RESOURCE, SINK_CAPABILITY, SOURCE_ORIGIN,
+    ENGINE_RESOURCE, PipelineCache, PipelineSpec, RunContext, SINK_CAPABILITY, SOURCE_ORIGIN,
+    StageSpec, bind, default_registry, run,
 };
 
 fn repo_root() -> PathBuf {

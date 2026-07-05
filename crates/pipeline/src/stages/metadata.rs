@@ -23,13 +23,13 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
 use purrdf::model::{RdfLiteral, RdfTerm};
-use purrdf::{dataset_from_quads, serialize_dataset, RdfDataset, RdfQuad, SerializeGraph};
+use purrdf::{RdfDataset, RdfQuad, SerializeGraph, dataset_from_quads, serialize_dataset};
 use sha2::{Digest, Sha256};
 
 use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 use crate::stages::profiles::{
-    dependency_closure, discover_slices, group_named_profiles, SliceMeta,
+    SliceMeta, dependency_closure, discover_slices, group_named_profiles,
 };
 
 /// Logical path of the generated VoID document.
@@ -190,10 +190,10 @@ fn fold_wikidata_links(store: &RdfDataset) -> Result<Vec<String>, PipelineError>
         if q.predicate != GMEOW_AUTHORITY_LINK && q.predicate != SKOS_EXACT_MATCH {
             continue;
         }
-        if let Some(obj) = term_iri(&q.object) {
-            if obj.starts_with(WIKIDATA_PREFIX) {
-                links.insert(obj.to_string());
-            }
+        if let Some(obj) = term_iri(&q.object)
+            && obj.starts_with(WIKIDATA_PREFIX)
+        {
+            links.insert(obj.to_string());
         }
     }
     Ok(links.into_iter().collect())
@@ -217,23 +217,22 @@ fn fold_stats(store: &RdfDataset) -> Result<VoidStats, PipelineError> {
             continue; // default graph only
         }
         triples += 1;
-        if let Some(s) = term_iri(&q.subject) {
-            if s.starts_with(NAMESPACE) {
-                entities.insert(s.to_string());
-            }
+        if let Some(s) = term_iri(&q.subject)
+            && s.starts_with(NAMESPACE)
+        {
+            entities.insert(s.to_string());
         }
         // Class/property census counts every subject (IRI *or* blank node),
         // mirroring Python `subjects_by_type` which buckets by term-id.
-        if q.predicate == RDF_TYPE {
-            if let Some(obj) = term_iri(&q.object) {
-                if CLASS_TYPES.contains(&obj) || PROPERTY_TYPES.contains(&obj) {
-                    let key = subject_key(&q.subject);
-                    if CLASS_TYPES.contains(&obj) {
-                        classes.insert(key.clone());
-                    } else {
-                        properties.insert(key);
-                    }
-                }
+        if q.predicate == RDF_TYPE
+            && let Some(obj) = term_iri(&q.object)
+            && (CLASS_TYPES.contains(&obj) || PROPERTY_TYPES.contains(&obj))
+        {
+            let key = subject_key(&q.subject);
+            if CLASS_TYPES.contains(&obj) {
+                classes.insert(key.clone());
+            } else {
+                properties.insert(key);
             }
         }
     }

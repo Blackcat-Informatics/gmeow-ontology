@@ -508,7 +508,7 @@ fn parse_expr(view: &DslView, node: &DslTerm) -> Result<Expr, String> {
                 lexical: lexical.clone(),
                 datatype: datatype.clone(),
                 language: language.clone(),
-            })
+            });
         }
         DslTerm::Blank { .. } => {}
     }

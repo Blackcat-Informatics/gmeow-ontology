@@ -45,11 +45,11 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use purrdf::gts_compose::BlobRow;
 use purrdf::slice::SliceCatalog;
-use purrdf::{parse_dataset, DatasetView, GraphMatch, TermRef};
+use purrdf::{DatasetView, GraphMatch, TermRef, parse_dataset};
 
 use gmeow_lang_bridge::emit::{digest16, ntriples_sorted};
 use gmeow_lang_bridge::{
-    exact_surface_correspondence, normalization_label, Bridge, PlainTextBridge,
+    Bridge, PlainTextBridge, exact_surface_correspondence, normalization_label,
 };
 use gmeow_lang_form::SurfaceForm;
 use gmeow_logic::obligations::candidate_source_hash;
@@ -211,10 +211,9 @@ fn collect_english_literals(
                     language: Some(lang),
                     ..
                 } = ds.resolve(q.o)
+                    && lang == ENGLISH_TAG
                 {
-                    if lang == ENGLISH_TAG {
-                        texts.insert(lexical.to_owned());
-                    }
+                    texts.insert(lexical.to_owned());
                 }
             }
         }
@@ -346,12 +345,11 @@ fn build_script_bindings(
                     {
                         orthography_for.insert(subj.to_owned(), obj.to_owned());
                     }
-                } else if pred == p_uses_script {
-                    if let (TermRef::Iri(subj), TermRef::Iri(obj)) =
+                } else if pred == p_uses_script
+                    && let (TermRef::Iri(subj), TermRef::Iri(obj)) =
                         (ds.resolve(q.s), ds.resolve(q.o))
-                    {
-                        uses_script.insert(subj.to_owned(), obj.to_owned());
-                    }
+                {
+                    uses_script.insert(subj.to_owned(), obj.to_owned());
                 }
             }
         }

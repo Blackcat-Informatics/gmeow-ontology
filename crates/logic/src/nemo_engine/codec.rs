@@ -257,18 +257,18 @@ pub(crate) fn decode_nemo_term(s: &str) -> Result<TermValue, String> {
                 direction: None,
             });
         }
-        if let Some(dt_part) = suffix.strip_prefix("^^<") {
-            if let Some(dt_iri) = dt_part.strip_suffix('>') {
-                if dt_iri.is_empty() {
-                    return Err(decode_err("invalid datatype IRI", "empty"));
-                }
-                return Ok(TermValue::Literal {
-                    lexical_form: value,
-                    datatype: dt_iri.to_owned(),
-                    language: None,
-                    direction: None,
-                });
+        if let Some(dt_part) = suffix.strip_prefix("^^<")
+            && let Some(dt_iri) = dt_part.strip_suffix('>')
+        {
+            if dt_iri.is_empty() {
+                return Err(decode_err("invalid datatype IRI", "empty"));
             }
+            return Ok(TermValue::Literal {
+                lexical_form: value,
+                datatype: dt_iri.to_owned(),
+                language: None,
+                direction: None,
+            });
         }
         return Err(decode_err("unrecognized literal suffix", suffix));
     }

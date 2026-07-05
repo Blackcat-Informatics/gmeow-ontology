@@ -15,9 +15,9 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
 use gmeow_pipeline::{
-    bind, default_registry, run, PipelineCache, PipelineError, PipelineSpec, RunContext, Stage,
-    StageInput, StageOutput, StageProduct, StageRegistry, StageSpec, ENGINE_RESOURCE,
-    SINK_CAPABILITY, SOURCE_ORIGIN,
+    ENGINE_RESOURCE, PipelineCache, PipelineError, PipelineSpec, RunContext, SINK_CAPABILITY,
+    SOURCE_ORIGIN, Stage, StageInput, StageOutput, StageProduct, StageRegistry, StageSpec, bind,
+    default_registry, run,
 };
 
 fn repo_root() -> PathBuf {

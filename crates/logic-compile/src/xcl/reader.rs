@@ -12,7 +12,7 @@
 //! document is parsed by a real XML parser (`roxmltree`, never a hand-rolled scanner) so
 //! well-formedness is enforced, but the IR is never reconstructed from the sentences.
 
-use crate::frontend::{parse_logic_dataset, Diagnostic, LogicParseError, Severity};
+use crate::frontend::{Diagnostic, LogicParseError, Severity, parse_logic_dataset};
 use crate::ir::LogicProgram;
 
 use super::{RDF_META_ELEMENT, ROOT_ELEMENT};

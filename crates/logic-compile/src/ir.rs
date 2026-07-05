@@ -376,12 +376,12 @@ impl ContextualScope {
         provenance: Option<String>,
         module: Option<String>,
     ) -> Result<Self, String> {
-        if let Some(c) = confidence {
-            if !(0.0..=1.0).contains(&c) {
-                return Err(format!(
-                    "ContextualScope.confidence must be in [0, 1], got {c}"
-                ));
-            }
+        if let Some(c) = confidence
+            && !(0.0..=1.0).contains(&c)
+        {
+            return Err(format!(
+                "ContextualScope.confidence must be in [0, 1], got {c}"
+            ));
         }
         Ok(Self {
             standpoint,
@@ -425,11 +425,7 @@ impl ContextualScope {
 /// Render a Python `bool` exactly as its `Display` (`True` / `False`) — the
 /// `sort_key` byte-parity hinge.
 fn py_bool(b: bool) -> &'static str {
-    if b {
-        "True"
-    } else {
-        "False"
-    }
+    if b { "True" } else { "False" }
 }
 
 /// A single `logic:` axiom with contextual scope: a (possibly non-ground)
@@ -1029,10 +1025,10 @@ impl PathShapeIr {
                 ));
             }
         }
-        if let PathBase::NamedPredicate(p) = &base {
-            if p.is_empty() {
-                return Err("PathShapeIr named-predicate step must be a non-empty IRI".to_owned());
-            }
+        if let PathBase::NamedPredicate(p) = &base
+            && p.is_empty()
+        {
+            return Err("PathShapeIr named-predicate step must be a non-empty IRI".to_owned());
         }
         if let Some(ns) = &namespace_scope {
             if ns.trim().is_empty() {
@@ -1056,14 +1052,14 @@ impl PathShapeIr {
         // An empty/whitespace depth_param collides with None in content_key()
         // (content-addressing determinism hazard): Some("") and None must never
         // produce the same key. Reject it so Some("") can never be constructed.
-        if let Some(dp) = &depth_param {
-            if dp.trim().is_empty() {
-                return Err(
-                    "PathShapeIr.depth_param must be a non-empty string when present; \
+        if let Some(dp) = &depth_param
+            && dp.trim().is_empty()
+        {
+            return Err(
+                "PathShapeIr.depth_param must be a non-empty string when present; \
                      pass None to leave it unset"
-                        .to_owned(),
-                );
-            }
+                    .to_owned(),
+            );
         }
         Ok(Self {
             iri,
@@ -1685,13 +1681,13 @@ impl Correspondence {
             ("put_leg", &put_leg),
             ("according_to", &according_to),
         ] {
-            if let Some(s) = val {
-                if s.trim().is_empty() {
-                    return Err(format!(
-                        "Correspondence.{field} must be a non-empty IRI string when present; \
+            if let Some(s) = val
+                && s.trim().is_empty()
+            {
+                return Err(format!(
+                    "Correspondence.{field} must be a non-empty IRI string when present; \
                          pass None to leave it unset"
-                    ));
-                }
+                ));
             }
         }
         // The unit-interval axes must be a finite value in [0, 1]; `weight` is a finite
@@ -1701,16 +1697,16 @@ impl Correspondence {
             ("evidence_strength", evidence_strength),
             ("probability", probability),
         ] {
-            if let Some(x) = val {
-                if !(0.0..=1.0).contains(&x) {
-                    return Err(format!("Correspondence.{field} must be in [0, 1], got {x}"));
-                }
+            if let Some(x) = val
+                && !(0.0..=1.0).contains(&x)
+            {
+                return Err(format!("Correspondence.{field} must be in [0, 1], got {x}"));
             }
         }
-        if let Some(w) = weight {
-            if !w.is_finite() {
-                return Err(format!("Correspondence.weight must be finite, got {w}"));
-            }
+        if let Some(w) = weight
+            && !w.is_finite()
+        {
+            return Err(format!("Correspondence.weight must be finite, got {w}"));
         }
         let mut law_claims = law_claims;
         law_claims.sort_by_cached_key(LawClaimIr::sort_key);
@@ -1819,13 +1815,12 @@ impl Term {
     /// A literal term. The lexical form may be empty (a legal RDF literal); a present
     /// datatype must be a non-empty IRI (`Some("")` would collide with `None`).
     pub fn literal(lexical: impl Into<String>, datatype: Option<String>) -> Result<Self, String> {
-        if let Some(dt) = &datatype {
-            if dt.trim().is_empty() {
-                return Err(
-                    "Term::Literal datatype must be a non-empty IRI when present; pass None"
-                        .to_owned(),
-                );
-            }
+        if let Some(dt) = &datatype
+            && dt.trim().is_empty()
+        {
+            return Err(
+                "Term::Literal datatype must be a non-empty IRI when present; pass None".to_owned(),
+            );
         }
         Ok(Self::Literal {
             lexical: lexical.into(),

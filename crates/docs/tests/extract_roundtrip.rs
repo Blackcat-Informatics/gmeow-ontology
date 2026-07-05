@@ -18,8 +18,8 @@ use pretty_assertions::assert_eq;
 use std::collections::BTreeSet;
 use std::path::PathBuf;
 
-use gmeow_docs::render::render_site_lang;
 use gmeow_docs::Translations;
+use gmeow_docs::render::render_site_lang;
 
 mod common;
 

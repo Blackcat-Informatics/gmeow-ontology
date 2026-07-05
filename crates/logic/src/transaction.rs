@@ -55,8 +55,8 @@
 
 use std::collections::BTreeSet;
 
-use crate::provenance::{sha1_hex, LOGIC_NAMESPACE};
-use crate::teleology::{apply_effect_over, SuccessorSupport, WorldFacts};
+use crate::provenance::{LOGIC_NAMESPACE, sha1_hex};
+use crate::teleology::{SuccessorSupport, WorldFacts, apply_effect_over};
 
 // ── Namespace + vocabulary local names ──────────────────────────────────────────
 
@@ -825,7 +825,7 @@ pub(crate) fn root_execution_mode(facts: &WorldFacts, root: &str) -> Result<Exec
         n => {
             return Err(format!(
                 "transaction-program node {root:?} has {n} logic:executedUnderContract links (at most one governing contract allowed)"
-            ))
+            ));
         }
     };
     let modes = facts.objects(contract, &logic(EXECUTION_MODE));
@@ -1093,7 +1093,7 @@ pub(crate) fn emit_program_outcome(
     source: &str,
 ) -> Result<Vec<crate::teleology::TeleologyQuad>, String> {
     use crate::provenance::mint_derivation_id;
-    use crate::teleology::{n3, TeleologyQuad};
+    use crate::teleology::{TeleologyQuad, n3};
 
     let mut counter = StepCounter::new();
     let outcome = plan_path(facts, program, start, sits, root, &mut counter)?;
@@ -1249,7 +1249,7 @@ fn emit_committed_run(
     deriv: &str,
 ) -> Result<Vec<crate::teleology::TeleologyQuad>, String> {
     use crate::provenance::mint_derivation_id;
-    use crate::teleology::{effect_quads, n3, triple_reifier, TeleologyQuad};
+    use crate::teleology::{TeleologyQuad, effect_quads, n3, triple_reifier};
 
     let mut out: Vec<TeleologyQuad> = Vec::new();
     let mk = |subject: &str, predicate: String, object: String| TeleologyQuad {
@@ -1604,7 +1604,7 @@ fn root_contract_value(
         n => {
             return Err(format!(
                 "transaction-program node {root:?} has {n} logic:executedUnderContract links (at most one governing contract allowed)"
-            ))
+            ));
         }
     };
     let values = facts.objects(contract, &logic(prop));
@@ -2067,8 +2067,8 @@ fn emit_concurrent_history(
     deriv: &str,
 ) -> Result<Vec<crate::teleology::TeleologyQuad>, String> {
     use crate::teleology::{
-        detect_serialization_anomaly, emit_serialization_anomaly, mint_anomaly_finding_iri, n3,
-        SerializationVerdict, TeleologyQuad,
+        SerializationVerdict, TeleologyQuad, detect_serialization_anomaly,
+        emit_serialization_anomaly, mint_anomaly_finding_iri, n3,
     };
 
     // Re-run each leg independently from the shared start (fresh counter — the verdict run

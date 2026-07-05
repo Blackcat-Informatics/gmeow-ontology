@@ -36,7 +36,7 @@ use gmeow_logic_compile::projections::ProjectionResult;
 
 use crate::bridge::{Bridge, IngestDiagnostic, LangFailure, Lifted};
 use crate::emit::{digest16, ntriples_sorted};
-use crate::plain_text::{normalization_label, UNDETERMINED_SCRIPT};
+use crate::plain_text::{UNDETERMINED_SCRIPT, normalization_label};
 
 /// The `lang:` namespace base, byte-identical to the other `lang:` producers so every
 /// `lang:` local name resolves to the same IRI across bridges.
@@ -335,16 +335,16 @@ fn serialize_expr(f: Formalism, e: &RuleExpr, parent_min: u8, out: &mut String) 
                 Formalism::Abnf,
                 "bounded Repeat is an ABNF-only construct"
             );
-            if let (Some(a), Some(b)) = (min, max) {
-                if a == b {
-                    // Exact repetition `nElement` (no star).
-                    out.push_str(&a.to_string());
-                    serialize_expr(f, x, 5, out);
-                    if wrap {
-                        out.push(')');
-                    }
-                    return;
+            if let (Some(a), Some(b)) = (min, max)
+                && a == b
+            {
+                // Exact repetition `nElement` (no star).
+                out.push_str(&a.to_string());
+                serialize_expr(f, x, 5, out);
+                if wrap {
+                    out.push(')');
                 }
+                return;
             }
             if let Some(a) = min {
                 out.push_str(&a.to_string());
@@ -661,10 +661,10 @@ impl ExprParser {
 
     fn parse_postfix(&mut self) -> Result<RuleExpr, IngestDiagnostic> {
         // ABNF repetition is a PREFIX (`*x`, `1*4 x`, `2x`); EBNF repetition is a POSTFIX.
-        if self.formalism == Formalism::Abnf {
-            if let Some(rep) = self.try_parse_abnf_repetition()? {
-                return Ok(rep);
-            }
+        if self.formalism == Formalism::Abnf
+            && let Some(rep) = self.try_parse_abnf_repetition()?
+        {
+            return Ok(rep);
         }
         let mut e = self.parse_primary()?;
         if self.formalism == Formalism::Ebnf {

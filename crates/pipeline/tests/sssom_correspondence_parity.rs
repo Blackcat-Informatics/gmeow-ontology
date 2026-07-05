@@ -19,7 +19,7 @@ use gmeow_logic_compile::projections::correspondence_frontend::transpile_corresp
 use gmeow_logic_compile::projections::sssom::lower_sssom;
 use purrdf::dataset_view::{DatasetView, GraphMatch};
 use purrdf::slice::{ArtifactRole, SliceCatalog};
-use purrdf::{parse_dataset, NativeRdfFormat, RdfDataset, RdfDatasetBuilder, TermRef, TermValue};
+use purrdf::{NativeRdfFormat, RdfDataset, RdfDatasetBuilder, TermRef, TermValue, parse_dataset};
 
 const GM_VERSION_FINGERPRINT: &str = "https://blackcatinformatics.ca/gmeow/versionFingerprint";
 const GM_DATE_PUBLISHED: &str = "https://blackcatinformatics.ca/gmeow/datePublished";

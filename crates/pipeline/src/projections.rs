@@ -29,7 +29,7 @@ use purrdf::{
 };
 
 use crate::transform::{CellInput, TransformReportNative};
-use crate::up_projection_corpus::{canon_qname, PREFIXES};
+use crate::up_projection_corpus::{PREFIXES, canon_qname};
 
 const GM: &str = "https://blackcatinformatics.ca/gmeow/";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
@@ -139,17 +139,16 @@ fn retag_quads(quads: &mut [RdfQuad], tag_map: &TagMap) {
         return;
     }
     for quad in quads.iter_mut() {
-        if let RdfTerm::Literal(lit) = &quad.object {
-            if let Some(lang) = &lit.language {
-                if let Some(new_lang) = tag_map.get(lang) {
-                    quad.object = RdfTerm::Literal(RdfLiteral {
-                        lexical_form: lit.lexical_form.clone(),
-                        datatype: lit.datatype.clone(),
-                        language: Some(new_lang.clone()),
-                        direction: lit.direction,
-                    });
-                }
-            }
+        if let RdfTerm::Literal(lit) = &quad.object
+            && let Some(lang) = &lit.language
+            && let Some(new_lang) = tag_map.get(lang)
+        {
+            quad.object = RdfTerm::Literal(RdfLiteral {
+                lexical_form: lit.lexical_form.clone(),
+                datatype: lit.datatype.clone(),
+                language: Some(new_lang.clone()),
+                direction: lit.direction,
+            });
         }
     }
 }
@@ -269,10 +268,10 @@ fn keep_in_view(quad: &RdfQuad, namespaces: &BTreeSet<String>) -> bool {
     if namespaces.iter().any(|ns| quad.predicate.starts_with(ns)) {
         return true;
     }
-    if quad.predicate == RDF_TYPE {
-        if let RdfTerm::Iri(object) = &quad.object {
-            return namespaces.iter().any(|ns| object.starts_with(ns));
-        }
+    if quad.predicate == RDF_TYPE
+        && let RdfTerm::Iri(object) = &quad.object
+    {
+        return namespaces.iter().any(|ns| object.starts_with(ns));
     }
     false
 }

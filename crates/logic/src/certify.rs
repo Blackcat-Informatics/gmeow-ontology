@@ -217,10 +217,10 @@ fn predicate_key(atom: &Atom) -> String {
     let predicate = atom.predicate().to_string();
     if predicate == RDF_TYPE {
         // Arity-3 encoding `pred(subject, object, world)`: object is terms()[1].
-        if let Some(obj) = atom.terms().nth(1) {
-            if !obj.is_variable() {
-                return format!("{predicate} {}", debracket(&obj.to_string()));
-            }
+        if let Some(obj) = atom.terms().nth(1)
+            && !obj.is_variable()
+        {
+            return format!("{predicate} {}", debracket(&obj.to_string()));
         }
     }
     predicate
@@ -455,13 +455,7 @@ pub fn tarjan_scc(graph: &BTreeMap<String, Vec<String>>) -> Vec<BTreeSet<String>
     }
     let n = interner.len();
     // Sink ids (≥ n_keys) have no successor list; treat as empty.
-    let successors_of = |id: usize| -> &[u32] {
-        if id < n_keys {
-            &succ[id]
-        } else {
-            &[]
-        }
-    };
+    let successors_of = |id: usize| -> &[u32] { if id < n_keys { &succ[id] } else { &[] } };
 
     const UNVISITED: usize = usize::MAX;
     let mut index_counter: usize = 0;
@@ -566,9 +560,9 @@ fn shortest_cycle(
                             path.push(cur.clone());
                         }
                         path.reverse(); // now src → … → dst
-                                        // Close the cycle through the negated head
-                                        // edge dst ← src: head(dst) → body(src) → … → dst.
-                                        // Python: (dst, *path).
+                        // Close the cycle through the negated head
+                        // edge dst ← src: head(dst) → body(src) → … → dst.
+                        // Python: (dst, *path).
                         let mut cycle: Vec<String> = Vec::with_capacity(path.len() + 1);
                         cycle.push(dst.to_owned());
                         cycle.extend(path.iter().cloned());
@@ -601,10 +595,10 @@ fn offending_cycle(graph: &DepGraph) -> Option<Vec<String>> {
     // Iterate negative edges in sorted order (Python sorts `neg`), so the first
     // offending cycle found is deterministic and matches Python.
     for (head, body) in graph.negative_edges() {
-        if node_to_scc.get(&head) == node_to_scc.get(&body) {
-            if let Some(cycle) = shortest_cycle(&adj, &body, &head) {
-                return Some(cycle);
-            }
+        if node_to_scc.get(&head) == node_to_scc.get(&body)
+            && let Some(cycle) = shortest_cycle(&adj, &body, &head)
+        {
+            return Some(cycle);
         }
     }
     None

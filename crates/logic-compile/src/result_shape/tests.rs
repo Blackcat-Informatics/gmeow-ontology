@@ -104,9 +104,11 @@ fn any_literal_column_accepts_any_datatype() {
         RowCardinality::Contains,
     );
     assert!(shape.validate_bindings(&[vec![lit("v", XSD_INT)]]).is_ok());
-    assert!(shape
-        .validate_bindings(&[vec![lit("v", XSD_STRING)]])
-        .is_ok());
+    assert!(
+        shape
+            .validate_bindings(&[vec![lit("v", XSD_STRING)]])
+            .is_ok()
+    );
 }
 
 #[test]
@@ -164,9 +166,11 @@ fn count_mode_pins_row_count() {
         vec![ResultColumn::required("a", ColumnKind::Iri)],
         RowCardinality::Count(2),
     );
-    assert!(shape
-        .validate_bindings(&[vec![iri("a")], vec![iri("a")]])
-        .is_ok());
+    assert!(
+        shape
+            .validate_bindings(&[vec![iri("a")], vec![iri("a")]])
+            .is_ok()
+    );
     assert_eq!(
         shape.validate_bindings(&[vec![iri("a")]]),
         Err(ContractViolation::RowCount {

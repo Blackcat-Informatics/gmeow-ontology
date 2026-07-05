@@ -29,8 +29,8 @@ use std::process::Command;
 use purrdf::{RdfLiteral, RdfQuad, RdfTerm, SerializeGraph};
 
 use crate::error::PipelineError;
-use crate::projections::{gts_base_graph, MaximalInputs};
-use crate::transform::{transform_nt, TransformReportNative};
+use crate::projections::{MaximalInputs, gts_base_graph};
+use crate::transform::{TransformReportNative, transform_nt};
 
 /// The `okf:` profile namespace the external `gts` primitive folds to.
 pub const OKF_NS: &str = "https://blackcatinformatics.ca/projects/gts/okf#";
@@ -221,16 +221,16 @@ pub fn lift_okf_graph(source: &[RdfQuad]) -> (Vec<RdfQuad>, OkfLiftReport) {
         subjects.insert(subject_key(&quad.subject));
 
         if predicate == okf_type {
-            if let RdfTerm::Literal(lit) = &quad.object {
-                if let Some(rdf_type) = type_to_rdf(&lit.lexical_form) {
-                    out.push(RdfQuad::new(
-                        quad.subject.clone(),
-                        RDF_TYPE,
-                        RdfTerm::Iri(rdf_type.to_string()),
-                    ));
-                    lifted += 1;
-                    continue;
-                }
+            if let RdfTerm::Literal(lit) = &quad.object
+                && let Some(rdf_type) = type_to_rdf(&lit.lexical_form)
+            {
+                out.push(RdfQuad::new(
+                    quad.subject.clone(),
+                    RDF_TYPE,
+                    RdfTerm::Iri(rdf_type.to_string()),
+                ));
+                lifted += 1;
+                continue;
             }
         } else if let Some(target) = scalar_lift(predicate) {
             out.push(RdfQuad::new(
@@ -467,9 +467,10 @@ mod tests {
             .collect();
         assert_eq!(examples, vec!["Rex", "Fido"]);
         // The okf:resource identity triple never survives.
-        assert!(!out
-            .iter()
-            .any(|q| q.predicate == format!("{OKF_NS}resource")));
+        assert!(
+            !out.iter()
+                .any(|q| q.predicate == format!("{OKF_NS}resource"))
+        );
         // The okf:path annotation is retained verbatim.
         assert!(out.iter().any(|q| q.predicate == format!("{OKF_NS}path")));
     }

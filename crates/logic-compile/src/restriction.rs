@@ -28,8 +28,8 @@ use purrdf::RdfDataset;
 
 use crate::frontend::{Diagnostic, Severity};
 use crate::graphutil::{
-    default_graph_quads, objects, sha256_12, subject_str, subjects_with, term_is_literal, term_str,
-    value, Node, Subject,
+    Node, Subject, default_graph_quads, objects, sha256_12, subject_str, subjects_with,
+    term_is_literal, term_str, value,
 };
 use crate::ir::LOGIC_NAMESPACE;
 

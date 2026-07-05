@@ -292,7 +292,7 @@ pub fn recover_opt_from_shape(shape: &ValidationShapeIr) -> Result<OptConstraint
         ShapeTarget::ValueKeyed { .. } => {
             return Err(
                 "recover_opt_from_shape: a value-keyed target is not an OPT constraint".into(),
-            )
+            );
         }
     };
     // Collect EVERY family's discriminating component — never return on the first match. A
@@ -434,10 +434,10 @@ fn mk(shape: &ValidationShapeIr, target_class: String, kind: OptConstraintKind) 
 fn recover_units(shape: &ValidationShapeIr) -> Result<(String, String), String> {
     for p in &shape.properties {
         for comp in &p.components {
-            if let ConstraintComponent::In(vs) = comp {
-                if let [ShapeValue::Literal { lexical, .. }] = vs.as_slice() {
-                    return Ok((p.path.clone(), lexical.clone()));
-                }
+            if let ConstraintComponent::In(vs) = comp
+                && let [ShapeValue::Literal { lexical, .. }] = vs.as_slice()
+            {
+                return Ok((p.path.clone(), lexical.clone()));
             }
         }
     }

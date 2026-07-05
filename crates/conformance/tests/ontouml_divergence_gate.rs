@@ -18,7 +18,7 @@
 use std::path::Path;
 
 use gmeow_conformance::external::ontouml::{
-    fired_disciplines, lower_and_evaluate, parse_ontouml_model, OntoumlError,
+    OntoumlError, fired_disciplines, lower_and_evaluate, parse_ontouml_model,
 };
 use gmeow_conformance::paths::cases_root;
 use gmeow_logic::foundation::AntiRigidityPolicy;

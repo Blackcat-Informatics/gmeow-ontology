@@ -22,12 +22,12 @@ use std::collections::HashMap;
 
 use purrdf::provenance::{DatasetProvenance, OriginKind};
 use purrdf::{
-    flat_rdf_quads_from_dataset, parse_dataset, serialize_dataset, QuadHandle, RdfDataset, RdfQuad,
-    RdfTerm, RdfTriple, SerializeGraph,
+    QuadHandle, RdfDataset, RdfQuad, RdfTerm, RdfTriple, SerializeGraph,
+    flat_rdf_quads_from_dataset, parse_dataset, serialize_dataset,
 };
 
 use crate::error::PipelineError;
-use crate::node::{Stage, StageInput, StageOutput, StageProduct, SOURCE_ORIGIN};
+use crate::node::{SOURCE_ORIGIN, Stage, StageInput, StageOutput, StageProduct};
 
 /// The `OriginKind` an authored file contributes, by its repo-relative role:
 /// `ontology/gmeow.ttl` is the [`OriginKind::RootOntology`], every `imports/*.ttl`
@@ -440,9 +440,11 @@ mod tests {
         let root = repo_root();
         let files = authored_files(&root).unwrap();
         assert!(files.iter().any(|p| p.ends_with("ontology/gmeow.ttl")));
-        assert!(files
-            .iter()
-            .any(|p| p.ends_with("slices/core/pipeline/module.ttl")));
+        assert!(
+            files
+                .iter()
+                .any(|p| p.ends_with("slices/core/pipeline/module.ttl"))
+        );
         assert!(
             files.len() > 50,
             "expected 50+ authored files, got {}",

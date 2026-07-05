@@ -12,9 +12,9 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use std::time::Duration;
 
-use gmeow_diagnostics::{render, Finding, Report, Severity};
+use gmeow_diagnostics::{Finding, Report, Severity, render};
 
-use crate::dev_common::{fail, project_root, snapshot_bytes, NAMESPACE, ONTOLOGY_IRI};
+use crate::dev_common::{NAMESPACE, ONTOLOGY_IRI, fail, project_root, snapshot_bytes};
 
 /// The authored term sources the default repo-only audit covers: every slice
 /// `module.ttl` + `manifest.ttl` plus the shared slice `vocabulary.ttl`.
@@ -184,29 +184,25 @@ pub fn coverage(show_gaps: bool, min_class: Option<f64>, min_predicate: Option<f
             eprintln!("gap predicate {iri}");
         }
     }
-    if let Some(floor) = min_class {
-        if class_cov < floor {
-            return fail(format!(
-                "class coverage {class_cov:.4} is below the required floor {floor:.4}"
-            ));
-        }
+    if let Some(floor) = min_class
+        && class_cov < floor
+    {
+        return fail(format!(
+            "class coverage {class_cov:.4} is below the required floor {floor:.4}"
+        ));
     }
-    if let Some(floor) = min_predicate {
-        if pred_cov < floor {
-            return fail(format!(
-                "predicate coverage {pred_cov:.4} is below the required floor {floor:.4}"
-            ));
-        }
+    if let Some(floor) = min_predicate
+        && pred_cov < floor
+    {
+        return fail(format!(
+            "predicate coverage {pred_cov:.4} is below the required floor {floor:.4}"
+        ));
     }
     0
 }
 
 fn ratio(n: usize, d: usize) -> f64 {
-    if d == 0 {
-        0.0
-    } else {
-        n as f64 / d as f64
-    }
+    if d == 0 { 0.0 } else { n as f64 / d as f64 }
 }
 
 /// `gmeow-dev wikidata-coverage [--json --threshold]`.

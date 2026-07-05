@@ -24,7 +24,7 @@
 
 use std::collections::BTreeMap;
 
-use purrdf::{parse_dataset, TermRef};
+use purrdf::{TermRef, parse_dataset};
 
 /// The OntoUML metamodel vocabulary namespace (local names appended verbatim).
 pub const ONTOUML_NS: &str = "https://w3id.org/ontouml#";
@@ -86,7 +86,7 @@ pub fn logic_local_for_stereotype(ontouml_local: &str) -> Result<&'static str, O
                 "stereotype `{other}` is outside the five-discipline fragment \
                  (only kind/subkind/role/phase/category/mixin/roleMixin/phaseMixin/relator \
                  are carried)"
-            )))
+            )));
         }
     };
     Ok(mapped)
@@ -265,12 +265,11 @@ pub fn parse_ontouml_model(source: &str, base: Option<&str>) -> Result<OntoumlMo
             if let TermRef::Iri(o) = q.o {
                 row.mediated_ends.push(o.to_owned());
             }
-        } else if pred == p_functional {
-            if let TermRef::Literal { lexical, .. } = q.o {
-                if lexical == "true" {
-                    row.functional = true;
-                }
-            }
+        } else if pred == p_functional
+            && let TermRef::Literal { lexical, .. } = q.o
+            && lexical == "true"
+        {
+            row.functional = true;
         }
     }
 

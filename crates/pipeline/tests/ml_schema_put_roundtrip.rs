@@ -14,7 +14,7 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
 use purrdf::sparql::NativeSparqlEngine;
-use purrdf::{parse_dataset, RdfDataset, RdfTerm, SparqlEngine, SparqlRequest, SparqlResult};
+use purrdf::{RdfDataset, RdfTerm, SparqlEngine, SparqlRequest, SparqlResult, parse_dataset};
 
 const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
 const MLS: &str = "http://www.w3.org/ns/mls#";
@@ -186,18 +186,18 @@ fn ml_schema_forward_then_inverse_recovers_gmeow_with_import_envelope() {
     let import_activity = format!("{GMEOW}ImportActivity");
     for subj in [format!("{EX}a"), format!("{EX}d"), format!("{EX}r")] {
         // wasGeneratedBy an ImportActivity-typed node.
-        let gen: Vec<&(String, String, String)> = lifted
+        let gen_triples: Vec<&(String, String, String)> = lifted
             .iter()
             .filter(|(s, p, _)| s == &subj && p == &generated_by)
             .collect();
         assert!(
-            !gen.is_empty(),
+            !gen_triples.is_empty(),
             "lifted subject {subj} must carry gmeow:wasGeneratedBy\n{lifted:#?}"
         );
         // The subject's OWN generating node — the object of its wasGeneratedBy triple —
         // must be typed gmeow:ImportActivity. Keyed on that exact blank-node label so the
         // assertion fails if the ImportActivity typing lands on some other node.
-        let import_node = &gen[0].2;
+        let import_node = &gen_triples[0].2;
         assert!(
             has(&lifted, import_node, RDF_TYPE, &import_activity),
             "the generating node {import_node} for {subj} must be a gmeow:ImportActivity\n{lifted:#?}"
