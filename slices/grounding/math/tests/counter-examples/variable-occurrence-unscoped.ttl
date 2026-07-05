@@ -1,0 +1,14 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:VariableOccurrenceShape: a math:VariableOccurrence with no
+# math:declaredVariable (sh:minCount 1), so it resolves to nothing and is not marked
+# free. Validation MUST emit shacl.MinCountConstraintComponent (math:UnscopedVariableOccurrence).
+# Bound by ex:ecVariableUnscoped.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:danglingOccurrence a math:VariableOccurrence ;
+    math:occursInScope ex:someScope .
+
+ex:someScope a math:MathematicalExpression .

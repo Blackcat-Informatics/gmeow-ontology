@@ -1,0 +1,20 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:LogicLoweringShape: a math:MathematicalExpression that lowers
+# to a logic:Formula through math:compilesToLogicFormula but omits BOTH its
+# math:denotationKind and its math:logicLoweringPreservation — the silent-promotion case
+# forbidden by math:UndeclaredLogicLowering. Two sh:minCount 1 constraints fail, so
+# validation MUST emit shacl.MinCountConstraintComponent (math:UndeclaredLogicLowering).
+# Bound by ex:ecUndeclaredLogicLowering.
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <http://example.org/math/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+ex:promotedEq a math:MathematicalExpression ;
+    rdfs:label "Equation silently promoted to a logic: formula without declarations"@x-gmeow-english ;
+    math:compilesToLogicFormula ex:promotedFormula .
+
+ex:promotedFormula a logic:Formula ;
+    rdfs:label "logic: formula target of the undeclared lowering"@x-gmeow-english .
