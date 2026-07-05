@@ -58,14 +58,14 @@
 use std::borrow::Cow;
 use std::collections::{BTreeSet, HashMap, HashSet};
 
-use crate::physical::builtin_eval::{emit_integer_surface, eval as eval_builtin, BuiltinOutcome};
+use crate::physical::builtin_eval::{BuiltinOutcome, emit_integer_surface, eval as eval_builtin};
 use crate::physical::store::{Bound, RelationStore};
 use crate::provenance::mint_derivation_id;
 use crate::query_ir::QBuiltin;
 use crate::rule_ir::{
+    DerivedRow, EvalAtom, EvalRule, Fact, FactKey, FactStore, RuleRoundCandidate, Solution,
     distinct_pairs_satisfied, echo_asserted, ground, ground_head, match_atom, sort_rows,
-    world_edb_facts, DerivedRow, EvalAtom, EvalRule, Fact, FactKey, FactStore, RuleRoundCandidate,
-    Solution,
+    world_edb_facts,
 };
 use crate::seam::BudgetStatus;
 
@@ -1002,7 +1002,7 @@ pub(crate) fn evaluate(
 mod tests {
     use super::*;
     use crate::provenance::term_display;
-    use crate::rule_ir::{least_model_of_reduct, parse_eval_rules, EvalTerm};
+    use crate::rule_ir::{EvalTerm, least_model_of_reduct, parse_eval_rules};
     use crate::store::WorldStore;
     use purrdf::TermValue;
 

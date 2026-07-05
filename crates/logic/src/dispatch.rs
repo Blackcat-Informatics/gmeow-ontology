@@ -48,7 +48,7 @@
 
 use std::collections::{BTreeMap, BTreeSet, HashSet};
 
-use crate::oracle::{backward_oracle, BackwardOracle};
+use crate::oracle::{BackwardOracle, backward_oracle};
 use crate::profile_gate;
 use crate::query_ir::{AnswerSet, Budget, QBodyLit, QProgram, QTerm};
 use crate::seam::{BudgetStatus, ScryerForeign};
@@ -90,10 +90,10 @@ pub fn cyclic_predicates(program: &QProgram) -> Vec<String> {
         let head = &rule.head.pred;
         let entry = adj.entry(head.clone()).or_default();
         for lit in &rule.body {
-            if let crate::query_ir::QBodyLit::Atom(atom) = lit {
-                if idb.contains(&atom.pred) {
-                    entry.insert(atom.pred.clone());
-                }
+            if let crate::query_ir::QBodyLit::Atom(atom) = lit
+                && idb.contains(&atom.pred)
+            {
+                entry.insert(atom.pred.clone());
             }
         }
     }
@@ -215,10 +215,10 @@ pub fn fast_path(
     let mut goal_vars_seen: HashSet<&str> = HashSet::new();
     for atom in &program.goal.atoms {
         for t in &atom.args {
-            if let QTerm::Var(v) = t {
-                if goal_vars_seen.insert(v.as_str()) {
-                    goal_vars.push(v.clone());
-                }
+            if let QTerm::Var(v) = t
+                && goal_vars_seen.insert(v.as_str())
+            {
+                goal_vars.push(v.clone());
             }
         }
     }
@@ -277,19 +277,19 @@ pub fn fast_path(
 
     let mut bindings = Vec::new();
     for row in rows {
-        if let Some(max_a) = budget.max_answers {
-            if bindings.len() >= max_a {
-                let mut answer = AnswerSet {
-                    bindings,
-                    status: BudgetStatus::Partial,
-                    preservation: crate::result::PreservationClaim::exact(),
-                    // The fast-path SPARQL projection over the materialized EDB does not run
-                    // the native governor, so it carries no stratum frontier.
-                    frontier: crate::query_ir::CompletionFrontier::empty(),
-                };
-                answer.canonicalize();
-                return Ok(answer);
-            }
+        if let Some(max_a) = budget.max_answers
+            && bindings.len() >= max_a
+        {
+            let mut answer = AnswerSet {
+                bindings,
+                status: BudgetStatus::Partial,
+                preservation: crate::result::PreservationClaim::exact(),
+                // The fast-path SPARQL projection over the materialized EDB does not run
+                // the native governor, so it carries no stratum frontier.
+                frontier: crate::query_ir::CompletionFrontier::empty(),
+            };
+            answer.canonicalize();
+            return Ok(answer);
         }
         // Build a Binding map containing only the goal variables.
         let mut binding = BTreeMap::new();

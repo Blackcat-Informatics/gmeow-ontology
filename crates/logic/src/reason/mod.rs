@@ -20,18 +20,18 @@ pub mod ledger;
 pub mod perf_ledger;
 pub mod rl;
 
-pub use dl::{dl_consistency, DlVerdict, InconsistencyWitness, UnsatClass};
-pub use el::{el_closure, ElClosure, InferredAxiom};
+pub use dl::{DlVerdict, InconsistencyWitness, UnsatClass, dl_consistency};
+pub use el::{ElClosure, InferredAxiom, el_closure};
 pub use ledger::{
-    build_ledger, compare_consistency, compare_external_corpus, compare_subsumption,
-    divergence_findings, dl_gap_rows, enforce, DivergenceKind, DivergenceLedger,
-    ExternalComparison, LedgerRow, LedgerVerdict,
+    DivergenceKind, DivergenceLedger, ExternalComparison, LedgerRow, LedgerVerdict, build_ledger,
+    compare_consistency, compare_external_corpus, compare_subsumption, divergence_findings,
+    dl_gap_rows, enforce,
 };
-pub use rl::{rl_closure, RlClosure, RlTriple};
+pub use rl::{RlClosure, RlTriple, rl_closure};
 
 use crate::facts::TypedFactSet;
 use crate::nemo_engine::TypedRow;
-use crate::oracle::{forward_oracle, ForwardBudget, ForwardOracle};
+use crate::oracle::{ForwardBudget, ForwardOracle, forward_oracle};
 use crate::result::{ReasoningResult, ResultProvenance};
 use crate::store::WorldStore;
 use purrdf::{RdfDataset, RdfDatasetBuilder, TermValue};

@@ -4,7 +4,7 @@
 //! Acceptance tests for the form content key: determinism, surface-invariance,
 //! structural-sensitivity, feature-set order-independence, and interning.
 
-use gmeow_lang_form::{dedup_by_content_key, Form, Interner, MorphFeature, Slot, SurfaceForm};
+use gmeow_lang_form::{Form, Interner, MorphFeature, Slot, SurfaceForm, dedup_by_content_key};
 use proptest::prelude::*;
 
 const EN: &str = "https://blackcatinformatics.ca/lang/english";

@@ -23,7 +23,7 @@ use purrdf::sparql::NativeSparqlEngine;
 use purrdf::{SparqlEngine, SparqlRequest, SparqlResult, TermValue};
 
 use crate::error::PipelineError;
-use crate::stages::native_query::{dataset_from_turtle, Solutions};
+use crate::stages::native_query::{Solutions, dataset_from_turtle};
 
 /// A named TQL query and the parameters it expects.
 #[derive(Debug, Clone, PartialEq, Eq)]

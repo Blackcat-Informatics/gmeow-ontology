@@ -190,10 +190,10 @@ fn gmeow_classes(ds: &RdfDataset, cfg: &GufoConfig) -> Vec<String> {
         return Vec::new();
     };
     for q in ds.quads_for_pattern(None, Some(type_id), Some(class_id), GraphMatch::Any) {
-        if let TermRef::Iri(iri) = ds.resolve(q.s) {
-            if is_gmeow_class_iri(iri, cfg) {
-                classes.insert(iri.to_owned());
-            }
+        if let TermRef::Iri(iri) = ds.resolve(q.s)
+            && is_gmeow_class_iri(iri, cfg)
+        {
+            classes.insert(iri.to_owned());
         }
     }
     classes.into_iter().collect()
@@ -241,10 +241,10 @@ fn stereotypes(ds: &RdfDataset, cls: &str, meta: &HashSet<String>) -> HashSet<St
         return out;
     };
     for q in ds.quads_for_pattern(Some(subject_id), Some(type_id), None, GraphMatch::Any) {
-        if let TermRef::Iri(t) = ds.resolve(q.o) {
-            if meta.contains(t) {
-                out.insert(t.to_owned());
-            }
+        if let TermRef::Iri(t) = ds.resolve(q.o)
+            && meta.contains(t)
+        {
+            out.insert(t.to_owned());
         }
     }
     out
@@ -494,10 +494,10 @@ pub fn relator_mediation(ds: &RdfDataset, cfg: &GufoConfig) -> Vec<Finding> {
         (iri_id(ds, rdf::TYPE), iri_id(ds, owl::OBJECT_PROPERTY))
     {
         for q in ds.quads_for_pattern(None, Some(type_id), Some(obj_prop_id), GraphMatch::Any) {
-            if let TermRef::Iri(iri) = ds.resolve(q.s) {
-                if iri.starts_with(&cfg.namespace) {
-                    gmeow_object_properties.push(iri.to_owned());
-                }
+            if let TermRef::Iri(iri) = ds.resolve(q.s)
+                && iri.starts_with(&cfg.namespace)
+            {
+                gmeow_object_properties.push(iri.to_owned());
             }
         }
     }
@@ -669,10 +669,9 @@ fn collection_members(ds: &RdfDataset, head: TermId) -> HashSet<String> {
         if let Some(first) = ds
             .quads_for_pattern(Some(node), Some(first_id), None, GraphMatch::Any)
             .next()
+            && let TermRef::Iri(m) = ds.resolve(first.o)
         {
-            if let TermRef::Iri(m) = ds.resolve(first.o) {
-                out.insert(m.to_owned());
-            }
+            out.insert(m.to_owned());
         }
         // rdf:rest → the next cell (named or blank node only).
         cell = ds
@@ -1022,9 +1021,11 @@ mod tests {
     fn missing_stereotype_is_flagged() {
         let store = store_from(&format!("{PREFIXES}gmeow:Bare a owl:Class .\n"));
         let problems = exactly_one_stereotype(&store, &cfg());
-        assert!(problems
-            .iter()
-            .any(|p| p.message.contains("carries no stereotype")));
+        assert!(
+            problems
+                .iter()
+                .any(|p| p.message.contains("carries no stereotype"))
+        );
     }
 
     #[test]
@@ -1033,9 +1034,11 @@ mod tests {
             "{PREFIXES}gmeow:TwoFaced a owl:Class , gufo:Kind , gufo:Role .\n"
         ));
         let problems = exactly_one_stereotype(&store, &cfg());
-        assert!(problems
-            .iter()
-            .any(|p| p.message.contains("conflicting stereotypes")));
+        assert!(
+            problems
+                .iter()
+                .any(|p| p.message.contains("conflicting stereotypes"))
+        );
     }
 
     #[test]
@@ -1046,9 +1049,11 @@ mod tests {
              gmeow:Dog a owl:Class , gufo:Kind ; rdfs:subClassOf gmeow:Animal .\n"
         ));
         let problems = identity_overlap(&store, &cfg());
-        assert!(problems
-            .iter()
-            .any(|p| p.message.contains("MixIden") && p.message.contains("gmeow:Dog")));
+        assert!(
+            problems
+                .iter()
+                .any(|p| p.message.contains("MixIden") && p.message.contains("gmeow:Dog"))
+        );
     }
 
     #[test]
@@ -1084,9 +1089,11 @@ mod tests {
                rdfs:domain gmeow:LonelyBond ; rdfs:range gmeow:Person .\n"
         ));
         let problems = relator_mediation(&store, &cfg());
-        assert!(problems
-            .iter()
-            .any(|p| p.message.contains("RelComp") && p.message.contains("gmeow:LonelyBond")));
+        assert!(
+            problems
+                .iter()
+                .any(|p| p.message.contains("RelComp") && p.message.contains("gmeow:LonelyBond"))
+        );
     }
 
     #[test]
@@ -1132,9 +1139,11 @@ mod tests {
              gmeow:AbstractBond a owl:Class , gufo:Kind ; rdfs:subClassOf gufo:Relator .\n\
              gmeow:ConcreteBond a owl:Class , gufo:SubKind ; rdfs:subClassOf gmeow:AbstractBond .\n"
         ));
-        assert!(!relator_mediation(&store, &cfg())
-            .iter()
-            .any(|p| p.message.contains("gmeow:AbstractBond")));
+        assert!(
+            !relator_mediation(&store, &cfg())
+                .iter()
+                .any(|p| p.message.contains("gmeow:AbstractBond"))
+        );
     }
 
     #[test]
@@ -1170,9 +1179,11 @@ mod tests {
                rdfs:domain gmeow:Carrier .\n"
         ));
         let problems = frame_declaration_completeness(&store, &cfg());
-        assert!(problems
-            .iter()
-            .any(|p| p.message.contains("gmeow:Carrier") && p.message.contains("P11")));
+        assert!(
+            problems
+                .iter()
+                .any(|p| p.message.contains("gmeow:Carrier") && p.message.contains("P11"))
+        );
     }
 
     #[test]
@@ -1227,9 +1238,11 @@ mod tests {
              gmeow:bondParty a owl:ObjectProperty , owl:FunctionalProperty ;\n\
                rdfs:domain gmeow:LonelyBond ; rdfs:range gmeow:Person .\n"
         ));
-        assert!(relator_mediation(&store, &cfg())
-            .iter()
-            .any(|p| p.message.contains("RelComp") && p.message.contains("gmeow:LonelyBond")));
+        assert!(
+            relator_mediation(&store, &cfg())
+                .iter()
+                .any(|p| p.message.contains("RelComp") && p.message.contains("gmeow:LonelyBond"))
+        );
     }
 
     #[test]
@@ -1239,8 +1252,10 @@ mod tests {
         let store = store_from(&format!(
             "{PREFIXES}gmeow:Half a owl:Class , gufo:Kind , logic:Kind .\n"
         ));
-        assert!(exactly_one_stereotype(&store, &cfg())
-            .iter()
-            .any(|p| p.message.contains("conflicting stereotypes")));
+        assert!(
+            exactly_one_stereotype(&store, &cfg())
+                .iter()
+                .any(|p| p.message.contains("conflicting stereotypes"))
+        );
     }
 }

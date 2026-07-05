@@ -42,8 +42,8 @@ use gmeow_logic_compile::projections::{
 };
 use purrdf::loss::pair_loss_ledger;
 use purrdf::{
-    dataset_from_bytes, import_gts_events, serialize_dataset_base_only,
-    serialize_dataset_to_format, NativeRdfFormat, RdfDataset, RdfLookaside, SerializeGraph, TermId,
+    NativeRdfFormat, RdfDataset, RdfLookaside, SerializeGraph, TermId, dataset_from_bytes,
+    import_gts_events, serialize_dataset_base_only, serialize_dataset_to_format,
 };
 
 /// A supported transcode codec (source or target).
@@ -698,7 +698,7 @@ ex:MyProp a owl:ObjectProperty ; rdfs:domain ex:MyClass .
     /// the same quad/reifier count as the direct path.
     #[test]
     fn gts_round_trip_via_canonical_nquads() {
-        use purrdf::{dataset_from_bytes, NativeRdfFormat};
+        use purrdf::{NativeRdfFormat, dataset_from_bytes};
 
         // Turtle → GTS → NTriples
         let gts_out = transcode(

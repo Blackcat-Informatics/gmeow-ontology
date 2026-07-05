@@ -349,13 +349,12 @@ fn archetype_or_template_tag(doc: &roxmltree::Document) -> String {
     {
         return v.trim().to_owned();
     }
-    if let Some(def) = child_element(root, "definition") {
-        if let Some(v) = child_element(def, "archetype_id")
+    if let Some(def) = child_element(root, "definition")
+        && let Some(v) = child_element(def, "archetype_id")
             .and_then(|a| child_element(a, "value"))
             .and_then(|v| v.text())
-        {
-            return v.trim().to_owned();
-        }
+    {
+        return v.trim().to_owned();
     }
     "root".to_owned()
 }
@@ -457,7 +456,7 @@ fn optional_bound(
             other => {
                 return Err(opt_err(format!(
                     "<{unbounded_name}> value {other:?} is not a boolean"
-                )))
+                )));
             }
         }
     }

@@ -186,10 +186,11 @@ fn label(store: &Store, subject: &str) -> String {
 fn subjects_of_type(store: &Store, type_iri: &str) -> Vec<String> {
     let mut set: BTreeSet<String> = BTreeSet::new();
     for q in store.triples() {
-        if q.predicate == RDF_TYPE && iri_is(&q.object, type_iri) {
-            if let RdfTerm::Iri(n) = &q.subject {
-                set.insert(n.clone());
-            }
+        if q.predicate == RDF_TYPE
+            && iri_is(&q.object, type_iri)
+            && let RdfTerm::Iri(n) = &q.subject
+        {
+            set.insert(n.clone());
         }
     }
     set.into_iter().collect()
@@ -219,10 +220,11 @@ fn objects(store: &Store, subject: &str, predicate: &str) -> Vec<String> {
 fn subjects_with(store: &Store, predicate: &str, object: &str) -> Vec<String> {
     let mut set: BTreeSet<String> = BTreeSet::new();
     for q in store.triples() {
-        if q.predicate == predicate && iri_is(&q.object, object) {
-            if let RdfTerm::Iri(n) = &q.subject {
-                set.insert(n.clone());
-            }
+        if q.predicate == predicate
+            && iri_is(&q.object, object)
+            && let RdfTerm::Iri(n) = &q.subject
+        {
+            set.insert(n.clone());
         }
     }
     set.into_iter().collect()
@@ -332,35 +334,19 @@ fn dataset_meta(store: &Store) -> Result<DatasetMeta, PipelineError> {
     let creator_node = value_node(store, &ds, &g("wasAttributedTo"));
     let version = {
         let v = text(store, &ds, &g("version"));
-        if v.is_empty() {
-            None
-        } else {
-            Some(v)
-        }
+        if v.is_empty() { None } else { Some(v) }
     };
     let cite_as = {
         let v = text(store, &ds, &g("citeAs"));
-        if v.is_empty() {
-            None
-        } else {
-            Some(v)
-        }
+        if v.is_empty() { None } else { Some(v) }
     };
     let title = {
         let t = text(store, &ds, &g("title"));
-        if t.is_empty() {
-            label(store, &ds)
-        } else {
-            t
-        }
+        if t.is_empty() { label(store, &ds) } else { t }
     };
     let landing = {
         let l = text(store, &ds, &g("sourceLocation"));
-        if l.is_empty() {
-            ds.clone()
-        } else {
-            l
-        }
+        if l.is_empty() { ds.clone() } else { l }
     };
     Ok(DatasetMeta {
         iri: ds.clone(),
@@ -855,16 +841,21 @@ fn build_croissant(store: &Store, ds: &DatasetMeta) -> Result<Json, PipelineErro
         ("license".into(), s(&ds.license_url)),
         (
             "creator".into(),
-            obj(vec![("@type", s("sc:Organization")), ("name", s(&ds.creator))]),
+            obj(vec![
+                ("@type", s("sc:Organization")),
+                ("name", s(&ds.creator)),
+            ]),
         ),
         ("datePublished".into(), s(&ds.date_published)),
         ("url".into(), s(&ds.landing_page)),
         ("distribution".into(), Json::Arr(distributions)),
+        ("recordSet".into(), Json::Arr(croissant_record_sets(store)?)),
         (
-            "recordSet".into(),
-            Json::Arr(croissant_record_sets(store)?),
+            "rai:dataCollection".into(),
+            s(
+                "Sources are content-addressed (blake3) and ingested through attributed gmeow:ImportActivity records; every derived artifact carries wasGeneratedBy/wasDerivedFrom lineage.",
+            ),
         ),
-        ("rai:dataCollection".into(), s("Sources are content-addressed (blake3) and ingested through attributed gmeow:ImportActivity records; every derived artifact carries wasGeneratedBy/wasDerivedFrom lineage.")),
         ("rai:machineAnnotationTools".into(), Json::Arr(tools)),
         ("rai:dataLimitation".into(), Json::Arr(limitations)),
     ];
@@ -1044,10 +1035,10 @@ fn build_ro_crate_metadata(store: &Store, ds: &DatasetMeta, payload: &[String]) 
     for e in &entities {
         if let Json::Obj(fields) = e {
             for (k, v) in fields {
-                if k == "@id" {
-                    if let Json::Str(id) = v {
-                        present.insert(id.clone());
-                    }
+                if k == "@id"
+                    && let Json::Str(id) = v
+                {
+                    present.insert(id.clone());
                 }
             }
         }
@@ -1465,12 +1456,12 @@ fn serialize_source_turtle(
 
 /// Retag a native literal's `@x-gmeow-*` language tag to its public BCP-47 form.
 fn retag_native_literal(lit: &RdfLiteral, tag_map: &BTreeMap<String, String>) -> RdfLiteral {
-    if let Some(lang) = &lit.language {
-        if let Some(ext) = tag_map.get(lang) {
-            let mut out = lit.clone();
-            out.language = Some(ext.clone());
-            return out;
-        }
+    if let Some(lang) = &lit.language
+        && let Some(ext) = tag_map.get(lang)
+    {
+        let mut out = lit.clone();
+        out.language = Some(ext.clone());
+        return out;
     }
     lit.clone()
 }
@@ -1594,7 +1585,7 @@ fn render_dcat(root: &Path, dcat_rq: &str) -> Result<String, PipelineError> {
         _ => {
             return Err(PipelineError::Parse(
                 "dcat.rq did not return a CONSTRUCT graph".into(),
-            ))
+            ));
         }
     };
     // The CONSTRUCT result is a native dataset; canonicalize its typed-literal lexical

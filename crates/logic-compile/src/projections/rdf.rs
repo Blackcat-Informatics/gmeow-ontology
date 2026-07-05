@@ -10,7 +10,7 @@
 
 use std::collections::HashSet;
 
-use purrdf::{serialize_dataset, RdfDatasetBuilder, RdfLiteral, SerializeGraph};
+use purrdf::{RdfDatasetBuilder, RdfLiteral, SerializeGraph, serialize_dataset};
 
 use std::collections::BTreeMap;
 
@@ -18,9 +18,9 @@ use super::super::graphutil::sha256_12;
 use super::super::ir::{Formula, LogicAxiom, LogicModality, LogicProgram, Term};
 use super::super::restriction;
 use super::{
-    assert_no_overclaim, contract_drop_notes, generated_banner, is_modal_or_scoped, target_meta,
-    OverclaimError, ProjectionResult, GMEOW_NS, LOGIC_NS, OWL_NS, RDFS_NS, RDF_NS, RDF_TYPE,
-    XSD_NS,
+    GMEOW_NS, LOGIC_NS, OWL_NS, OverclaimError, ProjectionResult, RDF_NS, RDF_TYPE, RDFS_NS,
+    XSD_NS, assert_no_overclaim, contract_drop_notes, generated_banner, is_modal_or_scoped,
+    target_meta,
 };
 
 const GUFO_NS: &str = "http://purl.org/nemo/gufo#";
@@ -298,13 +298,13 @@ fn collect_lifted_restrictions(program: &LogicProgram) -> BTreeMap<String, Lifte
             out.entry(axiom.subject.clone()).or_default();
         } else if pred == on_property {
             out.entry(axiom.subject.clone()).or_default().on_property = Some(axiom.obj.clone());
-        } else if let Some(local) = pred.strip_prefix(LOGIC_NS) {
-            if restriction::CONSTRAINT_LOCALS.contains(&local) {
-                out.entry(axiom.subject.clone())
-                    .or_default()
-                    .constraints
-                    .push((local.to_owned(), axiom.obj.clone(), axiom.obj_is_literal));
-            }
+        } else if let Some(local) = pred.strip_prefix(LOGIC_NS)
+            && restriction::CONSTRAINT_LOCALS.contains(&local)
+        {
+            out.entry(axiom.subject.clone())
+                .or_default()
+                .constraints
+                .push((local.to_owned(), axiom.obj.clone(), axiom.obj_is_literal));
         }
     }
     out
@@ -415,13 +415,13 @@ fn collect_lifted_dataranges(program: &LogicProgram) -> BTreeMap<String, LiftedD
             out.entry(axiom.subject.clone()).or_default();
         } else if pred == on_datatype {
             out.entry(axiom.subject.clone()).or_default().on_datatype = Some(axiom.obj.clone());
-        } else if let Some(local) = pred.strip_prefix(XSD_NS) {
-            if restriction::FACET_LOCALS.contains(&local) {
-                out.entry(axiom.subject.clone())
-                    .or_default()
-                    .facets
-                    .push((pred.to_owned(), axiom.obj.clone()));
-            }
+        } else if let Some(local) = pred.strip_prefix(XSD_NS)
+            && restriction::FACET_LOCALS.contains(&local)
+        {
+            out.entry(axiom.subject.clone())
+                .or_default()
+                .facets
+                .push((pred.to_owned(), axiom.obj.clone()));
         }
     }
     for dr in out.values_mut() {
@@ -707,14 +707,14 @@ pub fn project_owl_el(program: &LogicProgram) -> Result<ProjectionResult, Overcl
                 g.add_iri(&axiom.subject, RDF_TYPE, &owl("ObjectProperty"));
                 continue;
             }
-            if let Some(local) = obj.strip_prefix(LOGIC_NS) {
-                if owl_for_char(obj).is_some() {
-                    actual_drops.push(format!(
-                        "logic:{local} on <{}> is not EL-safe; dropped",
-                        axiom.subject
-                    ));
-                    continue;
-                }
+            if let Some(local) = obj.strip_prefix(LOGIC_NS)
+                && owl_for_char(obj).is_some()
+            {
+                actual_drops.push(format!(
+                    "logic:{local} on <{}> is not EL-safe; dropped",
+                    axiom.subject
+                ));
+                continue;
             }
             if !axiom.obj_is_literal {
                 g.add_iri(&axiom.subject, RDF_TYPE, obj);

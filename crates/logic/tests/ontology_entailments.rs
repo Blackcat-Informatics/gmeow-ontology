@@ -29,8 +29,8 @@
 
 use std::path::PathBuf;
 
-use gmeow_logic::reason::{rl_closure, RlClosure};
-use purrdf::{parse_dataset, RdfDatasetBuilder, RdfQuad, RdfTerm};
+use gmeow_logic::reason::{RlClosure, rl_closure};
+use purrdf::{RdfDatasetBuilder, RdfQuad, RdfTerm, parse_dataset};
 
 /// The gmeow ontology namespace (`config.NAMESPACE` = `ONTOLOGY_IRI + "/"`).
 pub const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";

@@ -216,7 +216,7 @@ pub fn classify_sssom(subj: &str, pred: &str, obj: &str) -> SssomClass {
                 bucket: format!("other:{rel}"),
                 gmeow: gmeow.to_owned(),
                 target: target.to_owned(),
-            }
+            };
         }
     };
     SssomClass {
@@ -548,10 +548,10 @@ pub(crate) fn edoalpath_pairs(
                 continue;
             };
             for binding in objects(q, &cell, GM_HAS_BINDING) {
-                if let Some(tgt) = value_named(q, &binding, GM_TO_PREDICATE) {
-                    if in_projection_ns(&tgt) {
-                        bucket.entry(tgt).or_default().insert(apred.clone());
-                    }
+                if let Some(tgt) = value_named(q, &binding, GM_TO_PREDICATE)
+                    && in_projection_ns(&tgt)
+                {
+                    bucket.entry(tgt).or_default().insert(apred.clone());
                 }
             }
         }
@@ -604,20 +604,20 @@ fn emitted_targets(quads: &[RdfQuad], binding: &RdfTerm) -> BTreeSet<String> {
         "https://blackcatinformatics.ca/gmeow/edoalTarget",
     ] {
         for obj in objects(quads, binding, pred) {
-            if let RdfTerm::Iri(node) = obj {
-                if in_projection_ns(&node) {
-                    targets.insert(node);
-                }
+            if let RdfTerm::Iri(node) = obj
+                && in_projection_ns(&node)
+            {
+                targets.insert(node);
             }
         }
     }
     for atom in template_atoms(quads, binding) {
         for pred in [GM_T_PRED, "https://blackcatinformatics.ca/gmeow/tObjValue"] {
             for obj in objects(quads, &atom, pred) {
-                if let RdfTerm::Iri(node) = obj {
-                    if in_projection_ns(&node) {
-                        targets.insert(node);
-                    }
+                if let RdfTerm::Iri(node) = obj
+                    && in_projection_ns(&node)
+                {
+                    targets.insert(node);
                 }
             }
         }
@@ -631,10 +631,9 @@ pub(crate) fn object_properties(ontology_nt: &str) -> Result<BTreeSet<String>, S
     for q in &graph.quads {
         if q.predicate == RDF_TYPE
             && matches!(&q.object, RdfTerm::Iri(n) if n == OWL_OBJECT_PROPERTY)
+            && let RdfTerm::Iri(s) = &q.subject
         {
-            if let RdfTerm::Iri(s) = &q.subject {
-                props.insert(s.clone());
-            }
+            props.insert(s.clone());
         }
     }
     Ok(props)
@@ -646,12 +645,11 @@ pub(crate) fn used_target_terms(quads: &[RdfQuad]) -> BTreeSet<String> {
         if in_projection_ns(&triple.predicate) {
             terms.insert(triple.predicate.clone());
         }
-        if triple.predicate == RDF_TYPE {
-            if let RdfTerm::Iri(node) = &triple.object {
-                if in_projection_ns(node) {
-                    terms.insert(node.clone());
-                }
-            }
+        if triple.predicate == RDF_TYPE
+            && let RdfTerm::Iri(node) = &triple.object
+            && in_projection_ns(node)
+        {
+            terms.insert(node.clone());
         }
     }
     terms
@@ -751,10 +749,10 @@ pub(crate) fn rdf_list(quads: &[RdfQuad], node: Option<&RdfTerm>) -> Vec<RdfTerm
             out.push(first);
         }
         node = value(quads, &cur, RDF_REST);
-        if let Some(rest) = &node {
-            if rest == &nil {
-                break;
-            }
+        if let Some(rest) = &node
+            && rest == &nil
+        {
+            break;
         }
     }
     out

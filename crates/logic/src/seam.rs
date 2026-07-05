@@ -315,20 +315,20 @@ impl ScryerForeign for WorldStoreForeign {
             if dq.graph != world {
                 return false;
             }
-            if let Some(ref s) = subject {
-                if &dq.subject != s {
-                    return false;
-                }
+            if let Some(ref s) = subject
+                && &dq.subject != s
+            {
+                return false;
             }
-            if let Some(ref p) = predicate {
-                if &dq.predicate != p {
-                    return false;
-                }
+            if let Some(ref p) = predicate
+                && &dq.predicate != p
+            {
+                return false;
             }
-            if let Some(ref o) = object {
-                if &dq.object != o {
-                    return false;
-                }
+            if let Some(ref o) = object
+                && &dq.object != o
+            {
+                return false;
             }
             true
         }))
@@ -354,15 +354,15 @@ impl ScryerForeign for WorldStoreForeign {
         let rule = rule.map(|r| r.to_owned());
 
         Box::new(self.quads.iter().filter_map(move |dq| {
-            if let Some(ref qid) = quad_id {
-                if &dq.derivation_id != qid {
-                    return None;
-                }
+            if let Some(ref qid) = quad_id
+                && &dq.derivation_id != qid
+            {
+                return None;
             }
-            if let Some(ref r) = rule {
-                if dq.rule_iri.as_str() != r.as_str() {
-                    return None;
-                }
+            if let Some(ref r) = rule
+                && dq.rule_iri.as_str() != r.as_str()
+            {
+                return None;
             }
             Some((
                 &dq.derivation_id,

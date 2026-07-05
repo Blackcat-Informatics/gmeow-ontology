@@ -27,7 +27,7 @@ python = ["dep:pyo3"]
 [dependencies]
 # The RDF 1.2 kernel: stages exchange an in-memory dataset / bundle and stamp
 # provenance through this crate; the content store backs the pipeline cache.
-purrdf = "0.2"
+purrdf = "0.3"
 # The native, zero-dependency XSD value space (#906): the snapshot carrier
 # canonicalizes typed-literal lexical forms (`415.0`→`415.0`, `0.90`→`0.9`,
 # `+00:00`→`Z`) to the W3C-canonical mapping via `gmeow_xsd::parse_by_iri` +

@@ -10,7 +10,7 @@
 //! evaluable engine. They consume the path projection's public surface from
 //! `gmeow_logic_compile::projections::paths`.
 
-use crate::rule_ir::{least_model_of_reduct, parse_eval_rules, Fact, FactStore};
+use crate::rule_ir::{Fact, FactStore, least_model_of_reduct, parse_eval_rules};
 use gmeow_logic_compile::frontend::parse_logic_str;
 use gmeow_logic_compile::ir::{PathBase, PathShapeIr};
 use gmeow_logic_compile::projections::paths::*;

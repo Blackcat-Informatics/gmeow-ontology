@@ -50,8 +50,8 @@
 //! *entirely* additionally requires neutralizing that codec; it is not covered
 //! by this solver boundary.
 
-use purrdf::provenance::Attribution;
 use purrdf::TermValue;
+use purrdf::provenance::Attribution;
 
 use crate::query_ir::{AnswerSet, Budget, QProgram};
 use crate::seam::ScryerForeign;

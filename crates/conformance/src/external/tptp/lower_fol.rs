@@ -279,7 +279,7 @@ fn lower_universal_body(
                         "two-positive clause (`⊤ ⊑ C ⊔ D`) is a disjunction outside the \
                          EL fragment"
                             .into(),
-                    ))
+                    ));
                 }
             }
             Ok(())

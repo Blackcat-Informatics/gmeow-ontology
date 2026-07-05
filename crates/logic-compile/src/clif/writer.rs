@@ -9,11 +9,11 @@
 //! [`RDF_META_SENTINEL`](super::RDF_META_SENTINEL).
 
 use crate::ir::{Formula, LogicAxiom, LogicProgram, Term};
-use crate::projections::{rdf, target_meta, ProjectionResult};
+use crate::projections::{ProjectionResult, rdf, target_meta};
 
-use super::{escape_name, escape_string, RDF_META_SENTINEL};
+use super::{RDF_META_SENTINEL, escape_name, escape_string};
 
-use purrdf::{parse_dataset, RdfDataset, TermRef};
+use purrdf::{RdfDataset, TermRef, parse_dataset};
 
 /// `xsd:string` — the datatype the dataset assigns a plain literal; emitted CLIF
 /// distinguishes a plain `(lit "x")` from a typed `(lit "x" 'dt')` by suppressing this

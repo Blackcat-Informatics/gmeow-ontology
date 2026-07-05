@@ -547,11 +547,11 @@ mod tests {
         ForwardBudget, ForwardOracle, NemoFactsOracle, NemoForwardOracle, ReferenceBackwardOracle,
         TypedChaseResult, TypedProvenance, TypedRow,
     };
-    use crate::physical::chase::{chase_world, route_chase, ChaseAdmission, ExistentialRule};
+    use crate::physical::chase::{ChaseAdmission, ExistentialRule, chase_world, route_chase};
     use crate::physical::magic::resolve_native;
-    use crate::physical::seminaive::{materialize_native, NativeOutcome};
-    use crate::query_ir::{parse_query_program, Budget, QProgram};
-    use crate::rule_ir::{parse_eval_rules, EvalAtom, EvalTerm, Fact};
+    use crate::physical::seminaive::{NativeOutcome, materialize_native};
+    use crate::query_ir::{Budget, QProgram, parse_query_program};
+    use crate::rule_ir::{EvalAtom, EvalTerm, Fact, parse_eval_rules};
     use crate::seam::{BudgetStatus, WorldStoreForeign};
     use crate::store::WorldStore;
     use purrdf::TermValue;

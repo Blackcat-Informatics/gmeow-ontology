@@ -24,8 +24,8 @@ use pyo3::types::{PyDict, PyList};
 
 use crate::certify::certify as certify_rules;
 use crate::dispatch::dispatch_query;
-use crate::materialize::{materialize_routed, MaterializeError};
-use crate::query_ir::{parse_query_program, Budget};
+use crate::materialize::{MaterializeError, materialize_routed};
+use crate::query_ir::{Budget, parse_query_program};
 use crate::result::PreservationClaim;
 use crate::rule_ir::EvalRule;
 use crate::seam::{DerivedQuad, WorldStoreForeign};
@@ -472,7 +472,7 @@ fn foundation(
     input: &str,
     anti_rigidity_policy: Option<&str>,
 ) -> PyResult<Vec<Py<PyAny>>> {
-    use crate::foundation::{evaluate, AntiRigidityPolicy};
+    use crate::foundation::{AntiRigidityPolicy, evaluate};
 
     // Closed enum — unknown value is a hard error (no silent default).  The default
     // when the key is absent is "witness-obligation".

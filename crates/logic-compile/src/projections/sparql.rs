@@ -19,10 +19,10 @@ use crate::ingest::{DslTerm, DslView};
 use crate::projections::correspondence_frontend::CorrespondenceLookup;
 use crate::projections::correspondence_gate::assert_relation_no_overclaim;
 use crate::projections::get_leg::{
-    curie, projections, render_expr, sparql_string, Atom, Item, MappingPattern, ProfileBinding,
-    ProjectionCell, PROFILES, RDF_TYPE,
+    Atom, Item, MappingPattern, PROFILES, ProfileBinding, ProjectionCell, RDF_TYPE, curie,
+    projections, render_expr, sparql_string,
 };
-use crate::projections::{correspondence_result, ProjectionResult};
+use crate::projections::{ProjectionResult, correspondence_result};
 
 const RDFS_LABEL: &str = "http://www.w3.org/2000/01/rdf-schema#label";
 const RDFS_COMMENT: &str = "http://www.w3.org/2000/01/rdf-schema#comment";
@@ -152,10 +152,10 @@ fn suppression_vocab(onto: &DslView) -> SuppressionVocab {
     }
     let mut coarsen = BTreeSet::new();
     for (s, o) in onto.quads_with_predicate(GM_COARSEN_GUARDED) {
-        if let (DslTerm::Iri(s), Some(lex)) = (&s, o.as_literal()) {
-            if lex == "true" {
-                coarsen.insert(s.clone());
-            }
+        if let (DslTerm::Iri(s), Some(lex)) = (&s, o.as_literal())
+            && lex == "true"
+        {
+            coarsen.insert(s.clone());
         }
     }
     SuppressionVocab {
@@ -234,10 +234,10 @@ fn emit_sparql(
             // inverse put emitter drive the same helper with an EMPTY map (plain external
             // vars), while the forward render stays byte-identical (same map computed).
             let mut var_map: BTreeMap<String, String> = BTreeMap::new();
-            if let Some(val) = &cell.pattern.value {
-                if language_retag(&cell.pattern).1.is_some() {
-                    var_map.insert(val.clone(), format!("_final_{val}"));
-                }
+            if let Some(val) = &cell.pattern.value
+                && language_retag(&cell.pattern).1.is_some()
+            {
+                var_map.insert(val.clone(), format!("_final_{val}"));
             }
             for tmpl in templates_of(cell, b, &var_map)? {
                 if !templates.contains(&tmpl) {
@@ -415,10 +415,10 @@ pub(crate) fn suppression_anchors(p: &MappingPattern) -> Vec<String> {
 fn required_atoms(p: &MappingPattern) -> Vec<Atom> {
     let mut out = Vec::new();
     for item in &p.atoms {
-        if let Item::Atom(atom) = item {
-            if !atom.optional {
-                out.push(atom.clone());
-            }
+        if let Item::Atom(atom) = item
+            && !atom.optional
+        {
+            out.push(atom.clone());
         }
     }
     out
@@ -453,18 +453,18 @@ fn injected_guards(p: &MappingPattern, vocab: &SuppressionVocab) -> Vec<String> 
         .map(|a| a.subject_var.clone())
         .collect();
     for atom in &required {
-        if let Some(pred) = &atom.predicate {
-            if vocab.coarsen_guarded.contains(pred) {
-                if coarsen_suppressed.contains(&atom.subject_var) {
-                    continue;
-                }
-                let guard = format!(
-                    "FILTER NOT EXISTS {{ ?{} gmeow:coarsenTo [] . }}",
-                    atom.subject_var
-                );
-                if !guards.contains(&guard) {
-                    guards.push(guard);
-                }
+        if let Some(pred) = &atom.predicate
+            && vocab.coarsen_guarded.contains(pred)
+        {
+            if coarsen_suppressed.contains(&atom.subject_var) {
+                continue;
+            }
+            let guard = format!(
+                "FILTER NOT EXISTS {{ ?{} gmeow:coarsenTo [] . }}",
+                atom.subject_var
+            );
+            if !guards.contains(&guard) {
+                guards.push(guard);
             }
         }
     }
@@ -478,10 +478,10 @@ fn injected_guards(p: &MappingPattern, vocab: &SuppressionVocab) -> Vec<String> 
             .unwrap_or(false);
         let alt_bearer =
             !atom.path_alts.is_empty() && atom.path_alts.iter().any(|a| bearer_set.contains(a));
-        if pred_bearer || alt_bearer {
-            if let Some(obj) = &atom.object_var {
-                bearer_visible.insert(obj.clone());
-            }
+        if (pred_bearer || alt_bearer)
+            && let Some(obj) = &atom.object_var
+        {
+            bearer_visible.insert(obj.clone());
         }
     }
     let mut appellation_vars: Vec<String> = Vec::new();

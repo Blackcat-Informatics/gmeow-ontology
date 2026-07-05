@@ -276,17 +276,16 @@ impl CorrespondenceProgram {
                     // the get leg resolves to a body. A bodyless get leg mints the put IRI but
                     // no body, so the round-trip gate REDs an unverifiable claim rather than
                     // passing it vacuously.
-                    if let Some(get_iri) = c.get_leg.as_deref() {
-                        if let Some(get_body) = legs
+                    if let Some(get_iri) = c.get_leg.as_deref()
+                        && let Some(get_body) = legs
                             .iter()
                             .find(|p| p.iri == get_iri)
                             .map(|p| p.body.clone())
-                        {
-                            legs.push(TransactionProgramIr {
-                                iri: dp.put_leg.clone(),
-                                body: get_body.invert(),
-                            });
-                        }
+                    {
+                        legs.push(TransactionProgramIr {
+                            iri: dp.put_leg.clone(),
+                            body: get_body.invert(),
+                        });
                     }
                     rebuilt.push(Correspondence::new(
                         c.iri.clone(),

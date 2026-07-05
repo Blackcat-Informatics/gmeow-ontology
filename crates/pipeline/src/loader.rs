@@ -17,12 +17,12 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::sync::Arc;
 
 use purrdf::{
-    parse_dataset, DatasetView, GraphMatch, RdfDataset, RdfDatasetBuilder, TermRef, TermValue,
+    DatasetView, GraphMatch, RdfDataset, RdfDatasetBuilder, TermRef, TermValue, parse_dataset,
 };
 
 use crate::error::PipelineError;
 use crate::graph::StageGraph;
-use crate::node::{Stage, GMEOW, SINK_CAPABILITY};
+use crate::node::{GMEOW, SINK_CAPABILITY, Stage};
 use crate::registry::StageRegistry;
 
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
@@ -131,13 +131,13 @@ impl PipelineSpec {
                 return Err(PipelineError::InvalidDag(
                     "the pipeline has no Sink stage (the gts narrow waist requires exactly one)"
                         .to_string(),
-                ))
+                ));
             }
             n => {
                 return Err(PipelineError::InvalidDag(format!(
                     "the pipeline has {n} Sink stages ({}); exactly one is allowed (the gts narrow waist)",
                     sinks.join(", ")
-                )))
+                )));
             }
         }
 

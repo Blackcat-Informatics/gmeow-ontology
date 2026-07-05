@@ -21,7 +21,7 @@ use std::collections::BTreeMap;
 
 use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
-use crate::stages::export::{collect_term_surface, read_fold_upstream, Term};
+use crate::stages::export::{Term, collect_term_surface, read_fold_upstream};
 
 /// The bundle directory name under `dist/`.
 pub const OKF_DIR_NAME: &str = "gmeow-okf";

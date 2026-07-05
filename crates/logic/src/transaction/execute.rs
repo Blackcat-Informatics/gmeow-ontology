@@ -15,11 +15,11 @@
 //! through that one shared path — no duplicated branch, no second authority.
 
 use super::{
-    emit_program_outcome, logic, parse_program, root_start, xsd_bool, ExecutionMode,
-    EXECUTED_HYPOTHETICALLY_AS, TEMPORALLY_SUCCEEDS, TRANSACTION_SUCCEEDS, TRANSITION_FROM_STATE,
+    EXECUTED_HYPOTHETICALLY_AS, ExecutionMode, TEMPORALLY_SUCCEEDS, TRANSACTION_SUCCEEDS,
+    TRANSITION_FROM_STATE, emit_program_outcome, logic, parse_program, root_start, xsd_bool,
 };
 use crate::store::WorldStore;
-use crate::teleology::{triple_reifier, TeleologyQuad, WorldFacts};
+use crate::teleology::{TeleologyQuad, WorldFacts, triple_reifier};
 
 /// Whether an executed transaction commits its effects or runs as the hypothetical (sandbox)
 /// operator — the caller's choice (a memory tool's `dry_run` selects [`CommitMode::Hypothetical`]).
@@ -144,11 +144,7 @@ fn path_len(quads: &[TeleologyQuad]) -> usize {
         .iter()
         .filter(|q| q.predicate == temporally_succeeds)
         .count();
-    if edges == 0 {
-        0
-    } else {
-        edges + 1
-    }
+    if edges == 0 { 0 } else { edges + 1 }
 }
 
 /// The content-addressed `logic:executedHypotheticallyAs` witness (a quoted N3 string

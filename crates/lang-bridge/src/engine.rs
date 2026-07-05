@@ -356,7 +356,7 @@ pub fn interpretation_act_to_ntriples(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use gmeow_lang_form::{dedup_by_content_key, Form, Slot, SurfaceForm};
+    use gmeow_lang_form::{Form, Slot, SurfaceForm, dedup_by_content_key};
 
     /// A leaf lexeme form for a slot.
     fn lexeme(lemma: &str) -> Form {
@@ -450,9 +450,10 @@ mod tests {
             Err(e) => e,
         };
         assert_eq!(err, EngineError::UnregisteredEngine("absent".to_owned()));
-        assert!(err
-            .to_string()
-            .contains("no NLP engine registered under name 'absent'"));
+        assert!(
+            err.to_string()
+                .contains("no NLP engine registered under name 'absent'")
+        );
     }
 
     /// A registered engine resolves through the seam and reports its single-site name.

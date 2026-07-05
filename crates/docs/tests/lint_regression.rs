@@ -18,10 +18,10 @@
 use pretty_assertions::assert_eq;
 use std::collections::{BTreeMap, BTreeSet};
 
+use gmeow_docs::DocsModel;
 use gmeow_docs::lint::lint;
 use gmeow_docs::model::{DocTerm, DocTermCategory};
 use gmeow_docs::render::Site;
-use gmeow_docs::DocsModel;
 
 mod common;
 
