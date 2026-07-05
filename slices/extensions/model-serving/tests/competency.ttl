@@ -78,6 +78,7 @@ ex:cqToolUsageRow a gmeow:ExpectedRow ;
 # profile corpus).
 ex:cqProvenanceChain a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "slices/extensions/model-serving/queries/competency/provenance-chain.rq" ;
+    gmeow:cqProject "slices/extensions/model-serving/queries/project/upper-projection.rq" ;
     gmeow:cqDataFile "examples/provenance-chain.ttl" ;
     gmeow:cqExactRows true ;
     gmeow:cqResultShape ex:cqProvenanceChainShape ;
@@ -120,6 +121,7 @@ ex:cqProvenanceChainRow a gmeow:ExpectedRow ;
 # the agent-runtime profile corpus extends the collapse to the durable lineage.
 ex:cqProjectionAgreement a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "slices/extensions/model-serving/queries/competency/audit.rq" ;
+    gmeow:cqProject "slices/extensions/model-serving/queries/project/upper-projection.rq" ;
     gmeow:cqDataFile "tests/perf-recall.ttl" ;
     gmeow:cqExactRows true ;
     gmeow:cqResultShape ex:cqProjectionAgreementShape ;

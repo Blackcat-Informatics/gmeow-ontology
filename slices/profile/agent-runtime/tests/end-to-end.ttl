@@ -8,9 +8,14 @@
 # gmeow:SubjectLineage). Model-serving alone is standalone (gmeow:sessionSubjectStage
 # is open-range) and can only reach the session's subject STAGE; here the chain
 # continues via gmeow:stageOfLineage to the durable LINEAGE. The flat one-hop
-# gmeow:generatedForSubject shortcut is asserted (the projection-layer
-# materialization stand-in) as the durable lineage, so the projection-agreement
-# gate proves the shortcut equals the full cross-slice collapse (Principle 7).
+# gmeow:generatedForSubject shortcut is NOT asserted here: it is MATERIALIZED by
+# the projection CONSTRUCT (extensions/model-serving/queries/project/upper-projection.rq),
+# which the harness runs over this overlaid canon via gmeow:cqProject before the
+# end-to-end query executes. Because core/inhabitation is composed here, the
+# projection's COALESCE(?lineage, ?stage) resolves the DEEPER durable LINEAGE, so
+# the projection-agreement gate proves the computed shortcut equals the full
+# cross-slice collapse (Principle 7) — non-circularly, since no human hand-typed
+# the lineage IRI into the shortcut column.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/agent-runtime/> .
@@ -36,8 +41,7 @@ ex:invocation1 a gmeow:ModelInvocation ;
     gmeow:invocationInExecution ex:execution1 ;
     gmeow:subEventOf ex:session1 .
 
-# --- the output, with the flat cross-slice shortcut (materialization stand-in)-
+# --- the output (canon only; the flat cross-slice shortcut is MATERIALIZED by ---
+# --- the projection CONSTRUCT via gmeow:cqProject, never hand-asserted here) ----
 ex:output a gmeow:InformationObject ;
-    gmeow:wasGeneratedBy ex:invocation1 ;
-    gmeow:generatedForSubject ex:lillithLineage ;    # == collapse(→ stage → stageOfLineage → lineage)
-    gmeow:generatedUnderConfiguration ex:configA .
+    gmeow:wasGeneratedBy ex:invocation1 .
