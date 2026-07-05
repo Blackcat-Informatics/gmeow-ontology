@@ -11,8 +11,13 @@
 //! - **Native physical core** (the primary path): `crate::physical::resolve_native`
 //!   magic-transforms the query and evaluates it bottom-up over the columnar
 //!   `RelationStore`. It is authoritative for the binary positive query fragment it
-//!   decides; a `NativeOutcome::Unsupported` (cut / arithmetic / non-binary / demand-
-//!   breaks-stratification) is a declared gap that falls through to the router below.
+//!   decides — INCLUDING the closed arithmetic/comparison builtin set (`+ - * //`,
+//!   `> < >= =< =:=`), evaluated as a post-join constraint stage. A
+//!   `NativeOutcome::Unsupported` is a declared gap that falls through to the router
+//!   below; the demotion class is now the RESIDUAL — cut, a non-binary atom, demand-
+//!   breaks-stratification, and the residual arithmetic modes native cannot compute
+//!   (an unbound operand, division by zero, or i64 overflow). A binary arithmetic
+//!   program in a supported mode is decided here and never reaches the router.
 //!   The native core now HONOURS `budget.max_steps`: its semi-naive governor stamps
 //!   `BudgetStatus::Exhausted` at the step ceiling (a sound partial answer, never a
 //!   wrong verdict), so a step-budgeted query is NOT demoted for lack of a step
@@ -138,8 +143,14 @@ fn reachable_to_self(start: &str, adj: &BTreeMap<String, BTreeSet<String>>) -> b
 // ── Goal classification ────────────────────────────────────────────────────────
 
 /// Return `true` if any rule body in `program` contains an arithmetic/comparison
-/// builtin (G2a). Such a program MUST be resolved by Scryer (the SPARQL fast
-/// path cannot evaluate arithmetic), never the EDB fast path.
+/// builtin.
+///
+/// The native core decides the binary arithmetic fragment directly, so a
+/// supported-mode builtin program is answered natively and never reaches this
+/// fallback router. This detector remains as the router's SAFETY NET: a builtin
+/// program that fell through (a residual native gap — an unbound operand, ÷0, or
+/// overflow) must still route to Scryer, never the arithmetic-blind SPARQL fast
+/// path.
 pub fn program_has_builtin(program: &QProgram) -> bool {
     program.rules.iter().any(|rule| {
         rule.body
@@ -155,11 +166,14 @@ fn goal_has_non_binary_atom(program: &QProgram) -> bool {
     program.goal.atoms.iter().any(|a| a.args.len() != 2)
 }
 
-/// Classify a program: `Fast` only if every goal atom is a binary EDB atom and the
-/// program contains no arithmetic builtin; `Scryer` otherwise.
+/// Classify a program for the FALLBACK router (reached only after the native core
+/// declared a gap): `Fast` only if every goal atom is a binary EDB atom and the
+/// program carries no builtin; `Scryer` otherwise.
 ///
-/// Forcing `Scryer` for builtin programs and for non-binary goal atoms is a hard
-/// invariant: the fast path neither evaluates arithmetic nor handles arity ≠ 2.
+/// Forcing `Scryer` for a residual builtin program and for non-binary goal atoms is
+/// a hard invariant: the SPARQL fast path neither evaluates arithmetic nor handles
+/// arity ≠ 2. A supported-mode binary arithmetic program is decided by the native
+/// core upstream and never reaches this router.
 pub fn classify_goal(program: &QProgram) -> Dispatch {
     let idb = idb_predicates(program);
     let needs_scryer = program.goal.atoms.iter().any(|a| idb.contains(&a.pred))
@@ -609,6 +623,32 @@ mod tests {
         assert_eq!(ans.status, BudgetStatus::Ok);
         assert_eq!(ans.bindings.len(), 1, "exactly one length answer: {ans:?}");
         assert_eq!(ans.bindings[0]["N"], format!("\"3\"^^<{XSD_INT}>"));
+    }
+
+    /// The binary arithmetic list-length program is DECIDED by the native core,
+    /// so `dispatch_query` returns at the native arm and never reaches the
+    /// `classify_goal` / Scryer fallback router.  Probing `resolve_native`
+    /// directly proves the demotion class no longer contains this program.
+    #[test]
+    fn binary_arithmetic_is_decided_by_native_not_demoted() {
+        let (store, world) = list_world();
+        let foreign = WorldStoreForeign::from_world(&store, W, PROCEDURAL_PROFILE).unwrap();
+        let src = format!(
+            ":- prefix(ex, '{BASE}').\n\
+             :- prefix(rdf, '{RDF}').\n\
+             ex:len(rdf:nil, 0).\n\
+             ex:len(L, N) :- rdf:rest(L, R), ex:len(R, M), N is M + 1.\n\
+             ?- ex:len(ex:l0, N).\n"
+        );
+        let prog = parse_query_program(&src).unwrap();
+        // Native decides it directly — not an Unsupported gap that would demote.
+        let outcome =
+            crate::physical::resolve_native(&foreign, world, &prog, &Budget::default()).unwrap();
+        let crate::physical::NativeOutcome::Decided(answer) = outcome else {
+            panic!("binary arithmetic must be decided natively, not demoted: {outcome:?}");
+        };
+        assert_eq!(answer.bindings.len(), 1);
+        assert_eq!(answer.bindings[0]["N"], format!("\"3\"^^<{XSD_INT}>"));
     }
 
     #[test]
