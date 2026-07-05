@@ -708,6 +708,12 @@ math:enforcesFailureClass
     rdfs:label "enforces failure class"@x-gmeow-english ;
     skos:definition "Links a SHACL shape to the math:MathConformanceFailure subclass it enforces, so the machine-checked gate and the typed failure vocabulary are cross-referenced: a query can move from a shape to the named failure it raises and back. An annotation property, carried on the shape, never a reasoned axiom."@x-gmeow-english .
 
+math:definingLaw
+    a owl:AnnotationProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "defining law"@x-gmeow-english ;
+    skos:definition "The machine-readable backing edge relating a declared property concept to the logic:Formula defining law, or the loss-ledger boundary record (logic:expressivenessBoundary), that grounds it. The law-backing audit requires every concept carrying it to resolve to a real logic:Formula or a recorded boundary — never a bare type or a dangling reference. Its presence is the marker of a concept that must be grounded, so the invariant is open: a new grounded property joins it by carrying math:definingLaw, with no list to maintain. An annotation property (its subjects are classes and individuals, so it is DL-clean exactly like rdfs:seeAlso), never a reasoned axiom."@x-gmeow-english .
+
 # =========================================================================== #
 # Algebra — the algebraic-structure hierarchy (ALGEBRA charter)
 #
@@ -2470,6 +2476,7 @@ math:ContinuousMap
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Continuous Map"@x-gmeow-english ;
     rdfs:seeAlso math:continuityLaw ;
+    math:definingLaw math:continuityLaw ;
     skos:definition "A continuous map between topological spaces: a map under which the preimage of every open set is open. A subclass of math:Morphism (a structure-preserving map of spaces, its math:sourceObject and math:targetObject the two topological spaces), and it declares its continuity through math:isContinuous — continuity is declared, not assumed (an undeclared continuity is ill-formed, math:UndeclaredTopologicalProperty). The structure it preserves is the topology, whose defining law is math:continuityLaw (preimages of open sets are open), referenced through math:preservesStructure."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -2487,6 +2494,7 @@ math:CompactSpace
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Compact Space"@x-gmeow-english ;
     rdfs:seeAlso math:compactnessBoundary ;
+    math:definingLaw math:compactnessBoundary ;
     skos:definition "A compact topological space: one in which every open cover has a finite subcover. A subclass of math:TopologicalSpace that declares its compactness through math:isCompact — compactness is declared, not assumed (an undeclared compactness is ill-formed, math:UndeclaredTopologicalProperty). Unlike math:ConnectedSpace, whose defining law math:connectednessLaw is a first-order logic:Formula, compactness is genuinely second-order (it quantifies over open covers and appeals to finiteness) and so is backed not by a first-order law but by the honest recorded boundary math:compactnessBoundary (logic:expressivenessBoundary logic:SecondOrder, logic:preservationKind logic:Unsupported), referenced through math:preservesStructure. Compactness is the topological generalization of closed-and-bounded (Heine–Borel) and is preserved by continuous images."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -2496,6 +2504,7 @@ math:ConnectedSpace
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Connected Space"@x-gmeow-english ;
     rdfs:seeAlso math:connectednessLaw ;
+    math:definingLaw math:connectednessLaw ;
     skos:definition "A connected topological space: one that is not the union of two disjoint non-empty open sets. A subclass of math:TopologicalSpace that declares its connectedness through math:isConnected — connectedness is declared, not assumed (an undeclared connectedness is ill-formed, math:UndeclaredTopologicalProperty). The structure it preserves is the topology's connectedness, whose defining law is math:connectednessLaw (no splitting into two disjoint non-empty open sets covering the space), referenced through math:preservesStructure. Connectedness is preserved by continuous images (the intermediate value theorem is its avatar on ℝ)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -2584,6 +2593,7 @@ math:hausdorffSeparation
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Hausdorff (T2)"@x-gmeow-english ;
     rdfs:seeAlso math:hausdorffLaw ;
+    math:definingLaw math:hausdorffLaw ;
     skos:definition "The Hausdorff separation axiom T2: any two distinct points have disjoint neighbourhoods. The separation a manifold's underlying space requires so limits are unique. Its defining law is math:hausdorffLaw (rdfs:seeAlso)."@x-gmeow-english .
 
 math:t0Separation
@@ -2591,6 +2601,7 @@ math:t0Separation
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "T0 (Kolmogorov)"@x-gmeow-english ;
     rdfs:seeAlso math:t0SeparationLaw ;
+    math:definingLaw math:t0SeparationLaw ;
     skos:definition "The T0 separation axiom: any two distinct points are topologically distinguishable (some open set contains one but not the other). Its defining law is math:t0SeparationLaw (rdfs:seeAlso)."@x-gmeow-english .
 
 math:t1Separation
@@ -2598,6 +2609,7 @@ math:t1Separation
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "T1 (Fréchet)"@x-gmeow-english ;
     rdfs:seeAlso math:t1SeparationLaw ;
+    math:definingLaw math:t1SeparationLaw ;
     skos:definition "The T1 separation axiom: for any two distinct points each has a neighbourhood not containing the other; equivalently, singletons are closed. Its defining law is math:t1SeparationLaw (rdfs:seeAlso)."@x-gmeow-english .
 
 math:t3Separation
@@ -2605,6 +2617,7 @@ math:t3Separation
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "T3 (regular)"@x-gmeow-english ;
     rdfs:seeAlso math:regularitySeparationLaw ;
+    math:definingLaw math:regularitySeparationLaw ;
     skos:definition "The T3 separation axiom (regularity): a point and a closed set not containing it have disjoint open neighbourhoods (with T1, a regular space). Its defining law is math:regularitySeparationLaw (rdfs:seeAlso)."@x-gmeow-english .
 
 math:t4Separation
@@ -2612,6 +2625,7 @@ math:t4Separation
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "T4 (normal)"@x-gmeow-english ;
     rdfs:seeAlso math:normalitySeparationLaw ;
+    math:definingLaw math:normalitySeparationLaw ;
     skos:definition "The T4 separation axiom (normality): any two disjoint closed sets have disjoint open neighbourhoods (with T1, a normal space). Its defining law is math:normalitySeparationLaw (rdfs:seeAlso)."@x-gmeow-english .
 
 # --- Reified relation atoms for the continuity law (HiLog reflection) -------- #
