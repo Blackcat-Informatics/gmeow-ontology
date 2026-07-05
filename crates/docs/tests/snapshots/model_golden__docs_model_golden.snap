@@ -7,7 +7,7 @@ expression: summary
   "version": "7",
   "slice_count": 78,
   "term_count": 2389,
-  "dependency_edge_count": 912,
+  "dependency_edge_count": 913,
   "term_count_by_category": {
     "Class": 725,
     "Datatype": 1,
@@ -419,7 +419,7 @@ expression: summary
     ]
   },
   "shape_count": 305,
-  "competency_count": 97,
+  "competency_count": 98,
   "sample_shape": {
     "shape_iri": "https://blackcatinformatics.ca/gmeow/RetractedAccessibilityAssertionShape",
     "target_term": "https://blackcatinformatics.ca/gmeow/AccessibilityAssertion",

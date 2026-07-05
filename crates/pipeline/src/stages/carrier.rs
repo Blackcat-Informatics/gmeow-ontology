@@ -58,6 +58,15 @@ pub(crate) const GRAPH_CONFORMANCE: &str = "https://blackcatinformatics.ca/gmeow
 /// structural lossy drops without re-running the compiler.
 pub(crate) const GRAPH_PROJECTION_LEDGER: &str =
     "https://blackcatinformatics.ca/gmeow/graph/projection-ledger";
+/// The live `lang:TranslationUnit` corpus: every multilingual `.po` catalog pair typed
+/// as a first-class crossing carrying a `logic:Correspondence` with an honestly-computed
+/// preservation judgment (Principle 15 consumer wiring). Folded as its own queryable
+/// named graph so a repo-free consumer reads what each translation loses against the
+/// English canon without re-parsing the `.po` catalogs. Excluded from the reasoned
+/// object-level EDB exactly like `graph/projection-ledger` (it asserts a
+/// self-description corpus, not object-level axioms).
+pub(crate) const GRAPH_LANG_TRANSLATION_CORPUS: &str =
+    "https://blackcatinformatics.ca/gmeow/graph/lang-translation-corpus";
 /// The authored default graph (root ontology + slice modules + translations + guide
 /// anchors, NO imports) carried as a named graph on the `stage-source-load` product so
 /// the presenter reads it instead of re-loading the sources. It is an INTERNAL transport
@@ -456,6 +465,8 @@ fn assemble_carrier(
     ]);
     let conformance = producer_graph(upstream, "stage-conformance", GRAPH_CONFORMANCE)?;
     let projection_ledger = producer_graph(upstream, "stage-mappings", GRAPH_PROJECTION_LEDGER)?;
+    let lang_translation_corpus =
+        producer_graph(upstream, "stage-mappings", GRAPH_LANG_TRANSLATION_CORPUS)?;
 
     // ── the carried graphs ride in from the producers' carriers ────────────────
     let reason = upstream
@@ -479,6 +490,7 @@ fn assemble_carrier(
         documentation,
         std::sync::Arc::new(diagnostics),
         projection_ledger,
+        lang_translation_corpus,
     ];
     datasets.extend(compile_logic_object_graphs(upstream)?);
     datasets.push(rooted_in_graph(
