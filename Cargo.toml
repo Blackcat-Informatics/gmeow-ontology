@@ -28,6 +28,9 @@ members = [
     # The lang: form AST, content keys, and interning (FORMS): a pure rlib peer of
     # logic-compile with no reasoning-runtime deps, keying forms by structural content.
     "crates/lang-form",
+    # The lang: ingester/emitter skeleton (RUNTIME): the shared Bridge abstraction that
+    # CARRIES a logic:Correspondence rather than minting a parallel lang: law-spine.
+    "crates/lang-bridge",
     # Dependency-free license-token policy classifier (RUST-FIRST single source of
     # truth) shared by the conformance vendoring gate and the Python LinkPolicy shim.
     "crates/license",
@@ -193,6 +196,9 @@ codegen-units = 1
 codegen-units = 1
 
 [profile.release.package.gmeow-lang-form]
+codegen-units = 1
+
+[profile.release.package.gmeow-lang-bridge]
 codegen-units = 1
 
 [profile.release.package.gmeow-validate]

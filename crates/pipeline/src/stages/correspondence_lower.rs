@@ -64,22 +64,18 @@ pub struct CorrespondenceArtifacts {
     pub correspondences: CorrespondenceProgram,
 }
 
-/// Lower every alignment dialect from the sources under `root`.
-pub fn lower_all(root: &Path) -> Result<CorrespondenceArtifacts, SliceError> {
-    // Discover the slice catalog once and share it across both merges (the DSL
-    // `Mapping` artifacts and the ontology `Module` artifacts), rather than
-    // rescanning the `slices/` tree per role.
-    let slices_dir = root.join("slices");
-    let catalog = if slices_dir.is_dir() {
-        Some(SliceCatalog::discover(
-            &slices_dir,
-            crate::gmeow_ns::gmeow_slice_vocab(),
-        )?)
-    } else {
-        None
-    };
-    let dsl = merge_dsl(root, catalog.as_ref())?;
-    let onto = merge_ontology(root, catalog.as_ref())?;
+/// Lower every alignment dialect from the sources under `root`, reading slice artifacts
+/// from the SHARED in-memory `catalog` the mappings stage discovered ONCE (the same
+/// instance the total prose-lift corpus draws its `@x-gmeow-english` universe from), so the
+/// `slices/` tree is walked once per pipeline run — never re-scanned per consumer. `catalog`
+/// is `None` only when there is no `slices/` tree (the DSL/ontology merges then fold just
+/// `dsl/mappings/` + `ontology/gmeow.ttl`).
+pub fn lower_all(
+    root: &Path,
+    catalog: Option<&SliceCatalog>,
+) -> Result<CorrespondenceArtifacts, SliceError> {
+    let dsl = merge_dsl(root, catalog)?;
+    let onto = merge_ontology(root, catalog)?;
     let dsl_view = DslView::new(&dsl);
     let onto_view = DslView::new(&onto);
     let (version, release_date) = read_self_metadata(root)?;
