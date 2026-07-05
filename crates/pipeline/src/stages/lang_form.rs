@@ -397,16 +397,19 @@ fn emit_ntriples(proses: &[Prose]) -> Vec<u8> {
 fn corpus_ledger_row(proses: &[Prose]) -> ProjectionResult {
     ProjectionResult {
         target: "lang-form".to_string(),
-        content: String::new(),
+        // The lift count is a descriptive summary, NOT a dropped item — a declared
+        // ExactPreservation projection carries empty `actual_drops`/`lossy_drops` (a
+        // non-empty drop set under an exact claim is the overclaim floor).
+        content: format!(
+            "total prose lift: {n} distinct @x-gmeow-english literal(s) interned as raw \
+             lang:SurfaceForm; surface round-trip exact, nothing dropped",
+            n = proses.len(),
+        ),
         is_rdf: false,
         preservation: PreservationKind::Exact,
         complexity: "n/a".to_string(),
         lossy_drops: Vec::new(),
-        actual_drops: vec![format!(
-            "total prose lift: {n} distinct @x-gmeow-english literal(s) interned as raw \
-             lang:SurfaceForm; surface round-trip exact, nothing dropped",
-            n = proses.len(),
-        )],
+        actual_drops: Vec::new(),
     }
 }
 
@@ -647,6 +650,14 @@ mod tests {
         assert_eq!(row.target, "lang-form");
         assert_eq!(row.preservation, PreservationKind::Exact);
         assert!(row.lossy_drops.is_empty(), "nothing is dropped");
+        assert!(
+            row.actual_drops.is_empty(),
+            "an exact projection declares no dropped items (else the overclaim gate fires)"
+        );
+        assert!(
+            row.content.contains("total prose lift"),
+            "the lift count is a descriptive summary carried on content"
+        );
     }
 
     #[test]
