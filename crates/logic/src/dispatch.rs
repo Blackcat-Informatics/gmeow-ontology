@@ -310,7 +310,7 @@ fn term_to_sparql(t: &QTerm) -> String {
         // Defensive: a numeric operand in a fast-path goal is not normally reached
         // (builtin programs route to Scryer), but emit the canonical typed literal so
         // the SPARQL is still well-formed rather than producing a malformed token.
-        QTerm::Num(n) => format!("\"{n}\"^^<http://www.w3.org/2001/XMLSchema#integer>"),
+        QTerm::Num(n) => crate::physical::emit_integer_surface(*n),
     }
 }
 
