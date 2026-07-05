@@ -582,11 +582,15 @@ fn parse_binding(view: &DslView, node: &DslTerm) -> Result<ProfileBinding, Strin
         }
         None => None,
     };
-    // Whether the lens is authored memory-preserving (`gmeow:mnemomorphic`), a boolean
-    // literal; default false when absent.
+    // Whether the lens is authored memory-preserving (`gmeow:mnemomorphic`), an
+    // `xsd:boolean` literal; accept its lexical forms (`true`/`1`, case-insensitive)
+    // consistent with `term_of`; default false when absent.
     let mnemomorphic = view
         .object_literal_of_term(node, GM_MNEMOMORPHIC)
-        .map(|text| text == "true")
+        .map(|text| {
+            let t = text.trim().to_ascii_lowercase();
+            t == "true" || t == "1"
+        })
         .unwrap_or(false);
     // An optional co-authored put-with-claim (`gmeow:ingestClaim`) on a nested node bearing
     // the ingest law + verdict (IRIs whose local names feed the value enums) and any residue
