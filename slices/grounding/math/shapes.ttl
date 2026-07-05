@@ -660,6 +660,27 @@ math:VariableOccurrenceShape
         sh:message "A math:VariableOccurrence must resolve to exactly one math:VariableDeclaration through math:declaredVariable; an unscoped occurrence is ill-formed." ;
     ] .
 
+# A truth-valued expression lowered into logic: declares its denotation and preservation.
+math:LogicLoweringShape
+    a sh:NodeShape ;
+    rdfs:label "Logic-lowering declaration shape"@x-gmeow-english ;
+    skos:definition "SHACL constraints for the math→logic: lowering seam: any math:MathematicalExpression that names a logic:Formula through math:compilesToLogicFormula must also declare its math:denotationKind (that it denotes a proposition) and its math:logicLoweringPreservation (the loss-ledger polarity of the lowering, a logic:preservationKind value). Silent promotion of a mathematical expression to a logical assertion — lowering without either declaration — is forbidden (math:UndeclaredLogicLowering)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    math:enforcesFailureClass math:UndeclaredLogicLowering ;
+    sh:targetSubjectsOf math:compilesToLogicFormula ;
+    sh:property [
+        sh:path math:denotationKind ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "An expression lowered to a logic:Formula through math:compilesToLogicFormula must declare its math:denotationKind; silent promotion to a logical assertion is forbidden (math:UndeclaredLogicLowering)." ;
+    ] ;
+    sh:property [
+        sh:path math:logicLoweringPreservation ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "An expression lowered to a logic:Formula through math:compilesToLogicFormula must declare its math:logicLoweringPreservation (a logic:preservationKind value); an unrecorded lowering is forbidden (math:UndeclaredLogicLowering)." ;
+    ] .
+
 # --- Calculus ---------------------------------------------------------------- #
 
 # A derivative names what it differentiates, its variable, and its order.

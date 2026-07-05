@@ -316,6 +316,18 @@ ex:ecMalformedBindingExpression a gmeow:ExampleConformance ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
     gmeow:conformanceRationale "The counter-example omits math:boundVariable on a math:BindingExpression that names its operator and a well-formed math:argumentSlot (sh:minCount 1 on math:BindingExpressionShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:MalformedBindingExpression)." .
 
+# Binder AST: the math→logic: lowering seam declares its denotation and preservation.
+ex:ecLogicLoweringDeclared a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/logic-lowering-declared.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:MathematicalExpression lowering to a logic:Formula through math:compilesToLogicFormula while declaring math:denotationKind math:denotesProposition and math:logicLoweringPreservation logic:ExactPreservation satisfies math:LogicLoweringShape and validates with no findings." .
+
+ex:ecUndeclaredLogicLowering a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/undeclared-logic-lowering.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example lowers a math:MathematicalExpression to a logic:Formula through math:compilesToLogicFormula while omitting both math:denotationKind and math:logicLoweringPreservation (two sh:minCount 1 constraints on math:LogicLoweringShape), so validation MUST emit shacl.MinCountConstraintComponent (math:UndeclaredLogicLowering) — the forbidden silent-promotion case." .
+
 # Calculus: derivative, limit, series framing.
 ex:ecDerivativeFramed a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/conformance-fixtures/derivative-framed.ttl" ;
