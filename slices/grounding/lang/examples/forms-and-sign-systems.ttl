@@ -9,11 +9,12 @@
 # a multiword-token form (French "du" spanning two syntactic words), and a covert
 # form (the zero plural of "sheep").
 
-@prefix lang: <https://blackcatinformatics.ca/lang/> .
-@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
-@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
-@prefix ex:   <https://blackcatinformatics.ca/gmeow/examples/lang/> .
+@prefix lang:  <https://blackcatinformatics.ca/lang/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/lang/> .
 
 # --- Sign-system reference scene -------------------------------------------- #
 
@@ -252,3 +253,26 @@ ex:covertSheepPlural
     rdfs:label "zero plural morph of 'sheep'"@x-gmeow-english ;
     lang:inSignSystem ex:english ;
     lang:morphFeature ex:featPlur .
+
+# --- Meaning: the sentence denotes a logic:Formula (the SemAF/AMR surface) ---- #
+# The composed form "cats chase mice" denotes a logic:Formula under a plain-
+# assertion context. This is the meaning-annotation surface the SemAF/AMR
+# projection lowers (a coarse AMR graph, program-dependent SoundUnder). The
+# formula individual is typed logic:Formula so the denotation-kind match holds.
+
+ex:formulaCatsChaseMice
+    a logic:Formula .
+
+ex:sentAssertion
+    a lang:CommunicativeAct ;
+    lang:performedOn ex:sentCatsChaseMice ;
+    lang:communicativeForce lang:assertForce .
+
+ex:denCatsChaseMice
+    a lang:Denotation ;
+    lang:denotedForm ex:sentCatsChaseMice ;
+    lang:denotationKind lang:denotesLogicFormula ;
+    lang:denotationTarget ex:formulaCatsChaseMice ;
+    lang:denotationContext ex:ctxPlainAssertion ;
+    lang:isIndexical false ;
+    logic:preservationKind logic:ExactPreservation .
