@@ -714,6 +714,22 @@ pub fn materialize_routed(
             let existential_rules =
                 crate::physical::parse_existential_rules(rules).map_err(MaterializeError::Parse)?;
             if existential_rules.iter().any(|r| r.is_existential()) {
+                // A wall-clock budget cannot be honored for a value-inventing program: the
+                // native chase governs by derivation STEPS (not elapsed time), the
+                // facts-only Nemo oracle rejects an inline budget, and the provenance
+                // oracle hard-errors on the invented nulls. Silently ignoring `time_ms` (or
+                // routing to the provenance oracle, which would error) both violate
+                // no-silent-degradation — so refuse the combination and name the supported
+                // budget instead.
+                if time_ms.is_some() {
+                    return Err(MaterializeError::Chase(
+                        "wall-clock budget (time_ms) is not supported for value-inventing \
+                         existential programs: the native chase governs by derivation steps \
+                         and no oracle honors a wall-clock bound on invented nulls — use a \
+                         step budget (max_rule_firings / max_answers)"
+                            .to_owned(),
+                    ));
+                }
                 let store = crate::store::WorldStore::new();
                 store.load_nquads(input).map_err(MaterializeError::Parse)?;
                 let max_steps = match (max_rule_firings, max_answers) {
@@ -908,6 +924,35 @@ mod tests {
     //! marshalling smoke (`tests/test_logic_engine.py`).
 
     use super::*;
+
+    #[test]
+    fn materialize_routed_refuses_time_ms_on_an_existential_program() {
+        // A wall-clock budget cannot be honored for a value-inventing program: the native
+        // chase governs by derivation STEPS, the facts-only oracle rejects an inline
+        // budget, and the provenance oracle errors on the invented nulls. Silently ignoring
+        // `time_ms` would violate no-silent-degradation, so the router must REFUSE.
+        let world = "http://world/W";
+        let ty = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+        let input = format!("<http://ex/a> <{ty}> <http://ex/C> <{world}> .\n");
+        let rules = format!(
+            "<http://ex/p>(?x, !y, ?w), <{ty}>(!y, <http://ex/D>, ?w) :- \
+             <{ty}>(?x, <http://ex/C>, ?w) ."
+        );
+        let err = materialize_routed(
+            &rules,
+            &input,
+            None,
+            None,
+            Some(1000),
+            Some("PositiveHornProfile"),
+        )
+        .expect_err("time_ms on an existential program must be refused, not silently ignored");
+        let msg = format!("{err:?}");
+        assert!(
+            msg.contains("time_ms") && msg.contains("existential"),
+            "the refusal must name the unsupported wall-clock budget: {msg}"
+        );
+    }
 
     #[test]
     fn materialize_routed_runs_the_native_chase_on_an_existential_program() {
