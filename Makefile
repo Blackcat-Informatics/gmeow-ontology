@@ -91,7 +91,7 @@ CHECK_TARGETS := lint rust-gate validate check-generated constitution-check \
 	maint-wikidata-coverage maint-wikidata-audit maint-test-heavy \
 	maint-test-network maint-pull-images maint-quality maint-evals-score \
 	maint-compliance-report-full maint-bench-baseline maint-rust-heavy \
-	maint-external-corpora maint-tptp-corpus
+	maint-external-corpora maint-tptp-corpus maint-lang-selfhost
 
 ##@ Core Workflows
 
@@ -598,6 +598,13 @@ maint-tptp-corpus: ## Grade the native FOL path against a live/local TPTP subset
 	  cargo run -p gmeow-conformance --bin ingest-external -- --grade-tptp "$$dir" tptp-live generated/conformance/divergence-tptp.nq; \
 	'
 	@echo "TPTP Lane-B grading complete; divergences in generated/conformance/divergence-tptp.nq"
+
+maint-lang-selfhost: ## Gate-3 self-hosting differential: parse the repo's own slices/**/*.ttl with the native purrdf codec and check the lifted turtle.ebnf grammar structurally covers every construct the corpus exercises.
+	# Off-gate corpus sweep (marked #[ignore]); runs with ZERO config against the
+	# repo's own slices/ Turtle tree. Set GMEOW_TTL_CORPUS to point at a larger
+	# external Turtle corpus. The lane hard-fails if the corpus is missing/empty or
+	# if any repo document is not valid Turtle the sanctioned parser accepts.
+	cargo test -p gmeow-lang-bridge --test grammar -- --ignored maint_grammar_selfhost_differential
 
 # The scratch dir the Lane-B OntoUML grade reads catalog models from (ontology.ttl /
 # model.ttl). Populate it from a local `ontouml-models` checkout, or set

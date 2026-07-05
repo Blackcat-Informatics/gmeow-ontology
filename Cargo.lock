@@ -1908,6 +1908,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "gmeow-lang-bridge"
+version = "0.1.0"
+dependencies = [
+ "gmeow-lang-form",
+ "gmeow-logic-compile",
+ "insta",
+ "proptest",
+ "purrdf",
+ "sha2",
+ "unicode-normalization",
+]
+
+[[package]]
 name = "gmeow-lang-form"
 version = "0.1.0"
 dependencies = [
@@ -2009,6 +2022,8 @@ dependencies = [
  "gmeow-conformance",
  "gmeow-diagnostics",
  "gmeow-docs",
+ "gmeow-lang-bridge",
+ "gmeow-lang-form",
  "gmeow-logic",
  "gmeow-logic-compile",
  "gmeow-validate",
