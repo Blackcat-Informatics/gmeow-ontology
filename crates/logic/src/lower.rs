@@ -29,7 +29,7 @@
 use purrdf::TermValue;
 
 use crate::rule_ir::{EvalAtom, EvalRule, EvalTerm};
-use gmeow_logic_compile::ir::{LogicAxiom, LogicProgram, LogicRule, LOGIC_NAMESPACE};
+use gmeow_logic_compile::ir::{LOGIC_NAMESPACE, LogicAxiom, LogicProgram, LogicRule};
 
 /// Lower one canonical source atom to an [`EvalAtom`] (arity-3 world slot is not
 /// part of the source IR, so nothing is dropped — subject/predicate/object map

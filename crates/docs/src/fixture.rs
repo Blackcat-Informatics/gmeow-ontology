@@ -36,9 +36,9 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use serde::{Deserialize, Serialize};
 use sha1::{Digest, Sha1};
 
-use crate::i18n::{Translations, UiCatalog, ENGLISH};
+use crate::i18n::{ENGLISH, Translations, UiCatalog};
 use crate::model::DocsModel;
-use crate::render::{render_site_lang, Site};
+use crate::render::{Site, render_site_lang};
 
 /// Load the live documentation model rooted at `root`, from the once-per-run
 /// cache when present, otherwise built via [`DocsModel::discover`] and cached for
@@ -340,10 +340,10 @@ static TMP_COUNTER: AtomicU64 = AtomicU64::new(0);
 /// and hard-fails rather than silently degrading to uncached per-process rebuilds.
 fn write_cache<T: Serialize>(path: &Path, cached: &T) {
     let dir = path.parent().expect("cache path has a parent");
-    if let Err(e) = fs::create_dir_all(dir) {
-        if e.kind() != std::io::ErrorKind::AlreadyExists {
-            panic!("creating cache dir {}: {e}", dir.display());
-        }
+    if let Err(e) = fs::create_dir_all(dir)
+        && e.kind() != std::io::ErrorKind::AlreadyExists
+    {
+        panic!("creating cache dir {}: {e}", dir.display());
     }
     let bytes = serde_json::to_vec(cached).expect("serialize docs-fixture cache");
     let tmp = dir.join(format!(

@@ -25,14 +25,14 @@ mod store;
 // forward/backward evaluators landing on the next rung. Until then the re-export is
 // unused crate-wide, so allow it here rather than dropping the intended API.
 #[allow(unused_imports)]
-pub(crate) use store::{extract_edb, Bound, RelationStore};
+pub(crate) use store::{Bound, RelationStore, extract_edb};
 
 // The forward native evaluator: the stratified semi-naive core, its
 // `RelationStore`-seeded backward entry, and the declared-gap outcome. `materialize_native`
 // + `NativeOutcome` are the primary forward path consumed by `materialize::materialize_routed`;
 // `evaluate`/`UnsupportedKind` are consumed by the backward `magic` leg.
 #[allow(unused_imports)]
-pub(crate) use seminaive::{evaluate, materialize_native, NativeOutcome, UnsupportedKind};
+pub(crate) use seminaive::{NativeOutcome, UnsupportedKind, evaluate, materialize_native};
 
 // The backward native evaluator: magic-sets demand transformation +
 // `resolve_native`, the oracle-parity sibling of `reference_resolver::resolve`. The primary

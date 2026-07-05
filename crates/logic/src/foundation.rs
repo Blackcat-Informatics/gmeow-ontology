@@ -2195,10 +2195,10 @@ fn match_partial(atom: &Atom, f: &Fact, sol: &Solution) -> bool {
                 }
             }
             TermPat::Var(name) => {
-                if let Some(existing) = sol.get(name) {
-                    if existing != fact_term {
-                        return false;
-                    }
+                if let Some(existing) = sol.get(name)
+                    && existing != fact_term
+                {
+                    return false;
                 }
             }
         }
@@ -2616,15 +2616,14 @@ fn cross_world_rigidity_violations(
             .entry(q.graph.clone())
             .or_default()
             .insert(q.subject.clone());
-        if q.predicate == RDF_TYPE {
-            if let Some(type_iri) = strip_angle_opt(&q.object) {
-                if rigid_types.contains(type_iri) {
-                    typings_by_world
-                        .entry(q.graph.clone())
-                        .or_default()
-                        .insert((q.subject.clone(), type_iri.to_owned()));
-                }
-            }
+        if q.predicate == RDF_TYPE
+            && let Some(type_iri) = strip_angle_opt(&q.object)
+            && rigid_types.contains(type_iri)
+        {
+            typings_by_world
+                .entry(q.graph.clone())
+                .or_default()
+                .insert((q.subject.clone(), type_iri.to_owned()));
         }
     }
 
@@ -2725,15 +2724,14 @@ fn anti_rigidity_obligations(
             .entry(q.graph.clone())
             .or_default()
             .insert(q.subject.clone());
-        if q.predicate == RDF_TYPE {
-            if let Some(type_iri) = strip_angle_opt(&q.object) {
-                if anti_rigid_types.contains(type_iri) {
-                    typings_by_world
-                        .entry(q.graph.clone())
-                        .or_default()
-                        .insert((q.subject.clone(), type_iri.to_owned()));
-                }
-            }
+        if q.predicate == RDF_TYPE
+            && let Some(type_iri) = strip_angle_opt(&q.object)
+            && anti_rigid_types.contains(type_iri)
+        {
+            typings_by_world
+                .entry(q.graph.clone())
+                .or_default()
+                .insert((q.subject.clone(), type_iri.to_owned()));
         }
     }
 
@@ -2872,14 +2870,14 @@ fn collect_characteristic_carriers(
             }
         } else if q.predicate == LOGIC_CHARACTERIZES {
             rec_prop.insert(q.subject.clone(), obj.to_owned());
-        } else if q.predicate == LOGIC_CHARACTERISTIC_SORT {
-            if let Some(sort) = char_sort_of(obj) {
-                rec_sorts.entry(q.subject.clone()).or_default().push((
-                    sort,
-                    obj.to_owned(),
-                    q.graph.clone(),
-                ));
-            }
+        } else if q.predicate == LOGIC_CHARACTERISTIC_SORT
+            && let Some(sort) = char_sort_of(obj)
+        {
+            rec_sorts.entry(q.subject.clone()).or_default().push((
+                sort,
+                obj.to_owned(),
+                q.graph.clone(),
+            ));
         }
     }
     let mut logic_records: Vec<LogicCharacteristicRecord> = Vec::new();
@@ -2970,15 +2968,14 @@ fn collect_characteristics(quads: &[FoundationQuad]) -> BTreeMap<String, BTreeSe
 
     // Direct type markers on the property itself.
     for q in quads {
-        if q.predicate == RDF_TYPE {
-            if let Some(obj) = strip_angle_opt(&q.object) {
-                if let Some(sort) = char_sort_of(obj) {
-                    prop_sorts
-                        .entry(q.subject.clone())
-                        .or_default()
-                        .insert(sort);
-                }
-            }
+        if q.predicate == RDF_TYPE
+            && let Some(obj) = strip_angle_opt(&q.object)
+            && let Some(sort) = char_sort_of(obj)
+        {
+            prop_sorts
+                .entry(q.subject.clone())
+                .or_default()
+                .insert(sort);
         }
     }
 
@@ -2990,12 +2987,11 @@ fn collect_characteristics(quads: &[FoundationQuad]) -> BTreeMap<String, BTreeSe
             if let Some(obj) = strip_angle_opt(&q.object) {
                 rec_prop.insert(q.subject.clone(), obj.to_owned());
             }
-        } else if q.predicate == LOGIC_CHARACTERISTIC_SORT {
-            if let Some(obj) = strip_angle_opt(&q.object) {
-                if let Some(sort) = char_sort_of(obj) {
-                    rec_sorts.entry(q.subject.clone()).or_default().push(sort);
-                }
-            }
+        } else if q.predicate == LOGIC_CHARACTERISTIC_SORT
+            && let Some(obj) = strip_angle_opt(&q.object)
+            && let Some(sort) = char_sort_of(obj)
+        {
+            rec_sorts.entry(q.subject.clone()).or_default().push(sort);
         }
     }
     for (rec, prop) in &rec_prop {
@@ -3185,10 +3181,10 @@ fn property_characteristic_pass(quads: &[FoundationQuad]) -> Result<Vec<Foundati
                                 witness = Some(succ);
                                 break;
                             }
-                            if seen.insert(n) {
-                                if let Some(next) = adj.get(n) {
-                                    stack.extend(next.iter().copied());
-                                }
+                            if seen.insert(n)
+                                && let Some(next) = adj.get(n)
+                            {
+                                stack.extend(next.iter().copied());
                             }
                         }
                         if witness.is_some() {

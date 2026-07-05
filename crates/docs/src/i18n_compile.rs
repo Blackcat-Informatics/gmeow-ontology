@@ -223,10 +223,10 @@ fn po_string_body(token: &str) -> Result<String, String> {
 
 fn parse_field_line(line: &str) -> Option<(&str, &str)> {
     for key in ["msgctxt", "msgid", "msgstr"] {
-        if let Some(rest) = line.strip_prefix(key) {
-            if rest.starts_with(char::is_whitespace) {
-                return Some((key, rest.trim()));
-            }
+        if let Some(rest) = line.strip_prefix(key)
+            && rest.starts_with(char::is_whitespace)
+        {
+            return Some((key, rest.trim()));
         }
     }
     None
@@ -1469,16 +1469,16 @@ fn tokenize_turtle(text: &str, end: usize) -> Vec<TurtleToken> {
             i = skip_single_quoted(text, i, end, ch);
             continue;
         }
-        if ch == b'<' {
-            if let Some(offset) = text[i..end].find('>') {
-                let j = i + offset + 1;
-                tokens.push(TurtleToken {
-                    kind: TokenKind::Iri,
-                    value: text[i..j].to_owned(),
-                });
-                i = j;
-                continue;
-            }
+        if ch == b'<'
+            && let Some(offset) = text[i..end].find('>')
+        {
+            let j = i + offset + 1;
+            tokens.push(TurtleToken {
+                kind: TokenKind::Iri,
+                value: text[i..j].to_owned(),
+            });
+            i = j;
+            continue;
         }
         if ch == b'_' && i + 1 < end && bytes[i + 1] == b':' {
             let mut j = i + 2;
@@ -1521,15 +1521,15 @@ fn tokenize_turtle(text: &str, end: usize) -> Vec<TurtleToken> {
             i += 1;
             continue;
         }
-        if is_name_start(ch) || ch == b':' {
-            if let Some((j, value)) = parse_prefixed_token(text, i, end) {
-                tokens.push(TurtleToken {
-                    kind: TokenKind::Prefixed,
-                    value,
-                });
-                i = j;
-                continue;
-            }
+        if (is_name_start(ch) || ch == b':')
+            && let Some((j, value)) = parse_prefixed_token(text, i, end)
+        {
+            tokens.push(TurtleToken {
+                kind: TokenKind::Prefixed,
+                value,
+            });
+            i = j;
+            continue;
         }
         i += 1;
     }
@@ -1671,15 +1671,15 @@ fn english_literal_candidates(text: &str) -> Vec<LiteralCandidate> {
             }
             let lexical_end = quoted_end.saturating_sub(3);
             let end = suffix_end(text, quoted_end);
-            if text[quoted_end..end] == english_tag_suffix {
-                if let Ok(decoded) = turtle_unescape(&text[lexical_start..lexical_end]) {
-                    out.push(LiteralCandidate {
-                        start: i,
-                        end,
-                        style: QuoteStyle::Triple,
-                        decoded,
-                    });
-                }
+            if text[quoted_end..end] == english_tag_suffix
+                && let Ok(decoded) = turtle_unescape(&text[lexical_start..lexical_end])
+            {
+                out.push(LiteralCandidate {
+                    start: i,
+                    end,
+                    style: QuoteStyle::Triple,
+                    decoded,
+                });
             }
             i = quoted_end.max(i + 3);
             continue;
@@ -1692,15 +1692,15 @@ fn english_literal_candidates(text: &str) -> Vec<LiteralCandidate> {
             }
             let lexical_end = quoted_end.saturating_sub(1);
             let end = suffix_end(text, quoted_end);
-            if text[quoted_end..end] == english_tag_suffix {
-                if let Ok(decoded) = turtle_unescape(&text[lexical_start..lexical_end]) {
-                    out.push(LiteralCandidate {
-                        start: i,
-                        end,
-                        style: QuoteStyle::Single,
-                        decoded,
-                    });
-                }
+            if text[quoted_end..end] == english_tag_suffix
+                && let Ok(decoded) = turtle_unescape(&text[lexical_start..lexical_end])
+            {
+                out.push(LiteralCandidate {
+                    start: i,
+                    end,
+                    style: QuoteStyle::Single,
+                    decoded,
+                });
             }
             i = quoted_end.max(i + 1);
             continue;
@@ -2103,14 +2103,18 @@ gmeow:placeTypeCity rdfs:label "city"@x-gmeow-english .
         let report = lint_po_files(&root, 100.0);
         assert!(report.errors.is_empty(), "{:?}", report.errors);
         assert_eq!(report.warnings.len(), 2);
-        assert!(report
-            .warnings
-            .iter()
-            .any(|warning| warning.contains("orphaned")));
-        assert!(report
-            .warnings
-            .iter()
-            .any(|warning| warning.contains("stale")));
+        assert!(
+            report
+                .warnings
+                .iter()
+                .any(|warning| warning.contains("orphaned"))
+        );
+        assert!(
+            report
+                .warnings
+                .iter()
+                .any(|warning| warning.contains("stale"))
+        );
         let _ = fs::remove_dir_all(root);
     }
 

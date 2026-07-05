@@ -37,13 +37,13 @@ use purrdf::sparql::NativeSparqlEngine;
 use purrdf::{RdfQuad, RdfTerm, SparqlEngine, SparqlRequest, SparqlResult};
 
 use crate::up_projection_corpus::{
-    canon_qname, dump_nt, in_projection_ns, object_properties, Graph, ADOPTED_PREDICATES,
-    GM_ANNOTATION, GM_ANN_PROPERTY, GM_ANN_VALUE, GM_CONFIDENCE, GM_MAPPED_FROM, GM_Q_OBJECT,
-    GM_Q_OBJECT_LITERAL, GM_Q_PREDICATE, GM_Q_SUBJECT, GM_STATEMENT_METADATA,
-    NORMALIZED_PREDICATES, RDF_TYPE, STATEMENT_METADATA_TERMS, XSD_DECIMAL,
+    ADOPTED_PREDICATES, GM_ANN_PROPERTY, GM_ANN_VALUE, GM_ANNOTATION, GM_CONFIDENCE,
+    GM_MAPPED_FROM, GM_Q_OBJECT, GM_Q_OBJECT_LITERAL, GM_Q_PREDICATE, GM_Q_SUBJECT,
+    GM_STATEMENT_METADATA, Graph, NORMALIZED_PREDICATES, RDF_TYPE, STATEMENT_METADATA_TERMS,
+    XSD_DECIMAL, canon_qname, dump_nt, in_projection_ns, object_properties,
 };
 use crate::up_projection_gates::{
-    gate_verified_lift_program, LiftKind, LiftProgram, LiftRule, Orientation,
+    LiftKind, LiftProgram, LiftRule, Orientation, gate_verified_lift_program,
 };
 
 /// The result of executing every lawful put leg over a source graph.
@@ -238,10 +238,9 @@ pub fn execute_put_legs_with(
             }
             if quad.predicate == RDF_TYPE
                 && matches!(&quad.object, RdfTerm::Iri(n) if n == GM_STATEMENT_METADATA)
+                && let RdfTerm::BlankNode(cell) = &quad.subject
             {
-                if let RdfTerm::BlankNode(cell) = &quad.subject {
-                    claim_cells.insert(cell.clone());
-                }
+                claim_cells.insert(cell.clone());
             }
             claim_quads.push(quad);
         }
@@ -452,12 +451,12 @@ fn compute_gaps(quads: &[RdfQuad], lawful: &LawfulRules) -> BTreeMap<String, usi
         if in_projection_ns(&triple.predicate) && !has_rule(&triple.predicate) {
             *gaps.entry(canon_qname(&triple.predicate)).or_insert(0) += 1;
         }
-        if triple.predicate == RDF_TYPE {
-            if let RdfTerm::Iri(node) = &triple.object {
-                if in_projection_ns(node) && !has_rule(node) {
-                    *gaps.entry(canon_qname(node)).or_insert(0) += 1;
-                }
-            }
+        if triple.predicate == RDF_TYPE
+            && let RdfTerm::Iri(node) = &triple.object
+            && in_projection_ns(node)
+            && !has_rule(node)
+        {
+            *gaps.entry(canon_qname(node)).or_insert(0) += 1;
         }
     }
     gaps
@@ -665,13 +664,13 @@ mod tests {
         let mut cell_preds: std::collections::BTreeMap<String, BTreeSet<String>> =
             std::collections::BTreeMap::new();
         for q in &graph.quads {
-            if q.predicate == GM_Q_PREDICATE {
-                if let (RdfTerm::BlankNode(cell), RdfTerm::Iri(p)) = (&q.subject, &q.object) {
-                    cell_preds
-                        .entry(cell.clone())
-                        .or_default()
-                        .insert(p.clone());
-                }
+            if q.predicate == GM_Q_PREDICATE
+                && let (RdfTerm::BlankNode(cell), RdfTerm::Iri(p)) = (&q.subject, &q.object)
+            {
+                cell_preds
+                    .entry(cell.clone())
+                    .or_default()
+                    .insert(p.clone());
             }
         }
         let a = "https://blackcatinformatics.ca/gmeow/a";

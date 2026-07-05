@@ -53,7 +53,7 @@ use std::collections::{HashMap, HashSet};
 use purrdf::TermValue;
 
 use crate::provenance::{
-    mint_derivation_id, mint_reifier, term_display, ASSERT_RULE_IRI, LOGIC_NAMESPACE,
+    ASSERT_RULE_IRI, LOGIC_NAMESPACE, mint_derivation_id, mint_reifier, term_display,
 };
 
 // ── Evaluable term / atom / rule ────────────────────────────────────────────────

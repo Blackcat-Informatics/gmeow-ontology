@@ -29,11 +29,11 @@ pub mod model;
 
 pub use lower::lower_model;
 pub use model::{
-    parse_ontouml_model, Generalization, Mediation, OntoClass, OntoumlError, OntoumlModel,
-    LOGIC_NS, ONTOUML_NS,
+    Generalization, LOGIC_NS, Mediation, ONTOUML_NS, OntoClass, OntoumlError, OntoumlModel,
+    parse_ontouml_model,
 };
 
-use gmeow_logic::foundation::{evaluate, AntiRigidityPolicy, FoundationQuad};
+use gmeow_logic::foundation::{AntiRigidityPolicy, FoundationQuad, evaluate};
 use gmeow_logic::store::WorldStore;
 
 /// The `logic:violation` predicate IRI the foundation chase asserts one quad per

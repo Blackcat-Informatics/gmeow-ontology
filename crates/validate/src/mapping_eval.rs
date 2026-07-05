@@ -345,25 +345,25 @@ pub fn check_syntax_iri(iri: &str, in_object_position: bool) -> Vec<Misuse> {
         return Vec::new();
     }
 
-    if let Some(local) = iri.strip_prefix(WDT_NS) {
-        if !is_valid_pid(local) {
-            let (kind, message) = if is_valid_qid(local) {
-                (
-                    NamespaceMisuse::WdtItemShouldBeWd,
-                    format!("wdt:{local} is an item ID; use wd:{local} for item mappings"),
-                )
-            } else {
-                (
-                    NamespaceMisuse::BadSyntax,
-                    format!("malformed wdt: identifier: {local}"),
-                )
-            };
-            return vec![Misuse {
-                local_id: local.to_owned(),
-                kind,
-                message,
-            }];
-        }
+    if let Some(local) = iri.strip_prefix(WDT_NS)
+        && !is_valid_pid(local)
+    {
+        let (kind, message) = if is_valid_qid(local) {
+            (
+                NamespaceMisuse::WdtItemShouldBeWd,
+                format!("wdt:{local} is an item ID; use wd:{local} for item mappings"),
+            )
+        } else {
+            (
+                NamespaceMisuse::BadSyntax,
+                format!("malformed wdt: identifier: {local}"),
+            )
+        };
+        return vec![Misuse {
+            local_id: local.to_owned(),
+            kind,
+            message,
+        }];
     }
 
     Vec::new()
@@ -1283,23 +1283,29 @@ mod tests {
                 "info": "bad ids"
             }
         });
-        assert!(wikidata_entities(&error)
-            .unwrap_err()
-            .contains("Wikidata API error bad-request"));
+        assert!(
+            wikidata_entities(&error)
+                .unwrap_err()
+                .contains("Wikidata API error bad-request")
+        );
 
         let missing_success = serde_json::json!({
             "entities": {}
         });
-        assert!(wikidata_entities(&missing_success)
-            .unwrap_err()
-            .contains("success=1"));
+        assert!(
+            wikidata_entities(&missing_success)
+                .unwrap_err()
+                .contains("success=1")
+        );
 
         let missing_entities = serde_json::json!({
             "success": 1
         });
-        assert!(wikidata_entities(&missing_entities)
-            .unwrap_err()
-            .contains("entities object"));
+        assert!(
+            wikidata_entities(&missing_entities)
+                .unwrap_err()
+                .contains("entities object")
+        );
 
         let ok = serde_json::json!({
             "success": 1,

@@ -32,10 +32,10 @@ use gmeow_logic::dag_profile::certify_acyclic;
 use gmeow_logic::result::ReasoningResult;
 
 use crate::error::PipelineError;
-use crate::loader::{bind, PipelineSpec, StageSpec};
-use crate::node::{StageProduct, ENGINE_RESOURCE, SINK_CAPABILITY, SOURCE_ORIGIN};
+use crate::loader::{PipelineSpec, StageSpec, bind};
+use crate::node::{ENGINE_RESOURCE, SINK_CAPABILITY, SOURCE_ORIGIN, StageProduct};
 use crate::registry::default_registry;
-use crate::scheduler::{run, RunContext};
+use crate::scheduler::{RunContext, run};
 
 /// The id of the stage that projects the exact sink GTS bytes into schema files.
 const SCHEMAS_STAGE: &str = "stage-export-schemas";
@@ -844,7 +844,7 @@ pub(crate) fn write_artifact(root: &Path, path: &str, bytes: &[u8]) -> Result<bo
 #[cfg(test)]
 mod dag_profile_tests {
     use super::{certify_build_plan, full_spec, write_artifact};
-    use gmeow_logic::dag_profile::{certify_acyclic, DagCertification};
+    use gmeow_logic::dag_profile::{DagCertification, certify_acyclic};
     use gmeow_logic::result::{
         CompletenessStatus, EvaluationStatus, InformationState, PreservationClaim,
     };
@@ -947,7 +947,7 @@ mod dag_profile_tests {
 /// carry the `gmeow.gts` byte artifact.
 #[cfg(test)]
 mod single_writer_gate {
-    use super::{assert_single_gts_writer, GTS_PATH};
+    use super::{GTS_PATH, assert_single_gts_writer};
     use crate::node::StageProduct;
     use std::collections::BTreeMap;
 

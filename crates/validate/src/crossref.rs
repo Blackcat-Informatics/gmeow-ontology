@@ -222,10 +222,7 @@ impl Node {
     }
 
     fn push_mut(&mut self, child: Node) {
-        if let Node::Elem {
-            ref mut children, ..
-        } = self
-        {
+        if let Node::Elem { children, .. } = self {
             children.push(child);
         }
     }
@@ -775,16 +772,14 @@ pub fn build_deposit_xml(json: &str, timestamp: &str, batch_id: &str) -> Result<
             description: "Source repository for the GMEOW ontology.".to_string(),
         });
     }
-    if has_version {
-        if let Some(ref vdoi) = sd.version_doi {
-            concept_relations.push(Relation {
-                kind: "intra_work_relation",
-                rel_type: "hasVersion".to_string(),
-                identifier_type: "doi",
-                target: vdoi.clone(),
-                description: format!("Immutable version DOI for release {}.", sd.version),
-            });
-        }
+    if has_version && let Some(ref vdoi) = sd.version_doi {
+        concept_relations.push(Relation {
+            kind: "intra_work_relation",
+            rel_type: "hasVersion".to_string(),
+            identifier_type: "doi",
+            target: vdoi.clone(),
+            description: format!("Immutable version DOI for release {}.", sd.version),
+        });
     }
     concept_relations.extend(alignment_relations(&config.alignment_targets));
 
@@ -943,13 +938,13 @@ pub fn lint_deposit(json: &str) -> Result<Vec<String>, String> {
             py_repr(&sd.concept_doi)
         ));
     }
-    if let Some(ref vdoi) = sd.version_doi {
-        if vdoi.contains(PLACEHOLDER_DOI_PREFIX) {
-            problems.push(format!(
-                "version DOI is still a placeholder: {}",
-                py_repr(vdoi)
-            ));
-        }
+    if let Some(ref vdoi) = sd.version_doi
+        && vdoi.contains(PLACEHOLDER_DOI_PREFIX)
+    {
+        problems.push(format!(
+            "version DOI is still a placeholder: {}",
+            py_repr(vdoi)
+        ));
     }
 
     if let Some(ref cff) = input.citation_cff {

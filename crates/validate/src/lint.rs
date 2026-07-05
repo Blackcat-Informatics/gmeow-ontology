@@ -306,10 +306,11 @@ pub fn collect_typed_terms_dataset(ds: &RdfDataset, cfg: &LintConfig) -> BTreeMa
     }
     // Any remaining GMEOW subjects with an explicit rdf:type → individual.
     for q in ds.quads_for_pattern(None, Some(type_id), None, GraphMatch::Any) {
-        if let TermRef::Iri(iri) = ds.resolve(q.s) {
-            if is_gmeow_term(iri, cfg) && !terms.contains_key(iri) {
-                terms.insert(iri.to_owned(), "individual".to_owned());
-            }
+        if let TermRef::Iri(iri) = ds.resolve(q.s)
+            && is_gmeow_term(iri, cfg)
+            && !terms.contains_key(iri)
+        {
+            terms.insert(iri.to_owned(), "individual".to_owned());
         }
     }
     terms
@@ -530,13 +531,14 @@ pub fn structural_lint_dataset(ds: &RdfDataset, cfg: &LintConfig) -> LintReport 
             continue;
         };
         for q in ds.quads_for_pattern(None, Some(p_id), None, GraphMatch::Any) {
-            if let TermRef::Iri(target) = ds.resolve(q.o) {
-                if is_gmeow_term(target, cfg) && !declared.contains(&target.to_owned()) {
-                    report.errors.push(format!(
-                        "dangling {pred} target (undeclared GMEOW term): {target}",
-                        pred = predicate,
-                    ));
-                }
+            if let TermRef::Iri(target) = ds.resolve(q.o)
+                && is_gmeow_term(target, cfg)
+                && !declared.contains(&target.to_owned())
+            {
+                report.errors.push(format!(
+                    "dangling {pred} target (undeclared GMEOW term): {target}",
+                    pred = predicate,
+                ));
             }
         }
     }
@@ -591,34 +593,26 @@ pub fn structural_lint_dataset(ds: &RdfDataset, cfg: &LintConfig) -> LintReport 
         };
 
         // Check 1: literal on a GMEOW-namespace predicate.
-        if predicate_iri.starts_with(&cfg.namespace) {
-            if let Some(lang) = language {
-                if !x_gmeow.is_match(lang) {
-                    let subject = ds_subject_display(ds.resolve(q.s));
-                    report.errors.push(format!(
-                        "literal {lit_repr} (on subject {subject}, predicate {predicate_iri}) \
+        if predicate_iri.starts_with(&cfg.namespace)
+            && let Some(lang) = language
+            && !x_gmeow.is_match(lang)
+        {
+            let subject = ds_subject_display(ds.resolve(q.s));
+            report.errors.push(format!(
+                "literal {lit_repr} (on subject {subject}, predicate {predicate_iri}) \
                          carries external or invalid language tag '{lang}'; GMEOW internal \
                          data must use the private-use 'x-gmeow-' prefix.",
-                        lit_repr = lang_literal_repr(lexical, lang),
-                    ));
-                }
-            }
+                lit_repr = lang_literal_repr(lexical, lang),
+            ));
         }
 
         // Check 2: standard annotation predicate on a GMEOW-authored subject.
-        if let TermRef::Iri(subj) = ds.resolve(q.s) {
-            if is_gmeow_term(subj, cfg) {
-                if let Some(msg) = ds_check_annotation_literal(
-                    subj,
-                    predicate_iri,
-                    lexical,
-                    language,
-                    cfg,
-                    &x_gmeow,
-                ) {
-                    report.errors.push(msg);
-                }
-            }
+        if let TermRef::Iri(subj) = ds.resolve(q.s)
+            && is_gmeow_term(subj, cfg)
+            && let Some(msg) =
+                ds_check_annotation_literal(subj, predicate_iri, lexical, language, cfg, &x_gmeow)
+        {
+            report.errors.push(msg);
         }
     }
 
@@ -745,10 +739,10 @@ fn reading_claim_is_grounded(
         return false;
     };
     for q in ds.quads_for_pattern(None, Some(p_id), Some(o_id), GraphMatch::Any) {
-        if let TermRef::Iri(obs) = ds.resolve(q.s) {
-            if ds_has_predicate(ds, obs, vantage) {
-                return true;
-            }
+        if let TermRef::Iri(obs) = ds.resolve(q.s)
+            && ds_has_predicate(ds, obs, vantage)
+        {
+            return true;
         }
     }
     false
@@ -888,11 +882,7 @@ struct Rat {
 }
 
 fn gcd_u128(a: u128, b: u128) -> u128 {
-    if b == 0 {
-        a
-    } else {
-        gcd_u128(b, a % b)
-    }
+    if b == 0 { a } else { gcd_u128(b, a % b) }
 }
 
 impl Rat {
@@ -1387,10 +1377,12 @@ mod tests {
                rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/> .\n"
         ));
         let report = structural_lint_dataset(&store, &cfg());
-        assert!(report
-            .errors
-            .iter()
-            .any(|e| e.contains("missing gmeow:graphBoxRole")));
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("missing gmeow:graphBoxRole"))
+        );
     }
 
     #[test]
@@ -1563,10 +1555,12 @@ mod tests {
                rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/> .\n"
         ));
         let report = structural_lint_dataset(&store, &cfg());
-        assert!(report
-            .errors
-            .iter()
-            .any(|e| e.contains("not a gmeow:GraphBoxRole")));
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("not a gmeow:GraphBoxRole"))
+        );
     }
 
     #[test]
@@ -1586,15 +1580,19 @@ mod tests {
              <https://example.org/name> gmeow:fullName \"Japanese\"@ja .\n"
         ));
         let report = structural_lint_dataset(&store, &cfg());
-        assert!(report
-            .errors
-            .iter()
-            .any(|e| e.contains("external or invalid language tag")));
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("external or invalid language tag"))
+        );
         // Exact rdflib repr framing.
-        assert!(report
-            .errors
-            .iter()
-            .any(|e| e.contains("literal rdflib.term.Literal('Japanese', lang='ja')")));
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("literal rdflib.term.Literal('Japanese', lang='ja')"))
+        );
     }
 
     #[test]
@@ -1608,10 +1606,12 @@ mod tests {
                rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/> .\n"
         ));
         let report = structural_lint_dataset(&store, &cfg());
-        assert!(report
-            .errors
-            .iter()
-            .any(|e| e.contains("external language tag 'en'") && e.contains("label")));
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("external language tag 'en'") && e.contains("label"))
+        );
     }
 
     #[test]
@@ -1632,10 +1632,12 @@ mod tests {
     fn naming_lint_flags_primary_without_note() {
         let store = store_from(&format!("{PREFIXES}gmeow:PrimaryThing a owl:Class .\n"));
         let report = term_naming_lint_dataset(&store, &cfg());
-        assert!(report
-            .errors
-            .iter()
-            .any(|e| e.contains("selector token 'primary'")));
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("selector token 'primary'"))
+        );
     }
 
     #[test]
@@ -1983,8 +1985,7 @@ mod tests {
          @prefix ex: <https://example.org/> .\n";
 
     /// A quantity of pure time (dimension T), used across the homogeneity tests.
-    const TIME_QUANTITIES: &str =
-        "ex:t1 a math:Quantity ; math:hasDimension math:timeDimension .\n\
+    const TIME_QUANTITIES: &str = "ex:t1 a math:Quantity ; math:hasDimension math:timeDimension .\n\
          ex:t2 a math:Quantity ; math:hasDimension math:timeDimension .\n\
          ex:len a math:Quantity ; math:hasDimension math:lengthDimension .\n";
 

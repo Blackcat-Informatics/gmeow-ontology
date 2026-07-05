@@ -17,15 +17,15 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
-use gmeow_logic::explain::{explain_all, Row};
-use gmeow_logic::foundation::{evaluate as foundation_evaluate, AntiRigidityPolicy};
+use gmeow_logic::explain::{Row, explain_all};
+use gmeow_logic::foundation::{AntiRigidityPolicy, evaluate as foundation_evaluate};
 use gmeow_logic::materialize::materialize_routed;
-use gmeow_logic::query_ir::{parse_query_program, Budget};
+use gmeow_logic::query_ir::{Budget, parse_query_program};
 use gmeow_logic::result::PreservationClaim;
 use gmeow_logic::seam::{BudgetStatus, WorldStoreForeign};
 use gmeow_logic::store::WorldStore;
 use gmeow_logic::teleology::materialize_teleology as teleology_evaluate;
-use gmeow_logic_compile::frontend::{parse_logic_str, Diagnostic, Severity};
+use gmeow_logic_compile::frontend::{Diagnostic, Severity, parse_logic_str};
 use gmeow_logic_compile::projections::compile_program;
 
 use crate::profile::{BudgetParams, Profile, VerdictMode};

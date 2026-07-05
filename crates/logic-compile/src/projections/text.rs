@@ -9,9 +9,9 @@
 
 use super::super::ir::{LogicModality, LogicProgram, LogicRule, PreservationKind};
 use super::{
+    GMEOW_NS, LOGIC_NS, OWL_NS, ProjectionResult, RDF_NS, RDF_TYPE, RDFS_NS,
     aggregation_drop_notes, contract_drop_notes, formula_residue_notes, is_modal_or_scoped,
-    python_repr, target_meta, ProjectionResult, GMEOW_NS, LOGIC_NS, OWL_NS, RDFS_NS, RDF_NS,
-    RDF_TYPE,
+    python_repr, target_meta,
 };
 
 /// Extract a safe Datalog predicate name from an IRI (`_local`-style).

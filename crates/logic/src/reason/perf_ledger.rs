@@ -25,7 +25,7 @@
 //! `slices/grounding/logic/design/LOGIC-RUNTIME.md`. Process flow (which ticket, which
 //! PR) lives only in the issue tracker, never in this code or its emitted Turtle.
 
-use crate::reason::artifacts::{escape_literal, gmeow, GMEOW_NS, RDFS_COMMENT, RDF_TYPE};
+use crate::reason::artifacts::{GMEOW_NS, RDF_TYPE, RDFS_COMMENT, escape_literal, gmeow};
 use purrdf::turtle::emit_resource;
 
 /// The two honest statuses a perf-ledger row can carry.
@@ -124,8 +124,7 @@ pub fn perf_ledger() -> PerfLedger {
                        lever declared out of the current scope, not yet built",
             },
             PerfRow {
-                construct:
-                    "compile-don't-interpret (specialize per content-addressed contract hash)",
+                construct: "compile-don't-interpret (specialize per content-addressed contract hash)",
                 status: PerfStatus::DeclaredP1,
                 note: "compile-don't-interpret, specialized per content-addressed contract \
                        hash — an advanced lever declared out of the current scope, not yet \
@@ -303,7 +302,9 @@ mod tests {
         assert!(ttl.contains(
             "gmeow/perfStatus> <https://blackcatinformatics.ca/gmeow/FlaggedNonIncremental>"
         ));
-        assert!(ttl.contains("gmeow/perfStatus> <https://blackcatinformatics.ca/gmeow/DeclaredP1>"));
+        assert!(
+            ttl.contains("gmeow/perfStatus> <https://blackcatinformatics.ca/gmeow/DeclaredP1>")
+        );
 
         // Six entries of type gmeow:PerfLedgerEntry.
         assert_eq!(

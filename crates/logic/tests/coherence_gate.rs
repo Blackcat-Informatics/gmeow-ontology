@@ -29,12 +29,12 @@
 //!   deterministic companion.
 
 use gmeow_logic::foundation::{
-    evaluate as foundation_evaluate, AntiRigidityPolicy, FoundationQuad,
+    AntiRigidityPolicy, FoundationQuad, evaluate as foundation_evaluate,
 };
 use gmeow_logic::reason::dl_consistency;
 use gmeow_logic::store::WorldStore;
 use purrdf::{
-    dataset_from_bytes, import_gts_events, NativeRdfFormat, RdfDatasetBuilder, RdfQuad, RdfTerm,
+    NativeRdfFormat, RdfDatasetBuilder, RdfQuad, RdfTerm, dataset_from_bytes, import_gts_events,
 };
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};

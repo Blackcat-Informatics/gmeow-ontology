@@ -39,24 +39,24 @@ use gmeow_logic_compile::ir::LogicProgram;
 use gmeow_logic_compile::openehr_opt::read_all_opt_constraints;
 use gmeow_logic_compile::opt_lift::lift_opt_to_validation_shape;
 use gmeow_logic_compile::projections::correspondence::{
-    affine_triangle_worked_example, project_correspondence, CorrespondenceProgram,
+    CorrespondenceProgram, affine_triangle_worked_example, project_correspondence,
 };
 use gmeow_logic_compile::projections::correspondence_gates::{
     assert_gates, evaluate_gates, liftability,
 };
 use gmeow_logic_compile::projections::report::ReportHeader;
-use gmeow_logic_compile::projections::{compile_program, ProjectionResult};
+use gmeow_logic_compile::projections::{ProjectionResult, compile_program};
 use gmeow_logic_compile::relational_core::{
-    lower_program, project_relational_core, RelationalCoreProgram,
+    RelationalCoreProgram, lower_program, project_relational_core,
 };
 use purrdf::provenance::DatasetProvenance;
-use purrdf::{parse_dataset, PipelineBundle, RdfDataset, RdfDatasetBuilder, RdfTerm};
+use purrdf::{PipelineBundle, RdfDataset, RdfDatasetBuilder, RdfTerm, parse_dataset};
 use serde::{Deserialize, Serialize};
 
-use crate::bundle::{bundle_from_artifacts_over, PipelineHandle};
+use crate::bundle::{PipelineHandle, bundle_from_artifacts_over};
 use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
-use crate::stages::diag_render::{render_diagnostics_artifacts, DiagnosticsPaths};
+use crate::stages::diag_render::{DiagnosticsPaths, render_diagnostics_artifacts};
 
 /// The single authoritative `logic:` vocabulary source the compiler reads.
 pub const SOURCE_PATH: &str = "slices/grounding/logic/module.ttl";

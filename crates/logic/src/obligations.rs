@@ -616,10 +616,9 @@ pub fn check_candidate_source_hash_drift(store: &Arc<RdfDataset>) -> Result<Vec<
             language,
             ..
         }) = row.get("prose")
+            && language.as_deref() == Some(SOURCE_LANG)
         {
-            if language.as_deref() == Some(SOURCE_LANG) {
-                entry.prose.insert(lexical_form.clone());
-            }
+            entry.prose.insert(lexical_form.clone());
         }
     }
 

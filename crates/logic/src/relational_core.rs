@@ -25,7 +25,7 @@ use std::collections::BTreeSet;
 
 use purrdf::TermValue;
 
-use gmeow_logic_compile::ir::{LogicProgram, LOGIC_NAMESPACE};
+use gmeow_logic_compile::ir::{LOGIC_NAMESPACE, LogicProgram};
 use gmeow_logic_compile::relational_core::{RcAtom, RcRule, RcTerm};
 
 use crate::facts::sha1_hex;

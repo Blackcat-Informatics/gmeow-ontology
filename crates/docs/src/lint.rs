@@ -41,7 +41,7 @@ use std::collections::BTreeSet;
 use gmeow_diagnostics::{Finding, Location, Report, Severity};
 
 use crate::model::DocsModel;
-use crate::render::{term_slug, Site};
+use crate::render::{Site, term_slug};
 
 /// The diagnostics tool name for documentation findings.
 const TOOL: &str = "gmeow-docs";

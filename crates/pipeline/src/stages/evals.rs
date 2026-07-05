@@ -268,10 +268,10 @@ struct CorpusDoc {
 /// lexical value directly. Faithfully reproduces the prior `other.to_string()`.
 fn object_location(object: &Object) -> String {
     match object {
-        Object::Literal { value } => value.clone(),
+        Object::Literal { value, .. } => value.clone(),
         Object::Named(iri) => format!("<{iri}>"),
         Object::Blank(label) => format!("_:{label}"),
-        Object::Triple => String::new(),
+        Object::Triple(_) => String::new(),
     }
 }
 
@@ -301,7 +301,7 @@ fn parse_corpus(path: &Path) -> Result<BTreeMap<String, (String, Vec<String>)>, 
             .objects_of_subject(&subject, &content_digest)
             .map_err(|e| PipelineError::Parse(e.to_string()))?
         {
-            if let Object::Literal { value } = dq {
+            if let Object::Literal { value, .. } = dq {
                 digests.push(value);
             }
         }
@@ -401,72 +401,71 @@ fn validate_node(schema: &Value, instance: &Value) -> Option<String> {
     let obj = schema.as_object()?;
 
     // 1. type
-    if let Some(ty) = obj.get("type").and_then(Value::as_str) {
-        if !type_matches(ty, instance) {
-            return Some(format!(
-                "{} is not of type {}",
-                json_repr(instance),
-                quote_single(ty)
-            ));
-        }
+    if let Some(ty) = obj.get("type").and_then(Value::as_str)
+        && !type_matches(ty, instance)
+    {
+        return Some(format!(
+            "{} is not of type {}",
+            json_repr(instance),
+            quote_single(ty)
+        ));
     }
 
     // const / enum (scalars)
-    if let Some(expected) = obj.get("const") {
-        if instance != expected {
-            return Some(format!("{} was expected", json_repr(expected)));
-        }
+    if let Some(expected) = obj.get("const")
+        && instance != expected
+    {
+        return Some(format!("{} was expected", json_repr(expected)));
     }
-    if let Some(Value::Array(choices)) = obj.get("enum") {
-        if !choices.iter().any(|c| c == instance) {
-            let rendered: Vec<String> = choices.iter().map(json_repr).collect();
-            return Some(format!(
-                "{} is not one of [{}]",
-                json_repr(instance),
-                rendered.join(", ")
-            ));
-        }
+    if let Some(Value::Array(choices)) = obj.get("enum")
+        && !choices.iter().any(|c| c == instance)
+    {
+        let rendered: Vec<String> = choices.iter().map(json_repr).collect();
+        return Some(format!(
+            "{} is not one of [{}]",
+            json_repr(instance),
+            rendered.join(", ")
+        ));
     }
 
     // number bounds
     if let Some(n) = instance.as_f64() {
-        if let Some(min) = obj.get("minimum").and_then(Value::as_f64) {
-            if n < min {
-                return Some(format!(
-                    "{} is less than the minimum of {}",
-                    json_repr(instance),
-                    py_num(min)
-                ));
-            }
+        if let Some(min) = obj.get("minimum").and_then(Value::as_f64)
+            && n < min
+        {
+            return Some(format!(
+                "{} is less than the minimum of {}",
+                json_repr(instance),
+                py_num(min)
+            ));
         }
-        if let Some(max) = obj.get("maximum").and_then(Value::as_f64) {
-            if n > max {
-                return Some(format!(
-                    "{} is greater than the maximum of {}",
-                    json_repr(instance),
-                    py_num(max)
-                ));
-            }
+        if let Some(max) = obj.get("maximum").and_then(Value::as_f64)
+            && n > max
+        {
+            return Some(format!(
+                "{} is greater than the maximum of {}",
+                json_repr(instance),
+                py_num(max)
+            ));
         }
     }
 
     // string length
-    if let Some(s) = instance.as_str() {
-        if let Some(min_len) = obj.get("minLength").and_then(Value::as_u64) {
-            if (s.chars().count() as u64) < min_len {
-                return Some(format!("{} is too short", json_repr(instance)));
-            }
-        }
+    if let Some(s) = instance.as_str()
+        && let Some(min_len) = obj.get("minLength").and_then(Value::as_u64)
+        && (s.chars().count() as u64) < min_len
+    {
+        return Some(format!("{} is too short", json_repr(instance)));
     }
 
     if let Some(map) = instance.as_object() {
         // 2. required (declaration order)
         if let Some(Value::Array(required)) = obj.get("required") {
             for r in required {
-                if let Some(name) = r.as_str() {
-                    if !map.contains_key(name) {
-                        return Some(format!("{} is a required property", quote_single(name)));
-                    }
+                if let Some(name) = r.as_str()
+                    && !map.contains_key(name)
+                {
+                    return Some(format!("{} is a required property", quote_single(name)));
                 }
             }
         }
@@ -486,22 +485,22 @@ fn validate_node(schema: &Value, instance: &Value) -> Option<String> {
         // 4. per-property recursion
         if let Some(props) = obj.get("properties").and_then(Value::as_object) {
             for (key, subschema) in props {
-                if let Some(value) = map.get(key) {
-                    if let Some(err) = validate_node(subschema, value) {
-                        return Some(err);
-                    }
+                if let Some(value) = map.get(key)
+                    && let Some(err) = validate_node(subschema, value)
+                {
+                    return Some(err);
                 }
             }
         }
     }
 
     // 5. array items recursion
-    if let Some(arr) = instance.as_array() {
-        if let Some(items) = obj.get("items") {
-            for value in arr {
-                if let Some(err) = validate_node(items, value) {
-                    return Some(err);
-                }
+    if let Some(arr) = instance.as_array()
+        && let Some(items) = obj.get("items")
+    {
+        for value in arr {
+            if let Some(err) = validate_node(items, value) {
+                return Some(err);
             }
         }
     }
@@ -1075,6 +1074,7 @@ mod tests {
                 let s = match subject {
                     Subject::Named(iri) => format!("<{iri}>"),
                     Subject::Blank(label) => format!("_:{label}"),
+                    Subject::Triple(_) => String::new(),
                 };
                 let o = object_location(&object);
                 set.insert(format!("{s} <{predicate}> {o} ."), ());

@@ -9,8 +9,8 @@
 //! and verifier robustness on garbage / truncated input.
 
 use gmeow_dev_cli::feedback_bundle::{
-    build_feedback_bundle, read_report_blobs, verify_feedback_bundle, META_SNAPSHOT_ID,
-    REP_FINDINGS, REP_SARIF,
+    META_SNAPSHOT_ID, REP_FINDINGS, REP_SARIF, build_feedback_bundle, read_report_blobs,
+    verify_feedback_bundle,
 };
 use gmeow_diagnostics::{Finding, Location, Report, Severity};
 

@@ -309,33 +309,42 @@ mod tests {
         // Classes: gmeow:Email + foaf:Person covered; skos:Concept covered
         // (recommended); owl:Class ignored; no gap classes here.
         assert!(sets.covered_classes.contains(&format!("{NS}Email")));
-        assert!(sets
-            .covered_classes
-            .contains("http://xmlns.com/foaf/0.1/Person"));
-        assert!(sets
-            .covered_classes
-            .contains("http://www.w3.org/2004/02/skos/core#Concept"));
-        assert!(!sets
-            .covered_classes
-            .iter()
-            .any(|c| c.starts_with("http://www.w3.org/2002/07/owl#")));
+        assert!(
+            sets.covered_classes
+                .contains("http://xmlns.com/foaf/0.1/Person")
+        );
+        assert!(
+            sets.covered_classes
+                .contains("http://www.w3.org/2004/02/skos/core#Concept")
+        );
+        assert!(
+            !sets
+                .covered_classes
+                .iter()
+                .any(|c| c.starts_with("http://www.w3.org/2002/07/owl#"))
+        );
         assert!(sets.gap_classes.is_empty());
 
         // Predicates: gmeow:addressValue + foaf:homepage covered; ex:unaligned
         // gap; owl:sameAs + rdf:type ignored.
-        assert!(sets
-            .covered_predicates
-            .contains(&format!("{NS}addressValue")));
-        assert!(sets
-            .covered_predicates
-            .contains("http://xmlns.com/foaf/0.1/homepage"));
-        assert!(sets
-            .gap_predicates
-            .contains("https://example.org/unaligned"));
-        assert!(!sets
-            .covered_predicates
-            .iter()
-            .any(|p| p.starts_with("http://www.w3.org/2002/07/owl#")));
+        assert!(
+            sets.covered_predicates
+                .contains(&format!("{NS}addressValue"))
+        );
+        assert!(
+            sets.covered_predicates
+                .contains("http://xmlns.com/foaf/0.1/homepage")
+        );
+        assert!(
+            sets.gap_predicates
+                .contains("https://example.org/unaligned")
+        );
+        assert!(
+            !sets
+                .covered_predicates
+                .iter()
+                .any(|p| p.starts_with("http://www.w3.org/2002/07/owl#"))
+        );
         assert!(!sets.gap_predicates.iter().any(|p| p.contains("sameAs")));
     }
 
@@ -426,15 +435,19 @@ mod tests {
         assert!(cc > 0.0 && cc <= 1.0, "class_coverage out of range: {cc}");
 
         // Covered and gap sets are disjoint in both dimensions.
-        assert!(report
-            .covered_classes
-            .intersection(&report.gap_classes)
-            .next()
-            .is_none());
-        assert!(report
-            .covered_predicates
-            .intersection(&report.gap_predicates)
-            .next()
-            .is_none());
+        assert!(
+            report
+                .covered_classes
+                .intersection(&report.gap_classes)
+                .next()
+                .is_none()
+        );
+        assert!(
+            report
+                .covered_predicates
+                .intersection(&report.gap_predicates)
+                .next()
+                .is_none()
+        );
     }
 }

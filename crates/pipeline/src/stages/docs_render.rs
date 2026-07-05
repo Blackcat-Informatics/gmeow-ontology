@@ -66,10 +66,10 @@ pub(crate) fn reasoning_verdict_from_reason(
             continue;
         }
         if q.predicate == RDFS_SUBCLASSOF {
-            if let RdfTerm::Iri(subject) = &q.subject {
-                if subject != OWL_NOTHING {
-                    unsatisfiable.insert(subject.clone());
-                }
+            if let RdfTerm::Iri(subject) = &q.subject
+                && subject != OWL_NOTHING
+            {
+                unsatisfiable.insert(subject.clone());
             }
         } else if q.predicate == RDF_TYPE {
             is_consistent = false;
@@ -331,9 +331,11 @@ mod tests {
             "Nothing-typed individual ⇒ inconsistent"
         );
         assert!(verdict.unsatisfiable.contains("https://x/Empty"));
-        assert!(!verdict
-            .unsatisfiable
-            .contains("http://www.w3.org/2002/07/owl#Nothing"));
+        assert!(
+            !verdict
+                .unsatisfiable
+                .contains("http://www.w3.org/2002/07/owl#Nothing")
+        );
 
         // A missing stage-reason product hard-fails (never a silent default).
         assert!(reasoning_verdict_from_reason(&BTreeMap::new()).is_err());

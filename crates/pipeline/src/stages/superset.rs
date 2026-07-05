@@ -291,10 +291,10 @@ fn reconstruction_graph_iris(dataset: &RdfDataset) -> BTreeSet<String> {
     let projections = format!("{GRAPH_NS}projections/");
     let mut out = BTreeSet::new();
     for quad in dataset.owned_quads() {
-        if let Some(purrdf::RdfTerm::Iri(iri)) = &quad.graph_name {
-            if iri.starts_with(&projections) || iri.starts_with(RDF_FANOUT_NS) {
-                out.insert(iri.clone());
-            }
+        if let Some(purrdf::RdfTerm::Iri(iri)) = &quad.graph_name
+            && (iri.starts_with(&projections) || iri.starts_with(RDF_FANOUT_NS))
+        {
+            out.insert(iri.clone());
         }
     }
     out
@@ -660,14 +660,16 @@ mod tests {
         );
 
         // A graph IRI with no quads yields no representative.
-        assert!(reconstruct_graph(
-            &dataset,
-            &GraphRep {
-                iri: "https://blackcatinformatics.ca/gmeow/graph/absent".to_string(),
-                form: GraphForm::Turtle,
-            },
-        )
-        .is_none());
+        assert!(
+            reconstruct_graph(
+                &dataset,
+                &GraphRep {
+                    iri: "https://blackcatinformatics.ca/gmeow/graph/absent".to_string(),
+                    form: GraphForm::Turtle,
+                },
+            )
+            .is_none()
+        );
     }
 
     #[test]
@@ -735,10 +737,10 @@ mod tests {
         use std::io::Write;
         // A temp committed tree: two files under generated/.
         let dir = std::env::temp_dir().join(format!("gmeow-superset-sweep-{}", std::process::id()));
-        let gen = dir.join("generated/x");
-        std::fs::create_dir_all(&gen).unwrap();
+        let gen_dir = dir.join("generated/x");
+        std::fs::create_dir_all(&gen_dir).unwrap();
         let write = |name: &str, bytes: &[u8]| {
-            let mut f = std::fs::File::create(gen.join(name)).unwrap();
+            let mut f = std::fs::File::create(gen_dir.join(name)).unwrap();
             f.write_all(bytes).unwrap();
         };
         write("kept.ttl", b"KEEP");

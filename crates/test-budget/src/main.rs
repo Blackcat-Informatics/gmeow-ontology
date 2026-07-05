@@ -100,7 +100,9 @@ fn main() -> ExitCode {
         }
     };
     if cases.is_empty() {
-        eprintln!("test-budget: no <testcase> elements found in {junit_path} — refusing to pass a vacuous gate.");
+        eprintln!(
+            "test-budget: no <testcase> elements found in {junit_path} — refusing to pass a vacuous gate."
+        );
         return ExitCode::FAILURE;
     }
 

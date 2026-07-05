@@ -17,7 +17,7 @@
 use std::collections::BTreeMap;
 
 use crate::error::PipelineError;
-use crate::node::{Stage, StageInput, StageOutput, StageProduct, SINK_CAPABILITY};
+use crate::node::{SINK_CAPABILITY, Stage, StageInput, StageOutput, StageProduct};
 use crate::stages::carrier::SNAPSHOT_PATH;
 
 /// Committed logical path of the serialized GTS bundle.

@@ -28,19 +28,19 @@ use std::path::Path;
 
 use crate::mapping_purity::lint_dsl_mapping_purity;
 use gmeow_diagnostics::{Finding, Location, Report, Severity};
-use gmeow_logic_compile::projections::report::{build_projection_report_from, ReportHeader};
 use gmeow_logic_compile::projections::ProjectionResult;
+use gmeow_logic_compile::projections::report::{ReportHeader, build_projection_report_from};
+use purrdf::RdfSeverity;
 use purrdf::slice::prefix_emit::{emit_core_prefixes, emit_jsonld_context};
 use purrdf::slice::{
-    emit_claim_view, emit_dsl_stats, emit_list_functions, emit_standpoint_sets,
-    lint_prefix_consistency, CLAIM_VIEW_FILE,
+    CLAIM_VIEW_FILE, emit_claim_view, emit_dsl_stats, emit_list_functions, emit_standpoint_sets,
+    lint_prefix_consistency,
 };
-use purrdf::RdfSeverity;
 
 use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 use crate::stages::compile_logic::{
-    LogicProjectionsChannel, LOGIC_PROJECTIONS_CHANNEL, PROJECTION_REPORT_PATH,
+    LOGIC_PROJECTIONS_CHANNEL, LogicProjectionsChannel, PROJECTION_REPORT_PATH,
 };
 use crate::stages::correspondence_lower;
 

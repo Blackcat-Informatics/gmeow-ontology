@@ -78,16 +78,16 @@ fn collect_rs(dir: &Path, workspace: &Path, out: &mut BTreeMap<String, Vec<u8>>)
                 continue;
             }
             collect_rs(&path, workspace, out);
-        } else if path.extension().is_some_and(|e| e == "rs") {
-            if let Ok(bytes) = std::fs::read(&path) {
-                let rel = path
-                    .strip_prefix(workspace)
-                    .unwrap_or(&path)
-                    .to_string_lossy()
-                    .into_owned();
-                println!("cargo:rerun-if-changed={}", path.display());
-                out.insert(rel, bytes);
-            }
+        } else if path.extension().is_some_and(|e| e == "rs")
+            && let Ok(bytes) = std::fs::read(&path)
+        {
+            let rel = path
+                .strip_prefix(workspace)
+                .unwrap_or(&path)
+                .to_string_lossy()
+                .into_owned();
+            println!("cargo:rerun-if-changed={}", path.display());
+            out.insert(rel, bytes);
         }
     }
 }

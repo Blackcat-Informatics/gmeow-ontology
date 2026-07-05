@@ -328,7 +328,7 @@ fn parse_seq(
             None => {
                 return Err(format!(
                     "unbalanced {opener} — missing close at end of input"
-                ))
+                ));
             }
             Some(t) if t == closer => return Ok((items, i + 1)),
             Some(_) => {

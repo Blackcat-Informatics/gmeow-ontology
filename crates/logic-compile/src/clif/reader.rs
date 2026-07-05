@@ -14,11 +14,11 @@
 //! VALIDATES them (a malformed FOL sentence raises a `CLIF_MALFORMED_SENTENCE` diagnostic),
 //! but the IR is never reconstructed from them.
 
-use crate::frontend::{parse_logic_dataset, Diagnostic, LogicParseError, Severity};
+use crate::frontend::{Diagnostic, LogicParseError, Severity, parse_logic_dataset};
 use crate::ir::{ContextualScope, Formula, LogicAxiom, LogicProgram, Term};
 use crate::nt::{nt_escape_iri, nt_escape_literal};
 
-use super::{parse_sexprs, split_on_sentinel, Atom, SExpr};
+use super::{Atom, SExpr, parse_sexprs, split_on_sentinel};
 
 /// A parsed rule body: the antecedent atoms (positive + negated) and the `(/=)` distinct
 /// variable pairs.
@@ -194,7 +194,7 @@ fn parse_lit_form(items: &[SExpr]) -> Result<LitTerm, LogicParseError> {
         other => {
             return Err(LogicParseError(format!(
                 "(lit …) first argument must be a \"string\", found {other:?}"
-            )))
+            )));
         }
     };
     match items.get(2) {
@@ -480,7 +480,7 @@ fn parse_formula_term(expr: &SExpr) -> Result<Term, String> {
                         other => {
                             return Err(format!(
                                 "(seq …) argument must be a \"string\", found {other:?}"
-                            ))
+                            ));
                         }
                     };
                     Term::sequence_marker(name)
