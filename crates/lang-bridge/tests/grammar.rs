@@ -336,6 +336,204 @@ fn grammar_bridge_imports_no_rdf_parser_only_grammar_text() {
     assert!(code.contains("struct ExprParser"));
 }
 
+/// Strip Rust line comments (`//`, `///`, `//!`) and block comments (`/* … */`) from `src`,
+/// leaving CODE only. String and char literals are respected so that a `//` inside a string
+/// (e.g. an IRI like `"https://…"`) or a `/*` inside a literal is NOT mistaken for a comment —
+/// that keeps the scan from silently dropping a line of real code (a false negative). The
+/// invariant's own PROSE (which legitimately names `purrdf`, `oxigraph`, etc. when explaining
+/// the single-sanctioned-parser rule) lives in comments, so stripping them is what lets the
+/// gate scan intent (imports/instantiations) rather than documentation.
+fn strip_comments(src: &str) -> String {
+    let bytes = src.as_bytes();
+    let mut out = String::with_capacity(src.len());
+    let mut i = 0;
+    #[derive(PartialEq)]
+    enum State {
+        Code,
+        LineComment,
+        BlockComment,
+        Str,
+        Char,
+    }
+    let mut state = State::Code;
+    while i < bytes.len() {
+        let b = bytes[i];
+        let next = bytes.get(i + 1).copied();
+        match state {
+            State::Code => {
+                if b == b'/' && next == Some(b'/') {
+                    state = State::LineComment;
+                    i += 2;
+                } else if b == b'/' && next == Some(b'*') {
+                    state = State::BlockComment;
+                    i += 2;
+                } else if b == b'"' {
+                    state = State::Str;
+                    out.push('"');
+                    i += 1;
+                } else if b == b'\'' {
+                    state = State::Char;
+                    out.push('\'');
+                    i += 1;
+                } else {
+                    out.push(b as char);
+                    i += 1;
+                }
+            }
+            State::LineComment => {
+                if b == b'\n' {
+                    state = State::Code;
+                    out.push('\n');
+                }
+                i += 1;
+            }
+            State::BlockComment => {
+                if b == b'*' && next == Some(b'/') {
+                    state = State::Code;
+                    i += 2;
+                } else {
+                    // Preserve newlines so line structure (and any diagnostics) stays sane.
+                    if b == b'\n' {
+                        out.push('\n');
+                    }
+                    i += 1;
+                }
+            }
+            State::Str => {
+                out.push(b as char);
+                if b == b'\\' {
+                    // Escaped byte — copy it verbatim, do not let it end the string.
+                    if let Some(n) = next {
+                        out.push(n as char);
+                        i += 2;
+                        continue;
+                    }
+                } else if b == b'"' {
+                    state = State::Code;
+                }
+                i += 1;
+            }
+            State::Char => {
+                out.push(b as char);
+                if b == b'\\' {
+                    if let Some(n) = next {
+                        out.push(n as char);
+                        i += 2;
+                        continue;
+                    }
+                } else if b == b'\'' {
+                    state = State::Code;
+                }
+                i += 1;
+            }
+        }
+    }
+    out
+}
+
+/// The rival-parser needle set: identifiers that would indicate a SECOND / rival RDF-document
+/// parser stack in the crate. `purrdf` and `native_codecs` are DELIBERATELY absent — they are the
+/// ONE sanctioned parser stack and are legitimately used crate-wide (e.g. `ontolex.rs` lifts FROM
+/// RDF via `purrdf::parse_dataset`). These needles are rival-crate names and parser TYPE names
+/// that never appear in the sanctioned `purrdf` API surface.
+const RIVAL_PARSER_NEEDLES: [&str; 11] = [
+    "oxigraph",
+    "rio_turtle",
+    "rio_api",
+    "rio_xml",
+    "sophia",
+    "rdftk",
+    "TurtleParser",
+    "NTriplesParser",
+    "TriGParser",
+    "RdfXmlParser",
+    "hdt", // the HDT (Header-Dictionary-Triples) rival RDF stack
+];
+
+/// Return `Some(needle)` if `code` (comments already stripped) references a rival RDF-parser
+/// stack; `None` if it is clean. Split out so the gate can be self-verified with a synthetic hit.
+fn rival_parser_hit(code: &str) -> Option<&'static str> {
+    RIVAL_PARSER_NEEDLES
+        .into_iter()
+        .find(|needle| code.contains(needle))
+}
+
+/// Recursively collect every `*.rs` file under `dir` in deterministic (sorted) order.
+fn collect_rs_files(dir: &std::path::Path, out: &mut Vec<std::path::PathBuf>) {
+    let mut entries: Vec<std::path::PathBuf> = std::fs::read_dir(dir)
+        .unwrap_or_else(|e| {
+            panic!(
+                "lang-bridge src subdir {} is not readable: {e}",
+                dir.display()
+            )
+        })
+        .map(|entry| entry.expect("dir entry resolves").path())
+        .collect();
+    entries.sort();
+    for path in entries {
+        if path.is_dir() {
+            collect_rs_files(&path, out);
+        } else if path.extension().and_then(|e| e.to_str()) == Some("rs") {
+            out.push(path);
+        }
+    }
+}
+
+#[test]
+fn no_rival_rdf_parser_stack_anywhere_in_the_crate() {
+    // CRATE-WIDE NO-SECOND-PARSER GATE. The single sanctioned RDF/GTS parser stack in the
+    // workspace is `purrdf` / `native_codecs`; bridges may USE it (e.g. `ontolex.rs` lifts FROM
+    // RDF via `purrdf::parse_dataset`), but no lang-bridge module may introduce a RIVAL parser.
+    // Unlike the grammar-bridge-specific gate (which forbids even referencing `purrdf` because
+    // the grammar bridge parses grammar TEXT, never documents), this gate is crate-wide and so
+    // must NOT ban the sanctioned stack — only rival stacks. It enumerates every `.rs` file under
+    // `src/` at test time, so a NEWLY-ADDED module is automatically covered.
+
+    // Self-verification: the detector must actually fire on a rival needle — the gate is not
+    // vacuous. (Run before scanning so a broken detector fails loudly regardless of src state.)
+    assert_eq!(
+        rival_parser_hit("let p = oxigraph::TurtleParser::new();"),
+        Some("oxigraph"),
+        "the rival-parser detector must fire on a synthetic rival needle"
+    );
+    // And it must NOT fire on legitimate sanctioned-parser use.
+    assert_eq!(
+        rival_parser_hit("let ds = purrdf::parse_dataset(&bytes, \"text/turtle\", None)?;"),
+        None,
+        "the sanctioned purrdf parser must never be treated as a rival stack"
+    );
+
+    let src_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
+    assert!(
+        src_dir.is_dir(),
+        "lang-bridge src/ must exist to enforce the no-second-parser invariant, missing: {}",
+        src_dir.display()
+    );
+    let mut files = Vec::new();
+    collect_rs_files(&src_dir, &mut files);
+    // A missing/empty src is a HARD FAIL — the gate must never silently pass on nothing.
+    assert!(
+        !files.is_empty(),
+        "lang-bridge src/ contained no .rs files to scan for a rival RDF parser stack: {}",
+        src_dir.display()
+    );
+
+    for path in &files {
+        let raw = std::fs::read_to_string(path).unwrap_or_else(|e| {
+            panic!("lang-bridge module {} is not readable: {e}", path.display())
+        });
+        let code = strip_comments(&raw);
+        if let Some(needle) = rival_parser_hit(&code) {
+            panic!(
+                "module {} references a rival RDF parser stack ('{needle}'): the ONE sanctioned \
+                 RDF/GTS parser stack is `purrdf`/`native_codecs` — bridges may USE it but must \
+                 never introduce a SECOND parser",
+                path.display()
+            );
+        }
+    }
+}
+
 /// Recursively collect every `*.ttl` file under `dir`, in a deterministic (sorted) order so the
 /// lane processes the corpus identically across runs. This is a directory walk, NOT a parser —
 /// the no-second-parser invariant concerns the grammar BRIDGE source, and a test may enumerate
