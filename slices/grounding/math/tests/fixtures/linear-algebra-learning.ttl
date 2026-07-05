@@ -1,0 +1,72 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Deterministic ABox fixture for the five LINEAR-ALGEBRA-AND-LEARNING competency
+# questions (crates/slicetest run_competency_file, unioned with the merged ontology
+# in the asserted reasoningNone lane). Scoped to http://example.org/math/ so each
+# query's answer is exact.
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <http://example.org/math/> .
+
+# Q1 — an orthogonal complement, its subspace, ambient space, and inner product.
+ex:oc a math:OrthogonalComplement ;
+    math:orthogonalComplementOf ex:sub ;
+    math:ambientSpace ex:ipspace ;
+    math:definedByInnerProduct ex:hip .
+ex:sub a math:Subspace .
+ex:ipspace a math:InnerProductSpace .
+ex:hip a math:HermitianInnerProduct .
+
+# Q2 — a PCA declaring its input, policy, covariance, eigensolver, component, variance.
+ex:pca a math:PCAAnalysis ;
+    math:analysisInput ex:resid ;
+    math:centeringPolicy math:meanCentered ;
+    math:covarianceOperator ex:cov ;
+    math:eigensolver ex:svd ;
+    math:principalComponent ex:pc1 ;
+    math:explainedVarianceRatio ex:ev1 .
+ex:resid a math:ProjectionResidual .
+ex:cov a math:CovarianceOperator .
+ex:svd a math:SingularValueDecomposition .
+ex:pc1 a math:PrincipalComponent .
+ex:ev1 a math:ExplainedVariance .
+
+# Q3 — residual meaning (on a principal component) AND latent meaning (on an
+# embedding dimension), each held from a vantage.
+ex:pcMeaning a math:ResidualInterpretationClaim ;
+    gmeow:observedFeature ex:pc1 ;
+    gmeow:vantage ex:frameA .
+ex:dimMeaning a math:ResidualInterpretationClaim ;
+    gmeow:observedFeature ex:dim1 ;
+    gmeow:vantage ex:frameB .
+ex:dim1 a math:EmbeddingDimension .
+ex:frameA a gmeow:Standpoint .
+ex:frameB a gmeow:Standpoint .
+
+# Q4 — a knowledge-graph embedding's source, target, function, and model.
+ex:emb a math:KnowledgeGraphEmbedding ;
+    math:embeddingSource ex:srcGraph ;
+    math:targetSpace ex:latent ;
+    math:embeddingFunction ex:fn ;
+    math:embeddingModel ex:model .
+ex:srcGraph a math:MathematicalObject .
+ex:latent a math:LatentSpace .
+ex:fn a math:Function .
+ex:model a math:LearnedModel .
+
+# Q5 — the model's tensor computation graph, its parameter space, and the logic:
+# metalevel formula carrying its self-reflection.
+ex:tgraph a math:TensorComputationGraph ;
+    math:computationNode ex:node ;
+    math:architectureOf ex:model .
+ex:node a math:ApplicationExpression .
+ex:pspace a math:ParameterSpace ;
+    math:parameterSpaceOf ex:model .
+ex:selfReflect a math:ResidualInterpretationClaim ;
+    gmeow:observedFeature ex:tgraph ;
+    gmeow:vantage ex:frameC ;
+    gmeow:observationResult ex:reflectFormula .
+ex:reflectFormula a logic:MetaLevelFormula .
+ex:frameC a gmeow:Standpoint .

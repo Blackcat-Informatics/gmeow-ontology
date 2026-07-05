@@ -549,3 +549,139 @@ ex:rowEvenComplement a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "complement" ; gmeow:cellValueIri exf:evenComplement ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "ambientSpace" ; gmeow:cellValueIri exf:naturalsSet ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "semantics" ; gmeow:cellValueIri math:setTheoreticComplement ] .
+
+# === Q22 — orthogonal complement's subspace, ambient space, and inner product = #
+
+ex:cqOrthogonalComplement a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/orthogonal-complement-subspace-ambient-inner-product.rq" ;
+    gmeow:cqDataFile "tests/fixtures/linear-algebra-learning.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A math:OrthogonalComplement realizes the complement contract, naming its subspace, ambient space, and defining inner product; over the fixture the answer is exactly {oc -> sub, ipspace, hip}." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqOrthogonalComplementShape ;
+    gmeow:cqExpectRow ex:rowOrthogonalComplement .
+
+ex:cqOrthogonalComplementShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "complement" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "subspace" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "ambient" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "innerProduct" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowOrthogonalComplement a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "complement" ; gmeow:cellValueIri exf:oc ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "subspace" ; gmeow:cellValueIri exf:sub ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "ambient" ; gmeow:cellValueIri exf:ipspace ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "innerProduct" ; gmeow:cellValueIri exf:hip ] .
+
+# === Q23 — PCA input, policy, covariance, eigensolver, component, variance ==== #
+
+ex:cqPCAAnalysis a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/pca-input-policy-covariance-eigensolver-components-variance.rq" ;
+    gmeow:cqDataFile "tests/fixtures/linear-algebra-learning.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A math:PCAAnalysis declares its input, centering policy, covariance operator, eigensolver, components, and explained variance; over the fixture the answer is exactly {pca -> resid, meanCentered, cov, svd, pc1, ev1}." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqPCAAnalysisShape ;
+    gmeow:cqExpectRow ex:rowPCAAnalysis .
+
+ex:cqPCAAnalysisShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "analysis" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "input" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "centering" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "covariance" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "eigensolver" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "component" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "variance" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowPCAAnalysis a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "analysis" ; gmeow:cellValueIri exf:pca ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "input" ; gmeow:cellValueIri exf:resid ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "centering" ; gmeow:cellValueIri math:meanCentered ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "covariance" ; gmeow:cellValueIri exf:cov ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "eigensolver" ; gmeow:cellValueIri exf:svd ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "component" ; gmeow:cellValueIri exf:pc1 ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "variance" ; gmeow:cellValueIri exf:ev1 ] .
+
+# === Q24 — residual OR latent meaning, and the vantage claiming it =========== #
+
+ex:cqResidualMeaning a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/residual-or-latent-meaning-and-vantage.rq" ;
+    gmeow:cqDataFile "tests/fixtures/linear-algebra-learning.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "The meaning of a residual/principal component or a latent dimension is a vantage-held math:ResidualInterpretationClaim; over the fixture the answer is exactly {dimMeaning -> dim1, frameB} and {pcMeaning -> pc1, frameA}." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqResidualMeaningShape ;
+    gmeow:cqExpectRow ex:rowDimMeaning , ex:rowPcMeaning .
+
+ex:cqResidualMeaningShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "claim" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "feature" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "vantage" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowDimMeaning a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "claim" ; gmeow:cellValueIri exf:dimMeaning ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "feature" ; gmeow:cellValueIri exf:dim1 ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "vantage" ; gmeow:cellValueIri exf:frameB ] .
+
+ex:rowPcMeaning a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "claim" ; gmeow:cellValueIri exf:pcMeaning ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "feature" ; gmeow:cellValueIri exf:pc1 ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "vantage" ; gmeow:cellValueIri exf:frameA ] .
+
+# === Q25 — embedding source, target space, function, and model ============== #
+
+ex:cqEmbedding a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/embedding-source-target-function-model.rq" ;
+    gmeow:cqDataFile "tests/fixtures/linear-algebra-learning.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A math:Embedding (here a math:KnowledgeGraphEmbedding, matched through subClassOf*) names its source, target space, function, and model; over the fixture the answer is exactly {emb -> srcGraph, latent, fn, model}." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqEmbeddingShape ;
+    gmeow:cqExpectRow ex:rowEmbedding .
+
+ex:cqEmbeddingShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "embedding" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "source" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "target" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "function" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "model" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowEmbedding a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "embedding" ; gmeow:cellValueIri exf:emb ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "source" ; gmeow:cellValueIri exf:srcGraph ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "target" ; gmeow:cellValueIri exf:latent ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "function" ; gmeow:cellValueIri exf:fn ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "model" ; gmeow:cellValueIri exf:model ] .
+
+# === Q26 — tensor computation graph, parameter space, and self-reflection ==== #
+
+ex:cqTensorGraph a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/tensor-graph-parameter-space-and-reflection.rq" ;
+    gmeow:cqDataFile "tests/fixtures/linear-algebra-learning.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "The self-structure flagship: a math:TensorComputationGraph names its computation node, its parameter space (math:parameterSpaceOf the model), and its self-reflection is a logic:MetaLevelFormula held as an observation result; over the fixture the answer is exactly {tgraph -> node, pspace, reflectFormula}." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqTensorGraphShape ;
+    gmeow:cqExpectRow ex:rowTensorGraph .
+
+ex:cqTensorGraphShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "graph" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "node" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "parameterSpace" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "reflection" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowTensorGraph a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "graph" ; gmeow:cellValueIri exf:tgraph ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "node" ; gmeow:cellValueIri exf:node ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "parameterSpace" ; gmeow:cellValueIri exf:pspace ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "reflection" ; gmeow:cellValueIri exf:reflectFormula ] .
