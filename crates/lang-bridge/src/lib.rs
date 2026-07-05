@@ -26,6 +26,7 @@
 pub mod bridge;
 pub mod conllu;
 pub mod emit;
+pub mod grammar;
 pub mod plain_text;
 
 pub use bridge::{
@@ -37,6 +38,11 @@ pub use conllu::{
     TokenId, UD_SIGN_SYSTEM,
 };
 pub use emit::{assert_no_digest_collision, digest16, ntriples_sorted};
+pub use grammar::{
+    canonicalize_expr, grammar_correspondence, grammar_leg_pair, grammar_to_ntriples,
+    parse_grammar, serialize_grammar, AbnfBridge, EbnfBridge, Formalism, Grammar, GrammarRule,
+    RuleExpr,
+};
 pub use plain_text::{
     exact_surface_correspondence, normalization_label, PlainTextBridge, UNDETERMINED_SCRIPT,
 };
