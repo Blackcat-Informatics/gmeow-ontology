@@ -240,6 +240,7 @@ fn rule(head: EvalAtom, body: Vec<EvalAtom>, rule_iri: String) -> EvalRule {
         body,
         rule_iri,
         distinct_pairs: vec![],
+        builtins: vec![],
     }
 }
 
@@ -553,6 +554,7 @@ pub(crate) fn resolve_native(
             body,
             rule_iri,
             distinct_pairs: vec![],
+            builtins: vec![],
         });
     }
 
@@ -1003,6 +1005,7 @@ mod tests {
                 body,
                 rule_iri: format!("{}::rule", atom_of(&r.head).unwrap().predicate.as_str()),
                 distinct_pairs: vec![],
+                builtins: vec![],
             });
         }
         let goal = &prog.goal.atoms[0];
