@@ -1913,6 +1913,7 @@ dependencies = [
  "gmeow-logic-compile",
  "insta",
  "proptest",
+ "purrdf",
  "sha2",
  "unicode-normalization",
 ]

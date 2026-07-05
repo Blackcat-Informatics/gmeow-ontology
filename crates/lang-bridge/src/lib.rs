@@ -29,6 +29,7 @@ pub mod emit;
 pub mod engine;
 pub mod grammar;
 pub mod lower;
+pub mod ontolex;
 pub mod plain_text;
 
 pub use bridge::{
@@ -52,6 +53,7 @@ pub use lower::{
     flagship_svo_sentence, grammar_rule_to_derivation, grammar_to_derivation_rules, lower_svo,
     svo_grammar, DerivationRule, Lowering, LoweringError, LoweringStage, REQUIRED_STAGES,
 };
+pub use ontolex::{ontolex_correspondence, OntoLexBridge, ONTOLEX_SIGN_SYSTEM};
 pub use plain_text::{
     exact_surface_correspondence, normalization_label, PlainTextBridge, UNDETERMINED_SCRIPT,
 };
