@@ -66,6 +66,11 @@ pub(crate) type ChaseOutcome = NativeOutcome<Budgeted<Vec<DerivedRow>>>;
 /// inequalities of a `≥n p.D` obligation (its `n` witnesses must be distinct), read
 /// both by the satisfaction check and — since distinct existential ordinals already
 /// mint distinct witnesses — honored by construction on a firing.
+///
+/// `distinct` is populated only when the rule is built directly from the IR (which can
+/// state the guard); [`parse_existential_rules`] REFUSES the `≥n` `.rls` shape outright
+/// rather than reconstruct it with the guard dropped, since the `.rls` surface cannot
+/// express witness distinctness.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) struct ExistentialRule {
     /// The content-addressed firing rule IRI.
@@ -412,6 +417,24 @@ pub(crate) fn chase_materialize(
 /// obligation stays ONE rule sharing its witness) and preserves the existential-vs-frontier
 /// distinction structurally (an existential var appears in the head but no body atom).  A
 /// plain Datalog rule parses too — its [`ExistentialRule::is_existential`] is simply false.
+///
+/// # A `≥n` obligation is REFUSED, not silently downgraded
+///
+/// A qualified `≥n p.D` restriction lowers to a TGD whose head places `n` interchangeable
+/// existential witnesses in the same `(predicate, slot)` (`p(x,!y1) ∧ D(!y1) ∧ p(x,!y2) ∧
+/// D(!y2) …`) PLUS the pairwise inequality `!yi ≠ !yj` that forces them apart.  The Nemo
+/// `.rls` surface cannot state that inequality over invented variables — an inequality
+/// (`Unequals`) is a *body* operation and an existential variable never occurs in the body —
+/// so the distinctness is unrecoverable from the parsed program.  Building the rule with an
+/// empty `distinct` would let the restricted-chase satisfaction check collapse every witness
+/// onto one pre-existing individual and under-generate: a WRONG answer, not merely an
+/// incomplete one.  Rather than paper over the gap, this parser [hard-fails] on that shape.
+///
+/// (The hand-built IR path can still carry `≥n` distinctness — [`ExistentialRule::distinct`]
+/// is populated directly there; only the `.rls`-surface reconstruction is refused, because
+/// only it loses the guard.)
+///
+/// [hard-fails]: reject_unrepresentable_distinctness
 pub(crate) fn parse_existential_rules(rules: &str) -> Result<Vec<ExistentialRule>, String> {
     use crate::nemo_engine::NemoParsedRules;
     use nemo::rule_model::programs::ProgramRead;
@@ -431,14 +454,66 @@ pub(crate) fn parse_existential_rules(rules: &str) -> Result<Vec<ExistentialRule
         let rule_iri = rule
             .name()
             .unwrap_or_else(|| format!("{}rule/anonymous", crate::provenance::LOGIC_NAMESPACE));
-        out.push(ExistentialRule {
+        let parsed = ExistentialRule {
             rule_iri,
             body,
             head,
+            // The `.rls` surface carries no witness-distinctness guard (see the type doc);
+            // an empty vec is CORRECT for the single-witness `∃p.D` shape and REFUSED below
+            // for the multi-witness `≥n p.D` shape, never silently kept for the latter.
             distinct: Vec::new(),
-        });
+        };
+        reject_unrepresentable_distinctness(&parsed)?;
+        out.push(parsed);
     }
     Ok(out)
+}
+
+/// Hard-fail a parsed rule whose head is the `≥n p.D` shape — `n ≥ 2` interchangeable
+/// existential witnesses in one `(predicate)` — because the `.rls` surface cannot carry the
+/// pairwise distinctness that separates them (see [`parse_existential_rules`]).
+///
+/// Two DISTINCT existential head variables filling the SAME predicate are interchangeable
+/// role-fillers: the restricted-chase satisfaction check could bind both to a single
+/// pre-existing witness and skip the firing, under-generating.  A single existential witness
+/// (the common `∃p.D` case, and the live `materialize_routed` path) never trips this — one
+/// variable can never share a predicate with a second one.  Existentials over DIFFERENT
+/// predicates are not interchangeable (distinct ordinals mint distinct witnesses by
+/// construction), so they parse fine.
+fn reject_unrepresentable_distinctness(rule: &ExistentialRule) -> Result<(), String> {
+    let existentials: BTreeSet<String> = rule.existentials().into_iter().collect();
+    // Bucket existential head vars by the predicate whose subject/object slot they fill.
+    let mut per_predicate: std::collections::BTreeMap<String, BTreeSet<String>> =
+        std::collections::BTreeMap::new();
+    for atom in &rule.head {
+        for term in [&atom.subject, &atom.object] {
+            if let EvalTerm::Var(name) = term {
+                if existentials.contains(name) {
+                    per_predicate
+                        .entry(atom.predicate.clone())
+                        .or_default()
+                        .insert(name.clone());
+                }
+            }
+        }
+    }
+    for (predicate, vars) in per_predicate {
+        if vars.len() >= 2 {
+            let names: Vec<&str> = vars.iter().map(String::as_str).collect();
+            return Err(format!(
+                "chase: rule {} places {} distinct existential witnesses ({}) in predicate <{}> \
+                 — the shape of a ≥n qualified restriction whose pairwise witness distinctness \
+                 the Nemo .rls surface cannot express (an inequality guard is a body constraint \
+                 and cannot range over invented head variables); refusing rather than dropping \
+                 the distinctness and under-generating",
+                rule.rule_iri,
+                names.len(),
+                names.join(", "),
+                predicate,
+            ));
+        }
+    }
+    Ok(())
 }
 
 /// The firing IRI stamped on a chase-derived row.
@@ -966,6 +1041,48 @@ mod tests {
             targets.len() >= 2,
             "≥2 distinct witnesses, got {}",
             targets.len()
+        );
+    }
+
+    // ── parse_existential_rules: single ∃ parses, ≥n refuses ─────────────────────
+
+    #[test]
+    fn parse_single_existential_rule_parses_with_empty_distinct() {
+        // The common `∃p.D` shape (one invented witness) — and exactly the live
+        // `materialize_routed` path — must keep parsing cleanly.
+        let ty = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+        let rls = format!("<{P}>(?x, !y, ?w), <{ty}>(!y, <{D}>, ?w) :- <{ty}>(?x, <{C}>, ?w) .");
+        let rules = parse_existential_rules(&rls).expect("single-existential ∃p.D must parse");
+        assert_eq!(rules.len(), 1);
+        assert!(rules[0].is_existential(), "the rule invents a witness");
+        assert_eq!(rules[0].existentials().len(), 1, "exactly one ∃ witness");
+        assert!(
+            rules[0].distinct.is_empty(),
+            "a single witness carries no distinctness guard"
+        );
+    }
+
+    #[test]
+    fn parse_ge_n_existential_rule_is_refused_not_silently_downgraded() {
+        // `≥2 p.D`: two interchangeable existential witnesses in the SAME predicate `p`.
+        // The `.rls` surface cannot carry `!y1 ≠ !y2`, so the parser must REFUSE (Err)
+        // rather than build a rule with the distinctness dropped — which would let the
+        // restricted chase collapse both witnesses onto one and under-generate.
+        let ty = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+        let rls = format!(
+            "<{P}>(?x, !y1, ?w), <{ty}>(!y1, <{D}>, ?w), \
+             <{P}>(?x, !y2, ?w), <{ty}>(!y2, <{D}>, ?w) :- <{ty}>(?x, <{C}>, ?w) ."
+        );
+        let err = parse_existential_rules(&rls)
+            .expect_err("a ≥n obligation the surface cannot carry must be refused");
+        assert!(
+            err.contains("≥n") && err.contains("distinct existential witnesses"),
+            "the refusal must name the ≥n distinctness gap it is protecting: {err}"
+        );
+        // No GitHub issue/PR/process refs leak into the message.
+        assert!(
+            !err.contains('#'),
+            "the refusal message must carry no process refs: {err}"
         );
     }
 
