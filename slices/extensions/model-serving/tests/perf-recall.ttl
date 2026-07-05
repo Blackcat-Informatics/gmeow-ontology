@@ -2,22 +2,22 @@
 # SPDX-License-Identifier: CC-BY-4.0
 #
 # perf-recall fixture for the projection-agreement gate (queries/competency/audit.rq).
-# It carries BOTH:
-#   (1) the full nested de-conflation canon — output → invocation → execution →
-#       deployment → artifact, and invocation → session → subject-stage /
-#       configuration; and
-#   (2) the flat one-hop upper-projection shortcuts gmeow:generatedForSubject /
-#       gmeow:generatedUnderConfiguration, ASSERTED here as the stand-in for the
-#       projection-layer materialization (the native Datalog materialization of
-#       these computed projections is a logic-foundation-reviewed follow-up in the
-#       grounding/logic slice; this fixture pins the AGREEMENT semantics the
-#       materialization must satisfy).
-# The audit query returns the shortcut value and the full-path collapse side by
-# side; the competency cell pins them to the SAME IRI, so real-time recall (the
-# shortcut) and a deep audit (the canon) provably agree (Principle 7). This lives
-# under tests/ (not examples/) so it is consumed only via gmeow:cqDataFile and is
-# not subject to the closed-world example sweep. Standalone terminus: the subject
-# STAGE (ex:lillithStage); the profile corpus extends it to the durable lineage.
+# It carries ONLY the full nested de-conflation canon — output → invocation →
+# execution → deployment → artifact, and invocation → session → subject-stage /
+# configuration. The flat one-hop upper-projection shortcuts
+# gmeow:generatedForSubject / gmeow:generatedUnderConfiguration are NOT asserted
+# here: they are MATERIALIZED by the projection CONSTRUCT
+# (queries/project/upper-projection.rq), which the slice-test harness runs over
+# this overlaid canon via gmeow:cqProject before the audit query executes.
+# The audit query then returns the materialized shortcut value and the full-path
+# collapse side by side; the competency cell pins them to the SAME IRI, so
+# real-time recall (the computed shortcut) and a deep audit (the canon) provably
+# agree (Principle 7) — and the gate is NON-CIRCULAR, because the shortcut column
+# is produced by the projection rule, not by a human hand-typing the same IRI
+# twice. This lives under tests/ (not examples/) so it is consumed only via
+# gmeow:cqDataFile and is not subject to the closed-world example sweep. Standalone
+# terminus: the subject STAGE (ex:lillithStage); the profile corpus extends it to
+# the durable lineage.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/model-serving/> .
@@ -35,8 +35,7 @@ ex:invocation1 a gmeow:ModelInvocation ;
     gmeow:invocationInExecution ex:execution1 ;
     gmeow:subEventOf ex:session1 .
 
-# --- The output, with the flat shortcuts (materialization stand-in) -----------
+# --- The output (canon only; the flat shortcuts are MATERIALIZED by the ---------
+# --- projection CONSTRUCT via gmeow:cqProject, never hand-asserted here) --------
 ex:output a gmeow:InformationObject ;
-    gmeow:wasGeneratedBy ex:invocation1 ;
-    gmeow:generatedForSubject ex:lillithStage ;          # == collapse(→ sessionSubjectStage)
-    gmeow:generatedUnderConfiguration ex:configA .       # == collapse(→ sessionConfiguration)
+    gmeow:wasGeneratedBy ex:invocation1 .

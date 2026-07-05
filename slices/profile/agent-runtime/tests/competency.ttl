@@ -24,6 +24,7 @@
 # core/inhabitation is composed alongside model-serving here.
 ex:cqEndToEndAgreement a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "slices/profile/agent-runtime/queries/competency/end-to-end.rq" ;
+    gmeow:cqProject "slices/extensions/model-serving/queries/project/upper-projection.rq" ;
     gmeow:cqDataFile "tests/end-to-end.ttl" ;
     gmeow:cqExactRows true ;
     gmeow:cqResultShape ex:cqEndToEndShape ;
