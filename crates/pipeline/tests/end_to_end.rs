@@ -229,6 +229,14 @@ fn executor_runs_the_spine_end_to_end() {
     let graph = spec.validate().expect("spine DAG validates");
     let bound = bind(&spec, &graph, &registry()).expect("every spine stage binds");
     assert_eq!(bound.len(), 17, "all 17 snapshot-spine stages bound");
+    assert!(
+        bound.iter().any(|s| s.id() == "stage-constraint-catalog"),
+        "constraint-catalog stage bound by id, not merely counted"
+    );
+    assert!(
+        bound.iter().any(|s| s.id() == "stage-term-manifest"),
+        "term-manifest stage bound by id, not merely counted"
+    );
 
     // Run over a temp cache so the test never writes into the repo tree.
     let cache_dir = tempfile::tempdir().unwrap();
@@ -237,6 +245,14 @@ fn executor_runs_the_spine_end_to_end() {
 
     let result = run(&graph, &bound, &mut ctx).expect("pipeline runs end-to-end");
     assert_eq!(result.products.len(), 17);
+    assert!(
+        result.products.contains_key("stage-constraint-catalog"),
+        "constraint-catalog produced a product, not merely counted"
+    );
+    assert!(
+        result.products.contains_key("stage-term-manifest"),
+        "term-manifest produced a product, not merely counted"
+    );
 
     // The snapshot stage produced the terminal carrier dataset.
     let snapshot = result
