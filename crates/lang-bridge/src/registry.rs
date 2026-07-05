@@ -42,44 +42,29 @@ use crate::tei::TeiBridge;
 /// correspondence IRIs) lives under, matching every other `lang:` producer.
 const EXAMPLE_BASE: &str = "http://example.org/lang/";
 
-/// A named external source surface a target lifts (grammar notation, an OntoLex-Lemon
-/// Turtle lexicon, …). `name` becomes the emitted artifact's file stem.
+/// A named source surface a target lifts (authored grammar notation, or a `lang:` RDF surface
+/// from the composed model). `name` becomes the emitted artifact's file stem.
 #[derive(Clone, Debug)]
 pub struct NamedSource {
     /// The source's stable name (the artifact file stem, e.g. `turtle` / `gts`).
     pub name: String,
-    /// The raw source bytes (grammar notation / OntoLex Turtle).
+    /// The raw source bytes (grammar notation / `lang:` Turtle).
     pub bytes: Vec<u8>,
 }
 
-/// A CoNLL-U treebank source carrying its co-resident readings — one `.conllu` byte
-/// stream PER reading. A per-reading projection emits one artifact per reading and never
-/// a single silently-chosen winner (`lang:ProjectionSilentDisambiguation`), so the source
-/// carries every reading explicitly rather than a pre-collapsed single tree.
-#[derive(Clone, Debug)]
-pub struct ConlluSource {
-    /// The source's stable name (the artifact file stem).
-    pub name: String,
-    /// One `.conllu` byte stream per co-resident reading, in reading order.
-    pub readings: Vec<Vec<u8>>,
-}
-
-/// The projection input aBox: every external source surface the registered targets may
-/// lower FROM. A target reads only the slice it consumes; an empty slice yields an honest
-/// empty projection (the target is still registered, the driver folds one honest
-/// no-source ledger row).
+/// The projection input aBox: every source surface the registered targets lower FROM. Every
+/// projection is FORWARD — from the canonical `lang:` model out to an external ecosystem
+/// (the backward ingestion leg lives in the runtime bridges, not here). A target reads only
+/// the slice it consumes; an empty slice yields an honest empty projection (the target is
+/// still registered, the driver folds one honest no-source ledger row).
 #[derive(Clone, Debug, Default)]
 pub struct LangProjectionInput {
     /// Authored grammar source surfaces (EBNF notation) — the EBNF/ABNF targets' input.
     pub grammars: Vec<NamedSource>,
-    /// OntoLex-Lemon Turtle lexicons — the OntoLex target's input.
-    pub lexicons: Vec<NamedSource>,
-    /// CoNLL-U treebanks (one file per co-resident reading) — the CoNLL-U target's input.
-    pub treebanks: Vec<ConlluSource>,
     /// Raw `lang:` RDF surfaces (Turtle) already present in the composed model, each scanned by
-    /// the document/surface/meaning targets (TEI, NIF, SemAF) for the individuals it projects
-    /// (`lang:ComposedForm`, `lang:SurfaceAnchor`, `lang:Denotation`). Empty ⇒ each such target
-    /// folds its honest no-source row.
+    /// the lexical/morphosyntax/document/surface/meaning targets (OntoLex, CoNLL-U, TEI, NIF,
+    /// SemAF) for the individuals it projects (`lang:Lexeme`, `lang:ComposedForm`,
+    /// `lang:SurfaceAnchor`, `lang:Denotation`). Empty ⇒ each such target folds its no-source row.
     pub lang_models: Vec<NamedSource>,
     /// The `lang:` RDF surfaces carrying `lang:LanguageVariety` individuals (the lang module's
     /// own vocabulary plus lang-bearing examples) — the BCP-47 target's input. Kept separate

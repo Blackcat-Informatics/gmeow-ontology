@@ -66,8 +66,8 @@ pub use plain_text::{
     exact_surface_correspondence, normalization_label, PlainTextBridge, UNDETERMINED_SCRIPT,
 };
 pub use registry::{
-    assert_registry_covers, registry, ConlluSource, EmittedArtifact, LangEmission,
-    LangProjectionInput, LangProjectionTarget, NamedSource, EMISSION_WORTHY_CLASSES,
+    assert_registry_covers, registry, EmittedArtifact, LangEmission, LangProjectionInput,
+    LangProjectionTarget, NamedSource, EMISSION_WORTHY_CLASSES,
 };
 pub use semaf::SemafBridge;
 pub use tei::TeiBridge;
