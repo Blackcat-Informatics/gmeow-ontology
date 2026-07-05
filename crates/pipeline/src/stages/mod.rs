@@ -42,6 +42,7 @@ pub mod frame_shapes;
 pub mod gts_compose;
 pub mod gts_sink;
 pub mod json_schema;
+pub mod lang_translation;
 pub mod lpg;
 pub mod mappings;
 pub mod matrix;
