@@ -37,6 +37,10 @@ pub struct CorrespondenceArtifacts {
     pub edoal: BTreeMap<String, String>,
     /// `<profile>.rq` → SPARQL CONSTRUCT.
     pub sparql: BTreeMap<String, String>,
+    /// `<profile>.put.rq` → SPARQL INSERT (the inverse ingest leg). Empty until a slice
+    /// authors the ingest-claim terms; the emitter is the sole authority for the set, so
+    /// the write loop and parity gates derive their count from this map's length.
+    pub sparql_put: BTreeMap<String, String>,
     /// The `gmeow-affect.emotionml.xml` document — the many-to-one EmotionML XML lowering
     /// of the affect category + dimension vocabularies. Its loss-ledger row (the collapse
     /// record) rides in `ledger` alongside the four alignment dialects.
@@ -114,6 +118,9 @@ pub fn lower_all(root: &Path) -> Result<CorrespondenceArtifacts, SliceError> {
         fno: fno.catalog,
         edoal: edoal.alignments,
         sparql: sparql.queries,
+        // The inverse ingest leg rides on the same lowering (empty until a slice authors
+        // the ingest-claim terms); the map is the sole authority for the `.put.rq` set.
+        sparql_put: sparql.put_queries,
         emotionml: emotionml.document,
         ledger,
         correspondences,

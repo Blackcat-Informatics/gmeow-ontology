@@ -232,9 +232,12 @@ fn sparql_lowering_matches_committed_corpus_modulo_order() {
     let dsl = merge_dsl(&root);
     let onto = merge_ontology(&root);
     let lookup = build_lookup(&dsl, &onto);
-    let emitted = lower_sparql(&DslView::new(&dsl), &DslView::new(&onto), &lookup)
-        .expect("lower sparql")
-        .queries;
+    let lowering =
+        lower_sparql(&DslView::new(&dsl), &DslView::new(&onto), &lookup).expect("lower sparql");
+    let emitted = lowering.queries;
+    // The inverse ingest leg rides on the SAME lowering; the emitted `put_queries` map is
+    // the sole authority for the committed `.put.rq` set.
+    let emitted_put = lowering.put_queries;
     assert!(
         emitted.len() >= 40,
         "expected ~46 .rq files, got {}",
@@ -243,19 +246,44 @@ fn sparql_lowering_matches_committed_corpus_modulo_order() {
 
     let committed_dir = root.join("generated").join("queries");
 
-    // Set-equality FIRST: the per-profile `.rq` set the lowering emits MUST equal the
-    // committed per-profile `.rq` set (the `standpoint-*.rq` + `observation-claim-view.rq`
-    // queries are emitted by other producers and are excluded here). A dropped or stray
-    // artifact fails before the content diff.
+    // Set-equality FIRST: the per-profile forward `.rq` set the lowering emits MUST equal
+    // the committed per-profile forward `.rq` set (the `standpoint-*.rq`,
+    // `observation-claim-view.rq`, and inverse `.put.rq` queries are emitted / gated
+    // elsewhere and are excluded here). A dropped or stray artifact fails before the
+    // content diff.
     let emitted_keys: BTreeSet<String> = emitted.keys().cloned().collect();
     let committed_keys: BTreeSet<String> = committed_file_set(&committed_dir, ".rq")
         .into_iter()
-        .filter(|n| !n.starts_with("standpoint-") && n != "observation-claim-view.rq")
+        .filter(|n| {
+            !n.starts_with("standpoint-")
+                && n != "observation-claim-view.rq"
+                && !n.ends_with(".put.rq")
+        })
         .collect();
     assert_eq!(
         emitted_keys, committed_keys,
         "emitted per-profile `.rq` set diverged from the committed corpus (missing/extra artifact)",
     );
+
+    // Dedicated inverse-leg block: the committed `.put.rq` set MUST equal the emitter's
+    // `put_queries` key set (the emitter is the authority), and each byte-matches. Today
+    // `put_queries` is empty — no slice authors the ingest-claim terms yet — so there are
+    // zero committed `.put.rq` and this passes at 0; it tracks the emitter automatically
+    // when a slice authors ml-schema (→1) with no gate edit.
+    let emitted_put_keys: BTreeSet<String> = emitted_put.keys().cloned().collect();
+    let committed_put_keys = committed_file_set(&committed_dir, ".put.rq");
+    assert_eq!(
+        emitted_put_keys, committed_put_keys,
+        "emitted `.put.rq` set diverged from the committed corpus (missing/extra artifact)",
+    );
+    for (file, text) in &emitted_put {
+        let committed = std::fs::read_to_string(committed_dir.join(file))
+            .unwrap_or_else(|_| panic!("committed missing: {file}"));
+        assert_eq!(
+            *text, committed,
+            "`.put.rq` {file} drifted from the committed corpus"
+        );
+    }
 
     let mut mismatches: Vec<String> = Vec::new();
     for (file, text) in &emitted {
