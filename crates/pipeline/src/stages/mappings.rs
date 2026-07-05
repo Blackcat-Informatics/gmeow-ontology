@@ -79,6 +79,12 @@ pub struct CompiledMappings {
     /// as a named graph by [`MappingsStage::run`], excluded from the reasoned EDB exactly
     /// like the projection-ledger graph.
     pub lang_translation_corpus: Vec<u8>,
+    /// The total prose-lift corpus N-Triples graph (`graph/lang-form-corpus`): every
+    /// distinct `@x-gmeow-english` source literal interned as a raw `lang:SurfaceForm`
+    /// carrying its `logic:candidateSourceHash` and an exact surface-round-trip
+    /// `logic:Correspondence`. Carried as a named graph by [`MappingsStage::run`], excluded
+    /// from the reasoned EDB exactly like the translation-corpus graph.
+    pub lang_form_corpus: Vec<u8>,
 }
 
 /// Compile all five mapping families (SSSOM + FnO + EDOAL + SPARQL + standpoint
@@ -164,6 +170,15 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, PipelineError> 
     ledger.extend(lang_corpus.ledger);
     let lang_translation_corpus = lang_corpus.ntriples;
 
+    // Total prose lift (Gate 1): type every distinct `@x-gmeow-english` source literal as a
+    // raw `lang:SurfaceForm` carrying its prose-hash and an exact surface-round-trip
+    // `logic:Correspondence`, and fold the single honest corpus row into the loss ledger.
+    // The RDF graph rides as a named graph by the stage `run` below (never a `generated/`
+    // file), excluded from the reasoned EDB exactly like the translation corpus.
+    let form_corpus = crate::stages::lang_form::build_corpus(root)?;
+    ledger.extend(form_corpus.ledger);
+    let lang_form_corpus = form_corpus.ntriples;
+
     // Standpoint projections — the seven fixed `standpoint-*.rq` queries (byte-identical
     // to the Python template-coded emitters; no DSL input).
     let standpoint = emit_standpoint_sets(root, &vocab).map_err(|e| PipelineError::Stage {
@@ -215,6 +230,7 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, PipelineError> 
         artifacts,
         ledger,
         lang_translation_corpus,
+        lang_form_corpus,
     })
 }
 
@@ -630,11 +646,22 @@ impl Stage for MappingsStage {
             "application/n-triples",
             crate::stages::carrier::GRAPH_LANG_TRANSLATION_CORPUS,
         )?;
+        // graph/lang-form-corpus — the total prose lift (Gate 1): every distinct
+        // `@x-gmeow-english` source literal typed as a raw `lang:SurfaceForm`. Carried as a
+        // named graph so the presenter reads it via `producer_graph`; like the
+        // translation-corpus graph it stays OUT of the reasoned EDB (`gts_compose` folds only
+        // the default graph).
+        let lang_form_graph = crate::stages::carrier::parse_into_graph(
+            &compiled.lang_form_corpus,
+            "application/n-triples",
+            crate::stages::carrier::GRAPH_LANG_FORM_CORPUS,
+        )?;
         let dataset = std::sync::Arc::new(purrdf::RdfDataset::union(&[
             rdf_dataset.as_ref(),
             ledger_graph.as_ref(),
             alignments_graph.as_ref(),
             lang_translation_graph.as_ref(),
+            lang_form_graph.as_ref(),
         ]));
         Ok(StageOutput {
             product: StageProduct::from_artifacts_over(self.id(), dataset, artifacts),

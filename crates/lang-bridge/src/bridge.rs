@@ -67,6 +67,10 @@ pub enum LangFailure {
     /// `lang:SilentIngestDrop` — a construct would be dropped without being accounted for;
     /// the floor a bridge must never cross silently.
     SilentIngestDrop,
+    /// `lang:NonUtf8Surface` — the input bytes are not valid UTF-8, so no `lang:SurfaceForm`
+    /// can carry them as text. A hard fail, never a silent lossy repair (which would corrupt
+    /// the surface material a stable hash depends on).
+    NonUtf8Surface,
 }
 
 impl LangFailure {
@@ -74,6 +78,7 @@ impl LangFailure {
     pub fn as_str(&self) -> &'static str {
         match self {
             Self::SilentIngestDrop => "SilentIngestDrop",
+            Self::NonUtf8Surface => "NonUtf8Surface",
         }
     }
 

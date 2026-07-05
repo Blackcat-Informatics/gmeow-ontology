@@ -16,6 +16,10 @@ path = "src/lib.rs"
 gmeow-lang-form = { path = "../lang-form" }
 gmeow-logic-compile = { path = "../logic-compile" }
 sha2 = "0.10"
+# The plain-text bridge declares each lifted surface's Unicode normalization form
+# HONESTLY (NFC/NFD/NFKC/NFKD) via a quick-check, never assuming NFC — the declared
+# frame must match the actual bytes the surface hash is taken over.
+unicode-normalization = "0.1"
 
 [dev-dependencies]
 insta = { version = "1.48", features = ["json"] }

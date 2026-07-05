@@ -1828,6 +1828,13 @@ lang:translationCorrespondence
     skos:definition "Relates a lang:TranslationUnit to the single logic:Correspondence node it carries — THE attachment point of the law-spine. Domain lang:TranslationUnit, range logic:Correspondence (stated in prose). Everything about the crossing that is a law rather than a facet lives on that Correspondence: its logic:preservationKind, logic:morphismClass, logic:correspondenceRelation, logic:mnemomorphic witness, logic:hasDeterminacy, and any logic:hasLawClaim with its logic:lawClaimed and logic:lawDischargeVerdict. lang: never shadows those properties; it only points at the node that holds them, and each unit carries exactly one."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+lang:surfaceCorrespondence
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "surface correspondence"@x-gmeow-english ;
+    skos:definition "Relates a lang:SurfaceForm to the single logic:Correspondence node carrying the law-spine of its surface round-trip — THE attachment point when a raw surface is interned as unanalyzed prose. Domain lang:SurfaceForm, range logic:Correspondence (stated in prose). The round-trip that re-emits the surface bytes verbatim is an exact isomorphism, so the carried Correspondence holds its logic:preservationKind, logic:morphismClass, logic:correspondenceRelation, logic:mnemomorphic witness, logic:hasDeterminacy, and logic:hasLawClaim rather than any lang: shadow of them. A surface carries at most one; a raw prose lift always mints exactly one."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 lang:rollsUpFrom
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;

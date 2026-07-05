@@ -25,8 +25,12 @@
 
 pub mod bridge;
 pub mod emit;
+pub mod plain_text;
 
 pub use bridge::{
     exact_round_trip_holds, is_exact_correspondence, Bridge, IngestDiagnostic, LangFailure, Lifted,
 };
 pub use emit::{assert_no_digest_collision, digest16, ntriples_sorted};
+pub use plain_text::{
+    exact_surface_correspondence, normalization_label, PlainTextBridge, UNDETERMINED_SCRIPT,
+};
