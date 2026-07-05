@@ -378,23 +378,24 @@ pub fn serialize(doc: &ConlluDoc) -> Vec<u8> {
 /// survive in the [`ConlluDoc`] complement). FEATS parse into [`MorphFeature`]s; HEAD/DEPREL
 /// land on the slot as the dependency edge. The composed form sits at
 /// [`AnalysisLevel::Parsed`] (see [`analysis_level`]).
-pub fn to_forms(sentence: &ConlluSentence) -> Form {
-    let word_form = |t: &ConlluToken| -> Form {
+pub fn to_forms(sentence: &ConlluSentence) -> Result<Form, IngestDiagnostic> {
+    let word_form = |t: &ConlluToken| -> Result<Form, IngestDiagnostic> {
         let part_of_speech = if t.upos == "_" {
             None
         } else {
             Some(t.upos.clone())
         };
-        Form::WordForm {
+        Ok(Form::WordForm {
             sign_system: UD_SIGN_SYSTEM.to_owned(),
             lexeme: Box::new(Form::Lexeme {
                 sign_system: UD_SIGN_SYSTEM.to_owned(),
                 lemma: t.lemma.clone(),
                 part_of_speech,
             }),
-            // Validated at parse time, so re-parsing the retained raw string cannot fail.
-            features: parse_feats(&t.feats).expect("FEATS validated during parse"),
-        }
+            // Validated at parse time, so re-parsing the retained raw string re-surfaces the
+            // same typed diagnostic rather than silently defaulting.
+            features: parse_feats(&t.feats)?,
+        })
     };
 
     let mut slots = Vec::new();
@@ -410,7 +411,7 @@ pub fn to_forms(sentence: &ConlluSentence) -> Form {
                 while j < sentence.tokens.len() {
                     if let TokenId::Simple(n) = sentence.tokens[j].id {
                         if n >= *a && n <= *b {
-                            spans.push(word_form(&sentence.tokens[j]));
+                            spans.push(word_form(&sentence.tokens[j])?);
                             j += 1;
                             continue;
                         }
@@ -449,7 +450,7 @@ pub fn to_forms(sentence: &ConlluSentence) -> Form {
                     role: None,
                     dep_relation,
                     depends_on,
-                    form: word_form(t),
+                    form: word_form(t)?,
                 });
                 slot_index += 1;
                 i += 1;
@@ -462,13 +463,13 @@ pub fn to_forms(sentence: &ConlluSentence) -> Form {
         }
     }
 
-    Form::Composed {
+    Ok(Form::Composed {
         sign_system: UD_SIGN_SYSTEM.to_owned(),
         level: "sentence".to_owned(),
         analysis: None,
         head: head_slot,
         slots,
-    }
+    })
 }
 
 /// The analysis level a CoNLL-U lift reaches: a full constituency-and-dependency
@@ -554,11 +555,20 @@ impl Bridge for ConlluBridge {
         let doc = parse(bytes)?;
         // Content-address the carried correspondence on the round-trip bytes.
         let serialized = serialize(&doc);
-        let source_key = String::from_utf8(serialized)
-            .expect("serialized CoNLL-U is UTF-8 (parsed from a UTF-8 source)");
+        let source_key = String::from_utf8(serialized).map_err(|e| IngestDiagnostic {
+            failure_class: LangFailure::NonUtf8Surface,
+            construct: format!(
+                "serialized CoNLL-U is not UTF-8: first invalid byte at index {}",
+                e.utf8_error().valid_up_to()
+            ),
+        })?;
         let correspondence = conllu_correspondence(&source_key);
 
-        let forms: Vec<Form> = doc.sentences.iter().map(to_forms).collect();
+        let forms: Vec<Form> = doc
+            .sentences
+            .iter()
+            .map(to_forms)
+            .collect::<Result<Vec<_>, _>>()?;
 
         // One surface per sentence: the `# text = …` value when the treebank supplies it,
         // else the space-joined surface forms of the sentence's surface tokens (multiword

@@ -1002,7 +1002,7 @@ pub fn parse_grammar(bytes: &[u8], formalism: Formalism) -> Result<Grammar, Inge
 /// form), one surface carrying the CANONICAL grammar text (so [`Bridge::emit`] reproduces it),
 /// the carried exact round-trip correspondence, and one ledger row recording the RDF
 /// projection as [`PreservationKind::Exact`].
-fn lift_grammar(grammar: &Grammar) -> Lifted {
+fn lift_grammar(grammar: &Grammar) -> Result<Lifted, IngestDiagnostic> {
     let canonical = grammar.canonicalize();
     let text = serialize_grammar(&canonical);
     let surface = SurfaceForm {
@@ -1017,8 +1017,15 @@ fn lift_grammar(grammar: &Grammar) -> Lifted {
         "{GRAMMAR_CORR_BASE}{}/grammar",
         digest16("lang-grammar", &text)
     );
-    let rdf = String::from_utf8(grammar_to_ntriples(&canonical, &grammar_iri))
-        .expect("grammar N-Triples projection is UTF-8");
+    let rdf = String::from_utf8(grammar_to_ntriples(&canonical, &grammar_iri)).map_err(|e| {
+        IngestDiagnostic {
+            failure_class: LangFailure::NonUtf8Surface,
+            construct: format!(
+                "grammar N-Triples projection is not UTF-8: first invalid byte at index {}",
+                e.utf8_error().valid_up_to()
+            ),
+        }
+    })?;
     let ledger = vec![ProjectionResult {
         target: format!("lang-grammar:{}", digest16("lang-grammar", &text)),
         content: rdf,
@@ -1028,12 +1035,12 @@ fn lift_grammar(grammar: &Grammar) -> Lifted {
         lossy_drops: Vec::new(),
         actual_drops: Vec::new(),
     }];
-    Lifted {
+    Ok(Lifted {
         forms: Vec::new(),
         surfaces: vec![surface],
         correspondence,
         ledger,
-    }
+    })
 }
 
 /// The W3C-style EBNF grammar bridge: lift `Name ::= expr` productions into a [`Grammar`] under
@@ -1060,7 +1067,7 @@ impl EbnfBridge {
 
 impl Bridge for EbnfBridge {
     fn lift(&self, bytes: &[u8]) -> Result<Lifted, IngestDiagnostic> {
-        Ok(lift_grammar(&parse_grammar(bytes, Formalism::Ebnf)?))
+        lift_grammar(&parse_grammar(bytes, Formalism::Ebnf)?)
     }
 
     fn emit(&self, lifted: &Lifted) -> Vec<u8> {
@@ -1096,7 +1103,7 @@ impl AbnfBridge {
 
 impl Bridge for AbnfBridge {
     fn lift(&self, bytes: &[u8]) -> Result<Lifted, IngestDiagnostic> {
-        Ok(lift_grammar(&parse_grammar(bytes, Formalism::Abnf)?))
+        lift_grammar(&parse_grammar(bytes, Formalism::Abnf)?)
     }
 
     fn emit(&self, lifted: &Lifted) -> Vec<u8> {

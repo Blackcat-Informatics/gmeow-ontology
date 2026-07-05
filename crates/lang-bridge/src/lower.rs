@@ -491,22 +491,25 @@ impl DerivationRule {
 }
 
 /// The span variable `i{n}`.
-fn span_var(n: usize) -> Term {
-    Term::var(format!("i{n}")).expect("span variable name is non-empty")
+fn span_var(n: usize) -> Result<Term, LoweringError> {
+    Term::var(format!("i{n}")).map_err(LoweringError::unmodeled)
 }
 
 /// The atom `<NONTERMINAL_NS+name>(i{start}, i{end})`.
-fn nonterminal_atom(name: &str, start: usize, end: usize) -> Formula {
-    let relation = Term::iri(format!("{NONTERMINAL_NS}{name}")).expect("nonterminal IRI non-empty");
-    Formula::atom(relation, vec![span_var(start), span_var(end)]).expect("binary span atom")
+fn nonterminal_atom(name: &str, start: usize, end: usize) -> Result<Formula, LoweringError> {
+    let relation =
+        Term::iri(format!("{NONTERMINAL_NS}{name}")).map_err(LoweringError::unmodeled)?;
+    Formula::atom(relation, vec![span_var(start)?, span_var(end)?])
+        .map_err(LoweringError::unmodeled)
 }
 
 /// The atom `<TERMINAL_NS+digest>(i{start}, i{end})` for a terminal token — content-addressed
 /// on the terminal text so distinct terminals get distinct span relations.
-fn terminal_atom(text: &str, start: usize, end: usize) -> Formula {
+fn terminal_atom(text: &str, start: usize, end: usize) -> Result<Formula, LoweringError> {
     let relation = Term::iri(format!("{TERMINAL_NS}{}", digest16("lang-terminal", text)))
-        .expect("terminal IRI non-empty");
-    Formula::atom(relation, vec![span_var(start), span_var(end)]).expect("binary span atom")
+        .map_err(LoweringError::unmodeled)?;
+    Formula::atom(relation, vec![span_var(start)?, span_var(end)?])
+        .map_err(LoweringError::unmodeled)
 }
 
 /// The span atom for one right-hand-side symbol occupying `(ik, i(k+1))`. A [`RuleExpr::Ref`]
@@ -514,7 +517,7 @@ fn terminal_atom(text: &str, start: usize, end: usize) -> Formula {
 /// other expression is not a plain grammar symbol and is treated as a single opaque terminal
 /// spanning the position (a faithful "this sub-expression spans one cell" atom — never a silent
 /// drop); the modeled SVO grammar contains only `Ref`s, so this fallback does not arise there.
-fn symbol_atom(item: &RuleExpr, start: usize, end: usize) -> Formula {
+fn symbol_atom(item: &RuleExpr, start: usize, end: usize) -> Result<Formula, LoweringError> {
     match item {
         RuleExpr::Ref(name) => nonterminal_atom(name, start, end),
         RuleExpr::Terminal(text) => terminal_atom(text, start, end),
@@ -572,44 +575,46 @@ fn rhs_symbols(body: &RuleExpr) -> Vec<RuleExpr> {
 /// which splits an `Alt` into one rule per branch; this function lowers the alternation as a
 /// single rule over the whole disjunctive body, which is only meaningful for non-`Alt`
 /// productions (the modeled SVO grammar's are all plain concatenations).
-pub fn grammar_rule_to_derivation(rule: &GrammarRule) -> DerivationRule {
+pub fn grammar_rule_to_derivation(rule: &GrammarRule) -> Result<DerivationRule, LoweringError> {
     production_to_derivation(&rule.name, &canonicalize_expr(&rule.body))
 }
 
 /// Lower a `(name, canonical-body)` production to its derivation rule.
-fn production_to_derivation(name: &str, body: &RuleExpr) -> DerivationRule {
+fn production_to_derivation(name: &str, body: &RuleExpr) -> Result<DerivationRule, LoweringError> {
     let symbols = rhs_symbols(body);
     let n = symbols.len();
-    let head = nonterminal_atom(name, 0, n);
+    let head = nonterminal_atom(name, 0, n)?;
     let body_atoms = symbols
         .iter()
         .enumerate()
         .map(|(k, sym)| symbol_atom(sym, k, k + 1))
-        .collect();
-    DerivationRule {
+        .collect::<Result<Vec<_>, _>>()?;
+    Ok(DerivationRule {
         nonterminal: name.to_owned(),
         head,
         body: body_atoms,
-    }
+    })
 }
 
 /// Lower every production of a grammar to derivation rules, splitting a production whose
 /// canonical body is a top-level alternation into one rule per branch (a CFG `X → a | b` is two
 /// productions `X → a`, `X → b`). Every branch is threaded independently onto fresh span
 /// variables.
-pub fn grammar_to_derivation_rules(grammar: &Grammar) -> Vec<DerivationRule> {
+pub fn grammar_to_derivation_rules(
+    grammar: &Grammar,
+) -> Result<Vec<DerivationRule>, LoweringError> {
     let mut out = Vec::new();
     for rule in &grammar.rules {
         match canonicalize_expr(&rule.body) {
             RuleExpr::Alt(branches) => {
                 for branch in branches {
-                    out.push(production_to_derivation(&rule.name, &branch));
+                    out.push(production_to_derivation(&rule.name, &branch)?);
                 }
             }
-            body => out.push(production_to_derivation(&rule.name, &body)),
+            body => out.push(production_to_derivation(&rule.name, &body)?),
         }
     }
-    out
+    Ok(out)
 }
 
 /// The small subject–verb–object grammar the dogfooding derivation lowering demonstrates:
@@ -881,11 +886,14 @@ mod tests {
     fn grammar_rule_lowers_to_span_indexed_derivation() {
         // S → NP VP  ⇒  S(i0,i2) :- NP(i0,i1), VP(i1,i2).
         let s_rule = &svo_grammar().rules[0];
-        let derivation = grammar_rule_to_derivation(s_rule);
+        let derivation = grammar_rule_to_derivation(s_rule).expect("S production lowers");
         assert_eq!(derivation.nonterminal, "S");
 
-        let expected_head = nonterminal_atom("S", 0, 2);
-        let expected_body = vec![nonterminal_atom("NP", 0, 1), nonterminal_atom("VP", 1, 2)];
+        let expected_head = nonterminal_atom("S", 0, 2).expect("S head atom");
+        let expected_body = vec![
+            nonterminal_atom("NP", 0, 1).expect("NP body atom"),
+            nonterminal_atom("VP", 1, 2).expect("VP body atom"),
+        ];
         assert_eq!(derivation.head.content_key(), expected_head.content_key());
         assert_eq!(derivation.body.len(), 2);
         assert_eq!(
@@ -910,7 +918,7 @@ mod tests {
 
     #[test]
     fn whole_svo_grammar_lowers_to_three_chart_rules() {
-        let rules = grammar_to_derivation_rules(&svo_grammar());
+        let rules = grammar_to_derivation_rules(&svo_grammar()).expect("SVO grammar lowers");
         assert_eq!(rules.len(), 3);
         let names: Vec<&str> = rules.iter().map(|r| r.nonterminal.as_str()).collect();
         assert_eq!(names, vec!["S", "VP", "NP"]);
@@ -919,7 +927,9 @@ mod tests {
             assert_eq!(rule.body.len(), 2);
             assert_eq!(
                 rule.head.content_key(),
-                nonterminal_atom(&rule.nonterminal, 0, 2).content_key()
+                nonterminal_atom(&rule.nonterminal, 0, 2)
+                    .expect("head atom")
+                    .content_key()
             );
         }
     }
