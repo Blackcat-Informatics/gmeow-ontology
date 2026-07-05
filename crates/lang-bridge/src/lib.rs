@@ -27,6 +27,7 @@ pub mod bridge;
 pub mod conllu;
 pub mod emit;
 pub mod grammar;
+pub mod lower;
 pub mod plain_text;
 
 pub use bridge::{
@@ -42,6 +43,10 @@ pub use grammar::{
     canonicalize_expr, grammar_correspondence, grammar_leg_pair, grammar_to_ntriples,
     parse_grammar, serialize_grammar, AbnfBridge, EbnfBridge, Formalism, Grammar, GrammarRule,
     RuleExpr,
+};
+pub use lower::{
+    flagship_svo_sentence, grammar_rule_to_derivation, grammar_to_derivation_rules, lower_svo,
+    svo_grammar, DerivationRule, Lowering, LoweringError, LoweringStage, REQUIRED_STAGES,
 };
 pub use plain_text::{
     exact_surface_correspondence, normalization_label, PlainTextBridge, UNDETERMINED_SCRIPT,
