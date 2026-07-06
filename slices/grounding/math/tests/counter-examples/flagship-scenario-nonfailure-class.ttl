@@ -1,0 +1,20 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:FlagshipScenarioShape: a math:FlagshipScenario that binds
+# ALL FOUR links — math:demonstratedByExample, math:demonstratedByCompetency,
+# math:guardedByCounterExample, AND math:enforcesFailureClass — so every one of the four
+# sh:minCount branches is satisfied, but math:enforcesFailureClass names math:Set, a real
+# class that is NOT a math:MathConformanceFailure subclass. Only the sh:sparql subclass
+# check fires, so validation MUST emit shacl.SPARQLConstraintComponent (and no other
+# finding, math:UnwiredFlagshipScenario): an acceptance scenario whose enforcing failure
+# class is not a typed conformance failure is unwired by value, not by cardinality.
+# Bound by tests/example-conformance.ttl (ex:ecFlagshipNonFailureClass).
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:nonFailureClassScenario a math:FlagshipScenario ;
+    math:demonstratedByExample "examples/e8-symmetry.ttl" ;
+    math:demonstratedByCompetency <https://blackcatinformatics.ca/gmeow/examples/math/tests/cqE8RootSystem> ;
+    math:guardedByCounterExample "tests/counter-examples/e8-wrong-weyl-order.ttl" ;
+    math:enforcesFailureClass math:Set .

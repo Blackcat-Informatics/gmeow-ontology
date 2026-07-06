@@ -3865,3 +3865,55 @@ math:UngroundedResultClaim
     rdfs:label "Ungrounded Result Claim"@x-gmeow-english ;
     skos:definition "The failure raised when a held statistical or probabilistic result claim — that an estimate, a p-value, a posterior, a component's meaning, or a verdict holds — is stated without a gmeow:Observation carrying a gmeow:vantage, so the claim floats free of the standpoint that holds it. The claim leg of the process / result / claim separation is a gmeow:Observation naming its gmeow:vantage (whose frame), its gmeow:observedFeature (which result), and its gmeow:observationResult (the grounded conclusion); a result claim asserted as an unconditional property rather than a vantage-held observation is ill-formed. Primary gate: the SHACL Core requirement that a held result claim carry a gmeow:vantage (math:ResidualInterpretationClaimShape)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
+
+# =========================================================================== #
+# Flagship acceptance manifest — the epic's depth bar as a typed contract
+#
+# The mathematics grounding layer's depth is defined by five flagship acceptance
+# scenarios (E8 symmetry, homomorphic encryption, proofs-as-process, the universal
+# R → math: bridge, and an AI describing its own structure). Those scenarios are
+# realized by worked examples, pinned by competency questions, and guarded by named
+# failure classes — but the acceptance bar ITSELF was, until now, only prose. A
+# math:FlagshipScenario reifies each scenario as a typed, queryable object binding it
+# to the four artifacts that realize and enforce it: the worked example, the
+# competency question that pins its numbers, the counter-example that proves the gate
+# bites, and the math:MathConformanceFailure subclass that gate raises. The acceptance
+# bar thereby becomes the same kind of typed, gated object as every other conformance
+# concept in this layer, rather than the lone prose exception.
+# =========================================================================== #
+
+math:FlagshipScenario
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Flagship Scenario"@x-gmeow-english ;
+    skos:definition "A typed acceptance-manifest object reifying one of the mathematics grounding layer's flagship acceptance scenarios — its depth bar. Each math:FlagshipScenario binds one scenario to the four artifacts that realize and enforce it: the worked example (math:demonstratedByExample), the competency question that pins its structure (math:demonstratedByCompetency), the counter-example that proves its gate bites (math:guardedByCounterExample), and the named math:MathConformanceFailure subclass that gate raises (math:enforcesFailureClass). A scenario missing any of these links, or naming an enforcing class that is not a math:MathConformanceFailure, is unwired and ill-formed (math:UnwiredFlagshipScenario)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:demonstratedByExample
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "demonstrated by example"@x-gmeow-english ;
+    skos:definition "Names the worked example that realizes a math:FlagshipScenario, as a slice-relative path string (mirroring gmeow:exampleFile). Domain math:FlagshipScenario, range a path literal (stated in prose). The referenced examples/*.ttl is the concrete artifact a reader inspects to see the scenario built."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:demonstratedByCompetency
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "demonstrated by competency"@x-gmeow-english ;
+    skos:definition "Names the competency question that pins a math:FlagshipScenario's structure and numbers, referenced by IRI. Domain math:FlagshipScenario, range gmeow:CompetencyQuestion (stated in prose). The competency question individual lives in the slice's tests/competency.ttl, so this reference is resolved and its cqExpectRow expectation confirmed by the native flagship cross-check rather than by SHACL, which never loads the tests dataset."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:guardedByCounterExample
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "guarded by counter-example"@x-gmeow-english ;
+    skos:definition "Names the counter-example that proves a math:FlagshipScenario's gate bites, as a slice-relative path string. Domain math:FlagshipScenario, range a path literal (stated in prose). The referenced tests/counter-examples/*.ttl is the minimal violation that raises the scenario's math:enforcesFailureClass; per the conformance discipline, a rule with no negative fixture is not considered enforced."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:UnwiredFlagshipScenario
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Unwired Flagship Scenario"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:FlagshipScenario is not fully wired: it is missing its worked example (math:demonstratedByExample), its competency question (math:demonstratedByCompetency), its counter-example (math:guardedByCounterExample), or its enforcing failure class (math:enforcesFailureClass); or the class it names as enforcing is not a math:MathConformanceFailure subclass. The epic's depth bar is a contract, not a suggestion: an acceptance scenario that does not bind all four realizing/enforcing artifacts cannot claim the scenario is met, and the gate rejects it."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
