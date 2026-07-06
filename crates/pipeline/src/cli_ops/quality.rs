@@ -3,7 +3,7 @@
 
 //! Quality and FAIR scoring via the OOPS! and FOOPS! web services.
 //!
-//! The Rust port of `gmeow_tools.quality`. Both are NETWORK calls (blocking HTTP
+//! Both are NETWORK calls (blocking HTTP
 //! over the already-vendored `ureq`), so callers gate them (they are never on a
 //! build gate). OOPS! accepts inline ontology content (works pre-publication);
 //! FOOPS! assesses a dereferenceable ontology URL (meaningful only once published).
@@ -46,8 +46,8 @@ pub struct FoopsResult {
 
 /// Run the OOPS! pitfall scanner on inline ontology content.
 ///
-/// The Rust port of `quality.run_oops`. Posts the ontology (Turtle / RDF-XML) inside
-/// an OOPS! request envelope and returns the evaluation as RDF/XML text.
+/// Posts the ontology (Turtle / RDF-XML) inside an OOPS! request envelope and
+/// returns the evaluation as RDF/XML text.
 ///
 /// * `ttl_content` — the ontology serialized as RDF (Turtle/RDF-XML).
 /// * `timeout` — the HTTP timeout.
@@ -72,8 +72,7 @@ pub fn run_oops(ttl_content: &str, timeout: Duration) -> Result<String, gmeow_er
 
 /// Run the FOOPS! FAIR assessment on a dereferenceable ontology URL.
 ///
-/// The Rust port of `quality.run_foops`. Posts the ontology URL as a form field and
-/// summarizes the returned FAIR score.
+/// Posts the ontology URL as a form field and summarizes the returned FAIR score.
 ///
 /// * `ontology_url` — the published ontology IRI/URL to assess.
 /// * `timeout` — the HTTP timeout.

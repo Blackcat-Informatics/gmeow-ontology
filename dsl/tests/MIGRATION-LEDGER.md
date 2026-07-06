@@ -1093,9 +1093,9 @@ pending the slicetest structural migration — they are not reasoning tests.
 | `test_location_propagates_through_containment` | `tests/test_reasoning_entailments.py` | `location_propagates_through_containment` | RL-entailment | converted | — | `make logic-test` |
 | `test_suborganization_is_transitive` | `tests/test_reasoning_entailments.py` | `suborganization_is_transitive` | RL-entailment | converted | — | `make logic-test` |
 | `test_proximity_measurement_is_a_measurement` | `tests/test_reasoning_entailments.py` | `proximity_measurement_is_a_measurement` | RL-entailment | converted | — | `make logic-test` |
-| `test_two_axis_case_expects_inconsistency` | `tests/test_reasoning_entailments.py` | — | — | **retained** | tests the Python Docker-orchestration layer (`gmeow_tools.oracles.reasoning_cases`, monkeypatched reasoner call-order) — an independent live Python impl with no Rust twin | pytest |
-| `test_two_kind_case_expects_inconsistency` | `tests/test_reasoning_entailments.py` | — | — | **retained** | same — Python orchestration of the Docker inconsistency lane | pytest |
-| `test_reasoning_cases_run_all_order` | `tests/test_reasoning_entailments.py` | — | — | **retained** | same — pins the Docker reasoning-case run order | pytest |
+| `test_two_axis_case_expects_inconsistency` | `tests/test_reasoning_entailments.py` | — | — | **deleted** | exercised the Python Docker-orchestration layer (the `reasoning_cases` oracle, monkeypatched reasoner call-order); the Docker ELK/HermiT reasoning lane was retired for the native purrdf-entail crosscheck, so the oracle and this test were deleted | — |
+| `test_two_kind_case_expects_inconsistency` | `tests/test_reasoning_entailments.py` | — | — | **deleted** | same — the Python Docker inconsistency lane was removed with the Docker reasoning-oracle machinery | — |
+| `test_reasoning_cases_run_all_order` | `tests/test_reasoning_entailments.py` | — | — | **deleted** | same — deleted with the retired Docker reasoning-case lane | — |
 | `test_specialized_part_relations_entail_generic_parthood` | `tests/test_mereology.py` | `specialized_part_relations_entail_generic_parthood` | RL-entailment | converted | — | `make logic-test` |
 | `test_member_of_propagates_through_suborganization` | `tests/test_mereology.py` | `member_of_propagates_through_suborganization` | RL-entailment | converted | — | `make logic-test` |
 | `test_event_location_propagates_through_spatial_containment_only` | `tests/test_mereology.py` | `event_location_propagates_through_spatial_containment` | RL-entailment | converted | — | `make logic-test` |
@@ -1148,9 +1148,10 @@ pending the slicetest structural migration — they are not reasoning tests.
 | `test_gmeow_reason_native` | `tests/test_mcp_server.py` | — | — | **retained** | the thin Python MCP wrapper `gmeow_tools.mcp_server.gmeow_reason` — independent live Python surface, no Rust twin (doctrine-guard) | pytest |
 
 **Reasoning cluster reasoning tally:** 45 converted (39 RL-entailment twins + 6 engine-direct
-covered by existing Rust unit tests / the byte-regen gate), 11 retained-with-reason
-(3 Python Docker-orchestration, 4 structural-not-reasoning, 1 mixed, 2 native-report
-Python wrappers, 1 MCP wrapper), plus the 47 competency QUERY tests de-reasoned in
+covered by existing Rust unit tests / the byte-regen gate), 8 retained-with-reason
+(4 structural-not-reasoning, 1 mixed, 2 native-report Python wrappers, 1 MCP
+wrapper), 3 deleted (the Python Docker-orchestration reasoning-oracle lane, retired
+for the native purrdf-entail crosscheck), plus the 47 competency QUERY tests de-reasoned in
 place. **Files fully reasoning-free now:** `test_reasoning_entailments.py`,
 `test_mereology.py`, `test_competency.py`, `test_sensory.py`, `test_places.py`,
 `test_observations.py`, `test_quality.py`. `test_reason_native.py` carries only the
