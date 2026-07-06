@@ -752,3 +752,232 @@ lang:ProjectionEmissionDeclaredShape
         sh:severity sh:Violation ;
         sh:message "A lang:ProjectionEmission must name the external target it lowers to through lang:projectionTargetName." ;
     ] .
+
+# =========================================================================== #
+# GMN dialect gates. Seven hard rules of the gmeow:gmn* graft, each naming its
+# typed lang:Gmn* failure class. The five parser-tier rules (uncovered terms,
+# canonical order, malformed numbers, undeclared dialect versions, grammar
+# decodability) are the GMN parser/writer's, not SHACL's, so they have no
+# shape here. The doctrine individuals in module.ttl (an empty gmeow:gmnScript,
+# the four judged dialect crossings, the acceptance-window-1 lineage) validate
+# against every gate below: presence constraints quantify over members that
+# exist, and the overclaim gates reach a correspondence only through a
+# migration or compaction link.
+# =========================================================================== #
+
+lang:GmnCodepointCanonicalShape
+    a sh:NodeShape ;
+    rdfs:label "GMN canonical codepoint shape"@x-gmeow-english ;
+    skos:definition "Every gmeow:gmnCodepoints value is the canonical codepoint-explicit spelling: one or more space-separated \"U+XXXX\"-style groups of four to six uppercase hexadecimal digits. Targeted at every subject carrying gmeow:gmnCodepoints, so the rule reaches writer-projected glyph tables wherever they land."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    lang:enforcesFailureClass lang:GmnNonCanonicalCodepoint ;
+    sh:targetSubjectsOf gmeow:gmnCodepoints ;
+    sh:property [
+        sh:path gmeow:gmnCodepoints ;
+        sh:minCount 1 ;
+        sh:pattern "^U\\+[0-9A-F]{4,6}( U\\+[0-9A-F]{4,6})*$" ;
+        sh:severity sh:Violation ;
+        sh:message "A gmeow:gmnCodepoints value must be canonical: space-separated U+XXXX groups of 4-6 uppercase hex digits." ;
+    ] .
+
+lang:GmnScriptCodepointPresenceShape
+    a sh:NodeShape ;
+    rdfs:label "GMN script codepoint presence shape"@x-gmeow-english ;
+    skos:definition "Every grapheme in the repertoire of gmeow:gmnScript carries a gmeow:gmnCodepoints spelling — the GMN glyph table is codepoint-explicit by rule. Targeted at the gmeow:gmnScript node itself and quantified over its lang:hasGrapheme members, so the doctrine script with an empty repertoire validates vacuously while any admitted glyph must name its codepoints."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    lang:enforcesFailureClass lang:GmnNonCanonicalCodepoint ;
+    sh:targetNode gmeow:gmnScript ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "A grapheme in the GMN script's repertoire carries no gmeow:gmnCodepoints spelling; the GMN glyph table is codepoint-explicit." ;
+        sh:select """
+            SELECT DISTINCT $this WHERE {
+                $this <https://blackcatinformatics.ca/lang/hasGrapheme> ?g .
+                FILTER NOT EXISTS { ?g <https://blackcatinformatics.ca/gmeow/gmnCodepoints> ?cp . }
+            }
+        """ ;
+    ] .
+
+lang:GmnConfusableGlyphShape
+    a sh:NodeShape ;
+    rdfs:label "GMN confusable glyph shape"@x-gmeow-english ;
+    skos:definition "No two distinct graphemes of gmeow:gmnScript are related by gmeow:gmnConfusableWith — the confusables blocklist of the GMN orthography over its seeded pairs. The seeded pairs are data-level anchors of the UTS #39 skeleton rule; the full skeleton computation belongs to the GMN validator, so this gate enforces exactly what the graph states: an admitted inventory never co-hosts a declared-confusable pair."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    lang:enforcesFailureClass lang:GmnConfusableGlyph ;
+    sh:targetSubjectsOf gmeow:gmnConfusableWith ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "Two distinct graphemes of the GMN script are a declared gmeow:gmnConfusableWith pair; the orthography's confusables blocklist forbids co-resident confusables." ;
+        sh:select """
+            SELECT DISTINCT $this WHERE {
+                $this <https://blackcatinformatics.ca/gmeow/gmnConfusableWith> ?g2 .
+                $this <https://blackcatinformatics.ca/lang/inScript> <https://blackcatinformatics.ca/gmeow/gmnScript> .
+                ?g2 <https://blackcatinformatics.ca/lang/inScript> <https://blackcatinformatics.ca/gmeow/gmnScript> .
+                FILTER($this != ?g2)
+            }
+        """ ;
+    ] .
+
+lang:GmnGlyphCollisionShape
+    a sh:NodeShape ;
+    rdfs:label "GMN glyph collision shape"@x-gmeow-english ;
+    skos:definition "No two distinct graphemes of one lang:Script share an identical gmeow:gmnCodepoints value unless BOTH are sigil-scoped: the record-initial sigil discipline (gmeow:gmnSigilScope on each glyph) is the single lawful cross-plane reuse — μ the math sigil versus μ the in-record measure symbol — and an unscoped collision is ambiguity in the glyph table itself."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    lang:enforcesFailureClass lang:GmnGlyphCollision ;
+    sh:targetSubjectsOf gmeow:gmnCodepoints ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "Two distinct graphemes of one script share an identical gmeow:gmnCodepoints value without both carrying a gmeow:gmnSigilScope; unscoped glyph collisions are forbidden." ;
+        sh:select """
+            SELECT DISTINCT $this WHERE {
+                $this <https://blackcatinformatics.ca/gmeow/gmnCodepoints> ?cp .
+                $this <https://blackcatinformatics.ca/lang/inScript> ?s .
+                ?g2 <https://blackcatinformatics.ca/gmeow/gmnCodepoints> ?cp .
+                ?g2 <https://blackcatinformatics.ca/lang/inScript> ?s .
+                FILTER($this != ?g2)
+                FILTER NOT EXISTS {
+                    $this <https://blackcatinformatics.ca/gmeow/gmnSigilScope> ?sc1 .
+                    ?g2 <https://blackcatinformatics.ca/gmeow/gmnSigilScope> ?sc2 .
+                }
+            }
+        """ ;
+    ] .
+
+lang:GmnEnvelopeContractShape
+    a sh:NodeShape ;
+    rdfs:label "GMN envelope contract shape"@x-gmeow-english ;
+    skos:definition "Every gmeow:GmnEnvelope carries its full eight-field contract: the three dialect coordinates (gmeow:gmnSchemaVersion, gmeow:gmnDictionaryVersion, gmeow:gmnGlyphTableVersion), its boundary ring (gmeow:gmnSecurityRing), its asserting standpoint (gmeow:accordingTo), its generating activity (gmeow:wasGeneratedBy), its byte-exact identity (gmeow:contentDigest), and its losslessness judgment (gmeow:gmnEnvelopeCorrespondence — a logic:Correspondence, never a boolean flag)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    lang:enforcesFailureClass lang:GmnMissingEnvelopeField ;
+    sh:targetClass gmeow:GmnEnvelope ;
+    sh:property [
+        sh:path gmeow:gmnSchemaVersion ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A gmeow:GmnEnvelope must pin its gmeow:gmnSchemaVersion." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:gmnDictionaryVersion ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A gmeow:GmnEnvelope must pin its gmeow:gmnDictionaryVersion." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:gmnGlyphTableVersion ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A gmeow:GmnEnvelope must pin its gmeow:gmnGlyphTableVersion." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:gmnSecurityRing ;
+        sh:minCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:class gmeow:GmnSecurityRing ;
+        sh:severity sh:Violation ;
+        sh:message "A gmeow:GmnEnvelope must declare its gmeow:gmnSecurityRing." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:accordingTo ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A gmeow:GmnEnvelope must name its asserting standpoint through gmeow:accordingTo." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:wasGeneratedBy ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A gmeow:GmnEnvelope must name the activity that generated it through gmeow:wasGeneratedBy." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:contentDigest ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A gmeow:GmnEnvelope must carry its byte-exact gmeow:contentDigest." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:gmnEnvelopeCorrespondence ;
+        sh:minCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:class logic:Correspondence ;
+        sh:severity sh:Violation ;
+        sh:message "A gmeow:GmnEnvelope must point gmeow:gmnEnvelopeCorrespondence at the logic:Correspondence judging its crossing." ;
+    ] .
+
+lang:GmnVersionOverclaimShape
+    a sh:NodeShape ;
+    rdfs:label "GMN version overclaim shape"@x-gmeow-english ;
+    skos:definition "The GMN version machinery never claims more than its lineage discharges. A migration crossing (a subject of gmeow:gmnMigratesTo — the logic:Correspondence itself, or a lang:TranslationUnit carrying one) whose correspondence claims logic:mnemomorphic true is honest only over an additive bump: when the destination version's gmeow:VersionMembership carries a gmeow:versionScale other than gmeow:scaleMinor or gmeow:scaleTrivial, the scale's own classification says the change is not recoverable, so the recoverability witness is an overclaim. Separately, a gmeow:gmnAcceptWindow greater than 1 is silent tolerance, not judged migration."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    lang:enforcesFailureClass lang:GmnVersionOverclaim ;
+    sh:targetSubjectsOf gmeow:gmnMigratesTo , gmeow:gmnAcceptWindow ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "A GMN migration claims logic:mnemomorphic true over a stronger-than-additive version bump, or a gmeow:gmnAcceptWindow exceeds 1; the version machinery never claims more than its lineage discharges." ;
+        sh:select """
+            SELECT DISTINCT $this WHERE {
+                {
+                    $this <https://blackcatinformatics.ca/gmeow/gmnMigratesTo> ?v .
+                    $this <https://blackcatinformatics.ca/logic/mnemomorphic> true .
+                    ?m <https://blackcatinformatics.ca/gmeow/versionMember> ?v .
+                    ?m <https://blackcatinformatics.ca/gmeow/versionScale> ?sc .
+                    FILTER(?sc != <https://blackcatinformatics.ca/gmeow/scaleMinor> && ?sc != <https://blackcatinformatics.ca/gmeow/scaleTrivial>)
+                } UNION {
+                    $this <https://blackcatinformatics.ca/gmeow/gmnMigratesTo> ?v .
+                    $this <https://blackcatinformatics.ca/lang/translationCorrespondence> ?c .
+                    ?c <https://blackcatinformatics.ca/logic/mnemomorphic> true .
+                    ?m <https://blackcatinformatics.ca/gmeow/versionMember> ?v .
+                    ?m <https://blackcatinformatics.ca/gmeow/versionScale> ?sc .
+                    FILTER(?sc != <https://blackcatinformatics.ca/gmeow/scaleMinor> && ?sc != <https://blackcatinformatics.ca/gmeow/scaleTrivial>)
+                } UNION {
+                    $this <https://blackcatinformatics.ca/gmeow/gmnAcceptWindow> ?w .
+                    FILTER(?w > 1)
+                }
+            }
+        """ ;
+    ] .
+
+lang:GmnCompactionProvenanceShape
+    a sh:NodeShape ;
+    rdfs:label "GMN compaction provenance shape"@x-gmeow-english ;
+    skos:definition "Every gmeow:GmnCompaction is fully provenance-linked: at least one gmeow:gmnCompacts edge to a source it condenses, and the attributing gmeow:vantage its gmeow:StandpointClaim nature requires — the compaction is a reified NEW claim held from a standpoint, auditable exactly because its sources and its holder are named."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    lang:enforcesFailureClass lang:GmnCompactionWithoutProvenance ;
+    sh:targetClass gmeow:GmnCompaction ;
+    sh:property [
+        sh:path gmeow:gmnCompacts ;
+        sh:minCount 1 ;
+        sh:nodeKind sh:BlankNodeOrIRI ;
+        sh:severity sh:Violation ;
+        sh:message "A gmeow:GmnCompaction must name every source it condenses through gmeow:gmnCompacts." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:vantage ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A gmeow:GmnCompaction must name the standpoint holding it through gmeow:vantage (it is a gmeow:StandpointClaim)." ;
+    ] .
+
+lang:GmnCompactionOverclaimShape
+    a sh:NodeShape ;
+    rdfs:label "GMN compaction overclaim shape"@x-gmeow-english ;
+    skos:definition "A gmeow:GmnCompaction's correspondence never claims a preservation stronger than logic:ValidationOnly: no logic:mnemomorphic true, no logic:ExactPreservation, no logic:SoundUnderApproximation. Compaction is get-leg-only (the GMN-1 → GMN-2 crossing gmeow:gmnCorrGmnToCompacted is a validation-only bridge view), so any logic:Correspondence the compaction record links — however the link is authored — must carry the honest weak judgment."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    lang:enforcesFailureClass lang:GmnCompactionOverclaim ;
+    sh:targetClass gmeow:GmnCompaction ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "A gmeow:GmnCompaction links a logic:Correspondence claiming mnemomorphic recoverability, exact preservation, or soundness under approximation; compaction is validation-only." ;
+        sh:select """
+            SELECT DISTINCT $this WHERE {
+                $this ?link ?c .
+                ?c a <https://blackcatinformatics.ca/logic/Correspondence> .
+                {
+                    ?c <https://blackcatinformatics.ca/logic/mnemomorphic> true .
+                } UNION {
+                    ?c <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/ExactPreservation> .
+                } UNION {
+                    ?c <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/SoundUnderApproximation> .
+                }
+            }
+        """ ;
+    ] .

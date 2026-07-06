@@ -2285,6 +2285,35 @@ mod tests {
     }
 
     #[test]
+    fn gmn_compaction_silent_disambiguation_fixture_fires_exactly_that_gate() {
+        // The GMN counter-example reuses the EXISTING bundle-wide
+        // lang:SilentDisambiguation discipline verbatim: a compaction run whose
+        // interpretation act collapses two co-resident readings to one with no
+        // vantage-held observation. Like projection-silent-disambiguation.ttl it is
+        // a native-gate fixture (no SHACL cell), so this test is its executable pin:
+        // it fires lang:SilentDisambiguation and NO other lang: failure class — the
+        // compaction record itself is deliberately well-formed.
+        let ds = dataset_from(include_str!(
+            "../../../slices/grounding/lang/tests/counter-examples/gmn-compaction-silent-disambiguation.ttl"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:SilentDisambiguation")),
+            "fixture must fire lang:SilentDisambiguation: {:?}",
+            report.errors
+        );
+        assert_eq!(
+            report.errors.iter().filter(|e| e.contains("lang:")).count(),
+            1,
+            "fixture must isolate exactly the silent collapse: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
     fn one_way_bridge_flags_logic_subject_with_lang_predicate() {
         let ds = dataset_from(&format!(
             "{LANG_PREFIXES}\

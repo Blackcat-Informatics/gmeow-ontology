@@ -1,0 +1,34 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Conforming GMN fixture: a complete envelope. The gmeow:GmnEnvelope carries its full
+# eight-field contract (the three dialect coordinates, the boundary ring, the asserting
+# standpoint, the generating activity, the byte-exact digest, and the losslessness
+# judgment) so lang:GmnEnvelopeContractShape validates with no findings. The judgment is
+# a logic:Correspondence — the honest lossy-lens verdict of the GMN-0 → GMN-1 crossing,
+# never a boolean lossless flag.
+
+@prefix lang:  <https://blackcatinformatics.ca/lang/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <http://example.org/lang/> .
+
+ex:archiveTeam a gmeow:Agent .
+ex:gmnWriterRun a gmeow:Activity .
+
+ex:corrEnvelope a logic:Correspondence ;
+    logic:preservationKind logic:SoundUnderApproximation ;
+    logic:correspondenceRelation logic:Subsumes ;
+    logic:morphismClass logic:LossyLens ;
+    logic:hasDeterminacy logic:Crisp ;
+    logic:mnemomorphic false .
+
+ex:envelopeComplete a gmeow:GmnEnvelope ;
+    gmeow:gmnSchemaVersion "1" ;
+    gmeow:gmnDictionaryVersion "1" ;
+    gmeow:gmnGlyphTableVersion "1" ;
+    gmeow:gmnSecurityRing gmeow:gmnRingTrusted ;
+    gmeow:accordingTo ex:archiveTeam ;
+    gmeow:wasGeneratedBy ex:gmnWriterRun ;
+    gmeow:contentDigest "sha256:5f2acdc6e1a1e9f4f6b0e0a7c9d3b8a1c4e7f0a3b6d9c2e5f8a1b4d7c0e3f6a9" ;
+    gmeow:gmnEnvelopeCorrespondence ex:corrEnvelope .
