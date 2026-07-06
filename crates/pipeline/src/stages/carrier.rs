@@ -96,6 +96,25 @@ pub(crate) const GRAPH_LANG_PROJECTION_CORPUS: &str =
 /// axioms).
 pub(crate) const GRAPH_LANG_DOCS_RENDERING_CORPUS: &str =
     "https://blackcatinformatics.ca/gmeow/graph/lang-docs-rendering-corpus";
+/// The correspondence-laws corpus: every authored `logic:Correspondence` re-projected with
+/// the EXECUTED lens-law discharge verdicts attached — one `logic:LawClaim`
+/// (`logic:lawClaimed` / `logic:lawDischargeVerdict` / `logic:lawDischargeCondition`) per law
+/// the correspondence's rung permits, discharged by running its OWN per-binding get/put
+/// CONSTRUCT round-trip through the native engine. Folded as its own queryable
+/// named graph so a repo-free consumer reads which alignments provably round-trip
+/// (`ObligationDischarged`) without re-running the engine. Excluded from the reasoned
+/// object-level EDB exactly like `graph/projection-ledger` (it asserts a self-description /
+/// provenance corpus, not object-level axioms).
+pub(crate) const GRAPH_CORRESPONDENCE_LAWS: &str =
+    "https://blackcatinformatics.ca/gmeow/graph/correspondence-laws";
+/// The committed on-disk projection of the correspondence-laws corpus (PIPELINE_SPINE §5:
+/// RDF travels as RDF, so the discharged `logic:SectionLaw` claims are reconstructible from
+/// `gmeow.gts` as a flat `generated/` file, not only as a bundle-internal named graph). Its
+/// `graph/fanout/<path>` reconstruction graph carries the SAME triples as
+/// `GRAPH_CORRESPONDENCE_LAWS`; the base graph serves the up-projection gates, the fanout copy
+/// serves the superset gate / fanout writer (the diagnostics `.nq` follow the same twin-graph
+/// pattern).
+pub(crate) const CORRESPONDENCE_LAWS_PATH: &str = "generated/logic/gmeow.correspondence-laws.nt";
 /// The authored default graph (root ontology + slice modules + translations + guide
 /// anchors, NO imports) carried as a named graph on the `stage-source-load` product so
 /// the presenter reads it instead of re-loading the sources. It is an INTERNAL transport
@@ -516,6 +535,19 @@ fn assemble_carrier(
         producer_graph(upstream, "stage-mappings", GRAPH_LANG_PROJECTION_CORPUS)?;
     let lang_docs_rendering_corpus =
         producer_graph(upstream, "stage-mappings", GRAPH_LANG_DOCS_RENDERING_CORPUS)?;
+    let correspondence_laws =
+        producer_graph(upstream, "stage-mappings", GRAPH_CORRESPONDENCE_LAWS)?;
+    // The on-disk projection of the correspondence-laws corpus: the SAME triples re-rooted into
+    // their `graph/fanout/<path>` reconstruction graph so the superset gate folds them to
+    // `generated/logic/gmeow.correspondence-laws.nt` (PIPELINE_SPINE §5 — RDF travels as RDF, so
+    // the discharged `logic:SectionLaw` claims land in `generated/` too). The base
+    // `graph/correspondence-laws` copy still serves the up-projection gates (single corpus, two
+    // reconstruction roles — the diagnostics `.nq` follow the same twin-graph pattern).
+    let correspondence_laws_fanout = {
+        let iri = crate::stages::superset::rdf_fanout_graph_iri(CORRESPONDENCE_LAWS_PATH)
+            .ok_or_else(|| stage_err("correspondence-laws fanout path is not an RDF path"))?;
+        rooted_in_graph(correspondence_laws.as_ref(), &iri)?
+    };
 
     // ── the carried graphs ride in from the producers' carriers ────────────────
     let reason = upstream
@@ -543,6 +575,8 @@ fn assemble_carrier(
         lang_form_corpus,
         lang_projection_corpus,
         lang_docs_rendering_corpus,
+        correspondence_laws,
+        correspondence_laws_fanout,
     ];
     datasets.extend(compile_logic_object_graphs(upstream)?);
     datasets.push(rooted_in_graph(
@@ -4254,8 +4288,11 @@ mod logic_graph_golden_tests {
     /// byte-identical (determinism).
     #[test]
     fn graph_logic_fold_byte_golden() {
-        let arts = gmeow_logic_compile::projections::compile_program(&fixed_program())
-            .expect("compile fixed program");
+        let arts = gmeow_logic_compile::projections::compile_program(
+            &fixed_program(),
+            &Default::default(),
+        )
+        .expect("compile fixed program");
         let logic_nq = turtle_to_nquads(arts.canonical_rdf12.as_bytes()).expect("turtle → nq");
 
         let build = || {

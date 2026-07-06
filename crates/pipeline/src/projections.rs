@@ -36,6 +36,19 @@ const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const RDF_REIFIES: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies";
 const NT_MEDIA_TYPE: &str = "application/n-triples";
 
+// The TBox predicates whose axioms drive property-domain typing: a
+// property assertion is typed by `rdfs:domain` (its subject) / `rdfs:range` (its
+// object) under prp-dom, and that derived type is then propagated UPWARD through
+// `rdfs:subClassOf`; `rdfs:subPropertyOf` lets a sub-property inherit its
+// super-property's domain/range. This is the exact closure the reasoned harvest
+// needs — nothing else in the bundle TBox can contribute a sound `rdf:type`.
+const RDFS_DOMAIN: &str = "http://www.w3.org/2000/01/rdf-schema#domain";
+const RDFS_RANGE: &str = "http://www.w3.org/2000/01/rdf-schema#range";
+const RDFS_SUBCLASSOF: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
+const RDFS_SUBPROPERTYOF: &str = "http://www.w3.org/2000/01/rdf-schema#subPropertyOf";
+const DOMAIN_TYPING_TBOX_PREDICATES: &[&str] =
+    &[RDFS_DOMAIN, RDFS_RANGE, RDFS_SUBCLASSOF, RDFS_SUBPROPERTYOF];
+
 /// A projection-boundary language-tag remap (internal `x-gmeow-*` → public BCP-47,
 /// or the inverse), keyed by the *source* tag. Empty = no retag.
 pub type TagMap = BTreeMap<String, String>;
@@ -214,6 +227,40 @@ pub fn gts_base_graph(gts_bytes: &[u8]) -> Result<Vec<RdfQuad>, String> {
     Ok(base)
 }
 
+/// The A→B authorization set folded into a `.gts`: the `gmeow:ProjectionMapping` cell IRIs whose
+/// EXECUTED lens-law discharge carried an `ObligationDischarged` `logic:SectionLaw`, read from the
+/// bundle's `graph/correspondence-laws` named graph (the mappings stage's
+/// [`crate::stages::mappings::discharge_correspondence_laws`] output).
+///
+/// This is the production consumer of Deliverable A: the bundle carries the executed discharge
+/// verdicts, and the up-projection executor consumes THIS set to promote each mnemomorphic `=` cell
+/// to a lawful FACT rename. Returns the empty set only if the bundle carries no correspondence-laws
+/// graph (a bundle with no discharged section laws) — never a silent partial read.
+pub fn discharged_section_cells_from_bundle(gts_bytes: &[u8]) -> Result<BTreeSet<String>, String> {
+    // The correspondence-laws NAMED graph survives only through the structural GTS reader
+    // (`read_graph`); the flattened-dataset fold collapses to the object-level default graph and
+    // would silently drop it. Read the named graph's triples by term value and extract.
+    let graph = purrdf::gts::read_graph(gts_bytes, true)
+        .map_err(|e| format!("gts read_graph failed: {e}"))?;
+    let corr_graph = crate::stages::carrier::GRAPH_CORRESPONDENCE_LAWS;
+    let term = |id: usize| -> String {
+        graph
+            .terms
+            .get(id)
+            .and_then(|t| t.value.clone())
+            .unwrap_or_default()
+    };
+    let triples: Vec<(String, String, String)> = graph
+        .quads
+        .iter()
+        .filter_map(|&(s, p, o, gname)| {
+            let gid = gname?;
+            (term(gid) == corr_graph).then(|| (term(s), term(p), term(o)))
+        })
+        .collect();
+    Ok(crate::up_projection_gates::discharged_section_cells_from_triples(&triples))
+}
+
 /// The IRI namespaces a single-vocab view keeps (empty = keep everything).
 ///
 /// The Rust port of `projections._view_namespaces`. `all` / `maximal` keep the whole
@@ -284,10 +331,16 @@ fn keep_in_view(quad: &RdfQuad, namespaces: &BTreeSet<String>) -> bool {
 pub struct UpProjectionInputs {
     /// The SSSOM lift maps (`generated/mappings/*.sssom.tsv` text).
     pub sssom_texts: Vec<String>,
-    /// The projection/EDOAL TTL sources.
+    /// The projection/EDOAL TTL sources (the authored `gmeow:ProjectionMapping` cells).
     pub projection_ttls: Vec<String>,
     /// The asserted ontology, as N-Triples.
     pub ontology_nt: String,
+    /// The A→B authorization channel: the set of `gmeow:ProjectionMapping` cell IRIs whose
+    /// EXECUTED lens-law discharge (folded into `graph/correspondence-laws`) carried an
+    /// `ObligationDischarged` `logic:SectionLaw`. Every mnemomorphic `=` cell so authorized lifts
+    /// as a lawful FACT rename (not a lossy close-match claim); a mnemomorphic `=` cell absent from
+    /// this set is a HARD FAIL in [`crate::up_projection_gates::gate_verified_lift_program`].
+    pub discharged_section_cells: std::collections::BTreeSet<String>,
 }
 
 /// The result of an up-projection: the lifted GMEOW graph plus native accounting.
@@ -324,11 +377,42 @@ pub fn up_project(
         &inputs.sssom_texts,
         &inputs.projection_ttls,
         &inputs.ontology_nt,
+        &inputs.discharged_section_cells,
     )?;
+
+    // Reasoned superclass recovery. The lawful put legs return only the
+    // renamed/inverse facts; an entailed superclass (e.g. a subject bearing
+    // `gmeow:partOfThread`/`gmeow:inReplyTo` — both `rdfs:domain gmeow:Message` — IS a
+    // `gmeow:Message`) is lost because the put path never reasons. Run a scoped,
+    // deterministic prp-dom harvest over `[lifted ∪ the property-domain TBox fragment]`
+    // and union the sound derived `rdf:type` triples back into the lifted graph. This is
+    // sound-only and upward-closing: it never fabricates a SubKind (`gmeow:EmailMessage`)
+    // or a sibling (`gmeow:FeedPosting`), because `dl:type-propagation` only walks
+    // subClassOf UPWARD.
+    let mut quads = flat_quads_from_nt(&report.graph_nt)?;
+    let harvested = harvest_reasoned_types(&quads, &inputs.ontology_nt)?;
+    let mut merged_new = false;
+    if !harvested.is_empty() {
+        let existing: std::collections::HashSet<RdfQuad> = quads.iter().cloned().collect();
+        for typed in harvested {
+            if existing.contains(&typed) {
+                continue;
+            }
+            quads.push(typed);
+            merged_new = true;
+        }
+    }
+
+    // Byte-stability: only re-serialize when we actually changed the graph (harvest or
+    // retag). `quads_to_nt` freeze-sorts by (s,p,o), so the union is canonical; when
+    // nothing changed we return the put executor's already-sorted bytes untouched.
     let graph_nt = if internal_tag_map.is_empty() {
-        report.graph_nt
+        if merged_new {
+            quads_to_nt(&quads)?
+        } else {
+            report.graph_nt
+        }
     } else {
-        let mut quads = flat_quads_from_nt(&report.graph_nt)?;
         retag_quads(&mut quads, internal_tag_map);
         quads_to_nt(&quads)?
     };
@@ -339,6 +423,88 @@ pub fn up_project(
         gap_terms: report.gap_terms,
         residue: report.residue,
     })
+}
+
+/// Harvest the sound derived `rdf:type` triples entailed by the lifted assertions
+/// against the bundle's property-domain TBox fragment — the reasoned superclass
+/// recovery for the inverse-ingest (put) path.
+///
+/// The world-scoping is LOAD-BEARING: the native reasoner is world/graph-indexed with
+/// no cross-world union, so `dl:domain` (prp-dom) only fires when the property
+/// assertion and its `rdfs:domain` axiom share the SAME world. Both the lifted
+/// assertions and the extracted TBox fragment are default-graph N-Triples, so
+/// [`purrdf::native_quads::flat_dataset_from_quads`] lands them in the same (default)
+/// world and [`reason_all_with_data`](gmeow_logic::reason::reason_all_with_data)'s
+/// merge keeps them co-located — prp-dom fires, and the derived type propagates upward
+/// through the fragment's `rdfs:subClassOf` axioms.
+///
+/// Performance: the TBox is scoped to [`DOMAIN_TYPING_TBOX_PREDICATES`] (the closure
+/// property-domain typing needs), never the whole bundle, so ingest never pays a
+/// full-bundle chase.
+///
+/// Determinism: every sound derived `rdf:type` is harvested (maximal information flow)
+/// but keyed into a [`BTreeMap`] on `(subject, class)` so the returned vector is
+/// sorted/canonical with no wall-clock or randomness.
+fn harvest_reasoned_types(lifted: &[RdfQuad], ontology_nt: &str) -> Result<Vec<RdfQuad>, String> {
+    if lifted.is_empty() {
+        return Ok(Vec::new());
+    }
+    let fragment = domain_typing_tbox_fragment(ontology_nt)?;
+    if fragment.is_empty() {
+        // No property-domain axioms in scope ⇒ nothing prp-dom could entail. Skip the
+        // chase entirely (also keeps the empty-ontology callers byte-identical).
+        return Ok(Vec::new());
+    }
+
+    let user = purrdf::flat_dataset_from_quads(lifted)
+        .map_err(|e| format!("reasoned harvest: lifted dataset build failed: {e}"))?;
+    let bundle = purrdf::flat_dataset_from_quads(&fragment)
+        .map_err(|e| format!("reasoned harvest: TBox fragment dataset build failed: {e}"))?;
+    let result = gmeow_logic::reason::reason_all_with_data(bundle.as_ref(), user.as_ref())
+        .map_err(|e| format!("reasoned harvest: native reasoning failed: {e}"))?;
+
+    // Dedup on the canonical (subject, class) key, then emit sorted by that key so the
+    // harvested block is byte-stable regardless of the reasoner's row order. `RdfQuad`
+    // is `Hash + Eq` but not `Ord`, so the string key carries the total order.
+    let mut out: BTreeMap<(String, String), RdfQuad> = BTreeMap::new();
+    for axiom in result.inferred() {
+        // Only rule-DERIVED types (`is_edb == false`) are new information; asserted
+        // rows are already in `lifted`. Restrict to `rdf:type` with an IRI class object.
+        if axiom.is_edb || axiom.predicate != RDF_TYPE {
+            continue;
+        }
+        let Some(class_iri) = strip_iri_brackets(&axiom.object) else {
+            continue;
+        };
+        out.entry((axiom.subject.clone(), class_iri.to_owned()))
+            .or_insert_with(|| {
+                RdfQuad::new(
+                    RdfTerm::iri(axiom.subject.clone()),
+                    RDF_TYPE.to_owned(),
+                    RdfTerm::iri(class_iri.to_owned()),
+                )
+            });
+    }
+    Ok(out.into_values().collect())
+}
+
+/// Extract the property-domain typing TBox fragment from the bundle ontology
+/// N-Triples: every quad whose predicate is one of [`DOMAIN_TYPING_TBOX_PREDICATES`].
+/// This is the bounded, deterministic closure the reasoned harvest reasons over
+/// (never the whole bundle).
+fn domain_typing_tbox_fragment(ontology_nt: &str) -> Result<Vec<RdfQuad>, String> {
+    let quads = flat_quads_from_nt(ontology_nt)?;
+    Ok(quads
+        .into_iter()
+        .filter(|q| DOMAIN_TYPING_TBOX_PREDICATES.contains(&q.predicate.as_str()))
+        .collect())
+}
+
+/// Strip the angle brackets from an `<iri>` display token, returning the bare IRI.
+/// The reasoner renders an IRI class object as `<iri>`; anything else (a literal or
+/// blank display) is not a class and yields `None`.
+fn strip_iri_brackets(token: &str) -> Option<&str> {
+    token.strip_prefix('<').and_then(|t| t.strip_suffix('>'))
 }
 
 // ── Transpile: consumer RDF → pure GMEOW → MAXIMAL multi-vocab ────────────────────
@@ -720,6 +886,7 @@ mod tests {
             sssom_texts: vec![knows_sssom()],
             projection_ttls: Vec::new(),
             ontology_nt: String::new(),
+            discharged_section_cells: BTreeSet::new(),
         };
         let up = up_project(&source_nt, &inputs, &TagMap::new()).unwrap();
         assert!(up.lifted >= 1, "nothing lifted: {up:?}");
@@ -745,6 +912,7 @@ mod tests {
             sssom_texts: vec![knows_sssom()],
             projection_ttls: Vec::new(),
             ontology_nt: String::new(),
+            discharged_section_cells: BTreeSet::new(),
         };
         let maximal_inputs = MaximalInputs {
             ontology_nt: format!(
@@ -802,6 +970,233 @@ mod tests {
         )
         .unwrap_err();
         assert!(err.contains("nothing lifted"), "{err}");
+    }
+
+    // ── SIOC reasoned-superclass recovery (Deliverable B) ────────────────
+    //
+    // The real SIOC ↔ email-thread correspondence: a subject bearing `sioc:has_container`
+    // / `sioc:reply_of` lifts to `gmeow:partOfThread` / `gmeow:inReplyTo` (both
+    // `rdfs:domain gmeow:Message`), so prp-dom entails it IS a `gmeow:Message`. The IRIs
+    // and axioms below are the real ones from `slices/extensions/email/module.ttl`
+    // (partOfThread/inReplyTo domain=Message, subPropertyOf=partOf, range=Thread;
+    // EmailMessage⊑Message; Message⊑InformationObject) and
+    // `slices/core/documents/module.ttl` (FeedPosting⊑Work).
+    const SIOC_HAS_CONTAINER: &str = "http://rdfs.org/sioc/ns#has_container";
+    const SIOC_REPLY_OF: &str = "http://rdfs.org/sioc/ns#reply_of";
+    const GM_PART_OF_THREAD: &str = "https://blackcatinformatics.ca/gmeow/partOfThread";
+    const GM_IN_REPLY_TO: &str = "https://blackcatinformatics.ca/gmeow/inReplyTo";
+    const GM_PART_OF: &str = "https://blackcatinformatics.ca/gmeow/partOf";
+    const GM_MESSAGE: &str = "https://blackcatinformatics.ca/gmeow/Message";
+    const GM_EMAIL_MESSAGE: &str = "https://blackcatinformatics.ca/gmeow/EmailMessage";
+    const GM_FEED_POSTING: &str = "https://blackcatinformatics.ca/gmeow/FeedPosting";
+    const GM_INFORMATION_OBJECT: &str = "https://blackcatinformatics.ca/gmeow/InformationObject";
+    const GM_WORK: &str = "https://blackcatinformatics.ca/gmeow/Work";
+    const GM_THREAD: &str = "https://blackcatinformatics.ca/gmeow/Thread";
+
+    const SIOC_X: &str = "https://example.org/msg/1";
+    const SIOC_THREAD: &str = "https://example.org/thread/1";
+    const SIOC_PARENT: &str = "https://example.org/msg/0";
+
+    /// The real property-domain TBox fragment the reasoned harvest reasons over. Uses
+    /// the actual email/documents module axioms and IRIs. Crucially it INCLUDES the
+    /// `EmailMessage ⊑ Message` and `FeedPosting ⊑ Work` axioms, so AC5's negative
+    /// assertions are non-vacuous: EmailMessage/FeedPosting are absent only because
+    /// prp-dom + subClassOf propagate UPWARD, never because the axiom is missing.
+    fn email_thread_tbox() -> String {
+        let mut t = String::new();
+        t.push_str(&nt(GM_PART_OF_THREAD, RDFS_DOMAIN, GM_MESSAGE));
+        t.push_str(&nt(GM_PART_OF_THREAD, RDFS_RANGE, GM_THREAD));
+        t.push_str(&nt(GM_PART_OF_THREAD, RDFS_SUBPROPERTYOF, GM_PART_OF));
+        t.push_str(&nt(GM_IN_REPLY_TO, RDFS_DOMAIN, GM_MESSAGE));
+        t.push_str(&nt(GM_IN_REPLY_TO, RDFS_RANGE, GM_MESSAGE));
+        t.push_str(&nt(GM_MESSAGE, RDFS_SUBCLASSOF, GM_INFORMATION_OBJECT));
+        t.push_str(&nt(GM_EMAIL_MESSAGE, RDFS_SUBCLASSOF, GM_MESSAGE));
+        t.push_str(&nt(GM_FEED_POSTING, RDFS_SUBCLASSOF, GM_WORK));
+        t
+    }
+
+    /// The committed shipped bundle (`generated/dist/gmeow.gts`) — the exact snapshot the real
+    /// `gmeow-dev up-project` folds.
+    fn committed_gts() -> Vec<u8> {
+        let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("..")
+            .join("..")
+            .join("generated")
+            .join("dist")
+            .join("gmeow.gts");
+        std::fs::read(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+    }
+
+    /// The lifted SIOC image plus the bundle ontology it reasoned against — cached across AC4/AC5.
+    struct SiocRun {
+        up: UpProjection,
+        ontology_nt: String,
+    }
+
+    /// Drive the REAL production inverse-ingest entry `up_project` on the SIOC image with inputs
+    /// assembled from the committed bundle — the exact `(SSSOM, projection cells, ontology,
+    /// discharged verdicts)` the shipped `gmeow-dev up-project` consumes. There is NO synthetic
+    /// exactMatch SSSOM: the SIOC thread predicates ship as closeMatch + EDOAL `=` cells, and the
+    /// executed discharged `logic:SectionLaw` (Deliverable A) is the sole authorization for the
+    /// lawful FACT lift. This test therefore FAILS if the A→B promotion regresses (the SIOC facts
+    /// vanish) and PASSES because the promotion lifts them. Cached (the bundle fold + gate machinery
+    /// runs once for both acceptance criteria).
+    fn sioc_run() -> &'static SiocRun {
+        static CACHE: std::sync::OnceLock<SiocRun> = std::sync::OnceLock::new();
+        CACHE.get_or_init(|| {
+            let gts = committed_gts();
+            let sssom_texts: Vec<String> = crate::bundle_blobs::Bundle::from_snapshot(&gts)
+                .expect("fold bundle")
+                .archive(crate::bundle_blobs::REP_MAPPINGS)
+                .expect("mappings archive")
+                .into_values()
+                .map(|v| String::from_utf8_lossy(&v).into_owned())
+                .collect();
+            let projection_ttls: Vec<String> = crate::bundle_blobs::Bundle::from_snapshot(&gts)
+                .expect("fold bundle")
+                .archive(crate::bundle_blobs::REP_CELLS)
+                .expect("cells archive")
+                .into_iter()
+                .filter(|(k, _)| k.ends_with(".ttl"))
+                .map(|(_, v)| String::from_utf8_lossy(&v).into_owned())
+                .collect();
+            let base = gts_base_graph(&gts).expect("base graph");
+            let ontology_nt = quads_to_nt(&base).expect("ontology nt");
+            let discharged_section_cells =
+                discharged_section_cells_from_bundle(&gts).expect("discharged cells");
+            let source_nt = format!(
+                "{}{}",
+                nt(SIOC_X, SIOC_HAS_CONTAINER, SIOC_THREAD),
+                nt(SIOC_X, SIOC_REPLY_OF, SIOC_PARENT),
+            );
+            let inputs = UpProjectionInputs {
+                sssom_texts,
+                projection_ttls,
+                ontology_nt: ontology_nt.clone(),
+                discharged_section_cells,
+            };
+            let up = up_project(&source_nt, &inputs, &TagMap::new())
+                .expect("up_project over the real bundle inputs");
+            SiocRun { up, ontology_nt }
+        })
+    }
+
+    /// The `<s> a <class> .` N-Triples line for the SIOC subject.
+    fn x_type_line(class: &str) -> String {
+        format!("<{SIOC_X}> <{RDF_TYPE}> <{class}> .")
+    }
+
+    #[test]
+    fn up_project_recovers_message_superclass_via_prp_dom() {
+        // AC4 (positive): the real inverse-ingest surface over the SHIPPED bundle. `sioc:has_container`
+        // / `sioc:reply_of` lift to `gmeow:partOfThread` / `gmeow:inReplyTo` — as lawful FACTS,
+        // authorized by their executed discharged `logic:SectionLaw` (Deliverable A), NOT by any
+        // synthetic exactMatch SSSOM. Both lifted predicates have `rdfs:domain gmeow:Message`, so
+        // the reasoned harvest recovers the entailed `<X> a gmeow:Message`.
+        let up = &sioc_run().up;
+        assert!(
+            up.graph_nt.contains(GM_PART_OF_THREAD),
+            "sioc:has_container did not lift to gmeow:partOfThread: {}",
+            up.graph_nt
+        );
+        assert!(
+            up.graph_nt.contains(GM_IN_REPLY_TO),
+            "sioc:reply_of did not lift to gmeow:inReplyTo: {}",
+            up.graph_nt
+        );
+        assert!(
+            up.lifted >= 2,
+            "the two SIOC thread predicates must lift as FACTS (not lossy claims): {up:?}"
+        );
+        assert!(
+            up.graph_nt.contains(&x_type_line(GM_MESSAGE)),
+            "entailed gmeow:Message superclass NOT recovered: {}",
+            up.graph_nt
+        );
+    }
+
+    #[test]
+    fn up_project_never_fabricates_subkind_or_sibling() {
+        // AC5 (negative control, SAME output as AC4): prp-dom + subClassOf are
+        // upward-only, so the recovered type is exactly `gmeow:Message` (and its
+        // superclasses) — never the `gmeow:EmailMessage` SubKind below it, nor the
+        // unrelated `gmeow:FeedPosting` sibling.
+        let run = sioc_run();
+        let up = &run.up;
+        // Sanity: the positive recovery still holds in this same output (guards against
+        // the negatives passing only because nothing was reasoned at all).
+        assert!(
+            up.graph_nt.contains(&x_type_line(GM_MESSAGE)),
+            "sanity: gmeow:Message must be recovered here too: {}",
+            up.graph_nt
+        );
+        assert!(
+            !up.graph_nt.contains(&x_type_line(GM_EMAIL_MESSAGE)),
+            "fabricated a SubKind (gmeow:EmailMessage) — downward invention: {}",
+            up.graph_nt
+        );
+        assert!(
+            !up.graph_nt.contains(&x_type_line(GM_FEED_POSTING)),
+            "fabricated a sibling (gmeow:FeedPosting): {}",
+            up.graph_nt
+        );
+        // Non-vacuity: EmailMessage ⊑ Message and FeedPosting ⊑ Work ARE in the SHIPPED bundle
+        // ontology, so the SubKind/sibling absence above is sound upward-only reasoning, not a
+        // missing axiom.
+        assert!(
+            run.ontology_nt.contains(GM_EMAIL_MESSAGE) && run.ontology_nt.contains(GM_FEED_POSTING),
+            "negative control would be vacuous: bundle ontology lacks the SubKind/sibling axioms"
+        );
+    }
+
+    #[test]
+    fn harvest_reasoned_types_needs_world_colocation() {
+        // Mis-scope regression — driven at the `harvest_reasoned_types` level (not
+        // through `up_project`). WHY this level: the public `up_project` input cannot
+        // mis-scope — `harvest_reasoned_types` always lands the lifted assertions and the
+        // extracted TBox fragment in the SAME (default) world via
+        // `flat_dataset_from_quads`, so co-location is structurally guaranteed for every
+        // public caller. To exercise the silent-failure mode we feed the harvest a
+        // deliberately mis-scoped dataset: the `gmeow:partOfThread` assertion pinned to a
+        // NAMED graph (a distinct reasoning world) while the `rdfs:domain` axiom stays in
+        // the default world. The native reasoner is world-indexed with no cross-world
+        // union, so prp-dom cannot fire and `gmeow:Message` is NOT derived. If a future
+        // refactor breaks world co-location, prp-dom silently no-ops and THIS test fails.
+        let tbox = email_thread_tbox();
+
+        // Co-located control: default-graph lifted assertion DOES recover Message — proves
+        // the harvest genuinely fires when the worlds coincide (so the negative below is
+        // about co-location, not a dead harvest).
+        let colocated = vec![RdfQuad::new(
+            RdfTerm::iri(SIOC_X),
+            GM_PART_OF_THREAD.to_owned(),
+            RdfTerm::iri(SIOC_THREAD),
+        )];
+        let recovered = harvest_reasoned_types(&colocated, &tbox).unwrap();
+        assert!(
+            recovered.iter().any(|q| q.predicate == RDF_TYPE
+                && matches!(&q.object, RdfTerm::Iri(c) if c == GM_MESSAGE)),
+            "co-located harvest must recover gmeow:Message: {recovered:?}"
+        );
+
+        // Mis-scoped: the SAME assertion in a named graph (a different world) than the
+        // domain axiom ⇒ prp-dom no-ops, nothing derived.
+        let misscoped = vec![
+            RdfQuad::new(
+                RdfTerm::iri(SIOC_X),
+                GM_PART_OF_THREAD.to_owned(),
+                RdfTerm::iri(SIOC_THREAD),
+            )
+            .in_graph(RdfTerm::iri("https://example.org/other-world")),
+        ];
+        let harvested = harvest_reasoned_types(&misscoped, &tbox).unwrap();
+        assert!(
+            !harvested
+                .iter()
+                .any(|q| matches!(&q.object, RdfTerm::Iri(c) if c == GM_MESSAGE)),
+            "mis-scoped assertion must NOT derive gmeow:Message — world co-location is \
+             load-bearing: {harvested:?}"
+        );
     }
 
     /// Compose a `.gts` from an N-Triples (base + RDF-1.2 statement layer) document,

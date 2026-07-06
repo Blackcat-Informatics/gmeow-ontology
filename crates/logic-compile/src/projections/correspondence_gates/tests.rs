@@ -82,6 +82,17 @@ fn derived(correspondences: Vec<Correspondence>) -> CorrespondenceProgram {
         .0
 }
 
+/// Assign the SAME executed lens-law verdict to every correspondence in `prog` — the
+/// injected verdict map the (execution-free) gates read. The real executor
+/// (`gmeow_logic::correspondence_exec::program_verdicts`) is tested against the engine; here
+/// we test the GATE LOGIC given a verdict, so we inject it directly.
+fn verdicts_all(prog: &CorrespondenceProgram, v: DischargeVerdict) -> CorrespondenceVerdicts {
+    prog.correspondences
+        .iter()
+        .map(|c| (c.iri.clone(), v))
+        .collect()
+}
+
 #[test]
 fn iso_with_derived_put_passes_round_trip_and_law() {
     let get = format!("{GMEOW}ex/getIso");
@@ -96,7 +107,11 @@ fn iso_with_derived_put_passes_round_trip_and_law() {
         Vec::new(),
     );
     let prog = derived(vec![c]);
-    let report = evaluate_gates(&prog, &[]);
+    let report = evaluate_gates(
+        &prog,
+        &[],
+        &verdicts_all(&prog, DischargeVerdict::ObligationDischarged),
+    );
     let r = &report.per_correspondence[0];
     assert_eq!(r.round_trip, GateVerdict::Pass, "{:?}", r.round_trip);
     assert_eq!(r.law, GateVerdict::Pass);
@@ -119,20 +134,24 @@ fn section_retraction_passes_round_trip() {
         Vec::new(),
     );
     let prog = derived(vec![c]);
-    let r = &evaluate_gates(&prog, &[]).per_correspondence[0];
+    let report = evaluate_gates(
+        &prog,
+        &[],
+        &verdicts_all(&prog, DischargeVerdict::ObligationDischarged),
+    );
+    let r = &report.per_correspondence[0];
     assert_eq!(r.round_trip, GateVerdict::Pass);
     assert_eq!(r.mnemomorphism, GateVerdict::Pass);
 }
 
 #[test]
-fn correct_put_iri_but_wrong_body_fails_the_real_round_trip() {
-    // THE acceptance test for un-faking the gate. We derive an iso's put leg the lawful way
-    // (so its IRI is exactly the content-addressed mint `<get>/put#sha8`), then corrupt ONLY
-    // the put leg's BODY in the registry, keeping that correct IRI. The OLD gate compared
-    // `put_leg == derived_put_iri(get, c)` — a pure IRI-string match — so it would PASS this.
-    // The REAL gate composes the leg BODIES and REDs, because the body is no longer the
-    // inverse of get. This test is *impossible to write* against the old gate (legs had no
-    // bodies) — which is itself the proof the old gate verified nothing.
+fn executed_verdict_decides_round_trip_and_mnemomorphism_not_the_leg_iri() {
+    // The gates are execution-free: they read the EXECUTED section-law verdict, never a
+    // syntactic leg compare. The content-addressed put-IRI mint (`<get>/put#sha8`) is
+    // therefore irrelevant to the verdict — an iso with a genuine inverse discharges (PASS),
+    // while the SAME cell with a refuted (ObligationViolated) executed verdict REDs both the
+    // round-trip and mnemomorphism gates. The body→verdict discharge itself is proved against
+    // the engine in `gmeow_logic::correspondence_exec` (wrong_put_body_is_violated).
     let get = format!("{GMEOW}ex/getIso");
     let c = corr(
         &format!("{GMEOW}ex/iso"),
@@ -145,13 +164,7 @@ fn correct_put_iri_but_wrong_body_fails_the_real_round_trip() {
         Vec::new(),
     );
     let prog = derived(vec![c]);
-    // Lawful derived put passes (control).
-    assert_eq!(
-        evaluate_gates(&prog, &[]).per_correspondence[0].round_trip,
-        GateVerdict::Pass
-    );
-
-    // The derived put IRI IS the content-addressed mint — the OLD string compare would pass.
+    // The put IRI IS the content-addressed mint — but the gate never reads it.
     let put_iri = prog.correspondences[0]
         .put_leg
         .clone()
@@ -159,38 +172,33 @@ fn correct_put_iri_but_wrong_body_fails_the_real_round_trip() {
     assert_eq!(
         put_iri,
         crate::projections::put_derivation::derived_put_iri(&get, &prog.correspondences[0]),
-        "the put IRI is the content-addressed mint (so the IRI tautology would pass)"
+        "the put IRI is the content-addressed mint (so an IRI tautology would pass)"
     );
 
-    // Corrupt ONLY the body behind that (correct) IRI.
-    let mut legs = prog.leg_programs.clone();
-    for leg in &mut legs {
-        if leg.iri == put_iri {
-            leg.body = LegPath::Inverse(Box::new(LegPath::Step(format!("{GMEOW}ex/WRONG"))));
-        }
-    }
-    let corrupted = CorrespondenceProgram::new(
-        prog.correspondences.clone(),
-        prog.caveats.clone(),
-        prog.preservation,
-    )
-    .with_leg_programs(legs);
+    // A discharged executed verdict passes.
+    let ok = evaluate_gates(
+        &prog,
+        &[],
+        &verdicts_all(&prog, DischargeVerdict::ObligationDischarged),
+    );
+    assert_eq!(ok.per_correspondence[0].round_trip, GateVerdict::Pass);
 
-    let r = &evaluate_gates(&corrupted, &[]).per_correspondence[0];
+    // A refuted executed verdict REDs the round-trip AND witness-recovery gates.
+    let red = evaluate_gates(
+        &prog,
+        &[],
+        &verdicts_all(&prog, DischargeVerdict::ObligationViolated),
+    );
+    let r = &red.per_correspondence[0];
     assert!(
         r.round_trip.is_red(),
-        "a wrong put BODY (correct IRI) must RED the round-trip: {:?}",
+        "refuted verdict REDs round-trip: {:?}",
         r.round_trip
     );
     assert!(
         r.mnemomorphism.is_red(),
-        "a wrong put BODY must fail witness recovery: {:?}",
+        "refuted verdict REDs witness recovery: {:?}",
         r.mnemomorphism
-    );
-    // The put IRI never changed — proving it is the BODY, not the IRI, that decides the law.
-    assert_eq!(
-        corrupted.correspondences[0].put_leg.as_deref(),
-        Some(put_iri.as_str())
     );
 }
 
@@ -206,7 +214,12 @@ fn bridge_view_declaring_equiv_is_overclaim_red() {
         None,
         Vec::new(),
     );
-    let report = evaluate_gates(&program(vec![c]), &[]);
+    let prog = program(vec![c]);
+    let report = evaluate_gates(
+        &prog,
+        &[],
+        &verdicts_all(&prog, DischargeVerdict::ObligationUnknown),
+    );
     assert!(report.per_correspondence[0].overclaim.is_red());
     let err = assert_gates(&report).unwrap_err();
     assert!(err.0.contains("Overclaim"), "{}", err.0);
@@ -226,7 +239,13 @@ fn caveated_overlap_claiming_equiv_is_overclaim_red() {
         None,
         Vec::new(),
     );
-    let r = &evaluate_gates(&program(vec![c]), &[]).per_correspondence[0];
+    let prog = program(vec![c]);
+    let report = evaluate_gates(
+        &prog,
+        &[],
+        &verdicts_all(&prog, DischargeVerdict::ObligationUnknown),
+    );
+    let r = &report.per_correspondence[0];
     assert!(r.overclaim.is_red(), "{:?}", r.overclaim);
 }
 
@@ -248,7 +267,13 @@ fn discharged_section_law_without_a_correct_put_is_law_red() {
             condition: Some(DischargeCondition::DischargeFiniteClosure),
         }],
     );
-    let report = evaluate_gates(&program(vec![c]), &[]);
+    // The executed section-law discharge over the liar's own get/wrong-put legs is refuted.
+    let prog = program(vec![c]);
+    let report = evaluate_gates(
+        &prog,
+        &[],
+        &verdicts_all(&prog, DischargeVerdict::ObligationViolated),
+    );
     let r = &report.per_correspondence[0];
     assert!(r.law.is_red(), "law: {:?}", r.law);
     assert!(r.round_trip.is_red(), "round_trip: {:?}", r.round_trip);
@@ -267,7 +292,13 @@ fn mnemomorphic_on_non_injective_rung_is_mnemomorphism_red() {
         None,
         Vec::new(),
     );
-    let r = &evaluate_gates(&program(vec![c]), &[]).per_correspondence[0];
+    let prog = program(vec![c]);
+    let report = evaluate_gates(
+        &prog,
+        &[],
+        &verdicts_all(&prog, DischargeVerdict::ObligationUnknown),
+    );
+    let r = &report.per_correspondence[0];
     assert!(r.mnemomorphism.is_red(), "{:?}", r.mnemomorphism);
 }
 
@@ -315,7 +346,12 @@ fn composition_law_status_overclaim_is_red() {
         format!("{GMEOW}ex/lsRight"),
         Some(format!("{GMEOW}ex/lsComposite")),
     )];
-    let report = evaluate_gates(&program(vec![left, right, composite]), &comps);
+    let prog = program(vec![left, right, composite]);
+    let report = evaluate_gates(
+        &prog,
+        &comps,
+        &verdicts_all(&prog, DischargeVerdict::ObligationDischarged),
+    );
     let comp = &report.per_composition[0];
     assert_eq!(
         comp.composed_class, "LossyLens",
@@ -375,7 +411,11 @@ fn composition_weakens_passes() {
         format!("{GMEOW}ex/cLossy"),
         Some(format!("{GMEOW}ex/cComposite")),
     )];
-    let report = evaluate_gates(&prog, &comps);
+    let report = evaluate_gates(
+        &prog,
+        &comps,
+        &verdicts_all(&prog, DischargeVerdict::ObligationDischarged),
+    );
     assert_eq!(report.per_composition.len(), 1);
     assert_eq!(report.per_composition[0].composed_class, "LossyLens");
     assert_eq!(report.per_composition[0].composition, GateVerdict::Pass);
@@ -429,7 +469,11 @@ fn composition_strengthening_is_red() {
         format!("{GMEOW}ex/sAffine"),
         Some(format!("{GMEOW}ex/sComposite")),
     )];
-    let report = evaluate_gates(&prog, &comps);
+    let report = evaluate_gates(
+        &prog,
+        &comps,
+        &verdicts_all(&prog, DischargeVerdict::ObligationDischarged),
+    );
     assert_eq!(
         report.per_composition[0].composed_class,
         "AffineCorrespondence"
@@ -457,7 +501,11 @@ fn amnesic_mint_with_claim_is_not_lawful_uplift() {
         }],
     );
     let prog = derived(vec![c]);
-    let report = evaluate_gates(&prog, &[]);
+    let report = evaluate_gates(
+        &prog,
+        &[],
+        &verdicts_all(&prog, DischargeVerdict::ObligationDischarged),
+    );
     let r = &report.per_correspondence[0];
     assert!(matches!(r.round_trip, GateVerdict::NotApplicable { .. }));
     assert!(matches!(r.mnemomorphism, GateVerdict::NotApplicable { .. }));
@@ -502,7 +550,11 @@ fn liftability_counts_only_recoverable_cells() {
         }],
     );
     let prog = derived(vec![iso, amnesic]);
-    let lift = liftability(&evaluate_gates(&prog, &[]));
+    let lift = liftability(&evaluate_gates(
+        &prog,
+        &[],
+        &verdicts_all(&prog, DischargeVerdict::ObligationDischarged),
+    ));
     assert_eq!(
         lift,
         LiftabilityLedger {
@@ -526,7 +578,12 @@ fn gate_report_serializes_to_tagged_json() {
         None,
         Vec::new(),
     );
-    let report = evaluate_gates(&derived(vec![c]), &[]);
+    let prog = derived(vec![c]);
+    let report = evaluate_gates(
+        &prog,
+        &[],
+        &verdicts_all(&prog, DischargeVerdict::ObligationDischarged),
+    );
     let json = serde_json::to_string(&report).expect("serialize");
     assert!(json.contains("\"status\":\"pass\""), "{json}");
     assert!(json.contains("\"per_correspondence\""), "{json}");

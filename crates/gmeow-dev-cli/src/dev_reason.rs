@@ -439,7 +439,22 @@ pub fn certify(input_path: &Path, profile: Option<&str>) -> i32 {
             ));
         }
     };
-    let arts = match gmeow_logic_compile::projections::compile_program(&program) {
+    // Discharge every authored correspondence's lens law by EXECUTION so the five
+    // correspondence gates inside `compile_program` read a real per-correspondence verdict.
+    // A correspondence-free source yields an empty map (the gates never run); a source that
+    // declares `logic:Correspondence` cells MUST supply a verdict for each — computing it here
+    // is what keeps a correspondence-bearing input from reaching the gates' missing-verdict
+    // hard-fail. A malformed leg registry surfaces as a clean error, never a panic.
+    let verdicts = match gmeow_logic::correspondence_exec::logic_program_verdicts(&program) {
+        Ok(v) => v,
+        Err(e) => {
+            return fail(format!(
+                "certify: cannot discharge correspondence lens laws for {}: {e}",
+                input_path.display()
+            ));
+        }
+    };
+    let arts = match gmeow_logic_compile::projections::compile_program(&program, &verdicts) {
         Ok(a) => a,
         Err(e) => {
             return fail(format!(
