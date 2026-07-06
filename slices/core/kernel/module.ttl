@@ -710,7 +710,7 @@ gmeow:namingNote
     a owl:AnnotationProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
     rdfs:label "naming note"@x-gmeow-english ;
-    skos:definition "An explicit justification for a term local name that the primary/preferred/default/main naming lint (CONSTITUTION P9, co-equal facet lint) would otherwise reject. Legitimate value-vocabulary uses exist — gmeow:scriptRolePrimary names a linguistic reality (one co-equal value among seven), gmeow:sourceTierPrimary is the standard bibliographic axis — and this annotation records that judgment so the lint enforces it instead of relying on audit-time discretion. A term carrying namingNote must still never be a selector that privileges one co-equal claim over another."@x-gmeow-english ;
+    skos:definition "An explicit justification for a term local name that the primary/preferred/default/main naming lint (CONSTITUTION P9, co-equal facet lint) would otherwise reject. Legitimate value-vocabulary uses exist — gmeow:sourceTierPrimary is the standard bibliographic axis (one co-equal value among several) — and this annotation records that judgment so the lint enforces it instead of relying on audit-time discretion. A term carrying namingNote must still never be a selector that privileges one co-equal claim over another."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:pairsWith

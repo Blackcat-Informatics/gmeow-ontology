@@ -7,16 +7,17 @@
 # gmeow:proficiencyModality (reading / speaking / listening / signing …), because
 # the same person is often strong reading a language and weak speaking it. Each
 # proficiency is read against an explicit named gmeow:proficiencyScale (here
-# CEFR), so a level is never a bare adjective. Languages reuse the core seeds
-# (gmeow:langEnglish / langFrench).
+# CEFR), so a level is never a bare adjective. Languages reuse the lang: sign systems
+# (lang:english / lang:french).
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/languages/> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix lang:  <https://blackcatinformatics.ca/lang/> .
 
 ex:dana a gmeow:Person ;
     gmeow:name           "Dana Reyes"@x-gmeow-english ;
-    gmeow:nativeLanguage gmeow:langEnglish ;
-    gmeow:knowsLanguage  gmeow:langFrench .
+    gmeow:nativeLanguage lang:english ;
+    gmeow:knowsLanguage  lang:french .
 
 ex:cefr a gmeow:ProficiencyScale ; rdfs:label "CEFR"@x-gmeow-english .
 ex:b2   a gmeow:ProficiencyLevel ; rdfs:label "B2 (upper intermediate)"@x-gmeow-english .
@@ -25,7 +26,7 @@ ex:a2   a gmeow:ProficiencyLevel ; rdfs:label "A2 (elementary)"@x-gmeow-english 
 # --- Strong at READING French (B2) ...
 ex:frenchReading a gmeow:LanguageProficiency ;
     gmeow:proficiencyAgent    ex:dana ;
-    gmeow:proficiencyLanguage gmeow:langFrench ;
+    gmeow:proficiencyLanguage lang:french ;
     gmeow:proficiencyModality gmeow:profModalityReading ;
     gmeow:proficiencyLevel    ex:b2 ;
     gmeow:proficiencyScale    ex:cefr .
@@ -33,7 +34,7 @@ ex:frenchReading a gmeow:LanguageProficiency ;
 # --- ... but only A2 SPEAKING it — same language, different modality.
 ex:frenchSpeaking a gmeow:LanguageProficiency ;
     gmeow:proficiencyAgent    ex:dana ;
-    gmeow:proficiencyLanguage gmeow:langFrench ;
+    gmeow:proficiencyLanguage lang:french ;
     gmeow:proficiencyModality gmeow:profModalitySpeaking ;
     gmeow:proficiencyLevel    ex:a2 ;
     gmeow:proficiencyScale    ex:cefr .

@@ -12,12 +12,11 @@
 # not gufo:.
 #
 # RETAINED in pytest (not migratable here):
-#   test_writing_system_is_sibling_not_subclass — gmeow:WritingSystem is a
-#     subject defined in another slice; a scopeModule cell would miss it.
 #   test_language_is_sibling_not_subclass_of_symbolic — gmeow:Language is a
 #     subject defined in another slice; a scopeModule cell would miss it.
-#   test_formal_language_not_subclass_of_notation — gmeow:FormalLanguage is a
-#     subject defined in another slice.
+#   (The former gmeow:WritingSystem / gmeow:FormalLanguage sibling-vs-notation
+#    checks are retired: scripts are lang:Script and the formal-language kind is
+#    lang:formalLanguageKind, none of which are gmeow:NotationSystem subclasses.)
 #   test_value_vocabularies_not_subclasses (dynamic loop) — the
 #     graph.subjects(RDFS.subClassOf, node) sweep over the whole merged graph
 #     cannot be expressed as a module-scoped ASK without locking in specific
@@ -217,14 +216,15 @@ ex:saWritingSystemAsNotationProperty a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX lang: <https://blackcatinformatics.ca/lang/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:writingSystemAsNotation a owl:ObjectProperty ;
-        rdfs:domain gmeow:WritingSystem ;
+        rdfs:domain lang:Script ;
         rdfs:range gmeow:NotationSystem .
 }""" ;
-    gmeow:saRationale "gmeow:writingSystemAsNotation MUST be an owl:ObjectProperty with domain gmeow:WritingSystem and range gmeow:NotationSystem — the bridge when a writing system doubles as a notation system (Braille, featural scripts). Mirrors test_writing_system_as_notation_property_exists." .
+    gmeow:saRationale "gmeow:writingSystemAsNotation MUST be an owl:ObjectProperty with domain lang:Script and range gmeow:NotationSystem — the bridge when a script (lang:Script) doubles as a notation system (Braille, featural scripts). Mirrors test_writing_system_as_notation_property_exists." .
 
 # --- 19. notationSystemKind is a subproperty of symbolicSystemKind (MUST) -----
 ex:saNotationSystemKindIsSubproperty a gmeow:StructuralAssertion ;

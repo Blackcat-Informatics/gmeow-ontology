@@ -73,8 +73,8 @@ Binding rules, enforced by `tests/test_names.py`:
 @prefix ex:    <https://example.org/names/> .
 
 # --- Languages ---
-ex:langEn a gmeow:Language ; gmeow:languageTag "x-gmeow-english" ; gmeow:languageCode "en" .
-ex:langZh a gmeow:Language ; gmeow:languageTag "x-gmeow-chinese" ; gmeow:languageCode "zh" .
+ex:langEn a gmeow:Language ; gmeow:languageCode "en" .
+ex:langZh a gmeow:Language ; gmeow:languageCode "zh" .
 
 # --- Person and Names ---
 ex:patrick a gmeow:Person ; gmeow:hasName ex:nameLatin , ex:nameHan .   # co-equal
