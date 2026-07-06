@@ -11,6 +11,10 @@
 use std::collections::BTreeMap;
 use std::path::Path;
 
+use gmeow_logic_compile::ir::{
+    ConstraintComponent, ConstraintProvenance, PropertyConstraintIr, ShaclNodeKind, ShaclSeverity,
+    ShapeTarget, ValidationShapeIr,
+};
 use purrdf::slice::rdf_query::{Dataset, DatasetAccumulator, Object};
 
 use crate::error::PipelineError;
@@ -99,36 +103,145 @@ fn frame_requirements(
     Ok(rows)
 }
 
-/// Render the frame-relativity shapes document.
-pub fn render_frame_shapes(root: &Path) -> Result<String, PipelineError> {
-    let store = load_authored_no_imports(root)?;
-    let mut blocks: Vec<String> = vec![HEADER.to_string()];
-    for (carrier, prop, exactly_one, severity) in frame_requirements(&store)? {
-        let sh_severity = severity.shacl_token();
+/// Map a per-rule [`RuleSeverity`] onto the canonical IR [`ShaclSeverity`] via its
+/// SHACL token — the single crossing point where the frame stage's severity tier
+/// becomes the constraint model's severity. The token set is closed, so an unmapped
+/// token is a hard fail (never a silently-coerced default).
+fn map_severity(severity: RuleSeverity) -> Result<ShaclSeverity, PipelineError> {
+    match severity.shacl_token() {
+        "sh:Violation" => Ok(ShaclSeverity::Violation),
+        "sh:Warning" => Ok(ShaclSeverity::Warning),
+        "sh:Info" => Ok(ShaclSeverity::Info),
+        other => Err(PipelineError::InvalidDeclaration(format!(
+            "frame-shapes: unmapped SHACL severity token `{other}`"
+        ))),
+    }
+}
+
+/// Build the canonical [`ValidationShapeIr`]s for the frame-relativity requirements —
+/// the constraint DATA now lives in the shared IR (anti-drift), not in ad-hoc tuples.
+/// The frame-specific renderer ([`render_frame_shape`]) consumes these.
+fn frame_shapes(dataset: &Dataset) -> Result<Vec<ValidationShapeIr>, PipelineError> {
+    let mut shapes = Vec::new();
+    for (carrier, prop, exactly_one, severity) in frame_requirements(dataset)? {
         let count = if exactly_one {
             "exactly one"
         } else {
             "at least one"
         };
-        let mut lines: Vec<String> = vec![
-            format!("gmeow:{carrier}FrameRequirementShape"),
-            "    a sh:NodeShape ;".to_string(),
-            format!("    rdfs:label \"{carrier} frame-relativity shape (generated)\"@en ;"),
-            format!("    sh:targetClass gmeow:{carrier} ;"),
-            "    sh:property [".to_string(),
-            format!("        sh:path gmeow:{prop} ;"),
-            "        sh:minCount 1 ;".to_string(),
-        ];
-        if exactly_one {
-            lines.push("        sh:maxCount 1 ;".to_string());
+        let property = PropertyConstraintIr::new(
+            format!("{NS}{prop}"),
+            Some(1),
+            if exactly_one { Some(1) } else { None },
+            Some(ConstraintProvenance::OwlRestriction),
+            vec![ConstraintComponent::NodeKindShacl(ShaclNodeKind::Iri)],
+        )
+        .map_err(PipelineError::InvalidDeclaration)?
+        .with_severity(map_severity(severity)?)
+        .with_message(format!(
+            "A {carrier} must carry {count} reference frame (gmeow:{prop}) — a value asserted without its frame is ill-formed (CONSTITUTION P11)."
+        ))
+        .map_err(PipelineError::InvalidDeclaration)?;
+        let shape = ValidationShapeIr::new(
+            format!("{NS}{carrier}FrameRequirementShape"),
+            ShapeTarget::Class(format!("{NS}{carrier}")),
+            vec![property],
+            None,
+            None,
+            false,
+        )
+        .map_err(PipelineError::InvalidDeclaration)?
+        .with_label(format!("{carrier} frame-relativity shape (generated)"))
+        .map_err(PipelineError::InvalidDeclaration)?;
+        shapes.push(shape);
+    }
+    Ok(shapes)
+}
+
+/// Strip the `gmeow:` namespace prefix off an IRI to recover its local name.
+fn local_name(iri: &str) -> &str {
+    iri.strip_prefix(NS).unwrap_or(iri)
+}
+
+/// The frame render mode: reproduce the exact committed bytes for ONE shape by
+/// CONSUMING its canonical [`ValidationShapeIr`] — the local names, cardinality,
+/// node-kind, severity, message, and label are all read back off the IR, never
+/// re-derived from the tuple, so the constraint model is the single source of truth.
+fn render_frame_shape(shape: &ValidationShapeIr) -> Result<String, PipelineError> {
+    let carrier = match &shape.target {
+        ShapeTarget::Class(c) => local_name(c),
+        other => {
+            return Err(PipelineError::InvalidDeclaration(format!(
+                "frame-shapes: expected a class target, got {other:?}"
+            )));
         }
-        lines.push("        sh:nodeKind sh:IRI ;".to_string());
-        lines.push(format!("        sh:severity {sh_severity} ;"));
-        lines.push(format!(
-            "        sh:message \"A {carrier} must carry {count} reference frame (gmeow:{prop}) — a value asserted without its frame is ill-formed (CONSTITUTION P11).\" ;"
-        ));
-        lines.push("    ] .".to_string());
-        blocks.push(lines.join("\n") + "\n");
+    };
+    let label = shape.label.as_deref().ok_or_else(|| {
+        PipelineError::InvalidDeclaration(
+            "frame-shapes: shape is missing its rdfs:label".to_owned(),
+        )
+    })?;
+    let property = match shape.properties.as_slice() {
+        [p] => p,
+        _ => {
+            return Err(PipelineError::InvalidDeclaration(
+                "frame-shapes: expected exactly one property shape".to_owned(),
+            ));
+        }
+    };
+    let prop = local_name(&property.path);
+    let min = property.min_count.ok_or_else(|| {
+        PipelineError::InvalidDeclaration(
+            "frame-shapes: property is missing sh:minCount".to_owned(),
+        )
+    })?;
+    let node_kind = property
+        .components
+        .iter()
+        .find_map(|c| match c {
+            ConstraintComponent::NodeKindShacl(k) => Some(k),
+            _ => None,
+        })
+        .ok_or_else(|| {
+            PipelineError::InvalidDeclaration(
+                "frame-shapes: property is missing sh:nodeKind".to_owned(),
+            )
+        })?;
+    let severity = property.severity.ok_or_else(|| {
+        PipelineError::InvalidDeclaration(
+            "frame-shapes: property is missing sh:severity".to_owned(),
+        )
+    })?;
+    let message = property.message.as_deref().ok_or_else(|| {
+        PipelineError::InvalidDeclaration("frame-shapes: property is missing sh:message".to_owned())
+    })?;
+
+    let mut lines: Vec<String> = vec![
+        format!("gmeow:{carrier}FrameRequirementShape"),
+        "    a sh:NodeShape ;".to_string(),
+        format!("    rdfs:label \"{label}\"@en ;"),
+        format!("    sh:targetClass gmeow:{carrier} ;"),
+        "    sh:property [".to_string(),
+        format!("        sh:path gmeow:{prop} ;"),
+        format!("        sh:minCount {min} ;"),
+    ];
+    if let Some(max) = property.max_count {
+        lines.push(format!("        sh:maxCount {max} ;"));
+    }
+    lines.push(format!("        sh:nodeKind sh:{} ;", node_kind.as_str()));
+    lines.push(format!("        sh:severity sh:{} ;", severity.as_str()));
+    lines.push(format!("        sh:message \"{message}\" ;"));
+    lines.push("    ] .".to_string());
+    Ok(lines.join("\n") + "\n")
+}
+
+/// Render the frame-relativity shapes document — the constraint data flows through
+/// [`ValidationShapeIr`], then the frame-specific renderer reproduces the committed bytes.
+pub fn render_frame_shapes(root: &Path) -> Result<String, PipelineError> {
+    let store = load_authored_no_imports(root)?;
+    let mut blocks: Vec<String> = vec![HEADER.to_string()];
+    for shape in &frame_shapes(&store)? {
+        blocks.push(render_frame_shape(shape)?);
     }
     Ok(blocks.join("\n"))
 }
@@ -205,6 +318,44 @@ mod tests {
         let hard = rows.iter().find(|r| r.0 == "Hard").expect("Hard row");
         assert_eq!(soft.3.shacl_token(), "sh:Warning");
         assert_eq!(hard.3.shacl_token(), "sh:Violation");
+    }
+
+    #[test]
+    fn frame_shapes_flow_through_validation_shape_ir() {
+        use gmeow_logic_compile::ir::NodeKind;
+
+        let root = repo_root();
+        let store = load_authored_no_imports(&root).expect("load authored");
+        let shapes = frame_shapes(&store).expect("build validation-shape IR");
+
+        // The constraint data is now the canonical ValidationShapeIr.
+        assert!(!shapes.is_empty(), "expected at least one frame shape");
+        for shape in &shapes {
+            assert_eq!(shape.node_kind, NodeKind::ValidationShape);
+        }
+
+        // A known carrier (CharacterArc → arcFrame, exactly one, binding) carries the
+        // expected label / severity / message on its single property.
+        let ca = shapes
+            .iter()
+            .find(|s| s.iri == format!("{NS}CharacterArcFrameRequirementShape"))
+            .expect("CharacterArc frame shape");
+        assert_eq!(
+            ca.label.as_deref(),
+            Some("CharacterArc frame-relativity shape (generated)")
+        );
+        assert_eq!(ca.target, ShapeTarget::Class(format!("{NS}CharacterArc")));
+        let prop = &ca.properties[0];
+        assert_eq!(prop.path, format!("{NS}arcFrame"));
+        assert_eq!(prop.min_count, Some(1));
+        assert_eq!(prop.max_count, Some(1));
+        assert_eq!(prop.severity, Some(ShaclSeverity::Violation));
+        assert_eq!(
+            prop.message.as_deref(),
+            Some(
+                "A CharacterArc must carry exactly one reference frame (gmeow:arcFrame) — a value asserted without its frame is ill-formed (CONSTITUTION P11)."
+            )
+        );
     }
 
     #[test]
