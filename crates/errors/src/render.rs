@@ -376,6 +376,19 @@ pub fn to_gmeow_rdf_in_graph(report: &Report, graph_iri: &str) -> String {
                 &mut lines,
             );
         }
+        // The gating STANDPOINT truth-axis, pointing at the matching
+        // gmeow:standpoint* individual — the leg the `logic:ruleGateFatalVerdict`
+        // up-set rule (and its SHACL projection) reads alongside severity and
+        // category. Guarded by Some so a finding without a standpoint leaves the
+        // projection byte-unchanged.
+        if let Some(standpoint) = finding.standpoint {
+            triple(
+                &subject,
+                &format!("{GMEOW}findingStandpoint"),
+                &format!("<{GMEOW}{}>", standpoint.iri_local()),
+                &mut lines,
+            );
+        }
         // Advisory: one triple per suggestion (already sorted+deduped by normalize).
         for suggestion in &finding.suggestions {
             triple(
@@ -1227,6 +1240,36 @@ mod tests {
             );
         }
         assert_eq!(nquads, to_gmeow_rdf(&comprehensive_report()));
+    }
+
+    #[test]
+    fn gmeow_rdf_emits_finding_standpoint_when_present() {
+        // U1: a finding carrying a gating standpoint projects the
+        // `gmeow:findingStandpoint` twin pointing at the matching gmeow:standpoint*
+        // individual — the leg the logic:ruleGateFatalVerdict up-set rule (and its
+        // SHACL projection) reads. A standpoint-less finding emits no such triple,
+        // so existing goldens stay byte-unchanged.
+        use crate::grade::Standpoint;
+        let mut report = Report::new("validate");
+        report.add_finding(
+            Finding::new(Severity::Error, "x.binding", "binding finding")
+                .with_standpoint(Standpoint::Binding),
+        );
+        let nquads = to_gmeow_rdf(&report);
+        assert!(
+            nquads.contains(
+                "<https://blackcatinformatics.ca/gmeow/findingStandpoint> \
+                 <https://blackcatinformatics.ca/gmeow/standpointBinding>"
+            ),
+            "binding-standpoint finding must project gmeow:findingStandpoint: {nquads}"
+        );
+        // A finding without a standpoint emits no findingStandpoint triple.
+        let mut bare = Report::new("validate");
+        bare.add_finding(Finding::new(Severity::Error, "x.bare", "no standpoint"));
+        assert!(
+            !to_gmeow_rdf(&bare).contains("findingStandpoint"),
+            "standpoint-less finding must not project findingStandpoint"
+        );
     }
 
     #[test]
