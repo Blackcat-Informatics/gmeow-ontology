@@ -32,7 +32,7 @@
 use std::path::PathBuf;
 use std::sync::Arc;
 
-use purrdf::{RdfDataset, SparqlResult};
+use purrdf::{RdfDataset, RdfDatasetBuilder, RdfQuad, RdfTerm, SparqlResult};
 
 use crate::native_query::{self, merge_preserving_blanks};
 use crate::paths;
@@ -55,6 +55,109 @@ pub fn merged_store() -> Result<Arc<RdfDataset>, String> {
 /// fails to reach a fixpoint within the safety bound.
 pub fn rdfs_closed_store() -> Result<Arc<RdfDataset>, String> {
     rdfs_close(merged_store()?)
+}
+
+/// Build the native `logic:`-reasoned closure the `gmeow:reasoningLogic` lane queries.
+///
+/// The source graph is the authored algebra-law example files ([`algebra_law_files`]) —
+/// each carries one of the four `math:` laws (associativity, the determinant homomorphism,
+/// the E8 group action, and the homomorphic-encryption law) as a real first-order
+/// `logic:Formula` AST plus the minimal pre-reified operation-table witness EDB it fires
+/// over. That graph is compiled to a canonical [`LogicProgram`]
+/// ([`parse_logic_dataset`](gmeow_logic_compile::frontend::parse_logic_dataset)) and
+/// evaluated over the same graph as its EDB through
+/// [`reason_program_closure_dataset`](gmeow_logic::reason::reason_program_closure_dataset);
+/// the returned dataset is the full entailment closure (asserted + derived), so a competency
+/// question sees the consequents the laws DERIVE — the reified n-ary tuples included — not
+/// just the asserted data.
+///
+/// The lane is deliberately scoped to the law-carrying example sources rather than the whole
+/// merged ontology: the four laws are the only `logic:Formula`s with authored witness EDB, so
+/// nothing else fires, and reasoning the entire ontology would balloon the closure (a ~37k-quad
+/// DL closure of unrelated vocabulary) past the per-test time budget for no added entailment.
+/// A future `reasoningLogic` question extends the source set here, exactly as a new module
+/// extends [`merged_store`]. This is the ONE lane that pays the native chase (and pulls Nemo
+/// into the build graph); the default (`reasoningNone`) and `reasoningRdfs` lanes stay Nemo-free.
+///
+/// # Errors
+///
+/// Returns `Err(String)` if the law sources cannot be built, if the program cannot be
+/// compiled (a parse error, or any `Severity::Error` diagnostic — never papered over), or
+/// if the native reasoner fails.
+pub fn native_closed_store() -> Result<Arc<RdfDataset>, String> {
+    let files = algebra_law_files();
+    let store = native_query::dataset_from_files(&files)
+        .map_err(|e| format!("loading the algebra-law example sources: {e}"))?;
+    // The program is extracted from the DEFAULT-graph source (parse_logic_dataset reads the
+    // default graph), but the native reasoner's EDB is world-scoped: it only reasons over
+    // NAMED-graph quads (WorldStore::worlds skips the default graph by design). Slice Turtle
+    // is a single default graph, so re-scope every quad into the reasoner's default world
+    // before reasoning; the closure projection maps that world back to the RDF default graph.
+    let (program, diagnostics) =
+        gmeow_logic_compile::frontend::parse_logic_dataset(store.as_ref(), None).map_err(|e| {
+            format!("compiling the logic program from the algebra-law sources: {e}")
+        })?;
+    // The front-end is fail-soft (a malformed cell becomes a WARNING and is skipped), but a
+    // Severity::Error diagnostic is a hard, non-recoverable fault — refuse to reason over a
+    // program the compiler flagged as erroneous rather than silently under-reasoning.
+    let errors: Vec<String> = diagnostics
+        .iter()
+        .filter(|d| d.severity == gmeow_logic_compile::frontend::Severity::Error)
+        .map(|d| format!("{}: {}", d.code, d.message))
+        .collect();
+    if !errors.is_empty() {
+        return Err(format!(
+            "the algebra-law sources did not compile to a clean logic program ({} error diagnostic(s)): {}",
+            errors.len(),
+            errors.join("; ")
+        ));
+    }
+    let edb = world_scoped(&store)?;
+    gmeow_logic::reason::reason_program_closure_dataset(&program, edb.as_ref())
+        .map_err(|e| format!("native logic reasoning over the algebra-law sources: {e}"))
+}
+
+/// Re-scope every quad of `dataset` into the native reasoner's default world
+/// ([`gmeow_logic::reason::rl::DEFAULT_WORLD`]) so it is visible to the world-scoped chase.
+///
+/// The reasoner reads its EDB from NAMED graphs only; slice Turtle is a single default
+/// graph, so without this every fact would be invisible and the closure empty. The closure
+/// projection maps this world back to the RDF default graph, so the round-trip is transparent
+/// to a competency query.
+fn world_scoped(dataset: &Arc<RdfDataset>) -> Result<Arc<RdfDataset>, String> {
+    let world = RdfTerm::iri(gmeow_logic::reason::rl::DEFAULT_WORLD);
+    let mut builder = RdfDatasetBuilder::new();
+    for quad in dataset.owned_quads() {
+        let scoped =
+            RdfQuad::new(quad.subject, quad.predicate, quad.object).in_graph(world.clone());
+        builder.push_owned_quad(&scoped);
+    }
+    builder
+        .freeze()
+        .map_err(|e| format!("re-scoping the merged graph into the reasoner world: {e}"))
+}
+
+/// The four authored algebra-law example files the native lane reasons over, in addition
+/// to the merged module graph. Each carries one of the four `math:` laws as a real
+/// logic:Formula AST plus its pre-reified operation-table witness EDB.
+///
+/// `algebra-axioms.ttl` (associativity), `algebra-homomorphisms.ttl` (the determinant
+/// homomorphism), `e8-symmetry.ttl` (the E8 group action), and `homomorphic-encryption.ttl`
+/// (the homomorphic-encryption law).
+fn algebra_law_files() -> Vec<PathBuf> {
+    let examples = paths::slices_root()
+        .join("grounding")
+        .join("math")
+        .join("examples");
+    [
+        "algebra-axioms.ttl",
+        "algebra-homomorphisms.ttl",
+        "e8-symmetry.ttl",
+        "homomorphic-encryption.ttl",
+    ]
+    .iter()
+    .map(|f| examples.join(f))
+    .collect()
 }
 
 /// The reasoned source-set: `ontology/gmeow.ttl` followed by every slice module,

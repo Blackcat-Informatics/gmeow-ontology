@@ -33,7 +33,7 @@ use crate::nemo_engine::TypedRow;
 use crate::oracle::{ForwardBudget, ForwardOracle, forward_oracle};
 use crate::result::{ReasoningResult, ResultProvenance};
 use crate::store::WorldStore;
-use purrdf::{RdfDataset, RdfDatasetBuilder, TermValue};
+use purrdf::{RdfDataset, RdfDatasetBuilder, RdfLiteral, RdfQuad, RdfTerm, RdfTriple, TermValue};
 
 /// The content-addressed identity of the native EL/DL/RL reasoning contract —
 /// the `contract_hash` every native-reason result is produced under.
@@ -178,6 +178,86 @@ pub fn reason_program(
         &formula_preservation,
         provenance,
     ))
+}
+
+/// Reason over `program` against `edb` and project the resulting closure (asserted +
+/// derived axioms) back into a frozen [`RdfDataset`] a SPARQL consumer can query.
+///
+/// This is the closure→RDF bridge the native competency-question lane (`crates/slicetest`)
+/// runs over: it evaluates [`reason_program`] and re-materializes every [`InferredAxiom`] as
+/// a quad in its world graph, so a query sees the FULL entailment closure (the reified n-ary
+/// tuples included), not just the asserted data. Both asserted (`is_edb`) and derived axioms
+/// are emitted so a query over the closure sees the complete graph.
+///
+/// The per-axiom `subject`/`predicate` are IRIs; the `object` is the `term_display` surface
+/// (`<iri>`, `_:blank`, or a literal) re-parsed via [`crate::rule_ir::surface_to_value`]. The
+/// `world` string becomes the quad's graph name when it is an absolute IRI (a bodyless-rule
+/// `"default"` world lands in the default graph).
+///
+/// # Errors
+///
+/// Returns `Err(String)` if [`reason_program`] fails, if an object surface cannot be
+/// re-parsed, or if the projected dataset fails the freeze-time structural contract.
+pub fn reason_program_closure_dataset(
+    program: &gmeow_logic_compile::ir::LogicProgram,
+    edb: &RdfDataset,
+) -> Result<std::sync::Arc<RdfDataset>, String> {
+    let result = reason_program(program, edb)?;
+    let mut builder = RdfDatasetBuilder::new();
+    for ax in result.inferred() {
+        let subject = RdfTerm::iri(ax.subject.clone());
+        let object = term_value_to_rdf_term(&crate::rule_ir::surface_to_value(&ax.object)?)?;
+        let mut quad = RdfQuad::new(subject, ax.predicate.clone(), object);
+        // The world travels as a plain string. The reasoner's default-world sentinel
+        // ([`rl::DEFAULT_WORLD`], where un-named / default-graph EDB is reasoned) projects
+        // back to the RDF DEFAULT graph, so a graph-clause-free competency query over the
+        // closure sees it. A genuinely NAMED world (an absolute-IRI graph other than the
+        // sentinel) is preserved as a named graph.
+        if ax.world != rl::DEFAULT_WORLD && ax.world.contains("://") {
+            quad = quad.in_graph(RdfTerm::iri(ax.world.clone()));
+        }
+        builder.push_owned_quad(&quad);
+    }
+    builder.freeze().map_err(|e| e.to_string())
+}
+
+/// Re-materialize a native [`TermValue`] (as produced by
+/// [`crate::rule_ir::surface_to_value`]) into an owned [`RdfTerm`].
+///
+/// `surface_to_value` only ever yields an IRI, a blank node, or a literal, so a triple
+/// term is a hard error rather than a silent drop (the no-optionality discipline).
+fn term_value_to_rdf_term(value: &TermValue) -> Result<RdfTerm, String> {
+    Ok(match value {
+        TermValue::Iri(iri) => RdfTerm::iri(iri.clone()),
+        TermValue::Blank { label, .. } => RdfTerm::blank_node(label.clone()),
+        TermValue::Literal {
+            lexical_form,
+            datatype,
+            language,
+            ..
+        } => {
+            let literal = match language {
+                Some(lang) => RdfLiteral::language_tagged(lexical_form.clone(), lang.clone()),
+                None => RdfLiteral::typed(lexical_form.clone(), datatype.clone()),
+            };
+            RdfTerm::literal(literal)
+        }
+        TermValue::Triple { s, p, o } => {
+            let predicate = match p.as_ref() {
+                TermValue::Iri(iri) => iri.clone(),
+                other => {
+                    return Err(format!(
+                        "closure→RDF: triple-term predicate must be an IRI, got {other:?}"
+                    ));
+                }
+            };
+            RdfTerm::triple(RdfTriple::new(
+                term_value_to_rdf_term(s)?,
+                predicate,
+                term_value_to_rdf_term(o)?,
+            ))
+        }
+    })
 }
 
 /// Evaluate the n-ary HEAD-derivation `.rls` (conjunctive-head existential rules) through the
@@ -806,6 +886,252 @@ mod tests {
                 .any(|c| c.contains("formula") || c.contains("not bound") || c.contains("nary")),
             "no n-ary head residue disclosed: {:?}",
             result.preservation.unsupported_constructs
+        );
+    }
+
+    /// The E8 group-action law `(g·h)·x = g·(h·x)`: TERNARY `comp`/`act` atoms in the
+    /// BODY (reified) and a BINARY `eq` head (a plain binary tuple, not reified). Seeded on
+    /// a concrete compatible action so both bracketings reach the SAME value `r`; then the
+    /// binary consequent `eq(r, r)` must be derived. This is the e8-symmetry law shape
+    /// evaluating end-to-end through `reason_program`.
+    #[test]
+    fn reason_program_closure_dataset_carries_the_derived_nary_tuple() {
+        // The closure→RDF bridge (the native competency lane's substrate): the det law's
+        // closure dataset, obtained via reason_program_closure_dataset, must contain the
+        // DERIVED reified argument triple logic:naryArg0(R, dA) — a triple no query over the
+        // asserted EDB alone could see (R is a chase-minted reifier).
+        let law = Formula::Forall {
+            vars: vec![
+                "A".into(),
+                "B".into(),
+                "AB".into(),
+                "dA".into(),
+                "dB".into(),
+                "dAB".into(),
+            ],
+            body: Box::new(Formula::Implies(
+                Box::new(Formula::And(vec![
+                    fml_atom(
+                        MATMUL,
+                        vec![
+                            Term::var("A").unwrap(),
+                            Term::var("B").unwrap(),
+                            Term::var("AB").unwrap(),
+                        ],
+                    ),
+                    fml_atom(DET, vec![Term::var("A").unwrap(), Term::var("dA").unwrap()]),
+                    fml_atom(DET, vec![Term::var("B").unwrap(), Term::var("dB").unwrap()]),
+                    fml_atom(
+                        DET,
+                        vec![Term::var("AB").unwrap(), Term::var("dAB").unwrap()],
+                    ),
+                ])),
+                Box::new(fml_atom(
+                    MUL,
+                    vec![
+                        Term::var("dA").unwrap(),
+                        Term::var("dB").unwrap(),
+                        Term::var("dAB").unwrap(),
+                    ],
+                )),
+            )),
+        };
+        let program = LogicProgram::new(vec![], vec![], vec![], None).with_formulas(vec![law]);
+        let na = logic_nary_arg(0);
+        let nb = logic_nary_arg(1);
+        let nab = logic_nary_arg(2);
+        let edb = dataset(vec![
+            quad(MATMUL_REIFIER, LOGIC_INSTANCE_OF, MATMUL),
+            quad(MATMUL_REIFIER, &na, MAT_A),
+            quad(MATMUL_REIFIER, &nb, MAT_B),
+            quad(MATMUL_REIFIER, &nab, MAT_AB),
+            quad(MAT_A, DET, DET_A),
+            quad(MAT_B, DET, DET_B),
+            quad(MAT_AB, DET, DET_AB),
+        ]);
+
+        let closure = reason_program_closure_dataset(&program, edb.as_ref())
+            .expect("closure dataset must build");
+
+        // Scan the projected closure for logic:naryArg0(R, dA): R is the chase-minted
+        // content-addressed reifier, dA the concrete det value.
+        let na0 = logic_nary_arg(0);
+        let found = closure.owned_quads().any(|q| {
+            q.predicate == na0
+                && q.object == RdfTerm::iri(DET_A)
+                && matches!(&q.subject, RdfTerm::Iri(s) if s.starts_with(NARY_REIFIER_PREFIX))
+        });
+        assert!(
+            found,
+            "the closure dataset must carry the derived logic:naryArg0(R, dA) triple; quads: {:?}",
+            closure
+                .owned_quads()
+                .map(|q| (q.subject.clone(), q.predicate.clone(), q.object.clone()))
+                .collect::<Vec<_>>()
+        );
+    }
+
+    #[test]
+    fn reason_program_evaluates_the_group_action_law_end_to_end() {
+        // ∀g,h,x,gh,r1,hx,r2. comp(g,h,gh) ∧ act(gh,x,r1) ∧ act(h,x,hx) ∧ act(g,hx,r2) → eq(r1,r2)
+        const COMP: &str = "http://gmeow.example/comp";
+        const ACT: &str = "http://gmeow.example/act";
+        const EQ: &str = "http://gmeow.example/eq";
+        let v = |n: &str| Term::var(n).unwrap();
+        let law = Formula::Forall {
+            vars: ["g", "h", "x", "gh", "r1", "hx", "r2"]
+                .iter()
+                .map(|s| (*s).to_owned())
+                .collect(),
+            body: Box::new(Formula::Implies(
+                Box::new(Formula::And(vec![
+                    fml_atom(COMP, vec![v("g"), v("h"), v("gh")]),
+                    fml_atom(ACT, vec![v("gh"), v("x"), v("r1")]),
+                    fml_atom(ACT, vec![v("h"), v("x"), v("hx")]),
+                    fml_atom(ACT, vec![v("g"), v("hx"), v("r2")]),
+                ])),
+                Box::new(fml_atom(EQ, vec![v("r1"), v("r2")])),
+            )),
+        };
+        let program = LogicProgram::new(vec![], vec![], vec![], None).with_formulas(vec![law]);
+
+        // A concrete compatible action where (g·h)·x and g·(h·x) both reach `r`.
+        const G: &str = "http://gmeow.example/g";
+        const H: &str = "http://gmeow.example/h";
+        const XPT: &str = "http://gmeow.example/pt";
+        const GH: &str = "http://gmeow.example/gh";
+        const HX: &str = "http://gmeow.example/hx";
+        const R: &str = "http://gmeow.example/r";
+        let a0 = logic_nary_arg(0);
+        let a1 = logic_nary_arg(1);
+        let a2 = logic_nary_arg(2);
+        // comp/act are ternary → the EDB atoms are authored PRE-REIFIED (instanceOf + naryArg).
+        let mut quads = Vec::new();
+        let mut reify = |node: &str, rel: &str, s: &str, t: &str, u: &str| {
+            quads.push(quad(node, LOGIC_INSTANCE_OF, rel));
+            quads.push(quad(node, &a0, s));
+            quads.push(quad(node, &a1, t));
+            quads.push(quad(node, &a2, u));
+        };
+        reify("http://gmeow.example/r_comp", COMP, G, H, GH); // g·h = gh
+        reify("http://gmeow.example/r_act1", ACT, GH, XPT, R); // (g·h)·x = r
+        reify("http://gmeow.example/r_act2", ACT, H, XPT, HX); // h·x = hx
+        reify("http://gmeow.example/r_act3", ACT, G, HX, R); // g·(h·x) = r
+        let edb = dataset(quads);
+
+        let result = reason_program(&program, edb.as_ref()).expect("reason_program ok");
+
+        // The binary consequent eq(r1, r2) = eq(r, r) must be derived.
+        let eq_rr = result
+            .inferred()
+            .iter()
+            .any(|ax| ax.predicate == EQ && ax.subject == R && ax.object == format!("<{R}>"));
+        assert!(
+            eq_rr,
+            "the group-action law must derive eq(r, r); closure: {:?}",
+            result
+                .inferred()
+                .iter()
+                .filter(|a| a.predicate == EQ)
+                .map(|a| (&a.subject, &a.object))
+                .collect::<Vec<_>>()
+        );
+        // A fully-evaluable n-ary body law lowers exactly (no residue).
+        assert!(
+            !result
+                .preservation
+                .polarities
+                .contains(&PreservationKind::SoundUnder),
+            "the group-action law lowers exactly: {:?}",
+            result.preservation
+        );
+    }
+
+    /// The homomorphic-encryption law `Dec(E(a) ⊗ E(b)) = a ⊕ b`: BINARY `enc`/`dec`
+    /// atoms (plain body triples) plus TERNARY `ctMul`/`ptAdd` atoms (reified body atoms)
+    /// and a BINARY `eq` head. Seeded on concrete values so the decrypted ciphertext
+    /// product and the plaintext sum reach the SAME value `p`; then `eq(p, p)` must be
+    /// derived. This is the homomorphic-encryption law shape evaluating end-to-end.
+    #[test]
+    fn reason_program_evaluates_the_he_law_end_to_end() {
+        // ∀a,b,ea,eb,prod,decv,sum.
+        //   enc(a,ea) ∧ enc(b,eb) ∧ ctMul(ea,eb,prod) ∧ dec(prod,decv) ∧ ptAdd(a,b,sum) → eq(decv,sum)
+        const ENC: &str = "http://gmeow.example/enc";
+        const DEC: &str = "http://gmeow.example/dec";
+        const CTMUL: &str = "http://gmeow.example/ctMul";
+        const PTADD: &str = "http://gmeow.example/ptAdd";
+        const EQ: &str = "http://gmeow.example/eq";
+        let v = |n: &str| Term::var(n).unwrap();
+        let law = Formula::Forall {
+            vars: ["a", "b", "ea", "eb", "prod", "decv", "sum"]
+                .iter()
+                .map(|s| (*s).to_owned())
+                .collect(),
+            body: Box::new(Formula::Implies(
+                Box::new(Formula::And(vec![
+                    fml_atom(ENC, vec![v("a"), v("ea")]),
+                    fml_atom(ENC, vec![v("b"), v("eb")]),
+                    fml_atom(CTMUL, vec![v("ea"), v("eb"), v("prod")]),
+                    fml_atom(DEC, vec![v("prod"), v("decv")]),
+                    fml_atom(PTADD, vec![v("a"), v("b"), v("sum")]),
+                ])),
+                Box::new(fml_atom(EQ, vec![v("decv"), v("sum")])),
+            )),
+        };
+        let program = LogicProgram::new(vec![], vec![], vec![], None).with_formulas(vec![law]);
+
+        // Concrete values: encrypt a→ea, b→eb; the ciphertext product decrypts to `p`, and
+        // the plaintext sum is the SAME `p` (the homomorphic property holds on this instance).
+        const A: &str = "http://gmeow.example/pa";
+        const B: &str = "http://gmeow.example/pb";
+        const EA: &str = "http://gmeow.example/ea";
+        const EB: &str = "http://gmeow.example/eb";
+        const PROD: &str = "http://gmeow.example/prod";
+        const P: &str = "http://gmeow.example/p";
+        let a0 = logic_nary_arg(0);
+        let a1 = logic_nary_arg(1);
+        let a2 = logic_nary_arg(2);
+        // Binary enc/dec are PLAIN triples; ternary ctMul/ptAdd are PRE-REIFIED.
+        let mut quads = vec![
+            quad(A, ENC, EA),   // enc(a) = ea
+            quad(B, ENC, EB),   // enc(b) = eb
+            quad(PROD, DEC, P), // dec(prod) = p
+        ];
+        let mut reify = |node: &str, rel: &str, s: &str, t: &str, u: &str| {
+            quads.push(quad(node, LOGIC_INSTANCE_OF, rel));
+            quads.push(quad(node, &a0, s));
+            quads.push(quad(node, &a1, t));
+            quads.push(quad(node, &a2, u));
+        };
+        reify("http://gmeow.example/r_ctmul", CTMUL, EA, EB, PROD); // ea ⊗ eb = prod
+        reify("http://gmeow.example/r_ptadd", PTADD, A, B, P); // a ⊕ b = p
+        let edb = dataset(quads);
+
+        let result = reason_program(&program, edb.as_ref()).expect("reason_program ok");
+
+        // The binary consequent eq(decv, sum) = eq(p, p) must be derived.
+        let eq_pp = result
+            .inferred()
+            .iter()
+            .any(|ax| ax.predicate == EQ && ax.subject == P && ax.object == format!("<{P}>"));
+        assert!(
+            eq_pp,
+            "the homomorphic-encryption law must derive eq(p, p); closure: {:?}",
+            result
+                .inferred()
+                .iter()
+                .filter(|a| a.predicate == EQ)
+                .map(|a| (&a.subject, &a.object))
+                .collect::<Vec<_>>()
+        );
+        // A fully-evaluable law (binary + reified-ternary body) lowers exactly (no residue).
+        assert!(
+            !result
+                .preservation
+                .polarities
+                .contains(&PreservationKind::SoundUnder),
+            "the homomorphic-encryption law lowers exactly: {:?}",
+            result.preservation
         );
     }
 

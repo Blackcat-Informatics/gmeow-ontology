@@ -106,3 +106,31 @@ exa:heA5 a logic:Formula ; logic:relation exa:ptAddRel ;
 
 exa:heCons a logic:Formula ; logic:relation exa:eqRel ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "decv" ] , [ logic:termIndex 1 ; logic:termVariable "sum" ] .
+
+# ===========================================================================
+# LIVE-ENTAILMENT WITNESS EDB (#1294) — the homomorphic-encryption law as an
+# evaluable consumer in the native competency lane (gmeow:reasoningLogic).
+# ===========================================================================
+# Concrete plaintexts a,b encrypting to ea,eb; the ciphertext product decrypts to
+# `heP`, and the plaintext sum a⊕b is the SAME `heP` (the homomorphic property holds
+# on this instance). The binary enc/dec atoms are plain triples (exa:encRel/exa:decRel);
+# the ternary ctMul/ptAdd atoms are PRE-REIFIED (logic:instanceOf + logic:naryArg0/1/2).
+# Firing heLaw over this data DERIVES the binary consequent eq(heP, heP), present in
+# the reasoned closure only because the law fired. The he-scheme-frame competency
+# question queries exactly that derived tuple.
+
+exa:heWa    rdfs:label "HE witness plaintext a"@x-gmeow-english .
+exa:heWb    rdfs:label "HE witness plaintext b"@x-gmeow-english .
+exa:heWea   rdfs:label "E(a)"@x-gmeow-english .
+exa:heWeb   rdfs:label "E(b)"@x-gmeow-english .
+exa:heWprod rdfs:label "E(a) ⊗ E(b)"@x-gmeow-english .
+exa:heWp    rdfs:label "Dec(E(a) ⊗ E(b)) = a ⊕ b = p"@x-gmeow-english .
+
+exa:heWa    exa:encRel exa:heWea .   # E(a) = ea
+exa:heWb    exa:encRel exa:heWeb .   # E(b) = eb
+exa:heWprod exa:decRel exa:heWp .    # Dec(prod) = p
+
+exa:heCtMul logic:instanceOf exa:ctMulRel ;
+    logic:naryArg0 exa:heWea ; logic:naryArg1 exa:heWeb ; logic:naryArg2 exa:heWprod .  # ea ⊗ eb = prod
+exa:hePtAdd logic:instanceOf exa:ptAddRel ;
+    logic:naryArg0 exa:heWa ; logic:naryArg1 exa:heWb ; logic:naryArg2 exa:heWp .        # a ⊕ b = p
