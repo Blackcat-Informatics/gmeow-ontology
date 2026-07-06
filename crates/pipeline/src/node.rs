@@ -23,8 +23,6 @@ use crate::bundle::{
     PipelineHandle, bundle_artifact, bundle_artifacts, bundle_from_artifacts,
     bundle_from_artifacts_over,
 };
-use crate::error::PipelineError;
-
 /// The GMEOW namespace prefix that every pipeline term lives under.
 pub(crate) const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
 
@@ -145,6 +143,53 @@ impl StageProduct {
     pub fn artifacts(&self) -> BTreeMap<String, Vec<u8>> {
         bundle_artifacts(&self.bundle)
     }
+
+    /// The FORWARD-projected diagnostics nodes this product carries on its
+    /// `diagnostics:nodes` blob lane ([`crate::stages::carrier::REP_DIAG_NODES`]), or an
+    /// EMPTY vec when the product carries none (every non-producer stage). This is the
+    /// lane the scheduler reads on a CACHE HIT to recover a diagnostics producer's run
+    /// ledger contribution WITHOUT re-running the stage — the blob round-trips through
+    /// the per-stage cache, so the recovered nodes are byte-identical to the fresh run.
+    /// A present-but-malformed blob is a corrupt product — a HARD FAIL (no-optionality).
+    pub fn diag_nodes(&self) -> Vec<gmeow_errors::DiagNode> {
+        match crate::bundle::bundle_rep_blob(&self.bundle, crate::stages::carrier::REP_DIAG_NODES) {
+            Some(bytes) => serde_json::from_slice(bytes).expect(
+                "diagnostics:nodes blob is our own JSON; a decode failure is a corrupt cache",
+            ),
+            None => Vec::new(),
+        }
+    }
+
+    /// The authored subject→source-position [`SpanIndex`](crate::ingest::SpanIndex) this
+    /// product carries on its `spans:source-table` blob lane
+    /// ([`crate::stages::carrier::REP_SPAN_TABLE`]), deserialized. Read by the span-table
+    /// consumers (`stage-validate` / `stage-compile-logic`) off the `stage-source-load`
+    /// product to lift spans onto their findings.
+    ///
+    /// The blob being ABSENT is a HARD FAIL ([`crate::error::SpanTableConsumedAfterDrop`]):
+    /// the span table is stripped from the source-load product once the last consumer has
+    /// run (drop-after-last-consumer), so a reader finding it absent is a stage reaching
+    /// for it AFTER the drop — never a legitimate read (the drop level is computed as the
+    /// max consumer level, so real consumers always run before it). A present-but-malformed
+    /// blob is likewise a HARD FAIL (no-optionality).
+    pub fn span_index(&self) -> gmeow_errors::Result<crate::ingest::SpanIndex> {
+        match crate::bundle::bundle_rep_blob(&self.bundle, crate::stages::carrier::REP_SPAN_TABLE) {
+            Some(bytes) => serde_json::from_slice(bytes).map_err(|e| {
+                gmeow_errors::Diag::of_kind(crate::error::Decode {
+                    message: format!("source-span table blob JSON: {e}"),
+                })
+            }),
+            None => Err(gmeow_errors::Diag::of_kind(
+                crate::error::SpanTableConsumedAfterDrop {
+                    detail: format!(
+                        "product `{}` carries no {} blob",
+                        self.stage_id,
+                        crate::stages::carrier::REP_SPAN_TABLE
+                    ),
+                },
+            )),
+        }
+    }
 }
 
 /// The input handed to a stage's `run`: the repo root and the products of every
@@ -161,6 +206,26 @@ pub struct StageInput<'a> {
 pub struct StageOutput {
     /// The single product this stage produced.
     pub product: StageProduct,
+    /// The pre-lowered diagnostic nodes this stage emits (the FORWARD projection of
+    /// its `gmeow_errors::Report` findings). Empty for every stage that produces no
+    /// findings; the two diagnostics producers (`stage-validate` /
+    /// `stage-compile-logic`) populate it from their report. The scheduler folds
+    /// these into the run-level `DiagLedger` (fresh run) or reads them back from the
+    /// product's `diagnostics:nodes` blob (cache hit), so the ledger is a projection
+    /// of the SAME producer findings whether the stage ran or replayed.
+    pub diags: Vec<gmeow_errors::DiagNode>,
+}
+
+impl StageOutput {
+    /// A stage output carrying `product` and NO diagnostic nodes — the default for
+    /// every stage that emits no findings. The two diagnostics producers build the
+    /// struct literal directly, threading their forward `diags` in.
+    pub fn new(product: StageProduct) -> Self {
+        Self {
+            product,
+            diags: Vec::new(),
+        }
+    }
 }
 
 /// A pipeline stage: one node in the build DAG. The Rust impl is the executable
@@ -207,6 +272,16 @@ pub trait Stage: Send + Sync {
     fn consumed_entities(&self) -> &[(String, Vec<String>)] {
         &[]
     }
+    /// Whether this stage READS `stage-source-load`'s source-span table (via
+    /// [`StageProduct::span_index`]). Overridden to `true` by the two diagnostics
+    /// consumers (`stage-validate` / `stage-compile-logic`) ONLY. The scheduler folds the
+    /// max topological level holding a span-table consumer into the drop-after-last-consumer
+    /// point: after that level commits, the span-table blob is stripped from the source-load
+    /// product, so every later stage that reaches for it HARD-fails and the shipped bundle
+    /// never carries it. The default is `false` — a stage that does not read spans.
+    fn consumes_span_table(&self) -> bool {
+        false
+    }
     /// A version string folded into the cache key; bump to invalidate this
     /// stage's cached products when its logic changes.
     fn impl_version(&self) -> &str;
@@ -222,9 +297,9 @@ pub trait Stage: Send + Sync {
     /// `SourceLoad`/`stage-snapshot` product declares nothing here. Paths are
     /// resolved relative to the repo root; the scheduler reads each file's bytes
     /// and folds a content digest into the key (a missing file HARD-fails).
-    fn input_files(&self, _root: &Path) -> Result<Vec<std::path::PathBuf>, PipelineError> {
+    fn input_files(&self, _root: &Path) -> gmeow_errors::Result<Vec<std::path::PathBuf>> {
         Ok(Vec::new())
     }
     /// Execute the stage over its upstream products.
-    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError>;
+    fn run(&self, input: StageInput<'_>) -> gmeow_errors::Result<StageOutput>;
 }

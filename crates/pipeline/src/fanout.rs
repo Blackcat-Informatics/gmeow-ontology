@@ -27,7 +27,6 @@ use std::path::Path;
 
 use rayon::prelude::*;
 
-use crate::error::PipelineError;
 use crate::run::{GTS_PATH, write_artifact};
 use crate::stages::superset::project_bundle;
 
@@ -52,15 +51,17 @@ pub struct FanoutReport {
 /// `jobs` is the parallelism budget: the independent per-file writes run on a local
 /// rayon pool of that many threads (clamped to `>= 1`), honouring the budget without
 /// touching the global pool (mirroring [`crate::scheduler`]).
-pub fn fanout(root: &Path, jobs: usize) -> Result<FanoutReport, PipelineError> {
+pub fn fanout(root: &Path, jobs: usize) -> Result<FanoutReport, gmeow_errors::Diag> {
     // GENERATED-READ-OK: fanout is the post-pipeline projection phase (PIPELINE_SPINE §6); it reads
     // the freshly-emitted terminal bundle gmeow.gts (the source of truth, never a fanout projection)
     // to write the rest of generated/ outward — the read result never folds into gmeow.gts, so it
     // cannot trigger the stale-disk-fold bug class.
     let gts_path = root.join(GTS_PATH);
-    let gts = std::fs::read(&gts_path).map_err(|e| PipelineError::Stage {
-        stage: "fanout".to_string(),
-        message: format!("read {}: {e}", gts_path.display()),
+    let gts = std::fs::read(&gts_path).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            stage: "fanout".to_string(),
+            message: format!("read {}: {e}", gts_path.display()),
+        })
     })?;
     let projection = project_bundle(&gts)?;
 
@@ -72,9 +73,11 @@ pub fn fanout(root: &Path, jobs: usize) -> Result<FanoutReport, PipelineError> {
     let pool = rayon::ThreadPoolBuilder::new()
         .num_threads(jobs.max(1))
         .build()
-        .map_err(|e| PipelineError::Stage {
-            stage: "fanout".to_string(),
-            message: format!("failed to build rayon pool: {e}"),
+        .map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                stage: "fanout".to_string(),
+                message: format!("failed to build rayon pool: {e}"),
+            })
         })?;
 
     // Each entry -> `true` when the write reconciler rewrote changed bytes, `false` when

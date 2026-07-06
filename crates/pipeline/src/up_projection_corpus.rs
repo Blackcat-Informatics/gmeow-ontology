@@ -13,6 +13,7 @@
 use std::collections::{BTreeMap, BTreeSet, HashSet};
 use std::sync::{Arc, OnceLock};
 
+use gmeow_errors::ResultExt;
 use purrdf::{RdfDataset, RdfQuad, RdfTerm};
 
 pub(crate) const GM: &str = "https://blackcatinformatics.ca/gmeow/";
@@ -251,7 +252,7 @@ pub fn run_audit_nt(
     sssom_texts: &[String],
     projection_ttls: &[String],
     corpus_nts: &[(String, String)],
-) -> Result<AuditReport, String> {
+) -> gmeow_errors::Result<AuditReport> {
     let sssom = sssom_best_buckets(sssom_texts)?;
     let structural = structural_best_classes(projection_ttls)?;
     let mut files = Vec::new();
@@ -289,10 +290,10 @@ pub fn run_audit_nt(
 
 pub(crate) fn sssom_records(
     sssom_texts: &[String],
-) -> Result<Vec<(purrdf::SssomMapping, PrefixMap)>, String> {
+) -> gmeow_errors::Result<Vec<(purrdf::SssomMapping, PrefixMap)>> {
     let mut rows = Vec::new();
     for text in sssom_texts {
-        let set = purrdf::sssom::parse_tsv(text).map_err(|e| e.to_string())?;
+        let set = purrdf::sssom::parse_tsv(text)?;
         let prefixes = PrefixMap::from_sssom(&set.meta.curie_map);
         for row in set.mappings {
             rows.push((row, prefixes.clone()));
@@ -301,7 +302,7 @@ pub(crate) fn sssom_records(
     Ok(rows)
 }
 
-pub(crate) fn sssom_clean_pairs(sssom_texts: &[String]) -> Result<TargetSetMap, String> {
+pub(crate) fn sssom_clean_pairs(sssom_texts: &[String]) -> gmeow_errors::Result<TargetSetMap> {
     let mut pairs: TargetSetMap = BTreeMap::new();
     for (row, prefixes) in sssom_records(sssom_texts)? {
         let class = classify_sssom(&row.subject_id, &row.predicate_id, &row.object_id);
@@ -319,7 +320,9 @@ pub(crate) fn sssom_clean_pairs(sssom_texts: &[String]) -> Result<TargetSetMap, 
     Ok(pairs)
 }
 
-pub(crate) fn sssom_closematch_pairs(sssom_texts: &[String]) -> Result<TargetClaimMap, String> {
+pub(crate) fn sssom_closematch_pairs(
+    sssom_texts: &[String],
+) -> gmeow_errors::Result<TargetClaimMap> {
     let mut pairs: TargetClaimMap = BTreeMap::new();
     for (row, prefixes) in sssom_records(sssom_texts)? {
         let class = classify_sssom(&row.subject_id, &row.predicate_id, &row.object_id);
@@ -353,7 +356,7 @@ pub(crate) fn sssom_closematch_pairs(sssom_texts: &[String]) -> Result<TargetCla
 /// every candidate term through the SAME bucketing the audit uses (never a bespoke copy).
 pub(crate) fn sssom_best_buckets_pub(
     sssom_texts: &[String],
-) -> Result<BTreeMap<String, String>, String> {
+) -> gmeow_errors::Result<BTreeMap<String, String>> {
     sssom_best_buckets(sssom_texts)
 }
 
@@ -361,11 +364,11 @@ pub(crate) fn sssom_best_buckets_pub(
 /// [`combined_class`]. Exposed for the gate-verified lift producer.
 pub(crate) fn structural_best_classes_pub(
     projection_ttls: &[String],
-) -> Result<BTreeMap<String, String>, String> {
+) -> gmeow_errors::Result<BTreeMap<String, String>> {
     structural_best_classes(projection_ttls)
 }
 
-fn sssom_best_buckets(sssom_texts: &[String]) -> Result<BTreeMap<String, String>, String> {
+fn sssom_best_buckets(sssom_texts: &[String]) -> gmeow_errors::Result<BTreeMap<String, String>> {
     let mut best: BTreeMap<String, String> = BTreeMap::new();
     for (row, prefixes) in sssom_records(sssom_texts)? {
         let class = classify_sssom(&row.subject_id, &row.predicate_id, &row.object_id);
@@ -388,7 +391,7 @@ fn sssom_best_buckets(sssom_texts: &[String]) -> Result<BTreeMap<String, String>
 
 pub(crate) fn structural_pairs(
     projection_ttls: &[String],
-) -> Result<(TargetSetMap, TargetClaimMap), String> {
+) -> gmeow_errors::Result<(TargetSetMap, TargetClaimMap)> {
     let mut exact: TargetSetMap = BTreeMap::new();
     let mut generalizing: TargetClaimMap = BTreeMap::new();
     for ttl in projection_ttls {
@@ -445,7 +448,7 @@ pub(crate) fn structural_pairs(
     Ok((exact, generalizing))
 }
 
-pub(crate) fn value_mapped_pairs(projection_ttls: &[String]) -> Result<ValueRuleMap, String> {
+pub(crate) fn value_mapped_pairs(projection_ttls: &[String]) -> gmeow_errors::Result<ValueRuleMap> {
     let mut candidates: BTreeMap<(String, String), BTreeSet<(String, String)>> = BTreeMap::new();
     for ttl in projection_ttls {
         let graph = Graph::parse(ttl.as_bytes(), "text/turtle")?;
@@ -516,7 +519,7 @@ pub(crate) fn value_mapped_pairs(projection_ttls: &[String]) -> Result<ValueRule
 
 pub(crate) fn edoalpath_pairs(
     projection_ttls: &[String],
-) -> Result<(TargetSetMap, TargetSetMap), String> {
+) -> gmeow_errors::Result<(TargetSetMap, TargetSetMap)> {
     let mut direct: TargetSetMap = BTreeMap::new();
     let mut inverse: TargetSetMap = BTreeMap::new();
     for ttl in projection_ttls {
@@ -560,7 +563,9 @@ pub(crate) fn edoalpath_pairs(
     Ok((direct, inverse))
 }
 
-fn structural_best_classes(projection_ttls: &[String]) -> Result<BTreeMap<String, String>, String> {
+fn structural_best_classes(
+    projection_ttls: &[String],
+) -> gmeow_errors::Result<BTreeMap<String, String>> {
     let mut best: BTreeMap<String, String> = BTreeMap::new();
     for ttl in projection_ttls {
         let graph = Graph::parse(ttl.as_bytes(), "text/turtle")?;
@@ -626,7 +631,7 @@ fn emitted_targets(quads: &[RdfQuad], binding: &RdfTerm) -> BTreeSet<String> {
     targets
 }
 
-pub(crate) fn object_properties(ontology_nt: &str) -> Result<BTreeSet<String>, String> {
+pub(crate) fn object_properties(ontology_nt: &str) -> gmeow_errors::Result<BTreeSet<String>> {
     let graph = Graph::parse(ontology_nt.as_bytes(), "application/n-triples")?;
     let mut props = BTreeSet::new();
     for q in &graph.quads {
@@ -657,16 +662,19 @@ pub(crate) fn used_target_terms(quads: &[RdfQuad]) -> BTreeSet<String> {
 }
 
 /// Serialize the accumulator to N-Triples via the native writer.
-pub(crate) fn dump_nt(quads: &[RdfQuad]) -> Result<String, String> {
-    let dataset = purrdf::native_quads::flat_dataset_from_quads(quads)
-        .map_err(|e| format!("re-freeze accumulated quads: {e}"))?;
+pub(crate) fn dump_nt(quads: &[RdfQuad]) -> gmeow_errors::Result<String> {
+    let dataset = purrdf::native_quads::flat_dataset_from_quads(quads).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::UpProjection {
+            message: format!("re-freeze accumulated quads: {e}"),
+        })
+    })?;
     let bytes = purrdf::serialize_dataset(
         &dataset,
         "application/n-triples",
         purrdf::SerializeGraph::Dataset,
     )
-    .map_err(|e| format!("N-Triples serialization failed: {e}"))?;
-    String::from_utf8(bytes).map_err(|e| format!("N-Triples output is not UTF-8: {e}"))
+    .with_ctx(|| "N-Triples serialization failed")?;
+    String::from_utf8(bytes).with_ctx(|| "N-Triples output is not UTF-8")
 }
 
 /// Subjects of `(?, pred, <obj>)`, as `RdfTerm`.
@@ -696,16 +704,16 @@ pub(crate) fn value(quads: &[RdfQuad], subject: &RdfTerm, pred: &str) -> Option<
 
 /// Parse a Turtle document and re-serialize it as N-Triples — the Rust-native TTL→NT
 /// conversion the gate-derived audit uses so corpus reading never re-enters Python (rdflib).
-pub(crate) fn ttl_to_nt(ttl: &str) -> Result<String, String> {
+pub(crate) fn ttl_to_nt(ttl: &str) -> gmeow_errors::Result<String> {
     let dataset = purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None)
-        .map_err(|e| format!("TTL parse failed: {e}"))?;
+        .with_ctx(|| "TTL parse failed")?;
     let bytes = purrdf::serialize_dataset(
         &dataset,
         "application/n-triples",
         purrdf::SerializeGraph::Dataset,
     )
-    .map_err(|e| format!("N-Triples serialization failed: {e}"))?;
-    String::from_utf8(bytes).map_err(|e| format!("N-Triples output is not UTF-8: {e}"))
+    .with_ctx(|| "N-Triples serialization failed")?;
+    String::from_utf8(bytes).with_ctx(|| "N-Triples output is not UTF-8")
 }
 
 /// The first object that is an IRI, returned as its IRI string.
@@ -857,9 +865,9 @@ pub(crate) struct Graph {
 }
 
 impl Graph {
-    pub(crate) fn parse(data: &[u8], media_type: &str) -> Result<Self, String> {
-        let dataset = purrdf::parse_dataset(data, media_type, None)
-            .map_err(|e| format!("RDF parse failed: {e}"))?;
+    pub(crate) fn parse(data: &[u8], media_type: &str) -> gmeow_errors::Result<Self> {
+        let dataset =
+            purrdf::parse_dataset(data, media_type, None).with_ctx(|| "RDF parse failed")?;
         let quads = purrdf::native_quads::flat_rdf_quads_from_dataset(&dataset)
             .into_iter()
             .filter(|q| q.graph_name.is_none())
