@@ -3,8 +3,7 @@
 //! Conformance twin migrated from tests/test_allen_jepd.py
 //!
 //! Migrated tests:
-//!   - `test_no_owl_all_disjoint_properties_over_interval_relations`
-//!       → `no_owl_all_disjoint_properties_over_interval_relations`
+//! - `test_no_owl_all_disjoint_properties_over_interval_relations` → `no_owl_all_disjoint_properties_over_interval_relations`
 //!
 //! A whole-graph sweep over every `owl:AllDisjointProperties` axiom to ensure no
 //! interval-level Allen relation is grouped into an OWL disjoint-properties axiom

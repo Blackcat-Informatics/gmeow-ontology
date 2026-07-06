@@ -102,7 +102,7 @@ appears). (`tests/test_standpoint.py` asserts no frame-selecting executor exists
 
 Re-expresses every reified statement's `accordingTo` + `standpointModality` as the
 **`standpointLabel`** encoding consumed by the reference translator
-([`cl-tud/standpoint-owl2`](the Standpoint OWL2 implementation) → HermiT):
+([`cl-tud/standpoint-owl2`](the Standpoint OWL2 implementation) → an off-the-shelf OWL 2 DL reasoner):
 `Box` for settled (□), `Diamond` for possible/probable (◊), the standpoint IRI as the
 `Standpoint name` (`*` for the universal standpoint). The property IRI is
 `…/gmeow#standpointLabel` — the tool matches any property ending in `#standpointLabel`.

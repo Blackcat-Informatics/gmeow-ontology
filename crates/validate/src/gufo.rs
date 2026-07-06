@@ -813,7 +813,7 @@ pub fn coequal_facet_orthogonality(ds: &RdfDataset, cfg: &GufoConfig) -> Vec<Fin
         let message = format!(
             "the co-equal facet ranges ({}) are not jointly declared in one \
              owl:AllDisjointClasses axiom — the orthogonality matrix is not \
-             ELK-visible",
+             visible to the OWL 2 DL reasoner",
             names.join(", ")
         );
         // No single focus node — the axiom is missing; emit without location.

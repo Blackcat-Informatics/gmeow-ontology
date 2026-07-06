@@ -3,8 +3,8 @@
 
 //! Native OWL-RL/RDFS reasoning oracle over a plain RDF dataset.
 //!
-//! This is the Docker-free, wasm-clean replacement for the external ELK / HermiT
-//! oracle: it forward-materializes the OWL-RL (or RDFS) closure through
+//! This is the Docker-free, wasm-clean replacement for the retired external
+//! DL oracle: it forward-materializes the OWL-RL (or RDFS) closure through
 //! `purrdf::entail` — a 70/70 W3C-entailment-conformance-tested native reasoner —
 //! and reads two independent verdicts off the closure:
 //!
@@ -135,6 +135,23 @@ pub fn consistency(edb: &RdfDataset) -> (bool, Vec<String>) {
     (unsat.is_empty(), unsat)
 }
 
+/// The **global** consistency verdict for `edb` at OWL-Direct tableau depth — a
+/// thin, boolean-only view over [`consistency`] for the world-scoped cross-check.
+///
+/// `true` iff the OWL-Direct tableau finds no GLOBAL inconsistency (no individual
+/// forced into an unsatisfiable class). An empty-but-unpopulated class (class
+/// unsatisfiability) is NOT a global inconsistency and leaves the verdict `true` —
+/// exactly the `(false, [])` (ABox clash) vs `(false, [X…])` (empty class)
+/// distinction [`consistency`] draws. This is what the per-world cross-check folds:
+/// the bundle is globally consistent iff every world is.
+pub fn globally_consistent(edb: &RdfDataset) -> bool {
+    let (flag, unsat) = consistency(edb);
+    // A `false` flag is a global inconsistency ONLY when it is not explained by
+    // class unsatisfiability (an empty class): `(false, [])` is an ABox clash;
+    // `(false, [X…])` is a consistent ontology that merely has empty classes.
+    flag || !unsat.is_empty()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -211,7 +228,7 @@ mod tests {
         // clash detection: :X ⊑ :Y, :X ⊑ :Z, :Y disjointWith :Z makes :X provably
         // EMPTY (⊑ owl:Nothing) while the ontology as a whole stays consistent (no
         // individual asserts membership in the empty class). This is exactly the
-        // class-unsatisfiability a HermiT classification would report.
+        // class-unsatisfiability a sound OWL 2 DL classification would report.
         let ds = dataset(&format!(
             "{PREFIX}\
 :X a owl:Class . :Y a owl:Class . :Z a owl:Class .
@@ -243,6 +260,55 @@ mod tests {
         let (is_consistent, unsat) = consistency(ds.as_ref());
         assert!(!is_consistent, "explicit :X ⊑ owl:Nothing is unsatisfiable");
         assert!(unsat.contains(&iri("X")), ":X must be flagged: {unsat:?}");
+    }
+
+    #[test]
+    fn globally_consistent_true_for_clean_tbox() {
+        let ds = dataset(&format!(
+            "{PREFIX}\
+:A a owl:Class . :B a owl:Class .
+:A rdfs:subClassOf :B .
+"
+        ));
+        assert!(
+            globally_consistent(ds.as_ref()),
+            "a clean TBox is globally consistent"
+        );
+    }
+
+    #[test]
+    fn globally_consistent_true_for_unpopulated_empty_class() {
+        // An empty class (class unsatisfiability) is NOT a global inconsistency: the
+        // tableau reports `(false, [X])` and `globally_consistent` folds it to `true`.
+        let ds = dataset(&format!(
+            "{PREFIX}\
+:X a owl:Class . :Y a owl:Class . :Z a owl:Class .
+:X rdfs:subClassOf :Y .
+:X rdfs:subClassOf :Z .
+:Y owl:disjointWith :Z .
+"
+        ));
+        assert!(
+            globally_consistent(ds.as_ref()),
+            "an unpopulated empty class leaves the ontology globally consistent"
+        );
+    }
+
+    #[test]
+    fn globally_consistent_false_for_populated_clash() {
+        // An individual in two disjoint classes is a global ABox clash: the tableau
+        // returns `EntailError::Inconsistent` → `(false, [])` → not globally consistent.
+        let ds = dataset(&format!(
+            "{PREFIX}\
+:Y a owl:Class . :Z a owl:Class .
+:Y owl:disjointWith :Z .
+:x a :Y , :Z .
+"
+        ));
+        assert!(
+            !globally_consistent(ds.as_ref()),
+            "a populated disjoint-class clash is globally inconsistent"
+        );
     }
 
     #[test]

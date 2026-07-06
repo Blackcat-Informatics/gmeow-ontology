@@ -309,26 +309,27 @@ meta:gate-dl-el-crosscheck a meta:Gate ;
     meta:symbol "ReasonStage" ;
     meta:generator "reason" .
 
-# Native↔oracle agreement, enforced NATIVELY. The divergence ledger is built and
-# the agreement verdict decided in Rust (`enforce` over the ledger), Docker-free,
-# and fails strictly on any NativeOnly/OracleOnly divergence or DlGap native
-# coverage defect. The Java+Docker oracle side (ELK/HermiT subsumption +
-# consistency; owlrl OWL-2-RL closure) was relocated OUT of mainline into the
-# standalone validations/classic-cross-check/ validator-zoo suite —
-# run on demand, never part of `make check`, the required `quality` gate, or CI.
+# Native↔oracle agreement, enforced NATIVELY on-gate. The divergence ledger is
+# built and the agreement verdict decided in Rust (`enforce` over the ledger),
+# Docker-free, and fails strictly on any OracleOnly divergence or DlGap native
+# coverage defect (NativeOnly rows are gmeow's richer world-scoped closure —
+# `native ⊇ oracle` — not a failure). The independent oracle side is the
+# in-process, conformance-tested purrdf-entail OWL-RL closure run by
+# `gmeow-dev reason-crosscheck`; the retired external Java/Docker oracle
+# containers were deleted entirely.
 meta:gate-classic-cross-check a meta:Gate ;
-    rdfs:label "native↔oracle agreement — native divergence-ledger enforcement, Docker-free (the ELK/HermiT/owlrl oracle lane relocated to validations/classic-cross-check/)"@x-gmeow-english ;
+    rdfs:label "native↔oracle agreement — native divergence-ledger enforcement over the in-process purrdf-entail oracle, Docker-free"@x-gmeow-english ;
     meta:artifact "crates/logic/src/reason/ledger.rs" ;
     meta:symbol "enforce" ;
-    meta:makeTarget "conformance" .
+    meta:makeTarget "reason-crosscheck" .
 
 # The anti-regression SUPERSET meta-gate (criterion 3): the native-decided
 # construct set must be a SUPERSET of the oracle-decided set. Any OracleOnly row
 # (the oracle decided a construct the native path did not) or any DlGap (a native
 # coverage defect) is a coverage REGRESSION and FAILS. The decision is computed in
 # Rust (the `enforce` verdict over the divergence ledger), not in Python, and is
-# proven OFFLINE by the frozen oracle-gold conformance lane (native ⊇ HermiT over
-# the curated DL datasets, no Docker/Java/network).
+# proven OFFLINE by the frozen oracle-gold conformance lane (native ⊇ the frozen
+# external OWL 2 DL oracle over the curated DL datasets, no Docker/Java/network).
 meta:gate-native-oracle-superset a meta:Gate ;
     rdfs:label "native ⊇ oracle anti-regression superset gate — Rust-decided, offline frozen-oracle-gold proven"@x-gmeow-english ;
     meta:artifact "crates/logic/src/reason/ledger.rs",

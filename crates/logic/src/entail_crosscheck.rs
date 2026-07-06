@@ -1,16 +1,30 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The native EL/DL ↔ entail-oracle divergence cross-check.
+//! The native ↔ entail-oracle subsumption divergence cross-check.
 //!
-//! This is the Docker-free replacement for the ELK/HermiT container cross-check:
-//! it drives gmeow's OWN native reasoner ([`crate::reason::el`] for subsumption,
-//! [`crate::reason::dl`] for consistency) against the independent
-//! [`crate::entail_oracle`] (OWL-RL subsumption + OWL-Direct-tableau consistency,
-//! a 70/70 W3C-entailment-conformance-tested `purrdf::entail` engine) and folds
-//! the comparison into the structured [`DivergenceLedger`] the classic lane
-//! already speaks. No Java, no Docker, no network — it runs entirely in-process
-//! and is therefore on-gate.
+//! This is the Docker-free, on-gate replacement for the retired external container
+//! subsumption cross-check: it drives gmeow's OWN native reasoner ([`crate::reason::reason_all`],
+//! the same world-partitioned chase `reason-verify` runs on-gate) against the
+//! independent [`crate::entail_oracle`] OWL-RL subsumption closure (a 70/70
+//! W3C-entailment-conformance-tested `purrdf::entail` engine) and folds the
+//! comparison into the structured [`DivergenceLedger`]. No Java, no Docker, no
+//! network — it runs entirely in-process and is therefore on-gate.
+//!
+//! # Scope: subsumption superset, not consistency
+//!
+//! The on-gate cross-check compares the **subsumption hierarchy** only — the
+//! independent anti-regression oracle confirming native derives every standard
+//! OWL-RL subsumption (`native ⊇ oracle`). It does NOT run a consistency
+//! comparison: purrdf's OWL-RL `materialize` is a positive-only forward closure
+//! that cannot witness an inconsistency, and the OWL-Direct **tableau** that can
+//! ([`crate::entail_oracle::globally_consistent`]) is — though sound and
+//! conformance-tested — empirically intractable swept per-world across the whole
+//! bundle (the same inherent OWL-Direct cost that kept the retired external
+//! consistency oracle off-gate, independent of implementation). Native's own consistency verdict
+//! remains gated on-gate by `reason-verify` ([`crate::reason::ReasoningResult::is_consistent`]);
+//! the tableau consistency oracle stays a unit-tested capability, not an on-gate
+//! 89-world sweep.
 //!
 //! # World alignment (the load-bearing modelling choice)
 //!
@@ -33,11 +47,10 @@
 //! so the `(sub, sup, world)` tuples line up. Both engines reason **per world**,
 //! preserving gmeow's world isolation on both sides:
 //!
-//! * the **native** subsumptions come from a single [`crate::reason::reason_closure`]
-//!   over the bundle as-is — the production, world-partitioned DL chase (the EL
-//!   calculus PLUS the DL post-pass, i.e. gmeow's complete native authority
-//!   surface) — with each axiom's own world dropped to [`CROSSCHECK_WORLD`] and the
-//!   result unioned; and
+//! * the **native** subsumptions come from a single [`crate::reason::reason_all`]
+//!   over the bundle as-is — the production, world-partitioned chase `reason-verify`
+//!   runs on-gate — with each axiom's own world dropped to [`CROSSCHECK_WORLD`] and
+//!   the result unioned; and
 //! * the **oracle** subsumptions come from running [`entail_oracle`] once per
 //!   world, each world projected into its own default graph via
 //!   [`RdfDataset::project_named_graph`] (the only graph `purrdf::entail` reads),
@@ -49,7 +62,7 @@
 //! is world-partitioned, so a single-world collapse of the whole bundle is
 //! quadratic and blows up, whereas the per-world union matches production cost.
 //! Any residual divergence between the two unions is therefore a genuine
-//! reasoner/profile difference (native EL/DL vs oracle OWL-RL / OWL-Direct), not a
+//! reasoner/profile difference (native chase vs oracle OWL-RL), not a
 //! graph-scoping artifact.
 
 use purrdf::RdfDataset;
@@ -57,8 +70,7 @@ use purrdf::RdfDataset;
 use crate::entail_oracle;
 use crate::reason::InferredAxiom;
 use crate::reason::ledger::{
-    DivergenceLedger, LedgerVerdict, build_ledger, compare_consistency, compare_subsumption,
-    dl_gap_rows, enforce,
+    DivergenceLedger, LedgerVerdict, build_ledger, compare_subsumption, dl_gap_rows, enforce,
 };
 
 /// The single canonical world every native subsumption's own world is folded to
@@ -72,7 +84,8 @@ const SUBCLASS_OF: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
 /// `owl:Thing` — the trivial top; `X ⊑ owl:Thing` carries no hierarchy info.
 const OWL_THING: &str = "http://www.w3.org/2002/07/owl#Thing";
 /// `owl:Nothing` — the bottom; a named `X ⊑ owl:Nothing` is a class-unsatisfiability
-/// signal, routed through the *consistency* comparison, NOT the subsumption one.
+/// signal (tableau depth, off this subsumption gate), excluded from the compared
+/// subsumption pairs on both sides.
 const OWL_NOTHING: &str = "http://www.w3.org/2002/07/owl#Nothing";
 /// `rdfs:Resource` — the RDFS universal; `X ⊑ rdfs:Resource` carries no info.
 const RDFS_RESOURCE: &str = "http://www.w3.org/2000/01/rdf-schema#Resource";
@@ -91,7 +104,7 @@ fn unbracket(display: &str) -> &str {
 /// the evidence behind the union/collapse world-alignment choice).
 #[derive(Debug, Clone)]
 pub struct CrosscheckOutcome {
-    /// The classified divergence ledger (subsumption + consistency + gap rows).
+    /// The classified divergence ledger (subsumption + gap rows).
     pub ledger: DivergenceLedger,
     /// The strict native⊇oracle verdict over [`Self::ledger`].
     pub verdict: LedgerVerdict,
@@ -117,12 +130,10 @@ fn is_comparable_class(iri: &str) -> bool {
 /// Extract gmeow's NATIVE named-class `rdfs:subClassOf` subsumptions from an
 /// already-computed native DL closure, as `(subclass, superclass, world)` tuples.
 ///
-/// The `inferred` closure is the shared [`crate::reason::reason_closure`] payload
-/// (the EL calculus PLUS the DL post-pass) — the full native DL authority surface,
-/// NOT the EL-only fragment — so the comparison holds gmeow's *complete* native
-/// subsumption verdict against the oracle. Reusing the shared closure also means
-/// the whole bundle is reasoned exactly ONCE (the DL post-pass is the costly step;
-/// a second EL-only pass would only reproduce a strict subset).
+/// The `inferred` closure is [`crate::reason::reason_all`]'s payload — the SAME
+/// world-partitioned native chase `reason-verify` runs on-gate — so the comparison
+/// holds gmeow's native subsumption verdict against the oracle and the whole bundle
+/// is reasoned exactly ONCE.
 ///
 /// Each axiom's own world is dropped to [`CROSSCHECK_WORLD`] and the result is
 /// unioned (deduplicated) so the tuples line up with the unioned world-less oracle
@@ -170,69 +181,31 @@ fn oracle_subsumptions(bundle: &RdfDataset, worlds: &[String]) -> Vec<(String, S
     out
 }
 
-/// Run the oracle OWL-Direct consistency check once **per world** and fold the
-/// verdicts into `(global_consistent, unsat_classes)`.
+/// Run the native ↔ entail-oracle subsumption divergence cross-check.
 ///
-/// Each world is projected into its own default graph so the tableau reasons over
-/// exactly the same per-world axiom set as native. Two per-world folds:
-///
-/// * **unsat classes** are unioned across worlds; and
-/// * **global consistency** is the AND across worlds — the bundle is globally
-///   inconsistent iff *some* world is.
-///
-/// The oracle's boolean is reconciled to the SAME meaning native's `consistent`
-/// carries — GLOBAL consistency (no individual forced into `owl:Nothing`) — before
-/// folding. Comparing the raw flags would be apples-to-oranges: native keeps class
-/// unsatisfiability (`unsatisfiable_classes`, an empty-but-unpopulated class)
-/// SEPARATE from global inconsistency, whereas the oracle's `consistency()` returns
-/// the boolean `unsat.is_empty()` and so reports `false` for a *consistent* ontology
-/// that merely has empty classes. The oracle's own three cases are explicit:
-///
-/// * `(true,  [])`   — fully consistent, no empty classes,
-/// * `(false, [X…])` — CONSISTENT ontology WITH empty classes X…,
-/// * `(false, [])`   — globally inconsistent (an ABox clash).
-///
-/// So a world is globally inconsistent iff its flag is `false` AND its unsat list
-/// is empty. The empty-class disagreement is not lost — it surfaces through the
-/// (separately compared) unsatisfiable-class sets.
-fn oracle_consistency(bundle: &RdfDataset, worlds: &[String]) -> (bool, Vec<String>) {
-    let mut global_consistent = true;
-    let mut unsat: Vec<String> = Vec::new();
-    for world in worlds {
-        let world_ds = bundle.project_named_graph(world);
-        let (flag, world_unsat_raw) = entail_oracle::consistency(&world_ds);
-        let world_unsat: Vec<String> = world_unsat_raw
-            .into_iter()
-            .filter(|c| is_comparable_class(c))
-            .collect();
-        // This world is globally inconsistent only when the flag is false AND no
-        // class-unsatisfiability explains the false (an ABox clash), per the docs.
-        if !flag && world_unsat.is_empty() {
-            global_consistent = false;
-        }
-        unsat.extend(world_unsat);
-    }
-    unsat.sort();
-    unsat.dedup();
-    (global_consistent, unsat)
-}
-
-/// Run the native EL/DL ↔ entail-oracle divergence cross-check over `bundle`.
-///
-/// `bundle` is the whole committed dataset (all graphs); it is reshaped twice from
-/// the same quad multiset (see the module world-alignment note) so the native
-/// chase and the oracle reason over identical asserted axioms. The result folds
-/// the subsumption comparison, the consistency comparison, and any native DL
-/// coverage gap into a [`DivergenceLedger`], carries the strict [`enforce`]
-/// verdict, and reports calibration counts.
+/// `native` is the caller's already-computed reasoning closure (the `reason-verify`
+/// shipped or `--fresh` [`crate::result::ReasoningResult`]); `bundle` is the whole
+/// committed dataset (all graphs) the oracle reasons over per world's projection
+/// (see the module world-alignment note), so both sides see identical asserted
+/// axioms. The result folds the subsumption comparison into a [`DivergenceLedger`],
+/// carries the strict [`enforce`] verdict (`native ⊇ oracle`), and reports
+/// calibration counts.
 ///
 /// # Errors
 ///
-/// Returns `Err(String)` if either reshaped dataset cannot be built or the native
-/// EL/DL chase fails. An oracle materialization error is a HARD FAIL inside
-/// [`entail_oracle`] (it panics) — the cross-check never silently downgrades an
-/// unclosable graph.
-pub fn run_entail_crosscheck(bundle: &RdfDataset) -> Result<CrosscheckOutcome, String> {
+/// Returns `Err(String)` if the world enumeration cannot be built. An oracle
+/// materialization error is a HARD FAIL inside [`entail_oracle`] (it panics) — the
+/// cross-check never silently downgrades an unclosable graph.
+pub fn run_entail_crosscheck(
+    native: &crate::result::ReasoningResult,
+    bundle: &RdfDataset,
+) -> Result<CrosscheckOutcome, String> {
+    // The native subsumptions are read from the caller's already-computed reasoning
+    // closure — the SAME `reason-verify` shipped/fresh [`crate::result::ReasoningResult`]
+    // — so the cross-check adds only the independent oracle sweep and never a second
+    // chase. (No `reason_all` runs here: reasoning happens once, in the caller.)
+    let native_subs = native_subsumptions(native.inferred());
+
     let worlds = {
         let store = crate::store::WorldStore::new();
         store.load_dataset(bundle)?;
@@ -240,39 +213,27 @@ pub fn run_entail_crosscheck(bundle: &RdfDataset) -> Result<CrosscheckOutcome, S
     };
     let source_worlds = worlds.len();
 
-    // The native subsumption surface is the EL closure (the class-level
-    // rdfs:subClassOf chase); the consistency verdict + DL coverage gaps come from
-    // the DL post-pass. Both run over the whole world-partitioned bundle.
-    let inferred = crate::reason::el::el_closure(bundle)?.inferred;
-    let native_verdict = crate::reason::dl::dl_consistency(bundle)?;
-
-    // Subsumption: native DL closure (union over every world) vs the oracle OWL-RL
-    // closure run once per world, both tagged with the canonical world.
-    let native_subs = native_subsumptions(&inferred);
+    // Subsumption: native inferred rdfs:subClassOf (union over every world) vs the
+    // oracle OWL-RL closure per world, both collapsed to the canonical world. This
+    // is the on-gate anti-regression oracle: an independent, conformance-tested
+    // engine confirming native derives EVERY standard OWL-RL subsumption (`native ⊇
+    // oracle`), replacing — and promoting on-gate — the retired off-gate external
+    // subsumption oracle.
     let oracle_subs = oracle_subsumptions(bundle, &worlds);
     let subsumption_rows = compare_subsumption(&native_subs, &oracle_subs);
 
-    // Consistency: native DL verdict (world-partitioned, whole bundle) vs the
-    // oracle OWL-Direct tableau verdict run once per world and folded.
-    let native_unsat: Vec<String> = native_verdict
-        .unsatisfiable_classes
-        .iter()
-        .map(|u| unbracket(&u.class).to_owned())
-        .filter(|c| is_comparable_class(c))
-        .collect();
-    let (oracle_global_consistent, oracle_unsat) = oracle_consistency(bundle, &worlds);
-    let consistency_rows = compare_consistency(
-        native_verdict.consistent,
-        &native_unsat,
-        Some(oracle_global_consistent),
-        &oracle_unsat,
-    );
+    // No consistency comparison runs on this fast gate. An INDEPENDENT consistency
+    // oracle requires the OWL-Direct tableau ([`entail_oracle::globally_consistent`]):
+    // purrdf's OWL-RL `materialize` is a positive-only closure that cannot witness an
+    // inconsistency, and the tableau — sound and conformance-tested but NP-hard —
+    // is empirically intractable swept per-world across the whole bundle (the same
+    // inherent OWL-Direct cost that kept the retired external consistency oracle
+    // off-gate, independent of implementation). Native's own consistency verdict (`reason_all`'s
+    // `is_consistent`) remains gated on-gate by `reason-verify`; the independent
+    // tableau oracle stays a unit-tested capability, not a 89-world on-gate sweep.
+    let gap_rows = dl_gap_rows(&[]);
 
-    // Any native DL coverage gap is recorded honestly as a DlGap row (a construct
-    // present in the bundle the native path could not decide).
-    let gap_rows = dl_gap_rows(&native_verdict.gaps);
-
-    let ledger = build_ledger(subsumption_rows, consistency_rows, gap_rows, Vec::new());
+    let ledger = build_ledger(subsumption_rows, Vec::new(), gap_rows, Vec::new());
     let verdict = enforce(&ledger);
 
     Ok(CrosscheckOutcome {
@@ -322,9 +283,8 @@ mod tests {
 
     #[test]
     fn native_and_oracle_agree_on_a_sub_b_sub_c() {
-        // :A ⊑ :B ⊑ :C — both engines must derive the transitive :A ⊑ :C, and the
-        // consistency verdict must agree (satisfiable), so the ledger is pure Agree
-        // and the verdict passes.
+        // :A ⊑ :B ⊑ :C — both engines must derive the transitive :A ⊑ :C, so the
+        // subsumption ledger is pure Agree and the verdict passes.
         let ds = world_dataset(&[
             ("A", RDF_TYPE, OWL_CLASS),
             ("B", RDF_TYPE, OWL_CLASS),
@@ -332,7 +292,8 @@ mod tests {
             ("A", SUBCLASS_OF, "B"),
             ("B", SUBCLASS_OF, "C"),
         ]);
-        let outcome = run_entail_crosscheck(ds.as_ref()).expect("cross-check runs");
+        let native = crate::reason::reason_all(ds.as_ref()).expect("native reasons");
+        let outcome = run_entail_crosscheck(&native, ds.as_ref()).expect("cross-check runs");
 
         // Every subsumption row is an agreement — no NativeOnly / OracleOnly.
         assert_eq!(
@@ -368,26 +329,28 @@ mod tests {
             );
         }
 
-        // A consistency agreement row (both consistent) is present.
+        // The on-gate cross-check compares subsumptions only — no consistency row.
         assert!(
-            outcome
+            !outcome
                 .ledger
                 .rows
                 .iter()
-                .any(|r| r.category == "consistency"
-                    && r.kind == DivergenceKind::Agree
-                    && r.object == "consistent"),
-            "both engines agree the TBox is consistent: {:#?}",
+                .any(|r| r.category == "consistency"),
+            "the fast on-gate cross-check emits no consistency rows: {:#?}",
             outcome.ledger.rows
         );
     }
 
     #[test]
-    fn both_engines_flag_a_disjointness_unsatisfiable_class() {
-        // :X ⊑ :Y, :X ⊑ :Z, :Y disjointWith :Z makes :X provably empty. Both the
-        // native DL post-pass and the oracle tableau report :X unsatisfiable while
-        // the ontology as a whole stays consistent (no individual populates :X), so
-        // the unsat-class comparison agrees and the verdict passes.
+    fn disjointness_empty_class_is_not_flagged_by_the_owlrl_subsumption_oracle() {
+        // :X ⊑ :Y, :X ⊑ :Z, :Y disjointWith :Z makes :X provably empty ONLY under the
+        // OWL-Direct tableau. This on-gate cross-check is an OWL-RL SUBSUMPTION oracle
+        // (a sound POSITIVE forward closure with no clash detection), so it neither
+        // derives :X ⊑ owl:Nothing nor runs a consistency comparison: the asserted
+        // :X⊑:Y and :X⊑:Z survive as ordinary Agree subsumptions and the verdict
+        // passes. (The tableau-depth class-unsatisfiability check lives in — and is
+        // exercised by —
+        // `entail_oracle::consistency_detects_disjointness_class_unsatisfiability`.)
         let ds = world_dataset(&[
             ("X", RDF_TYPE, OWL_CLASS),
             ("Y", RDF_TYPE, OWL_CLASS),
@@ -396,29 +359,43 @@ mod tests {
             ("X", SUBCLASS_OF, "Z"),
             ("Y", OWL_DISJOINT_WITH, "Z"),
         ]);
-        let outcome = run_entail_crosscheck(ds.as_ref()).expect("cross-check runs");
+        let native = crate::reason::reason_all(ds.as_ref()).expect("native reasons");
+        let outcome = run_entail_crosscheck(&native, ds.as_ref()).expect("cross-check runs");
 
+        assert_eq!(
+            outcome.ledger.oracle_only, 0,
+            "no oracle-only rows: {:#?}",
+            outcome.ledger.rows
+        );
+        assert_eq!(outcome.ledger.dl_gap, 0, "no native DL coverage gap");
         assert!(
-            outcome
+            outcome.verdict.passed,
+            "native ⊇ oracle passes: {:?}",
+            outcome.verdict
+        );
+        let agrees: Vec<(&str, &str)> = outcome
+            .ledger
+            .rows
+            .iter()
+            .filter(|r| r.category == "subsumption" && r.kind == DivergenceKind::Agree)
+            .map(|r| (r.subject.as_str(), r.object.as_str()))
+            .collect();
+        for (s, o) in [("X", "Y"), ("X", "Z")] {
+            assert!(
+                agrees.contains(&(iri(s).as_str(), iri(o).as_str())),
+                "{s} ⊑ {o} is an Agree row: {agrees:?}"
+            );
+        }
+        // No class is spuriously reported unsatisfiable and no consistency row is
+        // emitted at this depth.
+        assert!(
+            !outcome
                 .ledger
                 .rows
                 .iter()
-                .any(|r| r.category == "consistency"
-                    && r.kind == DivergenceKind::Agree
-                    && r.subject == iri("X")
-                    && r.object == "owl:Nothing"),
-            "native and oracle agree :X is unsatisfiable: {:#?}",
+                .any(|r| r.category == "consistency" || r.object == "owl:Nothing"),
+            "no consistency / owl:Nothing rows on the subsumption gate: {:#?}",
             outcome.ledger.rows
-        );
-        assert_eq!(
-            outcome.ledger.oracle_only, 0,
-            "unsat verdicts must agree, no oracle-only: {:#?}",
-            outcome.ledger.rows
-        );
-        assert!(
-            outcome.verdict.passed,
-            "agreeing unsat-class verdict passes: {:?}",
-            outcome.verdict
         );
     }
 }

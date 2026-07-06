@@ -54,8 +54,8 @@ round-trip tests.
 > compatibility projection of the RDF 1.2 source — lossless for reasoning, never a competing
 > source of truth.**
 
-GMEOW gates reasoning on OWL 2 DL tools (ELK, HermiT) that cannot yet consume RDF 1.2, so it
-emits the plain-RDF form *for them* — the same lossy-compatibility-as-projection principle it
+GMEOW gates reasoning on OWL 2 DL semantics through tooling that cannot yet consume RDF 1.2, so it
+emits the plain-RDF form *for it* — the same lossy-compatibility-as-projection principle it
 applies to schema.org / vCard / FOAF (Principle 4). It is the downgrade for legacy tooling, and
 it recedes naturally as RDF-1.2-native reasoners and stores arrive. The canonical source never
 changes.
@@ -126,7 +126,8 @@ non-divergent, so drift is *impossible* rather than merely discouraged.
 
 ## 8. Reasoning-gated and FAIR
 
-> **The logical core is OWL 2 DL, gated by ELK (fast) and HermiT (sound + complete); published
+> **The logical core is OWL 2 DL, gated by the native `logic:` solver (a fast EL pre-check plus a
+> sound-and-complete OWL 2 DL check, cross-checked in-process against the `purrdf::entail` oracle); published
 > FAIR with content negotiation, VoID/DCAT, a DOI, and LOD-Cloud presence. The reasoner is our
 > quality assurance, never the consumer's prerequisite.**
 
@@ -138,7 +139,7 @@ or to know that we do (Principle 13). FAIR publication is pursued seriously as s
 and discoverability hygiene; the product it certifies is Principle 14's.
 
 **Superseded in part by Principle 17:** the native `logic:` solver becomes the reasoning authority,
-and ELK / HermiT become secondary validators of the OWL projection (one fragment among several). The
+and the in-process OWL 2 DL oracle cross-check becomes a secondary validator of the OWL projection (one fragment among several). The
 commitment that the reasoner is *our* QA and never the consumer's prerequisite is unchanged.
 
 **Documentation is a first-class artifact.** Every GMEOW-namespaced class, property, annotation
@@ -250,7 +251,7 @@ logic (`logic:`) is Turing-complete, and "decidable and small" becomes a **proje
 guarantee** rather than a property of the canonical core.
 
 *Embodied in:* the projection layer; the lossless standpoint projections; the solver boundary of
-the locations epic. *Tested by:* the OWL 2 DL profile gate (ELK / HermiT) staying green as
+the locations epic. *Tested by:* the native OWL 2 DL profile gate staying green as
 expressivity grows.
 
 ## 13. The product is a tool; the ontology is its engine
@@ -380,7 +381,7 @@ grounding, made explicit in the loss ledger. The OntoUML discipline that lived i
 becomes **actual axioms**; the lints survive as projection-conformance tests over the gUFO downcast,
 so nothing is lost in the move from lint to logic.
 
-The native `logic:` solver is the **reasoning authority**; ELK, HermiT, and the Datalog / SHACL
+The native `logic:` solver is the **reasoning authority**; the in-process OWL 2 DL oracle cross-check and the Datalog / SHACL
 engines become **secondary validators of their projected fragments**. This supersedes the
 OWL-2-DL-core framing of Principles 2, 8, and 12 (annotated there). Correctness is **verified by
 construction** (Principle 7): the **Rust core is canonical** (the native gmeow RDF-1.2 / SPARQL

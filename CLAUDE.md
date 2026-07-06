@@ -75,5 +75,5 @@ Maintainer-only targets are prefixed with `maint-`. Use `make help` for the
 complete list. Common lanes are `make maint-wikidata-live`,
 `make maint-test-heavy`, and `make maint-test-network`. The native,
 Docker-free reasoning-oracle cross-check (`gmeow-dev reason-crosscheck` over
-`purrdf::entail`) runs on-gate as part of `make reason-verify`, not as a
-`maint-` lane.
+`purrdf::entail`) runs on-gate as its own `make check` target
+(`make reason-crosscheck`), not as a `maint-` lane.

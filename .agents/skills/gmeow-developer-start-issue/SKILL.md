@@ -105,7 +105,7 @@ GMEOW is reasoning-centric, OWL 2 DL, and upper-ontology-grounded. Every issue m
 
 - Every new class or property must be grounded under a gUFO category and stay inside OWL 2 DL.
 - Every definition must carry `rdfs:label` and `skos:definition`.
-- Before implementation, predict whether ELK (`make reason`) and HermiT (`make reason-hermit`) will stay green. If you are unsure, run a quick reason check on a spike branch first.
+- Before implementation, predict whether the native reasoner (`make reason`) will stay green. If you are unsure, run a quick reason check on a spike branch first.
 - If the issue involves statement-level metadata (provenance, confidence, temporal scope), the canonical source is `statement-dsl/` in RDF 1.2 / RDF* shape — the OWL axiom-annotation form is a generated downcast (Principles 2–3).
 
 ### 4.3 Linkage (maximal bridging by reference)
