@@ -1,19 +1,18 @@
 ---
 source: crates/docs/tests/model_golden.rs
-assertion_line: 187
 expression: summary
 ---
 {
   "title": "GMEOW Ontology Documentation",
   "version": "7",
   "slice_count": 80,
-  "term_count": 2412,
-  "dependency_edge_count": 961,
+  "term_count": 2459,
+  "dependency_edge_count": 964,
   "term_count_by_category": {
-    "Class": 732,
+    "Class": 738,
     "Datatype": 1,
-    "Individual": 3,
-    "Property": 1676
+    "Individual": 25,
+    "Property": 1695
   },
   "slice_iris": [
     "https://blackcatinformatics.ca/gmeow/slices/accessibility",
@@ -261,12 +260,12 @@ expression: summary
       ]
     },
     {
-      "iri": "https://blackcatinformatics.ca/gmeow/langEnglish",
-      "curie": "gmeow:langEnglish",
-      "label": "English",
-      "definition": "The English language — the seed gmeow:Language individual (gmeow:langEnglish) anchoring the internal private-use tag x-gmeow-english carried by the framework's own literals. Registry codes are alignments, never identity.",
+      "iri": "https://blackcatinformatics.ca/gmeow/gmnCodebookCurrent",
+      "curie": "gmeow:gmnCodebookCurrent",
+      "label": "GMN codebook (current)",
+      "definition": "The current GMN codebook: the coding-theoretic frame of the dialect, linking the GMN script and the ten record-initial sigil roles (through gmeow:references), pinning the alias-table and glyph-table versions, and declaring the expected rate of the code through gmeow:gmnDeclaredRate. A reader that holds this codebook holds everything needed to decode a conforming GMN document.",
       "category": "Individual",
-      "owner_slice": "https://blackcatinformatics.ca/gmeow/slices/language",
+      "owner_slice": "https://blackcatinformatics.ca/gmeow/slices/lang",
       "parents": [],
       "domain": [],
       "range": [],
@@ -288,14 +287,9 @@ expression: summary
       "stability": "stable",
       "added_in_version": "0.1.0",
       "changelog": [],
-      "content_digest": "blake3:9377d5bb8e26abf8a92e498d619ffdf9307be63122874c3230d1853052a68c68",
+      "content_digest": "blake3:777d4180d43e52ab103f2b20aa1775554b8b592f7fbbfecc516a0a9afaecf6de",
       "profiles": [
-        "claims",
-        "dreaming",
-        "full",
-        "memory",
-        "music",
-        "narrative"
+        "full"
       ]
     }
   ],

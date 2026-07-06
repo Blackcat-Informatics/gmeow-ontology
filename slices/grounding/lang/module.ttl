@@ -4,6 +4,7 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix lang:  <https://blackcatinformatics.ca/lang/> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
 @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
@@ -234,6 +235,14 @@ lang:gts
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "GTS"@x-gmeow-english ;
     skos:definition "The GTS textual serialization as a first-class sign system: a lang:SignSystem of lang:formalLanguageKind in the written modality, licensed by a lang:Grammar. One of GMEOW's own serialization sign systems, the surface the native GTS codec interprets."@x-gmeow-english ;
+    lang:signSystemKind lang:formalLanguageKind ;
+    lang:modality lang:writtenModality .
+
+lang:nquads
+    a owl:NamedIndividual , lang:SignSystem ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "N-Quads"@x-gmeow-english ;
+    skos:definition "The RDF canonical N-Quads serialization as a first-class sign system: a lang:SignSystem of lang:formalLanguageKind in the written modality. One of GMEOW's own serialization sign systems — an encoding of the narrow-waist normal form (the RDFC-1.0-canonically-labeled, content-sorted quad sequence), so an N-Quads document of the bundle is a rendering of the same canonical object that lang:gts encodes, never a second canonical object."@x-gmeow-english ;
     lang:signSystemKind lang:formalLanguageKind ;
     lang:modality lang:writtenModality .
 
@@ -2172,3 +2181,711 @@ lang:ExactPreservationViolated
     rdfs:label "Exact Preservation Violated"@x-gmeow-english ;
     skos:definition "The failure raised when a lang:ProjectionEmission claiming logic:preservationKind logic:ExactPreservation carries a measured lang:roundTripHolds of false — an exactness claim its own round-trip refutes. A declared-exact projection (an EBNF/ABNF or GTS/Turtle grammar surface) round-trips on the corpus by construction; when the measured re-parse is not isomorphic to the source, the emission has claimed an isomorphism it does not discharge, and the claim, not the measurement, is the fault."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
+
+# =========================================================================== #
+# --- GMN: the GMEOW Model Notation dialect (gmeow:gmn* graft) --------------- #
+# The specification of GMN, GMEOW's engineered, token-compact model surface,
+# authored as a graft onto the lang: sign-system reference layer. The dialect
+# stack is three levels deep: GMN-0 (gmeow:gmnNormalForm) is the EXISTING
+# narrow-waist normal form — it mints no new canonical object; GMN-1
+# (gmeow:gmnModelNotation) is the engineered notation over the LLM token
+# channel; GMN-2 (gmeow:gmnCompacted) is a usage level (a lang:LanguageVariety)
+# of GMN-1, never a third sign system. All GMN terms live in the gmeow:
+# namespace with gmn-prefixed local names and carry the fuller gmeow:
+# annotation set; they are defined by, and physically owned by, the lang slice.
+# Every crossing between dialect levels is a lang:TranslationUnit carrying its
+# law-spine on exactly one logic:Correspondence — GMN asserts no preservation
+# outside that vocabulary.
+# =========================================================================== #
+
+# --- GMN classes ------------------------------------------------------------- #
+
+gmeow:GmnSigilRole
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN Sigil Role"@x-gmeow-english ;
+    skos:definition "A record-initial sigil role of GMN: the typed role a leading sigil assigns to the record it opens — claim, evidence, standpoint, process, proof, defeater, modal, math, lang-AST, or logic. A sigil role names its concrete sigil string through gmeow:gmnSigilGlyph, and it is the disambiguation scope gmeow:gmnSigilScope points at when a glyph is reused across planes. Sigils are RECORD-INITIAL ONLY: a sigil character appearing anywhere but the first position of a record is ordinary content, so a glyph like μ can serve both as the math-record sigil and as an in-record measure symbol without collision."@x-gmeow-english ;
+    skos:example "gmeow:gmnSigilClaim a gmeow:GmnSigilRole ; gmeow:gmnSigilGlyph \"@c\" ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid minting a sigil role for an in-record operator or symbol — sigils are record-initial only — and avoid overloading one sigil string across two roles; the role table is the codebook's closed record-type inventory."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Reference the ten seeded gmeow:gmnSigil* individuals from the codebook; a new record type means a new sigil-role individual with its own gmeow:gmnSigilGlyph, minted by design revision of the dialect, never ad hoc."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use as the class of the record-initial sigil roles of GMN records — the typed record-kind vocabulary a GMN reader dispatches on."@x-gmeow-english .
+
+gmeow:GmnFixity
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN Fixity"@x-gmeow-english ;
+    skos:definition "The fixity value class of GMN operators: whether an operator is written before its operands (prefix), between them (infix), after them (postfix), or around them (bracketing). Closed: its instances are exactly the four named individuals gmeow:gmnFixityPrefix, gmeow:gmnFixityInfix, gmeow:gmnFixityPostfix, and gmeow:gmnFixityBracketing. An operator names its fixity through gmeow:gmnFixity and its binding strength through gmeow:gmnPrecedence; together they make the operator grammar table-driven data rather than parser code."@x-gmeow-english ;
+    skos:example "ex:gmnSubsumesOp gmeow:gmnFixity gmeow:gmnFixityInfix ; gmeow:gmnPrecedence 40 ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid minting a fifth fixity individual — the class is closed by the dialect grammar — and avoid using fixity to carry precedence; binding strength is the separate integer gmeow:gmnPrecedence."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Point each GMN operator at exactly one of the four seeded fixity individuals through gmeow:gmnFixity and pair it with a gmeow:gmnPrecedence integer so the parse is decidable from data."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use as the closed value vocabulary for GMN operator fixity — the placement discipline (prefix, infix, postfix, bracketing) an operator's surface syntax follows."@x-gmeow-english .
+
+gmeow:GmnSecurityRing
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN Security Ring"@x-gmeow-english ;
+    skos:definition "A deontic serialization boundary ring: a lattice-ordered admission class saying where content serialized in a GMN envelope is permitted to flow. Rings are ordered by the transitive gmeow:gmnRingWithin — a ring is within the rings that enclose it, and content permitted in a ring is permitted wherever that ring is within — so the innermost ring (gmeow:gmnRingCore) carries the strictest admission bar and flows the furthest, while the outermost (gmeow:gmnRingRestricted) admits the most and flows the least. Minted fresh after checking the rights and agreements vocabulary: gmeow:RightsStatement and its gmeow:Permission / gmeow:Prohibition / gmeow:Duty rule trio regulate content licensing — who may do what with an asset under what licence — not serialization boundaries, so the ring lattice is a new substrate rather than a graft onto ODRL-shaped deontics."@x-gmeow-english ;
+    skos:example "ex:envelope gmeow:gmnSecurityRing gmeow:gmnRingTrusted ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid using a ring for licensing or usage rights (that is the gmeow:RightsStatement deontic layer) and avoid asserting the lattice order flat — the order is carried only by gmeow:gmnRingWithin edges, never implied by naming."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Classify each gmeow:GmnEnvelope with exactly one ring through gmeow:gmnSecurityRing; a serializer admits content into an envelope only when the content's ring is the envelope's ring or within it (the transitive gmeow:gmnRingWithin closure)."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use as the class of GMN serialization boundary rings — the lattice-ordered admission classes an envelope declares so the flow rules of its payload are machine-checkable."@x-gmeow-english .
+
+gmeow:GmnEnvelope
+    a logic:SubKind ,
+        owl:Class ;
+    rdfs:subClassOf gmeow:AttestationArtifact ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN Envelope"@x-gmeow-english ;
+    skos:definition "A GMN envelope: the attested carrier of a GMN payload — a gmeow:AttestationArtifact whose bytes are a GMN document plus its integrity and versioning header. An envelope reuses the attestation and versions vocabulary by reference rather than re-minting it: byte-exact identity is a gmeow:contentDigest, semantic fingerprints are gmeow:versionFingerprint literals, and the asserting standpoint is carried through the gmeow:accordingTo pattern. It declares its own dialect coordinates through gmeow:gmnSchemaVersion, gmeow:gmnDictionaryVersion, and gmeow:gmnGlyphTableVersion, its boundary ring through gmeow:gmnSecurityRing, and its losslessness judgment through gmeow:gmnEnvelopeCorrespondence — a logic:Correspondence, never a boolean flag."@x-gmeow-english ;
+    skos:example "ex:env a gmeow:GmnEnvelope ; gmeow:gmnSchemaVersion \"1\" ; gmeow:gmnSecurityRing gmeow:gmnRingCore ; gmeow:gmnEnvelopeCorrespondence ex:corr ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid carrying a losslessness boolean on the envelope — the judgment lives on the logic:Correspondence named by gmeow:gmnEnvelopeCorrespondence — and avoid re-minting digest, fingerprint, or standpoint properties that attestation and versions already provide."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Mint one envelope per serialized GMN payload; set gmeow:contentDigest for byte identity, the three gmeow:gmn*Version literals for its dialect coordinates, one gmeow:gmnSecurityRing, and point gmeow:gmnEnvelopeCorrespondence at the logic:Correspondence judging its crossing back to the normal form."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use for the attested, versioned, ring-classified carrier of a GMN document — the unit that crosses a serialization boundary."@x-gmeow-english .
+
+gmeow:GmnCompaction
+    a logic:SubKind ,
+        owl:Class ;
+    rdfs:subClassOf gmeow:StandpointClaim ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN Compaction"@x-gmeow-english ;
+    skos:definition "A GMN-2 compaction record: a reified NEW claim about older claims — a gmeow:StandpointClaim with its own identity, its own standpoint, and its own confidence, whose content summarizes the source claims it names through gmeow:gmnCompacts. Compaction is lossy by nature: the compacted record is a shorter, coarser restatement produced under the GMN-2 usage level, and it NEVER overwrites its sources — every source claim survives, reachable through the gmeow:gmnCompacts provenance edges, so the compaction can always be audited against what it compacted."@x-gmeow-english ;
+    skos:example "ex:cmp a gmeow:GmnCompaction ; gmeow:gmnCompacts ex:claim1 , ex:claim2 ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid treating a compaction as a replacement for its sources — it is an additional claim, and deleting or rewriting the compacted records fabricates certainty — and avoid a compaction that names no source through gmeow:gmnCompacts; an unsourced summary is unauditable."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Mint one compaction per summarization act, point gmeow:gmnCompacts at every source claim or record it compacts, and carry the compaction's own standpoint and confidence on the StandpointClaim layer; leave the sources untouched."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to record a GMN-2 compaction — a provenance-linked, standpoint-held new claim that condenses older claims without destroying them."@x-gmeow-english .
+
+gmeow:GmnCodebook
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN Codebook"@x-gmeow-english ;
+    skos:definition "The codebook of the GMN code: the object that frames GMN as a source code over the LLM token channel — a codebook (the script and the sigil-role table it links, plus its alias-table version through gmeow:gmnDictionaryVersion and glyph-table version through gmeow:gmnGlyphTableVersion), a declared rate (gmeow:gmnDeclaredRate, the expected dimensionless tokens-per-statement of the encoding), and a fidelity discipline (the logic:Correspondence law-spine on each dialect crossing). The codebook's script and sigil-role table are linked flat-first through gmeow:references; a reader that holds the codebook holds everything needed to decode a conforming GMN document."@x-gmeow-english ;
+    skos:example "gmeow:gmnCodebookCurrent a gmeow:GmnCodebook ; gmeow:gmnDeclaredRate gmeow:gmnRateTokensPerStatement ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid folding the codebook into the grammar or the script — the grammar licenses forms and the script holds glyphs, while the codebook is the coding-theoretic frame binding script, sigil table, alias-table version, and declared rate — and avoid asserting a measured rate here; the declared rate is the expectation the token metrics measure against."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Mint one codebook per dialect state; link the script and the ten sigil roles through gmeow:references, pin the alias-table and glyph-table versions with gmeow:gmnDictionaryVersion / gmeow:gmnGlyphTableVersion, and declare the expected rate by pointing gmeow:gmnDeclaredRate at a math:Quantity individual."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use for the coding-theoretic frame of GMN — the codebook + declared rate + fidelity triple that makes the dialect a source code over the LLM token channel rather than an ad-hoc syntax."@x-gmeow-english .
+
+# --- GMN properties ----------------------------------------------------------- #
+
+gmeow:gmnFixity
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn fixity"@x-gmeow-english ;
+    skos:definition "Names the fixity of a GMN operator. Domain a GMN operator sign (a lang:Form or lang:Lexeme of the gmeow:gmnModelNotation sign system), range gmeow:GmnFixity (stated in prose). Exactly one of the four closed fixity individuals per operator."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid asserting fixity on anything but an operator sign of the GMN notation, and avoid two fixity values on one operator — the grammar dispatches on exactly one."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Point each GMN operator at one gmeow:GmnFixity individual; pair it with gmeow:gmnPrecedence so the operator grammar is fully table-driven."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to declare where a GMN operator sits relative to its operands — prefix, infix, postfix, or bracketing."@x-gmeow-english .
+
+gmeow:gmnPrecedence
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn precedence"@x-gmeow-english ;
+    skos:definition "The binding strength of a GMN operator — the integer precedence level the parser resolves operator nesting with. Domain a GMN operator sign, range xsd:integer (stated in prose). Higher binds tighter; ties within one fixity are grammar-resolved by declared associativity in the grammar rendering."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid encoding record kind or fixity into the precedence integer — those are gmeow:GmnSigilRole and gmeow:gmnFixity — and avoid gaps that carry meaning; the integers order, they do not measure."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Assign one integer per operator alongside its gmeow:gmnFixity; keep the table dense enough that a reader can reconstruct the parse without consulting parser code."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to declare the binding strength of a GMN operator so nesting is decidable from data."@x-gmeow-english .
+
+gmeow:gmnSigilGlyph
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn sigil glyph"@x-gmeow-english ;
+    skos:definition "The concrete sigil string of a sigil role — the record-initial character sequence (e.g. \"@c\") that opens a record of that role. Domain gmeow:GmnSigilRole, range a string literal (stated in prose). One sigil string per role; the string is significant only in record-initial position."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid reusing one sigil string across two roles and avoid treating the string as meaningful anywhere but the first position of a record — elsewhere it is ordinary content."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Set exactly one sigil string per gmeow:GmnSigilRole; when the glyph inventory changes, bump gmeow:gmnGlyphTableVersion on the codebook and envelope rather than editing a role in place."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to carry the concrete record-initial sigil string of a GMN sigil role."@x-gmeow-english .
+
+gmeow:gmnSigilScope
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn sigil scope"@x-gmeow-english ;
+    skos:definition "The sigil-scoped disambiguation hook for cross-plane glyph reuse: relates a glyph-bearing GMN sign to the gmeow:GmnSigilRole under whose record scope its reading applies. Domain a glyph-bearing sign (a lang:Grapheme or GMN operator sign), range gmeow:GmnSigilRole (stated in prose). Because sigils are record-initial only, the same glyph may lawfully read differently inside records of different roles — μ is the math-record sigil at position zero and an ordinary measure symbol inside a math record — and this edge is what pins each scoped reading."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid using it to assign a record its role — the role is fixed by the record-initial sigil itself — and avoid minting a scope edge for a glyph whose reading is plane-independent."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Attach one gmeow:gmnSigilScope edge per scoped reading of a reused glyph, pointing at the sigil role whose records that reading is valid inside."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to disambiguate a glyph that is reused across GMN planes by naming the record scope each reading belongs to."@x-gmeow-english .
+
+gmeow:gmnGlyph
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn glyph"@x-gmeow-english ;
+    skos:definition "The rendered GMN glyph string of a term — a DERIVED convenience projected over lang:Denotation by the GMN writer, NEVER hand-authored on domain terms. Domain any GMEOW term the writer renders, range a string literal (stated in prose). The canonical fact is the lang:Denotation record from the GMN sign to the denoted term; this literal is the writer's flattening of that record for display. Symbol provenance (which standard or work a glyph is drawn from) is carried via the citations vocabulary — gmeow:cites, promoted to a gmeow:CitationAct with gmeow:citationIntent where the intent must be typed — never via a new provenance property here."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid authoring it by hand on a domain term — it is generated by the GMN writer from the denotation layer — and avoid reading it as the glyph's identity; the identity lives in the lang:Grapheme and lang:Denotation structure it projects."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Let the GMN writer emit it when projecting the glyph table; pair it with gmeow:gmnCodepoints for the codepoint-explicit form, and record symbol provenance with gmeow:cites on the glyph's source record."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to read the writer-projected display glyph of a term in a generated GMN surface — a derived convenience, not an authored fact."@x-gmeow-english .
+
+gmeow:gmnCodepoints
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn codepoints"@x-gmeow-english ;
+    skos:definition "The codepoint-explicit spelling of a GMN glyph — a \"U+2291\"-style literal (space-separated for multi-codepoint glyphs) — a DERIVED convenience projected over lang:Denotation by the GMN writer, NEVER hand-authored on domain terms. Domain any GMEOW term the writer renders, range a string literal (stated in prose). Like gmeow:gmnGlyph, it flattens the canonical denotation record for display and tooling; symbol provenance is carried via the citations vocabulary (gmeow:cites / gmeow:CitationAct), never re-minted here."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid hand-authoring it and avoid deriving glyph identity from it — the codepoint string names the rendering, while identity lives in the projected lang: structure."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Let the GMN writer emit one \"U+xxxx\"-style literal per glyph next to gmeow:gmnGlyph; bump gmeow:gmnGlyphTableVersion when the projected table changes."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to read the writer-projected codepoint-explicit spelling of a GMN glyph — the unambiguous form for tooling and confusables checking."@x-gmeow-english .
+
+gmeow:gmnConfusableWith
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn confusable with"@x-gmeow-english ;
+    skos:definition "Relates two graphemes that are visually confusable in the GMN glyph inventory. Domain and range lang:Grapheme (stated in prose); symmetric in reading — the relation holds both ways, documented here rather than asserted as an OWL characteristic to keep the term profile-clean. The NORMATIVE RULE: two glyphs are confusable if and only if they share a Unicode UTS #39 skeleton; any pairs seeded in data are illustrative anchors, and the skeleton computation belongs to the validator, never to hand-curated completeness."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid curating the pair list as if it were exhaustive — the UTS #39 skeleton rule is normative and the validator computes it — and avoid asserting confusability between non-grapheme signs."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Seed illustrative pairs between lang:Grapheme individuals where a design discussion needs them named; rely on the validator's skeleton computation for the enforced blocklist."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to name a visually-confusable grapheme pair in the GMN inventory — the data-level anchor of the UTS #39 skeleton rule the orthography enforces."@x-gmeow-english .
+
+gmeow:gmnSecurityRing
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn security ring"@x-gmeow-english ;
+    skos:definition "Names the serialization boundary ring of a GMN envelope. Domain gmeow:GmnEnvelope, range gmeow:GmnSecurityRing (stated in prose). Exactly one per envelope: the ring is the admission class the serializer checked the payload against."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid asserting two rings on one envelope — one admission class per carrier — and avoid using it on the payload's records; the ring classifies the envelope crossing, not each inner claim."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Set exactly one ring per gmeow:GmnEnvelope; admit content whose ring is the envelope's ring or within it under the transitive gmeow:gmnRingWithin closure."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to classify a GMN envelope with the boundary ring its payload was admitted under."@x-gmeow-english .
+
+gmeow:gmnRingWithin
+    a owl:ObjectProperty , owl:TransitiveProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn ring within"@x-gmeow-english ;
+    skos:definition "The ring lattice order: relates a security ring to a ring it is within. Domain and range gmeow:GmnSecurityRing (stated in prose); transitive (owl:TransitiveProperty, EL-clean). The flow rule reads along this edge: content permitted in ring X is permitted wherever X is within, so the innermost ring's content flows to every enclosing ring while an outer ring's content never flows inward. gmeow:gmnRingCore is within gmeow:gmnRingTrusted, which is within gmeow:gmnRingRestricted."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid reading it as a containment of content — it orders admission classes, not payloads — and avoid closing the transitive hops by hand; the reasoner materializes the closure."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Assert only the direct lattice edges between ring individuals and let transitivity derive the rest; check a flow by asking whether the content's ring equals or is gmeow:gmnRingWithin the destination's ring."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to order the GMN security rings — the transitive lattice edge the flow rule evaluates over."@x-gmeow-english .
+
+gmeow:gmnSchemaVersion
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn schema version"@x-gmeow-english ;
+    skos:definition "The GMN dialect schema version an envelope was serialized under — the major grammar/record-shape coordinate. Domain gmeow:GmnEnvelope, range a string literal (stated in prose). A reader accepts the current major plus the majors inside the version set's gmeow:gmnAcceptWindow, via migration."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid folding dictionary or glyph-table state into this coordinate — those move independently on gmeow:gmnDictionaryVersion and gmeow:gmnGlyphTableVersion."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Stamp one schema-version literal per envelope at serialization time; on a major bump, mint the migration legs (gmeow:gmnMigratesFrom / gmeow:gmnMigratesTo) rather than widening acceptance silently."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to pin the grammar/record-shape major an envelope's payload conforms to."@x-gmeow-english .
+
+gmeow:gmnDictionaryVersion
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn dictionary version"@x-gmeow-english ;
+    skos:definition "The alias-table (dictionary) version an envelope or codebook was serialized against — the coordinate of the IRI-to-alias mapping GMN compresses names with. Domain gmeow:GmnEnvelope or gmeow:GmnCodebook, range a string literal (stated in prose). Alias resolution is version-pinned: an alias is meaningless without the dictionary version that minted it."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid resolving aliases against any dictionary but the pinned version and avoid reusing a dictionary version after its alias table changes — a changed table is a new version."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Stamp the dictionary version on every envelope and on the codebook; treat an alias + version pair as the resolvable unit."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to pin which alias table a GMN payload's compressed names resolve through."@x-gmeow-english .
+
+gmeow:gmnGlyphTableVersion
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn glyph table version"@x-gmeow-english ;
+    skos:definition "The glyph-table version an envelope or codebook was serialized against — the coordinate of the projected glyph/codepoint table (the gmeow:gmnGlyph / gmeow:gmnCodepoints projection state). Domain gmeow:GmnEnvelope or gmeow:GmnCodebook, range a string literal (stated in prose)."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid bumping it for dictionary or schema changes — it tracks only the glyph/codepoint table — and avoid interpreting glyphs against a mismatched table version."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Stamp the glyph-table version on every envelope and on the codebook; bump it whenever the writer's projected glyph table changes."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to pin which projected glyph table a GMN payload's symbols render and validate against."@x-gmeow-english .
+
+gmeow:gmnEnvelopeCorrespondence
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn envelope correspondence"@x-gmeow-english ;
+    skos:definition "Relates a GMN envelope to the single logic:Correspondence carrying its losslessness judgment — the law-spine of the envelope's crossing back to the narrow-waist normal form. Domain gmeow:GmnEnvelope, range logic:Correspondence (stated in prose). There is NO boolean lossless flag: whether the payload round-trips is the logic:preservationKind, logic:morphismClass, and logic:mnemomorphic witness on that Correspondence, exactly as lang:translationCorrespondence attaches a translation unit to its crossing."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid shadowing the correspondence's judgment with any envelope-level flag and avoid more than one correspondence per envelope — one crossing, one law-spine."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Point each envelope at exactly one logic:Correspondence; author the preservation axes there and let consumers read the judgment from the correspondence, never from the envelope."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to attach the losslessness judgment of a GMN envelope's crossing — a judged correspondence, never a boolean."@x-gmeow-english .
+
+gmeow:gmnCompacts
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn compacts"@x-gmeow-english ;
+    skos:definition "The provenance edge from a compaction to a source it compacts. Domain gmeow:GmnCompaction, range the source claims or records being compacted (stated in prose). One edge per source, every source named: the compaction is auditable exactly because nothing it summarizes is unreachable from it."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid a compaction with a partial source list — an unnamed source is a hidden loss — and avoid pointing it at another compaction's sources transitively; each compaction names what IT compacted."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Assert one gmeow:gmnCompacts edge per compacted source on the gmeow:GmnCompaction record; chains of compaction each carry their own complete edge set."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to link a GMN-2 compaction record to every source claim it condenses."@x-gmeow-english .
+
+gmeow:gmnMigratesFrom
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn migrates from"@x-gmeow-english ;
+    skos:definition "The source leg of a GMN version migration: relates the translation unit or correspondence carrying a major-version migration to the dialect version it migrates from. Domain a lang:TranslationUnit or logic:Correspondence, range a version entity of the GMN dialect lineage (stated in prose). Paired with gmeow:gmnMigratesTo; a migration is a judged crossing like any other, so its preservation lives on its logic:Correspondence."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid using it for dictionary or glyph-table drift within one major — those are version literals on the envelope — and avoid a migration leg without its gmeow:gmnMigratesTo partner."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "On each major-version migration crossing, set gmeow:gmnMigratesFrom to the older version entity and gmeow:gmnMigratesTo to the newer, and judge the crossing on its carried logic:Correspondence."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to name the source major of a GMN version-migration crossing."@x-gmeow-english .
+
+gmeow:gmnMigratesTo
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn migrates to"@x-gmeow-english ;
+    skos:definition "The target leg of a GMN version migration: relates the translation unit or correspondence carrying a major-version migration to the dialect version it migrates to. Domain a lang:TranslationUnit or logic:Correspondence, range a version entity of the GMN dialect lineage (stated in prose). Paired with gmeow:gmnMigratesFrom."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid a migration leg without its gmeow:gmnMigratesFrom partner and avoid pointing it at anything but a version entity of the dialect lineage."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Pair it with gmeow:gmnMigratesFrom on the migration's translation unit or correspondence; the crossing's fidelity is judged on the carried logic:Correspondence."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to name the destination major of a GMN version-migration crossing."@x-gmeow-english .
+
+gmeow:gmnAcceptWindow
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn accept window"@x-gmeow-english ;
+    skos:definition "The acceptance window of the GMN dialect lineage: how many prior majors a conforming reader accepts via migration, counted behind the current major. Domain the dialect's gmeow:VersionSet, range xsd:integer (stated in prose). A value of 1 means the reader accepts the current major plus one prior — current + N−1 in general — with every accepted prior entering only through a judged migration crossing, never through silent tolerance."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid stamping it per envelope — it is a lineage-level policy on the version set — and avoid widening it as a substitute for authoring migration legs; acceptance without a migration crossing is silent tolerance."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Set one integer on the dialect's gmeow:VersionSet; when the window admits a prior major, author its gmeow:gmnMigratesFrom / gmeow:gmnMigratesTo crossing with a judged correspondence."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to declare how many prior GMN majors a reader accepts via migration."@x-gmeow-english .
+
+gmeow:gmnDeclaredRate
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn declared rate"@x-gmeow-english ;
+    skos:definition "Relates the GMN codebook to the declared expected rate of the code — a math:Quantity whose dimension is math:dimensionless (tokens per statement is a count ratio). Domain gmeow:GmnCodebook, range math:Quantity (stated in prose). The rate is declared, not measured: it is the design expectation the token metrics measure the realized encoding against, the coding-theoretic 'declared rate' of the codebook + rate + fidelity frame."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid pointing it at a bare number — the rate is a dimensioned math:Quantity — and avoid updating the declared value to chase measurements; a changed expectation is a design revision of the codebook."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Point the codebook at one math:Quantity individual carrying math:hasDimension math:dimensionless and its expected numeric magnitude; compare measured token metrics against it, never overwrite it with them."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to declare the expected tokens-per-statement rate of the GMN code on its codebook."@x-gmeow-english .
+
+gmeow:gmnDeterminismClass
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn determinism class"@x-gmeow-english ;
+    skos:definition "The parsing-determinism class a grammar declares — e.g. \"LL(1)\" — asserting that the grammar is deterministically decidable with the named lookahead and hence prefix-decodable: a reader always knows from the next token which production applies, so a GMN stream decodes incrementally without backtracking. Domain lang:Grammar, range a string literal (stated in prose). Minted here because the existing grammar facets (lang:grammarFormalism names the interchange formalism, not decidability) carry no determinism claim; the claim is checked by the grammar tooling against the grammar object's rules, never taken on faith from the literal."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid conflating it with lang:grammarFormalism (EBNF is a notation, not a determinism class) and avoid asserting a class the grammar's rules do not machine-check to."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Assert one determinism-class literal on the lang:Grammar individual and keep it consistent with the grammar rendering; the validator's table construction is the check, the literal is the declared contract."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to declare that a grammar is deterministically parseable — LL(1)/prefix-decodable — as a machine-checkable contract on the grammar object."@x-gmeow-english .
+
+# --- GMN sigil-role individuals (record-initial only) ------------------------ #
+
+gmeow:gmnSigilClaim
+    a owl:NamedIndividual , gmeow:GmnSigilRole ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "claim sigil"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The claim record role, opened by the sigil @c: the record carries an asserted claim. Sigils are record-initial only — @c anywhere but the first position of a record is ordinary content."@x-gmeow-english ;
+    gmeow:gmnSigilGlyph "@c" .
+
+gmeow:gmnSigilEvidence
+    a owl:NamedIndividual , gmeow:GmnSigilRole ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "evidence sigil"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The evidence record role, opened by the sigil @e: the record carries evidence for or against a claim. Sigils are record-initial only — @e anywhere but the first position of a record is ordinary content."@x-gmeow-english ;
+    gmeow:gmnSigilGlyph "@e" .
+
+gmeow:gmnSigilStandpoint
+    a owl:NamedIndividual , gmeow:GmnSigilRole ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "standpoint sigil"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The standpoint record role, opened by the sigil @s: the record scopes claims to a vantage. Sigils are record-initial only — @s anywhere but the first position of a record is ordinary content."@x-gmeow-english ;
+    gmeow:gmnSigilGlyph "@s" .
+
+gmeow:gmnSigilProcess
+    a owl:NamedIndividual , gmeow:GmnSigilRole ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "process sigil"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The process record role, opened by the sigil @p: the record carries an activity or process description. Sigils are record-initial only — @p anywhere but the first position of a record is ordinary content."@x-gmeow-english ;
+    gmeow:gmnSigilGlyph "@p" .
+
+gmeow:gmnSigilProof
+    a owl:NamedIndividual , gmeow:GmnSigilRole ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "proof sigil"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The proof record role, opened by the sigil @π: the record carries a proof or derivation. Sigils are record-initial only — π anywhere but inside the record-initial sigil is ordinary content, so a proof record may freely mention π the constant."@x-gmeow-english ;
+    gmeow:gmnSigilGlyph "@π" .
+
+gmeow:gmnSigilDefeater
+    a owl:NamedIndividual , gmeow:GmnSigilRole ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "defeater sigil"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The defeater record role, opened by the sigil @d: the record carries a defeater of another record's claim. Sigils are record-initial only — @d anywhere but the first position of a record is ordinary content."@x-gmeow-english ;
+    gmeow:gmnSigilGlyph "@d" .
+
+gmeow:gmnSigilModal
+    a owl:NamedIndividual , gmeow:GmnSigilRole ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "modal sigil"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The modal record role, opened by the sigil @m: the record carries a modal qualification (necessity, possibility, obligation). Sigils are record-initial only — @m anywhere but the first position of a record is ordinary content."@x-gmeow-english ;
+    gmeow:gmnSigilGlyph "@m" .
+
+gmeow:gmnSigilMath
+    a owl:NamedIndividual , gmeow:GmnSigilRole ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "math sigil"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The math record role, opened by the sigil @μ: the record carries mathematical content. Sigils are record-initial only, which rules the μ collision by construction: μ opens a math record only at position zero, and inside any record μ is an ordinary symbol (a measure, a mean) with its scoped reading pinned through gmeow:gmnSigilScope."@x-gmeow-english ;
+    gmeow:gmnSigilGlyph "@μ" .
+
+gmeow:gmnSigilLangAst
+    a owl:NamedIndividual , gmeow:GmnSigilRole ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "lang-AST sigil"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The lang-AST record role, opened by the sigil @λ: the record carries a lang: form-AST fragment. Sigils are record-initial only — λ anywhere but inside the record-initial sigil is ordinary content, so a record may freely mention λ the binder."@x-gmeow-english ;
+    gmeow:gmnSigilGlyph "@λ" .
+
+gmeow:gmnSigilLogic
+    a owl:NamedIndividual , gmeow:GmnSigilRole ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "logic sigil"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The logic record role, opened by the sigil @ℒ: the record carries logic: content (a formula, a rule, a type). Sigils are record-initial only — ℒ anywhere but inside the record-initial sigil is ordinary content."@x-gmeow-english ;
+    gmeow:gmnSigilGlyph "@ℒ" .
+
+# --- GMN fixity individuals (closed) ----------------------------------------- #
+
+gmeow:gmnFixityPrefix
+    a owl:NamedIndividual , gmeow:GmnFixity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "prefix"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The prefix fixity: the operator is written before its operands."@x-gmeow-english .
+
+gmeow:gmnFixityInfix
+    a owl:NamedIndividual , gmeow:GmnFixity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "infix"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The infix fixity: the operator is written between its operands."@x-gmeow-english .
+
+gmeow:gmnFixityPostfix
+    a owl:NamedIndividual , gmeow:GmnFixity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "postfix"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The postfix fixity: the operator is written after its operands."@x-gmeow-english .
+
+gmeow:gmnFixityBracketing
+    a owl:NamedIndividual , gmeow:GmnFixity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "bracketing"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The bracketing fixity: the operator is a paired open/close form written around its operands."@x-gmeow-english .
+
+# --- GMN security-ring individuals (lattice-ordered via gmeow:gmnRingWithin) -- #
+# Flow direction, documented once: gmeow:gmnRingWithin means content permitted
+# in a ring is permitted wherever that ring is within. Core is within trusted,
+# trusted within restricted — so core content (strictest admission bar) flows
+# to every ring, while restricted content (loosest bar) flows least, staying in
+# the restricted ring only. Most-restricted flows least.
+
+gmeow:gmnRingCore
+    a owl:NamedIndividual , gmeow:GmnSecurityRing ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "core ring"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The innermost GMN security ring: the strictest admission bar. Content admitted at core is permitted everywhere — it flows to the trusted and restricted rings through the transitive gmeow:gmnRingWithin order."@x-gmeow-english ;
+    gmeow:gmnRingWithin gmeow:gmnRingTrusted .
+
+gmeow:gmnRingTrusted
+    a owl:NamedIndividual , gmeow:GmnSecurityRing ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "trusted ring"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The middle GMN security ring: content admitted at trusted is permitted in the trusted and restricted rings, but never flows inward to core."@x-gmeow-english ;
+    gmeow:gmnRingWithin gmeow:gmnRingRestricted .
+
+gmeow:gmnRingRestricted
+    a owl:NamedIndividual , gmeow:GmnSecurityRing ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "restricted ring"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The outermost GMN security ring: the loosest admission bar and the least flow. Content admitted only at restricted stays in the restricted ring — it is within nothing, so it flows nowhere else."@x-gmeow-english .
+
+# --- GMN dialect individuals (the three-level dialect stack + its apparatus) -- #
+
+gmeow:gmnNormalForm
+    a lang:SignSystem ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN-0 normal form"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "GMN-0: the EXISTING narrow-waist normal form as a first-class sign system — the RDFC-1.0-canonically blank-node-labeled, content-sorted term-table normal form of the bundle (docs/gts-narrow-waist.md). This individual mints NO new canonical object: it names the normal form GMEOW already computes, so that the dialect stack's crossings can be judged against it. lang:gts and lang:nquads are encodings of this one normal form, never rival canons."@x-gmeow-english ;
+    lang:signSystemKind lang:formalLanguageKind ;
+    lang:modality lang:writtenModality .
+
+gmeow:gmnModelNotation
+    a lang:SignSystem ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN-1 model notation"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "GMN-1: the GMEOW Model Notation — the engineered, token-compact model surface, a first-class sign system of lang:formalLanguageKind in the written modality. Its records open with gmeow:GmnSigilRole sigils, its operators carry gmeow:gmnFixity and gmeow:gmnPrecedence, its glyphs live in gmeow:gmnScript under gmeow:gmnOrthography, and its grammar is gmeow:gmnGrammar. It is a lossy view of the GMN-0 normal form — the crossing is judged on gmeow:gmnCorrNormalToGmn, never asserted flat."@x-gmeow-english ;
+    lang:signSystemKind lang:formalLanguageKind ;
+    lang:modality lang:writtenModality .
+
+gmeow:gmnCompacted
+    a lang:LanguageVariety ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN-2 compacted"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "GMN-2: the compacted usage level of GMN-1 — a lang:LanguageVariety of gmeow:gmnModelNotation, NOT a third sign system. Compacted GMN is GMN-1 written under the compaction discipline: shorter records that are new provenance-linked claims about older claims (gmeow:GmnCompaction), each naming its sources through gmeow:gmnCompacts. The variety relation says exactly this: same notation, a usage level."@x-gmeow-english ;
+    lang:varietyOf gmeow:gmnModelNotation ;
+    lang:signSystemKind lang:formalLanguageKind ;
+    lang:modality lang:writtenModality .
+
+gmeow:gmnScript
+    a lang:Script ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN script"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The GMN script: the codepoint-explicit glyph container of the notation — the lang:Script whose repertoire holds the GMN glyphs, each named codepoint-explicitly (the gmeow:gmnCodepoints projection). The glyph inventories themselves are authored as lang:Grapheme members of this script in their own work; this individual is the container their lang:inScript declarations ground in."@x-gmeow-english .
+
+gmeow:gmnOrthography
+    a lang:Orthography ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN orthography"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The GMN orthography: the convention binding the GMN-1 notation to the GMN script — NFC Unicode normalization, the confusables blocklist (the UTS #39 skeleton rule anchored by gmeow:gmnConfusableWith), and the canonical-form norms a conforming GMN surface follows. Serves gmeow:gmnModelNotation through lang:orthographyFor and writes in gmeow:gmnScript through lang:usesScript."@x-gmeow-english ;
+    lang:orthographyFor gmeow:gmnModelNotation ;
+    lang:usesScript gmeow:gmnScript .
+
+gmeow:gmnGrammar
+    a lang:Grammar ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN grammar"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The grammar of the GMN-1 notation, licensing the gmeow:gmnModelNotation sign system. Its EBNF rendering is grammars/gmn.ebnf; the file is a rendering of this grammar object, never its identity. The grammar is LL(1) and hence prefix-decodable (gmeow:gmnDeterminismClass): a reader always knows from the next token which production applies, so a GMN stream decodes incrementally without backtracking."@x-gmeow-english ;
+    lang:grammarFor gmeow:gmnModelNotation ;
+    lang:grammarFormalism lang:ebnfFormalism ;
+    gmeow:gmnDeterminismClass "LL(1)" .
+
+# --- GMN codebook + declared rate --------------------------------------------- #
+
+gmeow:gmnRateTokensPerStatement
+    a math:Quantity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN declared rate (tokens per statement)"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The declared expected rate of the GMN code: 16 tokens per statement — a dimensionless math:Quantity (a count ratio), carried as the design expectation of the codebook. This is a DECLARED value, not a measurement: the token-metrics discipline measures realized encodings against this declared rate, and a sustained divergence is a design finding about the codebook, never a reason to silently edit the declaration."@x-gmeow-english ;
+    math:hasDimension math:dimensionless ;
+    math:quantityValue 16 .
+
+gmeow:gmnCodebookCurrent
+    a owl:NamedIndividual , gmeow:GmnCodebook ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN codebook (current)"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The current GMN codebook: the coding-theoretic frame of the dialect, linking the GMN script and the ten record-initial sigil roles (through gmeow:references), pinning the alias-table and glyph-table versions, and declaring the expected rate of the code through gmeow:gmnDeclaredRate. A reader that holds this codebook holds everything needed to decode a conforming GMN document."@x-gmeow-english ;
+    gmeow:references gmeow:gmnScript ,
+        gmeow:gmnSigilClaim ,
+        gmeow:gmnSigilEvidence ,
+        gmeow:gmnSigilStandpoint ,
+        gmeow:gmnSigilProcess ,
+        gmeow:gmnSigilProof ,
+        gmeow:gmnSigilDefeater ,
+        gmeow:gmnSigilModal ,
+        gmeow:gmnSigilMath ,
+        gmeow:gmnSigilLangAst ,
+        gmeow:gmnSigilLogic ;
+    gmeow:gmnDictionaryVersion "1" ;
+    gmeow:gmnGlyphTableVersion "1" ;
+    gmeow:gmnDeclaredRate gmeow:gmnRateTokensPerStatement .
+
+# --- GMN dialect crossings (four judged translation units) -------------------- #
+# Each crossing between dialect levels is a lang:TranslationUnit carrying its
+# law-spine on exactly one logic:Correspondence; the preservation judgment
+# lives THERE, never asserted flat on the sign systems. All four crossings are
+# grammar-directed conversions (lang:methodCompositional) — the crossing is
+# defined by the dialect's grammars and codecs, while any individual model-
+# performed compaction run carries its own provenance on its GmnCompaction
+# record.
+
+gmeow:gmnCorrNormalToGts
+    a logic:Correspondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN-0 → GTS correspondence"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The judged crossing from the GMN-0 narrow-waist normal form to its GTS encoding: an isomorphism with exact preservation and a retained mnemomorphic witness. The claim is DISCHARGED by execution, not declared on faith: the narrow-waist superset gate re-derives the normal form from the encoded bundle and proves byte reconstruction on every regeneration, so get ∘ put = id is a running check, not prose."@x-gmeow-english ;
+    logic:preservationKind logic:ExactPreservation ;
+    logic:correspondenceRelation logic:Equiv ;
+    logic:morphismClass logic:Isomorphism ;
+    logic:hasDeterminacy logic:Crisp ;
+    logic:mnemomorphic true .
+
+gmeow:gmnUnitNormalToGts
+    a lang:TranslationUnit ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN-0 → GTS crossing"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The dialect crossing from the GMN-0 normal form to the GTS encoding, a grammar-directed conversion carrying its law-spine on gmeow:gmnCorrNormalToGts."@x-gmeow-english ;
+    lang:translationSource gmeow:gmnNormalForm ;
+    lang:translationTarget lang:gts ;
+    lang:translationMethod lang:methodCompositional ;
+    lang:translationCorrespondence gmeow:gmnCorrNormalToGts .
+
+gmeow:gmnCorrNormalToNQuads
+    a logic:Correspondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN-0 → N-Quads correspondence"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The judged crossing from the GMN-0 narrow-waist normal form to its canonical N-Quads encoding: an isomorphism with exact preservation and a retained mnemomorphic witness. The claim is discharged by the RDFC-1.0 canonicalization round-trip: canonicalizing the parsed N-Quads reproduces the normal form's canonical labeling and quad order byte-for-byte, so the crossing's inverse is an executed computation rather than an assertion."@x-gmeow-english ;
+    logic:preservationKind logic:ExactPreservation ;
+    logic:correspondenceRelation logic:Equiv ;
+    logic:morphismClass logic:Isomorphism ;
+    logic:hasDeterminacy logic:Crisp ;
+    logic:mnemomorphic true .
+
+gmeow:gmnUnitNormalToNQuads
+    a lang:TranslationUnit ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN-0 → N-Quads crossing"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The dialect crossing from the GMN-0 normal form to the canonical N-Quads encoding, a grammar-directed conversion carrying its law-spine on gmeow:gmnCorrNormalToNQuads."@x-gmeow-english ;
+    lang:translationSource gmeow:gmnNormalForm ;
+    lang:translationTarget lang:nquads ;
+    lang:translationMethod lang:methodCompositional ;
+    lang:translationCorrespondence gmeow:gmnCorrNormalToNQuads .
+
+gmeow:gmnCorrNormalToGmn
+    a logic:Correspondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN-0 → GMN-1 correspondence"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The judged crossing from the GMN-0 normal form to the GMN-1 model notation: a lossy lens, sound under approximation, with NO recoverability witness (logic:mnemomorphic false) — the source subsumes the compact view. The drop list is categorical: full IRIs collapse to dictionary aliases, annotation baggage (per-term guidance prose, changelog and provenance annotations) is dropped, and numeric confidence values round to two fractional digits. Everything GMN-1 states is derivable from the normal form; the reverse does not hold."@x-gmeow-english ;
+    logic:preservationKind logic:SoundUnderApproximation ;
+    logic:correspondenceRelation logic:Subsumes ;
+    logic:morphismClass logic:LossyLens ;
+    logic:hasDeterminacy logic:Crisp ;
+    logic:mnemomorphic false .
+
+gmeow:gmnUnitNormalToGmn
+    a lang:TranslationUnit ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN-0 → GMN-1 crossing"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The dialect crossing from the GMN-0 normal form to the GMN-1 model notation, a grammar-directed lossy conversion carrying its law-spine on gmeow:gmnCorrNormalToGmn."@x-gmeow-english ;
+    lang:translationSource gmeow:gmnNormalForm ;
+    lang:translationTarget gmeow:gmnModelNotation ;
+    lang:translationMethod lang:methodCompositional ;
+    lang:translationCorrespondence gmeow:gmnCorrNormalToGmn .
+
+gmeow:gmnCorrGmnToCompacted
+    a logic:Correspondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN-1 → GMN-2 correspondence"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The judged crossing from GMN-1 to the GMN-2 compacted usage level: a bridge view, validation-only — the module's own honest label for bridge views that constrain but do not reason. Compaction produces a NEW provenance-linked claim (a gmeow:GmnCompaction naming its sources through gmeow:gmnCompacts); the crossing is get-leg-only, with no round-trip obligation and no recoverability witness, and its determinacy is vague because what a compaction keeps is a judgment call held on the compaction's own standpoint."@x-gmeow-english ;
+    logic:preservationKind logic:ValidationOnly ;
+    logic:correspondenceRelation logic:RelatedMatch ;
+    logic:morphismClass logic:BridgeView ;
+    logic:hasDeterminacy logic:Vague ;
+    logic:mnemomorphic false .
+
+gmeow:gmnUnitGmnToCompacted
+    a lang:TranslationUnit ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN-1 → GMN-2 crossing"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The dialect crossing from GMN-1 to its GMN-2 compacted usage level, a grammar-directed conversion discipline (individual compaction runs carry their own provenance on their gmeow:GmnCompaction records) carrying its law-spine on gmeow:gmnCorrGmnToCompacted."@x-gmeow-english ;
+    lang:translationSource gmeow:gmnModelNotation ;
+    lang:translationTarget gmeow:gmnCompacted ;
+    lang:translationMethod lang:methodCompositional ;
+    lang:translationCorrespondence gmeow:gmnCorrGmnToCompacted .
+
+# --- GMN dialect version machinery -------------------------------------------- #
+# The dialect lineage is a gmeow:VersionSet with reified memberships, per the
+# versions-slice doctrine. gmeow:membershipAuthority is optional on the relator
+# (competing authority claims coexist; none is required), and no in-repo
+# authority individual exists, so the memberships here carry none.
+
+gmeow:gmnDialectVersions
+    a owl:NamedIndividual , gmeow:VersionSet ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN dialect lineage"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The version lineage of the GMN dialect: the gmeow:VersionSet its majors belong to through gmeow:VersionMembership relators. Carries the lineage-level acceptance policy gmeow:gmnAcceptWindow 1 — a conforming reader accepts the current major plus one prior (current + N−1), every accepted prior entering only through a judged gmeow:gmnMigratesFrom / gmeow:gmnMigratesTo crossing."@x-gmeow-english ;
+    gmeow:gmnAcceptWindow 1 .
+
+gmeow:gmnVersionOne
+    a owl:NamedIndividual , gmeow:InformationObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN dialect version 1"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "Major version 1 of the GMN dialect — the concrete version entity (a gmeow:InformationObject) the lineage's memberships place. The first major: it is both the canonical and the latest member of gmeow:gmnDialectVersions."@x-gmeow-english ;
+    owl:versionInfo "1" .
+
+gmeow:gmnMembershipCanonical
+    a owl:NamedIndividual , gmeow:VersionMembership ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN v1 canonical membership"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The reified claim that GMN dialect version 1 is the canonical member of the GMN dialect lineage."@x-gmeow-english ;
+    gmeow:versionMember gmeow:gmnVersionOne ;
+    gmeow:versionSet gmeow:gmnDialectVersions ;
+    gmeow:versionRole gmeow:roleCanonical .
+
+gmeow:gmnMembershipLatest
+    a owl:NamedIndividual , gmeow:VersionMembership ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN v1 latest membership"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The reified claim that GMN dialect version 1 is the latest member of the GMN dialect lineage."@x-gmeow-english ;
+    gmeow:versionMember gmeow:gmnVersionOne ;
+    gmeow:versionSet gmeow:gmnDialectVersions ;
+    gmeow:versionRole gmeow:roleLatest .
