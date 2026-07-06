@@ -41,6 +41,17 @@ ASK {
 }""" ;
     gmeow:saRationale "Each of the seven bedrock hard-rule failures MUST be a subclass of math:MathConformanceFailure, so a violation is a typed, queryable object." .
 
+# --- 2b. The flagship-manifest failure class subclasses math:MathConformanceFailure (MUST) ---
+ex:saFlagshipFailureTyped a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    math:UnwiredFlagshipScenario rdfs:subClassOf math:MathConformanceFailure .
+}""" ;
+    gmeow:saRationale "The unwired-flagship failure MUST be a subclass of math:MathConformanceFailure, so an unwired acceptance scenario is a typed, queryable violation like every other math: hard-rule failure." .
+
 # --- 3. The seven arithmetic operators exist as math:ArithmeticOperation (MUST) ---
 ex:saArithmeticOperators a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
