@@ -285,19 +285,36 @@ pub fn strip_rep_blob(
     lookaside
         .blobs
         .retain(|r| r.representation.as_deref() != Some(representation));
-    // Every hex digest still referenced by an artifact resource or a surviving blob.
-    let mut referenced: std::collections::HashSet<String> = std::collections::HashSet::new();
+    // Every content digest still referenced by an artifact resource or a surviving blob.
+    // Keyed by `ContentDigest` (not its hex string) so the membership test below does NOT
+    // re-allocate a hex `String` per stored blob; a malformed stored digest is a HARD FAIL
+    // (silently dropping it would GC a still-referenced content-store blob).
+    let mut referenced: std::collections::HashSet<purrdf::ContentDigest> =
+        std::collections::HashSet::new();
     for resource in &lookaside.resources {
         if let Some(hex) = resource.content_digest.as_deref() {
-            referenced.insert(hex.to_owned());
+            let digest = purrdf::ContentDigest::from_hex(hex).ok_or_else(|| {
+                gmeow_errors::Diag::of_kind(crate::error::Decode {
+                    message: format!("strip_rep_blob: malformed resource content digest {hex:?}"),
+                })
+            })?;
+            referenced.insert(digest);
         }
     }
     for blob in &lookaside.blobs {
-        referenced.insert(blob.digest.clone());
+        let digest = purrdf::ContentDigest::from_hex(&blob.digest).ok_or_else(|| {
+            gmeow_errors::Diag::of_kind(crate::error::Decode {
+                message: format!(
+                    "strip_rep_blob: malformed lookaside blob digest {:?}",
+                    blob.digest
+                ),
+            })
+        })?;
+        referenced.insert(digest);
     }
     let mut blobs = ContentStore::new();
     for (digest, bytes) in bundle.blobs().iter() {
-        if referenced.contains(&digest.to_hex()) {
+        if referenced.contains(digest) {
             blobs.insert_checked(*digest, bytes.clone()).map_err(|e| {
                 gmeow_errors::Diag::of_kind(crate::error::Decode {
                     message: format!("strip_rep_blob: re-insert content-store blob: {e}"),
