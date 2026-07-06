@@ -23,7 +23,7 @@
 //!   plus `<role> rdf:type <owl:FunctionalProperty>` when the mediated end is
 //!   functional (a single functional role is the RelComp anti-pattern shape).
 
-use super::model::{logic_local_for_stereotype, OntoumlError, OntoumlModel};
+use super::model::{OntoumlError, OntoumlModel, logic_local_for_stereotype};
 
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const OWL_FUNCTIONAL_PROPERTY: &str = "http://www.w3.org/2002/07/owl#FunctionalProperty";

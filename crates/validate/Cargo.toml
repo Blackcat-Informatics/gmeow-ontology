@@ -18,7 +18,7 @@ crate-type = ["rlib"]
 path = "src/lib.rs"
 
 [features]
-python = ["dep:pyo3", "gmeow-diagnostics/python"]
+python = ["dep:pyo3", "gmeow-errors/python"]
 
 # Dependencies of the wasm-clean Tier-1 core (compiled on EVERY target, including
 # wasm32-unknown-unknown). Only what data_validate/store/gufo/findings/report_bridge
@@ -30,12 +30,12 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 # SHACL engine: the Rust-native validation reuses parsed shapes and validates the
 # frozen dataset directly. The engine core is PyO3-free; only the py modules touch PyO3.
-purrdf = "0.2"
+purrdf = "0.3"
 # Shared RDF 1.2 kernel: native GTS/text-codec ingress and diagnostics. The `gts`
 # feature is oxigraph-free and already cross-compiles to wasm32 (the purrdf engine).
 # Canonical Finding/Report model. Its default (non-`python`) surface is pure serde,
 # so it is wasm-clean; the `python` feature layers pyo3 on for the native extension.
-gmeow-diagnostics = { path = "../diagnostics" }
+gmeow-errors = { path = "../errors" }
 # GTS CONTAINER engine: the Tier-1 shape-archive read walks `Graph::blob_meta`/`blobs`.
 # CONTAINER symbols only (no codec feature) — the same wasm-clean surface gmeow-rdf's
 # `gts` feature builds; pure-Rust structured-zstd, no C/duckdb/zstd-sys linkage.
@@ -89,7 +89,7 @@ pyo3 = { version = "0.29", features = ["abi3-py313"], optional = true }
 
 [dev-dependencies]
 # Native RDF 1.2 dataset used directly by integration tests that query generated Turtle.
-purrdf = "0.2"
+purrdf = "0.3"
 # Ed25519 signing material for deterministic GTS signature tests (#646).
 ed25519-dalek = "2"
 # Acceleration-program baselines (#630, Phase 0); light feature set, see crates/logic.

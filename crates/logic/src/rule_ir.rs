@@ -53,7 +53,7 @@ use std::collections::{HashMap, HashSet};
 use purrdf::TermValue;
 
 use crate::provenance::{
-    mint_derivation_id, mint_reifier, term_display, ASSERT_RULE_IRI, LOGIC_NAMESPACE,
+    ASSERT_RULE_IRI, LOGIC_NAMESPACE, mint_derivation_id, mint_reifier, term_display,
 };
 use crate::query_ir::QBuiltin;
 
@@ -313,7 +313,7 @@ fn parse_n3_object_literal(n3: &str) -> Result<TermValue, String> {
 ///
 /// `terms()[0]` = subject, `terms()[1]` = object; `terms()[2]` (world) is ignored,
 /// exactly like `certify.rs::logical_terms`.
-fn lower_nemo_atom(
+pub(crate) fn lower_nemo_atom(
     atom: &nemo::rule_model::components::atom::Atom,
     negated: bool,
 ) -> Result<EvalAtom, String> {
@@ -842,7 +842,7 @@ fn ground_term_to_value(term: &EvalTerm, sol: &Solution, slot: &str) -> Result<T
 
 /// Re-materialize a native [`TermValue`] from its N3 surface (`<iri>`, `_:blank`, or
 /// a literal).
-fn surface_to_value(surface: &str) -> Result<TermValue, String> {
+pub(crate) fn surface_to_value(surface: &str) -> Result<TermValue, String> {
     if let Some(iri) = surface.strip_prefix('<').and_then(|s| s.strip_suffix('>')) {
         if iri.is_empty() {
             return Err(format!("rule_ir: invalid bound IRI {surface:?}: empty"));

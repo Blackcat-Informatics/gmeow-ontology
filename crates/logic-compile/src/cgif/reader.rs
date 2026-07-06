@@ -12,11 +12,11 @@
 //! are a human-readable VIEW; the reader still VALIDATES them (a malformed graph raises a
 //! `CGIF_MALFORMED_SENTENCE` diagnostic), but the IR is never reconstructed from them.
 
-use crate::frontend::{parse_logic_dataset, Diagnostic, LogicParseError, Severity};
+use crate::frontend::{Diagnostic, LogicParseError, Severity, parse_logic_dataset};
 use crate::ir::LogicProgram;
 use crate::nt::{nt_escape_iri, nt_escape_literal};
 
-use super::{parse_forms, split_on_sentinel, CExpr};
+use super::{CExpr, parse_forms, split_on_sentinel};
 
 use purrdf::parse_dataset;
 
@@ -207,7 +207,7 @@ fn parse_lit_form(items: &[CExpr]) -> Result<LitTerm, LogicParseError> {
         other => {
             return Err(LogicParseError(format!(
                 "(lit …) first argument must be a \"string\", found {other:?}"
-            )))
+            )));
         }
     };
     match items.get(2) {

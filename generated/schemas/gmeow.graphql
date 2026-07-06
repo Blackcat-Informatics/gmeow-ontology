@@ -317,6 +317,11 @@ enum AxisEnum {
   axisZ
 }
 
+enum BlockingDispositionEnum {
+  blockingBlocking
+  blockingCoherent
+}
+
 enum BranchConditionTypeEnum {
   branchConditionIf
   branchConditionLoop
@@ -758,6 +763,12 @@ enum DiagnosticSeverityEnum {
   severityWarning
 }
 
+enum DiagnosticStandpointEnum {
+  standpointAdvisory
+  standpointBinding
+  standpointPerspectival
+}
+
 enum DimensionFamilyEnum {
   familyAppraisal
   familyCoreAffect
@@ -1080,6 +1091,11 @@ enum GTSProfileEnum {
   gtsProfileGeneric
   gtsProfileImage
   gtsProfileOpaque
+}
+
+enum GateVerdictEnum {
+  gateCollected
+  gateFatal
 }
 
 enum GenderEnum {
@@ -3780,6 +3796,11 @@ type BlockchainNetwork {
   chainId: String
 }
 
+type BlockingDisposition {
+  id: String
+  iri: String
+}
+
 type BodyPart {
   id: String
   iri: String
@@ -4586,6 +4607,11 @@ type DiagnosticSeverity {
   iri: String
 }
 
+type DiagnosticStandpoint {
+  id: String
+  iri: String
+}
+
 type Diff {
   id: String
   iri: String
@@ -5108,10 +5134,12 @@ type Finding {
   iri: String
   findingCategory: [String!]
   findingCode: [String!]
+  findingGateVerdict: [GateVerdict!]
   findingHelpUri: [String!]
   findingLocation: [String!]
   findingMessage: [String!]
   findingSeverity: [DiagnosticSeverity!]
+  findingStandpoint: [DiagnosticStandpoint!]
   findingSuggestion: [String!]
   findingTool: [String!]
 }
@@ -5170,6 +5198,11 @@ type GTSSegment {
   gtsSegmentIndex: Int
   gtsSegmentOf: GTSDocument
   usesTransformCodec: [TransformCodec!]
+}
+
+type GateVerdict {
+  id: String
+  iri: String
 }
 
 type Gender {

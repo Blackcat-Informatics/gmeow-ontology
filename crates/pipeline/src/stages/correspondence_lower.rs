@@ -18,10 +18,10 @@ use std::sync::Arc;
 use gmeow_logic_compile::ingest::DslView;
 use gmeow_logic_compile::projections::correspondence::CorrespondenceProgram;
 use gmeow_logic_compile::projections::correspondence_frontend::transpile_correspondences_indexed;
-use gmeow_logic_compile::projections::{edoal, emotionml, fno, sparql, sssom, ProjectionResult};
+use gmeow_logic_compile::projections::{ProjectionResult, edoal, emotionml, fno, sparql, sssom};
 use purrdf::dataset_view::{DatasetView, GraphMatch};
 use purrdf::slice::{ArtifactRole, SliceCatalog, SliceError};
-use purrdf::{parse_dataset, NativeRdfFormat, RdfDataset, RdfDatasetBuilder, TermRef, TermValue};
+use purrdf::{NativeRdfFormat, RdfDataset, RdfDatasetBuilder, TermRef, TermValue, parse_dataset};
 
 const GM_VERSION_FINGERPRINT: &str = "https://blackcatinformatics.ca/gmeow/versionFingerprint";
 const GM_DATE_PUBLISHED: &str = "https://blackcatinformatics.ca/gmeow/datePublished";
@@ -37,6 +37,11 @@ pub struct CorrespondenceArtifacts {
     pub edoal: BTreeMap<String, String>,
     /// `<profile>.rq` → SPARQL CONSTRUCT.
     pub sparql: BTreeMap<String, String>,
+    /// `<profile>.put.rq` → SPARQL CONSTRUCT (the inverse ingest leg). ml-schema authors
+    /// the ingest-claim terms today, so the map carries one entry; the emitter is the sole
+    /// authority for the set, so the write loop and parity gates derive their count from
+    /// this map's length.
+    pub sparql_put: BTreeMap<String, String>,
     /// The `gmeow-affect.emotionml.xml` document — the many-to-one EmotionML XML lowering
     /// of the affect category + dimension vocabularies. Its loss-ledger row (the collapse
     /// record) rides in `ledger` alongside the four alignment dialects.
@@ -60,22 +65,18 @@ pub struct CorrespondenceArtifacts {
     pub correspondences: CorrespondenceProgram,
 }
 
-/// Lower every alignment dialect from the sources under `root`.
-pub fn lower_all(root: &Path) -> Result<CorrespondenceArtifacts, SliceError> {
-    // Discover the slice catalog once and share it across both merges (the DSL
-    // `Mapping` artifacts and the ontology `Module` artifacts), rather than
-    // rescanning the `slices/` tree per role.
-    let slices_dir = root.join("slices");
-    let catalog = if slices_dir.is_dir() {
-        Some(SliceCatalog::discover(
-            &slices_dir,
-            crate::gmeow_ns::gmeow_slice_vocab(),
-        )?)
-    } else {
-        None
-    };
-    let dsl = merge_dsl(root, catalog.as_ref())?;
-    let onto = merge_ontology(root, catalog.as_ref())?;
+/// Lower every alignment dialect from the sources under `root`, reading slice artifacts
+/// from the SHARED in-memory `catalog` the mappings stage discovered ONCE (the same
+/// instance the total prose-lift corpus draws its `@x-gmeow-english` universe from), so the
+/// `slices/` tree is walked once per pipeline run — never re-scanned per consumer. `catalog`
+/// is `None` only when there is no `slices/` tree (the DSL/ontology merges then fold just
+/// `dsl/mappings/` + `ontology/gmeow.ttl`).
+pub fn lower_all(
+    root: &Path,
+    catalog: Option<&SliceCatalog>,
+) -> Result<CorrespondenceArtifacts, SliceError> {
+    let dsl = merge_dsl(root, catalog)?;
+    let onto = merge_ontology(root, catalog)?;
     let dsl_view = DslView::new(&dsl);
     let onto_view = DslView::new(&onto);
     let (version, release_date) = read_self_metadata(root)?;
@@ -114,6 +115,10 @@ pub fn lower_all(root: &Path) -> Result<CorrespondenceArtifacts, SliceError> {
         fno: fno.catalog,
         edoal: edoal.alignments,
         sparql: sparql.queries,
+        // The inverse ingest leg rides on the same lowering; ml-schema authors the
+        // ingest-claim terms today, so the map carries one entry now and grows automatically
+        // as more slices author claims; the map is the sole authority for the `.put.rq` set.
+        sparql_put: sparql.put_queries,
         emotionml: emotionml.document,
         ledger,
         correspondences,
@@ -225,7 +230,7 @@ fn read_self_metadata(root: &Path) -> Result<(String, String), SliceError> {
         _ => {
             return Err(SliceError::Parse(
                 "gmeow-self.ttl: versionFingerprint subject is not an IRI".to_owned(),
-            ))
+            ));
         }
     };
     let view = DslView::new(&ds);

@@ -198,7 +198,7 @@ impl Stage for GtsComposeStage {
 mod tests {
     use super::*;
     use crate::stages::source_load::{
-        dataset_to_sorted_nquads, load_authored_dataset, BASE_GRAPH_PATH,
+        BASE_GRAPH_PATH, dataset_to_sorted_nquads, load_authored_dataset,
     };
     use crate::stages::statements::RDF12_PATH;
     use std::path::Path;

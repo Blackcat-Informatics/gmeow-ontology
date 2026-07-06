@@ -524,16 +524,21 @@ fn serialization_anomaly_is_a_finding_with_provenance() {
         &edges,
     )
     .unwrap();
-    assert!(quads
-        .iter()
-        .any(|q| q.predicate == RDF_TYPE && q.object == n3(&logic("SerializationAnomaly"))));
-    assert!(!quads
-        .iter()
-        .any(|q| q.object.contains("contradictionWitness")));
+    assert!(
+        quads
+            .iter()
+            .any(|q| q.predicate == RDF_TYPE && q.object == n3(&logic("SerializationAnomaly")))
+    );
+    assert!(
+        !quads
+            .iter()
+            .any(|q| q.object.contains("contradictionWitness"))
+    );
     for q in &quads {
-        assert!(q
-            .derivation_id
-            .starts_with("https://blackcatinformatics.ca/gmeow/derivation/"));
+        assert!(
+            q.derivation_id
+                .starts_with("https://blackcatinformatics.ca/gmeow/derivation/")
+        );
         assert_eq!(q.rule_iri, TELEOLOGY_RULE_IRI);
     }
 }
@@ -752,12 +757,14 @@ fn contested_evaluations_retained_with_factored_axes() {
         "driver emits the default-vantage evaluation"
     );
     // Factored axes are emitted as DISTINCT predicates — never collapsed into one label.
-    assert!(out
-        .iter()
-        .any(|q| q.predicate == logic("satisfactionStatus")));
-    assert!(out
-        .iter()
-        .any(|q| q.predicate == logic("goalEvaluationStatus")));
+    assert!(
+        out.iter()
+            .any(|q| q.predicate == logic("satisfactionStatus"))
+    );
+    assert!(
+        out.iter()
+            .any(|q| q.predicate == logic("goalEvaluationStatus"))
+    );
     let sat = out
         .iter()
         .find(|q| q.predicate == logic("satisfactionStatus"));
@@ -788,9 +795,10 @@ fn determinism_same_input_same_derivation_ids() {
         "same input must yield byte-identical quads + provenance"
     );
     for q in &a {
-        assert!(q
-            .derivation_id
-            .starts_with("https://blackcatinformatics.ca/gmeow/derivation/"));
+        assert!(
+            q.derivation_id
+                .starts_with("https://blackcatinformatics.ca/gmeow/derivation/")
+        );
     }
 }
 
@@ -884,9 +892,10 @@ fn forward_satisfied_completed_emits_one_vantage_indexed_edge() {
     // Provenance is content-addressed under the teleology rule.
     for q in &out {
         assert_eq!(q.rule_iri, TELEOLOGY_RULE_IRI);
-        assert!(q
-            .derivation_id
-            .starts_with("https://blackcatinformatics.ca/gmeow/derivation/"));
+        assert!(
+            q.derivation_id
+                .starts_with("https://blackcatinformatics.ca/gmeow/derivation/")
+        );
     }
 }
 
@@ -1289,9 +1298,10 @@ fn materialize_teleology_runs_all_families_and_is_deterministic() {
     let out = materialize_teleology(&store).unwrap().0;
 
     // Family 1+5: a GoalEvaluation + a flat satisfiedBy edge for the satisfied goal.
-    assert!(out
-        .iter()
-        .any(|q| q.predicate == RDF_TYPE && q.object == n3(&logic("GoalEvaluation"))));
+    assert!(
+        out.iter()
+            .any(|q| q.predicate == RDF_TYPE && q.object == n3(&logic("GoalEvaluation")))
+    );
     assert!(out.iter().any(|q| q.predicate == gmeow(SATISFIED_BY)));
     // Family 2: planSuccessMode = StrongPlanSuccess.
     assert!(out.iter().any(|q| q.subject == format!("{W}#plan1")
@@ -1304,9 +1314,10 @@ fn materialize_teleology_runs_all_families_and_is_deterministic() {
                 && q.object == n3(&format!("{W}#goalNorm")))
     );
     // Family 4: a SerializationAnomaly finding (NOT a contradiction witness).
-    assert!(out
-        .iter()
-        .any(|q| q.predicate == RDF_TYPE && q.object == n3(&logic("SerializationAnomaly"))));
+    assert!(
+        out.iter()
+            .any(|q| q.predicate == RDF_TYPE && q.object == n3(&logic("SerializationAnomaly")))
+    );
 
     // Determinism: re-running over a fresh store yields byte-identical quads + ids.
     let store2 = WorldStore::new();
@@ -1648,15 +1659,18 @@ fn effect_application_emits_append_only_supersession_quartet() {
         && q.predicate == logic("situationObtains")
         && q.object == n3(&format!("{W}#sitZ"))));
     // sitY is superseded (append-only), carrying the full quartet.
-    assert!(out
-        .iter()
-        .any(|q| q.subject == format!("{W}#sitY") && q.predicate == logic("supersededBy")));
+    assert!(
+        out.iter()
+            .any(|q| q.subject == format!("{W}#sitY") && q.predicate == logic("supersededBy"))
+    );
     assert!(out.iter().any(|q| q.subject == format!("{W}#sitY")
         && q.predicate == logic("validUntilState")
         && q.object == n3(&format!("{W}#state1"))));
-    assert!(out
-        .iter()
-        .any(|q| q.subject == format!("{W}#sitY") && q.predicate == logic("retiredByTransaction")));
+    assert!(
+        out.iter()
+            .any(|q| q.subject == format!("{W}#sitY")
+                && q.predicate == logic("retiredByTransaction"))
+    );
     // The predecessor state0 STILL carries sitY (echoed) — del is not erasure.
     assert!(out.iter().any(|q| q.subject == format!("{W}#state0")
         && q.predicate == logic("situationObtains")

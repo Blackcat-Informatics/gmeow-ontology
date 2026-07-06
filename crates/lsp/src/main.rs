@@ -31,7 +31,7 @@ use lsp_types::{
     TextDocumentSyncCapability, TextDocumentSyncKind, Uri,
 };
 
-use gmeow_diagnostics::render;
+use gmeow_errors::render;
 use gmeow_lsp::{analyze, classify, report_to_diagnostics};
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -142,7 +142,7 @@ fn run_sarif(argv: &[String]) -> io::Result<()> {
         ));
     }
 
-    let mut combined = gmeow_diagnostics::model::Report::new("gmeow-lsp");
+    let mut combined = gmeow_errors::model::Report::new("gmeow-lsp");
     if let Some(cat) = category {
         combined
             .metadata
@@ -183,10 +183,10 @@ fn run_sarif(argv: &[String]) -> io::Result<()> {
 }
 
 fn repo_relative_path(path: &Path) -> String {
-    if let Ok(cwd) = env::current_dir() {
-        if let Ok(rel) = path.strip_prefix(&cwd) {
-            return rel.to_string_lossy().into_owned();
-        }
+    if let Ok(cwd) = env::current_dir()
+        && let Ok(rel) = path.strip_prefix(&cwd)
+    {
+        return rel.to_string_lossy().into_owned();
     }
     path.to_string_lossy().into_owned()
 }

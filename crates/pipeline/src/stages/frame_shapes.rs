@@ -55,7 +55,7 @@ fn single_value(dataset: &Dataset, subject_iri: &str, predicate: &str) -> Option
         .ok()?
         .into_iter()
         .find_map(|o| match o {
-            Object::Literal { value } => Some(value),
+            Object::Literal { value, .. } => Some(value),
             Object::Named(iri) => Some(iri),
             _ => None,
         })

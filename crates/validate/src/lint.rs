@@ -306,10 +306,11 @@ pub fn collect_typed_terms_dataset(ds: &RdfDataset, cfg: &LintConfig) -> BTreeMa
     }
     // Any remaining GMEOW subjects with an explicit rdf:type → individual.
     for q in ds.quads_for_pattern(None, Some(type_id), None, GraphMatch::Any) {
-        if let TermRef::Iri(iri) = ds.resolve(q.s) {
-            if is_gmeow_term(iri, cfg) && !terms.contains_key(iri) {
-                terms.insert(iri.to_owned(), "individual".to_owned());
-            }
+        if let TermRef::Iri(iri) = ds.resolve(q.s)
+            && is_gmeow_term(iri, cfg)
+            && !terms.contains_key(iri)
+        {
+            terms.insert(iri.to_owned(), "individual".to_owned());
         }
     }
     terms
@@ -530,13 +531,14 @@ pub fn structural_lint_dataset(ds: &RdfDataset, cfg: &LintConfig) -> LintReport 
             continue;
         };
         for q in ds.quads_for_pattern(None, Some(p_id), None, GraphMatch::Any) {
-            if let TermRef::Iri(target) = ds.resolve(q.o) {
-                if is_gmeow_term(target, cfg) && !declared.contains(&target.to_owned()) {
-                    report.errors.push(format!(
-                        "dangling {pred} target (undeclared GMEOW term): {target}",
-                        pred = predicate,
-                    ));
-                }
+            if let TermRef::Iri(target) = ds.resolve(q.o)
+                && is_gmeow_term(target, cfg)
+                && !declared.contains(&target.to_owned())
+            {
+                report.errors.push(format!(
+                    "dangling {pred} target (undeclared GMEOW term): {target}",
+                    pred = predicate,
+                ));
             }
         }
     }
@@ -591,34 +593,26 @@ pub fn structural_lint_dataset(ds: &RdfDataset, cfg: &LintConfig) -> LintReport 
         };
 
         // Check 1: literal on a GMEOW-namespace predicate.
-        if predicate_iri.starts_with(&cfg.namespace) {
-            if let Some(lang) = language {
-                if !x_gmeow.is_match(lang) {
-                    let subject = ds_subject_display(ds.resolve(q.s));
-                    report.errors.push(format!(
-                        "literal {lit_repr} (on subject {subject}, predicate {predicate_iri}) \
+        if predicate_iri.starts_with(&cfg.namespace)
+            && let Some(lang) = language
+            && !x_gmeow.is_match(lang)
+        {
+            let subject = ds_subject_display(ds.resolve(q.s));
+            report.errors.push(format!(
+                "literal {lit_repr} (on subject {subject}, predicate {predicate_iri}) \
                          carries external or invalid language tag '{lang}'; GMEOW internal \
                          data must use the private-use 'x-gmeow-' prefix.",
-                        lit_repr = lang_literal_repr(lexical, lang),
-                    ));
-                }
-            }
+                lit_repr = lang_literal_repr(lexical, lang),
+            ));
         }
 
         // Check 2: standard annotation predicate on a GMEOW-authored subject.
-        if let TermRef::Iri(subj) = ds.resolve(q.s) {
-            if is_gmeow_term(subj, cfg) {
-                if let Some(msg) = ds_check_annotation_literal(
-                    subj,
-                    predicate_iri,
-                    lexical,
-                    language,
-                    cfg,
-                    &x_gmeow,
-                ) {
-                    report.errors.push(msg);
-                }
-            }
+        if let TermRef::Iri(subj) = ds.resolve(q.s)
+            && is_gmeow_term(subj, cfg)
+            && let Some(msg) =
+                ds_check_annotation_literal(subj, predicate_iri, lexical, language, cfg, &x_gmeow)
+        {
+            report.errors.push(msg);
         }
     }
 
@@ -627,15 +621,40 @@ pub fn structural_lint_dataset(ds: &RdfDataset, cfg: &LintConfig) -> LintReport 
     // one-way lang:->logic: bridge acyclicity.
     check_lang_meaning_invariants(ds, cfg, &mut report);
 
+    // lang: form-stratum native gates (charter primary gates): a document-scale
+    // surface holds its bytes by reference (never inline payload), and a composed
+    // form's slot indexes are zero-based and contiguous (enforced unconditionally).
+    check_lang_form_invariants(ds, &mut report);
+
+    // lang: ingestion-stratum native gates (charter primary gates): the external-
+    // engine handoff — engine output enters as vantage-held readings (never
+    // unattributed structure), promotion from an engine reading to a slice
+    // assertion is an explicit provenance-carrying act, and an ingested surface is
+    // never left in analysis limbo (silently dropped content).
+    check_lang_ingestion_invariants(ds, cfg, &mut report);
+
     // lang: translation-stratum native gates (charter primary gates): the crossing
     // layer keeps content identity structural (never keyed on surface material) and
     // a rendering names its content without ever standing in for that content's
     // identity.
     check_lang_translation_invariants(ds, cfg, &mut report);
 
+    // lang: projection-stratum native gates (charter primary gates): the lossy-
+    // lowering contract over the projection corpus — every emission declares its
+    // preservation kind, a lossy emission enumerates the constructs it drops, a
+    // form-view emission enumerates the epistemic strata it flattens, a per-reading
+    // emission emits one row per co-resident reading (never a silent winner), and a
+    // declared-exact emission whose measured round-trip is refuted is caught.
+    check_lang_projection_invariants(ds, cfg, &mut report);
+
     // math: measure-and-dimension reasoned gate — dimensional homogeneity computed
     // from the exact-rational (ℚ⁷) exponent vectors, not asserted data.
     check_math_dimension_invariants(ds, &mut report);
+
+    // math: ingestion-bridge gate — a bridge run (the mnemomorphic put leg of a
+    // logic:Correspondence) lifts fully or hard-fails; a run retaining a source but
+    // producing no structured math: codomain has silently dropped its content.
+    check_math_ingest_invariants(ds, &mut report);
 
     report
 }
@@ -643,6 +662,14 @@ pub fn structural_lint_dataset(ds: &RdfDataset, cfg: &LintConfig) -> LintReport 
 /// Namespace roots for the `lang:`/`logic:` meaning-stratum invariants.
 const LANG_NS: &str = "https://blackcatinformatics.ca/lang/";
 const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
+
+/// The document-scale threshold, in bytes, for the `lang:InlineBlobPayload` gate: a
+/// `lang:SurfaceForm` whose inline `lang:surfaceText` exceeds this holds document-scale
+/// payload inline instead of by reference (`lang:surfaceBlob`). This MUST equal the
+/// pipeline's `DOCUMENT_SCALE_BYTES` (`crates/pipeline/src/stages/lang_form.rs`, which
+/// mints the `lang:surfaceBlob` handle once a surface crosses it); the two are kept in
+/// sync by hand — one hard-coded, documented constant, never a tunable knob.
+const DOCUMENT_SCALE_BYTES: usize = 4096;
 
 fn lang_iri(term: &str) -> String {
     format!("{LANG_NS}{term}")
@@ -745,10 +772,10 @@ fn reading_claim_is_grounded(
         return false;
     };
     for q in ds.quads_for_pattern(None, Some(p_id), Some(o_id), GraphMatch::Any) {
-        if let TermRef::Iri(obs) = ds.resolve(q.s) {
-            if ds_has_predicate(ds, obs, vantage) {
-                return true;
-            }
+        if let TermRef::Iri(obs) = ds.resolve(q.s)
+            && ds_has_predicate(ds, obs, vantage)
+        {
+            return true;
         }
     }
     false
@@ -767,6 +794,179 @@ fn check_one_way_bridge(ds: &RdfDataset, report: &mut LintReport) {
                 "lang: one-way bridge violated: logic: subject {s} carries lang: predicate {p} \
                  (Principle 19: the lang:->logic: bridge never reverses)"
             ));
+        }
+    }
+}
+
+/// The `lang:` ingestion-stratum invariants the charter designates as native
+/// Rust-validator gates for the external-NLP-engine handoff (realized here rather
+/// than in SHACL, since the engine seam is a Rust seam). Runs over the merged
+/// dataset, so the invariants hold bundle-wide, not merely per fixture.
+fn check_lang_ingestion_invariants(ds: &RdfDataset, cfg: &LintConfig, report: &mut LintReport) {
+    check_unattributed_engine_claim(ds, cfg, report);
+    check_silent_promotion(ds, cfg, report);
+    check_silent_ingest_drop(ds, report);
+}
+
+/// `lang:SilentIngestDrop` — an ingester lifts fully or hard-fails; it never silently
+/// drops material. The bridges enforce this at the seam (a lift that cannot represent a
+/// construct raises a typed `IngestDiagnostic` carrying this class rather than emitting a
+/// plausible-but-wrong structure). At the dataset level the honest complement is a
+/// surface left in analysis limbo: a `lang:SurfaceForm` that neither `lang:realizes` an
+/// analyzed `lang:Form` NOR is typed `lang:UnanalyzedProse` has entered the graph with its
+/// analysis silently dropped — neither lifted nor explicitly marked unanalyzed. A surface
+/// is analyzed or explicitly unanalyzed, never silently either.
+fn check_silent_ingest_drop(ds: &RdfDataset, report: &mut LintReport) {
+    let realizes = lang_iri("realizes");
+    let unanalyzed = lang_iri("UnanalyzedProse");
+    for surface in ds_subjects_of_type(ds, &lang_iri("SurfaceForm")) {
+        let realizes_a_form = ds_has_predicate(ds, &surface, &realizes);
+        let is_unanalyzed = ds_has_type(ds, &surface, &unanalyzed);
+        if !realizes_a_form && !is_unanalyzed {
+            report.errors.push(format!(
+                "lang:SilentIngestDrop: surface {surface} neither lang:realizes an analyzed \
+                 lang:Form nor is typed lang:UnanalyzedProse; an ingested surface left in \
+                 analysis limbo has silently dropped its content (an ingester lifts fully or \
+                 hard-fails, never silently either)"
+            ));
+        }
+    }
+}
+
+/// The `lang:` form-stratum invariants the charter designates as native Rust-validator
+/// primary gates (realized here rather than in SHACL). Runs over the merged dataset, so
+/// the invariants hold bundle-wide, not merely per fixture.
+fn check_lang_form_invariants(ds: &RdfDataset, report: &mut LintReport) {
+    check_inline_blob_payload(ds, report);
+    check_noncontiguous_form_slots(ds, report);
+}
+
+/// `lang:InlineBlobPayload` — document-scale surfaces hold a content-addressed blob
+/// reference (`lang:surfaceBlob`), never inline payload bytes. Flag a `lang:SurfaceForm`
+/// whose inline `lang:surfaceText` byte-length EXCEEDS [`DOCUMENT_SCALE_BYTES`] — a
+/// document-scale surface that inlined its bytes instead of holding them by reference. The
+/// threshold is the SAME value the pipeline's lang-form producer mints the
+/// `lang:surfaceBlob` handle at, so the gate and the producer agree on the boundary.
+fn check_inline_blob_payload(ds: &RdfDataset, report: &mut LintReport) {
+    let surface_text = lang_iri("surfaceText");
+    for surface in ds_subjects_of_type(ds, &lang_iri("SurfaceForm")) {
+        for text in ds_object_literals(ds, &surface, &surface_text) {
+            if text.len() > DOCUMENT_SCALE_BYTES {
+                report.errors.push(format!(
+                    "lang:InlineBlobPayload: surface {surface} carries a document-scale \
+                     lang:surfaceText inline ({} bytes > {DOCUMENT_SCALE_BYTES}); document-scale \
+                     surfaces hold their bytes by reference through lang:surfaceBlob, never inline",
+                    text.len()
+                ));
+            }
+        }
+    }
+}
+
+/// `lang:NonContiguousSlots` — a `lang:ComposedForm`'s `lang:formSlot` slot indexes
+/// (`lang:slotIndex`) are zero-based and contiguous, enforced UNCONDITIONALLY (there is no
+/// lax mode). Flag a composed form whose multiset of declared slot indexes is not exactly
+/// `0, 1, …, n-1` for its `n` slots — a missing index 0, an internal gap, a non-zero
+/// start, or a maximum index not equal to the slot count minus one. Constituent order is
+/// identity-bearing, so a gap or non-zero start is always ill-formed.
+fn check_noncontiguous_form_slots(ds: &RdfDataset, report: &mut LintReport) {
+    let form_slot = lang_iri("formSlot");
+    let slot_index = lang_iri("slotIndex");
+    for form in ds_subjects_of_type(ds, &lang_iri("ComposedForm")) {
+        let slots = ds_object_iris_sorted(ds, &form, &form_slot);
+        if slots.is_empty() {
+            continue;
+        }
+        // Collect the declared integer indexes across the form's slots. A slot with no
+        // integer index cannot take a place in the contiguous order, so a missing index is
+        // itself non-contiguity (the count of indexes then falls short of the slot count).
+        let mut indexes: Vec<i64> = Vec::new();
+        for slot in &slots {
+            for lex in ds_object_literals(ds, slot, &slot_index) {
+                if let Ok(i) = lex.trim().parse::<i64>() {
+                    indexes.push(i);
+                }
+            }
+        }
+        indexes.sort_unstable();
+        // Zero-based and contiguous: the sorted index multiset is exactly 0..slot_count.
+        let contiguous = indexes.len() == slots.len()
+            && indexes.iter().enumerate().all(|(i, &idx)| idx == i as i64);
+        if !contiguous {
+            report.errors.push(format!(
+                "lang:NonContiguousSlots: composed form {form} has slot indexes {indexes:?} over \
+                 {} slot(s); slot indexes are zero-based and contiguous (0, 1, …, n-1), enforced \
+                 unconditionally — a gap, a non-zero start, or a missing index is ill-formed",
+                slots.len()
+            ));
+        }
+    }
+}
+
+/// `lang:UnattributedEngineClaim` — an external engine is an oracle that produces
+/// claims, never an authority that produces facts, so every reading a `lang:
+/// InterpretationAct` marked as an engine run (through `lang:interpretationEngine`)
+/// produces MUST be a vantage-held reading (carrying `gmeow:vantage`). An engine
+/// reading with no vantage has entered engine output as unattributed structure.
+///
+/// Keying on `lang:interpretationEngine` scopes the gate to engine runs, so a manual
+/// or compositional interpretation act — whose co-resident readings are held through
+/// a separate `gmeow:Observation` and may lawfully leave the non-preferred alternative
+/// unclaimed — is never flagged.
+fn check_unattributed_engine_claim(ds: &RdfDataset, cfg: &LintConfig, report: &mut LintReport) {
+    let engine = lang_iri("interpretationEngine");
+    let produced = lang_iri("producedReading");
+    let vantage = format!("{}vantage", cfg.namespace);
+    for act in ds_subjects_of_type(ds, &lang_iri("InterpretationAct")) {
+        if !ds_has_predicate(ds, &act, &engine) {
+            continue;
+        }
+        for reading in ds_object_iris_sorted(ds, &act, &produced) {
+            if !ds_has_predicate(ds, &reading, &vantage) {
+                report.errors.push(format!(
+                    "lang:UnattributedEngineClaim: engine interpretation act {act} produced \
+                     reading {reading} with no gmeow:vantage; engine output enters as \
+                     vantage-held readings, never unattributed structure"
+                ));
+            }
+        }
+    }
+}
+
+/// `lang:SilentPromotion` — promotion from an engine-claimed reading to a slice-
+/// asserted analysis is an explicit provenance-carrying editorial act. A subject that
+/// adopts a reading as canonical (through `lang:promotedReading`) MUST itself be a
+/// `gmeow:Activity` carrying a `gmeow:vantage` (the editor who stands behind it);
+/// a promotion from a subject that is not such an act has silently promoted the
+/// reading, erasing the boundary between what an engine claimed and what the slice
+/// asserts.
+fn check_silent_promotion(ds: &RdfDataset, cfg: &LintConfig, report: &mut LintReport) {
+    let promoted = lang_iri("promotedReading");
+    let activity = format!("{}Activity", cfg.namespace);
+    let vantage = format!("{}vantage", cfg.namespace);
+    let Some(p_id) = ds_iri_id(ds, &promoted) else {
+        return;
+    };
+    let mut subjects: Vec<String> = Vec::new();
+    for q in ds.quads_for_pattern(None, Some(p_id), None, GraphMatch::Any) {
+        if let TermRef::Iri(s) = ds.resolve(q.s) {
+            subjects.push(s.to_owned());
+        }
+    }
+    subjects.sort();
+    subjects.dedup();
+    for subj in subjects {
+        let is_act = ds_has_type(ds, &subj, &activity);
+        let is_vantage_held = ds_has_predicate(ds, &subj, &vantage);
+        if !is_act || !is_vantage_held {
+            for reading in ds_object_iris_sorted(ds, &subj, &promoted) {
+                report.errors.push(format!(
+                    "lang:SilentPromotion: subject {subj} promotes reading {reading} to a slice \
+                     assertion but is not a provenance-carrying editorial act (a gmeow:Activity \
+                     carrying a gmeow:vantage); promotion from an engine reading is an explicit \
+                     provenance-carrying act"
+                ));
+            }
         }
     }
 }
@@ -851,6 +1051,196 @@ fn check_rendering_as_identity(ds: &RdfDataset, report: &mut LintReport) {
     }
 }
 
+/// The `lang:` projection-stratum invariants the charter designates as native
+/// Rust-validator/projection-test primary gates (realized here rather than in SHACL,
+/// since each carries a join the SHACL Core surface cannot express). Runs over the
+/// merged dataset, so the lossy-lowering contract holds bundle-wide over the whole
+/// projection corpus, not merely per fixture.
+fn check_lang_projection_invariants(ds: &RdfDataset, cfg: &LintConfig, report: &mut LintReport) {
+    check_missing_preservation_kind(ds, report);
+    check_undeclared_unsupported_construct(ds, report);
+    check_unrecorded_epistemic_loss(ds, cfg, report);
+    check_projection_silent_disambiguation(ds, report);
+    check_exact_preservation_violated(ds, report);
+}
+
+/// `lang:MissingPreservationKind` — every `lang:ProjectionEmission` declares a
+/// `logic:preservationKind` (reusing the `logic:` loss-ledger vocabulary verbatim). An
+/// emission with none has entered the loss ledger carrying an undeclared preservation
+/// judgment, so its semiotic loss is unqueryable.
+fn check_missing_preservation_kind(ds: &RdfDataset, report: &mut LintReport) {
+    let preservation_kind = logic_iri("preservationKind");
+    for emission in ds_subjects_of_type(ds, &lang_iri("ProjectionEmission")) {
+        if !ds_has_predicate(ds, &emission, &preservation_kind) {
+            report.errors.push(format!(
+                "lang:MissingPreservationKind: projection emission {emission} declares no \
+                 logic:preservationKind; every projection declares its preservation kind (the \
+                 logic: loss-ledger vocabulary, reused verbatim)"
+            ));
+        }
+    }
+}
+
+/// Whether an emission's declared `logic:preservationKind` set marks it lossy: it names
+/// at least one preservation kind and NONE of them is `logic:ExactPreservation`. An
+/// emission with no preservation kind is out of scope here (that is
+/// `lang:MissingPreservationKind`), so a lossy verdict is always over a declared kind.
+fn emission_is_lossy(ds: &RdfDataset, emission: &str) -> bool {
+    let preservation_kind = logic_iri("preservationKind");
+    let exact = logic_iri("ExactPreservation");
+    let kinds = ds_object_iris(ds, emission, &preservation_kind);
+    !kinds.is_empty() && !kinds.contains(&exact)
+}
+
+/// The co-resident reading count of a source form: the number of distinct `lang:Reading`
+/// subjects reading it through `lang:readingOf`, or — when no reading points at the form
+/// directly — the number of distinct `lang:Analysis` nodes the form is scoped to through
+/// `lang:inAnalysis`. Both encode ambiguity multiplicity; the larger is the count.
+fn source_reading_count(ds: &RdfDataset, source: &str) -> usize {
+    let reading_of = lang_iri("readingOf");
+    let in_analysis = lang_iri("inAnalysis");
+    let mut readings: HashSet<String> = HashSet::new();
+    if let (Some(p_id), Some(o_id)) = (ds_iri_id(ds, &reading_of), ds_iri_id(ds, source)) {
+        for q in ds.quads_for_pattern(None, Some(p_id), Some(o_id), GraphMatch::Any) {
+            if let TermRef::Iri(r) = ds.resolve(q.s) {
+                readings.insert(r.to_owned());
+            }
+        }
+    }
+    let analyses = ds_object_iris(ds, source, &in_analysis);
+    readings.len().max(analyses.len())
+}
+
+/// `lang:UndeclaredUnsupportedConstruct` — a lossy `lang:ProjectionEmission` (a declared
+/// `logic:preservationKind` that is not `logic:ExactPreservation`) enumerates every
+/// construct it drops through `lang:unsupportedConstruct`. A lossy emission naming none has
+/// claimed a completeness its own preservation kind denies — the overclaim floor, over
+/// bundle data.
+fn check_undeclared_unsupported_construct(ds: &RdfDataset, report: &mut LintReport) {
+    let unsupported = lang_iri("unsupportedConstruct");
+    for emission in ds_subjects_of_type(ds, &lang_iri("ProjectionEmission")) {
+        if emission_is_lossy(ds, &emission)
+            && ds_object_literals(ds, &emission, &unsupported).is_empty()
+        {
+            report.errors.push(format!(
+                "lang:UndeclaredUnsupportedConstruct: lossy projection emission {emission} (a \
+                 logic:preservationKind other than logic:ExactPreservation) enumerates no \
+                 lang:unsupportedConstruct; a projection drops nothing or names everything it drops"
+            ));
+        }
+    }
+}
+
+/// `lang:UnrecordedEpistemicLoss` — a form-view-flattening (lossy) `lang:ProjectionEmission`
+/// whose `lang:projectsSource` carries epistemic structure (a `gmeow:vantage`, a
+/// `lang:InterpretationAct`, two or more co-resident readings, or a `lang:Translation`) MUST
+/// name that flattened stratum among its `lang:unsupportedConstruct` entries. An emission
+/// that flattens the epistemic layer yet enumerates none of it has hidden the loss.
+fn check_unrecorded_epistemic_loss(ds: &RdfDataset, cfg: &LintConfig, report: &mut LintReport) {
+    let projects_source = lang_iri("projectsSource");
+    let unsupported = lang_iri("unsupportedConstruct");
+    let vantage = format!("{}vantage", cfg.namespace);
+    for emission in ds_subjects_of_type(ds, &lang_iri("ProjectionEmission")) {
+        // Flattening is a loss; an exact emission preserves everything and flattens nothing.
+        if !emission_is_lossy(ds, &emission) {
+            continue;
+        }
+        let drops: Vec<String> = ds_object_literals(ds, &emission, &unsupported)
+            .into_iter()
+            .map(|d| d.to_lowercase())
+            .collect();
+        for source in ds_object_iris_sorted(ds, &emission, &projects_source) {
+            // The epistemic strata the source carries, each paired with the keyword the drop
+            // list must name to record having flattened it.
+            let mut strata: Vec<&str> = Vec::new();
+            if ds_has_predicate(ds, &source, &vantage) {
+                strata.push("vantage");
+            }
+            if ds_has_type(ds, &source, &lang_iri("InterpretationAct")) {
+                strata.push("interpretation");
+            }
+            if source_reading_count(ds, &source) >= 2 {
+                strata.push("reading");
+            }
+            if ds_has_type(ds, &source, &lang_iri("Translation")) {
+                strata.push("translation");
+            }
+            if strata.is_empty() {
+                continue;
+            }
+            // EVERY flattened stratum must be recorded — not merely one of them. A source
+            // carrying `[vantage, reading, translation]` that enumerates only `vantage`
+            // silently flattens `reading` and `translation`, which is exactly the
+            // `lang:UnrecordedEpistemicLoss` this gate forbids; `all` (not `any`) enforces it.
+            let names_all_strata = strata.iter().all(|kw| drops.iter().any(|d| d.contains(kw)));
+            if !names_all_strata {
+                report.errors.push(format!(
+                    "lang:UnrecordedEpistemicLoss: form-view projection emission {emission} projects \
+                     source {source} carrying epistemic structure ({strata:?}) but does not name all \
+                     of it among its lang:unsupportedConstruct entries; a form-view emission \
+                     enumerates every epistemic stratum it flattens"
+                ));
+            }
+        }
+    }
+}
+
+/// `lang:ProjectionSilentDisambiguation` — a per-reading `lang:ProjectionEmission` (one that
+/// declares a `lang:emittedReadingCount`) emits one row per co-resident reading its
+/// `lang:projectsSource` form holds. An emitted count LESS than the source's co-resident
+/// reading count has collapsed the readings to a silently-chosen winner at the projection
+/// seam — distinct from the bundle-wide `lang:SilentDisambiguation` (a meaning-layer collapse).
+fn check_projection_silent_disambiguation(ds: &RdfDataset, report: &mut LintReport) {
+    let projects_source = lang_iri("projectsSource");
+    let emitted_reading_count = lang_iri("emittedReadingCount");
+    for emission in ds_subjects_of_type(ds, &lang_iri("ProjectionEmission")) {
+        // Only per-reading emissions declare an emitted-reading count; others are out of scope.
+        let Some(emitted) = ds_object_literals(ds, &emission, &emitted_reading_count)
+            .iter()
+            .filter_map(|l| l.trim().parse::<i64>().ok())
+            .max()
+        else {
+            continue;
+        };
+        for source in ds_object_iris_sorted(ds, &emission, &projects_source) {
+            let co_resident = source_reading_count(ds, &source) as i64;
+            if emitted < co_resident {
+                report.errors.push(format!(
+                    "lang:ProjectionSilentDisambiguation: per-reading projection emission {emission} \
+                     declares lang:emittedReadingCount {emitted} for source {source} holding \
+                     {co_resident} co-resident readings; a per-reading projection emits one row per \
+                     reading, never a silently-chosen winner"
+                ));
+            }
+        }
+    }
+}
+
+/// `lang:ExactPreservationViolated` — a `lang:ProjectionEmission` claiming
+/// `logic:preservationKind` `logic:ExactPreservation` whose MEASURED `lang:roundTripHolds`
+/// is false has made an exactness claim its own round-trip refutes. The measurement is
+/// computed, not asserted; the exactness claim, not the measurement, is the fault.
+fn check_exact_preservation_violated(ds: &RdfDataset, report: &mut LintReport) {
+    let preservation_kind = logic_iri("preservationKind");
+    let exact = logic_iri("ExactPreservation");
+    let round_trip_holds = lang_iri("roundTripHolds");
+    for emission in ds_subjects_of_type(ds, &lang_iri("ProjectionEmission")) {
+        if !ds_object_iris(ds, &emission, &preservation_kind).contains(&exact) {
+            continue;
+        }
+        let refuted = ds_object_literals(ds, &emission, &round_trip_holds)
+            .iter()
+            .any(|v| v.trim().eq_ignore_ascii_case("false"));
+        if refuted {
+            report.errors.push(format!(
+                "lang:ExactPreservationViolated: projection emission {emission} claims \
+                 logic:ExactPreservation but its measured lang:roundTripHolds is false; an exactness \
+                 claim its own round-trip refutes"
+            ));
+        }
+    }
+}
+
 /// Namespace root for the `math:` measure-and-dimension invariants.
 const MATH_NS: &str = "https://blackcatinformatics.ca/math/";
 
@@ -888,11 +1278,7 @@ struct Rat {
 }
 
 fn gcd_u128(a: u128, b: u128) -> u128 {
-    if b == 0 {
-        a
-    } else {
-        gcd_u128(b, a % b)
-    }
+    if b == 0 { a } else { gcd_u128(b, a % b) }
 }
 
 impl Rat {
@@ -1201,6 +1587,67 @@ fn check_math_dimension_invariants(ds: &RdfDataset, report: &mut LintReport) {
     }
 }
 
+/// The `math:` ingestion-bridge invariants the BRIDGES charter designates as native
+/// Rust-validator primary gates. Runs over the merged dataset (`GraphMatch::Any`), so the
+/// invariants hold bundle-wide, not merely per fixture.
+fn check_math_ingest_invariants(ds: &RdfDataset, report: &mut LintReport) {
+    check_unliftable_ingest(ds, report);
+}
+
+/// `math:UnliftableIngest` — a bridge is the mnemomorphic `put` leg of a `logic:Correspondence`:
+/// GMEOW is the source, the external artifact the view, and the lift is the up-projection (`put`),
+/// never a `get` run backward (the calculus's named anti-pattern). A lawful `put` comes from a
+/// retained mnemomorphic witness (`math:parseSource`), so a `math:IngestRun` that retains a source
+/// but produces NO structured `math:` codomain — nothing is `gmeow:wasGeneratedBy` it — has silently
+/// dropped everything it was meant to lift. That is the `unsupported` / `logic:ObligationViolated`
+/// outcome the correspondence Overclaim and Mnemomorphism gates decide, projected to the process
+/// layer: a bridge lifts fully or hard-fails, never emitting a degraded or empty lift. (A run that
+/// retains no source at all is caught upstream by `math:UngroundedIngestRun`, the SHACL grounding
+/// shape; and the partial-drop case — a lift that produced some codomain but dropped part without
+/// enumerating the residue — is the correspondence Overclaim gate's job in the `logic:` layer. This
+/// native twin catches the produced-nothing case bundle-wide.)
+fn check_unliftable_ingest(ds: &RdfDataset, report: &mut LintReport) {
+    const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
+    let parse_source = math_iri("parseSource");
+    let was_generated_by = format!("{GMEOW_NS}wasGeneratedBy");
+    let wgb_pid = ds_iri_id(ds, &was_generated_by);
+
+    // The abstract `math:IngestRun` and its three concrete bridge subclasses. Subclass
+    // materialization is not assumed, so each concrete run type is scanned explicitly.
+    let mut runs: Vec<String> = Vec::new();
+    for ty in ["IngestRun", "RIngestRun", "ONNXIngestRun", "ProofIngestRun"] {
+        runs.extend(ds_subjects_of_type(ds, &math_iri(ty)));
+    }
+    runs.sort();
+    runs.dedup();
+
+    for run in runs {
+        // A run with no retained source is out of scope here — it is caught by the
+        // `math:UngroundedIngestRun` grounding shape, not this gate.
+        if !ds_has_predicate(ds, &run, &parse_source) {
+            continue;
+        }
+        // Did the run produce a structured `math:` codomain? The produced object points back at
+        // the run through `gmeow:wasGeneratedBy`, so an inverse lookup `(?, wasGeneratedBy, run)`
+        // decides it.
+        let produced = match (wgb_pid, ds_iri_id(ds, &run)) {
+            (Some(p), Some(r)) => ds
+                .quads_for_pattern(None, Some(p), Some(r), GraphMatch::Any)
+                .next()
+                .is_some(),
+            _ => false,
+        };
+        if !produced {
+            report.errors.push(format!(
+                "math:UnliftableIngest: ingest run {run} retains a math:parseSource but produced no \
+                 structured math: codomain (nothing is gmeow:wasGeneratedBy it) — the lift is \
+                 unsupported and silently dropped its content; a bridge lifts fully or hard-fails, \
+                 never emitting a degraded or empty lift"
+            ));
+        }
+    }
+}
+
 /// Native twin of [`check_annotation_literal`].
 fn ds_check_annotation_literal(
     subject: &str,
@@ -1387,10 +1834,12 @@ mod tests {
                rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/> .\n"
         ));
         let report = structural_lint_dataset(&store, &cfg());
-        assert!(report
-            .errors
-            .iter()
-            .any(|e| e.contains("missing gmeow:graphBoxRole")));
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("missing gmeow:graphBoxRole"))
+        );
     }
 
     #[test]
@@ -1563,10 +2012,12 @@ mod tests {
                rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/> .\n"
         ));
         let report = structural_lint_dataset(&store, &cfg());
-        assert!(report
-            .errors
-            .iter()
-            .any(|e| e.contains("not a gmeow:GraphBoxRole")));
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("not a gmeow:GraphBoxRole"))
+        );
     }
 
     #[test]
@@ -1586,15 +2037,19 @@ mod tests {
              <https://example.org/name> gmeow:fullName \"Japanese\"@ja .\n"
         ));
         let report = structural_lint_dataset(&store, &cfg());
-        assert!(report
-            .errors
-            .iter()
-            .any(|e| e.contains("external or invalid language tag")));
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("external or invalid language tag"))
+        );
         // Exact rdflib repr framing.
-        assert!(report
-            .errors
-            .iter()
-            .any(|e| e.contains("literal rdflib.term.Literal('Japanese', lang='ja')")));
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("literal rdflib.term.Literal('Japanese', lang='ja')"))
+        );
     }
 
     #[test]
@@ -1608,10 +2063,12 @@ mod tests {
                rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/> .\n"
         ));
         let report = structural_lint_dataset(&store, &cfg());
-        assert!(report
-            .errors
-            .iter()
-            .any(|e| e.contains("external language tag 'en'") && e.contains("label")));
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("external language tag 'en'") && e.contains("label"))
+        );
     }
 
     #[test]
@@ -1632,10 +2089,12 @@ mod tests {
     fn naming_lint_flags_primary_without_note() {
         let store = store_from(&format!("{PREFIXES}gmeow:PrimaryThing a owl:Class .\n"));
         let report = term_naming_lint_dataset(&store, &cfg());
-        assert!(report
-            .errors
-            .iter()
-            .any(|e| e.contains("selector token 'primary'")));
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("selector token 'primary'"))
+        );
     }
 
     #[test]
@@ -1889,6 +2348,547 @@ mod tests {
         );
     }
 
+    // --- lang: ingestion-stratum native gates -------------------------------- #
+
+    #[test]
+    fn unattributed_engine_claim_flags_engine_reading_without_vantage() {
+        // An engine run (lang:interpretationEngine present) whose produced reading
+        // carries no gmeow:vantage — engine output entered as unattributed structure.
+        let ds = dataset_from(&format!(
+            "{LANG_PREFIXES}\
+             ex:act a lang:InterpretationAct ;\n\
+               lang:interpretationEngine ex:udParser ;\n\
+               lang:producedReading ex:r1 .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:UnattributedEngineClaim")),
+            "errors: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn unattributed_engine_claim_clean_when_reading_is_vantage_held() {
+        // The lawful engine handoff: each produced reading carries the engine's vantage.
+        let ds = dataset_from(&format!(
+            "{LANG_PREFIXES}\
+             ex:act a lang:InterpretationAct ;\n\
+               lang:interpretationEngine ex:udParser ;\n\
+               lang:producedReading ex:r1 .\n\
+             ex:r1 a lang:Reading ; gmeow:vantage ex:udVantage .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            !report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:UnattributedEngineClaim")),
+            "errors: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn unattributed_engine_claim_ignores_non_engine_act() {
+        // A manual/compositional act (no lang:interpretationEngine) may lawfully leave
+        // a co-resident reading unclaimed — the gate must NOT fire on it.
+        let ds = dataset_from(&format!(
+            "{LANG_PREFIXES}\
+             ex:act a lang:InterpretationAct ;\n\
+               lang:producedReading ex:r1 , ex:r2 .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            !report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:UnattributedEngineClaim")),
+            "errors: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn silent_promotion_flags_promotion_without_editorial_act() {
+        // A bare subject promotes a reading with no provenance-carrying act.
+        let ds = dataset_from(&format!(
+            "{LANG_PREFIXES}\
+             ex:slice lang:promotedReading ex:r1 .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:SilentPromotion")),
+            "errors: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn silent_promotion_clean_when_promotion_is_a_vantage_held_activity() {
+        // The lawful promotion: an explicit editorial gmeow:Activity carrying a vantage.
+        let ds = dataset_from(&format!(
+            "{LANG_PREFIXES}\
+             ex:promote a gmeow:Activity ;\n\
+               gmeow:vantage ex:editor ;\n\
+               lang:promotedReading ex:r1 .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            !report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:SilentPromotion")),
+            "errors: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn silent_promotion_flags_activity_missing_vantage() {
+        // An activity that promotes but carries no vantage is still a silent promotion.
+        let ds = dataset_from(&format!(
+            "{LANG_PREFIXES}\
+             ex:promote a gmeow:Activity ;\n\
+               lang:promotedReading ex:r1 .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:SilentPromotion")),
+            "errors: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn ingestion_counter_example_fixtures_fire_exactly_their_class() {
+        // The slice-resident counter-examples for the two native ingestion gates each
+        // fire exactly their named failure class (and nothing from the other gate),
+        // so the (fixture, class) pair is load-bearing rather than decorative.
+        let unattributed = include_str!(
+            "../../../slices/grounding/lang/tests/counter-examples/ingestion-unattributed-engine-claim.ttl"
+        );
+        let report = structural_lint_dataset(&dataset_from(unattributed), &cfg());
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:UnattributedEngineClaim")),
+            "errors: {:?}",
+            report.errors
+        );
+        assert!(
+            !report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:SilentPromotion")),
+            "the unattributed-engine fixture must not also fire SilentPromotion: {:?}",
+            report.errors
+        );
+
+        let promotion = include_str!(
+            "../../../slices/grounding/lang/tests/counter-examples/ingestion-silent-promotion.ttl"
+        );
+        let report = structural_lint_dataset(&dataset_from(promotion), &cfg());
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:SilentPromotion")),
+            "errors: {:?}",
+            report.errors
+        );
+        assert!(
+            !report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:UnattributedEngineClaim")),
+            "the silent-promotion fixture keeps its reading vantage-held: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn ambiguity_positive_fixture_is_clean_under_the_native_gates() {
+        // Gate 5 (positive): the co-resident-readings fixture — an engine act producing
+        // TWO vantage-held readings with NO resolved winner — trips none of the lang:
+        // native gates.
+        let fixture = include_str!(
+            "../../../slices/grounding/lang/tests/conformance-fixtures/ambiguity-saw-her-duck.ttl"
+        );
+        let report = structural_lint_dataset(&dataset_from(fixture), &cfg());
+        let lang_errors: Vec<&String> = report
+            .errors
+            .iter()
+            .filter(|e| e.contains("lang:") || e.contains("one-way bridge"))
+            .collect();
+        assert!(
+            lang_errors.is_empty(),
+            "the ambiguity fixture must be clean under the native lang: gates: {lang_errors:?}"
+        );
+    }
+
+    // ---- lang: projection-stratum native gates (the lossy-lowering contract) ----
+
+    #[test]
+    fn projection_missing_preservation_kind_fires() {
+        let ds = dataset_from(&format!(
+            "{LANG_PREFIXES}\
+             ex:em a lang:ProjectionEmission ;\n\
+               lang:projectionTargetName \"OntoLex-Lemon\" ;\n\
+               lang:projectsSource ex:lexeme .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:MissingPreservationKind")),
+            "errors: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn projection_missing_preservation_kind_clean_when_declared() {
+        let ds = dataset_from(&format!(
+            "{LANG_PREFIXES}\
+             ex:em a lang:ProjectionEmission ;\n\
+               lang:projectionTargetName \"OntoLex-Lemon\" ;\n\
+               lang:projectsSource ex:lexeme ;\n\
+               logic:preservationKind logic:ExactPreservation .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            !report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:MissingPreservationKind")),
+            "errors: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn projection_undeclared_unsupported_fires() {
+        let ds = dataset_from(&format!(
+            "{LANG_PREFIXES}\
+             ex:grammarSrc a lang:Grammar .\n\
+             ex:em a lang:ProjectionEmission ;\n\
+               lang:projectionTargetName \"EBNF\" ;\n\
+               lang:projectsSource ex:grammarSrc ;\n\
+               logic:preservationKind logic:SoundUnderApproximation .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:UndeclaredUnsupportedConstruct")),
+            "errors: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn projection_undeclared_unsupported_clean_when_enumerated() {
+        let ds = dataset_from(&format!(
+            "{LANG_PREFIXES}\
+             ex:grammarSrc a lang:Grammar .\n\
+             ex:em a lang:ProjectionEmission ;\n\
+               lang:projectionTargetName \"EBNF\" ;\n\
+               lang:projectsSource ex:grammarSrc ;\n\
+               logic:preservationKind logic:SoundUnderApproximation ;\n\
+               lang:unsupportedConstruct \"left-recursion\" .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            !report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:UndeclaredUnsupportedConstruct")),
+            "errors: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn projection_unrecorded_epistemic_loss_fires() {
+        let ds = dataset_from(&format!(
+            "{LANG_PREFIXES}\
+             ex:lexemeSrc a lang:Lexeme ;\n\
+               gmeow:vantage ex:annotatorVantage .\n\
+             ex:em a lang:ProjectionEmission ;\n\
+               lang:projectionTargetName \"OntoLex-Lemon\" ;\n\
+               lang:projectsSource ex:lexemeSrc ;\n\
+               logic:preservationKind logic:SoundUnderApproximation ;\n\
+               lang:unsupportedConstruct \"inflection-tables\" .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:UnrecordedEpistemicLoss")),
+            "errors: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn projection_unrecorded_epistemic_loss_clean_when_stratum_named() {
+        let ds = dataset_from(&format!(
+            "{LANG_PREFIXES}\
+             ex:lexemeSrc a lang:Lexeme ;\n\
+               gmeow:vantage ex:annotatorVantage .\n\
+             ex:em a lang:ProjectionEmission ;\n\
+               lang:projectionTargetName \"OntoLex-Lemon\" ;\n\
+               lang:projectsSource ex:lexemeSrc ;\n\
+               logic:preservationKind logic:SoundUnderApproximation ;\n\
+               lang:unsupportedConstruct \"vantage-held-readings\" .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            !report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:UnrecordedEpistemicLoss")),
+            "errors: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn projection_unrecorded_epistemic_loss_fires_when_only_one_of_many_strata_named() {
+        // A source flattening TWO strata (vantage + interpretation) whose emission names only
+        // ONE (vantage) leaves interpretation silently unrecorded — the gate must fire. Under
+        // the earlier `any` semantics this escaped; `all` closes it.
+        let ds = dataset_from(&format!(
+            "{LANG_PREFIXES}\
+             ex:lexemeSrc a lang:Lexeme, lang:InterpretationAct ;\n\
+               gmeow:vantage ex:annotatorVantage .\n\
+             ex:em a lang:ProjectionEmission ;\n\
+               lang:projectionTargetName \"OntoLex-Lemon\" ;\n\
+               lang:projectsSource ex:lexemeSrc ;\n\
+               logic:preservationKind logic:SoundUnderApproximation ;\n\
+               lang:unsupportedConstruct \"vantage-flattened\" .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:UnrecordedEpistemicLoss")),
+            "errors: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn projection_unrecorded_epistemic_loss_clean_when_all_strata_named() {
+        // The same two-stratum source is clean only when the emission names BOTH strata.
+        let ds = dataset_from(&format!(
+            "{LANG_PREFIXES}\
+             ex:lexemeSrc a lang:Lexeme, lang:InterpretationAct ;\n\
+               gmeow:vantage ex:annotatorVantage .\n\
+             ex:em a lang:ProjectionEmission ;\n\
+               lang:projectionTargetName \"OntoLex-Lemon\" ;\n\
+               lang:projectsSource ex:lexemeSrc ;\n\
+               logic:preservationKind logic:SoundUnderApproximation ;\n\
+               lang:unsupportedConstruct \"vantage-flattened\" ;\n\
+               lang:unsupportedConstruct \"interpretation-act-dropped\" .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            !report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:UnrecordedEpistemicLoss")),
+            "errors: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn projection_silent_disambiguation_fires() {
+        let ds = dataset_from(&format!(
+            "{LANG_PREFIXES}\
+             ex:form a lang:ComposedForm .\n\
+             ex:r1 a lang:Reading ; lang:readingOf ex:form .\n\
+             ex:r2 a lang:Reading ; lang:readingOf ex:form .\n\
+             ex:em a lang:ProjectionEmission ;\n\
+               lang:projectionTargetName \"CoNLL-U\" ;\n\
+               lang:projectsSource ex:form ;\n\
+               logic:preservationKind logic:ExactPreservation ;\n\
+               lang:emittedReadingCount 1 .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:ProjectionSilentDisambiguation")),
+            "errors: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn projection_silent_disambiguation_clean_when_all_readings_emitted() {
+        let ds = dataset_from(&format!(
+            "{LANG_PREFIXES}\
+             ex:form a lang:ComposedForm .\n\
+             ex:r1 a lang:Reading ; lang:readingOf ex:form .\n\
+             ex:r2 a lang:Reading ; lang:readingOf ex:form .\n\
+             ex:em a lang:ProjectionEmission ;\n\
+               lang:projectionTargetName \"CoNLL-U\" ;\n\
+               lang:projectsSource ex:form ;\n\
+               logic:preservationKind logic:ExactPreservation ;\n\
+               lang:emittedReadingCount 2 .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            !report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:ProjectionSilentDisambiguation")),
+            "errors: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn projection_exact_preservation_violated_fires() {
+        let ds = dataset_from(&format!(
+            "{LANG_PREFIXES}\
+             ex:grammar a lang:Grammar .\n\
+             ex:em a lang:ProjectionEmission ;\n\
+               lang:projectionTargetName \"GTS-grammar-surface\" ;\n\
+               lang:projectsSource ex:grammar ;\n\
+               logic:preservationKind logic:ExactPreservation ;\n\
+               lang:roundTripHolds false .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:ExactPreservationViolated")),
+            "errors: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn projection_exact_preservation_violated_clean_when_round_trip_holds() {
+        let ds = dataset_from(&format!(
+            "{LANG_PREFIXES}\
+             ex:grammar a lang:Grammar .\n\
+             ex:em a lang:ProjectionEmission ;\n\
+               lang:projectionTargetName \"GTS-grammar-surface\" ;\n\
+               lang:projectsSource ex:grammar ;\n\
+               logic:preservationKind logic:ExactPreservation ;\n\
+               lang:roundTripHolds true .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            !report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:ExactPreservationViolated")),
+            "errors: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn projection_counter_example_fixtures_fire_exactly_their_class() {
+        // The four native-gate projection counter-examples each fire exactly their named
+        // failure class (and no OTHER projection class), so each (fixture, class) pair is
+        // load-bearing. (The MissingPreservationKind fixture rides the SHACL harness and is
+        // covered by its inline native test above.)
+        let cases: [(&str, &str, [&str; 3]); 4] = [
+            (
+                include_str!(
+                    "../../../slices/grounding/lang/tests/counter-examples/projection-undeclared-unsupported.ttl"
+                ),
+                "lang:UndeclaredUnsupportedConstruct",
+                [
+                    "lang:UnrecordedEpistemicLoss",
+                    "lang:ProjectionSilentDisambiguation",
+                    "lang:ExactPreservationViolated",
+                ],
+            ),
+            (
+                include_str!(
+                    "../../../slices/grounding/lang/tests/counter-examples/projection-unrecorded-epistemic-loss.ttl"
+                ),
+                "lang:UnrecordedEpistemicLoss",
+                [
+                    "lang:UndeclaredUnsupportedConstruct",
+                    "lang:ProjectionSilentDisambiguation",
+                    "lang:ExactPreservationViolated",
+                ],
+            ),
+            (
+                include_str!(
+                    "../../../slices/grounding/lang/tests/counter-examples/projection-silent-disambiguation.ttl"
+                ),
+                "lang:ProjectionSilentDisambiguation",
+                [
+                    "lang:UndeclaredUnsupportedConstruct",
+                    "lang:UnrecordedEpistemicLoss",
+                    "lang:ExactPreservationViolated",
+                ],
+            ),
+            (
+                include_str!(
+                    "../../../slices/grounding/lang/tests/counter-examples/projection-exact-preservation-violated.ttl"
+                ),
+                "lang:ExactPreservationViolated",
+                [
+                    "lang:UndeclaredUnsupportedConstruct",
+                    "lang:UnrecordedEpistemicLoss",
+                    "lang:ProjectionSilentDisambiguation",
+                ],
+            ),
+        ];
+        for (ttl, expected, forbidden) in cases {
+            let report = structural_lint_dataset(&dataset_from(ttl), &cfg());
+            assert!(
+                report.errors.iter().any(|e| e.contains(expected)),
+                "fixture must fire {expected}: {:?}",
+                report.errors
+            );
+            // The MissingPreservationKind gate must also stay silent (every fixture declares
+            // its preservation kind).
+            assert!(
+                !report
+                    .errors
+                    .iter()
+                    .any(|e| e.contains("lang:MissingPreservationKind")),
+                "fixture for {expected} declares a preservation kind: {:?}",
+                report.errors
+            );
+            for other in forbidden {
+                assert!(
+                    !report.errors.iter().any(|e| e.contains(other)),
+                    "fixture for {expected} must not also fire {other}: {:?}",
+                    report.errors
+                );
+            }
+        }
+    }
+
     #[test]
     fn surface_leak_flags_crossing_carrying_surface_predicate() {
         // A translation unit that inlines surface-stratum material (lang:inScript)
@@ -1976,6 +2976,232 @@ mod tests {
         );
     }
 
+    // --- lang: form-stratum native gates (blob-by-reference + slot contiguity) - #
+
+    #[test]
+    fn inline_blob_payload_flags_document_scale_surface_text() {
+        // A lang:SurfaceForm whose inline lang:surfaceText exceeds the document-scale
+        // threshold — payload folded inline instead of held by reference.
+        let big = "x".repeat(DOCUMENT_SCALE_BYTES + 1);
+        let ds = dataset_from(&format!(
+            "{LANG_PREFIXES}\
+             ex:s a lang:SurfaceForm , lang:UnanalyzedProse ;\n\
+               lang:surfaceText \"{big}\" .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:InlineBlobPayload")),
+            "errors: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn inline_blob_payload_clean_for_small_surface_and_for_blob_reference() {
+        // A small inline surface stays inline (clean); a document-scale surface holding
+        // its bytes by reference (lang:surfaceBlob, no inline lang:surfaceText) is also
+        // clean — the gate flags only inline document-scale payload.
+        let ds = dataset_from(&format!(
+            "{LANG_PREFIXES}\
+             ex:small a lang:SurfaceForm , lang:UnanalyzedProse ;\n\
+               lang:surfaceText \"cats chase mice\" .\n\
+             ex:doc a lang:SurfaceForm , lang:UnanalyzedProse ;\n\
+               lang:surfaceBlob \"blake3:deadbeef\" .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            !report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:InlineBlobPayload")),
+            "errors: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn noncontiguous_slots_flags_internal_gap() {
+        // A composed form with slot indexes 0, 1, 3 — an internal gap at 2.
+        let ds = dataset_from(&format!(
+            "{LANG_PREFIXES}\
+             ex:cf a lang:ComposedForm ; lang:formSlot ex:s0 , ex:s1 , ex:s3 .\n\
+             ex:s0 a lang:FormSlot ; lang:slotIndex 0 .\n\
+             ex:s1 a lang:FormSlot ; lang:slotIndex 1 .\n\
+             ex:s3 a lang:FormSlot ; lang:slotIndex 3 .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:NonContiguousSlots")),
+            "errors: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn noncontiguous_slots_clean_for_zero_based_contiguous() {
+        // A composed form with zero-based contiguous slot indexes 0, 1.
+        let ds = dataset_from(&format!(
+            "{LANG_PREFIXES}\
+             ex:cf a lang:ComposedForm ; lang:formSlot ex:s0 , ex:s1 .\n\
+             ex:s0 a lang:FormSlot ; lang:slotIndex 0 .\n\
+             ex:s1 a lang:FormSlot ; lang:slotIndex 1 .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            !report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:NonContiguousSlots")),
+            "errors: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn silent_ingest_drop_flags_surface_in_limbo() {
+        // A lang:SurfaceForm that neither realizes a form nor is typed UnanalyzedProse.
+        let ds = dataset_from(&format!(
+            "{LANG_PREFIXES}\
+             ex:s a lang:SurfaceForm ;\n\
+               lang:surfaceText \"cats chase mice\" .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:SilentIngestDrop")),
+            "errors: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn silent_ingest_drop_clean_when_realizes_or_unanalyzed() {
+        // Either honest analysis status clears the gate: a surface that realizes an
+        // analyzed form, and a surface explicitly typed unanalyzed prose.
+        let ds = dataset_from(&format!(
+            "{LANG_PREFIXES}\
+             ex:s1 a lang:SurfaceForm ; lang:realizes ex:form .\n\
+             ex:s2 a lang:SurfaceForm , lang:UnanalyzedProse ;\n\
+               lang:surfaceText \"cats chase mice\" .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            !report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:SilentIngestDrop")),
+            "errors: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn form_and_ingest_counter_example_fixtures_fire_exactly_their_class() {
+        // Each slice-resident counter-example for the native form/ingestion gates fires
+        // exactly its named failure class (and none of the sibling classes), so the
+        // (fixture, class) pair is load-bearing. The blob-payload gate reuses slot-gap.ttl
+        // for contiguity — the shipped non-contiguous (0, 1, 3) counter-example.
+        let inline_blob = include_str!(
+            "../../../slices/grounding/lang/tests/counter-examples/surface-inline-blob-payload.ttl"
+        );
+        let report = structural_lint_dataset(&dataset_from(inline_blob), &cfg());
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:InlineBlobPayload")),
+            "errors: {:?}",
+            report.errors
+        );
+        assert!(
+            !report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:SilentIngestDrop")
+                    || e.contains("lang:NonContiguousSlots")),
+            "the inline-blob fixture must fire only lang:InlineBlobPayload: {:?}",
+            report.errors
+        );
+
+        let gap =
+            include_str!("../../../slices/grounding/lang/tests/counter-examples/slot-gap.ttl");
+        let report = structural_lint_dataset(&dataset_from(gap), &cfg());
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:NonContiguousSlots")),
+            "errors: {:?}",
+            report.errors
+        );
+        assert!(
+            !report.errors.iter().any(
+                |e| e.contains("lang:InlineBlobPayload") || e.contains("lang:SilentIngestDrop")
+            ),
+            "the slot-gap fixture must fire only lang:NonContiguousSlots: {:?}",
+            report.errors
+        );
+
+        let drop = include_str!(
+            "../../../slices/grounding/lang/tests/counter-examples/ingest-silent-drop.ttl"
+        );
+        let report = structural_lint_dataset(&dataset_from(drop), &cfg());
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:SilentIngestDrop")),
+            "errors: {:?}",
+            report.errors
+        );
+        assert!(
+            !report
+                .errors
+                .iter()
+                .any(|e| e.contains("lang:InlineBlobPayload")
+                    || e.contains("lang:NonContiguousSlots")),
+            "the silent-drop fixture must fire only lang:SilentIngestDrop: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn form_and_ingest_positive_controls_are_clean() {
+        // The shipped conforming fixtures clear the native form/ingestion gates: a
+        // zero-based contiguous composed form, and a raw surface typed unanalyzed prose.
+        for fixture in [
+            include_str!(
+                "../../../slices/grounding/lang/tests/conformance-fixtures/slot-contiguous.ttl"
+            ),
+            include_str!(
+                "../../../slices/grounding/lang/tests/conformance-fixtures/surface-analyzed.ttl"
+            ),
+        ] {
+            let report = structural_lint_dataset(&dataset_from(fixture), &cfg());
+            let hits: Vec<&String> = report
+                .errors
+                .iter()
+                .filter(|e| {
+                    e.contains("lang:InlineBlobPayload")
+                        || e.contains("lang:NonContiguousSlots")
+                        || e.contains("lang:SilentIngestDrop")
+                })
+                .collect();
+            assert!(
+                hits.is_empty(),
+                "positive control must clear the native form/ingestion gates: {hits:?}"
+            );
+        }
+    }
+
     // --- math: measure-and-dimension reasoned gate --------------------------- #
 
     const MATH_PREFIXES: &str = "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
@@ -1983,8 +3209,7 @@ mod tests {
          @prefix ex: <https://example.org/> .\n";
 
     /// A quantity of pure time (dimension T), used across the homogeneity tests.
-    const TIME_QUANTITIES: &str =
-        "ex:t1 a math:Quantity ; math:hasDimension math:timeDimension .\n\
+    const TIME_QUANTITIES: &str = "ex:t1 a math:Quantity ; math:hasDimension math:timeDimension .\n\
          ex:t2 a math:Quantity ; math:hasDimension math:timeDimension .\n\
          ex:len a math:Quantity ; math:hasDimension math:lengthDimension .\n";
 
@@ -2237,6 +3462,64 @@ mod tests {
             has_inhomogeneity(&report) && report.errors.iter().any(|e| e.contains("carries no")),
             "an integral with an undimensioned measure must raise math:DimensionalInhomogeneity; \
              errors: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn unliftable_ingest_fires_when_run_produces_no_codomain() {
+        // The slice-resident counter-example for the native math:UnliftableIngest gate: a bridge
+        // run that retains a source witness (math:parseSource) and its full grounding frame — so it
+        // is NOT math:UngroundedIngestRun — but lifts no structured math: codomain (nothing is
+        // gmeow:wasGeneratedBy it), silently dropping its content. Authored in the slice, not
+        // inline here, so the (fixture, native-lint) pair is load-bearing rather than a Rust demo.
+        let unliftable = include_str!(
+            "../../../slices/grounding/math/tests/counter-examples/ingest-run-unliftable.ttl"
+        );
+        let report = structural_lint_dataset(&dataset_from(unliftable), &cfg());
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("math:UnliftableIngest")
+                    && e.contains("http://example.org/math/run")),
+            "the slice-resident produced-nothing ingest run (parseSource, no gmeow:wasGeneratedBy) \
+             must raise math:UnliftableIngest; errors: {:?}",
+            report.errors
+        );
+        // It retains its source, so the SHACL grounding twin is out of scope: the native gate must
+        // not double-report the run as math:UngroundedIngestRun.
+        assert!(
+            !report
+                .errors
+                .iter()
+                .any(|e| e.contains("math:UngroundedIngestRun")),
+            "the produced-nothing fixture retains math:parseSource, so it must not fire \
+             math:UngroundedIngestRun: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn unliftable_ingest_clean_when_run_produces_a_codomain() {
+        // The same run, now lifting a structured math: object that points back through
+        // gmeow:wasGeneratedBy: a full lift, no violation.
+        let ds = dataset_from(&format!(
+            "{MATH_PREFIXES}\
+             ex:rRun a math:RIngestRun ;\n\
+               math:parseSource ex:srcWitness .\n\
+             ex:srcWitness a math:MathematicalObject .\n\
+             ex:fittedModel a math:FittedModel ;\n\
+               gmeow:wasGeneratedBy ex:rRun .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            !report
+                .errors
+                .iter()
+                .any(|e| e.contains("math:UnliftableIngest")),
+            "an ingest run that lifts a structured math: codomain must NOT raise \
+             math:UnliftableIngest; errors: {:?}",
             report.errors
         );
     }

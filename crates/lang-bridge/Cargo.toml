@@ -1,0 +1,29 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+
+[package]
+name = "gmeow-lang-bridge"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[lib]
+crate-type = ["rlib"]
+path = "src/lib.rs"
+
+[dependencies]
+gmeow-lang-form = { path = "../lang-form" }
+gmeow-logic-compile = { path = "../logic-compile" }
+# The OntoLex-Lemon lexicon lift parses RDF Turtle with the ONE canonical parser
+# (never a second, hand-rolled RDF parser) — the same `purrdf` every other crate depends on.
+purrdf = "0.3"
+sha2 = "0.10"
+# The plain-text bridge declares each lifted surface's Unicode normalization form
+# HONESTLY (NFC/NFD/NFKC/NFKD) via a quick-check, never assuming NFC — the declared
+# frame must match the actual bytes the surface hash is taken over.
+unicode-normalization = "0.1"
+
+[dev-dependencies]
+insta = { version = "1.48", features = ["json"] }
+proptest = "1"

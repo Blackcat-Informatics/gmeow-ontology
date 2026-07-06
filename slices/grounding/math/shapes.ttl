@@ -3,6 +3,7 @@
 
 @prefix math:  <https://blackcatinformatics.ca/math/> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix sh:    <http://www.w3.org/ns/shacl#> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
@@ -621,6 +622,22 @@ math:SlotIndexUniquenessShape
         """ ;
     ] .
 
+# An application applies exactly one operator.
+math:ApplicationExpressionShape
+    a sh:NodeShape ;
+    rdfs:label "Application-operator cardinality shape"@x-gmeow-english ;
+    skos:definition "SHACL constraint for math:ApplicationExpression: it applies exactly one math:operator. An application — a tensor computation node or an arithmetic application — names the single operator it invokes; zero operators leave the application undefined and two or more make it ambiguous which operator is applied (math:ApplicationOperatorCardinality). The sibling binder AST (math:BindingExpression: math:Derivative, math:Limit, math:Series, math:Integral) is not a subclass of math:ApplicationExpression, so this shape targets only true applications, never the binders."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    math:enforcesFailureClass math:ApplicationOperatorCardinality ;
+    sh:targetClass math:ApplicationExpression ;
+    sh:property [
+        sh:path math:operator ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:ApplicationExpression must apply exactly one math:operator." ;
+    ] .
+
 # A binding expression names the variable it binds and its body.
 math:BindingExpressionShape
     a sh:NodeShape ;
@@ -1006,6 +1023,357 @@ math:MetricSignatureDimensionShape
                 ?m <https://blackcatinformatics.ca/math/manifoldStructureKind> <https://blackcatinformatics.ca/math/riemannianStructure> .
                 $this <https://blackcatinformatics.ca/math/signatureNegative> ?q .
                 FILTER(?q != 0)
+            }
+        """ ;
+    ] .
+
+# =========================================================================== #
+# Linear algebra, learning, and representation (LINEAR-ALGEBRA-AND-LEARNING)
+#
+# A decomposition or embedding declares its inputs, policy, and outputs; an
+# orthogonal complement additionally names the inner product defining it; and any
+# meaning read off a residual, component, or latent dimension is a vantage-held
+# math:ResidualInterpretationClaim (a gmeow:Observation), never a property. The
+# tensor computation graph reuses math:ApplicationExpression, so the inherited
+# application/slot shapes bite its nodes; these shapes add only the graph- and
+# weight-level framing.
+# =========================================================================== #
+
+math:OrthogonalComplementShape
+    a sh:NodeShape ;
+    rdfs:label "Orthogonal-complement inner-product shape"@x-gmeow-english ;
+    skos:definition "SHACL constraint for math:OrthogonalComplement: beyond the ambient space and complement-semantics inherited from math:ComplementShape (math:OrthogonalComplement is a math:Complement), it names the inner product that defines its orthogonality through math:definedByInnerProduct — the math:HermitianInnerProduct in the complex case. An orthogonal complement without a named inner product is ill-formed."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    math:enforcesFailureClass math:UnqualifiedOrthogonalComplement ;
+    sh:targetClass math:OrthogonalComplement ;
+    sh:property [
+        sh:path math:definedByInnerProduct ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A math:OrthogonalComplement must name the inner product defining its orthogonality through math:definedByInnerProduct; an orthogonal complement without it is ill-formed." ;
+    ] .
+
+math:PCAAnalysisShape
+    a sh:NodeShape ;
+    rdfs:label "PCA analysis inputs/policy/outputs shape"@x-gmeow-english ;
+    skos:definition "SHACL constraint for math:PCAAnalysis: it declares its inputs, its policy, and its outputs — math:analysisInput, math:centeringPolicy, math:scalingPolicy, math:covarianceOperator, math:eigensolver, math:principalComponent, math:loadingVector, math:scoreVector, math:explainedVarianceRatio, and math:residualSubspace. A decomposition hiding any of these is ill-formed (math:IncompletePCAAnalysis)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    math:enforcesFailureClass math:IncompletePCAAnalysis ;
+    sh:targetClass math:PCAAnalysis ;
+    sh:property [
+        sh:path math:analysisInput ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:PCAAnalysis must name its input through math:analysisInput." ;
+    ] ;
+    sh:property [
+        sh:path math:centeringPolicy ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class math:CenteringPolicy ;
+        sh:severity sh:Violation ;
+        sh:message "A math:PCAAnalysis must declare exactly one math:centeringPolicy (a math:CenteringPolicy)." ;
+    ] ;
+    sh:property [
+        sh:path math:scalingPolicy ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class math:ScalingPolicy ;
+        sh:severity sh:Violation ;
+        sh:message "A math:PCAAnalysis must declare exactly one math:scalingPolicy (a math:ScalingPolicy)." ;
+    ] ;
+    sh:property [
+        sh:path math:covarianceOperator ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:PCAAnalysis must name the math:CovarianceOperator it decomposes through math:covarianceOperator." ;
+    ] ;
+    sh:property [
+        sh:path math:eigensolver ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:PCAAnalysis must name its math:eigensolver." ;
+    ] ;
+    sh:property [
+        sh:path math:principalComponent ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:PCAAnalysis must produce at least one math:principalComponent." ;
+    ] ;
+    sh:property [
+        sh:path math:loadingVector ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:PCAAnalysis must produce at least one math:loadingVector." ;
+    ] ;
+    sh:property [
+        sh:path math:scoreVector ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:PCAAnalysis must produce at least one math:scoreVector." ;
+    ] ;
+    sh:property [
+        sh:path math:explainedVarianceRatio ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:PCAAnalysis must report at least one math:explainedVarianceRatio." ;
+    ] ;
+    sh:property [
+        sh:path math:residualSubspace ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:PCAAnalysis must name its math:residualSubspace." ;
+    ] .
+
+math:ResidualInterpretationClaimShape
+    a sh:NodeShape ;
+    rdfs:label "Residual-meaning observation shape"@x-gmeow-english ;
+    skos:definition "SHACL constraint for math:ResidualInterpretationClaim: the meaning of a residual, component, or latent dimension is an observation held from a standpoint — it names its gmeow:vantage (whose frame), its gmeow:observedFeature (which residual/component/dimension), and its gmeow:observationResult (the grounded conclusion, typically a logic:MetaLevelFormula). Meaning asserted without its vantage is ill-formed (math:ResidualMeaningAsProperty); no direct meaning property exists, so a meaning is representable only through this vantage-grounded claim."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    math:enforcesFailureClass math:ResidualMeaningAsProperty ;
+    sh:targetClass math:ResidualInterpretationClaim ;
+    sh:property [
+        sh:path gmeow:vantage ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:ResidualInterpretationClaim must name the gmeow:vantage from which the meaning is claimed; a meaning without a standpoint is a property, not an observation (math:ResidualMeaningAsProperty)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:observedFeature ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:ResidualInterpretationClaim must name the residual, component, or latent dimension it is about through gmeow:observedFeature." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:observationResult ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:ResidualInterpretationClaim must ground its meaning in a gmeow:observationResult (the conclusion the claim rests on)." ;
+    ] .
+
+math:EmbeddingShape
+    a sh:NodeShape ;
+    rdfs:label "Embedding source/target/function/model shape"@x-gmeow-english ;
+    skos:definition "SHACL constraint for math:Embedding (and its subclass math:KnowledgeGraphEmbedding): it names its math:embeddingSource, its math:targetSpace, its math:embeddingFunction, and the math:embeddingModel that produced it. An embedding missing any of these is ill-formed (math:UnderspecifiedEmbedding)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    math:enforcesFailureClass math:UnderspecifiedEmbedding ;
+    sh:targetClass math:Embedding ;
+    sh:property [
+        sh:path math:embeddingSource ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:Embedding must name its math:embeddingSource." ;
+    ] ;
+    sh:property [
+        sh:path math:targetSpace ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:Embedding must name its math:targetSpace." ;
+    ] ;
+    sh:property [
+        sh:path math:embeddingFunction ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:Embedding must name its math:embeddingFunction." ;
+    ] ;
+    sh:property [
+        sh:path math:embeddingModel ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:Embedding must name its math:embeddingModel." ;
+    ] .
+
+math:TensorComputationGraphShape
+    a sh:NodeShape ;
+    rdfs:label "Tensor computation graph node shape"@x-gmeow-english ;
+    skos:definition "SHACL constraint for math:TensorComputationGraph: it declares at least one math:computationNode — a math:ApplicationExpression applying a tensor operator to indexed operands. Because the nodes reuse the expression AST, a node's single-operator well-formedness is enforced by math:ApplicationExpressionShape and its slot well-formedness by math:ArgumentSlotShape and math:SlotIndexUniquenessShape; a graph declaring no node is ill-formed (math:MalformedTensorComputationGraph)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    math:enforcesFailureClass math:MalformedTensorComputationGraph ;
+    sh:targetClass math:TensorComputationGraph ;
+    sh:property [
+        sh:path math:computationNode ;
+        sh:minCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A math:TensorComputationGraph must declare at least one math:computationNode (a math:ApplicationExpression)." ;
+    ] .
+
+math:WeightTensorShape
+    a sh:NodeShape ;
+    rdfs:label "Weight-tensor parameter-space shape"@x-gmeow-english ;
+    skos:definition "SHACL constraint for math:WeightTensor: it names the math:ParameterSpace it lives in through math:inParameterSpace. Weights live in a declared parameter space over which optimization searches; a weight tensor without one is ill-formed (math:UnframedWeightTensor)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    math:enforcesFailureClass math:UnframedWeightTensor ;
+    sh:targetClass math:WeightTensor ;
+    sh:property [
+        sh:path math:inParameterSpace ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class math:ParameterSpace ;
+        sh:severity sh:Violation ;
+        sh:message "A math:WeightTensor must name the math:ParameterSpace it lives in through math:inParameterSpace." ;
+    ] .
+
+# =========================================================================== #
+# Bridges slice SHACL shapes — the ingestion-bridge hard-rule gates            #
+# (BRIDGES charter). A bridge run retains its source witness and the process-  #
+# layer in-band witness; a fitted model references data and specification; a   #
+# formal-verification result is grounded BY a separate observation (result ≠   #
+# claim). The hard-fail on the unliftable (math:UnliftableIngest) is a native  #
+# lint gate, not a SHACL shape.                                                #
+# =========================================================================== #
+
+math:IngestRunShape
+    a sh:NodeShape ;
+    rdfs:label "Ingest-run grounding shape"@x-gmeow-english ;
+    skos:definition "SHACL constraints for math:IngestRun: it retains its source witness through math:parseSource and carries the process-layer in-band witness through logic:instantiatesSchema and logic:instantiatesPlan. A bridge run without its retained source and schema/plan witness cannot support the lawful put leg and is ill-formed (math:UngroundedIngestRun)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    math:enforcesFailureClass math:UngroundedIngestRun ;
+    sh:targetClass math:IngestRun ;
+    sh:property [
+        sh:path math:parseSource ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:IngestRun must retain its source witness through math:parseSource — the in-band mnemomorphic complement that makes the lift a lawful put, not a backward-execution guess." ;
+    ] ;
+    sh:property [
+        sh:path logic:instantiatesSchema ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:IngestRun must carry the process-layer in-band witness through logic:instantiatesSchema (the reusable bridge action schema)." ;
+    ] ;
+    sh:property [
+        sh:path logic:instantiatesPlan ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:IngestRun must carry the process-layer in-band witness through logic:instantiatesPlan (the plan it was executed under)." ;
+    ] ;
+    sh:property [
+        sh:path math:ingestCorrespondence ;
+        sh:minCount 1 ;
+        sh:class logic:Correspondence ;
+        sh:severity sh:Violation ;
+        sh:message "A math:IngestRun must carry its lift's law-spine on a logic:Correspondence through math:ingestCorrespondence (where its rung, preservation, and loss are recorded)." ;
+    ] .
+
+math:FittedModelShape
+    a sh:NodeShape ;
+    rdfs:label "Fitted-model data-and-specification shape"@x-gmeow-english ;
+    skos:definition "SHACL constraint for math:FittedModel: it references the data it was fitted to through math:fittedToData and the specification it fits through math:modelFormula. A fitted model missing its data or specification is ill-formed (math:UnfittedModel)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    math:enforcesFailureClass math:UnfittedModel ;
+    sh:targetClass math:FittedModel ;
+    sh:property [
+        sh:path math:fittedToData ;
+        sh:minCount 1 ;
+        sh:class math:DatasetMatrix ;
+        sh:severity sh:Violation ;
+        sh:message "A math:FittedModel must reference the math:DatasetMatrix it was fitted to through math:fittedToData." ;
+    ] ;
+    sh:property [
+        sh:path math:modelFormula ;
+        sh:minCount 1 ;
+        sh:class math:ModelFormula ;
+        sh:severity sh:Violation ;
+        sh:message "A math:FittedModel must reference its math:ModelFormula specification through math:modelFormula." ;
+    ] .
+
+math:ModelFormulaShape
+    a sh:NodeShape ;
+    rdfs:label "Model-formula binder shape"@x-gmeow-english ;
+    skos:definition "SHACL constraint for math:ModelFormula: its body is a math:BindingExpression AST (the ~ is a binder over indexed operands), reached through math:argumentSlot — never a bare string. A model formula without its binder structure is ill-formed."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    math:enforcesFailureClass math:UnframedFunction ;
+    sh:targetClass math:ModelFormula ;
+    sh:property [
+        sh:path math:argumentSlot ;
+        sh:minCount 1 ;
+        sh:class math:ArgumentSlot ;
+        sh:severity sh:Violation ;
+        sh:message "A math:ModelFormula must carry its response/term structure as indexed math:ArgumentSlot operands (a math:BindingExpression AST), never a bare string." ;
+    ] .
+
+math:FormalVerificationResultShape
+    a sh:NodeShape ;
+    rdfs:label "Formal-verification-result grounding shape"@x-gmeow-english ;
+    skos:definition "SHACL constraint for math:FormalVerificationResult: it is grounded BY a separate gmeow:Observation carrying a gmeow:vantage (the checker's standpoint), through the inverse of gmeow:observationResult. The result object is not the held claim; a verification result stated as unconditional truth rather than a vantage-held verdict is ill-formed (math:UngroundedVerificationResult)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    math:enforcesFailureClass math:UngroundedVerificationResult ;
+    sh:targetClass math:FormalVerificationResult ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "A math:FormalVerificationResult must be grounded by a gmeow:Observation that names it through gmeow:observationResult and carries a gmeow:vantage; an unheld result is ill-formed (math:UngroundedVerificationResult)." ;
+        sh:select """
+            SELECT $this WHERE {
+                FILTER NOT EXISTS {
+                    ?obs <https://blackcatinformatics.ca/gmeow/observationResult> $this .
+                    ?obs <https://blackcatinformatics.ca/gmeow/vantage> ?vantage .
+                }
+            }
+        """ ;
+    ] .
+
+# =========================================================================== #
+# Flagship acceptance manifest — the epic depth bar gate
+#
+# A math:FlagshipScenario reifies one flagship acceptance scenario and MUST bind all
+# four realizing/enforcing artifacts, and the class it names as enforcing MUST be a
+# math:MathConformanceFailure subclass. The competency reference is checked only for
+# node kind here (the gmeow:CompetencyQuestion individual lives in the tests dataset,
+# which SHACL never loads); its resolution and cqExpectRow expectation are confirmed
+# by the native flagship cross-check.
+# =========================================================================== #
+
+math:FlagshipScenarioShape
+    a sh:NodeShape ;
+    rdfs:label "Flagship scenario wiring shape"@x-gmeow-english ;
+    skos:definition "SHACL constraints for math:FlagshipScenario: it binds exactly one worked example (math:demonstratedByExample), one competency question (math:demonstratedByCompetency), one counter-example (math:guardedByCounterExample), and one enforcing failure class (math:enforcesFailureClass), and that failure class is a math:MathConformanceFailure subclass. An acceptance scenario that does not wire all four artifacts to a real failure class cannot claim the scenario is met."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    math:enforcesFailureClass math:UnwiredFlagshipScenario ;
+    sh:targetClass math:FlagshipScenario ;
+    sh:property [
+        sh:path math:demonstratedByExample ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:severity sh:Violation ;
+        sh:message "A math:FlagshipScenario must name exactly one worked example through math:demonstratedByExample (a slice-relative path); an acceptance scenario with no realizing example is unwired." ;
+    ] ;
+    sh:property [
+        sh:path math:demonstratedByCompetency ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A math:FlagshipScenario must name exactly one competency question through math:demonstratedByCompetency (an IRI into tests/competency.ttl); an acceptance scenario with no pinning competency question is unwired." ;
+    ] ;
+    sh:property [
+        sh:path math:guardedByCounterExample ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:severity sh:Violation ;
+        sh:message "A math:FlagshipScenario must name exactly one counter-example through math:guardedByCounterExample (a slice-relative path); a rule with no negative fixture is not considered enforced." ;
+    ] ;
+    sh:property [
+        sh:path math:enforcesFailureClass ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A math:FlagshipScenario must name exactly one enforcing failure class through math:enforcesFailureClass; an acceptance scenario whose gate raises no named failure is unwired." ;
+    ] ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "A math:FlagshipScenario's math:enforcesFailureClass must name a math:MathConformanceFailure subclass — the typed failure its counter-example raises; naming a class that is not a conformance failure leaves the scenario unwired (math:UnwiredFlagshipScenario)." ;
+        sh:select """
+            SELECT $this WHERE {
+                $this <https://blackcatinformatics.ca/math/enforcesFailureClass> ?fc .
+                FILTER NOT EXISTS {
+                    ?fc <http://www.w3.org/2000/01/rdf-schema#subClassOf>+ <https://blackcatinformatics.ca/math/MathConformanceFailure> .
+                }
             }
         """ ;
     ] .

@@ -375,3 +375,33 @@ ex:ecTransliterationUnanchored a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
     gmeow:conformanceRationale "The lang:TransliterationMap declares no lang:transliterationScheme (sh:minCount 1 on lang:TransliterationAnchorShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (lang:UnanchoredTransliteration); both orthographies are declared." .
+
+# === Rule: every projection declares its logic:preservationKind ============= #
+
+ex:ecComposedFormCodeSwitch a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/composed-form-code-switch.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A code-switched lang:ComposedForm (English matrix with an embedded French constituent) whose slots realize word forms in DIFFERENT sign systems, with contiguous zero-based lang:slotIndex and structural lang:slotForm resources, satisfies the slot shapes and lang:FormSituatedShape and validates with NO findings — code-switching is native data, never collapsed to one language." .
+
+ex:ecProjectionOntolexLemonEmission a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/projection-ontolex-lemon-emission.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A well-formed lang:ProjectionEmission (the OntoLex-Lemon lowering of a lang:Lexeme) declares its lang:projectionTargetName and logic:preservationKind (logic:SoundUnderApproximation) and enumerates every flattened epistemic stratum as lang:unsupportedConstruct, so it satisfies lang:ProjectionEmissionDeclaredShape and validates with NO findings — the positive witness of the projection contract (declare what you preserve, enumerate what you drop)." .
+
+ex:ecProjectionMissingPreservationKind a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/projection-missing-preservation-kind.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The lang:ProjectionEmission names its target but declares no logic:preservationKind (sh:minCount 1 on lang:ProjectionEmissionDeclaredShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (lang:MissingPreservationKind); lang:projectionTargetName is present. The four join-requiring projection failure classes (lang:UndeclaredUnsupportedConstruct, lang:UnrecordedEpistemicLoss, lang:ProjectionSilentDisambiguation, lang:ExactPreservationViolated) are native Rust gates (crates/validate structural_lint) tested in-crate, not SHACL, so their counter-examples (tests/counter-examples/projection-undeclared-unsupported.ttl, projection-unrecorded-epistemic-loss.ttl, projection-silent-disambiguation.ttl, projection-exact-preservation-violated.ttl) are exercised by the native lint tests." .
+
+# =========================================================================== #
+# Ingestion-stratum fixtures — the external-engine handoff. lang:UnattributedEngineClaim
+# and lang:SilentPromotion are native Rust gates (crates/validate structural_lint,
+# keyed on lang:interpretationEngine and lang:promotedReading) tested in-crate, not
+# SHACL, so they have no example-conformance cell here; their counter-examples
+# (tests/counter-examples/ingestion-unattributed-engine-claim.ttl and
+# ingestion-silent-promotion.ttl) and the positive co-resident-readings fixture
+# (tests/conformance-fixtures/ambiguity-saw-her-duck.ttl) are exercised by the native
+# lint tests. lang:SilentDisambiguation (the co-resident-reading collapse) is likewise
+# a native gate, noted with the meaning-stratum fixtures above.
+# =========================================================================== #

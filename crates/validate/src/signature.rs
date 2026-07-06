@@ -5,13 +5,13 @@
 //!
 //! This module wraps [`purrdf::gts::verify::verify_file_with_options`] and maps the
 //! cryptographic and policy-layer outcomes into canonical
-//! [`gmeow_diagnostics::Finding`] values. When the returned hard-failure flag is
+//! [`gmeow_errors::Finding`] values. When the returned hard-failure flag is
 //! true, [`ValidationRun::run`](crate::validate_all::ValidationRun::run) aborts
 //! before the ontology validation phases.
 
-use gmeow_diagnostics::{Finding, FindingCategory, Severity};
+use gmeow_errors::{Finding, FindingCategory, Severity};
 use purrdf::gts::policy::TrustPolicy;
-use purrdf::gts::verify::{verify_file_with_options, VerifyOptions};
+use purrdf::gts::verify::{VerifyOptions, verify_file_with_options};
 
 use crate::codes;
 use crate::validate_all::SignatureConfig;
@@ -392,9 +392,11 @@ mod tests {
         let (findings, hard) = verify_gts_bundle(&bytes, &config).expect("verification must run");
 
         assert!(hard, "missing required signatures must be a hard failure");
-        assert!(findings
-            .iter()
-            .any(|f| f.code == "signature.missing" && f.severity == Severity::Error));
+        assert!(
+            findings
+                .iter()
+                .any(|f| f.code == "signature.missing" && f.severity == Severity::Error)
+        );
     }
 
     #[test]
@@ -405,9 +407,11 @@ mod tests {
         let (findings, hard) = verify_gts_bundle(&bytes, &config).expect("verification must run");
 
         assert!(!hard, "missing optional signatures must not hard-fail");
-        assert!(findings
-            .iter()
-            .any(|f| f.code == "signature.missing" && f.severity == Severity::Warning));
+        assert!(
+            findings
+                .iter()
+                .any(|f| f.code == "signature.missing" && f.severity == Severity::Warning)
+        );
     }
 
     #[test]
@@ -433,9 +437,11 @@ mod tests {
             hard,
             "untrusted signer when required must be a hard failure"
         );
-        assert!(findings
-            .iter()
-            .any(|f| f.code == "signature.untrusted" && f.severity == Severity::Error));
+        assert!(
+            findings
+                .iter()
+                .any(|f| f.code == "signature.untrusted" && f.severity == Severity::Error)
+        );
     }
 
     #[test]
@@ -460,9 +466,11 @@ mod tests {
             !findings.iter().any(|f| f.severity == Severity::Error),
             "no error-level findings expected"
         );
-        assert!(findings
-            .iter()
-            .any(|f| f.code == "signature.key" && f.severity == Severity::Info));
+        assert!(
+            findings
+                .iter()
+                .any(|f| f.code == "signature.key" && f.severity == Severity::Info)
+        );
     }
 
     #[test]
@@ -526,9 +534,11 @@ mod tests {
             hard,
             "empty GTS bundle must hard-fail because the reader reports an error-level diagnostic"
         );
-        assert!(findings
-            .iter()
-            .any(|f| f.code == "gts.EmptyFile" && f.severity == Severity::Error));
+        assert!(
+            findings
+                .iter()
+                .any(|f| f.code == "gts.EmptyFile" && f.severity == Severity::Error)
+        );
     }
 
     #[test]
@@ -550,7 +560,7 @@ mod tests {
     /// policy, orthogonal to ontology content correctness.
     #[test]
     fn every_signature_finding_carries_policy_warning_category() {
-        use gmeow_diagnostics::FindingCategory;
+        use gmeow_errors::FindingCategory;
 
         // An unsigned bundle with required signatures: produces at least one finding.
         let config = SignatureConfig {

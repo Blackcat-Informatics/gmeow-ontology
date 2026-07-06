@@ -27,15 +27,84 @@ use std::io::ErrorKind;
 use std::path::Path;
 use std::time::Instant;
 
-use gmeow_diagnostics::{Finding, Severity};
+use gmeow_errors::{
+    Diag, DiagLedger, Finding, FindingCategory, Grade, Severity, StageId, Standpoint, register_code,
+};
 use gmeow_logic::dag_profile::certify_acyclic;
 use gmeow_logic::result::ReasoningResult;
 
 use crate::error::PipelineError;
-use crate::loader::{bind, PipelineSpec, StageSpec};
-use crate::node::{StageProduct, ENGINE_RESOURCE, SINK_CAPABILITY, SOURCE_ORIGIN};
+use crate::loader::{PipelineSpec, StageSpec, bind};
+use crate::node::{ENGINE_RESOURCE, SINK_CAPABILITY, SOURCE_ORIGIN, StageProduct};
 use crate::registry::default_registry;
-use crate::scheduler::{run, RunContext};
+use crate::scheduler::{RunContext, run};
+
+/// The stage id every drift/superset diagnostic is attributed to on the carrier
+/// ledger (pin-on-attach).
+const PIPELINE_STAGE_ID: &str = "stage-pipeline-reconcile";
+
+/// The two real stages that project `gmeow:Finding` RDF into the carrier's
+/// `graph/diagnostics` fold (`stages::carrier` unions exactly these two). The run
+/// ledger ingests each producer's slice attributed to its own id.
+const DIAG_PRODUCER_VALIDATE: &str = "stage-validate";
+const DIAG_PRODUCER_COMPILE_LOGIC: &str = "stage-compile-logic";
+
+// The registered finding codes the reconcile phase emits. Declared here as the
+// enumeration authority (the same discipline as `validate::codes`).
+const CODE_SUPERSET_MISSING: &str = "pipeline.superset.missing";
+const CODE_SUPERSET_MISMATCH: &str = "pipeline.superset.mismatch";
+const CODE_SUPERSET_ORPHAN: &str = "pipeline.superset.orphan";
+const CODE_MISSING: &str = "pipeline.missing";
+const CODE_DRIFT: &str = "pipeline.drift";
+
+/// Intern a reconcile-phase drift/superset finding into the carrier ledger. The
+/// drifting path is the finding's focus, so each path is a distinct content-addressed
+/// witness (a shared code alone would hash-cons every drift into one node). All are
+/// gate-failing modelling defects (Error / ModelingDisciplineViolation / Binding).
+fn attach_pipeline_finding(ledger: &mut DiagLedger, code: &str, focus: &str, message: String) {
+    let diag = Diag::new(
+        register_code(code),
+        Grade::new(
+            Severity::Error,
+            FindingCategory::ModelingDisciplineViolation,
+            Standpoint::Binding,
+        ),
+        message,
+    )
+    .with_focus(focus);
+    ledger.attach(diag, StageId::new(PIPELINE_STAGE_ID));
+}
+
+/// Ingest the carrier's `graph/diagnostics` fold into the run `ledger`.
+///
+/// `stage-validate` and `stage-compile-logic` each attach their `gmeow:Finding` RDF
+/// to `graph/diagnostics` (the cache-stable, content-addressed carrier graph
+/// `stage-snapshot` unions and ships in `gmeow.gts`). This reads that SAME graph off
+/// each real producer's dataset — the exact slices [`crate::stages::carrier`] unions
+/// — and ingests every finding into the run ledger through the designed purrdf
+/// boundary [`Diag::from_rdf`], attributed to its REAL producing stage (never the
+/// synthetic reconcile stage).
+///
+/// This makes the ledger a load-bearing projection of the SHIPPED diagnostics rather
+/// than only carrying reconcile drift, and it is deterministic across warm/cold cache
+/// runs: the source is the content-addressed producer graph, walked in sorted subject
+/// order, so a cache hit (which returns the identical bundle) ingests byte-identical
+/// content. It is the SINGLE consumer of that canonical graph — it does not recompute
+/// a divergent second copy of the diagnostics.
+fn ingest_carrier_diagnostics(
+    products: &BTreeMap<String, StageProduct>,
+    ledger: &mut DiagLedger,
+) -> Result<(), PipelineError> {
+    for stage in [DIAG_PRODUCER_VALIDATE, DIAG_PRODUCER_COMPILE_LOGIC] {
+        if let Some(product) = products.get(stage) {
+            let diagnostics = product
+                .dataset()
+                .project_named_graph(crate::stages::carrier::GRAPH_DIAGNOSTICS);
+            crate::diagnostics_ingest::ingest_diagnostics_graph(&diagnostics, ledger, stage)?;
+        }
+    }
+    Ok(())
+}
 
 /// The id of the stage that projects the exact sink GTS bytes into schema files.
 const SCHEMAS_STAGE: &str = "stage-export-schemas";
@@ -73,8 +142,17 @@ pub struct RunReport {
     pub written: usize,
     /// Artifacts left untouched in regenerate mode because committed bytes already matched.
     pub skipped_writes: usize,
-    /// Drift / write findings (empty ⇒ full parity).
+    /// Drift / write findings (empty ⇒ full parity). These are a *projection* of
+    /// [`ledger`](RunReport::ledger) — the drift/superset producers intern their
+    /// diagnostics into the carrier ledger, and this field is
+    /// `ledger.project_report(...).findings`, so the ledger is the single source
+    /// of truth (not a parallel path).
     pub findings: Vec<Finding>,
+    /// The carrier-borne diagnostic ledger: the hash-consed witness DAG every
+    /// drift/superset finding is interned into (pin-on-attach, stage-attributed,
+    /// deterministically ordered). A first-class member of the run's carrier
+    /// output — [`findings`](RunReport::findings) is its lossy projection.
+    pub ledger: DiagLedger,
     /// The drifted logical paths (check mode), sorted.
     pub drifted: Vec<String>,
     /// Per-phase timing records for profiling the gate without parsing stderr.
@@ -419,7 +497,9 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, Pi
     let declared_sink = declared_sink_stage(&spec)?;
     assert_single_gts_writer(&products, declared_sink)?;
 
-    let mut findings: Vec<Finding> = Vec::new();
+    // The carrier ledger every drift/superset producer interns into. RunReport's
+    // `findings` is its projection at the end (load-bearing: not a parallel path).
+    let mut ledger = DiagLedger::new();
     let mut drifted: Vec<String> = Vec::new();
     let mut produced = 0usize;
     let mut reproduced = 0usize;
@@ -467,35 +547,31 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, Pi
                     });
                     for path in report.missing {
                         drifted.push(path.clone());
-                        findings.push(
-                            Finding::new(
-                                Severity::Error,
-                                "pipeline.superset.missing",
-                                format!("{path} has no carrier representative in gmeow.gts"),
-                            )
-                            .with_tool("gmeow-pipeline"),
+                        attach_pipeline_finding(
+                            &mut ledger,
+                            CODE_SUPERSET_MISSING,
+                            &path,
+                            format!("{path} has no carrier representative in gmeow.gts"),
                         );
                     }
                     for path in report.mismatch {
                         drifted.push(path.clone());
-                        findings.push(
-                            Finding::new(
-                                Severity::Error,
-                                "pipeline.superset.mismatch",
-                                format!("{path} differs from its gmeow.gts reconstruction"),
-                            )
-                            .with_tool("gmeow-pipeline"),
+                        attach_pipeline_finding(
+                            &mut ledger,
+                            CODE_SUPERSET_MISMATCH,
+                            &path,
+                            format!("{path} differs from its gmeow.gts reconstruction"),
                         );
                     }
                     for rep in report.orphan {
                         drifted.push(rep.clone());
-                        findings.push(
-                            Finding::new(
-                                Severity::Error,
-                                "pipeline.superset.orphan",
-                                format!("{rep} is carried in gmeow.gts but maps to no committed generated/ path"),
-                            )
-                            .with_tool("gmeow-pipeline"),
+                        attach_pipeline_finding(
+                            &mut ledger,
+                            CODE_SUPERSET_ORPHAN,
+                            &rep,
+                            format!(
+                                "{rep} is carried in gmeow.gts but maps to no committed generated/ path"
+                            ),
                         );
                     }
                 }
@@ -545,13 +621,11 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, Pi
                 Ok(c) => c,
                 Err(e) => {
                     drifted.push(path.clone());
-                    findings.push(
-                        Finding::new(
-                            Severity::Error,
-                            "pipeline.missing",
-                            format!("{path} could not be read for comparison: {e}"),
-                        )
-                        .with_tool("gmeow-pipeline"),
+                    attach_pipeline_finding(
+                        &mut ledger,
+                        CODE_MISSING,
+                        path,
+                        format!("{path} could not be read for comparison: {e}"),
                     );
                     continue;
                 }
@@ -574,13 +648,11 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, Pi
 
             // A genuine drift.
             drifted.push(path.clone());
-            findings.push(
-                Finding::new(
-                    Severity::Error,
-                    "pipeline.drift",
-                    format!("{path} differs from the committed artifact"),
-                )
-                .with_tool("gmeow-pipeline"),
+            attach_pipeline_finding(
+                &mut ledger,
+                CODE_DRIFT,
+                path,
+                format!("{path} differs from the committed artifact"),
             );
         }
     }
@@ -611,6 +683,9 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, Pi
         skipped_writes += report.skipped;
     }
 
+    // ── Ingest the carrier's `graph/diagnostics` fold into the run ledger. ──
+    ingest_carrier_diagnostics(&products, &mut ledger)?;
+
     drifted.sort();
     drifted.dedup();
 
@@ -631,6 +706,12 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, Pi
         )),
     });
 
+    // Project the carrier ledger to the wire findings — the ledger is the single
+    // source of truth, `findings` is its lossy projection (F3: not a parallel
+    // path). The direct accessor projects the findings without building the
+    // intermediate `Report` whose other fields would be discarded here.
+    let findings = ledger.findings("gmeow-pipeline");
+
     Ok(RunReport {
         mode,
         produced,
@@ -638,6 +719,7 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, Pi
         written,
         skipped_writes,
         findings,
+        ledger,
         drifted,
         timings,
         certification,
@@ -842,9 +924,53 @@ pub(crate) fn write_artifact(root: &Path, path: &str, bytes: &[u8]) -> Result<bo
 }
 
 #[cfg(test)]
+mod ledger_integration_tests {
+    use super::{CODE_DRIFT, CODE_SUPERSET_MISSING, DiagLedger, attach_pipeline_finding};
+
+    /// F3: the drift/superset producers intern their diagnostics into the carrier
+    /// ledger, and the wire findings are the ledger's projection — the ledger is
+    /// load-bearing, not a dark parallel path. This exercises the exact helper and
+    /// projection `run_full` uses.
+    #[test]
+    fn drift_findings_flow_through_the_carrier_ledger() {
+        let mut ledger = DiagLedger::new();
+        attach_pipeline_finding(
+            &mut ledger,
+            CODE_DRIFT,
+            "generated/a.ttl",
+            "generated/a.ttl differs from the committed artifact".to_owned(),
+        );
+        attach_pipeline_finding(
+            &mut ledger,
+            CODE_SUPERSET_MISSING,
+            "generated/b.ttl",
+            "generated/b.ttl has no carrier representative in gmeow.gts".to_owned(),
+        );
+
+        // Two distinct drifting paths → two distinct content-addressed witnesses
+        // (the path is the focus, so a shared code never collapses them).
+        assert_eq!(ledger.len(), 2, "each drifting path is a distinct witness");
+
+        // The wire findings `run_full` returns ARE the ledger projection.
+        let findings = ledger.project_report("gmeow-pipeline").findings;
+        assert_eq!(findings.len(), 2);
+        assert!(findings.iter().any(|f| f.code == CODE_DRIFT));
+        assert!(findings.iter().any(|f| f.code == CODE_SUPERSET_MISSING));
+        // Deleting the fold (an empty ledger) yields zero findings — proving the
+        // findings are sourced from the ledger, not a bypass path.
+        assert!(
+            DiagLedger::new()
+                .project_report("gmeow-pipeline")
+                .findings
+                .is_empty()
+        );
+    }
+}
+
+#[cfg(test)]
 mod dag_profile_tests {
     use super::{certify_build_plan, full_spec, write_artifact};
-    use gmeow_logic::dag_profile::{certify_acyclic, DagCertification};
+    use gmeow_logic::dag_profile::{DagCertification, certify_acyclic};
     use gmeow_logic::result::{
         CompletenessStatus, EvaluationStatus, InformationState, PreservationClaim,
     };
@@ -947,7 +1073,7 @@ mod dag_profile_tests {
 /// carry the `gmeow.gts` byte artifact.
 #[cfg(test)]
 mod single_writer_gate {
-    use super::{assert_single_gts_writer, GTS_PATH};
+    use super::{GTS_PATH, assert_single_gts_writer};
     use crate::node::StageProduct;
     use std::collections::BTreeMap;
 
@@ -1020,6 +1146,112 @@ mod single_writer_gate {
         assert!(
             msg.contains("stage-impostor") && msg.contains("stage-gts-sink"),
             "the error must name both the actual writer and the declared sink: got {msg}"
+        );
+    }
+}
+
+/// G4/G5: the carrier diagnostics fold is a LOAD-BEARING input to the run ledger,
+/// attributed to the REAL producing stage. Drives the real `stage-validate` stage
+/// over a fixture whose (empty) source graph violates a SHACL shape, then runs the
+/// EXACT `run_full` ingestion step ([`ingest_carrier_diagnostics`]) and asserts the
+/// resulting SHACL diagnostic reaches the ledger attributed to `stage-validate`
+/// (never the synthetic reconcile stage) and projects into the wire findings.
+#[cfg(test)]
+mod diagnostics_ingest_gate {
+    use super::{DIAG_PRODUCER_VALIDATE, PIPELINE_STAGE_ID, ingest_carrier_diagnostics};
+    use crate::node::{Stage, StageInput, StageProduct};
+    use crate::stages::source_load::BASE_GRAPH_PATH;
+    use crate::stages::validate::ValidateStage;
+    use gmeow_errors::DiagLedger;
+    use std::collections::BTreeMap;
+    use std::path::Path;
+
+    fn write(path: &Path, content: &str) {
+        std::fs::create_dir_all(path.parent().expect("parent")).unwrap();
+        std::fs::write(path, content).unwrap();
+    }
+
+    /// A fixture repo carrying one SHACL shape that requires `ex:required` on the
+    /// target node `ex:thing` — an empty source graph therefore violates minCount.
+    fn violating_repo() -> tempfile::TempDir {
+        let repo = tempfile::tempdir().unwrap();
+        write(
+            &repo.path().join("shapes/gmeow-shapes.ttl"),
+            r#"
+@prefix ex: <https://example.test/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+
+ex:RequiredShape a sh:NodeShape ;
+    sh:targetNode ex:thing ;
+    sh:property [
+        sh:path ex:required ;
+        sh:minCount 1 ;
+        sh:message "required value is missing" ;
+    ] .
+"#,
+        );
+        write(
+            &repo.path().join("generated/shapes/frame-shapes.ttl"),
+            "# generated\n",
+        );
+        std::fs::create_dir_all(repo.path().join("slices")).unwrap();
+        repo
+    }
+
+    #[test]
+    fn shacl_diagnostic_reaches_the_run_ledger_attributed_to_stage_validate() {
+        let repo = violating_repo();
+
+        // The real stage-source-load product the scheduler would hand stage-validate:
+        // the loaded source-graph N-Quads (empty here → the shape is violated).
+        let mut source_artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+        source_artifacts.insert(BASE_GRAPH_PATH.to_owned(), Vec::new());
+        let source_load = StageProduct::from_artifacts("stage-source-load", source_artifacts);
+
+        let mut upstream: BTreeMap<String, StageProduct> = BTreeMap::new();
+        upstream.insert("stage-source-load".to_owned(), source_load);
+
+        // Run the REAL validate stage exactly as the scheduler dispatches it: it folds
+        // its gmeow:Finding RDF into the carrier's graph/diagnostics named graph.
+        let product = ValidateStage::new()
+            .run(StageInput {
+                root: repo.path(),
+                upstream: &upstream,
+            })
+            .expect("validate stage")
+            .product;
+
+        let mut products: BTreeMap<String, StageProduct> = BTreeMap::new();
+        products.insert(DIAG_PRODUCER_VALIDATE.to_owned(), product);
+
+        // The EXACT run_full ingestion step: ingest the carrier's diagnostics graph
+        // into the run ledger through the production purrdf boundary.
+        let mut ledger = DiagLedger::new();
+        ingest_carrier_diagnostics(&products, &mut ledger).expect("ingest carrier diagnostics");
+
+        // The ledger node for the SHACL violation is attributed to the REAL producing
+        // stage, never the synthetic reconcile stage.
+        let nodes = ledger.emit_sorted();
+        let shacl = nodes
+            .iter()
+            .find(|n| n.code.starts_with("shacl."))
+            .expect("SHACL diagnostic ingested into the run ledger");
+        assert_eq!(
+            shacl.stage.as_str(),
+            DIAG_PRODUCER_VALIDATE,
+            "the SHACL diagnostic must be attributed to the real producing stage"
+        );
+        assert_ne!(
+            shacl.stage.as_str(),
+            PIPELINE_STAGE_ID,
+            "the SHACL diagnostic must NOT be attributed to the synthetic reconcile stage"
+        );
+
+        // It projects into RunReport.findings (the ledger is the single source).
+        let findings = ledger.findings("gmeow-pipeline");
+        assert!(
+            findings.iter().any(|f| f.code.starts_with("shacl.")),
+            "the ingested SHACL diagnostic must project into the wire findings"
         );
     }
 }

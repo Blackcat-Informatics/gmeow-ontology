@@ -39,11 +39,11 @@ use sha2::{Digest, Sha256};
 
 use crate::ingest::DslView;
 use crate::ir::{
-    Correspondence, CorrespondenceRelation, MorphismClass, MorphismKind, PreservationKind,
-    LOGIC_NAMESPACE,
+    Correspondence, CorrespondenceRelation, LOGIC_NAMESPACE, MorphismClass, MorphismKind,
+    PreservationKind,
 };
 use crate::projections::correspondence::CorrespondenceProgram;
-use crate::projections::get_leg::{projections, ProfileBinding};
+use crate::projections::get_leg::{ProfileBinding, projections};
 use crate::projections::sssom::{equivalence_cells, sssom_band};
 
 /// The semapv justification under which a curator established a mapping — the
@@ -328,7 +328,10 @@ fn correspondence_for_binding(
         None,
         get_leg,
         put_leg,
-        Vec::new(),
+        // An authored co-authored put-with-claim (`gmeow:ingestClaim`) becomes a real
+        // `law_claims` entry the existing `p_has_law_claim` path round-trips; absent in the
+        // committed corpus, so this is empty there.
+        binding.ingest_claim.iter().cloned().collect(),
         binding.confidence,
         None,
         None,

@@ -163,16 +163,13 @@ fn build_unit(msgctxt: &str, msgid: &str, msgstr: &str, lang: &str, tgt_script: 
     let present = !msgstr.is_empty();
     let unit_key = format!("{msgctxt}\u{1f}{lang}");
     Unit {
-        unit_iri: example("translation-unit", &digest16("unit", &unit_key)),
+        unit_iri: unit_iri(msgctxt, lang),
         corr_iri: example("translation-correspondence", &digest16("corr", &unit_key)),
         en_surface: example(
             "surface-form",
             &digest16("surface", &format!("english\u{1f}{msgctxt}\u{1f}{msgid}")),
         ),
-        tgt_surface: example(
-            "surface-form",
-            &digest16("surface", &format!("{lang}\u{1f}{msgctxt}\u{1f}{msgstr}")),
-        ),
+        tgt_surface: target_surface_iri(msgctxt, msgstr, lang),
         en_sign_system: example("sign-system", "english"),
         tgt_sign_system: example("sign-system", lang),
         en_script: iri(LANG_NS, "latinScript"),
@@ -185,11 +182,32 @@ fn build_unit(msgctxt: &str, msgid: &str, msgstr: &str, lang: &str, tgt_script: 
     }
 }
 
+/// The content-addressed `lang:TranslationUnit` IRI for a `.po` entry keyed by its `msgctxt`
+/// and catalog language — the SAME identity [`build_unit`] mints. Exposed so the docs-page
+/// roll-up (`lang_docs_rendering`) can point `lang:rollsUpFrom` at the real units without
+/// re-deriving the content-addressing scheme (single source of truth).
+pub(crate) fn unit_iri(msgctxt: &str, lang: &str) -> String {
+    example(
+        "translation-unit",
+        &digest16("unit", &format!("{msgctxt}\u{1f}{lang}")),
+    )
+}
+
+/// The content-addressed target `lang:SurfaceForm` IRI for a `.po` entry — the produced form
+/// a docs-page rendering realizes. The SAME identity [`build_unit`] mints for `tgt_surface`,
+/// exposed so `lang_docs_rendering` can point `lang:renderingForm` at the real surfaces.
+pub(crate) fn target_surface_iri(msgctxt: &str, msgstr: &str, lang: &str) -> String {
+    example(
+        "surface-form",
+        &digest16("surface", &format!("{lang}\u{1f}{msgctxt}\u{1f}{msgstr}")),
+    )
+}
+
 /// Resolve the `lang:Script` individual (local name) for a surface written in a BCP-47
 /// language. Script is material identity a surface hash needs, so an unknown language is a
 /// HARD FAIL (no silent default): a newly-added catalog forces an explicit script mapping
 /// and its `lang:Script` individual in `slices/grounding/lang/module.ttl`.
-fn script_for_lang(lang: &str) -> Result<&'static str, PipelineError> {
+pub(crate) fn script_for_lang(lang: &str) -> Result<&'static str, PipelineError> {
     let primary = lang
         .split(['-', '_'])
         .next()

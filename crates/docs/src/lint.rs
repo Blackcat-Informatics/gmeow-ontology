@@ -4,7 +4,7 @@
 //! The documentation lint gate (PyO3-free).
 //!
 //! [`lint`] checks the rendered [`Site`] and the typed [`DocsModel`] for
-//! integrity defects and emits a [`gmeow_diagnostics::Report`] (tool
+//! integrity defects and emits a [`gmeow_errors::Report`] (tool
 //! `"gmeow-docs"`), which `make check`'s `doc-lint` step turns into
 //! `gmeow:Finding`s. Findings are deterministic: every collection is sorted
 //! before iteration and the report is normalized by its consumer.
@@ -38,10 +38,10 @@
 
 use std::collections::BTreeSet;
 
-use gmeow_diagnostics::{Finding, Location, Report, Severity};
+use gmeow_errors::{Finding, Location, Report, Severity};
 
 use crate::model::DocsModel;
-use crate::render::{term_slug, Site};
+use crate::render::{Site, term_slug};
 
 /// The diagnostics tool name for documentation findings.
 const TOOL: &str = "gmeow-docs";

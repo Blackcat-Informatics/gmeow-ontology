@@ -65,9 +65,9 @@ use std::sync::Arc;
 
 use purrdf::provenance::{DatasetProvenance, OriginKind};
 use purrdf::{
-    canonicalize, parse_dataset, serialize_dataset, ContentDigest, ContentStore, QuadHandle,
-    RdfBlobOrigin, RdfBlobRecord, RdfLocation, RdfLookaside, RdfLookasideKind,
-    RdfLookasideResource, RdfMetadataValue, SerializeGraph,
+    ContentDigest, ContentStore, QuadHandle, RdfBlobOrigin, RdfBlobRecord, RdfLocation,
+    RdfLookaside, RdfLookasideKind, RdfLookasideResource, RdfMetadataValue, SerializeGraph,
+    canonicalize, parse_dataset, serialize_dataset,
 };
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
@@ -339,7 +339,7 @@ fn rebuild_handle(
         other => {
             return Err(PipelineError::Decode(format!(
                 "cached handle has unknown PipelineHandle arm tag {other:?}"
-            )))
+            )));
         }
     })
 }
@@ -357,7 +357,7 @@ fn origin_kind_from_str(kind: &str) -> Result<OriginKind, PipelineError> {
         other => {
             return Err(PipelineError::Decode(format!(
                 "cached provenance row carries an unrepresentable origin kind {other:?}"
-            )))
+            )));
         }
     })
 }
@@ -826,7 +826,7 @@ mod tests {
         let mut b = RdfDatasetBuilder::new();
         let (s, p, o) = (iri(&mut b, "s"), iri(&mut b, "p"), iri(&mut b, "o"));
         b.push_quad(s, p, o, None); // a default-graph quad
-                                    // Fold every triple of the logic projection into the named graph GRAPH_IRI.
+        // Fold every triple of the logic projection into the named graph GRAPH_IRI.
         let graph = RdfTerm::Iri(GRAPH_IRI.to_owned());
         for quad in logic_ds.owned_quads() {
             let mut routed = quad.clone();

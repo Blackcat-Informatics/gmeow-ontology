@@ -18,7 +18,7 @@ crate-type = ["rlib"]
 path = "src/lib.rs"
 
 [features]
-python = ["dep:pyo3", "gmeow-diagnostics/python", ]
+python = ["dep:pyo3", "gmeow-errors/python", ]
 
 [dependencies]
 # Shared RDF 1.2 adapter boundary for loading GTS/sidecar-aware datasets into
@@ -27,14 +27,14 @@ python = ["dep:pyo3", "gmeow-diagnostics/python", ]
 # The `python` feature exposes `gmeow_rdf::py_store::quad_to_py`, so the native RL
 # closure returns live `gmeow_rdf.Quad` objects directly instead of an N-Triples
 # string the Python adapter would have to re-parse (#630 seam removal).
-purrdf = "0.2"
+purrdf = "0.3"
 # The native SPARQL engine over `Arc<RdfDataset>` (#906): the world-store's `select`
 # and the reasoned-graph governance/verify queries evaluate here, replacing the
 # retired oxigraph `SparqlEvaluator`. A leaf-ish crate (rdf-core/sparql-algebra/xsd
 # — no edge back to logic), so this introduces no layering cycle.
 # First-class diagnostics model (Finding/Report) so the native verify lane builds
 # its findings in Rust and hands Python a report via JSON (#695).
-gmeow-diagnostics = { path = "../diagnostics" }
+gmeow-errors = { path = "../errors" }
 # SPARQL property-path algebra: the projection target for logic:PathShape (#1010).
 # A leaf-ish crate (gmeow-iri/gmeow-xsd only) — no layering cycle.
 # The pure, wasm-able logic compiler (#732): the runtime consumes its parse→IR→
@@ -48,7 +48,7 @@ blake3 = "1"
 # stage graph delegates to. default-features off — only the core graph + algo are
 # needed. Same version as crates/pipeline so the workspace resolves one copy.
 petgraph = { version = "0.8", default-features = false }
-# rayon: data-parallel iterators for foundation multi-world chase (#822).
+# rayon: data-parallel iterators for foundation multi-world chase.
 # Worlds are independent: each `chase_world` call is pure and produces its own
 # Vec<FoundationQuad> with no shared mutable state.  Only invoked when
 # store.worlds().len() > 1 to avoid thread-pool overhead for single-world inputs.

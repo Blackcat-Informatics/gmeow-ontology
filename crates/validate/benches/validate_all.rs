@@ -15,7 +15,7 @@
 use std::collections::{BTreeSet, HashSet};
 use std::path::PathBuf;
 
-use criterion::{criterion_group, criterion_main, Criterion};
+use criterion::{Criterion, criterion_group, criterion_main};
 use gmeow_validate::lint::LintConfig;
 use gmeow_validate::validate_all::{ValidateOptions, ValidationRun};
 

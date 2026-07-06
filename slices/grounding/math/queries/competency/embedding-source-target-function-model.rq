@@ -1,0 +1,19 @@
+# Competency question: "What source, target space, function, and model define this
+# embedding?" Exercises the hard rule that a math:Embedding names its
+# math:embeddingSource, math:targetSpace, math:embeddingFunction, and
+# math:embeddingModel. Matches a math:KnowledgeGraphEmbedding through the asserted
+# subClassOf* edge (reasoningNone). Scoped so the answer is exactly
+# {emb -> srcGraph, latent, fn, model}.
+PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?embedding ?source ?target ?function ?model WHERE {
+    ?embedding a ?embType .
+    ?embType rdfs:subClassOf* math:Embedding .
+    ?embedding math:embeddingSource ?source ;
+               math:targetSpace ?target ;
+               math:embeddingFunction ?function ;
+               math:embeddingModel ?model .
+    FILTER(STRSTARTS(STR(?embedding), "http://example.org/math/"))
+}
+ORDER BY ?embedding

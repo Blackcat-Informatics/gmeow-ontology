@@ -3360,3 +3360,987 @@ math:signatureNegative
     rdfs:label "signature negative"@x-gmeow-english ;
     skos:definition "The count q of negative eigenvalues (timelike directions in the +−−− convention) of a math:MetricSignature. Domain math:MetricSignature, range xsd:nonNegativeInteger (stated in prose). A Lorentzian signature has exactly one negative (or, dually, exactly one positive) — the timelike direction spacetime is built on."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
+
+# =========================================================================== #
+# Linear algebra, learning, and representation (LINEAR-ALGEBRA-AND-LEARNING
+# charter)
+#
+# The operational objects of data and AI: matrices as linear maps, inner-product
+# spaces and their orthogonal complements, decompositions (eigen, SVD, PCA) as
+# named analyses that declare inputs / policy / outputs, embeddings as maps into
+# latent spaces, and a neural network as a tensor computational graph reusing the
+# expression AST wholesale. Its discipline: a decomposition or embedding declares
+# its inputs, its policy, and its outputs — and any MEANING read off a residual or
+# a latent dimension is a claim from a vantage (a gmeow:Observation carrying a
+# gmeow:vantage and a result), never an intrinsic property of the vector
+# (math:ResidualMeaningAsProperty). math:OrthogonalComplement realizes the
+# geometry charter's complement contract (math:ambientSpace +
+# math:complementSemantics math:orthogonalComplement + math:definedByInnerProduct).
+# The tensor computation graph reuses math:ApplicationExpression + math:ArgumentSlot
+# so the inherited application/slot gates bite; the AI's reflection on that
+# structure ("these dimensions encode X") is carried at the logic: metalevel
+# (logic:MetaLevelFormula), self-reference without paradox across grounding layers.
+# =========================================================================== #
+
+# --- The universal object-layer root ---------------------------------------- #
+# math:MathematicalObject is the top of the object layer — the universal type an
+# element, a value, a vector, a decomposition, or a learned object inhabits. The
+# bedrock already ranges over it (math:hasElement, math:convergesTo) and the
+# analysis examples type points and limits with it; it is declared here as the
+# explicit root those references assume.
+
+math:MathematicalObject
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Mathematical Object"@x-gmeow-english ;
+    skos:definition "The universal object-layer root: any object mathematics quantifies, indexes, maps, or measures over — an element, a value, a vector, a decomposition, a learned object. The top type the bedrock ranges over (math:hasElement, math:convergesTo) and the ground the specialized object classes (math:Basis, math:Rank, math:Eigendecomposition, math:PrincipalComponent, math:WeightTensor, and the rest) build on. Distinct from the expression layer (math:MathematicalExpression) and the relation/function layer, which name what denotes or maps rather than what is denoted."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+# --- Inner-product spaces, subspaces, and decompositions -------------------- #
+
+math:InnerProductSpace
+    a owl:Class ;
+    rdfs:subClassOf math:VectorSpace ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Inner Product Space"@x-gmeow-english ;
+    skos:definition "A vector space equipped with an inner product — a math:VectorSpace carrying a math:innerProduct that assigns lengths and angles, so orthogonality and orthogonal complements are defined. A subclass of math:VectorSpace; the complex case carries a math:HermitianInnerProduct. It names the inner product it carries through math:innerProduct."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:HermitianInnerProduct
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Hermitian Inner Product"@x-gmeow-english ;
+    skos:definition "A conjugate-symmetric, positive-definite sesquilinear form on a complex vector space — the inner product ⟨·,·⟩ of the complex case, linear in one argument and conjugate-linear in the other. A subclass of math:MathematicalObject carried by a math:InnerProductSpace through math:innerProduct; it is the structure that defines a math:OrthogonalComplement in the complex (S⊥) case (math:definedByInnerProduct)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Subspace
+    a owl:Class ;
+    rdfs:subClassOf math:VectorSpace ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Subspace"@x-gmeow-english ;
+    skos:definition "A vector subspace: a subset of a vector space closed under addition and scalar multiplication, itself a math:VectorSpace. A subclass of math:VectorSpace naming the space it sits in through math:subspaceOf. The embedded image of an embedding and the residual of a projection are subspaces; a math:OrthogonalComplement is the subspace orthogonal to one."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:OrthogonalComplement
+    a owl:Class ;
+    rdfs:subClassOf math:Complement ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Orthogonal Complement"@x-gmeow-english ;
+    skos:definition "The orthogonal complement S⊥ of a subspace S within an inner-product space — the vectors orthogonal to every vector of S under a declared inner product. A subclass of math:Complement that realizes the geometry charter's complement contract: it names its math:ambientSpace, sets math:complementSemantics math:orthogonalComplement, and additionally is math:definedByInnerProduct (the math:HermitianInnerProduct in the complex case), so 'the orthogonal complement' is never ambiguous. An orthogonal complement not naming its inner product is ill-formed (math:UnqualifiedOrthogonalComplement)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Basis
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Basis"@x-gmeow-english ;
+    skos:definition "A basis of a vector space: a linearly independent set that spans it, so every vector has unique coordinates. A subclass of math:MathematicalObject named by a space through math:hasBasis. An orthonormal basis is the eigenvector set of a self-adjoint operator; a math:PrincipalComponent set is the basis PCA selects."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:LinearMap
+    a owl:Class ;
+    rdfs:subClassOf math:Function ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Linear Map"@x-gmeow-english ;
+    skos:definition "A linear map (linear transformation) between vector spaces — a math:Function preserving addition and scalar multiplication. A subclass of math:Function; a matrix (its object-layer representation) realizes one relative to chosen bases. Its math:Rank measures the dimension of its image; a math:CovarianceOperator and the weight action of a neural layer are linear maps."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Rank
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Rank"@x-gmeow-english ;
+    skos:definition "The rank of a math:LinearMap — the dimension of its image, a non-negative integer invariant. A subclass of math:MathematicalObject carrying its value through math:rankValue. It bounds how much of the source a map preserves and is the count of non-zero singular values of a math:SingularValueDecomposition."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Eigendecomposition
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Eigendecomposition"@x-gmeow-english ;
+    skos:definition "The eigendecomposition of a linear operator: a first-class object with declared operands and outputs, factoring the operator into its math:eigenvalue / math:eigenvector pairs (A = QΛQ⁻¹). A subclass of math:MathematicalObject. Externally anchored to the OpenMath linalgeig content dictionary. The spectral decomposition of a math:CovarianceOperator is what a math:PCAAnalysis reads its components off."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:SingularValueDecomposition
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Singular Value Decomposition"@x-gmeow-english ;
+    skos:definition "The singular value decomposition of a linear map: a first-class object factoring it as A = UΣV* with declared math:singularValue outputs and left/right singular vectors. A subclass of math:MathematicalObject. GMEOW-original in structure (no external ontology models SVD); the count of non-zero singular values is the math:Rank, and a randomized SVD is a common math:eigensolver for PCA."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:CovarianceOperator
+    a owl:Class ;
+    rdfs:subClassOf math:LinearMap ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Covariance Operator"@x-gmeow-english ;
+    skos:definition "The covariance operator of a centered data distribution — a self-adjoint, positive-semidefinite linear map whose spectral decomposition yields the principal directions. A subclass of math:LinearMap. A math:PCAAnalysis names the math:CovarianceOperator it decomposes through math:covarianceOperator; its eigenvectors are the loadings and its eigenvalues the explained variances."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:PrincipalComponent
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Principal Component"@x-gmeow-english ;
+    skos:definition "A principal component: one orthonormal direction of maximal remaining variance produced by a math:PCAAnalysis — an eigenvector of the math:CovarianceOperator. A subclass of math:MathematicalObject, named by an analysis through math:principalComponent, carrying a math:LoadingVector (its coefficients) and explaining a share of variance (math:ExplainedVariance). Its MEANING is never an intrinsic property: what a component encodes is a math:ResidualInterpretationClaim held from a vantage."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:innerProduct
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "inner product"@x-gmeow-english ;
+    skos:definition "Relates a math:InnerProductSpace to the inner product it carries — a math:HermitianInnerProduct in the complex case. Domain math:InnerProductSpace, range a math:HermitianInnerProduct or a real inner-product structure (stated in prose). The inner product is what makes orthogonality, and hence a math:OrthogonalComplement, well-defined."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:subspaceOf
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "subspace of"@x-gmeow-english ;
+    skos:definition "Relates a math:Subspace to the vector space it is a subspace of. Domain math:Subspace, range math:VectorSpace (stated in prose). The ambient space a subspace sits in, and against which its orthogonal complement is taken."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:orthogonalComplementOf
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "orthogonal complement of"@x-gmeow-english ;
+    skos:definition "Relates a math:OrthogonalComplement to the subspace S it is the orthogonal complement of (S⊥ of S). Domain math:OrthogonalComplement, range math:Subspace (stated in prose). Distinct from the ambient space (math:ambientSpace, the enclosing inner-product space) — the complement is orthogonal to this subspace within that ambient space."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:definedByInnerProduct
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "defined by inner product"@x-gmeow-english ;
+    skos:definition "Relates a math:OrthogonalComplement to the inner product that defines orthogonality for it — the math:HermitianInnerProduct in the complex case. Domain math:OrthogonalComplement, range a math:HermitianInnerProduct or real inner-product structure (stated in prose). An orthogonal complement without a named inner product is ambiguous and ill-formed (math:UnqualifiedOrthogonalComplement)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:hasBasis
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "has basis"@x-gmeow-english ;
+    skos:definition "Relates a math:VectorSpace to a math:Basis of it. Domain math:VectorSpace, range math:Basis (stated in prose). A space may carry several bases; the principal-component basis is the one PCA selects for maximal variance."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:rankValue
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "rank value"@x-gmeow-english ;
+    skos:definition "The non-negative-integer value of a math:Rank — the dimension of the image of the linear map it is the rank of. Domain math:Rank, range xsd:nonNegativeInteger (stated in prose; SHACL enforces xsd:integer with minInclusive 0)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:eigenvalue
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "eigenvalue"@x-gmeow-english ;
+    skos:definition "Relates a math:Eigendecomposition to one of its eigenvalues λ (Av = λv) — a math:Number, possibly complex. Domain math:Eigendecomposition, range math:Number (stated in prose; modeled as an object, not a bare literal, because eigenvalues may be complex and situated). Paired with a math:eigenvector."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:eigenvector
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "eigenvector"@x-gmeow-english ;
+    skos:definition "Relates a math:Eigendecomposition to one of its eigenvectors v (Av = λv). Domain math:Eigendecomposition, range a vector (a math:MathematicalObject in a math:VectorSpace) (stated in prose). The eigenvectors of a math:CovarianceOperator are the principal directions."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:singularValue
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "singular value"@x-gmeow-english ;
+    skos:definition "Relates a math:SingularValueDecomposition to one of its singular values σ ≥ 0 (the diagonal of Σ). Domain math:SingularValueDecomposition, range a non-negative math:Number (stated in prose). The count of non-zero singular values is the math:Rank."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# --- PCA and the KG-projection flagship ------------------------------------- #
+
+math:PCAAnalysis
+    a owl:Class ;
+    rdfs:subClassOf gmeow:Activity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "PCA Analysis"@x-gmeow-english ;
+    skos:definition "A principal-component analysis: the analysis PROCESS that decomposes a centered, scaled input into orthogonal directions of maximal variance. A subclass of gmeow:Activity (an analysis is a process, distinct from its result objects and from any claim about them). It declares its math:analysisInput, its math:centeringPolicy and math:scalingPolicy, the math:CovarianceOperator it decomposes (math:covarianceOperator), the math:eigensolver used, and its outputs — math:principalComponent, math:loadingVector, math:scoreVector, math:explainedVarianceRatio, and its math:residualSubspace. A PCA missing any of these declared roles is ill-formed (math:IncompletePCAAnalysis)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:LoadingVector
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Loading Vector"@x-gmeow-english ;
+    skos:definition "A loading vector: the coefficients of a math:PrincipalComponent in the original coordinates — how each input feature contributes to the component. A subclass of math:MathematicalObject named by a PCA through math:loadingVector. Loadings are the eigenvectors of the math:CovarianceOperator; their INTERPRETATION is a math:ResidualInterpretationClaim, not an intrinsic property."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:ScoreVector
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Score Vector"@x-gmeow-english ;
+    skos:definition "A score vector: the coordinates of a data point projected onto the principal components — the representation of a sample in the PCA basis. A subclass of math:MathematicalObject named by a PCA through math:scoreVector. Scores are inputs projected through the loadings."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:ExplainedVariance
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Explained Variance"@x-gmeow-english ;
+    skos:definition "The share of total variance a math:PrincipalComponent accounts for — the component's eigenvalue over the trace, a ratio in [0, 1]. A subclass of math:MathematicalObject named by a PCA through math:explainedVarianceRatio; the ratios across retained components measure how much structure the projection keeps."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:ProjectionResidual
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Projection Residual"@x-gmeow-english ;
+    skos:definition "The residual of a projection: what a subspace projection leaves behind — the component of the data orthogonal to the retained subspace. A subclass of math:MathematicalObject; the residual subspace of a PCA is named through math:residualSubspace and is often a math:OrthogonalComplement. Its MEANING — what the residual encodes — is a math:ResidualInterpretationClaim held from a vantage, never a property stamped on the residual."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:ResidualInterpretationClaim
+    a owl:Class ;
+    rdfs:subClassOf gmeow:Observation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Residual Interpretation Claim"@x-gmeow-english ;
+    skos:definition "The claim of what a math:ProjectionResidual, a math:PrincipalComponent, or a latent dimension MEANS — 'this direction encodes X'. A subclass of gmeow:Observation: semantic meaning read off geometry is inference from a standpoint, so it carries a gmeow:vantage (whose frame), a gmeow:observedFeature (which residual/component/dimension), and a gmeow:observationResult (the grounded conclusion, typically a logic:MetaLevelFormula), never an intrinsic property of the vector. A meaning asserted without its vantage is ill-formed (math:ResidualMeaningAsProperty); and no direct meaning property is minted, so a meaning is representable only through this claim."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:CenteringPolicy
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Centering Policy"@x-gmeow-english ;
+    skos:definition "The centering policy of a math:PCAAnalysis: whether the input is mean-centered before decomposition — one of math:meanCentered or math:uncentered. A value vocabulary (individuals, never subclasses); a PCA names exactly one through math:centeringPolicy, because the covariance a PCA decomposes depends on it."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:meanCentered
+    a owl:NamedIndividual , math:CenteringPolicy ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "mean centered"@x-gmeow-english ;
+    skos:definition "The mean-centered policy: each feature's mean is subtracted before decomposition, so the covariance operator is about the centroid. The standard PCA policy."@x-gmeow-english .
+
+math:uncentered
+    a owl:NamedIndividual , math:CenteringPolicy ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "uncentered"@x-gmeow-english ;
+    skos:definition "The uncentered policy: the decomposition is taken about the origin without subtracting the mean — a distinct analysis (uncentered PCA / second-moment decomposition), so the policy must be declared, not assumed."@x-gmeow-english .
+
+math:ScalingPolicy
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Scaling Policy"@x-gmeow-english ;
+    skos:definition "The scaling policy of a math:PCAAnalysis: whether features are standardized to unit variance before decomposition — one of math:unitVariance or math:unscaled. A value vocabulary (individuals, never subclasses); a PCA names exactly one through math:scalingPolicy, because standardizing changes which directions carry the variance."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:unitVariance
+    a owl:NamedIndividual , math:ScalingPolicy ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "unit variance"@x-gmeow-english ;
+    skos:definition "The unit-variance policy: each feature is scaled to unit standard deviation (correlation-matrix PCA), so features on different scales contribute comparably."@x-gmeow-english .
+
+math:unscaled
+    a owl:NamedIndividual , math:ScalingPolicy ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "unscaled"@x-gmeow-english ;
+    skos:definition "The unscaled policy: features keep their original units (covariance-matrix PCA), so high-variance features dominate the leading components — a distinct analysis, declared rather than assumed."@x-gmeow-english .
+
+math:analysisInput
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "analysis input"@x-gmeow-english ;
+    skos:definition "Relates a math:PCAAnalysis to the object it decomposes — a data matrix, a subspace, or a residual subspace. Domain math:PCAAnalysis, range a math:MathematicalObject (a matrix, math:Subspace, or math:OrthogonalComplement) (stated in prose). The declared input of the analysis; an analysis without its input is ill-formed (math:IncompletePCAAnalysis)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:centeringPolicy
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "centering policy"@x-gmeow-english ;
+    skos:definition "Relates a math:PCAAnalysis to its math:CenteringPolicy. Domain math:PCAAnalysis, range math:CenteringPolicy (stated in prose). Every PCA declares exactly one; the covariance it decomposes depends on it."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:scalingPolicy
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "scaling policy"@x-gmeow-english ;
+    skos:definition "Relates a math:PCAAnalysis to its math:ScalingPolicy. Domain math:PCAAnalysis, range math:ScalingPolicy (stated in prose). Every PCA declares exactly one; standardizing to unit variance changes which directions carry the variance."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:covarianceOperator
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "covariance operator"@x-gmeow-english ;
+    skos:definition "Relates a math:PCAAnalysis to the math:CovarianceOperator it decomposes. Domain math:PCAAnalysis, range math:CovarianceOperator (stated in prose). The operator whose spectral decomposition yields the principal components; a PCA without it is ill-formed (math:IncompletePCAAnalysis)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:eigensolver
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "eigensolver"@x-gmeow-english ;
+    skos:definition "Relates a math:PCAAnalysis to the solver used to compute the decomposition — for example a full eigendecomposition or a randomized math:SingularValueDecomposition. Domain math:PCAAnalysis, range a math:Eigendecomposition, math:SingularValueDecomposition, or named solver (stated in prose). The declared method; an analysis without it is ill-formed (math:IncompletePCAAnalysis)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:principalComponent
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "principal component"@x-gmeow-english ;
+    skos:definition "Relates a math:PCAAnalysis to one of the math:PrincipalComponent directions it produces. Domain math:PCAAnalysis, range math:PrincipalComponent (stated in prose). The declared component outputs; a PCA producing none is ill-formed (math:IncompletePCAAnalysis)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:loadingVector
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "loading vector"@x-gmeow-english ;
+    skos:definition "Relates a math:PCAAnalysis to a math:LoadingVector it produces — the coefficients of a component in the original features. Domain math:PCAAnalysis, range math:LoadingVector (stated in prose). A declared output of the analysis."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:scoreVector
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "score vector"@x-gmeow-english ;
+    skos:definition "Relates a math:PCAAnalysis to a math:ScoreVector it produces — a data point's coordinates in the principal-component basis. Domain math:PCAAnalysis, range math:ScoreVector (stated in prose). A declared output of the analysis."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:explainedVarianceRatio
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "explained variance ratio"@x-gmeow-english ;
+    skos:definition "Relates a math:PCAAnalysis to a math:ExplainedVariance it produces — the share of total variance a component accounts for. Domain math:PCAAnalysis, range math:ExplainedVariance (stated in prose). A declared output of the analysis."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:residualSubspace
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "residual subspace"@x-gmeow-english ;
+    skos:definition "Relates a math:PCAAnalysis to its math:ProjectionResidual or the residual subspace left after retaining the leading components — often a math:OrthogonalComplement. Domain math:PCAAnalysis, range a math:ProjectionResidual, math:Subspace, or math:OrthogonalComplement (stated in prose). A declared output; what the residual MEANS is a math:ResidualInterpretationClaim, not a property of the subspace."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# --- Learning, embeddings, and latent spaces -------------------------------- #
+
+math:LearnedModel
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Learned Model"@x-gmeow-english ;
+    skos:definition "A learned model: a parameterized map fitted by solving a math:OptimizationProblem — the trained artifact an embedding or a classifier is. A subclass of math:MathematicalObject; a math:Embedding names the model producing it through math:embeddingModel, and a neural model's forward structure is a math:TensorComputationGraph with weights in a math:ParameterSpace."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:LossFunction
+    a owl:Class ;
+    rdfs:subClassOf math:Function ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Loss Function"@x-gmeow-english ;
+    skos:definition "A loss (objective) function: the scalar-valued map a math:OptimizationProblem minimizes — the discrepancy between prediction and target. A subclass of math:Function; named by an optimization problem through math:objectiveFunction. Its gradient is the calculus charter's derivative machinery."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:OptimizationProblem
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Optimization Problem"@x-gmeow-english ;
+    skos:definition "An optimization problem: the SPECIFICATION training solves — minimize a math:objectiveFunction (a math:LossFunction) subject to declared math:constraint(s). A subclass of math:MathematicalObject (the problem is the spec; the training run that solves it is a gmeow:Activity). GMEOW-original in structure; the objective's gradient is the calculus charter's derivatives."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Embedding
+    a owl:Class ;
+    rdfs:subClassOf math:Function ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Embedding"@x-gmeow-english ;
+    skos:definition "An embedding: a map from a source object into a target latent space that preserves chosen structure. A subclass of math:Function naming its math:embeddingSource, its math:targetSpace, its math:embeddingFunction, and the math:embeddingModel that produced it. An embedding missing any of these is ill-formed (math:UnderspecifiedEmbedding)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:KnowledgeGraphEmbedding
+    a owl:Class ;
+    rdfs:subClassOf math:Embedding ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Knowledge Graph Embedding"@x-gmeow-english ;
+    skos:definition "A knowledge-graph embedding: an embedding that maps the nodes and relations of a graph into a math:LatentSpace so that graph structure becomes latent geometry. A subclass of math:Embedding whose math:embeddingSource is a graph and whose math:targetSpace is a latent (often complex) space — the source of the KG-projection / PCA-of-residuals flagship."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:LatentSpace
+    a owl:Class ;
+    rdfs:subClassOf math:VectorSpace ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Latent Space"@x-gmeow-english ;
+    skos:definition "A latent (representation) space: the target vector space an embedding maps into, whose coordinates are learned rather than given. A subclass of math:VectorSpace; its dimensions are math:EmbeddingDimension objects. What a latent dimension MEANS is GMEOW-original territory (no external ontology) and is a math:ResidualInterpretationClaim held from a vantage, not an intrinsic property."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:EmbeddingDimension
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Embedding Dimension"@x-gmeow-english ;
+    skos:definition "One coordinate axis of a math:LatentSpace — a single latent dimension of an embedding. A subclass of math:MathematicalObject related to its space through math:latentDimensionOf. GMEOW-original; its interpretation ('this axis encodes sentiment') is a math:ResidualInterpretationClaim, never a property of the axis."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:embeddingSource
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "embedding source"@x-gmeow-english ;
+    skos:definition "Relates a math:Embedding to the object it embeds — a graph, a corpus, a set of entities. Domain math:Embedding, range a math:MathematicalObject or graph (stated in prose). The declared source; an embedding without it is ill-formed (math:UnderspecifiedEmbedding)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:targetSpace
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "target space"@x-gmeow-english ;
+    skos:definition "Relates a math:Embedding to the math:LatentSpace it maps into. Domain math:Embedding, range math:LatentSpace or math:VectorSpace (stated in prose). The declared target; an embedding without it is ill-formed (math:UnderspecifiedEmbedding)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:embeddingFunction
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "embedding function"@x-gmeow-english ;
+    skos:definition "Relates a math:Embedding to the math:Function realizing the map from source elements to target vectors. Domain math:Embedding, range math:Function (stated in prose). The declared map; an embedding without it is ill-formed (math:UnderspecifiedEmbedding)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:embeddingModel
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "embedding model"@x-gmeow-english ;
+    skos:definition "Relates a math:Embedding to the math:LearnedModel that produced it. Domain math:Embedding, range math:LearnedModel (stated in prose). The declared model; an embedding without it is ill-formed (math:UnderspecifiedEmbedding)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:objectiveFunction
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "objective function"@x-gmeow-english ;
+    skos:definition "Relates a math:OptimizationProblem to the math:LossFunction it minimizes. Domain math:OptimizationProblem, range math:LossFunction (stated in prose). The declared objective the problem optimizes."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:constraint
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "constraint"@x-gmeow-english ;
+    skos:definition "Relates a math:OptimizationProblem to a constraint restricting its feasible set — for example a norm bound or an orthogonality condition, denoting a logic: formula where truth-valued. Domain math:OptimizationProblem, range a constraint object or logic: formula (stated in prose). Constraints scope the optimization; they are declared, not implicit."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:latentDimensionOf
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "latent dimension of"@x-gmeow-english ;
+    skos:definition "Relates a math:EmbeddingDimension to the math:LatentSpace it is an axis of. Domain math:EmbeddingDimension, range math:LatentSpace (stated in prose). Names which latent space a dimension belongs to; its meaning remains a vantage-held claim."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# --- An AI describing its own structure — the self-structure flagship -------- #
+
+math:TensorComputationGraph
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Tensor Computation Graph"@x-gmeow-english ;
+    skos:definition "A neural network's forward pass AS a mathematical object: an expression graph whose nodes are math:ApplicationExpressions over tensor operators (math:matrixProduct, math:tensorContraction, math:AttentionOperation as a bilinear form), whose leaves are math:WeightTensors in a math:ParameterSpace, and whose structure is the architecture. A subclass of math:MathematicalObject naming its math:computationNode(s); it reuses the expression AST wholesale (the nodes are math:ApplicationExpression with indexed math:ArgumentSlot operands), so the application/slot gates apply unchanged. A graph declaring no computation node is ill-formed (math:MalformedTensorComputationGraph). The AI's reflection on this structure is carried at the logic: metalevel, not in math:."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:NeuralLayer
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Neural Layer"@x-gmeow-english ;
+    skos:definition "One layer of a math:TensorComputationGraph — a stage applying a math:WeightTensor (via a linear map) followed by a math:ActivationFunction. A subclass of math:MathematicalObject; a math:WeightTensor names the layer it is the weight of through math:weightOf. Layers compose into the architecture the graph represents (math:architectureOf)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:WeightTensor
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Weight Tensor"@x-gmeow-english ;
+    skos:definition "A weight tensor: the learned parameters of a math:NeuralLayer — a leaf of the math:TensorComputationGraph living in a declared math:ParameterSpace. A subclass of math:MathematicalObject naming its layer through math:weightOf and the parameter space it lives in through math:inParameterSpace. A weight tensor without a declared parameter space is ill-formed (math:UnframedWeightTensor)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:ActivationFunction
+    a owl:Class ;
+    rdfs:subClassOf math:Function ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Activation Function"@x-gmeow-english ;
+    skos:definition "A nonlinear activation applied elementwise in a math:NeuralLayer — ReLU, GELU, softmax, and the like. A subclass of math:Function; the nonlinearity that makes a stack of linear maps expressive. Applied as an operator inside the tensor computation graph's expression nodes."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:AttentionOperation
+    a owl:Class ;
+    rdfs:subClassOf math:Operation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Attention Operation"@x-gmeow-english ;
+    skos:definition "The attention operation as a mathematical operator: a bilinear form over query, key, and value tensors producing a context-weighted combination (softmax(QKᵀ/√d)V). A subclass of math:Operation, so it is applied inside a math:ApplicationExpression with indexed math:ArgumentSlot operands (the Q/K/V positions) exactly like any other operator — no parallel machinery. The core operator of transformer architectures."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:ParameterSpace
+    a owl:Class ;
+    rdfs:subClassOf math:VectorSpace ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Parameter Space"@x-gmeow-english ;
+    skos:definition "The parameter space of a model — the high-dimensional vector space its math:WeightTensors live in, over which the math:OptimizationProblem searches. A subclass of math:VectorSpace named by a weight tensor through math:inParameterSpace and by a model or graph through math:parameterSpaceOf. Training is a trajectory through this space."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:matrixProduct
+    a owl:NamedIndividual , math:Operation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "matrix product"@x-gmeow-english ;
+    skos:definition "The matrix-product operator (matmul): the non-commutative multiplication of two matrices/tensors along a shared axis, applied inside a math:ApplicationExpression with two indexed math:ArgumentSlot operands. The workhorse operator of a tensor computation graph."@x-gmeow-english .
+
+math:tensorContraction
+    a owl:NamedIndividual , math:Operation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "tensor contraction"@x-gmeow-english ;
+    skos:definition "The tensor-contraction operator: summation over paired indices of one or more tensors (the general einsum operation matrix product specializes), applied inside a math:ApplicationExpression over indexed math:ArgumentSlot operands."@x-gmeow-english .
+
+math:computationNode
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "computation node"@x-gmeow-english ;
+    skos:definition "Relates a math:TensorComputationGraph to one of its nodes — a math:ApplicationExpression applying a tensor operator to indexed operands. Domain math:TensorComputationGraph, range math:ApplicationExpression (stated in prose). Reusing the expression AST means the node inherits the application/slot well-formedness gates; a graph with no computation node is ill-formed (math:MalformedTensorComputationGraph)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:tensorOperation
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "tensor operation"@x-gmeow-english ;
+    skos:definition "Relates a computation node to the tensor operator it applies — math:matrixProduct, math:tensorContraction, a math:AttentionOperation, or a math:ActivationFunction. Domain math:ApplicationExpression (a tensor node), range math:Operation (stated in prose). The operator is carried through math:operator on the application; this property names the tensor-specific operators the graph draws on."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:weightOf
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "weight of"@x-gmeow-english ;
+    skos:definition "Relates a math:WeightTensor to the math:NeuralLayer it parameterizes. Domain math:WeightTensor, range math:NeuralLayer (stated in prose). Names which layer a weight tensor belongs to."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:parameterSpaceOf
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "parameter space of"@x-gmeow-english ;
+    skos:definition "Relates a math:ParameterSpace to the math:LearnedModel or math:TensorComputationGraph whose parameters it holds. Domain math:ParameterSpace, range a math:LearnedModel or math:TensorComputationGraph (stated in prose). The whole model's parameters form one space the optimization searches."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:architectureOf
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "architecture of"@x-gmeow-english ;
+    skos:definition "Relates a math:TensorComputationGraph to the math:LearnedModel whose architecture it is — the structural description of the model's forward computation. Domain math:TensorComputationGraph, range math:LearnedModel (stated in prose). The graph IS the architecture; this names the model it describes."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:inParameterSpace
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "in parameter space"@x-gmeow-english ;
+    skos:definition "Relates a math:WeightTensor to the math:ParameterSpace it lives in. Domain math:WeightTensor, range math:ParameterSpace (stated in prose). Weights live in a declared parameter space; a weight tensor without one is ill-formed (math:UnframedWeightTensor)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# --- Conformance-failure classes (LINEAR-ALGEBRA-AND-LEARNING) --------------- #
+
+math:UnqualifiedOrthogonalComplement
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Unqualified Orthogonal Complement"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:OrthogonalComplement does not name the inner product that defines its orthogonality through math:definedByInnerProduct. An orthogonal complement realizes the complement contract (ambient space and semantics from math:Complement) and additionally names its inner product; missing it, 'the orthogonal complement' is ambiguous and ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:IncompletePCAAnalysis
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Incomplete PCA Analysis"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:PCAAnalysis does not declare its inputs, policy, and outputs — its math:analysisInput, math:centeringPolicy, math:scalingPolicy, math:covarianceOperator, math:eigensolver, math:principalComponent, math:loadingVector, math:scoreVector, math:explainedVarianceRatio, and math:residualSubspace. A decomposition that hides its inputs or outputs is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:ResidualMeaningAsProperty
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Residual Meaning as Property"@x-gmeow-english ;
+    skos:definition "The failure raised when the MEANING of a residual subspace, a principal component, or a latent dimension is asserted as an intrinsic property rather than held as a math:ResidualInterpretationClaim (a gmeow:Observation with a gmeow:vantage and a result). Semantic meaning read off geometry is inference from a standpoint; a meaning claim missing its vantage — or a meaning stamped directly on the vector — is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:UnderspecifiedEmbedding
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Underspecified Embedding"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:Embedding does not name its math:embeddingSource, math:targetSpace, math:embeddingFunction, or math:embeddingModel. An embedding is a declared map from a named source into a named latent space by a named function and model; missing any, it is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:MalformedTensorComputationGraph
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Malformed Tensor Computation Graph"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:TensorComputationGraph declares no math:computationNode, or a node is not a well-formed math:ApplicationExpression over indexed math:ArgumentSlot operands. The graph reuses the expression AST wholesale, so a node with more than one operator or a malformed slot raises the inherited application/slot failures; a graph with no nodes is malformed here."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:UnframedWeightTensor
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Unframed Weight Tensor"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:WeightTensor does not name the math:ParameterSpace it lives in through math:inParameterSpace. Weights live in a declared parameter space over which optimization searches; a weight tensor without one is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:ApplicationOperatorCardinality
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Application Operator Cardinality"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:ApplicationExpression does not apply exactly one math:operator — zero operators leave the application undefined, two or more make it ambiguous which operator is applied. Every application (a tensor computation node or an arithmetic application) names the single operator it invokes through math:operator; the sibling binder AST (math:BindingExpression) is not an application and is exempt."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+# --- The ingestion bridges — front-ends that lift external artifacts ---------- #
+# A bridge is the mnemomorphic put leg of a logic:Correspondence: GMEOW is the
+# source S, the external artifact the view V; get (down-projection) is the future
+# math->external projection, put (up-projection) IS the lift. Running a leg backward
+# is the calculus's named anti-pattern; a lawful put comes from a retained
+# mnemomorphic witness (math:parseSource, marked logic:loadBearing). Each bridge run
+# is a gmeow:Activity that carries the process-layer in-band witness through the
+# reused logic:instantiatesSchema / logic:instantiatesPlan back-references, ties its
+# produced math: codomain back through gmeow:wasGeneratedBy, routes computation to
+# logic: through the existing math:compilesToLogicFormula / math:compilesToLogicTerm,
+# and hard-fails (math:UnliftableIngest) on anything it cannot lift.
+
+math:IngestRun
+    a owl:Class ;
+    rdfs:subClassOf gmeow:Activity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Ingest Run"@x-gmeow-english ;
+    skos:definition "A bridge run: the executed occurrence of the up-projection (put) leg of a logic:Correspondence that lifts an external artifact into the grounding layers, splitting mathematical/structural content into math: and computation into logic:. A subclass of gmeow:Activity — the process half of the process / result / claim separation — abstracting the three concrete bridges (math:RIngestRun, math:ONNXIngestRun, math:ProofIngestRun). It retains its source as a math:parseSource witness (the in-band mnemomorphic complement, marked logic:loadBearing, that discharges put after get equals identity), carries the process-layer in-band witness through logic:instantiatesSchema and logic:instantiatesPlan, and ties each produced math: object back through gmeow:wasGeneratedBy. A run that retains a source but lifts no structured math: codomain and enumerates no residue is ill-formed (math:UnliftableIngest)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:RIngestRun
+    a owl:Class ;
+    rdfs:subClassOf math:IngestRun ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "R Ingest Run"@x-gmeow-english ;
+    skos:definition "The R bridge run: an ingest run that lifts an R script's mathematical and statistical content into math: and its computation into logic:. Data frames lift to math:DatasetMatrix (held by reference), a model formula (the ~ operator, a binder not a string) to a math:ModelFormula, lm/glm/lmer to a math:StatisticalModel / math:FittedModel, distribution calls to a math:Distribution, and the broom tidy/glance/augment triple to math:Estimate / math:FittedModel / math:Residual; control flow and general computation route to logic:. Its correspondence's assertable rung is a lossy lens on the non-injective fit, climbing to section on the formula/data/coefficient sub-fragment recorded by the mnemomorphic witness. Anchored externally by reference to the R language and the broom vocabulary; no R ontology exists — the lifter is an authored Rust front-end."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:ONNXIngestRun
+    a owl:Class ;
+    rdfs:subClassOf math:IngestRun ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "ONNX Ingest Run"@x-gmeow-english ;
+    skos:definition "The ONNX bridge run: an ingest run that lifts a model graph into a math:TensorComputationGraph — ONNX node protos to tensor-operator math:ApplicationExpressions, initializers to math:WeightTensors in a math:ParameterSpace, graph inputs/outputs to typed tensor slots, and metadata to provenance. The result is exactly the self-structure object of the learning charter, so an AI can describe its own architecture by lifting its own ONNX export; its correspondence's aspired rung is section/retraction (the structure fully recovers). ONNX (Apache-2.0) is the interchange anchor by reference; the meaning of the architecture is authored, not in ONNX."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:ProofIngestRun
+    a owl:Class ;
+    rdfs:subClassOf math:IngestRun ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Proof Ingest Run"@x-gmeow-english ;
+    skos:definition "The proof-as-process bridge run: an ingest run that lifts a proof-assistant declaration dependency DAG into a math:ProofDependencyGraph and the math: proof layer (math:Proof / math:ProofStep / math:dependsOnAxiom), framing the proof effort as a goal-decomposed process — each lemma a logic:GoalExpression sub-goal (kind logic:AchievementGoal) reached through math:provesGoal, each step an action, and the QED a math:FormalVerificationResult result object grounded by a gmeow:Observation. Its correspondence's aspired rung is section/retraction (the DAG recovers from the lift and witness). Anchored externally by reference to mathlib, Metamath (CC0), and TPTP/TSTP; GMEOW's workflow is the executable shape of the proof search."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:parseSource
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "parse source"@x-gmeow-english ;
+    skos:definition "Relates a math:IngestRun to the in-band source witness it retains — the mnemomorphic complement that lets the up-projection (put) leg recover the source rather than synthesize a plausible one. Domain math:IngestRun; range the retained source witness, a structured node marked logic:loadBearing true and carrying enough of the source to recover what the lift did not map (never a bare droppable string — an opaque blob is the amnesic case), stated in prose. The witness is why 'retain the source' is a law (the Mnemomorphism gate), not a decoration."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:ingestCorrespondence
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "ingest correspondence"@x-gmeow-english ;
+    skos:definition "Relates a math:IngestRun to the single logic:Correspondence node it carries — THE attachment point of the lift's law-spine. Domain math:IngestRun, range logic:Correspondence (stated in prose). Everything about the lift that is a law rather than a facet lives on that Correspondence: its logic:morphismClass (the ordered law-spine rung), logic:preservationKind, logic:mnemomorphic witness flag, logic:correspondenceRelation, logic:hasDeterminacy, and any logic:LawClaim with its logic:DischargeVerdict. math: never shadows those properties; it only points at the node that holds them, exactly as the language slice's lang:translationCorrespondence attaches a translation unit to its crossing. A bridge run carries exactly one."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# --- R-bridge codomain: statistical objects (STATISTICS-charter vocabulary) --- #
+
+math:StatisticalModel
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Statistical Model"@x-gmeow-english ;
+    skos:definition "A statistical model: a family of probability distributions (with a math:ModelFormula specification and declared assumptions) posited to have generated data. A subclass of math:MathematicalObject; when bound to concrete data by fitting it becomes a math:FittedModel. The specification names its structure through math:modelFormula; the model is the process-independent object an R lm/glm/lmer call lifts into."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:FittedModel
+    a owl:Class ;
+    rdfs:subClassOf math:StatisticalModel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Fitted Model"@x-gmeow-english ;
+    skos:definition "A fitted model: a math:StatisticalModel bound to concrete data through math:fittedToData and specified by a math:modelFormula — the trained artifact an lm/glm/lmer fit produces, from which math:Estimate coefficients and math:Residual values are read. A fitted model missing its data or its specification is ill-formed (math:UnfittedModel). The R broom glance triple lifts a model's summary statistics onto this object."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:ModelFormula
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalExpression ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Model Formula"@x-gmeow-english ;
+    skos:definition "A model formula: the structured specification a math:StatisticalModel relates a response to its terms by — the R y ~ x1 + x2 form lifted as a math:BindingExpression AST (the ~ is a binder over indexed math:ArgumentSlot operands, never a string), so the response, terms, interactions, and offsets are inspectable structure. A subclass of math:MathematicalExpression; carried by math:modelFormula."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:DatasetMatrix
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Dataset Matrix"@x-gmeow-english ;
+    skos:definition "A dataset matrix: the data a math:FittedModel is fitted to (math:fittedToData), framed by name and structure but held BY REFERENCE — a blob reference and origin, never the payload bytes inlined (the project's blob-by-reference doctrine). A subclass of math:MathematicalObject; an R data frame lifts to this object, which names and frames the data without embedding it."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Distribution
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Distribution"@x-gmeow-english ;
+    skos:definition "A probability distribution: a law assigning probabilities over outcomes, named by its family through math:distributionFamily (normal, binomial, Poisson, …) and parameterized. A subclass of math:MathematicalObject; an R rnorm/dbinom/… call lifts to this object with its family and parameterization, distinct from the math:ProbabilityMeasure it induces."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Estimate
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Estimate"@x-gmeow-english ;
+    skos:definition "An estimate: a produced value that estimates an estimand (math:estimatesEstimand) and, where relevant, a model parameter (math:estimatedParameter), carrying its value (math:estimateValue) and the estimator that produced it (math:estimator). A subclass of math:MathematicalObject and the structured result object of the process / result / claim separation — neither the analysis activity nor the held claim. The R broom tidy triple lifts model coefficients onto these objects."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Residual
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Residual"@x-gmeow-english ;
+    skos:definition "A residual: the difference between an observed value and the value a math:FittedModel predicts, related to the fit it is a residual of through math:residualOf. A subclass of math:MathematicalObject; the R broom augment triple lifts per-observation residuals onto these objects. Its statistical MEANING, if read, is a vantage-held gmeow:Observation, never an intrinsic property of the number."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:modelFormula
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "model formula"@x-gmeow-english ;
+    skos:definition "Relates a math:StatisticalModel or math:FittedModel to its math:ModelFormula specification. Domain a math:StatisticalModel, range math:ModelFormula (stated in prose). The specification is a math:BindingExpression AST, never a string; a fitted model without one is ill-formed (math:UnfittedModel)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:fittedToData
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "fitted to data"@x-gmeow-english ;
+    skos:definition "Relates a math:FittedModel to the math:DatasetMatrix it was fitted to. Domain math:FittedModel, range math:DatasetMatrix (stated in prose). Reserved for math:FittedModel — it is the data binding that distinguishes a fitted model from an unbound math:StatisticalModel, never attached to an estimate; a fitted model without it is ill-formed (math:UnfittedModel)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:estimatesEstimand
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "estimates estimand"@x-gmeow-english ;
+    skos:definition "Relates a math:Estimate to the estimand — the target quantity — it estimates. Domain math:Estimate, range the estimand it targets (stated in prose). An estimate references its estimand and/or its estimated parameter and its estimator; missing them it is underspecified."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:estimatedParameter
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "estimated parameter"@x-gmeow-english ;
+    skos:definition "Relates a math:Estimate to the model parameter it estimates, where the estimand is a parameter of a math:StatisticalModel. Domain math:Estimate, range the model parameter (stated in prose). The companion of math:estimatesEstimand for model-based estimation."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:estimateValue
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "estimate value"@x-gmeow-english ;
+    skos:definition "Relates a math:Estimate to the value it carries — a math:Quantity or number. Domain math:Estimate, range the estimated value (stated in prose). The produced value, distinct from the estimand it estimates and the estimator that produced it."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:estimator
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "estimator"@x-gmeow-english ;
+    skos:definition "Relates a math:Estimate to the estimator — the rule or procedure — that produced it (ordinary least squares, maximum likelihood, …). Domain math:Estimate, range the estimator (stated in prose). An estimate names its estimator so the produced value is never a bare number without its act."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:residualOf
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "residual of"@x-gmeow-english ;
+    skos:definition "Relates a math:Residual to the math:FittedModel it is a residual of. Domain math:Residual, range math:FittedModel (stated in prose). Names which fit an observed-minus-predicted difference belongs to."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:distributionFamily
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "distribution family"@x-gmeow-english ;
+    skos:definition "Relates a math:Distribution to the family it belongs to — normal, binomial, Poisson, and the rest. Domain math:Distribution, range the distribution family (stated in prose). A distribution names its family and its parameterization; missing the family it is underspecified."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# --- Proof-bridge codomain: the proof layer (EXPRESSIONS-charter vocabulary) -- #
+
+math:ProofDependencyGraph
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Proof Dependency Graph"@x-gmeow-english ;
+    skos:definition "A proof dependency graph: the declaration dependency DAG a proof-assistant library exposes — mathlib's declaration graph, Metamath's axiom-to-theorem DAG, a TPTP/TSTP proof-step DAG — lifted as a math: object. A subclass of math:MathematicalObject naming the math:Proof it underlies; the DAG's recoverability from the lift and its witness is why a math:ProofIngestRun's aspired correspondence rung is section/retraction."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Proof
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Proof"@x-gmeow-english ;
+    skos:definition "A proof: a structured derivation establishing a statement (math:provesStatement) through a sequence of math:ProofStep actions, depending on axioms through math:dependsOnAxiom. A subclass of math:MathematicalObject; as a process the proof effort is goal-decomposed (each lemma a logic:GoalExpression sub-goal reached through math:provesGoal), and its successful checking is a math:FormalVerificationResult grounded by a gmeow:Observation."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:ProofStep
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Proof Step"@x-gmeow-english ;
+    skos:definition "A proof step: one inference action of a math:Proof, drawing conclusions (math:hasConclusion) from premises (math:hasPremise). A subclass of math:MathematicalObject; steps compose into the proof reached through math:proofStep, each an action in the goal-decomposed process a math:ProofIngestRun frames."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:FormalVerificationResult
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    owl:disjointWith gmeow:Observation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Formal Verification Result"@x-gmeow-english ;
+    skos:definition "A formal verification result: the structured RESULT OBJECT of checking a math:Proof — the QED verdict a proof assistant returns. A subclass of math:MathematicalObject, NOT a gmeow:Observation: it is the result object of the process / result / claim separation, and the held verdict is a separate gmeow:Observation naming the checker as gmeow:vantage, the result through gmeow:observationResult, and the run through gmeow:wasGeneratedBy. None is typed as another; a result object roled as the claim is ill-formed (math:ResultRoleConflation), and a result not grounded by such an observation is ill-formed (math:UngroundedVerificationResult)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:dependsOnAxiom
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "depends on axiom"@x-gmeow-english ;
+    skos:definition "Relates a math:Proof or math:ProofStep to a math:Axiom it depends on. Domain a math:Proof or math:ProofStep, range math:Axiom (stated in prose). The axiom dependencies are what a proof dependency DAG records, so a theorem's foundations are first-class and queryable."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:provesStatement
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "proves statement"@x-gmeow-english ;
+    skos:definition "Relates a math:Proof to the statement it establishes. Domain math:Proof, range the statement proved (stated in prose). The statement is asserted under a theory context, not as unconditional truth; the proof is the derivation that establishes it."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:proofStep
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "proof step"@x-gmeow-english ;
+    skos:definition "Relates a math:Proof to one of its math:ProofStep actions. Domain math:Proof, range math:ProofStep (stated in prose). Steps compose into the derivation; each is an action in the goal-decomposed process a math:ProofIngestRun frames."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:hasPremise
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "has premise"@x-gmeow-english ;
+    skos:definition "Relates a math:ProofStep to a premise it draws on. Domain math:ProofStep, range the premise (a statement or prior result, stated in prose). The companion of math:hasConclusion; an inference goes from premises to conclusions."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:hasConclusion
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "has conclusion"@x-gmeow-english ;
+    skos:definition "Relates a math:ProofStep to the conclusion it draws. Domain math:ProofStep, range the conclusion (a statement, stated in prose). The companion of math:hasPremise; the conclusion of one step may be a premise of a later one."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:provesGoal
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "proves goal"@x-gmeow-english ;
+    skos:definition "Relates a math:Proof or math:ProofStep to the logic:GoalExpression sub-goal it discharges — binding the proof layer to logic:'s teleology so a complex proof is a goal-decomposed process. Domain a math:Proof or math:ProofStep, range logic:GoalExpression (stated in prose). Each lemma is a logic:GoalExpression whose logic:goalExpressionKind is logic:AchievementGoal (the target first obtains) — the kind is a value carried by the property, never a class the goal is typed with."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# --- Process / observation disjointness (process is never the claim) --------- #
+# The OWL-axiom gate backing math:ProcessObservationConflation: an inference or
+# analysis process is a gmeow:Activity and is NEVER typed as a gmeow:Observation —
+# the process half of the process / result / claim separation. Mirrors the
+# language slice's lang:InterpretationAct owl:disjointWith gmeow:Observation; the
+# native DL coherence gate reads the disjointness directly, forcing any individual
+# typed both a bridge/analysis process and an observation to owl:Nothing.
+math:IngestRun owl:disjointWith gmeow:Observation .
+math:PCAAnalysis owl:disjointWith gmeow:Observation .
+
+# --- Bridge failure classes -------------------------------------------------- #
+
+math:UnliftableIngest
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Unliftable Ingest"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:IngestRun's lift is unsupported or silently partial — it retains a math:parseSource but produces no structured math: codomain, or drops residue that is neither carried in the correspondence's mnemomorphic witness nor enumerated as an unsupported construct. It is the process-layer projection of the correspondence calculus's Overclaim and Mnemomorphism verdict (get non-injective and no witness — the logic:ObligationViolated / unsupported outcome), reusing the shared logic: discharge vocabulary. A bridge hard-fails on the unliftable; it never emits a degraded or string-valued placeholder, because 'for any input' is a universality bar, not a best-effort aspiration."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:UngroundedIngestRun
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Ungrounded Ingest Run"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:IngestRun does not retain its source witness through math:parseSource, or does not carry the process-layer in-band witness through logic:instantiatesSchema and logic:instantiatesPlan. A bridge run without its retained source and schema/plan witness cannot support the lawful put leg — the lift would be a backward-execution guess, not a mnemomorphic recovery — so it is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:UngroundedVerificationResult
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Ungrounded Verification Result"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:FormalVerificationResult is not grounded by a gmeow:Observation carrying a gmeow:vantage — the result object stated as unconditional truth rather than a verdict held from the checker's standpoint. A verification result is the structured result object; the held claim is a separate observation with the checker as vantage and the run as gmeow:wasGeneratedBy. A result roled as its own claim, or lacking a grounding observation, is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:UnfittedModel
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Unfitted Model"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:FittedModel does not reference the data it was fitted to through math:fittedToData or the specification it fits through math:modelFormula. A fitted model is a math:StatisticalModel bound to concrete data by a declared specification; missing either, it is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:ResultRoleConflation
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Result Role Conflation"@x-gmeow-english ;
+    skos:definition "The failure raised when a structured result object — a math:FormalVerificationResult, an estimate, a p-value, a posterior — is roled as the held claim it stands for: typed as, or asserted to BE, the gmeow:Observation that holds the verdict, rather than remaining the result object of the process / result / claim separation. A result object is what a checking or estimation process returns; the held claim is a SEPARATE gmeow:Observation naming the checker as gmeow:vantage, the result through gmeow:observationResult, and the run through gmeow:wasGeneratedBy. Roling the result object as its own claim — collapsing the three-way separation of process, result object, and observation-borne claim into a single conflated node — is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:ProcessObservationConflation
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Process Observation Conflation"@x-gmeow-english ;
+    skos:definition "The failure raised when an inference or analysis process — a gmeow:Activity such as a math:IngestRun or a math:PCAAnalysis — is typed as a gmeow:Observation, collapsing the process half of the process / result / claim separation into the held claim. A process is the executed occurrence that produces result objects and grounds claims; it is NEVER the observation that holds a claim about what it produced. Primary gate: the OWL disjointness of the math process classes and gmeow:Observation (mirroring the language slice's lang:InterpretationAct owl:disjointWith gmeow:Observation) — an individual typed BOTH a bridge or analysis process and an observation is forced to owl:Nothing by the native DL coherence gate."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:UngroundedResultClaim
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Ungrounded Result Claim"@x-gmeow-english ;
+    skos:definition "The failure raised when a held statistical or probabilistic result claim — that an estimate, a p-value, a posterior, a component's meaning, or a verdict holds — is stated without a gmeow:Observation carrying a gmeow:vantage, so the claim floats free of the standpoint that holds it. The claim leg of the process / result / claim separation is a gmeow:Observation naming its gmeow:vantage (whose frame), its gmeow:observedFeature (which result), and its gmeow:observationResult (the grounded conclusion); a result claim asserted as an unconditional property rather than a vantage-held observation is ill-formed. Primary gate: the SHACL Core requirement that a held result claim carry a gmeow:vantage (math:ResidualInterpretationClaimShape)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+# =========================================================================== #
+# Flagship acceptance manifest — the epic's depth bar as a typed contract
+#
+# The mathematics grounding layer's depth is defined by five flagship acceptance
+# scenarios (E8 symmetry, homomorphic encryption, proofs-as-process, the universal
+# R → math: bridge, and an AI describing its own structure). Those scenarios are
+# realized by worked examples, pinned by competency questions, and guarded by named
+# failure classes — but the acceptance bar ITSELF was, until now, only prose. A
+# math:FlagshipScenario reifies each scenario as a typed, queryable object binding it
+# to the four artifacts that realize and enforce it: the worked example, the
+# competency question that pins its numbers, the counter-example that proves the gate
+# bites, and the math:MathConformanceFailure subclass that gate raises. The acceptance
+# bar thereby becomes the same kind of typed, gated object as every other conformance
+# concept in this layer, rather than the lone prose exception.
+# =========================================================================== #
+
+math:FlagshipScenario
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Flagship Scenario"@x-gmeow-english ;
+    skos:definition "A typed acceptance-manifest object reifying one of the mathematics grounding layer's flagship acceptance scenarios — its depth bar. Each math:FlagshipScenario binds one scenario to the four artifacts that realize and enforce it: the worked example (math:demonstratedByExample), the competency question that pins its structure (math:demonstratedByCompetency), the counter-example that proves its gate bites (math:guardedByCounterExample), and the named math:MathConformanceFailure subclass that gate raises (math:enforcesFailureClass). A scenario missing any of these links, or naming an enforcing class that is not a math:MathConformanceFailure, is unwired and ill-formed (math:UnwiredFlagshipScenario)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:demonstratedByExample
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "demonstrated by example"@x-gmeow-english ;
+    skos:definition "Names the worked example that realizes a math:FlagshipScenario, as a slice-relative path string (mirroring gmeow:exampleFile). Domain math:FlagshipScenario, range a path literal (stated in prose). The referenced examples/*.ttl is the concrete artifact a reader inspects to see the scenario built."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:demonstratedByCompetency
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "demonstrated by competency"@x-gmeow-english ;
+    skos:definition "Names the competency question that pins a math:FlagshipScenario's structure and numbers, referenced by IRI. Domain math:FlagshipScenario, range gmeow:CompetencyQuestion (stated in prose). The competency question individual lives in the slice's tests/competency.ttl, so this reference is resolved and its cqExpectRow expectation confirmed by the native flagship cross-check rather than by SHACL, which never loads the tests dataset."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:guardedByCounterExample
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "guarded by counter-example"@x-gmeow-english ;
+    skos:definition "Names the counter-example that proves a math:FlagshipScenario's gate bites, as a slice-relative path string. Domain math:FlagshipScenario, range a path literal (stated in prose). The referenced tests/counter-examples/*.ttl is the minimal violation that raises the scenario's math:enforcesFailureClass; per the conformance discipline, a rule with no negative fixture is not considered enforced."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:UnwiredFlagshipScenario
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Unwired Flagship Scenario"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:FlagshipScenario is not fully wired: it is missing its worked example (math:demonstratedByExample), its competency question (math:demonstratedByCompetency), its counter-example (math:guardedByCounterExample), or its enforcing failure class (math:enforcesFailureClass); or the class it names as enforcing is not a math:MathConformanceFailure subclass. The epic's depth bar is a contract, not a suggestion: an acceptance scenario that does not bind all four realizing/enforcing artifacts cannot claim the scenario is met, and the gate rejects it."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .

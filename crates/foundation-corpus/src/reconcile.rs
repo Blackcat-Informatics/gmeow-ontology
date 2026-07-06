@@ -113,7 +113,7 @@ pub fn reconcile_nq(nq_path: &Path, mapped: &[(&str, &str)]) -> std::io::Result<
     }
     // most_common: stable sort by descending count (ties keep insertion order).
     let mut ordered: Vec<(usize, &(String, u64))> = counts.iter().enumerate().collect();
-    ordered.sort_by(|a, b| b.1 .1.cmp(&a.1 .1).then(a.0.cmp(&b.0)));
+    ordered.sort_by(|a, b| b.1.1.cmp(&a.1.1).then(a.0.cmp(&b.0)));
 
     let lookup: HashMap<&str, &str> = mapped.iter().copied().collect();
     let mut lines = vec!["NQ RECONCILIATION (predicate → status)".to_string()];

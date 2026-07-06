@@ -57,16 +57,16 @@ pub(crate) const GM_T_PRED: &str = "https://blackcatinformatics.ca/gmeow/tPred";
 pub(crate) const GM_T_SUBJ: &str = "https://blackcatinformatics.ca/gmeow/tSubj";
 pub(crate) const GM_T_OBJ: &str = "https://blackcatinformatics.ca/gmeow/tObj";
 
-pub(crate) const GM_STATEMENT_METADATA: &str =
-    "https://blackcatinformatics.ca/gmeow/StatementMetadata";
-pub(crate) const GM_Q_SUBJECT: &str = "https://blackcatinformatics.ca/gmeow/qSubject";
-pub(crate) const GM_Q_PREDICATE: &str = "https://blackcatinformatics.ca/gmeow/qPredicate";
-pub(crate) const GM_Q_OBJECT: &str = "https://blackcatinformatics.ca/gmeow/qObject";
-pub(crate) const GM_Q_OBJECT_LITERAL: &str = "https://blackcatinformatics.ca/gmeow/qObjectLiteral";
-pub(crate) const GM_ANNOTATION: &str = "https://blackcatinformatics.ca/gmeow/annotation";
-pub(crate) const GM_ANN_PROPERTY: &str = "https://blackcatinformatics.ca/gmeow/annProperty";
-pub(crate) const GM_ANN_VALUE: &str = "https://blackcatinformatics.ca/gmeow/annValue";
-pub(crate) const GM_MAPPED_FROM: &str = "https://blackcatinformatics.ca/gmeow/mappedFrom";
+// The `gmeow:StatementMetadata` reified-claim vocabulary is defined ONCE in
+// `gmeow-logic-compile` (alongside the shared reified-claim template builder that both the
+// native put executor and the committed `.put.rq` emitter render through) and re-exported here,
+// so the reification consumer (`transform.rs`), the executor (`put_executor.rs`), and the
+// non-gated `STATEMENT_METADATA_TERMS` passthrough all key off one definition — never a
+// per-crate copy that could drift.
+pub(crate) use gmeow_logic_compile::projections::reified_claim::{
+    GM_MAPPED_FROM, GM_Q_OBJECT, GM_Q_OBJECT_LITERAL, GM_Q_PREDICATE, GM_Q_SUBJECT,
+    GM_STATEMENT_METADATA,
+};
 
 pub(crate) const ADOPTED_PREDICATES: &[&str] = &[SKOS_EXACT_MATCH, SKOS_CLOSE_MATCH];
 pub(crate) const STATEMENT_METADATA_TERMS: &[&str] = &[
@@ -216,7 +216,7 @@ pub fn classify_sssom(subj: &str, pred: &str, obj: &str) -> SssomClass {
                 bucket: format!("other:{rel}"),
                 gmeow: gmeow.to_owned(),
                 target: target.to_owned(),
-            }
+            };
         }
     };
     SssomClass {
@@ -548,10 +548,10 @@ pub(crate) fn edoalpath_pairs(
                 continue;
             };
             for binding in objects(q, &cell, GM_HAS_BINDING) {
-                if let Some(tgt) = value_named(q, &binding, GM_TO_PREDICATE) {
-                    if in_projection_ns(&tgt) {
-                        bucket.entry(tgt).or_default().insert(apred.clone());
-                    }
+                if let Some(tgt) = value_named(q, &binding, GM_TO_PREDICATE)
+                    && in_projection_ns(&tgt)
+                {
+                    bucket.entry(tgt).or_default().insert(apred.clone());
                 }
             }
         }
@@ -604,20 +604,20 @@ fn emitted_targets(quads: &[RdfQuad], binding: &RdfTerm) -> BTreeSet<String> {
         "https://blackcatinformatics.ca/gmeow/edoalTarget",
     ] {
         for obj in objects(quads, binding, pred) {
-            if let RdfTerm::Iri(node) = obj {
-                if in_projection_ns(&node) {
-                    targets.insert(node);
-                }
+            if let RdfTerm::Iri(node) = obj
+                && in_projection_ns(&node)
+            {
+                targets.insert(node);
             }
         }
     }
     for atom in template_atoms(quads, binding) {
         for pred in [GM_T_PRED, "https://blackcatinformatics.ca/gmeow/tObjValue"] {
             for obj in objects(quads, &atom, pred) {
-                if let RdfTerm::Iri(node) = obj {
-                    if in_projection_ns(&node) {
-                        targets.insert(node);
-                    }
+                if let RdfTerm::Iri(node) = obj
+                    && in_projection_ns(&node)
+                {
+                    targets.insert(node);
                 }
             }
         }
@@ -631,10 +631,9 @@ pub(crate) fn object_properties(ontology_nt: &str) -> Result<BTreeSet<String>, S
     for q in &graph.quads {
         if q.predicate == RDF_TYPE
             && matches!(&q.object, RdfTerm::Iri(n) if n == OWL_OBJECT_PROPERTY)
+            && let RdfTerm::Iri(s) = &q.subject
         {
-            if let RdfTerm::Iri(s) = &q.subject {
-                props.insert(s.clone());
-            }
+            props.insert(s.clone());
         }
     }
     Ok(props)
@@ -646,12 +645,11 @@ pub(crate) fn used_target_terms(quads: &[RdfQuad]) -> BTreeSet<String> {
         if in_projection_ns(&triple.predicate) {
             terms.insert(triple.predicate.clone());
         }
-        if triple.predicate == RDF_TYPE {
-            if let RdfTerm::Iri(node) = &triple.object {
-                if in_projection_ns(node) {
-                    terms.insert(node.clone());
-                }
-            }
+        if triple.predicate == RDF_TYPE
+            && let RdfTerm::Iri(node) = &triple.object
+            && in_projection_ns(node)
+        {
+            terms.insert(node.clone());
         }
     }
     terms
@@ -751,10 +749,10 @@ pub(crate) fn rdf_list(quads: &[RdfQuad], node: Option<&RdfTerm>) -> Vec<RdfTerm
             out.push(first);
         }
         node = value(quads, &cur, RDF_REST);
-        if let Some(rest) = &node {
-            if rest == &nil {
-                break;
-            }
+        if let Some(rest) = &node
+            && rest == &nil
+        {
+            break;
         }
     }
     out

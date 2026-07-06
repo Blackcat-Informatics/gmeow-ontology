@@ -1,0 +1,26 @@
+# Competency question: "What does this residual subspace OR latent dimension mean,
+# and which vantage claims it?" Exercises the distinguished hard rule that a
+# residual/latent meaning is a math:ResidualInterpretationClaim (a gmeow:Observation
+# with a gmeow:vantage), never a property. Both disjuncts are exercised, each as its
+# own BGP (a purrdf all-FILTER UNION branch returns empty). Scoped so the answer is
+# exactly {dimMeaning -> dim1, frameB} and {pcMeaning -> pc1, frameA}.
+PREFIX math:  <https://blackcatinformatics.ca/math/>
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?claim ?feature ?vantage ?meaning WHERE {
+    {
+        ?claim a math:ResidualInterpretationClaim ;
+               gmeow:observedFeature ?feature ;
+               gmeow:vantage ?vantage ;
+               gmeow:observationResult ?meaning .
+        ?feature a math:PrincipalComponent .
+    } UNION {
+        ?claim a math:ResidualInterpretationClaim ;
+               gmeow:observedFeature ?feature ;
+               gmeow:vantage ?vantage ;
+               gmeow:observationResult ?meaning .
+        ?feature a math:EmbeddingDimension .
+    }
+    FILTER(STRSTARTS(STR(?claim), "http://example.org/math/"))
+}
+ORDER BY ?claim

@@ -696,7 +696,9 @@ mod tests {
         assert!(
             ttl.contains("gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction>")
         );
-        assert!(ttl.contains("gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports>"));
+        assert!(
+            ttl.contains("gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports>")
+        );
     }
 
     #[test]
@@ -813,8 +815,11 @@ mod tests {
         // An inconsistent run: information=both, carrying a contradiction witness.
         let result = result_with(vec![], false);
         let ttl = build_reasoning_result_ttl(&result);
-        assert!(ttl
-            .contains("logic/resultInformation> <https://blackcatinformatics.ca/logic/InfoBoth>"));
+        assert!(
+            ttl.contains(
+                "logic/resultInformation> <https://blackcatinformatics.ca/logic/InfoBoth>"
+            )
+        );
         assert!(
             ttl.contains("logic/contradictionWitness> <http://example.org/x>"),
             "the glut must carry its witness: {ttl}"

@@ -14,7 +14,7 @@ use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
 use std::time::{Duration, SystemTime};
 
-use gmeow_diagnostics::{Finding, Location, Report, Severity};
+use gmeow_errors::{Finding, Location, Report, Severity};
 use purrdf::{DatasetView, GraphMatch, TermRef, TermValue};
 use serde::Serialize;
 use serde_json::Value;
@@ -274,6 +274,34 @@ pub fn is_valid_id(identifier: &str) -> bool {
     is_valid_qid(identifier) || is_valid_pid(identifier)
 }
 
+/// A Wikidata **lexeme** id: `L` followed by a non-zero, non-leading-zero integer (`L7`,
+/// `L1570700`). A malformed lexeme id (`L`, `L0`, `L01`, `L7x`) is rejected exactly like a
+/// malformed QID.
+fn is_valid_lexeme_id(identifier: &str) -> bool {
+    let Some(rest) = identifier.strip_prefix('L') else {
+        return false;
+    };
+    valid_non_zero_integer(rest)
+}
+
+/// A Wikidata **sense** id: a valid lexeme id, then `-S`, then a non-zero sense ordinal
+/// (`L7-S1`). A QID or PID with a sense suffix (`Q42-S3`) is rejected — a sense hangs off a
+/// lexeme, never an item or property.
+fn is_valid_sense_id(identifier: &str) -> bool {
+    let Some((lexeme, sense)) = identifier.split_once("-S") else {
+        return false;
+    };
+    is_valid_lexeme_id(lexeme) && valid_non_zero_integer(sense)
+}
+
+/// Whether `identifier` is a well-formed Wikidata **entity** id of any kind an alignment object
+/// may name: an item (`Q…`), a property (`P…`), a lexeme (`L…`), or a sense (`L…-S…`). This is
+/// the SYNTAX gate, distinct from `is_valid_id` (the item/property queryability filter for the
+/// live existence check).
+pub fn is_valid_entity_id(identifier: &str) -> bool {
+    is_valid_id(identifier) || is_valid_lexeme_id(identifier) || is_valid_sense_id(identifier)
+}
+
 pub fn local_name(iri: &str) -> Option<&str> {
     iri.strip_prefix(WD_NS)
 }
@@ -285,7 +313,7 @@ pub fn local_name_wdt(iri: &str) -> Option<&str> {
 pub fn check_syntax(identifiers: &[String]) -> SyntaxReport {
     let mut report = SyntaxReport::default();
     for identifier in identifiers {
-        if is_valid_id(identifier) {
+        if is_valid_entity_id(identifier) {
             report.valid.push(identifier.clone());
         } else {
             report.invalid.push(identifier.clone());
@@ -296,7 +324,7 @@ pub fn check_syntax(identifiers: &[String]) -> SyntaxReport {
 
 pub fn check_syntax_iri(iri: &str, in_object_position: bool) -> Vec<Misuse> {
     if let Some(local) = iri.strip_prefix(WD_HTTPS_NS) {
-        if is_valid_id(local) {
+        if is_valid_entity_id(local) {
             return vec![Misuse {
                 local_id: local.to_owned(),
                 kind: NamespaceMisuse::HttpsUrlShouldBeCurie,
@@ -326,7 +354,7 @@ pub fn check_syntax_iri(iri: &str, in_object_position: bool) -> Vec<Misuse> {
     }
 
     if let Some(local) = iri.strip_prefix(WD_NS) {
-        if !is_valid_id(local) {
+        if !is_valid_entity_id(local) {
             return vec![Misuse {
                 local_id: local.to_owned(),
                 kind: NamespaceMisuse::BadSyntax,
@@ -345,25 +373,25 @@ pub fn check_syntax_iri(iri: &str, in_object_position: bool) -> Vec<Misuse> {
         return Vec::new();
     }
 
-    if let Some(local) = iri.strip_prefix(WDT_NS) {
-        if !is_valid_pid(local) {
-            let (kind, message) = if is_valid_qid(local) {
-                (
-                    NamespaceMisuse::WdtItemShouldBeWd,
-                    format!("wdt:{local} is an item ID; use wd:{local} for item mappings"),
-                )
-            } else {
-                (
-                    NamespaceMisuse::BadSyntax,
-                    format!("malformed wdt: identifier: {local}"),
-                )
-            };
-            return vec![Misuse {
-                local_id: local.to_owned(),
-                kind,
-                message,
-            }];
-        }
+    if let Some(local) = iri.strip_prefix(WDT_NS)
+        && !is_valid_pid(local)
+    {
+        let (kind, message) = if is_valid_qid(local) {
+            (
+                NamespaceMisuse::WdtItemShouldBeWd,
+                format!("wdt:{local} is an item ID; use wd:{local} for item mappings"),
+            )
+        } else {
+            (
+                NamespaceMisuse::BadSyntax,
+                format!("malformed wdt: identifier: {local}"),
+            )
+        };
+        return vec![Misuse {
+            local_id: local.to_owned(),
+            kind,
+            message,
+        }];
     }
 
     Vec::new()
@@ -1234,6 +1262,55 @@ mod tests {
     }
 
     #[test]
+    fn validates_lexeme_and_sense_ids() {
+        // Well-formed lexeme ids and sense ids pass the entity-syntax gate…
+        for valid in ["L7", "L1119", "L14462", "L7-S1", "L1570700-S2"] {
+            assert!(
+                is_valid_entity_id(valid),
+                "{valid} should be a valid entity id"
+            );
+        }
+        // …while malformed lexeme/sense ids are rejected exactly like a malformed QID.
+        for invalid in [
+            "L", "L0", "L01", "L7x", "L7-S", "L7-S0", "L7-Sx", "L-S1", "S1",
+        ] {
+            assert!(!is_valid_entity_id(invalid), "{invalid} must be rejected");
+        }
+        // The kinds are distinct: a lexeme id is not a QID/PID, and a QID/PID never carries a
+        // sense suffix (a sense hangs off a lexeme, never an item or property).
+        assert!(!is_valid_lexeme_id("Q7"));
+        assert!(!is_valid_sense_id("Q42-S3"));
+        assert!(!is_valid_sense_id("P31-S1"));
+        assert!(is_valid_sense_id("L42-S3"));
+    }
+
+    #[test]
+    fn syntax_iri_accepts_wd_lexeme_and_sense_ids_and_flags_malformed_ones() {
+        // A well-formed lexeme id and sense id under the wd: namespace raise no misuse.
+        assert!(check_syntax_iri("http://www.wikidata.org/entity/L7", true).is_empty());
+        assert!(check_syntax_iri("http://www.wikidata.org/entity/L7-S1", true).is_empty());
+        // A malformed lexeme/sense id is flagged BadSyntax, like a malformed QID.
+        assert_eq!(
+            check_syntax_iri("http://www.wikidata.org/entity/L0", true)[0].kind,
+            NamespaceMisuse::BadSyntax
+        );
+        assert_eq!(
+            check_syntax_iri("http://www.wikidata.org/entity/L7-S0", true)[0].kind,
+            NamespaceMisuse::BadSyntax
+        );
+        // A QID with a sense suffix is not a real sense id — flagged BadSyntax.
+        assert_eq!(
+            check_syntax_iri("http://www.wikidata.org/entity/Q42-S3", true)[0].kind,
+            NamespaceMisuse::BadSyntax
+        );
+        // The HTTPS entity namespace suggests the wd: CURIE for a lexeme id, mirroring QIDs.
+        assert_eq!(
+            check_syntax_iri("https://www.wikidata.org/entity/L7", true)[0].kind,
+            NamespaceMisuse::HttpsUrlShouldBeCurie
+        );
+    }
+
+    #[test]
     fn dc_expected_sets_are_counted_like_python_report() {
         assert_eq!(EXPECTED_DC.len(), 15);
         assert_eq!(EXPECTED_DCTERMS.len(), 46);
@@ -1283,23 +1360,29 @@ mod tests {
                 "info": "bad ids"
             }
         });
-        assert!(wikidata_entities(&error)
-            .unwrap_err()
-            .contains("Wikidata API error bad-request"));
+        assert!(
+            wikidata_entities(&error)
+                .unwrap_err()
+                .contains("Wikidata API error bad-request")
+        );
 
         let missing_success = serde_json::json!({
             "entities": {}
         });
-        assert!(wikidata_entities(&missing_success)
-            .unwrap_err()
-            .contains("success=1"));
+        assert!(
+            wikidata_entities(&missing_success)
+                .unwrap_err()
+                .contains("success=1")
+        );
 
         let missing_entities = serde_json::json!({
             "success": 1
         });
-        assert!(wikidata_entities(&missing_entities)
-            .unwrap_err()
-            .contains("entities object"));
+        assert!(
+            wikidata_entities(&missing_entities)
+                .unwrap_err()
+                .contains("entities object")
+        );
 
         let ok = serde_json::json!({
             "success": 1,

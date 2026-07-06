@@ -1667,14 +1667,16 @@ fn property_constraint_binds_cardinality_to_provenance() {
         "got: {dangling_prov}"
     );
     // With both present it constructs.
-    assert!(PropertyConstraintIr::new(
-        "ex:p",
-        Some(1),
-        Some(1),
-        Some(ConstraintProvenance::OptNative),
-        vec![],
-    )
-    .is_ok());
+    assert!(
+        PropertyConstraintIr::new(
+            "ex:p",
+            Some(1),
+            Some(1),
+            Some(ConstraintProvenance::OptNative),
+            vec![],
+        )
+        .is_ok()
+    );
 }
 
 #[test]
@@ -1736,36 +1738,40 @@ fn validation_shape_numeric_range_signed_zero_is_stable() {
     let pos = vshape(
         &format!("{LOGIC}s"),
         "ex:C",
-        vec![PropertyConstraintIr::new(
-            "ex:p",
-            None,
-            None,
-            None,
-            vec![ConstraintComponent::NumericRange {
-                min: Some(0.0),
-                max: None,
-                min_inclusive: true,
-                max_inclusive: false,
-            }],
-        )
-        .unwrap()],
+        vec![
+            PropertyConstraintIr::new(
+                "ex:p",
+                None,
+                None,
+                None,
+                vec![ConstraintComponent::NumericRange {
+                    min: Some(0.0),
+                    max: None,
+                    min_inclusive: true,
+                    max_inclusive: false,
+                }],
+            )
+            .unwrap(),
+        ],
     );
     let neg = vshape(
         &format!("{LOGIC}s"),
         "ex:C",
-        vec![PropertyConstraintIr::new(
-            "ex:p",
-            None,
-            None,
-            None,
-            vec![ConstraintComponent::NumericRange {
-                min: Some(-0.0),
-                max: None,
-                min_inclusive: true,
-                max_inclusive: false,
-            }],
-        )
-        .unwrap()],
+        vec![
+            PropertyConstraintIr::new(
+                "ex:p",
+                None,
+                None,
+                None,
+                vec![ConstraintComponent::NumericRange {
+                    min: Some(-0.0),
+                    max: None,
+                    min_inclusive: true,
+                    max_inclusive: false,
+                }],
+            )
+            .unwrap(),
+        ],
     );
     assert_eq!(pos.content_key(), neg.content_key());
 }
@@ -1775,30 +1781,34 @@ fn has_lossy_component_flags_pattern_and_terminology() {
     let clean = vshape(
         &format!("{LOGIC}s"),
         "ex:C",
-        vec![PropertyConstraintIr::new(
-            "ex:p",
-            Some(1),
-            Some(1),
-            Some(ConstraintProvenance::OptNative),
-            vec![ConstraintComponent::Datatype("xsd:string".into())],
-        )
-        .unwrap()],
+        vec![
+            PropertyConstraintIr::new(
+                "ex:p",
+                Some(1),
+                Some(1),
+                Some(ConstraintProvenance::OptNative),
+                vec![ConstraintComponent::Datatype("xsd:string".into())],
+            )
+            .unwrap(),
+        ],
     );
     assert!(!clean.has_lossy_component());
     let lossy = vshape(
         &format!("{LOGIC}s"),
         "ex:C",
-        vec![PropertyConstraintIr::new(
-            "ex:p",
-            None,
-            None,
-            None,
-            vec![ConstraintComponent::Pattern {
-                regex: "^[A-Z]+$".into(),
-                flags: None,
-            }],
-        )
-        .unwrap()],
+        vec![
+            PropertyConstraintIr::new(
+                "ex:p",
+                None,
+                None,
+                None,
+                vec![ConstraintComponent::Pattern {
+                    regex: "^[A-Z]+$".into(),
+                    flags: None,
+                }],
+            )
+            .unwrap(),
+        ],
     );
     assert!(lossy.has_lossy_component());
 }

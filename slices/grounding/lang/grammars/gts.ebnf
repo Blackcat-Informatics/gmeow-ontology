@@ -1,0 +1,30 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# The GTS surface grammar in W3C EBNF, one production per line. The canonical GTS
+# grammar is held natively by the external gmeow-gts project; this is a faithful
+# EBNF rendering of the GTS TEXTUAL surface form (RDF-1.2 quads with graph slots,
+# triple terms, and annotation blocks) as this repository uses it. It is a first-
+# class lang:Grammar rendering of the sign system the native GTS codec interprets,
+# never a second GTS parser. Lexical whitespace/comment rules are carried by the
+# codec, not by these productions.
+
+gtsDoc ::= gtsStatement*
+gtsStatement ::= quad annotation? '.'
+quad ::= subject predicate object graphLabel?
+annotation ::= '{|' predicateObjectList '|}'
+predicateObjectList ::= predicate object (';' predicate object)*
+subject ::= iri | BlankNode | tripleTerm
+predicate ::= iri
+object ::= iri | BlankNode | Literal | tripleTerm
+graphLabel ::= iri | BlankNode
+tripleTerm ::= '<<(' subject predicate object ')>>'
+iri ::= '<' IRICHAR* '>'
+BlankNode ::= '_:' NAMECHAR+
+Literal ::= '"' STRCHAR* '"' (datatype | langtag)?
+datatype ::= '^^' iri
+langtag ::= '@' [a-zA-Z]+ ('-' [a-zA-Z0-9]+)*
+IRICHAR ::= [^#x00-#x20<>"{}|^`\]
+NAMECHAR ::= [A-Za-z0-9_-]
+STRCHAR ::= [^#x22#x5C] | ECHAR
+ECHAR ::= '\' [tbnrf"'\]

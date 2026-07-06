@@ -794,26 +794,26 @@ fn suppression_vocab(onto: &Graph) -> Result<SuppressionVocab, String> {
     let classes = subclass_closure(onto, GM_APPELLATION);
     let mut bearer: BTreeSet<String> = BTreeSet::new();
     for (prop, rng) in subject_objects(onto, RDFS_RANGE) {
-        if classes.contains(&term_token(&rng)) {
-            if let Some(prop) = subject_iri(&prop) {
-                bearer.insert(prop);
-            }
+        if classes.contains(&term_token(&rng))
+            && let Some(prop) = subject_iri(&prop)
+        {
+            bearer.insert(prop);
         }
     }
     let mut domain_props: BTreeSet<String> = BTreeSet::new();
     for (prop, dom) in subject_objects(onto, RDFS_DOMAIN) {
-        if classes.contains(&term_token(&dom)) {
-            if let Some(prop) = subject_iri(&prop) {
-                domain_props.insert(prop);
-            }
+        if classes.contains(&term_token(&dom))
+            && let Some(prop) = subject_iri(&prop)
+        {
+            domain_props.insert(prop);
         }
     }
     let mut coarsen_guarded = BTreeSet::new();
     for (sub, obj) in subject_objects(onto, GM_COARSEN_GUARDED) {
-        if matches!(&obj, RdfTerm::Literal(lit) if lit.lexical_form == "true") {
-            if let Some(prop) = subject_iri(&sub) {
-                coarsen_guarded.insert(prop);
-            }
+        if matches!(&obj, RdfTerm::Literal(lit) if lit.lexical_form == "true")
+            && let Some(prop) = subject_iri(&sub)
+        {
+            coarsen_guarded.insert(prop);
         }
     }
     Ok(SuppressionVocab {
@@ -1328,9 +1328,11 @@ mod tests {
         assert_eq!(mirrors.len(), 1);
         assert_eq!(mirrors[0].subject, iri_token(EX_ME));
         assert_eq!(mirrors[0].object, iri_token(WD_Q42));
-        assert!(mirrors[0]
-            .annotations
-            .contains(&(GM_MAPPED_FROM.to_owned(), iri_token(SAME_AS_MIRROR_RULE))));
+        assert!(
+            mirrors[0]
+                .annotations
+                .contains(&(GM_MAPPED_FROM.to_owned(), iri_token(SAME_AS_MIRROR_RULE)))
+        );
     }
 
     #[test]
@@ -1344,9 +1346,11 @@ mod tests {
         assert_eq!(mirror.predicate, FOAF_KNOWS);
         assert_eq!(mirror.subject, iri_token(EX_A));
         assert_eq!(mirror.object, iri_token(EX_B));
-        assert!(mirror
-            .annotations
-            .contains(&(GM_MAPPED_FROM.to_owned(), iri_token(KNOWS_FOAF_CELL))));
+        assert!(
+            mirror
+                .annotations
+                .contains(&(GM_MAPPED_FROM.to_owned(), iri_token(KNOWS_FOAF_CELL)))
+        );
     }
 
     #[test]
@@ -1413,9 +1417,11 @@ mod tests {
             .iter()
             .find(|r| r.object == iri_token(SCHEMA_PERSON))
             .expect("schema:Person row");
-        assert!(schema_row
-            .annotations
-            .contains(&(GM_MAPPED_FROM.to_owned(), iri_token(PERSON_SCHEMA_CELL))));
+        assert!(
+            schema_row
+                .annotations
+                .contains(&(GM_MAPPED_FROM.to_owned(), iri_token(PERSON_SCHEMA_CELL)))
+        );
         assert!(schema_row.annotations.contains(&(
             GM_CONFIDENCE.to_owned(),
             format!("\"0.9\"^^<{XSD_DECIMAL}>")
@@ -1446,9 +1452,11 @@ mod tests {
             "absent confidence must not be annotated: {:?}",
             schema_row.annotations
         );
-        assert!(schema_row
-            .annotations
-            .contains(&(GM_MAPPED_FROM.to_owned(), iri_token(PERSON_SCHEMA_CELL))));
+        assert!(
+            schema_row
+                .annotations
+                .contains(&(GM_MAPPED_FROM.to_owned(), iri_token(PERSON_SCHEMA_CELL)))
+        );
     }
 
     #[test]

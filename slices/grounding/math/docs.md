@@ -193,3 +193,77 @@ homogeneity.
 | A complement names its ambient space and complement-semantics | `math:ComplementShape` | `math:UnqualifiedComplement` |
 | An argument slot has exactly one index and expression; slot indexes are unique | `math:ArgumentSlotShape` / `math:SlotIndexUniquenessShape` | `math:MalformedArgumentSlot` |
 | A variable occurrence resolves to a declaration | `math:VariableOccurrenceShape` | `math:UnscopedVariableOccurrence` |
+
+## Linear algebra, learning & representation — the operational objects of AI
+
+The linear-algebra-and-learning charter ([`design/MATHEMATICS-LINEAR-ALGEBRA-AND-LEARNING.md`](./design/MATHEMATICS-LINEAR-ALGEBRA-AND-LEARNING.md))
+turns the algebraic and geometric primitives into the operational objects of data and AI: **a
+decomposition or embedding declares its inputs, its policy, and its outputs — and any *meaning* read
+off a residual or a latent dimension is a claim from a vantage, never a property of the vector.** It is
+the most author-heavy charter (the survey found almost no external ontology for decompositions, latent
+spaces, or representation geometry) and it carries two flagships.
+
+- **Inner-product spaces and decompositions** — `math:InnerProductSpace`, `math:HermitianInnerProduct`,
+  `math:Subspace`, `math:OrthogonalComplement` (⊑ `math:Complement`, so it realizes the geometry
+  charter's complement contract — ambient space, orthogonal semantics, and now `math:definedByInnerProduct`),
+  `math:Basis`, `math:LinearMap`, `math:Rank`, `math:Eigendecomposition`, `math:SingularValueDecomposition`,
+  and `math:CovarianceOperator`. Decompositions are first-class objects with declared operands and outputs.
+- **PCA and the KG-projection flagship** — `math:PCAAnalysis` (a `gmeow:Activity`), `math:PrincipalComponent`,
+  `math:LoadingVector`, `math:ScoreVector`, `math:ExplainedVariance`, `math:ProjectionResidual`, and
+  `math:ResidualInterpretationClaim`. A PCA names its input, centering/scaling policy, covariance operator,
+  eigensolver, and its component/loading/score/variance/residual outputs. The flagship — embed a knowledge
+  graph, take the orthogonal complement of the embedded subspace, run PCA on the residuals, interpret the
+  residual — composes cleanly, and the *meaning* of a component is a `math:ResidualInterpretationClaim`: a
+  `gmeow:Observation` with a `gmeow:vantage`, never a property (no direct meaning property is minted, so the
+  property-form is unauthorable).
+- **Learning, embeddings, and latent spaces** — `math:LearnedModel`, `math:LossFunction`,
+  `math:OptimizationProblem`, `math:Embedding`, `math:KnowledgeGraphEmbedding`, `math:LatentSpace`, and
+  `math:EmbeddingDimension`. An embedding names its source, target space, function, and model; latent-space
+  and dimension semantics are GMEOW-original.
+- **An AI describing its own structure** — `math:TensorComputationGraph`, `math:NeuralLayer`,
+  `math:WeightTensor`, `math:ActivationFunction`, `math:AttentionOperation`, and `math:ParameterSpace`. A
+  neural network's forward pass **is** a `math:TensorComputationGraph` — a `math:ApplicationExpression` over
+  tensor operators reusing the expression AST wholesale, whose weights are tensors in a declared
+  `math:ParameterSpace`. Its reflection ("these dimensions encode X") is carried at the `logic:` metalevel
+  (`logic:MetaLevelFormula`), self-reference without paradox across the grounding layers — the dogfooding apex.
+
+The distinguished hard rule is **residual meaning as an observation, not a property**: semantic meaning read
+off geometry is inference from a standpoint (Principle 9). Every rule is SHACL Core (or the inherited
+argument-slot uniqueness gate the tensor graph rides), so `native_contract_hash` is untouched.
+
+| Rule | Shape | Failure class |
+|---|---|---|
+| An orthogonal complement names its defining inner product | `math:OrthogonalComplementShape` | `math:UnqualifiedOrthogonalComplement` |
+| A PCA names its inputs, policy, and outputs | `math:PCAAnalysisShape` | `math:IncompletePCAAnalysis` |
+| A residual/latent meaning is a vantage-held observation, not a property | `math:ResidualInterpretationClaimShape` | `math:ResidualMeaningAsProperty` |
+| An embedding names its source, target, function, and model | `math:EmbeddingShape` | `math:UnderspecifiedEmbedding` |
+| A tensor computation graph declares its (AST-reusing) computation nodes | `math:TensorComputationGraphShape` / `math:SlotIndexUniquenessShape` | `math:MalformedTensorComputationGraph` / `math:MalformedArgumentSlot` |
+| A weight tensor names its parameter space | `math:WeightTensorShape` | `math:UnframedWeightTensor` |
+
+## The flagship acceptance manifest — the depth bar as a typed contract
+
+The layer's depth is defined by five flagship acceptance scenarios — the symmetry groups of E8, how
+homomorphic encryption works, complex proofs as process, a universal R → `math:` bridge, and an AI
+describing its own structure. Each has a worked example, a competency question that pins it, and a
+counter-example that proves its gate bites. The acceptance bar *itself* is reified as a typed,
+queryable object rather than left as prose: a `math:FlagshipScenario` (authored in
+[`examples/flagship-acceptance.ttl`](./examples/flagship-acceptance.ttl)) binds each scenario to the
+four artifacts that realize and enforce it —
+
+- `math:demonstratedByExample` → the worked `examples/*.ttl`,
+- `math:demonstratedByCompetency` → the `gmeow:CompetencyQuestion` that pins it,
+- `math:guardedByCounterExample` → the minimal violation under `tests/counter-examples/`,
+- `math:enforcesFailureClass` → the `math:MathConformanceFailure` subclass its gate raises.
+
+The wiring is gated on three surfaces (the module/examples vs. `tests/` dataset split forces the
+split): `math:FlagshipScenarioShape` (SHACL) and `ex:saFlagshipCoverage` (structural) prove the five
+are present and fully linked to a real failure class, and a native cross-check in `crates/slicetest`
+resolves each competency reference into `tests/competency.ttl` and confirms it is a registered, green
+(`cqExpectRow`) question with an existing query file. A scenario that is not fully wired is the typed
+failure `math:UnwiredFlagshipScenario` — the epic's depth bar cannot silently regress.
+
+| Rule | Gate | Failure class |
+| --- | --- | --- |
+| A flagship scenario binds all four artifacts to a real conformance-failure subclass | `math:FlagshipScenarioShape` (SHACL) | `math:UnwiredFlagshipScenario` |
+| The five canonical scenarios are all present and fully wired | `ex:saFlagshipCoverage` (structural) | — |
+| Each competency reference is a registered, green question with an existing query file | `flagship_manifest` (native cross-check) | — |

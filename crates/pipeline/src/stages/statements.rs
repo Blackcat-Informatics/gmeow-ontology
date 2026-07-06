@@ -159,8 +159,8 @@ pub fn compile_statements(root: &Path) -> Result<(String, String), PipelineError
 /// Python supplies the already-loaded ontology graph as N-Triples, but parsing,
 /// statement compilation, invariant checking, RDF 1.2 normalization, lossless
 /// comparison, and compile-error reporting all happen here.
-pub fn compile_diagnostics_report(root: &Path, ontology_nt: &str) -> gmeow_diagnostics::Report {
-    let mut report = gmeow_diagnostics::Report::new("statement-compile");
+pub fn compile_diagnostics_report(root: &Path, ontology_nt: &str) -> gmeow_errors::Report {
+    let mut report = gmeow_errors::Report::new("statement-compile");
     let (owl_ttl, rdf12_ttl) = match compile_statements(root) {
         Ok(artifacts) => artifacts,
         Err(err) => {
@@ -200,10 +200,10 @@ pub fn compile_diagnostics_report(root: &Path, ontology_nt: &str) -> gmeow_diagn
     report
 }
 
-fn add_dsl_error(report: &mut gmeow_diagnostics::Report, message: String) {
+fn add_dsl_error(report: &mut gmeow_errors::Report, message: String) {
     report.add_finding(
-        gmeow_diagnostics::Finding::new(
-            gmeow_diagnostics::Severity::Error,
+        gmeow_errors::Finding::new(
+            gmeow_errors::Severity::Error,
             "statement-compile.dsl-error",
             message,
         )
@@ -214,7 +214,7 @@ fn add_dsl_error(report: &mut gmeow_diagnostics::Report, message: String) {
 fn invariant_findings(
     statement_owl_ttl: &str,
     ontology_nt: &str,
-) -> Result<Vec<gmeow_diagnostics::Finding>, PipelineError> {
+) -> Result<Vec<gmeow_errors::Finding>, PipelineError> {
     // Union the emitted OWL (Turtle) with the ontology (N-Triples) in one default-graph
     // native dataset — the exact union the Store version built by inserting both into one
     // store — then run the native invariant twin over it.
@@ -231,7 +231,7 @@ fn invariant_findings(
 fn lossless_findings(
     authored_owl_ttl: &str,
     normalized_owl_ttl: &str,
-) -> Result<Vec<gmeow_diagnostics::Finding>, PipelineError> {
+) -> Result<Vec<gmeow_errors::Finding>, PipelineError> {
     let authored = turtle_bytes_to_dataset(authored_owl_ttl.as_bytes(), "authored OWL")?;
     let normalized = turtle_bytes_to_dataset(normalized_owl_ttl.as_bytes(), "normalized OWL")?;
     Ok(gmeow_validate::statement::check_statement_lossless_dataset(
@@ -323,7 +323,7 @@ fn parse_cell(ds: &RdfDataset, cell: &Iri) -> Result<Vec<StatementCell>, Pipelin
             return Err(cell_err(
                 cell,
                 "needs exactly one of qObject / qObjectLiteral",
-            ))
+            ));
         }
     };
     let triple = QuotedTriple {
@@ -518,7 +518,7 @@ fn all_named(
             _ => {
                 return Err(PipelineError::Parse(format!(
                     "{subject} {predicate} must be an IRI"
-                )))
+                )));
             }
         }
     }

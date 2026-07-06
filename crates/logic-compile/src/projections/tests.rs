@@ -43,12 +43,14 @@ fn legalization_gate_enforces_unsupported_carries_residue() {
     use crate::ir::PreservationKind;
     // The legalization floor: Unsupported WITH flagged residue is legal (the construct
     // is carried and flagged, not silently dropped).
-    assert!(assert_no_overclaim(
-        "demo",
-        PreservationKind::Unsupported,
-        &["the construct is inexpressible in demo"],
-    )
-    .is_ok());
+    assert!(
+        assert_no_overclaim(
+            "demo",
+            PreservationKind::Unsupported,
+            &["the construct is inexpressible in demo"],
+        )
+        .is_ok()
+    );
     // Unsupported with an EMPTY residue is a silent under-disclosure — a build failure.
     let err = assert_no_overclaim("demo", PreservationKind::Unsupported, &[]).unwrap_err();
     assert!(
@@ -205,7 +207,7 @@ fn parse(ttl: &str) -> LogicProgram {
 /// line reads `<s> <p> <o>`). No oxigraph Store — the compiler crate's test harness
 /// rides the same `gmeow-rdf` `gts` surface the projections themselves use.
 fn triple_set(turtle: &str) -> Vec<String> {
-    use purrdf::{parse_dataset, serialize_dataset, SerializeGraph};
+    use purrdf::{SerializeGraph, parse_dataset, serialize_dataset};
     let dataset = parse_dataset(turtle.as_bytes(), "text/turtle", None)
         .unwrap_or_else(|e| panic!("turtle parse failed: {e}\n---\n{turtle}"));
     let nt = serialize_dataset(
@@ -356,15 +358,17 @@ fn aggregation_rule_round_trips_through_canonical_rdf12() {
         ContextualScope::default(),
     )
     .unwrap();
-    let body = vec![LogicAxiom::new(
-        "?g",
-        "https://blackcatinformatics.ca/gmeow/hasItem",
-        "?x",
-        false,
-        false,
-        ContextualScope::default(),
-    )
-    .unwrap()];
+    let body = vec![
+        LogicAxiom::new(
+            "?g",
+            "https://blackcatinformatics.ca/gmeow/hasItem",
+            "?x",
+            false,
+            false,
+            ContextualScope::default(),
+        )
+        .unwrap(),
+    ];
     let rule = LogicRule::new(head, body, vec![], ContextualScope::default()).with_aggregation(
         AggregateSpec::new("SUM", "?x", "?sum", vec!["?g".to_owned()]),
     );
@@ -653,7 +657,10 @@ fn satisfied_by_axiom_injects_collapse_drop_on_lossy_targets() {
             .find(|e| e.target == *target)
             .unwrap_or_else(|| panic!("ledger must carry exact target {target:?}"));
         assert!(
-            !entry.lossy_drops.iter().any(|d| d == GOAL_EVAL_COLLAPSE_DROP),
+            !entry
+                .lossy_drops
+                .iter()
+                .any(|d| d == GOAL_EVAL_COLLAPSE_DROP),
             "exact target {target:?} must NOT carry the GoalEvaluation collapse drop;              got: {:?}",
             entry.lossy_drops
         );
@@ -678,7 +685,10 @@ fn no_satisfied_by_axiom_leaves_ledger_clean() {
     // satisfiedBy axiom in the program.
     for entry in &arts.preservation_ledger {
         assert!(
-            !entry.lossy_drops.iter().any(|d| d == GOAL_EVAL_COLLAPSE_DROP),
+            !entry
+                .lossy_drops
+                .iter()
+                .any(|d| d == GOAL_EVAL_COLLAPSE_DROP),
             "target {:?} must NOT carry the GoalEvaluation collapse drop when there              is no satisfiedBy axiom; got: {:?}",
             entry.target,
             entry.lossy_drops

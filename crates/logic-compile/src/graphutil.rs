@@ -22,7 +22,7 @@
 //! scattering per-item attributes.
 #![allow(dead_code)]
 
-use purrdf::{canonicalize, parse_dataset, BlankScope, RdfDataset, TermId, TermRef, TermValue};
+use purrdf::{BlankScope, RdfDataset, TermId, TermRef, TermValue, canonicalize, parse_dataset};
 use std::sync::Arc;
 
 // Well-known RDF IRIs (string constants — avoids per-call interning at the source).

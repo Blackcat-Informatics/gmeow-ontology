@@ -2,6 +2,79 @@
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 
+<https://blackcatinformatics.ca/logic/target/abnf:gts>
+    a logic:ProjectionTarget ;
+    rdfs:label "abnf:gts" ;
+    gmeow:lossyDrop "actual: grammar versioning is not carried into the emitted file" ,
+        "actual: licensing links from the source forms have no grammar-notation target" ,
+        "actual: rule 'ECHAR': EBNF character class '[tbnrf\"'\\]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'IRICHAR': EBNF character class '[^#x00-#x20<>\"{}|^`\\]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'NAMECHAR': EBNF character class '[A-Za-z0-9_-]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'STRCHAR': EBNF character class '[^#x22#x5C]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'langtag': EBNF character class '[a-zA-Z0-9]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'langtag': EBNF character class '[a-zA-Z]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule provenance is not carried into the grammar file (comments at best)" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
+<https://blackcatinformatics.ca/logic/target/abnf:turtle>
+    a logic:ProjectionTarget ;
+    rdfs:label "abnf:turtle" ;
+    gmeow:lossyDrop "actual: grammar versioning is not carried into the emitted file" ,
+        "actual: licensing links from the source forms have no grammar-notation target" ,
+        "actual: rule 'BLANK_NODE_LABEL': EBNF character class '[0-9]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'DECIMAL': EBNF character class '[+-]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'DECIMAL': EBNF character class '[0-9]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'DOUBLE': EBNF character class '[+-]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'DOUBLE': EBNF character class '[0-9]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'ECHAR': EBNF character class '[tbnrf\"'\\]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'EXPONENT': EBNF character class '[+-]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'EXPONENT': EBNF character class '[0-9]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'EXPONENT': EBNF character class '[eE]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'HEX': EBNF character class '[0-9]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'HEX': EBNF character class '[A-F]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'HEX': EBNF character class '[a-f]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'INTEGER': EBNF character class '[+-]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'INTEGER': EBNF character class '[0-9]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'IRIREF': EBNF character class '[^#x00-#x20<>\"{}|^`\\]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'LANGTAG': EBNF character class '[a-zA-Z0-9]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'LANGTAG': EBNF character class '[a-zA-Z]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'PN_CHARS': EBNF character class '[#x0300-#x036F]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'PN_CHARS': EBNF character class '[#x203F-#x2040]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'PN_CHARS': EBNF character class '[0-9]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'PN_CHARS_BASE': EBNF character class '[#x00C0-#x00D6]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'PN_CHARS_BASE': EBNF character class '[#x00D8-#x00F6]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'PN_CHARS_BASE': EBNF character class '[#x00F8-#x02FF]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'PN_CHARS_BASE': EBNF character class '[#x0370-#x037D]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'PN_CHARS_BASE': EBNF character class '[#x037F-#x1FFF]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'PN_CHARS_BASE': EBNF character class '[#x10000-#xEFFFF]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'PN_CHARS_BASE': EBNF character class '[#x200C-#x200D]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'PN_CHARS_BASE': EBNF character class '[#x2070-#x218F]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'PN_CHARS_BASE': EBNF character class '[#x2C00-#x2FEF]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'PN_CHARS_BASE': EBNF character class '[#x3001-#xD7FF]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'PN_CHARS_BASE': EBNF character class '[#xF900-#xFDCF]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'PN_CHARS_BASE': EBNF character class '[#xFDF0-#xFFFD]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'PN_CHARS_BASE': EBNF character class '[A-Z]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'PN_CHARS_BASE': EBNF character class '[a-z]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'PN_LOCAL': EBNF character class '[0-9]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'STRING_LITERAL_LONG_QUOTE': EBNF character class '[^\"\\]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'STRING_LITERAL_LONG_SINGLE_QUOTE': EBNF character class '[^'\\]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'STRING_LITERAL_QUOTE': EBNF character class '[^#x22#x5C#xA#xD]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'STRING_LITERAL_SINGLE_QUOTE': EBNF character class '[^#x27#x5C#xA#xD]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule provenance is not carried into the grammar file (comments at best)" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
+<https://blackcatinformatics.ca/logic/target/bcp47:tag-set>
+    a logic:ProjectionTarget ;
+    rdfs:label "bcp47:tag-set" ;
+    gmeow:lossyDrop "actual: a BCP-47 tag carries no diachronic history of the variety (no lang: temporal-stage lineage)" ,
+        "actual: a BCP-47 tag carries no orthography split (a sign system with several orthographies collapses to one script subtag)" ,
+        "actual: a BCP-47 tag carries no variety relations beyond the primary subtag (the lang:varietyOf structure is flattened to a single differentiating subtag)" ,
+        "actual: variety <https://blackcatinformatics.ca/lang/gmeowEnglish> has no derivable BCP-47 primary subtag: its lang:varietyOf parent carries no ISO 639 skos:notation (GMEOW sign systems keep ISO codes as alignments, not asserted data), so gmeow:bcp47Tag is absent — a data row, not a failure" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
 <https://blackcatinformatics.ca/logic/target/canonical-rdf12>
     a logic:ProjectionTarget ;
     rdfs:label "canonical-rdf12" ;
@@ -18,6 +91,12 @@
     a logic:ProjectionTarget ;
     rdfs:label "clif" ;
     logic:complexityClass "full first-order (semi-decidable)" ;
+    logic:preservationKind logic:ExactPreservation .
+
+<https://blackcatinformatics.ca/logic/target/conllu:forms-and-sign-systems#sentCatsChaseMice>
+    a logic:ProjectionTarget ;
+    rdfs:label "conllu:forms-and-sign-systems#sentCatsChaseMice" ;
+    logic:complexityClass "n/a" ;
     logic:preservationKind logic:ExactPreservation .
 
 <https://blackcatinformatics.ca/logic/target/datalog>
@@ -41,6 +120,18 @@
         "no existential rule heads (skolemisation not emitted)" ;
     logic:complexityClass "terminating/PTIME-data" ;
     logic:preservationKind logic:SoundUnderApproximation .
+
+<https://blackcatinformatics.ca/logic/target/ebnf:gts>
+    a logic:ProjectionTarget ;
+    rdfs:label "ebnf:gts" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ExactPreservation .
+
+<https://blackcatinformatics.ca/logic/target/ebnf:turtle>
+    a logic:ProjectionTarget ;
+    rdfs:label "ebnf:turtle" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ExactPreservation .
 
 <https://blackcatinformatics.ca/logic/target/edoal:0051d4462bb2a37f>
     a logic:ProjectionTarget ;
@@ -6854,6 +6945,7 @@
         "actual: logic:Formula #3 [Nested+Quantified+StrongNegation+Variadic] (full first-order quantifier / connective tree) is not representable in the gUFO bridge; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
         "actual: logic:Formula #4 [Disjunctive+Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in the gUFO bridge; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
         "actual: logic:Formula #5 [Nested+Quantified+StrongNegation] (full first-order quantifier / connective tree) is not representable in the gUFO bridge; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
+        "actual: logic:body on <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> has no gUFO bridge equivalent" ,
         "actual: logic:body on <https://blackcatinformatics.ca/logic/ruleIndirectContributor> has no gUFO bridge equivalent" ,
         "actual: logic:body on <https://blackcatinformatics.ca/logic/ruleInstantiatesWork> has no gUFO bridge equivalent" ,
         "actual: logic:body on <https://blackcatinformatics.ca/logic/ruleOrgMembershipPropagation> has no gUFO bridge equivalent" ,
@@ -6872,6 +6964,7 @@
         "actual: logic:candidateCategory on <https://blackcatinformatics.ca/logic/candidateFalsehoodIsRefutedClaim> has no gUFO bridge equivalent" ,
         "actual: logic:candidateCategory on <https://blackcatinformatics.ca/logic/candidateFrameRelativity> has no gUFO bridge equivalent" ,
         "actual: logic:candidateCategory on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no gUFO bridge equivalent" ,
+        "actual: logic:candidateCategory on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no gUFO bridge equivalent" ,
         "actual: logic:candidateCategory on <https://blackcatinformatics.ca/logic/candidateIndirectContributor> has no gUFO bridge equivalent" ,
         "actual: logic:candidateCategory on <https://blackcatinformatics.ca/logic/candidateInstantiatesWork> has no gUFO bridge equivalent" ,
         "actual: logic:candidateCategory on <https://blackcatinformatics.ca/logic/candidateIntentNotEntailed> has no gUFO bridge equivalent" ,
@@ -6893,6 +6986,7 @@
         "actual: logic:candidateContract on <https://blackcatinformatics.ca/logic/candidateFalsehoodIsRefutedClaim> has no gUFO bridge equivalent" ,
         "actual: logic:candidateContract on <https://blackcatinformatics.ca/logic/candidateFrameRelativity> has no gUFO bridge equivalent" ,
         "actual: logic:candidateContract on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no gUFO bridge equivalent" ,
+        "actual: logic:candidateContract on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no gUFO bridge equivalent" ,
         "actual: logic:candidateContract on <https://blackcatinformatics.ca/logic/candidateIndirectContributor> has no gUFO bridge equivalent" ,
         "actual: logic:candidateContract on <https://blackcatinformatics.ca/logic/candidateInstantiatesWork> has no gUFO bridge equivalent" ,
         "actual: logic:candidateContract on <https://blackcatinformatics.ca/logic/candidateIntentNotEntailed> has no gUFO bridge equivalent" ,
@@ -6919,6 +7013,7 @@
         "actual: logic:candidateExtractionProvenance on <https://blackcatinformatics.ca/logic/candidateFalsehoodIsRefutedClaim> has no gUFO bridge equivalent" ,
         "actual: logic:candidateExtractionProvenance on <https://blackcatinformatics.ca/logic/candidateFrameRelativity> has no gUFO bridge equivalent" ,
         "actual: logic:candidateExtractionProvenance on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no gUFO bridge equivalent" ,
+        "actual: logic:candidateExtractionProvenance on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no gUFO bridge equivalent" ,
         "actual: logic:candidateExtractionProvenance on <https://blackcatinformatics.ca/logic/candidateIndirectContributor> has no gUFO bridge equivalent" ,
         "actual: logic:candidateExtractionProvenance on <https://blackcatinformatics.ca/logic/candidateInstantiatesWork> has no gUFO bridge equivalent" ,
         "actual: logic:candidateExtractionProvenance on <https://blackcatinformatics.ca/logic/candidateIntentNotEntailed> has no gUFO bridge equivalent" ,
@@ -6938,6 +7033,7 @@
         "actual: logic:candidateFormalizes on <https://blackcatinformatics.ca/logic/candidateFalsehoodIsRefutedClaim> has no gUFO bridge equivalent" ,
         "actual: logic:candidateFormalizes on <https://blackcatinformatics.ca/logic/candidateFrameRelativity> has no gUFO bridge equivalent" ,
         "actual: logic:candidateFormalizes on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no gUFO bridge equivalent" ,
+        "actual: logic:candidateFormalizes on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no gUFO bridge equivalent" ,
         "actual: logic:candidateFormalizes on <https://blackcatinformatics.ca/logic/candidateIndirectContributor> has no gUFO bridge equivalent" ,
         "actual: logic:candidateFormalizes on <https://blackcatinformatics.ca/logic/candidateInstantiatesWork> has no gUFO bridge equivalent" ,
         "actual: logic:candidateFormalizes on <https://blackcatinformatics.ca/logic/candidateIntentNotEntailed> has no gUFO bridge equivalent" ,
@@ -6958,6 +7054,7 @@
         "actual: logic:candidateLifecycle on <https://blackcatinformatics.ca/logic/candidateFalsehoodIsRefutedClaim> has no gUFO bridge equivalent" ,
         "actual: logic:candidateLifecycle on <https://blackcatinformatics.ca/logic/candidateFrameRelativity> has no gUFO bridge equivalent" ,
         "actual: logic:candidateLifecycle on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no gUFO bridge equivalent" ,
+        "actual: logic:candidateLifecycle on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no gUFO bridge equivalent" ,
         "actual: logic:candidateLifecycle on <https://blackcatinformatics.ca/logic/candidateIndirectContributor> has no gUFO bridge equivalent" ,
         "actual: logic:candidateLifecycle on <https://blackcatinformatics.ca/logic/candidateInstantiatesWork> has no gUFO bridge equivalent" ,
         "actual: logic:candidateLifecycle on <https://blackcatinformatics.ca/logic/candidateIntentNotEntailed> has no gUFO bridge equivalent" ,
@@ -6978,6 +7075,7 @@
         "actual: logic:candidateNegativeCase on <https://blackcatinformatics.ca/logic/candidateFalsehoodIsRefutedClaim> has no gUFO bridge equivalent" ,
         "actual: logic:candidateNegativeCase on <https://blackcatinformatics.ca/logic/candidateFrameRelativity> has no gUFO bridge equivalent" ,
         "actual: logic:candidateNegativeCase on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no gUFO bridge equivalent" ,
+        "actual: logic:candidateNegativeCase on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no gUFO bridge equivalent" ,
         "actual: logic:candidateNegativeCase on <https://blackcatinformatics.ca/logic/candidateIndirectContributor> has no gUFO bridge equivalent" ,
         "actual: logic:candidateNegativeCase on <https://blackcatinformatics.ca/logic/candidateInstantiatesWork> has no gUFO bridge equivalent" ,
         "actual: logic:candidateNegativeCase on <https://blackcatinformatics.ca/logic/candidateLicensedFalsehoodNotDeception> has no gUFO bridge equivalent" ,
@@ -7000,6 +7098,7 @@
         "actual: logic:candidatePositiveCase on <https://blackcatinformatics.ca/logic/candidateFalsehoodIsRefutedClaim> has no gUFO bridge equivalent" ,
         "actual: logic:candidatePositiveCase on <https://blackcatinformatics.ca/logic/candidateFrameRelativity> has no gUFO bridge equivalent" ,
         "actual: logic:candidatePositiveCase on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no gUFO bridge equivalent" ,
+        "actual: logic:candidatePositiveCase on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no gUFO bridge equivalent" ,
         "actual: logic:candidatePositiveCase on <https://blackcatinformatics.ca/logic/candidateIndirectContributor> has no gUFO bridge equivalent" ,
         "actual: logic:candidatePositiveCase on <https://blackcatinformatics.ca/logic/candidateInstantiatesWork> has no gUFO bridge equivalent" ,
         "actual: logic:candidatePositiveCase on <https://blackcatinformatics.ca/logic/candidateLicensedFalsehoodNotDeception> has no gUFO bridge equivalent" ,
@@ -7020,6 +7119,7 @@
         "actual: logic:candidateProjectionBehavior on <https://blackcatinformatics.ca/logic/candidateFalsehoodIsRefutedClaim> has no gUFO bridge equivalent" ,
         "actual: logic:candidateProjectionBehavior on <https://blackcatinformatics.ca/logic/candidateFrameRelativity> has no gUFO bridge equivalent" ,
         "actual: logic:candidateProjectionBehavior on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no gUFO bridge equivalent" ,
+        "actual: logic:candidateProjectionBehavior on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no gUFO bridge equivalent" ,
         "actual: logic:candidateProjectionBehavior on <https://blackcatinformatics.ca/logic/candidateIndirectContributor> has no gUFO bridge equivalent" ,
         "actual: logic:candidateProjectionBehavior on <https://blackcatinformatics.ca/logic/candidateInstantiatesWork> has no gUFO bridge equivalent" ,
         "actual: logic:candidateProjectionBehavior on <https://blackcatinformatics.ca/logic/candidateIntentNotEntailed> has no gUFO bridge equivalent" ,
@@ -7041,6 +7141,7 @@
         "actual: logic:candidateScope on <https://blackcatinformatics.ca/logic/candidateFalsehoodIsRefutedClaim> has no gUFO bridge equivalent" ,
         "actual: logic:candidateScope on <https://blackcatinformatics.ca/logic/candidateFrameRelativity> has no gUFO bridge equivalent" ,
         "actual: logic:candidateScope on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no gUFO bridge equivalent" ,
+        "actual: logic:candidateScope on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no gUFO bridge equivalent" ,
         "actual: logic:candidateScope on <https://blackcatinformatics.ca/logic/candidateIndirectContributor> has no gUFO bridge equivalent" ,
         "actual: logic:candidateScope on <https://blackcatinformatics.ca/logic/candidateInstantiatesWork> has no gUFO bridge equivalent" ,
         "actual: logic:candidateScope on <https://blackcatinformatics.ca/logic/candidateIntentNotEntailed> has no gUFO bridge equivalent" ,
@@ -7062,6 +7163,7 @@
         "actual: logic:candidateSemanticRisk on <https://blackcatinformatics.ca/logic/candidateFalsehoodIsRefutedClaim> has no gUFO bridge equivalent" ,
         "actual: logic:candidateSemanticRisk on <https://blackcatinformatics.ca/logic/candidateFrameRelativity> has no gUFO bridge equivalent" ,
         "actual: logic:candidateSemanticRisk on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no gUFO bridge equivalent" ,
+        "actual: logic:candidateSemanticRisk on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no gUFO bridge equivalent" ,
         "actual: logic:candidateSemanticRisk on <https://blackcatinformatics.ca/logic/candidateIndirectContributor> has no gUFO bridge equivalent" ,
         "actual: logic:candidateSemanticRisk on <https://blackcatinformatics.ca/logic/candidateInstantiatesWork> has no gUFO bridge equivalent" ,
         "actual: logic:candidateSemanticRisk on <https://blackcatinformatics.ca/logic/candidateIntentNotEntailed> has no gUFO bridge equivalent" ,
@@ -7081,6 +7183,7 @@
         "actual: logic:candidateSourceField on <https://blackcatinformatics.ca/logic/candidateFalsehoodIsRefutedClaim> has no gUFO bridge equivalent" ,
         "actual: logic:candidateSourceField on <https://blackcatinformatics.ca/logic/candidateFrameRelativity> has no gUFO bridge equivalent" ,
         "actual: logic:candidateSourceField on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no gUFO bridge equivalent" ,
+        "actual: logic:candidateSourceField on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no gUFO bridge equivalent" ,
         "actual: logic:candidateSourceField on <https://blackcatinformatics.ca/logic/candidateIndirectContributor> has no gUFO bridge equivalent" ,
         "actual: logic:candidateSourceField on <https://blackcatinformatics.ca/logic/candidateInstantiatesWork> has no gUFO bridge equivalent" ,
         "actual: logic:candidateSourceField on <https://blackcatinformatics.ca/logic/candidateIntentNotEntailed> has no gUFO bridge equivalent" ,
@@ -7101,6 +7204,7 @@
         "actual: logic:candidateSourceHash on <https://blackcatinformatics.ca/logic/candidateFalsehoodIsRefutedClaim> has no gUFO bridge equivalent" ,
         "actual: logic:candidateSourceHash on <https://blackcatinformatics.ca/logic/candidateFrameRelativity> has no gUFO bridge equivalent" ,
         "actual: logic:candidateSourceHash on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no gUFO bridge equivalent" ,
+        "actual: logic:candidateSourceHash on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no gUFO bridge equivalent" ,
         "actual: logic:candidateSourceHash on <https://blackcatinformatics.ca/logic/candidateIndirectContributor> has no gUFO bridge equivalent" ,
         "actual: logic:candidateSourceHash on <https://blackcatinformatics.ca/logic/candidateInstantiatesWork> has no gUFO bridge equivalent" ,
         "actual: logic:candidateSourceHash on <https://blackcatinformatics.ca/logic/candidateIntentNotEntailed> has no gUFO bridge equivalent" ,
@@ -7174,6 +7278,7 @@
         "actual: logic:formalizes on <https://blackcatinformatics.ca/logic/overridesIrreflexivity> has no gUFO bridge equivalent" ,
         "actual: logic:formalizes on <https://blackcatinformatics.ca/logic/partOfTransitivity> has no gUFO bridge equivalent" ,
         "actual: logic:formalizes on <https://blackcatinformatics.ca/logic/precedenceTenureDistinctness> has no gUFO bridge equivalent" ,
+        "actual: logic:formalizes on <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> has no gUFO bridge equivalent" ,
         "actual: logic:formalizes on <https://blackcatinformatics.ca/logic/ruleIndirectContributor> has no gUFO bridge equivalent" ,
         "actual: logic:formalizes on <https://blackcatinformatics.ca/logic/ruleInstantiatesWork> has no gUFO bridge equivalent" ,
         "actual: logic:formalizes on <https://blackcatinformatics.ca/logic/ruleOrgMembershipPropagation> has no gUFO bridge equivalent" ,
@@ -7183,6 +7288,7 @@
         "actual: logic:formalizes on <https://blackcatinformatics.ca/logic/subEventOfTransitivity> has no gUFO bridge equivalent" ,
         "actual: logic:formalizes on <https://blackcatinformatics.ca/logic/versionOfFunctionality> has no gUFO bridge equivalent" ,
         "actual: logic:hasThresholdRow on <https://blackcatinformatics.ca/logic/defaultLadderProfile> has no gUFO bridge equivalent" ,
+        "actual: logic:head on <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> has no gUFO bridge equivalent" ,
         "actual: logic:head on <https://blackcatinformatics.ca/logic/ruleIndirectContributor> has no gUFO bridge equivalent" ,
         "actual: logic:head on <https://blackcatinformatics.ca/logic/ruleInstantiatesWork> has no gUFO bridge equivalent" ,
         "actual: logic:head on <https://blackcatinformatics.ca/logic/ruleOrgMembershipPropagation> has no gUFO bridge equivalent" ,
@@ -7249,6 +7355,7 @@
         "actual: logic:proseFieldProperty on <https://blackcatinformatics.ca/logic/ProseFieldAvoidWhen> has no gUFO bridge equivalent" ,
         "actual: logic:proseFieldProperty on <https://blackcatinformatics.ca/logic/ProseFieldDefinition> has no gUFO bridge equivalent" ,
         "actual: logic:proseFieldProperty on <https://blackcatinformatics.ca/logic/ProseFieldUseWhen> has no gUFO bridge equivalent" ,
+        "actual: logic:provenance on <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> has no gUFO bridge equivalent" ,
         "actual: logic:provenance on <https://blackcatinformatics.ca/logic/ruleIndirectContributor> has no gUFO bridge equivalent" ,
         "actual: logic:provenance on <https://blackcatinformatics.ca/logic/ruleInstantiatesWork> has no gUFO bridge equivalent" ,
         "actual: logic:provenance on <https://blackcatinformatics.ca/logic/ruleOrgMembershipPropagation> has no gUFO bridge equivalent" ,
@@ -7267,6 +7374,7 @@
         "actual: logic:reviewedBy on <https://blackcatinformatics.ca/logic/candidateFalsehoodIsRefutedClaim> has no gUFO bridge equivalent" ,
         "actual: logic:reviewedBy on <https://blackcatinformatics.ca/logic/candidateFrameRelativity> has no gUFO bridge equivalent" ,
         "actual: logic:reviewedBy on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no gUFO bridge equivalent" ,
+        "actual: logic:reviewedBy on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no gUFO bridge equivalent" ,
         "actual: logic:reviewedBy on <https://blackcatinformatics.ca/logic/candidateIndirectContributor> has no gUFO bridge equivalent" ,
         "actual: logic:reviewedBy on <https://blackcatinformatics.ca/logic/candidateInstantiatesWork> has no gUFO bridge equivalent" ,
         "actual: logic:reviewedBy on <https://blackcatinformatics.ca/logic/candidateIntentNotEntailed> has no gUFO bridge equivalent" ,
@@ -7301,6 +7409,7 @@
         "actual: rule head <?agent> dropped (gUFO bridge has no rule surface)" ,
         "actual: rule head <?claim> dropped (gUFO bridge has no rule surface)" ,
         "actual: rule head <?entity> dropped (gUFO bridge has no rule surface)" ,
+        "actual: rule head <?finding> dropped (gUFO bridge has no rule surface)" ,
         "actual: rule head <?item> dropped (gUFO bridge has no rule surface)" ,
         "fluents / 4D temporal-part structure (logic:Fluent, logic:temporalPartOf, logic:Process, logic:Perdurant beyond gufo:Event) have no gUFO class and are dropped" ,
         "logic: world-modal/contextual structure has no gUFO equivalent" ,
@@ -7316,6 +7425,280 @@
         "the five gUFO temporary-situation reifiers (QualityValueAttributionSituation, TemporaryConstitution/Instantiation/Parthood/RelationshipSituation) are SUPERSEDED by logic:Fluent + RDF-1.2 edge properties — not re-emitted by the down-projection" ;
     logic:complexityClass "PTIME" ;
     logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-execgap:fr>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-execgap:fr" ;
+    gmeow:lossyDrop "actual: english carrier: GMEOW executable documentation surfaces (the offline SPARQL playground, the reasoned try-it inference diffs, and the export substrate) are rendered only in the English documentation tree." ,
+        "actual: exec-docs boundary (fr): executable documentation surfaces are rendered only in the English tree; the fr tree carries no non-English rendering" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:Unsupported .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-execgap:zh>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-execgap:zh" ;
+    gmeow:lossyDrop "actual: english carrier: GMEOW executable documentation surfaces (the offline SPARQL playground, the reasoned try-it inference diffs, and the export substrate) are rendered only in the English documentation tree." ,
+        "actual: exec-docs boundary (zh): executable documentation surfaces are rendered only in the English tree; the zh tree carries no non-English rendering" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:Unsupported .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-rendering:0776b6220c70e46f>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-rendering:0776b6220c70e46f" ;
+    gmeow:lossyDrop "actual: docs page rendering (fr, https://blackcatinformatics.ca/gmeow/existenceEntity): 2 target surface(s); derived preservation = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-rendering:095abce697afd663>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-rendering:095abce697afd663" ;
+    gmeow:lossyDrop "actual: docs page rendering (zh, https://blackcatinformatics.ca/gmeow/existenceInterval): 2 target surface(s); derived preservation = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-rendering:25c68ee2e503dfb4>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-rendering:25c68ee2e503dfb4" ;
+    gmeow:lossyDrop "actual: docs page rendering (zh, https://blackcatinformatics.ca/gmeow/supersededBy): 2 target surface(s); derived preservation = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-rendering:4aba893dbfaf460c>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-rendering:4aba893dbfaf460c" ;
+    gmeow:lossyDrop "actual: docs page rendering (fr, https://blackcatinformatics.ca/gmeow/supersededBy): 2 target surface(s); derived preservation = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-rendering:5ed33520cc814b28>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-rendering:5ed33520cc814b28" ;
+    gmeow:lossyDrop "actual: docs page rendering (zh, https://blackcatinformatics.ca/gmeow/hasCreationEvent): 2 target surface(s); derived preservation = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-rendering:7bdb4fddda4a45ca>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-rendering:7bdb4fddda4a45ca" ;
+    gmeow:lossyDrop "actual: docs page rendering (zh, https://blackcatinformatics.ca/gmeow/hasDestructionEvent): 2 target surface(s); derived preservation = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-rendering:8816ee801f5ff5c2>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-rendering:8816ee801f5ff5c2" ;
+    gmeow:lossyDrop "actual: docs page rendering (zh, https://blackcatinformatics.ca/gmeow/EntityExistence): 2 target surface(s); derived preservation = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-rendering:b9669710a233d8c4>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-rendering:b9669710a233d8c4" ;
+    gmeow:lossyDrop "actual: docs page rendering (fr, https://blackcatinformatics.ca/gmeow/hasDestructionEvent): 2 target surface(s); derived preservation = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-rendering:bc4a940a5b76c878>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-rendering:bc4a940a5b76c878" ;
+    gmeow:lossyDrop "actual: docs page rendering (zh, https://blackcatinformatics.ca/gmeow/existenceCreationEvent): 2 target surface(s); derived preservation = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-rendering:bf99c890cef32126>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-rendering:bf99c890cef32126" ;
+    gmeow:lossyDrop "actual: docs page rendering (zh, https://blackcatinformatics.ca/gmeow/slices/lifecycle): 3 target surface(s); derived preservation = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-rendering:c41a1af86cd13ac6>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-rendering:c41a1af86cd13ac6" ;
+    gmeow:lossyDrop "actual: docs page rendering (fr, https://blackcatinformatics.ca/gmeow/EntityExistence): 2 target surface(s); derived preservation = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-rendering:c4defe4fa29ce722>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-rendering:c4defe4fa29ce722" ;
+    gmeow:lossyDrop "actual: docs page rendering (fr, https://blackcatinformatics.ca/gmeow/hasCreationEvent): 2 target surface(s); derived preservation = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-rendering:c5c2767d9118a29c>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-rendering:c5c2767d9118a29c" ;
+    gmeow:lossyDrop "actual: docs page rendering (fr, https://blackcatinformatics.ca/gmeow/existenceCreationEvent): 2 target surface(s); derived preservation = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-rendering:c628afacfabb70cf>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-rendering:c628afacfabb70cf" ;
+    gmeow:lossyDrop "actual: docs page rendering (fr, https://blackcatinformatics.ca/gmeow/existenceInterval): 2 target surface(s); derived preservation = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-rendering:cd86977fcee87605>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-rendering:cd86977fcee87605" ;
+    gmeow:lossyDrop "actual: docs page rendering (zh, https://blackcatinformatics.ca/gmeow/existenceEntity): 2 target surface(s); derived preservation = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-rendering:dd844da76d4e1bc6>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-rendering:dd844da76d4e1bc6" ;
+    gmeow:lossyDrop "actual: docs page rendering (zh, https://blackcatinformatics.ca/gmeow/existenceDestructionEvent): 2 target surface(s); derived preservation = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-rendering:ea729607c361a9b4>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-rendering:ea729607c361a9b4" ;
+    gmeow:lossyDrop "actual: docs page rendering (fr, https://blackcatinformatics.ca/gmeow/slices/lifecycle): 3 target surface(s); derived preservation = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-rendering:fb299538cc07f71b>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-rendering:fb299538cc07f71b" ;
+    gmeow:lossyDrop "actual: docs page rendering (fr, https://blackcatinformatics.ca/gmeow/existenceDestructionEvent): 2 target surface(s); derived preservation = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-translation:0776b6220c70e46f>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-translation:0776b6220c70e46f" ;
+    gmeow:lossyDrop "actual: docs page translation roll-up (fr, https://blackcatinformatics.ca/gmeow/existenceEntity) over 2 unit(s); weakest-dominates join = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-translation:095abce697afd663>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-translation:095abce697afd663" ;
+    gmeow:lossyDrop "actual: docs page translation roll-up (zh, https://blackcatinformatics.ca/gmeow/existenceInterval) over 2 unit(s); weakest-dominates join = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-translation:25c68ee2e503dfb4>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-translation:25c68ee2e503dfb4" ;
+    gmeow:lossyDrop "actual: docs page translation roll-up (zh, https://blackcatinformatics.ca/gmeow/supersededBy) over 2 unit(s); weakest-dominates join = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-translation:4aba893dbfaf460c>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-translation:4aba893dbfaf460c" ;
+    gmeow:lossyDrop "actual: docs page translation roll-up (fr, https://blackcatinformatics.ca/gmeow/supersededBy) over 2 unit(s); weakest-dominates join = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-translation:5ed33520cc814b28>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-translation:5ed33520cc814b28" ;
+    gmeow:lossyDrop "actual: docs page translation roll-up (zh, https://blackcatinformatics.ca/gmeow/hasCreationEvent) over 2 unit(s); weakest-dominates join = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-translation:7bdb4fddda4a45ca>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-translation:7bdb4fddda4a45ca" ;
+    gmeow:lossyDrop "actual: docs page translation roll-up (zh, https://blackcatinformatics.ca/gmeow/hasDestructionEvent) over 2 unit(s); weakest-dominates join = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-translation:8816ee801f5ff5c2>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-translation:8816ee801f5ff5c2" ;
+    gmeow:lossyDrop "actual: docs page translation roll-up (zh, https://blackcatinformatics.ca/gmeow/EntityExistence) over 2 unit(s); weakest-dominates join = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-translation:b9669710a233d8c4>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-translation:b9669710a233d8c4" ;
+    gmeow:lossyDrop "actual: docs page translation roll-up (fr, https://blackcatinformatics.ca/gmeow/hasDestructionEvent) over 2 unit(s); weakest-dominates join = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-translation:bc4a940a5b76c878>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-translation:bc4a940a5b76c878" ;
+    gmeow:lossyDrop "actual: docs page translation roll-up (zh, https://blackcatinformatics.ca/gmeow/existenceCreationEvent) over 2 unit(s); weakest-dominates join = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-translation:bf99c890cef32126>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-translation:bf99c890cef32126" ;
+    gmeow:lossyDrop "actual: docs page translation roll-up (zh, https://blackcatinformatics.ca/gmeow/slices/lifecycle) over 3 unit(s); weakest-dominates join = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-translation:c41a1af86cd13ac6>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-translation:c41a1af86cd13ac6" ;
+    gmeow:lossyDrop "actual: docs page translation roll-up (fr, https://blackcatinformatics.ca/gmeow/EntityExistence) over 2 unit(s); weakest-dominates join = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-translation:c4defe4fa29ce722>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-translation:c4defe4fa29ce722" ;
+    gmeow:lossyDrop "actual: docs page translation roll-up (fr, https://blackcatinformatics.ca/gmeow/hasCreationEvent) over 2 unit(s); weakest-dominates join = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-translation:c5c2767d9118a29c>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-translation:c5c2767d9118a29c" ;
+    gmeow:lossyDrop "actual: docs page translation roll-up (fr, https://blackcatinformatics.ca/gmeow/existenceCreationEvent) over 2 unit(s); weakest-dominates join = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-translation:c628afacfabb70cf>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-translation:c628afacfabb70cf" ;
+    gmeow:lossyDrop "actual: docs page translation roll-up (fr, https://blackcatinformatics.ca/gmeow/existenceInterval) over 2 unit(s); weakest-dominates join = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-translation:cd86977fcee87605>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-translation:cd86977fcee87605" ;
+    gmeow:lossyDrop "actual: docs page translation roll-up (zh, https://blackcatinformatics.ca/gmeow/existenceEntity) over 2 unit(s); weakest-dominates join = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-translation:dd844da76d4e1bc6>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-translation:dd844da76d4e1bc6" ;
+    gmeow:lossyDrop "actual: docs page translation roll-up (zh, https://blackcatinformatics.ca/gmeow/existenceDestructionEvent) over 2 unit(s); weakest-dominates join = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-translation:ea729607c361a9b4>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-translation:ea729607c361a9b4" ;
+    gmeow:lossyDrop "actual: docs page translation roll-up (fr, https://blackcatinformatics.ca/gmeow/slices/lifecycle) over 3 unit(s); weakest-dominates join = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-translation:fb299538cc07f71b>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-translation:fb299538cc07f71b" ;
+    gmeow:lossyDrop "actual: docs page translation roll-up (fr, https://blackcatinformatics.ca/gmeow/existenceDestructionEvent) over 2 unit(s); weakest-dominates join = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-form>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-form" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ExactPreservation .
 
 <https://blackcatinformatics.ca/logic/target/lang-translation-doc:fr>
     a logic:ProjectionTarget ;
@@ -7631,6 +8014,24 @@
     logic:complexityClass "PTIME/datalog" ;
     logic:preservationKind logic:SoundUnderApproximation .
 
+<https://blackcatinformatics.ca/logic/target/nif:forms-and-sign-systems#sentAnchor>
+    a logic:ProjectionTarget ;
+    rdfs:label "nif:forms-and-sign-systems#sentAnchor" ;
+    gmeow:lossyDrop "actual: offset fragility (declared): NIF/OA offsets [0,15) for anchor <https://blackcatinformatics.ca/gmeow/examples/lang/sentAnchor> bind to surface <https://blackcatinformatics.ca/gmeow/examples/lang/sentSurface> under offsetSpace=lang:codepointOffset, unicodeNormalization=NFC; re-encoding or re-normalizing that surface (NFC↔NFD, codepoint↔byte, a different encoding) shifts the addressed span so the offsets no longer address the same characters — this invalidation is by design, not carried into NIF" ,
+        "actual: the lang:Form / lang:Sense / lang:Denotation strata above the surface are not carried into NIF (NIF addresses spans of a surface, not analyzed forms)" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
+<https://blackcatinformatics.ca/logic/target/ontolex-lemon:forms-and-sign-systems>
+    a logic:ProjectionTarget ;
+    rdfs:label "ontolex-lemon:forms-and-sign-systems" ;
+    gmeow:lossyDrop "actual: lang:InterpretationAct and co-resident lang:Reading alternatives with held support have no OntoLex-Lemon form" ,
+        "actual: lang:denotationKind beyond entity/class reference (lang:denotesLogicFormula and kin) has no ontolex:denotes / ontolex:reference target" ,
+        "actual: lang:vantage / perspectival standpoint has no OntoLex-Lemon target: the sense inventory flattens to unattributed lexical structure" ,
+        "actual: preservation-judged lang:Translation has no OntoLex-Lemon target" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
 <https://blackcatinformatics.ca/logic/target/owl-dl>
     a logic:ProjectionTarget ;
     rdfs:label "owl-dl" ;
@@ -7638,6 +8039,7 @@
         "actual: logic:Formula #1 [Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in OWL 2 DL; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
         "actual: logic:Formula #3 [Nested+Quantified+StrongNegation+Variadic] (full first-order quantifier / connective tree) is not representable in OWL 2 DL; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
         "actual: logic:Formula #5 [Nested+Quantified+StrongNegation] (full first-order quantifier / connective tree) is not representable in OWL 2 DL; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
+        "actual: logic:body on <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> has no OWL DL equivalent" ,
         "actual: logic:body on <https://blackcatinformatics.ca/logic/ruleIndirectContributor> has no OWL DL equivalent" ,
         "actual: logic:body on <https://blackcatinformatics.ca/logic/ruleInstantiatesWork> has no OWL DL equivalent" ,
         "actual: logic:body on <https://blackcatinformatics.ca/logic/ruleOrgMembershipPropagation> has no OWL DL equivalent" ,
@@ -7656,6 +8058,7 @@
         "actual: logic:candidateCategory on <https://blackcatinformatics.ca/logic/candidateFalsehoodIsRefutedClaim> has no OWL DL equivalent" ,
         "actual: logic:candidateCategory on <https://blackcatinformatics.ca/logic/candidateFrameRelativity> has no OWL DL equivalent" ,
         "actual: logic:candidateCategory on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no OWL DL equivalent" ,
+        "actual: logic:candidateCategory on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no OWL DL equivalent" ,
         "actual: logic:candidateCategory on <https://blackcatinformatics.ca/logic/candidateIndirectContributor> has no OWL DL equivalent" ,
         "actual: logic:candidateCategory on <https://blackcatinformatics.ca/logic/candidateInstantiatesWork> has no OWL DL equivalent" ,
         "actual: logic:candidateCategory on <https://blackcatinformatics.ca/logic/candidateIntentNotEntailed> has no OWL DL equivalent" ,
@@ -7677,6 +8080,7 @@
         "actual: logic:candidateContract on <https://blackcatinformatics.ca/logic/candidateFalsehoodIsRefutedClaim> has no OWL DL equivalent" ,
         "actual: logic:candidateContract on <https://blackcatinformatics.ca/logic/candidateFrameRelativity> has no OWL DL equivalent" ,
         "actual: logic:candidateContract on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no OWL DL equivalent" ,
+        "actual: logic:candidateContract on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no OWL DL equivalent" ,
         "actual: logic:candidateContract on <https://blackcatinformatics.ca/logic/candidateIndirectContributor> has no OWL DL equivalent" ,
         "actual: logic:candidateContract on <https://blackcatinformatics.ca/logic/candidateInstantiatesWork> has no OWL DL equivalent" ,
         "actual: logic:candidateContract on <https://blackcatinformatics.ca/logic/candidateIntentNotEntailed> has no OWL DL equivalent" ,
@@ -7703,6 +8107,7 @@
         "actual: logic:candidateExtractionProvenance on <https://blackcatinformatics.ca/logic/candidateFalsehoodIsRefutedClaim> has no OWL DL equivalent" ,
         "actual: logic:candidateExtractionProvenance on <https://blackcatinformatics.ca/logic/candidateFrameRelativity> has no OWL DL equivalent" ,
         "actual: logic:candidateExtractionProvenance on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no OWL DL equivalent" ,
+        "actual: logic:candidateExtractionProvenance on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no OWL DL equivalent" ,
         "actual: logic:candidateExtractionProvenance on <https://blackcatinformatics.ca/logic/candidateIndirectContributor> has no OWL DL equivalent" ,
         "actual: logic:candidateExtractionProvenance on <https://blackcatinformatics.ca/logic/candidateInstantiatesWork> has no OWL DL equivalent" ,
         "actual: logic:candidateExtractionProvenance on <https://blackcatinformatics.ca/logic/candidateIntentNotEntailed> has no OWL DL equivalent" ,
@@ -7722,6 +8127,7 @@
         "actual: logic:candidateFormalizes on <https://blackcatinformatics.ca/logic/candidateFalsehoodIsRefutedClaim> has no OWL DL equivalent" ,
         "actual: logic:candidateFormalizes on <https://blackcatinformatics.ca/logic/candidateFrameRelativity> has no OWL DL equivalent" ,
         "actual: logic:candidateFormalizes on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no OWL DL equivalent" ,
+        "actual: logic:candidateFormalizes on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no OWL DL equivalent" ,
         "actual: logic:candidateFormalizes on <https://blackcatinformatics.ca/logic/candidateIndirectContributor> has no OWL DL equivalent" ,
         "actual: logic:candidateFormalizes on <https://blackcatinformatics.ca/logic/candidateInstantiatesWork> has no OWL DL equivalent" ,
         "actual: logic:candidateFormalizes on <https://blackcatinformatics.ca/logic/candidateIntentNotEntailed> has no OWL DL equivalent" ,
@@ -7742,6 +8148,7 @@
         "actual: logic:candidateLifecycle on <https://blackcatinformatics.ca/logic/candidateFalsehoodIsRefutedClaim> has no OWL DL equivalent" ,
         "actual: logic:candidateLifecycle on <https://blackcatinformatics.ca/logic/candidateFrameRelativity> has no OWL DL equivalent" ,
         "actual: logic:candidateLifecycle on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no OWL DL equivalent" ,
+        "actual: logic:candidateLifecycle on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no OWL DL equivalent" ,
         "actual: logic:candidateLifecycle on <https://blackcatinformatics.ca/logic/candidateIndirectContributor> has no OWL DL equivalent" ,
         "actual: logic:candidateLifecycle on <https://blackcatinformatics.ca/logic/candidateInstantiatesWork> has no OWL DL equivalent" ,
         "actual: logic:candidateLifecycle on <https://blackcatinformatics.ca/logic/candidateIntentNotEntailed> has no OWL DL equivalent" ,
@@ -7762,6 +8169,7 @@
         "actual: logic:candidateNegativeCase on <https://blackcatinformatics.ca/logic/candidateFalsehoodIsRefutedClaim> has no OWL DL equivalent" ,
         "actual: logic:candidateNegativeCase on <https://blackcatinformatics.ca/logic/candidateFrameRelativity> has no OWL DL equivalent" ,
         "actual: logic:candidateNegativeCase on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no OWL DL equivalent" ,
+        "actual: logic:candidateNegativeCase on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no OWL DL equivalent" ,
         "actual: logic:candidateNegativeCase on <https://blackcatinformatics.ca/logic/candidateIndirectContributor> has no OWL DL equivalent" ,
         "actual: logic:candidateNegativeCase on <https://blackcatinformatics.ca/logic/candidateInstantiatesWork> has no OWL DL equivalent" ,
         "actual: logic:candidateNegativeCase on <https://blackcatinformatics.ca/logic/candidateLicensedFalsehoodNotDeception> has no OWL DL equivalent" ,
@@ -7784,6 +8192,7 @@
         "actual: logic:candidatePositiveCase on <https://blackcatinformatics.ca/logic/candidateFalsehoodIsRefutedClaim> has no OWL DL equivalent" ,
         "actual: logic:candidatePositiveCase on <https://blackcatinformatics.ca/logic/candidateFrameRelativity> has no OWL DL equivalent" ,
         "actual: logic:candidatePositiveCase on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no OWL DL equivalent" ,
+        "actual: logic:candidatePositiveCase on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no OWL DL equivalent" ,
         "actual: logic:candidatePositiveCase on <https://blackcatinformatics.ca/logic/candidateIndirectContributor> has no OWL DL equivalent" ,
         "actual: logic:candidatePositiveCase on <https://blackcatinformatics.ca/logic/candidateInstantiatesWork> has no OWL DL equivalent" ,
         "actual: logic:candidatePositiveCase on <https://blackcatinformatics.ca/logic/candidateLicensedFalsehoodNotDeception> has no OWL DL equivalent" ,
@@ -7804,6 +8213,7 @@
         "actual: logic:candidateProjectionBehavior on <https://blackcatinformatics.ca/logic/candidateFalsehoodIsRefutedClaim> has no OWL DL equivalent" ,
         "actual: logic:candidateProjectionBehavior on <https://blackcatinformatics.ca/logic/candidateFrameRelativity> has no OWL DL equivalent" ,
         "actual: logic:candidateProjectionBehavior on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no OWL DL equivalent" ,
+        "actual: logic:candidateProjectionBehavior on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no OWL DL equivalent" ,
         "actual: logic:candidateProjectionBehavior on <https://blackcatinformatics.ca/logic/candidateIndirectContributor> has no OWL DL equivalent" ,
         "actual: logic:candidateProjectionBehavior on <https://blackcatinformatics.ca/logic/candidateInstantiatesWork> has no OWL DL equivalent" ,
         "actual: logic:candidateProjectionBehavior on <https://blackcatinformatics.ca/logic/candidateIntentNotEntailed> has no OWL DL equivalent" ,
@@ -7825,6 +8235,7 @@
         "actual: logic:candidateScope on <https://blackcatinformatics.ca/logic/candidateFalsehoodIsRefutedClaim> has no OWL DL equivalent" ,
         "actual: logic:candidateScope on <https://blackcatinformatics.ca/logic/candidateFrameRelativity> has no OWL DL equivalent" ,
         "actual: logic:candidateScope on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no OWL DL equivalent" ,
+        "actual: logic:candidateScope on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no OWL DL equivalent" ,
         "actual: logic:candidateScope on <https://blackcatinformatics.ca/logic/candidateIndirectContributor> has no OWL DL equivalent" ,
         "actual: logic:candidateScope on <https://blackcatinformatics.ca/logic/candidateInstantiatesWork> has no OWL DL equivalent" ,
         "actual: logic:candidateScope on <https://blackcatinformatics.ca/logic/candidateIntentNotEntailed> has no OWL DL equivalent" ,
@@ -7846,6 +8257,7 @@
         "actual: logic:candidateSemanticRisk on <https://blackcatinformatics.ca/logic/candidateFalsehoodIsRefutedClaim> has no OWL DL equivalent" ,
         "actual: logic:candidateSemanticRisk on <https://blackcatinformatics.ca/logic/candidateFrameRelativity> has no OWL DL equivalent" ,
         "actual: logic:candidateSemanticRisk on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no OWL DL equivalent" ,
+        "actual: logic:candidateSemanticRisk on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no OWL DL equivalent" ,
         "actual: logic:candidateSemanticRisk on <https://blackcatinformatics.ca/logic/candidateIndirectContributor> has no OWL DL equivalent" ,
         "actual: logic:candidateSemanticRisk on <https://blackcatinformatics.ca/logic/candidateInstantiatesWork> has no OWL DL equivalent" ,
         "actual: logic:candidateSemanticRisk on <https://blackcatinformatics.ca/logic/candidateIntentNotEntailed> has no OWL DL equivalent" ,
@@ -7865,6 +8277,7 @@
         "actual: logic:candidateSourceField on <https://blackcatinformatics.ca/logic/candidateFalsehoodIsRefutedClaim> has no OWL DL equivalent" ,
         "actual: logic:candidateSourceField on <https://blackcatinformatics.ca/logic/candidateFrameRelativity> has no OWL DL equivalent" ,
         "actual: logic:candidateSourceField on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no OWL DL equivalent" ,
+        "actual: logic:candidateSourceField on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no OWL DL equivalent" ,
         "actual: logic:candidateSourceField on <https://blackcatinformatics.ca/logic/candidateIndirectContributor> has no OWL DL equivalent" ,
         "actual: logic:candidateSourceField on <https://blackcatinformatics.ca/logic/candidateInstantiatesWork> has no OWL DL equivalent" ,
         "actual: logic:candidateSourceField on <https://blackcatinformatics.ca/logic/candidateIntentNotEntailed> has no OWL DL equivalent" ,
@@ -7885,6 +8298,7 @@
         "actual: logic:candidateSourceHash on <https://blackcatinformatics.ca/logic/candidateFalsehoodIsRefutedClaim> has no OWL DL equivalent" ,
         "actual: logic:candidateSourceHash on <https://blackcatinformatics.ca/logic/candidateFrameRelativity> has no OWL DL equivalent" ,
         "actual: logic:candidateSourceHash on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no OWL DL equivalent" ,
+        "actual: logic:candidateSourceHash on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no OWL DL equivalent" ,
         "actual: logic:candidateSourceHash on <https://blackcatinformatics.ca/logic/candidateIndirectContributor> has no OWL DL equivalent" ,
         "actual: logic:candidateSourceHash on <https://blackcatinformatics.ca/logic/candidateInstantiatesWork> has no OWL DL equivalent" ,
         "actual: logic:candidateSourceHash on <https://blackcatinformatics.ca/logic/candidateIntentNotEntailed> has no OWL DL equivalent" ,
@@ -7958,6 +8372,7 @@
         "actual: logic:formalizes on <https://blackcatinformatics.ca/logic/overridesIrreflexivity> has no OWL DL equivalent" ,
         "actual: logic:formalizes on <https://blackcatinformatics.ca/logic/partOfTransitivity> has no OWL DL equivalent" ,
         "actual: logic:formalizes on <https://blackcatinformatics.ca/logic/precedenceTenureDistinctness> has no OWL DL equivalent" ,
+        "actual: logic:formalizes on <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> has no OWL DL equivalent" ,
         "actual: logic:formalizes on <https://blackcatinformatics.ca/logic/ruleIndirectContributor> has no OWL DL equivalent" ,
         "actual: logic:formalizes on <https://blackcatinformatics.ca/logic/ruleInstantiatesWork> has no OWL DL equivalent" ,
         "actual: logic:formalizes on <https://blackcatinformatics.ca/logic/ruleOrgMembershipPropagation> has no OWL DL equivalent" ,
@@ -7967,6 +8382,7 @@
         "actual: logic:formalizes on <https://blackcatinformatics.ca/logic/subEventOfTransitivity> has no OWL DL equivalent" ,
         "actual: logic:formalizes on <https://blackcatinformatics.ca/logic/versionOfFunctionality> has no OWL DL equivalent" ,
         "actual: logic:hasThresholdRow on <https://blackcatinformatics.ca/logic/defaultLadderProfile> has no OWL DL equivalent" ,
+        "actual: logic:head on <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> has no OWL DL equivalent" ,
         "actual: logic:head on <https://blackcatinformatics.ca/logic/ruleIndirectContributor> has no OWL DL equivalent" ,
         "actual: logic:head on <https://blackcatinformatics.ca/logic/ruleInstantiatesWork> has no OWL DL equivalent" ,
         "actual: logic:head on <https://blackcatinformatics.ca/logic/ruleOrgMembershipPropagation> has no OWL DL equivalent" ,
@@ -8033,6 +8449,7 @@
         "actual: logic:proseFieldProperty on <https://blackcatinformatics.ca/logic/ProseFieldAvoidWhen> has no OWL DL equivalent" ,
         "actual: logic:proseFieldProperty on <https://blackcatinformatics.ca/logic/ProseFieldDefinition> has no OWL DL equivalent" ,
         "actual: logic:proseFieldProperty on <https://blackcatinformatics.ca/logic/ProseFieldUseWhen> has no OWL DL equivalent" ,
+        "actual: logic:provenance on <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> has no OWL DL equivalent" ,
         "actual: logic:provenance on <https://blackcatinformatics.ca/logic/ruleIndirectContributor> has no OWL DL equivalent" ,
         "actual: logic:provenance on <https://blackcatinformatics.ca/logic/ruleInstantiatesWork> has no OWL DL equivalent" ,
         "actual: logic:provenance on <https://blackcatinformatics.ca/logic/ruleOrgMembershipPropagation> has no OWL DL equivalent" ,
@@ -8051,6 +8468,7 @@
         "actual: logic:reviewedBy on <https://blackcatinformatics.ca/logic/candidateFalsehoodIsRefutedClaim> has no OWL DL equivalent" ,
         "actual: logic:reviewedBy on <https://blackcatinformatics.ca/logic/candidateFrameRelativity> has no OWL DL equivalent" ,
         "actual: logic:reviewedBy on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no OWL DL equivalent" ,
+        "actual: logic:reviewedBy on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no OWL DL equivalent" ,
         "actual: logic:reviewedBy on <https://blackcatinformatics.ca/logic/candidateIndirectContributor> has no OWL DL equivalent" ,
         "actual: logic:reviewedBy on <https://blackcatinformatics.ca/logic/candidateInstantiatesWork> has no OWL DL equivalent" ,
         "actual: logic:reviewedBy on <https://blackcatinformatics.ca/logic/candidateIntentNotEntailed> has no OWL DL equivalent" ,
@@ -8090,6 +8508,7 @@
         "actual: rule head <?claim> 'https://blackcatinformatics.ca/gmeow/observedFeature' not expressible in OWL DL (body complexity)" ,
         "actual: rule head <?claim> 'https://blackcatinformatics.ca/gmeow/vantage' not expressible in OWL DL (body complexity)" ,
         "actual: rule head <?entity> 'https://blackcatinformatics.ca/gmeow/indirectContributor' not expressible in OWL DL (body complexity)" ,
+        "actual: rule head <?finding> 'https://blackcatinformatics.ca/gmeow/findingGateVerdict' not expressible in OWL DL (body complexity)" ,
         "actual: rule head <?item> 'https://blackcatinformatics.ca/gmeow/instantiatesWork' not expressible in OWL DL (body complexity)" ,
         "contextual scope (standpoint, time, confidence) is dropped" ,
         "modal/world context is erased" ,
@@ -8108,6 +8527,7 @@
         "actual: logic:Formula #3 [Nested+Quantified+StrongNegation+Variadic] (full first-order quantifier / connective tree) is not representable in OWL 2 EL; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
         "actual: logic:Formula #4 [Disjunctive+Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in OWL 2 EL; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
         "actual: logic:Formula #5 [Nested+Quantified+StrongNegation] (full first-order quantifier / connective tree) is not representable in OWL 2 EL; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
+        "actual: logic:body on <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> has no EL equivalent" ,
         "actual: logic:body on <https://blackcatinformatics.ca/logic/ruleIndirectContributor> has no EL equivalent" ,
         "actual: logic:body on <https://blackcatinformatics.ca/logic/ruleInstantiatesWork> has no EL equivalent" ,
         "actual: logic:body on <https://blackcatinformatics.ca/logic/ruleOrgMembershipPropagation> has no EL equivalent" ,
@@ -8126,6 +8546,7 @@
         "actual: logic:candidateCategory on <https://blackcatinformatics.ca/logic/candidateFalsehoodIsRefutedClaim> has no EL equivalent" ,
         "actual: logic:candidateCategory on <https://blackcatinformatics.ca/logic/candidateFrameRelativity> has no EL equivalent" ,
         "actual: logic:candidateCategory on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no EL equivalent" ,
+        "actual: logic:candidateCategory on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no EL equivalent" ,
         "actual: logic:candidateCategory on <https://blackcatinformatics.ca/logic/candidateIndirectContributor> has no EL equivalent" ,
         "actual: logic:candidateCategory on <https://blackcatinformatics.ca/logic/candidateInstantiatesWork> has no EL equivalent" ,
         "actual: logic:candidateCategory on <https://blackcatinformatics.ca/logic/candidateIntentNotEntailed> has no EL equivalent" ,
@@ -8147,6 +8568,7 @@
         "actual: logic:candidateContract on <https://blackcatinformatics.ca/logic/candidateFalsehoodIsRefutedClaim> has no EL equivalent" ,
         "actual: logic:candidateContract on <https://blackcatinformatics.ca/logic/candidateFrameRelativity> has no EL equivalent" ,
         "actual: logic:candidateContract on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no EL equivalent" ,
+        "actual: logic:candidateContract on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no EL equivalent" ,
         "actual: logic:candidateContract on <https://blackcatinformatics.ca/logic/candidateIndirectContributor> has no EL equivalent" ,
         "actual: logic:candidateContract on <https://blackcatinformatics.ca/logic/candidateInstantiatesWork> has no EL equivalent" ,
         "actual: logic:candidateContract on <https://blackcatinformatics.ca/logic/candidateIntentNotEntailed> has no EL equivalent" ,
@@ -8173,6 +8595,7 @@
         "actual: logic:candidateExtractionProvenance on <https://blackcatinformatics.ca/logic/candidateFalsehoodIsRefutedClaim> has no EL equivalent" ,
         "actual: logic:candidateExtractionProvenance on <https://blackcatinformatics.ca/logic/candidateFrameRelativity> has no EL equivalent" ,
         "actual: logic:candidateExtractionProvenance on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no EL equivalent" ,
+        "actual: logic:candidateExtractionProvenance on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no EL equivalent" ,
         "actual: logic:candidateExtractionProvenance on <https://blackcatinformatics.ca/logic/candidateIndirectContributor> has no EL equivalent" ,
         "actual: logic:candidateExtractionProvenance on <https://blackcatinformatics.ca/logic/candidateInstantiatesWork> has no EL equivalent" ,
         "actual: logic:candidateExtractionProvenance on <https://blackcatinformatics.ca/logic/candidateIntentNotEntailed> has no EL equivalent" ,
@@ -8192,6 +8615,7 @@
         "actual: logic:candidateFormalizes on <https://blackcatinformatics.ca/logic/candidateFalsehoodIsRefutedClaim> has no EL equivalent" ,
         "actual: logic:candidateFormalizes on <https://blackcatinformatics.ca/logic/candidateFrameRelativity> has no EL equivalent" ,
         "actual: logic:candidateFormalizes on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no EL equivalent" ,
+        "actual: logic:candidateFormalizes on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no EL equivalent" ,
         "actual: logic:candidateFormalizes on <https://blackcatinformatics.ca/logic/candidateIndirectContributor> has no EL equivalent" ,
         "actual: logic:candidateFormalizes on <https://blackcatinformatics.ca/logic/candidateInstantiatesWork> has no EL equivalent" ,
         "actual: logic:candidateFormalizes on <https://blackcatinformatics.ca/logic/candidateIntentNotEntailed> has no EL equivalent" ,
@@ -8212,6 +8636,7 @@
         "actual: logic:candidateLifecycle on <https://blackcatinformatics.ca/logic/candidateFalsehoodIsRefutedClaim> has no EL equivalent" ,
         "actual: logic:candidateLifecycle on <https://blackcatinformatics.ca/logic/candidateFrameRelativity> has no EL equivalent" ,
         "actual: logic:candidateLifecycle on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no EL equivalent" ,
+        "actual: logic:candidateLifecycle on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no EL equivalent" ,
         "actual: logic:candidateLifecycle on <https://blackcatinformatics.ca/logic/candidateIndirectContributor> has no EL equivalent" ,
         "actual: logic:candidateLifecycle on <https://blackcatinformatics.ca/logic/candidateInstantiatesWork> has no EL equivalent" ,
         "actual: logic:candidateLifecycle on <https://blackcatinformatics.ca/logic/candidateIntentNotEntailed> has no EL equivalent" ,
@@ -8232,6 +8657,7 @@
         "actual: logic:candidateNegativeCase on <https://blackcatinformatics.ca/logic/candidateFalsehoodIsRefutedClaim> has no EL equivalent" ,
         "actual: logic:candidateNegativeCase on <https://blackcatinformatics.ca/logic/candidateFrameRelativity> has no EL equivalent" ,
         "actual: logic:candidateNegativeCase on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no EL equivalent" ,
+        "actual: logic:candidateNegativeCase on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no EL equivalent" ,
         "actual: logic:candidateNegativeCase on <https://blackcatinformatics.ca/logic/candidateIndirectContributor> has no EL equivalent" ,
         "actual: logic:candidateNegativeCase on <https://blackcatinformatics.ca/logic/candidateInstantiatesWork> has no EL equivalent" ,
         "actual: logic:candidateNegativeCase on <https://blackcatinformatics.ca/logic/candidateLicensedFalsehoodNotDeception> has no EL equivalent" ,
@@ -8254,6 +8680,7 @@
         "actual: logic:candidatePositiveCase on <https://blackcatinformatics.ca/logic/candidateFalsehoodIsRefutedClaim> has no EL equivalent" ,
         "actual: logic:candidatePositiveCase on <https://blackcatinformatics.ca/logic/candidateFrameRelativity> has no EL equivalent" ,
         "actual: logic:candidatePositiveCase on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no EL equivalent" ,
+        "actual: logic:candidatePositiveCase on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no EL equivalent" ,
         "actual: logic:candidatePositiveCase on <https://blackcatinformatics.ca/logic/candidateIndirectContributor> has no EL equivalent" ,
         "actual: logic:candidatePositiveCase on <https://blackcatinformatics.ca/logic/candidateInstantiatesWork> has no EL equivalent" ,
         "actual: logic:candidatePositiveCase on <https://blackcatinformatics.ca/logic/candidateLicensedFalsehoodNotDeception> has no EL equivalent" ,
@@ -8274,6 +8701,7 @@
         "actual: logic:candidateProjectionBehavior on <https://blackcatinformatics.ca/logic/candidateFalsehoodIsRefutedClaim> has no EL equivalent" ,
         "actual: logic:candidateProjectionBehavior on <https://blackcatinformatics.ca/logic/candidateFrameRelativity> has no EL equivalent" ,
         "actual: logic:candidateProjectionBehavior on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no EL equivalent" ,
+        "actual: logic:candidateProjectionBehavior on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no EL equivalent" ,
         "actual: logic:candidateProjectionBehavior on <https://blackcatinformatics.ca/logic/candidateIndirectContributor> has no EL equivalent" ,
         "actual: logic:candidateProjectionBehavior on <https://blackcatinformatics.ca/logic/candidateInstantiatesWork> has no EL equivalent" ,
         "actual: logic:candidateProjectionBehavior on <https://blackcatinformatics.ca/logic/candidateIntentNotEntailed> has no EL equivalent" ,
@@ -8295,6 +8723,7 @@
         "actual: logic:candidateScope on <https://blackcatinformatics.ca/logic/candidateFalsehoodIsRefutedClaim> has no EL equivalent" ,
         "actual: logic:candidateScope on <https://blackcatinformatics.ca/logic/candidateFrameRelativity> has no EL equivalent" ,
         "actual: logic:candidateScope on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no EL equivalent" ,
+        "actual: logic:candidateScope on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no EL equivalent" ,
         "actual: logic:candidateScope on <https://blackcatinformatics.ca/logic/candidateIndirectContributor> has no EL equivalent" ,
         "actual: logic:candidateScope on <https://blackcatinformatics.ca/logic/candidateInstantiatesWork> has no EL equivalent" ,
         "actual: logic:candidateScope on <https://blackcatinformatics.ca/logic/candidateIntentNotEntailed> has no EL equivalent" ,
@@ -8316,6 +8745,7 @@
         "actual: logic:candidateSemanticRisk on <https://blackcatinformatics.ca/logic/candidateFalsehoodIsRefutedClaim> has no EL equivalent" ,
         "actual: logic:candidateSemanticRisk on <https://blackcatinformatics.ca/logic/candidateFrameRelativity> has no EL equivalent" ,
         "actual: logic:candidateSemanticRisk on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no EL equivalent" ,
+        "actual: logic:candidateSemanticRisk on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no EL equivalent" ,
         "actual: logic:candidateSemanticRisk on <https://blackcatinformatics.ca/logic/candidateIndirectContributor> has no EL equivalent" ,
         "actual: logic:candidateSemanticRisk on <https://blackcatinformatics.ca/logic/candidateInstantiatesWork> has no EL equivalent" ,
         "actual: logic:candidateSemanticRisk on <https://blackcatinformatics.ca/logic/candidateIntentNotEntailed> has no EL equivalent" ,
@@ -8335,6 +8765,7 @@
         "actual: logic:candidateSourceField on <https://blackcatinformatics.ca/logic/candidateFalsehoodIsRefutedClaim> has no EL equivalent" ,
         "actual: logic:candidateSourceField on <https://blackcatinformatics.ca/logic/candidateFrameRelativity> has no EL equivalent" ,
         "actual: logic:candidateSourceField on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no EL equivalent" ,
+        "actual: logic:candidateSourceField on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no EL equivalent" ,
         "actual: logic:candidateSourceField on <https://blackcatinformatics.ca/logic/candidateIndirectContributor> has no EL equivalent" ,
         "actual: logic:candidateSourceField on <https://blackcatinformatics.ca/logic/candidateInstantiatesWork> has no EL equivalent" ,
         "actual: logic:candidateSourceField on <https://blackcatinformatics.ca/logic/candidateIntentNotEntailed> has no EL equivalent" ,
@@ -8355,6 +8786,7 @@
         "actual: logic:candidateSourceHash on <https://blackcatinformatics.ca/logic/candidateFalsehoodIsRefutedClaim> has no EL equivalent" ,
         "actual: logic:candidateSourceHash on <https://blackcatinformatics.ca/logic/candidateFrameRelativity> has no EL equivalent" ,
         "actual: logic:candidateSourceHash on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no EL equivalent" ,
+        "actual: logic:candidateSourceHash on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no EL equivalent" ,
         "actual: logic:candidateSourceHash on <https://blackcatinformatics.ca/logic/candidateIndirectContributor> has no EL equivalent" ,
         "actual: logic:candidateSourceHash on <https://blackcatinformatics.ca/logic/candidateInstantiatesWork> has no EL equivalent" ,
         "actual: logic:candidateSourceHash on <https://blackcatinformatics.ca/logic/candidateIntentNotEntailed> has no EL equivalent" ,
@@ -8428,6 +8860,7 @@
         "actual: logic:formalizes on <https://blackcatinformatics.ca/logic/overridesIrreflexivity> has no EL equivalent" ,
         "actual: logic:formalizes on <https://blackcatinformatics.ca/logic/partOfTransitivity> has no EL equivalent" ,
         "actual: logic:formalizes on <https://blackcatinformatics.ca/logic/precedenceTenureDistinctness> has no EL equivalent" ,
+        "actual: logic:formalizes on <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> has no EL equivalent" ,
         "actual: logic:formalizes on <https://blackcatinformatics.ca/logic/ruleIndirectContributor> has no EL equivalent" ,
         "actual: logic:formalizes on <https://blackcatinformatics.ca/logic/ruleInstantiatesWork> has no EL equivalent" ,
         "actual: logic:formalizes on <https://blackcatinformatics.ca/logic/ruleOrgMembershipPropagation> has no EL equivalent" ,
@@ -8437,6 +8870,7 @@
         "actual: logic:formalizes on <https://blackcatinformatics.ca/logic/subEventOfTransitivity> has no EL equivalent" ,
         "actual: logic:formalizes on <https://blackcatinformatics.ca/logic/versionOfFunctionality> has no EL equivalent" ,
         "actual: logic:hasThresholdRow on <https://blackcatinformatics.ca/logic/defaultLadderProfile> has no EL equivalent" ,
+        "actual: logic:head on <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> has no EL equivalent" ,
         "actual: logic:head on <https://blackcatinformatics.ca/logic/ruleIndirectContributor> has no EL equivalent" ,
         "actual: logic:head on <https://blackcatinformatics.ca/logic/ruleInstantiatesWork> has no EL equivalent" ,
         "actual: logic:head on <https://blackcatinformatics.ca/logic/ruleOrgMembershipPropagation> has no EL equivalent" ,
@@ -8503,6 +8937,7 @@
         "actual: logic:proseFieldProperty on <https://blackcatinformatics.ca/logic/ProseFieldAvoidWhen> has no EL equivalent" ,
         "actual: logic:proseFieldProperty on <https://blackcatinformatics.ca/logic/ProseFieldDefinition> has no EL equivalent" ,
         "actual: logic:proseFieldProperty on <https://blackcatinformatics.ca/logic/ProseFieldUseWhen> has no EL equivalent" ,
+        "actual: logic:provenance on <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> has no EL equivalent" ,
         "actual: logic:provenance on <https://blackcatinformatics.ca/logic/ruleIndirectContributor> has no EL equivalent" ,
         "actual: logic:provenance on <https://blackcatinformatics.ca/logic/ruleInstantiatesWork> has no EL equivalent" ,
         "actual: logic:provenance on <https://blackcatinformatics.ca/logic/ruleOrgMembershipPropagation> has no EL equivalent" ,
@@ -8521,6 +8956,7 @@
         "actual: logic:reviewedBy on <https://blackcatinformatics.ca/logic/candidateFalsehoodIsRefutedClaim> has no EL equivalent" ,
         "actual: logic:reviewedBy on <https://blackcatinformatics.ca/logic/candidateFrameRelativity> has no EL equivalent" ,
         "actual: logic:reviewedBy on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no EL equivalent" ,
+        "actual: logic:reviewedBy on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no EL equivalent" ,
         "actual: logic:reviewedBy on <https://blackcatinformatics.ca/logic/candidateIndirectContributor> has no EL equivalent" ,
         "actual: logic:reviewedBy on <https://blackcatinformatics.ca/logic/candidateInstantiatesWork> has no EL equivalent" ,
         "actual: logic:reviewedBy on <https://blackcatinformatics.ca/logic/candidateIntentNotEntailed> has no EL equivalent" ,
@@ -8555,6 +8991,7 @@
         "actual: rule head <?agent> dropped (EL has no rule surface)" ,
         "actual: rule head <?claim> dropped (EL has no rule surface)" ,
         "actual: rule head <?entity> dropped (EL has no rule surface)" ,
+        "actual: rule head <?finding> dropped (EL has no rule surface)" ,
         "actual: rule head <?item> dropped (EL has no rule surface)" ,
         "contextual scope (standpoint, time, confidence) is dropped" ,
         "modal/world context is erased" ,
@@ -8562,6 +8999,16 @@
         "rules beyond EL expressivity are dropped" ,
         "transaction-path evolution has no faithful OWL EL projection: serial conjunction, executional entailment over a path of states, elementary update as supersession, the hypothetical-execution sandbox and its discarded-run witness, and concurrent composition with conflict-serializability have no OWL axiom form and are dropped — OWL describes a single static state, not a transaction path" ;
     logic:complexityClass "PTIME" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
+<https://blackcatinformatics.ca/logic/target/semaf:forms-and-sign-systems#denCatsChaseMice>
+    a logic:ProjectionTarget ;
+    rdfs:label "semaf:forms-and-sign-systems#denCatsChaseMice" ;
+    gmeow:lossyDrop "actual: AMR / SemAF carry no vantage: perspectival / standpoint support is dropped" ,
+        "actual: AMR has no modality depth: modal operators in the denotation collapse" ,
+        "actual: AMR has no quantifier scope: quantifier scoping in the logic: formula is not carried" ,
+        "actual: SemAF role inventory is coarser than the full logic: predicate-argument structure" ;
+    logic:complexityClass "n/a" ;
     logic:preservationKind logic:SoundUnderApproximation .
 
 <https://blackcatinformatics.ca/logic/target/shacl-af>
@@ -8729,6 +9176,20 @@
         "actual: ground axiom <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> <https://blackcatinformatics.ca/logic/candidateSourceField> <https://blackcatinformatics.ca/logic/ProseFieldDefinition> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
         "actual: ground axiom <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> <https://blackcatinformatics.ca/logic/candidateSourceHash> \"sha256:ae6ffde78c8d4cd93cdb0d06ee67fd15ab46573e7aa4f1fe5f2ee2dd209cb529\" is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
         "actual: ground axiom <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> <https://blackcatinformatics.ca/logic/reviewedBy> <https://blackcatinformatics.ca/logic/reviewerLogicFoundation> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> <https://blackcatinformatics.ca/logic/candidateCategory> <https://blackcatinformatics.ca/logic/CategoryDerivationRule> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> <https://blackcatinformatics.ca/logic/candidateContract> <https://blackcatinformatics.ca/logic/PositiveHornProfile> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> <https://blackcatinformatics.ca/logic/candidateExtractionProvenance> \"hand-harvested from gmeow:findingGateVerdict's skos:definition, which states the verdict is derived on exactly the principal up-set ↑(Error, Blocking, Binding) of the truth ordering, mirroring the Rust gmeow_errors::grade::gate() morphism (design/LOGIC-FOUNDATION.md, §Typed formalization governance)\" is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> <https://blackcatinformatics.ca/logic/candidateFormalizes> <https://blackcatinformatics.ca/gmeow/findingGateVerdict> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> <https://blackcatinformatics.ca/logic/candidateLifecycle> <https://blackcatinformatics.ca/logic/CandidateAccepted> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> <https://blackcatinformatics.ca/logic/candidateNegativeCase> <https://blackcatinformatics.ca/logic/cqGateFatalAdvisoryNeverFatalRejected> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> <https://blackcatinformatics.ca/logic/candidateNegativeCase> <https://blackcatinformatics.ca/logic/cqGateFatalPermittedConflictNeverFatalRejected> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> <https://blackcatinformatics.ca/logic/candidatePositiveCase> <https://blackcatinformatics.ca/logic/cqGateFatalVerdictHolds> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> <https://blackcatinformatics.ca/logic/candidateProjectionBehavior> <https://blackcatinformatics.ca/logic/ExactPreservation> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> <https://blackcatinformatics.ca/logic/candidateScope> \"derivation: (gmeow:findingSeverity gmeow:severityError) ∧ (gmeow:findingCategory ∘ gmeow:categoryBlocking gmeow:blockingBlocking) ∧ (gmeow:findingStandpoint gmeow:standpointBinding) ⇒ gmeow:findingGateVerdict gmeow:gateFatal\" is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> <https://blackcatinformatics.ca/logic/candidateSemanticRisk> <https://blackcatinformatics.ca/logic/RiskCoreContaminating> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> <https://blackcatinformatics.ca/logic/candidateSourceField> <https://blackcatinformatics.ca/logic/ProseFieldDefinition> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> <https://blackcatinformatics.ca/logic/candidateSourceHash> \"sha256:e12a391fb8dfadd6f26028567308db254ed169b158f4320f05e527c59b376359\" is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> <https://blackcatinformatics.ca/logic/reviewedBy> <https://blackcatinformatics.ca/logic/reviewerLogicFoundation> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
         "actual: ground axiom <https://blackcatinformatics.ca/logic/candidateIndirectContributor> <https://blackcatinformatics.ca/logic/candidateCategory> <https://blackcatinformatics.ca/logic/CategoryDerivationRule> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
         "actual: ground axiom <https://blackcatinformatics.ca/logic/candidateIndirectContributor> <https://blackcatinformatics.ca/logic/candidateContract> <https://blackcatinformatics.ca/logic/PositiveHornProfile> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
         "actual: ground axiom <https://blackcatinformatics.ca/logic/candidateIndirectContributor> <https://blackcatinformatics.ca/logic/candidateExtractionProvenance> \"hand-harvested from gmeow:indirectContributor's skos:definition, which states an entity's indirect contributors are the agents reached by composing gmeow:wasGeneratedBy with gmeow:wasAssociatedWith (design/LOGIC-FOUNDATION.md, §Typed formalization governance)\" is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
@@ -8965,84 +9426,91 @@
         "actual: ground axiom <https://blackcatinformatics.ca/logic/probability> <https://blackcatinformatics.ca/logic/instantiatesFramework> <https://blackcatinformatics.ca/logic/ProbabilisticFramework> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
         "actual: ground axiom <https://blackcatinformatics.ca/logic/properPartOf> <https://blackcatinformatics.ca/logic/instantiatesFramework> <https://blackcatinformatics.ca/logic/MereologicalFramework> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
         "actual: ground axiom <https://blackcatinformatics.ca/logic/rigidlyAppliesTo> <https://blackcatinformatics.ca/logic/instantiatesFramework> <https://blackcatinformatics.ca/logic/ModalFramework> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
-        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleIndirectContributor> <https://blackcatinformatics.ca/logic/body> <c14n27> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
-        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleIndirectContributor> <https://blackcatinformatics.ca/logic/body> <c14n44> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> <https://blackcatinformatics.ca/logic/body> <c14n19> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> <https://blackcatinformatics.ca/logic/body> <c14n28> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> <https://blackcatinformatics.ca/logic/body> <c14n62> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> <https://blackcatinformatics.ca/logic/body> <c14n9> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> <https://blackcatinformatics.ca/logic/formalizes> <https://blackcatinformatics.ca/gmeow/findingGateVerdict> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> <https://blackcatinformatics.ca/logic/head> <c14n18> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> <https://blackcatinformatics.ca/logic/provenance> <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleIndirectContributor> <https://blackcatinformatics.ca/logic/body> <c14n31> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleIndirectContributor> <https://blackcatinformatics.ca/logic/body> <c14n48> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
         "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleIndirectContributor> <https://blackcatinformatics.ca/logic/formalizes> <https://blackcatinformatics.ca/gmeow/indirectContributor> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
-        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleIndirectContributor> <https://blackcatinformatics.ca/logic/head> <c14n24> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleIndirectContributor> <https://blackcatinformatics.ca/logic/head> <c14n27> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
         "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleIndirectContributor> <https://blackcatinformatics.ca/logic/provenance> <https://blackcatinformatics.ca/logic/ruleIndirectContributor> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
-        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleInstantiatesWork> <https://blackcatinformatics.ca/logic/body> <c14n18> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
-        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleInstantiatesWork> <https://blackcatinformatics.ca/logic/body> <c14n30> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
-        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleInstantiatesWork> <https://blackcatinformatics.ca/logic/body> <c14n37> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleInstantiatesWork> <https://blackcatinformatics.ca/logic/body> <c14n21> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleInstantiatesWork> <https://blackcatinformatics.ca/logic/body> <c14n34> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleInstantiatesWork> <https://blackcatinformatics.ca/logic/body> <c14n41> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
         "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleInstantiatesWork> <https://blackcatinformatics.ca/logic/formalizes> <https://blackcatinformatics.ca/gmeow/instantiatesWork> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
-        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleInstantiatesWork> <https://blackcatinformatics.ca/logic/head> <c14n10> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleInstantiatesWork> <https://blackcatinformatics.ca/logic/head> <c14n11> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
         "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleInstantiatesWork> <https://blackcatinformatics.ca/logic/provenance> <https://blackcatinformatics.ca/logic/ruleInstantiatesWork> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
-        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleOrgMembershipPropagation> <https://blackcatinformatics.ca/logic/body> <c14n35> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
-        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleOrgMembershipPropagation> <https://blackcatinformatics.ca/logic/body> <c14n55> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleOrgMembershipPropagation> <https://blackcatinformatics.ca/logic/body> <c14n39> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleOrgMembershipPropagation> <https://blackcatinformatics.ca/logic/body> <c14n59> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
         "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleOrgMembershipPropagation> <https://blackcatinformatics.ca/logic/formalizes> <https://blackcatinformatics.ca/gmeow/memberOf> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
-        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleOrgMembershipPropagation> <https://blackcatinformatics.ca/logic/head> <c14n22> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleOrgMembershipPropagation> <https://blackcatinformatics.ca/logic/head> <c14n25> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
         "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleOrgMembershipPropagation> <https://blackcatinformatics.ca/logic/provenance> <https://blackcatinformatics.ca/logic/ruleOrgMembershipPropagation> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
-        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n12> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
-        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n14> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
-        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n17> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
-        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n19> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n13> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n15> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
         "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n1> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
-        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n26> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
-        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n28> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n20> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n22> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
         "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n2> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n30> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
         "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n32> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
-        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n33> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
-        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n34> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
-        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n42> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
-        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n48> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
-        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n49> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n36> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n37> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n38> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n46> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
         "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n52> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
-        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n58> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
-        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n62> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n53> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n56> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n63> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n67> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
         "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n7> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
-        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/head> <c14n59> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/head> <c14n64> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
         "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/provenance> <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
-        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf> <https://blackcatinformatics.ca/logic/body> <c14n20> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
         "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf> <https://blackcatinformatics.ca/logic/body> <c14n23> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
-        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf> <https://blackcatinformatics.ca/logic/body> <c14n25> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
-        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf> <https://blackcatinformatics.ca/logic/body> <c14n36> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
-        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf> <https://blackcatinformatics.ca/logic/body> <c14n38> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
-        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf> <https://blackcatinformatics.ca/logic/body> <c14n43> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf> <https://blackcatinformatics.ca/logic/body> <c14n26> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf> <https://blackcatinformatics.ca/logic/body> <c14n29> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf> <https://blackcatinformatics.ca/logic/body> <c14n40> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf> <https://blackcatinformatics.ca/logic/body> <c14n42> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
         "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf> <https://blackcatinformatics.ca/logic/body> <c14n47> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf> <https://blackcatinformatics.ca/logic/body> <c14n51> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
         "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf> <https://blackcatinformatics.ca/logic/body> <c14n5> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
         "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf> <https://blackcatinformatics.ca/logic/body> <c14n6> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
         "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf> <https://blackcatinformatics.ca/logic/head> <c14n8> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
         "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf> <https://blackcatinformatics.ca/logic/provenance> <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
         "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> <https://blackcatinformatics.ca/logic/body> <c14n0> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
-        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> <https://blackcatinformatics.ca/logic/body> <c14n11> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
-        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> <https://blackcatinformatics.ca/logic/body> <c14n15> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> <https://blackcatinformatics.ca/logic/body> <c14n12> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
         "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> <https://blackcatinformatics.ca/logic/body> <c14n16> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
-        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> <https://blackcatinformatics.ca/logic/body> <c14n21> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
-        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> <https://blackcatinformatics.ca/logic/body> <c14n31> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> <https://blackcatinformatics.ca/logic/body> <c14n17> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> <https://blackcatinformatics.ca/logic/body> <c14n24> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> <https://blackcatinformatics.ca/logic/body> <c14n35> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
         "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> <https://blackcatinformatics.ca/logic/body> <c14n3> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
-        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> <https://blackcatinformatics.ca/logic/body> <c14n50> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
-        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> <https://blackcatinformatics.ca/logic/body> <c14n61> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
-        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> <https://blackcatinformatics.ca/logic/head> <c14n56> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> <https://blackcatinformatics.ca/logic/body> <c14n54> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> <https://blackcatinformatics.ca/logic/body> <c14n66> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> <https://blackcatinformatics.ca/logic/head> <c14n60> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
         "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> <https://blackcatinformatics.ca/logic/provenance> <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
-        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> <https://blackcatinformatics.ca/logic/body> <c14n13> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
-        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> <https://blackcatinformatics.ca/logic/body> <c14n40> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
-        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> <https://blackcatinformatics.ca/logic/body> <c14n46> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> <https://blackcatinformatics.ca/logic/body> <c14n10> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> <https://blackcatinformatics.ca/logic/body> <c14n14> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> <https://blackcatinformatics.ca/logic/body> <c14n44> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
         "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> <https://blackcatinformatics.ca/logic/body> <c14n4> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
-        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> <https://blackcatinformatics.ca/logic/body> <c14n57> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
-        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> <https://blackcatinformatics.ca/logic/body> <c14n60> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
-        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> <https://blackcatinformatics.ca/logic/body> <c14n63> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
-        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> <https://blackcatinformatics.ca/logic/body> <c14n64> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
-        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> <https://blackcatinformatics.ca/logic/body> <c14n9> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
-        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> <https://blackcatinformatics.ca/logic/head> <c14n51> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> <https://blackcatinformatics.ca/logic/body> <c14n50> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> <https://blackcatinformatics.ca/logic/body> <c14n61> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> <https://blackcatinformatics.ca/logic/body> <c14n65> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> <https://blackcatinformatics.ca/logic/body> <c14n68> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> <https://blackcatinformatics.ca/logic/body> <c14n69> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> <https://blackcatinformatics.ca/logic/head> <c14n55> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
         "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> <https://blackcatinformatics.ca/logic/provenance> <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
-        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleTenureClaimObservedFeature> <https://blackcatinformatics.ca/logic/body> <c14n41> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
-        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleTenureClaimObservedFeature> <https://blackcatinformatics.ca/logic/body> <c14n53> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleTenureClaimObservedFeature> <https://blackcatinformatics.ca/logic/body> <c14n45> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleTenureClaimObservedFeature> <https://blackcatinformatics.ca/logic/body> <c14n57> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
         "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleTenureClaimObservedFeature> <https://blackcatinformatics.ca/logic/formalizes> <https://blackcatinformatics.ca/gmeow/StandpointTenure> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
-        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleTenureClaimObservedFeature> <https://blackcatinformatics.ca/logic/head> <c14n39> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleTenureClaimObservedFeature> <https://blackcatinformatics.ca/logic/head> <c14n43> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
         "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleTenureClaimObservedFeature> <https://blackcatinformatics.ca/logic/provenance> <https://blackcatinformatics.ca/logic/ruleTenureClaimObservedFeature> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
-        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleTenureClaimVantage> <https://blackcatinformatics.ca/logic/body> <c14n45> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
-        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleTenureClaimVantage> <https://blackcatinformatics.ca/logic/body> <c14n54> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleTenureClaimVantage> <https://blackcatinformatics.ca/logic/body> <c14n49> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleTenureClaimVantage> <https://blackcatinformatics.ca/logic/body> <c14n58> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
         "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleTenureClaimVantage> <https://blackcatinformatics.ca/logic/formalizes> <https://blackcatinformatics.ca/gmeow/StandpointTenure> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
-        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleTenureClaimVantage> <https://blackcatinformatics.ca/logic/head> <c14n29> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleTenureClaimVantage> <https://blackcatinformatics.ca/logic/head> <c14n33> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
         "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleTenureClaimVantage> <https://blackcatinformatics.ca/logic/provenance> <https://blackcatinformatics.ca/logic/ruleTenureClaimVantage> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
         "actual: ground axiom <https://blackcatinformatics.ca/logic/sharpensTransitivity> <https://blackcatinformatics.ca/logic/characteristicSort> <https://blackcatinformatics.ca/logic/transitiveProperty> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
         "actual: ground axiom <https://blackcatinformatics.ca/logic/sharpensTransitivity> <https://blackcatinformatics.ca/logic/characterizes> <https://blackcatinformatics.ca/gmeow/sharpens> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
@@ -9334,6 +9802,46 @@
         "actual: terminology binding on https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/termBinding to SNOMED-CT (4 code(s)) has no faithful SHACL Core form; carried in the canonical logic: layer" ,
         "everything SHACL Core drops (regex dialect, external terminology) is also dropped by ShEx, plus the ShEx-only drops above (a strictly larger residue set)" ;
     logic:complexityClass "closed-world shape validation (ShEx, strictly narrower than SHACL Core)" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/sparql-put:0ecf06a76a4e1fd0>
+    a logic:ProjectionTarget ;
+    rdfs:label "sparql-put:0ecf06a76a4e1fd0" ;
+    gmeow:lossyDrop "actual: a bare mls:Implementation lift mints a gmeow:ModelDeployment whose service·host·endpoint·serving-interval binding and the gmeow:DigitalSubjectTenure the relator would carry are absent from the source and are NOT synthesized — disclosed here as residue, never fabricated" ,
+        "actual: correspondence: mapMlsImplementation::ml-schema" ,
+        "durable subject, gmeow:DigitalSubjectTenure, distribution/versioning framing, and attributed provenance absent from the external source are disclosed as residue and NOT synthesized" ,
+        "the inverse-ingest up-lift is validation-only mint-with-claim: minted nodes/edges are marked import-derived (gmeow:wasGeneratedBy / gmeow:mappedFrom), not asserted as extracted fact" ;
+    logic:complexityClass "terminating/PTIME-data" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/sparql-put:15070cd3ee9cb68d>
+    a logic:ProjectionTarget ;
+    rdfs:label "sparql-put:15070cd3ee9cb68d" ;
+    gmeow:lossyDrop "actual: a bare mls:Model lift mints a gmeow:ModelArtifact whose content-digest, distribution/versioning framing, and the gmeow:DigitalSubjectTenure that would give the artifact a durable subject are not present in the source and are NOT synthesized — disclosed here as residue, never fabricated" ,
+        "actual: correspondence: mapMlsModel::ml-schema" ,
+        "durable subject, gmeow:DigitalSubjectTenure, distribution/versioning framing, and attributed provenance absent from the external source are disclosed as residue and NOT synthesized" ,
+        "the inverse-ingest up-lift is validation-only mint-with-claim: minted nodes/edges are marked import-derived (gmeow:wasGeneratedBy / gmeow:mappedFrom), not asserted as extracted fact" ;
+    logic:complexityClass "terminating/PTIME-data" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/sparql-put:5760705e166248fd>
+    a logic:ProjectionTarget ;
+    rdfs:label "sparql-put:5760705e166248fd" ;
+    gmeow:lossyDrop "actual: a bare mls:executes link lifts to gmeow:executionOfDeployment; the deployment's artifact·host·endpoint·interval binding and the gmeow:DigitalSubjectTenure that would anchor the execution to a durable subject are not present in the source and are NOT synthesized — disclosed here as residue, never fabricated" ,
+        "actual: correspondence: mapMlsExecutes::ml-schema" ,
+        "durable subject, gmeow:DigitalSubjectTenure, distribution/versioning framing, and attributed provenance absent from the external source are disclosed as residue and NOT synthesized" ,
+        "the inverse-ingest up-lift is validation-only mint-with-claim: minted nodes/edges are marked import-derived (gmeow:wasGeneratedBy / gmeow:mappedFrom), not asserted as extracted fact" ;
+    logic:complexityClass "terminating/PTIME-data" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/sparql-put:60068eabb023f33e>
+    a logic:ProjectionTarget ;
+    rdfs:label "sparql-put:60068eabb023f33e" ;
+    gmeow:lossyDrop "actual: a bare mls:Run lift mints a gmeow:RuntimeExecution whose durable subject, gmeow:DigitalSubjectTenure, attributed provenance, gmeow:InhabitationClaim, and gmeow:ModelInvocation sub-events are not present in the source and are NOT synthesized — disclosed here as residue, never fabricated" ,
+        "actual: correspondence: mapMlsRun::ml-schema" ,
+        "durable subject, gmeow:DigitalSubjectTenure, distribution/versioning framing, and attributed provenance absent from the external source are disclosed as residue and NOT synthesized" ,
+        "the inverse-ingest up-lift is validation-only mint-with-claim: minted nodes/edges are marked import-derived (gmeow:wasGeneratedBy / gmeow:mappedFrom), not asserted as extracted fact" ;
+    logic:complexityClass "terminating/PTIME-data" ;
     logic:preservationKind logic:ValidationOnly .
 
 <https://blackcatinformatics.ca/logic/target/sparql:011d28b7ee1ca288>
@@ -15712,6 +16220,17 @@
     logic:complexityClass "N/A (1:1 lattice band)" ;
     logic:preservationKind logic:SoundUnderApproximation .
 
+<https://blackcatinformatics.ca/logic/target/sssom:02c76297b36df776>
+    a logic:ProjectionTarget ;
+    rdfs:label "sssom:02c76297b36df776" ;
+    gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/math/OptimizationProblem|http://www.w3.org/2004/02/skos/core#closeMatch|http://www.wikidata.org/entity/Q141495" ,
+        "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
+        "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
+        "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
+        "world/standpoint scope and the put leg are not carried" ;
+    logic:complexityClass "N/A (1:1 lattice band)" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
 <https://blackcatinformatics.ca/logic/target/sssom:02ebd085c63d75d8>
     a logic:ProjectionTarget ;
     rdfs:label "sssom:02ebd085c63d75d8" ;
@@ -15914,6 +16433,17 @@
     a logic:ProjectionTarget ;
     rdfs:label "sssom:0529c5531ae9c5d5" ;
     gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/gmeow/asGeoJSON|http://www.w3.org/2004/02/skos/core#closeMatch|http://www.opengis.net/ont/geosparql#asGeoJSON" ,
+        "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
+        "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
+        "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
+        "world/standpoint scope and the put leg are not carried" ;
+    logic:complexityClass "N/A (1:1 lattice band)" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
+<https://blackcatinformatics.ca/logic/target/sssom:0532dfee142a4861>
+    a logic:ProjectionTarget ;
+    rdfs:label "sssom:0532dfee142a4861" ;
+    gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/gmeow/examples/lang/senseCat|http://www.w3.org/2004/02/skos/core#closeMatch|http://www.wikidata.org/entity/Q146" ,
         "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
         "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
         "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
@@ -16724,6 +17254,17 @@
     logic:complexityClass "N/A (1:1 lattice band)" ;
     logic:preservationKind logic:SoundUnderApproximation .
 
+<https://blackcatinformatics.ca/logic/target/sssom:0fe6c74597f8012a>
+    a logic:ProjectionTarget ;
+    rdfs:label "sssom:0fe6c74597f8012a" ;
+    gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/gmeow/examples/lang/senseCat|http://www.w3.org/2004/02/skos/core#closeMatch|http://www.wikidata.org/entity/L7-S1" ,
+        "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
+        "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
+        "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
+        "world/standpoint scope and the put leg are not carried" ;
+    logic:complexityClass "N/A (1:1 lattice band)" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
 <https://blackcatinformatics.ca/logic/target/sssom:101a666aba768a94>
     a logic:ProjectionTarget ;
     rdfs:label "sssom:101a666aba768a94" ;
@@ -17373,6 +17914,17 @@
     logic:complexityClass "N/A (1:1 lattice band)" ;
     logic:preservationKind logic:SoundUnderApproximation .
 
+<https://blackcatinformatics.ca/logic/target/sssom:17d3074f4de27dce>
+    a logic:ProjectionTarget ;
+    rdfs:label "sssom:17d3074f4de27dce" ;
+    gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/math/Subspace|http://www.w3.org/2004/02/skos/core#exactMatch|http://www.wikidata.org/entity/Q728435" ,
+        "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
+        "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
+        "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
+        "world/standpoint scope and the put leg are not carried" ;
+    logic:complexityClass "N/A (1:1 lattice band)" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
 <https://blackcatinformatics.ca/logic/target/sssom:17f4371fbcf53917>
     a logic:ProjectionTarget ;
     rdfs:label "sssom:17f4371fbcf53917" ;
@@ -17421,6 +17973,17 @@
     a logic:ProjectionTarget ;
     rdfs:label "sssom:184cbf9633b31256" ;
     gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/gmeow/facetStepFree|http://www.w3.org/2004/02/skos/core#closeMatch|http://hl7.org/fhir/sid/icf#d4" ,
+        "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
+        "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
+        "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
+        "world/standpoint scope and the put leg are not carried" ;
+    logic:complexityClass "N/A (1:1 lattice band)" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
+<https://blackcatinformatics.ca/logic/target/sssom:186a634a7b849db5>
+    a logic:ProjectionTarget ;
+    rdfs:label "sssom:186a634a7b849db5" ;
+    gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/math/KnowledgeGraphEmbedding|http://www.w3.org/2004/02/skos/core#exactMatch|http://www.wikidata.org/entity/Q33003557" ,
         "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
         "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
         "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
@@ -18224,6 +18787,17 @@
     a logic:ProjectionTarget ;
     rdfs:label "sssom:214bb3278139a919" ;
     gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/math/errorFunction|http://www.w3.org/2004/02/skos/core#relatedMatch|https://dlmf.nist.gov/7" ,
+        "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
+        "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
+        "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
+        "world/standpoint scope and the put leg are not carried" ;
+    logic:complexityClass "N/A (1:1 lattice band)" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
+<https://blackcatinformatics.ca/logic/target/sssom:218603811475e283>
+    a logic:ProjectionTarget ;
+    rdfs:label "sssom:218603811475e283" ;
+    gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/gmeow/examples/lang/lexMouse|http://www.w3.org/2004/02/skos/core#closeMatch|http://www.wikidata.org/entity/L1119" ,
         "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
         "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
         "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
@@ -20347,6 +20921,17 @@
     a logic:ProjectionTarget ;
     rdfs:label "sssom:3a45d5689f205c28" ;
     gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/gmeow/depictedIn|http://www.w3.org/2004/02/skos/core#closeMatch|https://schema.org/image" ,
+        "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
+        "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
+        "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
+        "world/standpoint scope and the put leg are not carried" ;
+    logic:complexityClass "N/A (1:1 lattice band)" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
+<https://blackcatinformatics.ca/logic/target/sssom:3a4f76f3c5f040b7>
+    a logic:ProjectionTarget ;
+    rdfs:label "sssom:3a4f76f3c5f040b7" ;
+    gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/math/SingularValueDecomposition|http://www.w3.org/2004/02/skos/core#exactMatch|http://www.wikidata.org/entity/Q420904" ,
         "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
         "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
         "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
@@ -22665,6 +23250,17 @@
     logic:complexityClass "N/A (1:1 lattice band)" ;
     logic:preservationKind logic:SoundUnderApproximation .
 
+<https://blackcatinformatics.ca/logic/target/sssom:54874a64ea45feee>
+    a logic:ProjectionTarget ;
+    rdfs:label "sssom:54874a64ea45feee" ;
+    gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/math/PCAAnalysis|http://www.w3.org/2004/02/skos/core#exactMatch|http://www.wikidata.org/entity/Q2873" ,
+        "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
+        "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
+        "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
+        "world/standpoint scope and the put leg are not carried" ;
+    logic:complexityClass "N/A (1:1 lattice band)" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
 <https://blackcatinformatics.ca/logic/target/sssom:548c3be15736f4f8>
     a logic:ProjectionTarget ;
     rdfs:label "sssom:548c3be15736f4f8" ;
@@ -23197,6 +23793,17 @@
     a logic:ProjectionTarget ;
     rdfs:label "sssom:599d0b56b1f9a644" ;
     gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/gmeow/namePartSurname|http://www.w3.org/2004/02/skos/core#closeMatch|http://www.wikidata.org/prop/direct/P734" ,
+        "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
+        "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
+        "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
+        "world/standpoint scope and the put leg are not carried" ;
+    logic:complexityClass "N/A (1:1 lattice band)" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
+<https://blackcatinformatics.ca/logic/target/sssom:59ab4b7b4c791775>
+    a logic:ProjectionTarget ;
+    rdfs:label "sssom:59ab4b7b4c791775" ;
+    gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/gmeow/examples/lang/lexChase|http://www.w3.org/2004/02/skos/core#closeMatch|http://www.wikidata.org/entity/L14462" ,
         "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
         "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
         "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
@@ -24607,6 +25214,17 @@
     a logic:ProjectionTarget ;
     rdfs:label "sssom:698a2c052d9b8b94" ;
     gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/gmeow/Mark|http://www.w3.org/2004/02/skos/core#closeMatch|http://www.wikidata.org/entity/Q431289" ,
+        "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
+        "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
+        "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
+        "world/standpoint scope and the put leg are not carried" ;
+    logic:complexityClass "N/A (1:1 lattice band)" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
+<https://blackcatinformatics.ca/logic/target/sssom:69c70f66c0d37aa8>
+    a logic:ProjectionTarget ;
+    rdfs:label "sssom:69c70f66c0d37aa8" ;
+    gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/gmeow/examples/lang/senseMouse|http://www.w3.org/2004/02/skos/core#closeMatch|http://www.wikidata.org/entity/L1119-S1" ,
         "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
         "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
         "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
@@ -26235,6 +26853,17 @@
     a logic:ProjectionTarget ;
     rdfs:label "sssom:7d70cd7a16ae2358" ;
     gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/gmeow/actionInstall|http://www.w3.org/2004/02/skos/core#exactMatch|http://www.w3.org/ns/odrl/2/install" ,
+        "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
+        "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
+        "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
+        "world/standpoint scope and the put leg are not carried" ;
+    logic:complexityClass "N/A (1:1 lattice band)" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
+<https://blackcatinformatics.ca/logic/target/sssom:7d85b1dffe9ed77b>
+    a logic:ProjectionTarget ;
+    rdfs:label "sssom:7d85b1dffe9ed77b" ;
+    gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/math/InnerProductSpace|http://www.w3.org/2004/02/skos/core#exactMatch|http://www.wikidata.org/entity/Q214159" ,
         "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
         "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
         "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
@@ -28707,6 +29336,17 @@
     logic:complexityClass "N/A (1:1 lattice band)" ;
     logic:preservationKind logic:SoundUnderApproximation .
 
+<https://blackcatinformatics.ca/logic/target/sssom:9c978cf55e442141>
+    a logic:ProjectionTarget ;
+    rdfs:label "sssom:9c978cf55e442141" ;
+    gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/math/LinearMap|http://www.w3.org/2004/02/skos/core#exactMatch|http://www.wikidata.org/entity/Q207643" ,
+        "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
+        "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
+        "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
+        "world/standpoint scope and the put leg are not carried" ;
+    logic:complexityClass "N/A (1:1 lattice band)" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
 <https://blackcatinformatics.ca/logic/target/sssom:9ca706dbc5ca5429>
     a logic:ProjectionTarget ;
     rdfs:label "sssom:9ca706dbc5ca5429" ;
@@ -29631,6 +30271,17 @@
     logic:complexityClass "N/A (1:1 lattice band)" ;
     logic:preservationKind logic:SoundUnderApproximation .
 
+<https://blackcatinformatics.ca/logic/target/sssom:a91ce9342726c006>
+    a logic:ProjectionTarget ;
+    rdfs:label "sssom:a91ce9342726c006" ;
+    gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/math/OrthogonalComplement|http://www.w3.org/2004/02/skos/core#exactMatch|http://www.wikidata.org/entity/Q1780921" ,
+        "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
+        "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
+        "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
+        "world/standpoint scope and the put leg are not carried" ;
+    logic:complexityClass "N/A (1:1 lattice band)" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
 <https://blackcatinformatics.ca/logic/target/sssom:a929e9494e5b7307>
     a logic:ProjectionTarget ;
     rdfs:label "sssom:a929e9494e5b7307" ;
@@ -30073,6 +30724,17 @@
     logic:complexityClass "N/A (1:1 lattice band)" ;
     logic:preservationKind logic:SoundUnderApproximation .
 
+<https://blackcatinformatics.ca/logic/target/sssom:ade02afa4f2d0d1b>
+    a logic:ProjectionTarget ;
+    rdfs:label "sssom:ade02afa4f2d0d1b" ;
+    gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/gmeow/examples/lang/lexCat|http://www.w3.org/2004/02/skos/core#closeMatch|http://www.wikidata.org/entity/L7" ,
+        "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
+        "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
+        "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
+        "world/standpoint scope and the put leg are not carried" ;
+    logic:complexityClass "N/A (1:1 lattice band)" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
 <https://blackcatinformatics.ca/logic/target/sssom:ae0e0990cd3b9438>
     a logic:ProjectionTarget ;
     rdfs:label "sssom:ae0e0990cd3b9438" ;
@@ -30376,6 +31038,17 @@
     a logic:ProjectionTarget ;
     rdfs:label "sssom:b23e72934af0f3ac" ;
     gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/math/Limit|http://www.w3.org/2004/02/skos/core#closeMatch|http://www.wikidata.org/entity/Q33540" ,
+        "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
+        "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
+        "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
+        "world/standpoint scope and the put leg are not carried" ;
+    logic:complexityClass "N/A (1:1 lattice band)" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
+<https://blackcatinformatics.ca/logic/target/sssom:b26681598837085e>
+    a logic:ProjectionTarget ;
+    rdfs:label "sssom:b26681598837085e" ;
+    gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/gmeow/examples/lang/senseMouse|http://www.w3.org/2004/02/skos/core#closeMatch|http://www.wikidata.org/entity/Q39275" ,
         "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
         "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
         "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
@@ -33481,6 +34154,17 @@
     logic:complexityClass "N/A (1:1 lattice band)" ;
     logic:preservationKind logic:SoundUnderApproximation .
 
+<https://blackcatinformatics.ca/logic/target/sssom:d719dbc73ec72f36>
+    a logic:ProjectionTarget ;
+    rdfs:label "sssom:d719dbc73ec72f36" ;
+    gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/math/ActivationFunction|http://www.w3.org/2004/02/skos/core#exactMatch|http://www.wikidata.org/entity/Q4677469" ,
+        "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
+        "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
+        "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
+        "world/standpoint scope and the put leg are not carried" ;
+    logic:complexityClass "N/A (1:1 lattice band)" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
 <https://blackcatinformatics.ca/logic/target/sssom:d71e59bb226db59a>
     a logic:ProjectionTarget ;
     rdfs:label "sssom:d71e59bb226db59a" ;
@@ -33859,6 +34543,17 @@
     a logic:ProjectionTarget ;
     rdfs:label "sssom:db82f8d20d856f4f" ;
     gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/gmeow/coincidesWith|http://www.w3.org/2004/02/skos/core#relatedMatch|http://www.w3.org/2006/time#intervalEquals" ,
+        "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
+        "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
+        "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
+        "world/standpoint scope and the put leg are not carried" ;
+    logic:complexityClass "N/A (1:1 lattice band)" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
+<https://blackcatinformatics.ca/logic/target/sssom:db88b1893ae7027c>
+    a logic:ProjectionTarget ;
+    rdfs:label "sssom:db88b1893ae7027c" ;
+    gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/gmeow/examples/lang/senseChase|http://www.w3.org/2004/02/skos/core#closeMatch|http://www.wikidata.org/entity/Q101574237" ,
         "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
         "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
         "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
@@ -35318,6 +36013,17 @@
     logic:complexityClass "N/A (1:1 lattice band)" ;
     logic:preservationKind logic:SoundUnderApproximation .
 
+<https://blackcatinformatics.ca/logic/target/sssom:ef10cebccccf87ac>
+    a logic:ProjectionTarget ;
+    rdfs:label "sssom:ef10cebccccf87ac" ;
+    gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/math/Eigendecomposition|http://www.w3.org/2004/02/skos/core#closeMatch|http://www.wikidata.org/entity/Q190524" ,
+        "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
+        "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
+        "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
+        "world/standpoint scope and the put leg are not carried" ;
+    logic:complexityClass "N/A (1:1 lattice band)" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
 <https://blackcatinformatics.ca/logic/target/sssom:ef15059d1d658793>
     a logic:ProjectionTarget ;
     rdfs:label "sssom:ef15059d1d658793" ;
@@ -35586,6 +36292,17 @@
     a logic:ProjectionTarget ;
     rdfs:label "sssom:f178e43d115a4aba" ;
     gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/gmeow/tuningSystem12EDO|http://www.w3.org/2004/02/skos/core#exactMatch|http://www.wikidata.org/entity/Q752518" ,
+        "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
+        "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
+        "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
+        "world/standpoint scope and the put leg are not carried" ;
+    logic:complexityClass "N/A (1:1 lattice band)" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
+<https://blackcatinformatics.ca/logic/target/sssom:f17c210f70a0499d>
+    a logic:ProjectionTarget ;
+    rdfs:label "sssom:f17c210f70a0499d" ;
+    gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/math/LossFunction|http://www.w3.org/2004/02/skos/core#exactMatch|http://www.wikidata.org/entity/Q1036748" ,
         "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
         "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
         "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
@@ -36795,6 +37512,17 @@
     logic:complexityClass "N/A (1:1 lattice band)" ;
     logic:preservationKind logic:SoundUnderApproximation .
 
+<https://blackcatinformatics.ca/logic/target/sssom:ff3239acb0ebcf03>
+    a logic:ProjectionTarget ;
+    rdfs:label "sssom:ff3239acb0ebcf03" ;
+    gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/gmeow/examples/lang/senseChase|http://www.w3.org/2004/02/skos/core#closeMatch|http://www.wikidata.org/entity/L14462-S2" ,
+        "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
+        "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
+        "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
+        "world/standpoint scope and the put leg are not carried" ;
+    logic:complexityClass "N/A (1:1 lattice band)" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
 <https://blackcatinformatics.ca/logic/target/sssom:ff575d94cb419b45>
     a logic:ProjectionTarget ;
     rdfs:label "sssom:ff575d94cb419b45" ;
@@ -36850,6 +37578,18 @@
     logic:complexityClass "N/A (1:1 lattice band)" ;
     logic:preservationKind logic:SoundUnderApproximation .
 
+<https://blackcatinformatics.ca/logic/target/tei:forms-and-sign-systems#sentCatsChaseMice>
+    a logic:ProjectionTarget ;
+    rdfs:label "tei:forms-and-sign-systems#sentCatsChaseMice" ;
+    gmeow:lossyDrop "actual: co-resident lang:Reading alternatives of an ambiguous form collapse to a single TEI constituent structure" ,
+        "actual: dependency relations among the constituents of composed form <https://blackcatinformatics.ca/gmeow/examples/lang/sentCatsChaseMice> are not carried into the flat TEI <s> token run (only the analyzed head is hinted)" ,
+        "actual: lang:Denotation meaning records (form→referent assignments) have no TEI element" ,
+        "actual: lang:Sense inventory (the middle Frege corner) has no TEI element" ,
+        "actual: lang:vantage / perspectival standpoint support is not carried into TEI" ,
+        "actual: logic:preservationKind / preservation judgments have no TEI target" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
 <https://blackcatinformatics.ca/logic/target/xcl>
     a logic:ProjectionTarget ;
     rdfs:label "xcl" ;
@@ -36858,14 +37598,20 @@
 
 logic:projection-report
     a logic:ProjectionReport ;
-    logic:axiomCount 504 ;
+    logic:axiomCount 525 ;
     logic:claimedUpliftCount 479 ;
     logic:correspondenceCount 592 ;
     logic:formulaCount 6 ;
-    logic:hasProjection <https://blackcatinformatics.ca/logic/target/canonical-rdf12> ,
+    logic:hasProjection <https://blackcatinformatics.ca/logic/target/abnf:gts> ,
+        <https://blackcatinformatics.ca/logic/target/abnf:turtle> ,
+        <https://blackcatinformatics.ca/logic/target/bcp47:tag-set> ,
+        <https://blackcatinformatics.ca/logic/target/canonical-rdf12> ,
         <https://blackcatinformatics.ca/logic/target/cgif> ,
         <https://blackcatinformatics.ca/logic/target/clif> ,
+        <https://blackcatinformatics.ca/logic/target/conllu:forms-and-sign-systems#sentCatsChaseMice> ,
         <https://blackcatinformatics.ca/logic/target/datalog> ,
+        <https://blackcatinformatics.ca/logic/target/ebnf:gts> ,
+        <https://blackcatinformatics.ca/logic/target/ebnf:turtle> ,
         <https://blackcatinformatics.ca/logic/target/edoal:0051d4462bb2a37f> ,
         <https://blackcatinformatics.ca/logic/target/edoal:00c96a1f9ac5fef0> ,
         <https://blackcatinformatics.ca/logic/target/edoal:00f90587491177f4> ,
@@ -37458,6 +38204,45 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/fno:f97ab23988289696> ,
         <https://blackcatinformatics.ca/logic/target/fno:fda31433851be3f9> ,
         <https://blackcatinformatics.ca/logic/target/gufo> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-execgap:fr> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-execgap:zh> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:0776b6220c70e46f> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:095abce697afd663> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:25c68ee2e503dfb4> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:4aba893dbfaf460c> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:5ed33520cc814b28> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:7bdb4fddda4a45ca> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:8816ee801f5ff5c2> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:b9669710a233d8c4> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:bc4a940a5b76c878> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:bf99c890cef32126> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:c41a1af86cd13ac6> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:c4defe4fa29ce722> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:c5c2767d9118a29c> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:c628afacfabb70cf> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:cd86977fcee87605> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:dd844da76d4e1bc6> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:ea729607c361a9b4> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:fb299538cc07f71b> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-translation:0776b6220c70e46f> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-translation:095abce697afd663> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-translation:25c68ee2e503dfb4> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-translation:4aba893dbfaf460c> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-translation:5ed33520cc814b28> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-translation:7bdb4fddda4a45ca> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-translation:8816ee801f5ff5c2> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-translation:b9669710a233d8c4> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-translation:bc4a940a5b76c878> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-translation:bf99c890cef32126> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-translation:c41a1af86cd13ac6> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-translation:c4defe4fa29ce722> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-translation:c5c2767d9118a29c> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-translation:c628afacfabb70cf> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-translation:cd86977fcee87605> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-translation:dd844da76d4e1bc6> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-translation:ea729607c361a9b4> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-translation:fb299538cc07f71b> ,
+        <https://blackcatinformatics.ca/logic/target/lang-form> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation-doc:fr> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation-doc:zh> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:0180e5cc4b5b2fde> ,
@@ -37500,11 +38285,18 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/lang-translation:fbc4625af3032a5d> ,
         <https://blackcatinformatics.ca/logic/target/n3> ,
         <https://blackcatinformatics.ca/logic/target/nemo> ,
+        <https://blackcatinformatics.ca/logic/target/nif:forms-and-sign-systems#sentAnchor> ,
+        <https://blackcatinformatics.ca/logic/target/ontolex-lemon:forms-and-sign-systems> ,
         <https://blackcatinformatics.ca/logic/target/owl-dl> ,
         <https://blackcatinformatics.ca/logic/target/owl-el> ,
+        <https://blackcatinformatics.ca/logic/target/semaf:forms-and-sign-systems#denCatsChaseMice> ,
         <https://blackcatinformatics.ca/logic/target/shacl-af> ,
         <https://blackcatinformatics.ca/logic/target/shacl-core> ,
         <https://blackcatinformatics.ca/logic/target/shex> ,
+        <https://blackcatinformatics.ca/logic/target/sparql-put:0ecf06a76a4e1fd0> ,
+        <https://blackcatinformatics.ca/logic/target/sparql-put:15070cd3ee9cb68d> ,
+        <https://blackcatinformatics.ca/logic/target/sparql-put:5760705e166248fd> ,
+        <https://blackcatinformatics.ca/logic/target/sparql-put:60068eabb023f33e> ,
         <https://blackcatinformatics.ca/logic/target/sparql:011d28b7ee1ca288> ,
         <https://blackcatinformatics.ca/logic/target/sparql:01ef4cd9bbaa3c97> ,
         <https://blackcatinformatics.ca/logic/target/sparql:02ade478d7ee3bf9> ,
@@ -38057,6 +38849,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sssom:02a6d64ad4d549d2> ,
         <https://blackcatinformatics.ca/logic/target/sssom:02bef854de2f7192> ,
         <https://blackcatinformatics.ca/logic/target/sssom:02c1e85c2c0fb266> ,
+        <https://blackcatinformatics.ca/logic/target/sssom:02c76297b36df776> ,
         <https://blackcatinformatics.ca/logic/target/sssom:02ebd085c63d75d8> ,
         <https://blackcatinformatics.ca/logic/target/sssom:03038b9704aff385> ,
         <https://blackcatinformatics.ca/logic/target/sssom:037a0da7f474df51> ,
@@ -38076,6 +38869,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sssom:05126d337e9bb598> ,
         <https://blackcatinformatics.ca/logic/target/sssom:0514711c67c8b6e7> ,
         <https://blackcatinformatics.ca/logic/target/sssom:0529c5531ae9c5d5> ,
+        <https://blackcatinformatics.ca/logic/target/sssom:0532dfee142a4861> ,
         <https://blackcatinformatics.ca/logic/target/sssom:053d66f18a2921f6> ,
         <https://blackcatinformatics.ca/logic/target/sssom:055d218a5939d9ba> ,
         <https://blackcatinformatics.ca/logic/target/sssom:05ac012307c6dec3> ,
@@ -38149,6 +38943,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sssom:0f4191f78e6ee2b2> ,
         <https://blackcatinformatics.ca/logic/target/sssom:0f99279cee2e6230> ,
         <https://blackcatinformatics.ca/logic/target/sssom:0fd6f218c102db38> ,
+        <https://blackcatinformatics.ca/logic/target/sssom:0fe6c74597f8012a> ,
         <https://blackcatinformatics.ca/logic/target/sssom:101a666aba768a94> ,
         <https://blackcatinformatics.ca/logic/target/sssom:10241daaf06b4c9d> ,
         <https://blackcatinformatics.ca/logic/target/sssom:1088fb23c2260326> ,
@@ -38208,11 +39003,13 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sssom:178f44ec61152507> ,
         <https://blackcatinformatics.ca/logic/target/sssom:17a335355b57e710> ,
         <https://blackcatinformatics.ca/logic/target/sssom:17cf5e73550b171e> ,
+        <https://blackcatinformatics.ca/logic/target/sssom:17d3074f4de27dce> ,
         <https://blackcatinformatics.ca/logic/target/sssom:17f4371fbcf53917> ,
         <https://blackcatinformatics.ca/logic/target/sssom:17f7957b9380fa5d> ,
         <https://blackcatinformatics.ca/logic/target/sssom:180451b343bd276e> ,
         <https://blackcatinformatics.ca/logic/target/sssom:181bd6c09be02a07> ,
         <https://blackcatinformatics.ca/logic/target/sssom:184cbf9633b31256> ,
+        <https://blackcatinformatics.ca/logic/target/sssom:186a634a7b849db5> ,
         <https://blackcatinformatics.ca/logic/target/sssom:186ff62b3664749f> ,
         <https://blackcatinformatics.ca/logic/target/sssom:189853cb5cba3a64> ,
         <https://blackcatinformatics.ca/logic/target/sssom:18a72a7099f92d3d> ,
@@ -38286,6 +39083,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sssom:2123eab05bef3952> ,
         <https://blackcatinformatics.ca/logic/target/sssom:212bb175fa0eb687> ,
         <https://blackcatinformatics.ca/logic/target/sssom:214bb3278139a919> ,
+        <https://blackcatinformatics.ca/logic/target/sssom:218603811475e283> ,
         <https://blackcatinformatics.ca/logic/target/sssom:21e445adbf4b7249> ,
         <https://blackcatinformatics.ca/logic/target/sssom:21e6b321786e2427> ,
         <https://blackcatinformatics.ca/logic/target/sssom:21edb0c0751de1ec> ,
@@ -38479,6 +39277,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sssom:39eec91485bfd62d> ,
         <https://blackcatinformatics.ca/logic/target/sssom:3a0b49c4b49ed356> ,
         <https://blackcatinformatics.ca/logic/target/sssom:3a45d5689f205c28> ,
+        <https://blackcatinformatics.ca/logic/target/sssom:3a4f76f3c5f040b7> ,
         <https://blackcatinformatics.ca/logic/target/sssom:3a6687d27f653eab> ,
         <https://blackcatinformatics.ca/logic/target/sssom:3a736931884beafa> ,
         <https://blackcatinformatics.ca/logic/target/sssom:3a76e8c344cc5df2> ,
@@ -38689,6 +39488,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sssom:5469c28992060060> ,
         <https://blackcatinformatics.ca/logic/target/sssom:5476d08eb68ae554> ,
         <https://blackcatinformatics.ca/logic/target/sssom:547925a7f444d0be> ,
+        <https://blackcatinformatics.ca/logic/target/sssom:54874a64ea45feee> ,
         <https://blackcatinformatics.ca/logic/target/sssom:548c3be15736f4f8> ,
         <https://blackcatinformatics.ca/logic/target/sssom:54a87a50dd0c1fe8> ,
         <https://blackcatinformatics.ca/logic/target/sssom:54ba6a612b5165ea> ,
@@ -38738,6 +39538,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sssom:5965b882134e9363> ,
         <https://blackcatinformatics.ca/logic/target/sssom:59978b4dca846524> ,
         <https://blackcatinformatics.ca/logic/target/sssom:599d0b56b1f9a644> ,
+        <https://blackcatinformatics.ca/logic/target/sssom:59ab4b7b4c791775> ,
         <https://blackcatinformatics.ca/logic/target/sssom:59c8a05eb2a15f1c> ,
         <https://blackcatinformatics.ca/logic/target/sssom:59d906a5805bd8c2> ,
         <https://blackcatinformatics.ca/logic/target/sssom:59f6ad47ab4c2770> ,
@@ -38866,6 +39667,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sssom:690710e6f82e6d4f> ,
         <https://blackcatinformatics.ca/logic/target/sssom:692e0ad78137b3d0> ,
         <https://blackcatinformatics.ca/logic/target/sssom:698a2c052d9b8b94> ,
+        <https://blackcatinformatics.ca/logic/target/sssom:69c70f66c0d37aa8> ,
         <https://blackcatinformatics.ca/logic/target/sssom:6a05ea6f4825d7f3> ,
         <https://blackcatinformatics.ca/logic/target/sssom:6a0ba6527578349e> ,
         <https://blackcatinformatics.ca/logic/target/sssom:6a235d7013d58348> ,
@@ -39014,6 +39816,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sssom:7d0ddae00f35d43f> ,
         <https://blackcatinformatics.ca/logic/target/sssom:7d3bb20e33923abe> ,
         <https://blackcatinformatics.ca/logic/target/sssom:7d70cd7a16ae2358> ,
+        <https://blackcatinformatics.ca/logic/target/sssom:7d85b1dffe9ed77b> ,
         <https://blackcatinformatics.ca/logic/target/sssom:7d8bcdf4799f6ddb> ,
         <https://blackcatinformatics.ca/logic/target/sssom:7dbb00e982a9f575> ,
         <https://blackcatinformatics.ca/logic/target/sssom:7dfccc29eb57db19> ,
@@ -39238,6 +40041,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sssom:9b3ec29dd6d1f752> ,
         <https://blackcatinformatics.ca/logic/target/sssom:9b9bda2bc4d4fcd8> ,
         <https://blackcatinformatics.ca/logic/target/sssom:9bad82e54b479803> ,
+        <https://blackcatinformatics.ca/logic/target/sssom:9c978cf55e442141> ,
         <https://blackcatinformatics.ca/logic/target/sssom:9ca706dbc5ca5429> ,
         <https://blackcatinformatics.ca/logic/target/sssom:9cea6ede42d2df2b> ,
         <https://blackcatinformatics.ca/logic/target/sssom:9d21578e933cad0b> ,
@@ -39322,6 +40126,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sssom:a8f7023b160572d5> ,
         <https://blackcatinformatics.ca/logic/target/sssom:a9012badf56dcd3b> ,
         <https://blackcatinformatics.ca/logic/target/sssom:a91931423b9a4b9c> ,
+        <https://blackcatinformatics.ca/logic/target/sssom:a91ce9342726c006> ,
         <https://blackcatinformatics.ca/logic/target/sssom:a929e9494e5b7307> ,
         <https://blackcatinformatics.ca/logic/target/sssom:a95a304b7903ce2b> ,
         <https://blackcatinformatics.ca/logic/target/sssom:a964c80886781e16> ,
@@ -39362,6 +40167,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sssom:ad960ce5dae37c01> ,
         <https://blackcatinformatics.ca/logic/target/sssom:adbb8f71d820e661> ,
         <https://blackcatinformatics.ca/logic/target/sssom:adc47f1a1d393427> ,
+        <https://blackcatinformatics.ca/logic/target/sssom:ade02afa4f2d0d1b> ,
         <https://blackcatinformatics.ca/logic/target/sssom:ae0e0990cd3b9438> ,
         <https://blackcatinformatics.ca/logic/target/sssom:ae0ea1134c6a28f1> ,
         <https://blackcatinformatics.ca/logic/target/sssom:ae0f623b5223fe0e> ,
@@ -39390,6 +40196,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sssom:b20eb37189bfddf9> ,
         <https://blackcatinformatics.ca/logic/target/sssom:b2349b256b133d03> ,
         <https://blackcatinformatics.ca/logic/target/sssom:b23e72934af0f3ac> ,
+        <https://blackcatinformatics.ca/logic/target/sssom:b26681598837085e> ,
         <https://blackcatinformatics.ca/logic/target/sssom:b2713714d09e6715> ,
         <https://blackcatinformatics.ca/logic/target/sssom:b27168ac4db4fea1> ,
         <https://blackcatinformatics.ca/logic/target/sssom:b295bccc8e0dd86e> ,
@@ -39671,6 +40478,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sssom:d6e76fdaea052a89> ,
         <https://blackcatinformatics.ca/logic/target/sssom:d70427cafdce233e> ,
         <https://blackcatinformatics.ca/logic/target/sssom:d7084d4c06b43448> ,
+        <https://blackcatinformatics.ca/logic/target/sssom:d719dbc73ec72f36> ,
         <https://blackcatinformatics.ca/logic/target/sssom:d71e59bb226db59a> ,
         <https://blackcatinformatics.ca/logic/target/sssom:d728a9da0011411c> ,
         <https://blackcatinformatics.ca/logic/target/sssom:d72f1b94e604f112> ,
@@ -39706,6 +40514,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sssom:db6e97e34826f0cb> ,
         <https://blackcatinformatics.ca/logic/target/sssom:db81cc35d0d61183> ,
         <https://blackcatinformatics.ca/logic/target/sssom:db82f8d20d856f4f> ,
+        <https://blackcatinformatics.ca/logic/target/sssom:db88b1893ae7027c> ,
         <https://blackcatinformatics.ca/logic/target/sssom:db9110c15b6cd329> ,
         <https://blackcatinformatics.ca/logic/target/sssom:db97e8f72b49a389> ,
         <https://blackcatinformatics.ca/logic/target/sssom:dbb2c99d9de8508a> ,
@@ -39838,6 +40647,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sssom:ee9a8a86eaee1e92> ,
         <https://blackcatinformatics.ca/logic/target/sssom:eead8109f5e96990> ,
         <https://blackcatinformatics.ca/logic/target/sssom:ef06d0f5fa1a3af2> ,
+        <https://blackcatinformatics.ca/logic/target/sssom:ef10cebccccf87ac> ,
         <https://blackcatinformatics.ca/logic/target/sssom:ef15059d1d658793> ,
         <https://blackcatinformatics.ca/logic/target/sssom:ef1d84029eec74bf> ,
         <https://blackcatinformatics.ca/logic/target/sssom:ef1e867246f5c919> ,
@@ -39863,6 +40673,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sssom:f13c0ce957dbe9e5> ,
         <https://blackcatinformatics.ca/logic/target/sssom:f1689e0d4692aa4e> ,
         <https://blackcatinformatics.ca/logic/target/sssom:f178e43d115a4aba> ,
+        <https://blackcatinformatics.ca/logic/target/sssom:f17c210f70a0499d> ,
         <https://blackcatinformatics.ca/logic/target/sssom:f19c491e3e5acfcf> ,
         <https://blackcatinformatics.ca/logic/target/sssom:f1bc8db260b00237> ,
         <https://blackcatinformatics.ca/logic/target/sssom:f1c0b1f0d56317f1> ,
@@ -39972,12 +40783,14 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sssom:feb881e7b7df321d> ,
         <https://blackcatinformatics.ca/logic/target/sssom:fec7563ee5681c1d> ,
         <https://blackcatinformatics.ca/logic/target/sssom:fed24a7bdbe68b19> ,
+        <https://blackcatinformatics.ca/logic/target/sssom:ff3239acb0ebcf03> ,
         <https://blackcatinformatics.ca/logic/target/sssom:ff575d94cb419b45> ,
         <https://blackcatinformatics.ca/logic/target/sssom:ff6b1e4d205820ab> ,
         <https://blackcatinformatics.ca/logic/target/sssom:ff87ea1918a93a68> ,
         <https://blackcatinformatics.ca/logic/target/sssom:ff8e660cb599cd82> ,
         <https://blackcatinformatics.ca/logic/target/sssom:fffc3b18a883cc6c> ,
+        <https://blackcatinformatics.ca/logic/target/tei:forms-and-sign-systems#sentCatsChaseMice> ,
         <https://blackcatinformatics.ca/logic/target/xcl> ;
     logic:lawfulUpliftCount 0 ;
     logic:profileCount 7 ;
-    logic:ruleCount 9 .
+    logic:ruleCount 10 .

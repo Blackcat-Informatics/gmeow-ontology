@@ -1,0 +1,34 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Well-formed: a PCA analysis declaring its input, centering and scaling policy,
+# the covariance operator it decomposes, its eigensolver, and its full outputs —
+# components, loadings, scores, explained variance, and residual. Conforms to
+# math:PCAAnalysisShape; the covariance operator carries the math:Function frame
+# (domain/codomain as math:Set) it inherits. Bound by ex:ecPCAAnalysisComplete.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:pca a math:PCAAnalysis ;
+    math:analysisInput ex:dataMatrix ;
+    math:centeringPolicy math:meanCentered ;
+    math:scalingPolicy math:unitVariance ;
+    math:covarianceOperator ex:cov ;
+    math:eigensolver ex:svd ;
+    math:principalComponent ex:comp1 ;
+    math:loadingVector ex:load1 ;
+    math:scoreVector ex:score1 ;
+    math:explainedVarianceRatio ex:var1 ;
+    math:residualSubspace ex:resid .
+
+ex:dataMatrix a math:MathematicalObject .
+ex:cov a math:CovarianceOperator ;
+    math:domain ex:dataCarrier ;
+    math:codomain ex:dataCarrier .
+ex:dataCarrier a math:Set .
+ex:svd a math:SingularValueDecomposition .
+ex:comp1 a math:PrincipalComponent .
+ex:load1 a math:LoadingVector .
+ex:score1 a math:ScoreVector .
+ex:var1 a math:ExplainedVariance .
+ex:resid a math:ProjectionResidual .

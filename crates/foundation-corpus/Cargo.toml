@@ -26,7 +26,7 @@ python = ["dep:pyo3"]
 
 [dependencies]
 # Native RDF 1.2 graph building over the IR (no rdflib, no oxigraph).
-purrdf = "0.2"
+purrdf = "0.3"
 serde = { version = "1", features = ["derive"] }
 # Keep serde_json's workspace-wide default map semantics. Ordered JSON-LD
 # projection keys are emitted by a crate-local writer in projections.rs.

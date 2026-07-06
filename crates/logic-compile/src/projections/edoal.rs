@@ -16,16 +16,16 @@
 
 use std::collections::BTreeMap;
 
-use purrdf::{parse_dataset, NativeRdfFormat};
+use purrdf::{NativeRdfFormat, parse_dataset};
 
-use crate::ingest::prefixes::registry_pairs;
 use crate::ingest::DslView;
+use crate::ingest::prefixes::registry_pairs;
 use crate::projections::correspondence_frontend::CorrespondenceLookup;
 use crate::projections::correspondence_gate::assert_relation_no_overclaim;
 use crate::projections::get_leg::{
-    curie, local, projections, Atom, MappingPattern, ProfileBinding, ProjectionCell, PROFILES,
+    Atom, MappingPattern, PROFILES, ProfileBinding, ProjectionCell, curie, local, projections,
 };
-use crate::projections::{correspondence_result, ProjectionResult};
+use crate::projections::{ProjectionResult, correspondence_result};
 
 const ONTOLOGY_IRI: &str = "https://blackcatinformatics.ca/gmeow";
 
@@ -394,7 +394,7 @@ fn edoal_cells(
                 return Err(format!(
                     "{}: edoalPath set but no anchor→value path",
                     cell.iri
-                ))
+                ));
             }
         }
     } else if let Some(es) = &pattern.edoal_source {
@@ -522,10 +522,10 @@ fn nav_edges(pattern: &MappingPattern) -> Vec<NavEdge> {
             || atom.predicate_var.is_some()
             || atom.path.is_some()
             || !atom.path_alts.is_empty();
-        if let Some(obj) = &atom.object_var {
-            if has_pred {
-                edges.push((atom.subject_var.clone(), obj.clone(), atom.clone()));
-            }
+        if let Some(obj) = &atom.object_var
+            && has_pred
+        {
+            edges.push((atom.subject_var.clone(), obj.clone(), atom.clone()));
         }
     }
     edges
@@ -678,6 +678,9 @@ mod tests {
                 edoal_target_kind: Some("class".to_owned()),
                 // … but the correspondence is authored as a by-reference BridgeView.
                 morphism_class: Some(MorphismClass::BridgeView),
+                ingest_claim: None,
+                ingest_residue: Vec::new(),
+                mnemomorphic: false,
             }],
         };
         let tag_map = BTreeMap::new();

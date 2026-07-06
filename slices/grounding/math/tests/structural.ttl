@@ -41,6 +41,39 @@ ASK {
 }""" ;
     gmeow:saRationale "Each of the seven bedrock hard-rule failures MUST be a subclass of math:MathConformanceFailure, so a violation is a typed, queryable object." .
 
+# --- 2b. The flagship-manifest failure class subclasses math:MathConformanceFailure (MUST) ---
+ex:saFlagshipFailureTyped a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    math:UnwiredFlagshipScenario rdfs:subClassOf math:MathConformanceFailure .
+}""" ;
+    gmeow:saRationale "The unwired-flagship failure MUST be a subclass of math:MathConformanceFailure, so an unwired acceptance scenario is a typed, queryable violation like every other math: hard-rule failure." .
+
+# --- 2c. The five flagship scenarios are present and fully wired (MUST) ---
+ex:saFlagshipCoverage a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModuleAndExamples ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX exa: <https://blackcatinformatics.ca/gmeow/examples/math/acceptance/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    VALUES ?scenario {
+        exa:e8Symmetry exa:homomorphicEncryption exa:proofAsProcess
+        exa:rBridge exa:aiSelfStructure
+    }
+    ?scenario a math:FlagshipScenario ;
+        math:demonstratedByExample ?ex ;
+        math:demonstratedByCompetency ?cq ;
+        math:guardedByCounterExample ?ce ;
+        math:enforcesFailureClass ?fc .
+    ?fc rdfs:subClassOf+ math:MathConformanceFailure .
+    FILTER(isLiteral(?ex) && isIRI(?cq) && isLiteral(?ce) && isIRI(?fc))
+}""" ;
+    gmeow:saRationale "The epic's five flagship acceptance scenarios MUST each be present as a math:FlagshipScenario binding its worked example, competency question, counter-example, and a real math:MathConformanceFailure subclass. If any of the five is absent or missing a link, the acceptance bar is not met and this assertion fails — the depth bar is a contract, not prose." .
+
 # --- 3. The seven arithmetic operators exist as math:ArithmeticOperation (MUST) ---
 ex:saArithmeticOperators a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
@@ -349,3 +382,148 @@ ASK {
   }
 }""" ;
     gmeow:saRationale "Every concept carrying math:definingLaw MUST resolve to a real first-order logic:Formula (math:continuityLaw, math:connectednessLaw, math:t0SeparationLaw … math:normalitySeparationLaw) or a recorded logic:expressivenessBoundary boundary (math:compactnessBoundary) — turning 'backed by a law' from prose into an open, machine-checked, type-checked invariant. The ASK is OPEN (it hand-enumerates no concept: it finds NO math:definingLaw edge whose target is neither a logic:Formula NOR carries logic:expressivenessBoundary) and TYPE-CHECKED (a dangling or mistyped backing edge — one pointing at a bare type — fails it). A new grounded property joins the audit simply by carrying math:definingLaw, with no list to maintain." .
+
+# --- Linear algebra & learning: subsumption and framing invariants (MUST) --- #
+ex:saLinearAlgebraSubsumption a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    math:InnerProductSpace       rdfs:subClassOf math:VectorSpace .
+    math:Subspace                rdfs:subClassOf math:VectorSpace .
+    math:LatentSpace             rdfs:subClassOf math:VectorSpace .
+    math:ParameterSpace          rdfs:subClassOf math:VectorSpace .
+    math:OrthogonalComplement    rdfs:subClassOf math:Complement .
+    math:LinearMap               rdfs:subClassOf math:Function .
+    math:CovarianceOperator      rdfs:subClassOf math:LinearMap .
+    math:Embedding               rdfs:subClassOf math:Function .
+    math:KnowledgeGraphEmbedding rdfs:subClassOf math:Embedding .
+    math:PCAAnalysis             rdfs:subClassOf gmeow:Activity .
+    math:ResidualInterpretationClaim rdfs:subClassOf gmeow:Observation .
+    math:AttentionOperation      rdfs:subClassOf math:Operation .
+}""" ;
+    gmeow:saRationale "The linear-algebra-and-learning terms MUST sit in their proper places in the object hierarchy: the space classes under math:VectorSpace, the orthogonal complement under math:Complement (so it inherits the complement contract), linear/covariance/embedding maps under math:Function, a PCA under gmeow:Activity (a process) and a residual interpretation under gmeow:Observation (a vantage-held claim), and the attention operator under math:Operation (so it applies inside the reused expression AST)." .
+
+# --- Every linear-algebra-and-learning failure is typed (MUST) -------------- #
+ex:saLinearAlgebraFailures a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    math:UnqualifiedOrthogonalComplement rdfs:subClassOf math:MathConformanceFailure .
+    math:IncompletePCAAnalysis           rdfs:subClassOf math:MathConformanceFailure .
+    math:ResidualMeaningAsProperty       rdfs:subClassOf math:MathConformanceFailure .
+    math:UnderspecifiedEmbedding         rdfs:subClassOf math:MathConformanceFailure .
+    math:MalformedTensorComputationGraph rdfs:subClassOf math:MathConformanceFailure .
+    math:UnframedWeightTensor            rdfs:subClassOf math:MathConformanceFailure .
+    math:ApplicationOperatorCardinality  rdfs:subClassOf math:MathConformanceFailure .
+}""" ;
+    gmeow:saRationale "Each linear-algebra-and-learning hard-rule failure MUST be a subclass of math:MathConformanceFailure, so an unqualified orthogonal complement, an incomplete PCA, a residual meaning stamped as a property, an underspecified embedding, a malformed tensor graph, an unframed weight tensor, or an application applying other than exactly one operator is a typed, queryable object." .
+
+# --- Meaning is representable only as a vantage-held claim (MUST-NOT) -------- #
+ex:saNoDirectResidualMeaningProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    ?p a ?ptype .
+    FILTER(?ptype IN (owl:DatatypeProperty, owl:ObjectProperty, rdf:Property))
+    FILTER(?p IN (math:residualMeaning, math:latentDimensionMeaning, math:componentMeaning, math:meaning))
+}""" ;
+    gmeow:saRationale "The slice MUST NOT mint a direct residual/latent/component 'meaning' property — whether minted as a datatype, object, or plain RDF property: semantic meaning read off geometry is a vantage-held math:ResidualInterpretationClaim (a gmeow:Observation), never an intrinsic property of the vector, so the property-form of meaning is unauthorable by construction." .
+
+# --- Bridge runs are activities; the three bridges subclass the unifier (MUST) --- #
+ex:saIngestRunActivityHierarchy a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    math:IngestRun     rdfs:subClassOf gmeow:Activity .
+    math:RIngestRun    rdfs:subClassOf math:IngestRun .
+    math:ONNXIngestRun rdfs:subClassOf math:IngestRun .
+    math:ProofIngestRun rdfs:subClassOf math:IngestRun .
+}""" ;
+    gmeow:saRationale "A bridge run is the executed put-leg occurrence of a lift — a process — so math:IngestRun MUST be a gmeow:Activity, and the three concrete bridges (R, ONNX, proof) MUST subclass the shared unifier, carrying the shared bridge contract once on the abstract run." .
+
+# --- The QED result is a result object, NOT an observation (MUST) ----------- #
+ex:saVerificationResultIsObject a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    math:FormalVerificationResult rdfs:subClassOf math:MathematicalObject .
+}""" ;
+    gmeow:saRationale "A math:FormalVerificationResult is the structured RESULT OBJECT of checking a proof, so it MUST be a math:MathematicalObject — distinct from the process (the run) and the held claim (the observation)." .
+
+# --- The QED result MUST NOT be typed an observation (MUST-NOT) ------------- #
+ex:saVerificationResultNotObservation a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    math:FormalVerificationResult rdfs:subClassOf gmeow:Observation .
+}""" ;
+    gmeow:saRationale "A math:FormalVerificationResult MUST NOT be a gmeow:Observation: typing the result object as the held claim is the math:ResultRoleConflation — the verdict is HELD BY a separate observation with the checker as vantage, never IS-A one." .
+
+# --- The QED result object is disjoint from the observation (MUST) ---------- #
+ex:saVerificationResultDisjointObservation a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    math:FormalVerificationResult owl:disjointWith gmeow:Observation .
+}""" ;
+    gmeow:saRationale "The result object of the process / result / claim separation is never the held claim, so math:FormalVerificationResult MUST be owl:disjointWith gmeow:Observation — the OWL-axiom gate backing math:ResultRoleConflation. The native DL coherence gate reads the disjointness directly, forcing any individual typed both a verification result and an observation to owl:Nothing, mirroring lang:InterpretationAct owl:disjointWith gmeow:Observation." .
+
+# --- The bridge failure classes are typed conformance failures (MUST) ------- #
+ex:saBridgeFailureHierarchy a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    math:UnliftableIngest             rdfs:subClassOf math:MathConformanceFailure .
+    math:UngroundedIngestRun          rdfs:subClassOf math:MathConformanceFailure .
+    math:UngroundedVerificationResult rdfs:subClassOf math:MathConformanceFailure .
+    math:UnfittedModel                rdfs:subClassOf math:MathConformanceFailure .
+    math:ResultRoleConflation         rdfs:subClassOf math:MathConformanceFailure .
+}""" ;
+    gmeow:saRationale "Every bridge failure is a typed, queryable object, so each MUST subclass math:MathConformanceFailure — a violation is a first-class failure class, not a log line." .
+
+# --- An inference/analysis process is never an observation (MUST) ----------- #
+ex:saProcessNotObservation a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    math:IngestRun   owl:disjointWith gmeow:Observation .
+    math:PCAAnalysis owl:disjointWith gmeow:Observation .
+}""" ;
+    gmeow:saRationale "An inference or analysis process is a gmeow:Activity, never the claim about its results, so the math process classes MUST be owl:disjointWith gmeow:Observation — the OWL-axiom gate backing math:ProcessObservationConflation, mirroring lang:InterpretationAct owl:disjointWith gmeow:Observation." .
+
+# --- The process/result/claim separation failures are typed (MUST) ---------- #
+ex:saSeparationFailureHierarchy a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    math:ProcessObservationConflation rdfs:subClassOf math:MathConformanceFailure .
+    math:UngroundedResultClaim        rdfs:subClassOf math:MathConformanceFailure .
+    math:ResultRoleConflation         rdfs:subClassOf math:MathConformanceFailure .
+}""" ;
+    gmeow:saRationale "The process / result / claim separation names three typed failures — conflating the process with the claim (math:ProcessObservationConflation), leaving a result claim ungrounded by a vantage (math:UngroundedResultClaim), and roling the result object as the claim (math:ResultRoleConflation) — so each MUST subclass math:MathConformanceFailure as a first-class, queryable object." .

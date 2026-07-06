@@ -27,7 +27,7 @@ python = ["dep:pyo3"]
 [dependencies]
 # The RDF 1.2 kernel: stages exchange an in-memory dataset / bundle and stamp
 # provenance through this crate; the content store backs the pipeline cache.
-purrdf = "0.2"
+purrdf = "0.3"
 # The native, zero-dependency XSD value space (#906): the snapshot carrier
 # canonicalizes typed-literal lexical forms (`415.0`→`415.0`, `0.90`→`0.9`,
 # `+00:00`→`Z`) to the W3C-canonical mapping via `gmeow_xsd::parse_by_iri` +
@@ -61,7 +61,7 @@ gmeow-logic-compile = { path = "../logic-compile" }
 # The structured snapshot's verify-attestation graph reads the native verify
 # lane's `Report` findings (severity / `verify.<stem>` codes) to build the
 # `gmeow:graph/verify` attestation (#861 P6, two-pass like build_snapshot_bytes).
-gmeow-diagnostics = { path = "../diagnostics" }
+gmeow-errors = { path = "../errors" }
 # The perf-gate merge binary surfaces progress through the shared Reporter.
 gmeow-cli-core = { path = "../cli-core" }
 # The statement feedback surface folds the native statement-stage output through
@@ -78,6 +78,13 @@ gmeow-conformance = { path = "../conformance" }
 # The `docs_render` stage wires the typed documentation model + RDF projection
 # (gmeow_docs::DocsModel::discover / to_gmeow_rdf / render_site) — no port (#853).
 gmeow-docs = { path = "../docs" }
+# The `lang_form` prose-lift corpus drives the shared `lang:` ingester skeleton
+# (`PlainTextBridge` + the deterministic N-Triples / content-address emitter), so there is
+# one digest and one bridge law-spine across every `lang:` producer.
+gmeow-lang-bridge = { path = "../lang-bridge" }
+# The `lang:` form AST: the prose-lift corpus interns each distinct English literal as a
+# `lang:SurfaceForm` addressed by its material `SurfaceForm::surface_key`.
+gmeow-lang-form = { path = "../lang-form" }
 # The `json_schema` export leaf compiles the SHACL shape union into JSON Schema +
 # OpenAPI natively (gmeow_shacl::shape_union::load_shapes + json_schema::compile),
 # replacing the Python LinkML JSON-Schema/OpenAPI generators (#700).

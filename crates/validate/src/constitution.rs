@@ -13,7 +13,7 @@ use std::fs;
 use std::path::Path;
 use std::sync::OnceLock;
 
-use gmeow_diagnostics::{Finding, Severity};
+use gmeow_errors::{Finding, Severity};
 use purrdf::{DatasetView, GraphMatch, RdfDataset, TermId, TermRef, TermValue};
 use regex::Regex;
 
@@ -922,9 +922,10 @@ mod tests {
             .into_iter()
             .map(|f| f.message)
             .collect();
-        assert!(msgs
-            .iter()
-            .any(|m| m.contains("zero registered enforcement")));
+        assert!(
+            msgs.iter()
+                .any(|m| m.contains("zero registered enforcement"))
+        );
     }
 
     #[test]
@@ -936,13 +937,17 @@ mod tests {
              meta:gate-orphan a meta:Gate .\n"
         ));
         let findings = check_enforcement_coverage(&store);
-        assert!(findings
-            .iter()
-            .any(|f| f.severity == Severity::Warning && f.message.contains("review practice")));
-        assert!(findings
-            .iter()
-            .any(|f| f.code == "constitution.orphaned-enforcement"
-                && f.message.contains("gate-orphan")));
+        assert!(
+            findings
+                .iter()
+                .any(|f| f.severity == Severity::Warning && f.message.contains("review practice"))
+        );
+        assert!(
+            findings
+                .iter()
+                .any(|f| f.code == "constitution.orphaned-enforcement"
+                    && f.message.contains("gate-orphan"))
+        );
     }
 
     // ------------------------------------------------------------------
@@ -1156,9 +1161,11 @@ top_level = 42
             "## 1. Be good\n\nprose\n",
         );
         let findings = constitution_full_report(&manifest, &constitution, tmp.path());
-        assert!(findings
-            .iter()
-            .any(|f| f.message.contains("zero registered enforcement")));
+        assert!(
+            findings
+                .iter()
+                .any(|f| f.message.contains("zero registered enforcement"))
+        );
     }
 
     #[test]
@@ -1173,13 +1180,15 @@ top_level = 42
             "## 1. Be good\n\nprose\n",
         );
         let findings = constitution_full_report(&manifest, &constitution, tmp.path());
-        assert!(findings
-            .iter()
-            .any(|f| f.severity == Severity::Warning
-                && f.message.contains("only by review practice")));
-        assert!(!findings
-            .iter()
-            .any(|f| f.message.contains("zero registered enforcement")));
+        assert!(
+            findings.iter().any(|f| f.severity == Severity::Warning
+                && f.message.contains("only by review practice"))
+        );
+        assert!(
+            !findings
+                .iter()
+                .any(|f| f.message.contains("zero registered enforcement"))
+        );
     }
 
     #[test]
@@ -1193,9 +1202,11 @@ top_level = 42
             "## 1. Be good\n\nprose\n",
         );
         let findings = constitution_full_report(&manifest, &constitution, tmp.path());
-        assert!(findings
-            .iter()
-            .any(|f| f.message.contains("'no/such/file.py' does not exist")));
+        assert!(
+            findings
+                .iter()
+                .any(|f| f.message.contains("'no/such/file.py' does not exist"))
+        );
     }
 
     #[test]
@@ -1267,9 +1278,11 @@ top_level = 42
             "## 1. Be good\n\nprose\n",
         );
         let findings = constitution_full_report(&manifest, &constitution, tmp.path());
-        assert!(findings
-            .iter()
-            .any(|f| f.message.contains("undeclared enforcement")));
+        assert!(
+            findings
+                .iter()
+                .any(|f| f.message.contains("undeclared enforcement"))
+        );
     }
 
     #[test]
@@ -1284,9 +1297,11 @@ top_level = 42
         let md = "## 1. Be good\n\nprose\n\n## 2. Be great\n\n**Superseded in part by Principle 1:** because reasons.\n";
         let (manifest, constitution) = write_pair(&tmp, manifest_ttl, md);
         let findings = constitution_full_report(&manifest, &constitution, tmp.path());
-        assert!(!findings
-            .iter()
-            .any(|f| f.message.contains("supersededInPartBy drift")));
+        assert!(
+            !findings
+                .iter()
+                .any(|f| f.message.contains("supersededInPartBy drift"))
+        );
     }
 
     #[test]
@@ -1301,9 +1316,10 @@ top_level = 42
         let md = "## 1. Be good\n\nprose\n\n## 2. Be great\n\n**Superseded in part by Principle 1:** because reasons.\n";
         let (manifest, constitution) = write_pair(&tmp, manifest_ttl, md);
         let findings = constitution_full_report(&manifest, &constitution, tmp.path());
-        assert!(findings.iter().any(|f| f
-            .message
-            .contains("principle 2 meta:supersededInPartBy drift")));
+        assert!(findings.iter().any(|f| {
+            f.message
+                .contains("principle 2 meta:supersededInPartBy drift")
+        }));
     }
 
     #[test]
@@ -1318,9 +1334,10 @@ top_level = 42
         let md = "## 1. Be good\n\nprose\n\n## 2. Be great\n\nno marker here.\n";
         let (manifest, constitution) = write_pair(&tmp, manifest_ttl, md);
         let findings = constitution_full_report(&manifest, &constitution, tmp.path());
-        assert!(findings.iter().any(|f| f
-            .message
-            .contains("principle 2 meta:supersededInPartBy drift")));
+        assert!(findings.iter().any(|f| {
+            f.message
+                .contains("principle 2 meta:supersededInPartBy drift")
+        }));
     }
 
     #[test]

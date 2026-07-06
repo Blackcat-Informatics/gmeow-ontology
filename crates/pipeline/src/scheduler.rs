@@ -22,7 +22,7 @@ use purrdf::provenance::DatasetProvenance;
 use rayon::prelude::*;
 
 use crate::bundle::set_bundle_provenance;
-use crate::cache::{content_digest, stage_key, PipelineCache};
+use crate::cache::{PipelineCache, content_digest, stage_key};
 use crate::error::PipelineError;
 use crate::graph::StageGraph;
 use crate::node::{Stage, StageInput, StageProduct};

@@ -1260,10 +1260,10 @@ fn is_property(view: &DslView<'_>, iri: &str) -> bool {
 fn rdf_list_named_members(view: &DslView<'_>, head: &DslTerm) -> Vec<String> {
     // The list head term must NOT be `rdf:nil`; `DslView::rdf_list` already terminates
     // on it. Filter to IRI members (mirrors the historical named-node-only collection).
-    if let DslTerm::Iri(iri) = head {
-        if iri == RDF_NIL {
-            return Vec::new();
-        }
+    if let DslTerm::Iri(iri) = head
+        && iri == RDF_NIL
+    {
+        return Vec::new();
     }
     view.rdf_list(Some(head))
         .into_iter()

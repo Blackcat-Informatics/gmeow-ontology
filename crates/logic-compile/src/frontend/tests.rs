@@ -101,9 +101,11 @@ fn unknown_semantic_profile_is_a_hard_error() {
     // Greenfield (reviewer C3): an unrecognised preset reference is a hard error,
     // not a fail-soft warning — otherwise it is a silent approximation.
     let (_, diags) = parse("ex:Bogus a logic:ReasoningPreset .");
-    assert!(diags
-        .iter()
-        .any(|d| d.code == "UNKNOWN_PROFILE" && d.severity == Severity::Error));
+    assert!(
+        diags
+            .iter()
+            .any(|d| d.code == "UNKNOWN_PROFILE" && d.severity == Severity::Error)
+    );
 }
 
 // ── Compatibility firewall (Task 3 / reviewer C3) ──────────────────────
@@ -528,7 +530,7 @@ fn confidence_scoped_axiom_case_produces_expected_ir() {
 }
 
 // The diagnostics_report projection is tested in crate::logic_diagnostics
-// (it returns the PyO3-tainted gmeow_diagnostics::Report and lives runtime-side,
+// (it returns the PyO3-tainted gmeow_errors::Report and lives runtime-side,
 // out of the wasm-able compiler).
 
 // ── Path shapes ──────────────────────────────────────────────────────

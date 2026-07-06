@@ -13,9 +13,9 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
-use gmeow_validate::compliance::{self, assumed_passed_gate_runs, GateRun, META, RUNNER_NAMES};
+use gmeow_validate::compliance::{self, GateRun, META, RUNNER_NAMES, assumed_passed_gate_runs};
 use gmeow_validate::constitution::{
-    collect_enforcements, collect_principles, Enforcement, Principle,
+    Enforcement, Principle, collect_enforcements, collect_principles,
 };
 use purrdf::{DatasetView, GraphMatch, RdfDataset, TermId, TermRef, TermValue};
 
