@@ -70,6 +70,7 @@ Binding rules, enforced by `tests/test_names.py`:
 
 ```turtle
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix lang:  <https://blackcatinformatics.ca/lang/> .
 @prefix ex:    <https://example.org/names/> .
 
 # --- Languages ---
@@ -88,10 +89,24 @@ ex:nameLatin a gmeow:PersonName ;
 ex:nameHan a gmeow:PersonName ;
     gmeow:fullName "欧德理"@x-gmeow-chinese ;
     gmeow:nameLanguage ex:langZh ;
-    gmeow:nameScript "Hans" ;
+    gmeow:nameScript lang:hanScript ;                    # a first-class lang:Script, not a bare code
     gmeow:romanization "Ōu Délǐ"@x-gmeow-chinese-latn ;  # romanization of THIS name only
     gmeow:namePurpose gmeow:namePurposeChosen ;
     gmeow:wasAttributedTo ex:patrick .
+
+# --- The naming→referent bridge (Principle 19): the name's form MEANS the
+#     person. That meaning is a reified lang:Denotation, reached from the
+#     appellation through gmeow:appellationDenotation. Bearing (hasName) stays;
+#     this layers the reference reading on top. Co-reference = shared target.
+ex:nameHan gmeow:appellationDenotation ex:hanDenotation .
+
+ex:hanForm a lang:WordForm ; lang:inSignSystem ex:langZh .
+
+ex:hanDenotation a lang:Denotation ;
+    lang:denotedForm ex:hanForm ;
+    lang:denotationKind lang:denotesEntity ;   # the target is an entity, the person
+    lang:denotationTarget ex:patrick ;
+    lang:denotationContext ex:sinophoneAddress .
 ```
 
 > **Multilingualism is a separate, forthcoming building block.** This module is
@@ -342,7 +357,11 @@ A `gmeow:NamePart`'s kind is the **value** `gmeow:namePartType` (a `gmeow:NamePa
 
 ### gmeow:fullName · gmeow:nameLanguage · gmeow:nameScript · gmeow:romanization · gmeow:namePurpose · gmeow:NamePurpose · gmeow:displayable · gmeow:conferredByEvent
 
-`gmeow:fullName` is the complete surface form in the culture's natural order, authoritative for display. `gmeow:nameLanguage` is the appellation's single first-class `gmeow:Language` (functional — co-equal multilingual names are separate appellations, never one multi-tagged name), `gmeow:nameScript` its ISO 15924 script, and `gmeow:romanization` a Latin transliteration of *this same* name that never bridges two co-equal names. `gmeow:namePurpose` tags the intrinsic kind(s) of a name (a `gmeow:NamePurpose` value — legal, chosen, deadname, endonym/exonym, …); `gmeow:displayable` is the **only** display control — there is deliberately no preferred/primary marker, so a superseded name or deadname sets it `false` and consumers MUST honour that. `gmeow:conferredByEvent` is the seam to the events spine, linking an appellation to the `gmeow:LifeEvent` that conferred or changed it.
+`gmeow:fullName` is the complete surface form in the culture's natural order, authoritative for display. `gmeow:nameLanguage` is the appellation's single first-class `gmeow:Language` (functional — co-equal multilingual names are separate appellations, never one multi-tagged name), `gmeow:nameScript` the first-class **`lang:Script`** its surface is written in (regrounded onto the shared lang: script layer under Principle 19 — the ISO 15924 code rides the script's `skos:notation`, never a bare per-name tag), and `gmeow:romanization` a Latin transliteration of *this same* name that never bridges two co-equal names. `gmeow:namePurpose` tags the intrinsic kind(s) of a name (a `gmeow:NamePurpose` value — legal, chosen, deadname, endonym/exonym, …); `gmeow:displayable` is the **only** display control — there is deliberately no preferred/primary marker, so a superseded name or deadname sets it `false` and consumers MUST honour that. `gmeow:conferredByEvent` is the seam to the events spine, linking an appellation to the `gmeow:LifeEvent` that conferred or changed it.
+
+### gmeow:appellationDenotation — the naming→referent bridge (lang: graft)
+
+Bearing a name (`gmeow:hasName`/`gmeow:hasAppellation`) is not the whole story: a name's form **means** the entity it names, and that meaning is the reference corner of the Frege triangle. Under Principle 19 the names slice grounds it in the `lang:` layer instead of minting a local record. `gmeow:appellationDenotation` relates a `gmeow:Appellation` to a reified **`lang:Denotation`** whose `lang:denotedForm` is the appellation's analyzed (non-surface) `lang:Form`, whose `lang:denotationKind` is `lang:denotesEntity`, whose `lang:denotationTarget` is the named entity, and whose `lang:denotationContext` scopes the reading. Reification makes disagreement, revision, and ambiguity over *who a name refers to* representable rather than collapsed into a bare edge; the property is non-functional, and **co-reference is established by two appellations whose denotations share a `lang:denotationTarget`** — not by a same-string heuristic. The `gmeow:NameUsage` relator is retained (it carries the audience/register/period/authority/evidence axes a denotation has no term for); the denotation layers the meaning reading *on top of* the bearing.
 
 ### gmeow:claimedMediaType · gmeow:detectedMediaType
 

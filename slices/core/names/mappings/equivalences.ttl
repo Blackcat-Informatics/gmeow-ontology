@@ -1,4 +1,6 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix lang: <https://blackcatinformatics.ca/lang/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
@@ -513,3 +515,90 @@ gmeow:eqDcTerms007 a gmeow:TermEquivalence ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
     gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+
+# --------------------------------------------------------------------------- #
+# lang: graft supersession cells (Task 4)                                     #
+# The names slice is grafted onto the lang: grounding layer (Principle 19).   #
+# The naming→referent bridge — a name's form MEANS its bearer — is expressed  #
+# as a reified lang:Denotation, reached from the appellation through the new  #
+# gmeow:appellationDenotation seam. Every gmeow: term the task enumerated is   #
+# adjudicated below with an EXECUTABLE disposition:                            #
+#   * REGROUNDED — a retained term whose carrier moves onto a lang: individual #
+#     (gmeow:nameScript → lang:Script), an object-property migration.          #
+#   * RETENTION (negative supersession — NOT a Section-Retraction) — the term  #
+#     is RETAINED by decision, with a lawful relatedMatch to the lang: surface #
+#     that does NOT reach Section-Retraction, proving retention is intentional #
+#     rather than an oversight. The rung is prose; the SSSOM row carries only  #
+#     the skos grain; gmeow:lossyDrop records what lang: cannot carry.         #
+# --------------------------------------------------------------------------- #
+
+# gmeow:appellationDenotation — the FLOOR seam (consumer, not a supersession).
+gmeow:eqNamesGraft001 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:appellationDenotation ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject lang:Denotation ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "Denotation" ;
+    gmeow:comment "GRAFT SEAM (new consumer, not a supersession): gmeow:appellationDenotation is the naming→referent bridge grounded in lang: (Principle 19). It relates a gmeow:Appellation to the reified lang:Denotation in which the appellation's lang:Form denotes its bearer — lang:denotationKind lang:denotesEntity, lang:denotationTarget the named gmeow:Entity, lang:denotedForm the appellation's non-surface form. The names slice thereby REUSES the lang: reference corner rather than minting a local meaning record; co-reference is a shared lang:denotationTarget. relatedMatch: the property points AT a lang:Denotation, it is not equivalent to one." ;
+    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+
+# gmeow:nameScript — REGROUNDED onto lang:Script (object-property migration).
+gmeow:eqNamesGraft002 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:nameScript ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject lang:Script ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "Script" ;
+    gmeow:comment "REGROUNDING (retention + carrier migration): gmeow:nameScript is RETAINED but migrated from an owl:DatatypeProperty carrying a bare ISO 15924 literal to an owl:ObjectProperty whose rdfs:range is lang:Script. The ISO 15924 code (\"Hani\", \"Latn\", \"Jpan\") now rides the lang:Script individual's skos:notation, so script identity is shared with the writing-system / notation graft rather than duplicated as an opaque per-name tag, and a code-less or newly-minted script names co-equally. The name→script facet survives verbatim; only its carrier deepened. relatedMatch: the property now points at the lang:Script individual it formerly encoded as a string." ;
+    gmeow:lossyDrop "the free-form ISO 15924 string literal form of gmeow:nameScript is no longer accepted; the code is recovered from the referenced lang:Script's skos:notation, and any script that must be named now requires a first-class lang:Script individual rather than a bare tag" ;
+    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+
+# gmeow:NameUsage — RETAINED (lang:Denotation does NOT supersede the relator).
+gmeow:eqNamesGraft003 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:NameUsage ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject lang:Denotation ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.4 ;
+    gmeow:objectLabel "Denotation" ;
+    gmeow:comment "RETENTION (negative supersession — NOT a Section-Retraction): gmeow:NameUsage is RETAINED. It is the reified observation-spine logic:Relator binding {named entity}×{appellation}×{audience}×{register}×{period}×{evidence} — WHO calls WHOM by which name, toward what audience, in what register, over what interval, on what evidence. lang:Denotation is the reference corner of the Frege triangle (form→referent meaning), carrying none of the audience / register / period / authority / evidence axes. A NameUsage may CARRY a denotation (its appellation's form denotes the named entity through gmeow:appellationDenotation), but the relator's perspectival, standpoint-scoped binding is not recoverable from a meaning record, so lang:Denotation cannot retract onto NameUsage. relatedMatch: related through the shared naming act, on disjoint axes." ;
+    gmeow:lossyDrop "the audience / register / period / naming-authority / evidence binding of gmeow:NameUsage (a perspectival gufo-style relator) is not carried by lang:Denotation, which records the form→referent meaning and nothing of who used the name toward whom, when, or on what authority" ;
+    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+
+# gmeow:nameLanguage — RETAINED (language-of-form facet, orthogonal to reference).
+gmeow:eqNamesGraft004 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:nameLanguage ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject lang:Denotation ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.2 ;
+    gmeow:objectLabel "Denotation" ;
+    gmeow:comment "RETENTION (negative supersession — NOT a Section-Retraction): gmeow:nameLanguage is RETAINED. Its range gmeow:Language survives the graft (a language is grafted as a lang:SignSystem but kept as a gmeow: term); nameLanguage carries the FUNCTIONAL language-of-the-form facet (exactly one gmeow:Language per appellation), an axis of the FORM corner, not the reference corner. lang:Denotation is form→referent meaning and has no term for which language a name's surface is in, so it cannot supersede nameLanguage. relatedMatch: both sit on the Frege triangle but on different corners (form-language vs reference)." ;
+    gmeow:lossyDrop "the functional language-of-form facet of gmeow:nameLanguage (which first-class gmeow:Language an appellation's surface is in) is not carried by lang:Denotation, whose lang:denotationContext scopes the reading but does not fix the form's language" ;
+    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+
+# gmeow:romanization — RETAINED (a form→form transliteration surface, rendering layer).
+gmeow:eqNamesGraft005 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:romanization ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject lang:Denotation ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.2 ;
+    gmeow:objectLabel "Denotation" ;
+    gmeow:comment "RETENTION (negative supersession — NOT a Section-Retraction): gmeow:romanization is RETAINED. It is a Latin-script transliteration of THE SAME appellation (a form→form rendering-layer datum, whose producing system is named by the language slice's gmeow:transliterationScheme, already regrounded onto lang:TransliterationMap in the Task-2 graft). It is NOT a meaning record: it never bridges two co-equal names and never targets a referent. lang:Denotation is form→referent meaning and cannot carry a transliteration string, so it does not supersede romanization; the transliteration axis belongs to lang:Rendering / lang:TransliterationMap, not lang:Denotation. relatedMatch: both concern a form, on the rendering vs reference axes." ;
+    gmeow:lossyDrop "the same-name Latin transliteration surface of gmeow:romanization is not a form→referent meaning and is not carried by lang:Denotation; it lives on the rendering axis (lang:TransliterationMap, named by gmeow:transliterationScheme)" ;
+    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+
+# The core naming-relation (bearing) family — RETAINED (bearing ≠ denoting).
+gmeow:eqNamesGraft006 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasAppellation ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject lang:Denotation ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.3 ;
+    gmeow:objectLabel "Denotation" ;
+    gmeow:comment "RETENTION (negative supersession — NOT a Section-Retraction): the core naming-relation family — gmeow:hasAppellation (representative) and its specializations gmeow:hasName / gmeow:hasPlaceName / gmeow:hasOrganizationName / gmeow:hasAgreementName, plus the NameUsage players gmeow:usageNamed / gmeow:usageAppellation — is RETAINED. These are BEARING relations (an entity BEARS a co-equal name-object) or relator-player bindings, structurally distinct from the form→referent MEANING that a lang:Denotation records. A name's form denotes its bearer (the new gmeow:appellationDenotation seam), but the entity→name-object bearing is a separate fact that lang:Denotation carries no term for. lang:Denotation cannot retract onto the bearing family; the denotation is layered ON TOP of the retained bearing. relatedMatch: bearing and denoting meet at the appellation but are disjoint relations." ;
+    gmeow:lossyDrop "the entity→name-object bearing semantics of gmeow:hasAppellation and its specializations (and the relator-player bindings gmeow:usageNamed / gmeow:usageAppellation) are not carried by lang:Denotation, which records the form→referent meaning, not which entity bears which co-equal name-object" ;
+    gmeow:sssomFile "gmeow-names.sssom.tsv" .

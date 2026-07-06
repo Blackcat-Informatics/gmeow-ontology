@@ -1,4 +1,5 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix lang: <https://blackcatinformatics.ca/lang/> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
@@ -19,6 +20,19 @@ gmeow:authorityLink
         gmeow:consumerResearchQueue ,
         gmeow:consumerWikidata ;
     gmeow:useWhen "Use when a stable GMEOW entity should point at its record in an external authority — a Wikidata item, gazetteer entry, VIAF name, or database row — as a see-also reference whose match strength is asserted separately with skos:exactMatch or skos:closeMatch."@x-gmeow-english .
+
+gmeow:corefDenotation
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Entity ;
+    rdfs:range lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/coreference> ;
+    rdfs:label "coreference denotation"@x-gmeow-english ;
+    skos:definition "The reference-resolution seam, grounded in the lang: layer (Principle 19): relates an entity to a reified lang:Denotation that resolves a form or appellation to it as REFERENT — lang:denotationKind lang:denotesEntity, lang:denotationTarget the entity, lang:denotedForm the resolved (non-surface) lang:Form. This is where coreference is DECIDED rather than lineaged: two forms/appellations are coreferential exactly when their lang:Denotations share a lang:denotationTarget, so 'these forms denote the SAME referent' is a structural fact about shared reference, not a same-string guess and not an owl:sameAs merge. Distinct from the identity-LINEAGE links (gmeow:authorityLink, counterpartOf, versionOf, editionOf, supersedes): those relate one entity/record to another across realms or over a lineage; this resolves a form to its referent through a meaning record. Non-functional — several context-scoped denotations may resolve to one entity."@x-gmeow-english ;
+    skos:example "ex:morningStarDenotation lang:denotationTarget ex:venus . ex:eveningStarDenotation lang:denotationTarget ex:venus . ex:venus gmeow:corefDenotation ex:morningStarDenotation , ex:eveningStarDenotation ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it for cross-realm counterparts (use gmeow:counterpartOf), external-authority pointers (gmeow:authorityLink), or version/edition/supersession lineage — those are identity-lineage links, NOT reference resolution; never collapse a shared-referent coreference into owl:sameAs, and never hang the denotation on a lang:SurfaceForm (meaning attaches above the byte level)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Mint a lang:Denotation per resolving form (lang:denotedForm a lang:Form, lang:denotationKind lang:denotesEntity, lang:denotationTarget the entity, lang:denotationContext the reading), point gmeow:corefDenotation from the entity at each, and read coreference off the SHARED lang:denotationTarget rather than asserting owl:sameAs between the forms."@x-gmeow-english ;
+    gmeow:useWhen "Use to resolve a form or appellation to the entity it denotes as a first-class lang:Denotation, and to establish coreference between two forms by their shared lang:denotationTarget — the reference-resolution counterpart to the identity-lineage links, carrying its own context, ambiguity, and standpoint."@x-gmeow-english .
 
 gmeow:counterpartOf
     a owl:ObjectProperty ,
