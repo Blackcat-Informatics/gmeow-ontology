@@ -358,7 +358,7 @@ pub fn gate_derived_audit(
     sssom_texts: &[String],
     projection_ttls: &[String],
     corpus_nts: &[(String, String)],
-) -> Result<AuditLedger, String> {
+) -> gmeow_errors::Result<AuditLedger> {
     let audit = run_audit_nt(sssom_texts, projection_ttls, corpus_nts)?;
     let (direct, inverse) = edoalpath_pairs(projection_ttls)?;
     // EDOAL maps key on the full target IRI; the audit keys terms by canonical qname. Match by
@@ -375,7 +375,7 @@ pub(crate) fn ledger_from_audit(
     audit: &AuditReport,
     direct_q: &BTreeMap<String, String>,
     inverse_q: &BTreeMap<String, String>,
-) -> Result<AuditLedger, String> {
+) -> gmeow_errors::Result<AuditLedger> {
     let (corrs, legs, cells, unsupported_by_vocab) =
         correspondences_from_audit(audit, direct_q, inverse_q);
 
@@ -383,7 +383,9 @@ pub(crate) fn ledger_from_audit(
         .with_leg_programs(legs);
     // No-op for supplied-put (proved-candidate) cells; the claimed/asserted cells carry no get
     // leg, so nothing is fabricated. `evaluate_gates` (NOT `assert_gates`) records REDs.
-    let (gated, _outcomes) = program.with_derived_puts()?;
+    let (gated, _outcomes) = program
+        .with_derived_puts()
+        .map_err(|message| gmeow_errors::Diag::of_kind(crate::error::UpProjection { message }))?;
     let report = evaluate_gates(&gated, &[]);
 
     // Attribute each gate verdict back to its vocabulary via the corr IRI → vocab map.
@@ -421,10 +423,12 @@ pub(crate) fn ledger_from_audit(
     // that the tier classification and the ledger never diverge (no-optionality hard-fail).
     let ledger = liftability(&report);
     if totals.proved != ledger.lawful {
-        return Err(format!(
-            "gate-derived audit inconsistency: proved tier {} != gate ledger lawful {}",
-            totals.proved, ledger.lawful
-        ));
+        return Err(gmeow_errors::Diag::of_kind(crate::error::UpProjection {
+            message: format!(
+                "gate-derived audit inconsistency: proved tier {} != gate ledger lawful {}",
+                totals.proved, ledger.lawful
+            ),
+        }));
     }
 
     Ok(AuditLedger {
@@ -512,7 +516,7 @@ struct CandidateLift {
 pub fn gate_verified_lift_program(
     sssom_texts: &[String],
     projection_ttls: &[String],
-) -> Result<LiftProgram, String> {
+) -> gmeow_errors::Result<LiftProgram> {
     // The buckets + EDOAL paths that define each term's gate tier (corpus-independent), keyed by
     // full target IRI — the SAME inputs the audit's `combined_class` / `unique_qname_map` read.
     let sssom_buckets = sssom_best_buckets_pub(sssom_texts)?;
@@ -604,7 +608,7 @@ pub fn gate_verified_lift_program(
 /// machinery the audit ledger uses ([`classify_term`] → [`CorrespondenceProgram::with_derived_puts`]
 /// → [`evaluate_gates`] → [`tier_of`]). This is the single classification; the producer never
 /// re-implements a second copy of the direct/inverse orientation-and-inversion logic.
-fn gate_tier_for(term: &str, shape: &TermShape) -> Result<Tier, String> {
+fn gate_tier_for(term: &str, shape: &TermShape) -> gmeow_errors::Result<Tier> {
     let corr_iri = format!("{LOGIC_NS}up-projection-lift/{}", slug(term));
     let (get_leg, put_leg, legs) = match &shape.legs {
         Some((direct, inverse)) => {
@@ -644,19 +648,26 @@ fn gate_tier_for(term: &str, shape: &TermShape) -> Result<Tier, String> {
         None,
         None,
     )
-    .map_err(|e| format!("gate-verified lift correspondence for {term} is malformed: {e}"))?;
+    .map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::UpProjection {
+            message: format!("gate-verified lift correspondence for {term} is malformed: {e}"),
+        })
+    })?;
     let program = CorrespondenceProgram::new(
         vec![correspondence],
         Vec::new(),
         PreservationKind::SoundUnder,
     )
     .with_leg_programs(legs);
-    let (gated, _outcomes) = program.with_derived_puts()?;
+    let (gated, _outcomes) = program
+        .with_derived_puts()
+        .map_err(|message| gmeow_errors::Diag::of_kind(crate::error::UpProjection { message }))?;
     let report = evaluate_gates(&gated, &[]);
-    let r = report
-        .per_correspondence
-        .first()
-        .ok_or_else(|| format!("gate report empty for {term}"))?;
+    let r = report.per_correspondence.first().ok_or_else(|| {
+        gmeow_errors::Diag::of_kind(crate::error::UpProjection {
+            message: format!("gate report empty for {term}"),
+        })
+    })?;
     Ok(tier_of(r))
 }
 
@@ -671,15 +682,12 @@ fn candidate_lifts(
     projection_ttls: &[String],
     direct_edoal: &BTreeMap<String, std::collections::BTreeSet<String>>,
     inverse_edoal: &BTreeMap<String, std::collections::BTreeSet<String>>,
-) -> Result<
-    (
-        BTreeMap<String, CandidateLift>,
-        BTreeMap<String, CandidateLift>,
-        BTreeMap<String, CandidateLift>,
-        usize,
-    ),
-    String,
-> {
+) -> gmeow_errors::Result<(
+    BTreeMap<String, CandidateLift>,
+    BTreeMap<String, CandidateLift>,
+    BTreeMap<String, CandidateLift>,
+    usize,
+)> {
     let identity = sssom_clean_pairs(sssom_texts)?;
     let (exact_struct, generalizing_struct) = structural_pairs(projection_ttls)?;
     let closematch = sssom_closematch_pairs(sssom_texts)?;

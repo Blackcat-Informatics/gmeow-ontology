@@ -563,7 +563,7 @@ pub fn project(
             }
             Err(e) => fail(e),
         },
-        Err(e) => fail(e),
+        Err(e) => fail(e.to_string()),
     }
 }
 
@@ -636,7 +636,7 @@ fn project_data_file(
             }
             Err(e) => fail(e),
         },
-        Err(e) => fail(e),
+        Err(e) => fail(e.to_string()),
     }
 }
 
@@ -724,7 +724,7 @@ pub fn transpile(source: &Path, out: Option<&Path>, profiles: &str, lang: Option
             );
             write_transpile_outputs(out, source, &report.draft_nt, &report.transform)
         }
-        Err(e) => fail(e),
+        Err(e) => fail(e.to_string()),
     }
 }
 
@@ -785,7 +785,8 @@ fn assemble_transpile_inputs() -> Result<
         .filter(|(k, _)| k.ends_with(".ttl"))
         .map(|(_, v)| String::from_utf8_lossy(&v).into_owned())
         .collect();
-    let base = gmeow_pipeline::projections::gts_base_graph(BUNDLE_GTS)?;
+    let base =
+        gmeow_pipeline::projections::gts_base_graph(BUNDLE_GTS).map_err(|e| e.to_string())?;
     let ontology_nt = quads_to_nt(&base)?;
 
     let projection_queries: Vec<(String, String)> = bundle_blobs::bundled_queries(BUNDLE_GTS)

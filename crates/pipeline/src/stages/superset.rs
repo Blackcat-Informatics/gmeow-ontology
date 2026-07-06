@@ -403,14 +403,14 @@ pub(crate) fn rdf_prefixes() -> Vec<(String, String)> {
 /// graph-labelled dataset folds to N-Quads lines. Shared by the gate (folding a
 /// `.nt`/`.nq` graph) and the producing stage (emitting the committed file), so
 /// `file == fold` holds by construction — idempotent even with blank nodes.
-pub(crate) fn canonical_ntriples(dataset: &RdfDataset) -> Result<Vec<u8>, String> {
+pub(crate) fn canonical_ntriples(dataset: &RdfDataset) -> gmeow_errors::Result<Vec<u8>> {
     // Native RDFC-1.0 over the FLATTENED carrier: the statement overlay is
     // re-materialized to plain `rdf:reifies`/annotation triples before canonicalizing.
     // Format-adaptive: a default-graph dataset yields N-Triples lines, a graph-labelled
     // one N-Quads — byte-identical to the prior oxigraph-flat path.
     purrdf::canonical_flat_nquads(dataset)
         .map(String::into_bytes)
-        .map_err(|e| format!("RDFC-1.0 canonicalize: {e}"))
+        .map_err(|e| stage_err(&format!("RDFC-1.0 canonicalize: {e}")))
 }
 
 /// Parse the emitted bundle back into a native dataset (closes serialize -> parse).

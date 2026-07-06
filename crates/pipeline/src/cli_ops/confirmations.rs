@@ -49,7 +49,7 @@ pub fn up_projection_gate_audit(
             .map_err(|e| {
             gmeow_errors::Diag::of_kind(crate::error::StageFailed {
                 stage: "up-projection-audit".to_string(),
-                message: e,
+                message: e.to_string(),
             })
         })?;
     let markdown = crate::up_projection_report::render_audit_markdown(&ledger);

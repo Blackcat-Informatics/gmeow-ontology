@@ -202,7 +202,7 @@ pub fn okf_dir_to_graph(
             message: e.to_string(),
         })
     })?;
-    gts_base_graph(&bytes).map_err(stage_err)
+    gts_base_graph(&bytes).map_err(|e| stage_err(e.to_string()))
 }
 
 /// Lift recognized `okf:` predicates to GMEOW; retain the rest as annotations.
@@ -317,7 +317,7 @@ pub fn transpile_okf(
         &maximal.denied,
         &maximal.projection_queries,
     )
-    .map_err(stage_err)?;
+    .map_err(|e| stage_err(e.to_string()))?;
     Ok(OkfTranspileReport {
         lift: report,
         draft_nt,
