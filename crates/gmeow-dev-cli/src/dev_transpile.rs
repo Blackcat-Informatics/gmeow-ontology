@@ -148,7 +148,7 @@ fn assemble_inputs(bytes: &[u8]) -> Result<(UpProjectionInputs, MaximalInputs), 
     // discharged (Deliverable A), read from the bundle's `graph/correspondence-laws`. The
     // lift program consumes this to promote those cells to lawful FACT renames.
     let discharged_section_cells = projections::discharged_section_cells_from_bundle(bytes)?;
-    let base = projections::gts_base_graph(bytes)?;
+    let base = projections::gts_base_graph(bytes).map_err(|e| e.to_string())?;
     let ontology_nt = quads_to_nt(&base)?;
     let projection_queries: Vec<(String, String)> = bundle_blobs::bundled_queries(bytes)
         .map_err(|e| format!("cannot read bundled queries: {e}"))?
@@ -292,7 +292,7 @@ fn project_view(bytes: &[u8], profile: &str, out: &Path, tags: &TagMap) -> i32 {
             }
             Err(e) => fail(e),
         },
-        Err(e) => fail(e),
+        Err(e) => fail(e.to_string()),
     }
 }
 
@@ -349,7 +349,7 @@ fn project_data_file(
             }
             Err(e) => fail(e),
         },
-        Err(e) => fail(e),
+        Err(e) => fail(e.to_string()),
     }
 }
 
@@ -398,7 +398,7 @@ pub fn transform(
     let report_native =
         match projections::transpile_graph(&source_nt, &stem, &up_inputs, &maximal_inputs, &tags) {
             Ok(r) => r,
-            Err(e) => return fail(e),
+            Err(e) => return fail(e.to_string()),
         };
     eprintln!(
         "lifted {} facts · claimed {} inferred · gap {}",
@@ -491,7 +491,7 @@ pub fn up_project(source: &Path, out: Option<&Path>) -> i32 {
     };
     let result = match projections::up_project(&source_nt, &up_inputs, &tags) {
         Ok(r) => r,
-        Err(e) => return fail(e),
+        Err(e) => return fail(e.to_string()),
     };
     let ttl = match nt_to_turtle(&result.graph_nt) {
         Ok(t) => t,

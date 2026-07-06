@@ -138,6 +138,10 @@ sha2 = "0.10"
 
 [dev-dependencies]
 tempfile = "3"
+# The diagnostic substrate is a normal dependency; integration tests build typed
+# `gmeow_errors::Diag` values off the `error::*` DiagKinds, so it is also a
+# dev-dependency (integration-test crates do not inherit normal dependencies).
+gmeow-errors = { path = "../errors" }
 # Byte goldens for the per-graph `graph/logic` fold (#1132 C6): a deterministic
 # snapshot of the canonical RDF-1.2 named-graph carriage, regression-pinned
 # independent of the full gmeow.gts.

@@ -26,7 +26,6 @@ use purrdf::model::{RdfLiteral, RdfTerm};
 use purrdf::{RdfDataset, RdfQuad, SerializeGraph, dataset_from_quads, serialize_dataset};
 use sha2::{Digest, Sha256};
 
-use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 use crate::stages::profiles::{
     SliceMeta, dependency_closure, discover_slices, group_named_profiles,
@@ -148,7 +147,10 @@ fn object_namespace(iri: &str) -> String {
 
 /// The lexical value of a literal/IRI object of `(ONTOLOGY_IRI, predicate)` in
 /// the default graph (`graph_name == None`).
-fn fold_header_value(store: &RdfDataset, predicate: &str) -> Result<Option<String>, PipelineError> {
+fn fold_header_value(
+    store: &RdfDataset,
+    predicate: &str,
+) -> Result<Option<String>, gmeow_errors::Diag> {
     for q in store.owned_quads() {
         if graph_iri(&q.graph_name).is_some() {
             continue; // default graph only
@@ -163,22 +165,24 @@ fn fold_header_value(store: &RdfDataset, predicate: &str) -> Result<Option<Strin
     Ok(None)
 }
 
-fn fold_version(store: &RdfDataset) -> Result<String, PipelineError> {
+fn fold_version(store: &RdfDataset) -> Result<String, gmeow_errors::Diag> {
     fold_header_value(store, OWL_VERSION_INFO)?.ok_or_else(|| {
-        PipelineError::Parse(format!("snapshot lacks owl:versionInfo on {ONTOLOGY_IRI}"))
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            message: format!("snapshot lacks owl:versionInfo on {ONTOLOGY_IRI}"),
+        })
     })
 }
 
-fn fold_description(store: &RdfDataset) -> Result<String, PipelineError> {
+fn fold_description(store: &RdfDataset) -> Result<String, gmeow_errors::Diag> {
     fold_header_value(store, DCTERMS_DESCRIPTION)?.ok_or_else(|| {
-        PipelineError::Parse(format!(
-            "snapshot lacks dcterms:description on {ONTOLOGY_IRI}"
-        ))
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            message: format!("snapshot lacks dcterms:description on {ONTOLOGY_IRI}"),
+        })
     })
 }
 
 /// Wikidata authority/exact-match links for the Work, scoped to `graph/metadata`.
-fn fold_wikidata_links(store: &RdfDataset) -> Result<Vec<String>, PipelineError> {
+fn fold_wikidata_links(store: &RdfDataset) -> Result<Vec<String>, gmeow_errors::Diag> {
     let mut links: BTreeSet<String> = BTreeSet::new();
     for q in store.owned_quads() {
         if graph_iri(&q.graph_name) != Some(GTS_GRAPH_METADATA) {
@@ -207,7 +211,7 @@ struct VoidStats {
 }
 
 /// VoID statistics over the *default* graph (`graph_name == None`).
-fn fold_stats(store: &RdfDataset) -> Result<VoidStats, PipelineError> {
+fn fold_stats(store: &RdfDataset) -> Result<VoidStats, gmeow_errors::Diag> {
     let mut triples: u64 = 0;
     let mut entities: BTreeSet<String> = BTreeSet::new();
     let mut classes: BTreeSet<String> = BTreeSet::new();
@@ -255,7 +259,7 @@ struct Linkset {
 
 /// Linksets from the `graph/alignments` named graph: one per (target namespace,
 /// predicate) pair where both predicate and object are IRIs.
-fn fold_linksets(store: &RdfDataset) -> Result<Vec<Linkset>, PipelineError> {
+fn fold_linksets(store: &RdfDataset) -> Result<Vec<Linkset>, gmeow_errors::Diag> {
     let mut buckets: BTreeMap<(String, String), u64> = BTreeMap::new();
     for q in store.owned_quads() {
         if graph_iri(&q.graph_name) != Some(GTS_GRAPH_ALIGNMENTS) {
@@ -328,7 +332,7 @@ fn iri_term(s: &str) -> RdfTerm {
 
 // ── Graph builders ─────────────────────────────────────────────────────────────
 
-fn build_void_quads(store: &RdfDataset) -> Result<Vec<RdfQuad>, PipelineError> {
+fn build_void_quads(store: &RdfDataset) -> Result<Vec<RdfQuad>, gmeow_errors::Diag> {
     let mut out: Vec<RdfQuad> = Vec::new();
     let dataset = VOID_DATASET_IRI;
 
@@ -504,7 +508,7 @@ fn build_void_quads(store: &RdfDataset) -> Result<Vec<RdfQuad>, PipelineError> {
     Ok(out)
 }
 
-fn build_dcat_quads(store: &RdfDataset, root: &Path) -> Result<Vec<RdfQuad>, PipelineError> {
+fn build_dcat_quads(store: &RdfDataset, root: &Path) -> Result<Vec<RdfQuad>, gmeow_errors::Diag> {
     let mut out: Vec<RdfQuad> = Vec::new();
     let dataset = ONTOLOGY_IRI;
 
@@ -656,11 +660,16 @@ fn build_dcat_quads(store: &RdfDataset, root: &Path) -> Result<Vec<RdfQuad>, Pip
 /// bytes, banner-prefixed. The quad set is blank-node-free plain triples, so the
 /// statement-layer fold is a no-op and the output is byte-identical to the prior
 /// oxigraph-built path.
-fn serialize(quads: &[RdfQuad]) -> Result<Vec<u8>, PipelineError> {
+fn serialize(quads: &[RdfQuad]) -> Result<Vec<u8>, gmeow_errors::Diag> {
     let mut buf: Vec<u8> = BANNER.as_bytes().to_vec();
-    let dataset = dataset_from_quads(quads).map_err(PipelineError::Parse)?;
-    let body = serialize_dataset(&dataset, "text/turtle", SerializeGraph::DefaultGraph)
-        .map_err(|e| PipelineError::Parse(format!("turtle serialize: {e}")))?;
+    let dataset = dataset_from_quads(quads)
+        .map_err(|m| gmeow_errors::Diag::of_kind(crate::error::Parse { message: m }))?;
+    let body =
+        serialize_dataset(&dataset, "text/turtle", SerializeGraph::DefaultGraph).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Parse {
+                message: format!("turtle serialize: {e}"),
+            })
+        })?;
     buf.extend_from_slice(&body);
     Ok(buf)
 }
@@ -672,7 +681,7 @@ fn serialize(quads: &[RdfQuad]) -> Result<Vec<u8>, PipelineError> {
 pub(crate) fn render_metadata_from_dataset(
     root: &Path,
     store: &RdfDataset,
-) -> Result<BTreeMap<String, Vec<u8>>, PipelineError> {
+) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
     let void = build_void_quads(store)?;
     let dcat = build_dcat_quads(store, root)?;
 
@@ -714,16 +723,17 @@ impl Stage for MetadataStage {
     fn impl_version(&self) -> &str {
         "metadata.v1"
     }
-    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
+    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         // THIS run's snapshot carrier dataset, read DIRECTLY off the product bundle —
         // no re-parse of the gmeow.gts bytes (GTS is exit-only).
         let dataset = crate::stages::carrier::snapshot_dataset(input.upstream)?;
         let store = dataset.as_ref();
         let artifacts = render_metadata_from_dataset(input.root, store)?;
 
-        Ok(StageOutput {
-            product: StageProduct::from_artifacts(self.id(), artifacts),
-        })
+        Ok(StageOutput::new(StageProduct::from_artifacts(
+            self.id(),
+            artifacts,
+        )))
     }
 }
 

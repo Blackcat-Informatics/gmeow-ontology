@@ -31,6 +31,7 @@
 
 use std::collections::{BTreeMap, BTreeSet, HashSet};
 
+use gmeow_errors::{Diag, ResultExt};
 use gmeow_logic_compile::ir::LegPath;
 use gmeow_logic_compile::projections::paths::lower_leg_path;
 use gmeow_logic_compile::projections::reified_claim::{
@@ -39,6 +40,7 @@ use gmeow_logic_compile::projections::reified_claim::{
 use purrdf::sparql::NativeSparqlEngine;
 use purrdf::{RdfQuad, RdfTerm, SparqlEngine, SparqlRequest, SparqlResult};
 
+use crate::error::Put;
 use crate::up_projection_corpus::{
     ADOPTED_PREDICATES, GM_CONFIDENCE, GM_MAPPED_FROM, GM_STATEMENT_METADATA, Graph,
     NORMALIZED_PREDICATES, RDF_TYPE, STATEMENT_METADATA_TERMS, XSD_DECIMAL, canon_qname, dump_nt,
@@ -91,7 +93,7 @@ struct LawfulRules {
 fn lawful_rules_from_program(
     program: &LiftProgram,
     ontology_nt: &str,
-) -> Result<LawfulRules, String> {
+) -> gmeow_errors::Result<LawfulRules> {
     let mut rules: BTreeMap<String, String> = BTreeMap::new();
     let mut inverse_rules: BTreeMap<String, String> = BTreeMap::new();
     let mut claim_rules: BTreeMap<String, (String, String)> = BTreeMap::new();
@@ -165,7 +167,7 @@ impl PutLegProgram {
         projection_ttls: &[String],
         ontology_nt: &str,
         discharged_section_cells: &BTreeSet<String>,
-    ) -> Result<Self, String> {
+    ) -> gmeow_errors::Result<Self> {
         let program =
             gate_verified_lift_program(sssom_texts, projection_ttls, discharged_section_cells)?;
         let lawful = lawful_rules_from_program(&program, ontology_nt)?;
@@ -188,7 +190,7 @@ pub fn execute_put_legs(
     projection_ttls: &[String],
     ontology_nt: &str,
     discharged_section_cells: &BTreeSet<String>,
-) -> Result<LiftedReport, String> {
+) -> gmeow_errors::Result<LiftedReport> {
     let program = PutLegProgram::derive(
         sssom_texts,
         projection_ttls,
@@ -204,10 +206,12 @@ pub fn execute_put_legs(
 pub fn execute_put_legs_with(
     source_nt: &str,
     program: &PutLegProgram,
-) -> Result<LiftedReport, String> {
+) -> gmeow_errors::Result<LiftedReport> {
     let source = Graph::parse(source_nt.as_bytes(), "application/n-triples")?;
     if source.is_empty() {
-        return Err("execute_put_legs: source graph is empty".to_owned());
+        return Err(Diag::of_kind(Put {
+            message: "execute_put_legs: source graph is empty".to_owned(),
+        }));
     }
 
     let lawful = &program.lawful;
@@ -432,7 +436,7 @@ pub(crate) fn run_construct(
     engine: &NativeSparqlEngine,
     dataset: &std::sync::Arc<purrdf::RdfDataset>,
     query: &str,
-) -> Result<Vec<RdfQuad>, String> {
+) -> gmeow_errors::Result<Vec<RdfQuad>> {
     let result = engine
         .query(
             dataset,
@@ -442,11 +446,11 @@ pub(crate) fn run_construct(
                 substitutions: &[],
             },
         )
-        .map_err(|e| format!("put-leg CONSTRUCT evaluation failed: {e}\nquery: {query}"))?;
+        .with_ctx(|| format!("put-leg CONSTRUCT evaluation failed\nquery: {query}"))?;
     let SparqlResult::Graph(ds) = result else {
-        return Err(format!(
-            "put-leg CONSTRUCT did not return a graph\nquery: {query}"
-        ));
+        return Err(Diag::of_kind(Put {
+            message: format!("put-leg CONSTRUCT did not return a graph\nquery: {query}"),
+        }));
     };
     Ok(purrdf::native_quads::flat_rdf_quads_from_dataset(&ds)
         .into_iter()
@@ -763,7 +767,7 @@ mod tests {
     fn empty_source_is_an_error() {
         let err = execute_put_legs("", &[], &[], "", &BTreeSet::new())
             .expect_err("empty source rejected");
-        assert!(err.contains("source graph is empty"), "{err}");
+        assert!(err.to_string().contains("source graph is empty"), "{err}");
     }
 
     /// One `gmeow:ProjectionMapping` EDOAL-path cell: a single-atom, no-mint pattern whose atom

@@ -46,7 +46,7 @@ use crate::transform::{self, CellInput, DerivedRowNative, TransformReportNative}
 /// ```
 ///
 /// In CHECK mode the caller fails the gate when `drifted` is non-empty (or
-/// `clean` is `False`). A [`crate::error::PipelineError`] (a hard build failure —
+/// `clean` is `False`). A [`gmeow_errors::Diag`] (a hard build failure —
 /// a malformed DAG, an unknown stage impl, an I/O error) maps to `ValueError`.
 #[pyfunction]
 #[pyo3(signature = (root, jobs, check))]
@@ -386,7 +386,7 @@ fn fold_release_bundle_native(
                 &public_key_armor,
             )
         })
-        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
     Ok(PyBytes::new(py, &bytes).into_any().unbind())
 }
 
@@ -418,7 +418,7 @@ fn verify_release_bundle_native(
     let bundle = bundle_bytes.to_vec();
     let report = py
         .detach(move || verify_release_bundle(&bundle, expected_public_armor.as_deref()))
-        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
     Ok((
         report.signed,
         report.valid,
@@ -559,7 +559,10 @@ fn execute_put_legs(
                 crate::stages::correspondence_lower::discharged_section_cells_from_cells(
                     &projection_ttls,
                     &ontology_nt,
-                )?;
+                )
+                .map_err(|message| {
+                    gmeow_errors::Diag::of_kind(crate::error::UpProjection { message })
+                })?;
             crate::put_executor::execute_put_legs(
                 &source_nt,
                 &sssom_texts,
@@ -568,7 +571,7 @@ fn execute_put_legs(
                 &discharged,
             )
         })
-        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
     let out = PyDict::new(py);
     out.set_item("graph_nt", PyBytes::new(py, report.graph_nt.as_bytes()))?;
     out.set_item("lifted", report.lifted)?;
@@ -598,8 +601,12 @@ fn up_projection_gate_audit(
         .detach(move || {
             let mut corpus_nts = Vec::with_capacity(corpus_ttls.len());
             for (name, ttl) in &corpus_ttls {
-                let nt = crate::up_projection_corpus::ttl_to_nt(ttl)
-                    .map_err(|e| format!("corpus {name} ttl→nt: {e}"))?;
+                let nt = crate::up_projection_corpus::ttl_to_nt(ttl).map_err(|e| {
+                    gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                        stage: "up-projection-audit".to_string(),
+                        message: format!("corpus {name} ttl→nt: {e}"),
+                    })
+                })?;
                 corpus_nts.push((name.clone(), nt));
             }
             let ledger = crate::up_projection_gates::gate_derived_audit(
@@ -608,9 +615,9 @@ fn up_projection_gate_audit(
                 &corpus_nts,
             )?;
             let markdown = crate::up_projection_report::render_audit_markdown(&ledger);
-            Ok::<_, String>((ledger, markdown))
+            Ok::<_, gmeow_errors::Diag>((ledger, markdown))
         })
-        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
     audit_ledger_to_py(py, &ledger, &markdown)
 }
 
@@ -620,7 +627,7 @@ fn up_projection_gate_audit(
 fn transform_skolemize_nt(py: Python<'_>, source_nt: String) -> PyResult<Py<PyAny>> {
     let graph_nt = py
         .detach(move || transform::skolemize_nt(&source_nt))
-        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
     Ok(PyBytes::new(py, graph_nt.as_bytes()).into_any().unbind())
 }
 
@@ -637,7 +644,7 @@ fn transform_saturate_nt(
     let cells = cell_inputs(cells);
     let rows = py
         .detach(move || transform::saturate_nt(&abox_nt, &ontology_nt, &cells, &denied))
-        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
     derived_rows_to_py(py, &rows)
 }
 
@@ -657,7 +664,7 @@ fn transform_project_nt(
         .detach(move || {
             transform::transform_nt(&raw_nt, &ontology_nt, &cells, &denied, &projection_queries)
         })
-        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
     transform_report_to_py(py, &report)
 }
 
@@ -712,10 +719,10 @@ fn claim_audit(py: Python<'_>, root: String, files: Vec<String>) -> PyResult<Py<
         .collect::<Vec<_>>();
     let report = py
         .detach(move || scoreboards::claim_audit(Path::new(&root), &paths))
-        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
     let text = scoreboards::render_claim_audit_text(&report);
     let json = scoreboards::render_claim_audit_json(&report)
-        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
     let diagnostics = scoreboards::claim_audit_diagnostics(&report);
 
     let out = PyDict::new(py);
@@ -745,7 +752,7 @@ fn claim_audit_diagnostics_report(
         .collect::<Vec<_>>();
     let report = py
         .detach(move || scoreboards::claim_audit(Path::new(&root), &paths))
-        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
     Ok(Py::new(
         py,
         PyReport::from_engine(scoreboards::claim_audit_diagnostics(&report)),
@@ -762,7 +769,7 @@ fn acceptance(py: Python<'_>, root: String, source: Option<String>) -> PyResult<
         .detach(move || {
             scoreboards::run_acceptance_corpus(Path::new(&root), source_path.as_deref())
         })
-        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
     let markdown = scoreboards::render_acceptance_report(&results);
     let diagnostics = scoreboards::acceptance_diagnostics(&results);
     let aggregate_recall = scoreboards::corpus_recall_pct(&results);
@@ -805,7 +812,7 @@ fn acceptance_diagnostics_report(
         .detach(move || {
             scoreboards::run_acceptance_corpus(Path::new(&root), source_path.as_deref())
         })
-        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
     Ok(Py::new(
         py,
         PyReport::from_engine(scoreboards::acceptance_diagnostics(&results)),
