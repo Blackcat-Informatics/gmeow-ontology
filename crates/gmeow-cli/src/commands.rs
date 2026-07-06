@@ -314,16 +314,16 @@ fn validate_rdf(instance: &Path, fmt: &str, output: &str, deep: bool) -> i32 {
     };
 
     match output.as_str() {
-        "sarif" => match gmeow_diagnostics::render::to_sarif(&report) {
+        "sarif" => match gmeow_errors::render::to_sarif(&report) {
             Ok(s) => println!("{s}"),
             Err(e) => return fail(format!("cannot render SARIF: {e}")),
         },
-        "json" => match gmeow_diagnostics::render::to_json(&report) {
+        "json" => match gmeow_errors::render::to_json(&report) {
             Ok(s) => println!("{s}"),
             Err(e) => return fail(format!("cannot render JSON: {e}")),
         },
         _ => {
-            let text = gmeow_diagnostics::render::to_text(&report);
+            let text = gmeow_errors::render::to_text(&report);
             if !text.trim().is_empty() {
                 eprintln!("{text}");
             }

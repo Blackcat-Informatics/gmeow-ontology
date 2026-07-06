@@ -13,7 +13,7 @@ use std::fs;
 use std::path::Path;
 use std::sync::OnceLock;
 
-use gmeow_diagnostics::{Finding, Severity};
+use gmeow_errors::{Finding, Severity};
 use purrdf::{DatasetView, GraphMatch, RdfDataset, TermId, TermRef, TermValue};
 use regex::Regex;
 

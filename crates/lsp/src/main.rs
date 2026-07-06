@@ -31,7 +31,7 @@ use lsp_types::{
     TextDocumentSyncCapability, TextDocumentSyncKind, Uri,
 };
 
-use gmeow_diagnostics::render;
+use gmeow_errors::render;
 use gmeow_lsp::{analyze, classify, report_to_diagnostics};
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -142,7 +142,7 @@ fn run_sarif(argv: &[String]) -> io::Result<()> {
         ));
     }
 
-    let mut combined = gmeow_diagnostics::model::Report::new("gmeow-lsp");
+    let mut combined = gmeow_errors::model::Report::new("gmeow-lsp");
     if let Some(cat) = category {
         combined
             .metadata

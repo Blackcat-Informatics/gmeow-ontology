@@ -44,7 +44,7 @@
 
 use std::collections::BTreeSet;
 
-use gmeow_diagnostics::{Finding, Severity};
+use gmeow_errors::{Finding, Severity};
 
 use crate::physical::seminaive::{
     Budgeted, NativeOutcome, StepGovernor, StrataProgress, UnsupportedKind,
@@ -864,7 +864,7 @@ impl ChaseAdmission {
         }
     }
 
-    /// Project this termination certificate into a [`gmeow_diagnostics::Finding`] — the
+    /// Project this termination certificate into a [`gmeow_errors::Finding`] — the
     /// certificate class AND its evidence as a first-class surfaced diagnostic, reusing the
     /// canonical Finding machinery the divergence ledger uses, never an internal boolean.
     ///

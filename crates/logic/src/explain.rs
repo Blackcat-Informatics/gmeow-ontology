@@ -38,6 +38,8 @@
 
 use std::collections::{BTreeSet, HashMap};
 
+use gmeow_errors::dag::{DagError, DagNode, walk};
+
 use crate::provenance::{ASSERT_RULE_IRI, reifier_from_strings};
 
 // ── Input row ────────────────────────────────────────────────────────────────
@@ -249,102 +251,90 @@ fn build_reifier_index<'a>(
 
 // ── Reconstruction ───────────────────────────────────────────────────────────
 
-/// Recursively reconstruct the derivation tree for the quad at `(graph, target_reifier)`.
+/// Reconstruct the derivation tree for the quad at `(graph, target_reifier)`,
+/// returning steps in DFS order: the current step first, then each antecedent
+/// subtree.
 ///
-/// Returns steps in DFS order: the current step first, then each antecedent subtree.
-/// Mirrors `_reconstruct_derivation_tree` exactly (sorted antecedents, world-scoped
-/// resolution, cycle guard on the `(graph, reifier)` visited set).
+/// The cycle-guarded, backtracking depth-first traversal is delegated to the ONE
+/// workspace DAG engine, [`gmeow_errors::dag::walk`] — there is no second copy of
+/// the traversal here. This function supplies the domain closures (world-scoped
+/// resolution and the sorted/deduped antecedent ordering) and assembles the
+/// golden-pinned [`ExplanationStep`] skeleton from the returned tree.
 ///
-/// # Backtracking visited set
-///
-/// `visited` is a single `Vec` threaded through the entire recursion.  Before
-/// descending into children we push the current `(graph_iri, target_reifier)` key
-/// and pop it again after all children return, so the allocation is O(D) rather
-/// than O(D²).  The borrowed `(&str, &str)` elements avoid per-step `String`
-/// allocation entirely.
+/// `graph_iri` is invariant through the whole recursion, so the walk keys on the
+/// reifier `&str` alone (the world is captured by the closures) — preserving the
+/// original zero-allocation visited set.
 fn reconstruct_tree<'a>(
     target_reifier: &'a str,
     graph_iri: &'a str,
     rows: &'a [Row],
     index: &HashMap<(&str, &str), usize>,
-    depth: u32,
-    visited: &mut Vec<(&'a str, &'a str)>,
 ) -> Result<Vec<ExplanationStep>, ExplainError> {
-    let lookup_key = (graph_iri, target_reifier);
-
-    let row_idx = match index.get(&lookup_key) {
-        Some(idx) => *idx,
-        None => {
-            return Err(ExplainError::UnresolvedReifier {
-                reifier: target_reifier.to_owned(),
-                graph: graph_iri.to_owned(),
-            });
-        }
-    };
-
-    if visited.contains(&lookup_key) {
-        return Err(ExplainError::Cycle {
-            reifier: target_reifier.to_owned(),
+    let tree = walk(
+        target_reifier,
+        // Resolve a reifier to its row index within this world.
+        |reifier: &&'a str| index.get(&(graph_iri, *reifier)).copied(),
+        // Antecedent reifiers: sorted and deduped, excluding the self-reference
+        // asserted facts carry (a dual-witness listed twice must not double-cite).
+        |reifier: &&'a str, row_idx: &usize| {
+            let mut antecedents: Vec<&'a str> = rows[*row_idx]
+                .source_quad_ids
+                .iter()
+                .filter(|src| src.as_str() != *reifier)
+                .map(String::as_str)
+                .collect();
+            antecedents.sort();
+            antecedents.dedup();
+            antecedents
+        },
+    )
+    .map_err(|err| match err {
+        DagError::Unresolved(reifier) => ExplainError::UnresolvedReifier {
+            reifier: reifier.to_owned(),
             graph: graph_iri.to_owned(),
-        });
-    }
+        },
+        DagError::Cycle(reifier) => ExplainError::Cycle {
+            reifier: reifier.to_owned(),
+            graph: graph_iri.to_owned(),
+        },
+    })?;
 
-    let row = &rows[row_idx];
-    let is_asserted = row.rule_iri == ASSERT_RULE_IRI;
+    let mut steps = Vec::new();
+    assemble_steps(&tree, rows, &mut steps);
+    Ok(steps)
+}
 
-    // Antecedent reifiers: sorted, excluding the self-reference asserted facts carry.
-    let mut antecedent_reifiers: Vec<&str> = row
-        .source_quad_ids
+/// Assemble the golden-pinned step skeleton from a reconstructed DAG node, in the
+/// original DFS order (current step, then each child subtree). Each step's
+/// `source_step_ids` are the sorted derivation IDs of its immediate children — the
+/// root step of each child subtree, exactly as before.
+fn assemble_steps(node: &DagNode<&str, usize>, rows: &[Row], out: &mut Vec<ExplanationStep>) {
+    let row = &rows[node.payload];
+
+    let mut source_step_ids: Vec<String> = node
+        .children
         .iter()
-        .filter(|src| src.as_str() != target_reifier)
-        .map(String::as_str)
+        .map(|child| rows[child.payload].derivation_id.clone())
         .collect();
-    antecedent_reifiers.sort();
-    // A row's antecedents are a set: when one asserted fact satisfies two conjuncts of
-    // a rule (e.g. the shared part in reflexive `overlaps(X, X)`, where a single
-    // `properPartOf(P, X)` witness fills both `properPartOf(P, X)` and
-    // `properPartOf(P, Y)`), `source_quad_ids` lists that witness twice. Descending it
-    // twice would double-cite the same fact in the rendered proof. Dedup here, at the
-    // reconstruction layer only — the dual-witness multiplicity stays in the row's
-    // `source_quad_ids` provenance.
-    antecedent_reifiers.dedup();
-
-    // Push current node before descending; pop after all children return (backtracking).
-    visited.push(lookup_key);
-
-    let mut child_steps: Vec<ExplanationStep> = Vec::new();
-    let mut source_step_ids: Vec<String> = Vec::new();
-    for src_reifier in antecedent_reifiers {
-        let sub_steps = reconstruct_tree(src_reifier, graph_iri, rows, index, depth + 1, visited)?;
-        if let Some(first) = sub_steps.first() {
-            source_step_ids.push(first.derivation_id.clone());
-        }
-        child_steps.extend(sub_steps);
-    }
-
-    // Pop current node after all children have been processed.
-    visited.pop();
-
     source_step_ids.sort();
 
-    let step = ExplanationStep {
+    out.push(ExplanationStep {
         derivation_id: row.derivation_id.clone(),
         rule_iri: row.rule_iri.clone(),
-        quad_reifier: target_reifier.to_owned(),
+        quad_reifier: node.key.to_owned(),
         subject_iri: row.subject.clone(),
         predicate_iri: row.predicate.clone(),
         obj_n3: row.obj.clone(),
         graph_iri: row.graph.clone(),
         term_iris: collect_term_iris(row),
         source_step_ids,
-        is_asserted,
-        depth,
-    };
+        is_asserted: row.rule_iri == ASSERT_RULE_IRI,
+        depth: node.depth,
+    });
 
-    let mut steps = Vec::with_capacity(child_steps.len() + 1);
-    steps.push(step);
-    steps.extend(child_steps);
-    Ok(steps)
+    for child in &node.children {
+        assemble_steps(child, rows, out);
+    }
 }
 
 /// Build the cited-IRI set (the conformance surface) from the steps + world IRI.
@@ -422,8 +412,7 @@ fn explain_with_index(
     let target = &rows[target_index];
     let target_reifier = &reifiers[target_index];
 
-    let mut visited: Vec<(&str, &str)> = Vec::new();
-    let steps = reconstruct_tree(target_reifier, &target.graph, rows, index, 0, &mut visited)?;
+    let steps = reconstruct_tree(target_reifier, &target.graph, rows, index)?;
     let cited_iris = build_cited_iris(&steps, &target.graph);
 
     Ok(Explanation {

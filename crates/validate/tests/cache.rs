@@ -8,7 +8,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
 
-use gmeow_diagnostics::{Finding, Severity};
+use gmeow_errors::{Finding, Severity};
 use gmeow_validate::cache::{CachedResult, ValidationCache};
 use gmeow_validate::lint::LintConfig;
 use gmeow_validate::store;
