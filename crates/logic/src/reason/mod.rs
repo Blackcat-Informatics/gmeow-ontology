@@ -588,6 +588,89 @@ mod tests {
         );
     }
 
+    /// A law with TERNARY atoms in its BODY and a BINARY head (the associativity shape,
+    /// like the algebra-axioms law) evaluates end-to-end: the reified n-ary body atoms
+    /// join through the chase and the binary consequent is derived. This exercises the
+    /// body-reification path (no head derivation) all the way through `reason_program`.
+    #[test]
+    fn reason_program_evaluates_an_nary_body_law_end_to_end() {
+        // ∀a b c ab bc l r. op(a,b,ab) ∧ op(ab,c,l) ∧ op(b,c,bc) ∧ op(a,bc,r) → eq(l,r)
+        // Seeded on a concrete associative table so both bracketings reach the SAME value v;
+        // then eq(l,r) must be derived (l = v = r).
+        const OP: &str = "http://gmeow.example/op";
+        const EQ: &str = "http://gmeow.example/eq";
+        let v = |n: &str| Term::var(n).unwrap();
+        let law = Formula::Forall {
+            vars: ["a", "b", "c", "ab", "bc", "l", "r"]
+                .iter()
+                .map(|s| (*s).to_owned())
+                .collect(),
+            body: Box::new(Formula::Implies(
+                Box::new(Formula::And(vec![
+                    fml_atom(OP, vec![v("a"), v("b"), v("ab")]),
+                    fml_atom(OP, vec![v("ab"), v("c"), v("l")]),
+                    fml_atom(OP, vec![v("b"), v("c"), v("bc")]),
+                    fml_atom(OP, vec![v("a"), v("bc"), v("r")]),
+                ])),
+                Box::new(fml_atom(EQ, vec![v("l"), v("r")])),
+            )),
+        };
+        let program = LogicProgram::new(vec![], vec![], vec![], None).with_formulas(vec![law]);
+
+        // A concrete op table where (a·b)·c and a·(b·c) both reach `v` for a=x,b=y,c=z.
+        // op is ternary → the EDB op facts are authored PRE-REIFIED (instanceOf + naryArg).
+        const X: &str = "http://gmeow.example/x";
+        const Y: &str = "http://gmeow.example/y";
+        const Z: &str = "http://gmeow.example/z";
+        const XY: &str = "http://gmeow.example/xy";
+        const YZ: &str = "http://gmeow.example/yz";
+        const V: &str = "http://gmeow.example/v";
+        let io = "https://blackcatinformatics.ca/logic/instanceOf";
+        let a0 = "https://blackcatinformatics.ca/logic/naryArg0";
+        let a1 = "https://blackcatinformatics.ca/logic/naryArg1";
+        let a2 = "https://blackcatinformatics.ca/logic/naryArg2";
+        // Reify one op(s,t,u) tuple as instanceOf + naryArg triples on a fresh node.
+        let mut quads = Vec::new();
+        let mut reify = |node: &str, s: &str, t: &str, u: &str| {
+            quads.push(quad(node, io, OP));
+            quads.push(quad(node, a0, s));
+            quads.push(quad(node, a1, t));
+            quads.push(quad(node, a2, u));
+        };
+        reify("http://gmeow.example/r_xy", X, Y, XY); // x·y = xy
+        reify("http://gmeow.example/r_xyz1", XY, Z, V); // (x·y)·z = v
+        reify("http://gmeow.example/r_yz", Y, Z, YZ); // y·z = yz
+        reify("http://gmeow.example/r_xyz2", X, YZ, V); // x·(y·z) = v
+        let edb = dataset(quads);
+
+        let result = reason_program(&program, edb.as_ref()).expect("reason_program ok");
+
+        // The binary consequent eq(l, r) = eq(v, v) must be derived.
+        let eq_vv = result
+            .inferred()
+            .iter()
+            .any(|ax| ax.predicate == EQ && ax.subject == V && ax.object == format!("<{V}>"));
+        assert!(
+            eq_vv,
+            "associativity must derive eq(v, v); closure: {:?}",
+            result
+                .inferred()
+                .iter()
+                .filter(|a| a.predicate == EQ)
+                .map(|a| (&a.subject, &a.object))
+                .collect::<Vec<_>>()
+        );
+        // A fully-evaluable n-ary body law lowers exactly (no residue).
+        assert!(
+            !result
+                .preservation
+                .polarities
+                .contains(&PreservationKind::SoundUnder),
+            "an n-ary body law lowers exactly: {:?}",
+            result.preservation
+        );
+    }
+
     // ── n-ary HEAD derivation: the det homomorphism law evaluates end-to-end ──
 
     const MATMUL: &str = "http://gmeow.example/matMul";
