@@ -30,8 +30,8 @@ use crate::bridge::IngestDiagnostic;
 use crate::conllu::ConlluTarget;
 use crate::emit::digest16;
 use crate::grammar::{
-    grammar_correspondence, grammar_leg_pair, grammar_to_ntriples, parse_grammar,
-    serialize_grammar, EbnfBridge, Formalism, Grammar, RuleExpr,
+    EbnfBridge, Formalism, Grammar, RuleExpr, grammar_correspondence, grammar_leg_pair,
+    grammar_to_ntriples, parse_grammar, serialize_grammar,
 };
 use crate::nif::NifBridge;
 use crate::ontolex::OntoLexTarget;

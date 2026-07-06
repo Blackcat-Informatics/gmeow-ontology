@@ -101,9 +101,11 @@ fn unknown_semantic_profile_is_a_hard_error() {
     // Greenfield (reviewer C3): an unrecognised preset reference is a hard error,
     // not a fail-soft warning — otherwise it is a silent approximation.
     let (_, diags) = parse("ex:Bogus a logic:ReasoningPreset .");
-    assert!(diags
-        .iter()
-        .any(|d| d.code == "UNKNOWN_PROFILE" && d.severity == Severity::Error));
+    assert!(
+        diags
+            .iter()
+            .any(|d| d.code == "UNKNOWN_PROFILE" && d.severity == Severity::Error)
+    );
 }
 
 // ── Compatibility firewall (Task 3 / reviewer C3) ──────────────────────

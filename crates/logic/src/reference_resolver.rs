@@ -132,15 +132,15 @@ struct ResolveState<'a> {
 impl<'a> ResolveState<'a> {
     /// Check budget; return `true` if resolution should stop.
     fn budget_exceeded(&self) -> bool {
-        if let Some(max_a) = self.budget.max_answers {
-            if self.answers.len() >= max_a {
-                return true;
-            }
+        if let Some(max_a) = self.budget.max_answers
+            && self.answers.len() >= max_a
+        {
+            return true;
         }
-        if let Some(max_s) = self.budget.max_steps {
-            if self.steps >= max_s {
-                return true;
-            }
+        if let Some(max_s) = self.budget.max_steps
+            && self.steps >= max_s
+        {
+            return true;
         }
         false
     }
@@ -185,10 +185,10 @@ impl<'a> ResolveState<'a> {
                 .collect();
             self.answers.push(answer);
             // Check if we just hit max_answers; mark Partial so the caller sees it.
-            if let Some(max_a) = self.budget.max_answers {
-                if self.answers.len() >= max_a {
-                    self.status = BudgetStatus::Partial;
-                }
+            if let Some(max_a) = self.budget.max_answers
+                && self.answers.len() >= max_a
+            {
+                self.status = BudgetStatus::Partial;
             }
             return Ok(());
         }
@@ -285,12 +285,12 @@ impl<'a> ResolveState<'a> {
         seen.insert(key.clone());
 
         self.steps += 1;
-        if let Some(max_s) = self.budget.max_steps {
-            if self.steps > max_s {
-                self.status = BudgetStatus::Exhausted;
-                seen.remove(&key);
-                return Ok(());
-            }
+        if let Some(max_s) = self.budget.max_steps
+            && self.steps > max_s
+        {
+            self.status = BudgetStatus::Exhausted;
+            seen.remove(&key);
+            return Ok(());
         }
 
         // Collect matching rules (borrow the program, not self).
@@ -347,11 +347,11 @@ impl<'a> ResolveState<'a> {
         seen: &mut BTreeSet<(String, String, String)>,
     ) -> Result<(), String> {
         self.steps += 1;
-        if let Some(max_s) = self.budget.max_steps {
-            if self.steps > max_s {
-                self.status = BudgetStatus::Exhausted;
-                return Ok(());
-            }
+        if let Some(max_s) = self.budget.max_steps
+            && self.steps > max_s
+        {
+            self.status = BudgetStatus::Exhausted;
+            return Ok(());
         }
 
         // The predicate IRI string is used verbatim as the pattern filter.
@@ -612,10 +612,10 @@ fn goal_vars(goal: &QGoal) -> Vec<String> {
     let mut vars: Vec<String> = Vec::new();
     for atom in &goal.atoms {
         for t in &atom.args {
-            if let QTerm::Var(v) = t {
-                if !vars.contains(v) {
-                    vars.push(v.clone());
-                }
+            if let QTerm::Var(v) = t
+                && !vars.contains(v)
+            {
+                vars.push(v.clone());
             }
         }
     }

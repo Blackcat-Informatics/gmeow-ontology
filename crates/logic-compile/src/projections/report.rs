@@ -17,8 +17,8 @@ use purrdf::RdfLiteral;
 use super::super::ir::LogicProgram;
 use super::rdf::TripleSink;
 use super::{
-    assert_no_overclaim, combined_lossy_drops, OverclaimError, ProjectionResult, GMEOW_NS,
-    LOGIC_NS, RDFS_NS, RDF_TYPE, XSD_NS,
+    GMEOW_NS, LOGIC_NS, OverclaimError, ProjectionResult, RDF_TYPE, RDFS_NS, XSD_NS,
+    assert_no_overclaim, combined_lossy_drops,
 };
 
 fn logic(local: &str) -> String {

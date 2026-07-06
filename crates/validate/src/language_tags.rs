@@ -11,7 +11,7 @@
 
 use std::collections::{BTreeSet, HashMap, HashSet};
 
-use purrdf::{parse_dataset, TermRef};
+use purrdf::{TermRef, parse_dataset};
 
 /// The GMEOW namespace prefix for term IRIs.
 const NAMESPACE: &str = "https://blackcatinformatics.ca/gmeow/";
@@ -126,12 +126,12 @@ fn build_tag_map_for(
     // classes. We use string matching via quad_refs() since TermId is crate-private.
     let mut lang_subjects: HashSet<String> = HashSet::new();
     for qr in dataset.quad_refs() {
-        if let (TermRef::Iri(p), TermRef::Iri(o)) = (qr.p, qr.o) {
-            if p == RDF_TYPE && classes.contains(&o) {
-                if let TermRef::Iri(s) = qr.s {
-                    lang_subjects.insert(s.to_owned());
-                }
-            }
+        if let (TermRef::Iri(p), TermRef::Iri(o)) = (qr.p, qr.o)
+            && p == RDF_TYPE
+            && classes.contains(&o)
+            && let TermRef::Iri(s) = qr.s
+        {
+            lang_subjects.insert(s.to_owned());
         }
     }
 
@@ -143,17 +143,16 @@ fn build_tag_map_for(
             if !lang_subjects.contains(s) {
                 continue;
             }
-            if let TermRef::Iri(p) = qr.p {
-                if p == tag_prop || p == bcp_prop {
-                    if let TermRef::Literal { lexical, .. } = qr.o {
-                        props
-                            .entry(s.to_owned())
-                            .or_default()
-                            .entry(p.to_owned())
-                            .or_default()
-                            .insert(lexical.to_owned());
-                    }
-                }
+            if let TermRef::Iri(p) = qr.p
+                && (p == tag_prop || p == bcp_prop)
+                && let TermRef::Literal { lexical, .. } = qr.o
+            {
+                props
+                    .entry(s.to_owned())
+                    .or_default()
+                    .entry(p.to_owned())
+                    .or_default()
+                    .insert(lexical.to_owned());
             }
         }
     }
@@ -192,14 +191,14 @@ fn build_tag_map_for(
         // mapping it to DIFFERENT `bcp47Tag`s is a nondeterministic conflict; per the
         // no-optionality/hard-fail doctrine, reject it rather than silently letting
         // the last writer win. (A repeated tag→SAME bcp47Tag is a harmless duplicate.)
-        if let Some(existing) = tag_map.get(&int_val) {
-            if existing != &bcp_val {
-                return Err(format!(
-                    "conflicting bcp47Tag for internal languageTag {int_val:?}: \
+        if let Some(existing) = tag_map.get(&int_val)
+            && existing != &bcp_val
+        {
+            return Err(format!(
+                "conflicting bcp47Tag for internal languageTag {int_val:?}: \
                      {existing:?} vs {bcp_val:?}; the tag-map projection requires a \
                      single canonical bcp47Tag per internal tag"
-                ));
-            }
+            ));
         }
         tag_map.insert(int_val, bcp_val);
     }
@@ -316,7 +315,7 @@ pub fn resolve_lang_input(
                     return Err(UnknownLanguage {
                         tag: token.to_owned(),
                         available: available_en_first(&available_set),
-                    })
+                    });
                 }
             }
         } else {
@@ -455,27 +454,27 @@ pub fn select_literal(
     let by_bcp = bucket_literals(literals, tag_map);
 
     for req in requested {
-        if let Some(bucket) = by_bcp.get(req) {
-            if let Some(&(index, _)) = bucket.first() {
-                return Some(selection_for(index, literals, tag_map, false));
-            }
+        if let Some(bucket) = by_bcp.get(req)
+            && let Some(&(index, _)) = bucket.first()
+        {
+            return Some(selection_for(index, literals, tag_map, false));
         }
     }
 
-    if let Some(bucket) = by_bcp.get("en") {
-        if let Some(&(index, _)) = bucket.first() {
-            return Some(selection_for(index, literals, tag_map, true));
-        }
+    if let Some(bucket) = by_bcp.get("en")
+        && let Some(&(index, _)) = bucket.first()
+    {
+        return Some(selection_for(index, literals, tag_map, true));
     }
-    if let Some(best_key) = lowest_ranked_tagged(&by_bcp) {
-        if let Some(&(index, _)) = by_bcp[&best_key].first() {
-            return Some(selection_for(index, literals, tag_map, true));
-        }
+    if let Some(best_key) = lowest_ranked_tagged(&by_bcp)
+        && let Some(&(index, _)) = by_bcp[&best_key].first()
+    {
+        return Some(selection_for(index, literals, tag_map, true));
     }
-    if let Some(bucket) = by_bcp.get("") {
-        if let Some(&(index, _)) = bucket.first() {
-            return Some(selection_for(index, literals, tag_map, true));
-        }
+    if let Some(bucket) = by_bcp.get("")
+        && let Some(&(index, _)) = bucket.first()
+    {
+        return Some(selection_for(index, literals, tag_map, true));
     }
     None
 }
@@ -508,20 +507,20 @@ pub fn filter_literals(
         return results;
     }
 
-    if let Some(bucket) = by_bcp.get("en") {
-        if let Some(&(index, _)) = bucket.first() {
-            return vec![selection_for(index, literals, tag_map, true)];
-        }
+    if let Some(bucket) = by_bcp.get("en")
+        && let Some(&(index, _)) = bucket.first()
+    {
+        return vec![selection_for(index, literals, tag_map, true)];
     }
-    if let Some(best_key) = lowest_ranked_tagged(&by_bcp) {
-        if let Some(&(index, _)) = by_bcp[&best_key].first() {
-            return vec![selection_for(index, literals, tag_map, true)];
-        }
+    if let Some(best_key) = lowest_ranked_tagged(&by_bcp)
+        && let Some(&(index, _)) = by_bcp[&best_key].first()
+    {
+        return vec![selection_for(index, literals, tag_map, true)];
     }
-    if let Some(bucket) = by_bcp.get("") {
-        if let Some(&(index, _)) = bucket.first() {
-            return vec![selection_for(index, literals, tag_map, true)];
-        }
+    if let Some(bucket) = by_bcp.get("")
+        && let Some(&(index, _)) = bucket.first()
+    {
+        return vec![selection_for(index, literals, tag_map, true)];
     }
     Vec::new()
 }
@@ -591,15 +590,14 @@ pub fn public_literal(
             .cmp(&rank_language(b.language.as_deref().unwrap_or_default()))
     });
     for lit in ranked {
-        if let Some(lang) = &lit.language {
-            if is_internal_tag(lang) {
-                if let Some(bcp) = internal_tag_mapping(lang, tag_map) {
-                    return Some(LitDesc {
-                        lexical: lit.lexical.clone(),
-                        language: Some(bcp.clone()),
-                    });
-                }
-            }
+        if let Some(lang) = &lit.language
+            && is_internal_tag(lang)
+            && let Some(bcp) = internal_tag_mapping(lang, tag_map)
+        {
+            return Some(LitDesc {
+                lexical: lit.lexical.clone(),
+                language: Some(bcp.clone()),
+            });
         }
     }
 
@@ -702,16 +700,16 @@ where
         HashMap::new();
     let mut builder = purrdf::RdfDatasetBuilder::new();
     for mut quad in dataset.owned_quads() {
-        if let purrdf::RdfTerm::Literal(lit) = &quad.object {
-            if let Some(new_lit) = rewrite(lit) {
-                let key = (
-                    quad.subject.to_string(),
-                    quad.predicate.clone(),
-                    lit.clone(),
-                );
-                literal_rewrites.insert(key, new_lit.clone());
-                quad.object = purrdf::RdfTerm::Literal(new_lit);
-            }
+        if let purrdf::RdfTerm::Literal(lit) = &quad.object
+            && let Some(new_lit) = rewrite(lit)
+        {
+            let key = (
+                quad.subject.to_string(),
+                quad.predicate.clone(),
+                lit.clone(),
+            );
+            literal_rewrites.insert(key, new_lit.clone());
+            quad.object = purrdf::RdfTerm::Literal(new_lit);
         }
         builder.push_owned_quad(&quad);
     }
@@ -769,11 +767,11 @@ pub fn filter_graph(
         if !target_preds.contains(quad.predicate.as_str()) {
             continue;
         }
-        if let purrdf::RdfTerm::Literal(lit) = &quad.object {
-            if lit.language.is_some() {
-                let key = (quad.subject.to_string(), quad.predicate.clone());
-                group_lits.entry(key).or_default().push(lit.clone());
-            }
+        if let purrdf::RdfTerm::Literal(lit) = &quad.object
+            && lit.language.is_some()
+        {
+            let key = (quad.subject.to_string(), quad.predicate.clone());
+            group_lits.entry(key).or_default().push(lit.clone());
         }
     }
 
@@ -841,28 +839,27 @@ pub fn filter_graph(
     let mut emitted_groups: HashSet<GroupKey> = HashSet::new();
     for quad in dataset.owned_quads() {
         let is_target = target_preds.contains(quad.predicate.as_str());
-        if is_target {
-            if let purrdf::RdfTerm::Literal(lit) = &quad.object {
-                if lit.language.is_some() {
-                    let key = (quad.subject.to_string(), quad.predicate.clone());
-                    if group_skip.contains(&key) {
-                        // Unchanged group: copy this object verbatim.
-                        builder.push_owned_quad(&quad);
-                        continue;
-                    }
-                    if let Some(chosen) = group_replacement.get(&key) {
-                        // Replaced group: emit the chosen set once for the group.
-                        if emitted_groups.insert(key.clone()) {
-                            for new_lit in chosen {
-                                let mut new_quad = quad.clone();
-                                new_quad.object = purrdf::RdfTerm::Literal(new_lit.clone());
-                                builder.push_owned_quad(&new_quad);
-                            }
-                        }
-                        // Original language-tagged object of a replaced group is dropped.
-                        continue;
+        if is_target
+            && let purrdf::RdfTerm::Literal(lit) = &quad.object
+            && lit.language.is_some()
+        {
+            let key = (quad.subject.to_string(), quad.predicate.clone());
+            if group_skip.contains(&key) {
+                // Unchanged group: copy this object verbatim.
+                builder.push_owned_quad(&quad);
+                continue;
+            }
+            if let Some(chosen) = group_replacement.get(&key) {
+                // Replaced group: emit the chosen set once for the group.
+                if emitted_groups.insert(key.clone()) {
+                    for new_lit in chosen {
+                        let mut new_quad = quad.clone();
+                        new_quad.object = purrdf::RdfTerm::Literal(new_lit.clone());
+                        builder.push_owned_quad(&new_quad);
                     }
                 }
+                // Original language-tagged object of a replaced group is dropped.
+                continue;
             }
         }
         builder.push_owned_quad(&quad);

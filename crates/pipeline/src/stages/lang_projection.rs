@@ -47,12 +47,12 @@
 use purrdf::slice::SliceCatalog;
 
 use gmeow_lang_bridge::registry::{
-    assert_registry_covers, registry, LangEmission, LangProjectionInput, NamedSource,
-    EMISSION_WORTHY_CLASSES,
+    EMISSION_WORTHY_CLASSES, LangEmission, LangProjectionInput, NamedSource,
+    assert_registry_covers, registry,
 };
 use gmeow_lang_bridge::{exact_round_trip_holds, is_exact_correspondence, ntriples_sorted};
 use gmeow_logic_compile::ir::PreservationKind;
-use gmeow_logic_compile::projections::{assert_no_overclaim, ProjectionResult};
+use gmeow_logic_compile::projections::{ProjectionResult, assert_no_overclaim};
 
 use crate::error::PipelineError;
 
@@ -212,16 +212,16 @@ fn enforce_invariants(
 
     // Invariant 3: a per-reading emission emits ONE artifact per co-resident reading — never
     // a single silently-chosen winner.
-    if let Some(count) = emission.emitted_reading_count {
-        if emission.artifacts.len() as u64 != count {
-            return Err(stage_err(format!(
-                "lang:ProjectionSilentDisambiguation: per-reading target '{target}' declares \
-                 {count} co-resident reading(s) but emitted {} artifact(s) for source <{}>; a \
-                 per-reading projection never collapses readings to a single winner",
-                emission.artifacts.len(),
-                emission.source_iri
-            )));
-        }
+    if let Some(count) = emission.emitted_reading_count
+        && emission.artifacts.len() as u64 != count
+    {
+        return Err(stage_err(format!(
+            "lang:ProjectionSilentDisambiguation: per-reading target '{target}' declares \
+             {count} co-resident reading(s) but emitted {} artifact(s) for source <{}>; a \
+             per-reading projection never collapses readings to a single winner",
+            emission.artifacts.len(),
+            emission.source_iri
+        )));
     }
     Ok(())
 }

@@ -22,9 +22,9 @@ use purrdf::{RdfDataset, TermId};
 use crate::bridge::IngestDiagnostic;
 use crate::emit::digest16;
 use crate::rdf_scan::{
-    has_type, iri_id, iri_of, label_of, local_name, lossy_lens_correspondence, object_iri,
-    object_literal, objects, parse_lang_turtle, subjects_with_object, term_label, unrepresentable,
-    EXAMPLE_BASE, LANG_NS, LOGIC_NS,
+    EXAMPLE_BASE, LANG_NS, LOGIC_NS, has_type, iri_id, iri_of, label_of, local_name,
+    lossy_lens_correspondence, object_iri, object_literal, objects, parse_lang_turtle,
+    subjects_with_object, term_label, unrepresentable,
 };
 use crate::registry::{
     EmittedArtifact, LangEmission, LangProjectionInput, LangProjectionTarget, NamedSource,

@@ -891,9 +891,11 @@ mod tests {
             "Agree row is not a finding: {findings:?}"
         );
         assert!(findings.iter().all(|f| f.severity == Severity::Error));
-        assert!(findings
-            .iter()
-            .all(|f| f.tool.as_deref() == Some("conformance")));
+        assert!(
+            findings
+                .iter()
+                .all(|f| f.tool.as_deref() == Some("conformance"))
+        );
 
         let corpus = findings
             .iter()
@@ -905,8 +907,10 @@ mod tests {
             "published expected is carried as provenance: {}",
             corpus.message
         );
-        assert!(findings
-            .iter()
-            .any(|f| f.code == "reason.divergence.dl-gap"));
+        assert!(
+            findings
+                .iter()
+                .any(|f| f.code == "reason.divergence.dl-gap")
+        );
     }
 }

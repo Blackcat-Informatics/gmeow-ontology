@@ -19,11 +19,11 @@
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
-use purrdf::gts_compose::{emit_gts, BlobRow, SnapshotBuilder};
+use purrdf::gts_compose::{BlobRow, SnapshotBuilder, emit_gts};
 use purrdf::provenance::DatasetProvenance;
 use purrdf::{
-    flat_rdf_quads_from_dataset, parse_dataset, serialize_dataset, RdfDatasetBuilder, RdfLiteral,
-    RdfQuad, RdfTerm, SerializeGraph,
+    RdfDatasetBuilder, RdfLiteral, RdfQuad, RdfTerm, SerializeGraph, flat_rdf_quads_from_dataset,
+    parse_dataset, serialize_dataset,
 };
 use rayon::prelude::*;
 
@@ -1835,7 +1835,7 @@ fn parse_example(
         other => {
             return Err(stage_err(&format!(
                 "example {logical_path}: unsupported format .{other}"
-            )))
+            )));
         }
     };
     parse_dataset(text.as_bytes(), media, None)
@@ -2601,7 +2601,7 @@ fn load_metadata(root: &Path) -> Result<Vec<u8>, PipelineError> {
 /// feeds the emitter's self-attestation guard.
 fn build_slice_analysis(root: &Path, authored_nq: &[u8]) -> Result<Vec<u8>, PipelineError> {
     use purrdf::slice::{
-        emit_analysis_graph, OwnershipAnalyzer, OwnershipStatus, SliceCatalog, ToolchainContext,
+        OwnershipAnalyzer, OwnershipStatus, SliceCatalog, ToolchainContext, emit_analysis_graph,
     };
 
     let slices_dir = root.join("slices");
@@ -2672,12 +2672,12 @@ fn ontology_version(authored_nq: &[u8]) -> Result<String, PipelineError> {
     let onto = GMEOW_NS.trim_end_matches('/');
     let version_info = "http://www.w3.org/2002/07/owl#versionInfo";
     for quad in parse_nq(authored_nq)? {
-        if let RdfTerm::Iri(subject) = &quad.subject {
-            if subject == onto && quad.predicate.as_str() == version_info {
-                if let RdfTerm::Literal(l) = &quad.object {
-                    return Ok(l.lexical_form.clone());
-                }
-            }
+        if let RdfTerm::Iri(subject) = &quad.subject
+            && subject == onto
+            && quad.predicate.as_str() == version_info
+            && let RdfTerm::Literal(l) = &quad.object
+        {
+            return Ok(l.lexical_form.clone());
         }
     }
     Err(stage_err(&format!(
@@ -2787,10 +2787,10 @@ fn expand_curie(
     if curie.starts_with("http://") || curie.starts_with("https://") || curie.starts_with("urn:") {
         return Ok(curie.to_string());
     }
-    if let Some((prefix, local)) = curie.split_once(':') {
-        if let Some(ns) = curie_map.get(prefix) {
-            return Ok(format!("{ns}{local}"));
-        }
+    if let Some((prefix, local)) = curie.split_once(':')
+        && let Some(ns) = curie_map.get(prefix)
+    {
+        return Ok(format!("{ns}{local}"));
     }
     Err(stage_err(&format!("unresolvable CURIE {curie:?}")))
 }
@@ -3237,8 +3237,9 @@ mod xsd_canon_tests {
     fn recognized_xsd_literal_is_canonicalized() {
         for (lex, datatype, expected) in [
             ("0.90", XSD_DECIMAL, "0.9"),
-            ("415.0", XSD_DECIMAL, "415.0"),
-            ("-200.0", XSD_DECIMAL, "-200.0"),
+            // XSD 1.1 canonical decimal drops the trailing `.0` for whole values.
+            ("415.0", XSD_DECIMAL, "415"),
+            ("-200.0", XSD_DECIMAL, "-200"),
             (
                 "2024-06-01T10:00:00+00:00",
                 XSD_DATETIME,
@@ -4059,10 +4060,10 @@ mod conformance_fold_tests {
         let g = purrdf::gts::read_graph(gts, true).expect("read_graph");
         let mut names = std::collections::BTreeSet::new();
         for &(_, _, _, gname) in &g.quads {
-            if let Some(gid) = gname {
-                if let Some(value) = g.terms.get(gid).and_then(|t| t.value.clone()) {
-                    names.insert(value);
-                }
+            if let Some(gid) = gname
+                && let Some(value) = g.terms.get(gid).and_then(|t| t.value.clone())
+            {
+                names.insert(value);
             }
         }
         names

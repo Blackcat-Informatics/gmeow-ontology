@@ -23,8 +23,8 @@
 use std::collections::BTreeMap;
 use std::sync::OnceLock;
 
-use minijinja::{context, Environment};
-use pulldown_cmark::{html as cmark_html, Options, Parser};
+use minijinja::{Environment, context};
+use pulldown_cmark::{Options, Parser, html as cmark_html};
 
 use crate::badge;
 use crate::exec::ExecutableDocsData;

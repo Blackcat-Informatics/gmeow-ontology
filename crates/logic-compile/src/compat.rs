@@ -37,7 +37,7 @@
 
 use purrdf::{RdfDataset, TermRef};
 
-use super::ir::{ReasoningContract, LOGIC_NAMESPACE};
+use super::ir::{LOGIC_NAMESPACE, ReasoningContract};
 
 /// The `rdf:type` IRI, for recognising a `logic:ReasoningContract` subject in a
 /// dataset.
@@ -82,7 +82,7 @@ impl ContradictionPolicy {
                 return Err(format!(
                     "unknown admissible-valuation policy `{other}`; expected one of \
                      AdmitAllFour, ForbidGap, ForbidGlut, ForbidGapAndGlut"
-                ))
+                ));
             }
         })
     }
@@ -147,10 +147,11 @@ impl ContradictionPolicy {
             else {
                 continue;
             };
-            if p == RDF_TYPE && (o == contract_type || o == preset_type) {
-                if let TermRef::Iri(s) = dataset.resolve(q.s) {
-                    contract_subjects.insert(s.to_string());
-                }
+            if p == RDF_TYPE
+                && (o == contract_type || o == preset_type)
+                && let TermRef::Iri(s) = dataset.resolve(q.s)
+            {
+                contract_subjects.insert(s.to_string());
             }
         }
 

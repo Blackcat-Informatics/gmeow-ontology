@@ -21,10 +21,10 @@
 //! ([`gmeow_diagnostics::render::to_gmeow_rdf_in_graph`]): content-addressed finding
 //! IRIs, no blank nodes, deterministic order — fold-stable through GTS.
 
-use gmeow_diagnostics::render::to_gmeow_rdf_in_graph;
 use gmeow_diagnostics::Report;
+use gmeow_diagnostics::render::to_gmeow_rdf_in_graph;
 use gmeow_logic::reason::{
-    build_ledger, compare_external_corpus, divergence_findings, ExternalComparison,
+    ExternalComparison, build_ledger, compare_external_corpus, divergence_findings,
 };
 
 /// The named graph the conformance divergence findings ride in — a sibling of

@@ -38,36 +38,36 @@ pub mod registry;
 pub mod semaf;
 pub mod tei;
 
-pub use bcp47::{derive_bcp47_tag, Bcp47Derivation, Bcp47Target};
+pub use bcp47::{Bcp47Derivation, Bcp47Target, derive_bcp47_tag};
 pub use bridge::{
-    exact_round_trip_holds, is_exact_correspondence, Bridge, IngestDiagnostic, LangFailure, Lifted,
+    Bridge, IngestDiagnostic, LangFailure, Lifted, exact_round_trip_holds, is_exact_correspondence,
 };
 pub use conllu::{
-    analysis_level, conllu_correspondence, conllu_leg_pair, parse as parse_conllu, parse_feats,
-    serialize as serialize_conllu, to_forms, ConlluBridge, ConlluDoc, ConlluSentence, ConlluToken,
-    TokenId, UD_SIGN_SYSTEM,
+    ConlluBridge, ConlluDoc, ConlluSentence, ConlluToken, TokenId, UD_SIGN_SYSTEM, analysis_level,
+    conllu_correspondence, conllu_leg_pair, parse as parse_conllu, parse_feats,
+    serialize as serialize_conllu, to_forms,
 };
 pub use emit::{assert_no_digest_collision, digest16, ntriples_sorted};
 pub use engine::{
-    interpretation_act_to_ntriples, EngineError, EngineRegistry, FixtureEngine, NlpEngine, Reading,
+    EngineError, EngineRegistry, FixtureEngine, NlpEngine, Reading, interpretation_act_to_ntriples,
 };
 pub use grammar::{
-    canonicalize_expr, grammar_correspondence, grammar_leg_pair, grammar_to_ntriples,
-    parse_grammar, serialize_grammar, AbnfBridge, EbnfBridge, Formalism, Grammar, GrammarRule,
-    RuleExpr,
+    AbnfBridge, EbnfBridge, Formalism, Grammar, GrammarRule, RuleExpr, canonicalize_expr,
+    grammar_correspondence, grammar_leg_pair, grammar_to_ntriples, parse_grammar,
+    serialize_grammar,
 };
 pub use lower::{
-    flagship_svo_sentence, grammar_rule_to_derivation, grammar_to_derivation_rules, lower_svo,
-    svo_grammar, DerivationRule, Lowering, LoweringError, LoweringStage, REQUIRED_STAGES,
+    DerivationRule, Lowering, LoweringError, LoweringStage, REQUIRED_STAGES, flagship_svo_sentence,
+    grammar_rule_to_derivation, grammar_to_derivation_rules, lower_svo, svo_grammar,
 };
 pub use nif::NifBridge;
-pub use ontolex::{ontolex_correspondence, OntoLexBridge, ONTOLEX_SIGN_SYSTEM};
+pub use ontolex::{ONTOLEX_SIGN_SYSTEM, OntoLexBridge, ontolex_correspondence};
 pub use plain_text::{
-    exact_surface_correspondence, normalization_label, PlainTextBridge, UNDETERMINED_SCRIPT,
+    PlainTextBridge, UNDETERMINED_SCRIPT, exact_surface_correspondence, normalization_label,
 };
 pub use registry::{
-    assert_registry_covers, registry, EmittedArtifact, LangEmission, LangProjectionInput,
-    LangProjectionTarget, NamedSource, EMISSION_WORTHY_CLASSES,
+    EMISSION_WORTHY_CLASSES, EmittedArtifact, LangEmission, LangProjectionInput,
+    LangProjectionTarget, NamedSource, assert_registry_covers, registry,
 };
 pub use semaf::SemafBridge;
 pub use tei::TeiBridge;

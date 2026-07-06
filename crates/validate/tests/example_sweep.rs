@@ -28,12 +28,12 @@ use std::path::{Path, PathBuf};
 
 use std::sync::Arc;
 
-use gmeow_validate::instance::{validate_instance, InstanceFormat};
+use gmeow_validate::instance::{InstanceFormat, validate_instance};
 use purrdf::shapes::shapes::Shapes;
 use purrdf::shapes::{engine, instance, json_schema, shape_union};
 
-use purrdf::parse_dataset;
 use purrdf::RdfDataset;
+use purrdf::parse_dataset;
 
 /// Examples that do NOT conform to the merged SHACL shapes and are therefore
 /// out of scope for the JSON-schema sweep (illustrative, not valid instance

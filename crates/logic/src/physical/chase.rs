@@ -52,8 +52,8 @@ use crate::physical::seminaive::{
 use crate::physical::store::{Bound, RelationStore, SkolemRegistry, SkolemTerm};
 use crate::provenance::{mint_derivation_id, term_display};
 use crate::rule_ir::{
-    distinct_pairs_satisfied, echo_asserted, ground, ground_head, match_atom, sort_rows,
-    DerivedRow, EvalAtom, EvalTerm, Fact, FactKey, Solution,
+    DerivedRow, EvalAtom, EvalTerm, Fact, FactKey, Solution, distinct_pairs_satisfied,
+    echo_asserted, ground, ground_head, match_atom, sort_rows,
 };
 use crate::seam::BudgetStatus;
 
@@ -575,13 +575,13 @@ fn reject_unrepresentable_distinctness(rule: &ExistentialRule) -> Result<(), Str
         std::collections::BTreeMap::new();
     for atom in &rule.head {
         for term in [&atom.subject, &atom.object] {
-            if let EvalTerm::Var(name) = term {
-                if existentials.contains(name) {
-                    per_predicate
-                        .entry(atom.predicate.clone())
-                        .or_default()
-                        .insert(name.clone());
-                }
+            if let EvalTerm::Var(name) = term
+                && existentials.contains(name)
+            {
+                per_predicate
+                    .entry(atom.predicate.clone())
+                    .or_default()
+                    .insert(name.clone());
             }
         }
     }

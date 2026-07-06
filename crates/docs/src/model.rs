@@ -1145,7 +1145,7 @@ fn read_term_manifest(root: &Path) -> Result<BTreeMap<String, TermProvenance>, D
             return Err(DocsError::TermManifest(format!(
                 "cannot read {}: {e}",
                 path.display()
-            )))
+            )));
         }
     };
     parse_term_manifest(&bytes, &path.display().to_string())
@@ -1777,10 +1777,10 @@ fn extract_example(artifact: &ArtifactRecord, owner_slice: &str) -> DocExample {
         .and_then(|store| {
             let mut labels: Vec<String> = Vec::new();
             store.for_each_quad(|_s, p, o| {
-                if p == RDFS_LABEL {
-                    if let Object::Literal(value) = o {
-                        labels.push(value.clone());
-                    }
+                if p == RDFS_LABEL
+                    && let Object::Literal(value) = o
+                {
+                    labels.push(value.clone());
                 }
             });
             labels.into_iter().min()
@@ -1793,15 +1793,15 @@ fn extract_example(artifact: &ArtifactRecord, owner_slice: &str) -> DocExample {
         .map(|store| {
             let mut set: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
             store.for_each_quad(|s, _p, o| {
-                if let Some(iri) = s.as_named() {
-                    if iri.starts_with(GMEOW_NS) {
-                        set.insert(to_curie(iri));
-                    }
+                if let Some(iri) = s.as_named()
+                    && iri.starts_with(GMEOW_NS)
+                {
+                    set.insert(to_curie(iri));
                 }
-                if let Object::Named(iri) = o {
-                    if iri.starts_with(GMEOW_NS) {
-                        set.insert(to_curie(iri));
-                    }
+                if let Object::Named(iri) = o
+                    && iri.starts_with(GMEOW_NS)
+                {
+                    set.insert(to_curie(iri));
                 }
             });
             set.into_iter().collect()

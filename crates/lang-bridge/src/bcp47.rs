@@ -35,8 +35,8 @@ use purrdf::{RdfDataset, TermId};
 use crate::bridge::IngestDiagnostic;
 use crate::emit::{digest16, ntriples_sorted};
 use crate::rdf_scan::{
-    iri_of, object_literal, objects, parse_lang_turtle, subjects_of_type, subjects_with_object,
-    term_label, unrepresentable, LANG_NS,
+    LANG_NS, iri_of, object_literal, objects, parse_lang_turtle, subjects_of_type,
+    subjects_with_object, term_label, unrepresentable,
 };
 use crate::registry::{EmittedArtifact, LangEmission, LangProjectionInput, LangProjectionTarget};
 

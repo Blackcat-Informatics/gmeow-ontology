@@ -23,8 +23,8 @@ use purrdf::{RdfDataset, TermId};
 use crate::bridge::IngestDiagnostic;
 use crate::emit::digest16;
 use crate::rdf_scan::{
-    label_of, local_name, lossy_lens_correspondence, object_iri, object_literal, objects,
-    parse_lang_turtle, term_label, EXAMPLE_BASE, LANG_NS,
+    EXAMPLE_BASE, LANG_NS, label_of, local_name, lossy_lens_correspondence, object_iri,
+    object_literal, objects, parse_lang_turtle, term_label,
 };
 use crate::registry::{
     EmittedArtifact, LangEmission, LangProjectionInput, LangProjectionTarget, NamedSource,
@@ -96,11 +96,11 @@ fn emit_composed_form(
         let idx_lex =
             object_literal(ds, slot, &format!("{LANG_NS}slotIndex")).ok_or_else(|| {
                 crate::rdf_scan::unrepresentable(format!(
-                "lang:FormSlot {} on composed form {} has no lang:slotIndex; TEI word order is \
+                    "lang:FormSlot {} on composed form {} has no lang:slotIndex; TEI word order is \
                  the slot-index order and cannot be inferred",
-                term_label(ds, slot),
-                term_label(ds, composed)
-            ))
+                    term_label(ds, slot),
+                    term_label(ds, composed)
+                ))
             })?;
         let idx: i64 = idx_lex.trim().parse().map_err(|_| {
             crate::rdf_scan::unrepresentable(format!(

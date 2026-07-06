@@ -24,8 +24,8 @@ use purrdf::{RdfDataset, TermId};
 use crate::bridge::IngestDiagnostic;
 use crate::emit::{digest16, ntriples_sorted};
 use crate::rdf_scan::{
-    iri_of, local_name, lossy_lens_correspondence, object_iri, object_literal, parse_lang_turtle,
-    subjects_with_object, term_label, unrepresentable, EXAMPLE_BASE, LANG_NS,
+    EXAMPLE_BASE, LANG_NS, iri_of, local_name, lossy_lens_correspondence, object_iri,
+    object_literal, parse_lang_turtle, subjects_with_object, term_label, unrepresentable,
 };
 use crate::registry::{
     EmittedArtifact, LangEmission, LangProjectionInput, LangProjectionTarget, NamedSource,

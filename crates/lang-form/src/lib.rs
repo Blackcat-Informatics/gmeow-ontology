@@ -31,4 +31,4 @@ mod intern;
 mod key;
 
 pub use ast::{AnalysisLevel, Form, MorphFeature, Slot, SurfaceForm};
-pub use intern::{dedup_by_content_key, Interner};
+pub use intern::{Interner, dedup_by_content_key};

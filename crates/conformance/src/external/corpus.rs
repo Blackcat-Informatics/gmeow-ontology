@@ -17,7 +17,7 @@
 
 use serde_json::{Map, Value};
 
-use gmeow_license::{policy_for_license, LicensePolicy};
+use gmeow_license::{LicensePolicy, policy_for_license};
 
 /// Which run lane a corpus targets.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

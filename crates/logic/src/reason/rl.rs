@@ -71,8 +71,8 @@
 
 use std::collections::HashMap;
 
-use crate::facts::{skolem_iri, TypedFactSet, SKOLEM_PREFIX};
-use crate::oracle::{forward_oracle, ForwardBudget, ForwardOracle};
+use crate::facts::{SKOLEM_PREFIX, TypedFactSet, skolem_iri};
+use crate::oracle::{ForwardBudget, ForwardOracle, forward_oracle};
 use purrdf::{RdfDataset, RdfTerm, TermValue};
 
 /// IRI scheme prefix for an interned-literal surrogate (see [`encode_generic_edb`]).
@@ -601,7 +601,7 @@ pub fn rl_closure(edb: &RdfDataset) -> Result<RlClosure, String> {
             other => {
                 return Err(format!(
                     "RL closure row world must be a plain string literal, got {other:?}"
-                ))
+                ));
             }
         };
 

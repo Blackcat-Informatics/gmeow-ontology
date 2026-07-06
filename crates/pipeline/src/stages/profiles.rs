@@ -256,7 +256,7 @@ fn parse_manifest(path: &Path) -> Result<SliceMeta, PipelineError> {
         .map_err(|e| PipelineError::Parse(e.to_string()))?
         .into_iter()
         .filter_map(|o| match o {
-            Object::Literal { value } => Some(value),
+            Object::Literal { value, .. } => Some(value),
             _ => None,
         })
         .collect();

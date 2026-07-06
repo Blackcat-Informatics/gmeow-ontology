@@ -19,7 +19,7 @@
 //! goldens), so the weight arithmetic must stay byte-identical: this bench only
 //! measures the allocation/constant-factor change, never the numeric result.
 
-use criterion::{criterion_group, criterion_main, Criterion};
+use criterion::{Criterion, criterion_group, criterion_main};
 use gmeow_logic::probabilistic::evaluate;
 use gmeow_logic::query_ir::parse_query_program;
 use gmeow_logic::store::WorldStore;

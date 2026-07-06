@@ -1417,10 +1417,12 @@ mod tests {
             "import rdflib\n",
         );
         let report = check_repo_static(temp.path());
-        assert!(report
-            .errors
-            .iter()
-            .any(|e| e.contains("bad.py") && e.contains("upstream rdflib")));
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("bad.py") && e.contains("upstream rdflib"))
+        );
     }
 
     #[test]
@@ -1432,10 +1434,12 @@ mod tests {
             "on:\n  pull_request:\njobs:\n  lint:\n    steps:\n      - run: docker run obolibrary/robot\n  quality:\n    needs: [lint]\n    steps:\n      - run: echo all-good\n",
         );
         let report = check_repo_static(temp.path());
-        assert!(report
-            .errors
-            .iter()
-            .any(|e| e.contains("required CI job") && e.contains("docker")));
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("required CI job") && e.contains("docker"))
+        );
     }
 
     #[test]
@@ -1447,10 +1451,12 @@ mod tests {
             "on:\n  pull_request:\njobs:\n  lint:\n    container: obolibrary/robot\n    steps:\n      - run: make lint\n  quality:\n    needs: [lint]\n    steps:\n      - run: echo all-good\n",
         );
         let report = check_repo_static(temp.path());
-        assert!(report
-            .errors
-            .iter()
-            .any(|e| e.contains("required CI job") && e.contains("obolibrary/robot")));
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("required CI job") && e.contains("obolibrary/robot"))
+        );
     }
 
     #[test]
@@ -1462,10 +1468,12 @@ mod tests {
             "check:\n\t$(MAKE) maint-verify-docker\nmaint-reason-hermit:\n\tdocker run obolibrary/robot\nmaint-explain:\n\ttrue\nmaint-verify-docker:\n\tdocker run obolibrary/robot\nmaint-pull-images:\n\tdocker pull obolibrary/robot\n",
         );
         let report = check_repo_static(temp.path());
-        assert!(report
-            .errors
-            .iter()
-            .any(|e| e.contains("target \"check\"") && e.contains("maint-verify-docker")));
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("target \"check\"") && e.contains("maint-verify-docker"))
+        );
     }
 
     #[test]
@@ -1477,10 +1485,12 @@ mod tests {
             "check:\n\t$(MAKE) lint\nci:\n\t$(MAKE) maint-verify-docker\nlint:\n\ttrue\nmaint-reason-hermit:\n\tdocker run obolibrary/robot\nmaint-explain:\n\ttrue\nmaint-verify-docker:\n\tdocker run obolibrary/robot\nmaint-pull-images:\n\tdocker pull obolibrary/robot\n",
         );
         let report = check_repo_static(temp.path());
-        assert!(report
-            .errors
-            .iter()
-            .any(|e| e.contains("target \"ci\"") && e.contains("maint-verify-docker")));
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("target \"ci\"") && e.contains("maint-verify-docker"))
+        );
     }
 
     #[test]
@@ -1492,10 +1502,12 @@ mod tests {
             "check:\n\t$(MAKE) lint\nci:\n\t${MAKE} maint-verify-docker\nlint:\n\ttrue\nmaint-reason-hermit:\n\tdocker run obolibrary/robot\nmaint-explain:\n\ttrue\nmaint-verify-docker:\n\tdocker run obolibrary/robot\nmaint-pull-images:\n\tdocker pull obolibrary/robot\n",
         );
         let report = check_repo_static(temp.path());
-        assert!(report
-            .errors
-            .iter()
-            .any(|e| e.contains("target \"ci\"") && e.contains("maint-verify-docker")));
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("target \"ci\"") && e.contains("maint-verify-docker"))
+        );
     }
 
     #[test]

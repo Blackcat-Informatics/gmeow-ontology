@@ -11,7 +11,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
-use purrdf::{parse_dataset, DatasetView, GraphMatch, RdfDataset, TermId, TermRef, TermValue};
+use purrdf::{DatasetView, GraphMatch, RdfDataset, TermId, TermRef, TermValue, parse_dataset};
 
 use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
@@ -172,10 +172,10 @@ fn term_counts(path: &Path) -> Result<(usize, usize, usize, usize, usize), Pipel
             return set;
         };
         for q in ds.quads_for_pattern(None, Some(p), Some(o), GraphMatch::Default) {
-            if let TermRef::Iri(n) = ds.resolve(q.s) {
-                if in_ns(n) {
-                    set.insert(n.to_owned());
-                }
+            if let TermRef::Iri(n) = ds.resolve(q.s)
+                && in_ns(n)
+            {
+                set.insert(n.to_owned());
             }
         }
         set

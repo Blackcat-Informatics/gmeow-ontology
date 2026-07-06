@@ -6,11 +6,10 @@
 
 use std::path::{Path, PathBuf};
 
-use crate::{MusicCommands, BUNDLE_GTS};
+use crate::{BUNDLE_GTS, MusicCommands};
 
 /// The install hint printed when the external `gts` binary cannot be found.
-pub(crate) const GTS_INSTALL_HINT: &str =
-    "gts binary not found. Install gmeow-gts: pip install gmeow-gts \
+pub(crate) const GTS_INSTALL_HINT: &str = "gts binary not found. Install gmeow-gts: pip install gmeow-gts \
      (or cargo install gmeow-gts, etc.), or set GMEOW_GTS_BIN to its path.";
 
 /// The GTS subcommands that expect a snapshot file argument — the bundled

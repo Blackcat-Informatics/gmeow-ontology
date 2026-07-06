@@ -76,7 +76,7 @@
     gmeow:atTime "2026-05-15T10:00:00Z"^^xsd:dateTime ;
     gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian ;
     gmeow:hasPrompt <https://blackcatinformatics.ca/gmeow/examples/ai/prompt-extract> ;
-    gmeow:samplingTemperature 0.0 ;
+    gmeow:samplingTemperature "0"^^xsd:decimal ;
     gmeow:usedModel <https://blackcatinformatics.ca/gmeow/examples/ai/assistant> .
 
 <https://blackcatinformatics.ca/gmeow/examples/ai/prompt-extract>

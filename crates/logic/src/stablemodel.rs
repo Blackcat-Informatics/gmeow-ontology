@@ -32,7 +32,7 @@
 use std::collections::BTreeSet;
 
 use crate::rule_ir::{
-    echo_asserted, least_model_of_reduct, world_edb_facts, DerivedRow, EvalRule, Fact, FactStore,
+    DerivedRow, EvalRule, Fact, FactStore, echo_asserted, least_model_of_reduct, world_edb_facts,
 };
 
 /// One stable model: its atoms in canonical (key-sorted) order.

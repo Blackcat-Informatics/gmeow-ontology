@@ -29,8 +29,8 @@
 use std::collections::BTreeSet;
 use std::sync::Arc;
 
-use gmeow_logic::sparql_path_lower::{evaluate_path_lowered, PathEnd};
-use purrdf::sparql::{eval, EvalCtx, SolutionTerm};
+use gmeow_logic::sparql_path_lower::{PathEnd, evaluate_path_lowered};
+use purrdf::sparql::{EvalCtx, SolutionTerm, eval};
 use purrdf::sparql::{GraphPattern, NamedNode, PropertyPathExpression, TermPattern, Variable};
 use purrdf::{RdfDataset, RdfDatasetBuilder, TermRef};
 

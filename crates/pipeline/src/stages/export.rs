@@ -21,8 +21,8 @@
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 
 use gmeow_validate::language_tags::{
-    self, filter_literals as authority_filter_literals, is_internal_tag,
-    marked as authority_marked, select_literal as authority_select_literal, LitDesc,
+    self, LitDesc, filter_literals as authority_filter_literals, is_internal_tag,
+    marked as authority_marked, select_literal as authority_select_literal,
 };
 use purrdf::{RdfDataset, TermId, TermRef};
 
@@ -234,10 +234,10 @@ impl<'a> FoldView<'a> {
             return Vec::new();
         };
         let mut out: BTreeSet<usize> = BTreeSet::new();
-        if let Some(idx) = self.po.get(scope) {
-            if let Some(subjects) = idx.get(&(type_tid, class_tid)) {
-                out.extend(subjects.iter().copied());
-            }
+        if let Some(idx) = self.po.get(scope)
+            && let Some(subjects) = idx.get(&(type_tid, class_tid))
+        {
+            out.extend(subjects.iter().copied());
         }
         out.into_iter().collect()
     }
@@ -248,12 +248,12 @@ impl<'a> FoldView<'a> {
             return Vec::new();
         };
         let mut out: BTreeSet<usize> = BTreeSet::new();
-        if let Some(idx) = self.spo.get(scope) {
-            if let Some(rows) = idx.get(&s_tid) {
-                for &(p, o) in rows {
-                    if p == p_tid {
-                        out.insert(o);
-                    }
+        if let Some(idx) = self.spo.get(scope)
+            && let Some(rows) = idx.get(&s_tid)
+        {
+            for &(p, o) in rows {
+                if p == p_tid {
+                    out.insert(o);
                 }
             }
         }
@@ -271,10 +271,10 @@ impl<'a> FoldView<'a> {
     /// All `(p, o)` pairs for a subject in scope, id-sorted unique.
     pub(crate) fn predicate_objects(&self, s_tid: usize, scope: &str) -> Vec<(usize, usize)> {
         let mut out: BTreeSet<(usize, usize)> = BTreeSet::new();
-        if let Some(idx) = self.spo.get(scope) {
-            if let Some(rows) = idx.get(&s_tid) {
-                out.extend(rows.iter().copied());
-            }
+        if let Some(idx) = self.spo.get(scope)
+            && let Some(rows) = idx.get(&s_tid)
+        {
+            out.extend(rows.iter().copied());
         }
         out.into_iter().collect()
     }
@@ -760,17 +760,19 @@ fn term_label_def(view: &FoldView, t: usize, term: &mut Term) {
     term.definition = definition;
     term.definition_fallback = def_fb;
     for (text, lang, fallback) in view.public_texts(t, &label_iri) {
-        if let Some(l) = lang {
-            if !fallback && !term.labels.contains_key(&l) {
-                term.labels.insert(l, text);
-            }
+        if let Some(l) = lang
+            && !fallback
+            && !term.labels.contains_key(&l)
+        {
+            term.labels.insert(l, text);
         }
     }
     for (text, lang, fallback) in view.public_texts(t, &definition_iri) {
-        if let Some(l) = lang {
-            if !fallback && !term.definitions.contains_key(&l) {
-                term.definitions.insert(l, text);
-            }
+        if let Some(l) = lang
+            && !fallback
+            && !term.definitions.contains_key(&l)
+        {
+            term.definitions.insert(l, text);
         }
     }
 }
@@ -1949,8 +1951,8 @@ fn dataset_with_public_tags(
     dataset: &RdfDataset,
     tag_map: &BTreeMap<String, String>,
 ) -> Result<std::sync::Arc<RdfDataset>, PipelineError> {
-    use purrdf::model::RdfTerm;
     use purrdf::RdfDatasetBuilder;
+    use purrdf::model::RdfTerm;
     let retag = |term: RdfTerm| -> RdfTerm {
         if let RdfTerm::Literal(mut lit) = term {
             if let Some(public) = lit.language.as_ref().and_then(|l| tag_map.get(l)) {
@@ -2143,24 +2145,24 @@ fn write_skos(view: &FoldView, title: &str, version: &str) -> Vec<u8> {
         ];
         let mut seen_labels: BTreeSet<String> = BTreeSet::new();
         for (text, lang, _fallback) in view.public_texts(t, &format!("{RDFS}label")) {
-            if let Some(l) = lang {
-                if seen_labels.insert(l.clone()) {
-                    stanza.push(format!(
-                        "    skos:prefLabel {} ;",
-                        ttl_literal(&text, Some(&l))
-                    ));
-                }
+            if let Some(l) = lang
+                && seen_labels.insert(l.clone())
+            {
+                stanza.push(format!(
+                    "    skos:prefLabel {} ;",
+                    ttl_literal(&text, Some(&l))
+                ));
             }
         }
         let mut seen_defs: BTreeSet<String> = BTreeSet::new();
         for (text, lang, _fallback) in view.public_texts(t, &format!("{SKOS}definition")) {
-            if let Some(l) = lang {
-                if seen_defs.insert(l.clone()) {
-                    stanza.push(format!(
-                        "    skos:definition {} ;",
-                        ttl_literal(&text, Some(&l))
-                    ));
-                }
+            if let Some(l) = lang
+                && seen_defs.insert(l.clone())
+            {
+                stanza.push(format!(
+                    "    skos:definition {} ;",
+                    ttl_literal(&text, Some(&l))
+                ));
             }
         }
         for b in &broader {

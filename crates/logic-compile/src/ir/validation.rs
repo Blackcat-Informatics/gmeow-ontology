@@ -18,7 +18,7 @@
 //! [`super::opt_axis_key`] signed-zero helper directly, so the key style matches the rest
 //! of the IR verbatim.
 
-use super::{opt_axis_key, NodeKind, SEP};
+use super::{NodeKind, SEP, opt_axis_key};
 
 /// Length-prefix a free-form fragment so field boundaries can never collide when fragments are
 /// concatenated into a content key: `{predicate:"a=b", value:"c"}` and
@@ -356,11 +356,11 @@ impl ConstraintComponent {
             ),
             ConstraintComponent::OrdinalSet { pairs } => format!(
                 "ordinalset={}",
-                key_list(
-                    pairs
-                        .iter()
-                        .map(|(v, c)| format!("{}{}", key_field(&v.to_string()), key_field(c)))
-                ),
+                key_list(pairs.iter().map(|(v, c)| format!(
+                    "{}{}",
+                    key_field(&v.to_string()),
+                    key_field(c)
+                ))),
             ),
             ConstraintComponent::DateTimePattern(p) => {
                 format!("datetimepattern={}", key_field(p))
@@ -401,12 +401,12 @@ impl PropertyConstraintIr {
         if path.trim().is_empty() {
             return Err("PropertyConstraintIr.path must be a non-empty IRI string".to_owned());
         }
-        if let (Some(lo), Some(hi)) = (min_count, max_count) {
-            if lo > hi {
-                return Err(format!(
-                    "PropertyConstraintIr min_count ({lo}) must not exceed max_count ({hi})"
-                ));
-            }
+        if let (Some(lo), Some(hi)) = (min_count, max_count)
+            && lo > hi
+        {
+            return Err(format!(
+                "PropertyConstraintIr min_count ({lo}) must not exceed max_count ({hi})"
+            ));
         }
         // A provenance without a cardinality is a determinism hazard (it would perturb the
         // key while claiming nothing); a cardinality without a provenance leaves the ledger
@@ -504,23 +504,23 @@ impl ValidationShapeIr {
             }
             _ => {}
         }
-        if let Some(rs) = &reifier_shape {
-            if rs.trim().is_empty() {
-                return Err(
-                    "ValidationShapeIr.reifier_shape must be a non-empty IRI when present; pass \
+        if let Some(rs) = &reifier_shape
+            && rs.trim().is_empty()
+        {
+            return Err(
+                "ValidationShapeIr.reifier_shape must be a non-empty IRI when present; pass \
                      None to leave it unset"
-                        .to_owned(),
-                );
-            }
+                    .to_owned(),
+            );
         }
-        if let Some(sp) = &standpoint {
-            if sp.trim().is_empty() {
-                return Err(
-                    "ValidationShapeIr.standpoint must be a non-empty IRI when present; pass None \
+        if let Some(sp) = &standpoint
+            && sp.trim().is_empty()
+        {
+            return Err(
+                "ValidationShapeIr.standpoint must be a non-empty IRI when present; pass None \
                      to leave it unset"
-                        .to_owned(),
-                );
-            }
+                    .to_owned(),
+            );
         }
         let mut properties = properties;
         properties.sort_by_cached_key(PropertyConstraintIr::content_key);
