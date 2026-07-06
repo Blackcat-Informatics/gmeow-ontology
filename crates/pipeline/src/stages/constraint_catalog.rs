@@ -20,7 +20,7 @@ use std::collections::BTreeMap;
 use std::fmt::Write as _;
 use std::path::Path;
 
-use gmeow_diagnostics::Severity;
+use gmeow_errors::Severity;
 use gmeow_validate::rule_catalog::{Enforcement, RuleSeed, all_rules, help_uri_for, slugify};
 use purrdf::slice::rdf_query::Dataset;
 

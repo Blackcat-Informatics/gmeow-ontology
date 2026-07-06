@@ -33,7 +33,7 @@ use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
-use gmeow_diagnostics::{Finding, Location, Severity};
+use gmeow_errors::{Finding, Location, Severity};
 use gmeow_logic_compile::frontend::parse_logic_str;
 use gmeow_logic_compile::ir::LogicProgram;
 use gmeow_logic_compile::openehr_opt::read_all_opt_constraints;

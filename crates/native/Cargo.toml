@@ -27,7 +27,7 @@ path = "src/lib.rs"
 # gmeow-owned engine crates only. The RDF / SHACL / slice Python surface is the
 # external `purrdf` package (PyO3-free), so this cdylib does not link it — it
 # registers diagnostics/validate/logic/docs/pipeline/foundation/music.
-gmeow-diagnostics = { path = "../diagnostics", features = ["python"] }
+gmeow-errors = { path = "../errors", features = ["python"] }
 # `gmeow-docs` ships the typed documentation model + its register fn (#853);
 # it consumes the pure-Rust slice catalog (no `python` feature needed).
 gmeow-docs = { path = "../docs", features = ["python"] }

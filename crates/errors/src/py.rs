@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! PyO3 Python bindings for `gmeow-diagnostics`.
+//! PyO3 Python bindings for `gmeow-errors`.
 
 use std::fs;
 use std::path::PathBuf;
@@ -308,7 +308,7 @@ fn finding_to_dict(py: Python<'_>, finding: &Finding) -> PyResult<Py<PyAny>> {
     Ok(out.into_any().unbind())
 }
 
-/// Register the `gmeow-diagnostics` surface on a Python module.
+/// Register the `gmeow-errors` surface on a Python module.
 ///
 /// Called by the unified `gmeow_native` cdylib to populate the
 /// `gmeow_native.diagnostics` submodule; the legacy `import gmeow_diagnostics`
