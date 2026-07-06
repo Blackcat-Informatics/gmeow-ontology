@@ -36,6 +36,19 @@ const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const RDF_REIFIES: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies";
 const NT_MEDIA_TYPE: &str = "application/n-triples";
 
+// The TBox predicates whose axioms drive property-domain typing: a
+// property assertion is typed by `rdfs:domain` (its subject) / `rdfs:range` (its
+// object) under prp-dom, and that derived type is then propagated UPWARD through
+// `rdfs:subClassOf`; `rdfs:subPropertyOf` lets a sub-property inherit its
+// super-property's domain/range. This is the exact closure the reasoned harvest
+// needs — nothing else in the bundle TBox can contribute a sound `rdf:type`.
+const RDFS_DOMAIN: &str = "http://www.w3.org/2000/01/rdf-schema#domain";
+const RDFS_RANGE: &str = "http://www.w3.org/2000/01/rdf-schema#range";
+const RDFS_SUBCLASSOF: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
+const RDFS_SUBPROPERTYOF: &str = "http://www.w3.org/2000/01/rdf-schema#subPropertyOf";
+const DOMAIN_TYPING_TBOX_PREDICATES: &[&str] =
+    &[RDFS_DOMAIN, RDFS_RANGE, RDFS_SUBCLASSOF, RDFS_SUBPROPERTYOF];
+
 /// A projection-boundary language-tag remap (internal `x-gmeow-*` → public BCP-47,
 /// or the inverse), keyed by the *source* tag. Empty = no retag.
 pub type TagMap = BTreeMap<String, String>;
@@ -325,10 +338,40 @@ pub fn up_project(
         &inputs.projection_ttls,
         &inputs.ontology_nt,
     )?;
+
+    // Reasoned superclass recovery. The lawful put legs return only the
+    // renamed/inverse facts; an entailed superclass (e.g. a subject bearing
+    // `gmeow:partOfThread`/`gmeow:inReplyTo` — both `rdfs:domain gmeow:Message` — IS a
+    // `gmeow:Message`) is lost because the put path never reasons. Run a scoped,
+    // deterministic prp-dom harvest over `[lifted ∪ the property-domain TBox fragment]`
+    // and union the sound derived `rdf:type` triples back into the lifted graph. This is
+    // sound-only and upward-closing: it never fabricates a SubKind (`gmeow:EmailMessage`)
+    // or a sibling (`gmeow:FeedPosting`), because `dl:type-propagation` only walks
+    // subClassOf UPWARD.
+    let mut quads = flat_quads_from_nt(&report.graph_nt)?;
+    let harvested = harvest_reasoned_types(&quads, &inputs.ontology_nt)?;
+    let mut merged_new = false;
+    if !harvested.is_empty() {
+        let existing: std::collections::HashSet<RdfQuad> = quads.iter().cloned().collect();
+        for typed in harvested {
+            if existing.contains(&typed) {
+                continue;
+            }
+            quads.push(typed);
+            merged_new = true;
+        }
+    }
+
+    // Byte-stability: only re-serialize when we actually changed the graph (harvest or
+    // retag). `quads_to_nt` freeze-sorts by (s,p,o), so the union is canonical; when
+    // nothing changed we return the put executor's already-sorted bytes untouched.
     let graph_nt = if internal_tag_map.is_empty() {
-        report.graph_nt
+        if merged_new {
+            quads_to_nt(&quads)?
+        } else {
+            report.graph_nt
+        }
     } else {
-        let mut quads = flat_quads_from_nt(&report.graph_nt)?;
         retag_quads(&mut quads, internal_tag_map);
         quads_to_nt(&quads)?
     };
@@ -339,6 +382,88 @@ pub fn up_project(
         gap_terms: report.gap_terms,
         residue: report.residue,
     })
+}
+
+/// Harvest the sound derived `rdf:type` triples entailed by the lifted assertions
+/// against the bundle's property-domain TBox fragment — the reasoned superclass
+/// recovery for the inverse-ingest (put) path.
+///
+/// The world-scoping is LOAD-BEARING: the native reasoner is world/graph-indexed with
+/// no cross-world union, so `dl:domain` (prp-dom) only fires when the property
+/// assertion and its `rdfs:domain` axiom share the SAME world. Both the lifted
+/// assertions and the extracted TBox fragment are default-graph N-Triples, so
+/// [`purrdf::native_quads::flat_dataset_from_quads`] lands them in the same (default)
+/// world and [`reason_all_with_data`](gmeow_logic::reason::reason_all_with_data)'s
+/// merge keeps them co-located — prp-dom fires, and the derived type propagates upward
+/// through the fragment's `rdfs:subClassOf` axioms.
+///
+/// Performance: the TBox is scoped to [`DOMAIN_TYPING_TBOX_PREDICATES`] (the closure
+/// property-domain typing needs), never the whole bundle, so ingest never pays a
+/// full-bundle chase.
+///
+/// Determinism: every sound derived `rdf:type` is harvested (maximal information flow)
+/// but keyed into a [`BTreeMap`] on `(subject, class)` so the returned vector is
+/// sorted/canonical with no wall-clock or randomness.
+fn harvest_reasoned_types(lifted: &[RdfQuad], ontology_nt: &str) -> Result<Vec<RdfQuad>, String> {
+    if lifted.is_empty() {
+        return Ok(Vec::new());
+    }
+    let fragment = domain_typing_tbox_fragment(ontology_nt)?;
+    if fragment.is_empty() {
+        // No property-domain axioms in scope ⇒ nothing prp-dom could entail. Skip the
+        // chase entirely (also keeps the empty-ontology callers byte-identical).
+        return Ok(Vec::new());
+    }
+
+    let user = purrdf::flat_dataset_from_quads(lifted)
+        .map_err(|e| format!("reasoned harvest: lifted dataset build failed: {e}"))?;
+    let bundle = purrdf::flat_dataset_from_quads(&fragment)
+        .map_err(|e| format!("reasoned harvest: TBox fragment dataset build failed: {e}"))?;
+    let result = gmeow_logic::reason::reason_all_with_data(bundle.as_ref(), user.as_ref())
+        .map_err(|e| format!("reasoned harvest: native reasoning failed: {e}"))?;
+
+    // Dedup on the canonical (subject, class) key, then emit sorted by that key so the
+    // harvested block is byte-stable regardless of the reasoner's row order. `RdfQuad`
+    // is `Hash + Eq` but not `Ord`, so the string key carries the total order.
+    let mut out: BTreeMap<(String, String), RdfQuad> = BTreeMap::new();
+    for axiom in result.inferred() {
+        // Only rule-DERIVED types (`is_edb == false`) are new information; asserted
+        // rows are already in `lifted`. Restrict to `rdf:type` with an IRI class object.
+        if axiom.is_edb || axiom.predicate != RDF_TYPE {
+            continue;
+        }
+        let Some(class_iri) = strip_iri_brackets(&axiom.object) else {
+            continue;
+        };
+        out.entry((axiom.subject.clone(), class_iri.to_owned()))
+            .or_insert_with(|| {
+                RdfQuad::new(
+                    RdfTerm::iri(axiom.subject.clone()),
+                    RDF_TYPE.to_owned(),
+                    RdfTerm::iri(class_iri.to_owned()),
+                )
+            });
+    }
+    Ok(out.into_values().collect())
+}
+
+/// Extract the property-domain typing TBox fragment from the bundle ontology
+/// N-Triples: every quad whose predicate is one of [`DOMAIN_TYPING_TBOX_PREDICATES`].
+/// This is the bounded, deterministic closure the reasoned harvest reasons over
+/// (never the whole bundle).
+fn domain_typing_tbox_fragment(ontology_nt: &str) -> Result<Vec<RdfQuad>, String> {
+    let quads = flat_quads_from_nt(ontology_nt)?;
+    Ok(quads
+        .into_iter()
+        .filter(|q| DOMAIN_TYPING_TBOX_PREDICATES.contains(&q.predicate.as_str()))
+        .collect())
+}
+
+/// Strip the angle brackets from an `<iri>` display token, returning the bare IRI.
+/// The reasoner renders an IRI class object as `<iri>`; anything else (a literal or
+/// blank display) is not a class and yields `None`.
+fn strip_iri_brackets(token: &str) -> Option<&str> {
+    token.strip_prefix('<').and_then(|t| t.strip_suffix('>'))
 }
 
 // ── Transpile: consumer RDF → pure GMEOW → MAXIMAL multi-vocab ────────────────────
