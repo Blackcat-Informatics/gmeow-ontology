@@ -33,14 +33,16 @@ use std::collections::{BTreeMap, BTreeSet, HashSet};
 
 use gmeow_logic_compile::ir::LegPath;
 use gmeow_logic_compile::projections::paths::lower_leg_path;
+use gmeow_logic_compile::projections::reified_claim::{
+    ClaimAnnotation, ClaimObject, IriStyle, ReifiedClaim, reified_claim_head,
+};
 use purrdf::sparql::NativeSparqlEngine;
 use purrdf::{RdfQuad, RdfTerm, SparqlEngine, SparqlRequest, SparqlResult};
 
 use crate::up_projection_corpus::{
-    ADOPTED_PREDICATES, GM_ANN_PROPERTY, GM_ANN_VALUE, GM_ANNOTATION, GM_CONFIDENCE,
-    GM_MAPPED_FROM, GM_Q_OBJECT, GM_Q_OBJECT_LITERAL, GM_Q_PREDICATE, GM_Q_SUBJECT,
-    GM_STATEMENT_METADATA, Graph, NORMALIZED_PREDICATES, RDF_TYPE, STATEMENT_METADATA_TERMS,
-    XSD_DECIMAL, canon_qname, dump_nt, in_projection_ns, object_properties,
+    ADOPTED_PREDICATES, GM_CONFIDENCE, GM_MAPPED_FROM, GM_STATEMENT_METADATA, Graph,
+    NORMALIZED_PREDICATES, RDF_TYPE, STATEMENT_METADATA_TERMS, XSD_DECIMAL, canon_qname, dump_nt,
+    in_projection_ns, object_properties,
 };
 use crate::up_projection_gates::{
     LiftKind, LiftProgram, LiftRule, Orientation, gate_verified_lift_program,
@@ -358,47 +360,56 @@ enum ClaimSlot {
 
 /// A single reified-claim `CONSTRUCT`. The `slot` selects the predicate-position
 /// (IRI or literal object) or the class-position (rdf:type-object) claim shape.
+///
+/// The `gmeow:StatementMetadata` reified-claim template itself is rendered by the shared
+/// [`reified_claim_head`] builder in `gmeow-logic-compile` — the SINGLE definition both this
+/// native executor (the [`AssertionPolarity::ReifyClaim`] reference semantics) and the committed
+/// `.put.rq` emitter render through, so the two surfaces cannot drift. This function only chooses
+/// the object slot, assembles the annotation list, and wraps the head in the executor's
+/// `isIRI`/`isLiteral`-filtered WHERE. The blank labels are the fixed `cell`/`mapann`/`confann`;
+/// [`rescope_blanks`] re-scopes them per query so distinct cells never collide on merge.
 fn claim_query(ext: &str, gmeow: &str, conf: &str, slot: ClaimSlot) -> String {
-    // (qPredicate IRI, qObject predicate, qObject term text, WHERE clause).
-    let (qpred, qobj_pred, qobj_term, where_clause) = match slot {
+    let (predicate, object, where_clause) = match slot {
         ClaimSlot::PredicateIri => (
             gmeow.to_owned(),
-            GM_Q_OBJECT,
-            "?o".to_owned(),
+            ClaimObject::Iri("?o".to_owned()),
             format!("?s <{ext}> ?o . FILTER(isIRI(?s) && isIRI(?o))"),
         ),
         ClaimSlot::PredicateLiteral => (
             gmeow.to_owned(),
-            GM_Q_OBJECT_LITERAL,
-            "?o".to_owned(),
+            ClaimObject::Literal("?o".to_owned()),
             format!("?s <{ext}> ?o . FILTER(isIRI(?s) && isLiteral(?o))"),
         ),
         ClaimSlot::TypeObject => (
             RDF_TYPE.to_owned(),
-            GM_Q_OBJECT,
-            format!("<{gmeow}>"),
+            ClaimObject::Iri(format!("<{gmeow}>")),
             format!("?s <{RDF_TYPE}> <{ext}> . FILTER(isIRI(?s))"),
         ),
     };
-    let mut template = format!(
-        "_:cell <{RDF_TYPE}> <{GM_STATEMENT_METADATA}> ; \
-                <{GM_Q_SUBJECT}> ?s ; \
-                <{GM_Q_PREDICATE}> <{qpred}> ; \
-                <{qobj_pred}> {qobj_term} ; \
-                <{GM_ANNOTATION}> _:mapann . \
-         _:mapann <{GM_ANN_PROPERTY}> <{GM_MAPPED_FROM}> ; <{GM_ANN_VALUE}> <{ext}> ."
-    );
+    let mut annotations = vec![ClaimAnnotation {
+        label: "mapann".to_owned(),
+        property: GM_MAPPED_FROM.to_owned(),
+        value: format!("<{ext}>"),
+    }];
     if !conf.is_empty() {
-        template.push_str(&format!(
-            " _:cell <{GM_ANNOTATION}> _:confann . \
-              _:confann <{GM_ANN_PROPERTY}> <{GM_CONFIDENCE}> ; \
-                        <{GM_ANN_VALUE}> \"{conf}\"^^<{XSD_DECIMAL}> ."
-        ));
+        annotations.push(ClaimAnnotation {
+            label: "confann".to_owned(),
+            property: GM_CONFIDENCE.to_owned(),
+            value: format!("\"{conf}\"^^<{XSD_DECIMAL}>"),
+        });
     }
-    format!(
-        "CONSTRUCT {{ {template} }} \
-         WHERE {{ {where_clause} }}"
-    )
+    let claim = ReifiedClaim {
+        cell_label: "cell".to_owned(),
+        subject: "?s".to_owned(),
+        predicate,
+        object,
+        annotations,
+        // The native executor discloses import-provenance through the audit ledger, not an
+        // in-graph wasGeneratedBy edge on every cell.
+        generated_by: None,
+    };
+    let head = reified_claim_head(&claim, IriStyle::Full).join(" ");
+    format!("CONSTRUCT {{ {head} }} WHERE {{ {where_clause} }}")
 }
 
 /// Lower a single forward predicate step through the canonical F2 property-path
@@ -503,6 +514,9 @@ fn rescope_blanks(quad: RdfQuad, idx: usize) -> RdfQuad {
 #[cfg(test)]
 mod tests {
     use super::*;
+    // Reification consumer-side vocab used only by the assertions below (the executor's
+    // production path renders these through the shared reified-claim builder).
+    use crate::up_projection_corpus::{GM_Q_OBJECT, GM_Q_PREDICATE};
 
     fn run_one(
         engine: &NativeSparqlEngine,
