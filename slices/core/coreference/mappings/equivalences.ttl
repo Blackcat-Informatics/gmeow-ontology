@@ -1,4 +1,5 @@
 @prefix gmeow:  <https://blackcatinformatics.ca/gmeow/> .
+@prefix lang:   <https://blackcatinformatics.ca/lang/> .
 @prefix mads:   <http://www.loc.gov/mads/rdf/v1#> .
 @prefix skos:   <http://www.w3.org/2004/02/skos/core#> .
 @prefix schema: <https://schema.org/> .
@@ -90,3 +91,87 @@ gmeow:eqDcTerms022 a gmeow:TermEquivalence ;
     gmeow:confidence 0.85 ;
     gmeow:comment "DCTerms isVersionOf — a related resource of which the described resource is a version" ;
     gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+
+# --------------------------------------------------------------------------- #
+# lang: graft cells (Task 5)                                                  #
+# The coreference slice is grafted onto the lang: grounding layer (P19). The  #
+# slice is IDENTITY-LINEAGE vocabulary (records and lineages related across   #
+# realms/versions), NOT NLP reference resolution — so the genuine reference-  #
+# resolution seam ("these forms denote the SAME referent") is NEW: it is      #
+# grafted as gmeow:corefDenotation onto lang:Denotation (the FLOOR), and every #
+# pre-existing lineage term is RETAINED with a NEGATIVE supersession cell,     #
+# because lang:Denotation (form→referent meaning) does NOT supersede an        #
+# entity→entity / entity→record lineage link. The rung is prose; the SSSOM    #
+# row carries the skos grain; gmeow:lossyDrop records what lang: cannot carry. #
+# --------------------------------------------------------------------------- #
+
+# gmeow:corefDenotation — the FLOOR seam (new consumer, not a supersession).
+gmeow:eqCorefGraft001 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:corefDenotation ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject lang:Denotation ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "Denotation" ;
+    gmeow:comment "GRAFT SEAM (new consumer, not a supersession): gmeow:corefDenotation is the reference-resolution seam grounded in lang: (Principle 19). It relates a gmeow:Entity to a reified lang:Denotation that resolves a form to it as referent (lang:denotationKind lang:denotesEntity, lang:denotationTarget the entity, lang:denotedForm the resolved form). Coreference is DECIDED by two forms whose denotations share a lang:denotationTarget — a structural shared-reference fact, never owl:sameAs and never a same-string guess. relatedMatch: the property points AT a lang:Denotation, it is not equivalent to one." ;
+    gmeow:sssomFile "gmeow-coreference.sssom.tsv" .
+
+# gmeow:authorityLink — RETAINED (entity→external-record pointer, not reference resolution).
+gmeow:eqCorefGraft002 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:authorityLink ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject lang:Denotation ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.2 ;
+    gmeow:objectLabel "Denotation" ;
+    gmeow:comment "RETENTION (negative supersession — NOT a Section-Retraction): gmeow:authorityLink is RETAINED. It is a see-also pointer from a GMEOW entity to an EXTERNAL authority record (Wikidata/VIAF/GeoNames), whose match strength is asserted separately with skos:exactMatch/closeMatch — an entity→record cross-reference, not a form→referent meaning. lang:Denotation resolves a FORM to a referent; it carries no term for pointing an entity at an external catalogue row, so it cannot supersede authorityLink. relatedMatch: both concern reference but on the entity→record vs form→referent axes." ;
+    gmeow:lossyDrop "the entity→external-authority-record pointer semantics of gmeow:authorityLink (plus its separately-asserted skos match strength) are not carried by lang:Denotation, which resolves a form to a referent, not an entity to a catalogue record" ;
+    gmeow:sssomFile "gmeow-coreference.sssom.tsv" .
+
+# gmeow:counterpartOf — RETAINED (cross-realm entity↔entity link, not reference resolution).
+gmeow:eqCorefGraft003 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:counterpartOf ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject lang:Denotation ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.2 ;
+    gmeow:objectLabel "Denotation" ;
+    gmeow:comment "RETENTION (negative supersession — NOT a Section-Retraction): gmeow:counterpartOf is RETAINED. It is a symmetric, deliberately non-transitive entity↔entity link across realms/frames/datasets (a fictional city and its real namesake) that preserves cross-realm linkage without owl:sameAs collapse — an identity-lineage relation between two ENTITIES. lang:Denotation resolves a FORM to a referent and cannot express a cross-realm counterpart pairing, so it does not supersede counterpartOf. Where two forms co-refer, that is the NEW gmeow:corefDenotation shared-target seam, a different axis. relatedMatch: both bear on sameness but on the cross-realm-entity vs form-reference axes." ;
+    gmeow:lossyDrop "the symmetric, non-transitive cross-realm entity↔entity pairing of gmeow:counterpartOf is not carried by lang:Denotation, which resolves a form to a referent and has no term for two co-equal entities being counterparts across realms" ;
+    gmeow:sssomFile "gmeow-coreference.sssom.tsv" .
+
+# gmeow:versionOf — RETAINED (version→lineage containment, not reference resolution).
+gmeow:eqCorefGraft004 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:versionOf ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject lang:Denotation ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.1 ;
+    gmeow:objectLabel "Denotation" ;
+    gmeow:comment "RETENTION (negative supersession — NOT a Section-Retraction): gmeow:versionOf is RETAINED. It is a functional version→stable-lineage containment link (a software release to its project, a data release to its dataset) between two first-class ENTITIES — an identity-lineage axis with no reference content. lang:Denotation is form→referent meaning; it cannot express lineage containment, so it does not supersede versionOf. relatedMatch: unrelated axes, aligned only as neighbours in the identity family." ;
+    gmeow:lossyDrop "the functional version→lineage containment of gmeow:versionOf is not a form→referent meaning and is not carried by lang:Denotation" ;
+    gmeow:sssomFile "gmeow-coreference.sssom.tsv" .
+
+# gmeow:editionOf — RETAINED (edition→work containment, not reference resolution).
+gmeow:eqCorefGraft005 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:editionOf ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject lang:Denotation ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.1 ;
+    gmeow:objectLabel "Denotation" ;
+    gmeow:comment "RETENTION (negative supersession — NOT a Section-Retraction): gmeow:editionOf is RETAINED. It is a functional edition→stable-work containment link (a 1623 folio to the play) between two first-class creative works — an identity-lineage axis with no reference content. lang:Denotation resolves a form to a referent and has no term for edition containment, so it does not supersede editionOf. relatedMatch: unrelated axes within the identity family." ;
+    gmeow:lossyDrop "the functional edition→work containment of gmeow:editionOf is not a form→referent meaning and is not carried by lang:Denotation" ;
+    gmeow:sssomFile "gmeow-coreference.sssom.tsv" .
+
+# gmeow:supersedes — RETAINED (successor→predecessor succession, not reference resolution).
+gmeow:eqCorefGraft006 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:supersedes ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject lang:Denotation ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.1 ;
+    gmeow:objectLabel "Denotation" ;
+    gmeow:comment "RETENTION (negative supersession — NOT a Section-Retraction): gmeow:supersedes is RETAINED. It is a non-functional successor→predecessor succession link (a revised policy over its draft; a merged record consolidating several) between ENTITIES, where the superseded item stays first-class. lang:Denotation is form→referent meaning and carries no succession semantics, so it does not supersede supersedes. relatedMatch: unrelated axes within the identity family. (Note: the ontology-level ‘supersession’ of the loss ledger is a DIFFERENT sense — the data property gmeow:supersedes is untouched by the graft.)" ;
+    gmeow:lossyDrop "the successor→predecessor succession of gmeow:supersedes is not a form→referent meaning and is not carried by lang:Denotation" ;
+    gmeow:sssomFile "gmeow-coreference.sssom.tsv" .
