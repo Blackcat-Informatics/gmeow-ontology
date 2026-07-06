@@ -79,6 +79,7 @@ pub fn check_repo_static(root: &Path) -> RepoStaticReport {
     let mut report = RepoStaticReport::default();
     check_lane_purity(root, &mut report);
     check_no_rdflib_in_runtime(root, &mut report);
+    check_no_docker_lane_python(root, &mut report);
     check_projection_compute_purity(root, &mut report);
     check_projection_shape_purity(root, &mut report);
     check_no_generated_read_in_pipeline_stages(root, &mut report);
@@ -155,6 +156,53 @@ fn check_no_rdflib_in_runtime(root: &Path, report: &mut RepoStaticReport) {
         report.error(format!(
             "rdflib keeper allow-list is stale: expected {{{expected}}}, found {{{found}}}"
         ));
+    }
+}
+
+/// The retired Docker/Java OWL-reasoner lane's first-party Python symbols. That lane (ROBOT +
+/// Jena pinned-image subprocess reasoning) has been permanently removed; no `src/gmeow_tools`
+/// module or the root `conftest.py` may reference these again. This seals the deletion against
+/// re-introduction — the Python-surface complement of the Makefile + required-CI Docker-freedom
+/// guards (`check_makefile_lane_purity` / `check_required_ci_jobs`).
+const DOCKER_LANE_PYTHON_SYMBOLS: &[&str] = &[
+    "gmeow_tools.runner",
+    "image_available",
+    "ROBOT_IMAGE",
+    "JENA_IMAGE",
+];
+
+/// Hard-fail if any first-party Python (`src/gmeow_tools/**` + the root `conftest.py`) references
+/// a retired Docker-reasoning-lane symbol. Scans code only (comments/strings are stripped), so a
+/// docstring mentioning the removed lane does not trip it. Scoped ONLY to the permanently-gone
+/// Docker symbols — NOT a general dead-module gate (that is a whole-surface concern for later).
+fn check_no_docker_lane_python(root: &Path, report: &mut RepoStaticReport) {
+    let mut files = python_files(&root.join("src").join("gmeow_tools"), report);
+    let conftest = root.join("conftest.py");
+    if conftest.is_file() {
+        files.push(conftest);
+    }
+    files.sort();
+    for path in files {
+        let text = match fs::read_to_string(&path) {
+            Ok(text) => text,
+            Err(err) => {
+                report.error(format!("{}: cannot read: {err}", path.display()));
+                continue;
+            }
+        };
+        let code = strip_python_non_code(&text);
+        let hits = DOCKER_LANE_PYTHON_SYMBOLS
+            .iter()
+            .filter(|sym| code.contains(**sym))
+            .copied()
+            .collect::<Vec<_>>();
+        if !hits.is_empty() {
+            let rel = slash_path(path.strip_prefix(root).unwrap_or(&path));
+            report.error(format!(
+                "retired Docker-reasoning-lane symbol(s) re-introduced in first-party Python {rel}: {} — that lane is permanently removed",
+                hits.join(", ")
+            ));
+        }
     }
 }
 
@@ -1208,6 +1256,52 @@ mod tests {
         let imports = python_imported_top_modules(&code);
         assert!(imports.contains("os"));
         assert!(!imports.contains("rdflib"));
+    }
+
+    #[test]
+    fn docker_lane_python_guard_flags_reintroduction_and_passes_clean() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+
+        // Clean tree: a gmeow_tools module with no Docker-lane symbol → passes.
+        write(&root.join("src/gmeow_tools/ok.py"), "import os\nX = 1\n");
+        let mut clean = RepoStaticReport::default();
+        check_no_docker_lane_python(root, &mut clean);
+        assert!(
+            clean.errors.is_empty(),
+            "clean tree must pass; got {:?}",
+            clean.errors
+        );
+
+        // Re-introducing a retired Docker-lane import in conftest.py must fail.
+        write(
+            &root.join("conftest.py"),
+            "from gmeow_tools.runner import image_available\n",
+        );
+        let mut dirty = RepoStaticReport::default();
+        check_no_docker_lane_python(root, &mut dirty);
+        assert!(
+            dirty
+                .errors
+                .iter()
+                .any(|e| e.contains("Docker-reasoning-lane") && e.contains("conftest.py")),
+            "a re-introduced gmeow_tools.runner import must be flagged; got {:?}",
+            dirty.errors
+        );
+
+        // A retired symbol appearing only in a comment/string must NOT trip the guard.
+        std::fs::remove_file(root.join("conftest.py")).unwrap();
+        write(
+            &root.join("src/gmeow_tools/ok.py"),
+            "# image_available was removed\nDOC = \"ROBOT_IMAGE\"\n",
+        );
+        let mut commented = RepoStaticReport::default();
+        check_no_docker_lane_python(root, &mut commented);
+        assert!(
+            commented.errors.is_empty(),
+            "symbols in comments/strings must not trip the guard; got {:?}",
+            commented.errors
+        );
     }
 
     #[test]
