@@ -95,6 +95,15 @@ Every bridge:
 4. **hard-fails** with a typed diagnostic on the unliftable — no silent fallback, no optional backend;
 5. is an authored Rust front-end (no external ontology defines these lifts).
 
+The three bridge runs share one additive unifier, `math:IngestRun` (a `gmeow:Activity`), of which
+`math:RIngestRun`, `math:ONNXIngestRun`, and `math:ProofIngestRun` are subclasses — so the contract
+above is carried once on the abstract run rather than restated per bridge. A bridge run *is* the
+mnemomorphic `put` leg of a `logic:Correspondence`: the retained `math:parseSource` is the in-band
+`logic:loadBearing` witness, and the run carries the process-layer in-band witness through the reused
+`logic:instantiatesSchema` / `logic:instantiatesPlan` back-references. The unliftable hard-fail
+(`math:UnliftableIngest`) is the process-layer projection of the calculus's Overclaim and
+Mnemomorphism verdict.
+
 ## Shape and lint gates
 
 Catalogued in [`MATHEMATICS-CONFORMANCE.md`](MATHEMATICS-CONFORMANCE.md): a bridge run is a

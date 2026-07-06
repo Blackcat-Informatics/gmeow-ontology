@@ -1,0 +1,23 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:IngestRunShape: a bridge run that carries the process-layer
+# witness (logic:instantiatesSchema / logic:instantiatesPlan) and its lift correspondence
+# (math:ingestCorrespondence) but does NOT retain its source through math:parseSource —
+# without the in-band witness the put leg would be a backward-execution guess, not a
+# mnemomorphic recovery. It fails ONLY on sh:minCount 1 for math:parseSource, so validation
+# MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UngroundedIngestRun).
+# Bound by ex:ecIngestRunUngrounded.
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <http://example.org/math/> .
+
+ex:run a math:RIngestRun ;
+    logic:instantiatesSchema ex:schema ;
+    logic:instantiatesPlan ex:plan ;
+    math:ingestCorrespondence ex:corr .
+ex:schema a logic:ActionSchema .
+ex:plan a logic:Plan .
+ex:corr a logic:Correspondence ;
+    logic:morphismClass logic:LossyLens ;
+    logic:mnemomorphic true .

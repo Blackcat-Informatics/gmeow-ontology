@@ -732,3 +732,23 @@ lang:TransliterationAnchorShape
         sh:severity sh:Violation ;
         sh:message "A lang:TransliterationMap must declare its lang:transliterationScheme." ;
     ] .
+
+lang:ProjectionEmissionDeclaredShape
+    a sh:NodeShape ;
+    rdfs:label "Projection emission declared shape"@x-gmeow-english ;
+    skos:definition "Every lang:ProjectionEmission declares the target it lowers to through lang:projectionTargetName and the preservation kind of its crossing through logic:preservationKind — an emission with no preservation kind has entered the loss ledger with an undeclared judgment. Only this statically-checkable minimum is a SHACL shape; the join-requiring projection contract failures (undeclared unsupported constructs, unrecorded epistemic loss, projection-scoped silent disambiguation, and refuted exactness) are native Rust gates."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    lang:enforcesFailureClass lang:MissingPreservationKind ;
+    sh:targetClass lang:ProjectionEmission ;
+    sh:property [
+        sh:path logic:preservationKind ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A lang:ProjectionEmission must declare its logic:preservationKind (reusing the logic: loss-ledger vocabulary verbatim)." ;
+    ] ;
+    sh:property [
+        sh:path lang:projectionTargetName ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A lang:ProjectionEmission must name the external target it lowers to through lang:projectionTargetName." ;
+    ] .

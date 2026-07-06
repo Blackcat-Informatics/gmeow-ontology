@@ -23,15 +23,22 @@
 //! translation corpus, the form corpus, and future projection corpora, so there is one
 //! digest and one line-canonicalization implementation across every `lang:` producer.
 
+pub mod bcp47;
 pub mod bridge;
 pub mod conllu;
 pub mod emit;
 pub mod engine;
 pub mod grammar;
 pub mod lower;
+pub mod nif;
 pub mod ontolex;
 pub mod plain_text;
+pub mod rdf_scan;
+pub mod registry;
+pub mod semaf;
+pub mod tei;
 
+pub use bcp47::{Bcp47Derivation, Bcp47Target, derive_bcp47_tag};
 pub use bridge::{
     Bridge, IngestDiagnostic, LangFailure, Lifted, exact_round_trip_holds, is_exact_correspondence,
 };
@@ -53,7 +60,14 @@ pub use lower::{
     DerivationRule, Lowering, LoweringError, LoweringStage, REQUIRED_STAGES, flagship_svo_sentence,
     grammar_rule_to_derivation, grammar_to_derivation_rules, lower_svo, svo_grammar,
 };
+pub use nif::NifBridge;
 pub use ontolex::{ONTOLEX_SIGN_SYSTEM, OntoLexBridge, ontolex_correspondence};
 pub use plain_text::{
     PlainTextBridge, UNDETERMINED_SCRIPT, exact_surface_correspondence, normalization_label,
 };
+pub use registry::{
+    EMISSION_WORTHY_CLASSES, EmittedArtifact, LangEmission, LangProjectionInput,
+    LangProjectionTarget, NamedSource, assert_registry_covers, registry,
+};
+pub use semaf::SemafBridge;
+pub use tei::TeiBridge;
