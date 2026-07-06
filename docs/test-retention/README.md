@@ -25,7 +25,7 @@ found a Rust or slicetest home is a deletion order.
 | Python CLI surface | `gmeow`/`gmeow-dev` are Typer apps; `CliRunner`/subprocess behavior is Python-only | Port the CLI to Rust (`clap`) with integration tests |
 | PyO3 seam | tests the binding's marshalling/error-surfacing, which Rust cannot test from the inside | Delete when the Python surface that owns the seam is removed |
 | Python tool algorithm | the implementation under test is still live Python (up-projection, transform, projections, mappings, language-tags, gts views/producer) | Port the tool to a Rust crate; cover with crate tests |
-| Oracle / Docker orchestration | drives external reasoners (HermiT/ELK/ROBOT) or the rdflib trust-anchor; no Rust twin by design | Reimplement the harness in Rust — the reasoning oracle is now the in-process `purrdf::entail` cross-check — or retire with its external lane |
+| Oracle / Docker orchestration | drove external OWL 2 DL reasoners or the rdflib trust-anchor; no Rust twin by design | Reimplement the harness in Rust — the reasoning oracle is now the in-process `purrdf::entail` cross-check — or retire with its external lane |
 | Static repo guard | AST / filesystem / workflow assertions about the repo itself | Port the static check into a Rust gate |
 
 **Projection cluster — one migration, not many ports.** The up-projection,
@@ -90,7 +90,7 @@ Relocated out of the mainline test tree (dossier removed with the test):
 - Retired reasoning-oracle lane (8): `test_reasoning_entailments`,
   `test_rl_agreement`, `test_classic_cross_check`, `test_reason_verify_chain`,
   `test_reason_native`, `test_logic_foundation_cases`, `test_statements`,
-  `test_runner` → these drove the ELK/HermiT/ROBOT/Jena/owlrl oracle cross-check
+  `test_runner` → these drove the external OWL 2 DL / Jena / owlrl oracle cross-check
   (the "Oracle / Docker orchestration" retention category). That external Docker/Java
   lane has since been **removed** and replaced by a native, in-process, Docker-free
   reasoning oracle over `purrdf::entail` (OWL-RL subsumption + OWL-Direct-tableau

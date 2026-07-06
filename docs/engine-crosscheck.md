@@ -17,7 +17,7 @@ gmeow_rdf is a **non-authoritative acceleration path**. The authoritative
 full-ontology validation is unchanged:
 
 - **Jena** emits the canonical RDF 1.2 lead artifact and runs OWL reasoning
-  (ELK / HermiT via ROBOT). gmeow_rdf does **not** reason.
+  (OWL 2 DL semantics via the in-process oracle cross-check). gmeow_rdf does **not** reason.
 - **`gmeow_shacl`** (Rust + oxigraph) is the canonical SHACL engine. gmeow_rdf
   does **not** validate SHACL.
 

@@ -190,8 +190,6 @@ pub enum Commands {
         fresh: bool,
         #[arg(long = "merge")]
         merge: bool,
-        #[arg(long = "reasoner", default_value = "ELK")]
-        reasoner: String,
         #[arg(long = "profile", default_value = "DL")]
         profile: String,
         #[arg(long = "full")]
@@ -210,8 +208,6 @@ pub enum Commands {
         /// Recompute the closure instead of reusing the shipped graph/reasoning verdict.
         #[arg(long = "fresh")]
         fresh: bool,
-        #[arg(long = "reasoner", default_value = "ELK")]
-        reasoner: String,
         #[arg(long = "reasoned-input")]
         reasoned_input: Option<PathBuf>,
         #[arg(long = "timings-json")]

@@ -39,7 +39,7 @@
 
 GMEOW must not be limited by the expressivity, serialization assumptions, or runtime cost of
 OWL-era tools. The current stack uses OWL 2 DL/EL, RDF 1.1 compatibility encodings, Jena, ROBOT,
-ELK, HermiT, SHACL, and `owlrl` because those are the available mature tools. That is a
+SHACL and `owlrl` and other mature external tools. That is a
 compatibility position, not the semantic ceiling.
 
 `logic:` is the canonical reasoning language for GMEOW. It is RDF 1.2-native, not an OWL syntax
@@ -230,7 +230,7 @@ The end state is not "OWL, but faster." It is:
 - the foundational ontology (UFO⁺) is authored in `logic:`, with its discipline expressed as axioms
   rather than external lint;
 - a single canonical native solver is the normal development authority, running forward and backward
-  chaining; classical OWL tools (Jena, ROBOT, ELK, HermiT) operate as secondary validators for
+  chaining; classical OWL tools (Jena, ROBOT) operate as secondary validators for
   exported subsets;
 - OWL, Datalog, SHACL, ShEx, Prolog, N3, SPARQL, gUFO, and the Common Logic dialects (CLIF, CGIF,
   XCL) are generated lossy projections — the SHACL Core and ShEx shape surfaces lowered from the

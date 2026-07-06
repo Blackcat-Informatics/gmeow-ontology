@@ -8,25 +8,25 @@
 //! self-assertion metadata.
 //!
 //! Python-fn → Rust-fn mapping:
-//!   - `test_contributor_transition_preserves_both_identities`
-//!       → [`contributor_transition_preserves_both_identities`]
-//!       (merged ontology + fixture, via `GraphStore::ontology_plus_ttl_file`).
-//!   - `test_ai_author_is_software_agent_with_statement_metadata`
-//!       → [`ai_author_is_software_agent_with_statement_metadata`]
-//!       (fixture membership + the compiled statement `owl:Axiom` reifier walk
-//!        over `generated/statements/gmeow-statements.owl.ttl`).
-//!   - `test_suppressed_identity_passes_shacl`
-//!       → [`suppressed_identity_passes_shacl`] (fixture-only `validate`, the
-//!        twin of Python `run_shacl`).
+//! - `test_contributor_transition_preserves_both_identities` →
+//!   [`contributor_transition_preserves_both_identities`]
+//!   (merged ontology + fixture, via `GraphStore::ontology_plus_ttl_file`).
+//! - `test_ai_author_is_software_agent_with_statement_metadata` →
+//!   [`ai_author_is_software_agent_with_statement_metadata`]
+//!   (fixture membership + the compiled statement `owl:Axiom` reifier walk
+//!   over `generated/statements/gmeow-statements.owl.ttl`).
+//! - `test_suppressed_identity_passes_shacl` →
+//!   [`suppressed_identity_passes_shacl`] (fixture-only `validate`, the
+//!   twin of Python `run_shacl`).
 //!
 //! NOT migrated (out of scope for this Rust-harness structural batch):
-//!   - `test_mailmap_projection_emits_canonical_and_suppressed_lines` exercised
-//!     `project_graph("mailmap", ...)`, a projection-pipeline function with no
-//!     equivalent in the whole-ontology SHACL/graph-query conformance harness.
-//!     The `mailmap` profile registration itself is covered natively in
-//!     `crates/pipeline/src/projections.rs`; the end-to-end mailmap OUTPUT
-//!     assertion (canonical + suppressed line text) has no native twin yet — see
-//!     the report's refinement flag.
+//! - `test_mailmap_projection_emits_canonical_and_suppressed_lines` exercised
+//!   `project_graph("mailmap", ...)`, a projection-pipeline function with no
+//!   equivalent in the whole-ontology SHACL/graph-query conformance harness.
+//!   The `mailmap` profile registration itself is covered natively in
+//!   `crates/pipeline/src/projections.rs`; the end-to-end mailmap OUTPUT
+//!   assertion (canonical + suppressed line text) has no native twin yet — see
+//!   the report's refinement flag.
 
 mod conformance_support;
 use conformance_support::*;

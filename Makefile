@@ -74,12 +74,12 @@ RUST_INPUTS := Cargo.toml Cargo.lock .cargo/config.toml $(shell find crates -typ
 NATIVE_PY_INPUTS := pyproject.toml $(RUST_INPUTS)
 
 CHECK_TARGETS := lint rust-gate validate check-generated constitution-check \
-	crate-check audit wikidata coverage acceptance reason-verify mappings \
-	lint-alignment doc-lint coherence-gate-teeth
+	crate-check audit wikidata coverage acceptance reason-verify reason-crosscheck \
+	mappings lint-alignment doc-lint coherence-gate-teeth
 
 .PHONY: help \
 	install fmt lint lint-issue-refs \
-	native-py native-py-wheel native-py-install validate validate-gts reason verify reason-verify test test-fast rust-build rust-test rust-docs check \
+	native-py native-py-wheel native-py-install validate validate-gts reason verify reason-verify reason-crosscheck test test-fast rust-build rust-test rust-docs check \
 	regenerate fanout check-generated commit docs normalize build project release release-sign-gts full-release verify-release release-publish clean \
 	mappings wikidata coverage acceptance crossref audit \
 	constitution-check crate-check lint-alignment doc-lint rust-gate coherence-gate-teeth clippy carrier-purity wasm \
@@ -132,6 +132,9 @@ verify: native-py ## Run native reasoned-graph negative tests.
 
 reason-verify: native-py ## Run native reasoning + reasoned-graph verify with one closure.
 	$(GMEOW_DEV) reason-verify
+
+reason-crosscheck: native-py ## Cross-check native subsumptions against the purrdf-entail OWL-RL oracle (native ⊇ oracle).
+	$(GMEOW_DEV) reason-crosscheck
 
 test: native-py ## Run the pytest suite, excluding maintainer lanes.
 	uv run pytest -n auto --dist loadscope --durations=25 -m "not maintainer"

@@ -26,7 +26,7 @@ Assert that a person has one gender-identity facet and an OWL `maxCardinality 1`
 a second facet as illegal; it *infers the two facets are `owl:sameAs`*. OWL cannot say "this
 data is missing a required value" or "this relator has too many relata", because absence is not
 contradiction in an open world. Worse, OWL 2 cardinality pushes the core out of the **EL**
-profile, costing us the fast ELK pre-check (see [the EL boundary](https://www.w3.org/TR/owl2-profiles/)).
+profile, costing us the fast EL pre-check (see [the EL boundary](https://www.w3.org/TR/owl2-profiles/)).
 
 So GMEOW keeps two halves of every relator invariant:
 
@@ -105,7 +105,7 @@ Two sub-lanes, both closed-world, for the constraints OWL deliberately cannot en
   `verify --mode native`: the native EL/DL reasoner (`crates/logic`) materializes the asserted
   graph **unioned with** the derived subsumption/type closure into an oxigraph store, then runs
   the SPARQL **SELECT** "bad-example" queries in `queries/verify/*.rq` (+ per-slice verify
-  queries) over it — the [OBO QC pattern](http://robot.obolibrary.org/): any returned row is a
+  queries) over it — the OBO query-check (QC) pattern: any returned row is a
   violation, surfaced as an `error` diagnostics finding. Unlike the `gmeow_shacl` lane (asserted
   only), these see the reasoned closure, so they catch problems that appear *after* inference.
   They currently assert:
@@ -151,9 +151,7 @@ uv run pytest   # owlrl entailment tests + SHACL data-shape tests + native verif
 - Holger Knublauch, *SHACL and OWL Compared* — <https://spinrdf.org/shacl-and-owl.html>
 - W3C, *SHACL Advanced Features (SHACL-AF)* — <https://www.w3.org/TR/shacl-af/>
 - W3C, *OWL 2 Web Ontology Language Profiles* (the EL boundary) — <https://www.w3.org/TR/owl2-profiles/>
-- ELK reasoner — <http://liveontologies.github.io/elk-reasoner/>; Baader, Brandt, Lutz,
-  *Pushing the EL Envelope* (IJCAI 2005)
-- ROBOT `reason` / `verify` — <http://robot.obolibrary.org/>
+- Baader, Brandt, Lutz, *Pushing the EL Envelope* (IJCAI 2005)
 - Grüninger & Fox, *competency questions* (IJCAI-95); Bezerra et al., *Verifying DL Ontologies
   based on Competency Questions and Unit Testing* (CEUR Vol-1908)
 - CONSTITUTION Principles **7** (verified by construction), **8** (reasoning-centric & FAIR),

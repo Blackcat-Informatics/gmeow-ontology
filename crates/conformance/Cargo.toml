@@ -70,8 +70,8 @@ name = "conformance"
 harness = false
 
 # The native⊇oracle DL gold lane: load each curated fixture, run native
-# `reason_all`, and assert the native verdict reproduces every FROZEN HermiT
-# inconsistency/unsat class. Offline + deterministic (no Docker/Java/network);
+# `reason_all`, and assert the native verdict reproduces every FROZEN external
+# DL oracle inconsistency/unsat class. Offline + deterministic (no Docker/Java/network);
 # the standard libtest harness (not datatest-stable).
 [[test]]
 name = "dl_oracle_gold"

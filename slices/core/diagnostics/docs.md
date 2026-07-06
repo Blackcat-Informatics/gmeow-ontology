@@ -131,7 +131,7 @@ stays driven solely by the validation result** — per-surface hard gating lives
 | `box-roles` | `box-roles.missing`, `box-roles.invalid` | `error` (term source in `path`) |
 | `audit` | `audit.{ungrounded,contradicted,stale}-*`, `audit.shacl-{error,warning}` | heuristic flags → `warning`; SHACL errors → `error` |
 | `generator` | `generator.{drift,orphan,problem}` | `error`; per-finding `tool` = generator name (covers statement + mapping drift) |
-| `classic-cross-check` | `classic-cross-check/{subsumption,consistency}-divergence`, `…/dl-gap` | native↔oracle (ELK/HermiT/ROBOT) divergence ledger, already a Rust-backed report; `NativeOnly`/`OracleOnly` → `error`, `DlGap` → `note` |
+| `classic-cross-check` | `classic-cross-check/{subsumption,consistency}-divergence`, `…/dl-gap` | native↔oracle divergence ledger, already a Rust-backed report; `NativeOnly`/`OracleOnly` → `error`, `DlGap` → `note` |
 
 The mapping-compiler surface is now **landed**: native compiler failures surface as
 `mapping-compile.dsl-error`, and the SSSOM validator + native `gmeow_slice.lint_projection` trio →

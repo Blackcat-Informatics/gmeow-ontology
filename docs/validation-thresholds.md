@@ -5,7 +5,7 @@
 
 This is the single source of truth for the four blocking validation gates.
 Consult it **before changing any floor**. Each gate is wired into both
-`make check` (the local ELK lane) and CI such that a regression below its floor
+`make check` (the local native reasoning lane) and CI such that a regression below its floor
 fails the build.
 
 ## The ratchet rule
@@ -98,7 +98,7 @@ be treated as a regression of the contract, not routine maintenance.
 | Transpile recall | `acceptance` (`--min-recall 60`) | `ontology` → "Transpile acceptance — hard aggregate recall floor" |
 
 All four also run in the parallel `make check` batch
-(`lint validate … coverage acceptance …`), so the local ELK lane blocks on every
+(`lint validate … coverage acceptance …`), so the local native reasoning lane blocks on every
 floor too.
 
 ## Validation cache decision

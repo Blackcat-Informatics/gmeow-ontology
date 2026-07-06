@@ -3,10 +3,8 @@
 //! Conformance twins migrated from tests/test_calendar.py
 //!
 //! Migrated tests:
-//!   - `test_calendar_temporal_datatypes_are_datetime_or_duration`
-//!       → `calendar_temporal_datatypes_are_datetime_or_duration`
-//!   - `test_calendar_axes_are_independent`
-//!       → `calendar_axes_are_independent`
+//! - `test_calendar_temporal_datatypes_are_datetime_or_duration` → `calendar_temporal_datatypes_are_datetime_or_duration`
+//! - `test_calendar_axes_are_independent` → `calendar_axes_are_independent`
 //!
 //! The datatypes test walks a blank-node union range: `gmeow:reminderTrigger`
 //! `rdfs:range` points at a blank `rdfs:Datatype` node whose `owl:unionOf` is a
@@ -118,10 +116,8 @@ const ORTHOGONAL_PROPS: &[&str] = &[
 fn calendar_axes_are_independent() {
     let g = GraphStore::ontology();
 
-    for i in 0..ORTHOGONAL_PROPS.len() {
-        for j in (i + 1)..ORTHOGONAL_PROPS.len() {
-            let a = ORTHOGONAL_PROPS[i];
-            let b = ORTHOGONAL_PROPS[j];
+    for (i, &a) in ORTHOGONAL_PROPS.iter().enumerate() {
+        for &b in ORTHOGONAL_PROPS.iter().skip(i + 1) {
             let (na, nb) = (gmeow(a), gmeow(b));
             assert!(
                 !g.has(Some(&na), Some(RDFS_SUB_PROPERTY_OF), Some(&nb)),
