@@ -33,12 +33,12 @@ pub mod bundle_blobs;
 pub mod cache;
 pub mod cli_ops;
 pub mod correspondence_law;
-pub(crate) mod diagnostics_ingest;
 pub mod error;
 pub mod fanout;
 pub mod generator_registry;
 pub(crate) mod gmeow_ns;
 pub mod graph;
+pub mod ingest;
 pub mod loader;
 pub mod mapping_purity;
 pub mod node;
@@ -62,7 +62,6 @@ pub mod py;
 
 pub use bundle::{PipelineHandle, bundle_artifact, bundle_artifacts};
 pub use cache::PipelineCache;
-pub use error::PipelineError;
 pub use fanout::{FanoutReport, fanout};
 pub use generator_registry::{
     GENERATORS, GeneratorInfo, GeneratorMetadata, all_output_paths, committed_generated_paths,

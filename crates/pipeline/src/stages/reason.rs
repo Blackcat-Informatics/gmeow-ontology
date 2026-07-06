@@ -29,7 +29,6 @@ use gmeow_logic::result_rdf::{GRAPH_REASONING, project_reasoning_result};
 use purrdf::{NativeRdfFormat, RdfDataset, RdfDatasetBuilder, RdfTerm};
 
 use crate::bundle::{PipelineHandle, bundle_from_artifacts_over};
-use crate::error::PipelineError;
 use crate::node::{ENGINE_RESOURCE, Stage, StageInput, StageOutput, StageProduct};
 
 /// COMMITTED logical path of the native told-vs-inferred closure (RDF 1.2). This is
@@ -68,9 +67,13 @@ pub struct ReasonArtifacts {
 
 /// Reason over a composed dataset (N-Quads bytes) and return the three artifacts plus
 /// the typed [`ReasoningResult`]. Parses then delegates to [`reason_over_dataset`].
-pub fn reason_artifacts(composed_nquads: &[u8]) -> Result<ReasonArtifacts, PipelineError> {
+pub fn reason_artifacts(composed_nquads: &[u8]) -> Result<ReasonArtifacts, gmeow_errors::Diag> {
     let edb = purrdf::parse_dataset(composed_nquads, NativeRdfFormat::NQuads.media_type(), None)
-        .map_err(|e| PipelineError::Parse(format!("reason input parse: {e}")))?;
+        .map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Parse {
+                message: format!("reason input parse: {e}"),
+            })
+        })?;
     reason_over_dataset(edb.as_ref())
 }
 
@@ -79,38 +82,48 @@ pub fn reason_artifacts(composed_nquads: &[u8]) -> Result<ReasonArtifacts, Pipel
 /// content-addressed Skolem witnesses are transport-independent (carrier vs a
 /// re-imported `gmeow.gts` yield byte-identical artifacts), then mirrors
 /// `reason_native_artifacts` in non-merge mode (the regenerate path).
-pub fn reason_over_dataset(edb: &RdfDataset) -> Result<ReasonArtifacts, PipelineError> {
+pub fn reason_over_dataset(edb: &RdfDataset) -> Result<ReasonArtifacts, gmeow_errors::Diag> {
     // Flatten the EDB to its un-folded plain-quad stream, RDFC-1.0 canonicalize it
     // (native full canon, byte-identical to the prior oxigraph `canonicalize_quads`
     // over the flat oxigraph quads), then RE-FOLD the canonical N-Quads back through
     // the native codec so the RDF 1.2 statement layer is reconstructed exactly as
     // `dataset_from_oxigraph_quads` did — content-addressed Skolem witnesses are a pure
     // function of this canonical, transport-independent EDB.
-    let canon_nquads = purrdf::canonical_flat_nquads(edb).map_err(|e| PipelineError::Stage {
-        stage: "stage-reason".to_string(),
-        message: format!("RDFC-1.0 canonicalize EDB: {e}"),
+    let canon_nquads = purrdf::canonical_flat_nquads(edb).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            stage: "stage-reason".to_string(),
+            message: format!("RDFC-1.0 canonicalize EDB: {e}"),
+        })
     })?;
     let canon = purrdf::parse_dataset(
         canon_nquads.as_bytes(),
         NativeRdfFormat::NQuads.media_type(),
         None,
     )
-    .map_err(|e| PipelineError::Stage {
-        stage: "stage-reason".to_string(),
-        message: format!("re-fold canonical quads: {e}"),
+    .map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            stage: "stage-reason".to_string(),
+            message: format!("re-fold canonical quads: {e}"),
+        })
     })?;
-    let result = reason_all(canon.as_ref()).map_err(|e| PipelineError::Stage {
-        stage: "stage-reason".to_string(),
-        message: format!("native reasoning failed: {e}"),
+    let result = reason_all(canon.as_ref()).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            stage: "stage-reason".to_string(),
+            message: format!("native reasoning failed: {e}"),
+        })
     })?;
     // Non-merge (the regenerate path): the closure is told-vs-inferred only.
-    let closure = build_inferred_closure_ttl(&result, None).map_err(|e| PipelineError::Stage {
-        stage: "stage-reason".to_string(),
-        message: format!("closure serialization failed: {e}"),
+    let closure = build_inferred_closure_ttl(&result, None).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            stage: "stage-reason".to_string(),
+            message: format!("closure serialization failed: {e}"),
+        })
     })?;
-    let explanations = build_explanations_ttl(&result).map_err(|e| PipelineError::Stage {
-        stage: "stage-reason".to_string(),
-        message: format!("explanations serialization failed: {e}"),
+    let explanations = build_explanations_ttl(&result).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            stage: "stage-reason".to_string(),
+            message: format!("explanations serialization failed: {e}"),
+        })
     })?;
     let ledger = build_dl_el_ledger_ttl(&result);
     // The performance ledger is canonical static content (a property of the native
@@ -134,13 +147,22 @@ pub fn reason_over_dataset(edb: &RdfDataset) -> Result<ReasonArtifacts, Pipeline
 fn reason_dataset(
     closure_ttl: &str,
     result: &ReasoningResult,
-) -> Result<Arc<RdfDataset>, PipelineError> {
-    let closure_ds = purrdf::parse_dataset(closure_ttl.as_bytes(), "text/turtle", None)
-        .map_err(|e| PipelineError::Parse(format!("reason closure parse: {e}")))?;
+) -> Result<Arc<RdfDataset>, gmeow_errors::Diag> {
+    let closure_ds =
+        purrdf::parse_dataset(closure_ttl.as_bytes(), "text/turtle", None).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Parse {
+                message: format!("reason closure parse: {e}"),
+            })
+        })?;
     let reasoning_nt = project_reasoning_result(result);
     let reasoning_ds =
-        purrdf::parse_dataset(reasoning_nt.as_bytes(), "application/n-triples", None)
-            .map_err(|e| PipelineError::Parse(format!("reason projection parse: {e}")))?;
+        purrdf::parse_dataset(reasoning_nt.as_bytes(), "application/n-triples", None).map_err(
+            |e| {
+                gmeow_errors::Diag::of_kind(crate::error::Parse {
+                    message: format!("reason projection parse: {e}"),
+                })
+            },
+        )?;
 
     let mut builder = RdfDatasetBuilder::new();
     // The closure stays in the default graph (the compose-union contribution).
@@ -152,9 +174,11 @@ fn reason_dataset(
         routed.graph_name = Some(graph.clone());
         builder.push_owned_quad(&routed);
     }
-    builder
-        .freeze()
-        .map_err(|e| PipelineError::Parse(format!("freeze reason dual-carriage dataset: {e}")))
+    builder.freeze().map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            message: format!("freeze reason dual-carriage dataset: {e}"),
+        })
+    })
 }
 
 // ── Stage impl ───────────────────────────────────────────────────────────────
@@ -219,7 +243,7 @@ impl Stage for ReasonStage {
     fn impl_version(&self) -> &str {
         "reason.v1"
     }
-    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
+    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         // Reason ONCE over the object-level EDB (ontology + imports + statements +
         // alignments + logic/relational-core/correspondence), assembled in the SAME
         // graph layout the bundle carries but WITHOUT the meta/report graphs — they
@@ -264,13 +288,16 @@ impl Stage for ReasonStage {
                 PipelineHandle::Reasoning(Arc::new(reasoned.result)),
                 pinned,
             )
-            .map_err(|e| PipelineError::Stage {
-                stage: "stage-reason".to_string(),
-                message: format!("pin Reasoning handle to <{GRAPH_REASONING}>: {e}"),
+            .map_err(|e| {
+                gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                    stage: "stage-reason".to_string(),
+                    message: format!("pin Reasoning handle to <{GRAPH_REASONING}>: {e}"),
+                })
             })?;
-        Ok(StageOutput {
-            product: StageProduct::from_bundle(self.id(), Arc::new(bundle)),
-        })
+        Ok(StageOutput::new(StageProduct::from_bundle(
+            self.id(),
+            Arc::new(bundle),
+        )))
     }
 }
 

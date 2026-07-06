@@ -3,7 +3,7 @@
 
 //! Quality and FAIR scoring via the OOPS! and FOOPS! web services.
 //!
-//! The Rust port of `gmeow_tools.quality`. Both are NETWORK calls (blocking HTTP
+//! Both are NETWORK calls (blocking HTTP
 //! over the already-vendored `ureq`), so callers gate them (they are never on a
 //! build gate). OOPS! accepts inline ontology content (works pre-publication);
 //! FOOPS! assesses a dereferenceable ontology URL (meaningful only once published).
@@ -13,8 +13,6 @@
 //! network call — the code itself always ships.
 
 use std::time::Duration;
-
-use crate::error::PipelineError;
 
 const OOPS_ENDPOINT: &str = "https://oops.linkeddata.es/rest";
 const FOOPS_ENDPOINT: &str = "https://w3id.org/foops/assessOntology";
@@ -28,11 +26,11 @@ const OOPS_REQUEST_TEMPLATE: &str = r#"<?xml version="1.0" encoding="UTF-8"?>
 </OOPSRequest>
 "#;
 
-fn stage_err(message: impl Into<String>) -> PipelineError {
-    PipelineError::Stage {
+fn stage_err(message: impl Into<String>) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(crate::error::StageFailed {
         stage: "quality".to_string(),
         message: message.into(),
-    }
+    })
 }
 
 /// A FOOPS! FAIR assessment summary.
@@ -48,8 +46,8 @@ pub struct FoopsResult {
 
 /// Run the OOPS! pitfall scanner on inline ontology content.
 ///
-/// The Rust port of `quality.run_oops`. Posts the ontology (Turtle / RDF-XML) inside
-/// an OOPS! request envelope and returns the evaluation as RDF/XML text.
+/// Posts the ontology (Turtle / RDF-XML) inside an OOPS! request envelope and
+/// returns the evaluation as RDF/XML text.
 ///
 /// * `ttl_content` — the ontology serialized as RDF (Turtle/RDF-XML).
 /// * `timeout` — the HTTP timeout.
@@ -57,7 +55,7 @@ pub struct FoopsResult {
 /// # Errors
 ///
 /// - The network request fails, or the service returns a non-success status.
-pub fn run_oops(ttl_content: &str, timeout: Duration) -> Result<String, PipelineError> {
+pub fn run_oops(ttl_content: &str, timeout: Duration) -> Result<String, gmeow_errors::Diag> {
     let body = OOPS_REQUEST_TEMPLATE.replace("{content}", ttl_content);
     let response = ureq::post(OOPS_ENDPOINT)
         .content_type("application/xml")
@@ -74,8 +72,7 @@ pub fn run_oops(ttl_content: &str, timeout: Duration) -> Result<String, Pipeline
 
 /// Run the FOOPS! FAIR assessment on a dereferenceable ontology URL.
 ///
-/// The Rust port of `quality.run_foops`. Posts the ontology URL as a form field and
-/// summarizes the returned FAIR score.
+/// Posts the ontology URL as a form field and summarizes the returned FAIR score.
 ///
 /// * `ontology_url` — the published ontology IRI/URL to assess.
 /// * `timeout` — the HTTP timeout.
@@ -84,7 +81,7 @@ pub fn run_oops(ttl_content: &str, timeout: Duration) -> Result<String, Pipeline
 ///
 /// - The network request fails, the service returns a non-success status, or the
 ///   JSON payload cannot be parsed.
-pub fn run_foops(ontology_url: &str, timeout: Duration) -> Result<FoopsResult, PipelineError> {
+pub fn run_foops(ontology_url: &str, timeout: Duration) -> Result<FoopsResult, gmeow_errors::Diag> {
     let response = ureq::post(FOOPS_ENDPOINT)
         .config()
         .timeout_global(Some(timeout))
@@ -100,7 +97,7 @@ pub fn run_foops(ontology_url: &str, timeout: Duration) -> Result<FoopsResult, P
 
 /// Summarize a FOOPS! JSON payload into a [`FoopsResult`]. Factored out so the
 /// payload→summary reduction is unit-testable without a network call.
-fn parse_foops_payload(text: &str) -> Result<FoopsResult, PipelineError> {
+fn parse_foops_payload(text: &str) -> Result<FoopsResult, gmeow_errors::Diag> {
     let payload: serde_json::Value = serde_json::from_str(text)
         .map_err(|e| stage_err(format!("FOOPS! payload not JSON: {e}")))?;
     let checks = payload

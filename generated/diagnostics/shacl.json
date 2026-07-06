@@ -8,6 +8,9 @@
       "tool": "shacl",
       "locations": [
         {
+          "path": "slices/extensions/music/module.ttl",
+          "line": 1837,
+          "column": 1,
           "logical": "https://blackcatinformatics.ca/gmeow/fixtureRagaYamanImprovised1975"
         }
       ],
@@ -25,6 +28,9 @@
       "tool": "shacl",
       "locations": [
         {
+          "path": "slices/extensions/music/module.ttl",
+          "line": 1890,
+          "column": 1,
           "logical": "https://blackcatinformatics.ca/gmeow/fixtureRagaYamanOralExpression"
         }
       ],
@@ -42,6 +48,9 @@
       "tool": "shacl",
       "locations": [
         {
+          "path": "slices/extensions/music/module.ttl",
+          "line": 1899,
+          "column": 1,
           "logical": "https://blackcatinformatics.ca/gmeow/fixtureRagaYamanPerformed1960"
         }
       ],
@@ -59,6 +68,9 @@
       "tool": "shacl",
       "locations": [
         {
+          "path": "slices/extensions/music/module.ttl",
+          "line": 1909,
+          "column": 1,
           "logical": "https://blackcatinformatics.ca/gmeow/fixtureRagaYamanPerformed1980"
         }
       ],
