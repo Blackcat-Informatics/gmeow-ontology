@@ -192,7 +192,18 @@ pub fn run_case(case_dir: &Path) -> Result<CaseOutputs, String> {
     gmeow_logic_compile::cl_roundtrip::assert_all_dialects_isomorphic(&program)
         .map_err(|e| prefix(format!("CL dialect round-trip invariant failed: {e}")))?;
 
-    let arts = compile_program(&program).map_err(|e| prefix(format!("compile failed: {e}")))?;
+    // Discharge every authored correspondence's lens law by EXECUTION and thread the
+    // per-correspondence verdicts into BOTH `compile_program` (its internal gates) and the
+    // re-evaluation below with the case's compositions — the gates themselves are
+    // execution-free, so the harness (like the pipeline) supplies the engine verdicts. A
+    // correspondence-free case yields an empty map (the gates never run). A deliberately-RED
+    // fixture (an authored put that is not the derived inverse) discharges as
+    // ObligationViolated, matching its blessed-RED gate report.
+    let correspondence_verdicts =
+        gmeow_logic::correspondence_exec::logic_program_verdicts(&program)
+            .map_err(|e| prefix(format!("discharge correspondence lens laws: {e}")))?;
+    let arts = compile_program(&program, &correspondence_verdicts)
+        .map_err(|e| prefix(format!("compile failed: {e}")))?;
     // The program's Horn rules, plus the relational-core lowering of its full-FOL formulas
     // so the Horn-expressible formula fragment evaluates in the SAME chase. A formula-free
     // program appends nothing, so every existing case is byte-identical; the non-Horn
@@ -309,6 +320,7 @@ pub fn run_case(case_dir: &Path) -> Result<CaseOutputs, String> {
             let report = gmeow_logic_compile::projections::correspondence_gates::evaluate_gates(
                 derived,
                 &profile.compositions,
+                &correspondence_verdicts,
             );
             Some(
                 serde_json::to_value(&report)

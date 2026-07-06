@@ -14,10 +14,7 @@
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
-use gmeow_pipeline::{
-    ENGINE_RESOURCE, PipelineCache, PipelineSpec, RunContext, SINK_CAPABILITY, SOURCE_ORIGIN,
-    StageSpec, bind, default_registry, run,
-};
+use gmeow_pipeline::{PipelineCache, RunContext, bind, default_registry, full_spec, run};
 
 fn repo_root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -25,149 +22,6 @@ fn repo_root() -> PathBuf {
         .join("..")
         .canonicalize()
         .unwrap()
-}
-
-/// Build a spine [`StageSpec`], deriving resources / capabilities / typed dataflow
-/// from the stage `id` so each mirrors the real Rust impl and bind's agreement holds.
-fn spec(id: &str, impl_key: &str, consumes: &[&str]) -> StageSpec {
-    use gmeow_pipeline::stages::compile_logic::{
-        GRAPH_CORRESPONDENCE, GRAPH_LOGIC, GRAPH_RELATIONAL_CORE,
-    };
-    let is_reason = id == "stage-reason";
-    StageSpec {
-        id: id.to_string(),
-        capabilities: match id {
-            "stage-source-load" => vec![SOURCE_ORIGIN.to_string()],
-            "stage-gts-sink" => vec![SINK_CAPABILITY.to_string()],
-            _ => Vec::new(),
-        },
-        impl_key: impl_key.to_string(),
-        consumes: consumes.iter().map(|s| s.to_string()).collect(),
-        // Mirror ReasonStage::resources() so bind's resource-agreement holds.
-        resources: if is_reason {
-            vec![ENGINE_RESOURCE.to_string()]
-        } else {
-            Vec::new()
-        },
-        // Mirror ReasonStage::consumed_entities() so bind's dataflow-agreement holds.
-        dataflow_entities: if is_reason {
-            vec![(
-                "stage-compile-logic".to_string(),
-                vec![
-                    GRAPH_CORRESPONDENCE.to_string(),
-                    GRAPH_LOGIC.to_string(),
-                    GRAPH_RELATIONAL_CORE.to_string(),
-                ],
-            )]
-        } else {
-            Vec::new()
-        },
-        formats: Vec::new(),
-    }
-}
-
-/// The implemented spine DAG (mirrors `end_to_end.rs::spine`).
-fn spine() -> PipelineSpec {
-    PipelineSpec {
-        id: "pipeline-spine".to_string(),
-        stages: vec![
-            spec("stage-source-load", "source_load", &[]),
-            spec("stage-statements", "statements", &[]),
-            spec("stage-compile-logic", "compile_logic", &[]),
-            spec("stage-mappings", "mappings", &["stage-compile-logic"]),
-            spec(
-                "stage-reason",
-                "reason",
-                &[
-                    "stage-compile-logic",
-                    "stage-mappings",
-                    "stage-source-load",
-                    "stage-statements",
-                ],
-            ),
-            spec(
-                "stage-gts-compose",
-                "gts_compose",
-                &[
-                    "stage-mappings",
-                    "stage-reason",
-                    "stage-source-load",
-                    "stage-statements",
-                ],
-            ),
-            spec(
-                "stage-docs-render",
-                "docs_render",
-                &["stage-gts-compose", "stage-reason"],
-            ),
-            spec("stage-validate", "validate", &["stage-source-load"]),
-            // The SHACL→JSON-Schema source leaf the snapshot folds.
-            spec("stage-export-json-schema", "json_schema", &[]),
-            // The external-corpus divergence grader the snapshot folds into
-            // graph/conformance; a source-reading Transform that consumes nothing.
-            spec("stage-conformance", "conformance", &[]),
-            // The agreement-matrix dashboard projects stage-conformance's attached
-            // tallies (a consuming Transform, never a re-grade).
-            spec(
-                "stage-export-agreement",
-                "agreement",
-                &["stage-conformance"],
-            ),
-            // The fanout-member producers: the snapshot reads the profiles / evals /
-            // research-object RDF graphs off these products, and the sink reads their
-            // opaque members + references / bench / apache / matrix / metadata off theirs
-            // (the render runs once, in the leaf — never re-rendered in the terminal).
-            spec("stage-export-profiles", "profiles", &[]),
-            spec("stage-export-evals", "evals", &[]),
-            spec("stage-export-research-objects", "research-objects", &[]),
-            spec("stage-export-references", "references", &[]),
-            spec("stage-export-bench", "bench", &[]),
-            spec("stage-export-apache", "apache", &[]),
-            spec("stage-export-matrix", "matrix", &[]),
-            spec("stage-export-metadata", "metadata", &["stage-snapshot"]),
-            spec(
-                "stage-snapshot",
-                "snapshot",
-                &[
-                    "stage-compile-logic",
-                    "stage-conformance",
-                    "stage-docs-render",
-                    "stage-export-evals",
-                    "stage-export-json-schema",
-                    "stage-export-profiles",
-                    "stage-export-research-objects",
-                    "stage-gts-compose",
-                    "stage-mappings",
-                    "stage-reason",
-                    "stage-source-load",
-                    "stage-statements",
-                    "stage-validate",
-                ],
-            ),
-            spec(
-                "stage-gts-sink",
-                "gts_sink",
-                &[
-                    "stage-compile-logic",
-                    "stage-export-agreement",
-                    "stage-export-apache",
-                    "stage-export-bench",
-                    "stage-export-evals",
-                    "stage-export-json-schema",
-                    "stage-export-matrix",
-                    "stage-export-metadata",
-                    "stage-export-references",
-                    "stage-export-research-objects",
-                    "stage-mappings",
-                    "stage-reason",
-                    "stage-snapshot",
-                    "stage-source-load",
-                    "stage-statements",
-                    "stage-validate",
-                ],
-            ),
-        ],
-    }
 }
 
 /// Per-named-graph quad counts + reifier/annotation counts of a folded snapshot.
@@ -230,8 +84,12 @@ fn fold_shape(bytes: &[u8]) -> FoldShape {
 
 fn run_sink() -> Vec<u8> {
     let root = repo_root();
-    let spec = spine();
-    let graph = spec.validate().expect("spine DAG validates");
+    // Drive the REAL production DAG (`full_spec`, the same spec `run_full` / `make regenerate`
+    // build) rather than a hand-maintained copy: the executor's composed fold is then proven
+    // fold-isomorphic to the committed bundle over the ACTUAL shipped stage set, and the spine
+    // can never silently drift from the production wiring again.
+    let spec = full_spec();
+    let graph = spec.validate().expect("production DAG validates");
     let bound = bind(&spec, &graph, &default_registry()).expect("every spine stage binds");
     let cache_dir = tempfile::tempdir().unwrap();
     let mut ctx = RunContext::open(&root, 4).expect("ctx");

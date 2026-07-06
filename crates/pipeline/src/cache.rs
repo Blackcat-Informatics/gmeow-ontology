@@ -818,8 +818,11 @@ mod tests {
     /// projection of [`sample_logic_program`] folded into named graph [`GRAPH_IRI`]
     /// (so the attached `Logic` handle has a real, re-derivable backing graph).
     fn dataset_with_named_graph() -> Arc<purrdf::RdfDataset> {
-        let arts = gmeow_logic_compile::projections::compile_program(&sample_logic_program())
-            .expect("compile sample program");
+        let arts = gmeow_logic_compile::projections::compile_program(
+            &sample_logic_program(),
+            &Default::default(),
+        )
+        .expect("compile sample program");
         let logic_ds = parse_dataset(arts.canonical_rdf12.as_bytes(), "text/turtle", None)
             .expect("parse canonical rdf12");
 

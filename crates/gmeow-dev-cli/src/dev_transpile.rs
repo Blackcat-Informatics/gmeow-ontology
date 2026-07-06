@@ -131,14 +131,23 @@ fn assemble_inputs(bytes: &[u8]) -> Result<(UpProjectionInputs, MaximalInputs), 
         .into_values()
         .map(|v| String::from_utf8_lossy(&v).into_owned())
         .collect();
+    // The authored `gmeow:ProjectionMapping` cells live in the CELLS archive (the mappings
+    // archive holds only the SSSOM `.sssom.tsv` surface). Reading REP_CELLS is what actually
+    // puts the EDOAL `=` cells (e.g. the SIOC thread predicates) in front of the lawful-lift
+    // program; the old REP_MAPPINGS read folded an EMPTY `.ttl` set, so up-projection saw no
+    // projection cells at all.
     let projection_ttls: Vec<String> = bundle_blobs::Bundle::from_snapshot(bytes)
         .map_err(|e| format!("cannot fold bundle: {e}"))?
-        .archive(bundle_blobs::REP_MAPPINGS)
-        .map_err(|e| format!("cannot read bundled mappings: {e}"))?
+        .archive(bundle_blobs::REP_CELLS)
+        .map_err(|e| format!("cannot read bundled cells: {e}"))?
         .into_iter()
         .filter(|(k, _)| k.ends_with(".ttl"))
         .map(|(_, v)| String::from_utf8_lossy(&v).into_owned())
         .collect();
+    // The A→B authorization channel: the mnemomorphic `=` cells whose executed lens law
+    // discharged (Deliverable A), read from the bundle's `graph/correspondence-laws`. The
+    // lift program consumes this to promote those cells to lawful FACT renames.
+    let discharged_section_cells = projections::discharged_section_cells_from_bundle(bytes)?;
     let base = projections::gts_base_graph(bytes)?;
     let ontology_nt = quads_to_nt(&base)?;
     let projection_queries: Vec<(String, String)> = bundle_blobs::bundled_queries(bytes)
@@ -161,6 +170,7 @@ fn assemble_inputs(bytes: &[u8]) -> Result<(UpProjectionInputs, MaximalInputs), 
         sssom_texts,
         projection_ttls,
         ontology_nt: ontology_nt.clone(),
+        discharged_section_cells,
     };
     let maximal_inputs = MaximalInputs {
         ontology_nt,

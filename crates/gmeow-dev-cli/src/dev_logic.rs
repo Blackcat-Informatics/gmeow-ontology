@@ -305,7 +305,20 @@ fn compile_one_mode(root: &Path, mode: &str, check: bool) -> i32 {
     for d in &diagnostics {
         eprintln!("{} [{}] {}", d.severity.as_str(), d.code, d.message);
     }
-    let arts = match compile_program(&program) {
+    // Discharge every authored correspondence's lens law by EXECUTION so the five
+    // correspondence gates inside `compile_program` read a real per-correspondence verdict.
+    // A correspondence-free source yields an empty map (the gates never run); a source that
+    // declares `logic:Correspondence` cells supplies a verdict for each, so the gates never
+    // reach their missing-verdict hard-fail. A malformed leg registry is a clean error.
+    let verdicts = match gmeow_logic::correspondence_exec::logic_program_verdicts(&program) {
+        Ok(v) => v,
+        Err(e) => {
+            return fail(format!(
+                "logic: discharge correspondence lens laws failed: {e}"
+            ));
+        }
+    };
+    let arts = match compile_program(&program, &verdicts) {
         Ok(a) => a,
         Err(e) => return fail(format!("logic: compile failed: {e}")),
     };
