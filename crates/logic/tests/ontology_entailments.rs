@@ -4,8 +4,9 @@
 //!
 //! ## What this replaces
 //! The `python` CI lane (~45 min) was dominated by OWL/EL/DL reasoning tests that each rebuilt
-//! a reasoned graph via the OWL-2-RL chase (the `native_rl_rdflib.native_rl_closure`
-//! oracle, since relocated to `validations/classic-cross-check/oracles/`).
+//! a reasoned graph via the OWL-2-RL chase (the former `native_rl_rdflib.native_rl_closure`
+//! rdflib adapter over `gmeow_logic.rl_closure_nt`, now deleted — its last reasoning consumer
+//! migrated here).
 //! The per-slice entailment tests follow a single shape — parse the relevant slice `module.ttl`
 //! files, inject a tiny test A-Box, close under RL, assert a derived triple is present (and a
 //! contrasting one absent). This harness is the native twin of that
@@ -422,7 +423,7 @@ fn place_naming_is_entailed_not_asserted() {
 }
 
 // ── Migrated from tests/test_sensory.py ─────────────────────────────────────────
-// The `native_rl_closure` tests parse the sensory + observation modules, inject a SensoryObservation
+// The former `native_rl_closure` tests parse the sensory + observation modules, inject a SensoryObservation
 // A-Box, and assert the OWL-RL entailment (specialization, equivalentClass inheritance, property
 // chains, contested-coexistence). The structural tests (`load_merged_graph`, no closure — the
 // subProperty / inverseOf / equivalentClass *asserted* TBox checks) stay in pytest.
@@ -618,10 +619,25 @@ fn geometry_observation_chain_fires() {
     );
 }
 
+/// `owl:Nothing` — the empty class; any subject typed `owl:Nothing` in a closure is an
+/// inconsistency witness (the RL twin of an unsatisfiable individual).
+pub const OWL_NOTHING: &str = "http://www.w3.org/2002/07/owl#Nothing";
+
+/// `true` iff no subject in `closure` is typed `owl:Nothing` (the RL consistency check: the
+/// scoped TBox + A-Box closes without deriving a clash). The native twin of the Python
+/// `not any(graph.subjects(RDF.type, OWL.Nothing))` assertion.
+pub fn is_consistent(closure: &RlClosure) -> bool {
+    !closure
+        .triples
+        .iter()
+        .any(|t| unwrap_iri(&t.predicate) == RDF_TYPE && unwrap_iri(&t.object) == OWL_NOTHING)
+}
+
 // ── Migrated from tests/test_sensory_environment.py ────────────────────────────────────
-// The four pure entailment tests. `test_mental_reference_frame_requires_host` is MIXED (a
-// structural blank-node restriction-axiom check + a consistency check) and stays in pytest as a
-// small scoped structural test. The remaining structural/mapping tests stay in pytest.
+// The five entailment tests. `test_mental_reference_frame_requires_host` (a hosted
+// MentalReferenceFrame consistency + ReferenceFrame classification check) migrates here as
+// `mental_reference_frame_hosted_instance_is_consistent`. The remaining structural/mapping
+// tests stay in pytest.
 
 #[test]
 fn sensory_environment_el_axioms_fire() {
@@ -667,6 +683,32 @@ fn mental_reference_frame_specialises_reference_frame() {
     let mrf1 = ex("mrf1");
     let abox = vec![iri_quad(&mrf1, RDF_TYPE, &gmeow("MentalReferenceFrame"))];
     let closure = scoped_closure(&["extensions/sensory-environment", "core/places"], &abox);
+    assert!(
+        has_type(&closure, &mrf1, &gmeow("ReferenceFrame")),
+        "mrf1 a ReferenceFrame (MentalReferenceFrame ⊑ ReferenceFrame)"
+    );
+}
+
+#[test]
+fn mental_reference_frame_hosted_instance_is_consistent() {
+    // Issue #87: a hosted MentalReferenceFrame instance is consistent under OWL 2 RL, and the
+    // instance is classified a ReferenceFrame (MentalReferenceFrame ⊑ ReferenceFrame). The native
+    // twin of `test_mental_reference_frame_requires_host` — parses the sensory-environment + places
+    // modules, injects the host A-Box, closes under RL, and asserts BOTH the consistency arm (no
+    // subject typed owl:Nothing) and the subsumption entailment.
+    let (host1, mrf1) = (ex("host1"), ex("mrf1"));
+    let abox = vec![
+        iri_quad(&host1, RDF_TYPE, &gmeow("Agent")),
+        iri_quad(&mrf1, RDF_TYPE, &gmeow("MentalReferenceFrame")),
+        iri_quad(&mrf1, &gmeow("isHostedBy"), &host1),
+    ];
+    let closure = scoped_closure(&["extensions/sensory-environment", "core/places"], &abox);
+    // Consistency: the ontology + hosted instance derives no owl:Nothing clash.
+    assert!(
+        is_consistent(&closure),
+        "ontology + hosted MentalReferenceFrame instance must be consistent (no owl:Nothing)"
+    );
+    // Entailment: the hosted instance is classified a ReferenceFrame.
     assert!(
         has_type(&closure, &mrf1, &gmeow("ReferenceFrame")),
         "mrf1 a ReferenceFrame (MentalReferenceFrame ⊑ ReferenceFrame)"

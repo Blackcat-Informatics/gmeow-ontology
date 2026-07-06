@@ -10,22 +10,22 @@ expressed as module-scoped SPARQL ASK cells:
 - test_psychological_mappings_loaded: load_mappings() / MF+MFOEM SSSOM.
 - test_new_axes_exist: axisTristimulusX etc. defined in places, cross-slice.
 - test_perceptual_frame_realm_exists: frameRealmPerceptual in places, cross.
-- test_mental_reference_frame_requires_host: OWL-RL consistency arm
-  (native_rl_closure + ABox construction); structural restriction arm
-  migrated to cell 14 in structural.ttl.
+
+The OWL-RL consistency + ReferenceFrame-classification arm of the former
+test_mental_reference_frame_requires_host has been migrated to the native RL
+harness as
+crates/logic/tests/ontology_entailments.rs::mental_reference_frame_hosted_instance_is_consistent;
+the structural blank-node restriction arm is cell 14 in structural.ttl (#867).
 """
 
 from __future__ import annotations
 
-from purrdf.compat.rdflib import OWL, RDF, Graph, Namespace
+from purrdf.compat.rdflib import RDF, Namespace
 
 from gmeow_tools.config import NAMESPACE
 from gmeow_tools.graph import load_merged_graph
-from gmeow_tools.oracles.native_rl_rdflib import native_rl_closure
-from gmeow_tools.slices import module_path
 
 GMEOW = Namespace(NAMESPACE)
-EX = Namespace("https://example.org/test/")
 
 
 def test_new_axes_exist() -> None:
@@ -89,34 +89,6 @@ def test_sosa_alignments_loaded() -> None:
     # Verify these mappings come from the sensory-environment SSSOM file
     assert any("sensory-environment" in str(m.source) for m in env_matches)
     assert any("sensory-environment" in str(m.source) for m in matrix_matches)
-
-
-def test_mental_reference_frame_requires_host() -> None:
-    """Issue #87: a hosted MentalReferenceFrame instance is consistent under
-    OWL 2 RL.
-
-    Retained (consistency arm only): the OWL-RL closure + ABox construction
-    is a reasoning test, not expressible as a module-scoped structural cell.
-    The structural blank-node restriction-existence check has been migrated to
-    cell ex:saMentalReferenceFrameRestriction in structural.ttl (#867).
-    """
-    graph = Graph()
-    graph.parse(module_path("sensory-environment"), format="turtle")
-    graph.parse(module_path("places"), format="turtle")
-
-    # Consistency: a hosted MentalReferenceFrame instance does not contradict
-    # the ontology under OWL 2 RL.
-    ex_host = EX["host1"]
-    ex_frame = EX["mrf1"]
-    graph.add((ex_host, RDF.type, GMEOW.Agent))
-    graph.add((ex_frame, RDF.type, GMEOW.MentalReferenceFrame))
-    graph.add((ex_frame, GMEOW.isHostedBy, ex_host))
-
-    native_rl_closure(graph)
-    assert not any(True for _ in graph.subjects(RDF.type, OWL.Nothing)), (
-        "Ontology + hosted instance must be consistent"
-    )
-    assert (ex_frame, RDF.type, GMEOW.ReferenceFrame) in graph
 
 
 def test_psychological_mappings_loaded() -> None:

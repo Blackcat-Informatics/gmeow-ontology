@@ -70,8 +70,9 @@ overwhelmingly at the **Python compatibility boundary**, not in Rust. Ranked by 
   pyoxigraph-shaped `NamedNode/BlankNode/Literal/Triple/Quad/Variable`, `Store`, `Dataset`,
   `QuerySolutions/QueryTriples/QueryBoolean`, `parse()`/`serialize()`, `canonicalize_turtle`.
 - **Existing rdflib drop-ins:** `src/gmeow_tools/rdf_canonical.py`, `sparql.py` (the `owlrl` replacement
-  now lives in the Rust RL engine `gmeow_logic.rl_closure_nt`, surfaced for rdflib graphs via
-  `native_rl_rdflib.py`).
+  lives in the Rust RL engine `gmeow_logic.rl_closure_nt`; its former rdflib-graph adapter
+  `native_rl_rdflib.py` has been retired — its last reasoning consumer moved to the native
+  `crates/logic/tests/ontology_entailments.rs` harness).
 - **gmeow-gts (separate Apache/MIT repo, crates.io 0.9.4):** six conformance-gated engines (Rust,
   Python, Go, TypeScript, Smalltalk/Pharo, Kotlin/JVM), a Rust-backed C-ABI `libgts` with C/C++/.NET/
   PHP/Lua/Swift/Ruby/R/Julia wrappers, full RDF-1.2 losslessness, and formats
