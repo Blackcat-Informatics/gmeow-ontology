@@ -12,7 +12,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::Path;
 
-use gmeow_diagnostics::Severity;
+use gmeow_errors::Severity;
 use gmeow_validate::constitution::{
     collect_principles, constitution_full_report, constitution_headings,
 };
@@ -47,11 +47,7 @@ fn write_pair(
     (manifest, constitution)
 }
 
-fn run_report(
-    manifest: &Path,
-    constitution: &Path,
-    root: &Path,
-) -> Vec<gmeow_diagnostics::Finding> {
+fn run_report(manifest: &Path, constitution: &Path, root: &Path) -> Vec<gmeow_errors::Finding> {
     constitution_full_report(manifest, constitution, root)
 }
 

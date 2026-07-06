@@ -48,7 +48,7 @@ fn live_docs_lint_is_deterministic() {
     let site = common::cached_site();
     let a = lint(&model, &site);
     let b = lint(&model, &site);
-    let key = |r: &gmeow_diagnostics::Report| {
+    let key = |r: &gmeow_errors::Report| {
         r.findings
             .iter()
             .map(|f| (f.severity, f.code.clone(), f.message.clone()))
@@ -145,7 +145,7 @@ fn site_triggering_all_codes_emits_each_and_is_deterministic() {
     }
 
     // Deterministic ordering across two passes.
-    let seq = |r: &gmeow_diagnostics::Report| {
+    let seq = |r: &gmeow_errors::Report| {
         r.findings
             .iter()
             .map(|f| (f.severity, f.code.clone()))

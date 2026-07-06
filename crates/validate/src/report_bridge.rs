@@ -6,12 +6,12 @@
 //! ([`crate::validate_all`]).
 //!
 //! These two functions carry no reasoner, filesystem, threading, or PyO3 coupling —
-//! only the canonical `gmeow_diagnostics` Finding/Report model and the SHACL → Finding
+//! only the canonical `gmeow_errors` Finding/Report model and the SHACL → Finding
 //! bridge — so they compile for `wasm32-unknown-unknown`. They live here, apart from
 //! the native-only orchestration in `validate_all`, so the Tier-1 core can reuse them
 //! without dragging rayon / the native reasoner into the wasm build.
 
-use gmeow_diagnostics::{Finding, FindingCategory, Location, Report, Severity};
+use gmeow_errors::{Finding, FindingCategory, Location, Report, Severity};
 
 use crate::findings::finding_from_shacl;
 

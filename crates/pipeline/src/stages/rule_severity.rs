@@ -20,7 +20,7 @@
 //! behaviour. An unrecognized non-empty literal is a hard error: the value set
 //! is closed, so a typo is a modeling mistake, never a silently-coerced default.
 
-use gmeow_diagnostics::Severity;
+use gmeow_errors::Severity;
 
 /// The binding-vs-advisory severity tier declared by `gmeow:ruleSeverity`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

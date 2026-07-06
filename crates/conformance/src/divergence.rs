@@ -9,7 +9,7 @@
 //! reach — the corpus's published expected result is retained as a coverage signal
 //! rather than collapsed away. The divergence ledger classifies each comparison
 //! ([`gmeow_logic::reason::compare_external_corpus`]) and projects the non-agreeing
-//! rows into restricted [`gmeow_diagnostics::Finding`]s
+//! rows into restricted [`gmeow_errors::Finding`]s
 //! ([`gmeow_logic::reason::divergence_findings`]) — the diagnostics doctrine holds
 //! that divergence-ledger entries ARE `gmeow:Finding`s, so this reuses that model
 //! rather than minting a parallel vocabulary.
@@ -18,11 +18,11 @@
 //! ([`CONFORMANCE_GRAPH`]) so they can be folded into a `gmeow.gts` evidence bundle
 //! alongside, but distinct from, the `graph/diagnostics` validation findings. The
 //! emitter dogfoods the single diagnostics projection
-//! ([`gmeow_diagnostics::render::to_gmeow_rdf_in_graph`]): content-addressed finding
+//! ([`gmeow_errors::render::to_gmeow_rdf_in_graph`]): content-addressed finding
 //! IRIs, no blank nodes, deterministic order — fold-stable through GTS.
 
-use gmeow_diagnostics::Report;
-use gmeow_diagnostics::render::to_gmeow_rdf_in_graph;
+use gmeow_errors::Report;
+use gmeow_errors::render::to_gmeow_rdf_in_graph;
 use gmeow_logic::reason::{
     ExternalComparison, build_ledger, compare_external_corpus, divergence_findings,
 };

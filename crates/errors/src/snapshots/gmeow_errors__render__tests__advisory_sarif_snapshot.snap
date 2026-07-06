@@ -1,5 +1,5 @@
 ---
-source: crates/diagnostics/src/render.rs
+source: crates/errors/src/render.rs
 assertion_line: 1158
 expression: value
 ---
