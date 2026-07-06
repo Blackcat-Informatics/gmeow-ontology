@@ -8,33 +8,33 @@
 //! pattern + display-guards }`. The inverse `put` leg swaps the two roles:
 //!
 //! ```text
-//! CONSTRUCT { gmeow source atoms [+ mint-with-claim envelope] }
+//! CONSTRUCT { gmeow source atoms  (CompleteOver: asserted fact)
+//!           | reified claim cells (ValidationOnly: reasoner-inert) + one import activity }
 //! WHERE     { external template atoms }
 //! ```
 //!
 //! - the put **WHERE** matches the forward's CONSTRUCT-head template atoms (the external
 //!   triples, e.g. `?mlsArtifact a mls:Model`) — with NO display-guards (the guards belong
 //!   to the forward down-projection's suppression contract, not to ingest);
-//! - the put **CONSTRUCT** rebuilds the forward's gmeow source atoms (e.g. `?mlsArtifact a
-//!   gmeow:ModelArtifact`). For a `ValidationOnly` up-lift it additionally mints a
-//!   provenance envelope (`gmeow:wasGeneratedBy` / `gmeow:mappedFrom` / a
-//!   `gmeow:ImportActivity`) so the lifted claim is honestly marked import-derived, not
-//!   extracted fact.
+//! - the put **CONSTRUCT** renders the up-lift at the polarity the single
+//!   [`crate::projections::reified_claim::AssertionPolarity`] authority assigns.
 //!
-//! **The epistemic strength of the `ValidationOnly` marking (settled design rationale).** The
-//! CONSTRUCT head asserts the gmeow source atoms (`?anchor a gmeow:ModelArtifact`) *directly
-//! into the base graph* and qualifies them only with the provenance envelope. The marking is
-//! therefore *provenance-annotation strength*: `gmeow:mappedFrom` is an annotation property a
-//! reasoner does not consult, so a reasoner sees the class-lift as an asserted base-graph fact
-//! carrying out-of-band provenance — not as a claim scoped to its import. This is the honest
-//! `ValidationOnly` FLOOR for an up-lift the source cannot itself express: it does not
-//! overclaim *equivalence* (no `owl:equivalentClass`/`skos:exactMatch` is emitted; the
-//! round-trip gate is correctly NotApplicable under the lossy lens and the overclaim gate stays
-//! green), and the import-derivation is disclosed in-band on every minted anchor. Scoping the
-//! lifted triples into a named-graph / RDF-star *reasoned* claim — so a reasoner treats them as
-//! asserted-by-import rather than asserted-fact — is a strictly stronger, distinct capability
-//! that composes this ingest lowering with the reason lane; it is out of scope for this
-//! in-band-marking lowering by design, not an unfinished part of it.
+//! **The two epistemic treatments, decided by polarity — not by hand.** A `CompleteOver`
+//! recovery ([`AssertionPolarity::AssertBase`]) rebuilds the gmeow source atoms (`?anchor a
+//! gmeow:ModelArtifact`) *directly into the base graph*: lossless recovery under a discharged
+//! `put ∘ get = id` genuinely IS fact. A `ValidationOnly` lift
+//! ([`AssertionPolarity::ReifyClaim`]) — an up-lift the source cannot itself express — is NOT
+//! asserted: each source atom is carried as a `gmeow:StatementMetadata` reified RDF-1.2 claim
+//! (`qSubject`/`qPredicate`/`qObject` triad, `gmeow:mappedFrom` on its annotation list), built
+//! by the shared [`crate::projections::reified_claim::reified_claim_head`]. Because no EL/DL/RL
+//! rule keys on the reification vocabulary and the reason lane drops every non-IRI-object quad,
+//! the reified cell materializes NOTHING — the object-level relation is only *named* as the IRI
+//! value of `qPredicate`, never asserted as a triple predicate. The interior triple is
+//! deliberately absent from the CONSTRUCT head, so a reasoner treats the lift as a candidate
+//! preimage scoped to its import, never as extracted fact. Every claim is
+//! `gmeow:wasGeneratedBy` the ONE deterministic per-profile `gmeow:ImportActivity` (a stable
+//! IRI that coalesces across solutions — never a per-solution blank, never `gmeow:ingestedAt`
+//! /NOW()), typed and tied to its `gmeow:SoftwareAgent` importer.
 //!
 //! The up-lift polarity is decided by the SINGLE authority
 //! [`crate::projections::put_derivation::classify_put`]: a mnemomorphic witness on an
@@ -46,11 +46,15 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use crate::projections::correspondence_frontend::CorrespondenceLookup;
-use crate::projections::get_leg::{ProfileBinding, ProjectionCell, curie};
-use crate::projections::put_derivation::{PutClass, classify_put};
+use crate::projections::get_leg::{Atom, ProfileBinding, ProjectionCell, curie, sparql_string};
+use crate::projections::put_derivation::classify_put;
+use crate::projections::reified_claim::{
+    AssertionPolarity, ClaimAnnotation, ClaimObject, GM_MAPPED_FROM, IriStyle, ReifiedClaim,
+    reified_claim_head,
+};
 use crate::projections::sparql::{
     EmittedQuery, GENERATED_BANNER, SuppressionVocab, atom_triple, local_cell, prefix_block,
-    suppression_anchors, templates_of,
+    templates_of,
 };
 use crate::projections::{ProjectionResult, correspondence_result};
 
@@ -67,6 +71,92 @@ fn source_atoms(cell: &ProjectionCell, _b: &ProfileBinding) -> Result<Vec<String
         out.push(atom_triple(&atom, &empty)?);
     }
     Ok(out)
+}
+
+/// The fixed `gmeow:SoftwareAgent` that performs inverse-ingest put projection — the importer the
+/// coalesced [`import_activity_triples`] node is `gmeow:wasAssociatedWith`.
+const IMPORTER_AGENT_IRI: &str =
+    "<https://blackcatinformatics.ca/gmeow/agent/put-projection-importer>";
+
+/// The one deterministic per-profile import-activity IRI. Legible and IRI-legal (profile names
+/// are unique, so no content-address is needed); rendered as a full IRI because it carries a
+/// path segment no CURIE local name may hold. Every solution of the put CONSTRUCT binds this SAME
+/// IRI, so the activity coalesces onto exactly one node instead of a per-solution blank.
+fn import_activity_iri(profile: &str) -> String {
+    format!("<https://blackcatinformatics.ca/gmeow/import/{profile}>")
+}
+
+/// The provenance triples for the one coalesced import activity: typed `gmeow:ImportActivity`, a
+/// static deterministic label, and tied to its `gmeow:SoftwareAgent` importer via
+/// `gmeow:wasAssociatedWith` (maximal grounding). Emitted ONCE into the CONSTRUCT head — no
+/// `gmeow:ingestedAt`/NOW(), so the emitter stays clock-free and deterministic.
+fn import_activity_triples(profile: &str) -> Vec<String> {
+    let import = import_activity_iri(profile);
+    vec![
+        format!("{import} a gmeow:ImportActivity ."),
+        format!("{import} rdfs:label \"inverse-ingest of {profile} into GMEOW\" ."),
+        format!("{import} gmeow:wasAssociatedWith {IMPORTER_AGENT_IRI} ."),
+        format!("{IMPORTER_AGENT_IRI} a gmeow:SoftwareAgent ."),
+    ]
+}
+
+/// Build the reified `gmeow:StatementMetadata` claim for one gmeow source atom of a
+/// `ValidationOnly` cell: the reified subject/predicate/object triad + a `gmeow:mappedFrom`
+/// annotation naming the forward target + `gmeow:wasGeneratedBy` the coalesced import activity.
+/// `idx` makes the cell/annotation blank labels unique across the whole CONSTRUCT.
+///
+/// # Errors
+///
+/// Hard-fails (no-optionality) on an atom that cannot be honestly reified as a single
+/// `qPredicate` IRI — a property path, an alternation, or a predicate variable has no single
+/// predicate IRI to name, and an atom with no object cannot be reified — so none is ever
+/// silently coerced.
+fn reified_claim_of_atom(
+    atom: &Atom,
+    target_curie: &str,
+    import_iri: &str,
+    idx: usize,
+) -> Result<ReifiedClaim, String> {
+    if atom.path.is_some() || !atom.path_alts.is_empty() || atom.predicate_var.is_some() {
+        return Err(format!(
+            "put emitter: ValidationOnly source atom on ?{} is a property path / alternation / \
+             predicate variable, which has no single qPredicate IRI to reify honestly",
+            atom.subject_var
+        ));
+    }
+    let predicate = atom.predicate.clone().ok_or_else(|| {
+        format!(
+            "put emitter: ValidationOnly source atom on ?{} has no predicate IRI to reify",
+            atom.subject_var
+        )
+    })?;
+    let object = if let Some(value) = &atom.object_value {
+        ClaimObject::Iri(curie(value))
+    } else if let Some((lex, lang)) = &atom.object_literal {
+        ClaimObject::Literal(match lang.as_deref() {
+            Some(tag) => format!("{}@{tag}", sparql_string(lex)),
+            None => sparql_string(lex),
+        })
+    } else if let Some(var) = &atom.object_var {
+        ClaimObject::Iri(format!("?{var}"))
+    } else {
+        return Err(format!(
+            "put emitter: ValidationOnly source atom on ?{} has no object to reify",
+            atom.subject_var
+        ));
+    };
+    Ok(ReifiedClaim {
+        cell_label: format!("cell{idx}"),
+        subject: format!("?{}", atom.subject_var),
+        predicate,
+        object,
+        annotations: vec![ClaimAnnotation {
+            label: format!("mapann{idx}"),
+            property: GM_MAPPED_FROM.to_owned(),
+            value: target_curie.to_owned(),
+        }],
+        generated_by: Some(import_iri.to_owned()),
+    })
 }
 
 /// Emit the inverse-ingest ("put") CONSTRUCT query for one profile, or `Ok(None)` when no
@@ -97,6 +187,9 @@ pub(crate) fn emit_put(
     // so it survives into the shipped bundle. CompleteOver recoveries mint no envelope and
     // Unsupported bindings contribute nothing, so neither adds a residue row.
     let mut ledger: Vec<ProjectionResult> = Vec::new();
+    // A monotone per-query counter that gives every reified claim (and its annotation nodes) a
+    // blank label unique across the whole CONSTRUCT, so distinct claims never share a `_:cell`.
+    let mut claim_idx = 0usize;
 
     for cell in cells {
         for b in &cell.bindings {
@@ -107,28 +200,29 @@ pub(crate) fn emit_put(
             // injective-enough rung → CompleteOver; a co-authored ingest claim without a
             // witness → ValidationOnly; neither → Unsupported (contributes nothing).
             let class = classify_put(b.mnemomorphic, b.lattice().1, b.ingest_claim.as_slice());
-            match class {
+            // The SECOND leg of the classify_put morphism: how the up-lift lands in RDF. The
+            // single-authority AssertionPolarity map turns the three put-classes into the three
+            // renderings — assert-as-fact, reify-as-claim, or withhold — so C1/C2/C3 are one
+            // mechanism, not three hand-branches.
+            match AssertionPolarity::of(class) {
                 // Neither witness nor claim: the honest floor — carry nothing to the put leg.
-                PutClass::Unsupported => continue,
+                AssertionPolarity::Withhold => continue,
                 // A lawful recovery: CONSTRUCT the gmeow source, no provenance envelope.
-                PutClass::CompleteOver => {
+                AssertionPolarity::AssertBase => {
                     for atom in source_atoms(cell, b)? {
                         if !construct.contains(&atom) {
                             construct.push(atom);
                         }
                     }
                 }
-                // A minted-with-claim candidate preimage: CONSTRUCT the gmeow source PLUS a
-                // provenance envelope per lifted anchor, marking the claim import-derived (a
-                // deterministic `_:imp` blank node — no NOW()/ingestedAt) rather than an
-                // extracted fact.
-                PutClass::ValidationOnly => {
+                // A minted-with-claim candidate preimage. The source cannot itself express the
+                // lifted atom, so it is carried as a reasoner-INERT `gmeow:StatementMetadata`
+                // reified claim (built by the shared `reified_claim_head`), never asserted as an
+                // extracted base-graph fact. Every claim carries `gmeow:mappedFrom` on its
+                // annotation list and `gmeow:wasGeneratedBy` the one coalesced per-profile import
+                // activity — no interior triple, no NOW()/ingestedAt.
+                AssertionPolarity::ReifyClaim => {
                     any_validation_only = true;
-                    for atom in source_atoms(cell, b)? {
-                        if !construct.contains(&atom) {
-                            construct.push(atom);
-                        }
-                    }
                     // The forward target the claim is mapped from: the binding's toClass else
                     // its toPredicate, as the CURIE. A ValidationOnly binding with neither has
                     // no nameable provenance source — a HARD FAIL (no silent skip).
@@ -143,28 +237,32 @@ pub(crate) fn emit_put(
                         },
                     )?;
                     let target_curie = curie(target);
-                    // Provenance-annotation strength — the honest floor, stated precisely.
-                    // These three triples land the source lift in the BASE graph and qualify it
-                    // ONLY with out-of-band provenance: `gmeow:mappedFrom` is an annotation
-                    // property, so a reasoner uses none of the envelope and reads the class-lift
-                    // as an asserted base-graph fact. That is the honest legalization for an
-                    // up-lift the source cannot itself express: no equivalence is claimed
-                    // (`owl:equivalentClass`/`skos:exactMatch` are never emitted — round-trip
-                    // NotApplicable under the lossy lens, overclaim gate green) and the
-                    // import-derivation is disclosed IN-BAND on every minted anchor. Promoting
-                    // the lift to a named-graph / RDF-star reasoned claim (reasoner sees
-                    // asserted-by-import, not asserted-fact) is a strictly stronger, distinct
-                    // capability that composes ingest with the reason lane — out of scope for
-                    // this in-band-marking lowering by design, not an unfinished part of it.
-                    for anchor in suppression_anchors(&cell.pattern) {
-                        for env in [
-                            format!("?{anchor} gmeow:wasGeneratedBy _:imp ."),
-                            format!("?{anchor} gmeow:mappedFrom {target_curie} ."),
-                            "_:imp a gmeow:ImportActivity .".to_owned(),
-                        ] {
-                            if !construct.contains(&env) {
-                                construct.push(env);
+                    let import_iri = import_activity_iri(profile);
+                    // Reify each gmeow SOURCE atom of the cell as a StatementMetadata claim,
+                    // generated by the single coalesced import activity. The interior triple
+                    // (`?x a gmeow:<Class>`) is DELIBERATELY absent from the CONSTRUCT head — the
+                    // reasoner materializes nothing from a reified cell (no EL/DL/RL rule keys on
+                    // the reification vocabulary), so the lift is carried at full fidelity yet is
+                    // never treated as fact. Promoting a genuinely-recoverable lift to an asserted
+                    // fact is the `AssertBase`/CompleteOver arm above, decided by the single
+                    // `classify_put` authority, never by hand here.
+                    for atom in cell.pattern.flat_atoms() {
+                        let claim =
+                            reified_claim_of_atom(&atom, &target_curie, &import_iri, claim_idx)?;
+                        for line in reified_claim_head(&claim, IriStyle::Curie) {
+                            if !construct.contains(&line) {
+                                construct.push(line);
                             }
+                        }
+                        claim_idx += 1;
+                    }
+                    // The ONE deterministic per-profile import activity, emitted once into the
+                    // CONSTRUCT head (identical IRI across every solution → exactly one node, no
+                    // per-solution blank, no NOW()). Typed, labelled, and tied to its software
+                    // importer agent — maximally grounded provenance.
+                    for t in import_activity_triples(profile) {
+                        if !construct.contains(&t) {
+                            construct.push(t);
                         }
                     }
                     // Carry the authored ingest-residue disclosure into the loss ledger —
@@ -252,6 +350,7 @@ mod tests {
     };
     use crate::projections::correspondence_frontend::CorrespondenceLookup;
     use crate::projections::get_leg::{Atom, Item, MappingPattern, ProfileBinding, ProjectionCell};
+    use crate::projections::put_derivation::PutClass;
     use crate::projections::sparql::SuppressionVocab;
 
     const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
@@ -333,34 +432,168 @@ mod tests {
         emit_put(cells, "ml-schema", &vocab, &lookup).expect("emit_put must not hard-fail")
     }
 
+    /// The CONSTRUCT-head text of a query (between the first `CONSTRUCT {` and its closing `}`).
+    fn construct_head(q: &str) -> &str {
+        let after = q
+            .split("CONSTRUCT {")
+            .nth(1)
+            .expect("query has a CONSTRUCT");
+        after.split('}').next().expect("CONSTRUCT head is closed")
+    }
+
+    /// A `?x <predicate> ?obj` source atom.
+    fn predicate_atom(subject: &str, predicate_iri: &str, object: &str) -> Atom {
+        Atom {
+            subject_var: subject.to_owned(),
+            predicate: Some(predicate_iri.to_owned()),
+            predicate_var: None,
+            path: None,
+            path_alts: Vec::new(),
+            object_var: Some(object.to_owned()),
+            object_value: None,
+            object_literal: None,
+            optional: false,
+        }
+    }
+
     #[test]
-    fn validation_only_binding_mints_with_claim_envelope() {
+    fn complete_over_multi_atom_emits_every_source_atom_bare_and_no_envelope() {
+        // R2 — the emitter is what ships, not the round-trip gate (which compares LegPath
+        // bodies, not emitted bytes). For a multi-atom CompleteOver cell the CONSTRUCT head must
+        // be EXACTLY the flat source atoms — every one recovered, none reified, no ImportActivity
+        // envelope — so an author can read the emitted `.put.rq` and see precisely what a lift
+        // reconstructs. (A source pattern that hides an unrecoverable guard atom would therefore
+        // surface here as a spurious CONSTRUCT-head triple, which is how the SIOC audit caught
+        // the non-mnemomorphic mapSiocTopic.)
+        let gm_pred = "https://blackcatinformatics.ca/gmeow/relatedThread";
+        let pattern = MappingPattern {
+            anchor: "x".to_owned(),
+            value: Some("y".to_owned()),
+            atoms: vec![
+                Item::Atom(type_atom("x", GM_MODEL_ARTIFACT)),
+                Item::Atom(predicate_atom("x", gm_pred, "y")),
+            ],
+            suppress_when: Vec::new(),
+            project_when: Vec::new(),
+            exclude_when: Vec::new(),
+            filters: Vec::new(),
+            binds: Vec::new(),
+            mints: Vec::new(),
+            edoal_source: None,
+            edoal_source_kind: "relation".to_owned(),
+            edoal_path: false,
+        };
+        let mut cell = class_cell("=", true, None);
+        cell.pattern = pattern;
+        let q = emit(&[cell]).expect("CompleteOver emits").query;
+        let head = construct_head(&q);
+
+        // Every source atom appears verbatim in the CONSTRUCT head.
+        assert!(
+            head.contains("?x a gmeow:ModelArtifact ."),
+            "missing type atom:\n{head}"
+        );
+        assert!(
+            head.contains("?x gmeow:relatedThread ?y ."),
+            "missing predicate atom:\n{head}"
+        );
+        // No reification / provenance envelope on a lawful recovery.
+        assert!(
+            !head.contains("gmeow:StatementMetadata"),
+            "no reified claim on a recovery:\n{head}"
+        );
+        assert!(
+            !head.contains("gmeow:ImportActivity"),
+            "no import activity on a recovery:\n{head}"
+        );
+        assert!(
+            !head.contains("gmeow:wasGeneratedBy"),
+            "no provenance edge on a recovery:\n{head}"
+        );
+        // The head is EXACTLY the two source atoms — nothing spurious.
+        let triples: Vec<&str> = head
+            .lines()
+            .map(str::trim)
+            .filter(|l| !l.is_empty())
+            .collect();
+        assert_eq!(
+            triples.len(),
+            2,
+            "exactly the two source atoms, no extra:\n{head}"
+        );
+    }
+
+    #[test]
+    fn validation_only_binding_reifies_the_lift_as_an_inert_claim() {
         // Lossy rung (`<=` → LossyLens) + a co-authored ingest claim → ValidationOnly:
-        // the source lift PLUS the honest import-derived provenance envelope.
+        // the source lift is carried as a reasoner-INERT gmeow:StatementMetadata reified
+        // claim, NOT asserted as a base-graph fact.
         let cells = [class_cell("<=", false, Some(put_get_claim()))];
         let q = emit(&cells)
             .expect("ValidationOnly contributes a put query")
             .query;
+        let head = construct_head(&q);
 
-        // The gmeow source lift is reconstructed in the CONSTRUCT head.
+        // The bare interior triple (`?x a gmeow:ModelArtifact`) is DELIBERATELY absent — the
+        // lift must never be asserted as fact. This is the load-bearing C2 assertion.
         assert!(
-            q.contains("?x a gmeow:ModelArtifact ."),
-            "missing source lift:\n{q}"
+            !head.contains("?x a gmeow:ModelArtifact"),
+            "the interior class triple must NOT be asserted:\n{q}"
         );
-        // The mint-with-claim envelope is present.
+        // The reified StatementMetadata triad is present, naming the class lift.
         assert!(
-            q.contains("gmeow:wasGeneratedBy"),
-            "missing wasGeneratedBy:\n{q}"
+            head.contains("rdf:type gmeow:StatementMetadata"),
+            "no cell type:\n{q}"
+        );
+        assert!(head.contains("gmeow:qSubject ?x"), "no qSubject:\n{q}");
+        assert!(
+            head.contains("gmeow:qPredicate rdf:type"),
+            "no qPredicate:\n{q}"
         );
         assert!(
-            q.contains("?x gmeow:mappedFrom mls:Model ."),
-            "missing mappedFrom to the external target:\n{q}"
+            head.contains("gmeow:qObject gmeow:ModelArtifact"),
+            "qObject must name the lifted class:\n{q}"
+        );
+        // mappedFrom moved onto the annotation list (AnnotationProperty-clean).
+        assert!(
+            head.contains("gmeow:annProperty gmeow:mappedFrom"),
+            "no mappedFrom ann:\n{q}"
         );
         assert!(
-            q.contains("_:imp a gmeow:ImportActivity ."),
-            "missing ImportActivity node:\n{q}"
+            head.contains("gmeow:annValue mls:Model"),
+            "no mappedFrom value:\n{q}"
         );
-        // It never overclaims equivalence and never stamps a wall-clock time.
+        // Provenance: the cell is wasGeneratedBy the one coalesced import activity.
+        assert!(
+            head.contains(
+                "gmeow:wasGeneratedBy <https://blackcatinformatics.ca/gmeow/import/ml-schema>"
+            ),
+            "cell must be wasGeneratedBy the per-profile import IRI:\n{q}"
+        );
+        // Exactly ONE ImportActivity node (R3: emit-side cardinality, not runtime dedup).
+        assert_eq!(
+            head.matches("a gmeow:ImportActivity").count(),
+            1,
+            "exactly one ImportActivity node in the CONSTRUCT head:\n{q}"
+        );
+        // Maximally-grounded, typed + labelled + agent-tied provenance (U2, unconditional).
+        assert!(head.contains("rdfs:label \"inverse-ingest of ml-schema into GMEOW\""));
+        assert!(
+            head.contains(
+                "gmeow:wasAssociatedWith \
+                 <https://blackcatinformatics.ca/gmeow/agent/put-projection-importer>"
+            ),
+            "import activity must be tied to its software agent:\n{q}"
+        );
+        assert!(
+            head.contains(
+                "<https://blackcatinformatics.ca/gmeow/agent/put-projection-importer> \
+                 a gmeow:SoftwareAgent"
+            ),
+            "the importer agent must be typed:\n{q}"
+        );
+        // No per-solution blank, no overclaim, no wall-clock.
+        assert!(!q.contains("_:imp"), "no per-solution import blank:\n{q}");
         assert!(
             !q.contains("owl:equivalentClass"),
             "must not assert equivalence:\n{q}"
@@ -373,11 +606,50 @@ mod tests {
             !q.contains("NOW("),
             "must not stamp a wall-clock time:\n{q}"
         );
-        // The WHERE matches the external target term.
+        // The WHERE still matches the external target term.
         let where_clause = q.split("WHERE").nth(1).expect("query has a WHERE");
         assert!(
             where_clause.contains("?x a mls:Model ."),
             "WHERE must match the external target:\n{q}"
+        );
+    }
+
+    #[test]
+    fn mixed_profile_asserts_recovery_bare_and_reifies_the_lossy_lift_under_one_import() {
+        // R5: a profile carrying BOTH a CompleteOver cell (mnemomorphic `=`) and a
+        // ValidationOnly cell (`<=` + claim) must assert the recovery's source atoms BARE
+        // (direct fact) while reifying the lossy lift as an inert claim — under exactly ONE
+        // shared ImportActivity node.
+        let recovery = class_cell("=", true, None);
+        let mut lossy = class_cell("<=", false, Some(put_get_claim()));
+        // Distinguish the lossy cell's anchor/iri so it is a separate contribution.
+        lossy.pattern.anchor = "y".to_owned();
+        lossy.pattern.atoms = vec![Item::Atom(type_atom("y", GM_MODEL_ARTIFACT))];
+        lossy.iri = "https://blackcatinformatics.ca/gmeow/example/mlLossyCell".to_owned();
+        let q = emit(&[recovery, lossy])
+            .expect("mixed profile emits a query")
+            .query;
+        let head = construct_head(&q);
+
+        // The CompleteOver recovery asserts its source atom directly (fact).
+        assert!(
+            head.contains("?x a gmeow:ModelArtifact ."),
+            "the CompleteOver recovery must assert its source atom bare:\n{q}"
+        );
+        // The ValidationOnly lift is reified, NOT asserted.
+        assert!(
+            !head.contains("?y a gmeow:ModelArtifact"),
+            "the ValidationOnly lift must not be asserted:\n{q}"
+        );
+        assert!(
+            head.contains("gmeow:qSubject ?y"),
+            "the lossy lift must be reified:\n{q}"
+        );
+        // Exactly one shared ImportActivity across both cells.
+        assert_eq!(
+            head.matches("a gmeow:ImportActivity").count(),
+            1,
+            "both cells share exactly one ImportActivity node:\n{q}"
         );
     }
 

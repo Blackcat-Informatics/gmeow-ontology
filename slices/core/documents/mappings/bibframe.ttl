@@ -31,7 +31,7 @@ gmeow:mapBfTitleLiteral a gmeow:ProjectionMapping ;
         gmeow:anchor "bftw" ; gmeow:value "bftText" ;
         gmeow:atom ( [ gmeow:subjectVar "bftw" ; gmeow:predicate gmeow:title ; gmeow:objectVar "bftText" ] ) ;
         gmeow:edoalSource gmeow:title ] ;
-    gmeow:hasBinding [ gmeow:profile "bibframe" ; gmeow:toPredicate bf:title ; gmeow:relation "=" ; gmeow:confidence 0.9 ] .
+    gmeow:hasBinding [ gmeow:profile "bibframe" ; gmeow:toPredicate bf:title ; gmeow:relation "=" ; gmeow:confidence 0.9 ; gmeow:mnemomorphic true ] .
 
 gmeow:mapBfTitleNode a gmeow:ProjectionMapping ;
     rdfs:label "CreativeWorkTitle relator → bf:Title node"@x-gmeow-english ;
