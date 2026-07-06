@@ -27,7 +27,7 @@ repos:
             crates/validate/tests/goldens/crossref/.*|
             crates/rdf/tests/corpus/w3c/.*|
             crates/lang-bridge/tests/fixtures/.*|
-            .*\.(tsv|svg)
+            .*\.(tsv|svg|conllu)
           )$
       - id: end-of-file-fixer
         exclude: *keep-verbatim

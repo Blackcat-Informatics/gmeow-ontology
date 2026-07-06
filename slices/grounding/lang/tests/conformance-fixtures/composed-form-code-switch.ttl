@@ -1,0 +1,36 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Code-switching: one lang:ComposedForm whose constituent slots realize word forms in DIFFERENT
+# sign systems — an English matrix clause with an embedded French constituent ("the déjà vu
+# feeling"). Because a language is an individual and not a tag, code-switching is native: the
+# composed form names its matrix sign system, and each slot's form names its own. Constituent
+# order is carried by contiguous zero-based lang:slotIndex (0, 1) and each lang:slotForm points
+# at a form resource, so the composed form satisfies lang:SlotIndexUniqueShape,
+# lang:SlotContiguityShape, and lang:SlotFormStructuralShape; every form (matrix + both slot
+# forms) names its sign system (lang:FormSituatedShape). Nothing forces a code-switched form
+# into a single language — the mixed constituency is data the form carries, never collapsed.
+
+@prefix lang: <https://blackcatinformatics.ca/lang/> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:   <http://example.org/lang/> .
+
+ex:english a lang:SignSystem .
+ex:french  a lang:SignSystem .
+
+# The matrix composed form is situated in the English matrix language.
+ex:codeSwitchPhrase a lang:ComposedForm ;
+    lang:inSignSystem ex:english ;
+    lang:compositionLevel lang:phrase ;
+    lang:formSlot ex:csSlot0 , ex:csSlot1 .
+
+# Slot 0 — the English matrix head.
+ex:csSlot0 a lang:FormSlot ;
+    lang:slotIndex 0 ;
+    lang:slotForm ex:enFeeling .
+ex:enFeeling a lang:WordForm ; lang:inSignSystem ex:english .
+
+# Slot 1 — the embedded French constituent (the code switch).
+ex:csSlot1 a lang:FormSlot ;
+    lang:slotIndex 1 ;
+    lang:slotForm ex:frDejaVu .
+ex:frDejaVu a lang:WordForm ; lang:inSignSystem ex:french .
