@@ -79,6 +79,5 @@ pub(crate) fn lower(
         knowledge: inner.grade.category.polarity(),
         emitted_at: SerLocation::from_caller(inner.locus.emitted_at),
         locus_stage: inner.locus.stage.as_ref().map(|s| s.0.clone()),
-        locus_shard: inner.locus.shard,
     }
 }

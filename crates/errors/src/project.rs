@@ -51,16 +51,21 @@ impl DiagNode {
 
 impl DiagLedger {
     /// Project the whole ledger to a [`Report`], in the ledger's total
-    /// deterministic `(stage, fingerprint)` order.
+    /// deterministic `(stage, fingerprint)` order. Built from the same
+    /// [`findings`](DiagLedger::findings) projection so the two surfaces can never
+    /// diverge.
     pub fn project_report(&self, tool: &str) -> Report {
         let mut report = Report::new(tool);
-        for node in self.emit_sorted() {
-            report.add_finding(node.to_finding(tool));
+        for finding in self.findings(tool) {
+            report.add_finding(finding);
         }
         report
     }
 
-    /// Every finding this ledger projects, in deterministic order.
+    /// Every finding this ledger projects, in deterministic order — the single
+    /// finding-projection surface, produced directly without building an
+    /// intermediate [`Report`]. [`project_report`](DiagLedger::project_report)
+    /// reuses this.
     pub fn findings(&self, tool: &str) -> Vec<Finding> {
         self.emit_sorted()
             .iter()

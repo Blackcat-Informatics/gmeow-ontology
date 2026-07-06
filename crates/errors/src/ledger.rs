@@ -177,8 +177,6 @@ pub struct DiagNode {
     pub emitted_at: SerLocation,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub locus_stage: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub locus_shard: Option<u32>,
 }
 
 impl DiagNode {
@@ -228,10 +226,14 @@ impl DiagLedger {
 
     /// Replay pre-lowered nodes from a cache hit — idempotent, never re-lowers.
     /// Fresh and replayed nodes are byte-identical, so replay yields the same
-    /// ledger as a fresh fold.
+    /// ledger as a fresh fold. Replayed nodes are trusted: each was cycle-checked
+    /// when it was first attached and the cache surface is byte-identical, so the
+    /// redundant per-node ancestor traversal is skipped (replaying N nodes would
+    /// otherwise cost O(N²)). The F1 pin-digest self-consistency check still runs
+    /// on every replayed node.
     pub fn replay(&mut self, nodes: impl IntoIterator<Item = DiagNode>) {
         for node in nodes {
-            self.insert(node);
+            self.insert_inner(node, false);
         }
     }
 
@@ -246,7 +248,17 @@ impl DiagLedger {
         refs
     }
 
+    /// Attach a lowered node on the trust-checking path: verifies the F1 pin
+    /// digest AND that the resulting node introduces no cycle.
     fn insert(&mut self, node: DiagNode) -> DiagRef {
+        self.insert_inner(node, true)
+    }
+
+    /// Attach a lowered node. The F1 pin-digest self-consistency check always
+    /// runs; `check_cycles` additionally runs the O(ancestors) acyclicity walk.
+    /// [`replay`](DiagLedger::replay) passes `false` for cached, already-validated
+    /// nodes — re-checking them would make replay O(N²).
+    fn insert_inner(&mut self, node: DiagNode, check_cycles: bool) -> DiagRef {
         // F1: a node must be self-consistent — its stored fingerprint must equal
         // the fingerprint recomputed from its identity fields.
         assert!(
@@ -259,14 +271,18 @@ impl DiagLedger {
 
         if let Some(&existing) = self.intern.get(&node.fingerprint) {
             self.merge_into(existing, node);
-            self.assert_acyclic(existing);
+            if check_cycles {
+                self.assert_acyclic(existing);
+            }
             return existing;
         }
 
         let dref = DiagRef::from_index(self.arena.len());
         self.intern.insert(node.fingerprint, dref);
         self.arena.push(node);
-        self.assert_acyclic(dref);
+        if check_cycles {
+            self.assert_acyclic(dref);
+        }
         dref
     }
 
@@ -521,7 +537,6 @@ mod tests {
                 column: 1,
             },
             locus_stage: None,
-            locus_shard: None,
         };
         ledger.replay([node]);
     }
@@ -562,9 +577,10 @@ mod tests {
                 column: 1,
             },
             locus_stage: None,
-            locus_shard: None,
         };
-        ledger.replay([node]);
+        // The attach/checking path (not the trusted replay path) runs the
+        // acyclicity walk, so drive `insert` directly.
+        ledger.insert(node);
     }
 
     #[test]

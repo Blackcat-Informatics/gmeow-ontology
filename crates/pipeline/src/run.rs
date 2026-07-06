@@ -667,8 +667,10 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, Pi
     });
 
     // Project the carrier ledger to the wire findings — the ledger is the single
-    // source of truth, `findings` is its lossy projection (F3: not a parallel path).
-    let findings = ledger.project_report("gmeow-pipeline").findings;
+    // source of truth, `findings` is its lossy projection (F3: not a parallel
+    // path). The direct accessor projects the findings without building the
+    // intermediate `Report` whose other fields would be discarded here.
+    let findings = ledger.findings("gmeow-pipeline");
 
     Ok(RunReport {
         mode,
