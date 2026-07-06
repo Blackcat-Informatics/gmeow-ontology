@@ -85,6 +85,21 @@ pub struct CompiledMappings {
     /// `logic:Correspondence`. Carried as a named graph by [`MappingsStage::run`], excluded
     /// from the reasoned EDB exactly like the translation-corpus graph.
     pub lang_form_corpus: Vec<u8>,
+    /// The `lang:` projection corpus N-Triples graph (`graph/lang-projection-corpus`):
+    /// one `lang:ProjectionEmission` per (source, target) — the honest per-emission
+    /// preservation judgment of every lowering to an external linguistic ecosystem
+    /// (OntoLex-Lemon, CoNLL-U, EBNF, ABNF) plus the lifted `lang:Grammar` structure it
+    /// projects. Carried as a named graph by [`MappingsStage::run`], excluded from the
+    /// reasoned EDB exactly like the other `lang:` corpus graphs.
+    pub lang_projection_corpus: Vec<u8>,
+    /// The docs-rendering corpus N-Triples graph (`graph/lang-docs-rendering-corpus`): the
+    /// `.po`-derived documentation language trees re-typed as `lang:Rendering`
+    /// (`lang:renderingDocsPage`) per non-English page, a `lang:Translation` per (page,
+    /// language) pairing rolling up the page's `lang:TranslationUnit`s with a DERIVED
+    /// document judgment, and the exec-docs English-only boundary recorded as a declared
+    /// `lang:translationGap`. Carried as a named graph by [`MappingsStage::run`], excluded
+    /// from the reasoned EDB exactly like the other `lang:` corpus graphs.
+    pub lang_docs_rendering_corpus: Vec<u8>,
 }
 
 /// Compile all five mapping families (SSSOM + FnO + EDOAL + SPARQL + standpoint
@@ -209,6 +224,29 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, PipelineError> 
     ledger.extend(form_corpus.ledger);
     let lang_form_corpus = form_corpus.ntriples;
 
+    // `lang:` projection corpus (the projection contract): lower the canonical `lang:`
+    // model out to the external linguistic ecosystems through the correspondence-carrying
+    // registry, fold every emission's honest preservation judgment into the loss ledger,
+    // write the generated external artifacts, and carry the `lang:ProjectionEmission`
+    // records as a named graph by the stage `run` below (never a `generated/` file).
+    let projection_corpus = crate::stages::lang_projection::build_corpus(catalog.as_ref())?;
+    ledger.extend(projection_corpus.ledger);
+    let lang_projection_corpus = projection_corpus.ntriples;
+    for (path, bytes) in projection_corpus.artifacts {
+        artifacts.insert(path, bytes);
+    }
+
+    // Docs-tree re-typing (Principle 15 consumer wiring): re-type the EXISTING `.po`-derived
+    // documentation language trees — one `lang:Rendering` (`lang:renderingDocsPage`) per
+    // non-English page, one `lang:Translation` per (page, language) pairing that
+    // `lang:rollsUpFrom` the page's live `lang:TranslationUnit`s with a DERIVED document
+    // judgment, and the exec-docs English-only boundary as a declared `lang:translationGap` —
+    // and fold its honest per-page + per-boundary rows into the loss ledger. The RDF graph
+    // rides as a named graph by the stage `run` below (never a `generated/` file).
+    let docs_rendering_corpus = crate::stages::lang_docs_rendering::build_corpus(root)?;
+    ledger.extend(docs_rendering_corpus.ledger);
+    let lang_docs_rendering_corpus = docs_rendering_corpus.ntriples;
+
     // Standpoint projections — the seven fixed `standpoint-*.rq` queries (byte-identical
     // to the Python template-coded emitters; no DSL input).
     let standpoint = emit_standpoint_sets(root, &vocab).map_err(|e| PipelineError::Stage {
@@ -261,6 +299,8 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, PipelineError> 
         ledger,
         lang_translation_corpus,
         lang_form_corpus,
+        lang_projection_corpus,
+        lang_docs_rendering_corpus,
     })
 }
 
@@ -568,18 +608,25 @@ impl Stage for MappingsStage {
         let mut files = Vec::new();
         collect_files_recursive(&root.join("dsl").join("mappings"), &mut files)?;
         files.extend(crate::stages::source_load::module_files(root)?);
-        // The slice Mapping cells (slices/**/mappings/*.ttl) are read directly by
-        // compile_mappings (correspondence_lower::lower_all merges every
-        // ArtifactRole::Mapping artifact) AND by fold_up_projection_audit, yet
-        // module_files only declares each slice's module.ttl. Declare every slice
-        // `mappings/` .ttl so an edit to a slice equivalence cell busts the cache
-        // (a missing edge here silently ignores a guard→combinator correspondence
-        // edit until the cache is cleared).
+        // Several slice source surfaces are read DIRECTLY by this stage yet are reflected by no
+        // upstream product, so each must bust the cache on edit:
+        //   - slices/**/mappings/*.ttl — the Mapping cells compile_mappings
+        //     (correspondence_lower::lower_all) and fold_up_projection_audit merge; module_files
+        //     only declares each slice's module.ttl.
+        //   - slices/**/grammars/*.ebnf and slices/**/examples/*.ttl — the grammar SOURCE surfaces
+        //     and the lang: example A-boxes the lang: projection corpus (build_corpus) lowers FROM
+        //     (OntoLex / CoNLL-U / TEI / NIF / SemAF / BCP-47); without these an edit to a
+        //     projected grammar or example serves a stale projection past the drift gate.
+        //   - slices/**/*.po — the documentation-language catalogs the docs re-typing reads.
         let mut slice_files: Vec<std::path::PathBuf> = Vec::new();
         collect_files_recursive(&root.join("slices"), &mut slice_files)?;
         files.extend(slice_files.into_iter().filter(|p| {
-            p.extension().is_some_and(|e| e == "ttl")
-                && p.components().any(|c| c.as_os_str() == "mappings")
+            let ext = p.extension().and_then(|e| e.to_str());
+            let in_dir = |name: &str| p.components().any(|c| c.as_os_str() == name);
+            (ext == Some("ttl") && in_dir("mappings"))
+                || ext == Some("ebnf")
+                || (ext == Some("ttl") && in_dir("examples"))
+                || ext == Some("po")
         }));
         for name in ["bii", "paudley"] {
             files.push(
@@ -686,12 +733,34 @@ impl Stage for MappingsStage {
             "application/n-triples",
             crate::stages::carrier::GRAPH_LANG_FORM_CORPUS,
         )?;
+        // graph/lang-projection-corpus — the `lang:ProjectionEmission` records (every
+        // lowering to an external linguistic ecosystem) plus the lifted `lang:Grammar`
+        // structure. Carried as a named graph so the presenter reads it via
+        // `producer_graph`; like the other `lang:` corpus graphs it stays OUT of the
+        // reasoned EDB (`gts_compose` folds only the default graph).
+        let lang_projection_graph = crate::stages::carrier::parse_into_graph(
+            &compiled.lang_projection_corpus,
+            "application/n-triples",
+            crate::stages::carrier::GRAPH_LANG_PROJECTION_CORPUS,
+        )?;
+        // graph/lang-docs-rendering-corpus — the `.po`-derived documentation language trees
+        // re-typed as `lang:Rendering` / `lang:Translation` crossings plus the exec-docs
+        // English-only boundary gap. Carried as a named graph so the presenter reads it via
+        // `producer_graph`; like the other `lang:` corpus graphs it stays OUT of the reasoned
+        // EDB (`gts_compose` folds only the default graph).
+        let lang_docs_rendering_graph = crate::stages::carrier::parse_into_graph(
+            &compiled.lang_docs_rendering_corpus,
+            "application/n-triples",
+            crate::stages::carrier::GRAPH_LANG_DOCS_RENDERING_CORPUS,
+        )?;
         let dataset = std::sync::Arc::new(purrdf::RdfDataset::union(&[
             rdf_dataset.as_ref(),
             ledger_graph.as_ref(),
             alignments_graph.as_ref(),
             lang_translation_graph.as_ref(),
             lang_form_graph.as_ref(),
+            lang_projection_graph.as_ref(),
+            lang_docs_rendering_graph.as_ref(),
         ]));
         Ok(StageOutput {
             product: StageProduct::from_artifacts_over(self.id(), dataset, artifacts),
@@ -1023,29 +1092,59 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
             );
         }
 
-        // Byte-stability invariant: dropping every correspondence `ProjectionTarget`
-        // block (and its `hasProjection` link) from the freshly assembled report and
-        // from the committed report must leave byte-identical logic rows — the
-        // correspondence union must never perturb the logic projection. (The committed
-        // report itself carries the union, so both sides are filtered the same way.)
+        // Byte-stability invariant: dropping every NON-logic `ProjectionTarget` block
+        // (the correspondence dialects PLUS the lang:-projection emission-ledger rows)
+        // from the freshly assembled report and from the committed report must leave
+        // byte-identical logic rows — the correspondence + projection union must never
+        // perturb the logic projection. The strip is BLOCK-aware (a Turtle subject block
+        // is a blank-line-separated group), so a target block present only on the fresh
+        // side is removed wholesale rather than leaving orphaned continuation lines. (The
+        // committed report carries its own union; both sides are filtered the same way, so
+        // this stays green independent of which projection targets are wired — the
+        // committed golden itself is re-blessed at regeneration.)
         let committed = std::fs::read_to_string(root.join(PROJECTION_REPORT_PATH))
             .expect("committed projection report");
-        let is_correspondence = |line: &str| {
-            ["sssom:", "fno:", "edoal:", "sparql:"]
-                .iter()
-                .any(|d| line.contains(&format!("/target/{d}")))
-        };
-        let strip_correspondence = |text: &str| -> String {
-            text.lines()
-                .filter(|l| !is_correspondence(l))
-                .map(|l| format!("{l}\n"))
-                .collect()
+        // The non-logic target prefixes: the four alignment dialects, the EmotionML
+        // lowering, and the lang: projection targets (grammar/lexicon/treebank emissions
+        // plus the TEI document, NIF anchor, and SemAF/AMR denotation emissions).
+        let non_logic = [
+            "/target/sssom:",
+            "/target/fno:",
+            "/target/edoal:",
+            "/target/sparql:",
+            "/target/ebnf:",
+            "/target/abnf:",
+            "/target/conllu:",
+            "/target/ontolex",
+            "/target/tei:",
+            "/target/nif:",
+            "/target/semaf:",
+            "/target/bcp47:",
+            "/target/lang-projection:",
+            // The docs-tree re-typing rows: per-page rendering + translation roll-ups and the
+            // exec-docs English-only boundary gap (folded from `lang_docs_rendering`).
+            "/target/lang-docs-rendering:",
+            "/target/lang-docs-translation:",
+            "/target/lang-docs-execgap:",
+        ];
+        // A Turtle subject block is a blank-line-separated group. Drop any block that
+        // MENTIONS a non-logic target IRI anywhere: the non-logic target blocks themselves
+        // AND the `logic:projection-report` summary block (whose `hasProjection` list
+        // enumerates every target and so churns whenever a projection target is added). The
+        // surviving blocks — the header prefixes and the pure logic target blocks — must be
+        // byte-identical.
+        let strip_non_logic = |text: &str| -> String {
+            text.split("\n\n")
+                .filter(|block| !non_logic.iter().any(|p| block.contains(p)))
+                .collect::<Vec<_>>()
+                .join("\n\n")
         };
         assert_eq!(
-            strip_correspondence(report),
-            strip_correspondence(&committed),
+            strip_non_logic(report),
+            strip_non_logic(&committed),
             "the logic projection rows must be byte-identical between the freshly \
-             assembled report and the committed report; only correspondence rows differ"
+             assembled report and the committed report; only correspondence + lang: \
+             projection rows differ"
         );
     }
 
