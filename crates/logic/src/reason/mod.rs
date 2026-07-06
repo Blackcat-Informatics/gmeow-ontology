@@ -198,6 +198,25 @@ pub fn reason_program(
 ///
 /// Returns `Err(String)` if [`reason_program`] fails, if an object surface cannot be
 /// re-parsed, or if the projected dataset fails the freeze-time structural contract.
+/// Whether `value` is an absolute IRI (carries a `scheme:` prefix per RFC 3986). Used to
+/// decide whether a reasoned axiom's non-default `world` is a genuine named graph. A robust
+/// scheme check — NOT `contains("://")`, which silently misses schemeless-authority worlds
+/// (`urn:`, `did:`, `tag:`, `mailto:`) and would demote them to the default graph (a
+/// world-scoping / information-loss defect).
+fn is_absolute_iri(value: &str) -> bool {
+    match value.find(':') {
+        Some(0) => false,
+        Some(idx) => {
+            let scheme = &value[..idx];
+            scheme.starts_with(|c: char| c.is_ascii_alphabetic())
+                && scheme
+                    .chars()
+                    .all(|c| c.is_ascii_alphanumeric() || matches!(c, '+' | '-' | '.'))
+        }
+        None => false,
+    }
+}
+
 pub fn reason_program_closure_dataset(
     program: &gmeow_logic_compile::ir::LogicProgram,
     edb: &RdfDataset,
@@ -213,7 +232,7 @@ pub fn reason_program_closure_dataset(
         // back to the RDF DEFAULT graph, so a graph-clause-free competency query over the
         // closure sees it. A genuinely NAMED world (an absolute-IRI graph other than the
         // sentinel) is preserved as a named graph.
-        if ax.world != rl::DEFAULT_WORLD && ax.world.contains("://") {
+        if ax.world != rl::DEFAULT_WORLD && is_absolute_iri(&ax.world) {
             quad = quad.in_graph(RdfTerm::iri(ax.world.clone()));
         }
         builder.push_owned_quad(&quad);
@@ -527,6 +546,28 @@ mod tests {
             builder.push_owned_quad(&quad);
         }
         builder.freeze().expect("valid test dataset")
+    }
+
+    #[test]
+    fn is_absolute_iri_recognizes_schemeless_authority_worlds() {
+        // http(s) worlds — the common case — stay named.
+        assert!(is_absolute_iri(
+            "https://blackcatinformatics.ca/gmeow/graph/w"
+        ));
+        assert!(is_absolute_iri("http://example.org/g"));
+        // Schemeless-authority IRIs (no `://`) are ALSO absolute named worlds — the old
+        // `contains("://")` check silently demoted these to the default graph.
+        assert!(is_absolute_iri(
+            "urn:uuid:2c8f0a1e-0000-4000-8000-000000000001"
+        ));
+        assert!(is_absolute_iri("did:example:123"));
+        assert!(is_absolute_iri("tag:blackcat,2026:world"));
+        assert!(is_absolute_iri("mailto:someone@example.org"));
+        // A bare token / relative reference is NOT absolute.
+        assert!(!is_absolute_iri("c14n44"));
+        assert!(!is_absolute_iri("world-1"));
+        assert!(!is_absolute_iri(":no-scheme"));
+        assert!(!is_absolute_iri("1http://bad-scheme")); // scheme must start with a letter
     }
 
     #[test]
