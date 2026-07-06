@@ -182,6 +182,25 @@ fn check_no_docker_lane_python(root: &Path, report: &mut RepoStaticReport) {
         files.push(conftest);
     }
     files.sort();
+    // Match each retired symbol on a word boundary, NOT as a bare substring: `contains` would
+    // false-positive when a symbol is a substring of a live identifier (`ROBOT_IMAGE` ⊂
+    // `ROBOT_IMAGE_PATH`, `image_available` ⊂ `is_image_available`). `regex::escape` neutralizes
+    // the `.` in `gmeow_tools.runner`; `_` is a word char, so `\bROBOT_IMAGE\b` cannot match
+    // inside `ROBOT_IMAGE_PATH` (the boundary between `E` and `_` fails).
+    let mut symbol_regexes: Vec<(&&str, Regex)> =
+        Vec::with_capacity(DOCKER_LANE_PYTHON_SYMBOLS.len());
+    for sym in DOCKER_LANE_PYTHON_SYMBOLS {
+        let pattern = format!(r"\b{}\b", regex::escape(sym));
+        match Regex::new(&pattern) {
+            Ok(re) => symbol_regexes.push((sym, re)),
+            Err(err) => {
+                report.error(format!(
+                    "Docker-reasoning-lane guard: symbol regex for `{sym}` failed to compile: {err}"
+                ));
+                return;
+            }
+        }
+    }
     for path in files {
         let text = match fs::read_to_string(&path) {
             Ok(text) => text,
@@ -191,10 +210,10 @@ fn check_no_docker_lane_python(root: &Path, report: &mut RepoStaticReport) {
             }
         };
         let code = strip_python_non_code(&text);
-        let hits = DOCKER_LANE_PYTHON_SYMBOLS
+        let hits = symbol_regexes
             .iter()
-            .filter(|sym| code.contains(**sym))
-            .copied()
+            .filter(|(_, re)| re.is_match(&code))
+            .map(|(sym, _)| **sym)
             .collect::<Vec<_>>();
         if !hits.is_empty() {
             let rel = slash_path(path.strip_prefix(root).unwrap_or(&path));
@@ -1302,6 +1321,51 @@ mod tests {
             "symbols in comments/strings must not trip the guard; got {:?}",
             commented.errors
         );
+
+        // NEGATIVE: live identifiers that merely CONTAIN a retired symbol as a substring
+        // (`is_image_available`, `ROBOT_IMAGE_PATH`, `JENA_IMAGE_PATH`, and a plain `runner` that is
+        // NOT `gmeow_tools.runner`) must NOT trip the word-boundary guard.
+        std::fs::remove_file(root.join("conftest.py")).ok();
+        write(
+            &root.join("src/gmeow_tools/ok.py"),
+            "def is_image_available():\n    ROBOT_IMAGE_PATH = \"x\"\n    JENA_IMAGE_PATH = \"y\"\n    runner = object()\n    return runner\n",
+        );
+        let mut substrings = RepoStaticReport::default();
+        check_no_docker_lane_python(root, &mut substrings);
+        assert!(
+            substrings.errors.is_empty(),
+            "live identifiers that merely contain a retired symbol as a substring must not trip the guard; got {:?}",
+            substrings.errors
+        );
+
+        // POSITIVE: each bare retired symbol on a word boundary MUST still trip the guard.
+        write(
+            &root.join("src/gmeow_tools/ok.py"),
+            "from gmeow_tools.runner import image_available\nA = ROBOT_IMAGE\nB = JENA_IMAGE\n",
+        );
+        let mut bare = RepoStaticReport::default();
+        check_no_docker_lane_python(root, &mut bare);
+        let bare_msg = bare
+            .errors
+            .iter()
+            .find(|e| e.contains("Docker-reasoning-lane") && e.contains("ok.py"));
+        let bare_msg = bare_msg.unwrap_or_else(|| {
+            panic!(
+                "bare retired symbols must trip the guard; got {:?}",
+                bare.errors
+            )
+        });
+        for sym in [
+            "gmeow_tools.runner",
+            "image_available",
+            "ROBOT_IMAGE",
+            "JENA_IMAGE",
+        ] {
+            assert!(
+                bare_msg.contains(sym),
+                "guard message must list `{sym}`; got {bare_msg:?}"
+            );
+        }
     }
 
     #[test]
