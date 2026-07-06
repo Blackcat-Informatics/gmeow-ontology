@@ -96,6 +96,17 @@ pub(crate) const GRAPH_LANG_PROJECTION_CORPUS: &str =
 /// axioms).
 pub(crate) const GRAPH_LANG_DOCS_RENDERING_CORPUS: &str =
     "https://blackcatinformatics.ca/gmeow/graph/lang-docs-rendering-corpus";
+/// The correspondence-laws corpus: every authored `logic:Correspondence` re-projected with
+/// the EXECUTED lens-law discharge verdicts attached — one `logic:LawClaim`
+/// (`logic:lawClaimed` / `logic:lawDischargeVerdict` / `logic:lawDischargeCondition`) per law
+/// the correspondence's rung permits, discharged by running its OWN per-binding get/put
+/// CONSTRUCT round-trip through the native engine. Folded as its own queryable
+/// named graph so a repo-free consumer reads which alignments provably round-trip
+/// (`ObligationDischarged`) without re-running the engine. Excluded from the reasoned
+/// object-level EDB exactly like `graph/projection-ledger` (it asserts a self-description /
+/// provenance corpus, not object-level axioms).
+pub(crate) const GRAPH_CORRESPONDENCE_LAWS: &str =
+    "https://blackcatinformatics.ca/gmeow/graph/correspondence-laws";
 /// The authored default graph (root ontology + slice modules + translations + guide
 /// anchors, NO imports) carried as a named graph on the `stage-source-load` product so
 /// the presenter reads it instead of re-loading the sources. It is an INTERNAL transport
@@ -516,6 +527,8 @@ fn assemble_carrier(
         producer_graph(upstream, "stage-mappings", GRAPH_LANG_PROJECTION_CORPUS)?;
     let lang_docs_rendering_corpus =
         producer_graph(upstream, "stage-mappings", GRAPH_LANG_DOCS_RENDERING_CORPUS)?;
+    let correspondence_laws =
+        producer_graph(upstream, "stage-mappings", GRAPH_CORRESPONDENCE_LAWS)?;
 
     // ── the carried graphs ride in from the producers' carriers ────────────────
     let reason = upstream
@@ -543,6 +556,7 @@ fn assemble_carrier(
         lang_form_corpus,
         lang_projection_corpus,
         lang_docs_rendering_corpus,
+        correspondence_laws,
     ];
     datasets.extend(compile_logic_object_graphs(upstream)?);
     datasets.push(rooted_in_graph(
