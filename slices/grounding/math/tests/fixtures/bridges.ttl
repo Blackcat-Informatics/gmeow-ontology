@@ -1,0 +1,126 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Deterministic ABox fixture for the six BRIDGES competency questions
+# (crates/slicetest run_competency_file, unioned with the merged ontology in the asserted
+# reasoningNone lane). Scoped to http://example.org/math/ so each query's answer is exact.
+# Three bridge runs (R, ONNX, proof), each carrying its lift correspondence, plus one
+# recorded unliftable-ingest diagnostic (Q4).
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <http://example.org/math/> .
+
+# --- R bridge (Q1, Q5, Q6) --------------------------------------------------- #
+ex:rRun a math:RIngestRun ;
+    math:parseSource ex:rSrc ;
+    math:ingestCorrespondence ex:rCorr ;
+    logic:instantiatesSchema ex:rSchema ;
+    logic:instantiatesPlan ex:rPlan .
+ex:rSrc a math:MathematicalObject ; logic:loadBearing true .
+ex:rSchema a logic:ActionSchema .
+ex:rPlan a logic:Plan .
+ex:rCorr a logic:Correspondence ;
+    logic:morphismClass logic:LossyLens ;
+    logic:preservationKind logic:ValidationOnly ;
+    logic:mnemomorphic true .
+# The computation product routed to logic: (the math:/logic: split).
+ex:rComp a math:MathematicalExpression ;
+    gmeow:wasGeneratedBy ex:rRun ;
+    math:compilesToLogicFormula ex:rLogic .
+ex:rLogic a logic:Formula .
+ex:rFit a math:FittedModel ;
+    gmeow:wasGeneratedBy ex:rRun ;
+    math:modelFormula ex:rFormula ;
+    math:fittedToData ex:rData .
+ex:rData a math:DatasetMatrix .
+ex:rFormula a math:ModelFormula ; math:argumentSlot ex:rSlot .
+ex:rSlot a math:ArgumentSlot ; math:slotIndex 0 ; math:slotExpression ex:rVar .
+ex:rVar a math:VariableExpression .
+# The held claim (Q5): the fit summary as a vantage-grounded observation.
+ex:rObs a gmeow:Observation ;
+    gmeow:observedFeature ex:rFit ;
+    gmeow:observationResult ex:rSummary ;
+    gmeow:vantage ex:rEngine ;
+    gmeow:wasGeneratedBy ex:rRun .
+ex:rSummary a math:MathematicalObject .
+ex:rEngine a gmeow:Standpoint .
+
+# --- ONNX bridge (Q2, Q6) ---------------------------------------------------- #
+ex:onnxRun a math:ONNXIngestRun ;
+    math:parseSource ex:oSrc ;
+    math:ingestCorrespondence ex:oCorr ;
+    logic:instantiatesSchema ex:oSchema ;
+    logic:instantiatesPlan ex:oPlan .
+ex:oSrc a math:MathematicalObject ; logic:loadBearing true .
+ex:oSchema a logic:ActionSchema .
+ex:oPlan a logic:Plan .
+ex:oCorr a logic:Correspondence ;
+    logic:morphismClass logic:LossyLens ;
+    logic:preservationKind logic:ValidationOnly ;
+    logic:mnemomorphic true .
+ex:oGraph a math:TensorComputationGraph ;
+    gmeow:wasGeneratedBy ex:onnxRun ;
+    math:architectureOf ex:oNet ;
+    math:computationNode ex:oNode .
+ex:oNode a math:ApplicationExpression ; math:operator math:matrixProduct .
+ex:oNet a math:LearnedModel .
+ex:oParams a math:ParameterSpace ;
+    gmeow:wasGeneratedBy ex:onnxRun ;
+    math:parameterSpaceOf ex:oNet .
+
+# --- Proof bridge (Q3, Q5, Q6) ----------------------------------------------- #
+ex:proofRun a math:ProofIngestRun ;
+    math:parseSource ex:pSrc ;
+    math:ingestCorrespondence ex:pCorr ;
+    logic:instantiatesSchema ex:pSchema ;
+    logic:instantiatesPlan ex:pPlan .
+ex:pSrc a math:MathematicalObject ; logic:loadBearing true .
+ex:pSchema a logic:ActionSchema .
+ex:pPlan a logic:Plan .
+ex:pCorr a logic:Correspondence ;
+    logic:morphismClass logic:LossyLens ;
+    logic:preservationKind logic:ValidationOnly ;
+    logic:mnemomorphic true .
+ex:pDag a math:ProofDependencyGraph ;
+    gmeow:wasGeneratedBy ex:proofRun .
+ex:pProof a math:Proof ;
+    gmeow:wasGeneratedBy ex:proofRun ;
+    math:provesGoal ex:pGoal ;
+    math:proofStep ex:pStep .
+ex:pGoal a logic:GoalExpression ;
+    logic:goalExpressionKind logic:AchievementGoal ;
+    logic:boundSituationType ex:pProved .
+ex:pProved a logic:Situation .
+ex:pStep a math:ProofStep .
+# The QED result object (Q5), grounded by an observation with the checker as vantage.
+ex:pQed a math:FormalVerificationResult ;
+    gmeow:wasGeneratedBy ex:proofRun .
+ex:pObs a gmeow:Observation ;
+    gmeow:observedFeature ex:pProof ;
+    gmeow:observationResult ex:pQed ;
+    gmeow:vantage ex:pChecker ;
+    gmeow:wasGeneratedBy ex:proofRun .
+ex:pChecker a gmeow:Standpoint .
+
+# --- A recorded unliftable-ingest diagnostic (Q4) ---------------------------- #
+# A run that could not lift its source records a math:UnliftableIngest diagnostic held as
+# an observation about the run — the hard-fail made queryable data.
+ex:badRun a math:RIngestRun ;
+    math:parseSource ex:badSrc ;
+    math:ingestCorrespondence ex:badCorr ;
+    logic:instantiatesSchema ex:badSchema ;
+    logic:instantiatesPlan ex:badPlan .
+ex:badSrc a math:MathematicalObject ; logic:loadBearing true .
+ex:badSchema a logic:ActionSchema .
+ex:badPlan a logic:Plan .
+ex:badCorr a logic:Correspondence ;
+    logic:morphismClass logic:BridgeView ;
+    logic:preservationKind logic:Unsupported ;
+    logic:mnemomorphic false .
+ex:badDiagObs a gmeow:Observation ;
+    gmeow:observedFeature ex:badRun ;
+    gmeow:observationResult ex:badDiag ;
+    gmeow:vantage ex:badChecker .
+ex:badDiag a math:UnliftableIngest .
+ex:badChecker a gmeow:Standpoint .
