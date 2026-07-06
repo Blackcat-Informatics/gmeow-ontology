@@ -1,0 +1,19 @@
+# Competency Q5: "Which bridge results are held as observations, by which activity and
+# vantage?" A bridge run's held claim is a gmeow:Observation naming its result
+# (gmeow:observationResult), the activity that generated it (gmeow:wasGeneratedBy a bridge
+# run), and the vantage it is held from. (The activity is matched by its concrete bridge
+# subclass, since the asserted lane does not materialize the math:IngestRun parent.)
+PREFIX math:  <https://blackcatinformatics.ca/math/>
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+
+SELECT ?activity ?result ?vantage WHERE {
+    ?obs a gmeow:Observation ;
+         gmeow:observationResult ?result ;
+         gmeow:vantage ?vantage ;
+         gmeow:wasGeneratedBy ?activity .
+    ?activity a ?activityType .
+    FILTER(?activityType IN (math:RIngestRun, math:ONNXIngestRun, math:ProofIngestRun))
+    FILTER(STRSTARTS(STR(?activity), "http://example.org/math/"))
+}
+ORDER BY ?activity ?result

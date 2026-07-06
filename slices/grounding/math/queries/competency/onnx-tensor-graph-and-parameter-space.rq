@@ -1,0 +1,18 @@
+# Competency Q2: "What tensor computation graph and parameter space did this ONNX model
+# lift into?" The ONNX ingest run produces (gmeow:wasGeneratedBy) a
+# math:TensorComputationGraph naming the model it is the architecture of, and a
+# math:ParameterSpace holding that model's parameters. Exactly one row.
+PREFIX math:  <https://blackcatinformatics.ca/math/>
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+
+SELECT ?run ?graph ?parameterSpace WHERE {
+    ?run a math:ONNXIngestRun .
+    ?graph gmeow:wasGeneratedBy ?run ;
+           a math:TensorComputationGraph ;
+           math:architectureOf ?model .
+    ?parameterSpace gmeow:wasGeneratedBy ?run ;
+                    math:parameterSpaceOf ?model .
+    FILTER(STRSTARTS(STR(?run), "http://example.org/math/"))
+}
+ORDER BY ?run ?graph
