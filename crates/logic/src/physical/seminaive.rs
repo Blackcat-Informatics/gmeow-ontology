@@ -195,6 +195,26 @@ enum FixpointStatus {
     Exhausted,
 }
 
+/// Whether the stratified fixpoint records per-derivation provenance.
+///
+/// `Record` mints reifiers + a content-addressed derivation id per firing and pushes a
+/// [`DerivedRow`] for every committed derivation — the forward `materialize_native` leg
+/// (the proof-graph evaluation). `Skip` commits the identical fact set, insertion order,
+/// and step budget but records nothing — the backward `evaluate` leg, which projects only
+/// [`Fact`]s and discards `DerivedRow`s (the facts-only evaluation). Because every candidate
+/// under one `FactKey` shares an identical head, the committed facts and their order are
+/// independent of provenance recording; `Skip` therefore agrees with `Record` on facts,
+/// order, and step count wherever `Record` succeeds, and is total on the input superset where
+/// reifier minting is partial (an RDF-star source that `Record` hard-fails on).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum ProvenanceMode {
+    /// Mint and retain full per-derivation provenance.
+    Record,
+    /// Commit facts only; record no provenance (no reifier minting, no derivation ids,
+    /// no `DerivedRow`s, no depth bookkeeping).
+    Skip,
+}
+
 /// Governs the step/derivation budget for the native fixpoint.
 ///
 /// A native "step" is **one committed derivation** — a winner inserted in the
@@ -611,8 +631,12 @@ pub(crate) fn materialize_native(
                     // A PER-WORLD unbounded governor: it never cuts, so its final
                     // `.consumed` counts exactly this world's derivations.
                     let mut governor = StepGovernor::new(None);
-                    let budgeted =
-                        eval_world_stratified(&edb_facts, &rules_by_stratum, &mut governor)?;
+                    let budgeted = eval_world_stratified(
+                        &edb_facts,
+                        &rules_by_stratum,
+                        &mut governor,
+                        ProvenanceMode::Record,
+                    )?;
                     // Derived rows AFTER the echo rows (same order as the sequential body).
                     for mut row in budgeted.rows {
                         row.graph = world.clone();
@@ -680,7 +704,12 @@ pub(crate) fn materialize_native(
         // Asserted-EDB echo (identical to wellfounded::materialize).
         out.extend(echo_asserted(world, &edb_facts)?);
 
-        let budgeted = eval_world_stratified(&edb_facts, &rules_by_stratum, &mut governor)?;
+        let budgeted = eval_world_stratified(
+            &edb_facts,
+            &rules_by_stratum,
+            &mut governor,
+            ProvenanceMode::Record,
+        )?;
         for mut row in budgeted.rows {
             row.graph = world.clone();
             out.push(row);
@@ -741,6 +770,7 @@ fn eval_world_stratified(
     edb_facts: &[Fact],
     rules_by_stratum: &[Vec<&EvalRule>],
     governor: &mut StepGovernor,
+    mode: ProvenanceMode,
 ) -> Result<Budgeted<Vec<DerivedRow>>, String> {
     // Shared accumulated store (both forms), seeded from the EDB in sorted-key order
     // (world_edb_facts already sorted), so seeding matches the reference.
@@ -760,7 +790,10 @@ fn eval_world_stratified(
         .collect();
 
     for f in edb_facts {
-        depth.insert(f.key(), 0);
+        // Depth 0 for the asserted seed feeds only the Record-mode tiebreak; Skip omits it.
+        if let ProvenanceMode::Record = mode {
+            depth.insert(f.key(), 0);
+        }
         if store.insert(f.clone()) {
             rel.insert(&f.predicate, f.subject.clone(), f.object.clone());
         }
@@ -787,6 +820,7 @@ fn eval_world_stratified(
             &mut derivations,
             governor,
             &mut builtin_gap,
+            mode,
         )? {
             FixpointStatus::Complete => {
                 // This stratum reached its natural fixpoint: its head predicates are now
@@ -829,6 +863,11 @@ fn eval_world_stratified(
 /// tiebreak, same depth bookkeeping, same body-order `source_quad_ids` — with the
 /// join replaced by [`join_body_indexed`] (index selection) and NAF read from the
 /// accumulated [`RelationStore`] (`rel`, the frozen-below store).
+///
+/// `mode` selects whether the loop mints and records provenance ([`ProvenanceMode::Record`],
+/// the forward leg) or commits facts only ([`ProvenanceMode::Skip`], the backward leg) — the
+/// committed fact set, insertion order, and step budget are identical either way.
+#[allow(clippy::too_many_arguments)]
 fn eval_stratum_fixpoint(
     rules: &[&EvalRule],
     store: &mut FactStore,
@@ -837,6 +876,7 @@ fn eval_stratum_fixpoint(
     derivations: &mut Vec<DerivedRow>,
     governor: &mut StepGovernor,
     builtin_gap: &mut bool,
+    mode: ProvenanceMode,
 ) -> Result<FixpointStatus, String> {
     // Seed delta with ALL currently-known keys so this stratum's rules fire against
     // the seed in round 1 (mirrors `least_model_of_reduct`'s `delta = key_set()`).
@@ -856,51 +896,73 @@ fn eval_stratum_fixpoint(
                     continue; // a prior round/stratum already derived it; earlier wins
                 }
 
-                // Provenance: reifiers of matched POSITIVE body facts in body order.
-                let mut sources: Vec<String> = Vec::with_capacity(sol.source_facts.len());
-                let mut max_sd: u32 = 0;
-                let mut sum_sd: u64 = 0;
-                for sf in &sol.source_facts {
-                    sources.push(sf.reifier()?);
-                    let d = *depth.get(&sf.key()).unwrap_or(&0);
-                    max_sd = max_sd.max(d);
-                    sum_sd = sum_sd.saturating_add(u64::from(d));
-                }
-                let src_refs: Vec<&str> = sources.iter().map(String::as_str).collect();
-                let deriv = mint_derivation_id(&rule.rule_iri, &src_refs);
-                let mut sorted_sources = sources.clone();
-                sorted_sources.sort();
-
-                let candidate = RuleRoundCandidate {
-                    head,
-                    key: key.clone(),
-                    sources,
-                    sorted_sources,
-                    deriv,
-                    rule_iri: rule.rule_iri.clone(),
-                    max_src_depth: max_sd,
-                    sum_src_depth: sum_sd,
-                };
-                round
-                    .entry(key)
-                    .and_modify(|existing| {
-                        let cand_key = (
-                            candidate.max_src_depth,
-                            candidate.sum_src_depth,
-                            &candidate.sorted_sources,
-                            &candidate.rule_iri,
-                        );
-                        let exist_key = (
-                            existing.max_src_depth,
-                            existing.sum_src_depth,
-                            &existing.sorted_sources,
-                            &existing.rule_iri,
-                        );
-                        if cand_key < exist_key {
-                            *existing = candidate.clone();
+                match mode {
+                    ProvenanceMode::Record => {
+                        // Provenance: reifiers of matched POSITIVE body facts in body order.
+                        let mut sources: Vec<String> = Vec::with_capacity(sol.source_facts.len());
+                        let mut max_sd: u32 = 0;
+                        let mut sum_sd: u64 = 0;
+                        for sf in &sol.source_facts {
+                            sources.push(sf.reifier()?);
+                            let d = *depth.get(&sf.key()).unwrap_or(&0);
+                            max_sd = max_sd.max(d);
+                            sum_sd = sum_sd.saturating_add(u64::from(d));
                         }
-                    })
-                    .or_insert(candidate);
+                        let src_refs: Vec<&str> = sources.iter().map(String::as_str).collect();
+                        let deriv = mint_derivation_id(&rule.rule_iri, &src_refs);
+                        let mut sorted_sources = sources.clone();
+                        sorted_sources.sort();
+
+                        let candidate = RuleRoundCandidate {
+                            head,
+                            key: key.clone(),
+                            sources,
+                            sorted_sources,
+                            deriv,
+                            rule_iri: rule.rule_iri.clone(),
+                            max_src_depth: max_sd,
+                            sum_src_depth: sum_sd,
+                        };
+                        round
+                            .entry(key)
+                            .and_modify(|existing| {
+                                let cand_key = (
+                                    candidate.max_src_depth,
+                                    candidate.sum_src_depth,
+                                    &candidate.sorted_sources,
+                                    &candidate.rule_iri,
+                                );
+                                let exist_key = (
+                                    existing.max_src_depth,
+                                    existing.sum_src_depth,
+                                    &existing.sorted_sources,
+                                    &existing.rule_iri,
+                                );
+                                if cand_key < exist_key {
+                                    *existing = candidate.clone();
+                                }
+                            })
+                            .or_insert(candidate);
+                    }
+                    ProvenanceMode::Skip => {
+                        // Facts-only: no `reifier()` minting, no derivation id, no depth read,
+                        // no tiebreak.  Every candidate under `key` shares an identical `head`
+                        // (the key is content-derived from the head), so first-seen wins and the
+                        // committed fact is invariant to the choice.  The provenance fields are
+                        // never read on this path.
+                        let cand = RuleRoundCandidate {
+                            head,
+                            key: key.clone(),
+                            sources: Vec::new(),
+                            sorted_sources: Vec::new(),
+                            deriv: String::new(),
+                            rule_iri: String::new(),
+                            max_src_depth: 0,
+                            sum_src_depth: 0,
+                        };
+                        round.entry(key).or_insert(cand);
+                    }
+                }
             }
         }
 
@@ -924,10 +986,17 @@ fn eval_stratum_fixpoint(
             if governor.spent() {
                 return Ok(FixpointStatus::Exhausted);
             }
-            let winner_depth = winner.max_src_depth.saturating_add(1);
-            depth.insert(winner.key.clone(), winner_depth);
+            // Depth bookkeeping feeds ONLY the Record-mode provenance tiebreak; Skip never
+            // reads it, so it is not maintained there (keeping the `depth` map empty under
+            // Skip — the debug-assert in `evaluate` locks that invariant).
+            if let ProvenanceMode::Record = mode {
+                let winner_depth = winner.max_src_depth.saturating_add(1);
+                depth.insert(winner.key.clone(), winner_depth);
+            }
             // Insert into both stores in lockstep so the columnar index order tracks
-            // the ternary store's insertion order exactly.
+            // the ternary store's insertion order exactly.  This — and the FactKey-sorted
+            // commit order, the `new_delta`, and the per-winner budget charge — are
+            // provenance-independent, so the committed fact set is byte-identical across modes.
             if store.insert(winner.head.clone()) {
                 rel.insert(
                     &winner.head.predicate,
@@ -939,16 +1008,20 @@ fn eval_stratum_fixpoint(
 
             // A winner is always a NEW key: heads already present (including every
             // EDB fact, seeded into `store` before the fixpoint) are skipped above via
-            // `store.contains_key`. So every winner is a genuine derivation.
-            derivations.push(DerivedRow {
-                graph: String::new(),
-                subject: winner.head.subject,
-                predicate: winner.head.predicate,
-                object: winner.head.object,
-                rule_iri: winner.rule_iri,
-                source_quad_ids: winner.sources, // body-order, NEVER the sorted copy
-                derivation_id: winner.deriv,
-            });
+            // `store.contains_key`. So every winner is a genuine derivation.  Under Skip the
+            // row is not built at all (no reifier strings, no derivation-id hash, no vec growth
+            // — the native analogue of the trace memory the facts-only lane must not pay).
+            if let ProvenanceMode::Record = mode {
+                derivations.push(DerivedRow {
+                    graph: String::new(),
+                    subject: winner.head.subject,
+                    predicate: winner.head.predicate,
+                    object: winner.head.object,
+                    rule_iri: winner.rule_iri,
+                    source_quad_ids: winner.sources, // body-order, NEVER the sorted copy
+                    derivation_id: winner.deriv,
+                });
+            }
             governor.charge();
         }
 
@@ -1030,17 +1103,19 @@ pub(crate) fn evaluate(
         .filter(|p| !head_preds.contains(p))
         .collect();
 
+    // This leg runs the fixpoint in `Skip` mode: it returns the full fact set
+    // (`store.facts()`) and never reads provenance, so the shared fixpoint mints no
+    // reifiers, no derivation ids, and no `DerivedRow`s (the native analogue of the trace
+    // memory a closure-only lane must not pay).  The seed therefore also skips the
+    // provenance-only `depth` bookkeeping.
     for f in &edb_facts {
-        depth.insert(f.key(), 0);
         if store.insert(f.clone()) {
             rel.insert(&f.predicate, f.subject.clone(), f.object.clone());
         }
     }
 
-    // This leg returns the full fact set (`store.facts()`); the derivation rows are
-    // unused here but the shared fixpoint records them for the forward leg.  The step
-    // governor is honoured identically to the forward path (single EDB, so the frontier
-    // is exact — no cross-world under-claim).
+    // The step governor is honoured identically to the forward path (single EDB, so the
+    // frontier is exact — no cross-world under-claim).
     let mut governor = StepGovernor::new(max_steps);
     let total = rules_by_stratum.len();
     let mut completed = 0usize;
@@ -1064,6 +1139,7 @@ pub(crate) fn evaluate(
             &mut derivations,
             &mut governor,
             &mut builtin_gap,
+            ProvenanceMode::Skip,
         )? {
             FixpointStatus::Complete => {
                 for rule in stratum_rules {
@@ -1077,6 +1153,15 @@ pub(crate) fn evaluate(
             }
         }
     }
+
+    // Skip mode records no provenance: the shared fixpoint mints no `DerivedRow`s and never
+    // writes the provenance-only `depth` map.  Locking this here means a future edit that made
+    // `depth` gate fact derivation (rather than only the provenance tiebreak) would trip the
+    // assertion instead of silently diverging the facts-only equivalence from the forward leg.
+    debug_assert!(
+        derivations.is_empty() && depth.is_empty(),
+        "Skip-mode evaluate must record no DerivedRows and no depth entries"
+    );
 
     if builtin_gap {
         return Ok(NativeOutcome::Unsupported(UnsupportedKind::Arithmetic));
