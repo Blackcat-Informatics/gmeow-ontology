@@ -19,8 +19,6 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use gmeow_logic::dag_profile::{DagCertification, certify_acyclic};
 
-use crate::error::PipelineError;
-
 /// The validated execution plan: stages bucketed into topological levels
 /// (producers first), plus the flat topological order.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -55,7 +53,7 @@ impl StageGraph {
     pub fn build(
         nodes: &BTreeSet<String>,
         consumes: &BTreeMap<String, BTreeSet<String>>,
-    ) -> Result<Self, PipelineError> {
+    ) -> Result<Self, gmeow_errors::Diag> {
         // ── Completeness: every CONSUMER key AND every consumed id must be a
         //    known node. A `consumes` entry whose KEY is not in `nodes` would
         //    later panic at `in_deps[stage]`; reject it here so the public
@@ -64,15 +62,19 @@ impl StageGraph {
         //    the certifier's job, below.) ──
         for (stage, deps) in consumes {
             if !nodes.contains(stage) {
-                return Err(PipelineError::InvalidDag(format!(
-                    "stage {stage} declares dependencies but is not itself a declared stage"
-                )));
+                return Err(gmeow_errors::Diag::of_kind(crate::error::InvalidDag {
+                    message: format!(
+                        "stage {stage} declares dependencies but is not itself a declared stage"
+                    ),
+                }));
             }
             for dep in deps {
                 if !nodes.contains(dep) {
-                    return Err(PipelineError::InvalidDag(format!(
-                        "stage {stage} consumes {dep}, which is not a declared stage"
-                    )));
+                    return Err(gmeow_errors::Diag::of_kind(crate::error::InvalidDag {
+                        message: format!(
+                            "stage {stage} consumes {dep}, which is not a declared stage"
+                        ),
+                    }));
                 }
             }
         }
@@ -91,15 +93,14 @@ impl StageGraph {
         match certify_acyclic(edges) {
             DagCertification::Certified => {}
             DagCertification::SelfLoop(stage) => {
-                return Err(PipelineError::InvalidDag(format!(
-                    "stage {stage} consumes itself (self-loop)"
-                )));
+                return Err(gmeow_errors::Diag::of_kind(crate::error::InvalidDag {
+                    message: format!("stage {stage} consumes itself (self-loop)"),
+                }));
             }
             DagCertification::Cycle(members) => {
-                return Err(PipelineError::InvalidDag(format!(
-                    "dependency cycle among stages: {}",
-                    members.join(" → ")
-                )));
+                return Err(gmeow_errors::Diag::of_kind(crate::error::InvalidDag {
+                    message: format!("dependency cycle among stages: {}", members.join(" → ")),
+                }));
             }
         }
 
@@ -129,10 +130,10 @@ impl StageGraph {
             // A non-empty graph with no ready node would be a cycle, already
             // rejected above; treat an empty level as a defensive hard fail.
             if level.is_empty() {
-                return Err(PipelineError::InvalidDag(
-                    "topological levelling stalled (unreachable: cycle already rejected)"
+                return Err(gmeow_errors::Diag::of_kind(crate::error::InvalidDag {
+                    message: "topological levelling stalled (unreachable: cycle already rejected)"
                         .to_string(),
-                ));
+                }));
             }
             level.sort();
             for id in &level {

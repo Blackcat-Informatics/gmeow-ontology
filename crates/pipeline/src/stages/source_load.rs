@@ -26,7 +26,6 @@ use purrdf::{
     flat_rdf_quads_from_dataset, parse_dataset, serialize_dataset,
 };
 
-use crate::error::PipelineError;
 use crate::node::{SOURCE_ORIGIN, Stage, StageInput, StageOutput, StageProduct};
 
 /// The `OriginKind` an authored file contributes, by its repo-relative role:
@@ -65,7 +64,7 @@ fn authored_origin_kind(root: &Path, path: &Path) -> OriginKind {
 /// construction (every quad is recorded as it is seen); the gate is the hard-fail proof.
 pub fn attributed_base_provenance(
     root: &Path,
-) -> Result<(DatasetProvenance, Vec<QuadHandle>), PipelineError> {
+) -> Result<(DatasetProvenance, Vec<QuadHandle>), gmeow_errors::Diag> {
     let mut prov = DatasetProvenance::new();
     // Content key (the per-file-scoped native quad, location stripped so two identical
     // triples on different source lines collapse exactly as the old oxigraph quad key
@@ -86,8 +85,11 @@ pub fn attributed_base_provenance(
         let unit = prov.register_unit(rel.clone(), kind);
         let artifact = prov.register_artifact(rel);
 
-        let dataset = parse_dataset(&bytes, "text/turtle", None)
-            .map_err(|e| PipelineError::Parse(format!("syntax error in {scope}: {e}")))?;
+        let dataset = parse_dataset(&bytes, "text/turtle", None).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Parse {
+                message: format!("syntax error in {scope}: {e}"),
+            })
+        })?;
         // SCOPE blank labels by the source path: each authored file is a distinct RDF
         // document whose anonymous blanks restart per parse, so a structurally-distinct
         // blank axiom in two files must keep two handles. The native flat un-fold mirrors
@@ -159,6 +161,37 @@ fn rescope_quad_blanks_keyless(quad: &RdfQuad, prefix: &str) -> RdfQuad {
 /// Logical path of the published base graph (N-Quads, in-memory dataflow).
 pub const BASE_GRAPH_PATH: &str = "pipeline/base-graph.nq";
 
+/// Build the authored subject→source-position [`SpanIndex`](crate::ingest::SpanIndex)
+/// under the FIXED span policy: emit spans for the [`OriginKind::RootOntology`] and
+/// [`OriginKind::Source`] files (the root ontology + slice modules) and SUPPRESS the
+/// [`OriginKind::Import`] files (`imports/*.ttl`). This is a pure function of the path —
+/// the same [`authored_origin_kind`] classification the provenance sidecar uses, with no
+/// knob. Each file is ingested THROUGH the swappable [`SourceAdapter`](crate::ingest::SourceAdapter)
+/// (today `purrdf`), so source position comes from ingestion, never a re-scan; the
+/// per-file contributions merge into one index, each file's path interned once.
+pub fn build_source_span_index(
+    root: &Path,
+) -> Result<crate::ingest::SpanIndex, gmeow_errors::Diag> {
+    use crate::ingest::SourceAdapter;
+    let adapter = crate::ingest::PurrdfAdapter;
+    let mut index = crate::ingest::SpanIndex::new();
+    for path in authored_files(root)? {
+        // Fixed policy: RootOntology + Source contribute spans; Import is suppressed.
+        if matches!(authored_origin_kind(root, &path), OriginKind::Import) {
+            continue;
+        }
+        let bytes = std::fs::read(&path)?;
+        let rel = path
+            .strip_prefix(root)
+            .unwrap_or(&path)
+            .to_string_lossy()
+            .replace('\\', "/");
+        let ingested = adapter.ingest(&rel, "text/turtle", &bytes)?;
+        index.merge(ingested.spans.into_index());
+    }
+    Ok(index)
+}
+
 /// Load `ontology/gmeow.ttl` + all slice modules + all imports into one frozen dataset.
 ///
 /// Each authored file is parsed standalone (its anonymous blanks `_:gts_<counter>`
@@ -167,13 +200,16 @@ pub const BASE_GRAPH_PATH: &str = "pipeline/base-graph.nq";
 /// twin of the old per-source FNV blank-prefix ingest) so two files' identically-labelled
 /// anonymous blanks stay disjoint. The union canonicalizes on freeze, so the result is
 /// order-independent.
-pub fn load_authored_dataset(root: &Path) -> Result<Arc<RdfDataset>, PipelineError> {
+pub fn load_authored_dataset(root: &Path) -> Result<Arc<RdfDataset>, gmeow_errors::Diag> {
     let mut parsed: Vec<Arc<RdfDataset>> = Vec::new();
     for path in authored_files(root)? {
         let bytes = std::fs::read(&path)?;
         let scope = path.display().to_string();
-        let dataset = parse_dataset(&bytes, "text/turtle", None)
-            .map_err(|e| PipelineError::Parse(format!("syntax error in {scope}: {e}")))?;
+        let dataset = parse_dataset(&bytes, "text/turtle", None).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Parse {
+                message: format!("syntax error in {scope}: {e}"),
+            })
+        })?;
         parsed.push(dataset);
     }
     let refs: Vec<&RdfDataset> = parsed.iter().map(|d| d.as_ref()).collect();
@@ -182,7 +218,7 @@ pub fn load_authored_dataset(root: &Path) -> Result<Arc<RdfDataset>, PipelineErr
 
 /// The sorted authored Turtle files that form the base graph (the hidden-input
 /// closure `source_load` declares so the cache key cannot go stale).
-pub fn authored_files(root: &Path) -> Result<Vec<PathBuf>, PipelineError> {
+pub fn authored_files(root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
     let mut files: Vec<PathBuf> = Vec::new();
     let onto = root.join("ontology").join("gmeow.ttl");
     if onto.exists() {
@@ -195,7 +231,7 @@ pub fn authored_files(root: &Path) -> Result<Vec<PathBuf>, PipelineError> {
 }
 
 /// Every `slices/<group>/<name>/module.ttl`.
-pub fn module_files(root: &Path) -> Result<Vec<PathBuf>, PipelineError> {
+pub fn module_files(root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
     let mut out = Vec::new();
     let slices = root.join("slices");
     for group in sorted_dirs(&slices)? {
@@ -213,7 +249,7 @@ pub fn module_files(root: &Path) -> Result<Vec<PathBuf>, PipelineError> {
 /// for export leaves whose cache key must reflect the slice manifests they read
 /// directly from disk (catalog, profiles, matrix — `gmeow:sliceProfile` /
 /// `sliceTier` / `sliceDependsOn` live in the manifest, NOT the composed fold).
-pub fn manifest_files(root: &Path) -> Result<Vec<PathBuf>, PipelineError> {
+pub fn manifest_files(root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
     let mut out = Vec::new();
     for module in module_files(root)? {
         let manifest = module.with_file_name("manifest.ttl");
@@ -230,7 +266,7 @@ pub fn manifest_files(root: &Path) -> Result<Vec<PathBuf>, PipelineError> {
 /// selection. `manifest_files` is deliberately module-gated (a slice that loads
 /// nothing has no composed fold); the profiles stage uses THIS to discover the
 /// selection-only profile slices whose dependency closure it emits.
-pub fn all_manifest_files(root: &Path) -> Result<Vec<PathBuf>, PipelineError> {
+pub fn all_manifest_files(root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
     let mut out = Vec::new();
     let slices = root.join("slices");
     for group in sorted_dirs(&slices)? {
@@ -244,7 +280,7 @@ pub fn all_manifest_files(root: &Path) -> Result<Vec<PathBuf>, PipelineError> {
     Ok(out)
 }
 
-fn ttl_files_in(dir: &Path) -> Result<Vec<PathBuf>, PipelineError> {
+fn ttl_files_in(dir: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
     // Same NotFound-is-empty contract as `sorted_dirs`: an absent directory yields an
     // empty listing, any other IO error hard-fails.
     let mut out = Vec::new();
@@ -263,7 +299,7 @@ fn ttl_files_in(dir: &Path) -> Result<Vec<PathBuf>, PipelineError> {
     Ok(out)
 }
 
-fn sorted_dirs(dir: &Path) -> Result<Vec<PathBuf>, PipelineError> {
+fn sorted_dirs(dir: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
     // An absent directory is not an error — the caller iterating an optional tree gets
     // an empty listing (no manual existence pre-check needed). Any OTHER IO error (e.g.
     // permission denied) and per-entry errors still fail-fast: a transient FS error must
@@ -289,12 +325,22 @@ fn sorted_dirs(dir: &Path) -> Result<Vec<PathBuf>, PipelineError> {
 /// is the single dataset → N-Quads projection the pipeline's in-memory dataflow speaks;
 /// the `gts_compose` stage projects the composed UNION dataset through it for its byte
 /// lane.
-pub fn dataset_to_sorted_nquads(dataset: &purrdf::RdfDataset) -> Result<Vec<u8>, PipelineError> {
-    let buf = serialize_dataset(dataset, "application/n-quads", SerializeGraph::Dataset)
-        .map_err(|e| PipelineError::Parse(format!("serialize failed: {e}")))?;
+pub fn dataset_to_sorted_nquads(
+    dataset: &purrdf::RdfDataset,
+) -> Result<Vec<u8>, gmeow_errors::Diag> {
+    let buf = serialize_dataset(dataset, "application/n-quads", SerializeGraph::Dataset).map_err(
+        |e| {
+            gmeow_errors::Diag::of_kind(crate::error::Parse {
+                message: format!("serialize failed: {e}"),
+            })
+        },
+    )?;
     // Sort lines for determinism (serializer iteration order is not guaranteed).
-    let text = String::from_utf8(buf)
-        .map_err(|e| PipelineError::Parse(format!("non-utf8 n-quads: {e}")))?;
+    let text = String::from_utf8(buf).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            message: format!("non-utf8 n-quads: {e}"),
+        })
+    })?;
     let mut lines: Vec<&str> = text.lines().filter(|l| !l.is_empty()).collect();
     lines.sort_unstable();
     let mut out = lines.join("\n");
@@ -304,9 +350,12 @@ pub fn dataset_to_sorted_nquads(dataset: &purrdf::RdfDataset) -> Result<Vec<u8>,
 
 /// Parse the published base-graph N-Quads artifact back into a frozen dataset (the
 /// in-memory hand-off downstream stages use instead of re-reading from disk).
-pub fn parse_base_graph(bytes: &[u8]) -> Result<Arc<RdfDataset>, PipelineError> {
-    parse_dataset(bytes, "application/n-quads", None)
-        .map_err(|e| PipelineError::Parse(format!("base-graph parse: {e}")))
+pub fn parse_base_graph(bytes: &[u8]) -> Result<Arc<RdfDataset>, gmeow_errors::Diag> {
+    parse_dataset(bytes, "application/n-quads", None).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            message: format!("base-graph parse: {e}"),
+        })
+    })
 }
 
 /// Parse RDF text `bytes` of `media_type` into a fresh frozen [`RdfDataset`] via the
@@ -315,9 +364,12 @@ pub fn rdf_bytes_to_dataset(
     bytes: &[u8],
     media_type: &str,
     context: &str,
-) -> Result<Arc<RdfDataset>, PipelineError> {
-    parse_dataset(bytes, media_type, None)
-        .map_err(|e| PipelineError::Parse(format!("syntax error in {context}: {e}")))
+) -> Result<Arc<RdfDataset>, gmeow_errors::Diag> {
+    parse_dataset(bytes, media_type, None).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            message: format!("syntax error in {context}: {e}"),
+        })
+    })
 }
 
 /// Parse Turtle `bytes` into a fresh frozen [`RdfDataset`] via the native codecs.
@@ -327,7 +379,7 @@ pub fn rdf_bytes_to_dataset(
 pub fn turtle_bytes_to_dataset(
     bytes: &[u8],
     context: &str,
-) -> Result<Arc<RdfDataset>, PipelineError> {
+) -> Result<Arc<RdfDataset>, gmeow_errors::Diag> {
     rdf_bytes_to_dataset(bytes, "text/turtle", context)
 }
 
@@ -372,9 +424,12 @@ impl Stage for SourceLoadStage {
         // reads them instead of re-loading + re-canonicalizing the sources on the serial
         // snapshot node (PIPELINE_SPINE §3.2/§4). The BASE_GRAPH_PATH byte lane and the
         // default-graph fold `gts_compose` takes are unchanged.
-        "source_load.v2-self-description"
+        // v3: attach the authored subject→source-position SpanIndex as the digest-pinned
+        // REP_SPAN_TABLE blob (the fixed span policy — RootOntology+Source, Import
+        // suppressed) so the diagnostics consumers lift source coordinates onto findings.
+        "source_load.v3-source-span-table"
     }
-    fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, PipelineError> {
+    fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
         // The self-description graphs read authored sources beyond the base authored
         // files: imports, self-description metadata, SSSOM alignments, slice manifests +
         // shapes (slice-analysis / verify), translation catalogs + docs guides (the
@@ -387,7 +442,7 @@ impl Stage for SourceLoadStage {
         files.dedup();
         Ok(files)
     }
-    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
+    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         // Carry the authored base graph as the bundle's DEFAULT graph (the native
         // contribution `gts_compose`'s default-graph fold unions), and keep emitting the
         // BASE_GRAPH_PATH N-Quads byte lane for the byte readers — BOTH from the base
@@ -401,9 +456,30 @@ impl Stage for SourceLoadStage {
         let dataset = Arc::new(RdfDataset::union(&[base.as_ref(), self_desc.as_ref()]));
         let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
         artifacts.insert(BASE_GRAPH_PATH.to_string(), nq);
-        Ok(StageOutput {
-            product: StageProduct::from_artifacts_over(self.id(), dataset, artifacts),
-        })
+        // Build the authored subject→source-position span index (fixed policy: RootOntology
+        // + Source, Import suppressed) and attach it as the digest-pinned REP_SPAN_TABLE
+        // raw-JSON blob — the SINGLE source of the source spans the diagnostics consumers
+        // lift onto their findings. It rides the by-reference blob lane (cache-replayable),
+        // and the scheduler strips it once the last consumer has run.
+        let span_index = build_source_span_index(input.root)?;
+        let span_blob = serde_json::to_vec(&span_index).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                stage: self.id().to_owned(),
+                message: format!("encode source-span table blob: {e}"),
+            })
+        })?;
+        let bundle = crate::bundle::bundle_from_artifacts_over_with_rep_blob(
+            dataset,
+            artifacts,
+            purrdf::provenance::DatasetProvenance::new(),
+            crate::stages::carrier::REP_SPAN_TABLE,
+            "application/json",
+            span_blob,
+        );
+        Ok(StageOutput::new(StageProduct::from_bundle(
+            self.id(),
+            Arc::new(bundle),
+        )))
     }
 }
 
@@ -449,6 +525,72 @@ mod tests {
             files.len() > 50,
             "expected 50+ authored files, got {}",
             files.len()
+        );
+    }
+
+    /// Fixed span policy, asserted against the span table read back from the FOLDED
+    /// product bundle (not just the live index): a RootOntology + Source file contribute
+    /// their subjects; the imports/ (Import) file is SUPPRESSED. Mirrors
+    /// `bundle_carries_the_consumer_archives` in reading through the fold accessor.
+    #[test]
+    fn fixed_policy_emits_source_and_root_suppresses_imports_through_the_fold() {
+        use std::sync::Arc;
+        let repo = tempfile::tempdir().unwrap();
+        let root = repo.path();
+        // RootOntology: ontology/gmeow.ttl.
+        std::fs::create_dir_all(root.join("ontology")).unwrap();
+        std::fs::write(
+            root.join("ontology/gmeow.ttl"),
+            "@prefix ex: <https://example.test/> .\nex:rootSubject a ex:Root .\n",
+        )
+        .unwrap();
+        // Source: a slice module.ttl.
+        std::fs::create_dir_all(root.join("slices/g/n")).unwrap();
+        std::fs::write(
+            root.join("slices/g/n/module.ttl"),
+            "@prefix ex: <https://example.test/> .\nex:sourceSubject a ex:Thing .\n",
+        )
+        .unwrap();
+        // Import: imports/foo.ttl — must be SUPPRESSED.
+        std::fs::create_dir_all(root.join("imports")).unwrap();
+        std::fs::write(
+            root.join("imports/foo.ttl"),
+            "@prefix ex: <https://example.test/> .\nex:importSubject a ex:Imported .\n",
+        )
+        .unwrap();
+
+        // Fold the built index into a product bundle exactly as `run` does, then read it
+        // back through the `span_index()` accessor (the folded product, not the live index).
+        let index = build_source_span_index(root).expect("build span index");
+        let blob = serde_json::to_vec(&index).expect("encode");
+        let bundle = crate::bundle::bundle_from_artifacts_over_with_rep_blob(
+            Arc::new(RdfDataset::union(&[])),
+            BTreeMap::new(),
+            purrdf::provenance::DatasetProvenance::new(),
+            crate::stages::carrier::REP_SPAN_TABLE,
+            "application/json",
+            blob,
+        );
+        let product = StageProduct::from_bundle("stage-source-load", Arc::new(bundle));
+        let folded = product
+            .span_index()
+            .expect("read span table back from the fold");
+
+        assert!(
+            folded.lookup("https://example.test/rootSubject").is_some(),
+            "RootOntology subject must be tracked"
+        );
+        assert!(
+            folded
+                .lookup("https://example.test/sourceSubject")
+                .is_some(),
+            "Source subject must be tracked"
+        );
+        assert!(
+            folded
+                .lookup("https://example.test/importSubject")
+                .is_none(),
+            "Import subject must be SUPPRESSED by the fixed policy"
         );
     }
 

@@ -17,6 +17,8 @@
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
+use gmeow_errors::ResultExt;
+
 use crate::cache::content_digest;
 
 /// Static metadata for one logical artifact generator.
@@ -248,7 +250,7 @@ pub fn committed_generated_paths() -> Vec<&'static str> {
 /// repo-relative path. Missing sources are skipped (a generator whose sources
 /// are not present in the working tree still returns a hash of the paths that
 /// do exist, or an empty-string hash if none exist).
-pub fn source_hash(root: &Path, generator: &GeneratorInfo) -> Result<String, String> {
+pub fn source_hash(root: &Path, generator: &GeneratorInfo) -> gmeow_errors::Result<String> {
     let mut entries: Vec<(PathBuf, Vec<u8>)> = Vec::new();
     for src in generator.sources {
         let path = root.join(src);
@@ -256,7 +258,7 @@ pub fn source_hash(root: &Path, generator: &GeneratorInfo) -> Result<String, Str
             collect_dir(&path, root, &mut entries)?;
         } else if path.is_file() {
             let bytes =
-                std::fs::read(&path).map_err(|e| format!("cannot read {}: {e}", path.display()))?;
+                std::fs::read(&path).with_ctx(|| format!("cannot read {}", path.display()))?;
             entries.push((PathBuf::from(src), bytes));
         }
     }
@@ -284,7 +286,7 @@ pub struct GeneratorMetadata {
 }
 
 /// Build a metadata record for every registered generator.
-pub fn generator_metadata(root: &Path) -> Result<Vec<GeneratorMetadata>, String> {
+pub fn generator_metadata(root: &Path) -> gmeow_errors::Result<Vec<GeneratorMetadata>> {
     let mut out = Vec::with_capacity(GENERATORS.len());
     for generator in GENERATORS {
         let hash = source_hash(root, generator)?;
@@ -305,11 +307,15 @@ pub fn generator_metadata(root: &Path) -> Result<Vec<GeneratorMetadata>, String>
 
 /// Recursively collect (repo-relative path, bytes) pairs for every regular file
 /// under `dir`, skipping hidden directories and the pipeline cache.
-fn collect_dir(dir: &Path, root: &Path, out: &mut Vec<(PathBuf, Vec<u8>)>) -> Result<(), String> {
+fn collect_dir(
+    dir: &Path,
+    root: &Path,
+    out: &mut Vec<(PathBuf, Vec<u8>)>,
+) -> gmeow_errors::Result<()> {
     let mut stack = vec![dir.to_path_buf()];
     while let Some(current) = stack.pop() {
         let entries = std::fs::read_dir(&current)
-            .map_err(|e| format!("cannot read directory {}: {e}", current.display()))?;
+            .with_ctx(|| format!("cannot read directory {}", current.display()))?;
         for entry in entries.flatten() {
             let path = entry.path();
             let file_name = path.file_name().and_then(|n| n.to_str()).unwrap_or("");
@@ -326,7 +332,7 @@ fn collect_dir(dir: &Path, root: &Path, out: &mut Vec<(PathBuf, Vec<u8>)>) -> Re
             }
             let rel = path.strip_prefix(root).unwrap_or(&path).to_path_buf();
             let bytes =
-                std::fs::read(&path).map_err(|e| format!("cannot read {}: {e}", path.display()))?;
+                std::fs::read(&path).with_ctx(|| format!("cannot read {}", path.display()))?;
             out.push((rel, bytes));
         }
     }

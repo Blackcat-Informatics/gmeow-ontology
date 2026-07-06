@@ -26,6 +26,7 @@ use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use serde_json::{Value, json};
 
+use gmeow_errors::ResultExt;
 use gmeow_logic::transaction::execute::{CommitMode, TxReceipt, execute_transaction};
 use purrdf::gts::examples::agent_memory::{
     Memory, RecallOptions, RevisionOptions, StoreOptions, ToolCallOptions,
@@ -74,16 +75,16 @@ pub struct McpView {
 
 impl McpView {
     #[cfg(feature = "python")]
-    fn from_snapshot(snapshot: &[u8]) -> Result<Self, String> {
+    fn from_snapshot(snapshot: &[u8]) -> gmeow_errors::Result<Self> {
         let bundle = purrdf::import_gts_events(snapshot)
-            .map_err(|e| format!("read snapshot gmeow.gts: {e}"))?;
+            .with_ctx(|| "read snapshot gmeow.gts".to_string())?;
         Self::from_dataset(bundle.dataset)
     }
 
-    fn from_dataset(dataset: Arc<purrdf::RdfDataset>) -> Result<Self, String> {
+    fn from_dataset(dataset: Arc<purrdf::RdfDataset>) -> gmeow_errors::Result<Self> {
         let (title, version) = {
             let view = FoldView::new(dataset.as_ref());
-            export::fold_meta(&view).map_err(|e| e.to_string())?
+            export::fold_meta(&view)?
         };
         Ok(Self {
             dataset,
@@ -138,17 +139,16 @@ impl McpView {
     fn query_docs_json(&self, sparql: &str) -> String {
         match self.run_docs_query(sparql) {
             Ok(value) => value.to_string(),
-            Err(err) => json!({"ok": false, "error": err}).to_string(),
+            Err(err) => json!({"ok": false, "error": err.to_string()}).to_string(),
         }
     }
 
-    fn run_docs_query(&self, sparql: &str) -> Result<Value, String> {
+    fn run_docs_query(&self, sparql: &str) -> gmeow_errors::Result<Value> {
         let docs = std::sync::Arc::new(
             self.dataset
                 .project_named_graph(crate::stages::carrier::GRAPH_DOCUMENTATION),
         );
-        let result =
-            crate::stages::native_query::query(&docs, sparql).map_err(|e| e.to_string())?;
+        let result = crate::stages::native_query::query(&docs, sparql)?;
         sparql_result_to_json(result)
     }
 
@@ -159,7 +159,7 @@ impl McpView {
     fn query_local_json(&self, overlay_path: &str, sparql: &str) -> String {
         match self.run_local_query(overlay_path, sparql) {
             Ok(value) => value.to_string(),
-            Err(err) => json!({"ok": false, "error": err}).to_string(),
+            Err(err) => json!({"ok": false, "error": err.to_string()}).to_string(),
         }
     }
 
@@ -179,7 +179,7 @@ impl McpView {
     ///   NEVER folded into `gmeow.gts`, and NEVER written back to the canon or the
     ///   overlay file (the memory-write triad only ever touches `memory.gts`);
     /// * only SELECT / ASK are accepted (CONSTRUCT / DESCRIBE are rejected).
-    fn run_local_query(&self, overlay_path: &str, sparql: &str) -> Result<Value, String> {
+    fn run_local_query(&self, overlay_path: &str, sparql: &str) -> gmeow_errors::Result<Value> {
         let path = Path::new(overlay_path);
         // The media type is the file extension (ttl/nt/nq/trig/rdf/owl/xml/…); an
         // unknown extension HARD-FAILS in `parse_dataset` (no silent fallback).
@@ -188,9 +188,9 @@ impl McpView {
             .and_then(|ext| ext.to_str())
             .map(str::to_ascii_lowercase)
             .unwrap_or_else(|| "text/turtle".to_string());
-        let bytes = fs::read(path).map_err(|e| format!("read overlay {overlay_path}: {e}"))?;
+        let bytes = fs::read(path).with_ctx(|| format!("read overlay {overlay_path}"))?;
         let overlay = purrdf::parse_dataset(&bytes, &media, None)
-            .map_err(|e| format!("parse overlay {overlay_path}: {e}"))?;
+            .with_ctx(|| format!("parse overlay {overlay_path}"))?;
 
         let mut builder = purrdf::RdfDatasetBuilder::new();
         // The signed canon — verbatim, never mutated.
@@ -206,9 +206,8 @@ impl McpView {
             tagged.graph_name = Some(external.clone());
             builder.push_owned_quad(&tagged);
         }
-        let dataset = builder.freeze().map_err(|e| e.to_string())?;
-        let result =
-            crate::stages::native_query::query(&dataset, sparql).map_err(|e| e.to_string())?;
+        let dataset = builder.freeze()?;
+        let result = crate::stages::native_query::query(&dataset, sparql)?;
         sparql_result_to_json(result)
     }
 }
@@ -217,7 +216,7 @@ impl McpView {
 /// SELECT bindings (SPARQL-1.1 JSON-results shape), or — for a CONSTRUCT / DESCRIBE
 /// graph result — a hard error (these tools serve bindings or a boolean, never a
 /// graph).
-fn sparql_result_to_json(result: purrdf::SparqlResult) -> Result<Value, String> {
+fn sparql_result_to_json(result: purrdf::SparqlResult) -> gmeow_errors::Result<Value> {
     match result {
         purrdf::SparqlResult::Boolean(value) => Ok(json!({"ok": true, "boolean": value})),
         purrdf::SparqlResult::Solutions {
@@ -243,11 +242,11 @@ fn sparql_result_to_json(result: purrdf::SparqlResult) -> Result<Value, String> 
                 "results": {"bindings": bindings},
             }))
         }
-        purrdf::SparqlResult::Graph(_) => Err(
-            "this tool accepts only SELECT and ASK queries; CONSTRUCT/DESCRIBE are not \
-             supported (it serves bindings or a boolean, never a graph)"
+        purrdf::SparqlResult::Graph(_) => Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
+            message: "this tool accepts only SELECT and ASK queries; CONSTRUCT/DESCRIBE are not \
+                      supported (it serves bindings or a boolean, never a graph)"
                 .to_string(),
-        ),
+        })),
     }
 }
 
@@ -286,7 +285,7 @@ impl McpView {
     /// snapshot does not read or lacks the ontology header (`fold_meta`).
     #[new]
     fn new(snapshot: &[u8]) -> PyResult<Self> {
-        Self::from_snapshot(snapshot).map_err(PyValueError::new_err)
+        Self::from_snapshot(snapshot).map_err(|e| PyValueError::new_err(e.to_string()))
     }
 
     /// Resolve a CURIE / local name / IRI / unambiguous prefix to its public
@@ -385,7 +384,7 @@ impl McpServer {
     #[pyo3(signature = (snapshot, root = None, dev = false))]
     fn new(snapshot: &[u8], root: Option<String>, dev: bool) -> PyResult<Self> {
         Self::from_snapshot(snapshot, root.map(PathBuf::from), McpMode::from_bool(dev))
-            .map_err(PyValueError::new_err)
+            .map_err(|e| PyValueError::new_err(e.to_string()))
     }
 
     /// JSON form of the MCP tool list, useful for smoke tests and launchers.
@@ -429,9 +428,9 @@ impl McpServer {
         snapshot: &[u8],
         root: Option<PathBuf>,
         mode: McpMode,
-    ) -> Result<Self, String> {
+    ) -> gmeow_errors::Result<Self> {
         let bundle = purrdf::import_gts_events(snapshot)
-            .map_err(|e| format!("read snapshot gmeow.gts: {e}"))?;
+            .with_ctx(|| "read snapshot gmeow.gts".to_string())?;
         let dataset = bundle.dataset;
         let tag_map = language_tag_map(dataset.as_ref());
         let mut available: BTreeSet<String> =
@@ -449,7 +448,7 @@ impl McpServer {
         })
     }
 
-    fn requested_from_args(&self, args: &Value) -> Result<Vec<String>, String> {
+    fn requested_from_args(&self, args: &Value) -> gmeow_errors::Result<Vec<String>> {
         match args.get("lang").and_then(Value::as_str) {
             Some(lang) => resolve_lang(Some(lang), &self.tag_map, &self.available),
             None => Ok(self.startup_requested.clone()),
@@ -610,11 +609,16 @@ impl McpServer {
             "reason" if self.mode.includes_dev_tools() => self.tool_reason(),
             "regenerate" if self.mode.includes_dev_tools() => self.tool_regenerate(),
             "constitution" if self.mode.includes_dev_tools() => self.tool_constitution(),
-            _ => Err(format!("unknown tool: {name}")),
+            _ => Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                message: format!("unknown tool: {name}"),
+            })),
         };
         match result {
             Ok(text) => tool_text(text, false),
-            Err(err) => tool_text(json!({"ok": false, "error": err}).to_string(), true),
+            Err(err) => tool_text(
+                json!({"ok": false, "error": err.to_string()}).to_string(),
+                true,
+            ),
         }
     }
 
@@ -624,7 +628,7 @@ impl McpServer {
                 "contents": [{"uri": uri, "mimeType": mime, "text": text}],
             }),
             Err(err) => json!({
-                "contents": [{"uri": uri, "mimeType": "application/json", "text": json!({"ok": false, "error": err}).to_string()}],
+                "contents": [{"uri": uri, "mimeType": "application/json", "text": json!({"ok": false, "error": err.to_string()}).to_string()}],
                 "isError": true,
             }),
         }
@@ -681,62 +685,62 @@ impl McpServer {
     /// Serve the stdio JSON-RPC 2.0 MCP loop: one request per line on stdin, one
     /// response per line on stdout, until EOF. Blocking; the native `gmeow mcp` /
     /// `gmeow-dev mcp` launchers call this directly.
-    pub fn run_stdio(&self) -> Result<(), String> {
+    pub fn run_stdio(&self) -> gmeow_errors::Result<()> {
         let stdin = io::stdin();
         let mut stdout = io::stdout();
         for line in stdin.lock().lines() {
-            let line = line.map_err(|e| e.to_string())?;
+            let line = line?;
             if line.trim().is_empty() {
                 continue;
             }
             let response = self.handle_message(&line);
             if !response.is_empty() {
-                writeln!(stdout, "{response}").map_err(|e| e.to_string())?;
-                stdout.flush().map_err(|e| e.to_string())?;
+                writeln!(stdout, "{response}")?;
+                stdout.flush()?;
             }
         }
         Ok(())
     }
 
-    fn tool_lookup_term(&self, args: &Value) -> Result<String, String> {
+    fn tool_lookup_term(&self, args: &Value) -> gmeow_errors::Result<String> {
         let term = required_str(args, "term")?;
         let requested = self.requested_from_args(args)?;
         Ok(self.view.lookup_term_json(term, requested))
     }
 
-    fn tool_llms_txt(&self, args: &Value) -> Result<String, String> {
+    fn tool_llms_txt(&self, args: &Value) -> gmeow_errors::Result<String> {
         let requested = self.requested_from_args(args)?;
         Ok(self.view.llms_txt_text(requested))
     }
 
-    fn tool_llms_full(&self, args: &Value) -> Result<String, String> {
+    fn tool_llms_full(&self, args: &Value) -> gmeow_errors::Result<String> {
         let requested = self.requested_from_args(args)?;
         Ok(self.view.llms_full_text(requested))
     }
 
-    fn tool_doc_card(&self, args: &Value) -> Result<String, String> {
+    fn tool_doc_card(&self, args: &Value) -> gmeow_errors::Result<String> {
         let term = required_str(args, "term")?;
         let requested = self.requested_from_args(args)?;
         Ok(self.view.doc_card_text(term, requested))
     }
 
-    fn tool_okf_index(&self, args: &Value) -> Result<String, String> {
+    fn tool_okf_index(&self, args: &Value) -> gmeow_errors::Result<String> {
         let requested = self.requested_from_args(args)?;
         Ok(self.view.okf_index_json(requested))
     }
 
-    fn tool_query_docs(&self, args: &Value) -> Result<String, String> {
+    fn tool_query_docs(&self, args: &Value) -> gmeow_errors::Result<String> {
         let query = required_str(args, "query")?;
         Ok(self.view.query_docs_json(query))
     }
 
-    fn tool_query_local(&self, args: &Value) -> Result<String, String> {
+    fn tool_query_local(&self, args: &Value) -> gmeow_errors::Result<String> {
         let path = required_str(args, "path")?;
         let query = required_str(args, "query")?;
         Ok(self.view.query_local_json(path, query))
     }
 
-    fn tool_store_claim(&self, args: &Value) -> Result<String, String> {
+    fn tool_store_claim(&self, args: &Value) -> gmeow_errors::Result<String> {
         let text = required_str(args, "text")?;
         let confidence = optional_f64(args, "confidence")?;
         let dry_run = optional_bool_checked(args, "dry_run")?.unwrap_or(false);
@@ -769,39 +773,36 @@ impl McpServer {
         }
 
         let memory = self.memory()?;
-        let claim = memory
-            .store(
-                text,
-                StoreOptions {
-                    source: optional_str(args, "source"),
-                    confidence,
-                    according_to: optional_str(args, "according_to"),
-                },
-            )
-            .map_err(|e| e.to_string())?;
+        let claim = memory.store(
+            text,
+            StoreOptions {
+                source: optional_str(args, "source"),
+                confidence,
+                according_to: optional_str(args, "according_to"),
+            },
+        )?;
         let response =
             json!({"ok": true, "claim": claim_json(&claim), "transaction": txn_json(&receipt)})
                 .to_string();
         let generated = [claim.id.as_str()];
-        let call = memory
-            .record_tool_call(
-                &format!("{TOOL_AGENT_NS}store_claim"),
-                ToolCallOptions {
-                    arguments: Some(&tool_arguments(
-                        args,
-                        &["text", "source", "confidence", "according_to", "dry_run"],
-                    )),
-                    result: Some(&response),
-                    invocation: None,
-                    generated: &generated,
-                },
-            )
-            .map_err(|e| e.to_string())?;
+        let call = memory.record_tool_call(
+            &format!("{TOOL_AGENT_NS}store_claim"),
+            ToolCallOptions {
+                arguments: Some(&tool_arguments(
+                    args,
+                    &["text", "source", "confidence", "according_to", "dry_run"],
+                )),
+                result: Some(&response),
+                invocation: None,
+                generated: &generated,
+            },
+        )?;
         // Record the trajectory-audit context on the recorded call so the committed turn is cold-auditable.
-        let at_time = call
-            .created
-            .as_deref()
-            .ok_or("record_tool_call did not stamp a creation time")?;
+        let at_time = call.created.as_deref().ok_or_else(|| {
+            gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                message: "record_tool_call did not stamp a creation time".to_string(),
+            })
+        })?;
         write_audit_segment(
             memory.path(),
             &call.id,
@@ -812,17 +813,14 @@ impl McpServer {
         Ok(response)
     }
 
-    fn tool_recall(&self, args: &Value) -> Result<String, String> {
+    fn tool_recall(&self, args: &Value) -> gmeow_errors::Result<String> {
         let limit = optional_limit(args, "limit")?.unwrap_or(10);
-        let claims = self
-            .memory()?
-            .recall(RecallOptions {
-                query: optional_str(args, "query").unwrap_or(""),
-                min_confidence: optional_f64(args, "min_confidence")?,
-                limit,
-                include_suppressed: optional_bool(args, "include_suppressed").unwrap_or(false),
-            })
-            .map_err(|e| e.to_string())?;
+        let claims = self.memory()?.recall(RecallOptions {
+            query: optional_str(args, "query").unwrap_or(""),
+            min_confidence: optional_f64(args, "min_confidence")?,
+            limit,
+            include_suppressed: optional_bool(args, "include_suppressed").unwrap_or(false),
+        })?;
         Ok(json!({
             "ok": true,
             "claims": claims.iter().map(claim_json).collect::<Vec<_>>(),
@@ -830,11 +828,11 @@ impl McpServer {
         .to_string())
     }
 
-    fn tool_revise_belief(&self, args: &Value) -> Result<String, String> {
+    fn tool_revise_belief(&self, args: &Value) -> gmeow_errors::Result<String> {
         let claim_id = required_str(args, "claim_id")?;
         let dry_run = optional_bool_checked(args, "dry_run")?.unwrap_or(false);
         let memory = self.memory()?;
-        let claims = memory.claims().map_err(|e| e.to_string())?;
+        let claims = memory.claims()?;
         let known: BTreeSet<&str> = claims.iter().map(|claim| claim.id.as_str()).collect();
         let active: BTreeSet<&str> = claims
             .iter()
@@ -885,15 +883,13 @@ impl McpServer {
             TxReceipt::CommittedSuccess { .. } => {}
         }
 
-        memory
-            .revise(
-                claim_id,
-                RevisionOptions {
-                    reason: optional_str(args, "reason"),
-                    superseded_by: optional_str(args, "superseded_by"),
-                },
-            )
-            .map_err(|e| e.to_string())?;
+        memory.revise(
+            claim_id,
+            RevisionOptions {
+                reason: optional_str(args, "reason"),
+                superseded_by: optional_str(args, "superseded_by"),
+            },
+        )?;
         let response = json!({
             "ok": true,
             "suppressed": claim_id,
@@ -901,24 +897,23 @@ impl McpServer {
             "transaction": txn_json(&receipt),
         })
         .to_string();
-        let call = memory
-            .record_tool_call(
-                &format!("{TOOL_AGENT_NS}revise_belief"),
-                ToolCallOptions {
-                    arguments: Some(&tool_arguments(
-                        args,
-                        &["claim_id", "reason", "superseded_by", "dry_run"],
-                    )),
-                    result: Some(&response),
-                    invocation: None,
-                    generated: &[],
-                },
-            )
-            .map_err(|e| e.to_string())?;
-        let at_time = call
-            .created
-            .as_deref()
-            .ok_or("record_tool_call did not stamp a creation time")?;
+        let call = memory.record_tool_call(
+            &format!("{TOOL_AGENT_NS}revise_belief"),
+            ToolCallOptions {
+                arguments: Some(&tool_arguments(
+                    args,
+                    &["claim_id", "reason", "superseded_by", "dry_run"],
+                )),
+                result: Some(&response),
+                invocation: None,
+                generated: &[],
+            },
+        )?;
+        let at_time = call.created.as_deref().ok_or_else(|| {
+            gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                message: "record_tool_call did not stamp a creation time".to_string(),
+            })
+        })?;
         write_audit_segment(
             memory.path(),
             &call.id,
@@ -929,10 +924,9 @@ impl McpServer {
         Ok(response)
     }
 
-    fn tool_validate(&self) -> Result<String, String> {
+    fn tool_validate(&self) -> gmeow_errors::Result<String> {
         let root = self.root_path()?;
-        let report = crate::run::run_full(&root, 1, crate::run::RunMode::Check)
-            .map_err(|e| e.to_string())?;
+        let report = crate::run::run_full(&root, 1, crate::run::RunMode::Check)?;
         Ok(json!({
             "ok": report.is_clean(),
             "mode": "check",
@@ -943,10 +937,9 @@ impl McpServer {
         .to_string())
     }
 
-    fn tool_regenerate(&self) -> Result<String, String> {
+    fn tool_regenerate(&self) -> gmeow_errors::Result<String> {
         let root = self.root_path()?;
-        let report = crate::run::run_full(&root, 1, crate::run::RunMode::Regenerate)
-            .map_err(|e| e.to_string())?;
+        let report = crate::run::run_full(&root, 1, crate::run::RunMode::Regenerate)?;
         Ok(json!({
             "ok": true,
             "mode": "regenerate",
@@ -956,9 +949,13 @@ impl McpServer {
         .to_string())
     }
 
-    fn tool_reason(&self) -> Result<String, String> {
-        let result = gmeow_logic::reason::reason_all(self.view.graph_dataset()?.as_ref())
-            .map_err(|e| format!("native reasoning failed: {e}"))?;
+    fn tool_reason(&self) -> gmeow_errors::Result<String> {
+        let result =
+            gmeow_logic::reason::reason_all(self.view.graph_dataset()?.as_ref()).map_err(|e| {
+                gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                    message: format!("native reasoning failed: {e}"),
+                })
+            })?;
         Ok(json!({
             "ok": true,
             "input": result.input.wire(),
@@ -969,12 +966,12 @@ impl McpServer {
         .to_string())
     }
 
-    fn tool_constitution(&self) -> Result<String, String> {
+    fn tool_constitution(&self) -> gmeow_errors::Result<String> {
         let root = self.root_path()?;
-        fs::read_to_string(root.join("CONSTITUTION.md")).map_err(|e| e.to_string())
+        Ok(fs::read_to_string(root.join("CONSTITUTION.md"))?)
     }
 
-    fn read_resource_text(&self, uri: &str) -> Result<(&'static str, String), String> {
+    fn read_resource_text(&self, uri: &str) -> gmeow_errors::Result<(&'static str, String)> {
         let (base, query) = uri.split_once('?').unwrap_or((uri, ""));
         let requested = lang_from_query(query)
             .map(|raw| resolve_lang(Some(raw), &self.tag_map, &self.available))
@@ -991,30 +988,34 @@ impl McpServer {
             "gmeow://ontology/constitution" if self.mode.includes_dev_tools() => {
                 self.tool_constitution().map(|text| ("text/markdown", text))
             }
-            _ => Err(format!("unknown resource: {uri}")),
+            _ => Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                message: format!("unknown resource: {uri}"),
+            })),
         }
     }
 
-    fn memory(&self) -> Result<Memory, String> {
+    fn memory(&self) -> gmeow_errors::Result<Memory> {
         let path = memory_path()?;
         if let Some(parent) = path
             .parent()
             .filter(|parent| !parent.as_os_str().is_empty())
         {
-            fs::create_dir_all(parent).map_err(|e| e.to_string())?;
+            fs::create_dir_all(parent)?;
         }
         Ok(Memory::new(path))
     }
 
-    fn root_path(&self) -> Result<PathBuf, String> {
-        self.root
-            .clone()
-            .ok_or_else(|| "repository root is required for dev MCP tools".to_string())
+    fn root_path(&self) -> gmeow_errors::Result<PathBuf> {
+        self.root.clone().ok_or_else(|| {
+            gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                message: "repository root is required for dev MCP tools".to_string(),
+            })
+        })
     }
 }
 
 impl McpView {
-    fn graph_dataset(&self) -> Result<Arc<purrdf::RdfDataset>, String> {
+    fn graph_dataset(&self) -> gmeow_errors::Result<Arc<purrdf::RdfDataset>> {
         // The carrier IS the dataset — no gts round-trip (GTS is exit-only).
         Ok(Arc::clone(&self.dataset))
     }
@@ -1024,16 +1025,20 @@ impl McpView {
 #[pyfunction]
 pub fn run_consumer_mcp(snapshot: &[u8]) -> PyResult<()> {
     let server = McpServer::from_snapshot(snapshot, None, McpMode::Consumer)
-        .map_err(PyValueError::new_err)?;
-    server.run_stdio().map_err(PyValueError::new_err)
+        .map_err(|e| PyValueError::new_err(e.to_string()))?;
+    server
+        .run_stdio()
+        .map_err(|e| PyValueError::new_err(e.to_string()))
 }
 
 #[cfg(feature = "python")]
 #[pyfunction]
 pub fn run_dev_mcp(snapshot: &[u8], root: String) -> PyResult<()> {
     let server = McpServer::from_snapshot(snapshot, Some(PathBuf::from(root)), McpMode::Dev)
-        .map_err(PyValueError::new_err)?;
-    server.run_stdio().map_err(PyValueError::new_err)
+        .map_err(|e| PyValueError::new_err(e.to_string()))?;
+    server
+        .run_stdio()
+        .map_err(|e| PyValueError::new_err(e.to_string()))
 }
 
 fn language_tag_map(dataset: &purrdf::RdfDataset) -> BTreeMap<String, String> {
@@ -1089,7 +1094,7 @@ fn resolve_lang(
     raw: Option<&str>,
     tag_map: &BTreeMap<String, String>,
     available: &BTreeSet<String>,
-) -> Result<Vec<String>, String> {
+) -> gmeow_errors::Result<Vec<String>> {
     let Some(raw) = raw else {
         return Ok(vec!["en".to_string()]);
     };
@@ -1108,12 +1113,18 @@ fn resolve_lang(
             tag_map
                 .get(&token_lower)
                 .map(|tag| tag.to_ascii_lowercase())
-                .ok_or_else(|| unknown_language(token, available))?
+                .ok_or_else(|| {
+                    gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                        message: unknown_language(token, available),
+                    })
+                })?
         } else {
             token.to_ascii_lowercase()
         };
         if !available.contains(&normalized) {
-            return Err(unknown_language(token, available));
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                message: unknown_language(token, available),
+            }));
         }
         if seen.insert(normalized.clone()) {
             out.push(normalized);
@@ -1153,14 +1164,18 @@ fn lang_from_query(query: &str) -> Option<&str> {
     })
 }
 
-fn memory_path() -> Result<PathBuf, String> {
+fn memory_path() -> gmeow_errors::Result<PathBuf> {
     if let Ok(path) = env::var("GMEOW_MEMORY_PATH")
         && !path.trim().is_empty()
     {
         return Ok(PathBuf::from(path).expand_home());
     }
-    let home =
-        home_dir().ok_or("neither HOME nor USERPROFILE is set and GMEOW_MEMORY_PATH is empty")?;
+    let home = home_dir().ok_or_else(|| {
+        gmeow_errors::Diag::of_kind(crate::error::Mcp {
+            message: "neither HOME nor USERPROFILE is set and GMEOW_MEMORY_PATH is empty"
+                .to_string(),
+        })
+    })?;
     Ok(Path::new(&home).join(".gmeow").join("memory.gts"))
 }
 
@@ -1236,8 +1251,12 @@ fn rpc_error(id: Value, code: i64, message: &str) -> String {
     .to_string()
 }
 
-fn required_str<'a>(args: &'a Value, key: &str) -> Result<&'a str, String> {
-    optional_str(args, key).ok_or_else(|| format!("{key} is required"))
+fn required_str<'a>(args: &'a Value, key: &str) -> gmeow_errors::Result<&'a str> {
+    optional_str(args, key).ok_or_else(|| {
+        gmeow_errors::Diag::of_kind(crate::error::Mcp {
+            message: format!("{key} is required"),
+        })
+    })
 }
 
 fn optional_str<'a>(args: &'a Value, key: &str) -> Option<&'a str> {
@@ -1248,39 +1267,50 @@ fn optional_bool(args: &Value, key: &str) -> Option<bool> {
     args.get(key).and_then(Value::as_bool)
 }
 
-fn optional_f64(args: &Value, key: &str) -> Result<Option<f64>, String> {
+fn optional_f64(args: &Value, key: &str) -> gmeow_errors::Result<Option<f64>> {
     match args.get(key) {
         None | Some(Value::Null) => Ok(None),
-        Some(Value::Number(n)) => n
-            .as_f64()
-            .map(Some)
-            .ok_or_else(|| format!("{key} must be a finite number")),
-        Some(_) => Err(format!("{key} must be a number")),
+        Some(Value::Number(n)) => n.as_f64().map(Some).ok_or_else(|| {
+            gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                message: format!("{key} must be a finite number"),
+            })
+        }),
+        Some(_) => Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
+            message: format!("{key} must be a number"),
+        })),
     }
 }
 
-fn optional_limit(args: &Value, key: &str) -> Result<Option<usize>, String> {
+fn optional_limit(args: &Value, key: &str) -> gmeow_errors::Result<Option<usize>> {
     match args.get(key) {
         None | Some(Value::Null) => Ok(None),
         Some(Value::Number(n)) => {
-            let value = n
-                .as_i64()
-                .ok_or_else(|| format!("{key} must be an integer"))?;
-            usize::try_from(value)
-                .map(Some)
-                .map_err(|_| format!("{key} must be non-negative"))
+            let value = n.as_i64().ok_or_else(|| {
+                gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                    message: format!("{key} must be an integer"),
+                })
+            })?;
+            usize::try_from(value).map(Some).map_err(|_| {
+                gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                    message: format!("{key} must be non-negative"),
+                })
+            })
         }
-        Some(_) => Err(format!("{key} must be an integer")),
+        Some(_) => Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
+            message: format!("{key} must be an integer"),
+        })),
     }
 }
 
 /// A strict boolean argument: present-and-bool → `Some`, absent/null → `None`, anything else is a
 /// HARD FAIL (no silent coercion — `dry_run` is a named default, not a degraded fallback).
-fn optional_bool_checked(args: &Value, key: &str) -> Result<Option<bool>, String> {
+fn optional_bool_checked(args: &Value, key: &str) -> gmeow_errors::Result<Option<bool>> {
     match args.get(key) {
         None | Some(Value::Null) => Ok(None),
         Some(Value::Bool(value)) => Ok(Some(*value)),
-        Some(_) => Err(format!("{key} must be a boolean")),
+        Some(_) => Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
+            message: format!("{key} must be a boolean"),
+        })),
     }
 }
 
@@ -1393,7 +1423,7 @@ fn execute_memory_txn(
     schema_iri: &str,
     obtains: &[&str],
     dry_run: bool,
-) -> Result<TxReceipt, String> {
+) -> gmeow_errors::Result<TxReceipt> {
     let nq = txn_world_nquads(schema_iri, obtains);
     let mode = if dry_run {
         CommitMode::Hypothetical
@@ -1401,6 +1431,7 @@ fn execute_memory_txn(
         CommitMode::Committed
     };
     execute_transaction(&nq, TXN_WORLD, TXN_ROOT, mode)
+        .map_err(|e| gmeow_errors::Diag::of_kind(crate::error::Mcp { message: e }))
 }
 
 /// The TR outcome rendered for the tool response.
@@ -1461,7 +1492,7 @@ fn write_audit_segment(
     schema_iri: &str,
     obtains: &[&str],
     at_time: &str,
-) -> Result<(), String> {
+) -> gmeow_errors::Result<()> {
     let anchor = format!("{call_id}#turn");
     let start = format!("{call_id}#start");
 
@@ -1505,9 +1536,8 @@ fn write_audit_segment(
     let mut file = fs::OpenOptions::new()
         .create(true)
         .append(true)
-        .open(memory_path)
-        .map_err(|e| e.to_string())?;
-    file.write_all(&segment).map_err(|e| e.to_string())?;
+        .open(memory_path)?;
+    file.write_all(&segment)?;
     Ok(())
 }
 
@@ -1998,7 +2028,7 @@ mod tests {
             Ok(_) => panic!("invalid startup language must fail"),
             Err(err) => err,
         };
-        assert!(err.contains("unknown language tag 'notatag'"));
+        assert!(err.to_string().contains("unknown language tag 'notatag'"));
 
         unsafe {
             // SAFETY: tests mutate process env single-threaded under ENV_LOCK.

@@ -73,7 +73,6 @@ use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
 use crate::bundle::PipelineHandle;
-use crate::error::PipelineError;
 use crate::node::StageProduct;
 
 /// The GREENFIELD on-disk cache-shape revision. Folded into BOTH the cache
@@ -256,18 +255,21 @@ fn handle_arm_tag(handle: &PipelineHandle) -> &'static str {
 fn rebuild_handle(
     arm: &str,
     graph: Arc<purrdf::RdfDataset>,
-) -> Result<PipelineHandle, PipelineError> {
+) -> Result<PipelineHandle, gmeow_errors::Diag> {
     Ok(match arm {
         "logic" => {
-            let (program, _diags) =
-                gmeow_logic_compile::frontend::parse_logic_dataset(graph.as_ref(), None).map_err(
-                    |e| {
-                        PipelineError::Decode(format!(
-                            "cache: re-derive Logic handle program from backing graph/logic: {}",
-                            e.0
-                        ))
-                    },
-                )?;
+            let (program, _diags) = gmeow_logic_compile::frontend::parse_logic_dataset(
+                graph.as_ref(),
+                None,
+            )
+            .map_err(|e| {
+                gmeow_errors::Diag::of_kind(crate::error::Decode {
+                    message: format!(
+                        "cache: re-derive Logic handle program from backing graph/logic: {}",
+                        e.0
+                    ),
+                })
+            })?;
             PipelineHandle::Logic(Arc::new(program))
         }
         "reasoning" => {
@@ -286,17 +288,21 @@ fn rebuild_handle(
             // parser reads.
             let nt = serialize_dataset(graph.as_ref(), DATASET_MEDIA_TYPE, SerializeGraph::Dataset)
                 .map_err(|e| {
-                    PipelineError::Decode(format!(
-                        "cache: serialize Reasoning handle backing graph: {e}"
-                    ))
+                    gmeow_errors::Diag::of_kind(crate::error::Decode {
+                        message: format!("cache: serialize Reasoning handle backing graph: {e}"),
+                    })
                 })?;
             let nt = String::from_utf8(nt).map_err(|e| {
-                PipelineError::Decode(format!("cache: Reasoning backing graph not UTF-8: {e}"))
+                gmeow_errors::Diag::of_kind(crate::error::Decode {
+                    message: format!("cache: Reasoning backing graph not UTF-8: {e}"),
+                })
             })?;
             let result = gmeow_logic::result_rdf::parse_reasoning_graph(&nt).map_err(|e| {
-                PipelineError::Decode(format!(
-                    "cache: re-derive Reasoning handle result from backing graph/reasoning: {e}"
-                ))
+                gmeow_errors::Diag::of_kind(crate::error::Decode {
+                    message: format!(
+                        "cache: re-derive Reasoning handle result from backing graph/reasoning: {e}"
+                    ),
+                })
             })?;
             PipelineHandle::Reasoning(Arc::new(result))
         }
@@ -310,10 +316,12 @@ fn rebuild_handle(
             let program =
                 gmeow_logic_compile::relational_core::parse_relational_core(graph.as_ref())
                     .map_err(|e| {
-                        PipelineError::Decode(format!(
-                            "cache: re-derive RelationalCore handle from backing \
+                        gmeow_errors::Diag::of_kind(crate::error::Decode {
+                            message: format!(
+                                "cache: re-derive RelationalCore handle from backing \
                              graph/relational-core: {e}"
-                        ))
+                            ),
+                        })
                     })?;
             PipelineHandle::RelationalCore(Arc::new(program))
         }
@@ -329,17 +337,19 @@ fn rebuild_handle(
                 graph.as_ref(),
             )
             .map_err(|e| {
-                PipelineError::Decode(format!(
-                    "cache: re-derive Correspondence handle from backing \
+                gmeow_errors::Diag::of_kind(crate::error::Decode {
+                    message: format!(
+                        "cache: re-derive Correspondence handle from backing \
                          graph/correspondence: {e}"
-                ))
+                    ),
+                })
             })?;
             PipelineHandle::Correspondence(Arc::new(program))
         }
         other => {
-            return Err(PipelineError::Decode(format!(
-                "cached handle has unknown PipelineHandle arm tag {other:?}"
-            )));
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Decode {
+                message: format!("cached handle has unknown PipelineHandle arm tag {other:?}"),
+            }));
         }
     })
 }
@@ -347,7 +357,7 @@ fn rebuild_handle(
 /// Map an [`OriginKind`] public string back to the kind. Greenfield: an unknown
 /// string HARD-fails — the public projection only emits the closed set, and a
 /// "unknown-kind" marker means a forged provenance the cache must not reconstruct.
-fn origin_kind_from_str(kind: &str) -> Result<OriginKind, PipelineError> {
+fn origin_kind_from_str(kind: &str) -> Result<OriginKind, gmeow_errors::Diag> {
     Ok(match kind {
         "source" => OriginKind::Source,
         "root-ontology" => OriginKind::RootOntology,
@@ -355,9 +365,11 @@ fn origin_kind_from_str(kind: &str) -> Result<OriginKind, PipelineError> {
         "generated" => OriginKind::Generated,
         "runtime-input" => OriginKind::RuntimeInput,
         other => {
-            return Err(PipelineError::Decode(format!(
-                "cached provenance row carries an unrepresentable origin kind {other:?}"
-            )));
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Decode {
+                message: format!(
+                    "cached provenance row carries an unrepresentable origin kind {other:?}"
+                ),
+            }));
         }
     })
 }
@@ -365,19 +377,20 @@ fn origin_kind_from_str(kind: &str) -> Result<OriginKind, PipelineError> {
 impl CachedLookaside {
     /// Mirror a kernel [`RdfLookaside`], HARD-failing if it carries a lane this
     /// mirror does not yet model (no silent loss).
-    fn from_lookaside(la: &RdfLookaside) -> Result<Self, PipelineError> {
+    fn from_lookaside(la: &RdfLookaside) -> Result<Self, gmeow_errors::Diag> {
         if !la.metadata.is_empty()
             || !la.segments.is_empty()
             || !la.suppressions.is_empty()
             || !la.opaque_nodes.is_empty()
             || !la.signatures.is_empty()
         {
-            return Err(PipelineError::Decode(
-                "pipeline bundle lookaside carries a lane (metadata/segments/suppressions/\
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Decode {
+                message:
+                    "pipeline bundle lookaside carries a lane (metadata/segments/suppressions/\
                  opaque-nodes/signatures) the C4 cache mirror does not yet model — grow the \
                  mirror before persisting it (no silent loss)"
-                    .to_string(),
-            ));
+                        .to_string(),
+            }));
         }
         let resources = la
             .resources
@@ -411,13 +424,14 @@ impl CachedLookaside {
 }
 
 impl CachedResource {
-    fn from_resource(r: &RdfLookasideResource) -> Result<Self, PipelineError> {
+    fn from_resource(r: &RdfLookasideResource) -> Result<Self, gmeow_errors::Diag> {
         if !r.metadata.is_empty() || r.location.is_some() {
-            return Err(PipelineError::Decode(
-                "pipeline lookaside resource carries metadata/location the C4 cache mirror \
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Decode {
+                message:
+                    "pipeline lookaside resource carries metadata/location the C4 cache mirror \
                  does not yet model — grow the mirror before persisting it (no silent loss)"
-                    .to_string(),
-            ));
+                        .to_string(),
+            }));
         }
         Ok(Self {
             kind: r.kind.as_str().to_string(),
@@ -448,13 +462,14 @@ impl CachedResource {
 }
 
 impl CachedBlobRecord {
-    fn from_record(r: &RdfBlobRecord) -> Result<Self, PipelineError> {
+    fn from_record(r: &RdfBlobRecord) -> Result<Self, gmeow_errors::Diag> {
         if !r.metadata.is_empty() {
-            return Err(PipelineError::Decode(
-                "pipeline lookaside blob record carries metadata the C4 cache mirror does not \
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Decode {
+                message:
+                    "pipeline lookaside blob record carries metadata the C4 cache mirror does not \
                  yet model — grow the mirror before persisting it (no silent loss)"
-                    .to_string(),
-            ));
+                        .to_string(),
+            }));
         }
         Ok(Self {
             digest: r.digest.clone(),
@@ -481,7 +496,7 @@ impl CachedBlobRecord {
 
 impl CachedBundle {
     /// Project a [`StageProduct`] into its serde manifest (every lane captured).
-    fn from_product(product: &StageProduct) -> Result<Self, PipelineError> {
+    fn from_product(product: &StageProduct) -> Result<Self, gmeow_errors::Diag> {
         let bundle = product.bundle();
 
         // dataset → canonical N-Quads bytes (the production egress; the load-time
@@ -491,7 +506,11 @@ impl CachedBundle {
             DATASET_MEDIA_TYPE,
             SerializeGraph::Dataset,
         )
-        .map_err(|e| PipelineError::Decode(format!("cache: serialize bundle dataset: {e}")))?;
+        .map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Decode {
+                message: format!("cache: serialize bundle dataset: {e}"),
+            })
+        })?;
 
         let lookaside = CachedLookaside::from_lookaside(bundle.lookaside())?;
 
@@ -525,7 +544,9 @@ impl CachedBundle {
             let graph_nquads =
                 serialize_dataset(&subgraph, DATASET_MEDIA_TYPE, SerializeGraph::Dataset).map_err(
                     |e| {
-                        PipelineError::Decode(format!("cache: serialize handle backing graph: {e}"))
+                        gmeow_errors::Diag::of_kind(crate::error::Decode {
+                            message: format!("cache: serialize handle backing graph: {e}"),
+                        })
                     },
                 )?;
             handles.push(CachedHandle {
@@ -548,19 +569,25 @@ impl CachedBundle {
     }
 
     /// Reconstitute a digest- and structure-equal [`StageProduct`] from the manifest.
-    fn into_product(self) -> Result<StageProduct, PipelineError> {
+    fn into_product(self) -> Result<StageProduct, gmeow_errors::Diag> {
         if self.version != CACHE_VERSION {
             // A version-mismatched manifest is a clean miss handled by the caller; a
             // mismatch reaching here means a tampered/forged blob — hard-fail.
-            return Err(PipelineError::Decode(format!(
-                "cached bundle version {} != expected {CACHE_VERSION}",
-                self.version
-            )));
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Decode {
+                message: format!(
+                    "cached bundle version {} != expected {CACHE_VERSION}",
+                    self.version
+                ),
+            }));
         }
 
         // dataset: the ONE sanctioned re-parse.
-        let dataset = parse_dataset(&self.dataset_nquads, DATASET_MEDIA_TYPE, None)
-            .map_err(|e| PipelineError::Parse(format!("cache: re-parse bundle dataset: {e}")))?;
+        let dataset =
+            parse_dataset(&self.dataset_nquads, DATASET_MEDIA_TYPE, None).map_err(|e| {
+                gmeow_errors::Diag::of_kind(crate::error::Parse {
+                    message: format!("cache: re-parse bundle dataset: {e}"),
+                })
+            })?;
 
         let lookaside = self.lookaside.into_lookaside();
 
@@ -568,14 +595,16 @@ impl CachedBundle {
         let mut store = ContentStore::new();
         for (hex, bytes) in self.blobs {
             let digest = ContentDigest::from_hex(&hex).ok_or_else(|| {
-                PipelineError::Decode(format!("cache: malformed blob digest hex {hex:?}"))
+                gmeow_errors::Diag::of_kind(crate::error::Decode {
+                    message: format!("cache: malformed blob digest hex {hex:?}"),
+                })
             })?;
-            store
-                .insert_checked(digest, bytes)
-                .map_err(|e| PipelineError::CacheMismatch {
+            store.insert_checked(digest, bytes).map_err(|e| {
+                gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
                     expected: hex.clone(),
                     actual: format!("{e}"),
-                })?;
+                })
+            })?;
         }
 
         // provenance: re-register units/artifacts/occurrences so the reconstituted
@@ -588,10 +617,12 @@ impl CachedBundle {
             let unit = provenance.register_unit(row.unit.clone(), kind);
             let artifact = provenance.register_artifact(row.artifact.clone());
             let quad_ordinal = u32::try_from(row.quad_index).map_err(|_| {
-                PipelineError::Decode(format!(
-                    "cache: provenance quad ordinal {} exceeds u32",
-                    row.quad_index
-                ))
+                gmeow_errors::Diag::of_kind(crate::error::Decode {
+                    message: format!(
+                        "cache: provenance quad ordinal {} exceeds u32",
+                        row.quad_index
+                    ),
+                })
             })?;
             provenance.record_occurrence(
                 QuadHandle::from_index(quad_ordinal),
@@ -606,7 +637,9 @@ impl CachedBundle {
         for h in self.handles {
             let subgraph =
                 parse_dataset(&h.graph_nquads, DATASET_MEDIA_TYPE, None).map_err(|e| {
-                    PipelineError::Parse(format!("cache: re-parse handle backing graph: {e}"))
+                    gmeow_errors::Diag::of_kind(crate::error::Parse {
+                        message: format!("cache: re-parse handle backing graph: {e}"),
+                    })
                 })?;
             // Pin against the canonical digest of the PERSISTED backing bytes (the
             // sub-dataset just re-parsed). `pin_handle` then checks this against the
@@ -619,10 +652,9 @@ impl CachedBundle {
             bundle
                 .pin_handle(h.graph.clone(), payload, pinned)
                 .map_err(|e| {
-                    PipelineError::Decode(format!(
-                        "cache: re-pin handle for <{}> failed: {e}",
-                        h.graph
-                    ))
+                    gmeow_errors::Diag::of_kind(crate::error::Decode {
+                        message: format!("cache: re-pin handle for <{}> failed: {e}", h.graph),
+                    })
                 })?;
         }
 
@@ -664,14 +696,17 @@ impl PipelineCache {
     /// store lives under a `v<CACHE_VERSION>` leaf of `dir` so a prior cache-shape
     /// rev is isolated — a shape bump makes every older cache a clean miss
     /// (greenfield, no migration).
-    pub fn open(dir: impl Into<PathBuf>) -> Result<Self, PipelineError> {
+    pub fn open(dir: impl Into<PathBuf>) -> Result<Self, gmeow_errors::Diag> {
         let dir = dir.into().join(format!("v{CACHE_VERSION}"));
         fs::create_dir_all(dir.join("blobs"))?;
         let index_path = dir.join("index.json");
         let index: BTreeMap<String, String> = if index_path.exists() {
             let bytes = fs::read(&index_path)?;
-            serde_json::from_slice(&bytes)
-                .map_err(|e| PipelineError::Decode(format!("corrupt pipeline cache index: {e}")))?
+            serde_json::from_slice(&bytes).map_err(|e| {
+                gmeow_errors::Diag::of_kind(crate::error::Decode {
+                    message: format!("corrupt pipeline cache index: {e}"),
+                })
+            })?
         } else {
             BTreeMap::new()
         };
@@ -681,28 +716,31 @@ impl PipelineCache {
     /// Look up a stage product by cache key. Returns `None` on a miss. HARD-fails
     /// (`CacheMismatch`) if the blob exists but its re-hashed digest disagrees
     /// with the index — the cache is never silently repaired.
-    pub fn get(&self, stage_key: &str) -> Result<Option<StageProduct>, PipelineError> {
+    pub fn get(&self, stage_key: &str) -> Result<Option<StageProduct>, gmeow_errors::Diag> {
         let Some(digest_hex) = self.index.get(stage_key) else {
             return Ok(None);
         };
         let blob_path = self.dir.join("blobs").join(digest_hex);
         if !blob_path.exists() {
             // Index references a missing blob: a corrupt cache, not a clean miss.
-            return Err(PipelineError::CacheMismatch {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
                 expected: digest_hex.clone(),
                 actual: "<missing blob>".to_string(),
-            });
+            }));
         }
         let bytes = fs::read(&blob_path)?;
         let actual = ContentDigest::of(&bytes).to_hex();
         if &actual != digest_hex {
-            return Err(PipelineError::CacheMismatch {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
                 expected: digest_hex.clone(),
                 actual,
-            });
+            }));
         }
-        let cached: CachedBundle = serde_json::from_slice(&bytes)
-            .map_err(|e| PipelineError::Decode(format!("corrupt cached bundle: {e}")))?;
+        let cached: CachedBundle = serde_json::from_slice(&bytes).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Decode {
+                message: format!("corrupt cached bundle: {e}"),
+            })
+        })?;
         // A version-mismatched manifest is treated as a clean MISS (greenfield): the
         // entry belongs to a prior shape rev and must not be mis-decoded.
         if cached.version != CACHE_VERSION {
@@ -712,10 +750,17 @@ impl PipelineCache {
     }
 
     /// Store a stage product under `stage_key`, persisting the blob and index.
-    pub fn put(&mut self, stage_key: &str, product: &StageProduct) -> Result<(), PipelineError> {
+    pub fn put(
+        &mut self,
+        stage_key: &str,
+        product: &StageProduct,
+    ) -> Result<(), gmeow_errors::Diag> {
         let manifest = CachedBundle::from_product(product)?;
-        let bytes = serde_json::to_vec(&manifest)
-            .map_err(|e| PipelineError::Decode(format!("cannot serialize cached bundle: {e}")))?;
+        let bytes = serde_json::to_vec(&manifest).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Decode {
+                message: format!("cannot serialize cached bundle: {e}"),
+            })
+        })?;
         let digest_hex = ContentDigest::of(&bytes).to_hex();
         write_atomic(&self.dir.join("blobs").join(&digest_hex), &bytes)?;
         self.index.insert(stage_key.to_string(), digest_hex);
@@ -733,10 +778,13 @@ impl PipelineCache {
         self.index.is_empty()
     }
 
-    fn persist_index(&self) -> Result<(), PipelineError> {
+    fn persist_index(&self) -> Result<(), gmeow_errors::Diag> {
         // Deterministic: BTreeMap serializes in sorted key order.
-        let bytes = serde_json::to_vec_pretty(&self.index)
-            .map_err(|e| PipelineError::Decode(format!("cannot serialize cache index: {e}")))?;
+        let bytes = serde_json::to_vec_pretty(&self.index).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Decode {
+                message: format!("cannot serialize cache index: {e}"),
+            })
+        })?;
         write_atomic(&self.dir.join("index.json"), &bytes)?;
         Ok(())
     }
@@ -747,12 +795,15 @@ impl PipelineCache {
 /// guarantees atomicity), then rename over the target. An interrupted write can
 /// only ever leave a stray temp file, never a half-written `target` — so the
 /// cache is never bricked mid-write (no-optionality P2).
-fn write_atomic(target: &Path, bytes: &[u8]) -> Result<(), PipelineError> {
+fn write_atomic(target: &Path, bytes: &[u8]) -> Result<(), gmeow_errors::Diag> {
     let dir = target.parent().ok_or_else(|| {
-        PipelineError::Io(std::io::Error::new(
-            std::io::ErrorKind::InvalidInput,
-            format!("cache path {} has no parent directory", target.display()),
-        ))
+        gmeow_errors::Diag::of_kind(crate::error::Io {
+            message: (std::io::Error::new(
+                std::io::ErrorKind::InvalidInput,
+                format!("cache path {} has no parent directory", target.display()),
+            ))
+            .to_string(),
+        })
     })?;
     // A per-target temp name keeps concurrent writers from clobbering each other's
     // staging file; the final atomic rename still resolves the last-writer-wins.
@@ -996,7 +1047,7 @@ mod tests {
             .get("k")
             .expect_err("a stale/dropped handle must hard-fail");
         assert!(
-            matches!(err, PipelineError::Decode(_)),
+            err.is::<crate::error::Decode>(),
             "tampered handle backing graph fails to re-pin (hard fail), got {err:?}"
         );
     }

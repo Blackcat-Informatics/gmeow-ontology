@@ -30,8 +30,6 @@ use std::path::Path;
 
 use purrdf::RdfDataset;
 
-use crate::error::PipelineError;
-
 /// The two terminal bundles cannot byte-contain themselves; they are the only
 /// committed paths the gate excludes (a bundle is not a projection of itself).
 pub const EXCLUDED: [&str; 2] = ["generated/dist/gmeow.gts", "generated/dist/gmeow-full.gts"];
@@ -80,7 +78,7 @@ pub struct BundleProjection {
 ///
 /// The two rep classes are disjoint by construction (RDF travels as a named graph,
 /// opaque/byte-decorated output as a blob member), so no path is produced twice.
-pub fn project_bundle(gts_bytes: &[u8]) -> Result<BundleProjection, PipelineError> {
+pub fn project_bundle(gts_bytes: &[u8]) -> Result<BundleProjection, gmeow_errors::Diag> {
     let dataset = read_dataset(gts_bytes)?;
     let dataset = dataset.as_ref();
     let blob_members = read_blob_members(gts_bytes)?;
@@ -308,7 +306,7 @@ fn reconstruction_graph_iris(dataset: &RdfDataset) -> BTreeSet<String> {
 
 /// Run the superset gate over `gts_bytes` (the emitted `gmeow.gts`) against every
 /// committed file under `<root>/generated/`.
-pub fn check_superset(root: &Path, gts_bytes: &[u8]) -> Result<SupersetReport, PipelineError> {
+pub fn check_superset(root: &Path, gts_bytes: &[u8]) -> Result<SupersetReport, gmeow_errors::Diag> {
     // The single reconstruction authority: every committed path the bundle carries,
     // reconstructed from the shipped bytes alone. The gate compares it to disk; the
     // fanout phase writes it. One code path, no second reconstruction.
@@ -323,7 +321,7 @@ pub fn check_superset(root: &Path, gts_bytes: &[u8]) -> Result<SupersetReport, P
 fn sweep_against_committed(
     projection: &BundleProjection,
     root: &Path,
-) -> Result<SupersetReport, PipelineError> {
+) -> Result<SupersetReport, gmeow_errors::Diag> {
     let committed = committed_generated_paths(root)?;
     let committed_set: BTreeSet<&str> = committed.iter().map(String::as_str).collect();
 
@@ -411,18 +409,18 @@ pub(crate) fn rdf_prefixes() -> Vec<(String, String)> {
 /// graph-labelled dataset folds to N-Quads lines. Shared by the gate (folding a
 /// `.nt`/`.nq` graph) and the producing stage (emitting the committed file), so
 /// `file == fold` holds by construction — idempotent even with blank nodes.
-pub(crate) fn canonical_ntriples(dataset: &RdfDataset) -> Result<Vec<u8>, String> {
+pub(crate) fn canonical_ntriples(dataset: &RdfDataset) -> gmeow_errors::Result<Vec<u8>> {
     // Native RDFC-1.0 over the FLATTENED carrier: the statement overlay is
     // re-materialized to plain `rdf:reifies`/annotation triples before canonicalizing.
     // Format-adaptive: a default-graph dataset yields N-Triples lines, a graph-labelled
     // one N-Quads — byte-identical to the prior oxigraph-flat path.
     purrdf::canonical_flat_nquads(dataset)
         .map(String::into_bytes)
-        .map_err(|e| format!("RDFC-1.0 canonicalize: {e}"))
+        .map_err(|e| stage_err(&format!("RDFC-1.0 canonicalize: {e}")))
 }
 
 /// Parse the emitted bundle back into a native dataset (closes serialize -> parse).
-fn read_dataset(gts_bytes: &[u8]) -> Result<std::sync::Arc<RdfDataset>, PipelineError> {
+fn read_dataset(gts_bytes: &[u8]) -> Result<std::sync::Arc<RdfDataset>, gmeow_errors::Diag> {
     let bundle = purrdf::import_gts_events(gts_bytes)
         .map_err(|e| stage_err(&format!("re-import gmeow.gts: {e}")))?;
     Ok(bundle.dataset)
@@ -436,7 +434,7 @@ fn read_dataset(gts_bytes: &[u8]) -> Result<std::sync::Arc<RdfDataset>, Pipeline
 /// [`crate::stages::carrier::committed_path_for_archive_member`] (the inverse of the
 /// rep's member-naming convention), so the caller resolves a member to its
 /// `generated/` path with no basename guessing.
-fn read_blob_members(gts_bytes: &[u8]) -> Result<BTreeMap<String, Vec<u8>>, PipelineError> {
+fn read_blob_members(gts_bytes: &[u8]) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
     let graph = purrdf::gts::read_graph(gts_bytes, true)
         .map_err(|e| stage_err(&format!("read gmeow.gts blobs: {e}")))?;
     let lookaside = purrdf::gts::lookaside_from_graph(&graph);
@@ -484,7 +482,7 @@ fn read_blob_members(gts_bytes: &[u8]) -> Result<BTreeMap<String, Vec<u8>>, Pipe
 /// Every committed file under `<root>/generated/`, repo-relative (`generated/...`),
 /// sorted. Walks the tree directly (the gate enumerates the on-disk committed set,
 /// not a stage product).
-fn committed_generated_paths(root: &Path) -> Result<Vec<String>, PipelineError> {
+fn committed_generated_paths(root: &Path) -> Result<Vec<String>, gmeow_errors::Diag> {
     // GENERATED-READ-OK: the superset gate VERIFIES the shipped bundle is a superset of the
     // committed generated/ tree, so it must enumerate that on-disk tree — a verification read,
     // not a produce-stage fold of a stale projection. Nothing here folds into gmeow.gts; this
@@ -496,7 +494,7 @@ fn committed_generated_paths(root: &Path) -> Result<Vec<String>, PipelineError> 
     Ok(out)
 }
 
-fn walk(dir: &Path, root: &Path, out: &mut Vec<String>) -> Result<(), PipelineError> {
+fn walk(dir: &Path, root: &Path, out: &mut Vec<String>) -> Result<(), gmeow_errors::Diag> {
     let entries =
         std::fs::read_dir(dir).map_err(|e| stage_err(&format!("read dir {dir:?}: {e}")))?;
     for entry in entries {
@@ -523,11 +521,11 @@ fn walk(dir: &Path, root: &Path, out: &mut Vec<String>) -> Result<(), PipelineEr
     Ok(())
 }
 
-fn stage_err(message: &str) -> PipelineError {
-    PipelineError::Stage {
+fn stage_err(message: &str) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(crate::error::StageFailed {
         stage: "stage-superset-gate".to_string(),
         message: message.to_string(),
-    }
+    })
 }
 
 #[cfg(test)]

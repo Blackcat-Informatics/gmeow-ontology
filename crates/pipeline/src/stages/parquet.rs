@@ -27,7 +27,6 @@ use parquet::basic::Compression;
 use parquet::file::properties::WriterProperties;
 use purrdf::RdfDataset;
 
-use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 use crate::stages::export::read_fold_upstream;
 // The gts-`Graph` arena read shape, materialized over the native carrier — the SAME
@@ -51,7 +50,7 @@ fn term_kind_int(kind: TermKind) -> i64 {
 
 /// Build the `terms` record batch: `(id, kind, lex, datatype, lang, reifier)`
 /// in `graph.terms` enumerate order (mirror gts_db `_rows["terms"]`).
-fn terms_batch(graph: &Graph) -> Result<RecordBatch, PipelineError> {
+fn terms_batch(graph: &Graph) -> Result<RecordBatch, gmeow_errors::Diag> {
     let mut id: Vec<i64> = Vec::with_capacity(graph.terms.len());
     let mut kind: Vec<i64> = Vec::with_capacity(graph.terms.len());
     let mut lex: Vec<Option<String>> = Vec::with_capacity(graph.terms.len());
@@ -82,12 +81,15 @@ fn terms_batch(graph: &Graph) -> Result<RecordBatch, PipelineError> {
         Arc::new(StringArray::from(lang)),
         Arc::new(Int64Array::from(reifier)),
     ];
-    RecordBatch::try_new(Arc::new(schema), cols)
-        .map_err(|e| PipelineError::Parse(format!("terms batch: {e}")))
+    RecordBatch::try_new(Arc::new(schema), cols).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            message: format!("terms batch: {e}"),
+        })
+    })
 }
 
 /// Build the `quads` record batch: `(s, p, o, g)` in `graph.quads` order.
-fn quads_batch(graph: &Graph) -> Result<RecordBatch, PipelineError> {
+fn quads_batch(graph: &Graph) -> Result<RecordBatch, gmeow_errors::Diag> {
     let mut s: Vec<i64> = Vec::with_capacity(graph.quads.len());
     let mut p: Vec<i64> = Vec::with_capacity(graph.quads.len());
     let mut o: Vec<i64> = Vec::with_capacity(graph.quads.len());
@@ -110,12 +112,15 @@ fn quads_batch(graph: &Graph) -> Result<RecordBatch, PipelineError> {
         Arc::new(Int64Array::from(o)),
         Arc::new(Int64Array::from(g)),
     ];
-    RecordBatch::try_new(Arc::new(schema), cols)
-        .map_err(|e| PipelineError::Parse(format!("quads batch: {e}")))
+    RecordBatch::try_new(Arc::new(schema), cols).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            message: format!("quads batch: {e}"),
+        })
+    })
 }
 
 /// Build the `reifiers` record batch: `(reifier, s, p, o)` in insertion order.
-fn reifiers_batch(graph: &Graph) -> Result<RecordBatch, PipelineError> {
+fn reifiers_batch(graph: &Graph) -> Result<RecordBatch, gmeow_errors::Diag> {
     let mut reifier: Vec<i64> = Vec::with_capacity(graph.reifiers.len());
     let mut s: Vec<i64> = Vec::with_capacity(graph.reifiers.len());
     let mut p: Vec<i64> = Vec::with_capacity(graph.reifiers.len());
@@ -138,12 +143,15 @@ fn reifiers_batch(graph: &Graph) -> Result<RecordBatch, PipelineError> {
         Arc::new(Int64Array::from(p)),
         Arc::new(Int64Array::from(o)),
     ];
-    RecordBatch::try_new(Arc::new(schema), cols)
-        .map_err(|e| PipelineError::Parse(format!("reifiers batch: {e}")))
+    RecordBatch::try_new(Arc::new(schema), cols).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            message: format!("reifiers batch: {e}"),
+        })
+    })
 }
 
 /// Build the `annotations` record batch: `(reifier, predicate, value)` in order.
-fn annotations_batch(graph: &Graph) -> Result<RecordBatch, PipelineError> {
+fn annotations_batch(graph: &Graph) -> Result<RecordBatch, gmeow_errors::Diag> {
     let mut reifier: Vec<i64> = Vec::with_capacity(graph.annotations.len());
     let mut predicate: Vec<i64> = Vec::with_capacity(graph.annotations.len());
     let mut value: Vec<i64> = Vec::with_capacity(graph.annotations.len());
@@ -162,8 +170,11 @@ fn annotations_batch(graph: &Graph) -> Result<RecordBatch, PipelineError> {
         Arc::new(Int64Array::from(predicate)),
         Arc::new(Int64Array::from(value)),
     ];
-    RecordBatch::try_new(Arc::new(schema), cols)
-        .map_err(|e| PipelineError::Parse(format!("annotations batch: {e}")))
+    RecordBatch::try_new(Arc::new(schema), cols).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            message: format!("annotations batch: {e}"),
+        })
+    })
 }
 
 /// Build the `blobs` record batch: `(digest, bytes)` in insertion order.
@@ -176,7 +187,7 @@ fn annotations_batch(graph: &Graph) -> Result<RecordBatch, PipelineError> {
 /// carrier-sourced columnar projection emits no blob rows — `render_parquet` skips the
 /// empty table. The relational blob channel is a gts-archive concern, surfaced by the
 /// terminal gts writer, not this RDF export leaf.
-fn blobs_batch() -> Result<RecordBatch, PipelineError> {
+fn blobs_batch() -> Result<RecordBatch, gmeow_errors::Diag> {
     let schema = Schema::new(vec![
         Field::new("digest", DataType::Utf8, false),
         Field::new("bytes", DataType::Binary, false),
@@ -185,24 +196,34 @@ fn blobs_batch() -> Result<RecordBatch, PipelineError> {
         Arc::new(StringArray::from(Vec::<String>::new())),
         Arc::new(BinaryArray::from(Vec::<&[u8]>::new())),
     ];
-    RecordBatch::try_new(Arc::new(schema), cols)
-        .map_err(|e| PipelineError::Parse(format!("blobs batch: {e}")))
+    RecordBatch::try_new(Arc::new(schema), cols).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            message: format!("blobs batch: {e}"),
+        })
+    })
 }
 
 /// Serialize a record batch to Parquet bytes (snappy, deterministic layout).
-fn write_parquet(batch: &RecordBatch) -> Result<Vec<u8>, PipelineError> {
+fn write_parquet(batch: &RecordBatch) -> Result<Vec<u8>, gmeow_errors::Diag> {
     let mut buf: Vec<u8> = Vec::new();
     let props = WriterProperties::builder()
         .set_compression(Compression::SNAPPY)
         .build();
-    let mut writer = ArrowWriter::try_new(&mut buf, batch.schema(), Some(props))
-        .map_err(|e| PipelineError::Parse(format!("parquet writer: {e}")))?;
-    writer
-        .write(batch)
-        .map_err(|e| PipelineError::Parse(format!("parquet write: {e}")))?;
-    writer
-        .close()
-        .map_err(|e| PipelineError::Parse(format!("parquet close: {e}")))?;
+    let mut writer = ArrowWriter::try_new(&mut buf, batch.schema(), Some(props)).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            message: format!("parquet writer: {e}"),
+        })
+    })?;
+    writer.write(batch).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            message: format!("parquet write: {e}"),
+        })
+    })?;
+    writer.close().map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            message: format!("parquet close: {e}"),
+        })
+    })?;
     Ok(buf)
 }
 
@@ -210,7 +231,7 @@ fn write_parquet(batch: &RecordBatch) -> Result<Vec<u8>, PipelineError> {
 /// tables are written, keyed by their logical `dist/parquet/<table>.parquet` path.
 pub(crate) fn render_parquet(
     dataset: &RdfDataset,
-) -> Result<BTreeMap<String, Vec<u8>>, PipelineError> {
+) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
     let graph = Graph::from_dataset(dataset);
     let graph = &graph;
     let batches: BTreeMap<&str, RecordBatch> = {
@@ -268,11 +289,12 @@ impl Stage for ParquetStage {
     fn impl_version(&self) -> &str {
         "parquet.v1"
     }
-    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
+    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         let graph = read_fold_upstream(input.upstream)?;
-        Ok(StageOutput {
-            product: StageProduct::from_artifacts(self.id(), render_parquet(graph.as_ref())?),
-        })
+        Ok(StageOutput::new(StageProduct::from_artifacts(
+            self.id(),
+            render_parquet(graph.as_ref())?,
+        )))
     }
 }
 

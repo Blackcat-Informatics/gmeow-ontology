@@ -23,7 +23,6 @@
 use std::collections::BTreeMap;
 use std::path::Path;
 
-use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 
 /// Committed logical path of the native JSON Schema (draft 2020-12).
@@ -44,17 +43,18 @@ impl Stage for JsonSchemaStage {
     fn impl_version(&self) -> &str {
         "json_schema.v1"
     }
-    fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, PipelineError> {
+    fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
         // The shape union (`shapes/*.ttl` minus lints + `generated/shapes/*.ttl`
         // + `slices/*/*/shapes.ttl`) is exactly the source set the emitter reads.
         // Declaring those as cache inputs keeps `consumes() == []` (no DAG edge)
         // while busting the cache whenever any shape file changes — the same
         // pattern frame_shapes uses for its authored sources.
-        purrdf::shapes::shape_union::shape_files(root).map_err(PipelineError::Parse)
+        purrdf::shapes::shape_union::shape_files(root)
+            .map_err(|m| gmeow_errors::Diag::of_kind(crate::error::Parse { message: m }))
     }
-    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
-        let (_store, shapes) =
-            purrdf::shapes::shape_union::load_shapes(input.root).map_err(PipelineError::Parse)?;
+    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
+        let (_store, shapes) = purrdf::shapes::shape_union::load_shapes(input.root)
+            .map_err(|m| gmeow_errors::Diag::of_kind(crate::error::Parse { message: m }))?;
         let compiled = purrdf::shapes::json_schema::compile(
             &shapes,
             &crate::gmeow_ns::gmeow_json_schema_namespaces(),
@@ -66,9 +66,10 @@ impl Stage for JsonSchemaStage {
             compiled.schema_json.into_bytes(),
         );
         artifacts.insert(OPENAPI_PATH.to_string(), compiled.openapi_json.into_bytes());
-        Ok(StageOutput {
-            product: StageProduct::from_artifacts(self.id(), artifacts),
-        })
+        Ok(StageOutput::new(StageProduct::from_artifacts(
+            self.id(),
+            artifacts,
+        )))
     }
 }
 
