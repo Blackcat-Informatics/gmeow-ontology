@@ -49,6 +49,10 @@ export enum AffectFunctionEnum {
     fnAffectiveIntensity = "fnAffectiveIntensity",
 }
 
+export enum AffectScaleProfileEnum {
+    coreAffectMetricPAD = "coreAffectMetricPAD",
+}
+
 export enum AgentEnum {
     fixtureAnalystA = "fixtureAnalystA",
     fixtureAnalystAI = "fixtureAnalystAI",
@@ -3257,6 +3261,11 @@ export enum WalletSchemeEnum {
     walletSchemeXMR = "walletSchemeXMR",
 }
 
+export enum WeightingPolicyEnum {
+    weightingEqualCoreAffect = "weightingEqualCoreAffect",
+    weightingValenceDominant = "weightingValenceDominant",
+}
+
 export enum WritingSystemTypeEnum {
     wsTypeAbjad = "wsTypeAbjad",
     wsTypeAbugida = "wsTypeAbugida",
@@ -3347,11 +3356,13 @@ export interface AffectLabelSet extends InformationObject {
 }
 
 export interface AffectScaleProfile extends InformationObject {
+    metricGram?: string,
     profileMidpoint?: number,
     profilePolarity?: ScalePolarity,
     profileRangeMax?: number,
     profileRangeMin?: number,
     profileTransform?: string,
+    sparseAxisCompletion?: boolean,
 }
 
 export interface AffectTelemetryStream extends Stream {
@@ -4025,6 +4036,7 @@ export interface CopyrightStatus {
 }
 
 export interface CoreAffectDimension extends AppraisalDimension {
+    coreAxisIndex?: number,
 }
 
 export interface Corpus extends InformationObject {
@@ -4209,7 +4221,7 @@ export interface DerivedAffectIntensityObservation extends Observation {
     intensityBasis?: AffectVectorObservation,
     metricProfile?: AffectScaleProfile,
     normFunction?: string,
-    weightingPolicy?: string,
+    weightingPolicy?: WeightingPolicy,
 }
 
 export interface Desire extends IntentionalMode {
@@ -7005,6 +7017,9 @@ export interface WebPage extends Manifestation {
 }
 
 export interface WebSite extends Manifestation {
+}
+
+export interface WeightingPolicy {
 }
 
 export interface Work extends CreativeWork {

@@ -112,11 +112,13 @@ classes:
     title: Affect Scale Profile
     is_a: InformationObject
     slots:
+    - metricGram
     - profileMidpoint
     - profilePolarity
     - profileRangeMax
     - profileRangeMin
     - profileTransform
+    - sparseAxisCompletion
   AffectTelemetryStream:
     class_uri: https://blackcatinformatics.ca/gmeow/AffectTelemetryStream
     title: Affect Telemetry Stream
@@ -940,6 +942,8 @@ classes:
     class_uri: https://blackcatinformatics.ca/gmeow/CoreAffectDimension
     title: Core-Affect Dimension
     is_a: AppraisalDimension
+    slots:
+    - coreAxisIndex
   Corpus:
     class_uri: https://blackcatinformatics.ca/gmeow/Corpus
     title: Corpus
@@ -4548,6 +4552,9 @@ classes:
     class_uri: https://blackcatinformatics.ca/gmeow/WebSite
     title: Web Site
     is_a: Manifestation
+  WeightingPolicy:
+    class_uri: https://blackcatinformatics.ca/gmeow/WeightingPolicy
+    title: Weighting Policy
   Work:
     class_uri: https://blackcatinformatics.ca/gmeow/Work
     title: Work
@@ -6472,6 +6479,13 @@ slots:
     title: copyright year
     range: string
     domain: Copyright
+    multivalued: false
+  coreAxisIndex:
+    slot_uri: https://blackcatinformatics.ca/gmeow/coreAxisIndex
+    title: core axis index
+    range: integer
+    domain: CoreAffectDimension
+    minimum_value: 0
     multivalued: false
   corpusMember:
     slot_uri: https://blackcatinformatics.ca/gmeow/corpusMember
@@ -10492,6 +10506,12 @@ slots:
     range: Entity
     domain: MeterAssignment
     multivalued: false
+  metricGram:
+    slot_uri: https://blackcatinformatics.ca/gmeow/metricGram
+    title: metric Gram matrix
+    range: uriorcurie
+    domain: AffectScaleProfile
+    multivalued: false
   metricGroupOrder:
     slot_uri: https://blackcatinformatics.ca/gmeow/metricGroupOrder
     title: metric group order
@@ -10812,7 +10832,7 @@ slots:
   normFunction:
     slot_uri: https://blackcatinformatics.ca/gmeow/normFunction
     title: norm function
-    range: string
+    range: uriorcurie
     domain: DerivedAffectIntensityObservation
     multivalued: false
   normIssuer:
@@ -13019,6 +13039,12 @@ slots:
     range: integer
     minimum_value: 0
     multivalued: true
+  sparseAxisCompletion:
+    slot_uri: https://blackcatinformatics.ca/gmeow/sparseAxisCompletion
+    title: sparse-axis completion
+    range: boolean
+    domain: AffectScaleProfile
+    multivalued: false
   spatialCoverage:
     slot_uri: https://blackcatinformatics.ca/gmeow/spatialCoverage
     title: spatial coverage
@@ -14460,7 +14486,7 @@ slots:
   weightingPolicy:
     slot_uri: https://blackcatinformatics.ca/gmeow/weightingPolicy
     title: weighting policy
-    range: string
+    range: WeightingPolicy
     domain: DerivedAffectIntensityObservation
     multivalued: false
   what3words:
@@ -14605,6 +14631,12 @@ enums:
       fnAffectiveIntensity:
         meaning: https://blackcatinformatics.ca/gmeow/fnAffectiveIntensity
         title: affective intensity
+  AffectScaleProfileEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/AffectScaleProfile
+    permissible_values:
+      coreAffectMetricPAD:
+        meaning: https://blackcatinformatics.ca/gmeow/coreAffectMetricPAD
+        title: core-affect PAD metric profile
   AgentEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/Agent
     permissible_values:
@@ -22447,6 +22479,15 @@ enums:
       walletSchemeXMR:
         meaning: https://blackcatinformatics.ca/gmeow/walletSchemeXMR
         title: Monero
+  WeightingPolicyEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/WeightingPolicy
+    permissible_values:
+      weightingEqualCoreAffect:
+        meaning: https://blackcatinformatics.ca/gmeow/weightingEqualCoreAffect
+        title: equal-weight core-affect axes
+      weightingValenceDominant:
+        meaning: https://blackcatinformatics.ca/gmeow/weightingValenceDominant
+        title: valence-dominant
   WritingSystemTypeEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/WritingSystemType
     permissible_values:

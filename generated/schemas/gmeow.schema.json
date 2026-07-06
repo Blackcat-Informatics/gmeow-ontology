@@ -6230,6 +6230,16 @@
             }
           ]
         },
+        "gmeow:appraisalValue": {
+          "anyOf": [
+            {},
+            {
+              "items": {},
+              "maxItems": 0,
+              "type": "array"
+            }
+          ]
+        },
         "gmeow:intensityBasis": {
           "properties": {
             "@id": {
@@ -6253,42 +6263,26 @@
           "type": "object"
         },
         "gmeow:normFunction": {
-          "anyOf": [
-            {
+          "properties": {
+            "@id": {
               "type": "string"
-            },
-            {
-              "properties": {
-                "@type": {
-                  "type": "string"
-                },
-                "@value": {}
-              },
-              "required": [
-                "@value"
-              ],
-              "type": "object"
             }
-          ]
+          },
+          "required": [
+            "@id"
+          ],
+          "type": "object"
         },
         "gmeow:weightingPolicy": {
-          "anyOf": [
-            {
+          "properties": {
+            "@id": {
               "type": "string"
-            },
-            {
-              "properties": {
-                "@type": {
-                  "type": "string"
-                },
-                "@value": {}
-              },
-              "required": [
-                "@value"
-              ],
-              "type": "object"
             }
-          ]
+          },
+          "required": [
+            "@id"
+          ],
+          "type": "object"
         }
       },
       "required": [

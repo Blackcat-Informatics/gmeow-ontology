@@ -49,6 +49,10 @@ enum AffectFunctionEnum {
   fnAffectiveIntensity
 }
 
+enum AffectScaleProfileEnum {
+  coreAffectMetricPAD
+}
+
 enum AgentEnum {
   fixtureAnalystA
   fixtureAnalystAI
@@ -3257,6 +3261,11 @@ enum WalletSchemeEnum {
   walletSchemeXMR
 }
 
+enum WeightingPolicyEnum {
+  weightingEqualCoreAffect
+  weightingValenceDominant
+}
+
 enum WritingSystemTypeEnum {
   wsTypeAbjad
   wsTypeAbugida
@@ -3387,11 +3396,13 @@ type AffectLabelSet {
 type AffectScaleProfile {
   id: String
   iri: String
+  metricGram: String
   profileMidpoint: Float
   profilePolarity: ScalePolarity
   profileRangeMax: Float
   profileRangeMin: Float
   profileTransform: String
+  sparseAxisCompletion: Boolean
 }
 
 type AffectTelemetryStream {
@@ -4335,6 +4346,7 @@ type CopyrightStatus {
 type CoreAffectDimension {
   id: String
   iri: String
+  coreAxisIndex: Int
 }
 
 type Corpus {
@@ -4579,7 +4591,7 @@ type DerivedAffectIntensityObservation {
   intensityBasis: AffectVectorObservation
   metricProfile: AffectScaleProfile
   normFunction: String
-  weightingPolicy: String
+  weightingPolicy: WeightingPolicy
 }
 
 type Desire {
@@ -8457,6 +8469,11 @@ type WebPage {
 }
 
 type WebSite {
+  id: String
+  iri: String
+}
+
+type WeightingPolicy {
   id: String
   iri: String
 }

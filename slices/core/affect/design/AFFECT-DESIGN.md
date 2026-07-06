@@ -523,8 +523,28 @@ primitive layer stays analysable; the expressive power stays total.
 - Whether composites need an explicit `gmeow:AffectComposite` /
   `gmeow:affectiveConstituent` structure, or whether the shared-cell bundle plus
   elicitor/target relations already suffice.
-- How overall intensity (the norm) is defined over a *non-orthogonal* basis, and
-  which computation is canonical for the `gmeow` CLI to expose.
+- **RESOLVED — the canonical intensity norm.** Overall intensity is the norm
+  $\lVert x \rVert = \sqrt{x^{\mathsf T} G x}$ over the 4-axis core-affect basis
+  $\{\text{valence}=0, \text{arousal}=1, \text{dominance}=2,
+  \text{unpredictability}=3\}$ (`gmeow:coreAxisIndex` fixes each axis's position).
+  The canonical metric $G$ (`gmeow:coreAffectGram`) is the positive-definite
+  symmetric $4\times4$ Gram matrix with diagonal all $1$, the valence–arousal
+  coupling $G_{01}=G_{10}=\tfrac14$, and every other off-diagonal $0$; it is
+  positive-definite by its leading principal minors $1$ and $\tfrac{15}{16}>0$.
+  This is grounded in the reusable `math:` numeric layer: $G$ is a
+  `math:GramMatrix` of **exact** `math:RationalValue` entries representing a
+  positive-definite `math:SymmetricBilinearForm` (`gmeow:coreAffectForm`), which
+  induces the `math:Norm` `gmeow:affectMetricTensorNorm` — never a bare Euclidean
+  $L^2$ over the non-orthogonal basis. The canonical profile is
+  `gmeow:coreAffectMetricPAD` (bipolar $[-1,1]$, `gmeow:metricGram
+  gmeow:coreAffectGram`), and the `gmeow affect intensity` CLI exposes the
+  computation (`gmeow:fnAffectiveIntensity`): the norm, the metric-aware dominant
+  axis (the axis of maximal $G$-weighted contribution, which need not be the
+  raw-max axis), and the positive-definiteness certificate (the leading minors).
+  The computation runs **outside** the logic over exact rationals (Principle 12);
+  the triples declare the metric, they do not compute in it. A missing core axis
+  is zero-completed (`gmeow:sparseAxisCompletion`), while an axis a downstream
+  contract declares required but a reading omits is a hard fail.
 
 ## Modeling razors
 
@@ -775,7 +795,11 @@ not warnings:
    artifacts only.
 7. A model name without a pinned revision fails reproducibility.
 8. A derived affect intensity without a declared basis, scale normalization,
-   weighting policy, and norm/distance (metric) function fails.
+   weighting policy, and norm/distance (metric) function fails. The weighting
+   policy and norm function are machine-readable IRIs — a `gmeow:WeightingPolicy`
+   individual and a grounded `math:Norm` — never free-text strings. A derived
+   intensity that stores a magnitude (`gmeow:appraisalValue`) also fails: the norm
+   is a recomputable derived view, never a stored ground fact (Principle 12).
 9. A projection that collapses mode, experience, expression, and classifier output
    into one external "emotion" record without a loss annotation fails.
 
