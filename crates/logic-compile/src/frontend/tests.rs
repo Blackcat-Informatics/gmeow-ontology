@@ -870,13 +870,37 @@ fn shape_dataset(ttl: &str) -> std::sync::Arc<RdfDataset> {
     parse_dataset(full.as_bytes(), "text/turtle", None).expect("parse dataset ok")
 }
 
+/// Flatten a component and its nested inners (a `QualifiedValueShape`'s inner shape and a
+/// `Not`'s inner component) into `out`, so a classification assertion still bites even after
+/// `someValuesFrom` began wrapping its classification in a `QualifiedValueShape{min:1}`.
+fn flatten_component(c: &ConstraintComponent, out: &mut Vec<ConstraintComponent>) {
+    out.push(c.clone());
+    match c {
+        ConstraintComponent::QualifiedValueShape { shape, .. } => {
+            for inner in shape {
+                flatten_component(inner, out);
+            }
+        }
+        ConstraintComponent::Not(inner) => flatten_component(inner, out),
+        _ => {}
+    }
+}
+
+/// Every constraint component of every shape — both path components and focus-node components —
+/// flattened so nested `QualifiedValueShape` / `Not` inners are visible to a `matches!` assertion.
 fn all_components(shapes: &[ValidationShapeIr]) -> Vec<ConstraintComponent> {
-    shapes
-        .iter()
-        .flat_map(|s| &s.properties)
-        .flat_map(|p| &p.components)
-        .cloned()
-        .collect()
+    let mut out = Vec::new();
+    for s in shapes {
+        for p in &s.properties {
+            for c in &p.components {
+                flatten_component(c, &mut out);
+            }
+        }
+        for c in &s.node_components {
+            flatten_component(c, &mut out);
+        }
+    }
+    out
 }
 
 #[test]
@@ -1040,6 +1064,375 @@ fn derive_contradictory_cardinality_hard_fails() {
     assert!(
         derive_validation_shapes(ds.as_ref()).is_err(),
         "min > max cardinality must hard-fail, not drop the shape"
+    );
+}
+
+// ── Full closed-world OWL fragment: per family ───────────────────────────────
+
+#[test]
+fn derive_some_values_from_wraps_classification_in_qualified_min_one() {
+    // owl:someValuesFrom is EXISTENTIAL: at least ONE value is a g:Doc → a qualified value
+    // shape with min 1 (NOT a bare sh:class, which would demand ALL values be g:Doc).
+    let ds = shape_dataset(
+        "g:Doc a owl:Class . \
+         g:Article a owl:Class ; rdfs:subClassOf \
+         [ a owl:Restriction ; owl:onProperty g:cites ; owl:someValuesFrom g:Doc ] .",
+    );
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    let comp = shapes
+        .iter()
+        .flat_map(|s| &s.properties)
+        .flat_map(|p| &p.components)
+        .find(|c| matches!(c, ConstraintComponent::QualifiedValueShape { .. }))
+        .expect("a qualified value shape");
+    match comp {
+        ConstraintComponent::QualifiedValueShape { shape, min, max } => {
+            assert_eq!(*min, Some(1), "someValuesFrom is min-1 existential");
+            assert_eq!(*max, None, "someValuesFrom sets no upper bound");
+            assert!(
+                shape
+                    .iter()
+                    .any(|c| matches!(c, ConstraintComponent::Class(d) if d.ends_with("Doc"))),
+                "inner shape must be sh:class g:Doc: {shape:?}"
+            );
+        }
+        other => panic!("expected QualifiedValueShape, got {other:?}"),
+    }
+}
+
+#[test]
+fn derive_all_values_from_emits_bare_class_not_wrapped() {
+    // owl:allValuesFrom is UNIVERSAL: every value is a g:Doc → a bare sh:class on the path,
+    // never wrapped in a qualified value shape.
+    let ds = shape_dataset(
+        "g:Doc a owl:Class . \
+         g:Article a owl:Class ; rdfs:subClassOf \
+         [ a owl:Restriction ; owl:onProperty g:cites ; owl:allValuesFrom g:Doc ] .",
+    );
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    let comps: Vec<_> = shapes
+        .iter()
+        .flat_map(|s| &s.properties)
+        .flat_map(|p| &p.components)
+        .collect();
+    assert!(
+        comps
+            .iter()
+            .any(|c| matches!(c, ConstraintComponent::Class(d) if d.ends_with("Doc"))),
+        "allValuesFrom emits a bare sh:class: {comps:?}"
+    );
+    assert!(
+        !comps
+            .iter()
+            .any(|c| matches!(c, ConstraintComponent::QualifiedValueShape { .. })),
+        "allValuesFrom must NOT wrap in a qualified value shape: {comps:?}"
+    );
+}
+
+#[test]
+fn derive_rdfs_domain_targets_subjects_of_with_node_class() {
+    let ds =
+        shape_dataset("g:Doc a owl:Class . g:cites a owl:ObjectProperty ; rdfs:domain g:Doc .");
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    let shape = shapes
+        .iter()
+        .find(|s| matches!(&s.target, ShapeTarget::SubjectsOf(p) if p.ends_with("cites")))
+        .expect("a SubjectsOf(cites) shape");
+    assert!(
+        shape
+            .node_components
+            .iter()
+            .any(|c| matches!(c, ConstraintComponent::Class(d) if d.ends_with("Doc"))),
+        "domain must attach a node-level sh:class g:Doc: {:?}",
+        shape.node_components
+    );
+}
+
+#[test]
+fn derive_rdfs_range_targets_objects_of_class_and_datatype() {
+    // A class range → sh:class node component on an ObjectsOf shape.
+    let class_ds =
+        shape_dataset("g:Doc a owl:Class . g:cites a owl:ObjectProperty ; rdfs:range g:Doc .");
+    let class_shapes = derive_validation_shapes(class_ds.as_ref()).expect("derive ok");
+    let class_shape = class_shapes
+        .iter()
+        .find(|s| matches!(&s.target, ShapeTarget::ObjectsOf(p) if p.ends_with("cites")))
+        .expect("an ObjectsOf(cites) shape");
+    assert!(
+        class_shape
+            .node_components
+            .iter()
+            .any(|c| matches!(c, ConstraintComponent::Class(d) if d.ends_with("Doc"))),
+        "class range → sh:class node component: {:?}",
+        class_shape.node_components
+    );
+    // An xsd:integer range → sh:datatype node component.
+    let dt_ds = shape_dataset("g:blockNumber a owl:DatatypeProperty ; rdfs:range xsd:integer .");
+    let dt_shapes = derive_validation_shapes(dt_ds.as_ref()).expect("derive ok");
+    let dt_shape = dt_shapes
+        .iter()
+        .find(|s| matches!(&s.target, ShapeTarget::ObjectsOf(p) if p.ends_with("blockNumber")))
+        .expect("an ObjectsOf(blockNumber) shape");
+    assert!(
+        dt_shape
+            .node_components
+            .iter()
+            .any(|c| matches!(c, ConstraintComponent::Datatype(d) if d.ends_with("integer"))),
+        "datatype range → sh:datatype node component: {:?}",
+        dt_shape.node_components
+    );
+}
+
+#[test]
+fn derive_functional_property_subjects_of_max_one() {
+    let ds = shape_dataset("g:id a owl:FunctionalProperty .");
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    let shape = shapes
+        .iter()
+        .find(|s| matches!(&s.target, ShapeTarget::SubjectsOf(p) if p.ends_with("id")))
+        .expect("a SubjectsOf(id) shape");
+    let pc = shape
+        .properties
+        .iter()
+        .find(|p| p.path.ends_with("id"))
+        .expect("a property on id");
+    assert_eq!(pc.max_count, Some(1), "functional → sh:maxCount 1");
+    assert!(!pc.inverse, "functional is a forward path, not inverse");
+}
+
+#[test]
+fn derive_inverse_functional_property_objects_of_inverted_max_one() {
+    let ds = shape_dataset("g:isbn a owl:InverseFunctionalProperty .");
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    let shape = shapes
+        .iter()
+        .find(|s| matches!(&s.target, ShapeTarget::ObjectsOf(p) if p.ends_with("isbn")))
+        .expect("an ObjectsOf(isbn) shape");
+    let pc = shape
+        .properties
+        .iter()
+        .find(|p| p.path.ends_with("isbn"))
+        .expect("a property on isbn");
+    assert_eq!(pc.max_count, Some(1), "inverse-functional → sh:maxCount 1");
+    assert!(pc.inverse, "inverse-functional is an inverted path");
+}
+
+#[test]
+fn derive_has_value_iri_emits_sh_has_value() {
+    let ds = shape_dataset(
+        "g:Publisher a owl:Class . \
+         g:Book a owl:Class ; rdfs:subClassOf \
+         [ a owl:Restriction ; owl:onProperty g:publisher ; owl:hasValue g:Publisher ] .",
+    );
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    assert!(
+        all_components(&shapes).iter().any(|c| matches!(
+            c,
+            ConstraintComponent::HasValue(crate::ir::ShapeValue::Iri(v)) if v.ends_with("Publisher")
+        )),
+        "owl:hasValue (IRI) → sh:hasValue: {:?}",
+        all_components(&shapes)
+    );
+}
+
+#[test]
+fn derive_has_value_blank_hard_fails() {
+    // A fixed value cannot be an anonymous node — hard-fail, never a silent drop.
+    let ds = shape_dataset(
+        "g:Book a owl:Class ; rdfs:subClassOf \
+         [ a owl:Restriction ; owl:onProperty g:publisher ; owl:hasValue [ a owl:Thing ] ] .",
+    );
+    assert!(
+        derive_validation_shapes(ds.as_ref()).is_err(),
+        "owl:hasValue on a blank node must hard-fail"
+    );
+}
+
+#[test]
+fn derive_disjoint_with_emits_not_class() {
+    let ds =
+        shape_dataset("g:Animal a owl:Class . g:Plant a owl:Class ; owl:disjointWith g:Animal .");
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    assert!(
+        all_components(&shapes).iter().any(|c| matches!(
+            c,
+            ConstraintComponent::Not(inner)
+                if matches!(inner.as_ref(), ConstraintComponent::Class(d) if d.ends_with("Animal"))
+        )),
+        "owl:disjointWith → sh:not [ sh:class D ]: {:?}",
+        all_components(&shapes)
+    );
+}
+
+#[test]
+fn derive_complement_of_emits_not_class() {
+    let ds = shape_dataset("g:Dead a owl:Class . g:Alive a owl:Class ; owl:complementOf g:Dead .");
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    assert!(
+        all_components(&shapes).iter().any(|c| matches!(
+            c,
+            ConstraintComponent::Not(inner)
+                if matches!(inner.as_ref(), ConstraintComponent::Class(d) if d.ends_with("Dead"))
+        )),
+        "owl:complementOf → sh:not [ sh:class D ]: {:?}",
+        all_components(&shapes)
+    );
+}
+
+#[test]
+fn derive_one_of_emits_sh_in() {
+    let ds = shape_dataset(
+        "g:Suit a owl:Class ; owl:oneOf ( g:Hearts g:Spades ) . \
+         g:Hearts a owl:Thing . g:Spades a owl:Thing .",
+    );
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    let in_comp = all_components(&shapes)
+        .into_iter()
+        .find(|c| matches!(c, ConstraintComponent::In(_)))
+        .expect("an sh:in component");
+    match in_comp {
+        ConstraintComponent::In(members) => {
+            assert!(
+                members
+                    .iter()
+                    .any(|v| matches!(v, crate::ir::ShapeValue::Iri(i) if i.ends_with("Hearts")))
+                    && members.iter().any(
+                        |v| matches!(v, crate::ir::ShapeValue::Iri(i) if i.ends_with("Spades"))
+                    ),
+                "sh:in must carry both enumerated members: {members:?}"
+            );
+        }
+        other => panic!("expected In, got {other:?}"),
+    }
+}
+
+#[test]
+fn derive_all_disjoint_classes_cross_links_not_class() {
+    let ds = shape_dataset(
+        "g:A a owl:Class . g:B a owl:Class . \
+         [] a owl:AllDisjointClasses ; owl:members ( g:A g:B ) .",
+    );
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    let a_shape = shapes
+        .iter()
+        .find(|s| matches!(&s.target, ShapeTarget::Class(c) if c.ends_with("gmeow/A")))
+        .expect("a shape for g:A");
+    assert!(
+        a_shape.node_components.iter().any(|c| matches!(
+            c,
+            ConstraintComponent::Not(inner)
+                if matches!(inner.as_ref(), ConstraintComponent::Class(d) if d.ends_with("gmeow/B"))
+        )),
+        "g:A must carry sh:not [ sh:class g:B ]: {:?}",
+        a_shape.node_components
+    );
+    let b_shape = shapes
+        .iter()
+        .find(|s| matches!(&s.target, ShapeTarget::Class(c) if c.ends_with("gmeow/B")))
+        .expect("a shape for g:B");
+    assert!(
+        b_shape.node_components.iter().any(|c| matches!(
+            c,
+            ConstraintComponent::Not(inner)
+                if matches!(inner.as_ref(), ConstraintComponent::Class(d) if d.ends_with("gmeow/A"))
+        )),
+        "g:B must carry sh:not [ sh:class g:A ]: {:?}",
+        b_shape.node_components
+    );
+}
+
+#[test]
+fn derive_qualified_cardinality_emits_qualified_value_shape() {
+    let ds = shape_dataset(
+        "g:Wheel a owl:Class . \
+         g:Car a owl:Class ; rdfs:subClassOf \
+         [ a owl:Restriction ; owl:onProperty g:hasPart ; owl:onClass g:Wheel ; \
+           owl:qualifiedCardinality \"1\"^^xsd:nonNegativeInteger ] .",
+    );
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    let comp = shapes
+        .iter()
+        .flat_map(|s| &s.properties)
+        .flat_map(|p| &p.components)
+        .find(|c| matches!(c, ConstraintComponent::QualifiedValueShape { .. }))
+        .expect("a qualified value shape");
+    match comp {
+        ConstraintComponent::QualifiedValueShape { shape, min, max } => {
+            assert_eq!(*min, Some(1));
+            assert_eq!(*max, Some(1));
+            assert!(
+                shape
+                    .iter()
+                    .any(|c| matches!(c, ConstraintComponent::Class(d) if d.ends_with("Wheel"))),
+                "qualified inner shape must be sh:class g:Wheel: {shape:?}"
+            );
+        }
+        other => panic!("expected QualifiedValueShape, got {other:?}"),
+    }
+    // And it carries NO plain min/max_count (the count is on the qualified values).
+    let pc = shapes
+        .iter()
+        .flat_map(|s| &s.properties)
+        .find(|p| p.path.ends_with("hasPart"))
+        .expect("a property on hasPart");
+    assert_eq!(
+        pc.min_count, None,
+        "qualified count is not a plain min_count"
+    );
+    assert_eq!(
+        pc.max_count, None,
+        "qualified count is not a plain max_count"
+    );
+}
+
+#[test]
+fn derive_qualified_cardinality_without_on_class_hard_fails() {
+    // A qualified cardinality with no owl:onClass is malformed — hard-fail, never a silent drop.
+    let ds = shape_dataset(
+        "g:Car a owl:Class ; rdfs:subClassOf \
+         [ a owl:Restriction ; owl:onProperty g:hasPart ; \
+           owl:qualifiedCardinality \"1\"^^xsd:nonNegativeInteger ] .",
+    );
+    assert!(
+        derive_validation_shapes(ds.as_ref()).is_err(),
+        "qualifiedCardinality without owl:onClass must hard-fail"
+    );
+}
+
+#[test]
+fn derive_domain_and_functional_merge_into_one_subjects_of_shape() {
+    // A domain axiom AND a functionality axiom on the SAME property must fold into ONE
+    // SubjectsOf(P) shape carrying both the node Class and the maxCount-1 property.
+    let ds = shape_dataset(
+        "g:Doc a owl:Class . \
+         g:isbn a owl:FunctionalProperty ; rdfs:domain g:Doc .",
+    );
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    let subjects_of: Vec<_> = shapes
+        .iter()
+        .filter(|s| matches!(&s.target, ShapeTarget::SubjectsOf(p) if p.ends_with("isbn")))
+        .collect();
+    assert_eq!(
+        subjects_of.len(),
+        1,
+        "domain + functional must produce exactly ONE SubjectsOf(isbn) shape: {subjects_of:?}"
+    );
+    let shape = subjects_of[0];
+    assert!(
+        shape
+            .node_components
+            .iter()
+            .any(|c| matches!(c, ConstraintComponent::Class(d) if d.ends_with("Doc"))),
+        "merged shape carries the domain node Class: {:?}",
+        shape.node_components
+    );
+    assert!(
+        shape
+            .properties
+            .iter()
+            .any(|p| p.path.ends_with("isbn") && p.max_count == Some(1)),
+        "merged shape carries the functional maxCount-1 property: {:?}",
+        shape.properties
     );
 }
 

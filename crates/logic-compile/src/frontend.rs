@@ -46,7 +46,7 @@ use super::ir::{
     AggregateSpec, ComplexityClass, ConstraintComponent, ConstraintProvenance, ContextualScope,
     Correspondence, Formula, LOGIC_NAMESPACE, LogicAxiom, LogicModality, LogicProgram, LogicRule,
     PathBase, PathShapeIr, PropertyConstraintIr, ReasoningContract, SemanticProfileId,
-    ShaclNodeKind, ShapeTarget, Term, ValidationShapeIr,
+    ShaclNodeKind, ShapeTarget, ShapeValue, Term, ValidationShapeIr,
 };
 use super::restriction;
 
@@ -1073,6 +1073,57 @@ fn closure_validation_optouts(store: &RdfDataset) -> std::collections::BTreeSet<
     set
 }
 
+/// Walk an `rdf:first`/`rdf:rest`/`rdf:nil` list from `head`, collecting its IRI members in
+/// order. Blank / literal members are skipped (a non-resource list element has no IRI form),
+/// and the walk terminates on `rdf:nil`, a cell missing `rdf:rest`, a non-resource cell, or a
+/// cycle — a malformed list contributes only the members read so far rather than looping.
+fn read_iri_list(store: &RdfDataset, head: &Node) -> Vec<String> {
+    const RDF_FIRST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#first";
+    const RDF_REST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest";
+    const RDF_NIL: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil";
+    let first = nn(RDF_FIRST);
+    let rest = nn(RDF_REST);
+    let mut out: Vec<String> = Vec::new();
+    let mut seen: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
+    let mut cursor = head.clone();
+    while let Some(node) = term_as_subject(&cursor) {
+        if subject_str(&node) == RDF_NIL {
+            break;
+        }
+        if !seen.insert(subject_str(&node)) {
+            break;
+        }
+        if let Some(Node::Iri(iri)) = value(store, &node, &first) {
+            out.push(iri);
+        }
+        match value(store, &node, &rest) {
+            Some(next) => cursor = next,
+            None => break,
+        }
+    }
+    out
+}
+
+/// Derive the closed-world OWL fragment of an ontology graph into [`ValidationShapeIr`]s: the
+/// per-class restriction walk (`some`/`allValuesFrom`, `hasValue`, unqualified + qualified
+/// cardinality), the class-level axioms (`disjointWith`/`complementOf`/`oneOf`/
+/// `AllDisjointClasses`), and the property-level axioms (`rdfs:domain`/`rdfs:range` and
+/// `owl:Functional`/`InverseFunctionalProperty`). Every family accumulates by SHAPE TARGET —
+/// one shape per target — so a class carrying both a restriction and a disjointness, or a
+/// property carrying both a domain and a functionality axiom, folds into a single shape rather
+/// than colliding. Constraints are sorted + deduped at construction so supply order never
+/// affects the emitted surface (content-addressed determinism).
+///
+/// These are closed-world READINGS of open-world axioms — `logic:ValidationOnly` polarity,
+/// never claimed as entailments (Principle 17). Derivation is scoped to the GMEOW authoring
+/// namespace (only our own classes / properties own a shape; the target of an `sh:class` may
+/// live in any namespace). The per-property / per-class opt-out (R3, see
+/// [`closure_validation_optouts`]) suppresses any axiom whose subject a closure entry marks
+/// `OpenWorldClosure`.
+///
+/// Hard-fails (`Err`) rather than silently dropping a malformed REQUIRED constraint: a
+/// cardinality with `min > max` (via [`PropertyConstraintIr::new`]), a qualified cardinality
+/// with no `owl:onClass`, or an `owl:hasValue` whose fixed value is an anonymous node.
 pub fn derive_validation_shapes(store: &RdfDataset) -> Result<Vec<ValidationShapeIr>, String> {
     // The per-property/per-class closed-world-reading opt-out (R3). Default is derive-all; a
     // property/class named by an `OpenWorldClosure` closure entry is suppressed below.
@@ -1086,17 +1137,54 @@ pub fn derive_validation_shapes(store: &RdfDataset) -> Result<Vec<ValidationShap
     let rdfs_literal = format!("{rdfs}Literal");
     let p_on = nn(&format!("{owl}onProperty"));
     let p_some = nn(&format!("{owl}someValuesFrom"));
+    let p_all = nn(&format!("{owl}allValuesFrom"));
+    let p_hasvalue = nn(&format!("{owl}hasValue"));
+    let p_onclass = nn(&format!("{owl}onClass"));
     let p_mincard = nn(&format!("{owl}minCardinality"));
     let p_maxcard = nn(&format!("{owl}maxCardinality"));
     let p_card = nn(&format!("{owl}cardinality"));
+    let p_qmincard = nn(&format!("{owl}qualifiedMinCardinality"));
+    let p_qmaxcard = nn(&format!("{owl}qualifiedMaxCardinality"));
+    let p_qcard = nn(&format!("{owl}qualifiedCardinality"));
     let p_subclass = nn(&format!("{rdfs}subClassOf"));
+    let p_disjoint = nn(&format!("{owl}disjointWith"));
+    let p_complement = nn(&format!("{owl}complementOf"));
+    let p_oneof = nn(&format!("{owl}oneOf"));
+    let p_members = nn(&format!("{owl}members"));
+    let p_domain = nn(&format!("{rdfs}domain"));
+    let p_range = nn(&format!("{rdfs}range"));
+    let owl_alldisjoint = Node::iri(format!("{owl}AllDisjointClasses"));
 
-    // A someValuesFrom target is a DATATYPE (→ sh:datatype) rather than a class (→ sh:class)
-    // when it is in the XSD space, is rdfs:Literal, or is declared `a rdfs:Datatype`.
+    // GMEOW is the authoring ground: derive validation shapes only for our own domain
+    // classes / properties (Principle 4 / maximal dogfooding). Imported ontologies (gUFO,
+    // FOAF, …) are linked, not validated by our surface — and their namespaces are not
+    // registered in the downstream JSON-Schema discriminator. The TARGET of an `sh:class`
+    // may live in any namespace; only the SHAPE-owning class / property must be GMEOW-NS.
+    const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
+
+    // A range target is a DATATYPE (→ sh:datatype) rather than a class (→ sh:class) when it is
+    // in the XSD space, is rdfs:Literal, or is declared `a rdfs:Datatype`.
     let is_datatype = |iri: &str| -> bool {
         iri.starts_with(xsd)
             || iri == rdfs_literal
             || objects(store, &Subject::Iri(iri.to_owned()), &nn(RDF_TYPE)).contains(&rdfs_datatype)
+    };
+
+    // The single classification component for an IRI target: the two universal-tops project to
+    // an open node-kind constraint (`owl:Thing` → sh:BlankNodeOrIRI; `rdfs:Literal` →
+    // sh:Literal) — the `owl:Thing` guard sits AHEAD of `is_datatype` so a quirk axiom
+    // `owl:Thing a rdfs:Datatype` can never fall through to a vacuous `sh:datatype owl:Thing`.
+    // A concrete datatype → sh:datatype; anything else → sh:class.
+    let classify = |iri: &str| -> ConstraintComponent {
+        if iri == owl_thing {
+            ConstraintComponent::NodeKindShacl(ShaclNodeKind::BlankNodeOrIri)
+        } else if iri == rdfs_literal {
+            ConstraintComponent::NodeKindShacl(ShaclNodeKind::Literal)
+        } else if is_datatype(iri) {
+            ConstraintComponent::Datatype(iri.to_owned())
+        } else {
+            ConstraintComponent::Class(iri.to_owned())
+        }
     };
 
     // A non-negative-integer cardinality literal off a restriction blank node; `None` (never a
@@ -1108,39 +1196,52 @@ pub fn derive_validation_shapes(store: &RdfDataset) -> Result<Vec<ValidationShap
         }
     };
 
-    // A single derived constraint on one property of one class. Sorted + deduped so supply
-    // order never affects the emitted surface (content-addressed determinism).
-    #[derive(PartialEq, Eq, PartialOrd, Ord)]
-    enum Derived {
-        /// `someValuesFrom` target: (property IRI, target IRI, target-is-datatype).
-        Value(String, String, bool),
-        /// Unqualified cardinality: (property IRI, min_count, max_count).
-        Card(String, Option<u32>, Option<u32>),
+    // Accumulate by SHAPE TARGET: shape IRI → (target, node_components, properties). One shape
+    // per target, so every family merges into a single shape rather than colliding.
+    type Acc = BTreeMap<
+        String,
+        (
+            ShapeTarget,
+            Vec<ConstraintComponent>,
+            Vec<PropertyConstraintIr>,
+        ),
+    >;
+    let mut acc: Acc = BTreeMap::new();
+
+    // The stable per-target shape IRI (distinct per target family so domain / range / class
+    // shapes never collide).
+    fn entry_for(
+        acc: &mut Acc,
+        target: ShapeTarget,
+    ) -> &mut (
+        ShapeTarget,
+        Vec<ConstraintComponent>,
+        Vec<PropertyConstraintIr>,
+    ) {
+        let iri = match &target {
+            ShapeTarget::Class(c) => format!("{c}-shape"),
+            ShapeTarget::SubjectsOf(p) => format!("{p}-domain-shape"),
+            ShapeTarget::ObjectsOf(p) => format!("{p}-range-shape"),
+            ShapeTarget::ValueKeyed { predicate, value } => {
+                format!("{predicate}-{value}-value-shape")
+            }
+        };
+        acc.entry(iri)
+            .or_insert_with(|| (target, Vec::new(), Vec::new()))
     }
 
-    // For every owl:Class, walk its `rdfs:subClassOf` restriction super-classes.
+    // ── FAMILY 1 — per-class restriction walk (Class(C) target) ───────────────────────────
     let classes = subjects_with(store, &nn(RDF_TYPE), &owl_class);
-    let mut by_class: BTreeMap<String, Vec<Derived>> = BTreeMap::new();
-    // GMEOW is the authoring ground: derive validation shapes only for our own domain
-    // classes (Principle 4 / maximal dogfooding). Imported ontologies (gUFO, FOAF, …) are
-    // linked, not validated by our surface — and their target-class namespaces are not
-    // registered in the downstream JSON-Schema discriminator.
-    const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
-    for class in classes {
+    for class in &classes {
         // An anonymous class expression (blank node) is not a shape target — skip it.
-        if subject_is_blank(&class) {
+        if subject_is_blank(class) {
             continue;
         }
-        let class_iri = subject_str(&class);
-        if !class_iri.starts_with(GMEOW_NS) {
+        let class_iri = subject_str(class);
+        if !class_iri.starts_with(GMEOW_NS) || optouts.contains(&class_iri) {
             continue;
         }
-        // Per-class validation-reading opt-out (R3): a class annotated OpenWorldClosure takes
-        // no closed-world shape reading at all.
-        if optouts.contains(&class_iri) {
-            continue;
-        }
-        for restr in objects(store, &class, &p_subclass) {
+        for restr in objects(store, class, &p_subclass) {
             let Some(restr_subj) = term_as_subject(&restr) else {
                 continue;
             };
@@ -1149,126 +1250,330 @@ pub fn derive_validation_shapes(store: &RdfDataset) -> Result<Vec<ValidationShap
             let Some(Node::Iri(on)) = value(store, &restr_subj, &p_on) else {
                 continue;
             };
-            // Per-property validation-reading opt-out (R3): this property is genuinely
-            // open-world only, so derive no closed-world shape for it.
+            // Per-property validation-reading opt-out (R3).
             if optouts.contains(&on) {
                 continue;
             }
-            // someValuesFrom → sh:class / sh:datatype. Only an IRI-valued target has a shape
-            // form: a blank someValuesFrom is an anonymous class expression (union/intersection),
-            // carried in the canon but never emitted as a bare blank label.
-            if let Some(Node::Iri(some_c)) = value(store, &restr_subj, &p_some) {
-                let dt = is_datatype(&some_c);
-                by_class
-                    .entry(class_iri.clone())
-                    .or_default()
-                    .push(Derived::Value(on.clone(), some_c, dt));
-            }
-            // Unqualified cardinality → sh:minCount/sh:maxCount. Qualified cardinality
-            // (`owl:onClass` + `owl:qualifiedCardinality`) is deliberately NOT lifted: it maps
-            // to `sh:qualifiedValueShape`/`sh:qualifiedMinCount`, a distinct construct, and
-            // reducing it to a plain count would over-constrain (count all values, not just the
-            // qualified ones).
-            let exact = card_of(&restr_subj, &p_card);
-            let (mut lo, mut hi) = (
-                card_of(&restr_subj, &p_mincard),
-                card_of(&restr_subj, &p_maxcard),
-            );
-            if let Some(n) = exact {
-                lo = Some(n);
-                hi = Some(n);
-            }
-            if lo.is_some() || hi.is_some() {
-                by_class
-                    .entry(class_iri.clone())
-                    .or_default()
-                    .push(Derived::Card(on, lo, hi));
-            }
-        }
-    }
 
-    let mut shapes = Vec::new();
-    for (class, mut derived) in by_class {
-        derived.sort();
-        derived.dedup();
-        let mut properties = Vec::new();
-        for d in derived {
-            let pc = match d {
-                // The two universal-tops project to an open node-kind constraint regardless of
-                // how the range was classified: both guards match `_` on the datatype flag and
-                // sit ahead of the general arms, so a classifier flip (a custom axiom or
-                // triplestore quirk parsing `rdfs:Literal` as a class, or `owl:Thing` as a
-                // datatype) can never fall through to a vacuous `sh:class rdfs:Literal` /
-                // `sh:datatype owl:Thing`.
-                //
-                // A universal-literal-top (`rdfs:Literal`) `someValuesFrom` says "any literal" —
-                // an intentionally open literal range. Under spec-conformant SHACL `sh:datatype
-                // rdfs:Literal` matches only a literal whose datatype IRI is literally `rdfs:Literal`
-                // (the class of all literals is never a concrete lexical datatype), so it flags
-                // every plain literal; the faithful projection of "any literal" is
-                // `sh:nodeKind sh:Literal`. Closed-world reading of the open range, `ValidationOnly`
-                // polarity, never an entailment (Principle 17).
-                Derived::Value(on, target, _) if target == rdfs_literal => {
-                    PropertyConstraintIr::new(
+            // owl:someValuesFrom is EXISTENTIAL: at least one value satisfies the inner shape →
+            // `sh:qualifiedValueShape [ <inner> ] ; sh:qualifiedMinCount 1`. A blank filler is an
+            // anonymous class expression (union/intersection), carried in the canon, never a bare
+            // blank shape — skip it.
+            if let Some(Node::Iri(cv)) = value(store, &restr_subj, &p_some) {
+                let pc = PropertyConstraintIr::new(
+                    &on,
+                    None,
+                    None,
+                    None,
+                    vec![ConstraintComponent::QualifiedValueShape {
+                        shape: vec![classify(&cv)],
+                        min: Some(1),
+                        max: None,
+                    }],
+                )?;
+                entry_for(&mut acc, ShapeTarget::Class(class_iri.clone()))
+                    .2
+                    .push(pc);
+            }
+
+            // owl:allValuesFrom is UNIVERSAL: every value satisfies the inner shape → a bare
+            // `sh:class` / `sh:datatype` / `sh:nodeKind` on the path. Blank filler → skip.
+            if let Some(Node::Iri(cv)) = value(store, &restr_subj, &p_all) {
+                let pc = PropertyConstraintIr::new(&on, None, None, None, vec![classify(&cv)])?;
+                entry_for(&mut acc, ShapeTarget::Class(class_iri.clone()))
+                    .2
+                    .push(pc);
+            }
+
+            // owl:hasValue → `sh:hasValue` (a fixed required value). A blank / quoted-triple
+            // fixed value is impossible (a fixed value cannot be an anonymous node) → hard-fail.
+            match value(store, &restr_subj, &p_hasvalue) {
+                None => {}
+                Some(Node::Iri(v)) => {
+                    let pc = PropertyConstraintIr::new(
                         &on,
                         None,
                         None,
                         None,
-                        vec![ConstraintComponent::NodeKindShacl(ShaclNodeKind::Literal)],
-                    )?
+                        vec![ConstraintComponent::HasValue(ShapeValue::Iri(v))],
+                    )?;
+                    entry_for(&mut acc, ShapeTarget::Class(class_iri.clone()))
+                        .2
+                        .push(pc);
                 }
-                // A universal-top (`owl:Thing`) `someValuesFrom` says "any individual" — an
-                // intentionally open range. Under spec-conformant SHACL `sh:class owl:Thing`
-                // demands an explicit `rdf:type owl:Thing` edge (never materialized), which would
-                // flag every value; the faithful projection of "any individual, not a literal" is
-                // `sh:nodeKind sh:BlankNodeOrIRI`. This is the closed-world reading of the open
-                // range — still `logic:ValidationOnly` polarity, never an entailment (Principle 17).
-                Derived::Value(on, target, _) if target == owl_thing => PropertyConstraintIr::new(
-                    &on,
-                    None,
-                    None,
-                    None,
-                    vec![ConstraintComponent::NodeKindShacl(
-                        ShaclNodeKind::BlankNodeOrIri,
-                    )],
-                )?,
-                // Concrete datatype range (`true`) → `sh:datatype`; concrete class range
-                // (`false`) → `sh:class`.
-                Derived::Value(on, target, true) => PropertyConstraintIr::new(
-                    &on,
-                    None,
-                    None,
-                    None,
-                    vec![ConstraintComponent::Datatype(target)],
-                )?,
-                Derived::Value(on, target, false) => PropertyConstraintIr::new(
-                    &on,
-                    None,
-                    None,
-                    None,
-                    vec![ConstraintComponent::Class(target)],
-                )?,
-                Derived::Card(on, lo, hi) => PropertyConstraintIr::new(
-                    &on,
-                    lo,
-                    hi,
-                    Some(ConstraintProvenance::OwlRestriction),
-                    vec![],
-                )?,
-            };
-            properties.push(pc);
+                Some(Node::Lit(lexical)) => {
+                    let pc = PropertyConstraintIr::new(
+                        &on,
+                        None,
+                        None,
+                        None,
+                        vec![ConstraintComponent::HasValue(ShapeValue::Literal {
+                            lexical,
+                            datatype: None,
+                            lang: None,
+                        })],
+                    )?;
+                    entry_for(&mut acc, ShapeTarget::Class(class_iri.clone()))
+                        .2
+                        .push(pc);
+                }
+                Some(Node::Blank { .. }) | Some(Node::Triple(_)) => {
+                    return Err(format!(
+                        "owl:hasValue on {on} is an anonymous node; a fixed required value \
+                         cannot be a blank node or quoted triple"
+                    ));
+                }
+            }
+
+            // Cardinality. Qualified (`owl:onClass` + a `qualified*Cardinality`) is distinct from
+            // unqualified: it counts only the values satisfying the inner shape.
+            let has_qcard = value(store, &restr_subj, &p_qcard).is_some()
+                || value(store, &restr_subj, &p_qmincard).is_some()
+                || value(store, &restr_subj, &p_qmaxcard).is_some();
+            if has_qcard {
+                let q_exact = card_of(&restr_subj, &p_qcard);
+                let (mut qlo, mut qhi) = (
+                    card_of(&restr_subj, &p_qmincard),
+                    card_of(&restr_subj, &p_qmaxcard),
+                );
+                if let Some(n) = q_exact {
+                    qlo = Some(n);
+                    qhi = Some(n);
+                }
+                match value(store, &restr_subj, &p_onclass) {
+                    // A qualified cardinality REQUIRES its qualifying class — absent → hard-fail.
+                    None => {
+                        return Err(format!(
+                            "qualified cardinality on {on} requires owl:onClass"
+                        ));
+                    }
+                    // An anonymous qualifying class expression is carried in the canon, never a
+                    // bare blank shape — skip (do not emit).
+                    Some(Node::Blank { .. }) | Some(Node::Lit(_)) | Some(Node::Triple(_)) => {}
+                    Some(Node::Iri(q)) if q == owl_thing => {
+                        // `owl:onClass owl:Thing` qualifies over "any individual" — the qualified
+                        // count degrades to an unqualified `sh:minCount`/`sh:maxCount` rather than
+                        // a vacuous inner shape.
+                        let pc = PropertyConstraintIr::new(
+                            &on,
+                            qlo,
+                            qhi,
+                            Some(ConstraintProvenance::OwlRestriction),
+                            vec![],
+                        )?;
+                        entry_for(&mut acc, ShapeTarget::Class(class_iri.clone()))
+                            .2
+                            .push(pc);
+                    }
+                    Some(Node::Iri(q)) => {
+                        let pc = PropertyConstraintIr::new(
+                            &on,
+                            None,
+                            None,
+                            None,
+                            vec![ConstraintComponent::QualifiedValueShape {
+                                shape: vec![ConstraintComponent::Class(q)],
+                                min: qlo,
+                                max: qhi,
+                            }],
+                        )?;
+                        entry_for(&mut acc, ShapeTarget::Class(class_iri.clone()))
+                            .2
+                            .push(pc);
+                    }
+                }
+            } else {
+                // Unqualified cardinality → sh:minCount / sh:maxCount with OwlRestriction
+                // provenance (the open-world axiom read closed-world).
+                let exact = card_of(&restr_subj, &p_card);
+                let (mut lo, mut hi) = (
+                    card_of(&restr_subj, &p_mincard),
+                    card_of(&restr_subj, &p_maxcard),
+                );
+                if let Some(n) = exact {
+                    lo = Some(n);
+                    hi = Some(n);
+                }
+                if lo.is_some() || hi.is_some() {
+                    let pc = PropertyConstraintIr::new(
+                        &on,
+                        lo,
+                        hi,
+                        Some(ConstraintProvenance::OwlRestriction),
+                        vec![],
+                    )?;
+                    entry_for(&mut acc, ShapeTarget::Class(class_iri.clone()))
+                        .2
+                        .push(pc);
+                }
+            }
         }
-        if properties.is_empty() {
+    }
+
+    // ── FAMILY 2 — class-level axioms (Class(C) target, node_components) ───────────────────
+    for class in &classes {
+        if subject_is_blank(class) {
             continue;
         }
-        let shape = ValidationShapeIr::new(
-            format!("{class}-shape"),
-            ShapeTarget::Class(class),
-            properties,
-            None,
-            None,
-            false,
-        )?;
+        let class_iri = subject_str(class);
+        if !class_iri.starts_with(GMEOW_NS) || optouts.contains(&class_iri) {
+            continue;
+        }
+        // owl:disjointWith D → sh:not [ sh:class D ]. Blank operand → skip.
+        for d in objects(store, class, &p_disjoint) {
+            if let Node::Iri(d) = d {
+                entry_for(&mut acc, ShapeTarget::Class(class_iri.clone()))
+                    .1
+                    .push(ConstraintComponent::Not(Box::new(
+                        ConstraintComponent::Class(d),
+                    )));
+            }
+        }
+        // owl:complementOf D → sh:not [ sh:class D ]. Blank operand → skip.
+        for d in objects(store, class, &p_complement) {
+            if let Node::Iri(d) = d {
+                entry_for(&mut acc, ShapeTarget::Class(class_iri.clone()))
+                    .1
+                    .push(ConstraintComponent::Not(Box::new(
+                        ConstraintComponent::Class(d),
+                    )));
+            }
+        }
+        // owl:oneOf ( a b … ) → sh:in ( a b … ). An empty / malformed list contributes nothing.
+        if let Some(head) = value(store, class, &p_oneof) {
+            let members = read_iri_list(store, &head);
+            if !members.is_empty() {
+                let vals = members.into_iter().map(ShapeValue::Iri).collect();
+                entry_for(&mut acc, ShapeTarget::Class(class_iri.clone()))
+                    .1
+                    .push(ConstraintComponent::In(vals));
+            }
+        }
+    }
+
+    // Named owl:AllDisjointClasses ( c1 … cn ): each ordered pair (ci, cj), i≠j, contributes
+    // sh:not [ sh:class cj ] to ci's shape (when ci is GMEOW-NS and not opted out).
+    for adc in subjects_with(store, &nn(RDF_TYPE), &owl_alldisjoint) {
+        let Some(head) = value(store, &adc, &p_members) else {
+            continue;
+        };
+        let members = read_iri_list(store, &head);
+        for ci in &members {
+            if !ci.starts_with(GMEOW_NS) || optouts.contains(ci) {
+                continue;
+            }
+            for cj in &members {
+                if ci == cj {
+                    continue;
+                }
+                entry_for(&mut acc, ShapeTarget::Class(ci.clone())).1.push(
+                    ConstraintComponent::Not(Box::new(ConstraintComponent::Class(cj.clone()))),
+                );
+            }
+        }
+    }
+
+    // ── FAMILY 3 — property-level axioms (SubjectsOf(P) / ObjectsOf(P) targets) ────────────
+    // Collect every GMEOW-NS property: the four OWL property-type declarations plus any subject
+    // of rdfs:domain / rdfs:range.
+    let mut props: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
+    for ty in [
+        "ObjectProperty",
+        "DatatypeProperty",
+        "FunctionalProperty",
+        "InverseFunctionalProperty",
+    ] {
+        for s in subjects_with(store, &nn(RDF_TYPE), &Node::iri(format!("{owl}{ty}"))) {
+            if let Subject::Iri(iri) = &s
+                && iri.starts_with(GMEOW_NS)
+            {
+                props.insert(iri.clone());
+            }
+        }
+    }
+    let domain_iri = format!("{rdfs}domain");
+    let range_iri = format!("{rdfs}range");
+    for q in default_graph_quads(store) {
+        if (q.predicate.as_str() == domain_iri || q.predicate.as_str() == range_iri)
+            && let Subject::Iri(iri) = &q.subject
+            && iri.starts_with(GMEOW_NS)
+        {
+            props.insert(iri.clone());
+        }
+    }
+
+    let functional = Node::iri(format!("{owl}FunctionalProperty"));
+    let inverse_functional = Node::iri(format!("{owl}InverseFunctionalProperty"));
+    for p in &props {
+        if optouts.contains(p) {
+            continue;
+        }
+        let p_subj = Subject::Iri(p.clone());
+        // rdfs:domain C → a SubjectsOf(P) node condition (every subject of P satisfies it).
+        for c in objects(store, &p_subj, &p_domain) {
+            if let Node::Iri(c) = c {
+                entry_for(&mut acc, ShapeTarget::SubjectsOf(p.clone()))
+                    .1
+                    .push(classify(&c));
+            }
+        }
+        // rdfs:range C → an ObjectsOf(P) node condition (every object of P satisfies it).
+        for c in objects(store, &p_subj, &p_range) {
+            if let Node::Iri(c) = c {
+                entry_for(&mut acc, ShapeTarget::ObjectsOf(p.clone()))
+                    .1
+                    .push(classify(&c));
+            }
+        }
+        // owl:FunctionalProperty → each subject of P has ≤1 value (sh:maxCount 1 on P).
+        if contains(store, &p_subj, &nn(RDF_TYPE), &functional) {
+            let pc = PropertyConstraintIr::new(
+                p,
+                None,
+                Some(1),
+                Some(ConstraintProvenance::OwlRestriction),
+                vec![],
+            )?;
+            entry_for(&mut acc, ShapeTarget::SubjectsOf(p.clone()))
+                .2
+                .push(pc);
+        }
+        // owl:InverseFunctionalProperty → each object of P has ≤1 subject (inverse sh:maxCount 1).
+        if contains(store, &p_subj, &nn(RDF_TYPE), &inverse_functional) {
+            let pc = PropertyConstraintIr::new(
+                p,
+                None,
+                Some(1),
+                Some(ConstraintProvenance::OwlRestriction),
+                vec![],
+            )?
+            .inverted();
+            entry_for(&mut acc, ShapeTarget::ObjectsOf(p.clone()))
+                .2
+                .push(pc);
+        }
+    }
+
+    // ── Build one shape per target ────────────────────────────────────────────────────────
+    // Dedup by structural (Debug) identity so a duplicate axiom never double-counts; the IR
+    // constructors then sort node_components + properties into canonical content-key order, so
+    // supply order never affects the emitted bytes.
+    fn dedup_debug<T: std::fmt::Debug>(v: Vec<T>) -> Vec<T> {
+        let mut seen: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
+        v.into_iter()
+            .filter(|x| seen.insert(format!("{x:?}")))
+            .collect()
+    }
+
+    let mut shapes = Vec::new();
+    for (iri, (target, node_components, properties)) in acc {
+        let node_components = dedup_debug(node_components);
+        let properties = dedup_debug(properties);
+        if node_components.is_empty() && properties.is_empty() {
+            continue;
+        }
+        let shape = ValidationShapeIr::new(iri, target, properties, None, None, false)?
+            .with_node_components(node_components)?;
         shapes.push(shape);
     }
     Ok(shapes)
