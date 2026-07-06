@@ -13,6 +13,6 @@
 PREFIX math: <https://blackcatinformatics.ca/math/>
 
 SELECT ?property ?backing WHERE {
-    ?property <https://blackcatinformatics.ca/math/definingLaw> ?backing .
+    ?property math:definingLaw ?backing .
 }
 ORDER BY ?property ?backing
