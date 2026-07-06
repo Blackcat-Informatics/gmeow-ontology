@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# The flagship acceptance manifest — EPIC #1255's depth bar as a typed contract.
+# The flagship acceptance manifest — the epic's depth bar as a typed contract.
 #
 # The mathematics grounding layer's depth is defined by five flagship acceptance
 # scenarios, not by adjectives. Each is realized by a worked example, pinned by a
