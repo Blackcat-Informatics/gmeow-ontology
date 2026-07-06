@@ -33,6 +33,11 @@ purrdf = "0.3"
 # it rather than a hand-rolled scanner so the meta carrier decodes losslessly (the
 # Exact round-trip guarantee); the writer emits XML directly (roxmltree is parse-only).
 roxmltree = "0.20"
+# gmeow-errors: the diagnostics substrate. Loss unification (Phase 4) grades
+# PreservationKind as a BoundedLattice (worst-preservation-wins) and collapses the
+# projection-loss accumulators onto one DiagLedger of FindingCategory::ProjectionLoss
+# witnesses. A wasm-clean rlib leaf (serde/serde_json/purrdf/blake3 only, python OFF).
+gmeow-errors = { path = "../errors" }
 # sha2: the canonical-rdf12 projection mints content-stable reifier IRIs as
 # sha256(sort_key)[:12], matching the legacy compiler byte-for-byte.
 sha2 = "0.10"
