@@ -102,15 +102,16 @@ meta:tests-alignment a meta:TestSuite ;
         "tests/test_coreference.py" .
 
 meta:gate-crosscheck a meta:Gate ;
-    rdfs:label "dual-engine query crosscheck (rdflib vs native gmeow_rdf)"@x-gmeow-english ;
-    meta:artifact "src/gmeow_tools/oracles/engine_crosscheck.py" ;
+    rdfs:label "committed-query soundness crosscheck — every committed query answers on the native purrdf engine (rdflib retired)"@x-gmeow-english ;
+    meta:artifact "crates/gmeow-dev-cli/src/dev_gates.rs" ;
+    meta:symbol "crosscheck_queries" ;
     meta:makeTarget "maint-crosscheck" ;
     meta:cliCommand "crosscheck-queries" .
 
 meta:gate-reasoning a meta:Gate ;
-    rdfs:label "OWL 2 DL profile + ELK/HermiT consistency over the full profile"@x-gmeow-english ;
-    meta:artifact "src/gmeow_tools/reason.py" ;
-    meta:makeTarget "reason", "maint-reason-hermit", "verify" .
+    rdfs:label "OWL 2 DL profile + native OWL-Direct consistency (Docker-free) cross-checked against the purrdf-entail oracle"@x-gmeow-english ;
+    meta:artifact "crates/logic/src/reason/dl.rs" ;
+    meta:makeTarget "reason", "reason-verify", "verify" .
 
 meta:gate-fair-metadata a meta:Gate ;
     rdfs:label "VoID/DCAT publication metadata generator"@x-gmeow-english ;
@@ -123,8 +124,8 @@ meta:lint-no-preferred-rank a meta:Lint ;
 
 meta:tests-identity-orthogonality a meta:TestSuite ;
     rdfs:label "identity-axis orthogonality matrix (7 co-equal axes)"@x-gmeow-english ;
-    meta:artifact "tests/test_identity_orthogonality.py", "tests/test_gender.py",
-        "tests/test_standpoint.py" .
+    meta:artifact "crates/validate/tests/conformance_identity_orthogonality.rs", "tests/test_gender.py",
+        "crates/validate/tests/conformance_standpoint.rs" .
 
 meta:shapes-core a meta:Shape ;
     rdfs:label "core SHACL shapes (identity facets, claim spine, frames)"@x-gmeow-english ;
@@ -145,7 +146,7 @@ meta:tests-suppression a meta:TestSuite ;
 meta:tests-reference-frames a meta:TestSuite ;
     rdfs:label "reference-frame relativity tests"@x-gmeow-english ;
     meta:artifact "crates/validate/tests/conformance_reference_frames.rs",
-        "tests/test_calendar.py",
+        "crates/validate/tests/conformance_calendar.rs",
         "slices/core/temporal/tests/structural.ttl" .
 
 meta:lint-reasoning-invariants a meta:Lint ;
@@ -295,11 +296,11 @@ meta:gate-logic-gufo-superset a meta:Gate ;
 # Principle 18 enforcement — the native reasoning authority. The native
 # EL/DL lane is the Java/Docker-free authoritative gate; the divergence ledger
 # is built from native results ONLY and enforces native gap-zero coverage, while
-# oracle comparison runs in classic-cross-check.
+# the independent oracle comparison runs the in-process purrdf-entail cross-check.
 meta:gate-reason-native a meta:Gate ;
     rdfs:label "native Docker-free EL/DL reasoning authority (reason --mode native)"@x-gmeow-english ;
-    meta:artifact "src/gmeow_tools/reason.py" ;
-    meta:symbol "reason_native" ;
+    meta:artifact "crates/logic/src/reason/mod.rs" ;
+    meta:symbol "reason_all" ;
     meta:makeTarget "reason" ;
     meta:cliCommand "reason" .
 
@@ -309,26 +310,27 @@ meta:gate-dl-el-crosscheck a meta:Gate ;
     meta:symbol "ReasonStage" ;
     meta:generator "reason" .
 
-# Native↔oracle agreement, enforced NATIVELY. The divergence ledger is built and
-# the agreement verdict decided in Rust (`enforce` over the ledger), Docker-free,
-# and fails strictly on any NativeOnly/OracleOnly divergence or DlGap native
-# coverage defect. The Java+Docker oracle side (ELK/HermiT subsumption +
-# consistency; owlrl OWL-2-RL closure) was relocated OUT of mainline into the
-# standalone validations/classic-cross-check/ validator-zoo suite —
-# run on demand, never part of `make check`, the required `quality` gate, or CI.
+# Native↔oracle agreement, enforced NATIVELY on-gate. The divergence ledger is
+# built and the agreement verdict decided in Rust (`enforce` over the ledger),
+# Docker-free, and fails strictly on any OracleOnly divergence or DlGap native
+# coverage defect (NativeOnly rows are gmeow's richer world-scoped closure —
+# `native ⊇ oracle` — not a failure). The independent oracle side is the
+# in-process, conformance-tested purrdf-entail OWL-RL closure run by
+# `gmeow-dev reason-crosscheck`; the retired external Java/Docker oracle
+# containers were deleted entirely.
 meta:gate-classic-cross-check a meta:Gate ;
-    rdfs:label "native↔oracle agreement — native divergence-ledger enforcement, Docker-free (the ELK/HermiT/owlrl oracle lane relocated to validations/classic-cross-check/)"@x-gmeow-english ;
+    rdfs:label "native↔oracle agreement — native divergence-ledger enforcement over the in-process purrdf-entail oracle, Docker-free"@x-gmeow-english ;
     meta:artifact "crates/logic/src/reason/ledger.rs" ;
     meta:symbol "enforce" ;
-    meta:makeTarget "conformance" .
+    meta:makeTarget "reason-crosscheck" .
 
 # The anti-regression SUPERSET meta-gate (criterion 3): the native-decided
 # construct set must be a SUPERSET of the oracle-decided set. Any OracleOnly row
 # (the oracle decided a construct the native path did not) or any DlGap (a native
 # coverage defect) is a coverage REGRESSION and FAILS. The decision is computed in
 # Rust (the `enforce` verdict over the divergence ledger), not in Python, and is
-# proven OFFLINE by the frozen oracle-gold conformance lane (native ⊇ HermiT over
-# the curated DL datasets, no Docker/Java/network).
+# proven OFFLINE by the frozen oracle-gold conformance lane (native ⊇ the frozen
+# external OWL 2 DL oracle over the curated DL datasets, no Docker/Java/network).
 meta:gate-native-oracle-superset a meta:Gate ;
     rdfs:label "native ⊇ oracle anti-regression superset gate — Rust-decided, offline frozen-oracle-gold proven"@x-gmeow-english ;
     meta:artifact "crates/logic/src/reason/ledger.rs",

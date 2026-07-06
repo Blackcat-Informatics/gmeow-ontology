@@ -19,9 +19,7 @@
 //! DOCUMENTED, intended native↔published divergences (native EL correctly differs from
 //! the published DL/Full answer). They are NOT engine defects, so they are listed in a
 //! separate section and excluded from the headline agreement rate — counting them as
-//! failures would misrepresent the reasoner. The live cross-engine (ELK/HermiT)
-//! agreement axis is a separate surface: the Docker-optional classic-cross-check
-//! report at `dist/gmeow-classic-cross-check.sarif`, cross-referenced not duplicated.
+//! failures would misrepresent the reasoner.
 
 use std::collections::BTreeMap;
 
@@ -97,10 +95,6 @@ pub(crate) fn render_agreement_matrix(
         "  intended for a `divergence`-lane corpus, see below).".to_string(),
         "* **dl-gap** — the native path could not decide the case (an honest coverage gap)."
             .to_string(),
-        String::new(),
-        "The live cross-engine (ELK/HermiT) agreement axis is a separate surface: the".to_string(),
-        "Docker-optional classic-cross-check report at".to_string(),
-        "`dist/gmeow-classic-cross-check.sarif`.".to_string(),
         String::new(),
     ];
 
