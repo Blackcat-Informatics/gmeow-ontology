@@ -61,15 +61,17 @@ pub const REP_DENIED: &str = "transform:denied";
 /// CARRIER this rides `stage-validate` / `stage-compile-logic`'s product bundle (the
 /// run ledger's single source); on the SHIPPED gts it is absent (the run ledger is a
 /// build-time projection, not a folded gts surface), so `diag_nodes` resolves to an
-/// empty set — the wheel-only contract. This constant MUST equal the producer-side
-/// [`crate::stages::carrier::REP_DIAG_NODES`] (a drifted label silently reads empty).
+/// empty set — the wheel-only contract. This is the SINGLE definition of the label; the
+/// producer side re-exports it as [`crate::stages::carrier::REP_DIAG_NODES`], so no drift
+/// is possible (a drifted label would silently read empty).
 pub const REP_DIAG_NODES: &str = "diagnostics:nodes";
 /// JSON (NOT a tar) of `stage-source-load`'s authored subject→source-position
 /// [`SpanIndex`](crate::ingest::SpanIndex): the source spans the diagnostics consumers
 /// lift onto their findings. It rides ONLY the source-load product's blob lane and is
 /// dropped before the carrier assembles, so it never folds into a shipped `gmeow.gts`
-/// surface. This constant MUST equal the producer-side
-/// [`crate::stages::carrier::REP_SPAN_TABLE`] (a drifted label silently reads empty).
+/// surface. This is the SINGLE definition of the label; the producer side re-exports it
+/// as [`crate::stages::carrier::REP_SPAN_TABLE`], so no drift is possible (a drifted
+/// label would silently read empty).
 pub const REP_SPAN_TABLE: &str = "spans:source-table";
 
 /// The saturation refusal set: one `(subject, predicate, object)` ERROR row per
@@ -539,19 +541,11 @@ mod tests {
         );
     }
 
-    /// Drift pin: the source-span blob `rep` label the source-load PRODUCER writes
-    /// ([`crate::stages::carrier::REP_SPAN_TABLE`]) must equal the reader-side label
-    /// here. A drifted label would make `StageProduct::span_index()` read back an empty
-    /// blob (silently shipping no spans), so this mirrors the intent of
-    /// `bundle_carries_the_consumer_archives` for a rep that is dropped before the sink.
-    #[test]
-    fn span_table_rep_labels_agree() {
-        assert_eq!(
-            crate::bundle_blobs::REP_SPAN_TABLE,
-            crate::stages::carrier::REP_SPAN_TABLE,
-            "source-span blob rep label drift between producer and reader"
-        );
-    }
+    // (The former `span_table_rep_labels_agree` drift-pin test is gone: the producer
+    // side now RE-EXPORTS `REP_SPAN_TABLE`/`REP_DIAG_NODES` from this module
+    // (`crate::stages::carrier`), so producer and reader are one constant and the label
+    // cannot drift structurally — a runtime assert_eq of a const against itself guards
+    // nothing.)
 
     #[test]
     fn ontology_docs_and_schemas_resolve_non_empty() {
