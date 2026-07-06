@@ -8,19 +8,19 @@
 # are minted (there is no closed enum of languages); the document is an
 # InformationObject, the domain of gmeow:writtenInLanguage.
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix lang:   <https://blackcatinformatics.ca/lang/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/language/> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 
 # --- Languages: first-class, BCP-47-tagged. English already exists as the core
-#     seed gmeow:langEnglish — reused, not re-minted. Japanese has no seed, so it
-#     is minted, declaring its internal private-use tag for @lang annotations.
+#     seed lang:english — reused, not re-minted. Japanese has no seed, so it
+#     is minted;  literals use its BCP-47 tag.
 ex:japanese a gmeow:Language ;
     rdfs:label        "Japanese"@x-gmeow-english ;
-    gmeow:bcp47Tag    "ja" ;
-    gmeow:languageTag "x-gmeow-japanese" .
+    gmeow:bcp47Tag    "ja" .
 
 # --- A bilingual document: two co-equal languages, neither primary. The title is
 #     carried as separate co-equal language-tagged literals, one per language.
 ex:manual a gmeow:InformationObject ;
     gmeow:title             "Installation Manual"@x-gmeow-english , "インストールマニュアル"@x-gmeow-japanese ;
-    gmeow:writtenInLanguage gmeow:langEnglish , ex:japanese .
+    gmeow:writtenInLanguage lang:english , ex:japanese .

@@ -9,6 +9,7 @@
 # language it transcribes (gmeow:notationSystemFor); a script is itself a notation
 # system, reached from the writing system via gmeow:writingSystemAsNotation.
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix lang:   <https://blackcatinformatics.ca/lang/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/notation/> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 
@@ -20,12 +21,12 @@ ex:staffNotation a gmeow:NotationSystem ;
 # --- The IPA: a transcription system FOR a language (here English).
 ex:ipa a gmeow:NotationSystem ;
     rdfs:label               "International Phonetic Alphabet"@x-gmeow-english ;
-    gmeow:notationSystemFor  gmeow:langEnglish ;
+    gmeow:notationSystemFor  lang:english ;
     gmeow:notationSystemKind gmeow:symbolicKindTranscription .
 
 # --- A script IS a notation system: the Latin writing system, viewed as the
 #     encoding notation it provides.
-ex:latin a gmeow:WritingSystem ;
+ex:latin a lang:Script ;
     rdfs:label                  "Latin script"@x-gmeow-english ;
     gmeow:writingSystemAsNotation ex:latinNotation .
 

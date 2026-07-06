@@ -1,4 +1,5 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix lang: <https://blackcatinformatics.ca/lang/> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
@@ -160,9 +161,9 @@ gmeow:attributedScript
     rdfs:domain gmeow:ScriptLanguageAttribution ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/archaeological-evidence> ;
     rdfs:label "attributed script"@x-gmeow-english ;
-    rdfs:range gmeow:WritingSystem ;
+    rdfs:range lang:Script ;
     rdfs:subPropertyOf gmeow:observationResult ;
-    skos:definition "The writing system assigned to an inscription by a script/language attribution. Non-functional: competing script assignments coexist (Principle 9)."@x-gmeow-english ;
+    skos:definition "The script (lang:Script) assigned to an inscription by a script/language attribution. Non-functional: competing script assignments coexist (Principle 9)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:attributionTarget

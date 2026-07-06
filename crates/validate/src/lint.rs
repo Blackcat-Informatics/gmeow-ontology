@@ -2034,7 +2034,7 @@ mod tests {
     #[test]
     fn naming_lint_respects_naming_note() {
         let store = store_from(&format!(
-            "{PREFIXES}gmeow:scriptRolePrimary a owl:Class ;\n\
+            "{PREFIXES}gmeow:sourceTierPrimary a owl:Class ;\n\
                gmeow:namingNote \"value vocabulary\" .\n"
         ));
         let report = term_naming_lint_dataset(&store, &cfg());

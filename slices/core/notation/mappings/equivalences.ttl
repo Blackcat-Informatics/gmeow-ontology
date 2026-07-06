@@ -56,16 +56,6 @@ gmeow:eqNotation003 a gmeow:TermEquivalence ;
     gmeow:comment "Wikidata 'notation' (Q2001982) — a system of symbols to represent facts or quantities; a close related match." ;
     gmeow:sssomFile "gmeow-notation.sssom.tsv" .
 
-# WritingSystem — already mapped in languages.ttl; bridge here for completeness
-gmeow:eqNotation004 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:WritingSystem ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q8192 ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.85 ;
-    gmeow:comment "Duplicate of languages mapping for boundary clarity: WritingSystem ↔ Wikidata 'writing system' (Q8192)." ;
-    gmeow:sssomFile "gmeow-notation.sssom.tsv" .
-
 # Mathematical notation
 gmeow:eqNotation005 a gmeow:TermEquivalence ;
     gmeow:alignSubject gmeow:symbolicKindMathematical ;

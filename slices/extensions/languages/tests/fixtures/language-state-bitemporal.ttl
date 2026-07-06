@@ -19,14 +19,12 @@ ex:standpoint-ethnologue a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStan
 # --- English (base language for historical states) --------------------------- #
 
 ex:english a gmeow:Language ;
-    gmeow:languageTag "x-gmeow-english" ;
     gmeow:bcp47Tag "en"^^xsd:language ;
     gmeow:languageCode "en" .
 
 # --- Contested dialect/language: Scots -------------------------------------- #
 
 ex:scots a gmeow:LanguageVariety ;
-    gmeow:languageTag "x-gmeow-scots" ;
     gmeow:bcp47Tag "sco"^^xsd:language ;
     gmeow:languageCode "sco" ;
     gmeow:varietyKind gmeow:kindLanguage , gmeow:kindDialect ;
@@ -62,12 +60,10 @@ ex:ax-scots-of-english a owl:Axiom ;
 # --- Localized variant: Mexican Spanish ------------------------------------- #
 
 ex:spanish a gmeow:Language ;
-    gmeow:languageTag "x-gmeow-spanish" ;
     gmeow:bcp47Tag "es"^^xsd:language ;
     gmeow:languageCode "es" .
 
 ex:mexicanSpanish a gmeow:LanguageVariety ;
-    gmeow:languageTag "x-gmeow-mexican-spanish" ;
     gmeow:bcp47Tag "es-MX"^^xsd:language ;
     gmeow:varietyKind gmeow:kindLocalizedVariant ;
     gmeow:varietyOf ex:spanish .
@@ -75,7 +71,6 @@ ex:mexicanSpanish a gmeow:LanguageVariety ;
 # --- Generational slang variety --------------------------------------------- #
 
 ex:genZSlang a gmeow:LanguageVariety ;
-    gmeow:languageTag "x-gmeow-gen-z-slang" ;
     gmeow:varietyKind gmeow:kindSlang .
 
 # --- English historical states ---------------------------------------------- #
@@ -137,7 +132,6 @@ ex:ax-mod-status a owl:Axiom ;
 # --- Version vs State distinction: Ithkuil 2011 ----------------------------- #
 
 ex:ithkuil a gmeow:Language ;
-    gmeow:languageTag "x-gmeow-ithkuil" ;
     gmeow:languageOrigin gmeow:originConstructedEngineered .
 
 ex:ithkuil2011 a gmeow:LanguageVersion ;

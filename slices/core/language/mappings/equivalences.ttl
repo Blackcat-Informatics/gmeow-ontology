@@ -69,6 +69,9 @@ gmeow:eqLangGraft004 a gmeow:TermEquivalence ;
     gmeow:objectLabel "Script" ;
     gmeow:comment "LENS (leg 1 of 2): the removed gmeow:WritingSystem splits into lang:Script (the character repertoire) and lang:Orthography (the sign-system-to-script convention). This leg maps the repertoire facet — a WritingSystem's script identity — onto lang:Script. relatedMatch: a lossy split, one term projected onto the first of two grounding terms." ;
     gmeow:lossyDrop "the sign-system-to-script binding facet of gmeow:WritingSystem is not carried by lang:Script alone; it is recovered by lang:Orthography (cell eqLangGraft005)" ;
+    gmeow:lossyDrop "gmeow:writingSystemType (the structural-kind value vocabulary — alphabet/abjad/abugida/syllabary/logographic/featural/ideographic/pictographic/non-linear/mixed) is DROPPED: lang:Script carries the ISO 15924 code as skos:notation but has no structural-kind facet, and lang:Orthography carries none either" ;
+    gmeow:lossyDrop "gmeow:textDirection (the writing-direction value vocabulary — ltr/rtl/vertical/boustrophedon/non-linear/contextual) is DROPPED: neither lang:Script nor lang:Orthography carries a writing-direction facet" ;
+    gmeow:lossyDrop "the gmeow:WritingSystemUsage relator's role and period facets (gmeow:scriptRole / gmeow:ScriptRole value vocabulary and gmeow:scriptUsageInterval) are DROPPED: lang:Orthography binds a sign system to a script (lang:orthographyFor + lang:usesScript) but carries neither a functional script role nor a validity interval" ;
     gmeow:sssomFile "gmeow-language.sssom.tsv" .
 
 gmeow:eqLangGraft005 a gmeow:TermEquivalence ;
@@ -110,4 +113,15 @@ gmeow:eqLangGraft008 a gmeow:TermEquivalence ;
     gmeow:confidence 1.0 ;
     gmeow:objectLabel "Mandarin Chinese" ;
     gmeow:comment "ISOMORPHISM (identity unification): the removed seed individual gmeow:langMandarin is unified with the lang: sign system lang:mandarin. The x-gmeow-mandarin private-use tag now rides lang:carrierTag on the carrier variety lang:gmeowMandarin, and the lexvo/Wikidata alignments move onto lang:mandarin." ;
+    gmeow:sssomFile "gmeow-language.sssom.tsv" .
+
+gmeow:eqLangGraft009 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:languageTag ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject lang:carrierTag ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:objectLabel "carrier tag" ;
+    gmeow:comment "SECTION-RETRACTION: the removed gmeow:languageTag (the internal x-gmeow-* private-use tag on every language individual) is retracted onto lang:carrierTag, which survives ONLY on the three framework-authoring carrier varieties (lang:gmeowEnglish/gmeowFrench/gmeowMandarin) that tag GMEOW's own source literals. relatedMatch: the property survives for the carriers, not as a per-language attribute." ;
+    gmeow:lossyDrop "gmeow:languageTag (x-gmeow-* private-use tags on the data-tier reference-catalog languages) is DROPPED — the self-minted IRI is the identity, so a per-language internal tag is redundant; framework-literal tagging flows through lang:carrierTag on the three carrier varieties only" ;
     gmeow:sssomFile "gmeow-language.sssom.tsv" .

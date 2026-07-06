@@ -7,13 +7,17 @@
 //! reference catalog (`imports/languages-reference.ttl`):
 //!
 //!   - every catalog natural language carries `rdfs:label`, `skos:definition`,
-//!     `gmeow:languageTag`, `gmeow:bcp47Tag`, `gmeow:languageCode`, and a
-//!     `skos:exactMatch` alignment to an external authority;
-//!   - the catalog's ISO 639-1 two-letter `languageCode` set equals the complete
+//!     `gmeow:bcp47Tag`, `gmeow:languageCode`, and a `skos:exactMatch` alignment
+//!     to an external authority (the former internal `gmeow:languageTag` is
+//!     retired by the lang: graft — IRI identity supersedes it);
+//!   - the catalog's ISO 639-1 two-letter `languageCode` set (over NATURAL
+//!     languages, i.e. excluding programming languages) equals the complete
 //!     184-entry ISO 639-1 code set;
-//!   - writing systems referenced by the catalog carry `rdfs:label` +
-//!     `skos:definition` and are typed `gmeow:WritingSystem`;
-//!   - the named programming languages are typed `gmeow:ProgrammingLanguage`;
+//!   - scripts defined by the catalog carry `rdfs:label` + `skos:definition` and
+//!     are typed `lang:Script` (the former `gmeow:WritingSystem` is grounded as
+//!     `lang:Script`; the language↔script binding is now a `lang:Orthography`);
+//!   - the named programming languages are typed `gmeow:Language` and carry
+//!     `lang:signSystemKind lang:programmingLanguageKind`;
 //!   - catalog natural languages link to Glottolog via `skos:exactMatch`;
 //!   - `load_tag_map` is deterministic over the catalog and covers the core +
 //!     catalog internal tags.
@@ -32,6 +36,8 @@ use purrdf::{TermRef, parse_dataset};
 
 /// The GMEOW namespace prefix.
 const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
+/// The lang: grounding namespace prefix.
+const LANG: &str = "https://blackcatinformatics.ca/lang/";
 /// The catalog ontology IRI used as the `rdfs:isDefinedBy` object.
 const CATALOG_IRI: &str = "https://blackcatinformatics.ca/gmeow/imports/languages-reference";
 /// Glottolog languoid IRI base for `skos:exactMatch` alignments.
@@ -160,11 +166,23 @@ impl Index {
 fn reference_catalog_languages_are_annotated_and_aligned() {
     let dataset = catalog_dataset();
     let index = Index::build(&dataset);
-    let languages = index.catalog_subjects_of_type(&format!("{GMEOW}Language"));
+    let all_languages = index.catalog_subjects_of_type(&format!("{GMEOW}Language"));
     assert!(
-        !languages.is_empty(),
+        !all_languages.is_empty(),
         "catalog must define gmeow:Language individuals"
     );
+
+    // Programming languages are gmeow:Language too (distinguished by
+    // lang:signSystemKind lang:programmingLanguageKind). The ISO 639-1 sweep and
+    // the registry-annotation checks below are about NATURAL languages, so filter
+    // the programming languages out.
+    let sign_kind = format!("{LANG}signSystemKind");
+    let prog_kind = format!("{LANG}programmingLanguageKind");
+    let languages: BTreeSet<String> = all_languages
+        .iter()
+        .filter(|l| !index.has_iri(l, &sign_kind, &prog_kind))
+        .cloned()
+        .collect();
 
     // ISO 639-1 two-letter languageCode set equals the complete code set
     // (Python: `catalog_iso1_codes == EXPECTED_ISO639_1_CODES`).
@@ -190,21 +208,24 @@ fn reference_catalog_languages_are_annotated_and_aligned() {
         "ISO 639-1 code set mismatch: missing={missing:?}; unexpected={unexpected:?}"
     );
 
-    let tag_prop = format!("{GMEOW}languageTag");
     let bcp_prop = format!("{GMEOW}bcp47Tag");
     for lang in &languages {
-        assert!(
-            index.has_any_lit(lang, RDFS_LABEL),
-            "<{lang}> missing rdfs:label"
-        );
-        assert!(
-            index.has_any_lit(lang, SKOS_DEFINITION),
-            "<{lang}> missing skos:definition"
-        );
-        assert!(
-            index.has_any_lit(lang, &tag_prop),
-            "<{lang}> missing gmeow:languageTag"
-        );
+        // The three project translation targets (English/French/Mandarin) are
+        // unified with the grounding lang: sign systems (lang:english/french/
+        // mandarin), which carry their rdfs:label + skos:definition in
+        // slices/grounding/lang/module.ttl; the catalog only ENRICHES them with
+        // codes, alignments and appellations. So label/definition are asserted
+        // for the catalog-owned (gmeow:-namespace) languages only.
+        if lang.starts_with(GMEOW) {
+            assert!(
+                index.has_any_lit(lang, RDFS_LABEL),
+                "<{lang}> missing rdfs:label"
+            );
+            assert!(
+                index.has_any_lit(lang, SKOS_DEFINITION),
+                "<{lang}> missing skos:definition"
+            );
+        }
         assert!(
             index.has_any_lit(lang, &bcp_prop),
             "<{lang}> missing gmeow:bcp47Tag"
@@ -222,32 +243,27 @@ fn reference_catalog_languages_are_annotated_and_aligned() {
     }
 }
 
-/// Mirror of `test_reference_catalog_writing_systems_are_annotated`: every writing
-/// system referenced (via `gmeow:usesWritingSystem`) by a catalog language is typed
-/// `gmeow:WritingSystem` and carries `rdfs:label` + `skos:definition`.
+/// Post-graft twin of `test_reference_catalog_writing_systems_are_annotated`:
+/// scripts are grounded as `lang:Script` (ISO 15924 on `skos:notation`), and the
+/// language↔script binding is a `lang:Orthography` (`lang:orthographyFor` +
+/// `lang:usesScript`). Every `lang:Script` DEFINED IN THE CATALOG carries
+/// `rdfs:label` + `skos:definition` + `skos:notation`, and the catalog mints at
+/// least one `lang:Orthography` bound to a catalog language and a script.
 #[test]
 fn reference_catalog_writing_systems_are_annotated() {
     let dataset = catalog_dataset();
     let index = Index::build(&dataset);
-    let ws_type = format!("{GMEOW}WritingSystem");
-    let uses_ws = format!("{GMEOW}usesWritingSystem");
+    let script_type = format!("{LANG}Script");
+    let skos_notation = "http://www.w3.org/2004/02/skos/core#notation";
 
-    let languages = index.catalog_subjects_of_type(&format!("{GMEOW}Language"));
-    let mut writing_systems: BTreeSet<String> = BTreeSet::new();
-    for lang in &languages {
-        if let Some(systems) = index.iris(lang, &uses_ws) {
-            writing_systems.extend(systems.iter().cloned());
-        }
-    }
+    // Catalog-defined scripts (the reused lang:latinScript / lang:hanScript are
+    // defined in slices/grounding/lang/module.ttl, not here).
+    let scripts = index.catalog_subjects_of_type(&script_type);
     assert!(
-        !writing_systems.is_empty(),
-        "no writing systems found for reference-catalog languages"
+        !scripts.is_empty(),
+        "catalog must define lang:Script individuals"
     );
-    for ws in &writing_systems {
-        assert!(
-            index.has_iri(ws, RDF_TYPE, &ws_type),
-            "<{ws}> missing gmeow:WritingSystem type"
-        );
+    for ws in &scripts {
         assert!(
             index.has_any_lit(ws, RDFS_LABEL),
             "<{ws}> missing rdfs:label"
@@ -256,16 +272,47 @@ fn reference_catalog_writing_systems_are_annotated() {
             index.has_any_lit(ws, SKOS_DEFINITION),
             "<{ws}> missing skos:definition"
         );
+        assert!(
+            index.has_any_lit(ws, skos_notation),
+            "<{ws}> missing skos:notation (ISO 15924)"
+        );
+    }
+
+    // The language↔script binding is now a lang:Orthography.
+    let orthographies = index.catalog_subjects_of_type(&format!("{LANG}Orthography"));
+    assert!(
+        !orthographies.is_empty(),
+        "catalog must mint lang:Orthography bindings for its languages' scripts"
+    );
+    let orthography_for = format!("{LANG}orthographyFor");
+    let uses_script = format!("{LANG}usesScript");
+    for orth in &orthographies {
+        assert!(
+            index
+                .iris(orth, &orthography_for)
+                .is_some_and(|s| !s.is_empty()),
+            "<{orth}> missing lang:orthographyFor"
+        );
+        assert!(
+            index
+                .iris(orth, &uses_script)
+                .is_some_and(|s| !s.is_empty()),
+            "<{orth}> missing lang:usesScript"
+        );
     }
 }
 
-/// Mirror of `test_reference_catalog_programming_languages_typed`: the named
-/// programming languages are typed `gmeow:ProgrammingLanguage`.
+/// Post-graft twin of `test_reference_catalog_programming_languages_typed`: the
+/// removed `gmeow:ProgrammingLanguage` subclass is retired; a programming language
+/// is a `gmeow:Language` distinguished by
+/// `lang:signSystemKind lang:programmingLanguageKind`.
 #[test]
 fn reference_catalog_programming_languages_typed() {
     let dataset = catalog_dataset();
     let index = Index::build(&dataset);
-    let prog_type = format!("{GMEOW}ProgrammingLanguage");
+    let lang_type = format!("{GMEOW}Language");
+    let sign_kind = format!("{LANG}signSystemKind");
+    let prog_kind = format!("{LANG}programmingLanguageKind");
     // The exact IRI list checked by the Python case.
     for local in [
         "langPython",
@@ -276,8 +323,12 @@ fn reference_catalog_programming_languages_typed() {
     ] {
         let iri = format!("{GMEOW}{local}");
         assert!(
-            index.has_iri(&iri, RDF_TYPE, &prog_type),
-            "<{iri}> must be typed gmeow:ProgrammingLanguage"
+            index.has_iri(&iri, RDF_TYPE, &lang_type),
+            "<{iri}> must be typed gmeow:Language"
+        );
+        assert!(
+            index.has_iri(&iri, &sign_kind, &prog_kind),
+            "<{iri}> must carry lang:signSystemKind lang:programmingLanguageKind"
         );
     }
 }
