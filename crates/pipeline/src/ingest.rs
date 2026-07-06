@@ -123,14 +123,21 @@ impl SpanIndex {
     pub fn extend_from_span_table(&mut self, path: &str, table: &SpanTable) {
         let interned: Arc<str> = Arc::from(path);
         for (subject, position) in table.iter() {
-            self.by_subject
-                .entry(subject.to_owned())
-                .or_insert_with(|| SourceSpan {
+            // First writer wins: only allocate the owned subject key when this is the
+            // first span seen for it — a subject repeated within/across files keeps the
+            // first position, so the `to_owned()` on a duplicate would be discarded.
+            if self.by_subject.contains_key(subject) {
+                continue;
+            }
+            self.by_subject.insert(
+                subject.to_owned(),
+                SourceSpan {
                     path: Arc::clone(&interned),
                     line: position.line,
                     column: position.column,
                     byte_offset: position.byte_offset as u64,
-                });
+                },
+            );
         }
     }
 
