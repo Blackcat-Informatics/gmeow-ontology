@@ -57,16 +57,16 @@ pub(crate) const GM_T_PRED: &str = "https://blackcatinformatics.ca/gmeow/tPred";
 pub(crate) const GM_T_SUBJ: &str = "https://blackcatinformatics.ca/gmeow/tSubj";
 pub(crate) const GM_T_OBJ: &str = "https://blackcatinformatics.ca/gmeow/tObj";
 
-pub(crate) const GM_STATEMENT_METADATA: &str =
-    "https://blackcatinformatics.ca/gmeow/StatementMetadata";
-pub(crate) const GM_Q_SUBJECT: &str = "https://blackcatinformatics.ca/gmeow/qSubject";
-pub(crate) const GM_Q_PREDICATE: &str = "https://blackcatinformatics.ca/gmeow/qPredicate";
-pub(crate) const GM_Q_OBJECT: &str = "https://blackcatinformatics.ca/gmeow/qObject";
-pub(crate) const GM_Q_OBJECT_LITERAL: &str = "https://blackcatinformatics.ca/gmeow/qObjectLiteral";
-pub(crate) const GM_ANNOTATION: &str = "https://blackcatinformatics.ca/gmeow/annotation";
-pub(crate) const GM_ANN_PROPERTY: &str = "https://blackcatinformatics.ca/gmeow/annProperty";
-pub(crate) const GM_ANN_VALUE: &str = "https://blackcatinformatics.ca/gmeow/annValue";
-pub(crate) const GM_MAPPED_FROM: &str = "https://blackcatinformatics.ca/gmeow/mappedFrom";
+// The `gmeow:StatementMetadata` reified-claim vocabulary is defined ONCE in
+// `gmeow-logic-compile` (alongside the shared reified-claim template builder that both the
+// native put executor and the committed `.put.rq` emitter render through) and re-exported here,
+// so the reification consumer (`transform.rs`), the executor (`put_executor.rs`), and the
+// non-gated `STATEMENT_METADATA_TERMS` passthrough all key off one definition — never a
+// per-crate copy that could drift.
+pub(crate) use gmeow_logic_compile::projections::reified_claim::{
+    GM_MAPPED_FROM, GM_Q_OBJECT, GM_Q_OBJECT_LITERAL, GM_Q_PREDICATE, GM_Q_SUBJECT,
+    GM_STATEMENT_METADATA,
+};
 
 pub(crate) const ADOPTED_PREDICATES: &[&str] = &[SKOS_EXACT_MATCH, SKOS_CLOSE_MATCH];
 pub(crate) const STATEMENT_METADATA_TERMS: &[&str] = &[
