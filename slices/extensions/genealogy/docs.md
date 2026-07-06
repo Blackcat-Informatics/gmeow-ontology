@@ -41,7 +41,7 @@ knows the slice).
 ### gmeow:ParentChildRelationship
 
 The parent-child relator, typed by nature via its four subkinds. Relator mediation is
-axiomatized (EL `someValuesFrom`: a parent and a child exist) so ELK sees the structure;
+axiomatized (EL `someValuesFrom`: a parent and a child exist) so the EL reasoner sees the structure;
 closed-world cardinality is SHACL's (SHACL closure gate).
 
 ### gmeow:BiologicalParentChild · gmeow:AdoptiveParentChild · gmeow:StepParentChild · gmeow:FosterParentChild
@@ -88,7 +88,7 @@ the connectivity spine imposes nothing back.
 The derived closure (relator-mediation doctrine, phase 2 of the reasoning-depth design):
 `hasAncestor` is transitive with `hasParent` as a sub-property, so the reasoner *entails*
 the full ancestor closure that was never asserted; `hasDescendant` adds the DL inverse
-(HermiT-complete). Both are non-simple (transitive) and are deliberately kept out of
+(sound-and-complete under OWL 2 DL). Both are non-simple (transitive) and are deliberately kept out of
 every cardinality and functional axiom, preserving OWL 2 DL regularity. Never assert
 ancestry directly — assert parentage and let the reasoner do its one job.
 

@@ -59,7 +59,7 @@ exist to be held apart.
 
 The matrix is also a **reasoner theorem**, not only a Python guard. The
 seven axis range classes are declared jointly disjoint
-(`owl:AllDisjointClasses`, OWL 2 EL) in `gender.ttl`, so ELK and HermiT *reject*
+(`owl:AllDisjointClasses`, OWL 2 EL) in `gender.ttl`, so the OWL 2 DL oracle *rejects*
 any individual placed in two axes at once — and a negative test
 (`tests/test_reasoning_entailments.py`) proves the axiom bites by injecting such
 an individual and asserting inconsistency. The two guards are complementary: OWL

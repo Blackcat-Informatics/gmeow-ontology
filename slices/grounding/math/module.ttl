@@ -708,6 +708,12 @@ math:enforcesFailureClass
     rdfs:label "enforces failure class"@x-gmeow-english ;
     skos:definition "Links a SHACL shape to the math:MathConformanceFailure subclass it enforces, so the machine-checked gate and the typed failure vocabulary are cross-referenced: a query can move from a shape to the named failure it raises and back. An annotation property, carried on the shape, never a reasoned axiom."@x-gmeow-english .
 
+math:definingLaw
+    a owl:AnnotationProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "defining law"@x-gmeow-english ;
+    skos:definition "The machine-readable backing edge relating a declared property concept to the logic:Formula defining law, or the loss-ledger boundary record (logic:expressivenessBoundary), that grounds it. The law-backing audit requires every concept carrying it to resolve to a real logic:Formula or a recorded boundary — never a bare type or a dangling reference. Its presence is the marker of a concept that must be grounded, so the invariant is open: a new grounded property joins it by carrying math:definingLaw, with no list to maintain. An annotation property (its subjects are classes and individuals, so it is DL-clean exactly like rdfs:seeAlso), never a reasoned axiom."@x-gmeow-english .
+
 # =========================================================================== #
 # Algebra — the algebraic-structure hierarchy (ALGEBRA charter)
 #
@@ -2470,6 +2476,7 @@ math:ContinuousMap
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Continuous Map"@x-gmeow-english ;
     rdfs:seeAlso math:continuityLaw ;
+    math:definingLaw math:continuityLaw ;
     skos:definition "A continuous map between topological spaces: a map under which the preimage of every open set is open. A subclass of math:Morphism (a structure-preserving map of spaces, its math:sourceObject and math:targetObject the two topological spaces), and it declares its continuity through math:isContinuous — continuity is declared, not assumed (an undeclared continuity is ill-formed, math:UndeclaredTopologicalProperty). The structure it preserves is the topology, whose defining law is math:continuityLaw (preimages of open sets are open), referenced through math:preservesStructure."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -2486,7 +2493,9 @@ math:CompactSpace
     rdfs:subClassOf math:TopologicalSpace ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Compact Space"@x-gmeow-english ;
-    skos:definition "A compact topological space: one in which every open cover has a finite subcover. A subclass of math:TopologicalSpace that declares its compactness through math:isCompact — compactness is declared, not assumed (an undeclared compactness is ill-formed, math:UndeclaredTopologicalProperty). Compactness is the topological generalization of closed-and-bounded (Heine–Borel) and is preserved by continuous images."@x-gmeow-english ;
+    rdfs:seeAlso math:compactnessBoundary ;
+    math:definingLaw math:compactnessBoundary ;
+    skos:definition "A compact topological space: one in which every open cover has a finite subcover. A subclass of math:TopologicalSpace that declares its compactness through math:isCompact — compactness is declared, not assumed (an undeclared compactness is ill-formed, math:UndeclaredTopologicalProperty). Unlike math:ConnectedSpace, whose defining law math:connectednessLaw is a first-order logic:Formula, compactness is genuinely second-order (it quantifies over open covers and appeals to finiteness) and so is backed not by a first-order law but by the honest recorded boundary math:compactnessBoundary (logic:expressivenessBoundary logic:SecondOrder, logic:preservationKind logic:Unsupported), referenced through math:preservesStructure. Compactness is the topological generalization of closed-and-bounded (Heine–Borel) and is preserved by continuous images."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:ConnectedSpace
@@ -2494,7 +2503,9 @@ math:ConnectedSpace
     rdfs:subClassOf math:TopologicalSpace ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Connected Space"@x-gmeow-english ;
-    skos:definition "A connected topological space: one that is not the union of two disjoint non-empty open sets. A subclass of math:TopologicalSpace that declares its connectedness through math:isConnected — connectedness is declared, not assumed (an undeclared connectedness is ill-formed, math:UndeclaredTopologicalProperty). Connectedness is preserved by continuous images (the intermediate value theorem is its avatar on ℝ)."@x-gmeow-english ;
+    rdfs:seeAlso math:connectednessLaw ;
+    math:definingLaw math:connectednessLaw ;
+    skos:definition "A connected topological space: one that is not the union of two disjoint non-empty open sets. A subclass of math:TopologicalSpace that declares its connectedness through math:isConnected — connectedness is declared, not assumed (an undeclared connectedness is ill-formed, math:UndeclaredTopologicalProperty). The structure it preserves is the topology's connectedness, whose defining law is math:connectednessLaw (no splitting into two disjoint non-empty open sets covering the space), referenced through math:preservesStructure. Connectedness is preserved by continuous images (the intermediate value theorem is its avatar on ℝ)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:Homotopy
@@ -2519,7 +2530,7 @@ math:UndeclaredTopologicalProperty
     rdfs:subClassOf math:MathConformanceFailure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Undeclared Topological Property"@x-gmeow-english ;
-    skos:definition "The failure raised when a topological property is assumed rather than declared: a math:ContinuousMap without math:isContinuous, a math:CompactSpace without math:isCompact, or a math:ConnectedSpace without math:isConnected. Continuity, compactness, and connectedness are declared properties (backed by their defining law, e.g. math:continuityLaw), never entailments of a bare type."@x-gmeow-english ;
+    skos:definition "The failure raised when a topological property is assumed rather than declared: a math:ContinuousMap without math:isContinuous, a math:CompactSpace without math:isCompact, or a math:ConnectedSpace without math:isConnected. Continuity, connectedness, and the T0–T4 separation axioms are each backed by a real first-order defining law (math:continuityLaw, math:connectednessLaw, math:t0SeparationLaw … math:normalitySeparationLaw); compactness, being genuinely second-order (a finite subcover over an arbitrary family is not first-order axiomatizable), is backed instead by an honest recorded boundary (math:compactnessBoundary, logic:expressivenessBoundary logic:SecondOrder). Every listed property is therefore backed by a law or a recorded boundary, never a bare type. This gate enforces declaration discipline — that the property is declared, not silently assumed — not satisfaction of the law against a model (no logic:Formula model-checker is in scope)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 # --- Topology properties ---------------------------------------------------- #
@@ -2542,21 +2553,23 @@ math:separationAxiom
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "separation axiom"@x-gmeow-english ;
-    skos:definition "Relates a math:TopologicalSpace to a separation axiom it satisfies — T0, T1, T2 (Hausdorff), T3, T4. Domain math:TopologicalSpace, range a math:SeparationAxiom individual (stated in prose). The separation axioms grade how finely neighbourhoods distinguish points; math:hausdorffSeparation (T2) is the one manifolds require."@x-gmeow-english ;
+    skos:definition "Relates a math:TopologicalSpace to a separation axiom it satisfies — T0, T1, T2 (Hausdorff), T3, T4. Domain math:TopologicalSpace, range a math:SeparationAxiom individual (stated in prose). The separation axioms grade how finely neighbourhoods distinguish points; math:hausdorffSeparation (T2) is the one manifolds require. Each axiom in the family is backed by a first-order defining law — math:t0SeparationLaw, math:t1SeparationLaw, math:hausdorffLaw, math:regularitySeparationLaw, math:normalitySeparationLaw — so a separation axiom is a real quantified statement over the reified point/open-set/closed-set signature, not a bare token."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:isCompact
     a owl:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "is compact"@x-gmeow-english ;
-    skos:definition "Declares whether a space is compact — every open cover has a finite subcover. Domain math:CompactSpace (or math:TopologicalSpace), range xsd:boolean (stated in prose). Compactness is declared, not assumed from the type (an undeclared compactness is ill-formed, math:UndeclaredTopologicalProperty)."@x-gmeow-english ;
+    rdfs:seeAlso math:compactnessBoundary ;
+    skos:definition "Declares whether a space is compact — every open cover has a finite subcover. Domain math:CompactSpace (or math:TopologicalSpace), range xsd:boolean (stated in prose). Compactness is declared, not assumed from the type (an undeclared compactness is ill-formed, math:UndeclaredTopologicalProperty). The declaration is backed not by a first-order law but by the honest recorded second-order boundary math:compactnessBoundary — compactness genuinely exceeds first-order logic (open covers plus finiteness), so the boundary is carried in the loss ledger (logic:preservationKind logic:Unsupported), never faked as a first-order logic:Formula."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:isConnected
     a owl:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "is connected"@x-gmeow-english ;
-    skos:definition "Declares whether a space is connected — not the union of two disjoint non-empty open sets. Domain math:ConnectedSpace (or math:TopologicalSpace), range xsd:boolean (stated in prose). Connectedness is declared, not assumed from the type (an undeclared connectedness is ill-formed, math:UndeclaredTopologicalProperty)."@x-gmeow-english ;
+    rdfs:seeAlso math:connectednessLaw ;
+    skos:definition "Declares whether a space is connected — not the union of two disjoint non-empty open sets (math:connectednessLaw). Domain math:ConnectedSpace (or math:TopologicalSpace), range xsd:boolean (stated in prose). The canonical checkable bearer of connectedness; connectedness is declared here, not assumed from the math:ConnectedSpace type (an undeclared connectedness is ill-formed, math:UndeclaredTopologicalProperty)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:homotopyEquivalentTo
@@ -2579,19 +2592,41 @@ math:hausdorffSeparation
     a owl:NamedIndividual , math:SeparationAxiom ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Hausdorff (T2)"@x-gmeow-english ;
-    skos:definition "The Hausdorff separation axiom T2: any two distinct points have disjoint neighbourhoods. The separation a manifold's underlying space requires so limits are unique."@x-gmeow-english .
+    rdfs:seeAlso math:hausdorffLaw ;
+    math:definingLaw math:hausdorffLaw ;
+    skos:definition "The Hausdorff separation axiom T2: any two distinct points have disjoint neighbourhoods. The separation a manifold's underlying space requires so limits are unique. Its defining law is math:hausdorffLaw (rdfs:seeAlso)."@x-gmeow-english .
 
 math:t0Separation
     a owl:NamedIndividual , math:SeparationAxiom ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "T0 (Kolmogorov)"@x-gmeow-english ;
-    skos:definition "The T0 separation axiom: any two distinct points are topologically distinguishable (some open set contains one but not the other)."@x-gmeow-english .
+    rdfs:seeAlso math:t0SeparationLaw ;
+    math:definingLaw math:t0SeparationLaw ;
+    skos:definition "The T0 separation axiom: any two distinct points are topologically distinguishable (some open set contains one but not the other). Its defining law is math:t0SeparationLaw (rdfs:seeAlso)."@x-gmeow-english .
 
 math:t1Separation
     a owl:NamedIndividual , math:SeparationAxiom ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "T1 (Fréchet)"@x-gmeow-english ;
-    skos:definition "The T1 separation axiom: for any two distinct points each has a neighbourhood not containing the other; equivalently, singletons are closed."@x-gmeow-english .
+    rdfs:seeAlso math:t1SeparationLaw ;
+    math:definingLaw math:t1SeparationLaw ;
+    skos:definition "The T1 separation axiom: for any two distinct points each has a neighbourhood not containing the other; equivalently, singletons are closed. Its defining law is math:t1SeparationLaw (rdfs:seeAlso)."@x-gmeow-english .
+
+math:t3Separation
+    a owl:NamedIndividual , math:SeparationAxiom ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "T3 (regular)"@x-gmeow-english ;
+    rdfs:seeAlso math:regularitySeparationLaw ;
+    math:definingLaw math:regularitySeparationLaw ;
+    skos:definition "The T3 separation axiom (regularity): a point and a closed set not containing it have disjoint open neighbourhoods (with T1, a regular space). Its defining law is math:regularitySeparationLaw (rdfs:seeAlso)."@x-gmeow-english .
+
+math:t4Separation
+    a owl:NamedIndividual , math:SeparationAxiom ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "T4 (normal)"@x-gmeow-english ;
+    rdfs:seeAlso math:normalitySeparationLaw ;
+    math:definingLaw math:normalitySeparationLaw ;
+    skos:definition "The T4 separation axiom (normality): any two disjoint closed sets have disjoint open neighbourhoods (with T1, a normal space). Its defining law is math:normalitySeparationLaw (rdfs:seeAlso)."@x-gmeow-english .
 
 # --- Reified relation atoms for the continuity law (HiLog reflection) -------- #
 
@@ -2614,6 +2649,33 @@ math:preimageRel
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "preimage(U,f,V) ⟺ U is the f-preimage f⁻¹(V) of V"@x-gmeow-english ;
     skos:definition "The preimage relation the continuity law quantifies over: preimage(U,f,V) holds exactly when U is the preimage f⁻¹(V) = {x : f(x) ∈ V}. A HiLog relation individual over which the law states 'the preimage of an open set is open'; no first-class asserted property is minted, because the preimage is a derived construction, not authored data."@x-gmeow-english .
+
+# --- Reified relation atoms for the connectedness law (HiLog reflection) ----- #
+
+math:isConnectedRel
+    a logic:Type ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "connected(X) ⟺ space X is connected"@x-gmeow-english ;
+    rdfs:seeAlso math:isConnected ;
+    skos:definition "The HiLog reflection of connectedness as a unary relation individual, so the connectedness law can predicate 'X is connected' inside a logic:Formula atom. Reflects the existing math:isConnected declaration (rdfs:seeAlso), minting no second relation."@x-gmeow-english .
+
+math:disjointRel
+    a logic:Type ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "disjoint(U,V) ⟺ U and V share no element"@x-gmeow-english ;
+    skos:definition "The disjointness relation the connectedness law quantifies over: disjoint(U,V) holds exactly when U ∩ V = ∅. A HiLog relation individual over which the law states the two open sets of a splitting are disjoint; no first-class asserted property is minted, because disjointness is a derived construction over set membership, not authored data."@x-gmeow-english .
+
+math:nonEmptyRel
+    a logic:Type ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "nonEmpty(U) ⟺ U has an element"@x-gmeow-english ;
+    skos:definition "The non-emptiness relation the connectedness law quantifies over: nonEmpty(U) holds exactly when ∃x ∈ U. A HiLog relation individual over which the law requires each half of a splitting to be inhabited; no first-class asserted property is minted, because non-emptiness is a derived construction over set membership, not authored data."@x-gmeow-english .
+
+math:coversSpaceRel
+    a logic:Type ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "coversSpace(U,V,X) ⟺ U ∪ V = X"@x-gmeow-english ;
+    skos:definition "The covering relation the connectedness law quantifies over: coversSpace(U,V,X) holds exactly when U ∪ V equals the whole space X. A ternary HiLog relation individual over which the law states the two open sets of a splitting cover the space; no first-class asserted property is minted, because covering is a derived construction over union and equality, not authored data."@x-gmeow-english .
 
 # --- Law: continuity — the preimage of an open set is open ------------------- #
 # ∀f,U,V: isContinuous(f) ∧ openSet(V) ∧ preimage(U,f,V) → openSet(U)
@@ -2650,6 +2712,371 @@ math:continuityA3 a logic:Formula ; logic:relation math:preimageRel ;
 
 math:continuityCons a logic:Formula ; logic:relation math:openSetRel ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "U" ] .
+
+# --- Law: connectedness — no splitting into two disjoint non-empty open sets - #
+# ∀X: isConnected(X) → ¬∃U,V: openSet(U) ∧ openSet(V) ∧ nonEmpty(U) ∧ nonEmpty(V)
+#                              ∧ disjoint(U,V) ∧ coversSpace(U,V,X)
+# The defining law of a math:ConnectedSpace, authored as a first-order logic:Formula
+# exactly as the continuity law above. Connectedness is the negation of the
+# existence of a separation: a connected space cannot be written as the union of
+# two disjoint non-empty open sets. A connected space references this law through
+# math:preservesStructure, and the SHACL gate requires math:isConnected to be present.
+
+math:connectednessLaw
+    a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "connectedness: a connected space is not two disjoint non-empty open sets covering it"@x-gmeow-english ;
+    skos:definition "The defining law of connectedness as a universally-quantified first-order logic:Formula over the reified point/open-set signature: for a connected space X, there do not exist two open sets U and V that are non-empty, disjoint, and together cover X. math: expresses the law; logic: owns reasoning over it. It is the structure a math:ConnectedSpace preserves (math:preservesStructure), so connectedness is backed by a real law rather than a bare boolean."@x-gmeow-english ;
+    logic:quantifiedVariable
+        [ logic:termIndex 0 ; logic:termVariable "X" ] ;
+    logic:forall math:connectednessImpl .
+
+math:connectednessImpl a logic:Formula ;
+    logic:antecedent math:connectednessAnte ;
+    logic:consequent math:connectednessCons .
+
+math:connectednessAnte a logic:Formula ; logic:relation math:isConnectedRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "X" ] .
+
+math:connectednessCons a logic:Formula ;
+    logic:not math:connectednessSplit .
+
+math:connectednessSplit a logic:Formula ;
+    logic:quantifiedVariable
+        [ logic:termIndex 0 ; logic:termVariable "U" ] ,
+        [ logic:termIndex 1 ; logic:termVariable "V" ] ;
+    logic:exists math:connectednessSplitBody .
+
+math:connectednessSplitBody a logic:Formula ;
+    logic:and math:cnA1 , math:cnA2 , math:cnA3 , math:cnA4 , math:cnA5 , math:cnA6 .
+
+math:cnA1 a logic:Formula ; logic:relation math:openSetRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "U" ] .
+math:cnA2 a logic:Formula ; logic:relation math:openSetRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "V" ] .
+math:cnA3 a logic:Formula ; logic:relation math:nonEmptyRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "U" ] .
+math:cnA4 a logic:Formula ; logic:relation math:nonEmptyRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "V" ] .
+math:cnA5 a logic:Formula ; logic:relation math:disjointRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "U" ] , [ logic:termIndex 1 ; logic:termVariable "V" ] .
+math:cnA6 a logic:Formula ; logic:relation math:coversSpaceRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "U" ] , [ logic:termIndex 1 ; logic:termVariable "V" ] , [ logic:termIndex 2 ; logic:termVariable "X" ] .
+
+# --- Boundary: compactness — an honest recorded second-order boundary --------- #
+# Compactness ("every open cover has a finite subcover") is genuinely SECOND-ORDER:
+# it ∀-quantifies over open COVERS (families of open sets) AND requires a FINITE
+# subfamily. Finiteness is not first-order axiomatizable (FOL compactness theorem),
+# so — unlike math:continuityLaw/math:connectednessLaw, which ARE first-order —
+# compactness has NO first-order logic:Formula to author. It is recorded here as an
+# honest loss-ledger boundary carrying logic:expressivenessBoundary logic:SecondOrder
+# and logic:preservationKind logic:Unsupported, never faked as a first-order formula.
+# math:CompactSpace references it through math:preservesStructure (see the fixture),
+# and the SHACL gate still requires math:isCompact to be present.
+
+math:compactnessBoundary
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "compactness: an honest recorded second-order boundary (no first-order formula)"@x-gmeow-english ;
+    logic:expressivenessBoundary logic:SecondOrder ;
+    logic:preservationKind logic:Unsupported ;
+    skos:definition "The loss-ledger boundary record backing math:CompactSpace/math:isCompact: compactness ('every open cover has a finite subcover') is genuinely second-order — it ∀-quantifies over open COVERS (families of open sets) AND requires a FINITE subfamily. HiLog reflection could reify the covers, but finiteness is not first-order axiomatizable (the FOL compactness theorem), so a first-order witness would be an unsound uninterpreted predicate. Hence compactness is carried as an honest boundary (logic:expressivenessBoundary logic:SecondOrder, logic:preservationKind logic:Unsupported), residue disclosed in the ledger and never silent prose (Principle 17). Contrast its siblings math:continuityLaw and math:connectednessLaw, which ARE first-order logic:Formula laws."@x-gmeow-english .
+
+# --- Reified relation atoms for the separation-axiom laws (HiLog reflection) - #
+
+math:membershipRel
+    a logic:Type ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "member(x,U) ⟺ x ∈ U"@x-gmeow-english ;
+    rdfs:seeAlso math:hasElement ;
+    skos:definition "The membership relation the separation-axiom laws quantify over: member(x,U) holds exactly when the point x is an element of the set U. A HiLog relation individual so the laws can predicate 'x lies in the open set U' inside a logic:Formula atom. Reflects math:hasElement (rdfs:seeAlso), minting no second relation."@x-gmeow-english .
+
+math:pointOfRel
+    a logic:Type ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "pointOf(x,X) ⟺ x is a point of space X"@x-gmeow-english ;
+    skos:definition "The point-of-space relation the separation-axiom laws quantify over: pointOf(x,X) holds exactly when x is a point of the topological space X. A HiLog relation individual over which the laws range their points; no first-class asserted property is minted, because no point-of-space property exists in the ontology — a point is a derived element of a space's underlying set, not authored data."@x-gmeow-english .
+
+math:distinctPointsRel
+    a logic:Type ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "distinct(x,y) ⟺ x ≠ y"@x-gmeow-english ;
+    skos:definition "The distinctness relation the separation-axiom laws quantify over: distinct(x,y) holds exactly when the points x and y are not equal. A HiLog relation individual so the laws can require the two separated points to differ; no first-class asserted property is minted, and no logic: equality/inequality relation atom exists for first-order formula use (logic:distinctBody / logic:distinctnessRole are rule-guards, not formula atoms), so distinctness is a derived atom — equality is genuinely first-order here."@x-gmeow-english .
+
+math:closedSetRel
+    a logic:Type ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "closedSet(C) ⟺ C is a math:ClosedSet"@x-gmeow-english ;
+    rdfs:seeAlso math:ClosedSet ;
+    skos:definition "The HiLog reflection of closed-set membership as a unary relation individual, so the regularity and normality laws can predicate 'C is closed' inside a logic:Formula atom. Reflects the math:ClosedSet type (rdfs:seeAlso)."@x-gmeow-english .
+
+math:supersetRel
+    a logic:Type ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "superset(V,C) ⟺ C ⊆ V"@x-gmeow-english ;
+    rdfs:seeAlso math:subsetOf ;
+    skos:definition "The containment relation the regularity and normality laws quantify over: superset(V,C) holds exactly when the closed set C is a subset of the open set V (V ⊇ C). A HiLog relation individual so the laws can require an open neighbourhood to engulf a closed set. Reflects math:subsetOf (rdfs:seeAlso), read with its arguments in superset order."@x-gmeow-english .
+
+# --- Law: T0 (Kolmogorov) — distinct points are topologically distinguishable  #
+# ∀x,y: pointOf(x,X) ∧ pointOf(y,X) ∧ distinct(x,y)
+#        → ∃U: openSet(U) ∧ ( (member(x,U) ∧ ¬member(y,U)) ∨ (member(y,U) ∧ ¬member(x,U)) )
+# The defining law of math:t0Separation, authored as a first-order logic:Formula
+# over the reified point/open-set signature exactly as the continuity and
+# connectedness laws above. Some open set contains one point but not the other.
+
+math:t0SeparationLaw
+    a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "T0 (Kolmogorov): distinct points are topologically distinguishable"@x-gmeow-english ;
+    skos:definition "The defining law of the T0 separation axiom as a universally-quantified first-order logic:Formula over the reified point/open-set signature: for any two distinct points x and y of a space X, there is an open set containing one but not the other. math: expresses the law; logic: owns reasoning over it. A math:TopologicalSpace names it through math:separationAxiom / rdfs:seeAlso math:t0Separation."@x-gmeow-english ;
+    logic:quantifiedVariable
+        [ logic:termIndex 0 ; logic:termVariable "x" ] ,
+        [ logic:termIndex 1 ; logic:termVariable "y" ] ;
+    logic:forall math:t0Impl .
+
+math:t0Impl a logic:Formula ;
+    logic:antecedent math:t0Ante ;
+    logic:consequent math:t0Cons .
+
+math:t0Ante a logic:Formula ;
+    logic:and math:t0A1 , math:t0A2 , math:t0A3 .
+
+math:t0A1 a logic:Formula ; logic:relation math:pointOfRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "x" ] , [ logic:termIndex 1 ; logic:termVariable "X" ] .
+math:t0A2 a logic:Formula ; logic:relation math:pointOfRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "y" ] , [ logic:termIndex 1 ; logic:termVariable "X" ] .
+math:t0A3 a logic:Formula ; logic:relation math:distinctPointsRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "x" ] , [ logic:termIndex 1 ; logic:termVariable "y" ] .
+
+math:t0Cons a logic:Formula ;
+    logic:quantifiedVariable
+        [ logic:termIndex 0 ; logic:termVariable "U" ] ;
+    logic:exists math:t0Witness .
+
+math:t0Witness a logic:Formula ;
+    logic:and math:t0W1 , math:t0Split .
+
+math:t0W1 a logic:Formula ; logic:relation math:openSetRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "U" ] .
+
+math:t0Split a logic:Formula ;
+    logic:or math:t0SplitX , math:t0SplitY .
+
+math:t0SplitX a logic:Formula ;
+    logic:and math:t0MemX , math:t0NotMemY .
+math:t0SplitY a logic:Formula ;
+    logic:and math:t0MemY , math:t0NotMemX .
+
+math:t0MemX a logic:Formula ; logic:relation math:membershipRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "x" ] , [ logic:termIndex 1 ; logic:termVariable "U" ] .
+math:t0MemY a logic:Formula ; logic:relation math:membershipRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "y" ] , [ logic:termIndex 1 ; logic:termVariable "U" ] .
+math:t0NotMemY a logic:Formula ;
+    logic:not math:t0MemY .
+math:t0NotMemX a logic:Formula ;
+    logic:not math:t0MemX .
+
+# --- Law: T1 (Fréchet) — each of two distinct points has a nbhd excluding the other #
+# ∀x,y: pointOf(x,X) ∧ pointOf(y,X) ∧ distinct(x,y)
+#        → ∃U: openSet(U) ∧ member(x,U) ∧ ¬member(y,U)
+# The defining law of math:t1Separation, a first-order logic:Formula over the
+# reified point/open-set signature. Stronger than T0: the distinguishing open set
+# can always be chosen around x (by symmetry over the pair, around either point).
+
+math:t1SeparationLaw
+    a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "T1 (Fréchet): a distinct point has an open neighbourhood excluding the other"@x-gmeow-english ;
+    skos:definition "The defining law of the T1 separation axiom as a universally-quantified first-order logic:Formula over the reified point/open-set signature: for any two distinct points x and y of a space X, there is an open set containing x but not y. math: expresses the law; logic: owns reasoning over it. A math:TopologicalSpace names it through math:separationAxiom / rdfs:seeAlso math:t1Separation."@x-gmeow-english ;
+    logic:quantifiedVariable
+        [ logic:termIndex 0 ; logic:termVariable "x" ] ,
+        [ logic:termIndex 1 ; logic:termVariable "y" ] ;
+    logic:forall math:t1Impl .
+
+math:t1Impl a logic:Formula ;
+    logic:antecedent math:t1Ante ;
+    logic:consequent math:t1Cons .
+
+math:t1Ante a logic:Formula ;
+    logic:and math:t1A1 , math:t1A2 , math:t1A3 .
+
+math:t1A1 a logic:Formula ; logic:relation math:pointOfRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "x" ] , [ logic:termIndex 1 ; logic:termVariable "X" ] .
+math:t1A2 a logic:Formula ; logic:relation math:pointOfRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "y" ] , [ logic:termIndex 1 ; logic:termVariable "X" ] .
+math:t1A3 a logic:Formula ; logic:relation math:distinctPointsRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "x" ] , [ logic:termIndex 1 ; logic:termVariable "y" ] .
+
+math:t1Cons a logic:Formula ;
+    logic:quantifiedVariable
+        [ logic:termIndex 0 ; logic:termVariable "U" ] ;
+    logic:exists math:t1Witness .
+
+math:t1Witness a logic:Formula ;
+    logic:and math:t1W1 , math:t1MemX , math:t1NotMemY .
+
+math:t1W1 a logic:Formula ; logic:relation math:openSetRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "U" ] .
+math:t1MemX a logic:Formula ; logic:relation math:membershipRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "x" ] , [ logic:termIndex 1 ; logic:termVariable "U" ] .
+math:t1NotMemY a logic:Formula ;
+    logic:not math:t1NotMemYBody .
+math:t1NotMemYBody a logic:Formula ; logic:relation math:membershipRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "y" ] , [ logic:termIndex 1 ; logic:termVariable "U" ] .
+
+# --- Law: T2 (Hausdorff) — distinct points have disjoint open neighbourhoods --- #
+# ∀x,y: pointOf(x,X) ∧ pointOf(y,X) ∧ distinct(x,y)
+#        → ∃U,V: openSet(U) ∧ openSet(V) ∧ member(x,U) ∧ member(y,V) ∧ disjoint(U,V)
+# The defining law of math:hausdorffSeparation, a first-order logic:Formula over
+# the reified point/open-set signature. The separation a manifold's underlying
+# space requires so limits are unique.
+
+math:hausdorffLaw
+    a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "T2 (Hausdorff): distinct points have disjoint open neighbourhoods"@x-gmeow-english ;
+    skos:definition "The defining law of the Hausdorff (T2) separation axiom as a universally-quantified first-order logic:Formula over the reified point/open-set signature: for any two distinct points x and y of a space X, there exist disjoint open sets U and V with x in U and y in V. math: expresses the law; logic: owns reasoning over it. A math:TopologicalSpace names it through math:separationAxiom / rdfs:seeAlso math:hausdorffSeparation, and this is the law a Hausdorff space references through math:preservesStructure."@x-gmeow-english ;
+    logic:quantifiedVariable
+        [ logic:termIndex 0 ; logic:termVariable "x" ] ,
+        [ logic:termIndex 1 ; logic:termVariable "y" ] ;
+    logic:forall math:hausImpl .
+
+math:hausImpl a logic:Formula ;
+    logic:antecedent math:hausAnte ;
+    logic:consequent math:hausCons .
+
+math:hausAnte a logic:Formula ;
+    logic:and math:hausA1 , math:hausA2 , math:hausA3 .
+
+math:hausA1 a logic:Formula ; logic:relation math:pointOfRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "x" ] , [ logic:termIndex 1 ; logic:termVariable "X" ] .
+math:hausA2 a logic:Formula ; logic:relation math:pointOfRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "y" ] , [ logic:termIndex 1 ; logic:termVariable "X" ] .
+math:hausA3 a logic:Formula ; logic:relation math:distinctPointsRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "x" ] , [ logic:termIndex 1 ; logic:termVariable "y" ] .
+
+math:hausCons a logic:Formula ;
+    logic:quantifiedVariable
+        [ logic:termIndex 0 ; logic:termVariable "U" ] ,
+        [ logic:termIndex 1 ; logic:termVariable "V" ] ;
+    logic:exists math:hausWitness .
+
+math:hausWitness a logic:Formula ;
+    logic:and math:hausW1 , math:hausW2 , math:hausMemX , math:hausMemY , math:hausDisjoint .
+
+math:hausW1 a logic:Formula ; logic:relation math:openSetRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "U" ] .
+math:hausW2 a logic:Formula ; logic:relation math:openSetRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "V" ] .
+math:hausMemX a logic:Formula ; logic:relation math:membershipRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "x" ] , [ logic:termIndex 1 ; logic:termVariable "U" ] .
+math:hausMemY a logic:Formula ; logic:relation math:membershipRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "y" ] , [ logic:termIndex 1 ; logic:termVariable "V" ] .
+math:hausDisjoint a logic:Formula ; logic:relation math:disjointRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "U" ] , [ logic:termIndex 1 ; logic:termVariable "V" ] .
+
+# --- Law: T3 (regularity) — a point and a disjoint closed set separate ------- #
+# ∀x,C: pointOf(x,X) ∧ closedSet(C) ∧ ¬member(x,C)
+#        → ∃U,V: openSet(U) ∧ openSet(V) ∧ member(x,U) ∧ superset(V,C) ∧ disjoint(U,V)
+# The defining law of math:t3Separation, a first-order logic:Formula over the
+# reified point/open-set/closed-set signature. A point off a closed set and the
+# closed set can be engulfed in disjoint open neighbourhoods.
+
+math:regularitySeparationLaw
+    a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "T3 (regularity): a point and a disjoint closed set have disjoint open neighbourhoods"@x-gmeow-english ;
+    skos:definition "The defining law of the T3 separation axiom (regularity) as a universally-quantified first-order logic:Formula over the reified point/open-set/closed-set signature: for a point x not in a closed set C of a space X, there exist disjoint open sets U and V with x in U and C contained in V. math: expresses the law; logic: owns reasoning over it. A math:TopologicalSpace names it through math:separationAxiom / rdfs:seeAlso math:t3Separation."@x-gmeow-english ;
+    logic:quantifiedVariable
+        [ logic:termIndex 0 ; logic:termVariable "x" ] ,
+        [ logic:termIndex 1 ; logic:termVariable "C" ] ;
+    logic:forall math:t3Impl .
+
+math:t3Impl a logic:Formula ;
+    logic:antecedent math:t3Ante ;
+    logic:consequent math:t3Cons .
+
+math:t3Ante a logic:Formula ;
+    logic:and math:t3A1 , math:t3A2 , math:t3A3 .
+
+math:t3A1 a logic:Formula ; logic:relation math:pointOfRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "x" ] , [ logic:termIndex 1 ; logic:termVariable "X" ] .
+math:t3A2 a logic:Formula ; logic:relation math:closedSetRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "C" ] .
+math:t3A3 a logic:Formula ;
+    logic:not math:t3A3Body .
+math:t3A3Body a logic:Formula ; logic:relation math:membershipRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "x" ] , [ logic:termIndex 1 ; logic:termVariable "C" ] .
+
+math:t3Cons a logic:Formula ;
+    logic:quantifiedVariable
+        [ logic:termIndex 0 ; logic:termVariable "U" ] ,
+        [ logic:termIndex 1 ; logic:termVariable "V" ] ;
+    logic:exists math:t3Witness .
+
+math:t3Witness a logic:Formula ;
+    logic:and math:t3W1 , math:t3W2 , math:t3MemX , math:t3Super , math:t3Disjoint .
+
+math:t3W1 a logic:Formula ; logic:relation math:openSetRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "U" ] .
+math:t3W2 a logic:Formula ; logic:relation math:openSetRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "V" ] .
+math:t3MemX a logic:Formula ; logic:relation math:membershipRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "x" ] , [ logic:termIndex 1 ; logic:termVariable "U" ] .
+math:t3Super a logic:Formula ; logic:relation math:supersetRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "V" ] , [ logic:termIndex 1 ; logic:termVariable "C" ] .
+math:t3Disjoint a logic:Formula ; logic:relation math:disjointRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "U" ] , [ logic:termIndex 1 ; logic:termVariable "V" ] .
+
+# --- Law: T4 (normality) — two disjoint closed sets separate ----------------- #
+# ∀C,D: closedSet(C) ∧ closedSet(D) ∧ disjoint(C,D)
+#        → ∃U,V: openSet(U) ∧ openSet(V) ∧ superset(U,C) ∧ superset(V,D) ∧ disjoint(U,V)
+# The defining law of math:t4Separation, a first-order logic:Formula over the
+# reified open-set/closed-set signature. Any two disjoint closed sets can be
+# engulfed in disjoint open neighbourhoods (Urysohn's lemma lives above this).
+
+math:normalitySeparationLaw
+    a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "T4 (normality): disjoint closed sets have disjoint open neighbourhoods"@x-gmeow-english ;
+    skos:definition "The defining law of the T4 separation axiom (normality) as a universally-quantified first-order logic:Formula over the reified open-set/closed-set signature: for any two disjoint closed sets C and D, there exist disjoint open sets U and V with C contained in U and D contained in V. math: expresses the law; logic: owns reasoning over it. A math:TopologicalSpace names it through math:separationAxiom / rdfs:seeAlso math:t4Separation."@x-gmeow-english ;
+    logic:quantifiedVariable
+        [ logic:termIndex 0 ; logic:termVariable "C" ] ,
+        [ logic:termIndex 1 ; logic:termVariable "D" ] ;
+    logic:forall math:t4Impl .
+
+math:t4Impl a logic:Formula ;
+    logic:antecedent math:t4Ante ;
+    logic:consequent math:t4Cons .
+
+math:t4Ante a logic:Formula ;
+    logic:and math:t4A1 , math:t4A2 , math:t4A3 .
+
+math:t4A1 a logic:Formula ; logic:relation math:closedSetRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "C" ] .
+math:t4A2 a logic:Formula ; logic:relation math:closedSetRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "D" ] .
+math:t4A3 a logic:Formula ; logic:relation math:disjointRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "C" ] , [ logic:termIndex 1 ; logic:termVariable "D" ] .
+
+math:t4Cons a logic:Formula ;
+    logic:quantifiedVariable
+        [ logic:termIndex 0 ; logic:termVariable "U" ] ,
+        [ logic:termIndex 1 ; logic:termVariable "V" ] ;
+    logic:exists math:t4Witness .
+
+math:t4Witness a logic:Formula ;
+    logic:and math:t4W1 , math:t4W2 , math:t4SuperC , math:t4SuperD , math:t4Disjoint .
+
+math:t4W1 a logic:Formula ; logic:relation math:openSetRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "U" ] .
+math:t4W2 a logic:Formula ; logic:relation math:openSetRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "V" ] .
+math:t4SuperC a logic:Formula ; logic:relation math:supersetRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "U" ] , [ logic:termIndex 1 ; logic:termVariable "C" ] .
+math:t4SuperD a logic:Formula ; logic:relation math:supersetRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "V" ] , [ logic:termIndex 1 ; logic:termVariable "D" ] .
+math:t4Disjoint a logic:Formula ; logic:relation math:disjointRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "U" ] , [ logic:termIndex 1 ; logic:termVariable "V" ] .
 
 # =========================================================================== #
 # Differential geometry and manifolds (ANALYSIS-AND-GEOMETRY charter)

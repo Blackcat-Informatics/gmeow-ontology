@@ -183,10 +183,6 @@ unless they themselves cite an external work; they are cross-references within G
   Application in Link Discovery.* IJCAI.
 - EYE — the Euler Yet another proof Engine (N3 reasoning). <https://eyereasoner.github.io/eye/>
 - cwm — the Closed World Machine (N3 rules). <https://www.w3.org/2000/10/swap/doc/cwm.html>
-- ELK — Kazakov, Y., Krötzsch, M. & Simančík, F. (2014). *The Incredible ELK.* Journal of Automated
-  Reasoning 53.
-- HermiT — Glimm, B., Horrocks, I., Motik, B., Stoilos, G. & Wang, Z. (2014). *HermiT: An OWL 2
-  Reasoner.* Journal of Automated Reasoning 53.
 - OWL-RL — a Python OWL 2 RL/RDFS reasoner (cross-check oracle). <https://owl-rl.readthedocs.io/>
 - PyO3 / maturin — Rust bindings for Python. <https://pyo3.rs/>
 - WebAssembly. <https://webassembly.org/>

@@ -26,7 +26,7 @@ Assert that a person has one gender-identity facet and an OWL `maxCardinality 1`
 a second facet as illegal; it *infers the two facets are `owl:sameAs`*. OWL cannot say "this
 data is missing a required value" or "this relator has too many relata", because absence is not
 contradiction in an open world. Worse, OWL 2 cardinality pushes the core out of the **EL**
-profile, costing us the fast ELK pre-check (see [the EL boundary](https://www.w3.org/TR/owl2-profiles/)).
+profile, costing us the fast EL pre-check (see [the EL boundary](https://www.w3.org/TR/owl2-profiles/)).
 
 So GMEOW keeps two halves of every relator invariant:
 
@@ -46,22 +46,25 @@ GMEOW runs four complementary verification lanes. Each owns a distinct class of 
 | Lane | Tool | World | Owns | Where |
 |---|---|---|---|---|
 | **Native EL/DL gate** | `gmeow_logic` | open | Docker-free profile, consistency, and entailment authority | `make reason` |
-| **Classic DL oracle** | HermiT/ELK (ROBOT, Docker) | open | non-required cross-check of the native lane | `make maint-reason-hermit`, `make maint-classic-cross-check` |
+| **Entailment cross-check oracle** | `purrdf::entail` (in-process OWL-RL + OWL-Direct tableau) | open | on-gate cross-check of the native lane's **subsumption** closure (native ⊇ oracle); consistency is decided by the native lane, off this gate | `gmeow-dev reason-crosscheck`, `make reason-crosscheck` |
 | **Entailment tests** | `owlrl` (pure-Python OWL 2 RL) | open | positive derivations — property chains, transitivity, sub-property closure | `tests/test_reasoning_entailments.py`, `tests/test_competency.py` |
 | **Closed-world validation** | SHACL (`gmeow_shacl`) + native `verify` | closed | cardinality, required shapes, display contract, orthogonality data-checks | `make validate`, `make verify`, `tests/test_shapes.py` |
 
 Reasoning order is **reason first to enrich, then validate the enriched graph**. The native
-`gmeow_logic` lane is the required authority. ELK and HermiT survive as non-required
-Docker/Java oracle checks under `maint-*` targets.
+`gmeow_logic` lane is the required authority. The `purrdf::entail` engine survives as an
+in-process, Docker-free cross-check oracle, run on-gate.
 
-### Lane 1–2 — Native reasoner plus classic oracles
+### Lane 1–2 — Native reasoner plus the entailment cross-check oracle
 
-`make reason` runs the native Docker-free EL/DL authority. `make maint-reason-hermit` runs
-**HermiT** for sound-and-complete oracle comparison, and `make maint-classic-cross-check`
-runs the full ELK/HermiT/ROBOT/Jena/rdflib lane. A contradiction — e.g. an individual
-placed in two disjoint identity axes, or two disjoint Kinds (Person ⊓ Organization) — makes
-the relevant reasoner exit non-zero. These are the *open-world* gates: unsatisfiability and
-inconsistency, nothing else.
+`make reason` runs the native Docker-free EL/DL authority. `gmeow-dev reason-crosscheck` (its own
+`make reason-crosscheck` gate) runs the **`purrdf::entail`** engine — an in-process OWL-RL +
+OWL-Direct-tableau reasoner, itself 70/70 W3C-entailment conformance-tested — as a Docker-free
+oracle that cross-checks the native lane's **subsumption** closure (native ⊇ oracle). Consistency
+is not part of this on-gate cross-check: the native reasoner decides consistency, checked
+separately by `make reason-verify` / native `is_consistent()`. A contradiction — e.g. an
+individual placed in two disjoint identity axes, or two disjoint Kinds (Person ⊓ Organization) —
+makes the native reasoner report an inconsistency. These are the *open-world* gates:
+unsatisfiability and inconsistency, nothing else.
 
 ### Lane 3 — `owlrl` entailment tests (pure-Python, Docker-free)
 
@@ -103,7 +106,7 @@ Two sub-lanes, both closed-world, for the constraints OWL deliberately cannot en
   `verify --mode native`: the native EL/DL reasoner (`crates/logic`) materializes the asserted
   graph **unioned with** the derived subsumption/type closure into an oxigraph store, then runs
   the SPARQL **SELECT** "bad-example" queries in `queries/verify/*.rq` (+ per-slice verify
-  queries) over it — the [OBO QC pattern](http://robot.obolibrary.org/): any returned row is a
+  queries) over it — the OBO query-check (QC) pattern: any returned row is a
   violation, surfaced as an `error` diagnostics finding. Unlike the `gmeow_shacl` lane (asserted
   only), these see the reasoned closure, so they catch problems that appear *after* inference.
   They currently assert:
@@ -112,9 +115,9 @@ Two sub-lanes, both closed-world, for the constraints OWL deliberately cannot en
   - no class is a subclass — asserted **or inferred** — of two disjoint axes.
 
   This lane is now on the required path (the `ontology` CI job) and in `make check`, with no
-  Docker. The classic **ROBOT `verify`** survives only as the `verify --mode docker` oracle in
-  the non-required `classic-cross-check` lane, where `scripts/slme_cross_check.py` proves the two
-  agree.
+  Docker. The independent cross-check of the native verdicts is likewise Docker-free: the
+  in-process `purrdf::entail` oracle (`gmeow-dev reason-crosscheck`) confirms the native
+  **subsumption** closure on-gate (consistency stays with the native reasoner, off this gate).
 
 ## The gUFO grounding reaches outward (foundational bridging)
 
@@ -139,7 +142,7 @@ enforce that contract on data; consumers MUST honour `false` and never surface t
 ```bash
 make validate   # Rust SHACL + syntax + term-annotation lint (always-on)
 make reason     # native Docker-free EL/DL reasoning authority
-make maint-reason-hermit  # sound + complete consistency oracle (Docker)
+make reason-verify  # native reason + verify + on-gate purrdf-entail cross-check oracle
 make verify     # reasoned-graph SPARQL QC — native EL/DL closure (Java/Docker-free)
 uv run pytest   # owlrl entailment tests + SHACL data-shape tests + native verify tests
 ```
@@ -149,9 +152,7 @@ uv run pytest   # owlrl entailment tests + SHACL data-shape tests + native verif
 - Holger Knublauch, *SHACL and OWL Compared* — <https://spinrdf.org/shacl-and-owl.html>
 - W3C, *SHACL Advanced Features (SHACL-AF)* — <https://www.w3.org/TR/shacl-af/>
 - W3C, *OWL 2 Web Ontology Language Profiles* (the EL boundary) — <https://www.w3.org/TR/owl2-profiles/>
-- ELK reasoner — <http://liveontologies.github.io/elk-reasoner/>; Baader, Brandt, Lutz,
-  *Pushing the EL Envelope* (IJCAI 2005)
-- ROBOT `reason` / `verify` — <http://robot.obolibrary.org/>
+- Baader, Brandt, Lutz, *Pushing the EL Envelope* (IJCAI 2005)
 - Grüninger & Fox, *competency questions* (IJCAI-95); Bezerra et al., *Verifying DL Ontologies
   based on Competency Questions and Unit Testing* (CEUR Vol-1908)
 - CONSTITUTION Principles **7** (verified by construction), **8** (reasoning-centric & FAIR),

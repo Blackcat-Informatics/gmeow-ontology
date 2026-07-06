@@ -1,0 +1,17 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Well-formed: a connected space that declares its connectedness (not assumed).
+# Conforms to math:ConnectedSpaceShape. Bound by ex:ecConnectedSpaceDeclared.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+ex:interval a math:ConnectedSpace ;
+    rdfs:label "the real interval [0, 1] (a connected space)"@x-gmeow-english ;
+    math:isConnected true ;
+    math:preservesStructure math:connectednessLaw ;
+    math:hasOpenSet ex:intervalWhole .
+
+ex:intervalWhole a math:OpenSet ;
+    rdfs:label "the whole interval as an open set of its topology"@x-gmeow-english .

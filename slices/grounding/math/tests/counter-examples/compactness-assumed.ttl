@@ -1,0 +1,13 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:CompactSpaceShape: a math:CompactSpace that does not declare
+# math:isCompact (sh:minCount 1) — compactness assumed from the type, not declared.
+# Validation MUST emit shacl.MinCountConstraintComponent (math:UndeclaredTopologicalProperty).
+# Bound by ex:ecCompactnessAssumed.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+ex:assumedCompact a math:CompactSpace ;
+    rdfs:label "a space whose compactness is assumed, not declared"@x-gmeow-english .
