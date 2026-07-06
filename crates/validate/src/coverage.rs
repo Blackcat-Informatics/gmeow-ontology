@@ -25,7 +25,7 @@
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 
-use gmeow_diagnostics::{Finding, Location, Report, Severity};
+use gmeow_errors::{Finding, Location, Report, Severity};
 use purrdf::{DatasetView, GraphMatch, TermRef, TermValue};
 
 use crate::model::rdf;

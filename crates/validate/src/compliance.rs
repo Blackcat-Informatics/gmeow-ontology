@@ -20,7 +20,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
-use gmeow_diagnostics::Severity;
+use gmeow_errors::Severity;
 
 use crate::constitution::{
     Enforcement, Principle, collect_enforcements, collect_principles, constitution_full_report,

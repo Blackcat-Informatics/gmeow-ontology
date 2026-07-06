@@ -27,7 +27,7 @@ use std::io::ErrorKind;
 use std::path::Path;
 use std::time::Instant;
 
-use gmeow_diagnostics::{Finding, Severity};
+use gmeow_errors::{Finding, Severity};
 use gmeow_logic::dag_profile::certify_acyclic;
 use gmeow_logic::result::ReasoningResult;
 

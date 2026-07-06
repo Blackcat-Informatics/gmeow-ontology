@@ -92,8 +92,8 @@ fn run(perf_dir: &Path, reporter: &dyn Reporter) -> i32 {
 struct SilentReporter;
 
 impl Reporter for SilentReporter {
-    fn report(&self, _report: &gmeow_diagnostics::Report) {}
+    fn report(&self, _report: &gmeow_errors::Report) {}
     fn stage_start(&self, _stage: &str) {}
     fn stage_end(&self, _stage: &str, _elapsed: Duration) {}
-    fn summary(&self, _report: &gmeow_diagnostics::Report) {}
+    fn summary(&self, _report: &gmeow_errors::Report) {}
 }

@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 //! Bridge from the structured RDF/SHACL diagnostics into the canonical
-//! [`gmeow_diagnostics::Finding`] model.
+//! [`gmeow_errors::Finding`] model.
 //!
-//! `gmeow-diagnostics` links pyo3 unconditionally, so the PyO3-free
+//! `gmeow-errors` links pyo3 unconditionally, so the PyO3-free
 //! `gmeow-rdf` kernel must not depend on it. `gmeow-validate` already links
 //! pyo3 and depends on both crates, so the conversion lives here. The Rust
 //! orphan rules forbid `impl From<RdfDiagnostic> for Finding` in this crate
@@ -16,7 +16,7 @@
 //! RDF projection, and the content-addressed cache all anchor to the same
 //! position inside a bundle.
 
-use gmeow_diagnostics::{Finding, Location, Severity};
+use gmeow_errors::{Finding, Location, Severity};
 use purrdf::shapes::report::{Severity as ShaclSeverity, ValidationResult};
 use purrdf::{RdfDiagnostic, RdfLocation, RdfSeverity};
 
@@ -200,9 +200,9 @@ mod tests {
         // RdfLocation -> diagnostics Location -> Finding -> SARIF.
         let mut finding = Finding::new(Severity::Error, "validate.x", "boom");
         finding.add_location(location_from_rdf(&rdf_location));
-        let mut report = gmeow_diagnostics::Report::new("validate");
+        let mut report = gmeow_errors::Report::new("validate");
         report.add_finding(finding);
-        let sarif = gmeow_diagnostics::render::to_sarif(&report).expect("sarif");
+        let sarif = gmeow_errors::render::to_sarif(&report).expect("sarif");
 
         assert!(
             sarif.contains("\"uri\": \"slices/core/x/module.ttl\""),
