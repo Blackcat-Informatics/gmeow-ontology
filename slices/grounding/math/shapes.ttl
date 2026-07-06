@@ -1372,7 +1372,7 @@ math:FlagshipScenarioShape
             SELECT $this WHERE {
                 $this <https://blackcatinformatics.ca/math/enforcesFailureClass> ?fc .
                 FILTER NOT EXISTS {
-                    ?fc <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/math/MathConformanceFailure> .
+                    ?fc <http://www.w3.org/2000/01/rdf-schema#subClassOf>+ <https://blackcatinformatics.ca/math/MathConformanceFailure> .
                 }
             }
         """ ;

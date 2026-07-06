@@ -69,7 +69,7 @@ ASK {
         math:demonstratedByCompetency ?cq ;
         math:guardedByCounterExample ?ce ;
         math:enforcesFailureClass ?fc .
-    ?fc rdfs:subClassOf math:MathConformanceFailure .
+    ?fc rdfs:subClassOf+ math:MathConformanceFailure .
     FILTER(isLiteral(?ex) && isIRI(?cq) && isLiteral(?ce) && isIRI(?fc))
 }""" ;
     gmeow:saRationale "The epic's five flagship acceptance scenarios MUST each be present as a math:FlagshipScenario binding its worked example, competency question, counter-example, and a real math:MathConformanceFailure subclass. If any of the five is absent or missing a link, the acceptance bar is not met and this assertion fails — the depth bar is a contract, not prose." .
