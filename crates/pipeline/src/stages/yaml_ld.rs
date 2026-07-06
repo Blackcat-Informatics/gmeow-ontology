@@ -19,7 +19,6 @@ use purrdf::RdfDataset;
 use purrdf::native_codecs::jsonld;
 use serde_json::Value;
 
-use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 
 /// Logical path of the JSON-LD-star artifact emitted by this stage.
@@ -61,8 +60,10 @@ fn gmeow_statement_metadata_vocab() -> jsonld::StatementMetadataVocab<'static> {
 }
 
 /// Map a JSON-LD/YAML-LD codec diagnostic onto a pipeline decode error.
-fn codec_err(e: purrdf::RdfDiagnostic) -> PipelineError {
-    PipelineError::Decode(e.to_string())
+fn codec_err(e: purrdf::RdfDiagnostic) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(crate::error::Decode {
+        message: e.to_string(),
+    })
 }
 
 /// The `yaml_ld` export-leaf stage.
@@ -96,7 +97,7 @@ impl Stage for YamlLdStage {
         // v2: adds deterministic YAML-LD-star output and the preservation ledger.
         "yaml_ld.jsonld_star.v2-yaml-ld"
     }
-    fn run(&self, _input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
+    fn run(&self, _input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         // THIS run's carrier dataset, read directly off the snapshot product's bundle
         // — no re-parse of the gmeow.gts bytes (GTS is exit-only).
         let dataset = crate::stages::carrier::snapshot_dataset(_input.upstream)?;
@@ -107,9 +108,10 @@ impl Stage for YamlLdStage {
         artifacts.insert(JSON_LD_PATH.to_string(), json.into_bytes());
         artifacts.insert(YAML_LD_PATH.to_string(), yaml.into_bytes());
         artifacts.insert(PRESERVATION_PATH.to_string(), preservation.into_bytes());
-        Ok(StageOutput {
-            product: StageProduct::from_artifacts(self.id(), artifacts),
-        })
+        Ok(StageOutput::new(StageProduct::from_artifacts(
+            self.id(),
+            artifacts,
+        )))
     }
 }
 
@@ -120,7 +122,7 @@ fn to_json_object(map: BTreeMap<String, Value>) -> Value {
 
 /// Serialize the carrier dataset to a deterministic JSON-LD-star document (thin wrapper
 /// over the first-party rdf codec).
-pub fn serialize_graph(dataset: &RdfDataset) -> Result<String, PipelineError> {
+pub fn serialize_graph(dataset: &RdfDataset) -> Result<String, gmeow_errors::Diag> {
     jsonld::serialize_dataset_to_jsonld(dataset).map_err(codec_err)
 }
 
@@ -133,7 +135,7 @@ pub fn serialize_graph(dataset: &RdfDataset) -> Result<String, PipelineError> {
 pub fn serialize_graph_yaml(
     dataset: &RdfDataset,
     schema_url: Option<&str>,
-) -> Result<String, PipelineError> {
+) -> Result<String, gmeow_errors::Diag> {
     // purrdf is namespace-neutral: with no schema_url it stamps its own
     // `purrdf.schema.json` header. gmeow's bundled YAML-LD schema is
     // `gmeow.schema.json`, so default `None` to it (the consumer's schema).
@@ -168,7 +170,7 @@ pub(crate) fn preservation_ledger() -> String {
 
 /// Parse JSON-LD-star bytes into the native carrier [`RdfDataset`] (thin wrapper over
 /// the first-party rdf codec).
-pub fn parse_jsonld_star(json_bytes: &[u8]) -> Result<Arc<RdfDataset>, PipelineError> {
+pub fn parse_jsonld_star(json_bytes: &[u8]) -> Result<Arc<RdfDataset>, gmeow_errors::Diag> {
     jsonld::parse_jsonld(json_bytes).map_err(codec_err)
 }
 
@@ -177,14 +179,14 @@ pub fn parse_jsonld_star(json_bytes: &[u8]) -> Result<Arc<RdfDataset>, PipelineE
 /// safe for the rdflib-compat up-projection lane.
 pub fn jsonld_star_to_gmeow_statement_metadata_nquads(
     json_bytes: &[u8],
-) -> Result<String, PipelineError> {
+) -> Result<String, gmeow_errors::Diag> {
     jsonld::jsonld_to_statement_metadata_nquads(json_bytes, Some(&gmeow_statement_metadata_vocab()))
         .map_err(codec_err)
 }
 
 /// Convert YAML-LD-star bytes to JSON-LD-star JSON (thin wrapper over the first-party
 /// rdf codec), hard-failing on YAML anchors/aliases (extended YAML is out of scope).
-pub fn yaml_ld_star_to_json(yaml_bytes: &[u8]) -> Result<String, PipelineError> {
+pub fn yaml_ld_star_to_json(yaml_bytes: &[u8]) -> Result<String, gmeow_errors::Diag> {
     jsonld::yamlld_to_jsonld(yaml_bytes).map_err(codec_err)
 }
 
@@ -192,7 +194,7 @@ pub fn yaml_ld_star_to_json(yaml_bytes: &[u8]) -> Result<String, PipelineError> 
 /// the first-party rdf codec).
 pub fn yaml_ld_star_to_gmeow_statement_metadata_nquads(
     yaml_bytes: &[u8],
-) -> Result<String, PipelineError> {
+) -> Result<String, gmeow_errors::Diag> {
     jsonld::yamlld_to_statement_metadata_nquads(yaml_bytes, Some(&gmeow_statement_metadata_vocab()))
         .map_err(codec_err)
 }
@@ -215,13 +217,16 @@ pub(crate) fn canonical_lines(dataset: &RdfDataset) -> Vec<String> {
 /// Parse N-Quads-star text into the native carrier [`RdfDataset`], preserving the
 /// RDF 1.2 statement layer (quoted triple terms fold to the reifier table). Used by
 /// [`roundtrip_isomorphic`].
-fn dataset_from_nquads(nquads: &[u8]) -> Result<Arc<RdfDataset>, PipelineError> {
+fn dataset_from_nquads(nquads: &[u8]) -> Result<Arc<RdfDataset>, gmeow_errors::Diag> {
     // The native codec folds the RDF 1.2 statement layer to the IR reifier table at parse
     // time; `canonical_lines` un-folds it back to the equivalent flat `<reifier> rdf:reifies
     // <<( s p o )>>` rows (exact inverses), so the star structure the RDFC-1.0 canonical
     // comparison depends on is preserved.
-    purrdf::parse_dataset(nquads, "application/n-quads", None)
-        .map_err(|e| PipelineError::Parse(format!("parse N-Quads: {e}")))
+    purrdf::parse_dataset(nquads, "application/n-quads", None).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            message: format!("parse N-Quads: {e}"),
+        })
+    })
 }
 
 /// Return whether `star_bytes` (format `"jsonld"`|`"yamlld"`) re-parses to a
@@ -232,15 +237,15 @@ pub fn roundtrip_isomorphic(
     original_nquads: &[u8],
     star_bytes: &[u8],
     format: &str,
-) -> Result<bool, PipelineError> {
+) -> Result<bool, gmeow_errors::Diag> {
     let original = dataset_from_nquads(original_nquads)?;
     let roundtrip = match format {
         "jsonld" => parse_jsonld_star(star_bytes)?,
         "yamlld" => parse_jsonld_star(yaml_ld_star_to_json(star_bytes)?.as_bytes())?,
         other => {
-            return Err(PipelineError::Decode(format!(
-                "unknown star format {other:?}; expected 'jsonld' or 'yamlld'"
-            )));
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Decode {
+                message: format!("unknown star format {other:?}; expected 'jsonld' or 'yamlld'"),
+            }));
         }
     };
     Ok(canonical_lines(&original) == canonical_lines(&roundtrip))
@@ -1211,11 +1216,17 @@ mod tests {
 
     /// Load a Turtle-star file into the native carrier [`RdfDataset`], preserving
     /// lexical forms (and the folded RDF 1.2 statement layer) from the committed artifact.
-    fn load_turtle_dataset(path: &std::path::Path) -> Result<Arc<RdfDataset>, PipelineError> {
-        let bytes = std::fs::read(path)
-            .map_err(|e| PipelineError::Parse(format!("read {}: {e}", path.display())))?;
-        purrdf::parse_dataset(&bytes, "text/turtle", None)
-            .map_err(|e| PipelineError::Parse(format!("Turtle parse: {e}")))
+    fn load_turtle_dataset(path: &std::path::Path) -> Result<Arc<RdfDataset>, gmeow_errors::Diag> {
+        let bytes = std::fs::read(path).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Parse {
+                message: format!("read {}: {e}", path.display()),
+            })
+        })?;
+        purrdf::parse_dataset(&bytes, "text/turtle", None).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Parse {
+                message: format!("Turtle parse: {e}"),
+            })
+        })
     }
 
     fn repo_root() -> PathBuf {
@@ -1448,7 +1459,7 @@ mod tests {
         let err = yaml_ld_star_to_json(anchored.as_bytes())
             .expect_err("YAML anchors/aliases must hard-fail");
         assert!(
-            matches!(err, PipelineError::Decode(_)),
+            err.is::<crate::error::Decode>(),
             "expected a Decode error, got {err:?}"
         );
     }

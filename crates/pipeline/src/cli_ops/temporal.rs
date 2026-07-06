@@ -22,7 +22,6 @@ use std::path::Path;
 use purrdf::sparql::NativeSparqlEngine;
 use purrdf::{SparqlEngine, SparqlRequest, SparqlResult, TermValue};
 
-use crate::error::PipelineError;
 use crate::stages::native_query::{Solutions, dataset_from_turtle};
 
 /// A named TQL query and the parameters it expects.
@@ -95,22 +94,24 @@ pub fn temporal_queries() -> BTreeMap<&'static str, TemporalQuery> {
 ///
 /// - The name is not a known TQL query (mirrors the Python `KeyError`).
 /// - The `<name>.rq` file cannot be read.
-fn query_text(query_dir: &Path, name: &str) -> Result<String, PipelineError> {
+fn query_text(query_dir: &Path, name: &str) -> Result<String, gmeow_errors::Diag> {
     let registry = temporal_queries();
     if !registry.contains_key(name) {
         let known: Vec<&str> = registry.keys().copied().collect();
-        return Err(PipelineError::Stage {
+        return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
             stage: "temporal-query".to_string(),
             message: format!(
                 "unknown temporal query {name:?}; known: {}",
                 known.join(", ")
             ),
-        });
+        }));
     }
     let path = query_dir.join(format!("{name}.rq"));
-    std::fs::read_to_string(&path).map_err(|e| PipelineError::Stage {
-        stage: "temporal-query".to_string(),
-        message: format!("read TQL query {}: {e}", path.display()),
+    std::fs::read_to_string(&path).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            stage: "temporal-query".to_string(),
+            message: format!("read TQL query {}: {e}", path.display()),
+        })
     })
 }
 
@@ -137,14 +138,13 @@ pub fn run_temporal_query(
     name: &str,
     source_ttl: &str,
     bindings: &[(String, TermValue)],
-) -> Result<Solutions, PipelineError> {
-    let spec = temporal_queries()
-        .get(name)
-        .cloned()
-        .ok_or_else(|| PipelineError::Stage {
+) -> Result<Solutions, gmeow_errors::Diag> {
+    let spec = temporal_queries().get(name).cloned().ok_or_else(|| {
+        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
             stage: "temporal-query".to_string(),
             message: format!("unknown temporal query {name:?}"),
-        })?;
+        })
+    })?;
 
     // Every declared parameter must be supplied — a missing parameter is a HARD FAIL,
     // never a silently-unbound variable (mirrors the Python `ValueError`).
@@ -155,13 +155,13 @@ pub fn run_temporal_query(
         .filter(|p| !bindings.iter().any(|(name, _)| name == p))
         .collect();
     if !missing.is_empty() {
-        return Err(PipelineError::Stage {
+        return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
             stage: "temporal-query".to_string(),
             message: format!(
                 "temporal query {name:?} needs parameter(s) {}",
                 missing.join(", ")
             ),
-        });
+        }));
     }
 
     let text = query_text(query_dir, name)?;
@@ -176,19 +176,23 @@ pub fn run_temporal_query(
                 substitutions: bindings,
             },
         )
-        .map_err(|e| PipelineError::Stage {
-            stage: "temporal-query".to_string(),
-            message: format!("temporal query {name:?} evaluation failed: {e}"),
+        .map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                stage: "temporal-query".to_string(),
+                message: format!("temporal query {name:?} evaluation failed: {e}"),
+            })
         })?;
 
     match result {
         SparqlResult::Solutions {
             variables, rows, ..
         } => Ok(Solutions { variables, rows }),
-        SparqlResult::Boolean(_) | SparqlResult::Graph(_) => Err(PipelineError::Stage {
-            stage: "temporal-query".to_string(),
-            message: format!("temporal query {name:?} must be a SELECT"),
-        }),
+        SparqlResult::Boolean(_) | SparqlResult::Graph(_) => {
+            Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                stage: "temporal-query".to_string(),
+                message: format!("temporal query {name:?} must be a SELECT"),
+            }))
+        }
     }
 }
 
