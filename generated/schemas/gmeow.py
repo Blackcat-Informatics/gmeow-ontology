@@ -1186,6 +1186,36 @@ class GeometryTypeEnum(str, Enum):
     geometryTypePolygon = "geometryTypePolygon"
 
 
+class GmnCodebookEnum(str, Enum):
+    gmnCodebookCurrent = "gmnCodebookCurrent"
+
+
+class GmnFixityEnum(str, Enum):
+    gmnFixityBracketing = "gmnFixityBracketing"
+    gmnFixityInfix = "gmnFixityInfix"
+    gmnFixityPostfix = "gmnFixityPostfix"
+    gmnFixityPrefix = "gmnFixityPrefix"
+
+
+class GmnSecurityRingEnum(str, Enum):
+    gmnRingCore = "gmnRingCore"
+    gmnRingRestricted = "gmnRingRestricted"
+    gmnRingTrusted = "gmnRingTrusted"
+
+
+class GmnSigilRoleEnum(str, Enum):
+    gmnSigilClaim = "gmnSigilClaim"
+    gmnSigilDefeater = "gmnSigilDefeater"
+    gmnSigilEvidence = "gmnSigilEvidence"
+    gmnSigilLangAst = "gmnSigilLangAst"
+    gmnSigilLogic = "gmnSigilLogic"
+    gmnSigilMath = "gmnSigilMath"
+    gmnSigilModal = "gmnSigilModal"
+    gmnSigilProcess = "gmnSigilProcess"
+    gmnSigilProof = "gmnSigilProof"
+    gmnSigilStandpoint = "gmnSigilStandpoint"
+
+
 class GoalEnum(str, Enum):
     goalCanonicalIngestion = "goalCanonicalIngestion"
     goalShippableBundle = "goalShippableBundle"
@@ -1306,6 +1336,10 @@ class InferenceModeEnum(str, Enum):
     modeAnalogical = "modeAnalogical"
     modeDeduction = "modeDeduction"
     modeInduction = "modeInduction"
+
+
+class InformationObjectEnum(str, Enum):
+    gmnVersionOne = "gmnVersionOne"
 
 
 class InhabitationLocusKindEnum(str, Enum):
@@ -3229,6 +3263,8 @@ class VersionMembershipEnum(str, Enum):
     fixtureRagaYamanKiranaMembership1960 = "fixtureRagaYamanKiranaMembership1960"
     fixtureRagaYamanKiranaMembership1975 = "fixtureRagaYamanKiranaMembership1975"
     fixtureRagaYamanKiranaMembership1980 = "fixtureRagaYamanKiranaMembership1980"
+    gmnMembershipCanonical = "gmnMembershipCanonical"
+    gmnMembershipLatest = "gmnMembershipLatest"
 
 
 class VersionRoleEnum(str, Enum):
@@ -3254,6 +3290,7 @@ class VersionScaleEnum(str, Enum):
 
 class VersionSetEnum(str, Enum):
     fixtureRagaYamanKiranaSet = "fixtureRagaYamanKiranaSet"
+    gmnDialectVersions = "gmnDialectVersions"
 
 
 class VirtualLocationTypeEnum(str, Enum):
@@ -5630,6 +5667,39 @@ class Geometry(Entity):
 
 class GeometryType(ConfiguredBaseModel):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/GeometryType"
+    pass
+
+
+class GmnCodebook(InformationObject):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/GmnCodebook"
+    is_a: ClassVar[str] = "InformationObject"
+    pass
+
+
+class GmnCompaction(StandpointClaim):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/GmnCompaction"
+    is_a: ClassVar[str] = "StandpointClaim"
+    pass
+
+
+class GmnEnvelope(AttestationArtifact):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/GmnEnvelope"
+    is_a: ClassVar[str] = "AttestationArtifact"
+    pass
+
+
+class GmnFixity(ConfiguredBaseModel):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/GmnFixity"
+    pass
+
+
+class GmnSecurityRing(ConfiguredBaseModel):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/GmnSecurityRing"
+    pass
+
+
+class GmnSigilRole(ConfiguredBaseModel):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/GmnSigilRole"
     pass
 
 

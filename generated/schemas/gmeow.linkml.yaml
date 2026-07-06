@@ -1782,6 +1782,27 @@ classes:
   GeometryType:
     class_uri: https://blackcatinformatics.ca/gmeow/GeometryType
     title: Geometry Type
+  GmnCodebook:
+    class_uri: https://blackcatinformatics.ca/gmeow/GmnCodebook
+    title: GMN Codebook
+    is_a: InformationObject
+  GmnCompaction:
+    class_uri: https://blackcatinformatics.ca/gmeow/GmnCompaction
+    title: GMN Compaction
+    is_a: StandpointClaim
+  GmnEnvelope:
+    class_uri: https://blackcatinformatics.ca/gmeow/GmnEnvelope
+    title: GMN Envelope
+    is_a: AttestationArtifact
+  GmnFixity:
+    class_uri: https://blackcatinformatics.ca/gmeow/GmnFixity
+    title: GMN Fixity
+  GmnSecurityRing:
+    class_uri: https://blackcatinformatics.ca/gmeow/GmnSecurityRing
+    title: GMN Security Ring
+  GmnSigilRole:
+    class_uri: https://blackcatinformatics.ca/gmeow/GmnSigilRole
+    title: GMN Sigil Role
   Goal:
     class_uri: https://blackcatinformatics.ca/gmeow/Goal
     title: Goal
@@ -7988,6 +8009,101 @@ slots:
     title: geometry type
     range: GeometryType
     domain: Geometry
+    multivalued: true
+  gmnAcceptWindow:
+    slot_uri: https://blackcatinformatics.ca/gmeow/gmnAcceptWindow
+    title: gmn accept window
+    range: string
+    multivalued: true
+  gmnCodepoints:
+    slot_uri: https://blackcatinformatics.ca/gmeow/gmnCodepoints
+    title: gmn codepoints
+    range: string
+    multivalued: true
+  gmnCompacts:
+    slot_uri: https://blackcatinformatics.ca/gmeow/gmnCompacts
+    title: gmn compacts
+    range: uriorcurie
+    multivalued: true
+  gmnConfusableWith:
+    slot_uri: https://blackcatinformatics.ca/gmeow/gmnConfusableWith
+    title: gmn confusable with
+    range: uriorcurie
+    multivalued: true
+  gmnDeclaredRate:
+    slot_uri: https://blackcatinformatics.ca/gmeow/gmnDeclaredRate
+    title: gmn declared rate
+    range: uriorcurie
+    multivalued: true
+  gmnDeterminismClass:
+    slot_uri: https://blackcatinformatics.ca/gmeow/gmnDeterminismClass
+    title: gmn determinism class
+    range: string
+    multivalued: true
+  gmnDictionaryVersion:
+    slot_uri: https://blackcatinformatics.ca/gmeow/gmnDictionaryVersion
+    title: gmn dictionary version
+    range: string
+    multivalued: true
+  gmnEnvelopeCorrespondence:
+    slot_uri: https://blackcatinformatics.ca/gmeow/gmnEnvelopeCorrespondence
+    title: gmn envelope correspondence
+    range: uriorcurie
+    multivalued: true
+  gmnFixity:
+    slot_uri: https://blackcatinformatics.ca/gmeow/gmnFixity
+    title: gmn fixity
+    range: uriorcurie
+    multivalued: true
+  gmnGlyph:
+    slot_uri: https://blackcatinformatics.ca/gmeow/gmnGlyph
+    title: gmn glyph
+    range: string
+    multivalued: true
+  gmnGlyphTableVersion:
+    slot_uri: https://blackcatinformatics.ca/gmeow/gmnGlyphTableVersion
+    title: gmn glyph table version
+    range: string
+    multivalued: true
+  gmnMigratesFrom:
+    slot_uri: https://blackcatinformatics.ca/gmeow/gmnMigratesFrom
+    title: gmn migrates from
+    range: uriorcurie
+    multivalued: true
+  gmnMigratesTo:
+    slot_uri: https://blackcatinformatics.ca/gmeow/gmnMigratesTo
+    title: gmn migrates to
+    range: uriorcurie
+    multivalued: true
+  gmnPrecedence:
+    slot_uri: https://blackcatinformatics.ca/gmeow/gmnPrecedence
+    title: gmn precedence
+    range: string
+    multivalued: true
+  gmnRingWithin:
+    slot_uri: https://blackcatinformatics.ca/gmeow/gmnRingWithin
+    title: gmn ring within
+    range: uriorcurie
+    multivalued: true
+  gmnSchemaVersion:
+    slot_uri: https://blackcatinformatics.ca/gmeow/gmnSchemaVersion
+    title: gmn schema version
+    range: string
+    multivalued: true
+  gmnSecurityRing:
+    slot_uri: https://blackcatinformatics.ca/gmeow/gmnSecurityRing
+    title: gmn security ring
+    range: uriorcurie
+    multivalued: true
+  gmnSigilGlyph:
+    slot_uri: https://blackcatinformatics.ca/gmeow/gmnSigilGlyph
+    title: gmn sigil glyph
+    range: string
+    multivalued: true
+  gmnSigilScope:
+    slot_uri: https://blackcatinformatics.ca/gmeow/gmnSigilScope
+    title: gmn sigil scope
+    range: uriorcurie
     multivalued: true
   governanceModel:
     slot_uri: https://blackcatinformatics.ca/gmeow/governanceModel
@@ -17374,6 +17490,72 @@ enums:
       geometryTypePolygon:
         meaning: https://blackcatinformatics.ca/gmeow/geometryTypePolygon
         title: polygon
+  GmnCodebookEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/GmnCodebook
+    permissible_values:
+      gmnCodebookCurrent:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnCodebookCurrent
+        title: GMN codebook (current)
+  GmnFixityEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/GmnFixity
+    permissible_values:
+      gmnFixityBracketing:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnFixityBracketing
+        title: bracketing
+      gmnFixityInfix:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnFixityInfix
+        title: infix
+      gmnFixityPostfix:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnFixityPostfix
+        title: postfix
+      gmnFixityPrefix:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnFixityPrefix
+        title: prefix
+  GmnSecurityRingEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/GmnSecurityRing
+    permissible_values:
+      gmnRingCore:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnRingCore
+        title: core ring
+      gmnRingRestricted:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnRingRestricted
+        title: restricted ring
+      gmnRingTrusted:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnRingTrusted
+        title: trusted ring
+  GmnSigilRoleEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/GmnSigilRole
+    permissible_values:
+      gmnSigilClaim:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnSigilClaim
+        title: claim sigil
+      gmnSigilDefeater:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnSigilDefeater
+        title: defeater sigil
+      gmnSigilEvidence:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnSigilEvidence
+        title: evidence sigil
+      gmnSigilLangAst:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnSigilLangAst
+        title: lang-AST sigil
+      gmnSigilLogic:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnSigilLogic
+        title: logic sigil
+      gmnSigilMath:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnSigilMath
+        title: math sigil
+      gmnSigilModal:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnSigilModal
+        title: modal sigil
+      gmnSigilProcess:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnSigilProcess
+        title: process sigil
+      gmnSigilProof:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnSigilProof
+        title: proof sigil
+      gmnSigilStandpoint:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnSigilStandpoint
+        title: standpoint sigil
   GoalEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/Goal
     permissible_values:
@@ -17650,6 +17832,12 @@ enums:
       modeInduction:
         meaning: https://blackcatinformatics.ca/gmeow/modeInduction
         title: induction
+  InformationObjectEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/InformationObject
+    permissible_values:
+      gmnVersionOne:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnVersionOne
+        title: GMN dialect version 1
   InhabitationLocusKindEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/InhabitationLocusKind
     permissible_values:
@@ -22333,6 +22521,12 @@ enums:
       fixtureRagaYamanKiranaMembership1980:
         meaning: https://blackcatinformatics.ca/gmeow/fixtureRagaYamanKiranaMembership1980
         title: Raga Yaman 1980 Kirana gharana membership
+      gmnMembershipCanonical:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnMembershipCanonical
+        title: GMN v1 canonical membership
+      gmnMembershipLatest:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnMembershipLatest
+        title: GMN v1 latest membership
   VersionRoleEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/VersionRole
     permissible_values:
@@ -22390,6 +22584,9 @@ enums:
       fixtureRagaYamanKiranaSet:
         meaning: https://blackcatinformatics.ca/gmeow/fixtureRagaYamanKiranaSet
         title: Raga Yaman as performed in the Kirana gharana
+      gmnDialectVersions:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnDialectVersions
+        title: GMN dialect lineage
   VirtualLocationTypeEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/VirtualLocationType
     permissible_values:

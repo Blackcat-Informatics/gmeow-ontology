@@ -1162,6 +1162,36 @@ export enum GeometryTypeEnum {
     geometryTypePolygon = "geometryTypePolygon",
 }
 
+export enum GmnCodebookEnum {
+    gmnCodebookCurrent = "gmnCodebookCurrent",
+}
+
+export enum GmnFixityEnum {
+    gmnFixityBracketing = "gmnFixityBracketing",
+    gmnFixityInfix = "gmnFixityInfix",
+    gmnFixityPostfix = "gmnFixityPostfix",
+    gmnFixityPrefix = "gmnFixityPrefix",
+}
+
+export enum GmnSecurityRingEnum {
+    gmnRingCore = "gmnRingCore",
+    gmnRingRestricted = "gmnRingRestricted",
+    gmnRingTrusted = "gmnRingTrusted",
+}
+
+export enum GmnSigilRoleEnum {
+    gmnSigilClaim = "gmnSigilClaim",
+    gmnSigilDefeater = "gmnSigilDefeater",
+    gmnSigilEvidence = "gmnSigilEvidence",
+    gmnSigilLangAst = "gmnSigilLangAst",
+    gmnSigilLogic = "gmnSigilLogic",
+    gmnSigilMath = "gmnSigilMath",
+    gmnSigilModal = "gmnSigilModal",
+    gmnSigilProcess = "gmnSigilProcess",
+    gmnSigilProof = "gmnSigilProof",
+    gmnSigilStandpoint = "gmnSigilStandpoint",
+}
+
 export enum GoalEnum {
     goalCanonicalIngestion = "goalCanonicalIngestion",
     goalShippableBundle = "goalShippableBundle",
@@ -1282,6 +1312,10 @@ export enum InferenceModeEnum {
     modeAnalogical = "modeAnalogical",
     modeDeduction = "modeDeduction",
     modeInduction = "modeInduction",
+}
+
+export enum InformationObjectEnum {
+    gmnVersionOne = "gmnVersionOne",
 }
 
 export enum InhabitationLocusKindEnum {
@@ -3205,6 +3239,8 @@ export enum VersionMembershipEnum {
     fixtureRagaYamanKiranaMembership1960 = "fixtureRagaYamanKiranaMembership1960",
     fixtureRagaYamanKiranaMembership1975 = "fixtureRagaYamanKiranaMembership1975",
     fixtureRagaYamanKiranaMembership1980 = "fixtureRagaYamanKiranaMembership1980",
+    gmnMembershipCanonical = "gmnMembershipCanonical",
+    gmnMembershipLatest = "gmnMembershipLatest",
 }
 
 export enum VersionRoleEnum {
@@ -3230,6 +3266,7 @@ export enum VersionScaleEnum {
 
 export enum VersionSetEnum {
     fixtureRagaYamanKiranaSet = "fixtureRagaYamanKiranaSet",
+    gmnDialectVersions = "gmnDialectVersions",
 }
 
 export enum VirtualLocationTypeEnum {
@@ -4740,6 +4777,24 @@ export interface Geometry extends Entity {
 }
 
 export interface GeometryType {
+}
+
+export interface GmnCodebook extends InformationObject {
+}
+
+export interface GmnCompaction extends StandpointClaim {
+}
+
+export interface GmnEnvelope extends AttestationArtifact {
+}
+
+export interface GmnFixity {
+}
+
+export interface GmnSecurityRing {
+}
+
+export interface GmnSigilRole {
 }
 
 export interface Goal extends SocialObject {

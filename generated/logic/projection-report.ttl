@@ -71,6 +71,7 @@
     gmeow:lossyDrop "actual: a BCP-47 tag carries no diachronic history of the variety (no lang: temporal-stage lineage)" ,
         "actual: a BCP-47 tag carries no orthography split (a sign system with several orthographies collapses to one script subtag)" ,
         "actual: a BCP-47 tag carries no variety relations beyond the primary subtag (the lang:varietyOf structure is flattened to a single differentiating subtag)" ,
+        "actual: variety <https://blackcatinformatics.ca/gmeow/gmnCompacted> has no derivable BCP-47 primary subtag: its lang:varietyOf parent carries no ISO 639 skos:notation (GMEOW sign systems keep ISO codes as alignments, not asserted data), so gmeow:bcp47Tag is absent — a data row, not a failure" ,
         "actual: variety <https://blackcatinformatics.ca/lang/gmeowEnglish> has no derivable BCP-47 primary subtag: its lang:varietyOf parent carries no ISO 639 skos:notation (GMEOW sign systems keep ISO codes as alignments, not asserted data), so gmeow:bcp47Tag is absent — a data row, not a failure" ;
     logic:complexityClass "n/a" ;
     logic:preservationKind logic:SoundUnderApproximation .

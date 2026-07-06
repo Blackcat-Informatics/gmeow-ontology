@@ -1162,6 +1162,36 @@ enum GeometryTypeEnum {
   geometryTypePolygon
 }
 
+enum GmnCodebookEnum {
+  gmnCodebookCurrent
+}
+
+enum GmnFixityEnum {
+  gmnFixityBracketing
+  gmnFixityInfix
+  gmnFixityPostfix
+  gmnFixityPrefix
+}
+
+enum GmnSecurityRingEnum {
+  gmnRingCore
+  gmnRingRestricted
+  gmnRingTrusted
+}
+
+enum GmnSigilRoleEnum {
+  gmnSigilClaim
+  gmnSigilDefeater
+  gmnSigilEvidence
+  gmnSigilLangAst
+  gmnSigilLogic
+  gmnSigilMath
+  gmnSigilModal
+  gmnSigilProcess
+  gmnSigilProof
+  gmnSigilStandpoint
+}
+
 enum GoalEnum {
   goalCanonicalIngestion
   goalShippableBundle
@@ -1282,6 +1312,10 @@ enum InferenceModeEnum {
   modeAnalogical
   modeDeduction
   modeInduction
+}
+
+enum InformationObjectEnum {
+  gmnVersionOne
 }
 
 enum InhabitationLocusKindEnum {
@@ -3205,6 +3239,8 @@ enum VersionMembershipEnum {
   fixtureRagaYamanKiranaMembership1960
   fixtureRagaYamanKiranaMembership1975
   fixtureRagaYamanKiranaMembership1980
+  gmnMembershipCanonical
+  gmnMembershipLatest
 }
 
 enum VersionRoleEnum {
@@ -3230,6 +3266,7 @@ enum VersionScaleEnum {
 
 enum VersionSetEnum {
   fixtureRagaYamanKiranaSet
+  gmnDialectVersions
 }
 
 enum VirtualLocationTypeEnum {
@@ -5282,6 +5319,36 @@ type Geometry {
 }
 
 type GeometryType {
+  id: String
+  iri: String
+}
+
+type GmnCodebook {
+  id: String
+  iri: String
+}
+
+type GmnCompaction {
+  id: String
+  iri: String
+}
+
+type GmnEnvelope {
+  id: String
+  iri: String
+}
+
+type GmnFixity {
+  id: String
+  iri: String
+}
+
+type GmnSecurityRing {
+  id: String
+  iri: String
+}
+
+type GmnSigilRole {
   id: String
   iri: String
 }
