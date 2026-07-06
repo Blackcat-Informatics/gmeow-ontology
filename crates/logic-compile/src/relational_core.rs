@@ -1501,6 +1501,21 @@ pub fn parse_relational_core(dataset: &RdfDataset) -> Result<RelationalCoreProgr
             hc_indexed.push((index, atom));
         }
         hc_indexed.sort_by_key(|(i, _)| *i);
+        // The reified n-ary head conjuncts carry positional `rcIndex` values that map to the
+        // `naryArg{i}` slots the runtime reifier is content-addressed over. This path re-reads
+        // an externally serializable relational-core projection, so a duplicate or gapped index
+        // must HARD-FAIL — a silently mis-positioned conjunction would mint a wrong reifier
+        // downstream (no-optionality).
+        for (position, (i, _)) in hc_indexed.iter().enumerate() {
+            if *i != position {
+                return Err(format!(
+                    "relational-core rule <{r_iri}> has non-contiguous or duplicate head-conjunct \
+                     rcIndex values {:?} (expected 0..{})",
+                    hc_indexed.iter().map(|(i, _)| *i).collect::<Vec<_>>(),
+                    hc_indexed.len()
+                ));
+            }
+        }
         let head_conjuncts: Vec<RcAtom> = hc_indexed.into_iter().map(|(_, a)| a).collect();
 
         // Body atoms, ordered by their stored index.
@@ -2133,6 +2148,63 @@ mod tests {
         assert_eq!(
             re_derived, lowered,
             "an n-ary head-derivation rule round-trips value-identically"
+        );
+    }
+
+    /// A relational-core projection whose reified head-conjunct positional `rcIndex` values are
+    /// corrupted into a duplicate (non-contiguous) set must HARD-FAIL on re-derivation: this
+    /// path re-reads an externally serializable projection, and a silently mis-positioned
+    /// conjunction would mint a wrong content-addressed reifier at chase time (no-optionality).
+    #[test]
+    fn nary_head_rule_with_duplicate_rc_index_is_rejected() {
+        let body = Formula::And(vec![
+            fatom("matMul", vec![fvar("A"), fvar("B"), fvar("AB")]),
+            fatom("det", vec![fvar("A"), fvar("dA")]),
+            fatom("det", vec![fvar("B"), fvar("dB")]),
+            fatom("det", vec![fvar("AB"), fvar("dAB")]),
+        ]);
+        let head = fatom("mul", vec![fvar("dA"), fvar("dB"), fvar("dAB")]);
+        let f = Formula::Forall {
+            vars: vec![
+                "A".into(),
+                "B".into(),
+                "AB".into(),
+                "dA".into(),
+                "dB".into(),
+                "dAB".into(),
+            ],
+            body: Box::new(Formula::Implies(Box::new(body), Box::new(head))),
+        };
+        let program = LogicProgram::new(vec![], vec![], vec![], None).with_formulas(vec![f]);
+        let lowered = lower_program_with_formulas(&program);
+        let nt = project_relational_core(&lowered);
+        // Rewrite the head conjunct at positional index 2 to a DUPLICATE of index 0. Only the
+        // one `/headconjunct/` node carries rcIndex "2" (body atoms live under `/body/`).
+        let corrupted: String = nt
+            .lines()
+            .map(|line| {
+                if line.contains("/headconjunct/")
+                    && line.contains("rcIndex")
+                    && line.contains("\"2\"^^")
+                {
+                    line.replace("\"2\"^^", "\"0\"^^")
+                } else {
+                    line.to_owned()
+                }
+            })
+            .collect::<Vec<_>>()
+            .join("\n");
+        assert_ne!(
+            corrupted, nt,
+            "the corruption must have hit a head-conjunct rcIndex line"
+        );
+        let ds = purrdf::parse_dataset(corrupted.as_bytes(), "application/n-triples", None)
+            .expect("parse corrupted projection");
+        let err =
+            parse_relational_core(ds.as_ref()).expect_err("duplicate rcIndex must be rejected");
+        assert!(
+            err.contains("non-contiguous or duplicate head-conjunct"),
+            "the error names the malformed head-conjunct indices: {err}"
         );
     }
 
