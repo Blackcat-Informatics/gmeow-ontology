@@ -439,6 +439,16 @@ pub fn to_gmeow_rdf_in_graph(report: &Report, graph_iri: &str) -> String {
                     &mut lines,
                 );
             }
+            // The source-text coordinates a span-carrying ingestion adapter recovered
+            // (1-based). Carried on the RDF diagnostics surface at full fidelity so the
+            // graph/diagnostics fold ships the same source line/column as the SARIF and
+            // JSON projections, never a path-only truncation.
+            if let Some(v) = location.line {
+                int_prop(&loc_node, "findingLocationLine", u64::from(v), &mut lines);
+            }
+            if let Some(v) = location.column {
+                int_prop(&loc_node, "findingLocationColumn", u64::from(v), &mut lines);
+            }
         }
     }
     let mut out = lines.join("\n");
