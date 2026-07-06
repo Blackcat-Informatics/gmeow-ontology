@@ -196,6 +196,15 @@ impl LintReport {
         self.ledger.attach(diag, lint_stage());
     }
 
+    /// The hash-consed ledger of this report's graded lint diagnostics, so the
+    /// run-level orchestration can fold it into the single unified run ledger via
+    /// [`DiagLedger::union`] — carrying the rich `validate.lint.*` diags (code,
+    /// category, standpoint, focus) rather than re-stringifying them.
+    #[must_use]
+    pub fn ledger(&self) -> &DiagLedger {
+        &self.ledger
+    }
+
     /// The Error-severity finding messages, in the ledger's deterministic order.
     #[must_use]
     pub fn errors(&self) -> Vec<String> {
