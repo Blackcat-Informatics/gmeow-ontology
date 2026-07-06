@@ -1384,4 +1384,113 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
             );
         }
     }
+
+    // ── AC2 (Deliverable A): the PRODUCTION mappings-stage discharge path
+    //    HARD-fails when a correspondence's put leg fabricates an unrecoverable source atom.
+    //
+    // This drives the REAL `discharge_correspondence_laws` over the REAL lowered
+    // `CorrespondenceArtifacts` (via `lower_all` over the repo) — not a hand-built mock. HEAD
+    // (the authored SIOC cells) must discharge GREEN; mutating one recoverable SIOC cell's put
+    // leg to re-assert an atom absent from the forward image (the `mapSiocTopic`-style
+    // fabrication guard) must make the executed `put∘get` round-trip refuse to recover the
+    // source → `ObligationViolated` → the stage returns `PipelineError::Stage`. ────────────
+    const SIOC_CONTAINER_CELL: &str = "https://blackcatinformatics.ca/gmeow/mapSiocContainer";
+
+    fn lower_repo() -> correspondence_lower::CorrespondenceArtifacts {
+        let root = repo_root();
+        let catalog = purrdf::slice::SliceCatalog::discover(
+            &root.join("slices"),
+            crate::gmeow_ns::gmeow_slice_vocab(),
+        )
+        .expect("slice catalog discovery");
+        correspondence_lower::lower_all(&root, Some(&catalog)).expect("lower_all over the repo")
+    }
+
+    #[test]
+    fn discharge_correspondence_laws_is_green_on_the_authored_cells() {
+        // HEAD control: the un-mutated authored correspondences discharge cleanly — the stage
+        // path returns Ok and yields a non-empty law-bearing N-Triples corpus.
+        let aligned = lower_repo();
+        let corpus = discharge_correspondence_laws(&aligned)
+            .expect("HEAD: authored correspondences discharge green");
+        assert!(
+            !corpus.is_empty(),
+            "the correspondence-laws corpus must carry the law-bearing projection"
+        );
+    }
+
+    #[test]
+    fn discharge_correspondence_laws_hard_fails_on_a_fabricating_put_leg() {
+        let mut aligned = lower_repo();
+
+        // Locate the recoverable SIOC container cell's (get, Some(put)) fragment pair. It is a
+        // mnemomorphic CompleteOver cell, so on HEAD it discharges the section law; we mutate
+        // ONLY its put leg.
+        let key = aligned
+            .sparql_fragments
+            .keys()
+            .find(|(cell, profile)| cell == SIOC_CONTAINER_CELL && profile == "sioc")
+            .cloned()
+            .expect("the mapSiocContainer/sioc fragment pair is present");
+        let (get_rq, put_rq) = aligned
+            .sparql_fragments
+            .get(&key)
+            .cloned()
+            .expect("fragment pair value");
+        assert!(
+            put_rq.is_some(),
+            "mapSiocContainer must ship a put leg on HEAD (it is CompleteOver)"
+        );
+
+        // Sanity: on HEAD this exact pair discharges green (proves the mutation — not a
+        // pre-existing defect — is what turns the verdict red).
+        let head_claims = crate::correspondence_law::discharge_laws(
+            &get_rq,
+            put_rq.as_ref().unwrap(),
+            gmeow_logic_compile::ir::MorphismClass::SectionRetraction,
+        );
+        assert!(
+            head_claims
+                .iter()
+                .all(|c| c.verdict == DischargeVerdict::ObligationDischarged),
+            "HEAD: mapSiocContainer must discharge every claimed law\n{head_claims:#?}"
+        );
+
+        // Fabricating put: recover the true source atom (`?s a gmeow:Thread`) AND fabricate an
+        // unrecoverable extra type atom (`?s a gmeow:FabricatedType`) whenever the forward
+        // sioc image is present. `put∘get` now yields a superset of the source on every seed —
+        // a REAL overclaim the executed round-trip surfaces as spurious.
+        let fabricating_put = "\
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX sioc: <http://rdfs.org/sioc/ns#>
+CONSTRUCT {
+  ?s a gmeow:Thread .
+  ?s a gmeow:FabricatedType .
+} WHERE {
+  ?s a sioc:Thread .
+  ?s a sioc:Container .
+}"
+        .to_owned();
+        aligned
+            .sparql_fragments
+            .insert(key, (get_rq, Some(fabricating_put)));
+
+        // The REAL stage entry must HARD-fail (never ship the overclaim).
+        let err = discharge_correspondence_laws(&aligned)
+            .expect_err("a fabricating put leg must hard-fail the mappings stage");
+        match err {
+            PipelineError::Stage { stage, message } => {
+                assert_eq!(stage, "stage-mappings");
+                assert!(
+                    message.contains("ObligationViolated"),
+                    "the hard-fail must name the refuted lens law verdict, got: {message}"
+                );
+                assert!(
+                    message.contains("SectionLaw"),
+                    "the hard-fail must name the refuted lens law, got: {message}"
+                );
+            }
+            other => panic!("expected PipelineError::Stage, got {other:?}"),
+        }
+    }
 }
