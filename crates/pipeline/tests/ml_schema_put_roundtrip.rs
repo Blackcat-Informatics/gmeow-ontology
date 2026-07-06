@@ -387,6 +387,109 @@ fn ml_schema_reified_lift_never_materializes_under_the_reason_lane() {
     );
 }
 
+/// Executed get∘put witness for the three genuinely-mnemomorphic SIOC "=" CompleteOver cells
+/// (mapSiocContainer, mapSiocHasContainer, mapSiocReplyOf). The emitter's round-trip gate compares
+/// LegPath bodies, not the executed multi-branch CONSTRUCT the shipped queries actually run — so a
+/// re-authored cell carrying an unrecoverable guard atom (the mapSiocTopic failure mode) would
+/// slip past it. This pins the REAL emitted behaviour on the committed `sioc.rq` / `sioc.put.rq`:
+/// each of the three cells recovers EXACTLY its single source atom and fabricates nothing, and the
+/// held-back mapSiocTopic cell (`sioc:topic`, whose put leg is Unsupported) contributes no
+/// recovered atom and never fabricates its `a gmeow:EmailMessage` type-guard.
+#[test]
+fn sioc_complete_over_cells_round_trip_recovers_exactly_their_source_and_fabricates_nothing() {
+    use std::collections::BTreeSet;
+
+    // Canonical gmeow source triggering BOTH the three mnemomorphic cells AND the held-back
+    // mapSiocTopic cell — so the absence of any topic recovery is a positive proof, not a vacuum.
+    //   ex:t1 a gmeow:Thread                    → mapSiocContainer
+    //   ex:m1 gmeow:partOfThread ex:th1         → mapSiocHasContainer
+    //   ex:r1 gmeow:inReplyTo ex:p1             → mapSiocReplyOf
+    //   ex:e1 a gmeow:EmailMessage + isAbout    → mapSiocTopic (forward sioc:topic; put = Unsupported)
+    let seed = format!(
+        "@prefix gmeow: <{GMEOW}> .\n\
+         @prefix ex: <{EX}> .\n\
+         ex:t1 a gmeow:Thread .\n\
+         ex:m1 gmeow:partOfThread ex:th1 .\n\
+         ex:r1 gmeow:inReplyTo ex:p1 .\n\
+         ex:e1 a gmeow:EmailMessage .\n\
+         ex:e1 gmeow:isAbout ex:topic1 .\n"
+    );
+    let source = parse_dataset(seed.as_bytes(), "text/turtle", None).expect("parse seed");
+
+    // Forward: gmeow → pure sioc, then rebuild a dataset from the projection.
+    let forward = run_construct(&source, &read_query("sioc.rq"));
+    let sioc_ds = dataset_from_triples(&forward);
+
+    // Inverse: pure sioc → gmeow (the CompleteOver up-lift).
+    let recovered = run_construct(&sioc_ds, &read_query("sioc.put.rq"));
+
+    let thread = format!("{GMEOW}Thread");
+    let part_of_thread = format!("{GMEOW}partOfThread");
+    let in_reply_to = format!("{GMEOW}inReplyTo");
+    let email_message = format!("{GMEOW}EmailMessage");
+    let is_about = format!("{GMEOW}isAbout");
+    let sioc_topic = "http://rdfs.org/sioc/ns#topic";
+
+    // (a) Non-vacuous positive control: each of the three cells recovers its exact source atom.
+    assert!(
+        has(&recovered, &format!("{EX}t1"), RDF_TYPE, &thread),
+        "mapSiocContainer must recover (ex:t1 a gmeow:Thread)\n{recovered:#?}"
+    );
+    assert!(
+        has(
+            &recovered,
+            &format!("{EX}m1"),
+            &part_of_thread,
+            &format!("{EX}th1")
+        ),
+        "mapSiocHasContainer must recover (ex:m1 gmeow:partOfThread ex:th1)\n{recovered:#?}"
+    );
+    assert!(
+        has(
+            &recovered,
+            &format!("{EX}r1"),
+            &in_reply_to,
+            &format!("{EX}p1")
+        ),
+        "mapSiocReplyOf must recover (ex:r1 gmeow:inReplyTo ex:p1)\n{recovered:#?}"
+    );
+
+    // (b) No fabrication: the mapSiocTopic image round-trips to NOTHING. Its Unsupported put leg
+    // must recover no atom and must never fabricate its `a gmeow:EmailMessage` type-guard.
+    assert!(
+        !recovered
+            .iter()
+            .any(|(_, p, o)| p == RDF_TYPE && o == &email_message),
+        "the mapSiocTopic type-guard `a gmeow:EmailMessage` must never be fabricated\n{recovered:#?}"
+    );
+    assert!(
+        !recovered
+            .iter()
+            .any(|(_, p, o)| p == &is_about || p == sioc_topic || o == sioc_topic),
+        "no topic edge (gmeow:isAbout / sioc:topic) may be recovered or fabricated\n{recovered:#?}"
+    );
+
+    // (c) Exactness: recovered is EXACTLY those three atoms — nothing spurious. A re-authored SIOC
+    // "=" cell carrying an unrecoverable guard atom (the mapSiocTopic failure mode) would break
+    // this by adding or dropping a recovered triple.
+    let recovered_set: BTreeSet<(String, String, String)> = recovered.iter().cloned().collect();
+    let expected: BTreeSet<(String, String, String)> = [
+        (format!("{EX}t1"), RDF_TYPE.to_owned(), thread.clone()),
+        (
+            format!("{EX}m1"),
+            part_of_thread.clone(),
+            format!("{EX}th1"),
+        ),
+        (format!("{EX}r1"), in_reply_to.clone(), format!("{EX}p1")),
+    ]
+    .into_iter()
+    .collect();
+    assert_eq!(
+        recovered_set, expected,
+        "the three SIOC CompleteOver cells must recover EXACTLY their source atoms and nothing else\n{recovered:#?}"
+    );
+}
+
 #[test]
 fn every_committed_put_rq_parses_as_valid_sparql() {
     let dir = repo_root().join("generated").join("queries");
