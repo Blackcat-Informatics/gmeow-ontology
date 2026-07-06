@@ -537,9 +537,10 @@ impl Stage for TermManifestStage {
         let bytes = render_term_manifest(input.root)?;
         let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
         artifacts.insert(TERM_MANIFEST_RDF_PATH.to_string(), bytes);
-        Ok(StageOutput {
-            product: StageProduct::from_artifacts(self.id(), artifacts),
-        })
+        Ok(StageOutput::new(StageProduct::from_artifacts(
+            self.id(),
+            artifacts,
+        )))
     }
 }
 

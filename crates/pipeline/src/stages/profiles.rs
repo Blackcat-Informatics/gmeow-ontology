@@ -325,9 +325,10 @@ impl Stage for ProfilesStage {
         for (name, text) in docs {
             artifacts.insert(format!("{PROFILES_DIR}/{name}"), text.into_bytes());
         }
-        Ok(StageOutput {
-            product: StageProduct::from_artifacts(self.id(), artifacts),
-        })
+        Ok(StageOutput::new(StageProduct::from_artifacts(
+            self.id(),
+            artifacts,
+        )))
     }
 }
 

@@ -779,9 +779,11 @@ impl Stage for MappingsStage {
             lang_projection_graph.as_ref(),
             lang_docs_rendering_graph.as_ref(),
         ]));
-        Ok(StageOutput {
-            product: StageProduct::from_artifacts_over(self.id(), dataset, artifacts),
-        })
+        Ok(StageOutput::new(StageProduct::from_artifacts_over(
+            self.id(),
+            dataset,
+            artifacts,
+        )))
     }
 }
 

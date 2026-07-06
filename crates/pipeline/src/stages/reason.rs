@@ -294,9 +294,10 @@ impl Stage for ReasonStage {
                     message: format!("pin Reasoning handle to <{GRAPH_REASONING}>: {e}"),
                 })
             })?;
-        Ok(StageOutput {
-            product: StageProduct::from_bundle(self.id(), Arc::new(bundle)),
-        })
+        Ok(StageOutput::new(StageProduct::from_bundle(
+            self.id(),
+            Arc::new(bundle),
+        )))
     }
 }
 

@@ -265,9 +265,10 @@ impl Stage for ApacheStage {
         let conf = render_apache(input.root)?;
         let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
         artifacts.insert(APACHE_PATH.to_string(), conf.into_bytes());
-        Ok(StageOutput {
-            product: StageProduct::from_artifacts(self.id(), artifacts),
-        })
+        Ok(StageOutput::new(StageProduct::from_artifacts(
+            self.id(),
+            artifacts,
+        )))
     }
 }
 

@@ -370,9 +370,10 @@ impl Stage for BenchLeaderboardStage {
         Ok(vec![root.join(BASELINE_PATH)])
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
-        Ok(StageOutput {
-            product: StageProduct::from_artifacts(self.id(), render_bench_leaderboard(input.root)?),
-        })
+        Ok(StageOutput::new(StageProduct::from_artifacts(
+            self.id(),
+            render_bench_leaderboard(input.root)?,
+        )))
     }
 }
 

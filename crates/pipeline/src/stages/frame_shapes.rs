@@ -175,9 +175,10 @@ impl Stage for FrameShapesStage {
         let ttl = render_frame_shapes(input.root)?;
         let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
         artifacts.insert(FRAME_SHAPES_PATH.to_string(), ttl.into_bytes());
-        Ok(StageOutput {
-            product: StageProduct::from_artifacts(self.id(), artifacts),
-        })
+        Ok(StageOutput::new(StageProduct::from_artifacts(
+            self.id(),
+            artifacts,
+        )))
     }
 }
 

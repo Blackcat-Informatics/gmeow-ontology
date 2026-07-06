@@ -32,7 +32,6 @@ pub mod bundle;
 pub mod bundle_blobs;
 pub mod cache;
 pub mod cli_ops;
-pub(crate) mod diagnostics_ingest;
 pub mod error;
 pub mod fanout;
 pub mod generator_registry;

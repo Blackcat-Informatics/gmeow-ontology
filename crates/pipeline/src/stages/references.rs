@@ -343,9 +343,10 @@ impl Stage for ReferencesStage {
         Ok(vec![root.join("metadata").join("references.ttl")])
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
-        Ok(StageOutput {
-            product: StageProduct::from_artifacts(self.id(), render_references(input.root)?),
-        })
+        Ok(StageOutput::new(StageProduct::from_artifacts(
+            self.id(),
+            render_references(input.root)?,
+        )))
     }
 }
 

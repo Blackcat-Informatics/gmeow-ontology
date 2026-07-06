@@ -108,9 +108,10 @@ impl Stage for YamlLdStage {
         artifacts.insert(JSON_LD_PATH.to_string(), json.into_bytes());
         artifacts.insert(YAML_LD_PATH.to_string(), yaml.into_bytes());
         artifacts.insert(PRESERVATION_PATH.to_string(), preservation.into_bytes());
-        Ok(StageOutput {
-            product: StageProduct::from_artifacts(self.id(), artifacts),
-        })
+        Ok(StageOutput::new(StageProduct::from_artifacts(
+            self.id(),
+            artifacts,
+        )))
     }
 }
 

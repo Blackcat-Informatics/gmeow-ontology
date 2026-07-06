@@ -46,6 +46,15 @@ const GRAPH_SLICE_ANALYSIS: &str = "https://blackcatinformatics.ca/gmeow/graph/s
 pub(crate) const GRAPH_DOCUMENTATION: &str =
     "https://blackcatinformatics.ca/gmeow/graph/documentation";
 pub(crate) const GRAPH_DIAGNOSTICS: &str = "https://blackcatinformatics.ca/gmeow/graph/diagnostics";
+/// The by-reference blob `representation` under which a diagnostics producer
+/// (`stage-validate` / `stage-compile-logic`) carries its FORWARD-projected
+/// `Vec<gmeow_errors::DiagNode>` (raw JSON) on its product bundle — the SINGLE source
+/// the run-level `DiagLedger` folds. It rides the standard content-store + lookaside
+/// blob lane, so the per-stage cache persists/replays it verbatim; a cache-hit product
+/// re-serves the identical nodes. This constant MUST equal the reader-side
+/// [`crate::bundle_blobs::REP_DIAG_NODES`] (a drifted label silently reads back an empty
+/// node set).
+pub(crate) const REP_DIAG_NODES: &str = "diagnostics:nodes";
 /// The native↔external-corpus reasoning-divergence Findings, folded as their own
 /// queryable named graph so a repo-free consumer reads every coverage divergence
 /// (native-incomplete `DlGap` / native-disagrees `CorpusOnly`) against the W3C
@@ -2246,9 +2255,10 @@ impl Stage for SnapshotStage {
         // never by this stage — the snapshot product carries the carrier, no byte lane.
         let carrier = assemble_carrier(input.upstream)?;
         let bundle = build_snapshot_bundle(carrier, input.upstream)?;
-        Ok(StageOutput {
-            product: StageProduct::from_bundle(self.id(), std::sync::Arc::new(bundle)),
-        })
+        Ok(StageOutput::new(StageProduct::from_bundle(
+            self.id(),
+            std::sync::Arc::new(bundle),
+        )))
     }
 }
 

@@ -42,12 +42,6 @@ use crate::scheduler::{RunContext, run};
 /// ledger (pin-on-attach).
 const PIPELINE_STAGE_ID: &str = "stage-pipeline-reconcile";
 
-/// The two real stages that project `gmeow:Finding` RDF into the carrier's
-/// `graph/diagnostics` fold (`stages::carrier` unions exactly these two). The run
-/// ledger ingests each producer's slice attributed to its own id.
-const DIAG_PRODUCER_VALIDATE: &str = "stage-validate";
-const DIAG_PRODUCER_COMPILE_LOGIC: &str = "stage-compile-logic";
-
 // The registered finding codes the reconcile phase emits. Declared here as the
 // enumeration authority (the same discipline as `validate::codes`).
 const CODE_SUPERSET_MISSING: &str = "pipeline.superset.missing";
@@ -72,37 +66,6 @@ fn attach_pipeline_finding(ledger: &mut DiagLedger, code: &str, focus: &str, mes
     )
     .with_focus(focus);
     ledger.attach(diag, StageId::new(PIPELINE_STAGE_ID));
-}
-
-/// Ingest the carrier's `graph/diagnostics` fold into the run `ledger`.
-///
-/// `stage-validate` and `stage-compile-logic` each attach their `gmeow:Finding` RDF
-/// to `graph/diagnostics` (the cache-stable, content-addressed carrier graph
-/// `stage-snapshot` unions and ships in `gmeow.gts`). This reads that SAME graph off
-/// each real producer's dataset — the exact slices [`crate::stages::carrier`] unions
-/// — and ingests every finding into the run ledger through the designed purrdf
-/// boundary [`Diag::from_rdf`], attributed to its REAL producing stage (never the
-/// synthetic reconcile stage).
-///
-/// This makes the ledger a load-bearing projection of the SHIPPED diagnostics rather
-/// than only carrying reconcile drift, and it is deterministic across warm/cold cache
-/// runs: the source is the content-addressed producer graph, walked in sorted subject
-/// order, so a cache hit (which returns the identical bundle) ingests byte-identical
-/// content. It is the SINGLE consumer of that canonical graph — it does not recompute
-/// a divergent second copy of the diagnostics.
-fn ingest_carrier_diagnostics(
-    products: &BTreeMap<String, StageProduct>,
-    ledger: &mut DiagLedger,
-) -> Result<(), gmeow_errors::Diag> {
-    for stage in [DIAG_PRODUCER_VALIDATE, DIAG_PRODUCER_COMPILE_LOGIC] {
-        if let Some(product) = products.get(stage) {
-            let diagnostics = product
-                .dataset()
-                .project_named_graph(crate::stages::carrier::GRAPH_DIAGNOSTICS);
-            crate::diagnostics_ingest::ingest_diagnostics_graph(&diagnostics, ledger, stage)?;
-        }
-    }
-    Ok(())
 }
 
 /// The id of the stage that projects the exact sink GTS bytes into schema files.
@@ -486,6 +449,12 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, gm
         });
     }
     let products: BTreeMap<String, StageProduct> = result.products;
+    // The run-level ledger is the scheduler's FORWARD fold of every producer's
+    // diagnostic nodes (their report findings, projected once — the single source). The
+    // reconcile phase below attaches its own run-level drift/superset findings to this
+    // SAME ledger (they are forward, run-level diagnostics), so the ledger stays the one
+    // source of truth. The backward RDF→ledger read is gone (greenfield).
+    let mut ledger = result.ledger;
 
     // PIPELINE_SPINE §4/§7: exactly one stage writes the bundle bytes, AND it must be
     // the stage that DECLARED the sink capability. Assert it on the ACTUAL produced
@@ -496,9 +465,6 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, gm
     let declared_sink = declared_sink_stage(&spec)?;
     assert_single_gts_writer(&products, declared_sink)?;
 
-    // The carrier ledger every drift/superset producer interns into. RunReport's
-    // `findings` is its projection at the end (load-bearing: not a parallel path).
-    let mut ledger = DiagLedger::new();
     let mut drifted: Vec<String> = Vec::new();
     let mut produced = 0usize;
     let mut reproduced = 0usize;
@@ -681,9 +647,6 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, gm
         written += report.written;
         skipped_writes += report.skipped;
     }
-
-    // ── Ingest the carrier's `graph/diagnostics` fold into the run ledger. ──
-    ingest_carrier_diagnostics(&products, &mut ledger)?;
 
     drifted.sort();
     drifted.dedup();
@@ -1155,16 +1118,20 @@ mod single_writer_gate {
     }
 }
 
-/// G4/G5: the carrier diagnostics fold is a LOAD-BEARING input to the run ledger,
-/// attributed to the REAL producing stage. Drives the real `stage-validate` stage
-/// over a fixture whose (empty) source graph violates a SHACL shape, then runs the
-/// EXACT `run_full` ingestion step ([`ingest_carrier_diagnostics`]) and asserts the
-/// resulting SHACL diagnostic reaches the ledger attributed to `stage-validate`
-/// (never the synthetic reconcile stage) and projects into the wire findings.
+/// G4/G5: the run ledger is a LOAD-BEARING FORWARD projection of a producer's report
+/// findings, attributed to the REAL producing stage. Drives the real `stage-validate`
+/// stage over a fixture whose (empty) source graph violates a SHACL shape, folds its
+/// FORWARD `StageOutput.diags` into a run ledger the same way the scheduler does, and
+/// asserts the SHACL diagnostic reaches the ledger attributed to `stage-validate` (never
+/// the synthetic reconcile stage) and projects into the wire findings — via the FORWARD
+/// path (`diag_render::finding_nodes`), not the retired backward RDF→ledger read.
 #[cfg(test)]
 mod diagnostics_ingest_gate {
-    use super::{DIAG_PRODUCER_VALIDATE, PIPELINE_STAGE_ID, ingest_carrier_diagnostics};
+    use super::PIPELINE_STAGE_ID;
     use crate::node::{Stage, StageInput, StageProduct};
+
+    /// The real diagnostics producer the forward run ledger attributes nodes to.
+    const DIAG_PRODUCER_VALIDATE: &str = "stage-validate";
     use crate::stages::source_load::BASE_GRAPH_PATH;
     use crate::stages::validate::ValidateStage;
     use gmeow_errors::DiagLedger;
@@ -1203,36 +1170,36 @@ ex:RequiredShape a sh:NodeShape ;
         repo
     }
 
-    #[test]
-    fn shacl_diagnostic_reaches_the_run_ledger_attributed_to_stage_validate() {
-        let repo = violating_repo();
-
-        // The real stage-source-load product the scheduler would hand stage-validate:
-        // the loaded source-graph N-Quads (empty here → the shape is violated).
+    /// Run the real `stage-validate` stage over the violating fixture, returning its
+    /// full output (product + forward diags).
+    fn run_validate(repo: &Path) -> crate::node::StageOutput {
         let mut source_artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
         source_artifacts.insert(BASE_GRAPH_PATH.to_owned(), Vec::new());
         let source_load = StageProduct::from_artifacts("stage-source-load", source_artifacts);
-
         let mut upstream: BTreeMap<String, StageProduct> = BTreeMap::new();
         upstream.insert("stage-source-load".to_owned(), source_load);
-
-        // Run the REAL validate stage exactly as the scheduler dispatches it: it folds
-        // its gmeow:Finding RDF into the carrier's graph/diagnostics named graph.
-        let product = ValidateStage::new()
+        ValidateStage::new()
             .run(StageInput {
-                root: repo.path(),
+                root: repo,
                 upstream: &upstream,
             })
             .expect("validate stage")
-            .product;
+    }
 
-        let mut products: BTreeMap<String, StageProduct> = BTreeMap::new();
-        products.insert(DIAG_PRODUCER_VALIDATE.to_owned(), product);
+    #[test]
+    fn shacl_diagnostic_reaches_the_run_ledger_attributed_to_stage_validate() {
+        let repo = violating_repo();
+        // Run the REAL validate stage; its FORWARD diags are the single source the
+        // scheduler replays into the run ledger.
+        let out = run_validate(repo.path());
+        assert!(
+            !out.diags.is_empty(),
+            "the violating fixture must produce forward diagnostic nodes"
+        );
 
-        // The EXACT run_full ingestion step: ingest the carrier's diagnostics graph
-        // into the run ledger through the production purrdf boundary.
+        // Fold the forward nodes exactly as the scheduler's commit phase does.
         let mut ledger = DiagLedger::new();
-        ingest_carrier_diagnostics(&products, &mut ledger).expect("ingest carrier diagnostics");
+        ledger.replay(out.diags.clone());
 
         // The ledger node for the SHACL violation is attributed to the REAL producing
         // stage, never the synthetic reconcile stage.
@@ -1240,7 +1207,7 @@ ex:RequiredShape a sh:NodeShape ;
         let shacl = nodes
             .iter()
             .find(|n| n.code.starts_with("shacl."))
-            .expect("SHACL diagnostic ingested into the run ledger");
+            .expect("SHACL diagnostic folded into the run ledger");
         assert_eq!(
             shacl.stage.as_str(),
             DIAG_PRODUCER_VALIDATE,
@@ -1256,7 +1223,142 @@ ex:RequiredShape a sh:NodeShape ;
         let findings = ledger.findings("gmeow-pipeline");
         assert!(
             findings.iter().any(|f| f.code.starts_with("shacl.")),
-            "the ingested SHACL diagnostic must project into the wire findings"
+            "the forward SHACL diagnostic must project into the wire findings"
+        );
+    }
+
+    /// The product's `diagnostics:nodes` blob carries EXACTLY the forward `diags` the
+    /// stage emitted — the cache lane (which round-trips this blob) recovers the same
+    /// run-ledger contribution byte-for-byte on a cache hit.
+    #[test]
+    fn product_diag_nodes_blob_equals_the_emitted_diags() {
+        let repo = violating_repo();
+        let out = run_validate(repo.path());
+        let from_blob = out.product.diag_nodes();
+        assert!(
+            !from_blob.is_empty(),
+            "the diagnostics:nodes blob must be non-empty"
+        );
+        assert_eq!(
+            from_blob, out.diags,
+            "the product blob must byte-equal the emitted forward diags"
+        );
+    }
+
+    /// Cache-replay byte-identity over a REAL non-empty product: persisting the validate
+    /// product to the per-stage cache and re-reading it recovers a `diagnostics:nodes`
+    /// blob whose folded run-ledger `emit_sorted()` is BYTE-IDENTICAL to the fresh run
+    /// (guarding against a vacuous `[]` blob).
+    #[test]
+    fn cache_replay_yields_byte_identical_run_ledger() {
+        use crate::cache::PipelineCache;
+
+        let repo = violating_repo();
+        let out = run_validate(repo.path());
+        assert!(
+            !out.diags.is_empty(),
+            "the fixture must yield a non-empty node set"
+        );
+
+        // Fresh-run ledger bytes.
+        let fresh = {
+            let mut ledger = DiagLedger::new();
+            ledger.replay(out.diags.clone());
+            serde_json::to_vec(
+                &ledger
+                    .emit_sorted()
+                    .into_iter()
+                    .cloned()
+                    .collect::<Vec<_>>(),
+            )
+            .unwrap()
+        };
+
+        // Persist + re-read the product through the real per-stage cache.
+        let dir = tempfile::tempdir().unwrap();
+        let mut cache = PipelineCache::open(dir.path()).unwrap();
+        cache.put("stage-validate", &out.product).unwrap();
+        let restored = cache.get("stage-validate").unwrap().expect("cache hit");
+        let restored_nodes = restored.diag_nodes();
+        assert!(
+            !restored_nodes.is_empty(),
+            "the cache-restored product must carry a NON-empty diagnostics:nodes blob"
+        );
+
+        // Warm-cache ledger bytes.
+        let warm = {
+            let mut ledger = DiagLedger::new();
+            ledger.replay(restored_nodes);
+            serde_json::to_vec(
+                &ledger
+                    .emit_sorted()
+                    .into_iter()
+                    .cloned()
+                    .collect::<Vec<_>>(),
+            )
+            .unwrap()
+        };
+        assert_eq!(
+            fresh, warm,
+            "a warm-cache run's ledger must be byte-identical to the fresh run"
+        );
+    }
+
+    /// A fixture repo whose one shape CONFORMS over the empty source graph (minCount 0),
+    /// so `stage-validate` produces zero diagnostics.
+    fn conforming_repo() -> tempfile::TempDir {
+        let repo = tempfile::tempdir().unwrap();
+        write(
+            &repo.path().join("shapes/gmeow-shapes.ttl"),
+            r#"
+@prefix ex: <https://example.test/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+
+ex:RequiredShape a sh:NodeShape ;
+    sh:targetNode ex:thing ;
+    sh:property [
+        sh:path ex:required ;
+        sh:minCount 0 ;
+    ] .
+"#,
+        );
+        write(
+            &repo.path().join("generated/shapes/frame-shapes.ttl"),
+            "# generated\n",
+        );
+        std::fs::create_dir_all(repo.path().join("slices")).unwrap();
+        repo
+    }
+
+    /// A2 golden-delta over the REAL producer: adding/removing a triggering SHACL
+    /// violation changes BOTH the shipped `generated/diagnostics/shacl.nq` artifact AND
+    /// the run-ledger node set — proving the two are bound to the same producer findings.
+    #[test]
+    fn violation_delta_changes_both_shacl_rdf_and_run_ledger_nodes() {
+        use crate::stages::validate::SHACL_RDF_PATH;
+
+        let violating = run_validate(violating_repo().path());
+        let conforming = run_validate(conforming_repo().path());
+
+        // The committed `shacl.nq` artifact differs (a real surface delta).
+        assert_ne!(
+            violating.product.artifact(SHACL_RDF_PATH),
+            conforming.product.artifact(SHACL_RDF_PATH),
+            "a triggered SHACL violation must change the shacl.nq artifact"
+        );
+        // And the run-ledger node set differs: the violation contributes a node, the
+        // conforming run contributes none.
+        assert!(
+            !violating.diags.is_empty(),
+            "the violating run must contribute run-ledger nodes"
+        );
+        assert!(
+            conforming.diags.is_empty(),
+            "the conforming run must contribute NO run-ledger nodes"
+        );
+        assert_ne!(
+            violating.diags, conforming.diags,
+            "the run-ledger node set must differ with the violation"
         );
     }
 }

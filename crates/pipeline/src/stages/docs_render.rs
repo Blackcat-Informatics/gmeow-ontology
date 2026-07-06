@@ -243,9 +243,11 @@ impl Stage for DocsRenderStage {
         )?;
         let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
         artifacts.insert(DOCS_GRAPH_PATH.to_string(), graph_bytes);
-        Ok(StageOutput {
-            product: StageProduct::from_artifacts_over(self.id(), dataset, artifacts),
-        })
+        Ok(StageOutput::new(StageProduct::from_artifacts_over(
+            self.id(),
+            dataset,
+            artifacts,
+        )))
     }
 }
 

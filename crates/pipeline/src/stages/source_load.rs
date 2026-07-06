@@ -422,9 +422,11 @@ impl Stage for SourceLoadStage {
         let dataset = Arc::new(RdfDataset::union(&[base.as_ref(), self_desc.as_ref()]));
         let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
         artifacts.insert(BASE_GRAPH_PATH.to_string(), nq);
-        Ok(StageOutput {
-            product: StageProduct::from_artifacts_over(self.id(), dataset, artifacts),
-        })
+        Ok(StageOutput::new(StageProduct::from_artifacts_over(
+            self.id(),
+            dataset,
+            artifacts,
+        )))
     }
 }
 
