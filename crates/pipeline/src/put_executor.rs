@@ -420,7 +420,7 @@ fn step_path(ext: &str) -> String {
 
 /// Run one `CONSTRUCT` over the source dataset and return its default-graph quads.
 /// Any engine failure or a non-graph result is a HARD error.
-fn run_construct(
+pub(crate) fn run_construct(
     engine: &NativeSparqlEngine,
     dataset: &std::sync::Arc<purrdf::RdfDataset>,
     query: &str,
