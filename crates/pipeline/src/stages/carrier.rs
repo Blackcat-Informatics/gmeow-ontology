@@ -4268,8 +4268,11 @@ mod logic_graph_golden_tests {
     /// byte-identical (determinism).
     #[test]
     fn graph_logic_fold_byte_golden() {
-        let arts = gmeow_logic_compile::projections::compile_program(&fixed_program())
-            .expect("compile fixed program");
+        let arts = gmeow_logic_compile::projections::compile_program(
+            &fixed_program(),
+            &Default::default(),
+        )
+        .expect("compile fixed program");
         let logic_nq = turtle_to_nquads(arts.canonical_rdf12.as_bytes()).expect("turtle → nq");
 
         let build = || {

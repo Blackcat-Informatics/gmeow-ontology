@@ -452,7 +452,7 @@ fn surfaces() -> Vec<(&'static str, SurfaceThunk)> {
 fn compile_logic_report(source_ttl: &str) -> Result<Report, String> {
     let (program, diagnostics) =
         gmeow_logic_compile::frontend::parse_logic_str(source_ttl, None).map_err(|e| e.0)?;
-    gmeow_logic_compile::projections::compile_program(&program)?;
+    gmeow_logic_compile::projections::compile_program(&program, &Default::default())?;
     Ok(gmeow_logic::logic_diagnostics::diagnostics_report(
         &diagnostics,
     ))

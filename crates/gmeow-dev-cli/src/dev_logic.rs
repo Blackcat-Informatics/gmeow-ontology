@@ -305,7 +305,7 @@ fn compile_one_mode(root: &Path, mode: &str, check: bool) -> i32 {
     for d in &diagnostics {
         eprintln!("{} [{}] {}", d.severity.as_str(), d.code, d.message);
     }
-    let arts = match compile_program(&program) {
+    let arts = match compile_program(&program, &Default::default()) {
         Ok(a) => a,
         Err(e) => return fail(format!("logic: compile failed: {e}")),
     };

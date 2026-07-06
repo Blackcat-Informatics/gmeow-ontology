@@ -843,7 +843,8 @@ fn compile_logic<'py>(py: Python<'py>, source_ttl: &str) -> PyResult<Bound<'py, 
 
     let (program, diagnostics) = parse_logic_str(source_ttl, None)
         .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.0))?;
-    let arts = compile_program(&program).map_err(pyo3::exceptions::PyValueError::new_err)?;
+    let arts = compile_program(&program, &Default::default())
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
 
     // Build the canonical diagnostics Report in Rust: the parse diagnostics
     // become `logic-compile.<code>` findings here, in the core, not via a Python

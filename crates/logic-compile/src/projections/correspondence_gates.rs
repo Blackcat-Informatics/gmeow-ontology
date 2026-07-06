@@ -27,7 +27,46 @@ use crate::ir::{Correspondence, DischargeVerdict, MorphismClass};
 use super::OverclaimError;
 use super::correspondence::CorrespondenceProgram;
 use super::correspondence_gate::assert_relation_no_overclaim;
-use super::paths::leg_path_canonical;
+
+/// The per-correspondence **executed lens-law verdict** map the gates read, keyed by
+/// correspondence IRI. Each verdict is the behavioural section-law outcome (`put ∘ get =
+/// id_S`) an engine-adjacent producer computed by RUNNING both legs (never a syntactic path
+/// compare); the gates below stay execution-free (`§4-7`) by consuming this map instead of
+/// re-deriving an inversion. See `gmeow_logic::correspondence_exec` for the executor.
+pub type CorrespondenceVerdicts = BTreeMap<String, DischargeVerdict>;
+
+/// Read the supplied executed verdict for a correspondence — a HARD FAIL (panic, never a
+/// silent default/pass) when a present correspondence carries no verdict, so a wiring bug that
+/// forgot to discharge a cell can never slip through as a spurious pass.
+fn verdict_for(verdicts: &CorrespondenceVerdicts, iri: &str) -> DischargeVerdict {
+    *verdicts.get(iri).unwrap_or_else(|| {
+        panic!(
+            "correspondence gate invariant: <{iri}> has no supplied executed lens-law verdict; \
+             every correspondence in the program must be discharged before the gates run \
+             (no default, no silent pass)"
+        )
+    })
+}
+
+/// The fixed-template clause naming WHY a non-`ObligationDischarged` executed verdict fails a
+/// full-round-trip / recovery gate (golden-stable; no free text). `ObligationDischarged`
+/// never reaches here (the caller passes only a failing verdict).
+fn refutation_clause(verdict: DischargeVerdict) -> &'static str {
+    match verdict {
+        DischargeVerdict::ObligationViolated => {
+            "the executed put ∘ get section-law discharge refutes it (put ∘ get ≠ id; \
+             ObligationViolated)"
+        }
+        DischargeVerdict::ObligationUnknown => {
+            "the executed put ∘ get section-law discharge could not verify it (no derivable \
+             get/put leg pair to run; ObligationUnknown)"
+        }
+        DischargeVerdict::ObligationDischarged => {
+            "the executed put ∘ get section-law discharge \
+             holds"
+        }
+    }
+}
 
 const SKOS_EXACT_MATCH: &str = "http://www.w3.org/2004/02/skos/core#exactMatch";
 
@@ -107,57 +146,22 @@ fn is_injective_rung(class: MorphismClass) -> bool {
     class.is_injective_rung()
 }
 
-/// The Round-trip witness, computed over the actual leg **bodies** (not the IRI strings):
-/// resolve both the `get` and `put` leg programs and check `put == get.invert()` over the
-/// normalized canonical path form. This decides `put ∘ get = id` as the spec's canonical-IR
-/// graph-iso identity — a `put` whose body is a *different* path FAILS, which the old
-/// `put_leg == <get>/put#sha8` string compare (a content-addressing tautology — the mint
-/// recomputed from the same get-side fields it was minted from) could never catch.
-///
-/// `Err` carries the canonical mismatch so the gate reason names exactly what diverged. A
-/// missing leg, or a leg IRI that resolves to no `logic:TransactionProgram` body, is a
-/// failure: a full round-trip claim with no verifiable leg body is unverifiable, hence unmet.
-fn round_trip_holds(program: &CorrespondenceProgram, c: &Correspondence) -> Result<(), String> {
-    let get_iri = c
-        .get_leg
-        .as_deref()
-        .ok_or_else(|| "carries no logic:getLeg".to_owned())?;
-    let put_iri = c
-        .put_leg
-        .as_deref()
-        .ok_or_else(|| "carries no logic:putLeg (the derived inverse leg is absent)".to_owned())?;
-    let get = program.resolve_leg(get_iri).ok_or_else(|| {
-        format!("get leg <{get_iri}> resolves to no logic:TransactionProgram body")
-    })?;
-    let put = program.resolve_leg(put_iri).ok_or_else(|| {
-        format!("put leg <{put_iri}> resolves to no logic:TransactionProgram body")
-    })?;
-    let expected = get.invert();
-    let put_key = leg_path_canonical(put);
-    let expected_key = leg_path_canonical(&expected);
-    if put_key == expected_key {
-        Ok(())
-    } else {
-        Err(format!(
-            "put leg body is `{put_key}`, not the derived inverse `{expected_key}` of the get \
-             leg; put ∘ get ≠ id"
-        ))
-    }
-}
-
 /// The **Law gate**: a discharged law must have a passing witness; a violated law may not
-/// ship. An authored-but-unverified (`ObligationUnknown`) law is honest and passes.
-fn law_gate(program: &CorrespondenceProgram, c: &Correspondence) -> GateVerdict {
+/// ship. An authored-but-unverified (`ObligationUnknown`) law is honest and passes. The
+/// witness is the EXECUTED section-law verdict threaded in `verdicts` — a claim of
+/// `ObligationDischarged` whose executed verdict does not hold is refused.
+fn law_gate(verdicts: &CorrespondenceVerdicts, c: &Correspondence) -> GateVerdict {
     for claim in &c.law_claims {
         match claim.verdict {
             DischargeVerdict::ObligationDischarged => {
-                if round_trip_holds(program, c).is_err() {
+                let executed = verdict_for(verdicts, &c.iri);
+                if executed != DischargeVerdict::ObligationDischarged {
                     return GateVerdict::Red {
                         reason: format!(
-                            "claims logic:{} as ObligationDischarged but the round-trip witness \
-                             does not pass (the put leg is not the derived inverse); the claim \
-                             must degrade to ObligationUnknown",
-                            claim.law.as_str()
+                            "claims logic:{} as ObligationDischarged but {}; the claim must \
+                             degrade to ObligationUnknown",
+                            claim.law.as_str(),
+                            refutation_clause(executed)
                         ),
                     };
                 }
@@ -214,20 +218,23 @@ fn overclaim_gate(c: &Correspondence) -> GateVerdict {
     GateVerdict::Pass
 }
 
-/// The **Round-trip gate** (iso / section only): the cell must carry the derived inverse
-/// `put` leg, so `put ∘ get = id` (and, for iso, `get ∘ put = id`) holds as a canonical
-/// identity. Other rungs make no full round-trip claim (per-construct scoping).
-fn round_trip_gate(program: &CorrespondenceProgram, c: &Correspondence) -> GateVerdict {
+/// The **Round-trip gate** (iso / section only): the cell must recover the source under the
+/// EXECUTED section-law discharge (`put ∘ get = id`), so its threaded verdict is
+/// `ObligationDischarged`. Other rungs make no full round-trip claim (per-construct scoping).
+fn round_trip_gate(verdicts: &CorrespondenceVerdicts, c: &Correspondence) -> GateVerdict {
     match c.morphism_class {
         MorphismClass::Isomorphism | MorphismClass::SectionRetraction => {
-            match round_trip_holds(program, c) {
-                Ok(()) => GateVerdict::Pass,
-                Err(detail) => GateVerdict::Red {
+            let executed = verdict_for(verdicts, &c.iri);
+            if executed == DischargeVerdict::ObligationDischarged {
+                GateVerdict::Pass
+            } else {
+                GateVerdict::Red {
                     reason: format!(
-                        "logic:{} claims a full round-trip but {detail}",
-                        c.morphism_class.as_str()
+                        "logic:{} claims a full round-trip but {}",
+                        c.morphism_class.as_str(),
+                        refutation_clause(executed)
                     ),
-                },
+                }
             }
         }
         other => GateVerdict::NotApplicable {
@@ -237,9 +244,9 @@ fn round_trip_gate(program: &CorrespondenceProgram, c: &Correspondence) -> GateV
 }
 
 /// The **Mnemomorphism gate**: a declared-recoverable cell's retained witness must
-/// actually recover the source — evidenced by the derived recovery `put` leg. A witness
+/// actually recover the source — evidenced by the EXECUTED recovery `put` leg. A witness
 /// declared on a non-injective rung cannot recover `S ∖ im(get)` and is a build failure.
-fn mnemomorphism_gate(program: &CorrespondenceProgram, c: &Correspondence) -> GateVerdict {
+fn mnemomorphism_gate(verdicts: &CorrespondenceVerdicts, c: &Correspondence) -> GateVerdict {
     if !c.mnemomorphic {
         return GateVerdict::NotApplicable {
             reason: "the cell is not declared mnemomorphic".to_owned(),
@@ -254,17 +261,19 @@ fn mnemomorphism_gate(program: &CorrespondenceProgram, c: &Correspondence) -> Ga
             ),
         };
     }
-    // The witness recovers the source iff the put leg is the genuine inverse of the get leg
-    // BODY (a real path composition, not an IRI-string match). A `WellBehavedLens` makes no
-    // full round-trip claim but, when declared mnemomorphic, must still carry a recovering
-    // inverse leg — so the recovery evidence is the same body-level identity.
-    match round_trip_holds(program, c) {
-        Ok(()) => GateVerdict::Pass,
-        Err(detail) => GateVerdict::Red {
+    // The witness recovers the source iff the executed put ∘ get discharge holds. A
+    // `WellBehavedLens` makes no full round-trip claim but, when declared mnemomorphic, must
+    // still carry a recovering inverse leg — so the recovery evidence is the same verdict.
+    let executed = verdict_for(verdicts, &c.iri);
+    if executed == DischargeVerdict::ObligationDischarged {
+        GateVerdict::Pass
+    } else {
+        GateVerdict::Red {
             reason: format!(
-                "declared mnemomorphic but the witness does not recover the source: {detail}"
+                "declared mnemomorphic but the witness does not recover the source: {}",
+                refutation_clause(executed)
             ),
-        },
+        }
     }
 }
 
@@ -389,16 +398,17 @@ fn aggregate_law_status(c: &Correspondence) -> DischargeVerdict {
 pub fn evaluate_gates(
     program: &CorrespondenceProgram,
     compositions: &[(String, String, Option<String>)],
+    verdicts: &CorrespondenceVerdicts,
 ) -> CorrespondenceGateReport {
     let mut per_correspondence: Vec<GateReport> = program
         .correspondences
         .iter()
         .map(|c| GateReport {
             correspondence: c.iri.clone(),
-            law: law_gate(program, c),
+            law: law_gate(verdicts, c),
             overclaim: overclaim_gate(c),
-            round_trip: round_trip_gate(program, c),
-            mnemomorphism: mnemomorphism_gate(program, c),
+            round_trip: round_trip_gate(verdicts, c),
+            mnemomorphism: mnemomorphism_gate(verdicts, c),
         })
         .collect();
     per_correspondence.sort_by(|a, b| a.correspondence.cmp(&b.correspondence));

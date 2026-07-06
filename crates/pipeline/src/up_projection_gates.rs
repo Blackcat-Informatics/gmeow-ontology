@@ -384,7 +384,8 @@ pub(crate) fn ledger_from_audit(
     // No-op for supplied-put (proved-candidate) cells; the claimed/asserted cells carry no get
     // leg, so nothing is fabricated. `evaluate_gates` (NOT `assert_gates`) records REDs.
     let (gated, _outcomes) = program.with_derived_puts()?;
-    let report = evaluate_gates(&gated, &[]);
+    let verdicts = gmeow_logic::correspondence_exec::program_verdicts(&gated);
+    let report = evaluate_gates(&gated, &[], &verdicts);
 
     // Attribute each gate verdict back to its vocabulary via the corr IRI → vocab map.
     let vocab_of: BTreeMap<&str, &str> = cells
@@ -652,7 +653,8 @@ fn gate_tier_for(term: &str, shape: &TermShape) -> Result<Tier, String> {
     )
     .with_leg_programs(legs);
     let (gated, _outcomes) = program.with_derived_puts()?;
-    let report = evaluate_gates(&gated, &[]);
+    let verdicts = gmeow_logic::correspondence_exec::program_verdicts(&gated);
+    let report = evaluate_gates(&gated, &[], &verdicts);
     let r = report
         .per_correspondence
         .first()

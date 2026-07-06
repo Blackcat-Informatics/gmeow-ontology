@@ -322,7 +322,11 @@ impl Stage for CompileLogicStage {
         let program = program.with_validation_shapes(validation_shapes);
         // The overclaim / rule-safety gate runs inside `compile_program`; a violation
         // is a hard error (fail-closed), never a silently dropped product.
-        let mut arts = compile_program(&program).map_err(|e| stage_err(format!("compile: {e}")))?;
+        // The canonical logic: source authors no `logic:Correspondence` cells, so the gates
+        // inside `compile_program` never run — an empty executed-verdict map is correct here
+        // (the affine-triangle correspondence lane is discharged + gated separately below).
+        let mut arts = compile_program(&program, &Default::default())
+            .map_err(|e| stage_err(format!("compile: {e}")))?;
 
         // Correspondence carrier lane (F4): derive the lawful put legs for the §14 affine
         // triangle, run the five gates as a HARD FAIL, and fold the gate-derived liftability
@@ -336,7 +340,10 @@ impl Stage for CompileLogicStage {
             .clone()
             .with_derived_puts()
             .map_err(|e| stage_err(format!("derive correspondence put legs: {e}")))?;
-        let gate_report = evaluate_gates(&gated, &[]);
+        // Discharge the affine triangle's lens laws by EXECUTION (engine-adjacent) and gate on
+        // the resulting per-correspondence verdicts — the gates themselves stay execution-free.
+        let gate_verdicts = gmeow_logic::correspondence_exec::program_verdicts(&gated);
+        let gate_report = evaluate_gates(&gated, &[], &gate_verdicts);
         assert_gates(&gate_report).map_err(|e| stage_err(format!("correspondence gate: {e}")))?;
         let lift = liftability(&gate_report);
         arts.report_header.correspondence_count = gated.correspondences.len();
@@ -818,7 +825,7 @@ mod tests {
     #[test]
     fn canonical_rdf12_round_trips_to_equal_canonical_key() {
         let program = clean_program();
-        let arts = compile_program(&program).expect("compile clean program");
+        let arts = compile_program(&program, &Default::default()).expect("compile clean program");
 
         // Via the string reverse parser.
         let (rp_str, diags) = parse_logic_str(&arts.canonical_rdf12, program.source_iri.clone())
@@ -909,7 +916,7 @@ mod tests {
     #[test]
     fn pin_logic_handle_hard_fails_on_digest_mismatch() {
         let program = clean_program();
-        let arts = compile_program(&program).expect("compile clean program");
+        let arts = compile_program(&program, &Default::default()).expect("compile clean program");
         let dataset = logic_graph_dataset(&arts.canonical_rdf12).expect("graph/logic dataset");
         let mut bundle =
             bundle_from_artifacts_over(dataset, BTreeMap::new(), DatasetProvenance::new());
@@ -1172,7 +1179,9 @@ mod tests {
         let (gated, _) = affine_triangle_worked_example()
             .with_derived_puts()
             .expect("derive affine put legs");
-        assert_gates(&evaluate_gates(&gated, &[])).expect("the §14 affine triangle is lawful");
+        let verdicts = gmeow_logic::correspondence_exec::program_verdicts(&gated);
+        assert_gates(&evaluate_gates(&gated, &[], &verdicts))
+            .expect("the §14 affine triangle is lawful");
 
         // A bridge view declaring equivalence is an overclaim RED → `assert_gates` errors,
         // which is precisely what the stage propagates as a `PipelineError` build failure.
@@ -1195,7 +1204,8 @@ mod tests {
         .expect("well-formed bridge correspondence");
         let red =
             CorrespondenceProgram::new(vec![bridge], Vec::new(), PreservationKind::SoundUnder);
-        assert_gates(&evaluate_gates(&red, &[]))
+        let red_verdicts = gmeow_logic::correspondence_exec::program_verdicts(&red);
+        assert_gates(&evaluate_gates(&red, &[], &red_verdicts))
             .expect_err("a bridge-view equivalence overclaim must HARD-fail the build");
     }
 
