@@ -89,7 +89,7 @@ pub(crate) fn ingest_diagnostics_graph(
     diagnostics: &RdfDataset,
     ledger: &mut DiagLedger,
     stage: &str,
-) -> Result<usize, crate::error::PipelineError> {
+) -> Result<usize, gmeow_errors::Diag> {
     let finding_type = p("Finding");
     let sev_pred = p("findingSeverity");
     let code_pred = p("findingCode");
@@ -181,12 +181,12 @@ pub(crate) fn ingest_diagnostics_graph(
         let (Some(severity), Some(code), Some(message)) =
             (acc.severity, acc.code.as_ref(), acc.message.as_ref())
         else {
-            return Err(crate::error::PipelineError::Stage {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
                 stage: stage.to_owned(),
                 message: format!(
                     "malformed gmeow:Finding <{subject}> in graph/diagnostics: missing severity/code/message"
                 ),
-            });
+            }));
         };
         let mut rdf_diag = RdfDiagnostic::new(severity, code.clone(), message.clone());
         if let Some(node) = acc.location_nodes.first()

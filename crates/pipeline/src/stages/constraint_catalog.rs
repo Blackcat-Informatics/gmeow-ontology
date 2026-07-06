@@ -24,7 +24,6 @@ use gmeow_errors::Severity;
 use gmeow_validate::rule_catalog::{Enforcement, RuleSeed, all_rules, help_uri_for, slugify};
 use purrdf::slice::rdf_query::Dataset;
 
-use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 use crate::stages::source_load::module_files;
 
@@ -56,7 +55,7 @@ const GMEOW_REQUIRES_FRAME: &str = "https://blackcatinformatics.ca/gmeow/require
 /// Load the root ontology + every slice module into one frozen dataset (NO imports),
 /// the source the term-enrichment resolves against. Mirrors
 /// `frame_shapes::load_authored_no_imports`.
-fn load_authored_no_imports(root: &Path) -> Result<Dataset, PipelineError> {
+fn load_authored_no_imports(root: &Path) -> Result<Dataset, gmeow_errors::Diag> {
     let mut acc = purrdf::slice::rdf_query::DatasetAccumulator::new();
     let mut files = vec![root.join("ontology").join("gmeow.ttl")];
     files.extend(module_files(root)?);
@@ -66,10 +65,17 @@ fn load_authored_no_imports(root: &Path) -> Result<Dataset, PipelineError> {
         }
         let bytes = std::fs::read(&path)?;
         acc.add_turtle(&bytes, &path.display().to_string())
-            .map_err(|e| PipelineError::Parse(e.to_string()))?;
+            .map_err(|e| {
+                gmeow_errors::Diag::of_kind(crate::error::Parse {
+                    message: e.to_string(),
+                })
+            })?;
     }
-    acc.freeze()
-        .map_err(|e| PipelineError::Parse(e.to_string()))
+    acc.freeze().map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            message: e.to_string(),
+        })
+    })
 }
 
 /// The `logic:FindingCategory` individual IRI a seed's enforcement kind (and, for a
@@ -170,12 +176,16 @@ fn quad_typed(out: &mut String, s: &str, p: &str, lit: &str, datatype: &str) {
 /// [`CATALOG_GRAPH_IRI`]). Deterministic: seeds arrive in registry order, resolved
 /// term lists are sorted, and the whole document is re-sorted + deduped before it is
 /// parsed and canonicalized.
-fn build_catalog_nquads(dataset: &Dataset) -> Result<String, PipelineError> {
+fn build_catalog_nquads(dataset: &Dataset) -> Result<String, gmeow_errors::Diag> {
     // The frame-carrier classes (subjects of gmeow:requiresFrame), sorted — the
     // governed terms of the frame-completeness discipline.
     let mut frame_carriers = dataset
         .subject_object_iri_pairs(GMEOW_REQUIRES_FRAME)
-        .map_err(|e| PipelineError::Parse(e.to_string()))?
+        .map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Parse {
+                message: e.to_string(),
+            })
+        })?
         .into_iter()
         .map(|(s, _)| s)
         .collect::<Vec<_>>();
@@ -184,7 +194,11 @@ fn build_catalog_nquads(dataset: &Dataset) -> Result<String, PipelineError> {
     // The verbatim skos:definition of gmeow:requiresFrame, if present.
     let requires_frame_def = dataset
         .object_literal(GMEOW_REQUIRES_FRAME, SKOS_DEFINITION)
-        .map_err(|e| PipelineError::Parse(e.to_string()))?;
+        .map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Parse {
+                message: e.to_string(),
+            })
+        })?;
 
     // The direct subclasses of logic:Relator, sorted — the governed terms of the
     // relator-mediation discipline (may be empty, then omitted).
@@ -193,7 +207,11 @@ fn build_catalog_nquads(dataset: &Dataset) -> Result<String, PipelineError> {
             "http://www.w3.org/2000/01/rdf-schema#subClassOf",
             LOGIC_RELATOR,
         )
-        .map_err(|e| PipelineError::Parse(e.to_string()))?;
+        .map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Parse {
+                message: e.to_string(),
+            })
+        })?;
     // Exclude a reflexive `logic:Relator rdfs:subClassOf logic:Relator` edge: the
     // governed terms are the proper subclasses, not the class itself.
     relator_subclasses.retain(|s| s != LOGIC_RELATOR);
@@ -201,7 +219,11 @@ fn build_catalog_nquads(dataset: &Dataset) -> Result<String, PipelineError> {
     relator_subclasses.dedup();
     let relator_def = dataset
         .object_literal(LOGIC_RELATOR, SKOS_DEFINITION)
-        .map_err(|e| PipelineError::Parse(e.to_string()))?;
+        .map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Parse {
+                message: e.to_string(),
+            })
+        })?;
 
     let mut out = String::new();
     for seed in all_rules() {
@@ -281,13 +303,19 @@ fn build_catalog_nquads(dataset: &Dataset) -> Result<String, PipelineError> {
 /// Render the committed constraint-catalog bytes: build the N-Quads, parse them, and
 /// re-serialize as RDFC-1.0 canonical N-Quads (the SAME fold the superset gate
 /// reconstructs from the carrier graph, so `file == fold` holds by construction).
-pub fn render_constraint_catalog(root: &Path) -> Result<Vec<u8>, PipelineError> {
+pub fn render_constraint_catalog(root: &Path) -> Result<Vec<u8>, gmeow_errors::Diag> {
     let dataset = load_authored_no_imports(root)?;
     let nq = build_catalog_nquads(&dataset)?;
-    let ds = purrdf::parse_dataset(nq.as_bytes(), "application/n-quads", None)
-        .map_err(|e| PipelineError::Parse(format!("parse constraint-catalog N-Quads: {e}")))?;
-    crate::stages::superset::canonical_ntriples(&ds)
-        .map_err(|e| PipelineError::Parse(format!("canonicalize constraint-catalog: {e}")))
+    let ds = purrdf::parse_dataset(nq.as_bytes(), "application/n-quads", None).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            message: format!("parse constraint-catalog N-Quads: {e}"),
+        })
+    })?;
+    crate::stages::superset::canonical_ntriples(&ds).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            message: format!("canonicalize constraint-catalog: {e}"),
+        })
+    })
 }
 
 // ── Stage impl ───────────────────────────────────────────────────────────────
@@ -324,7 +352,7 @@ impl Stage for ConstraintCatalogStage {
     fn impl_version(&self) -> &str {
         "constraint_catalog.v1"
     }
-    fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, PipelineError> {
+    fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
         // The governed-term enrichment reads the authored default graph (root
         // ontology + slice modules); declare them so a vocabulary edit that changes
         // a frame-carrier or a relator subclass busts the cache.
@@ -332,7 +360,7 @@ impl Stage for ConstraintCatalogStage {
         files.extend(module_files(root)?);
         Ok(files)
     }
-    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
+    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         let bytes = render_constraint_catalog(input.root)?;
         let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
         artifacts.insert(CONSTRAINT_CATALOG_RDF_PATH.to_string(), bytes);

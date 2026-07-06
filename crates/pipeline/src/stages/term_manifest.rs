@@ -25,7 +25,6 @@ use purrdf::gts::writer::digest_string;
 use purrdf::slice::rdf_query::{Dataset, Object, Subject};
 use purrdf::{RdfQuad, RdfTerm};
 
-use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 use crate::stages::source_load::module_files;
 
@@ -90,7 +89,7 @@ const TERM_TYPE_IRIS: [&str; 8] = [
 /// Load the root ontology + every slice module into one frozen dataset (NO imports),
 /// the source the digests are computed over. Mirrors
 /// `constraint_catalog::load_authored_no_imports`.
-fn load_authored_no_imports(root: &Path) -> Result<Dataset, PipelineError> {
+fn load_authored_no_imports(root: &Path) -> Result<Dataset, gmeow_errors::Diag> {
     let mut acc = purrdf::slice::rdf_query::DatasetAccumulator::new();
     let mut files = vec![root.join("ontology").join("gmeow.ttl")];
     files.extend(module_files(root)?);
@@ -100,33 +99,45 @@ fn load_authored_no_imports(root: &Path) -> Result<Dataset, PipelineError> {
         }
         let bytes = std::fs::read(&path)?;
         acc.add_turtle(&bytes, &path.display().to_string())
-            .map_err(|e| PipelineError::Parse(e.to_string()))?;
+            .map_err(|e| {
+                gmeow_errors::Diag::of_kind(crate::error::Parse {
+                    message: e.to_string(),
+                })
+            })?;
     }
-    acc.freeze()
-        .map_err(|e| PipelineError::Parse(e.to_string()))
+    acc.freeze().map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            message: e.to_string(),
+        })
+    })
 }
 
 /// The authored ontology `owl:versionInfo` — a hard requirement, never defaulted.
-fn release_version(dataset: &Dataset) -> Result<String, PipelineError> {
+fn release_version(dataset: &Dataset) -> Result<String, gmeow_errors::Diag> {
     dataset
         .object_literal(ONTOLOGY_IRI, OWL_VERSION_INFO)
-        .map_err(|e| PipelineError::Parse(e.to_string()))?
+        .map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Parse {
+                message: e.to_string(),
+            })
+        })?
         .ok_or_else(|| {
-            PipelineError::Parse(format!(
-                "authored ontology {ONTOLOGY_IRI} has no owl:versionInfo"
-            ))
+            gmeow_errors::Diag::of_kind(crate::error::Parse {
+                message: format!("authored ontology {ONTOLOGY_IRI} has no owl:versionInfo"),
+            })
         })
 }
 
 /// Every documented-term IRI: a `gmeow:`/`logic:`-namespaced subject typed as one
 /// of [`TERM_TYPE_IRIS`], sorted + deduped.
-fn documented_terms(dataset: &Dataset) -> Result<BTreeSet<String>, PipelineError> {
+fn documented_terms(dataset: &Dataset) -> Result<BTreeSet<String>, gmeow_errors::Diag> {
     let mut terms: BTreeSet<String> = BTreeSet::new();
     for type_iri in TERM_TYPE_IRIS {
-        for subject in dataset
-            .subjects_of_type(type_iri)
-            .map_err(|e| PipelineError::Parse(e.to_string()))?
-        {
+        for subject in dataset.subjects_of_type(type_iri).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Parse {
+                message: e.to_string(),
+            })
+        })? {
             if subject.starts_with(GMEOW) || subject.starts_with(LOGIC) {
                 terms.insert(subject);
             }
@@ -153,7 +164,7 @@ fn definition_digest(
     quads: &[RdfQuad],
     index: &BTreeMap<String, Vec<usize>>,
     term_iri: &str,
-) -> Result<String, PipelineError> {
+) -> Result<String, gmeow_errors::Diag> {
     let mut visited: BTreeSet<String> = BTreeSet::new();
     let mut frontier: Vec<String> = vec![format!("I:{term_iri}")];
     let mut cbd: Vec<RdfQuad> = Vec::new();
@@ -182,10 +193,16 @@ fn definition_digest(
             ));
         }
     }
-    let sub = Dataset::from_owned_quads(&cbd).map_err(|e| PipelineError::Parse(e.to_string()))?;
-    let canon = sub
-        .canonical_nquads_flat()
-        .map_err(|e| PipelineError::Parse(e.to_string()))?;
+    let sub = Dataset::from_owned_quads(&cbd).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            message: e.to_string(),
+        })
+    })?;
+    let canon = sub.canonical_nquads_flat().map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            message: e.to_string(),
+        })
+    })?;
     Ok(digest_string(canon.as_bytes()))
 }
 
@@ -201,7 +218,9 @@ struct PriorTerm {
 /// present. A present-but-unparsable manifest, or a term missing its digest /
 /// first-seen version, is a hard fault (a regenerated tree always carries a
 /// well-formed manifest).
-fn read_prior_manifest(root: &Path) -> Result<Option<BTreeMap<String, PriorTerm>>, PipelineError> {
+fn read_prior_manifest(
+    root: &Path,
+) -> Result<Option<BTreeMap<String, PriorTerm>>, gmeow_errors::Diag> {
     // GENERATED-READ-OK: this reads the PRIOR committed manifest as deliberate prior-state
     // input to compute the monotonic changelog (first-seen versions + changed entries). It is
     // not a stale-disk-fold: the term-manifest stage is the sole producer of this file and needs
@@ -212,8 +231,12 @@ fn read_prior_manifest(root: &Path) -> Result<Option<BTreeMap<String, PriorTerm>
         return Ok(None);
     }
     let bytes = std::fs::read(&path)?;
-    let parsed = Dataset::parse(&bytes, "application/n-quads", "prior term manifest")
-        .map_err(|e| PipelineError::Parse(e.to_string()))?;
+    let parsed =
+        Dataset::parse(&bytes, "application/n-quads", "prior term manifest").map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Parse {
+                message: e.to_string(),
+            })
+        })?;
     // Drop the named-graph label so the default-graph query surface applies.
     let flat: Vec<RdfQuad> = parsed
         .inner()
@@ -223,8 +246,11 @@ fn read_prior_manifest(root: &Path) -> Result<Option<BTreeMap<String, PriorTerm>
             q
         })
         .collect();
-    let dataset =
-        Dataset::from_owned_quads(&flat).map_err(|e| PipelineError::Parse(e.to_string()))?;
+    let dataset = Dataset::from_owned_quads(&flat).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            message: e.to_string(),
+        })
+    })?;
 
     // Enumerate the manifest's terms: every named subject carrying a digest.
     let mut term_iris: BTreeSet<String> = BTreeSet::new();
@@ -240,25 +266,36 @@ fn read_prior_manifest(root: &Path) -> Result<Option<BTreeMap<String, PriorTerm>
     for term in term_iris {
         let digest = dataset
             .object_literal(&term, DEFINITION_DIGEST)
-            .map_err(|e| PipelineError::Parse(e.to_string()))?
+            .map_err(|e| {
+                gmeow_errors::Diag::of_kind(crate::error::Parse {
+                    message: e.to_string(),
+                })
+            })?
             .ok_or_else(|| {
-                PipelineError::Parse(format!(
-                    "prior manifest term {term} carries no gmeow:definitionDigest"
-                ))
+                gmeow_errors::Diag::of_kind(crate::error::Parse {
+                    message: format!(
+                        "prior manifest term {term} carries no gmeow:definitionDigest"
+                    ),
+                })
             })?;
         let first_seen = dataset
             .object_literal(&term, ADDED_IN_VERSION)
-            .map_err(|e| PipelineError::Parse(e.to_string()))?
+            .map_err(|e| {
+                gmeow_errors::Diag::of_kind(crate::error::Parse {
+                    message: e.to_string(),
+                })
+            })?
             .ok_or_else(|| {
-                PipelineError::Parse(format!(
-                    "prior manifest term {term} carries no gmeow:addedInVersion"
-                ))
+                gmeow_errors::Diag::of_kind(crate::error::Parse {
+                    message: format!("prior manifest term {term} carries no gmeow:addedInVersion"),
+                })
             })?;
         let mut changed_versions: Vec<String> = Vec::new();
-        for entry in dataset
-            .objects(&term, HAS_CHANGELOG_ENTRY)
-            .map_err(|e| PipelineError::Parse(e.to_string()))?
-        {
+        for entry in dataset.objects(&term, HAS_CHANGELOG_ENTRY).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Parse {
+                message: e.to_string(),
+            })
+        })? {
             let node = match entry {
                 Object::Blank(label) => Subject::Blank(label),
                 Object::Named(iri) => Subject::Named(iri),
@@ -266,7 +303,11 @@ fn read_prior_manifest(root: &Path) -> Result<Option<BTreeMap<String, PriorTerm>
             };
             for value in dataset
                 .objects_of_subject(&node, ENTRY_VERSION)
-                .map_err(|e| PipelineError::Parse(e.to_string()))?
+                .map_err(|e| {
+                    gmeow_errors::Diag::of_kind(crate::error::Parse {
+                        message: e.to_string(),
+                    })
+                })?
             {
                 if let Object::Literal { value, .. } = value {
                     changed_versions.push(value);
@@ -338,7 +379,7 @@ fn blank_str(out: &mut String, blank: &str, p: &str, lit: &str) {
 /// [`TERM_MANIFEST_GRAPH_IRI`]). Deterministic: terms iterate sorted, change
 /// versions sorted, and the whole document is re-sorted + deduped before it is
 /// parsed and canonicalized.
-fn build_manifest_nquads(root: &Path, dataset: &Dataset) -> Result<String, PipelineError> {
+fn build_manifest_nquads(root: &Path, dataset: &Dataset) -> Result<String, gmeow_errors::Diag> {
     let release = release_version(dataset)?;
     let terms = documented_terms(dataset)?;
     let prior = read_prior_manifest(root)?;
@@ -366,7 +407,11 @@ fn build_manifest_nquads(root: &Path, dataset: &Dataset) -> Result<String, Pipel
         // first-seen version when there is no prior record).
         let authored_added = dataset
             .object_literal(term, ADDED_IN_VERSION)
-            .map_err(|e| PipelineError::Parse(e.to_string()))?;
+            .map_err(|e| {
+                gmeow_errors::Diag::of_kind(crate::error::Parse {
+                    message: e.to_string(),
+                })
+            })?;
 
         // Resolve first-seen version + the change versions from the prior manifest.
         let (first_seen, mut changed): (String, Vec<String>) = match &prior {
@@ -422,13 +467,19 @@ fn build_manifest_nquads(root: &Path, dataset: &Dataset) -> Result<String, Pipel
 /// Render the committed term-content-manifest bytes: build the N-Quads, parse them,
 /// and re-serialize as RDFC-1.0 canonical N-Quads (the SAME fold the superset gate
 /// reconstructs from the carrier graph, so `file == fold` holds by construction).
-pub fn render_term_manifest(root: &Path) -> Result<Vec<u8>, PipelineError> {
+pub fn render_term_manifest(root: &Path) -> Result<Vec<u8>, gmeow_errors::Diag> {
     let dataset = load_authored_no_imports(root)?;
     let nq = build_manifest_nquads(root, &dataset)?;
-    let ds = purrdf::parse_dataset(nq.as_bytes(), "application/n-quads", None)
-        .map_err(|e| PipelineError::Parse(format!("parse term-content-manifest N-Quads: {e}")))?;
-    crate::stages::superset::canonical_ntriples(&ds)
-        .map_err(|e| PipelineError::Parse(format!("canonicalize term-content-manifest: {e}")))
+    let ds = purrdf::parse_dataset(nq.as_bytes(), "application/n-quads", None).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            message: format!("parse term-content-manifest N-Quads: {e}"),
+        })
+    })?;
+    crate::stages::superset::canonical_ntriples(&ds).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            message: format!("canonicalize term-content-manifest: {e}"),
+        })
+    })
 }
 
 // ── Stage impl ───────────────────────────────────────────────────────────────
@@ -464,7 +515,7 @@ impl Stage for TermManifestStage {
     fn impl_version(&self) -> &str {
         "term_manifest.v1"
     }
-    fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, PipelineError> {
+    fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
         // The digests are computed over the authored default graph (root ontology +
         // slice modules); declare them so a vocabulary edit that changes a term's
         // definition busts the cache. The committed manifest is the prior-state input
@@ -482,7 +533,7 @@ impl Stage for TermManifestStage {
         }
         Ok(files)
     }
-    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
+    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         let bytes = render_term_manifest(input.root)?;
         let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
         artifacts.insert(TERM_MANIFEST_RDF_PATH.to_string(), bytes);

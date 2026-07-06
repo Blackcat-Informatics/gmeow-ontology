@@ -23,7 +23,6 @@ use rayon::prelude::*;
 
 use crate::bundle::set_bundle_provenance;
 use crate::cache::{PipelineCache, content_digest, stage_key};
-use crate::error::PipelineError;
 use crate::graph::StageGraph;
 use crate::node::{Stage, StageInput, StageProduct};
 use crate::provenance::register_stage_unit;
@@ -73,7 +72,7 @@ impl RunContext {
     /// embeds the fingerprint, a code/dependency/toolchain change orphans the whole
     /// prior cache; GC-ing it bounds disk to a single build's products instead of
     /// growing unbounded across edits.
-    pub fn open(root: impl Into<PathBuf>, jobs: usize) -> Result<Self, PipelineError> {
+    pub fn open(root: impl Into<PathBuf>, jobs: usize) -> Result<Self, gmeow_errors::Diag> {
         let root = root.into();
         let base = PipelineCache::default_dir(&root);
         let fp = &crate::cache::BUILD_FINGERPRINT[..16];
@@ -103,7 +102,10 @@ impl RunContext {
     /// folds [`crate::cache::BUILD_FINGERPRINT`], so a changed Rust impl (here or in
     /// any workspace crate) yields a fresh key and recomputes — the stale-serve hazard
     /// that once forced an ephemeral full build no longer exists.
-    pub fn open_ephemeral(root: impl Into<PathBuf>, jobs: usize) -> Result<Self, PipelineError> {
+    pub fn open_ephemeral(
+        root: impl Into<PathBuf>,
+        jobs: usize,
+    ) -> Result<Self, gmeow_errors::Diag> {
         let root = root.into();
         // A process- + nanosecond-unique cache dir under the system temp root, so
         // concurrent runs never collide and nothing leaks into the repo tree.
@@ -185,16 +187,18 @@ pub fn run(
     graph: &StageGraph,
     bound: &[Arc<dyn Stage>],
     ctx: &mut RunContext,
-) -> Result<RunResult, PipelineError> {
+) -> Result<RunResult, gmeow_errors::Diag> {
     let by_id: BTreeMap<&str, &Arc<dyn Stage>> = bound.iter().map(|s| (s.id(), s)).collect();
 
     // A local rayon pool honours the jobs budget without touching the global one.
     let pool = rayon::ThreadPoolBuilder::new()
         .num_threads(ctx.jobs)
         .build()
-        .map_err(|e| PipelineError::Stage {
-            stage: "<scheduler>".to_string(),
-            message: format!("failed to build rayon pool: {e}"),
+        .map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                stage: "<scheduler>".to_string(),
+                message: format!("failed to build rayon pool: {e}"),
+            })
         })?;
 
     let mut products: BTreeMap<String, StageProduct> = BTreeMap::new();
@@ -217,10 +221,12 @@ pub fn run(
         let runs: Vec<StageRun> = pool.install(|| {
             level
                 .par_iter()
-                .map(|id| -> Result<StageRun, PipelineError> {
-                    let stage = by_id.get(id.as_str()).ok_or_else(|| PipelineError::Stage {
-                        stage: id.clone(),
-                        message: "stage in graph was not bound".to_string(),
+                .map(|id| -> Result<StageRun, gmeow_errors::Diag> {
+                    let stage = by_id.get(id.as_str()).ok_or_else(|| {
+                        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                            stage: id.clone(),
+                            message: "stage in graph was not bound".to_string(),
+                        })
                     })?;
                     exec_stage(stage.as_ref(), root, &products, cache)
                 })
@@ -315,13 +321,15 @@ fn exec_stage(
     root: &Path,
     products: &BTreeMap<String, StageProduct>,
     cache: &PipelineCache,
-) -> Result<StageRun, PipelineError> {
+) -> Result<StageRun, gmeow_errors::Diag> {
     // Assemble exactly the upstream products this stage declared.
     let mut upstream: BTreeMap<String, StageProduct> = BTreeMap::new();
     for dep in stage.consumes() {
-        let p = products.get(dep).ok_or_else(|| PipelineError::Stage {
-            stage: stage.id().to_string(),
-            message: format!("missing upstream product {dep}"),
+        let p = products.get(dep).ok_or_else(|| {
+            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                stage: stage.id().to_string(),
+                message: format!("missing upstream product {dep}"),
+            })
         })?;
         upstream.insert(dep.clone(), p.clone());
     }
@@ -391,9 +399,11 @@ fn exec_stage(
     let locks: Vec<Arc<Mutex<()>>> = resources.iter().map(|r| resource_lock(r)).collect();
     let mut _guards = Vec::with_capacity(locks.len());
     for (lock, resource) in locks.iter().zip(&resources) {
-        _guards.push(lock.lock().map_err(|e| PipelineError::Stage {
-            stage: stage.id().to_string(),
-            message: format!("resource lock {resource} poisoned: {e}"),
+        _guards.push(lock.lock().map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                stage: stage.id().to_string(),
+                message: format!("resource lock {resource} poisoned: {e}"),
+            })
         })?);
     }
     let out = stage.run(input)?;
@@ -413,7 +423,10 @@ fn exec_stage(
 /// folds each file's repo-relative logical path AND its bytes (sorted by path, so
 /// it is order-independent); a declared file that cannot be read HARD-fails — a
 /// missing required input is never silently treated as "unchanged" (no-optionality).
-fn input_files_digest(stage: &dyn Stage, root: &Path) -> Result<Option<String>, PipelineError> {
+fn input_files_digest(
+    stage: &dyn Stage,
+    root: &Path,
+) -> Result<Option<String>, gmeow_errors::Diag> {
     let mut files = stage.input_files(root)?;
     if files.is_empty() {
         return Ok(None);
@@ -428,9 +441,11 @@ fn input_files_digest(stage: &dyn Stage, root: &Path) -> Result<Option<String>, 
             .unwrap_or(path)
             .to_string_lossy()
             .into_owned();
-        let content = std::fs::read(path).map_err(|e| PipelineError::Stage {
-            stage: stage.id().to_string(),
-            message: format!("declared input file {} could not be read: {e}", rel),
+        let content = std::fs::read(path).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                stage: stage.id().to_string(),
+                message: format!("declared input file {} could not be read: {e}", rel),
+            })
         })?;
         rels.push(rel.into_bytes());
         bytes.push(content);

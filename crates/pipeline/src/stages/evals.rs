@@ -31,7 +31,6 @@ use std::path::Path;
 use purrdf::slice::rdf_query::{Dataset, Object, Subject};
 use serde_json::Value;
 
-use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 
 /// Logical path of the generated leaderboard.
@@ -275,10 +274,15 @@ fn object_location(object: &Object) -> String {
     }
 }
 
-fn parse_corpus(path: &Path) -> Result<BTreeMap<String, (String, Vec<String>)>, PipelineError> {
+fn parse_corpus(
+    path: &Path,
+) -> Result<BTreeMap<String, (String, Vec<String>)>, gmeow_errors::Diag> {
     let bytes = std::fs::read(path)?;
-    let dataset =
-        Dataset::parse_turtle(&bytes, "corpus").map_err(|e| PipelineError::Parse(e.to_string()))?;
+    let dataset = Dataset::parse_turtle(&bytes, "corpus").map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            message: e.to_string(),
+        })
+    })?;
     let source_location = format!("{GM}sourceLocation");
     let content_digest = format!("{GM}contentDigest");
 
@@ -299,7 +303,11 @@ fn parse_corpus(path: &Path) -> Result<BTreeMap<String, (String, Vec<String>)>, 
         let mut digests: Vec<String> = Vec::new();
         for dq in dataset
             .objects_of_subject(&subject, &content_digest)
-            .map_err(|e| PipelineError::Parse(e.to_string()))?
+            .map_err(|e| {
+                gmeow_errors::Diag::of_kind(crate::error::Parse {
+                    message: e.to_string(),
+                })
+            })?
         {
             if let Object::Literal { value, .. } = dq {
                 digests.push(value);
@@ -311,7 +319,7 @@ fn parse_corpus(path: &Path) -> Result<BTreeMap<String, (String, Vec<String>)>, 
 }
 
 /// Resolve corpus texts: read each source file under `root` (`_corpus_texts`).
-fn corpus_texts(root: &Path) -> Result<BTreeMap<String, CorpusDoc>, PipelineError> {
+fn corpus_texts(root: &Path) -> Result<BTreeMap<String, CorpusDoc>, gmeow_errors::Diag> {
     let manifest = parse_corpus(&root.join("evals").join("corpus.ttl"))?;
     let mut out: BTreeMap<String, CorpusDoc> = BTreeMap::new();
     for (location, (_t, declared_digests)) in manifest {
@@ -371,10 +379,13 @@ struct Schema {
 }
 
 impl Schema {
-    fn load(path: &Path) -> Result<Self, PipelineError> {
+    fn load(path: &Path) -> Result<Self, gmeow_errors::Diag> {
         let bytes = std::fs::read(path)?;
-        let raw: Value = serde_json::from_slice(&bytes)
-            .map_err(|e| PipelineError::Parse(format!("schema parse: {e}")))?;
+        let raw: Value = serde_json::from_slice(&bytes).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Parse {
+                message: format!("schema parse: {e}"),
+            })
+        })?;
         Ok(Self { raw })
     }
 
@@ -749,12 +760,15 @@ fn invalid_note(message: &str) -> String {
 
 /// Score every committed emission, sorted by overall score descending then model
 /// id ascending (`all_scorecards`).
-fn all_scorecards(root: &Path) -> Result<Vec<Scorecard>, PipelineError> {
+fn all_scorecards(root: &Path) -> Result<Vec<Scorecard>, gmeow_errors::Diag> {
     let schema = Schema::load(&root.join("evals").join("claim-emission.schema.json"))?;
     let corpus = corpus_texts(root)?;
     let expectations_bytes = std::fs::read(root.join("evals").join("expectations.json"))?;
-    let expectations: Value = serde_json::from_slice(&expectations_bytes)
-        .map_err(|e| PipelineError::Parse(format!("expectations parse: {e}")))?;
+    let expectations: Value = serde_json::from_slice(&expectations_bytes).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            message: format!("expectations parse: {e}"),
+        })
+    })?;
 
     // sorted(_OUTPUTS_DIR.glob("*/claims.jsonl")) → models in path order.
     let outputs_dir = root.join("evals").join("outputs");
@@ -928,7 +942,7 @@ fn json_str(s: &str) -> String {
 }
 
 /// Build every committed eval artifact under `root` keyed by logical path.
-pub fn render_evals(root: &Path) -> Result<BTreeMap<String, Vec<u8>>, PipelineError> {
+pub fn render_evals(root: &Path) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
     let cards = all_scorecards(root)?;
     let mut out: BTreeMap<String, Vec<u8>> = BTreeMap::new();
     out.insert(
@@ -944,9 +958,11 @@ pub fn render_evals(root: &Path) -> Result<BTreeMap<String, Vec<u8>>, PipelineEr
             &crate::stages::superset::rdf_prefixes(),
         )
         .map(String::into_bytes)
-        .map_err(|e| PipelineError::Stage {
-            stage: "stage-export-evals".to_string(),
-            message: format!("canonicalize scores.ttl: {e}"),
+        .map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                stage: "stage-export-evals".to_string(),
+                message: format!("canonicalize scores.ttl: {e}"),
+            })
         })?,
     );
     for card in &cards {
@@ -973,7 +989,7 @@ impl Stage for EvalsStage {
     fn impl_version(&self) -> &str {
         "evals.v1"
     }
-    fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, PipelineError> {
+    fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
         // Pure source read of NON-fold inputs: the emission schema, the corpus
         // manifest + every source document it references, the ground-truth
         // expectations, and every recorded model emission. Declare them ALL so a
@@ -1001,7 +1017,7 @@ impl Stage for EvalsStage {
         }
         Ok(files)
     }
-    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
+    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         Ok(StageOutput {
             product: StageProduct::from_artifacts(self.id(), render_evals(input.root)?),
         })

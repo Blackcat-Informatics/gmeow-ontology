@@ -30,7 +30,6 @@ use std::sync::Arc;
 
 use purrdf::{RdfDataset, TermValue};
 
-use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 use crate::stages::native_query;
 
@@ -62,7 +61,7 @@ struct Column {
 }
 
 /// Recursively collect every `slices/**/tests/competency.ttl` (sorted).
-pub(crate) fn competency_files(root: &Path) -> Result<Vec<PathBuf>, PipelineError> {
+pub(crate) fn competency_files(root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
     let mut out = Vec::new();
     let slices = root.join("slices");
     collect_competency(&slices, &mut out)?;
@@ -70,14 +69,22 @@ pub(crate) fn competency_files(root: &Path) -> Result<Vec<PathBuf>, PipelineErro
     Ok(out)
 }
 
-fn collect_competency(dir: &Path, out: &mut Vec<PathBuf>) -> Result<(), PipelineError> {
+fn collect_competency(dir: &Path, out: &mut Vec<PathBuf>) -> Result<(), gmeow_errors::Diag> {
     let entries = match std::fs::read_dir(dir) {
         Ok(e) => e,
         Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(()),
-        Err(e) => return Err(PipelineError::Io(e)),
+        Err(e) => {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Io {
+                message: (e).to_string(),
+            }));
+        }
     };
     for entry in entries {
-        let entry = entry.map_err(PipelineError::Io)?;
+        let entry = entry.map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Io {
+                message: e.to_string(),
+            })
+        })?;
         let path = entry.path();
         if path.is_dir() {
             collect_competency(&path, out)?;
@@ -90,7 +97,7 @@ fn collect_competency(dir: &Path, out: &mut Vec<PathBuf>) -> Result<(), Pipeline
 
 /// Load every competency spec into one native dataset (each parsed through the
 /// canonical native codec and unioned so per-file blanks stay disjoint).
-fn load_competency_store(root: &Path) -> Result<Arc<RdfDataset>, PipelineError> {
+fn load_competency_store(root: &Path) -> Result<Arc<RdfDataset>, gmeow_errors::Diag> {
     native_query::dataset_from_files(&competency_files(root)?)
 }
 
@@ -111,19 +118,21 @@ fn iri(cells: &[Option<TermValue>], i: Option<usize>) -> Option<String> {
     }
 }
 
-fn local_kind(kind_iri: &str) -> Result<Kind, PipelineError> {
+fn local_kind(kind_iri: &str) -> Result<Kind, gmeow_errors::Diag> {
     match kind_iri.rsplit(['/', '#']).next().unwrap_or(kind_iri) {
         "TermKindIri" => Ok(Kind::Iri),
         "TermKindLiteral" => Ok(Kind::Literal),
         "TermKindBlankNode" => Ok(Kind::BlankNode),
-        other => Err(PipelineError::InvalidDeclaration(format!(
-            "result-shapes: unknown logic:columnTermKind <…/{other}>"
-        ))),
+        other => Err(gmeow_errors::Diag::of_kind(
+            crate::error::InvalidDeclaration {
+                message: format!("result-shapes: unknown logic:columnTermKind <…/{other}>"),
+            },
+        )),
     }
 }
 
 /// Extract `shape IRI -> sorted columns` from the competency dataset.
-fn shapes(store: &Arc<RdfDataset>) -> Result<BTreeMap<String, Vec<Column>>, PipelineError> {
+fn shapes(store: &Arc<RdfDataset>) -> Result<BTreeMap<String, Vec<Column>>, gmeow_errors::Diag> {
     let query = "\
         PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>\n\
         PREFIX logic: <https://blackcatinformatics.ca/logic/>\n\
@@ -145,13 +154,19 @@ fn shapes(store: &Arc<RdfDataset>) -> Result<BTreeMap<String, Vec<Column>>, Pipe
     let mut by_shape: BTreeMap<String, BTreeMap<String, Column>> = BTreeMap::new();
     for cells in &solutions.rows {
         let shape = iri(cells, c_shape).ok_or_else(|| {
-            PipelineError::Parse("result-shapes: ?shape did not bind an IRI".to_owned())
+            gmeow_errors::Diag::of_kind(crate::error::Parse {
+                message: "result-shapes: ?shape did not bind an IRI".to_owned(),
+            })
         })?;
         let var = lit(cells, c_var).ok_or_else(|| {
-            PipelineError::Parse("result-shapes: a column has no logic:columnVariable".to_owned())
+            gmeow_errors::Diag::of_kind(crate::error::Parse {
+                message: "result-shapes: a column has no logic:columnVariable".to_owned(),
+            })
         })?;
         let kind = local_kind(&iri(cells, c_kind).ok_or_else(|| {
-            PipelineError::Parse("result-shapes: ?kind did not bind an IRI".to_owned())
+            gmeow_errors::Diag::of_kind(crate::error::Parse {
+                message: "result-shapes: ?kind did not bind an IRI".to_owned(),
+            })
         })?)?;
         let required = iri(cells, c_binding)
             .map(|b| b.rsplit(['/', '#']).next().unwrap_or(&b) == "BindingRequired")
@@ -203,7 +218,7 @@ fn value_prop(kind: Kind) -> Option<&'static str> {
 }
 
 /// Render the result-shape projection document.
-pub fn render_result_shapes(root: &Path) -> Result<String, PipelineError> {
+pub fn render_result_shapes(root: &Path) -> Result<String, gmeow_errors::Diag> {
     let store = load_competency_store(root)?;
     let mut blocks: Vec<String> = vec![HEADER.to_string()];
 
@@ -307,12 +322,12 @@ impl Stage for ResultShapesStage {
     fn impl_version(&self) -> &str {
         "result_shapes.v1"
     }
-    fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, PipelineError> {
+    fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
         // The leaf reads every competency spec's logic:ResultShape declarations;
         // declare them as cache inputs so a shape edit busts the cache.
         competency_files(root)
     }
-    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
+    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         let ttl = render_result_shapes(input.root)?;
         let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
         artifacts.insert(RESULT_SHAPES_PATH.to_string(), ttl.into_bytes());

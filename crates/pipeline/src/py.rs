@@ -46,7 +46,7 @@ use crate::transform::{self, CellInput, DerivedRowNative, TransformReportNative}
 /// ```
 ///
 /// In CHECK mode the caller fails the gate when `drifted` is non-empty (or
-/// `clean` is `False`). A [`crate::error::PipelineError`] (a hard build failure —
+/// `clean` is `False`). A [`gmeow_errors::Diag`] (a hard build failure —
 /// a malformed DAG, an unknown stage impl, an I/O error) maps to `ValueError`.
 #[pyfunction]
 #[pyo3(signature = (root, jobs, check))]

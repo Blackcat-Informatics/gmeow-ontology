@@ -15,7 +15,6 @@ use std::path::Path;
 use gmeow_errors::{Finding, Report, Severity};
 use serde_json::json;
 
-use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 use crate::stages::source_load::BASE_GRAPH_PATH;
 
@@ -64,7 +63,7 @@ fn diagnostics_report(report: &purrdf::shapes::report::ValidationReport) -> Repo
 /// Render the four committed SHACL diagnostics projections for a canonical report,
 /// through the shared [`crate::stages::diag_render`] renderer (the one path both
 /// this stage and `stage-compile-logic` route their reports through).
-fn render_artifacts(report: &Report) -> Result<BTreeMap<String, Vec<u8>>, PipelineError> {
+fn render_artifacts(report: &Report) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
     crate::stages::diag_render::render_diagnostics_artifacts(
         "stage-validate",
         report,
@@ -78,15 +77,22 @@ fn render_artifacts(report: &Report) -> Result<BTreeMap<String, Vec<u8>>, Pipeli
 }
 
 /// Run SHACL over source-graph N-Quads bytes and return deterministic diagnostics.
-pub fn validate_source_graph(root: &Path, source_nquads: &[u8]) -> Result<Report, PipelineError> {
+pub fn validate_source_graph(
+    root: &Path,
+    source_nquads: &[u8],
+) -> Result<Report, gmeow_errors::Diag> {
     // Parse the source graph into the native IR and validate it directly through the
     // native SHACL engine (`validate_dataset`), oxigraph-free.
-    let dataset = purrdf::parse_dataset(source_nquads, "application/n-quads", None)
-        .map_err(|e| PipelineError::Parse(format!("source graph parse: {e}")))?;
-    let (_shape_store, shapes) =
-        purrdf::shapes::shape_union::load_shapes(root).map_err(PipelineError::Parse)?;
+    let dataset =
+        purrdf::parse_dataset(source_nquads, "application/n-quads", None).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Parse {
+                message: format!("source graph parse: {e}"),
+            })
+        })?;
+    let (_shape_store, shapes) = purrdf::shapes::shape_union::load_shapes(root)
+        .map_err(|m| gmeow_errors::Diag::of_kind(crate::error::Parse { message: m }))?;
     let report = purrdf::shapes::engine::validate_dataset(&dataset, &shapes)
-        .map_err(PipelineError::Parse)?;
+        .map_err(|m| gmeow_errors::Diag::of_kind(crate::error::Parse { message: m }))?;
     Ok(diagnostics_report(&report))
 }
 
@@ -121,17 +127,20 @@ impl Stage for ValidateStage {
     fn impl_version(&self) -> &str {
         "validate.v1-shacl-diagnostics"
     }
-    fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, PipelineError> {
-        purrdf::shapes::shape_union::shape_files(root).map_err(PipelineError::Parse)
+    fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
+        purrdf::shapes::shape_union::shape_files(root)
+            .map_err(|m| gmeow_errors::Diag::of_kind(crate::error::Parse { message: m }))
     }
-    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
+    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         let source_graph = input
             .upstream
             .get("stage-source-load")
             .and_then(|p| p.artifact(BASE_GRAPH_PATH))
-            .ok_or_else(|| PipelineError::Stage {
-                stage: self.id().to_owned(),
-                message: format!("missing stage-source-load {BASE_GRAPH_PATH} artifact"),
+            .ok_or_else(|| {
+                gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                    stage: self.id().to_owned(),
+                    message: format!("missing stage-source-load {BASE_GRAPH_PATH} artifact"),
+                })
             })?;
         let report = validate_source_graph(input.root, source_graph)?;
         let artifacts = render_artifacts(&report)?;
@@ -139,12 +148,12 @@ impl Stage for ValidateStage {
         // graph so the presenter reads it as a pure keyed fold (PIPELINE_SPINE §4) and
         // unions it with the logic-compile diagnostics, never re-parsing the byte
         // artifact. The four committed byte projections are kept on the byte lane.
-        let shacl_rdf = artifacts
-            .get(SHACL_RDF_PATH)
-            .ok_or_else(|| PipelineError::Stage {
+        let shacl_rdf = artifacts.get(SHACL_RDF_PATH).ok_or_else(|| {
+            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
                 stage: self.id().to_owned(),
                 message: format!("render_artifacts omitted {SHACL_RDF_PATH}"),
-            })?;
+            })
+        })?;
         let dataset = crate::stages::carrier::parse_into_graph(
             shacl_rdf,
             "application/n-quads",

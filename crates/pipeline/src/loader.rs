@@ -20,7 +20,6 @@ use purrdf::{
     DatasetView, GraphMatch, RdfDataset, RdfDatasetBuilder, TermRef, TermValue, parse_dataset,
 };
 
-use crate::error::PipelineError;
 use crate::graph::StageGraph;
 use crate::node::{GMEOW, SINK_CAPABILITY, Stage};
 use crate::registry::StageRegistry;
@@ -93,7 +92,7 @@ impl PipelineSpec {
     /// than one `Sink`, or a typed-dataflow narrowing whose producer the consumer
     /// does not actually `dataflowConsumes`. (Rust/RDF resource agreement is proven
     /// at `bind` time, once the executable twin is resolved.)
-    pub fn validate(&self) -> Result<StageGraph, PipelineError> {
+    pub fn validate(&self) -> Result<StageGraph, gmeow_errors::Diag> {
         // ── Typed-dataflow endpoints: every gmeow:BuildDataFlow producer a consumer
         //    narrows to must be a declared stage AND one the consumer actually
         //    gmeow:dataflowConsumes. Otherwise the cache would narrow on a graph the
@@ -103,16 +102,20 @@ impl PipelineSpec {
         for s in &self.stages {
             for (producer, _entities) in &s.dataflow_entities {
                 if !node_ids.contains(producer.as_str()) {
-                    return Err(PipelineError::InvalidDag(format!(
-                        "stage {} declares typed dataflow from unknown producer {producer}",
-                        s.id
-                    )));
+                    return Err(gmeow_errors::Diag::of_kind(crate::error::InvalidDag {
+                        message: format!(
+                            "stage {} declares typed dataflow from unknown producer {producer}",
+                            s.id
+                        ),
+                    }));
                 }
                 if !s.consumes.iter().any(|c| c == producer) {
-                    return Err(PipelineError::InvalidDag(format!(
-                        "stage {} declares typed dataflow from {producer} but does not gmeow:dataflowConsumes it",
-                        s.id
-                    )));
+                    return Err(gmeow_errors::Diag::of_kind(crate::error::InvalidDag {
+                        message: format!(
+                            "stage {} declares typed dataflow from {producer} but does not gmeow:dataflowConsumes it",
+                            s.id
+                        ),
+                    }));
                 }
             }
         }
@@ -128,16 +131,19 @@ impl PipelineSpec {
         match sinks.len() {
             1 => {}
             0 => {
-                return Err(PipelineError::InvalidDag(
-                    "the pipeline has no Sink stage (the gts narrow waist requires exactly one)"
-                        .to_string(),
-                ));
+                return Err(gmeow_errors::Diag::of_kind(crate::error::InvalidDag {
+                    message:
+                        "the pipeline has no Sink stage (the gts narrow waist requires exactly one)"
+                            .to_string(),
+                }));
             }
             n => {
-                return Err(PipelineError::InvalidDag(format!(
-                    "the pipeline has {n} Sink stages ({}); exactly one is allowed (the gts narrow waist)",
-                    sinks.join(", ")
-                )));
+                return Err(gmeow_errors::Diag::of_kind(crate::error::InvalidDag {
+                    message: format!(
+                        "the pipeline has {n} Sink stages ({}); exactly one is allowed (the gts narrow waist)",
+                        sinks.join(", ")
+                    ),
+                }));
             }
         }
 
@@ -155,23 +161,32 @@ impl PipelineSpec {
     /// `module.ttl` and any example DAG). Uses the native lenient codecs, so
     /// `@x-gmeow-*` language tags are accepted. Each document is merged under a
     /// fresh blank scope (`push_dataset`); quads dedup at freeze.
-    pub fn from_turtle(docs: &[&str]) -> Result<Self, PipelineError> {
+    pub fn from_turtle(docs: &[&str]) -> Result<Self, gmeow_errors::Diag> {
         let mut builder = RdfDatasetBuilder::new();
         for doc in docs {
-            let parsed = parse_dataset(doc.as_bytes(), "text/turtle", None)
-                .map_err(|e| PipelineError::Parse(format!("syntax error in pipeline-spec: {e}")))?;
+            let parsed = parse_dataset(doc.as_bytes(), "text/turtle", None).map_err(|e| {
+                gmeow_errors::Diag::of_kind(crate::error::Parse {
+                    message: format!("syntax error in pipeline-spec: {e}"),
+                })
+            })?;
             builder.push_dataset(&parsed);
         }
-        let ds = builder
-            .freeze()
-            .map_err(|e| PipelineError::Parse(format!("dataset freeze failed: {e}")))?;
+        let ds = builder.freeze().map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Parse {
+                message: format!("dataset freeze failed: {e}"),
+            })
+        })?;
         Self::from_dataset(&ds)
     }
 
     /// Extract the (single) `gmeow:Pipeline` and its stages from a parsed dataset.
-    pub fn from_dataset(ds: &RdfDataset) -> Result<Self, PipelineError> {
-        let pipeline_iri = single_subject_of_type(ds, &iri(GMEOW, "Pipeline"))?
-            .ok_or_else(|| PipelineError::Parse("no `a gmeow:Pipeline` individual found".into()))?;
+    pub fn from_dataset(ds: &RdfDataset) -> Result<Self, gmeow_errors::Diag> {
+        let pipeline_iri =
+            single_subject_of_type(ds, &iri(GMEOW, "Pipeline"))?.ok_or_else(|| {
+                gmeow_errors::Diag::of_kind(crate::error::Parse {
+                    message: "no `a gmeow:Pipeline` individual found".into(),
+                })
+            })?;
 
         // Collect the hasStage members.
         let has_stage = iri(GMEOW, "hasStage");
@@ -201,10 +216,12 @@ impl PipelineSpec {
         if !by_consumer.is_empty() {
             let mut unknown: Vec<String> = by_consumer.into_keys().collect();
             unknown.sort();
-            return Err(PipelineError::InvalidDag(format!(
-                "gmeow:BuildDataFlow targets unknown consumer stage(s): {}",
-                unknown.join(", ")
-            )));
+            return Err(gmeow_errors::Diag::of_kind(crate::error::InvalidDag {
+                message: format!(
+                    "gmeow:BuildDataFlow targets unknown consumer stage(s): {}",
+                    unknown.join(", ")
+                ),
+            }));
         }
 
         Ok(PipelineSpec {
@@ -215,7 +232,7 @@ impl PipelineSpec {
 }
 
 /// Parse one `gmeow:PipelineStage` individual into a [`StageSpec`].
-fn parse_stage(ds: &RdfDataset, stage_iri: &str) -> Result<StageSpec, PipelineError> {
+fn parse_stage(ds: &RdfDataset, stage_iri: &str) -> Result<StageSpec, gmeow_errors::Diag> {
     let id = local_name(stage_iri);
 
     // gmeow:hasCapability (zero or more capability IRIs, kept whole — capabilities are
@@ -234,7 +251,11 @@ fn parse_stage(ds: &RdfDataset, stage_iri: &str) -> Result<StageSpec, PipelineEr
     let impl_key = objects(ds, stage_iri, &iri(GMEOW, "stageImpl"))
         .into_iter()
         .find_map(literal_string)
-        .ok_or_else(|| PipelineError::Parse(format!("stage {id} has no gmeow:stageImpl")))?;
+        .ok_or_else(|| {
+            gmeow_errors::Diag::of_kind(crate::error::Parse {
+                message: format!("stage {id} has no gmeow:stageImpl"),
+            })
+        })?;
 
     // gmeow:requiresResource (zero or more resource IRIs, kept whole — resources
     // are not stages, so they are not reduced to local names).
@@ -290,7 +311,7 @@ fn parse_stage(ds: &RdfDataset, stage_iri: &str) -> Result<StageSpec, PipelineEr
 /// producer) pair are merged.
 fn parse_dataflow_edges(
     ds: &RdfDataset,
-) -> Result<BTreeMap<String, DataFlowEntities>, PipelineError> {
+) -> Result<BTreeMap<String, DataFlowEntities>, gmeow_errors::Diag> {
     // consumer -> producer -> entity set
     let mut acc: BTreeMap<String, BTreeMap<String, BTreeSet<String>>> = BTreeMap::new();
     // Every named `?edge a gmeow:BuildDataFlow` subject (kept whole), sorted.
@@ -313,9 +334,9 @@ fn parse_dataflow_edges(
                 _ => None,
             })
             .ok_or_else(|| {
-                PipelineError::Parse(format!(
-                    "gmeow:BuildDataFlow {edge} has no gmeow:buildFlowFrom"
-                ))
+                gmeow_errors::Diag::of_kind(crate::error::Parse {
+                    message: format!("gmeow:BuildDataFlow {edge} has no gmeow:buildFlowFrom"),
+                })
             })?;
         let consumer = objects(ds, edge, &iri(GMEOW, "buildFlowTo"))
             .into_iter()
@@ -324,9 +345,9 @@ fn parse_dataflow_edges(
                 _ => None,
             })
             .ok_or_else(|| {
-                PipelineError::Parse(format!(
-                    "gmeow:BuildDataFlow {edge} has no gmeow:buildFlowTo"
-                ))
+                gmeow_errors::Diag::of_kind(crate::error::Parse {
+                    message: format!("gmeow:BuildDataFlow {edge} has no gmeow:buildFlowTo"),
+                })
             })?;
         let entities: BTreeSet<String> = objects(ds, edge, &iri(GMEOW, "flowEntity"))
             .into_iter()
@@ -336,9 +357,11 @@ fn parse_dataflow_edges(
             })
             .collect();
         if entities.is_empty() {
-            return Err(PipelineError::Parse(format!(
-                "gmeow:BuildDataFlow {edge} declares no gmeow:flowEntity (a typed dataflow edge must name at least one entity graph)"
-            )));
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Parse {
+                message: format!(
+                    "gmeow:BuildDataFlow {edge} declares no gmeow:flowEntity (a typed dataflow edge must name at least one entity graph)"
+                ),
+            }));
         }
         acc.entry(consumer)
             .or_default()
@@ -368,16 +391,16 @@ pub fn bind(
     spec: &PipelineSpec,
     graph: &StageGraph,
     registry: &StageRegistry,
-) -> Result<Vec<Arc<dyn Stage>>, PipelineError> {
+) -> Result<Vec<Arc<dyn Stage>>, gmeow_errors::Diag> {
     let mut bound: Vec<Arc<dyn Stage>> = Vec::with_capacity(graph.len());
     for id in graph.order() {
         let s = spec.stage(&id).expect("graph id is a spec stage");
-        let stage = registry
-            .get(&s.impl_key)
-            .ok_or_else(|| PipelineError::UnknownStageImpl {
+        let stage = registry.get(&s.impl_key).ok_or_else(|| {
+            gmeow_errors::Diag::of_kind(crate::error::UnknownStageImpl {
                 stage: s.id.clone(),
                 impl_key: s.impl_key.clone(),
-            })?;
+            })
+        })?;
 
         // Capability agreement (both sides sorted+deduped): the executable twin must
         // declare exactly the capabilities the RDF does, or the executor would read a
@@ -386,11 +409,13 @@ pub fn bind(
         rust_caps.sort();
         rust_caps.dedup();
         if rust_caps != s.capabilities {
-            return Err(PipelineError::CapabilityMismatch {
-                stage: s.id.clone(),
-                rdf: s.capabilities.clone(),
-                rust: rust_caps,
-            });
+            return Err(gmeow_errors::Diag::of_kind(
+                crate::error::CapabilityMismatch {
+                    stage: s.id.clone(),
+                    rdf: s.capabilities.clone(),
+                    rust: rust_caps,
+                },
+            ));
         }
 
         // Consumes agreement (both sides sorted+deduped).
@@ -398,11 +423,13 @@ pub fn bind(
         rust.sort();
         rust.dedup();
         if rust != s.consumes {
-            return Err(PipelineError::ConsumesMismatch {
-                stage: s.id.clone(),
-                rdf: s.consumes.clone(),
-                rust,
-            });
+            return Err(gmeow_errors::Diag::of_kind(
+                crate::error::ConsumesMismatch {
+                    stage: s.id.clone(),
+                    rdf: s.consumes.clone(),
+                    rust,
+                },
+            ));
         }
 
         // Resource agreement (both sides sorted+deduped): the executable twin must
@@ -412,11 +439,13 @@ pub fn bind(
         rust_res.sort();
         rust_res.dedup();
         if rust_res != s.resources {
-            return Err(PipelineError::ResourceMismatch {
-                stage: s.id.clone(),
-                rdf: s.resources.clone(),
-                rust: rust_res,
-            });
+            return Err(gmeow_errors::Diag::of_kind(
+                crate::error::ResourceMismatch {
+                    stage: s.id.clone(),
+                    rdf: s.resources.clone(),
+                    rust: rust_res,
+                },
+            ));
         }
 
         // Typed-dataflow (artifact-level) agreement: the executable twin must declare
@@ -435,11 +464,13 @@ pub fn bind(
             .collect();
         rust_entities.sort();
         if rust_entities != s.dataflow_entities {
-            return Err(PipelineError::DataFlowMismatch {
-                stage: s.id.clone(),
-                rdf: s.dataflow_entities.clone(),
-                rust: rust_entities,
-            });
+            return Err(gmeow_errors::Diag::of_kind(
+                crate::error::DataFlowMismatch {
+                    stage: s.id.clone(),
+                    rdf: s.dataflow_entities.clone(),
+                    rust: rust_entities,
+                },
+            ));
         }
 
         bound.push(stage);
@@ -481,7 +512,7 @@ fn objects(ds: &RdfDataset, subject: &str, predicate: &str) -> Vec<ObjTerm> {
 fn single_subject_of_type(
     ds: &RdfDataset,
     class_iri: &str,
-) -> Result<Option<String>, PipelineError> {
+) -> Result<Option<String>, gmeow_errors::Diag> {
     let (Some(p), Some(o)) = (
         ds.term_id_by_value(&TermValue::iri(RDF_TYPE)),
         ds.term_id_by_value(&TermValue::iri(class_iri)),
@@ -497,9 +528,9 @@ fn single_subject_of_type(
     match subjects.len() {
         0 => Ok(None),
         1 => Ok(subjects.into_iter().next()),
-        n => Err(PipelineError::Parse(format!(
-            "expected exactly one `a <{class_iri}>` individual, found {n}"
-        ))),
+        n => Err(gmeow_errors::Diag::of_kind(crate::error::Parse {
+            message: format!("expected exactly one `a <{class_iri}>` individual, found {n}"),
+        })),
     }
 }
 

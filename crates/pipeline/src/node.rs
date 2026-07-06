@@ -23,8 +23,6 @@ use crate::bundle::{
     PipelineHandle, bundle_artifact, bundle_artifacts, bundle_from_artifacts,
     bundle_from_artifacts_over,
 };
-use crate::error::PipelineError;
-
 /// The GMEOW namespace prefix that every pipeline term lives under.
 pub(crate) const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
 
@@ -222,9 +220,9 @@ pub trait Stage: Send + Sync {
     /// `SourceLoad`/`stage-snapshot` product declares nothing here. Paths are
     /// resolved relative to the repo root; the scheduler reads each file's bytes
     /// and folds a content digest into the key (a missing file HARD-fails).
-    fn input_files(&self, _root: &Path) -> Result<Vec<std::path::PathBuf>, PipelineError> {
+    fn input_files(&self, _root: &Path) -> gmeow_errors::Result<Vec<std::path::PathBuf>> {
         Ok(Vec::new())
     }
     /// Execute the stage over its upstream products.
-    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError>;
+    fn run(&self, input: StageInput<'_>) -> gmeow_errors::Result<StageOutput>;
 }

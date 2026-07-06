@@ -33,7 +33,6 @@ use gmeow_errors::{
 use gmeow_logic::dag_profile::certify_acyclic;
 use gmeow_logic::result::ReasoningResult;
 
-use crate::error::PipelineError;
 use crate::loader::{PipelineSpec, StageSpec, bind};
 use crate::node::{ENGINE_RESOURCE, SINK_CAPABILITY, SOURCE_ORIGIN, StageProduct};
 use crate::registry::default_registry;
@@ -94,7 +93,7 @@ fn attach_pipeline_finding(ledger: &mut DiagLedger, code: &str, focus: &str, mes
 fn ingest_carrier_diagnostics(
     products: &BTreeMap<String, StageProduct>,
     ledger: &mut DiagLedger,
-) -> Result<(), PipelineError> {
+) -> Result<(), gmeow_errors::Diag> {
     for stage in [DIAG_PRODUCER_VALIDATE, DIAG_PRODUCER_COMPILE_LOGIC] {
         if let Some(product) = products.get(stage) {
             let diagnostics = product
@@ -435,7 +434,7 @@ fn st_reason(id: &str, impl_key: &str, consumes: &[&str]) -> StageSpec {
 /// committed artifact). RDF artifacts compare by bytes (they are byte
 /// deterministic); the `gmeow.gts` bundle is compared by the FOLD (see
 /// `tests/full_parity.rs`) because CBOR has encoding skew.
-pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, PipelineError> {
+pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, gmeow_errors::Diag> {
     let total_started = Instant::now();
     let spec = full_spec();
 
@@ -730,7 +729,7 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, Pi
 /// writer must match. `spec.validate()` (already run before this is called) asserts
 /// exactly one such stage exists, but this re-derives it defensively rather than
 /// trusting that invariant survives at a distance.
-fn declared_sink_stage(spec: &PipelineSpec) -> Result<&str, PipelineError> {
+fn declared_sink_stage(spec: &PipelineSpec) -> Result<&str, gmeow_errors::Diag> {
     let sinks: Vec<&str> = spec
         .stages
         .iter()
@@ -739,20 +738,20 @@ fn declared_sink_stage(spec: &PipelineSpec) -> Result<&str, PipelineError> {
         .collect();
     match sinks.as_slice() {
         [id] => Ok(id),
-        [] => Err(PipelineError::Stage {
+        [] => Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
             stage: "pipeline".to_string(),
             message:
                 "no stage declares sinkCapability; PIPELINE_SPINE §4 requires exactly one terminal writer"
                     .to_string(),
-        }),
-        _ => Err(PipelineError::Stage {
+        })),
+        _ => Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
             stage: "pipeline".to_string(),
             message: format!(
                 "{} stages declare sinkCapability ({}); exactly one is allowed (PIPELINE_SPINE §4)",
                 sinks.len(),
                 sinks.join(", ")
             ),
-        }),
+        })),
     }
 }
 
@@ -771,7 +770,7 @@ fn declared_sink_stage(spec: &PipelineSpec) -> Result<&str, PipelineError> {
 fn assert_single_gts_writer(
     products: &BTreeMap<String, StageProduct>,
     declared_sink: &str,
-) -> Result<(), PipelineError> {
+) -> Result<(), gmeow_errors::Diag> {
     let writers: Vec<&str> = products
         .iter()
         .filter(|(_, p)| p.artifact(GTS_PATH).is_some())
@@ -781,28 +780,28 @@ fn assert_single_gts_writer(
         1 => {
             let writer = writers[0];
             if writer != declared_sink {
-                return Err(PipelineError::Stage {
+                return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
                     stage: "pipeline".to_string(),
                     message: format!(
                         "stage {writer} emits the `{GTS_PATH}` bundle bytes but the declared sink (sinkCapability) is {declared_sink}; PIPELINE_SPINE §4/§7 requires the terminal writer's identity to match the declared sink"
                     ),
-                });
+                }));
             }
             Ok(())
         }
-        0 => Err(PipelineError::Stage {
+        0 => Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
             stage: "pipeline".to_string(),
             message: format!(
                 "no stage emits the `{GTS_PATH}` bundle bytes; PIPELINE_SPINE §4 requires exactly one terminal writer"
             ),
-        }),
-        n => Err(PipelineError::Stage {
+        })),
+        n => Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
             stage: "pipeline".to_string(),
             message: format!(
                 "{n} stages emit the `{GTS_PATH}` bundle bytes ({}); exactly one terminal writer is allowed (PIPELINE_SPINE §4)",
                 writers.join(", ")
             ),
-        }),
+        })),
     }
 }
 
@@ -864,9 +863,9 @@ fn canonical_quad_set(bytes: &[u8]) -> Option<std::collections::BTreeSet<String>
 /// The loader already rejected any cycle before a run reaches its result, so in
 /// practice the verdict is `Certified`. The hard-fail here is the no-silent-default
 /// backstop (Principle: no degraded fallback): a build that reached its result yet
-/// is NOT certified is a defect, returned as a [`PipelineError::InvalidDag`] rather
+/// is NOT certified is a defect, returned as a [`crate::error::InvalidDag`] rather
 /// than a degraded result.
-fn certify_build_plan(spec: &PipelineSpec) -> Result<ReasoningResult, PipelineError> {
+fn certify_build_plan(spec: &PipelineSpec) -> Result<ReasoningResult, gmeow_errors::Diag> {
     // Producer → consumer orientation, matching the canonical logic:dataflowConsumes
     // (consumer → producer) the executor inverts — identical to the edge derivation
     // `StageGraph::build` and the `dag_profile_tests` use.
@@ -881,12 +880,14 @@ fn certify_build_plan(spec: &PipelineSpec) -> Result<ReasoningResult, PipelineEr
         .collect();
     let cert = certify_acyclic(edges.iter().map(|(a, b)| (a.as_str(), b.as_str())));
     if !cert.is_certified() {
-        return Err(PipelineError::InvalidDag(format!(
-            "the build plan {} reached its result but is NOT certified under the \
+        return Err(gmeow_errors::Diag::of_kind(crate::error::InvalidDag {
+            message: format!(
+                "the build plan {} reached its result but is NOT certified under the \
              DAG-workflow contract; offending cycle members: {}",
-            spec.id,
-            cert.witness().join(" → ")
-        )));
+                spec.id,
+                cert.witness().join(" → ")
+            ),
+        }));
     }
     Ok(cert.into_reasoning_result(BUILD_DAG_CONTRACT, BUILD_DAG_WORLD))
 }
@@ -895,7 +896,11 @@ fn certify_build_plan(spec: &PipelineSpec) -> Result<ReasoningResult, PipelineEr
 ///
 /// Returns `true` when the file was rewritten and `false` when the existing bytes
 /// already matched.
-pub(crate) fn write_artifact(root: &Path, path: &str, bytes: &[u8]) -> Result<bool, PipelineError> {
+pub(crate) fn write_artifact(
+    root: &Path,
+    path: &str,
+    bytes: &[u8],
+) -> Result<bool, gmeow_errors::Diag> {
     let target = root.join(path);
     match std::fs::read(&target) {
         Ok(existing) if existing == bytes => return Ok(false),

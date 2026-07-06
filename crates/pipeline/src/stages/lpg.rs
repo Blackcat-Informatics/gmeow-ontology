@@ -15,7 +15,6 @@ use purrdf::RdfDataset;
 use purrdf::model::{RdfLiteral, RdfTerm};
 use sha2::{Digest, Sha256};
 
-use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 
 /// Logical-path prefix of the generated LPG artifacts.
@@ -289,7 +288,7 @@ struct Edge {
 }
 
 /// Build the LPG (nodes + edges) from an `RdfDataset` fold.
-fn build_lpg(store: &RdfDataset) -> Result<(Vec<Node>, Vec<Edge>), PipelineError> {
+fn build_lpg(store: &RdfDataset) -> Result<(Vec<Node>, Vec<Edge>), gmeow_errors::Diag> {
     // Reifier tables.
     let mut reifier_triple: BTreeMap<String, (String, String, String)> = BTreeMap::new();
     let mut reifier_iris: BTreeSet<String> = BTreeSet::new();
@@ -797,7 +796,7 @@ impl Stage for LpgStage {
     fn impl_version(&self) -> &str {
         "lpg.v1"
     }
-    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
+    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         // Consume THIS run's snapshot carrier dataset DIRECTLY off the product bundle —
         // no re-parse of the gmeow.gts bytes (GTS is exit-only).
         let dataset = crate::stages::carrier::snapshot_dataset(input.upstream)?;
@@ -815,7 +814,7 @@ impl Stage for LpgStage {
 /// fanout as a blob (superset law); the export leaf calls it for the disk fanout.
 pub(crate) fn render_from_dataset(
     dataset: &RdfDataset,
-) -> Result<BTreeMap<String, Vec<u8>>, PipelineError> {
+) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
     let (nodes, edges) = build_lpg(dataset)?;
     Ok(render_all(&nodes, &edges))
 }

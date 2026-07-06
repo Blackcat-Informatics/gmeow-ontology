@@ -15,9 +15,9 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
 use gmeow_pipeline::{
-    ENGINE_RESOURCE, PipelineCache, PipelineError, PipelineSpec, RunContext, SINK_CAPABILITY,
-    SOURCE_ORIGIN, Stage, StageInput, StageOutput, StageProduct, StageRegistry, StageSpec, bind,
-    default_registry, run,
+    ENGINE_RESOURCE, PipelineCache, PipelineSpec, RunContext, SINK_CAPABILITY, SOURCE_ORIGIN,
+    Stage, StageInput, StageOutput, StageProduct, StageRegistry, StageSpec, bind, default_registry,
+    run,
 };
 
 fn repo_root() -> PathBuf {
@@ -107,15 +107,13 @@ impl Stage for TestSink {
         "test-sink.v1"
     }
 
-    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
-        let snapshot =
-            input
-                .upstream
-                .get("stage-snapshot")
-                .ok_or_else(|| PipelineError::Stage {
-                    stage: self.id().to_string(),
-                    message: "missing stage-snapshot input".to_string(),
-                })?;
+    fn run(&self, input: StageInput<'_>) -> gmeow_errors::Result<StageOutput> {
+        let snapshot = input.upstream.get("stage-snapshot").ok_or_else(|| {
+            gmeow_errors::Diag::of_kind(gmeow_pipeline::error::StageFailed {
+                stage: self.id().to_string(),
+                message: "missing stage-snapshot input".to_string(),
+            })
+        })?;
         Ok(StageOutput {
             product: StageProduct::new(self.id(), snapshot.digest.clone()),
         })

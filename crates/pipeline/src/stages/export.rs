@@ -26,7 +26,6 @@ use gmeow_validate::language_tags::{
 };
 use purrdf::{RdfDataset, TermId, TermRef};
 
-use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 
 include!("lpg_prefixes.rs");
@@ -1063,11 +1062,11 @@ pub(crate) fn term_to_card(t: &Term) -> gmeow_docs::card::Card {
     }
 }
 
-pub(crate) fn fold_meta(view: &FoldView) -> Result<(String, String), PipelineError> {
+pub(crate) fn fold_meta(view: &FoldView) -> Result<(String, String), gmeow_errors::Diag> {
     let onto = view.tid_of_iri(ONTOLOGY_IRI).ok_or_else(|| {
-        PipelineError::Parse(format!(
-            "ontology header {ONTOLOGY_IRI} not present in the snapshot"
-        ))
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            message: format!("ontology header {ONTOLOGY_IRI} not present in the snapshot"),
+        })
     })?;
     let title = view
         .value(onto, "http://purl.org/dc/terms/title", DEFAULT_SCOPE)
@@ -1077,9 +1076,9 @@ pub(crate) fn fold_meta(view: &FoldView) -> Result<(String, String), PipelineErr
         .map(|t| view.lex(t).to_string());
     match (title, version) {
         (Some(t), Some(v)) => Ok((t, v)),
-        _ => Err(PipelineError::Parse(
-            "ontology header lacks dcterms:title / owl:versionInfo".into(),
-        )),
+        _ => Err(gmeow_errors::Diag::of_kind(crate::error::Parse {
+            message: "ontology header lacks dcterms:title / owl:versionInfo".into(),
+        })),
     }
 }
 
@@ -1950,7 +1949,7 @@ mod consumer {
 fn dataset_with_public_tags(
     dataset: &RdfDataset,
     tag_map: &BTreeMap<String, String>,
-) -> Result<std::sync::Arc<RdfDataset>, PipelineError> {
+) -> Result<std::sync::Arc<RdfDataset>, gmeow_errors::Diag> {
     use purrdf::RdfDatasetBuilder;
     use purrdf::model::RdfTerm;
     let retag = |term: RdfTerm| -> RdfTerm {
@@ -1976,30 +1975,42 @@ fn dataset_with_public_tags(
         a.object = retag(a.object);
         b.push_owned_annotation(&a);
     }
-    b.freeze()
-        .map_err(|e| PipelineError::Parse(format!("public-tag dataset freeze: {e}")))
+    b.freeze().map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            message: format!("public-tag dataset freeze: {e}"),
+        })
+    })
 }
 
 fn write_nquads(
     dataset: &RdfDataset,
     tag_map: &BTreeMap<String, String>,
-) -> Result<Vec<u8>, PipelineError> {
+) -> Result<Vec<u8>, gmeow_errors::Diag> {
     let public = dataset_with_public_tags(dataset, tag_map)?;
     purrdf::serialize_dataset(
         &public,
         "application/n-quads",
         purrdf::SerializeGraph::Dataset,
     )
-    .map_err(|e| PipelineError::Parse(format!("n-quads serialize: {e}")))
+    .map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            message: format!("n-quads serialize: {e}"),
+        })
+    })
 }
 
 fn write_trig(
     dataset: &RdfDataset,
     tag_map: &BTreeMap<String, String>,
-) -> Result<Vec<u8>, PipelineError> {
+) -> Result<Vec<u8>, gmeow_errors::Diag> {
     let public = dataset_with_public_tags(dataset, tag_map)?;
-    purrdf::serialize_dataset(&public, "application/trig", purrdf::SerializeGraph::Dataset)
-        .map_err(|e| PipelineError::Parse(format!("trig serialize: {e}")))
+    purrdf::serialize_dataset(&public, "application/trig", purrdf::SerializeGraph::Dataset).map_err(
+        |e| {
+            gmeow_errors::Diag::of_kind(crate::error::Parse {
+                message: format!("trig serialize: {e}"),
+            })
+        },
+    )
 }
 
 // ── statements JSONL ─────────────────────────────────────────────────────────────
@@ -2429,7 +2440,9 @@ fn j_str_key(j: &J) -> String {
 /// English-only default view. This is the pipeline stage's canonical producer
 /// (committed `dist/` outputs are en-only); `--lang`-flexible callers route
 /// through [`render_all_with_languages`].
-pub(crate) fn render_all(dataset: &RdfDataset) -> Result<BTreeMap<String, Vec<u8>>, PipelineError> {
+pub(crate) fn render_all(
+    dataset: &RdfDataset,
+) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
     render_all_with_languages(dataset, &["en".to_string()])
 }
 
@@ -2441,7 +2454,7 @@ pub(crate) fn render_all(dataset: &RdfDataset) -> Result<BTreeMap<String, Vec<u8
 pub(crate) fn render_all_with_languages(
     dataset: &RdfDataset,
     languages: &[String],
-) -> Result<BTreeMap<String, Vec<u8>>, PipelineError> {
+) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
     let requested: Vec<String> = if languages.is_empty() {
         vec!["en".to_string()]
     } else {
@@ -2517,7 +2530,7 @@ pub(crate) fn render_all_with_languages(
 /// surface consumed by both the flat-export leaf and the OKF leaf.
 pub(crate) fn collect_term_surface(
     dataset: &RdfDataset,
-) -> Result<(String, String, Vec<Term>), PipelineError> {
+) -> Result<(String, String, Vec<Term>), gmeow_errors::Diag> {
     let view = FoldView::new(dataset);
     let (title, version) = fold_meta(&view)?;
     let terms = collect_terms(&view);
@@ -2530,10 +2543,13 @@ pub(crate) fn collect_term_surface(
 #[cfg(test)]
 pub(crate) fn read_fold(
     root: &std::path::Path,
-) -> Result<std::sync::Arc<RdfDataset>, PipelineError> {
+) -> Result<std::sync::Arc<RdfDataset>, gmeow_errors::Diag> {
     let gts = std::fs::read(root.join("generated/dist/gmeow.gts"))?;
-    let bundle = purrdf::import_gts_events(&gts)
-        .map_err(|e| PipelineError::Parse(format!("read gmeow.gts: {e}")))?;
+    let bundle = purrdf::import_gts_events(&gts).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            message: format!("read gmeow.gts: {e}"),
+        })
+    })?;
     Ok(bundle.dataset)
 }
 
@@ -2543,7 +2559,7 @@ pub(crate) fn read_fold(
 /// the bundle instead of re-parsing the `gmeow.gts` bytes (GTS is exit-only).
 pub(crate) fn read_fold_upstream(
     upstream: &std::collections::BTreeMap<String, StageProduct>,
-) -> Result<std::sync::Arc<RdfDataset>, PipelineError> {
+) -> Result<std::sync::Arc<RdfDataset>, gmeow_errors::Diag> {
     crate::stages::carrier::snapshot_dataset(upstream)
 }
 
@@ -2577,7 +2593,7 @@ impl Stage for ExportStage {
     fn impl_version(&self) -> &str {
         "export.v1"
     }
-    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
+    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         let graph = read_fold_upstream(input.upstream)?;
         Ok(StageOutput {
             product: StageProduct::from_artifacts(self.id(), render_all(graph.as_ref())?),

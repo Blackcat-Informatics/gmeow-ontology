@@ -12,8 +12,6 @@
 use std::collections::BTreeMap;
 use std::path::Path;
 
-use crate::error::PipelineError;
-
 /// The up-projection invertibility audit — the gate-derived verdict ledger plus its
 /// rendered Markdown report.
 ///
@@ -35,20 +33,24 @@ pub fn up_projection_gate_audit(
     sssom_texts: &[String],
     projection_ttls: &[String],
     corpus_ttls: &[(String, String)],
-) -> Result<(crate::up_projection_gates::AuditLedger, String), PipelineError> {
+) -> Result<(crate::up_projection_gates::AuditLedger, String), gmeow_errors::Diag> {
     let mut corpus_nts = Vec::with_capacity(corpus_ttls.len());
     for (name, ttl) in corpus_ttls {
-        let nt = crate::up_projection_corpus::ttl_to_nt(ttl).map_err(|e| PipelineError::Stage {
-            stage: "up-projection-audit".to_string(),
-            message: format!("corpus {name} ttl→nt: {e}"),
+        let nt = crate::up_projection_corpus::ttl_to_nt(ttl).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                stage: "up-projection-audit".to_string(),
+                message: format!("corpus {name} ttl→nt: {e}"),
+            })
         })?;
         corpus_nts.push((name.clone(), nt));
     }
     let ledger =
         crate::up_projection_gates::gate_derived_audit(sssom_texts, projection_ttls, &corpus_nts)
-            .map_err(|e| PipelineError::Stage {
-            stage: "up-projection-audit".to_string(),
-            message: e,
+            .map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                stage: "up-projection-audit".to_string(),
+                message: e,
+            })
         })?;
     let markdown = crate::up_projection_report::render_audit_markdown(&ledger);
     Ok((ledger, markdown))
@@ -67,7 +69,7 @@ pub fn up_projection_gate_audit(
 /// - Any mapping compile failure (prefix-consistency / purity gate, lowering error).
 pub fn compile_mappings(
     root: &Path,
-) -> Result<crate::stages::mappings::CompiledMappings, PipelineError> {
+) -> Result<crate::stages::mappings::CompiledMappings, gmeow_errors::Diag> {
     crate::stages::mappings::compile_mappings(root)
 }
 
@@ -88,12 +90,13 @@ pub fn compile_mappings(
 pub fn extract_docs_site(
     snapshot: &[u8],
     internal_lang: &str,
-) -> Result<BTreeMap<String, Vec<u8>>, PipelineError> {
-    let site =
-        crate::bundle_blobs::bundled_ontology_docs(snapshot).map_err(|e| PipelineError::Stage {
+) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
+    let site = crate::bundle_blobs::bundled_ontology_docs(snapshot).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
             stage: "extract-docs".to_string(),
             message: format!("fold ontology-docs blob: {e}"),
-        })?;
+        })
+    })?;
     let prefix = format!("{internal_lang}/");
     let selected: BTreeMap<String, Vec<u8>> = site
         .into_iter()
@@ -104,13 +107,13 @@ pub fn extract_docs_site(
         })
         .collect();
     if selected.is_empty() {
-        return Err(PipelineError::Stage {
+        return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
             stage: "extract-docs".to_string(),
             message: format!(
                 "no ontology-docs members for language {internal_lang:?}; \
                  regenerate the bundle or pick an available language"
             ),
-        });
+        }));
     }
     Ok(selected)
 }
@@ -121,12 +124,13 @@ pub fn extract_docs_site(
 /// # Errors
 ///
 /// - The snapshot cannot be folded, or carries no `ontology-docs` blob.
-pub fn available_doc_languages(snapshot: &[u8]) -> Result<Vec<String>, PipelineError> {
-    let site =
-        crate::bundle_blobs::bundled_ontology_docs(snapshot).map_err(|e| PipelineError::Stage {
+pub fn available_doc_languages(snapshot: &[u8]) -> Result<Vec<String>, gmeow_errors::Diag> {
+    let site = crate::bundle_blobs::bundled_ontology_docs(snapshot).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
             stage: "extract-docs".to_string(),
             message: format!("fold ontology-docs blob: {e}"),
-        })?;
+        })
+    })?;
     let mut langs: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
     for member in site.keys() {
         if let Some((lang, _rest)) = member.split_once('/') {
@@ -149,12 +153,13 @@ pub fn available_doc_languages(snapshot: &[u8]) -> Result<Vec<String>, PipelineE
 /// - The snapshot cannot be folded into the carrier dataset.
 pub fn bundle_term_summaries(
     gts_bytes: &[u8],
-) -> Result<Vec<(String, String, String)>, PipelineError> {
-    let dataset =
-        purrdf::gts::flattened_dataset_from_bytes(gts_bytes).map_err(|e| PipelineError::Stage {
+) -> Result<Vec<(String, String, String)>, gmeow_errors::Diag> {
+    let dataset = purrdf::gts::flattened_dataset_from_bytes(gts_bytes).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
             stage: "bundle-checks".to_string(),
             message: format!("fold gts snapshot: {e}"),
-        })?;
+        })
+    })?;
     let view = crate::stages::export::FoldView::new(&dataset);
     let terms = crate::stages::export::collect_terms(&view);
     Ok(terms
@@ -181,34 +186,39 @@ pub fn export_views(
     gts_bytes: &[u8],
     out_dir: &Path,
     languages: &[String],
-) -> Result<Vec<String>, PipelineError> {
-    let dataset =
-        purrdf::gts::flattened_dataset_from_bytes(gts_bytes).map_err(|e| PipelineError::Stage {
+) -> Result<Vec<String>, gmeow_errors::Diag> {
+    let dataset = purrdf::gts::flattened_dataset_from_bytes(gts_bytes).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
             stage: "export".to_string(),
             message: format!("fold gts snapshot: {e}"),
-        })?;
+        })
+    })?;
     let langs: Vec<String> = if languages.is_empty() {
         vec!["en".to_string()]
     } else {
         languages.to_vec()
     };
     let artifacts = crate::stages::export::render_all_with_languages(&dataset, &langs)?;
-    std::fs::create_dir_all(out_dir).map_err(|e| PipelineError::Stage {
-        stage: "export".to_string(),
-        message: format!("cannot create {}: {e}", out_dir.display()),
+    std::fs::create_dir_all(out_dir).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            stage: "export".to_string(),
+            message: format!("cannot create {}: {e}", out_dir.display()),
+        })
     })?;
     let mut written: Vec<String> = Vec::with_capacity(artifacts.len());
     for (dist_path, bytes) in &artifacts {
-        let name = Path::new(dist_path)
-            .file_name()
-            .ok_or_else(|| PipelineError::Stage {
+        let name = Path::new(dist_path).file_name().ok_or_else(|| {
+            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
                 stage: "export".to_string(),
                 message: format!("export artifact {dist_path:?} has no file name"),
-            })?;
+            })
+        })?;
         let dest = out_dir.join(name);
-        std::fs::write(&dest, bytes).map_err(|e| PipelineError::Stage {
-            stage: "export".to_string(),
-            message: format!("cannot write {}: {e}", dest.display()),
+        std::fs::write(&dest, bytes).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                stage: "export".to_string(),
+                message: format!("cannot write {}: {e}", dest.display()),
+            })
         })?;
         written.push(dest.display().to_string());
     }
@@ -229,13 +239,13 @@ pub fn export_views(
 pub fn canonicalize_turtle(
     bytes: &[u8],
     extra_prefixes: &[(String, String)],
-) -> Result<Vec<u8>, PipelineError> {
+) -> Result<Vec<u8>, gmeow_errors::Diag> {
     let canonical =
         purrdf::turtle_normalize::canonical_turtle(bytes, extra_prefixes).map_err(|e| {
-            PipelineError::Stage {
+            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
                 stage: "normalize".to_string(),
                 message: format!("canonical turtle failed: {e}"),
-            }
+            })
         })?;
     Ok(canonical.into_bytes())
 }
