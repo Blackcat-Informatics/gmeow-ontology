@@ -44,9 +44,10 @@ use gmeow_logic_compile::ir::{
     CorrespondenceLaw, DischargeCondition, DischargeVerdict, LawClaimIr, MorphismClass,
 };
 use purrdf::sparql::NativeSparqlEngine;
-use purrdf::{RdfTerm, parse_dataset};
+use purrdf::{RdfQuad, RdfTerm, parse_dataset};
 
 use crate::put_executor::run_construct;
+use crate::up_projection_corpus::dump_nt;
 
 /// A comparable source/target atom: subject, predicate, object as canonical strings. IRIs are
 /// verbatim, blank nodes `_:label`, literals `"lex"` (datatype/lang folded into the lexical
@@ -101,40 +102,61 @@ pub struct DischargeOutcome {
     pub countermodel: Option<Countermodel>,
 }
 
-/// Canonical string for an RDF term (IRIs verbatim, blanks `_:id`, literals `"lex"`).
+/// Canonical comparison string for an RDF term (IRIs verbatim, blanks `_:id`, literals `"lex"`,
+/// and an RDF-star quoted triple rendered RECURSIVELY as `<< s p o >>` — never a collapsing
+/// placeholder). The recursion keeps the rendering injective over term kind, so two DISTINCT
+/// quoted triples never compare equal in the atom sets a law verdict is computed from. This is a
+/// *comparison* key only: the inter-leg carrier is serialised from the typed [`RdfQuad`]s via the
+/// canonical purrdf N-Triples serializer ([`dump_nt`]), so faithful round-tripping never depends
+/// on this rendering.
 fn term_str(term: &RdfTerm) -> String {
     match term {
         RdfTerm::Iri(iri) => iri.clone(),
         RdfTerm::BlankNode(id) => format!("_:{id}"),
         RdfTerm::Literal(lit) => format!("\"{}\"", lit.lexical_form),
-        RdfTerm::Triple(_) => "<<triple>>".to_owned(),
+        RdfTerm::Triple(t) => format!(
+            "<< {} {} {} >>",
+            term_str(&t.subject),
+            t.predicate,
+            term_str(&t.object)
+        ),
     }
 }
 
+/// The comparable [`Atom`] key of a constructed quad — subject/object by term kind, predicate
+/// verbatim. Used to compare the recovered/reprojected graph against the source and to name
+/// countermodel atoms; the quad itself is what gets serialised between legs.
+fn quad_atom(quad: &RdfQuad) -> Atom {
+    (
+        term_str(&quad.subject),
+        quad.predicate.clone(),
+        term_str(&quad.object),
+    )
+}
+
 /// Run a `CONSTRUCT` over an N-Triples source graph, returning the constructed default-graph
-/// atoms as a set. Any parse/engine failure is surfaced as `Err` (hard-fail) — never dropped.
+/// quads as TYPED [`RdfQuad`]s. Threading the typed terms (rather than re-rendering to `Atom`
+/// strings here) is what lets the caller serialise the inter-leg carrier faithfully — a literal,
+/// blank node, or RDF-star quoted triple in the constructed graph keeps its term kind all the way
+/// to [`dump_nt`], instead of being flattened into a malformed `<...>`-wrapped IRI. Any
+/// parse/engine failure is surfaced as `Err` (hard-fail) — never dropped.
 fn run_leg(
     engine: &NativeSparqlEngine,
     source_nt: &str,
     query: &str,
-) -> Result<BTreeSet<Atom>, String> {
+) -> Result<Vec<RdfQuad>, String> {
     let dataset = parse_dataset(source_nt.as_bytes(), "application/n-triples", None)
         .map_err(|e| format!("failed to parse round-trip source graph: {e}"))?;
-    let quads = run_construct(engine, &dataset, query)?;
-    Ok(quads
-        .into_iter()
-        .map(|q| (term_str(&q.subject), q.predicate, term_str(&q.object)))
-        .collect())
+    run_construct(engine, &dataset, query)
 }
 
-/// Serialise a set of atoms back to an N-Triples graph for the next leg. Only used to carry
-/// the forward image / recovered graph between legs; every atom is an IRI triple here.
-fn atoms_to_ntriples(atoms: &BTreeSet<Atom>) -> String {
-    let mut out = String::new();
-    for (s, p, o) in atoms {
-        out.push_str(&format!("<{s}> <{p}> <{o}> .\n"));
-    }
-    out
+/// Serialise the typed constructed quads back to an N-Triples graph for the next leg, via the
+/// canonical purrdf serializer. Every term kind — IRI, literal (lexical form + datatype/lang),
+/// blank node, and RDF-star quoted triple — is emitted in correct N-Triples syntax, so the next
+/// leg's parser accepts the carrier instead of choking on a hand-built `<literal>`. A
+/// serialization failure is surfaced as `Err` (hard-fail) — never a silent drop.
+fn quads_to_ntriples(quads: &[RdfQuad]) -> Result<String, String> {
+    dump_nt(quads)
 }
 
 /// Discharge [`CorrespondenceLaw::SectionLaw`] (`put ∘ get = id_S`) by EXECUTION over `seeds`.
@@ -164,8 +186,12 @@ pub fn discharge_section_law(get_rq: &str, put_rq: &str, seeds: &[SeedGraph]) ->
             Ok(v) => v,
             Err(e) => return violated(seed, format!("get leg is not executable: {e}")),
         };
-        let recovered = match run_leg(&engine, &atoms_to_ntriples(&forward), put_rq) {
-            Ok(v) => v,
+        let forward_nt = match quads_to_ntriples(&forward) {
+            Ok(nt) => nt,
+            Err(e) => return violated(seed, format!("forward image is not serialisable: {e}")),
+        };
+        let recovered: BTreeSet<Atom> = match run_leg(&engine, &forward_nt, put_rq) {
+            Ok(v) => v.iter().map(quad_atom).collect(),
             Err(e) => return violated(seed, format!("put leg is not executable: {e}")),
         };
         if recovered != source {
@@ -208,16 +234,25 @@ pub fn discharge_put_get_law(get_rq: &str, put_rq: &str, seeds: &[SeedGraph]) ->
     ordered.sort_by(|a, b| a.label.cmp(&b.label));
 
     for seed in ordered {
-        let view = match run_leg(&engine, &seed.to_ntriples(), get_rq) {
+        let view_quads = match run_leg(&engine, &seed.to_ntriples(), get_rq) {
             Ok(v) => v,
             Err(e) => return violated(seed, format!("get leg is not executable: {e}")),
         };
-        let recovered = match run_leg(&engine, &atoms_to_ntriples(&view), put_rq) {
+        let view: BTreeSet<Atom> = view_quads.iter().map(quad_atom).collect();
+        let view_nt = match quads_to_ntriples(&view_quads) {
+            Ok(nt) => nt,
+            Err(e) => return violated(seed, format!("forward image is not serialisable: {e}")),
+        };
+        let recovered_quads = match run_leg(&engine, &view_nt, put_rq) {
             Ok(v) => v,
             Err(e) => return violated(seed, format!("put leg is not executable: {e}")),
         };
-        let reprojected = match run_leg(&engine, &atoms_to_ntriples(&recovered), get_rq) {
-            Ok(v) => v,
+        let recovered_nt = match quads_to_ntriples(&recovered_quads) {
+            Ok(nt) => nt,
+            Err(e) => return violated(seed, format!("recovered graph is not serialisable: {e}")),
+        };
+        let reprojected: BTreeSet<Atom> = match run_leg(&engine, &recovered_nt, get_rq) {
+            Ok(v) => v.iter().map(quad_atom).collect(),
             Err(e) => return violated(seed, format!("get leg is not executable: {e}")),
         };
         if reprojected != view {
@@ -593,6 +628,128 @@ mod tests {
             "the three SIOC CompleteOver cells must discharge the section law\n{outcome:#?}"
         );
         assert!(outcome.countermodel.is_none());
+    }
+
+    // ── Inter-leg carrier round-trips non-IRI terms (literal / blank node). ──
+    //
+    // The forward image of these correspondences carries a term that is NOT an IRI — a literal in
+    // one case, a fresh blank node in the other. The seed is all-IRI (so its own serialization is
+    // untouched); the non-IRI term appears ONLY in the carrier between the get and put legs. The
+    // pre-fix `atoms_to_ntriples` blanket-wrapped every component in `<...>`, so it fed the put
+    // leg a malformed line (`<...> <...> <"foo">` / `<...> <...> <_:b>`) that the N-Triples parser
+    // REJECTS → `run_leg` returned `Err` → a spurious `ObligationViolated`. Threading typed quads
+    // through the canonical serializer makes the carrier well-formed, so the seed round-trips and
+    // the law discharges. These tests FAIL on the old all-IRI serializer and PASS now.
+
+    // get mints a constant LITERAL object into the forward image; put matches that literal and
+    // reconstructs the exact source atom. The literal lives only in the carrier.
+    const LITERAL_GET: &str = "\
+CONSTRUCT { ?s <http://ext.example/label> \"foo\" }
+WHERE { ?s <http://src.example/p> ?o }";
+    const LITERAL_PUT: &str = "\
+CONSTRUCT { ?s <http://src.example/p> <http://o.example/y> }
+WHERE { ?s <http://ext.example/label> \"foo\" }";
+
+    #[test]
+    fn literal_object_in_the_carrier_round_trips_and_discharges() {
+        let seed = SeedGraph {
+            label: "literal-carrier".to_owned(),
+            atoms: vec![(
+                "http://s.example/x".to_owned(),
+                "http://src.example/p".to_owned(),
+                "http://o.example/y".to_owned(),
+            )],
+        };
+        let outcome = discharge_section_law(LITERAL_GET, LITERAL_PUT, std::slice::from_ref(&seed));
+        assert_eq!(
+            outcome.verdict,
+            DischargeVerdict::ObligationDischarged,
+            "a literal in the inter-leg carrier must round-trip, not produce a false \
+             ObligationViolated\n{outcome:#?}"
+        );
+        assert!(outcome.countermodel.is_none());
+    }
+
+    // A datatyped literal (the datatype must survive serialization → parse → match too).
+    const TYPED_LITERAL_GET: &str = "\
+CONSTRUCT { ?s <http://ext.example/n> \"42\"^^<http://www.w3.org/2001/XMLSchema#integer> }
+WHERE { ?s <http://src.example/p> ?o }";
+    const TYPED_LITERAL_PUT: &str = "\
+CONSTRUCT { ?s <http://src.example/p> <http://o.example/y> }
+WHERE { ?s <http://ext.example/n> \"42\"^^<http://www.w3.org/2001/XMLSchema#integer> }";
+
+    #[test]
+    fn datatyped_literal_in_the_carrier_round_trips_and_discharges() {
+        let seed = SeedGraph {
+            label: "typed-literal-carrier".to_owned(),
+            atoms: vec![(
+                "http://s.example/x".to_owned(),
+                "http://src.example/p".to_owned(),
+                "http://o.example/y".to_owned(),
+            )],
+        };
+        let outcome = discharge_section_law(
+            TYPED_LITERAL_GET,
+            TYPED_LITERAL_PUT,
+            std::slice::from_ref(&seed),
+        );
+        assert_eq!(
+            outcome.verdict,
+            DischargeVerdict::ObligationDischarged,
+            "a datatyped literal in the carrier must round-trip with its datatype intact\n{outcome:#?}"
+        );
+    }
+
+    // get mints a fresh BLANK NODE that joins two forward-image triples; put joins on it and
+    // reconstructs the source. The blank lives only in the carrier.
+    const BLANK_GET: &str = "\
+CONSTRUCT { ?s <http://ext.example/r> _:b . _:b <http://ext.example/v> ?o }
+WHERE { ?s <http://src.example/p> ?o }";
+    const BLANK_PUT: &str = "\
+CONSTRUCT { ?s <http://src.example/p> ?o }
+WHERE { ?s <http://ext.example/r> ?b . ?b <http://ext.example/v> ?o }";
+
+    #[test]
+    fn blank_node_in_the_carrier_round_trips_and_discharges() {
+        let seed = SeedGraph {
+            label: "blank-carrier".to_owned(),
+            atoms: vec![(
+                "http://s.example/x".to_owned(),
+                "http://src.example/p".to_owned(),
+                "http://o.example/y".to_owned(),
+            )],
+        };
+        let outcome = discharge_section_law(BLANK_GET, BLANK_PUT, std::slice::from_ref(&seed));
+        assert_eq!(
+            outcome.verdict,
+            DischargeVerdict::ObligationDischarged,
+            "a fresh blank node in the inter-leg carrier must round-trip, not produce a false \
+             ObligationViolated\n{outcome:#?}"
+        );
+        assert!(outcome.countermodel.is_none());
+    }
+
+    // The quoted-triple comparison key must be injective: two DISTINCT RDF-star quoted triples
+    // must NOT render to the same `Atom` string (the pre-fix `<<triple>>` placeholder collapsed
+    // them, so a fabricated/dropped quoted-triple atom could hide in the set comparison).
+    #[test]
+    fn distinct_quoted_triples_do_not_collapse_to_equal_atoms() {
+        use purrdf::{RdfTerm, RdfTriple};
+        let qt1 = RdfTerm::triple(RdfTriple::new(
+            RdfTerm::iri("http://s.example/a"),
+            "http://p.example/rel",
+            RdfTerm::iri("http://o.example/b"),
+        ));
+        let qt2 = RdfTerm::triple(RdfTriple::new(
+            RdfTerm::iri("http://s.example/a"),
+            "http://p.example/rel",
+            RdfTerm::iri("http://o.example/c"),
+        ));
+        assert_ne!(
+            term_str(&qt1),
+            term_str(&qt2),
+            "distinct quoted triples must render to distinct atom keys, not a collapsing placeholder"
+        );
     }
 
     // A get leg with two independent branches; a put leg that recovers both AND fabricates a
