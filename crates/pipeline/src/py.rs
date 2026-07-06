@@ -549,13 +549,26 @@ fn execute_put_legs(
     projection_ttls: Vec<String>,
     ontology_nt: String,
 ) -> PyResult<Py<PyAny>> {
+    // The Python caller supplies the projection cells + ontology but not the folded
+    // `graph/correspondence-laws` verdict set, so recompute the A→B authorization here through the
+    // SAME discharge machinery the mappings stage folds (byte-identical set). The native
+    // `gmeow` / `gmeow-dev` up-projection path consumes the folded verdict directly.
     let report = py
         .detach(move || {
+            let discharged =
+                crate::stages::correspondence_lower::discharged_section_cells_from_cells(
+                    &projection_ttls,
+                    &ontology_nt,
+                )
+                .map_err(|message| {
+                    gmeow_errors::Diag::of_kind(crate::error::UpProjection { message })
+                })?;
             crate::put_executor::execute_put_legs(
                 &source_nt,
                 &sssom_texts,
                 &projection_ttls,
                 &ontology_nt,
+                &discharged,
             )
         })
         .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;

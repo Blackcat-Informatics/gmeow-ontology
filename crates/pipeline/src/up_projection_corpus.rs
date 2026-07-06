@@ -45,6 +45,7 @@ pub(crate) const GM_TEMPLATE_ATOMS: &str = "https://blackcatinformatics.ca/gmeow
 pub(crate) const GM_TO_PREDICATE: &str = "https://blackcatinformatics.ca/gmeow/toPredicate";
 pub(crate) const GM_TO_CLASS: &str = "https://blackcatinformatics.ca/gmeow/toClass";
 pub(crate) const GM_RELATION: &str = "https://blackcatinformatics.ca/gmeow/relation";
+pub(crate) const GM_MNEMOMORPHIC: &str = "https://blackcatinformatics.ca/gmeow/mnemomorphic";
 pub(crate) const GM_CONFIDENCE: &str = "https://blackcatinformatics.ca/gmeow/confidence";
 pub(crate) const GM_ATOM: &str = "https://blackcatinformatics.ca/gmeow/atom";
 pub(crate) const GM_ANCHOR: &str = "https://blackcatinformatics.ca/gmeow/anchor";
