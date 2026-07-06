@@ -35,7 +35,6 @@ use gmeow_conformance::external::{outcome_from_szs, parse_test_manifest};
 use gmeow_logic::reason::ExternalComparison;
 use serde::{Deserialize, Serialize};
 
-use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 
 /// The in-memory logical path of the external-corpus divergence N-Quads product
@@ -97,7 +96,7 @@ struct GradedCase {
 /// corpus's emitter output is itself sorted + content-addressed). An all-agree
 /// corpus contributes nothing; an empty result means the whole committed corpus
 /// agrees with every published expectation.
-pub fn build_conformance_divergence(root: &Path) -> Result<Vec<u8>, PipelineError> {
+pub fn build_conformance_divergence(root: &Path) -> Result<Vec<u8>, gmeow_errors::Diag> {
     Ok(divergence_nq_from_corpora(&grade_external_corpora(root)?))
 }
 
@@ -107,7 +106,7 @@ pub fn build_conformance_divergence(root: &Path) -> Result<Vec<u8>, PipelineErro
 /// from its result, never re-grading (PIPELINE_SPINE §3.2/§8, the razor).
 pub fn grade_external_corpora(
     root: &Path,
-) -> Result<BTreeMap<String, Vec<ExternalComparison>>, PipelineError> {
+) -> Result<BTreeMap<String, Vec<ExternalComparison>>, gmeow_errors::Diag> {
     let external = root.join(EXTERNAL_ROOT);
     let mut by_corpus: BTreeMap<String, Vec<ExternalComparison>> = BTreeMap::new();
     for graded in grade_external_cases(&external)? {
@@ -147,7 +146,7 @@ fn divergence_nq_from_corpora(by_corpus: &BTreeMap<String, Vec<ExternalCompariso
 pub(crate) fn agreement_tallies_json(
     root: &Path,
     by_corpus: &BTreeMap<String, Vec<ExternalComparison>>,
-) -> Result<Vec<u8>, PipelineError> {
+) -> Result<Vec<u8>, gmeow_errors::Diag> {
     let external = root.join(EXTERNAL_ROOT);
     let mut records: BTreeMap<String, TallyRecord> = BTreeMap::new();
     for (corpus, comparisons) in by_corpus {
@@ -186,7 +185,7 @@ pub(crate) fn agreement_tallies_json(
 /// TPTP source-only divergence case with no frozen `expected/verdicts.json` — has
 /// no native/published pair to grade and is skipped (not a defect). A source that
 /// is present but unparsable, or a verdicts file present but malformed, HARD-fails.
-fn grade_external_cases(external: &Path) -> Result<Vec<GradedCase>, PipelineError> {
+fn grade_external_cases(external: &Path) -> Result<Vec<GradedCase>, gmeow_errors::Diag> {
     let mut graded: Vec<GradedCase> = Vec::new();
     if !external.is_dir() {
         return Err(stage_err(&format!(
@@ -250,7 +249,7 @@ fn grade_external_cases(external: &Path) -> Result<Vec<GradedCase>, PipelineErro
 fn ontouml_graded(
     case_dir: &Path,
     case: &str,
-) -> Result<Option<ExternalComparison>, PipelineError> {
+) -> Result<Option<ExternalComparison>, gmeow_errors::Diag> {
     let materialized = case_dir.join("expected").join("materialized.nq");
     if !materialized.is_file() {
         return Ok(None);
@@ -274,7 +273,7 @@ fn ontouml_graded(
 
 /// The verbatim `documented_antipattern` provenance in a case's `profile.json`, or
 /// `None` when the key is absent (a clean control). A malformed profile HARD-fails.
-fn documented_antipattern(case_dir: &Path) -> Result<Option<String>, PipelineError> {
+fn documented_antipattern(case_dir: &Path) -> Result<Option<String>, gmeow_errors::Diag> {
     let path = case_dir.join("profile.json");
     let text = std::fs::read_to_string(&path)
         .map_err(|e| stage_err(&format!("read {}: {e}", path.display())))?;
@@ -294,7 +293,7 @@ fn documented_antipattern(case_dir: &Path) -> Result<Option<String>, PipelineErr
 /// (`<s> <logic:violation> <logic:{Discipline}> <g> .`).
 fn fired_disciplines_in_golden(
     materialized: &Path,
-) -> Result<std::collections::BTreeSet<String>, PipelineError> {
+) -> Result<std::collections::BTreeSet<String>, gmeow_errors::Diag> {
     const VIOLATION: &str = "<https://blackcatinformatics.ca/logic/violation>";
     const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
     let text = std::fs::read_to_string(materialized)
@@ -319,7 +318,7 @@ fn fired_disciplines_in_golden(
 /// The published external verdict for a case, from whichever committed source it
 /// carries: a W3C `source/manifest.ttl` or a TPTP `source/problem.p`. Returns
 /// `None` when the case carries neither recognized source.
-fn published_outcome(case_dir: &Path) -> Result<Option<String>, PipelineError> {
+fn published_outcome(case_dir: &Path) -> Result<Option<String>, gmeow_errors::Diag> {
     let manifest_path = case_dir.join("source").join("manifest.ttl");
     if manifest_path.is_file() {
         return Ok(Some(published_verdict(&manifest_path)?));
@@ -341,7 +340,7 @@ fn published_outcome(case_dir: &Path) -> Result<Option<String>, PipelineError> {
 /// The manifest carries exactly one recognized test entry per committed case; a
 /// parse failure, a zero-entry manifest, or a multi-entry manifest all HARD-fail
 /// (the committed corpus is a single-test-per-case surface).
-fn published_verdict(manifest_path: &Path) -> Result<String, PipelineError> {
+fn published_verdict(manifest_path: &Path) -> Result<String, gmeow_errors::Diag> {
     let text = std::fs::read_to_string(manifest_path)
         .map_err(|e| stage_err(&format!("read {}: {e}", manifest_path.display())))?;
     let abs = std::path::absolute(manifest_path)
@@ -367,7 +366,7 @@ fn published_verdict(manifest_path: &Path) -> Result<String, PipelineError> {
 /// object. A committed external case scopes its premises to exactly one world, so a
 /// missing file, a parse failure, a zero-world object, a multi-world object, or a
 /// missing/non-string `status` all HARD-fail (no silent skip).
-fn native_verdict(case_dir: &Path, case: &str) -> Result<(String, String), PipelineError> {
+fn native_verdict(case_dir: &Path, case: &str) -> Result<(String, String), gmeow_errors::Diag> {
     let path = case_dir.join("expected").join("verdicts.json");
     let text = std::fs::read_to_string(&path)
         .map_err(|e| stage_err(&format!("read {}: {e}", path.display())))?;
@@ -399,7 +398,7 @@ fn native_verdict(case_dir: &Path, case: &str) -> Result<(String, String), Pipel
 }
 
 /// The immediate subdirectories of `dir`, sorted by path.
-fn sorted_dirs(dir: &Path) -> Result<Vec<PathBuf>, PipelineError> {
+fn sorted_dirs(dir: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
     let mut out: Vec<PathBuf> = Vec::new();
     for entry in std::fs::read_dir(dir)
         .map_err(|e| stage_err(&format!("read_dir {}: {e}", dir.display())))?
@@ -416,18 +415,18 @@ fn sorted_dirs(dir: &Path) -> Result<Vec<PathBuf>, PipelineError> {
 }
 
 /// The final path component as an owned `String` (HARD-fails on a non-UTF-8 name).
-fn dir_name(dir: &Path) -> Result<String, PipelineError> {
+fn dir_name(dir: &Path) -> Result<String, gmeow_errors::Diag> {
     dir.file_name()
         .and_then(|n| n.to_str())
         .map(str::to_string)
         .ok_or_else(|| stage_err(&format!("directory {} has no UTF-8 name", dir.display())))
 }
 
-fn stage_err(message: &str) -> PipelineError {
-    PipelineError::Stage {
+fn stage_err(message: &str) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(crate::error::StageFailed {
         stage: "stage-conformance".to_string(),
         message: message.to_string(),
-    }
+    })
 }
 
 // ── Stage impl ───────────────────────────────────────────────────────────────────
@@ -449,7 +448,7 @@ impl Stage for ConformanceStage {
     fn impl_version(&self) -> &str {
         "conformance.v1"
     }
-    fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, PipelineError> {
+    fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
         // The committed external corpus is a raw source read: every case's
         // published source (W3C `source/manifest.ttl`, TPTP `source/problem.p`, or
         // OntoUML `source/model.ttl`) plus its frozen native verdict busts this
@@ -495,7 +494,7 @@ impl Stage for ConformanceStage {
         files.sort();
         Ok(files)
     }
-    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
+    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         // Grade the committed corpus ONCE; both projections read this single result
         // (PIPELINE_SPINE §3.2/§8 — no re-walk, no re-grade).
         let by_corpus = grade_external_corpora(input.root)?;
@@ -515,9 +514,11 @@ impl Stage for ConformanceStage {
         // The single graded result, attached for `stage-export-agreement` to project
         // into the benchmark dashboard — never written to disk (`pipeline/` prefix).
         artifacts.insert(AGREEMENT_TALLIES_PATH.to_string(), tallies);
-        Ok(StageOutput {
-            product: StageProduct::from_artifacts_over(self.id(), dataset, artifacts),
-        })
+        Ok(StageOutput::new(StageProduct::from_artifacts_over(
+            self.id(),
+            dataset,
+            artifacts,
+        )))
     }
 }
 

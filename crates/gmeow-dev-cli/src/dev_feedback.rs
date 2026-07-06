@@ -312,7 +312,8 @@ fn surfaces() -> Vec<(&'static str, SurfaceThunk)> {
             Ok(gmeow_validate::coverage::coverage_to_diagnostics(&rep))
         }),
         ("acceptance", |root| {
-            let results = gmeow_pipeline::scoreboards::run_acceptance_corpus(root, None)?;
+            let results = gmeow_pipeline::scoreboards::run_acceptance_corpus(root, None)
+                .map_err(|e| e.to_string())?;
             Ok(gmeow_pipeline::scoreboards::acceptance_diagnostics(
                 &results,
             ))
@@ -355,7 +356,8 @@ fn surfaces() -> Vec<(&'static str, SurfaceThunk)> {
             // ungrounded / contradicted / stale finder), exactly the corpus the
             // retired Python `_audit` folded.
             let corpus = root.join("tests/fixtures/coverage/hallucination-kg.ttl");
-            let report = gmeow_pipeline::scoreboards::claim_audit(root, &[corpus])?;
+            let report = gmeow_pipeline::scoreboards::claim_audit(root, &[corpus])
+                .map_err(|e| e.to_string())?;
             Ok(gmeow_pipeline::scoreboards::claim_audit_diagnostics(
                 &report,
             ))
