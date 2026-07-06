@@ -486,6 +486,9 @@ jobs:
       - name: Vendored-entity coverage — hard class/predicate floors
         run: make coverage
 
+      - name: Native purrdf-entail cross-check — native ⊇ OWL-RL oracle (on-gate)
+        run: make reason-crosscheck
+
   ontology-misc:
     needs: [native-build]
     runs-on: ubuntu-latest
