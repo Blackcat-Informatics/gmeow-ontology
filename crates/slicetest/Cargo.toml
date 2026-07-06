@@ -40,6 +40,10 @@ gmeow-logic-compile = { path = "../logic-compile" }
 # File-driven test harness: one nextest case per discovered tests/*.ttl spec
 # file, run in parallel. The headline speed win of #784 (T3).
 datatest-stable = "0.3"
+# The flagship acceptance-manifest cross-check (#1255) names the frozen dataset and
+# term types directly to walk the manifest ⋈ competency union; the same native codec
+# the harness already depends on.
+purrdf = "0.3"
 
 [[test]]
 name = "slice_specs"

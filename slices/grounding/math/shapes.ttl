@@ -1314,3 +1314,66 @@ math:FormalVerificationResultShape
             }
         """ ;
     ] .
+
+# =========================================================================== #
+# Flagship acceptance manifest — the epic depth bar gate
+#
+# A math:FlagshipScenario reifies one flagship acceptance scenario and MUST bind all
+# four realizing/enforcing artifacts, and the class it names as enforcing MUST be a
+# math:MathConformanceFailure subclass. The competency reference is checked only for
+# node kind here (the gmeow:CompetencyQuestion individual lives in the tests dataset,
+# which SHACL never loads); its resolution and cqExpectRow expectation are confirmed
+# by the native flagship cross-check.
+# =========================================================================== #
+
+math:FlagshipScenarioShape
+    a sh:NodeShape ;
+    rdfs:label "Flagship scenario wiring shape"@x-gmeow-english ;
+    skos:definition "SHACL constraints for math:FlagshipScenario: it binds exactly one worked example (math:demonstratedByExample), one competency question (math:demonstratedByCompetency), one counter-example (math:guardedByCounterExample), and one enforcing failure class (math:enforcesFailureClass), and that failure class is a math:MathConformanceFailure subclass. An acceptance scenario that does not wire all four artifacts to a real failure class cannot claim the scenario is met."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    math:enforcesFailureClass math:UnwiredFlagshipScenario ;
+    sh:targetClass math:FlagshipScenario ;
+    sh:property [
+        sh:path math:demonstratedByExample ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:severity sh:Violation ;
+        sh:message "A math:FlagshipScenario must name exactly one worked example through math:demonstratedByExample (a slice-relative path); an acceptance scenario with no realizing example is unwired." ;
+    ] ;
+    sh:property [
+        sh:path math:demonstratedByCompetency ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A math:FlagshipScenario must name exactly one competency question through math:demonstratedByCompetency (an IRI into tests/competency.ttl); an acceptance scenario with no pinning competency question is unwired." ;
+    ] ;
+    sh:property [
+        sh:path math:guardedByCounterExample ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:severity sh:Violation ;
+        sh:message "A math:FlagshipScenario must name exactly one counter-example through math:guardedByCounterExample (a slice-relative path); a rule with no negative fixture is not considered enforced." ;
+    ] ;
+    sh:property [
+        sh:path math:enforcesFailureClass ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A math:FlagshipScenario must name exactly one enforcing failure class through math:enforcesFailureClass; an acceptance scenario whose gate raises no named failure is unwired." ;
+    ] ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "A math:FlagshipScenario's math:enforcesFailureClass must name a math:MathConformanceFailure subclass — the typed failure its counter-example raises; naming a class that is not a conformance failure leaves the scenario unwired (math:UnwiredFlagshipScenario)." ;
+        sh:select """
+            SELECT $this WHERE {
+                $this <https://blackcatinformatics.ca/math/enforcesFailureClass> ?fc .
+                FILTER NOT EXISTS {
+                    ?fc <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/math/MathConformanceFailure> .
+                }
+            }
+        """ ;
+    ] .
