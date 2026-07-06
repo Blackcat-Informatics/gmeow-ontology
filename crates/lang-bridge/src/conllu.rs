@@ -722,9 +722,22 @@ fn emit_composed_form(
     });
     let form_local = crate::rdf_scan::local_name(&source_iri).to_owned();
 
-    // The co-resident readings: the analyses the form is scoped to. A form with no declared
-    // analysis is a single (synthetic) reading over all its slots.
-    let analyses = crate::rdf_scan::objects(ds, form, &format!("{LANG_NS}inAnalysis"));
+    // The co-resident readings: the analyses the form is scoped to — either directly through the
+    // form's own `lang:inAnalysis` OR through its slots' `lang:inAnalysis` (a form may leave its
+    // analyses implicit on the form node and declare them per slot). The UNION is taken so a form
+    // whose slots carry distinct analyses is NOT collapsed into a single silently-merged reading.
+    // A form with no analysis anywhere is a single (synthetic) reading over all its slots.
+    let in_analysis = format!("{LANG_NS}inAnalysis");
+    let mut analyses = crate::rdf_scan::objects(ds, form, &in_analysis);
+    for slot in crate::rdf_scan::objects(ds, form, &format!("{LANG_NS}formSlot")) {
+        for a in crate::rdf_scan::objects(ds, slot, &in_analysis) {
+            if !analyses.contains(&a) {
+                analyses.push(a);
+            }
+        }
+    }
+    // Deterministic reading order independent of scan order.
+    analyses.sort_by_cached_key(|&a| crate::rdf_scan::term_label(ds, a));
     let reading_keys: Vec<Option<purrdf::TermId>> = if analyses.is_empty() {
         vec![None]
     } else {
@@ -1140,6 +1153,43 @@ ex:c1 a lang:FormSlot ; lang:inAnalysis ex:aCrouch ; lang:slotIndex 1 ; lang:slo
             e.artifacts.len(),
             2,
             "two co-resident analyses ⇒ two CoNLL-U artifacts"
+        );
+    }
+
+    #[test]
+    fn slot_scoped_analyses_are_not_collapsed_without_a_form_level_in_analysis() {
+        // The form declares NO lang:inAnalysis; its slots carry the two analysis scopes. The
+        // readings must be recovered from the slots' scopes (union), never merged into one.
+        let doc = "\
+@prefix lang: <https://blackcatinformatics.ca/lang/> .\n\
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
+@prefix ex:   <http://example.org/lang/> .\n\
+ex:wSaw a lang:WordForm ; rdfs:label \"saw\" .\n\
+ex:wDuck a lang:WordForm ; rdfs:label \"duck\" .\n\
+ex:sent a lang:ComposedForm ; rdfs:label \"saw duck\" ; lang:formSlot ex:b0 , ex:b1 , ex:c0 , ex:c1 .\n\
+ex:aBird a lang:Analysis .\n\
+ex:aCrouch a lang:Analysis .\n\
+ex:b0 a lang:FormSlot ; lang:inAnalysis ex:aBird ; lang:slotIndex 0 ; lang:slotForm ex:wSaw ; lang:slotRole lang:predicateRole .\n\
+ex:b1 a lang:FormSlot ; lang:inAnalysis ex:aBird ; lang:slotIndex 1 ; lang:slotForm ex:wDuck ; lang:slotRole lang:objectRole ; lang:dependsOn ex:b0 .\n\
+ex:c0 a lang:FormSlot ; lang:inAnalysis ex:aCrouch ; lang:slotIndex 0 ; lang:slotForm ex:wSaw ; lang:slotRole lang:predicateRole .\n\
+ex:c1 a lang:FormSlot ; lang:inAnalysis ex:aCrouch ; lang:slotIndex 1 ; lang:slotForm ex:wDuck ; lang:slotRole lang:complementRole ; lang:dependsOn ex:c0 .\n";
+        let input = LangProjectionInput {
+            lang_models: vec![NamedSource {
+                name: "slot-scoped".to_owned(),
+                bytes: doc.as_bytes().to_vec(),
+            }],
+            ..Default::default()
+        };
+        let e = &ConlluTarget.emit(&input).expect("emit")[0];
+        assert_eq!(
+            e.emitted_reading_count,
+            Some(2),
+            "the two slot-scoped analyses must be recovered as two readings"
+        );
+        assert_eq!(
+            e.artifacts.len(),
+            2,
+            "never collapsed into one merged reading"
         );
     }
 
