@@ -48,6 +48,30 @@ use crate::ir::{
 const XSD_BOOLEAN: &str = "http://www.w3.org/2001/XMLSchema#boolean";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 
+/// Whether an atom occupies the head or a body position of the clause being
+/// lowered. n-ary reification differs by position: a body n-ary atom binds a fresh
+/// join variable over its reified conjunction, whereas a head n-ary atom *derives*
+/// a new tuple and needs a content-addressed existential reifier witness.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum AtomPosition {
+    Head,
+    Body,
+}
+
+/// The HiLog-reflection typing predicate: `logic:instanceOf(R, Rel)` types a
+/// reified n-ary tuple `R` by its relation individual `Rel` (see the reified n-ary
+/// vocabulary in the `logic:` module). Reused rather than `rdf:type` so the object
+/// level stays first-order and the certifier treats it as an ordinary binary atom.
+fn instance_of_iri() -> String {
+    format!("{LOGIC_NAMESPACE}instanceOf")
+}
+
+/// The flat positional predicate `logic:naryArg{i}(R, aᵢ)` carrying argument `i` of
+/// a reified n-ary tuple.
+fn nary_arg_iri(i: usize) -> String {
+    format!("{LOGIC_NAMESPACE}naryArg{i}")
+}
+
 // ── Vocabulary IRIs (the queryable `logic:` surface of the projection) ──────────
 
 /// The singleton subject describing the whole lowered program.
@@ -726,13 +750,22 @@ fn lower_formula_clause(clause: &Formula) -> Result<RcRule, &'static str> {
     }
 
     let head = head.ok_or("headless clause (no positive literal; an integrity constraint)")?;
-    let head_atom = formula_atom_to_rc(head)?;
-    let body: Result<Vec<RcAtom>, &'static str> =
-        body_atoms.iter().map(|a| formula_atom_to_rc(a)).collect();
+    // A binary/unary head reifies to exactly one head atom (a Horn rule has a single
+    // head). An n-ary head atom (arity ≥ 3) derives a new tuple and is handled by the
+    // head-derivation lowering, not this single-head path.
+    let head_atoms = formula_atom_to_rc_atoms(head, AtomPosition::Head)?;
+    let [head_atom] = head_atoms.as_slice() else {
+        return Err("head atom did not reduce to a single relational-core atom");
+    };
+    let head_atom = head_atom.clone();
+    // Each body atom lowers to one (binary/unary) or several (reified n-ary) atoms.
+    let mut body: Vec<RcAtom> = Vec::with_capacity(body_atoms.len());
+    for a in &body_atoms {
+        body.extend(formula_atom_to_rc_atoms(a, AtomPosition::Body)?);
+    }
     // Sort the body atoms in the canonical order that mirrors `LogicRule::new`'s
     // `sort_by_cached_key(LogicAxiom::sort_key)` so the formula lane and the Horn rule
     // lane produce identical body orderings for any equivalent clause.
-    let mut body = body?;
     body.sort_by_cached_key(rc_atom_sort_key);
     Ok(RcRule {
         head: head_atom,
@@ -741,27 +774,101 @@ fn lower_formula_clause(clause: &Formula) -> Result<RcRule, &'static str> {
     })
 }
 
-/// Convert a binary [`Formula::Atom`] to an [`RcAtom`] (the relational core is binary:
-/// subject / predicate / object). A clause literal is always positive in the rule (strong
-/// negation `¬B` was peeled into a positive body atom by [`lower_formula_clause`]).
-fn formula_atom_to_rc(atom: &Formula) -> Result<RcAtom, &'static str> {
+/// Lower a [`Formula::Atom`] to one or more binary [`RcAtom`]s. A binary atom is a
+/// direct triple; every other fixed arity is **reified** into a conjunction of
+/// ordinary binary atoms over a single reifier node `R` (the flat-binary n-ary
+/// encoding): `logic:instanceOf(R, Rel) ∧ logic:naryArg0(R, a₀) ∧ …`. A clause
+/// literal is always positive in the rule (strong negation `¬B` was peeled into a
+/// positive body atom by [`lower_formula_clause`]).
+///
+/// - arity 2 → the direct `subject predicate object` triple (unchanged binary path).
+/// - arity 1 → `logic:instanceOf(a₀, Rel)` — unary predication under the HiLog reflection.
+/// - arity ≥ 3, **body** → the reified conjunction over a fresh join variable `R`.
+///   `R` is keyed on the atom's *raw syntactic form* (relation + ordered argument
+///   term keys, with authored variable names intact) via [`sha256_12`], so distinct
+///   atoms `rel(?x,?y,?z)` and `rel(?u,?v,?w)` get distinct reifier vars (their raw
+///   keys differ) while two occurrences of the *same* atom share one `R`. This keying
+///   is order-independent of body position, so the canonical body sort in
+///   [`lower_formula_clause`] keeps rule identity stable regardless of authored order —
+///   and it is NOT the alpha-normalized `content_key`, which would unsoundly collapse
+///   `rel(?x,?y,?z)` and `rel(?u,?v,?w)` into one variable.
+/// - arity ≥ 3, **head** → deriving a new n-ary tuple; handled by the head-derivation
+///   lowering (a conjunctive existential rule), not this per-atom converter.
+fn formula_atom_to_rc_atoms(
+    atom: &Formula,
+    pos: AtomPosition,
+) -> Result<Vec<RcAtom>, &'static str> {
     let Formula::Atom { relation, args } = atom else {
         return Err("clause literal is not an atom");
     };
-    if args.len() != 2 {
-        return Err("non-binary atom (the relational core is binary; arity != 2)");
-    }
-    let Term::Iri(pred) = relation else {
+    let Term::Iri(rel) = relation else {
         return Err("non-IRI relation in atom");
     };
-    let subject = formula_term_to_rc(&args[0], false)?;
-    let object = formula_term_to_rc(&args[1], true)?;
-    Ok(RcAtom {
-        subject,
-        predicate: pred.clone(),
-        object,
-        negated: false,
-    })
+    match args.len() {
+        2 => {
+            let subject = formula_term_to_rc(&args[0], false)?;
+            let object = formula_term_to_rc(&args[1], true)?;
+            Ok(vec![RcAtom {
+                subject,
+                predicate: rel.clone(),
+                object,
+                negated: false,
+            }])
+        }
+        1 => {
+            // Unary predication Rel(a) ≡ instanceOf(a, Rel) under the HiLog reflection.
+            let subject = formula_term_to_rc(&args[0], false)?;
+            Ok(vec![RcAtom {
+                subject,
+                predicate: instance_of_iri(),
+                object: RcTerm::Iri(rel.clone()),
+                negated: false,
+            }])
+        }
+        0 => {
+            Err("nullary atom (a proposition constant is not representable in the relational core)")
+        }
+        _ => match pos {
+            AtomPosition::Body => {
+                // Reified argument terms (object position: variables, IRIs, literals
+                // are all legal). A sequence-marker argument rejects here, keeping a
+                // genuinely-variadic atom as residue.
+                let arg_terms: Vec<RcTerm> = args
+                    .iter()
+                    .map(|a| formula_term_to_rc(a, true))
+                    .collect::<Result<_, _>>()?;
+                // Reifier join variable keyed on the raw syntactic atom (relation +
+                // ordered argument term keys). Order-independent of body position;
+                // distinct atoms → distinct vars; identical atoms → shared var.
+                let mut syntactic_key = rel.clone();
+                for t in &arg_terms {
+                    syntactic_key.push('\u{1f}');
+                    syntactic_key.push_str(&t.key());
+                }
+                let reifier = RcTerm::Var(format!("?__nary_{}", sha256_12(&syntactic_key)));
+                let mut out = Vec::with_capacity(arg_terms.len() + 1);
+                out.push(RcAtom {
+                    subject: reifier.clone(),
+                    predicate: instance_of_iri(),
+                    object: RcTerm::Iri(rel.clone()),
+                    negated: false,
+                });
+                for (i, obj) in arg_terms.into_iter().enumerate() {
+                    out.push(RcAtom {
+                        subject: reifier.clone(),
+                        predicate: nary_arg_iri(i),
+                        object: obj,
+                        negated: false,
+                    });
+                }
+                Ok(out)
+            }
+            // An n-ary atom deriving a new tuple in the head is handled by the
+            // head-derivation lowering, which [`lower_formula_clause`] dispatches
+            // before reaching this per-atom converter.
+            AtomPosition::Head => Err("n-ary atom in rule head (deriving a new tuple)"),
+        },
+    }
 }
 
 /// Convert an IR [`Term`] to an [`RcTerm`]. `is_object` gates a literal to the object slot.
@@ -1410,7 +1517,7 @@ mod tests {
             &horn_program(),
             [
                 "disjunctive head: clause is not Horn (>1 positive literal)",
-                "non-binary atom (the relational core is binary; arity != 2)",
+                "sequence marker (variadic) is not representable in the relational core",
             ],
         );
         let nt = project_relational_core(&lowered);
@@ -1594,17 +1701,116 @@ mod tests {
         );
     }
 
-    /// A non-binary (ternary) atom is beyond the binary relational core: carried + tagged Variadic.
+    /// A fixed-arity ternary atom in a rule BODY is now evaluable: it reifies into a
+    /// conjunction of binary atoms over a fresh reifier variable, so the rule is
+    /// carried (not residue) and preservation is Exact.
     #[test]
-    fn variadic_atom_is_carried_and_named() {
-        let f = fatom("rA", vec![fvar("x"), fvar("y"), fvar("z")]);
+    fn nary_body_atom_lowers_to_reified_rules() {
+        // ∀x y z. relA(x,y,z) → pA(x,z)
+        let body = fatom("relA", vec![fvar("x"), fvar("y"), fvar("z")]);
+        let head = fatom("pA", vec![fvar("x"), fvar("z")]);
+        let f = Formula::Forall {
+            vars: vec!["x".into(), "y".into(), "z".into()],
+            body: Box::new(Formula::Implies(Box::new(body), Box::new(head))),
+        };
+        let program = LogicProgram::new(vec![], vec![], vec![], None).with_formulas(vec![f]);
+        let lowered = lower_program_with_formulas(&program);
+        assert!(
+            lowered.residue.is_empty(),
+            "a fixed-arity n-ary body atom is evaluable, not residue: {:?}",
+            lowered.residue
+        );
+        assert_eq!(lowered.preservation(), PreservationKind::Exact);
+        assert_eq!(lowered.rules.len(), 1, "the implication lowers to one rule");
+        // The ternary body atom reifies into instanceOf + naryArg0 + naryArg1 + naryArg2.
+        assert_eq!(
+            lowered.rules[0].body.len(),
+            4,
+            "ternary body atom → 4 reified binary atoms"
+        );
+        let preds: Vec<&str> = lowered.rules[0]
+            .body
+            .iter()
+            .map(|a| a.predicate.as_str())
+            .collect();
+        assert!(preds.iter().any(|p| p.ends_with("instanceOf")), "{preds:?}");
+        for i in 0..3 {
+            assert!(
+                preds.iter().any(|p| p.ends_with(&format!("naryArg{i}"))),
+                "missing naryArg{i}: {preds:?}"
+            );
+        }
+        // The reifier variable is shared across the whole reified conjunction.
+        let reifier_subjects: BTreeSet<&RcTerm> =
+            lowered.rules[0].body.iter().map(|a| &a.subject).collect();
+        assert_eq!(
+            reifier_subjects.len(),
+            1,
+            "all reified atoms share one reifier variable: {reifier_subjects:?}"
+        );
+    }
+
+    /// Two DISTINCT same-relation ternary body atoms must NOT be unified: their reifier
+    /// variables are keyed on the raw syntactic atom (authored variable names intact),
+    /// so `rel(?a,?b,?c)` and `rel(?d,?e,?f)` get different reifiers. Keying on the
+    /// alpha-normalized content_key would unsoundly collapse them into one tuple.
+    #[test]
+    fn distinct_nary_body_atoms_do_not_collide() {
+        // ∀ a b c d e f. relA(a,b,c) ∧ relA(d,e,f) → pA(a,d)
+        let body = Formula::And(vec![
+            fatom("relA", vec![fvar("a"), fvar("b"), fvar("c")]),
+            fatom("relA", vec![fvar("d"), fvar("e"), fvar("f")]),
+        ]);
+        let head = fatom("pA", vec![fvar("a"), fvar("d")]);
+        let f = Formula::Forall {
+            vars: vec![
+                "a".into(),
+                "b".into(),
+                "c".into(),
+                "d".into(),
+                "e".into(),
+                "f".into(),
+            ],
+            body: Box::new(Formula::Implies(Box::new(body), Box::new(head))),
+        };
+        let program = LogicProgram::new(vec![], vec![], vec![], None).with_formulas(vec![f]);
+        let lowered = lower_program_with_formulas(&program);
+        assert!(lowered.residue.is_empty(), "{:?}", lowered.residue);
+        assert_eq!(lowered.rules.len(), 1);
+        // Two distinct ternary atoms → two distinct reifier variables (2 × 4 = 8 atoms).
+        assert_eq!(
+            lowered.rules[0].body.len(),
+            8,
+            "two distinct ternary atoms reify without collision"
+        );
+        let reifier_vars: BTreeSet<&RcTerm> = lowered.rules[0]
+            .body
+            .iter()
+            .filter(|a| a.predicate.ends_with("instanceOf"))
+            .map(|a| &a.subject)
+            .collect();
+        assert_eq!(
+            reifier_vars.len(),
+            2,
+            "distinct atoms must NOT share a reifier variable: {reifier_vars:?}"
+        );
+    }
+
+    /// A genuine sequence-marker atom (`rA(x, ...rest)`) is truly variadic — it stays
+    /// carried as residue and tagged Variadic; only *fixed*-arity atoms reify.
+    #[test]
+    fn sequence_marker_atom_is_carried_and_named() {
+        let f = fatom(
+            "rA",
+            vec![fvar("x"), Term::SequenceMarker("rest".to_owned())],
+        );
         let program = LogicProgram::new(vec![], vec![], vec![], None).with_formulas(vec![f]);
         let lowered = lower_program_with_formulas(&program);
         assert_eq!(lowered.preservation(), PreservationKind::SoundUnder);
         assert!(lowered.rules.is_empty());
         assert_eq!(lowered.residue.len(), 1);
         let r = &lowered.residue[0].reason;
-        assert!(r.contains("non-binary atom"), "names the reason: {r}");
+        assert!(r.contains("sequence marker"), "names the reason: {r}");
         assert!(r.contains("Variadic"), "names the Variadic tag: {r}");
     }
 
