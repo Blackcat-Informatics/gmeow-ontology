@@ -17,6 +17,9 @@ use std::collections::{BTreeMap, BTreeSet, HashSet};
 
 use regex::Regex;
 
+use gmeow_errors::{
+    Diag, DiagLedger, FindingCategory, Grade, Severity, StageId, Standpoint, register_code,
+};
 use purrdf::{DatasetView, GraphMatch, RdfDataset, TermRef};
 
 use crate::model::{owl, rdf, rdfs, skos};
@@ -78,13 +81,141 @@ fn kind_rank(kind: &str) -> usize {
         .expect("kind must be one of TERM_KIND_ORDER")
 }
 
-/// A `{"errors": [...], "warnings": [...]}` report.
-#[derive(Debug, Default, Clone, PartialEq, Eq)]
+/// The registered finding codes the two lints emit. Each distinct lint CHECK owns
+/// its own code so genuinely distinct findings never hash-cons-merge on the ledger
+/// (the fingerprint keys on `(code, category, location, focus)`, never the message):
+/// two findings from one check on different terms are kept apart by their `focus`,
+/// and two findings from the same check on the same term but with different messages
+/// (the multi-message checks — the graphBoxRole quartet, the two language-tag passes,
+/// the three RenderingAsIdentity arms, the dimensional-inhomogeneity arms) are kept
+/// apart by their code.
+mod codes {
+    pub const MISSING_LABEL: &str = "validate.lint.missing-label";
+    pub const MISSING_DEFINITION: &str = "validate.lint.missing-definition";
+    pub const MISSING_IS_DEFINED_BY: &str = "validate.lint.missing-is-defined-by";
+    pub const NON_IRI_GRAPH_BOX_ROLE: &str = "validate.lint.non-iri-graph-box-role";
+    pub const GRAPH_BOX_ROLE_NOT_REGISTERED: &str = "validate.lint.graph-box-role-not-registered";
+    pub const MISSING_GRAPH_BOX_ROLE: &str = "validate.lint.missing-graph-box-role";
+    pub const MISSING_USE_WHEN: &str = "validate.lint.missing-use-when";
+    pub const MISSING_HOW_TO_USE: &str = "validate.lint.missing-how-to-use";
+    pub const HOW_TO_USE_WITHOUT_EXAMPLE: &str = "validate.lint.how-to-use-without-example";
+    pub const DANGLING_SUBTERM_TARGET: &str = "validate.lint.dangling-subterm-target";
+    pub const SYSTEMATIC_DOCUMENTATION_GAP: &str = "validate.lint.systematic-documentation-gap";
+    pub const GMEOW_PREDICATE_EXTERNAL_LANG_TAG: &str =
+        "validate.lint.gmeow-predicate-external-lang-tag";
+    pub const ANNOTATION_EXTERNAL_LANG_TAG: &str = "validate.lint.annotation-external-lang-tag";
+    pub const LANG_UNDECLARED_LOWERING_STAGE: &str = "validate.lint.lang.undeclared-lowering-stage";
+    pub const LANG_SILENT_DISAMBIGUATION: &str = "validate.lint.lang.silent-disambiguation";
+    pub const LANG_ONE_WAY_BRIDGE: &str = "validate.lint.lang.one-way-bridge";
+    pub const LANG_SILENT_INGEST_DROP: &str = "validate.lint.lang.silent-ingest-drop";
+    pub const LANG_INLINE_BLOB_PAYLOAD: &str = "validate.lint.lang.inline-blob-payload";
+    pub const LANG_NON_CONTIGUOUS_SLOTS: &str = "validate.lint.lang.non-contiguous-slots";
+    pub const LANG_UNATTRIBUTED_ENGINE_CLAIM: &str = "validate.lint.lang.unattributed-engine-claim";
+    pub const LANG_SILENT_PROMOTION: &str = "validate.lint.lang.silent-promotion";
+    pub const LANG_SURFACE_LEAK: &str = "validate.lint.lang.surface-leak-in-content-key";
+    pub const LANG_RENDERING_AS_IDENTITY_SELF: &str =
+        "validate.lint.lang.rendering-as-identity-self";
+    pub const LANG_RENDERING_AS_IDENTITY_SAMEAS: &str =
+        "validate.lint.lang.rendering-as-identity-sameas";
+    pub const LANG_RENDERING_AS_IDENTITY_FORM: &str =
+        "validate.lint.lang.rendering-as-identity-form";
+    pub const LANG_MISSING_PRESERVATION_KIND: &str = "validate.lint.lang.missing-preservation-kind";
+    pub const LANG_UNDECLARED_UNSUPPORTED_CONSTRUCT: &str =
+        "validate.lint.lang.undeclared-unsupported-construct";
+    pub const LANG_UNRECORDED_EPISTEMIC_LOSS: &str = "validate.lint.lang.unrecorded-epistemic-loss";
+    pub const LANG_PROJECTION_SILENT_DISAMBIGUATION: &str =
+        "validate.lint.lang.projection-silent-disambiguation";
+    pub const LANG_EXACT_PRESERVATION_VIOLATED: &str =
+        "validate.lint.lang.exact-preservation-violated";
+    pub const MATH_MALFORMED_DIMENSION_VECTOR: &str =
+        "validate.lint.math.malformed-dimension-vector";
+    pub const MATH_MALFORMED_DIMENSION_ZERO_DENOMINATOR: &str =
+        "validate.lint.math.malformed-dimension-zero-denominator";
+    pub const MATH_INHOMOGENEITY_UNDIMENSIONED: &str =
+        "validate.lint.math.dimensional-inhomogeneity-undimensioned";
+    pub const MATH_INHOMOGENEITY_DIFFERING: &str =
+        "validate.lint.math.dimensional-inhomogeneity-differing";
+    pub const MATH_INTEGRAL_UNDIMENSIONED_PART: &str =
+        "validate.lint.math.integral-undimensioned-part";
+    pub const MATH_INTEGRAL_COMPOSITION_MISMATCH: &str =
+        "validate.lint.math.integral-composition-mismatch";
+    pub const MATH_UNLIFTABLE_INGEST: &str = "validate.lint.math.unliftable-ingest";
+    pub const NAMING_SELECTOR_TOKEN: &str = "validate.lint.naming.selector-token";
+}
+
+/// A stateless view over a [`DiagLedger`] of graded lint findings.
+///
+/// The report holds exactly one hash-consed ledger and NO independent string store:
+/// [`errors`](LintReport::errors) / [`warnings`](LintReport::warnings) project the
+/// finding messages back out of the ledger in its deterministic `(stage, fingerprint)`
+/// order, filtered by severity. Every finding is a graded [`Diag`] — a structural-
+/// discipline error (Severity::Error, ModelingDisciplineViolation, Binding) or a
+/// policy warning (Severity::Warning, PolicyWarning, Perspectival) — interned under
+/// the stable `validate.lint` stage.
+#[derive(Debug, Default, Clone)]
 pub struct LintReport {
-    /// Error diagnostics.
-    pub errors: Vec<String>,
-    /// Warning diagnostics.
-    pub warnings: Vec<String>,
+    ledger: DiagLedger,
+}
+
+/// The stage every lint finding is attached under.
+fn lint_stage() -> StageId {
+    StageId::new("validate.lint")
+}
+
+impl LintReport {
+    /// Intern a structural-discipline error finding (severity Error, a blocking
+    /// ModelingDisciplineViolation, Binding standpoint), keyed for hash-consing by
+    /// its registered `code` and the `focus` node the message is about.
+    fn push_error(&mut self, code: &str, focus: impl Into<String>, message: String) {
+        let diag = Diag::new(
+            register_code(code),
+            Grade::new(
+                Severity::Error,
+                FindingCategory::ModelingDisciplineViolation,
+                Standpoint::Binding,
+            ),
+            message,
+        )
+        .with_focus(focus);
+        self.ledger.attach(diag, lint_stage());
+    }
+
+    /// Intern a policy warning finding (severity Warning, PolicyWarning, Perspectival
+    /// standpoint) — surfaced but never gate-fatal — keyed by `code` and `focus`.
+    fn push_warning(&mut self, code: &str, focus: impl Into<String>, message: String) {
+        let diag = Diag::new(
+            register_code(code),
+            Grade::new(
+                Severity::Warning,
+                FindingCategory::PolicyWarning,
+                Standpoint::Perspectival,
+            ),
+            message,
+        )
+        .with_focus(focus);
+        self.ledger.attach(diag, lint_stage());
+    }
+
+    /// The Error-severity finding messages, in the ledger's deterministic order.
+    #[must_use]
+    pub fn errors(&self) -> Vec<String> {
+        self.messages(Severity::Error)
+    }
+
+    /// The Warning-severity finding messages, in the ledger's deterministic order.
+    #[must_use]
+    pub fn warnings(&self) -> Vec<String> {
+        self.messages(Severity::Warning)
+    }
+
+    fn messages(&self, severity: Severity) -> Vec<String> {
+        self.ledger
+            .emit_sorted()
+            .into_iter()
+            .filter(|node| node.grade.severity == severity)
+            .flat_map(|node| node.observations.iter().map(|o| o.message.clone()))
+            .collect()
+    }
 }
 
 /// Return whether an IRI is the GMEOW root or lives in its namespace
@@ -425,19 +556,25 @@ pub fn structural_lint_dataset(ds: &RdfDataset, cfg: &LintConfig) -> LintReport 
             && graph_defined.contains(term)
             && abox_declared.contains(term);
         if !ds_has_predicate(ds, term, rdfs::LABEL) {
-            report
-                .errors
-                .push(format!("{kind} {term} is missing rdfs:label"));
+            report.push_error(
+                codes::MISSING_LABEL,
+                term.clone(),
+                format!("{kind} {term} is missing rdfs:label"),
+            );
         }
         if !assertional && !ds_has_predicate(ds, term, skos::DEFINITION) {
-            report
-                .errors
-                .push(format!("{kind} {term} is missing skos:definition"));
+            report.push_error(
+                codes::MISSING_DEFINITION,
+                term.clone(),
+                format!("{kind} {term} is missing skos:definition"),
+            );
         }
         if !ds_has_predicate(ds, term, rdfs::IS_DEFINED_BY) {
-            report
-                .errors
-                .push(format!("{kind} {term} is missing rdfs:isDefinedBy"));
+            report.push_error(
+                codes::MISSING_IS_DEFINED_BY,
+                term.clone(),
+                format!("{kind} {term} is missing rdfs:isDefinedBy"),
+            );
         }
         let mut has_role = false;
         if let (Some(s_id), Some(p_id)) = (ds_iri_id(ds, term), ds_iri_id(ds, &graph_box_role)) {
@@ -446,24 +583,32 @@ pub fn structural_lint_dataset(ds: &RdfDataset, cfg: &LintConfig) -> LintReport 
                 let role = match ds.resolve(q.o) {
                     TermRef::Iri(role) => role.to_owned(),
                     other => {
-                        report.errors.push(format!(
-                            "{kind} {term} has non-IRI gmeow:graphBoxRole value {disp}",
-                            disp = ds_object_display(other),
-                        ));
+                        let disp = ds_object_display(other);
+                        report.push_error(
+                            codes::NON_IRI_GRAPH_BOX_ROLE,
+                            format!("{term}\t{disp}"),
+                            format!("{kind} {term} has non-IRI gmeow:graphBoxRole value {disp}"),
+                        );
                         continue;
                     }
                 };
                 if !ds_has_type(ds, &role, &graph_box_role_class) {
-                    report.errors.push(format!(
-                        "{kind} {term} has gmeow:graphBoxRole value {role} that is not a gmeow:GraphBoxRole",
-                    ));
+                    report.push_error(
+                        codes::GRAPH_BOX_ROLE_NOT_REGISTERED,
+                        format!("{term}\t{role}"),
+                        format!(
+                            "{kind} {term} has gmeow:graphBoxRole value {role} that is not a gmeow:GraphBoxRole",
+                        ),
+                    );
                 }
             }
         }
         if !has_role {
-            report
-                .errors
-                .push(format!("{kind} {term} is missing gmeow:graphBoxRole"));
+            report.push_error(
+                codes::MISSING_GRAPH_BOX_ROLE,
+                term.clone(),
+                format!("{kind} {term} is missing gmeow:graphBoxRole"),
+            );
         }
     }
 
@@ -481,19 +626,25 @@ pub fn structural_lint_dataset(ds: &RdfDataset, cfg: &LintConfig) -> LintReport 
             continue;
         }
         if !ds_has_predicate(ds, term, &use_when) {
-            report.warnings.push(format!(
-                "{kind} {term} is missing gmeow:useWhen (Tier-1 depth)"
-            ));
+            report.push_warning(
+                codes::MISSING_USE_WHEN,
+                term.clone(),
+                format!("{kind} {term} is missing gmeow:useWhen (Tier-1 depth)"),
+            );
         }
         let has_how_to_use = ds_has_predicate(ds, term, &how_to_use);
         if !has_how_to_use {
-            report.warnings.push(format!(
-                "{kind} {term} is missing gmeow:howToUse (Tier-1 depth)"
-            ));
+            report.push_warning(
+                codes::MISSING_HOW_TO_USE,
+                term.clone(),
+                format!("{kind} {term} is missing gmeow:howToUse (Tier-1 depth)"),
+            );
         } else if !ds_has_predicate(ds, term, skos::EXAMPLE) {
-            report.warnings.push(format!(
-                "{kind} {term} has gmeow:howToUse but no skos:example (Tier-1 depth)"
-            ));
+            report.push_warning(
+                codes::HOW_TO_USE_WITHOUT_EXAMPLE,
+                term.clone(),
+                format!("{kind} {term} has gmeow:howToUse but no skos:example (Tier-1 depth)"),
+            );
         }
     }
 
@@ -507,10 +658,14 @@ pub fn structural_lint_dataset(ds: &RdfDataset, cfg: &LintConfig) -> LintReport 
                 && is_gmeow_term(target, cfg)
                 && !declared.contains(&target.to_owned())
             {
-                report.errors.push(format!(
-                    "dangling {pred} target (undeclared GMEOW term): {target}",
-                    pred = predicate,
-                ));
+                report.push_error(
+                    codes::DANGLING_SUBTERM_TARGET,
+                    format!("{predicate}\t{target}"),
+                    format!(
+                        "dangling {pred} target (undeclared GMEOW term): {target}",
+                        pred = predicate,
+                    ),
+                );
             }
         }
     }
@@ -542,11 +697,15 @@ pub fn structural_lint_dataset(ds: &RdfDataset, cfg: &LintConfig) -> LintReport 
             .filter(|c| !ds_has_predicate(ds, c, skos::DEFINITION))
             .count();
         if missing >= 3 {
-            report.warnings.push(format!(
-                "class {parent} has {missing} of {total} direct subclasses missing \
-                 skos:definition (systematic documentation gap)",
-                total = children.len(),
-            ));
+            report.push_warning(
+                codes::SYSTEMATIC_DOCUMENTATION_GAP,
+                parent.clone(),
+                format!(
+                    "class {parent} has {missing} of {total} direct subclasses missing \
+                     skos:definition (systematic documentation gap)",
+                    total = children.len(),
+                ),
+            );
         }
     }
 
@@ -570,12 +729,16 @@ pub fn structural_lint_dataset(ds: &RdfDataset, cfg: &LintConfig) -> LintReport 
             && !x_gmeow.is_match(lang)
         {
             let subject = ds_subject_display(ds.resolve(q.s));
-            report.errors.push(format!(
-                "literal {lit_repr} (on subject {subject}, predicate {predicate_iri}) \
+            report.push_error(
+                codes::GMEOW_PREDICATE_EXTERNAL_LANG_TAG,
+                format!("{subject}\t{predicate_iri}\t{lang}\t{lexical}"),
+                format!(
+                    "literal {lit_repr} (on subject {subject}, predicate {predicate_iri}) \
                          carries external or invalid language tag '{lang}'; GMEOW internal \
                          data must use the private-use 'x-gmeow-' prefix.",
-                lit_repr = lang_literal_repr(lexical, lang),
-            ));
+                    lit_repr = lang_literal_repr(lexical, lang),
+                ),
+            );
         }
 
         // Check 2: standard annotation predicate on a GMEOW-authored subject.
@@ -584,7 +747,14 @@ pub fn structural_lint_dataset(ds: &RdfDataset, cfg: &LintConfig) -> LintReport 
             && let Some(msg) =
                 ds_check_annotation_literal(subj, predicate_iri, lexical, language, cfg, &x_gmeow)
         {
-            report.errors.push(msg);
+            report.push_error(
+                codes::ANNOTATION_EXTERNAL_LANG_TAG,
+                format!(
+                    "{subj}\t{predicate_iri}\t{lang}\t{lexical}",
+                    lang = language.unwrap_or_default(),
+                ),
+                msg,
+            );
         }
     }
 
@@ -697,10 +867,14 @@ fn check_undeclared_lowering(ds: &RdfDataset, report: &mut LintReport) {
         let kinds = ds_object_iris(ds, &subj, &denotation_kind);
         let bridges = kinds.iter().any(|k| bridge_kinds.iter().any(|b| b == k));
         if bridges && !ds_has_predicate(ds, &subj, &preservation_kind) {
-            report.errors.push(format!(
-                "lang:UndeclaredLoweringStage: denotation {subj} bridges into logic: \
-                 (lang:denotationKind) but declares no logic:preservationKind"
-            ));
+            report.push_error(
+                codes::LANG_UNDECLARED_LOWERING_STAGE,
+                subj.clone(),
+                format!(
+                    "lang:UndeclaredLoweringStage: denotation {subj} bridges into logic: \
+                     (lang:denotationKind) but declares no logic:preservationKind"
+                ),
+            );
         }
     }
 }
@@ -721,12 +895,16 @@ fn check_silent_disambiguation(ds: &RdfDataset, cfg: &LintConfig, report: &mut L
         }
         for chosen in ds_object_iris(ds, &act, &resolved) {
             if !reading_claim_is_grounded(ds, &about_reading, &chosen, &vantage) {
-                report.errors.push(format!(
-                    "lang:SilentDisambiguation: interpretation act {act} resolves to reading \
-                     {chosen} among {} co-resident readings with no vantage-held observation \
-                     grounding the choice",
-                    readings.len()
-                ));
+                report.push_error(
+                    codes::LANG_SILENT_DISAMBIGUATION,
+                    format!("{act}\t{chosen}"),
+                    format!(
+                        "lang:SilentDisambiguation: interpretation act {act} resolves to reading \
+                         {chosen} among {} co-resident readings with no vantage-held observation \
+                         grounding the choice",
+                        readings.len()
+                    ),
+                );
             }
         }
     }
@@ -762,10 +940,14 @@ fn check_one_way_bridge(ds: &RdfDataset, report: &mut LintReport) {
             continue;
         };
         if s.starts_with(LOGIC_NS) && p.starts_with(LANG_NS) {
-            report.errors.push(format!(
-                "lang: one-way bridge violated: logic: subject {s} carries lang: predicate {p} \
-                 (Principle 19: the lang:->logic: bridge never reverses)"
-            ));
+            report.push_error(
+                codes::LANG_ONE_WAY_BRIDGE,
+                format!("{s}\t{p}"),
+                format!(
+                    "lang: one-way bridge violated: logic: subject {s} carries lang: predicate {p} \
+                     (Principle 19: the lang:->logic: bridge never reverses)"
+                ),
+            );
         }
     }
 }
@@ -795,12 +977,16 @@ fn check_silent_ingest_drop(ds: &RdfDataset, report: &mut LintReport) {
         let realizes_a_form = ds_has_predicate(ds, &surface, &realizes);
         let is_unanalyzed = ds_has_type(ds, &surface, &unanalyzed);
         if !realizes_a_form && !is_unanalyzed {
-            report.errors.push(format!(
-                "lang:SilentIngestDrop: surface {surface} neither lang:realizes an analyzed \
-                 lang:Form nor is typed lang:UnanalyzedProse; an ingested surface left in \
-                 analysis limbo has silently dropped its content (an ingester lifts fully or \
-                 hard-fails, never silently either)"
-            ));
+            report.push_error(
+                codes::LANG_SILENT_INGEST_DROP,
+                surface.clone(),
+                format!(
+                    "lang:SilentIngestDrop: surface {surface} neither lang:realizes an analyzed \
+                     lang:Form nor is typed lang:UnanalyzedProse; an ingested surface left in \
+                     analysis limbo has silently dropped its content (an ingester lifts fully or \
+                     hard-fails, never silently either)"
+                ),
+            );
         }
     }
 }
@@ -824,12 +1010,16 @@ fn check_inline_blob_payload(ds: &RdfDataset, report: &mut LintReport) {
     for surface in ds_subjects_of_type(ds, &lang_iri("SurfaceForm")) {
         for text in ds_object_literals(ds, &surface, &surface_text) {
             if text.len() > DOCUMENT_SCALE_BYTES {
-                report.errors.push(format!(
-                    "lang:InlineBlobPayload: surface {surface} carries a document-scale \
-                     lang:surfaceText inline ({} bytes > {DOCUMENT_SCALE_BYTES}); document-scale \
-                     surfaces hold their bytes by reference through lang:surfaceBlob, never inline",
-                    text.len()
-                ));
+                report.push_error(
+                    codes::LANG_INLINE_BLOB_PAYLOAD,
+                    format!("{surface}\t{}", text.len()),
+                    format!(
+                        "lang:InlineBlobPayload: surface {surface} carries a document-scale \
+                         lang:surfaceText inline ({} bytes > {DOCUMENT_SCALE_BYTES}); document-scale \
+                         surfaces hold their bytes by reference through lang:surfaceBlob, never inline",
+                        text.len()
+                    ),
+                );
             }
         }
     }
@@ -865,12 +1055,16 @@ fn check_noncontiguous_form_slots(ds: &RdfDataset, report: &mut LintReport) {
         let contiguous = indexes.len() == slots.len()
             && indexes.iter().enumerate().all(|(i, &idx)| idx == i as i64);
         if !contiguous {
-            report.errors.push(format!(
-                "lang:NonContiguousSlots: composed form {form} has slot indexes {indexes:?} over \
-                 {} slot(s); slot indexes are zero-based and contiguous (0, 1, …, n-1), enforced \
-                 unconditionally — a gap, a non-zero start, or a missing index is ill-formed",
-                slots.len()
-            ));
+            report.push_error(
+                codes::LANG_NON_CONTIGUOUS_SLOTS,
+                form.clone(),
+                format!(
+                    "lang:NonContiguousSlots: composed form {form} has slot indexes {indexes:?} over \
+                     {} slot(s); slot indexes are zero-based and contiguous (0, 1, …, n-1), enforced \
+                     unconditionally — a gap, a non-zero start, or a missing index is ill-formed",
+                    slots.len()
+                ),
+            );
         }
     }
 }
@@ -895,11 +1089,15 @@ fn check_unattributed_engine_claim(ds: &RdfDataset, cfg: &LintConfig, report: &m
         }
         for reading in ds_object_iris_sorted(ds, &act, &produced) {
             if !ds_has_predicate(ds, &reading, &vantage) {
-                report.errors.push(format!(
-                    "lang:UnattributedEngineClaim: engine interpretation act {act} produced \
-                     reading {reading} with no gmeow:vantage; engine output enters as \
-                     vantage-held readings, never unattributed structure"
-                ));
+                report.push_error(
+                    codes::LANG_UNATTRIBUTED_ENGINE_CLAIM,
+                    format!("{act}\t{reading}"),
+                    format!(
+                        "lang:UnattributedEngineClaim: engine interpretation act {act} produced \
+                         reading {reading} with no gmeow:vantage; engine output enters as \
+                         vantage-held readings, never unattributed structure"
+                    ),
+                );
             }
         }
     }
@@ -932,12 +1130,16 @@ fn check_silent_promotion(ds: &RdfDataset, cfg: &LintConfig, report: &mut LintRe
         let is_vantage_held = ds_has_predicate(ds, &subj, &vantage);
         if !is_act || !is_vantage_held {
             for reading in ds_object_iris_sorted(ds, &subj, &promoted) {
-                report.errors.push(format!(
-                    "lang:SilentPromotion: subject {subj} promotes reading {reading} to a slice \
-                     assertion but is not a provenance-carrying editorial act (a gmeow:Activity \
-                     carrying a gmeow:vantage); promotion from an engine reading is an explicit \
-                     provenance-carrying act"
-                ));
+                report.push_error(
+                    codes::LANG_SILENT_PROMOTION,
+                    format!("{subj}\t{reading}"),
+                    format!(
+                        "lang:SilentPromotion: subject {subj} promotes reading {reading} to a slice \
+                         assertion but is not a provenance-carrying editorial act (a gmeow:Activity \
+                         carrying a gmeow:vantage); promotion from an engine reading is an explicit \
+                         provenance-carrying act"
+                    ),
+                );
             }
         }
     }
@@ -975,12 +1177,16 @@ fn check_surface_leak_in_content_key(ds: &RdfDataset, report: &mut LintReport) {
         for subj in ds_subjects_of_type(ds, type_iri) {
             for surface in &surface_predicates {
                 if ds_has_predicate(ds, &subj, surface) {
-                    report.errors.push(format!(
-                        "lang:SurfaceLeakInContentKey: crossing {subj} directly carries \
-                         surface-stratum predicate {surface} as identity input; form identity \
-                         is computed over structural content alone, independent of encoding, \
-                         script, casing, and rendering"
-                    ));
+                    report.push_error(
+                        codes::LANG_SURFACE_LEAK,
+                        format!("{subj}\t{surface}"),
+                        format!(
+                            "lang:SurfaceLeakInContentKey: crossing {subj} directly carries \
+                             surface-stratum predicate {surface} as identity input; form identity \
+                             is computed over structural content alone, independent of encoding, \
+                             script, casing, and rendering"
+                        ),
+                    );
                 }
             }
         }
@@ -999,26 +1205,38 @@ fn check_rendering_as_identity(ds: &RdfDataset, report: &mut LintReport) {
         let content = ds_object_iris(ds, &subj, &rendered_content);
         // (a) rendering is its own renderedContent.
         if content.contains(&subj) {
-            report.errors.push(format!(
-                "lang:RenderingAsIdentity: rendering {subj} is its own lang:renderedContent \
-                 (self-reference); a rendering names the content it renders, never itself"
-            ));
+            report.push_error(
+                codes::LANG_RENDERING_AS_IDENTITY_SELF,
+                subj.clone(),
+                format!(
+                    "lang:RenderingAsIdentity: rendering {subj} is its own lang:renderedContent \
+                     (self-reference); a rendering names the content it renders, never itself"
+                ),
+            );
         }
         // (b) rendering is owl:sameAs its own renderedContent.
         let same_as = ds_object_iris(ds, &subj, OWL_SAMEAS);
         for c in content.intersection(&same_as) {
-            report.errors.push(format!(
-                "lang:RenderingAsIdentity: rendering {subj} is asserted owl:sameAs its own \
-                 lang:renderedContent {c}; the rendering has become identity"
-            ));
+            report.push_error(
+                codes::LANG_RENDERING_AS_IDENTITY_SAMEAS,
+                format!("{subj}\t{c}"),
+                format!(
+                    "lang:RenderingAsIdentity: rendering {subj} is asserted owl:sameAs its own \
+                     lang:renderedContent {c}; the rendering has become identity"
+                ),
+            );
         }
         // (c) renderingForm equals renderedContent.
         let form = ds_object_iris(ds, &subj, &rendering_form);
         for c in content.intersection(&form) {
-            report.errors.push(format!(
-                "lang:RenderingAsIdentity: rendering {subj} has lang:renderingForm equal to its \
-                 lang:renderedContent {c}; the form has collapsed into the content"
-            ));
+            report.push_error(
+                codes::LANG_RENDERING_AS_IDENTITY_FORM,
+                format!("{subj}\t{c}"),
+                format!(
+                    "lang:RenderingAsIdentity: rendering {subj} has lang:renderingForm equal to its \
+                     lang:renderedContent {c}; the form has collapsed into the content"
+                ),
+            );
         }
     }
 }
@@ -1044,11 +1262,15 @@ fn check_missing_preservation_kind(ds: &RdfDataset, report: &mut LintReport) {
     let preservation_kind = logic_iri("preservationKind");
     for emission in ds_subjects_of_type(ds, &lang_iri("ProjectionEmission")) {
         if !ds_has_predicate(ds, &emission, &preservation_kind) {
-            report.errors.push(format!(
-                "lang:MissingPreservationKind: projection emission {emission} declares no \
-                 logic:preservationKind; every projection declares its preservation kind (the \
-                 logic: loss-ledger vocabulary, reused verbatim)"
-            ));
+            report.push_error(
+                codes::LANG_MISSING_PRESERVATION_KIND,
+                emission.clone(),
+                format!(
+                    "lang:MissingPreservationKind: projection emission {emission} declares no \
+                     logic:preservationKind; every projection declares its preservation kind (the \
+                     logic: loss-ledger vocabulary, reused verbatim)"
+                ),
+            );
         }
     }
 }
@@ -1094,11 +1316,15 @@ fn check_undeclared_unsupported_construct(ds: &RdfDataset, report: &mut LintRepo
         if emission_is_lossy(ds, &emission)
             && ds_object_literals(ds, &emission, &unsupported).is_empty()
         {
-            report.errors.push(format!(
-                "lang:UndeclaredUnsupportedConstruct: lossy projection emission {emission} (a \
-                 logic:preservationKind other than logic:ExactPreservation) enumerates no \
-                 lang:unsupportedConstruct; a projection drops nothing or names everything it drops"
-            ));
+            report.push_error(
+                codes::LANG_UNDECLARED_UNSUPPORTED_CONSTRUCT,
+                emission.clone(),
+                format!(
+                    "lang:UndeclaredUnsupportedConstruct: lossy projection emission {emission} (a \
+                     logic:preservationKind other than logic:ExactPreservation) enumerates no \
+                     lang:unsupportedConstruct; a projection drops nothing or names everything it drops"
+                ),
+            );
         }
     }
 }
@@ -1146,12 +1372,16 @@ fn check_unrecorded_epistemic_loss(ds: &RdfDataset, cfg: &LintConfig, report: &m
             // `lang:UnrecordedEpistemicLoss` this gate forbids; `all` (not `any`) enforces it.
             let names_all_strata = strata.iter().all(|kw| drops.iter().any(|d| d.contains(kw)));
             if !names_all_strata {
-                report.errors.push(format!(
-                    "lang:UnrecordedEpistemicLoss: form-view projection emission {emission} projects \
-                     source {source} carrying epistemic structure ({strata:?}) but does not name all \
-                     of it among its lang:unsupportedConstruct entries; a form-view emission \
-                     enumerates every epistemic stratum it flattens"
-                ));
+                report.push_error(
+                    codes::LANG_UNRECORDED_EPISTEMIC_LOSS,
+                    format!("{emission}\t{source}"),
+                    format!(
+                        "lang:UnrecordedEpistemicLoss: form-view projection emission {emission} projects \
+                         source {source} carrying epistemic structure ({strata:?}) but does not name all \
+                         of it among its lang:unsupportedConstruct entries; a form-view emission \
+                         enumerates every epistemic stratum it flattens"
+                    ),
+                );
             }
         }
     }
@@ -1177,12 +1407,16 @@ fn check_projection_silent_disambiguation(ds: &RdfDataset, report: &mut LintRepo
         for source in ds_object_iris_sorted(ds, &emission, &projects_source) {
             let co_resident = source_reading_count(ds, &source) as i64;
             if emitted < co_resident {
-                report.errors.push(format!(
-                    "lang:ProjectionSilentDisambiguation: per-reading projection emission {emission} \
-                     declares lang:emittedReadingCount {emitted} for source {source} holding \
-                     {co_resident} co-resident readings; a per-reading projection emits one row per \
-                     reading, never a silently-chosen winner"
-                ));
+                report.push_error(
+                    codes::LANG_PROJECTION_SILENT_DISAMBIGUATION,
+                    format!("{emission}\t{source}"),
+                    format!(
+                        "lang:ProjectionSilentDisambiguation: per-reading projection emission {emission} \
+                         declares lang:emittedReadingCount {emitted} for source {source} holding \
+                         {co_resident} co-resident readings; a per-reading projection emits one row per \
+                         reading, never a silently-chosen winner"
+                    ),
+                );
             }
         }
     }
@@ -1204,11 +1438,15 @@ fn check_exact_preservation_violated(ds: &RdfDataset, report: &mut LintReport) {
             .iter()
             .any(|v| v.trim().eq_ignore_ascii_case("false"));
         if refuted {
-            report.errors.push(format!(
-                "lang:ExactPreservationViolated: projection emission {emission} claims \
-                 logic:ExactPreservation but its measured lang:roundTripHolds is false; an exactness \
-                 claim its own round-trip refutes"
-            ));
+            report.push_error(
+                codes::LANG_EXACT_PRESERVATION_VIOLATED,
+                emission.clone(),
+                format!(
+                    "lang:ExactPreservationViolated: projection emission {emission} claims \
+                     logic:ExactPreservation but its measured lang:roundTripHolds is false; an exactness \
+                     claim its own round-trip refutes"
+                ),
+            );
         }
     }
 }
@@ -1435,11 +1673,15 @@ fn check_math_dimension_invariants(ds: &RdfDataset, report: &mut LintReport) {
             };
             let canonical = render_dimension_vector(&vec);
             if canonical != lexical && flagged.insert(subj.clone()) {
-                report.errors.push(format!(
-                    "math:MalformedDimension: dimension {subj} declares math:dimensionVector \
-                     \"{lexical}\" but its structured exponents render to \"{canonical}\" — the \
-                     string is a computed projection, not an independent source"
-                ));
+                report.push_error(
+                    codes::MATH_MALFORMED_DIMENSION_VECTOR,
+                    subj.clone(),
+                    format!(
+                        "math:MalformedDimension: dimension {subj} declares math:dimensionVector \
+                         \"{lexical}\" but its structured exponents render to \"{canonical}\" — the \
+                         string is a computed projection, not an independent source"
+                    ),
+                );
             }
         }
     }
@@ -1460,11 +1702,15 @@ fn check_math_dimension_invariants(ds: &RdfDataset, report: &mut LintReport) {
                     .into_iter()
                     .any(|l| l.trim().parse::<i128>() == Ok(0));
             if has_zero_denominator {
-                report.errors.push(format!(
-                    "math:MalformedDimension: dimension-exponent cell {cell} declares \
-                     math:exponentDenominator 0 — an exact-rational power needs a non-zero \
-                     denominator; the cell is ill-formed"
-                ));
+                report.push_error(
+                    codes::MATH_MALFORMED_DIMENSION_ZERO_DENOMINATOR,
+                    cell.clone(),
+                    format!(
+                        "math:MalformedDimension: dimension-exponent cell {cell} declares \
+                         math:exponentDenominator 0 — an exact-rational power needs a non-zero \
+                         denominator; the cell is ill-formed"
+                    ),
+                );
             }
         }
     }
@@ -1492,21 +1738,29 @@ fn check_math_dimension_invariants(ds: &RdfDataset, report: &mut LintReport) {
             }
         }
         if !undimensioned.is_empty() {
-            report.errors.push(format!(
-                "math:DimensionalInhomogeneity: dimensional expression {expr} combines \
-                 undimensioned operand(s) [{}] — every math:homogeneousOperand must carry a \
-                 math:hasDimension to be shown homogeneous",
-                undimensioned.join(", ")
-            ));
+            report.push_error(
+                codes::MATH_INHOMOGENEITY_UNDIMENSIONED,
+                expr.clone(),
+                format!(
+                    "math:DimensionalInhomogeneity: dimensional expression {expr} combines \
+                     undimensioned operand(s) [{}] — every math:homogeneousOperand must carry a \
+                     math:hasDimension to be shown homogeneous",
+                    undimensioned.join(", ")
+                ),
+            );
         }
         if seen.len() >= 2 {
             let mut dims: Vec<String> = seen.into_iter().map(|(_, d)| d).collect();
             dims.sort();
-            report.errors.push(format!(
-                "math:DimensionalInhomogeneity: dimensional expression {expr} combines operands \
-                 of differing dimensions [{}]",
-                dims.join(", ")
-            ));
+            report.push_error(
+                codes::MATH_INHOMOGENEITY_DIFFERING,
+                expr.clone(),
+                format!(
+                    "math:DimensionalInhomogeneity: dimensional expression {expr} combines operands \
+                     of differing dimensions [{}]",
+                    dims.join(", ")
+                ),
+            );
         }
     }
 
@@ -1532,11 +1786,15 @@ fn check_math_dimension_invariants(ds: &RdfDataset, report: &mut LintReport) {
             // The integral declares a result dimension but its integrand or measure carries
             // none, so the composition cannot be checked. Do not fail open — an integral
             // engaged in dimensional bookkeeping must dimension the parts it composes.
-            report.errors.push(format!(
-                "math:DimensionalInhomogeneity: integral {integral} declares result dimension \
-                 {result_dim} but its integrand ({integrand}) or measure ({measure}) carries no \
-                 math:hasDimension, so the composition cannot be verified"
-            ));
+            report.push_error(
+                codes::MATH_INTEGRAL_UNDIMENSIONED_PART,
+                integral.clone(),
+                format!(
+                    "math:DimensionalInhomogeneity: integral {integral} declares result dimension \
+                     {result_dim} but its integrand ({integrand}) or measure ({measure}) carries no \
+                     math:hasDimension, so the composition cannot be verified"
+                ),
+            );
             continue;
         };
         let (Some(rv), Some(iv), Some(mv)) = (
@@ -1550,11 +1808,15 @@ fn check_math_dimension_invariants(ds: &RdfDataset, report: &mut LintReport) {
             continue;
         };
         if rv != composed {
-            report.errors.push(format!(
-                "math:DimensionalInhomogeneity: integral {integral} declares result dimension \
-                 {result_dim} but its integrand ({idim}) and measure ({mdim}) compose to a \
-                 different dimension"
-            ));
+            report.push_error(
+                codes::MATH_INTEGRAL_COMPOSITION_MISMATCH,
+                integral.clone(),
+                format!(
+                    "math:DimensionalInhomogeneity: integral {integral} declares result dimension \
+                     {result_dim} but its integrand ({idim}) and measure ({mdim}) compose to a \
+                     different dimension"
+                ),
+            );
         }
     }
 }
@@ -1610,12 +1872,16 @@ fn check_unliftable_ingest(ds: &RdfDataset, report: &mut LintReport) {
             _ => false,
         };
         if !produced {
-            report.errors.push(format!(
-                "math:UnliftableIngest: ingest run {run} retains a math:parseSource but produced no \
-                 structured math: codomain (nothing is gmeow:wasGeneratedBy it) — the lift is \
-                 unsupported and silently dropped its content; a bridge lifts fully or hard-fails, \
-                 never emitting a degraded or empty lift"
-            ));
+            report.push_error(
+                codes::MATH_UNLIFTABLE_INGEST,
+                run.clone(),
+                format!(
+                    "math:UnliftableIngest: ingest run {run} retains a math:parseSource but produced no \
+                     structured math: codomain (nothing is gmeow:wasGeneratedBy it) — the lift is \
+                     unsupported and silently dropped its content; a bridge lifts fully or hard-fails, \
+                     never emitting a degraded or empty lift"
+                ),
+            );
         }
     }
 }
@@ -1710,11 +1976,15 @@ pub fn term_naming_lint_dataset(ds: &RdfDataset, cfg: &LintConfig) -> LintReport
         }
         offending.sort();
         let first = offending[0];
-        report.errors.push(format!(
-            "{kind} gmeow:{local} carries the selector token '{first}' (Principle 9: co-equal \
-             claims have no primary/preferred/default/main); rename it, or justify a \
-             value-vocabulary use with gmeow:namingNote"
-        ));
+        report.push_error(
+            codes::NAMING_SELECTOR_TOKEN,
+            term.clone(),
+            format!(
+                "{kind} gmeow:{local} carries the selector token '{first}' (Principle 9: co-equal \
+                 claims have no primary/preferred/default/main); rename it, or justify a \
+                 value-vocabulary use with gmeow:namingNote"
+            ),
+        );
     }
     report
 }
@@ -1779,7 +2049,12 @@ mod tests {
                rdfs:subClassOf owl:Thing .\n"
         ));
         let report = structural_lint_dataset(&store, &cfg());
-        assert!(report.errors.iter().any(|e| e.contains("skos:definition")));
+        assert!(
+            report
+                .errors()
+                .iter()
+                .any(|e| e.contains("skos:definition"))
+        );
     }
 
     #[test]
@@ -1793,7 +2068,7 @@ mod tests {
                rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/> .\n"
         ));
         let report = structural_lint_dataset(&store, &cfg());
-        assert!(report.errors.is_empty(), "errors: {:?}", report.errors);
+        assert!(report.errors().is_empty(), "errors: {:?}", report.errors());
     }
 
     #[test]
@@ -1808,7 +2083,7 @@ mod tests {
         let report = structural_lint_dataset(&store, &cfg());
         assert!(
             report
-                .errors
+                .errors()
                 .iter()
                 .any(|e| e.contains("missing gmeow:graphBoxRole"))
         );
@@ -1827,9 +2102,12 @@ mod tests {
         ));
         let report = structural_lint_dataset(&store, &cfg());
         assert!(
-            !report.errors.iter().any(|e| e.contains("contribution-bii")),
+            !report
+                .errors()
+                .iter()
+                .any(|e| e.contains("contribution-bii")),
             "self-description A-Box must be exempt: {:?}",
-            report.errors
+            report.errors()
         );
     }
 
@@ -1845,11 +2123,11 @@ mod tests {
         let report = structural_lint_dataset(&store, &cfg());
         assert!(
             report
-                .errors
+                .errors()
                 .iter()
                 .any(|e| e.contains("roleAuthor") && e.contains("graphBoxRole")),
             "ordinary vocabulary individual must still be linted: {:?}",
-            report.errors
+            report.errors()
         );
     }
 
@@ -1877,9 +2155,9 @@ mod tests {
         ));
         let report = structural_lint_dataset(&store, &cfg());
         assert!(
-            !report.errors.iter().any(|e| e.contains("finding/abc-0")),
+            !report.errors().iter().any(|e| e.contains("finding/abc-0")),
             "well-formed assertional instance must be clean: {:?}",
-            report.errors
+            report.errors()
         );
     }
 
@@ -1896,11 +2174,11 @@ mod tests {
         let report = structural_lint_dataset(&store, &cfg());
         assert!(
             report
-                .errors
+                .errors()
                 .iter()
                 .any(|e| e.contains("finding/abc-1") && e.contains("rdfs:label")),
             "assertional instance missing label must still error: {:?}",
-            report.errors
+            report.errors()
         );
     }
 
@@ -1918,11 +2196,11 @@ mod tests {
         let report = structural_lint_dataset(&store, &cfg());
         assert!(
             report
-                .errors
+                .errors()
                 .iter()
                 .any(|e| e.contains("finding/abc-2") && e.contains("missing gmeow:graphBoxRole")),
             "assertional instance without boxABox must still error: {:?}",
-            report.errors
+            report.errors()
         );
     }
 
@@ -1942,11 +2220,11 @@ mod tests {
         let report = structural_lint_dataset(&store, &cfg());
         assert!(
             report
-                .errors
+                .errors()
                 .iter()
                 .any(|e| e.contains("finding/abc-3") && e.contains("skos:definition")),
             "bogus provenance must not earn the relaxation: {:?}",
-            report.errors
+            report.errors()
         );
     }
 
@@ -1965,11 +2243,11 @@ mod tests {
         let report = structural_lint_dataset(&store, &cfg());
         assert!(
             report
-                .errors
+                .errors()
                 .iter()
                 .any(|e| e.contains("sensitivityPublic") && e.contains("skos:definition")),
             "slice individual must stay on the vocabulary tier: {:?}",
-            report.errors
+            report.errors()
         );
     }
 
@@ -1986,7 +2264,7 @@ mod tests {
         let report = structural_lint_dataset(&store, &cfg());
         assert!(
             report
-                .errors
+                .errors()
                 .iter()
                 .any(|e| e.contains("not a gmeow:GraphBoxRole"))
         );
@@ -1999,7 +2277,7 @@ mod tests {
              <https://example.org/name> gmeow:fullName \"Japanese\"@x-GMEOW-Japanese .\n"
         ));
         let report = structural_lint_dataset(&store, &cfg());
-        assert!(report.errors.is_empty(), "errors: {:?}", report.errors);
+        assert!(report.errors().is_empty(), "errors: {:?}", report.errors());
     }
 
     #[test]
@@ -2011,14 +2289,14 @@ mod tests {
         let report = structural_lint_dataset(&store, &cfg());
         assert!(
             report
-                .errors
+                .errors()
                 .iter()
                 .any(|e| e.contains("external or invalid language tag"))
         );
         // Exact rdflib repr framing.
         assert!(
             report
-                .errors
+                .errors()
                 .iter()
                 .any(|e| e.contains("literal rdflib.term.Literal('Japanese', lang='ja')"))
         );
@@ -2037,7 +2315,7 @@ mod tests {
         let report = structural_lint_dataset(&store, &cfg());
         assert!(
             report
-                .errors
+                .errors()
                 .iter()
                 .any(|e| e.contains("external language tag 'en'") && e.contains("label"))
         );
@@ -2054,7 +2332,7 @@ mod tests {
                rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/> .\n"
         ));
         let report = structural_lint_dataset(&store, &cfg());
-        assert!(report.errors.is_empty(), "errors: {:?}", report.errors);
+        assert!(report.errors().is_empty(), "errors: {:?}", report.errors());
     }
 
     #[test]
@@ -2063,7 +2341,7 @@ mod tests {
         let report = term_naming_lint_dataset(&store, &cfg());
         assert!(
             report
-                .errors
+                .errors()
                 .iter()
                 .any(|e| e.contains("selector token 'primary'"))
         );
@@ -2076,7 +2354,7 @@ mod tests {
                gmeow:namingNote \"value vocabulary\" .\n"
         ));
         let report = term_naming_lint_dataset(&store, &cfg());
-        assert!(report.errors.is_empty(), "errors: {:?}", report.errors);
+        assert!(report.errors().is_empty(), "errors: {:?}", report.errors());
     }
 
     #[test]
@@ -2171,11 +2449,11 @@ mod tests {
             // the whole-graph language-tag pass), but the SET of diagnostics must be
             // identical. Downstream the report is normalized via `Finding::sort_key`
             // (`Report::normalize`), so committed bytes never depend on this order.
-            let (mut se, mut ne) = (store.errors.clone(), native.errors.clone());
+            let (mut se, mut ne) = (store.errors().clone(), native.errors().clone());
             se.sort();
             ne.sort();
             assert_eq!(se, ne, "errors diverged for: {ttl}");
-            let (mut sw, mut nw) = (store.warnings.clone(), native.warnings.clone());
+            let (mut sw, mut nw) = (store.warnings().clone(), native.warnings().clone());
             sw.sort();
             nw.sort();
             assert_eq!(sw, nw, "warnings diverged for: {ttl}");
@@ -2214,11 +2492,11 @@ mod tests {
         let report = structural_lint_dataset(&ds, &cfg());
         assert!(
             report
-                .errors
+                .errors()
                 .iter()
                 .any(|e| e.contains("lang:UndeclaredLoweringStage")),
             "errors: {:?}",
-            report.errors
+            report.errors()
         );
     }
 
@@ -2236,11 +2514,11 @@ mod tests {
         let report = structural_lint_dataset(&ds, &cfg());
         assert!(
             !report
-                .errors
+                .errors()
                 .iter()
                 .any(|e| e.contains("lang:UndeclaredLoweringStage")),
             "errors: {:?}",
-            report.errors
+            report.errors()
         );
     }
 
@@ -2255,11 +2533,11 @@ mod tests {
         let report = structural_lint_dataset(&ds, &cfg());
         assert!(
             report
-                .errors
+                .errors()
                 .iter()
                 .any(|e| e.contains("lang:SilentDisambiguation")),
             "errors: {:?}",
-            report.errors
+            report.errors()
         );
     }
 
@@ -2276,11 +2554,11 @@ mod tests {
         let report = structural_lint_dataset(&ds, &cfg());
         assert!(
             !report
-                .errors
+                .errors()
                 .iter()
                 .any(|e| e.contains("lang:SilentDisambiguation")),
             "errors: {:?}",
-            report.errors
+            report.errors()
         );
     }
 
@@ -2293,11 +2571,11 @@ mod tests {
         let report = structural_lint_dataset(&ds, &cfg());
         assert!(
             report
-                .errors
+                .errors()
                 .iter()
                 .any(|e| e.contains("one-way bridge violated")),
             "errors: {:?}",
-            report.errors
+            report.errors()
         );
     }
 
@@ -2312,11 +2590,11 @@ mod tests {
         let report = structural_lint_dataset(&ds, &cfg());
         assert!(
             !report
-                .errors
+                .errors()
                 .iter()
                 .any(|e| e.contains("one-way bridge violated")),
             "errors: {:?}",
-            report.errors
+            report.errors()
         );
     }
 
@@ -2335,11 +2613,11 @@ mod tests {
         let report = structural_lint_dataset(&ds, &cfg());
         assert!(
             report
-                .errors
+                .errors()
                 .iter()
                 .any(|e| e.contains("lang:UnattributedEngineClaim")),
             "errors: {:?}",
-            report.errors
+            report.errors()
         );
     }
 
@@ -2356,11 +2634,11 @@ mod tests {
         let report = structural_lint_dataset(&ds, &cfg());
         assert!(
             !report
-                .errors
+                .errors()
                 .iter()
                 .any(|e| e.contains("lang:UnattributedEngineClaim")),
             "errors: {:?}",
-            report.errors
+            report.errors()
         );
     }
 
@@ -2376,11 +2654,11 @@ mod tests {
         let report = structural_lint_dataset(&ds, &cfg());
         assert!(
             !report
-                .errors
+                .errors()
                 .iter()
                 .any(|e| e.contains("lang:UnattributedEngineClaim")),
             "errors: {:?}",
-            report.errors
+            report.errors()
         );
     }
 
@@ -2394,11 +2672,11 @@ mod tests {
         let report = structural_lint_dataset(&ds, &cfg());
         assert!(
             report
-                .errors
+                .errors()
                 .iter()
                 .any(|e| e.contains("lang:SilentPromotion")),
             "errors: {:?}",
-            report.errors
+            report.errors()
         );
     }
 
@@ -2414,11 +2692,11 @@ mod tests {
         let report = structural_lint_dataset(&ds, &cfg());
         assert!(
             !report
-                .errors
+                .errors()
                 .iter()
                 .any(|e| e.contains("lang:SilentPromotion")),
             "errors: {:?}",
-            report.errors
+            report.errors()
         );
     }
 
@@ -2433,11 +2711,11 @@ mod tests {
         let report = structural_lint_dataset(&ds, &cfg());
         assert!(
             report
-                .errors
+                .errors()
                 .iter()
                 .any(|e| e.contains("lang:SilentPromotion")),
             "errors: {:?}",
-            report.errors
+            report.errors()
         );
     }
 
@@ -2452,19 +2730,19 @@ mod tests {
         let report = structural_lint_dataset(&dataset_from(unattributed), &cfg());
         assert!(
             report
-                .errors
+                .errors()
                 .iter()
                 .any(|e| e.contains("lang:UnattributedEngineClaim")),
             "errors: {:?}",
-            report.errors
+            report.errors()
         );
         assert!(
             !report
-                .errors
+                .errors()
                 .iter()
                 .any(|e| e.contains("lang:SilentPromotion")),
             "the unattributed-engine fixture must not also fire SilentPromotion: {:?}",
-            report.errors
+            report.errors()
         );
 
         let promotion = include_str!(
@@ -2473,19 +2751,19 @@ mod tests {
         let report = structural_lint_dataset(&dataset_from(promotion), &cfg());
         assert!(
             report
-                .errors
+                .errors()
                 .iter()
                 .any(|e| e.contains("lang:SilentPromotion")),
             "errors: {:?}",
-            report.errors
+            report.errors()
         );
         assert!(
             !report
-                .errors
+                .errors()
                 .iter()
                 .any(|e| e.contains("lang:UnattributedEngineClaim")),
             "the silent-promotion fixture keeps its reading vantage-held: {:?}",
-            report.errors
+            report.errors()
         );
     }
 
@@ -2498,8 +2776,8 @@ mod tests {
             "../../../slices/grounding/lang/tests/conformance-fixtures/ambiguity-saw-her-duck.ttl"
         );
         let report = structural_lint_dataset(&dataset_from(fixture), &cfg());
-        let lang_errors: Vec<&String> = report
-            .errors
+        let report_errors = report.errors();
+        let lang_errors: Vec<&String> = report_errors
             .iter()
             .filter(|e| e.contains("lang:") || e.contains("one-way bridge"))
             .collect();
@@ -2522,11 +2800,11 @@ mod tests {
         let report = structural_lint_dataset(&ds, &cfg());
         assert!(
             report
-                .errors
+                .errors()
                 .iter()
                 .any(|e| e.contains("lang:MissingPreservationKind")),
             "errors: {:?}",
-            report.errors
+            report.errors()
         );
     }
 
@@ -2542,11 +2820,11 @@ mod tests {
         let report = structural_lint_dataset(&ds, &cfg());
         assert!(
             !report
-                .errors
+                .errors()
                 .iter()
                 .any(|e| e.contains("lang:MissingPreservationKind")),
             "errors: {:?}",
-            report.errors
+            report.errors()
         );
     }
 
@@ -2563,11 +2841,11 @@ mod tests {
         let report = structural_lint_dataset(&ds, &cfg());
         assert!(
             report
-                .errors
+                .errors()
                 .iter()
                 .any(|e| e.contains("lang:UndeclaredUnsupportedConstruct")),
             "errors: {:?}",
-            report.errors
+            report.errors()
         );
     }
 
@@ -2585,11 +2863,11 @@ mod tests {
         let report = structural_lint_dataset(&ds, &cfg());
         assert!(
             !report
-                .errors
+                .errors()
                 .iter()
                 .any(|e| e.contains("lang:UndeclaredUnsupportedConstruct")),
             "errors: {:?}",
-            report.errors
+            report.errors()
         );
     }
 
@@ -2608,11 +2886,11 @@ mod tests {
         let report = structural_lint_dataset(&ds, &cfg());
         assert!(
             report
-                .errors
+                .errors()
                 .iter()
                 .any(|e| e.contains("lang:UnrecordedEpistemicLoss")),
             "errors: {:?}",
-            report.errors
+            report.errors()
         );
     }
 
@@ -2631,11 +2909,11 @@ mod tests {
         let report = structural_lint_dataset(&ds, &cfg());
         assert!(
             !report
-                .errors
+                .errors()
                 .iter()
                 .any(|e| e.contains("lang:UnrecordedEpistemicLoss")),
             "errors: {:?}",
-            report.errors
+            report.errors()
         );
     }
 
@@ -2657,11 +2935,11 @@ mod tests {
         let report = structural_lint_dataset(&ds, &cfg());
         assert!(
             report
-                .errors
+                .errors()
                 .iter()
                 .any(|e| e.contains("lang:UnrecordedEpistemicLoss")),
             "errors: {:?}",
-            report.errors
+            report.errors()
         );
     }
 
@@ -2682,11 +2960,11 @@ mod tests {
         let report = structural_lint_dataset(&ds, &cfg());
         assert!(
             !report
-                .errors
+                .errors()
                 .iter()
                 .any(|e| e.contains("lang:UnrecordedEpistemicLoss")),
             "errors: {:?}",
-            report.errors
+            report.errors()
         );
     }
 
@@ -2706,11 +2984,11 @@ mod tests {
         let report = structural_lint_dataset(&ds, &cfg());
         assert!(
             report
-                .errors
+                .errors()
                 .iter()
                 .any(|e| e.contains("lang:ProjectionSilentDisambiguation")),
             "errors: {:?}",
-            report.errors
+            report.errors()
         );
     }
 
@@ -2730,11 +3008,11 @@ mod tests {
         let report = structural_lint_dataset(&ds, &cfg());
         assert!(
             !report
-                .errors
+                .errors()
                 .iter()
                 .any(|e| e.contains("lang:ProjectionSilentDisambiguation")),
             "errors: {:?}",
-            report.errors
+            report.errors()
         );
     }
 
@@ -2752,11 +3030,11 @@ mod tests {
         let report = structural_lint_dataset(&ds, &cfg());
         assert!(
             report
-                .errors
+                .errors()
                 .iter()
                 .any(|e| e.contains("lang:ExactPreservationViolated")),
             "errors: {:?}",
-            report.errors
+            report.errors()
         );
     }
 
@@ -2774,11 +3052,11 @@ mod tests {
         let report = structural_lint_dataset(&ds, &cfg());
         assert!(
             !report
-                .errors
+                .errors()
                 .iter()
                 .any(|e| e.contains("lang:ExactPreservationViolated")),
             "errors: {:?}",
-            report.errors
+            report.errors()
         );
     }
 
@@ -2837,25 +3115,25 @@ mod tests {
         for (ttl, expected, forbidden) in cases {
             let report = structural_lint_dataset(&dataset_from(ttl), &cfg());
             assert!(
-                report.errors.iter().any(|e| e.contains(expected)),
+                report.errors().iter().any(|e| e.contains(expected)),
                 "fixture must fire {expected}: {:?}",
-                report.errors
+                report.errors()
             );
             // The MissingPreservationKind gate must also stay silent (every fixture declares
             // its preservation kind).
             assert!(
                 !report
-                    .errors
+                    .errors()
                     .iter()
                     .any(|e| e.contains("lang:MissingPreservationKind")),
                 "fixture for {expected} declares a preservation kind: {:?}",
-                report.errors
+                report.errors()
             );
             for other in forbidden {
                 assert!(
-                    !report.errors.iter().any(|e| e.contains(other)),
+                    !report.errors().iter().any(|e| e.contains(other)),
                     "fixture for {expected} must not also fire {other}: {:?}",
-                    report.errors
+                    report.errors()
                 );
             }
         }
@@ -2875,11 +3153,11 @@ mod tests {
         let report = structural_lint_dataset(&ds, &cfg());
         assert!(
             report
-                .errors
+                .errors()
                 .iter()
                 .any(|e| e.contains("lang:SurfaceLeakInContentKey")),
             "errors: {:?}",
-            report.errors
+            report.errors()
         );
     }
 
@@ -2897,11 +3175,11 @@ mod tests {
         let report = structural_lint_dataset(&ds, &cfg());
         assert!(
             !report
-                .errors
+                .errors()
                 .iter()
                 .any(|e| e.contains("lang:SurfaceLeakInContentKey")),
             "errors: {:?}",
-            report.errors
+            report.errors()
         );
     }
 
@@ -2919,11 +3197,11 @@ mod tests {
         let report = structural_lint_dataset(&ds, &cfg());
         assert!(
             report
-                .errors
+                .errors()
                 .iter()
                 .any(|e| e.contains("lang:RenderingAsIdentity")),
             "errors: {:?}",
-            report.errors
+            report.errors()
         );
     }
 
@@ -2940,11 +3218,11 @@ mod tests {
         let report = structural_lint_dataset(&ds, &cfg());
         assert!(
             !report
-                .errors
+                .errors()
                 .iter()
                 .any(|e| e.contains("lang:RenderingAsIdentity")),
             "errors: {:?}",
-            report.errors
+            report.errors()
         );
     }
 
@@ -2963,11 +3241,11 @@ mod tests {
         let report = structural_lint_dataset(&ds, &cfg());
         assert!(
             report
-                .errors
+                .errors()
                 .iter()
                 .any(|e| e.contains("lang:InlineBlobPayload")),
             "errors: {:?}",
-            report.errors
+            report.errors()
         );
     }
 
@@ -2986,11 +3264,11 @@ mod tests {
         let report = structural_lint_dataset(&ds, &cfg());
         assert!(
             !report
-                .errors
+                .errors()
                 .iter()
                 .any(|e| e.contains("lang:InlineBlobPayload")),
             "errors: {:?}",
-            report.errors
+            report.errors()
         );
     }
 
@@ -3007,11 +3285,11 @@ mod tests {
         let report = structural_lint_dataset(&ds, &cfg());
         assert!(
             report
-                .errors
+                .errors()
                 .iter()
                 .any(|e| e.contains("lang:NonContiguousSlots")),
             "errors: {:?}",
-            report.errors
+            report.errors()
         );
     }
 
@@ -3027,11 +3305,11 @@ mod tests {
         let report = structural_lint_dataset(&ds, &cfg());
         assert!(
             !report
-                .errors
+                .errors()
                 .iter()
                 .any(|e| e.contains("lang:NonContiguousSlots")),
             "errors: {:?}",
-            report.errors
+            report.errors()
         );
     }
 
@@ -3046,11 +3324,11 @@ mod tests {
         let report = structural_lint_dataset(&ds, &cfg());
         assert!(
             report
-                .errors
+                .errors()
                 .iter()
                 .any(|e| e.contains("lang:SilentIngestDrop")),
             "errors: {:?}",
-            report.errors
+            report.errors()
         );
     }
 
@@ -3067,11 +3345,11 @@ mod tests {
         let report = structural_lint_dataset(&ds, &cfg());
         assert!(
             !report
-                .errors
+                .errors()
                 .iter()
                 .any(|e| e.contains("lang:SilentIngestDrop")),
             "errors: {:?}",
-            report.errors
+            report.errors()
         );
     }
 
@@ -3087,20 +3365,20 @@ mod tests {
         let report = structural_lint_dataset(&dataset_from(inline_blob), &cfg());
         assert!(
             report
-                .errors
+                .errors()
                 .iter()
                 .any(|e| e.contains("lang:InlineBlobPayload")),
             "errors: {:?}",
-            report.errors
+            report.errors()
         );
         assert!(
             !report
-                .errors
+                .errors()
                 .iter()
                 .any(|e| e.contains("lang:SilentIngestDrop")
                     || e.contains("lang:NonContiguousSlots")),
             "the inline-blob fixture must fire only lang:InlineBlobPayload: {:?}",
-            report.errors
+            report.errors()
         );
 
         let gap =
@@ -3108,18 +3386,18 @@ mod tests {
         let report = structural_lint_dataset(&dataset_from(gap), &cfg());
         assert!(
             report
-                .errors
+                .errors()
                 .iter()
                 .any(|e| e.contains("lang:NonContiguousSlots")),
             "errors: {:?}",
-            report.errors
+            report.errors()
         );
         assert!(
-            !report.errors.iter().any(
+            !report.errors().iter().any(
                 |e| e.contains("lang:InlineBlobPayload") || e.contains("lang:SilentIngestDrop")
             ),
             "the slot-gap fixture must fire only lang:NonContiguousSlots: {:?}",
-            report.errors
+            report.errors()
         );
 
         let drop = include_str!(
@@ -3128,20 +3406,20 @@ mod tests {
         let report = structural_lint_dataset(&dataset_from(drop), &cfg());
         assert!(
             report
-                .errors
+                .errors()
                 .iter()
                 .any(|e| e.contains("lang:SilentIngestDrop")),
             "errors: {:?}",
-            report.errors
+            report.errors()
         );
         assert!(
             !report
-                .errors
+                .errors()
                 .iter()
                 .any(|e| e.contains("lang:InlineBlobPayload")
                     || e.contains("lang:NonContiguousSlots")),
             "the silent-drop fixture must fire only lang:SilentIngestDrop: {:?}",
-            report.errors
+            report.errors()
         );
     }
 
@@ -3158,8 +3436,8 @@ mod tests {
             ),
         ] {
             let report = structural_lint_dataset(&dataset_from(fixture), &cfg());
-            let hits: Vec<&String> = report
-                .errors
+            let report_errors = report.errors();
+            let hits: Vec<&String> = report_errors
                 .iter()
                 .filter(|e| {
                     e.contains("lang:InlineBlobPayload")
@@ -3187,7 +3465,7 @@ mod tests {
 
     fn has_inhomogeneity(report: &LintReport) -> bool {
         report
-            .errors
+            .errors()
             .iter()
             .any(|e| e.contains("math:DimensionalInhomogeneity"))
     }
@@ -3200,7 +3478,7 @@ mod tests {
                math:homogeneousOperand ex:t1 , ex:t2 .\n"
         ));
         let report = structural_lint_dataset(&ds, &cfg());
-        assert!(!has_inhomogeneity(&report), "errors: {:?}", report.errors);
+        assert!(!has_inhomogeneity(&report), "errors: {:?}", report.errors());
     }
 
     #[test]
@@ -3211,7 +3489,7 @@ mod tests {
                math:homogeneousOperand ex:t1 , ex:len .\n"
         ));
         let report = structural_lint_dataset(&ds, &cfg());
-        assert!(has_inhomogeneity(&report), "errors: {:?}", report.errors);
+        assert!(has_inhomogeneity(&report), "errors: {:?}", report.errors());
     }
 
     /// The integrand/measure parameter slots compose to the integral's result
@@ -3250,7 +3528,7 @@ mod tests {
                math:hasDimension ex:energyDim .\n"
         ));
         let report = structural_lint_dataset(&ds, &cfg());
-        assert!(!has_inhomogeneity(&report), "errors: {:?}", report.errors);
+        assert!(!has_inhomogeneity(&report), "errors: {:?}", report.errors());
     }
 
     #[test]
@@ -3265,7 +3543,7 @@ mod tests {
                math:hasDimension math:timeDimension .\n"
         ));
         let report = structural_lint_dataset(&ds, &cfg());
-        assert!(has_inhomogeneity(&report), "errors: {:?}", report.errors);
+        assert!(has_inhomogeneity(&report), "errors: {:?}", report.errors());
     }
 
     #[test]
@@ -3282,11 +3560,11 @@ mod tests {
         let report = structural_lint_dataset(&ds, &cfg());
         assert!(
             report
-                .errors
+                .errors()
                 .iter()
                 .any(|e| e.contains("math:MalformedDimension") && e.contains("dimensionVector")),
             "errors: {:?}",
-            report.errors
+            report.errors()
         );
     }
 
@@ -3304,11 +3582,11 @@ mod tests {
         let report = structural_lint_dataset(&ds, &cfg());
         assert!(
             !report
-                .errors
+                .errors()
                 .iter()
                 .any(|e| e.contains("math:MalformedDimension")),
             "errors: {:?}",
-            report.errors
+            report.errors()
         );
     }
 
@@ -3365,12 +3643,12 @@ mod tests {
         let report = structural_lint_dataset(&ds, &cfg());
         assert!(
             report
-                .errors
+                .errors()
                 .iter()
                 .any(|e| e.contains("math:MalformedDimension")
                     && e.contains("exponentDenominator 0")),
             "a zero-denominator exponent cell must raise math:MalformedDimension; errors: {:?}",
-            report.errors
+            report.errors()
         );
     }
 
@@ -3387,11 +3665,11 @@ mod tests {
         let report = structural_lint_dataset(&ds, &cfg());
         assert!(
             !report
-                .errors
+                .errors()
                 .iter()
                 .any(|e| e.contains("math:MalformedDimension")),
             "a non-zero denominator must not raise math:MalformedDimension; errors: {:?}",
-            report.errors
+            report.errors()
         );
     }
 
@@ -3409,11 +3687,11 @@ mod tests {
         assert!(
             has_inhomogeneity(&report)
                 && report
-                    .errors
+                    .errors()
                     .iter()
                     .any(|e| e.contains("undimensioned operand")),
             "an undimensioned operand must raise math:DimensionalInhomogeneity; errors: {:?}",
-            report.errors
+            report.errors()
         );
     }
 
@@ -3431,10 +3709,10 @@ mod tests {
         ));
         let report = structural_lint_dataset(&ds, &cfg());
         assert!(
-            has_inhomogeneity(&report) && report.errors.iter().any(|e| e.contains("carries no")),
+            has_inhomogeneity(&report) && report.errors().iter().any(|e| e.contains("carries no")),
             "an integral with an undimensioned measure must raise math:DimensionalInhomogeneity; \
              errors: {:?}",
-            report.errors
+            report.errors()
         );
     }
 
@@ -3451,24 +3729,24 @@ mod tests {
         let report = structural_lint_dataset(&dataset_from(unliftable), &cfg());
         assert!(
             report
-                .errors
+                .errors()
                 .iter()
                 .any(|e| e.contains("math:UnliftableIngest")
                     && e.contains("http://example.org/math/run")),
             "the slice-resident produced-nothing ingest run (parseSource, no gmeow:wasGeneratedBy) \
              must raise math:UnliftableIngest; errors: {:?}",
-            report.errors
+            report.errors()
         );
         // It retains its source, so the SHACL grounding twin is out of scope: the native gate must
         // not double-report the run as math:UngroundedIngestRun.
         assert!(
             !report
-                .errors
+                .errors()
                 .iter()
                 .any(|e| e.contains("math:UngroundedIngestRun")),
             "the produced-nothing fixture retains math:parseSource, so it must not fire \
              math:UngroundedIngestRun: {:?}",
-            report.errors
+            report.errors()
         );
     }
 
@@ -3487,12 +3765,12 @@ mod tests {
         let report = structural_lint_dataset(&ds, &cfg());
         assert!(
             !report
-                .errors
+                .errors()
                 .iter()
                 .any(|e| e.contains("math:UnliftableIngest")),
             "an ingest run that lifts a structured math: codomain must NOT raise \
              math:UnliftableIngest; errors: {:?}",
-            report.errors
+            report.errors()
         );
     }
 }

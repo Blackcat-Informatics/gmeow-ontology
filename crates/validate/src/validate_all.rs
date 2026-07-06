@@ -298,8 +298,8 @@ impl ValidationRun {
         let result = timed(&mut timings, "structural-lint", options, None, || {
             let report = lint::structural_lint_dataset(&dataset, lint_config);
             PhaseResult {
-                errors: report.errors,
-                warnings: report.warnings,
+                errors: report.errors(),
+                warnings: report.warnings(),
             }
         });
         errors.extend(result.errors);
@@ -309,8 +309,8 @@ impl ValidationRun {
         let result = timed(&mut timings, "term-naming-lint", options, None, || {
             let report = lint::term_naming_lint_dataset(&dataset, lint_config);
             PhaseResult {
-                errors: report.errors,
-                warnings: report.warnings,
+                errors: report.errors(),
+                warnings: report.warnings(),
             }
         });
         errors.extend(result.errors);
