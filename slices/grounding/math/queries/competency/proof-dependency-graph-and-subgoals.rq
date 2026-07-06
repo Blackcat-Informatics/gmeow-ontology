@@ -1,0 +1,19 @@
+# Competency Q3: "What proof dependency DAG underlies this theorem, and how does its proof
+# decompose into sub-goals and steps?" The proof ingest run produces a
+# math:ProofDependencyGraph and a math:Proof; the proof decomposes into a logic:GoalExpression
+# sub-goal (math:provesGoal) and a math:ProofStep. Exactly one row.
+PREFIX math:  <https://blackcatinformatics.ca/math/>
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+
+SELECT ?run ?dag ?proof ?goal ?step WHERE {
+    ?run a math:ProofIngestRun .
+    ?dag gmeow:wasGeneratedBy ?run ;
+         a math:ProofDependencyGraph .
+    ?proof gmeow:wasGeneratedBy ?run ;
+           a math:Proof ;
+           math:provesGoal ?goal ;
+           math:proofStep ?step .
+    FILTER(STRSTARTS(STR(?run), "http://example.org/math/"))
+}
+ORDER BY ?run ?goal ?step

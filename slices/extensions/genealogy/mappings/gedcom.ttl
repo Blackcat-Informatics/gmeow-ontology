@@ -49,7 +49,7 @@ gmeow:mapGedcomFamily a gmeow:ProjectionMapping ;
         gmeow:anchor "gfam" ;
         gmeow:atom ( [ gmeow:subjectVar "gfam" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Family ] ) ;
         gmeow:edoalSource gmeow:Family ; gmeow:edoalSourceKind "class" ] ;
-    gmeow:hasBinding [ gmeow:profile "gedcom" ; gmeow:toClass gedcom:Family ; gmeow:relation "=" ; gmeow:confidence 0.9 ] .
+    gmeow:hasBinding [ gmeow:profile "gedcom" ; gmeow:toClass gedcom:Family ; gmeow:relation "=" ; gmeow:confidence 0.9 ; gmeow:mnemomorphic true ] .
 
 # The couple relator becomes a minted Marriage node; both partners emit
 # spouseIn rows. The two hasPartner atoms with an inequality filter bind the

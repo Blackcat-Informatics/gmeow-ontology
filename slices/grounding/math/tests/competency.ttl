@@ -688,3 +688,127 @@ ex:rowTensorGraph a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "node" ; gmeow:cellValueIri exf:node ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "parameterSpace" ; gmeow:cellValueIri exf:pspace ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "reflection" ; gmeow:cellValueIri exf:reflectFormula ] .
+
+# === Bridges Q1 — R-bridge source, fidelity, and logic: routing ============= #
+ex:cqBridgeRFidelity a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/r-bridge-source-fidelity-and-loss.rq" ;
+    gmeow:cqDataFile "tests/fixtures/bridges.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "The R flagship: an R ingest run names its retained source witness (math:parseSource), the fidelity rung of its lift correspondence (logic:morphismClass), and the logic:Formula its computation routed to (math:compilesToLogicFormula on a product gmeow:wasGeneratedBy the run)." ;
+    gmeow:cqExactRows false ;
+    gmeow:cqResultShape ex:cqBridgeRFidelityShape ;
+    gmeow:cqExpectRow ex:rowBridgeRFidelity .
+ex:cqBridgeRFidelityShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "run" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "source" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "rung" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "logicTarget" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsContains .
+ex:rowBridgeRFidelity a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "run" ; gmeow:cellValueIri exf:rRun ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "source" ; gmeow:cellValueIri exf:rSrc ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "rung" ; gmeow:cellValueIri logic:LossyLens ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "logicTarget" ; gmeow:cellValueIri exf:rLogic ] .
+
+# === Bridges Q2 — ONNX tensor computation graph and parameter space ========= #
+ex:cqBridgeOnnx a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/onnx-tensor-graph-and-parameter-space.rq" ;
+    gmeow:cqDataFile "tests/fixtures/bridges.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "The AI-self-structure flagship: an ONNX ingest run produces a math:TensorComputationGraph naming the model it is the architecture of, and a math:ParameterSpace holding that model's parameters." ;
+    gmeow:cqExactRows false ;
+    gmeow:cqResultShape ex:cqBridgeOnnxShape ;
+    gmeow:cqExpectRow ex:rowBridgeOnnx .
+ex:cqBridgeOnnxShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "run" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "graph" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "parameterSpace" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsContains .
+ex:rowBridgeOnnx a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "run" ; gmeow:cellValueIri exf:onnxRun ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "graph" ; gmeow:cellValueIri exf:oGraph ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "parameterSpace" ; gmeow:cellValueIri exf:oParams ] .
+
+# === Bridges Q3 — proof dependency DAG, sub-goal, and step ================== #
+ex:cqBridgeProof a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/proof-dependency-graph-and-subgoals.rq" ;
+    gmeow:cqDataFile "tests/fixtures/bridges.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "The complex-proofs flagship: a proof ingest run produces a math:ProofDependencyGraph and a math:Proof that decomposes into a logic:GoalExpression sub-goal (math:provesGoal) and a math:ProofStep." ;
+    gmeow:cqExactRows false ;
+    gmeow:cqResultShape ex:cqBridgeProofShape ;
+    gmeow:cqExpectRow ex:rowBridgeProof .
+ex:cqBridgeProofShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "run" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "dag" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "proof" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "goal" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "step" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsContains .
+ex:rowBridgeProof a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "run" ; gmeow:cellValueIri exf:proofRun ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dag" ; gmeow:cellValueIri exf:pDag ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "proof" ; gmeow:cellValueIri exf:pProof ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "goal" ; gmeow:cellValueIri exf:pGoal ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "step" ; gmeow:cellValueIri exf:pStep ] .
+
+# === Bridges Q4 — which ingests hard-failed as unliftable, with diagnostic == #
+ex:cqBridgeUnliftable a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/unliftable-ingests-and-diagnostic.rq" ;
+    gmeow:cqDataFile "tests/fixtures/bridges.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "The hard-fail is queryable: a run that could not lift its source has a math:UnliftableIngest diagnostic held as an observation about it." ;
+    gmeow:cqExactRows false ;
+    gmeow:cqResultShape ex:cqBridgeUnliftableShape ;
+    gmeow:cqExpectRow ex:rowBridgeUnliftable .
+ex:cqBridgeUnliftableShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "run" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "diagnostic" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsContains .
+ex:rowBridgeUnliftable a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "run" ; gmeow:cellValueIri exf:badRun ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "diagnostic" ; gmeow:cellValueIri exf:badDiag ] .
+
+# === Bridges Q5 — bridge results held as observations, by activity + vantage  #
+ex:cqBridgeResultsObserved a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/bridge-results-as-observations.rq" ;
+    gmeow:cqDataFile "tests/fixtures/bridges.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "The process / result / claim separation: a bridge run's held claim is a gmeow:Observation naming its result, the activity that generated it, and the vantage it is held from — here the proof QED result held from the checker's vantage." ;
+    gmeow:cqExactRows false ;
+    gmeow:cqResultShape ex:cqBridgeResultsObservedShape ;
+    gmeow:cqExpectRow ex:rowBridgeResultsObserved .
+ex:cqBridgeResultsObservedShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "activity" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "result" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "vantage" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsContains .
+ex:rowBridgeResultsObserved a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "activity" ; gmeow:cellValueIri exf:proofRun ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "result" ; gmeow:cellValueIri exf:pQed ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "vantage" ; gmeow:cellValueIri exf:pChecker ] .
+
+# === Bridges Q6 — round-trip rung and recoverability witness =============== #
+ex:cqBridgeRoundtrip a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/bridge-roundtrip-rung-and-residue.rq" ;
+    gmeow:cqDataFile "tests/fixtures/bridges.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "Trusting a lifted artifact: each bridge's lift correspondence declares its fidelity rung (logic:morphismClass) and whether it retains a recoverability witness (logic:mnemomorphic true is climbable to section; false is a fabricated approximation)." ;
+    gmeow:cqExactRows false ;
+    gmeow:cqResultShape ex:cqBridgeRoundtripShape ;
+    gmeow:cqExpectRow ex:rowBridgeRoundtrip .
+ex:cqBridgeRoundtripShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "run" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "rung" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "mnemomorphic" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsContains .
+ex:rowBridgeRoundtrip a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "run" ; gmeow:cellValueIri exf:rRun ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "rung" ; gmeow:cellValueIri logic:LossyLens ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "mnemomorphic" ; gmeow:cellValueLiteral "true" ] .

@@ -250,6 +250,32 @@ process / result / claim separation, realized across the `math:` and `gmeow:` la
 | No projection flattens an expression AST to a string without recording loss | projection test | `math:UnrecordedProjectionLoss` |
 | A declared-exact projection round-trips (section/retraction) on the conformance corpus | projection test | `math:ExactPreservationViolated` |
 
+### Bridges / ingestion rules
+
+A bridge is the mnemomorphic `put` leg of a `logic:Correspondence` — GMEOW is the source `S`, the
+external artifact the view `V`, and the lift is the up-projection `put`, never a `get` run backward
+(the calculus's named anti-pattern). The three bridge runs (`math:RIngestRun`, `math:ONNXIngestRun`,
+`math:ProofIngestRun`) share the additive unifier `math:IngestRun` (a `gmeow:Activity`), and the
+rules below turn the shared bridge contract into gates.
+
+| Rule | Primary gate | Failure class |
+|---|---|---|
+| A bridge run is a `gmeow:Activity` (the executed `put`-leg occurrence, not an Observation) | OWL axiom (subclass) + structural | (structural assertion) |
+| A bridge run retains a `logic:loadBearing` `math:parseSource` witness and carries the process-layer in-band witness (`logic:instantiatesSchema` / `logic:instantiatesPlan`) | SHACL Core | `math:UngroundedIngestRun` |
+| A bridge's lift is lawful — its residue is carried in the `logic:mnemomorphic` witness or enumerated `unsupported`; an unsupported or silently-partial drop hard-fails | Rust validator | `math:UnliftableIngest` |
+| A proof QED result object is grounded *by* an observation with a vantage (result ≠ claim) | SHACL Core | `math:UngroundedVerificationResult` |
+| A `math:FittedModel` references data (`math:fittedToData`) and a model specification (`math:modelFormula`) | SHACL Core | `math:UnfittedModel` |
+
+The unliftable-ingest rule is the charter's distinguished **native validator** gate. It is not a bare
+side-channel: it is the process-layer projection of the correspondence calculus's Overclaim and
+Mnemomorphism verdict. Because a bridge is a `put` leg, an unliftable residue — content the forward
+lift dropped with no witness to recover it and no `unsupported` enumeration to record it — is the
+`logic:ObligationViolated` / `unsupported` outcome those gates decide, so the native lint reuses the
+shared `logic:` discharge and loss-ledger vocabulary verbatim (Principle 17) rather than minting a
+`math:` preservation shadow. A bridge hard-fails on the unliftable; it never emits a degraded or
+string-valued placeholder, because "for *any* input" is a universality bar, not a best-effort
+aspiration.
+
 ## Preservation vocabulary — reuse, do not re-mint
 
 Projection preservation uses the **existing** `logic:` loss-ledger vocabulary verbatim, so
