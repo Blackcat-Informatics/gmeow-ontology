@@ -4,7 +4,7 @@
 # Construct family: someValuesFrom (∃) ⊓ allValuesFrom (∀) over disjoint fillers.
 # A ⊑ ∃p.C ⊓ ∀p.D, with C disjointWith D, and an individual x:A forces a p-filler
 # that must be both C and D -> INCONSISTENT. This is the beyond-EL ∀ construct
-# ELK silently ignores; HermiT (OWL 2 DL) catches it.
+# the EL oracle silently ignores; the OWL 2 DL oracle catches it.
 @prefix owl:  <http://www.w3.org/2002/07/owl#> .
 @prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .

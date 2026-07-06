@@ -674,23 +674,15 @@ dependencies = [
     { name = "typer" },
 ]
 
-[package.optional-dependencies]
-crosscheck = [
-    { name = "owlrl" },
-    { name = "rdflib" },
-]
-
 [package.dev-dependencies]
 dev = [
     { name = "cryptography" },
     { name = "mlcroissant" },
     { name = "mypy" },
-    { name = "owlrl" },
     { name = "pre-commit" },
     { name = "pytest" },
     { name = "pytest-cov" },
     { name = "pytest-xdist" },
-    { name = "rdflib" },
     { name = "ruff" },
     { name = "types-jsonschema" },
     { name = "xmlschema" },
@@ -705,26 +697,21 @@ requires-dist = [
     { name = "jsonschema", specifier = ">=4.23" },
     { name = "linkml", specifier = ">=1.11" },
     { name = "markdown", specifier = ">=3.10" },
-    { name = "owlrl", marker = "extra == 'crosscheck'", specifier = ">=6.0.2" },
     { name = "purrdf", specifier = ">=0.2,<0.3" },
     { name = "pyyaml", specifier = ">=6.0" },
-    { name = "rdflib", marker = "extra == 'crosscheck'", specifier = ">=7.6" },
     { name = "rich", specifier = ">=13.9" },
     { name = "typer", specifier = ">=0.15" },
 ]
-provides-extras = ["crosscheck"]
 
 [package.metadata.requires-dev]
 dev = [
     { name = "cryptography", specifier = ">=44.0" },
     { name = "mlcroissant", specifier = ">=1.0" },
     { name = "mypy", specifier = ">=1.14" },
-    { name = "owlrl", specifier = ">=6.0.2" },
     { name = "pre-commit", specifier = ">=4.0" },
     { name = "pytest", specifier = ">=8.3" },
     { name = "pytest-cov", specifier = ">=6.0" },
     { name = "pytest-xdist", specifier = ">=3.6" },
-    { name = "rdflib", specifier = ">=7.6" },
     { name = "ruff", specifier = ">=0.9" },
     { name = "types-jsonschema", specifier = ">=4.23" },
     { name = "xmlschema", specifier = ">=4.3" },
@@ -1343,18 +1330,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/3d/f9/88d94a75de065ea32619465d2f77b29a0469500e99012523b91cc4141cd1/openpyxl-3.1.5.tar.gz", hash = "sha256:cf0e3cf56142039133628b5acffe8ef0c12bc902d2aadd3e0fe5878dc08d1050", size = 186464, upload-time = "2024-06-28T14:03:44.161Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/c0/da/977ded879c29cbd04de313843e76868e6e13408a94ed6b987245dc7c8506/openpyxl-3.1.5-py2.py3-none-any.whl", hash = "sha256:5282c12b107bffeef825f4617dc029afaf41d0ea60823bbb665ef3079dc79de2", size = 250910, upload-time = "2024-06-28T14:03:41.161Z" },
-]
-
-[[package]]
-name = "owlrl"
-version = "7.1.4"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "rdflib" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/d1/fc/ce12482d096d65fff01af58f555a6f25e9dbf416fad5d99f91eaab0e11ca/owlrl-7.1.4.tar.gz", hash = "sha256:60bd4067e346b9111f0a2924565afe97ac6595b98b2bbe953928b5113971daf7", size = 44420, upload-time = "2025-07-29T00:17:27.608Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/de/78/f857ff1a7207e967dc5e8414bbcc15e0aa5cf45f693b1d2ebe2afb3eb1ce/owlrl-7.1.4-py3-none-any.whl", hash = "sha256:e78b46020169783345636da93a467d318f18700c483184dd15e885850cf64775", size = 51981, upload-time = "2025-07-29T00:17:26.229Z" },
 ]
 
 [[package]]

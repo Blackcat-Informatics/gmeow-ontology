@@ -74,22 +74,22 @@ RUST_INPUTS := Cargo.toml Cargo.lock .cargo/config.toml $(shell find crates -typ
 NATIVE_PY_INPUTS := pyproject.toml $(RUST_INPUTS)
 
 CHECK_TARGETS := lint rust-gate validate check-generated constitution-check \
-	crate-check audit wikidata coverage acceptance reason-verify mappings \
-	lint-alignment doc-lint coherence-gate-teeth
+	crate-check audit wikidata coverage acceptance reason-verify reason-crosscheck \
+	mappings lint-alignment doc-lint coherence-gate-teeth
 
 .PHONY: help \
 	install fmt lint lint-issue-refs \
-	native-py native-py-wheel native-py-install validate validate-gts reason verify reason-verify test test-fast rust-build rust-test rust-docs check \
+	native-py native-py-wheel native-py-install validate validate-gts reason verify reason-verify reason-crosscheck test test-fast rust-build rust-test rust-docs check \
 	regenerate fanout check-generated commit docs normalize build project release release-sign-gts full-release verify-release release-publish clean \
 	mappings wikidata coverage acceptance crossref audit \
 	constitution-check crate-check lint-alignment doc-lint rust-gate coherence-gate-teeth clippy carrier-purity wasm \
 	lsp-build lsp-release lsp-sarif diagnostics-rust-sarif \
 	slicetest conformance conformance-report insta-review \
 	fuzz-smoke bench bench-compare rust-coverage mutants compliance-report perf-gate \
-	maint-reason-hermit maint-explain maint-verify-docker maint-crosscheck \
+	maint-crosscheck \
 	maint-extract maint-refresh-target-axioms maint-wikidata-live \
 	maint-wikidata-coverage maint-wikidata-audit maint-test-heavy \
-	maint-test-network maint-pull-images maint-quality maint-evals-score \
+	maint-test-network maint-quality maint-evals-score \
 	maint-compliance-report-full maint-bench-baseline maint-rust-heavy \
 	maint-external-corpora maint-tptp-corpus maint-lang-selfhost
 
@@ -133,11 +133,14 @@ verify: native-py ## Run native reasoned-graph negative tests.
 reason-verify: native-py ## Run native reasoning + reasoned-graph verify with one closure.
 	$(GMEOW_DEV) reason-verify
 
-test: native-py ## Run the pytest suite, excluding maintainer and oracle lanes.
-	uv run pytest -n auto --dist loadscope --durations=25 -m "not maintainer and not classic_cross_check"
+reason-crosscheck: native-py ## Cross-check native subsumptions against the purrdf-entail OWL-RL oracle (native ⊇ oracle).
+	$(GMEOW_DEV) reason-crosscheck
 
-test-fast: native-py ## Run the fast pytest suite, excluding maintainer, Docker, and oracle lanes.
-	uv run pytest -n auto --dist loadscope --durations=25 -m "not maintainer and not docker and not classic_cross_check"
+test: native-py ## Run the full pytest suite (excl. maintainer lanes) with slowest-25 profiling.
+	uv run pytest -n auto --dist loadscope --durations=25 -m "not maintainer"
+
+test-fast: native-py ## Fast gate lane: same suite, fail-fast (-x), no profiling — the lane `make check` runs.
+	uv run pytest -n auto --dist loadscope -x -m "not maintainer"
 
 rust-build: $(RUST_READY_STAMP) ## Compile Rust workspace test binaries without running them.
 
@@ -249,7 +252,6 @@ full-release: native-py ## Signed release-as-evidence: gate + oracle lane + conf
 		--evidence "dist/compliance-report.ttl:text/turtle:attestationTypeQualityReport:compliance:Compliance report" \
 		--evidence "generated/conformance/verdicts.json:application/json:attestationTypeConformanceVerdict:conformance:Logic conformance suite verdicts" \
 		--evidence "generated/logic/dl-el-crosscheck-report.ttl:text/turtle:attestationTypeCrossCheckAgreement:nativeoracle:Native gap-zero DL-EL agreement ledger" \
-		--evidence "dist/gmeow-classic-cross-check.sarif:application/sarif+json:attestationTypeCrossCheckAgreement:crosscheck:Classic cross-check agreement matrix" \
 		--evidence "bench/baseline.json:application/json:attestationTypeQualityReport:perf:Perf baseline"
 	$(MAKE) verify-release
 	$(MAKE) crossref
@@ -473,17 +475,7 @@ compliance-report: ## Emit dist/compliance-report.ttl from already-passing gates
 
 ##@ Maintainer Tasks
 
-maint-reason-hermit: maint-pull-images native-py ## Run HermiT complete consistency check.
-	$(GMEOW_DEV) reason --mode docker --reasoner hermit
-
-maint-explain: maint-pull-images native-py ## Explain unsatisfiable classes with HermiT.
-	$(GMEOW_DEV) explain
-
-maint-verify-docker: maint-pull-images native-py ## Run ROBOT/ELK reasoned-graph verification.
-	$(GMEOW_DEV) reason --mode docker --reasoner ELK --exclude-tautologies structural
-	$(GMEOW_DEV) verify --mode docker --reasoner ELK --reasoned-input dist/gmeow-reasoned-elk.ttl
-
-maint-crosscheck: native-py ## Cross-check rdflib and native purrdf query answers.
+maint-crosscheck: native-py ## Prove every committed query answers on the native purrdf engine.
 	$(GMEOW_DEV) crosscheck-queries
 
 maint-extract: native-py ## Run import/extract policy for TARGET.
@@ -502,13 +494,10 @@ maint-wikidata-audit: ## Audit fixtures and modules for Wikidata misuse.
 	$(GMEOW_DEV) wikidata --fixtures
 
 maint-test-heavy: native-py ## Run kept-Python-module maintainer tests.
-	uv run pytest -n auto --dist loadscope -m "maintainer and not classic_cross_check"
+	uv run pytest -n auto --dist loadscope -m "maintainer"
 
 maint-test-network: ## Run live network tests.
 	GMEOW_RUN_NETWORK=1 uv run pytest -m network
-
-maint-pull-images: ## Pull or build pinned Docker oracle images.
-	bash scripts/pull-images.sh
 
 maint-quality: ## Run OOPS! network pitfall scan.
 	$(GMEOW_DEV) quality

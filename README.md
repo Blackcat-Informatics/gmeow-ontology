@@ -204,14 +204,16 @@ developer command.
 
 ```bash
 make install         # sync the uv environment
-make check           # fast local gate: lint, validate, native EL/DL reason + verify, mappings, fast tests
-make maint-classic-cross-check # non-required Docker oracle: ROBOT/ELK/HermiT cross-check of the native work + Jena statements
+make check           # fast local gate: lint, validate, native EL/DL reason + verify, subsumption cross-check, mappings, fast tests
+make reason-verify   # native reasoning + reasoned-graph verify (consistency), one closure (Docker-free)
+make reason-crosscheck  # on-gate purrdf-entail subsumption cross-check oracle (native ⊇ oracle, Docker-free)
 ```
 
 `make check` is the normal local gate — fully Java/Docker-free (native EL/DL
-reasoning and native reasoned-graph verify). The Docker oracle lane is explicit and
-non-required, so routine development and required CI are not blocked on
-ROBOT/HermiT/Jena; the classic reasoners survive only to cross-check the native work.
+reasoning and native reasoned-graph verify). The cross-check oracle is the in-process
+`purrdf::entail` engine, folded on-gate into `make reason-crosscheck` (which `make check`
+runs), so routine development and required CI need no JVM or container; the external engine
+survives only to cross-check the native lane's subsumption closure.
 
 ## The `gmeow.gts` bundle
 
@@ -275,7 +277,8 @@ hash, text labels, randomart, and valid/invalid/unverified signature counts. See
 |---|---|
 | `make validate` | Turtle syntax + term-annotation lint + SHACL |
 | `make reason` | Native Docker-free EL/DL reasoning authority |
-| `make maint-explain` | Explain unsatisfiable classes with **HermiT** |
+| `make reason-verify` | Native reasoning + reasoned-graph verify (consistency), one closure (Docker-free) |
+| `make reason-crosscheck` | On-gate `purrdf::entail` **subsumption** cross-check oracle (native ⊇ oracle, Docker-free) |
 | `make verify` | Reasoned-graph SPARQL QC (native EL/DL closure over `queries/verify/`, Java/Docker-free) — the closed-world half of the [OWL-infers / SHACL-validates split](./docs/reasoning.md) |
 | `make regenerate` | Rebuild EVERY committed artifact under `generated/` via the registered-generator framework: mappings, projections, statements, schemas, lpg, metadata, apache, the module-status matrix |
 | `make check-generated` | Drift + orphan + internal-tag-leak gate over every registered generator |
@@ -285,13 +288,13 @@ hash, text labels, randomart, and valid/invalid/unverified signature counts. See
 | `make acceptance` | Score full transpile on real external RDF snapshots; hard gates plus honest coverage scoreboard |
 | `make docs` | Regenerate `gmeow.gts` docs and extract the committed `ontology-docs/` tree |
 | `make build` | All serializations (`ttl`/`rdf`/`nt`/`jsonld`) + JSON-LD context → `dist/` (ephemeral) |
-| `make maint-classic-cross-check` | Non-required ROBOT/ELK/HermiT cross-check of the native work + Jena-backed statement checks |
 | `make maint-quality` | OOPS! pitfall scan (network, best-effort) |
 | `make release` | Regenerate + native reasoning closure + build + compliance report + CrossRef deposit |
 
-The Java tools (ROBOT, WIDOCO, Jena) run as **pinned Docker images** (see
-`src/gmeow_tools/config.py`); `make maint-pull-images` pre-pulls them. Containers run as the
-invoking user, so generated files are never owned by root.
+The remaining Java tools (ROBOT `extract`, WIDOCO) run as **pinned Docker images** (see
+`src/gmeow_tools/config.py`). Containers run as the invoking user, so generated files are never
+owned by root. The reasoning cross-check needs none of them — it runs in-process over
+`purrdf::entail`.
 
 ## Architecture
 
@@ -344,11 +347,10 @@ status — is the generated [`generated/module-status.md`](./generated/module-st
 
 The **native `logic:` engine is the reasoning authority** (`make reason`, Docker-free) — forward
 materialization + backward goal-resolution over the RDF-1.2 canonical form, with per-triple
-derivation provenance. For the OWL cross-check lane, the pipeline **merges the import closure into
-one ontology, then reasons/validates that product** (collapsing to a single ontology avoids
-ROBOT's spurious "undeclared entity" violations for sibling-module terms); ELK (fast) and HermiT
-(sound + complete OWL 2 DL) run there as *secondary* validators of the exported OWL projection,
-never as the authority over `logic:` semantics.
+derivation provenance. The cross-check oracle is the in-process `purrdf::entail` engine
+(`gmeow-dev reason-crosscheck`, run on-gate): OWL-RL subsumption + OWL-Direct-tableau consistency,
+70/70 W3C-entailment conformance-tested, run as a *secondary* validator of the exported OWL
+projection, never as the authority over `logic:` semantics.
 
 ### Upper-ontology spine
 
@@ -491,8 +493,9 @@ A **native, Docker-free execution engine** (`crates/logic` + `crates/logic-compi
 reasoning authority: forward materialization and backward goal-resolution over a relational-core
 dialect (semi-naive + magic-sets), per-triple derivation provenance, and a typed five-field
 `ReasoningResult`. Scryer (Prolog) and Nemo (Datalog) are bootstrap substrates being subsumed into
-the native core — demoted to cross-check oracles + not-yet-native fallbacks; ELK/HermiT survive
-only as a non-authoritative cross-check lane. Every lowering carries a preservation judgment (exact
+the native core — demoted to cross-check oracles + not-yet-native fallbacks; the in-process
+`purrdf::entail` engine survives as the non-authoritative, on-gate cross-check oracle. Every
+lowering carries a preservation judgment (exact
 / under- / over-approximation / validation-only / unsupported), and any reasoning-contract
 combination with no defined semantics surfaces as an explicit `unsupported` — never a silent
 approximation. Design set: [`slices/grounding/logic/design/`](./slices/grounding/logic/design/) (entrypoint

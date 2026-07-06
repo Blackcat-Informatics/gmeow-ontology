@@ -102,7 +102,7 @@ Rust-native RDF 1.2 quad store (**oxigraph**). These are conceptual substrate ch
 because the design decisions (asymmetric pipeline, blackboard handoff, Kripke algebra mapped to
 typed named-graph contexts) are grounded in what those engines commit to. They are not build-time
 feature flags or replaceable components the architecture is neutral about; the seam design is
-written *for* these substrates. External OWL reasoners (e.g. ELK, HermiT) remain available for
+written *for* these substrates. External OWL reasoners remain available for
 checking the OWL projections of the IR, but they are secondary validators of their projected
 fragments — not authorities over the canonical `logic:` semantics.
 
@@ -475,5 +475,5 @@ respectively, as first-class operations on the running solver.
 
 ---
 
-*Engines and tools named here — oxigraph, Nemo, Scryer, ELK/HermiT, ProbLog, EYE/cwm — are
+*Engines and tools named here — oxigraph, Nemo, Scryer, ProbLog, EYE/cwm — are
 listed in [LOGIC-REFERENCES.md](LOGIC-REFERENCES.md).*
