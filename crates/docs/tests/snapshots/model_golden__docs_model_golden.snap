@@ -119,7 +119,7 @@ expression: summary
         "role": "Documentation",
         "logical_path": "docs.md",
         "media_type": "text/markdown",
-        "raw_digest": "f656971f578aec4be456c7e60d978e61225ba2363e54481b3397fcce6491fdc6",
+        "raw_digest": "e346485e9e9353c541bf72911ac601d8c4237544cfad223bee966f47a8f0c403",
         "semantic_digest": null
       },
       {
@@ -301,7 +301,7 @@ expression: summary
   ],
   "mapping_set_count": 80,
   "linkage_count": 1984,
-  "example_count": 136,
+  "example_count": 137,
   "concern_count": 7,
   "external_term_count": 1715,
   "sample_mapping_set": {
@@ -421,7 +421,7 @@ expression: summary
       "schema"
     ]
   },
-  "shape_count": 308,
+  "shape_count": 310,
   "competency_count": 120,
   "sample_shape": {
     "shape_iri": "https://blackcatinformatics.ca/gmeow/RetractedAccessibilityAssertionShape",

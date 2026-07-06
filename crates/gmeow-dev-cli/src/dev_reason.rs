@@ -19,9 +19,7 @@ use gmeow_logic::reason::{native_contract_hash, reason_all};
 use gmeow_logic::result::ReasoningResult;
 use gmeow_logic::verify::{verify as verify_reasoned, verify_with_reasoning_result};
 
-use crate::dev_common::{
-    elapsed_ms, fail, fail_code, project_root, snapshot_bytes, write_timings_json,
-};
+use crate::dev_common::{elapsed_ms, fail, project_root, snapshot_bytes, write_timings_json};
 
 /// Import the committed snapshot into a reasoning dataset.
 fn snapshot_dataset(root: &Path) -> Result<std::sync::Arc<purrdf::RdfDataset>, i32> {
@@ -71,16 +69,9 @@ fn shipped_reasoning_result(dataset: &purrdf::RdfDataset) -> Result<ReasoningRes
 /// default the shipped `graph/reasoning` verdict is reused (contract-hash-checked);
 /// `--fresh` recomputes the closure with the native engine.
 pub fn reason(mode: &str, fresh: bool, timings_json: Option<&Path>) -> i32 {
-    if mode == "docker" {
-        return fail_code(
-            "reason --mode docker needs the classic ELK/HermiT container stack, which the \
-             native binary does not embed; use --mode native (the Docker-free authority)",
-            2,
-        );
-    }
     if mode != "native" {
         return fail(format!(
-            "unknown reasoning mode: {mode:?} (expected native or docker)"
+            "unknown reasoning mode: {mode:?} (only the native Docker-free reasoner exists)"
         ));
     }
     let root = project_root();
@@ -180,16 +171,9 @@ fn collect_slice_verify(slices: &Path, out: &mut Vec<PathBuf>) {
 /// into the snapshot (contract-hash-checked, no second chase); `--fresh`
 /// recomputes the closure with the native engine first.
 pub fn verify(mode: &str, fresh: bool, timings_json: Option<&Path>) -> i32 {
-    if mode == "docker" {
-        return fail_code(
-            "verify --mode docker needs the classic ROBOT container stack, which the native \
-             binary does not embed; use --mode native (the Docker-free authority)",
-            2,
-        );
-    }
     if mode != "native" {
         return fail(format!(
-            "unknown verify mode: {mode:?} (expected native or docker)"
+            "unknown verify mode: {mode:?} (only the native Docker-free verifier exists)"
         ));
     }
     let root = project_root();
@@ -301,6 +285,86 @@ pub fn reason_verify(fresh: bool, timings_json: Option<&Path>) -> i32 {
     0
 }
 
+/// `gmeow-dev reason-crosscheck` — the native ↔ entail-oracle subsumption
+/// divergence cross-check (the Docker-free replacement for the retired external
+/// subsumption lane).
+///
+/// Loads the committed bundle EDB (the same snapshot import `reason-verify` uses),
+/// drives gmeow's own native reasoner against the independent, conformance-tested
+/// `purrdf::entail` OWL-RL subsumption oracle, prints the structured divergence
+/// ledger, and returns exit `0` iff the strict `enforce()` **superset** verdict
+/// passes: `native ⊇ oracle`, i.e. no OracleOnly / DlGap / CorpusOnly row.
+/// NativeOnly rows are gmeow's richer world-scoped closure and are expected, not a
+/// failure. Any real divergence is printed with its classification so a red is a
+/// diagnosable disagreement, never an opaque failure.
+pub fn reason_crosscheck() -> i32 {
+    use gmeow_logic::entail_crosscheck::run_entail_crosscheck;
+    use gmeow_logic::reason::ledger::DivergenceKind;
+
+    let root = project_root();
+    let dataset = match snapshot_dataset(&root) {
+        Ok(d) => d,
+        Err(code) => return code,
+    };
+    // Reason FRESH: the cross-check needs the COMPLETE native subsumption closure.
+    // The shipped `graph/reasoning` projection persists a reduced subsumption set
+    // (its transitive surface omits ~70 links the OWL-RL oracle still derives), so
+    // reusing it would under-report native and false-flag those as OracleOnly. A
+    // fresh `reason_all` is the full world-partitioned closure the comparison needs.
+    let result = match reason_all(dataset.as_ref()) {
+        Ok(r) => r,
+        Err(e) => return fail(format!("reason-crosscheck: native reasoning failed: {e}")),
+    };
+    let outcome = match run_entail_crosscheck(&result, dataset.as_ref()) {
+        Ok(o) => o,
+        Err(e) => return fail(format!("reason-crosscheck failed: {e}")),
+    };
+
+    let ledger = &outcome.ledger;
+    println!(
+        "native ↔ entail-oracle subsumption cross-check (Docker-free): {worlds} source world(s); \
+         {native} native vs {oracle} oracle subsumption(s)",
+        worlds = outcome.source_worlds,
+        native = outcome.native_subsumptions,
+        oracle = outcome.oracle_subsumptions,
+    );
+    println!(
+        "  ledger: {agree} agree, {native_only} native-only (expected richness), \
+         {oracle_only} oracle-only, {dl_gap} dl-gap",
+        agree = ledger.agree,
+        native_only = ledger.native_only,
+        oracle_only = ledger.oracle_only,
+        dl_gap = ledger.dl_gap,
+    );
+
+    // Print every FAILING row so a divergence is diagnosable, not opaque. NativeOnly
+    // rows are NOT failures — they are gmeow's richer world-scoped closure (`native ⊇
+    // oracle`) — so they are summarized by count above, not enumerated as noise.
+    for row in &ledger.rows {
+        let tag = match row.kind {
+            DivergenceKind::OracleOnly => "oracle-only",
+            DivergenceKind::DlGap => "dl-gap",
+            DivergenceKind::CorpusOnly => "corpus-only",
+            DivergenceKind::Agree | DivergenceKind::NativeOnly => continue,
+        };
+        eprintln!("  [{tag}] ({}) {}", row.category, row.detail);
+    }
+
+    if outcome.verdict.passed {
+        println!(
+            "reason-crosscheck: native ⊇ oracle — no divergence (native, Docker-free); \
+             {} native-only enrichment(s)",
+            ledger.native_only
+        );
+        0
+    } else {
+        for reason in &outcome.verdict.reasons {
+            eprintln!("reason-crosscheck: {reason}");
+        }
+        fail("reason-crosscheck: native↔oracle divergence")
+    }
+}
+
 /// `gmeow-dev explain` — explain unsatisfiable classes / inconsistency.
 pub fn explain() -> i32 {
     let root = project_root();
@@ -317,8 +381,7 @@ pub fn explain() -> i32 {
         return 0;
     }
     // The native explanation: enumerate the contradiction witnesses the reasoner
-    // recorded for the glut. The Docker HermiT oracle is only for extra-detailed
-    // derivations (`make maint-reason-hermit`); the native verdict stands here.
+    // recorded for the glut. The native verdict stands here.
     let witnesses = &result.provenance.contradiction_witnesses;
     eprintln!(
         "ontology is inconsistent: {} contradiction witness(es)",

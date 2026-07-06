@@ -61,7 +61,7 @@ fn repo_root() -> PathBuf {
 ///    `native_reason_gen.py` (`reason_native_artifacts(gmeow.gts, merge=False)`)
 ///    drives over the committed bundle. The native reasoner is Docker-free and
 ///    deterministic, so all three reproduce the committed bytes EXACTLY (the ledger
-///    is report-only / native-computed — no ELK/HermiT oracle, so no external
+///    is report-only / native-computed — no external oracle, so no external
 ///    dependency remains). They are NOT in this allowlist.
 ///  * `generated/projections/functions.fno.ttl` — the FnO emitter now applies the
 ///    `@x-gmeow-english` → `@en` projection-boundary retag (mirroring the native

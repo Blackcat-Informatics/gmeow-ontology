@@ -39,7 +39,8 @@ critical-path jobs:
 - Run `27524977688`: `python` 37:12, with `Unit tests (pure Python)` 36:23.
 - Run `27524977688`: `ontology` 36:48, with `Validate` 16:23 and
   `Compliance report` 17:00.
-- Run `27524977688`: `reason-hermit` 15:48.
+- Run `27524977688`: the external OWL 2 DL reasoning lane 15:48 (since removed; the
+  native, in-process reasoning cross-check replaced it).
 - Run `27524977688`: `statements` 6:15, mostly Jena image build.
 
 Current `origin/main` run `27536210920` failed ontology drift after validate,

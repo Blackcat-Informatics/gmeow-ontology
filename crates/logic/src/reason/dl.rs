@@ -86,11 +86,11 @@ const OWL_HAS_VALUE: &str = "http://www.w3.org/2002/07/owl#hasValue";
 // `decided` — but only because the *EL/RL path* already decided it. Listing it
 // here would obscure WHICH path is responsible. The coverage instrument tracks
 // what THIS DL post-pass decides; EL/RL coverage is the EL engine's concern.
-// Concretely: `make -C validations/classic-cross-check validate` and the frozen HermiT conformance
+// Concretely: the native reasoning gate and the frozen external OWL 2 DL oracle
 // gold (`tests/conformance/`) both pass with this omission, confirming the
 // conjunction instances in the committed bundle are fully decided by the
 // EL/RL path. If a future bundle introduces an intersection pattern the EL/RL
-// path cannot handle, the HermiT conformance gate will catch the regression.
+// path cannot handle, the frozen external oracle gold gate will catch the regression.
 const OWL_UNION_OF: &str = "http://www.w3.org/2002/07/owl#unionOf";
 
 /// The construct families this module *inventories* in the committed
@@ -845,8 +845,8 @@ pub(crate) fn augment_inferred_with_dl(
                     // `owl:Nothing` — an inconsistency. This is the closure half of
                     // `oneOf` (the member→type direction above is the easy half); it
                     // terminates because the enumeration is finite and no witnesses
-                    // are invented. (Gap G: the frozen HermiT gold caught
-                    // this clash; native must too — native ⊇ oracle.)
+                    // are invented. (Gap G: the frozen external OWL 2 DL oracle gold
+                    // caught this clash; native must too — native ⊇ oracle.)
                     //
                     // Distinctness here is the **explicit** stance only (asserted
                     // `owl:differentFrom`), NOT the UNA default the cardinality
@@ -2663,8 +2663,8 @@ mod tests {
         // Colour = oneOf (red green); x : Colour but x differentFrom both red and
         // green ⇒ x can be no member ⇒ x : owl:Nothing ⇒ INCONSISTENT. This is the
         // CLOSURE half of oneOf (the member→type direction is the easy half), the
-        // beyond-EL nominal reasoning the frozen HermiT gold demands native
-        // catch (native ⊇ oracle).
+        // beyond-EL nominal reasoning the frozen external OWL 2 DL oracle gold demands
+        // native catch (native ⊇ oracle).
         const FIRST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#first";
         const REST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest";
         const NIL: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil";

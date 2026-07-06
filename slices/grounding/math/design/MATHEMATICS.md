@@ -356,6 +356,18 @@ bridge, deeply enough to be self-describing.*
 These are the layer's acceptance bar. The domain charters ([`MATHEMATICS-REFERENCES.md`](MATHEMATICS-REFERENCES.md)
 records which anchor externally and which GMEOW authors) exist to make them answerable.
 
+The acceptance bar is itself a typed, gated contract, not prose. Each of the five scenarios above is
+reified as a `math:FlagshipScenario` (authored in `examples/flagship-acceptance.ttl`) binding it to
+the four artifacts that realize and enforce it — its worked example
+(`math:demonstratedByExample`), its competency question (`math:demonstratedByCompetency`), its
+guarding counter-example (`math:guardedByCounterExample`), and the named failure class its gate
+raises (`math:enforcesFailureClass`). Three surfaces enforce the wiring: a SHACL shape and a
+structural assertion prove the five are present and fully linked to a real `math:MathConformanceFailure`
+subclass, and a native cross-check resolves each competency reference into the tests dataset and
+confirms it is a registered, green (`cqExpectRow`) question — so an unwired scenario is the typed
+failure `math:UnwiredFlagshipScenario`, and the depth bar cannot silently regress (see
+[`MATHEMATICS-CONFORMANCE.md`](MATHEMATICS-CONFORMANCE.md), "Flagship acceptance-manifest rules").
+
 ## Constitutional Alignment
 
 The mathematics slice is the project's doctrine applied to mathematics and statistics. The

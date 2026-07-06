@@ -5,8 +5,8 @@
 //!
 //! The rule set [`EL_RULES`] is fixed and ontology-independent: it encodes the
 //! class-level OWL-2-EL/RL entailment calculus (subclass transitivity,
-//! equivalence, type propagation, sub-property transitivity) directly, the way
-//! ELK ships its calculus built in. We feed the TBox/ABox of any kernel store
+//! equivalence, type propagation, sub-property transitivity) directly, as a
+//! fixed built-in calculus. We feed the TBox/ABox of any kernel store
 //! through the world-scoped ternary gmeow encoding and run the chase, returning
 //! the derived subsumption closure with raw chase provenance.
 //!
