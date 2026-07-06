@@ -7716,6 +7716,88 @@ logic:candidateOrgMembershipPropagation
     logic:candidateFormalizes gmeow:memberOf ;
     logic:candidateSourceField logic:ProseFieldDefinition .
 
+# ── Diagnostics gate: the fatal verdict as the principal up-set of the truth order
+# (severity=Error) ∧ (category→Blocking) ∧ (standpoint=Binding) ⇒
+#   gmeow:findingGateVerdict gmeow:gateFatal.
+# The RDF-side derivation of the single Rust gmeow_errors::grade::gate() policy
+# morphism: a meet of three monotone axis-maps whose Fatal region is exactly the
+# principal up-set ↑(Error, Blocking, Binding). The rule joins a finding's severity,
+# its category's gmeow:categoryBlocking projection (asserted in the diagnostics
+# slice), and its standpoint. Because Fatal is reachable only from the top of all
+# three axes, an advisory-standpoint or Coherent-category finding can never be
+# derived Fatal — the two never-gate theorems fall out of the construction, not a
+# special case. The diagnostics conformance lane proves the derived Fatal set
+# equals gate()'s over every grade.
+
+logic:ruleGateFatalVerdict
+    a logic:Rule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "derive the fatal gate verdict on the principal up-set of the truth ordering"@x-gmeow-english ;
+    skos:definition "Emits gmeow:findingGateVerdict(finding, gmeow:gateFatal) whenever a finding's gmeow:findingSeverity is gmeow:severityError, its gmeow:findingCategory's gmeow:categoryBlocking projection is gmeow:blockingBlocking, and its gmeow:findingStandpoint is gmeow:standpointBinding: the principal up-set ↑(Error, Blocking, Binding) of the truth ordering, the meet of three monotone axis-maps. The RDF-side derivation of the single Rust gmeow_errors::grade::gate() policy morphism. Positive Horn; monotone; materialized natively (logic:ExactPreservation). Because Fatal is reachable only from the top of all three axes, an advisory-standpoint or Coherent-category finding is structurally unable to be derived Fatal — the two never-gate theorems fall out of the up-set construction, not a special case."@x-gmeow-english ;
+    logic:provenance logic:ruleGateFatalVerdict ;
+    logic:formalizes gmeow:findingGateVerdict ;
+    logic:head [
+        rdf:subject   "?finding" ;
+        rdf:predicate gmeow:findingGateVerdict ;
+        rdf:object    gmeow:gateFatal
+    ] ;
+    logic:body [
+        rdf:subject   "?finding" ;
+        rdf:predicate gmeow:findingSeverity ;
+        rdf:object    gmeow:severityError
+    ] , [
+        rdf:subject   "?finding" ;
+        rdf:predicate gmeow:findingCategory ;
+        rdf:object    "?category"
+    ] , [
+        rdf:subject   "?category" ;
+        rdf:predicate gmeow:categoryBlocking ;
+        rdf:object    gmeow:blockingBlocking
+    ] , [
+        rdf:subject   "?finding" ;
+        rdf:predicate gmeow:findingStandpoint ;
+        rdf:object    gmeow:standpointBinding
+    ] .
+
+logic:cqGateFatalVerdictHolds
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "the fatal verdict is derived on the top of all three truth axes"@x-gmeow-english ;
+    skos:definition "The positive competency case the gate rule must satisfy: given a finding with gmeow:findingSeverity gmeow:severityError, a gmeow:findingCategory whose gmeow:categoryBlocking is gmeow:blockingBlocking (a failure kind), and gmeow:findingStandpoint gmeow:standpointBinding, the reasoner must derive gmeow:findingGateVerdict gmeow:gateFatal — the principal up-set ↑(Error, Blocking, Binding) the harvested prose commits to, agreeing with Rust gate() returning Fatal."@x-gmeow-english .
+
+logic:cqGateFatalAdvisoryNeverFatalRejected
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "an advisory-standpoint finding is never derived fatal"@x-gmeow-english ;
+    skos:definition "The first never-gate countermodel the gate rule must respect: a finding whose gmeow:findingStandpoint is gmeow:standpointAdvisory is NEVER derived gmeow:findingGateVerdict gmeow:gateFatal, no matter how loud its severity or how blocking its category — the standpoint axis is below the Binding top, so the meet cannot reach Fatal. The boundary that keeps advice from ever failing the gate, mirroring Rust gate() returning Collected for every advisory grade."@x-gmeow-english .
+
+logic:cqGateFatalPermittedConflictNeverFatalRejected
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "a permitted-epistemic-conflict finding is never derived fatal"@x-gmeow-english ;
+    skos:definition "The second never-gate countermodel the gate rule must respect: a finding whose gmeow:findingCategory is logic:FindingPermittedEpistemicConflict — whose gmeow:categoryBlocking projection is gmeow:blockingCoherent — is NEVER derived gmeow:findingGateVerdict gmeow:gateFatal, even at gmeow:severityError and gmeow:standpointBinding, because its Blocking axis is below the Blocking top. The load-bearing boundary that a disclosed, coherent contradiction a glut-admitting contract permits does not fail the gate, mirroring Rust gate() returning Collected for every Coherent-category grade."@x-gmeow-english .
+
+logic:candidateGateFatalVerdict
+    a owl:NamedIndividual ,
+        logic:FormalizationCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "the fatal gate verdict derives on the principal up-set of the truth ordering"@x-gmeow-english ;
+    skos:definition "The derivation-rule formalization candidate governing logic:ruleGateFatalVerdict: it harvests the up-set construction documented in gmeow:findingGateVerdict's skos:definition (the verdict is gmeow:gateFatal exactly on the principal up-set ↑(Error, Blocking, Binding), the meet of the severity, blocking-projected category, and standpoint axes) into an enforced positive-Horn derivation rule, materialized natively as logic:ExactPreservation — the RDF-side image of the single Rust gmeow_errors::grade::gate() policy morphism. Accepted through review (logic:reviewedBy logic:reviewerLogicFoundation) with a positive case (logic:cqGateFatalVerdictHolds) and two never-gate countermodels (logic:cqGateFatalAdvisoryNeverFatalRejected, logic:cqGateFatalPermittedConflictNeverFatalRejected). Its harvest back-link (logic:candidateFormalizes gmeow:findingGateVerdict, logic:candidateSourceField logic:ProseFieldDefinition) ties it to the exact prose, and logic:candidateSourceHash is the sha256 of that definition text so a later edit surfaces as drift."@x-gmeow-english ;
+    logic:candidateSourceHash "sha256:e12a391fb8dfadd6f26028567308db254ed169b158f4320f05e527c59b376359"^^xsd:string ;
+    logic:candidateExtractionProvenance "hand-harvested from gmeow:findingGateVerdict's skos:definition, which states the verdict is derived on exactly the principal up-set ↑(Error, Blocking, Binding) of the truth ordering, mirroring the Rust gmeow_errors::grade::gate() morphism (design/LOGIC-FOUNDATION.md, §Typed formalization governance)"^^xsd:string ;
+    logic:candidateScope "derivation: (gmeow:findingSeverity gmeow:severityError) ∧ (gmeow:findingCategory ∘ gmeow:categoryBlocking gmeow:blockingBlocking) ∧ (gmeow:findingStandpoint gmeow:standpointBinding) ⇒ gmeow:findingGateVerdict gmeow:gateFatal"^^xsd:string ;
+    logic:candidateContract logic:PositiveHornProfile ;
+    logic:candidateCategory logic:CategoryDerivationRule ;
+    logic:candidateLifecycle logic:CandidateAccepted ;
+    logic:reviewedBy logic:reviewerLogicFoundation ;
+    logic:candidatePositiveCase logic:cqGateFatalVerdictHolds ;
+    logic:candidateNegativeCase logic:cqGateFatalAdvisoryNeverFatalRejected ,
+        logic:cqGateFatalPermittedConflictNeverFatalRejected ;
+    logic:candidateProjectionBehavior logic:ExactPreservation ;
+    logic:candidateSemanticRisk logic:RiskCoreContaminating ;
+    logic:candidateFormalizes gmeow:findingGateVerdict ;
+    logic:candidateSourceField logic:ProseFieldDefinition .
+
 # ── Standpoint: surface a tenure's frame and position onto its generated claim ─
 # A gmeow:StandpointTenure generates a gmeow:StandpointClaim (a subClassOf
 # gmeow:Observation). Two rules surface the tenure's standpoint and held position

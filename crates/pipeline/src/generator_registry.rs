@@ -248,9 +248,9 @@ pub fn committed_generated_paths() -> Vec<&'static str> {
 /// repo-relative path. Missing sources are skipped (a generator whose sources
 /// are not present in the working tree still returns a hash of the paths that
 /// do exist, or an empty-string hash if none exist).
-pub fn source_hash(root: &Path, gen: &GeneratorInfo) -> Result<String, String> {
+pub fn source_hash(root: &Path, generator: &GeneratorInfo) -> Result<String, String> {
     let mut entries: Vec<(PathBuf, Vec<u8>)> = Vec::new();
-    for src in gen.sources {
+    for src in generator.sources {
         let path = root.join(src);
         if path.is_dir() {
             collect_dir(&path, root, &mut entries)?;
@@ -286,13 +286,17 @@ pub struct GeneratorMetadata {
 /// Build a metadata record for every registered generator.
 pub fn generator_metadata(root: &Path) -> Result<Vec<GeneratorMetadata>, String> {
     let mut out = Vec::with_capacity(GENERATORS.len());
-    for gen in GENERATORS {
-        let hash = source_hash(root, gen)?;
+    for generator in GENERATORS {
+        let hash = source_hash(root, generator)?;
         out.push(GeneratorMetadata {
-            name: gen.name.to_string(),
-            sources: gen.sources.iter().map(|s| s.to_string()).collect(),
-            outputs: gen.outputs.iter().map(|s| s.to_string()).collect(),
-            dependencies: gen.dependencies.iter().map(|s| s.to_string()).collect(),
+            name: generator.name.to_string(),
+            sources: generator.sources.iter().map(|s| s.to_string()).collect(),
+            outputs: generator.outputs.iter().map(|s| s.to_string()).collect(),
+            dependencies: generator
+                .dependencies
+                .iter()
+                .map(|s| s.to_string())
+                .collect(),
             source_hash: hash,
         });
     }
@@ -337,9 +341,9 @@ fn collect_dir(dir: &Path, root: &Path, out: &mut Vec<(PathBuf, Vec<u8>)>) -> Re
 pub fn generator_order() -> (Vec<&'static str>, Option<Vec<&'static str>>) {
     let mut deps: BTreeMap<&str, Vec<&str>> = BTreeMap::new();
     let mut dependents: BTreeMap<&str, Vec<&str>> = BTreeMap::new();
-    for gen in GENERATORS {
-        deps.insert(gen.name, gen.dependencies.to_vec());
-        dependents.entry(gen.name).or_default();
+    for generator in GENERATORS {
+        deps.insert(generator.name, generator.dependencies.to_vec());
+        dependents.entry(generator.name).or_default();
     }
     for (&name, ds) in &deps {
         for &d in ds {
@@ -348,8 +352,8 @@ pub fn generator_order() -> (Vec<&'static str>, Option<Vec<&'static str>>) {
     }
 
     let mut in_degree: BTreeMap<&str, usize> = BTreeMap::new();
-    for gen in GENERATORS {
-        in_degree.insert(gen.name, 0);
+    for generator in GENERATORS {
+        in_degree.insert(generator.name, 0);
     }
     for (&name, ds) in &deps {
         *in_degree.get_mut(name).unwrap() += ds.len();
@@ -407,10 +411,14 @@ mod tests {
 
     #[test]
     fn mappings_outputs_match_issue_example() {
-        let gen = generator_by_name("mappings").unwrap();
-        assert!(gen.outputs.contains(&"generated/mappings/"));
-        assert!(gen.outputs.contains(&"generated/projections/"));
-        assert!(gen.outputs.contains(&"generated/queries/projections/"));
+        let generator = generator_by_name("mappings").unwrap();
+        assert!(generator.outputs.contains(&"generated/mappings/"));
+        assert!(generator.outputs.contains(&"generated/projections/"));
+        assert!(
+            generator
+                .outputs
+                .contains(&"generated/queries/projections/")
+        );
     }
 
     #[test]

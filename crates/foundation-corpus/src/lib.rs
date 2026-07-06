@@ -43,10 +43,10 @@ use purrdf::prelude::RdfDataset;
 
 pub use budget::BudgetReport;
 pub use graphview::GraphView;
-pub use importer::{FoundationImporter, CORP_PREFIX, LANG, NAMESPACE};
+pub use importer::{CORP_PREFIX, FoundationImporter, LANG, NAMESPACE};
 pub use model::Record;
-pub use projections::{project, PROJECTION_NAMES};
-pub use reconcile::{reconcile_nq, NQ_PREDICATE_STATUS};
+pub use projections::{PROJECTION_NAMES, project};
+pub use reconcile::{NQ_PREDICATE_STATUS, reconcile_nq};
 
 /// Read a JSONL corpus into a list of record structs.
 ///
@@ -108,11 +108,11 @@ pub fn run_import(
     }
 
     // Optional .nq reconciliation.
-    if let Some(nq) = nq_path {
-        if nq.exists() {
-            let report = reconcile_nq(nq, &NQ_PREDICATE_STATUS)?;
-            std::fs::write(out_dir.join("nq-reconciliation.txt"), format!("{report}\n"))?;
-        }
+    if let Some(nq) = nq_path
+        && nq.exists()
+    {
+        let report = reconcile_nq(nq, &NQ_PREDICATE_STATUS)?;
+        std::fs::write(out_dir.join("nq-reconciliation.txt"), format!("{report}\n"))?;
     }
 
     Ok((dataset, budget))

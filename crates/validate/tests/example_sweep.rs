@@ -28,12 +28,12 @@ use std::path::{Path, PathBuf};
 
 use std::sync::Arc;
 
-use gmeow_validate::instance::{validate_instance, InstanceFormat};
+use gmeow_validate::instance::{InstanceFormat, validate_instance};
 use purrdf::shapes::shapes::Shapes;
 use purrdf::shapes::{engine, instance, json_schema, shape_union};
 
-use purrdf::parse_dataset;
 use purrdf::RdfDataset;
+use purrdf::parse_dataset;
 
 /// Examples that do NOT conform to the merged SHACL shapes and are therefore
 /// out of scope for the JSON-schema sweep (illustrative, not valid instance
@@ -88,6 +88,9 @@ const NON_CONFORMANT: &[&str] = &[
     "slices/grounding/math/examples/numbers-sets-functions.ttl", // math:hasElement → set-member individuals (two/three/five/seven) untyped standalone; math:memberCondition → a logic:Formula node (no closed-world schema entry, the denotation seam)
     "slices/grounding/math/examples/homomorphic-encryption.ttl", // math:encryptOperation/evaluateOperation/decryptOperation → gmeow:Activity process individuals, and the preservation law → a logic:Formula AST (the denotation seam), with no closed-world schema entry standalone
     "slices/grounding/math/examples/analysis-and-geometry.ttl", // math:operator/manifoldStructureKind/complementSemantics/convergenceMode/limitMode → shared binder/structure-kind/semantics/mode individuals (differentiationBinder/lorentzianStructure/setTheoreticComplement/absoluteConvergence/limitTwoSided) defined in module.ttl, untyped standalone; the bare math:MathematicalObject/MathematicalExpression AST leaves (worldlineExpr, originPoint, seriesLimit) have no closed-world schema entry
+    "slices/grounding/math/examples/linear-algebra-and-learning.ttl", // math:complementSemantics/centeringPolicy/scalingPolicy/operator/tensorOperation → shared semantics/policy/operator individuals (orthogonalComplement/meanCentered/unitVariance/matrixProduct) defined in module.ttl, untyped standalone; the bare math:MathematicalExpression AST leaves (inputActivationExpr/layer1WeightExpr) and the logic:MetaLevelFormula reflection target (latentThemeFormula, the denotation seam) have no closed-world schema entry standalone
+    "slices/grounding/math/examples/bridges.ttl", // math:ingestCorrespondence → logic:Correspondence and logic:instantiatesSchema/instantiatesPlan → logic:ActionSchema/Plan process-witness nodes, math:provesGoal → a logic:GoalExpression (with logic:goalExpressionKind/boundSituationType → logic:Situation), and math:compilesToLogicFormula → a logic:Formula (the denotation seam) — cross-slice logic: nodes with no closed-world math schema entry standalone; the gmeow:Observation/Standpoint claim nodes and the bare math:MathematicalObject source-witness/result AST leaves (rSrcWitness/onnxSource/proofSource, rFitSummary) likewise have no closed-world schema entry standalone
+    "slices/grounding/math/examples/flagship-acceptance.ttl", // math:FlagshipScenarioShape's sh:sparql subclass check (?fc rdfs:subClassOf math:MathConformanceFailure) needs module.ttl's failure-class subclass axioms, which are absent when the example is validated in closed-world isolation — so every scenario appears to name a non-failure class standalone; in the merged bundle it conforms (make validate passes)
     "slices/core/metacognition/examples/dunning-kruger.ttl", // gmeow:observationMethod → shared method individual untyped standalone
     "slices/core/metacognition/examples/reflection-revision.ttl", // gmeow:observationMethod → shared method individual untyped standalone
     "slices/core/names/examples/person-names.ttl", // gmeow:usageAppellation/usageNamed → Appellation/Entity not typed standalone

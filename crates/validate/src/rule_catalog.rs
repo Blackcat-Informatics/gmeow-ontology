@@ -35,7 +35,7 @@
 //! * [`all_rules`] — the enumeration the catalog generator projects from.
 
 use crate::codes;
-use gmeow_diagnostics::{Report, Rule, Severity};
+use gmeow_errors::{Report, Rule, Severity};
 use std::collections::BTreeSet;
 
 /// The canonical documentation base the catalog page is served at; a code's
@@ -507,7 +507,7 @@ mod tests {
 
     #[test]
     fn populate_rules_resolves_every_code_and_is_idempotent() {
-        use gmeow_diagnostics::{Finding, Report};
+        use gmeow_errors::{Finding, Report};
         let mut report = Report::new("validate");
         report.add_finding(Finding::new(
             Severity::Error,
@@ -550,7 +550,9 @@ mod tests {
             .unwrap();
         assert_eq!(
             mediation.help_uri.as_deref(),
-            Some("https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#discipline-relator-mediation")
+            Some(
+                "https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#discipline-relator-mediation"
+            )
         );
         // A dynamic family member's helpUri must point at the FAMILY entry's
         // anchor (the catalog page has no row for the full concrete code), not

@@ -10,11 +10,11 @@
 
 use crate::ir::{Formula, LogicAxiom, LogicProgram, Term};
 use crate::nt::nt_escape_literal;
-use crate::projections::{rdf, target_meta, ProjectionResult};
+use crate::projections::{ProjectionResult, rdf, target_meta};
 
-use super::{xml_escape_attr, xml_escape_text, RDF_META_ELEMENT, ROOT_ELEMENT};
+use super::{RDF_META_ELEMENT, ROOT_ELEMENT, xml_escape_attr, xml_escape_text};
 
-use purrdf::{parse_dataset, serialize_dataset, SerializeGraph};
+use purrdf::{SerializeGraph, parse_dataset, serialize_dataset};
 
 /// `xsd:integer` — the datatype emitted for a path shape's integer min/max depths.
 const XSD_INTEGER: &str = "http://www.w3.org/2001/XMLSchema#integer";

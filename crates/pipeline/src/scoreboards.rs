@@ -17,10 +17,10 @@ use std::time::Instant;
 use crate::put_executor;
 use crate::stages::native_query;
 use crate::transform::{self, CellInput};
-use gmeow_diagnostics::{Finding, Location, Report, Severity};
+use gmeow_errors::{Finding, Location, Report, Severity};
 use purrdf::{
-    flat_dataset_from_quads, parse_dataset, serialize_dataset, DatasetView, GraphMatch, RdfDataset,
-    RdfLiteral, RdfTerm, SerializeGraph, TermRef, TermValue,
+    DatasetView, GraphMatch, RdfDataset, RdfLiteral, RdfTerm, SerializeGraph, TermRef, TermValue,
+    flat_dataset_from_quads, parse_dataset, serialize_dataset,
 };
 use serde::Serialize;
 
@@ -1024,10 +1024,10 @@ fn shapes_turtle(root: &Path) -> Result<String, String> {
         "gmeow-shapes.ttl",
     ]);
     for path in glob_ttl(&shapes_dir)? {
-        if let Some(name) = path.file_name().and_then(|n| n.to_str()) {
-            if !excluded.contains(name) {
-                files.push(path);
-            }
+        if let Some(name) = path.file_name().and_then(|n| n.to_str())
+            && !excluded.contains(name)
+        {
+            files.push(path);
         }
     }
     let generated_shapes = root.join("generated").join("shapes"); // GENERATED-READ-OK: dev-CLI scoreboard audit of committed shapes; never folds into gmeow.gts
@@ -1405,12 +1405,11 @@ where
     let ds = dataset_from_nt(nt)?;
     let mut quads = Vec::new();
     for mut quad in ds.owned_quads() {
-        if let RdfTerm::Literal(lit) = &quad.object {
-            if let Some(lang) = &lit.language {
-                if let Some(new_lang) = rewrite(lang) {
-                    quad.object = RdfTerm::Literal(retag_literal(lit, &new_lang));
-                }
-            }
+        if let RdfTerm::Literal(lit) = &quad.object
+            && let Some(lang) = &lit.language
+            && let Some(new_lang) = rewrite(lang)
+        {
+            quad.object = RdfTerm::Literal(retag_literal(lit, &new_lang));
         }
         quads.push(quad);
     }
@@ -1450,16 +1449,16 @@ fn gate_pure_gmeow(draft: &RdfDataset) -> Result<GateResult, String> {
             let key = vocab_of_iri(predicate).unwrap_or(predicate).to_owned();
             *foreign.entry(key).or_default() += 1;
         }
-        if predicate == RDF_TYPE {
-            if let ResolvedTerm::Iri(object) = &object {
-                let object = object.as_str();
-                if !STRUCTURAL_NAMESPACES
-                    .iter()
-                    .any(|namespace| object.starts_with(namespace))
-                {
-                    let key = format!("a {}", vocab_of_iri(object).unwrap_or(object));
-                    *foreign.entry(key).or_default() += 1;
-                }
+        if predicate == RDF_TYPE
+            && let ResolvedTerm::Iri(object) = &object
+        {
+            let object = object.as_str();
+            if !STRUCTURAL_NAMESPACES
+                .iter()
+                .any(|namespace| object.starts_with(namespace))
+            {
+                let key = format!("a {}", vocab_of_iri(object).unwrap_or(object));
+                *foreign.entry(key).or_default() += 1;
             }
         }
     }
@@ -1817,10 +1816,10 @@ fn by_vocab(
 }
 
 fn triple_vocab(predicate: &str, object: &ResolvedTerm) -> Option<&'static str> {
-    if predicate == RDF_TYPE {
-        if let ResolvedTerm::Iri(object) = object {
-            return vocab_of_iri(object.as_str());
-        }
+    if predicate == RDF_TYPE
+        && let ResolvedTerm::Iri(object) = object
+    {
+        return vocab_of_iri(object.as_str());
     }
     vocab_of_iri(predicate)
 }
@@ -1839,19 +1838,19 @@ fn normalized_key(
 }
 
 fn normalized_term(term: &ResolvedTerm, tag_map: &HashMap<String, String>) -> String {
-    if let ResolvedTerm::Literal(lit) = term {
-        if let Some(language) = &lit.language {
-            let normalized = if gmeow_validate::language_tags::is_internal_tag(language) {
-                tag_map
-                    .get(language)
-                    .or_else(|| tag_map.get(&language.to_ascii_lowercase()))
-                    .cloned()
-                    .unwrap_or_else(|| language.to_ascii_lowercase())
-            } else {
-                language.to_ascii_lowercase()
-            };
-            return literal_to_nt(&retag_literal(lit, &normalized));
-        }
+    if let ResolvedTerm::Literal(lit) = term
+        && let Some(language) = &lit.language
+    {
+        let normalized = if gmeow_validate::language_tags::is_internal_tag(language) {
+            tag_map
+                .get(language)
+                .or_else(|| tag_map.get(&language.to_ascii_lowercase()))
+                .cloned()
+                .unwrap_or_else(|| language.to_ascii_lowercase())
+        } else {
+            language.to_ascii_lowercase()
+        };
+        return literal_to_nt(&retag_literal(lit, &normalized));
     }
     term.to_nt()
 }
@@ -1861,23 +1860,22 @@ fn emitted_terms_by_vocab(
 ) -> Result<BTreeMap<String, BTreeSet<String>>, String> {
     let mut terms: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
     for quad in default_graph_quads(output) {
-        if quad.predicate != RDF_TYPE {
-            if let Some(vocab) = vocab_of_iri(&quad.predicate) {
-                terms
-                    .entry(vocab.to_owned())
-                    .or_default()
-                    .insert(quad.predicate.clone());
-            }
+        if quad.predicate != RDF_TYPE
+            && let Some(vocab) = vocab_of_iri(&quad.predicate)
+        {
+            terms
+                .entry(vocab.to_owned())
+                .or_default()
+                .insert(quad.predicate.clone());
         }
-        if quad.predicate == RDF_TYPE {
-            if let ResolvedTerm::Iri(object) = &quad.object {
-                if let Some(vocab) = vocab_of_iri(object.as_str()) {
-                    terms
-                        .entry(vocab.to_owned())
-                        .or_default()
-                        .insert(object.clone());
-                }
-            }
+        if quad.predicate == RDF_TYPE
+            && let ResolvedTerm::Iri(object) = &quad.object
+            && let Some(vocab) = vocab_of_iri(object.as_str())
+        {
+            terms
+                .entry(vocab.to_owned())
+                .or_default()
+                .insert(object.clone());
         }
     }
     Ok(terms)
@@ -2022,10 +2020,10 @@ fn vocab_terms(store: &RdfDataset) -> Result<BTreeSet<String>, String> {
     let mut terms = BTreeSet::new();
     for quad in default_graph_quads(store) {
         terms.insert(quad.predicate.clone());
-        if quad.predicate == RDF_TYPE {
-            if let ResolvedTerm::Iri(object) = quad.object {
-                terms.insert(object);
-            }
+        if quad.predicate == RDF_TYPE
+            && let ResolvedTerm::Iri(object) = quad.object
+        {
+            terms.insert(object);
         }
     }
     Ok(terms)
@@ -2102,10 +2100,12 @@ mod tests {
         );
         assert!(report.shacl_errors.is_empty());
         assert!(!report.shacl_warnings.is_empty());
-        assert!(report
-            .claims
-            .iter()
-            .any(|claim| claim.claim == format!("{ex}claim-hallucinated")));
+        assert!(
+            report
+                .claims
+                .iter()
+                .any(|claim| claim.claim == format!("{ex}claim-hallucinated"))
+        );
     }
 
     #[test]
@@ -2138,9 +2138,11 @@ mod tests {
                 .flags
                 .ungrounded
         );
-        assert!(by_iri[format!("{ex}claim-hallucinated").as_str()]
-            .evidence
-            .is_empty());
+        assert!(
+            by_iri[format!("{ex}claim-hallucinated").as_str()]
+                .evidence
+                .is_empty()
+        );
         assert!(by_iri[format!("{ex}claim-low").as_str()].flags.contradicted);
         assert_eq!(
             by_iri[format!("{ex}claim-low").as_str()].contradicts,
@@ -2287,13 +2289,17 @@ mod tests {
             result.passed(),
             "hard acceptance gates must pass: {result:#?}"
         );
-        assert!(result
-            .gates
-            .iter()
-            .any(|gate| gate.name == "round-trip-superset"));
-        assert!(result
-            .gates
-            .iter()
-            .any(|gate| gate.name == "external-validator"));
+        assert!(
+            result
+                .gates
+                .iter()
+                .any(|gate| gate.name == "round-trip-superset")
+        );
+        assert!(
+            result
+                .gates
+                .iter()
+                .any(|gate| gate.name == "external-validator")
+        );
     }
 }

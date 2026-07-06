@@ -11,7 +11,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
-use purrdf::{parse_dataset, DatasetView, GraphMatch, TermRef, TermValue};
+use purrdf::{DatasetView, GraphMatch, TermRef, TermValue, parse_dataset};
 
 use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};

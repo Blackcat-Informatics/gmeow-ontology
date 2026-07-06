@@ -58,15 +58,14 @@ pub fn extract_docs(
     };
     let internal = pick_internal_lang(lang, &available);
 
-    if !force {
-        if let Ok(mut entries) = std::fs::read_dir(directory) {
-            if entries.next().is_some() {
-                return fail(format!(
-                    "{} is not empty; pass --force to write into it",
-                    directory.display()
-                ));
-            }
-        }
+    if !force
+        && let Ok(mut entries) = std::fs::read_dir(directory)
+        && entries.next().is_some()
+    {
+        return fail(format!(
+            "{} is not empty; pass --force to write into it",
+            directory.display()
+        ));
     }
     let tree = match gmeow_pipeline::cli_ops::confirmations::extract_docs_site(&bytes, &internal) {
         Ok(t) => t,
@@ -74,10 +73,10 @@ pub fn extract_docs(
     };
     for (rel, data) in &tree {
         let target = directory.join(rel);
-        if let Some(parent) = target.parent() {
-            if let Err(e) = std::fs::create_dir_all(parent) {
-                return fail(format!("cannot create {}: {e}", parent.display()));
-            }
+        if let Some(parent) = target.parent()
+            && let Err(e) = std::fs::create_dir_all(parent)
+        {
+            return fail(format!("cannot create {}: {e}", parent.display()));
         }
         if let Err(e) = std::fs::write(&target, data) {
             return fail(format!("cannot write {}: {e}", target.display()));
@@ -355,7 +354,10 @@ pub fn up_projection_audit(report_path: Option<&Path>, show_gaps: bool) -> i32 {
         .unwrap_or(0);
     println!(
         "liftable {liftable}/{total} ({pct}%) · proved {} · claimed {} · excluded {} · unsupported {}",
-        ledger.totals.proved, ledger.totals.claimed, ledger.totals.red_excluded, ledger.totals.unsupported
+        ledger.totals.proved,
+        ledger.totals.claimed,
+        ledger.totals.red_excluded,
+        ledger.totals.unsupported
     );
     println!("gaps {} distinct terms", ledger.gaps.len());
     if show_gaps {

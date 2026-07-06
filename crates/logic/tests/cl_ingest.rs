@@ -28,7 +28,7 @@
 
 use gmeow_logic_compile::clif::parse_clif_str;
 use gmeow_logic_compile::clif::writer::project_clif;
-use gmeow_logic_compile::frontend::{parse_logic_str, Severity};
+use gmeow_logic_compile::frontend::{Severity, parse_logic_str};
 use gmeow_logic_compile::projections::compile_program;
 
 const GENEALOGY_NS: &str = "https://example.org/cl-ingest/genealogy/";

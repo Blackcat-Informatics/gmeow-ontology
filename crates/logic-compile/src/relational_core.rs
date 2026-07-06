@@ -42,7 +42,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use purrdf::{RdfDataset, RdfLiteral, RdfTerm};
 
 use crate::ir::{
-    Formula, LogicAxiom, LogicProgram, LogicRule, PreservationKind, Term, LOGIC_NAMESPACE,
+    Formula, LOGIC_NAMESPACE, LogicAxiom, LogicProgram, LogicRule, PreservationKind, Term,
 };
 
 const XSD_BOOLEAN: &str = "http://www.w3.org/2001/XMLSchema#boolean";

@@ -11,12 +11,12 @@
 //! * [`analyze`] — parse and lint a text buffer, returning a [`Report`].
 //! * [`report_to_diagnostics`] — project a [`Report`] to LSP [`Diagnostic`] objects.
 
-use gmeow_diagnostics::model::{Finding, Location, Report, Rule, Severity};
+use gmeow_errors::model::{Finding, Location, Report, Rule, Severity};
 use lsp_types::{
     CodeDescription, Diagnostic, DiagnosticSeverity, NumberOrString, Position, Range, Uri,
 };
 use purrdf::RdfDiagnostic;
-use purrdf::{parse_dataset, NativeRdfFormat};
+use purrdf::{NativeRdfFormat, parse_dataset};
 
 // ─── Language discriminant ───────────────────────────────────────────────────
 
@@ -305,7 +305,7 @@ mod tests {
         // The same analyze -> to_sarif path the `sarif` CLI subcommand drives:
         // a syntax error must surface as a SARIF result with the rule id.
         let report = analyze(Lang::Ttl, "@prefix : <http://bad", "bad.ttl");
-        let sarif = gmeow_diagnostics::render::to_sarif(&report).expect("render SARIF");
+        let sarif = gmeow_errors::render::to_sarif(&report).expect("render SARIF");
         let parsed: serde_json::Value = serde_json::from_str(&sarif).expect("valid SARIF JSON");
         assert_eq!(parsed["version"], "2.1.0");
         let results = parsed["runs"][0]["results"]

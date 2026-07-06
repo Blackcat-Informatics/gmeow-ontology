@@ -6,18 +6,18 @@
 //! Turtle round-trip. P2: the self-verifying cache, provenance stamping, and
 //! scheduler determinism.
 
-use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicUsize, Ordering};
 
-use crate::cache::{stage_key, PipelineCache};
+use crate::cache::{PipelineCache, stage_key};
 use crate::error::PipelineError;
-use crate::loader::{bind, PipelineSpec, StageSpec};
+use crate::loader::{PipelineSpec, StageSpec, bind};
 use crate::node::{
-    Stage, StageInput, StageOutput, StageProduct, ENGINE_RESOURCE, SINK_CAPABILITY, SOURCE_ORIGIN,
+    ENGINE_RESOURCE, SINK_CAPABILITY, SOURCE_ORIGIN, Stage, StageInput, StageOutput, StageProduct,
 };
 use crate::provenance::register_stage_unit;
 use crate::registry::StageRegistry;
-use crate::scheduler::{run, RunContext};
+use crate::scheduler::{RunContext, run};
 
 /// The resources / capabilities a stage with id `id` declares, mirroring the real
 /// stage impls so bind's agreement holds in fixtures: `r` (the reasoner) requires the

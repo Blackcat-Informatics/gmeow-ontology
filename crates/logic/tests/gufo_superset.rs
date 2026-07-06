@@ -20,7 +20,7 @@ use std::collections::HashSet;
 use std::path::PathBuf;
 use std::sync::LazyLock;
 
-use purrdf::{parse_dataset, RdfQuad, RdfTerm};
+use purrdf::{RdfQuad, RdfTerm, parse_dataset};
 
 // --------------------------------------------------------------------------- //
 // Namespaces (mirror `adapter.rs` constants + the data files this gate reads).

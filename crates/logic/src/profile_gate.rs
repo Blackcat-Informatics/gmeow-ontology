@@ -245,7 +245,7 @@ pub fn evolution_mode_local(evolution: &str) -> Option<&'static str> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::oracle::{backward_oracle, BackwardOracle};
+    use crate::oracle::{BackwardOracle, backward_oracle};
     use crate::query_ir::parse_query_program;
     use crate::seam::WorldStoreForeign;
     use crate::store::WorldStore;

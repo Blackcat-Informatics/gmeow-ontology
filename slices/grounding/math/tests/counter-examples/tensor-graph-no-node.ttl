@@ -1,0 +1,17 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:TensorComputationGraphShape: a math:TensorComputationGraph
+# that declares NO math:computationNode. A computation graph whose forward pass is an
+# empty expression graph has no operator to apply and is ill-formed. It names its
+# architecture through math:architectureOf but omits the required node, so it fails
+# ONLY on sh:minCount 1 on math:computationNode. Validation MUST emit
+# shacl.MinCountConstraintComponent and NO other finding
+# (math:MalformedTensorComputationGraph). Bound by ex:ecTensorGraphNoNode.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:emptyGraph a math:TensorComputationGraph ;
+    math:architectureOf ex:emptyNet .
+
+ex:emptyNet a math:LearnedModel .

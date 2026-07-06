@@ -200,7 +200,7 @@ pub fn verify_release_bundle(bundle: &Path, public_key: Option<&Path>) -> i32 {
                 return fail(format!(
                     "✗ public key {} is unreadable: {e}",
                     path.display()
-                ))
+                ));
             }
         },
     };
@@ -281,10 +281,10 @@ pub fn validate(
     if deep && (schema.is_some() || rdf_format.is_none()) {
         return fail("--deep is only supported for RDF validation without --schema");
     }
-    if schema.is_none() {
-        if let Some(fmt) = rdf_format {
-            return validate_rdf(instance, fmt, format, deep);
-        }
+    if schema.is_none()
+        && let Some(fmt) = rdf_format
+    {
+        return validate_rdf(instance, fmt, format, deep);
     }
     validate_instance(instance, schema)
 }
@@ -314,16 +314,16 @@ fn validate_rdf(instance: &Path, fmt: &str, output: &str, deep: bool) -> i32 {
     };
 
     match output.as_str() {
-        "sarif" => match gmeow_diagnostics::render::to_sarif(&report) {
+        "sarif" => match gmeow_errors::render::to_sarif(&report) {
             Ok(s) => println!("{s}"),
             Err(e) => return fail(format!("cannot render SARIF: {e}")),
         },
-        "json" => match gmeow_diagnostics::render::to_json(&report) {
+        "json" => match gmeow_errors::render::to_json(&report) {
             Ok(s) => println!("{s}"),
             Err(e) => return fail(format!("cannot render JSON: {e}")),
         },
         _ => {
-            let text = gmeow_diagnostics::render::to_text(&report);
+            let text = gmeow_errors::render::to_text(&report);
             if !text.trim().is_empty() {
                 eprintln!("{text}");
             }
@@ -332,11 +332,7 @@ fn validate_rdf(instance: &Path, fmt: &str, output: &str, deep: bool) -> i32 {
             }
         }
     }
-    if report.error_count() > 0 {
-        1
-    } else {
-        0
-    }
+    if report.error_count() > 0 { 1 } else { 0 }
 }
 
 /// The JSON/YAML instance-against-schema path.
@@ -356,7 +352,7 @@ fn validate_instance(instance: &Path, schema: Option<&Path>) -> i32 {
                     .file_name()
                     .map(|n| n.to_string_lossy())
                     .unwrap_or_default()
-            ))
+            ));
         }
     };
     let instance_bytes = match read_bytes(instance) {
@@ -476,7 +472,7 @@ pub fn project(
     format: &str,
     lang: Option<&str>,
 ) -> i32 {
-    use gmeow_pipeline::projections::{self, TagMap, GTS_VIEW_ALL, GTS_VIEW_GMEOW};
+    use gmeow_pipeline::projections::{self, GTS_VIEW_ALL, GTS_VIEW_GMEOW, TagMap};
 
     let fmt_lower = format.to_lowercase();
     if fmt_lower == "yaml-ld" {
@@ -888,7 +884,7 @@ pub fn convert(
     loss_report: Option<&Path>,
     base: Option<&str>,
 ) -> i32 {
-    use gmeow_pipeline::transcode::{realized_loss_json, transcode as run_transcode, Codec};
+    use gmeow_pipeline::transcode::{Codec, realized_loss_json, transcode as run_transcode};
 
     let data: Vec<u8> = if source == "-" {
         use std::io::Read;
@@ -969,15 +965,14 @@ pub fn extract_docs(directory: &Path, file: Option<&Path>, force: bool, lang: Op
     let internal = pick_internal_lang(&selector, &available);
 
     // Guard against clobbering a non-empty directory unless --force is given.
-    if !force {
-        if let Ok(mut entries) = std::fs::read_dir(directory) {
-            if entries.next().is_some() {
-                return fail(format!(
-                    "{} is not empty; pass --force to write into it",
-                    directory.display()
-                ));
-            }
-        }
+    if !force
+        && let Ok(mut entries) = std::fs::read_dir(directory)
+        && entries.next().is_some()
+    {
+        return fail(format!(
+            "{} is not empty; pass --force to write into it",
+            directory.display()
+        ));
     }
     let tree = match gmeow_pipeline::cli_ops::confirmations::extract_docs_site(&bytes, &internal) {
         Ok(t) => t,
@@ -985,10 +980,10 @@ pub fn extract_docs(directory: &Path, file: Option<&Path>, force: bool, lang: Op
     };
     for (rel, data) in &tree {
         let target = directory.join(rel);
-        if let Some(parent) = target.parent() {
-            if let Err(e) = std::fs::create_dir_all(parent) {
-                return fail(format!("cannot create {}: {e}", parent.display()));
-            }
+        if let Some(parent) = target.parent()
+            && let Err(e) = std::fs::create_dir_all(parent)
+        {
+            return fail(format!("cannot create {}: {e}", parent.display()));
         }
         if let Err(e) = std::fs::write(&target, data) {
             return fail(format!("cannot write {}: {e}", target.display()));
@@ -1063,10 +1058,10 @@ pub fn crossref(out: &Path, gts: Option<&Path>) -> i32 {
         Ok(x) => x,
         Err(e) => return fail(format!("cannot build deposit XML: {e}")),
     };
-    if let Some(parent) = out.parent() {
-        if let Err(e) = std::fs::create_dir_all(parent) {
-            return fail(format!("cannot create {}: {e}", parent.display()));
-        }
+    if let Some(parent) = out.parent()
+        && let Err(e) = std::fs::create_dir_all(parent)
+    {
+        return fail(format!("cannot create {}: {e}", parent.display()));
     }
     if let Err(e) = std::fs::write(out, format!("{xml}\n")) {
         return fail(format!("cannot write {}: {e}", out.display()));

@@ -49,19 +49,23 @@
 //!    no magic rule — it demands nothing).
 //!
 //! The positive query corpus introduces no negation, so the transformed program is
-//! stratifiable; a transform that WOULD break stratification surfaces as
-//! [`crate::physical::seminaive::UnsupportedKind::DemandBreaksStratification`].
+//! always stratifiable.  A transform that WOULD break stratification (only possible
+//! once native rules carry negation) falls back to a full stratified evaluation of
+//! the UNTRANSFORMED base program — correct, without the demand pruning — rather than
+//! demoting to an external engine (no-optionality: the native core stays authoritative).
 
 use std::collections::{BTreeMap, BTreeSet};
 
 use purrdf::TermValue;
 
-use crate::physical::seminaive::{evaluate, NativeOutcome, UnsupportedKind};
-use crate::physical::store::extract_edb;
+use crate::physical::seminaive::{NativeOutcome, UnsupportedKind, evaluate};
+use crate::physical::store::{RelationStore, extract_edb};
 use crate::profile_gate;
 use crate::provenance::term_display;
-use crate::query_ir::{AnswerSet, Binding, Budget, QAtom, QBodyLit, QBuiltin, QProgram, QTerm};
-use crate::rule_ir::{EvalAtom, EvalRule, EvalTerm};
+use crate::query_ir::{
+    AnswerSet, Binding, Budget, CompletionFrontier, QAtom, QBodyLit, QBuiltin, QProgram, QTerm,
+};
+use crate::rule_ir::{EvalAtom, EvalRule, EvalTerm, Fact};
 use crate::seam::{BudgetStatus, ScryerForeign};
 
 // ── Adornment ────────────────────────────────────────────────────────────────────
@@ -259,15 +263,15 @@ fn bind_atom_vars(atom: &EvalAtom, bound: &mut BTreeSet<String>) {
 /// The bound-variable set induced by the head's adornment (the head-bound arguments).
 fn head_bound_vars(head: &EvalAtom, adorn: Adorn) -> BTreeSet<String> {
     let mut bound = BTreeSet::new();
-    if adorn.subj_bound {
-        if let Some(v) = var_name(&head.subject) {
-            bound.insert(v.to_owned());
-        }
+    if adorn.subj_bound
+        && let Some(v) = var_name(&head.subject)
+    {
+        bound.insert(v.to_owned());
     }
-    if adorn.obj_bound {
-        if let Some(v) = var_name(&head.object) {
-            bound.insert(v.to_owned());
-        }
+    if adorn.obj_bound
+        && let Some(v) = var_name(&head.object)
+    {
+        bound.insert(v.to_owned());
     }
     bound
 }
@@ -489,15 +493,15 @@ fn project_answers(facts: &[crate::rule_ir::Fact], goal: &QAtom, goal_pred: &str
         let s_surface = term_display(&f.subject);
         let o_surface = term_display(&f.object);
         // Apply the goal's constant constraints.
-        if let Some(c) = &s_const {
-            if &s_surface != c {
-                continue;
-            }
+        if let Some(c) = &s_const
+            && &s_surface != c
+        {
+            continue;
         }
-        if let Some(c) = &o_const {
-            if &o_surface != c {
-                continue;
-            }
+        if let Some(c) = &o_const
+            && &o_surface != c
+        {
+            continue;
         }
         // Build the binding for this fact's goal variables. If the goal repeats a
         // variable across both positions, the two surfaces must agree.
@@ -549,6 +553,76 @@ fn project_answers(facts: &[crate::rule_ir::Fact], goal: &QAtom, goal_pred: &str
 ///
 /// Returns `Err` for an evaluator failure (e.g. an unbound head variable or a
 /// provenance-recipe failure) propagated from the shared engine helpers.
+/// The outcome of [`eval_with_base_fallback`]: a decided fixpoint (facts, budget
+/// status, completion frontier) or a declared native gap.
+///
+/// A private mirror of [`NativeOutcome`] specialized to the fallback decision, so the
+/// two-tier evaluate/fall-back-to-base logic lives in one testable place.
+enum FallbackOutcome {
+    /// The (transformed or base) program was decided.
+    Decided(Vec<Fact>, BudgetStatus, CompletionFrontier),
+    /// A declared native gap the caller routes to the oracle.
+    Unsupported(UnsupportedKind),
+}
+
+/// Evaluate `transformed_rules` over `edb`; on a `NonStratifiable` gap, fall back to a
+/// full stratified evaluation of `base_rules` over the base EDB.
+///
+/// Because the query IR carries no negation, a demand transform is always stratifiable,
+/// so on the current fragment the fallback branch is taken only if a transformed program
+/// is non-stratifiable for another reason. It falls back to a full stratified evaluation
+/// of the base rules — correct, without the demand pruning (it materializes more than the
+/// query strictly needs) — and stays native (no external-engine demotion; the native core
+/// stays authoritative). `base_edb` is a closure so the base EDB is extracted lazily, ONLY
+/// when the fallback fires: the happy path never pays for it, and the untransformed base
+/// rules never reference the demand seed the transformed EDB carries.
+///
+/// # Errors
+///
+/// Propagates an [`evaluate`] failure (unbound head/guard variable or provenance-recipe
+/// failure) from either the transformed or the base evaluation.
+fn eval_with_base_fallback(
+    edb: RelationStore,
+    transformed_rules: &[EvalRule],
+    base_rules: &[EvalRule],
+    max_steps: Option<u64>,
+    base_edb: impl FnOnce() -> RelationStore,
+) -> Result<FallbackOutcome, String> {
+    match evaluate(edb, transformed_rules, max_steps)? {
+        NativeOutcome::Decided(budgeted) => {
+            let frontier = budgeted.frontier();
+            Ok(FallbackOutcome::Decided(
+                budgeted.rows,
+                budgeted.status,
+                frontier,
+            ))
+        }
+        // A magic (demand) transform threads a magic guard through the program; a negative
+        // edge in that guarded cycle could make the transformed program non-stratifiable
+        // even though the UNTRANSFORMED program is stratified by construction. Fall back to
+        // the base rules over a freshly extracted EDB (without the demand seed the base
+        // rules never reference).
+        NativeOutcome::Unsupported(UnsupportedKind::NonStratifiable) => {
+            match evaluate(base_edb(), base_rules, max_steps)? {
+                NativeOutcome::Decided(budgeted) => {
+                    let frontier = budgeted.frontier();
+                    Ok(FallbackOutcome::Decided(
+                        budgeted.rows,
+                        budgeted.status,
+                        frontier,
+                    ))
+                }
+                // If the BASE program is also non-stratifiable, the program genuinely is —
+                // a real declared gap the caller routes to the oracle.
+                NativeOutcome::Unsupported(other) => Ok(FallbackOutcome::Unsupported(other)),
+            }
+        }
+        // Any other declared native gap (cut / arithmetic / non-binary) passes through to
+        // the caller's oracle route unchanged.
+        NativeOutcome::Unsupported(other) => Ok(FallbackOutcome::Unsupported(other)),
+    }
+}
+
 pub(crate) fn resolve_native(
     foreign: &dyn ScryerForeign,
     world: &str,
@@ -628,26 +702,18 @@ pub(crate) fn resolve_native(
         edb.insert(&fact.predicate, fact.subject, fact.object);
     }
     // The step/derivation budget is honoured DURING the fixpoint: `Exhausted` on a cut,
-    // `Ok` on a natural fixpoint (including the pure-EDB case, where no rule fires).
+    // `Ok` on a natural fixpoint (including the pure-EDB case, where no rule fires).  The
+    // decided arm surfaces the governor's completion frontier (which strata / predicates
+    // are settled) on the answer instead of dropping it: an `Exhausted` backward goal is
+    // incomplete, and the caller reads `completed < total` to tell that from a conclusive
+    // result.  On a non-stratifiable transformed program the helper falls back to the base
+    // rules over a lazily re-extracted EDB (see `eval_with_base_fallback`).
     let (facts, fixpoint_status, frontier) =
-        match evaluate(edb, &transformed.rules, budget.max_steps)? {
-            NativeOutcome::Decided(budgeted) => {
-                // Surface the governor's completion frontier (which strata / predicates are
-                // settled) on the answer instead of dropping it: an `Exhausted` backward goal
-                // is incomplete, and the caller reads `completed < total` to tell that from a
-                // conclusive result.
-                let frontier = budgeted.frontier();
-                (budgeted.rows, budgeted.status, frontier)
-            }
-            NativeOutcome::Unsupported(kind) => {
-                // A demand transform that breaks stratification is the documented gap kind;
-                // surface any non-stratifiable transform under that name.
-                let kind = match kind {
-                    UnsupportedKind::NonStratifiable => UnsupportedKind::DemandBreaksStratification,
-                    other => other,
-                };
-                return Ok(NativeOutcome::Unsupported(kind));
-            }
+        match eval_with_base_fallback(edb, &transformed.rules, &rules, budget.max_steps, || {
+            extract_edb(foreign, world)
+        })? {
+            FallbackOutcome::Decided(f, s, fr) => (f, s, fr),
+            FallbackOutcome::Unsupported(k) => return Ok(NativeOutcome::Unsupported(k)),
         };
 
     // (4) Project the goal predicate's derived tuples into bindings.
@@ -1314,5 +1380,127 @@ mod tests {
         );
         assert_eq!(native.bindings.len(), 1, "parentOf(a, b)");
         assert_eq!(native.bindings[0]["Y"], format!("<{BASE}b>"));
+    }
+
+    // ── Native base-rule fallback (the extracted fallback decision) ───────────────
+    //
+    // `eval_with_base_fallback` is the fallback DECISION extracted from `resolve_native`.
+    // The public query-IR fragment carries no negation, so a demand transform is always
+    // stratifiable and this arm is not reachable through `resolve_native`'s query inputs;
+    // exercise it directly with a hand-built non-stratifiable transformed program and a
+    // distinct, stratifiable base program.
+
+    /// A binary body/head atom `pred(?s, ?o)`, negated iff `neg`.
+    fn fb_atom(subject: &str, pred: &str, object: &str, neg: bool) -> EvalAtom {
+        EvalAtom {
+            subject: EvalTerm::Var(subject.to_owned()),
+            predicate: format!("{BASE}{pred}"),
+            object: EvalTerm::Var(object.to_owned()),
+            negated: neg,
+        }
+    }
+
+    /// A rule `head :- body` with no builtins/guards.
+    fn fb_rule(head: EvalAtom, body: Vec<EvalAtom>) -> EvalRule {
+        let rule_iri = format!("{}::rule", head.predicate);
+        EvalRule {
+            head,
+            body,
+            rule_iri,
+            distinct_pairs: vec![],
+            builtins: vec![],
+        }
+    }
+
+    /// A structurally non-stratifiable pair `a :- ~b`, `b :- ~a` (a negative cycle):
+    /// `stratify` returns `None`, so `evaluate` yields `Unsupported(NonStratifiable)`.
+    fn non_stratifiable_rules() -> Vec<EvalRule> {
+        vec![
+            fb_rule(
+                fb_atom("?X", "a", "?Y", false),
+                vec![fb_atom("?X", "b", "?Y", true)],
+            ),
+            fb_rule(
+                fb_atom("?X", "b", "?Y", false),
+                vec![fb_atom("?X", "a", "?Y", true)],
+            ),
+        ]
+    }
+
+    #[test]
+    fn eval_with_base_fallback_fires_on_nonstratifiable_transform() {
+        let transformed = non_stratifiable_rules();
+        // A DIFFERENT, stratifiable base program: derived(?X, ?Y) :- src(?X, ?Y).
+        let base = vec![fb_rule(
+            fb_atom("?X", "derived", "?Y", false),
+            vec![fb_atom("?X", "src", "?Y", false)],
+        )];
+        let x = format!("{BASE}x");
+        let y = format!("{BASE}y");
+        // The base EDB `src(x, y)` — extracted lazily ONLY when the fallback fires.
+        let base_edb = || {
+            let mut edb = RelationStore::new();
+            edb.insert(
+                &format!("{BASE}src"),
+                TermValue::iri(x.clone()),
+                TermValue::iri(y.clone()),
+            );
+            edb
+        };
+        // The transformed EDB is irrelevant: the transform is non-stratifiable, so
+        // `evaluate` short-circuits before touching it.
+        let out =
+            eval_with_base_fallback(RelationStore::new(), &transformed, &base, None, base_edb)
+                .expect("fallback must not error");
+        let FallbackOutcome::Decided(facts, status, _frontier) = out else {
+            panic!("expected the base fallback to decide, got a declared gap");
+        };
+        assert_eq!(
+            status,
+            BudgetStatus::Ok,
+            "the base fixpoint runs to its natural end"
+        );
+        let keys: BTreeSet<_> = facts.iter().map(Fact::key).collect();
+        // The base rule derived exactly derived(x, y) — proof the arm executed the BASE
+        // rules, not the (non-stratifiable) transformed ones.
+        assert!(
+            keys.contains(&(format!("<{x}>"), format!("{BASE}derived"), format!("<{y}>"))),
+            "base materialization must contain derived(x, y): {keys:?}"
+        );
+        // No transformed-only predicate appears (the transformed program never evaluated).
+        assert!(
+            keys.iter()
+                .all(|(_, p, _)| p != &format!("{BASE}a") && p != &format!("{BASE}b")),
+            "no transformed-program predicate may appear: {keys:?}"
+        );
+        // Exactly the base EDB fact plus the single derived fact.
+        assert_eq!(
+            keys.len(),
+            2,
+            "base fact set = {{src(x, y), derived(x, y)}}: {keys:?}"
+        );
+    }
+
+    #[test]
+    fn eval_with_base_fallback_passes_through_when_base_also_nonstratifiable() {
+        let transformed = non_stratifiable_rules();
+        let base = non_stratifiable_rules();
+        // The base EDB never matters here: the base program is also non-stratifiable, so
+        // its `evaluate` short-circuits at stratification.
+        let out = eval_with_base_fallback(
+            RelationStore::new(),
+            &transformed,
+            &base,
+            None,
+            RelationStore::new,
+        )
+        .expect("fallback must not error");
+        assert!(
+            matches!(
+                out,
+                FallbackOutcome::Unsupported(UnsupportedKind::NonStratifiable)
+            ),
+            "both transformed and base non-stratifiable ⇒ the genuine gap passes through"
+        );
     }
 }

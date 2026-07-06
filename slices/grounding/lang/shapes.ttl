@@ -95,7 +95,7 @@ lang:SlotIndexUniqueShape
 lang:SlotContiguityShape
     a sh:NodeShape ;
     rdfs:label "Slot contiguity shape"@x-gmeow-english ;
-    skos:definition "A lang:ComposedForm's slot indexes are zero-based and contiguous in strict canonical mode: the minimum index is 0 and the maximum index is the slot count minus one, so a gap (an index skipped) or a non-zero start is rejected."@x-gmeow-english ;
+    skos:definition "A lang:ComposedForm's slot indexes are zero-based and contiguous, enforced unconditionally: the minimum index is 0 and the maximum index is the slot count minus one, so a gap (an index skipped) or a non-zero start is rejected. The native crates/validate structural_lint gate carries the same rule as the charter's designated Rust-validator primary."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     lang:enforcesFailureClass lang:NonContiguousSlots ;
     sh:targetClass lang:ComposedForm ;
@@ -186,12 +186,11 @@ lang:SurfaceMaterialShape
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     lang:enforcesFailureClass lang:UnhashableSurface ;
     sh:targetClass lang:SurfaceForm ;
-    sh:property [
-        sh:path lang:surfaceText ;
-        sh:minCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A lang:SurfaceForm must declare its lang:surfaceText." ;
-    ] ;
+    sh:or (
+        [ sh:property [ sh:path lang:surfaceText ; sh:minCount 1 ; sh:severity sh:Violation ] ]
+        [ sh:property [ sh:path lang:surfaceBlob ; sh:minCount 1 ; sh:severity sh:Violation ] ]
+    ) ;
+    sh:message "A lang:SurfaceForm must carry its bytes — inline through lang:surfaceText, or by reference through lang:surfaceBlob for a document-scale surface." ;
     sh:property [
         sh:path lang:inScript ;
         sh:minCount 1 ;
@@ -732,4 +731,24 @@ lang:TransliterationAnchorShape
         sh:minCount 1 ;
         sh:severity sh:Violation ;
         sh:message "A lang:TransliterationMap must declare its lang:transliterationScheme." ;
+    ] .
+
+lang:ProjectionEmissionDeclaredShape
+    a sh:NodeShape ;
+    rdfs:label "Projection emission declared shape"@x-gmeow-english ;
+    skos:definition "Every lang:ProjectionEmission declares the target it lowers to through lang:projectionTargetName and the preservation kind of its crossing through logic:preservationKind — an emission with no preservation kind has entered the loss ledger with an undeclared judgment. Only this statically-checkable minimum is a SHACL shape; the join-requiring projection contract failures (undeclared unsupported constructs, unrecorded epistemic loss, projection-scoped silent disambiguation, and refuted exactness) are native Rust gates."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    lang:enforcesFailureClass lang:MissingPreservationKind ;
+    sh:targetClass lang:ProjectionEmission ;
+    sh:property [
+        sh:path logic:preservationKind ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A lang:ProjectionEmission must declare its logic:preservationKind (reusing the logic: loss-ledger vocabulary verbatim)." ;
+    ] ;
+    sh:property [
+        sh:path lang:projectionTargetName ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A lang:ProjectionEmission must name the external target it lowers to through lang:projectionTargetName." ;
     ] .

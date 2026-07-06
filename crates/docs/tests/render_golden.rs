@@ -17,7 +17,7 @@ use pretty_assertions::assert_eq;
 use std::collections::BTreeSet;
 
 use gmeow_docs::render::{
-    concern_slug, render_site, search_index_json, term_slug, to_html, to_markdown, Page,
+    Page, concern_slug, render_site, search_index_json, term_slug, to_html, to_markdown,
 };
 use gmeow_docs::svg;
 use gmeow_docs::{DocTermCategory, DocsModel};
@@ -311,7 +311,7 @@ fn search_index_json_golden() {
 /// it guards that the dashboard can never silently disagree with the lint gate.
 #[test]
 fn documentation_health_counts_match_the_coverage_source() {
-    use gmeow_docs::coverage::{alignment_subjects, term_coverage, TermCoverage, DIMENSIONS};
+    use gmeow_docs::coverage::{DIMENSIONS, TermCoverage, alignment_subjects, term_coverage};
 
     let model = common::cached_model();
     let page = to_markdown(&model, &Page::Health);

@@ -15,8 +15,8 @@ use std::fmt::Write as _;
 use std::path::{Path, PathBuf};
 
 use purrdf::gts::model::{Term, TermKind};
-use purrdf::gts_compose::{emit_gts, SnapshotBuilder, DEFAULT_RSYNCABLE_THRESHOLD};
-use purrdf::{parse_dataset, NativeRdfFormat};
+use purrdf::gts_compose::{DEFAULT_RSYNCABLE_THRESHOLD, SnapshotBuilder, emit_gts};
+use purrdf::{NativeRdfFormat, parse_dataset};
 
 const GM: &str = "https://blackcatinformatics.ca/gmeow/";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
@@ -41,11 +41,7 @@ fn gcd(a: i64, b: i64) -> u64 {
         a = b;
         b = r;
     }
-    if a == 0 {
-        1
-    } else {
-        a
-    }
+    if a == 0 { 1 } else { a }
 }
 
 /// Rational musical time value.
@@ -176,10 +172,10 @@ fn timeline_tokens(
             cursor = event.onset;
         }
         tokens.push(event_token(event));
-        if let Some(end) = fraction_add(event.onset, event.duration) {
-            if end > cursor {
-                cursor = end;
-            }
+        if let Some(end) = fraction_add(event.onset, event.duration)
+            && end > cursor
+        {
+            cursor = end;
         }
     }
     tokens
@@ -1209,10 +1205,10 @@ fn render_musicxml(piece: &Piece, _profile: &NotationProfile) -> String {
                 event.duration,
                 beat_unit,
             );
-            if let Some(end) = fraction_add(event.onset, event.duration) {
-                if end > cursor {
-                    cursor = end;
-                }
+            if let Some(end) = fraction_add(event.onset, event.duration)
+                && end > cursor
+            {
+                cursor = end;
             }
         }
         out.push_str("    </measure>\n");

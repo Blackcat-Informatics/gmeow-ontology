@@ -1,0 +1,17 @@
+# Competency Q6 (round-trip / residue): "Which bridges round-trip losslessly, and which
+# drop what?" Each bridge run's lift correspondence declares its fidelity rung
+# (logic:morphismClass) and whether it retains a recoverability witness (logic:mnemomorphic).
+# A run with mnemomorphic true is climbable to section; false is a fabricated approximation.
+# The boolean is projected as its string form so the expected cell is a plain literal.
+# (The run is matched by math:ingestCorrespondence, borne only by bridge runs.)
+PREFIX math:  <https://blackcatinformatics.ca/math/>
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+
+SELECT ?run ?rung (STR(?mnemoRaw) AS ?mnemomorphic) WHERE {
+    ?run math:ingestCorrespondence ?corr .
+    ?corr logic:morphismClass ?rung ;
+          logic:mnemomorphic ?mnemoRaw .
+    FILTER(STRSTARTS(STR(?run), "http://example.org/math/"))
+}
+ORDER BY ?run ?rung

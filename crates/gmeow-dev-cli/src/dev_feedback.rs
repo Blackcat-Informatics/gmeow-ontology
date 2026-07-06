@@ -3,7 +3,7 @@
 
 //! The diagnostics-rail commands: `external-tool`, `feedback`, `slice-fix-deps`.
 //!
-//! All three project onto the shared `gmeow_diagnostics` rail: `external-tool`
+//! All three project onto the shared `gmeow_errors` rail: `external-tool`
 //! wraps a foreign tool's failure as one canonical finding and MIRRORS its exit
 //! code; `feedback` folds every offline dev-gate surface into one report,
 //! projects it to the console, and writes the `{json,sarif,html,gts}` artifacts;
@@ -16,9 +16,9 @@ use std::path::Path;
 use std::process::Command;
 
 use gmeow_cli_core::{ConsoleMode, DiagnosticsConfig};
-use gmeow_diagnostics::{render, Finding, Report, Severity};
+use gmeow_errors::{Finding, Report, Severity, render};
 
-use crate::dev_common::{fail, project_root, reporter_for, NAMESPACE, ONTOLOGY_IRI};
+use crate::dev_common::{NAMESPACE, ONTOLOGY_IRI, fail, project_root, reporter_for};
 
 /// Logs at or under this many characters ride verbatim in a finding's detail;
 /// larger logs are digested (head + tail + a SHA-256 of the full bytes).
@@ -151,11 +151,7 @@ pub fn external_tool(
         eprintln!("{name} failed ({} error(s))", report.error_count());
         // Mirror the wrapped tool's exact code; a report with findings but a 0 exit
         // still fails (use 1).
-        if code != 0 {
-            code
-        } else {
-            1
-        }
+        if code != 0 { code } else { 1 }
     }
 }
 
@@ -380,12 +376,7 @@ fn surfaces() -> Vec<(&'static str, SurfaceThunk)> {
             for rel in drifted {
                 let mut finding = Finding::new(Severity::Error, "generator.drift", rel.clone())
                     .with_tool("pipeline");
-                finding.add_location(gmeow_diagnostics::Location::new(
-                    Some(rel),
-                    None,
-                    None,
-                    None,
-                ));
+                finding.add_location(gmeow_errors::Location::new(Some(rel), None, None, None));
                 r.add_finding(finding);
             }
             for finding in run.findings {
@@ -541,10 +532,8 @@ pub fn slice_fix_deps(apply: bool, slices_dir: Option<&Path>) -> i32 {
     }
     for (diff, patch) in &diffs {
         print!("{diff}");
-        if apply {
-            if let Err(e) = std::fs::write(&patch.manifest_path, &patch.patched_text) {
-                return fail(format!("cannot write {}: {e}", patch.manifest_path));
-            }
+        if apply && let Err(e) = std::fs::write(&patch.manifest_path, &patch.patched_text) {
+            return fail(format!("cannot write {}: {e}", patch.manifest_path));
         }
     }
     if apply {

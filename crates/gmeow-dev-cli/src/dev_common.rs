@@ -92,10 +92,10 @@ pub fn reporter_for(mode: ConsoleMode) -> Box<dyn Reporter> {
 pub struct SilentReporter;
 
 impl Reporter for SilentReporter {
-    fn report(&self, _report: &gmeow_diagnostics::Report) {}
+    fn report(&self, _report: &gmeow_errors::Report) {}
     fn stage_start(&self, _stage: &str) {}
     fn stage_end(&self, _stage: &str, _elapsed: std::time::Duration) {}
-    fn summary(&self, _report: &gmeow_diagnostics::Report) {}
+    fn summary(&self, _report: &gmeow_errors::Report) {}
 }
 
 /// Reject a non-positive `--jobs` before it reaches the native `usize` boundary
@@ -118,10 +118,10 @@ pub fn elapsed_ms(started: Instant) -> u128 {
 /// Write a deterministic `--timings-json` artifact (sorted keys, trailing
 /// newline). This is PRODUCT DATA, not a log line, so it is written verbatim.
 pub fn write_timings_json(path: &Path, value: &serde_json::Value) -> i32 {
-    if let Some(parent) = path.parent() {
-        if let Err(e) = std::fs::create_dir_all(parent) {
-            return fail(format!("cannot create {}: {e}", parent.display()));
-        }
+    if let Some(parent) = path.parent()
+        && let Err(e) = std::fs::create_dir_all(parent)
+    {
+        return fail(format!("cannot create {}: {e}", parent.display()));
     }
     let text = match serde_json::to_string_pretty(value) {
         Ok(s) => s,

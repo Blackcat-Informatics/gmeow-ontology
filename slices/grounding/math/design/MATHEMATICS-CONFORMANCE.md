@@ -178,6 +178,37 @@ an ambient space and a named semantics is ill-formed. A `math:HomologyGroup` is 
 fully-framed abelian group raises `math:IncompleteAlgebraicStructure`, not a
 topology failure.
 
+### Linear-algebra-and-learning rules
+
+Every rule is SHACL Core (or a SHACL-SPARQL uniqueness constraint reused from the
+mathematical-core AST) — none needs a native validator, so `native_contract_hash`
+is untouched. The distinguished discipline is that a decomposition or embedding
+declares its inputs, policy, and outputs, and any *meaning* read off a residual or a
+latent dimension is a `gmeow:Observation` held from a `gmeow:vantage`, never a
+property of the vector.
+
+| Rule | Primary gate | Failure class |
+|---|---|---|
+| A `math:OrthogonalComplement` names its ambient space and complement-semantics (inherited from `math:Complement`) and additionally the inner product defining it (`math:definedByInnerProduct`) | SHACL Core | `math:UnqualifiedOrthogonalComplement` |
+| A `math:PCAAnalysis` declares its input, centering and scaling policy, covariance operator, eigensolver, and its component / loading / score / explained-variance / residual outputs | SHACL Core | `math:IncompletePCAAnalysis` |
+| **The meaning of a residual, component, or latent dimension is a `math:ResidualInterpretationClaim` — a `gmeow:Observation` with a `gmeow:vantage` and a result — never a property (no direct meaning property is minted)** | SHACL Core | `math:ResidualMeaningAsProperty` |
+| A `math:Embedding` names its source, target space, function, and model | SHACL Core | `math:UnderspecifiedEmbedding` |
+| A `math:TensorComputationGraph` declares its computation nodes, which are `math:ApplicationExpression`s reusing the argument-slot AST (so the inherited slot-uniqueness/well-formedness gates bite) | SHACL Core (+ inherited `math:SlotIndexUniquenessShape`) | `math:MalformedTensorComputationGraph` / `math:MalformedArgumentSlot` |
+| A `math:WeightTensor` names the `math:ParameterSpace` it lives in | SHACL Core | `math:UnframedWeightTensor` |
+
+The residual-meaning rule is the charter's distinguished gate: because no direct
+"meaning" property is minted, the only way to state what a residual or latent
+dimension means is a `math:ResidualInterpretationClaim`, which this gate then forces
+to carry its `gmeow:vantage` and result — semantic meaning read off geometry is
+inference from a standpoint (Principle 9), so the property-form of meaning is
+unauthorable by construction. The tensor-computation-graph rule reuses the
+expression AST wholesale rather than minting a parallel structure: a graph node *is*
+a `math:ApplicationExpression`, so a node with duplicate argument-slot indexes trips
+the same `math:SlotIndexUniquenessShape` that guards every application and binder.
+`math:PCAAnalysis` is a `gmeow:Activity` (the analysis process), its components and
+residuals are result objects, and the interpretation is the held claim — the
+process / result / claim separation, realized across the `math:` and `gmeow:` layers.
+
 ### Probability rules
 
 | Rule | Primary gate | Failure class |
@@ -227,6 +258,57 @@ topology failure.
 | No projection silently drops distribution parameterization | projection test | `math:ProjectionDroppedParameterization` |
 | No projection flattens an expression AST to a string without recording loss | projection test | `math:UnrecordedProjectionLoss` |
 | A declared-exact projection round-trips (section/retraction) on the conformance corpus | projection test | `math:ExactPreservationViolated` |
+
+### Bridges / ingestion rules
+
+A bridge is the mnemomorphic `put` leg of a `logic:Correspondence` — GMEOW is the source `S`, the
+external artifact the view `V`, and the lift is the up-projection `put`, never a `get` run backward
+(the calculus's named anti-pattern). The three bridge runs (`math:RIngestRun`, `math:ONNXIngestRun`,
+`math:ProofIngestRun`) share the additive unifier `math:IngestRun` (a `gmeow:Activity`), and the
+rules below turn the shared bridge contract into gates.
+
+| Rule | Primary gate | Failure class |
+|---|---|---|
+| A bridge run is a `gmeow:Activity` (the executed `put`-leg occurrence, not an Observation) | OWL axiom (subclass) + structural | (structural assertion) |
+| A bridge run retains a `logic:loadBearing` `math:parseSource` witness and carries the process-layer in-band witness (`logic:instantiatesSchema` / `logic:instantiatesPlan`) | SHACL Core | `math:UngroundedIngestRun` |
+| A bridge's lift is lawful — its residue is carried in the `logic:mnemomorphic` witness or enumerated `unsupported`; an unsupported or silently-partial drop hard-fails | Rust validator | `math:UnliftableIngest` |
+| A proof QED result object is grounded *by* an observation with a vantage (result ≠ claim) | SHACL Core | `math:UngroundedVerificationResult` |
+| A `math:FittedModel` references data (`math:fittedToData`) and a model specification (`math:modelFormula`) | SHACL Core | `math:UnfittedModel` |
+
+The unliftable-ingest rule is the charter's distinguished **native validator** gate. It is not a bare
+side-channel: it is the process-layer projection of the correspondence calculus's Overclaim and
+Mnemomorphism verdict. Because a bridge is a `put` leg, an unliftable residue — content the forward
+lift dropped with no witness to recover it and no `unsupported` enumeration to record it — is the
+`logic:ObligationViolated` / `unsupported` outcome those gates decide, so the native lint reuses the
+shared `logic:` discharge and loss-ledger vocabulary verbatim (Principle 17) rather than minting a
+`math:` preservation shadow. A bridge hard-fails on the unliftable; it never emits a degraded or
+string-valued placeholder, because "for *any* input" is a universality bar, not a best-effort
+aspiration.
+
+### Flagship acceptance-manifest rules
+
+The layer's five flagship acceptance scenarios (the depth bar of [`MATHEMATICS.md`](MATHEMATICS.md))
+are themselves a typed, gated object, not prose. Each is reified as a `math:FlagshipScenario`
+(authored in `examples/flagship-acceptance.ttl`) binding the scenario to the four artifacts that
+realize and enforce it: its worked example (`math:demonstratedByExample`), its competency question
+(`math:demonstratedByCompetency`), its guarding counter-example (`math:guardedByCounterExample`),
+and the named failure class its gate raises (the reused `math:enforcesFailureClass`). The acceptance
+bar is thereby a contract — a scenario that does not wire all four to a real conformance failure is
+`math:UnwiredFlagshipScenario`.
+
+| Rule | Primary gate | Failure class |
+|---|---|---|
+| A `math:FlagshipScenario` binds its example, competency, counter-example, and a failure class that IS a `math:MathConformanceFailure` subclass | SHACL Core + SHACL-SPARQL | `math:UnwiredFlagshipScenario` |
+| The five canonical flagship scenarios are all present and fully wired | structural (`ex:saFlagshipCoverage`) | (structural assertion) |
+| Each flagship's competency reference resolves to a registered green (`cqExpectRow`) competency question with an existing query file, and its example/counter-example files exist | Rust cross-check (`crates/slicetest` `flagship_manifest`) | (native test) |
+
+The competency cross-check is a **native** gate for the same dataset-split reason the unliftable-ingest
+rule is: the `gmeow:CompetencyQuestion` individuals live in `tests/competency.ttl`, which the
+module/examples-scoped SHACL and structural validators never load, so the reference from a
+`math:FlagshipScenario` into that dataset can only be resolved — and its `cqExpectRow` greenness
+confirmed — by a validator that unions the two. The three surfaces together make the epic's depth bar
+regression-proof: drop a scenario, unwire a link, or point at an unregistered competency question, and
+one of the three gates fails.
 
 ## Preservation vocabulary — reuse, do not re-mint
 

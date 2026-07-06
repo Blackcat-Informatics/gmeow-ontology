@@ -13,7 +13,7 @@
 //!   mode, artifact kinds, directory, stem, category) with the same flag > env
 //!   > default precedence.
 //! * [`Reporter`] — a small, object-safe trait over "how do I surface a
-//!   [`gmeow_diagnostics::Report`], progress, and a run summary", with a
+//!   [`gmeow_errors::Report`], progress, and a run summary", with a
 //!   human-facing ([`HumanReporter`]) and a machine-facing ([`NdjsonReporter`])
 //!   implementation.
 //! * [`exit_code`] — the 0/1 process exit convention over a report.
@@ -24,8 +24,8 @@ use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 
-use gmeow_diagnostics::render;
-use gmeow_diagnostics::{Finding, Report};
+use gmeow_errors::render;
+use gmeow_errors::{Finding, Report};
 use serde::Serialize;
 
 /// The output surface a CLI run presents on, resolved once at startup.
@@ -298,7 +298,7 @@ pub trait Reporter {
 }
 
 /// A human-facing reporter: diagnostics render to stderr as colored text (via
-/// [`gmeow_diagnostics::render::to_text`]), leaving stdout clear for product
+/// [`gmeow_errors::render::to_text`]), leaving stdout clear for product
 /// results.
 #[derive(Debug, Default, Clone, Copy)]
 pub struct HumanReporter;
@@ -360,7 +360,7 @@ impl Reporter for HumanReporter {
 ///
 /// The `event` tag is the stable discriminator (`stage_start`, `stage_end`,
 /// `finding`, `summary`). A `finding` event embeds the canonical
-/// [`gmeow_diagnostics::Finding`] serde form verbatim under `finding` — there is
+/// [`gmeow_errors::Finding`] serde form verbatim under `finding` — there is
 /// no second finding schema.
 #[derive(Serialize)]
 #[serde(tag = "event", rename_all = "snake_case")]
@@ -386,7 +386,7 @@ enum NdjsonEvent<'a> {
 
 /// A machine-facing reporter: one JSON object per line to stdout, each carrying
 /// a stable `event` field. Findings are line-framed from the canonical
-/// [`gmeow_diagnostics::Finding`] serde form — the same schema the JSON/SARIF
+/// [`gmeow_errors::Finding`] serde form — the same schema the JSON/SARIF
 /// renderers project — so an agent consuming the stream never has to reconcile a
 /// second shape.
 #[derive(Debug, Default, Clone, Copy)]
@@ -444,11 +444,7 @@ impl Reporter for NdjsonReporter {
 /// This preserves the 0/1/2 convention: `2` is reserved for clap usage errors,
 /// which clap emits itself (this function never returns it).
 pub fn exit_code(report: &Report) -> i32 {
-    if report.ok() {
-        0
-    } else {
-        1
-    }
+    if report.ok() { 0 } else { 1 }
 }
 
 /// Install a stderr `tracing` subscriber with an `EnvFilter` sourced from
@@ -525,11 +521,7 @@ mod tests {
         let clean = Report::new("t");
         assert_eq!(exit_code(&clean), 0);
         let mut failed = Report::new("t");
-        failed.add_finding(Finding::new(
-            gmeow_diagnostics::Severity::Error,
-            "x",
-            "boom",
-        ));
+        failed.add_finding(Finding::new(gmeow_errors::Severity::Error, "x", "boom"));
         assert_eq!(exit_code(&failed), 1);
     }
 }

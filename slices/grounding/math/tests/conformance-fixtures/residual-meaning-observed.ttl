@@ -1,0 +1,20 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Well-formed: the meaning of a principal component held as a vantage-grounded
+# observation — it names the gmeow:vantage claiming it, the gmeow:observedFeature
+# it is about, and its gmeow:observationResult. Conforms to
+# math:ResidualInterpretationClaimShape. Bound by ex:ecResidualMeaningObserved.
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <http://example.org/math/> .
+
+ex:pc1Meaning a math:ResidualInterpretationClaim ;
+    gmeow:vantage ex:analystFrame ;
+    gmeow:observedFeature ex:pc1 ;
+    gmeow:observationResult ex:themeFormula .
+
+ex:pc1 a math:PrincipalComponent .
+ex:analystFrame a gmeow:Standpoint .
+ex:themeFormula a logic:MetaLevelFormula .

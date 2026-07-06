@@ -8,7 +8,7 @@
 
 use std::path::PathBuf;
 
-use gmeow_diagnostics::Finding;
+use gmeow_errors::Finding;
 use pyo3::prelude::*;
 
 fn format_dsl_finding(finding: &Finding) -> String {
@@ -31,11 +31,11 @@ fn format_dsl_finding(finding: &Finding) -> String {
     }
 
     for related in &finding.related_locations {
-        if let Some(logical) = related.logical.as_deref() {
-            if let Some(path_iri) = logical.strip_prefix("path ") {
-                parts.push(format!("path={path_iri}"));
-                break;
-            }
+        if let Some(logical) = related.logical.as_deref()
+            && let Some(path_iri) = logical.strip_prefix("path ")
+        {
+            parts.push(format!("path={path_iri}"));
+            break;
         }
     }
 

@@ -15,9 +15,9 @@ use std::path::Path;
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyDict, PyList, PyModule};
 
-use gmeow_diagnostics::py::PyReport;
+use gmeow_errors::py::PyReport;
 
-use crate::run::{run_full, RunMode};
+use crate::run::{RunMode, run_full};
 use crate::scoreboards;
 use crate::transform::{self, CellInput, DerivedRowNative, TransformReportNative};
 
@@ -196,7 +196,7 @@ fn serialize_yaml_ld(py: Python<'_>, nquads_bytes: &[u8], format: &str) -> PyRes
         _ => {
             return Err(pyo3::exceptions::PyValueError::new_err(format!(
                 "unknown format {format:?}; expected 'jsonld' or 'yamlld'"
-            )))
+            )));
         }
     };
     Ok(PyBytes::new(py, text.as_bytes()).into_any().unbind())
@@ -224,7 +224,7 @@ fn transcode(
     to: &str,
     base_iri: Option<String>,
 ) -> PyResult<(Py<PyBytes>, String)> {
-    use crate::transcode::{realized_loss_json, transcode as run_transcode, Codec};
+    use crate::transcode::{Codec, realized_loss_json, transcode as run_transcode};
     let from = Codec::from_cli_str(from_)
         .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
     let to = Codec::from_cli_str(to)
@@ -342,7 +342,7 @@ fn fold_release_bundle_native(
     signer_secret_armor: String,
     public_key_armor: String,
 ) -> PyResult<Py<PyAny>> {
-    use crate::stages::release::{build_coherence_evidence, fold_release_bundle, EvidenceInput};
+    use crate::stages::release::{EvidenceInput, build_coherence_evidence, fold_release_bundle};
 
     // Load the Ed25519 signing material from the armored secret key in Rust
     // (no key handling in Python beyond reading the file bytes).

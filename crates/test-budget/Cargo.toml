@@ -4,7 +4,7 @@
 [package]
 name = "gmeow-test-budget"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 license = "AGPL-3.0-only"
 publish = false
 description = "Post-run JUnit per-test duration budget gate for the Rust suite (#1045)."

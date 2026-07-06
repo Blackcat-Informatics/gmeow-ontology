@@ -31,10 +31,10 @@
 
 use std::sync::Arc;
 
-use gmeow_diagnostics::model::Location;
-use gmeow_diagnostics::Report;
-use purrdf::shapes::shape_union::EXCLUDED;
+use gmeow_errors::Report;
+use gmeow_errors::model::Location;
 use purrdf::RdfDataset;
+use purrdf::shapes::shape_union::EXCLUDED;
 
 use crate::gufo::{self, GufoConfig};
 use crate::report_bridge::{build_report, shacl_findings_from_report};
@@ -44,7 +44,7 @@ use crate::store;
 // (and its tests). The wasm Tier-1 surface folds findings through `report_bridge`
 // and never names these types directly.
 #[cfg(not(target_arch = "wasm32"))]
-use gmeow_diagnostics::{Finding, Severity};
+use gmeow_errors::{Finding, Severity};
 
 /// Typed error for the Tier-2 deep pass, distinguishing failure modes that
 /// require different treatment at the graceful-degradation boundary.
@@ -139,7 +139,7 @@ pub fn run_tier1(
 ///
 /// This is the sole validation surface exposed to wasm: it wraps [`run_tier1`]
 /// (never the native `--deep` path) and serializes the canonical
-/// `gmeow_diagnostics::Report` with serde_json, so a browser / editor / LLM client
+/// `gmeow_errors::Report` with serde_json, so a browser / editor / LLM client
 /// receives structured findings without any PyO3 or filesystem coupling. Native
 /// callers that want a JSON result share this same entry.
 ///
@@ -444,13 +444,13 @@ fn cbor_text_field<'a>(meta: &'a ciborium::value::Value, key: &str) -> Option<&'
         return None;
     };
     for (k, v) in entries {
-        if let ciborium::value::Value::Text(name) = k {
-            if name == key {
-                if let ciborium::value::Value::Text(text) = v {
-                    return Some(text.as_str());
-                }
-                return None;
+        if let ciborium::value::Value::Text(name) = k
+            && name == key
+        {
+            if let ciborium::value::Value::Text(text) = v {
+                return Some(text.as_str());
             }
+            return None;
         }
     }
     None
@@ -521,10 +521,12 @@ mod tests {
             "the pre-existing Tier-1 finding must be preserved"
         );
         // No inconsistency error was fabricated from the failed pass.
-        assert!(!report
-            .findings
-            .iter()
-            .any(|f| f.code == "validate.deep.inconsistent"));
+        assert!(
+            !report
+                .findings
+                .iter()
+                .any(|f| f.code == "validate.deep.inconsistent")
+        );
     }
 
     /// Build canonical GTS bytes from an arbitrary Turtle string for use in

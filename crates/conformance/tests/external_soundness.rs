@@ -22,8 +22,8 @@ use std::collections::BTreeSet;
 use std::path::Path;
 
 use gmeow_conformance::external::{
-    audit_vendorable, load_corpus_meta, outcome_from_szs, parse_szs_status, parse_test_manifest,
-    ExternalOutcome,
+    ExternalOutcome, audit_vendorable, load_corpus_meta, outcome_from_szs, parse_szs_status,
+    parse_test_manifest,
 };
 use gmeow_conformance::paths::cases_root;
 use gmeow_conformance::profile::parse_profile;

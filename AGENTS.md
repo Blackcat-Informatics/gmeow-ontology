@@ -290,7 +290,17 @@ committed `generated/dist/gmeow.gts` fold-isomorphism oracle);
 linkage coverage retained by the dedicated C-API CI lane and `maint-heavy`);
 `gmeow-pipeline::end_to_end` (82.351 s in CI shard 1; it runs the real
 production spine through `stage-snapshot`, so focused per-stage and carrier
-tests keep the failure modes covered on-gate); and
+tests keep the failure modes covered on-gate); the `gmeow-pipeline`
+`fanout_parity` binary and
+`gmeow-pipeline::stages::superset::tests::project_bundle_reconstructs_the_committed_tree_and_gate_is_clean`
+(20.4 s / 17.5 s / 16.8 s locally, 24–30+ s in CI; they reconstruct the whole
+`generated/` tree from the committed `gmeow.gts` bundle alone — irreducibly
+O(bundle size), the same whole-committed-bundle class as `fold_parity`/`end_to_end`;
+the `lang:` total-prose-lift surface grew the bundle ~30 % and nudged all three
+past budget, and the cost is bundle-size not fixture-dependent; both the superset
+reconstruction gate and the fanout reproduction run on every `make check` via
+`make check-generated`, which hard-fails on any drift, so no coverage leaves the
+gate); and
 `gmeow-pipeline::stages::gts_sink::tests::sink_serializes_the_snapshot_carrier_with_blob_inputs`
 (25.8 s in CI shard 3; it exercises terminal carrier serialization and import
 round-trip work with no remaining CI headroom);
@@ -319,7 +329,18 @@ injected disjoint-class clash is caught). This exclusion is **budget-exempt,
 not gate-exempt**: the test still runs on every `make check` via the dedicated
 `make coherence-gate-teeth` target, which selects it with
 `--ignore-default-filter` plus an explicit `-E` filter and does not feed the
-JUnit budget gate. Former off-gate groups such as
+JUnit budget gate. The `lang:` projection surface (OntoLex-Lemon / CoNLL-U /
+SemAF forward projections) plus the native-chase logic growth nudged three
+whole-bundle CLI tests past budget —
+`gmeow-dev-cli::cli_parity::build_writes_serializations`,
+`gmeow-cli::cli::export_respects_language_selector`, and
+`gmeow-cli::cli::project_schema_org_view_filter` (6–8 s standalone but
+25.5–27.5 s under full-parallelism CI contention; each drives the CLI to
+serialize / export / project-a-view over the WHOLE bundle, irreducibly
+O(bundle size), the same whole-committed-bundle class as `fanout_parity` /
+`end_to_end`; the written serializations stay drift-gated on every `make check`
+via `make check-generated`, and all three stay on-gate on `maint-heavy`).
+Former off-gate groups such as
 ontology entailments, SPARQL path parity, RDF/RDFC parity outliers,
 correspondence parity, mapping parity, carrier/docs archive tests, scoreboards
 acceptance, JSON-LD round-trips, product routing, slice/slicetest parity, and

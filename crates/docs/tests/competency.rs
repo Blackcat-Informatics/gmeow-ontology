@@ -12,7 +12,7 @@
 //! / `test_recipes_*` / `test_learning_paths_*` against the new Rust renderer.
 
 use gmeow_docs::model::{DocSlice, DocTerm};
-use gmeow_docs::render::{term_slug, to_html, to_markdown, Page};
+use gmeow_docs::render::{Page, term_slug, to_html, to_markdown};
 use gmeow_docs::{DocTermCategory, DocsModel};
 
 mod common;

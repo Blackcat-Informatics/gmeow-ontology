@@ -32,6 +32,7 @@ pub mod bundle;
 pub mod bundle_blobs;
 pub mod cache;
 pub mod cli_ops;
+pub(crate) mod diagnostics_ingest;
 pub mod error;
 pub mod fanout;
 pub mod generator_registry;
@@ -58,22 +59,22 @@ pub mod mcp;
 #[cfg(feature = "python")]
 pub mod py;
 
-pub use bundle::{bundle_artifact, bundle_artifacts, PipelineHandle};
+pub use bundle::{PipelineHandle, bundle_artifact, bundle_artifacts};
 pub use cache::PipelineCache;
 pub use error::PipelineError;
-pub use fanout::{fanout, FanoutReport};
+pub use fanout::{FanoutReport, fanout};
 pub use generator_registry::{
-    all_output_paths, committed_generated_paths, generator_by_name, generator_metadata,
-    generator_names, generator_order, GeneratorInfo, GeneratorMetadata, GENERATORS,
+    GENERATORS, GeneratorInfo, GeneratorMetadata, all_output_paths, committed_generated_paths,
+    generator_by_name, generator_metadata, generator_names, generator_order,
 };
 pub use graph::StageGraph;
-pub use loader::{bind, PipelineSpec, StageSpec};
+pub use loader::{PipelineSpec, StageSpec, bind};
 pub use node::{
-    Stage, StageInput, StageOutput, StageProduct, ENGINE_RESOURCE, SINK_CAPABILITY, SOURCE_ORIGIN,
+    ENGINE_RESOURCE, SINK_CAPABILITY, SOURCE_ORIGIN, Stage, StageInput, StageOutput, StageProduct,
 };
-pub use registry::{default_registry, StageRegistry};
-pub use run::{full_spec, run_full, RunMode, RunReport};
-pub use scheduler::{run, RunContext, RunResult};
+pub use registry::{StageRegistry, default_registry};
+pub use run::{RunMode, RunReport, full_spec, run_full};
+pub use scheduler::{RunContext, RunResult, run};
 
 #[cfg(feature = "python")]
 pub use py::register;

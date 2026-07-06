@@ -414,9 +414,11 @@ mod tests {
         let report =
             apply_elementary_transition(&store, BASE, NEXT, &[update], BASE).expect("transition");
 
-        assert!(store
-            .quads_for_pattern_in_world(BASE, Some(S), Some(P), Some(O))
-            .is_empty());
+        assert!(
+            store
+                .quads_for_pattern_in_world(BASE, Some(S), Some(P), Some(O))
+                .is_empty()
+        );
         assert_eq!(
             store
                 .quads_for_pattern_in_world(NEXT, Some(S), Some(P), Some(O))
@@ -444,9 +446,11 @@ mod tests {
             1,
             "base state remains append-only"
         );
-        assert!(store
-            .quads_for_pattern_in_world(NEXT, Some(S), Some(P), Some(O))
-            .is_empty());
+        assert!(
+            store
+                .quads_for_pattern_in_world(NEXT, Some(S), Some(P), Some(O))
+                .is_empty()
+        );
         assert_eq!(report.retired_supports, vec![support.clone()]);
 
         assert_eq!(
@@ -538,9 +542,11 @@ mod tests {
         let err = apply_elementary_transition(&store, BASE, NEXT, &[delete, insert], BASE)
             .expect_err("incomparable updates must fail");
         assert!(err.contains("ambiguous elementary updates"), "got: {err}");
-        assert!(store
-            .quads_for_pattern_in_world(NEXT, None, None, None)
-            .is_empty());
+        assert!(
+            store
+                .quads_for_pattern_in_world(NEXT, None, None, None)
+                .is_empty()
+        );
 
         store.insert_quad(BASE, UPDATE_DELETE, OVERRIDES, UPDATE_INSERT);
         apply_elementary_transition(
@@ -554,9 +560,11 @@ mod tests {
             BASE,
         )
         .expect("delete update is now more entrenched");
-        assert!(store
-            .quads_for_pattern_in_world(NEXT2, Some(S), Some(P), Some(O))
-            .is_empty());
+        assert!(
+            store
+                .quads_for_pattern_in_world(NEXT2, Some(S), Some(P), Some(O))
+                .is_empty()
+        );
     }
 
     #[test]
@@ -566,9 +574,11 @@ mod tests {
         let err = apply_elementary_transition(&store, BASE, NEXT, &[update], BASE)
             .expect_err("absent support cannot be retired");
         assert!(err.contains("illegal del"), "got: {err}");
-        assert!(store
-            .quads_for_pattern_in_world(NEXT, None, None, None)
-            .is_empty());
+        assert!(
+            store
+                .quads_for_pattern_in_world(NEXT, None, None, None)
+                .is_empty()
+        );
     }
 
     #[test]

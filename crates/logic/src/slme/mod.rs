@@ -28,10 +28,10 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use gmeow_diagnostics::{Finding, Severity};
+use gmeow_errors::{Finding, Severity};
 use purrdf::{
-    parse_dataset, serialize_dataset, RdfDatasetBuilder, RdfQuad, RdfTerm, RdfTriple,
-    SerializeGraph,
+    RdfDatasetBuilder, RdfQuad, RdfTerm, RdfTriple, SerializeGraph, parse_dataset,
+    serialize_dataset,
 };
 
 // ── Vocabulary IRIs ─────────────────────────────────────────────────────────────
@@ -605,10 +605,10 @@ fn conservative(
     if sigma.contains(subject) {
         return Decision::ConservativeKeep;
     }
-    if let RdfTerm::Iri(o) = object {
-        if sigma.contains(o.as_str()) {
-            return Decision::ConservativeKeep;
-        }
+    if let RdfTerm::Iri(o) = object
+        && sigma.contains(o.as_str())
+    {
+        return Decision::ConservativeKeep;
     }
     // Blank-node object: walk its closure and keep if any named IRI reached is in Σ.
     let mut closure_names: BTreeSet<String> = BTreeSet::new();

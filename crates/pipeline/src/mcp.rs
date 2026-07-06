@@ -24,9 +24,9 @@ use std::sync::{Arc, Mutex, OnceLock};
 use pyo3::exceptions::PyValueError;
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 
-use gmeow_logic::transaction::execute::{execute_transaction, CommitMode, TxReceipt};
+use gmeow_logic::transaction::execute::{CommitMode, TxReceipt, execute_transaction};
 use purrdf::gts::examples::agent_memory::{
     Memory, RecallOptions, RevisionOptions, StoreOptions, ToolCallOptions,
 };
@@ -228,10 +228,10 @@ fn sparql_result_to_json(result: purrdf::SparqlResult) -> Result<Value, String> 
                 .map(|row| {
                     let mut obj = serde_json::Map::new();
                     for (i, cell) in row.iter().enumerate() {
-                        if let (Some(name), Some(term)) = (variables.get(i), cell.as_ref()) {
-                            if let Some(value) = sparql_term_to_json(term) {
-                                obj.insert(name.clone(), value);
-                            }
+                        if let (Some(name), Some(term)) = (variables.get(i), cell.as_ref())
+                            && let Some(value) = sparql_term_to_json(term)
+                        {
+                            obj.insert(name.clone(), value);
                         }
                     }
                     Value::Object(obj)
@@ -358,11 +358,7 @@ pub enum McpMode {
 impl McpMode {
     #[cfg(feature = "python")]
     fn from_bool(dev: bool) -> Self {
-        if dev {
-            Self::Dev
-        } else {
-            Self::Consumer
-        }
+        if dev { Self::Dev } else { Self::Consumer }
     }
 
     fn includes_dev_tools(self) -> bool {
@@ -845,14 +841,14 @@ impl McpServer {
             .filter(|claim| !claim.suppressed)
             .map(|claim| claim.id.as_str())
             .collect();
-        if let Some(successor) = optional_str(args, "superseded_by") {
-            if !known.contains(successor) {
-                return Ok(json!({
-                    "ok": false,
-                    "error": format!("unknown superseded_by id: {successor}"),
-                })
-                .to_string());
-            }
+        if let Some(successor) = optional_str(args, "superseded_by")
+            && !known.contains(successor)
+        {
+            return Ok(json!({
+                "ok": false,
+                "error": format!("unknown superseded_by id: {successor}"),
+            })
+            .to_string());
         }
 
         // revise_belief's precondition — the target claim exists — obtains iff claim_id is a known
@@ -1158,10 +1154,10 @@ fn lang_from_query(query: &str) -> Option<&str> {
 }
 
 fn memory_path() -> Result<PathBuf, String> {
-    if let Ok(path) = env::var("GMEOW_MEMORY_PATH") {
-        if !path.trim().is_empty() {
-            return Ok(PathBuf::from(path).expand_home());
-        }
+    if let Ok(path) = env::var("GMEOW_MEMORY_PATH")
+        && !path.trim().is_empty()
+    {
+        return Ok(PathBuf::from(path).expand_home());
     }
     let home =
         home_dir().ok_or("neither HOME nor USERPROFILE is set and GMEOW_MEMORY_PATH is empty")?;
@@ -1184,10 +1180,10 @@ impl ExpandHome for PathBuf {
         if raw == "~" {
             return home_dir().map(PathBuf::from).unwrap_or(self);
         }
-        if let Some(rest) = raw.strip_prefix("~/") {
-            if let Some(home) = home_dir() {
-                return Path::new(&home).join(rest);
-            }
+        if let Some(rest) = raw.strip_prefix("~/")
+            && let Some(home) = home_dir()
+        {
+            return Path::new(&home).join(rest);
         }
         self
     }
@@ -1518,10 +1514,10 @@ fn write_audit_segment(
 fn tool_arguments(args: &Value, keys: &[&str]) -> String {
     let mut out = serde_json::Map::new();
     for key in keys {
-        if let Some(value) = args.get(*key) {
-            if !value.is_null() {
-                out.insert((*key).to_string(), value.clone());
-            }
+        if let Some(value) = args.get(*key)
+            && !value.is_null()
+        {
+            out.insert((*key).to_string(), value.clone());
         }
     }
     Value::Object(out).to_string()
@@ -1558,9 +1554,12 @@ mod tests {
     impl Drop for EnvRestore {
         fn drop(&mut self) {
             for (key, value) in &self.0 {
-                match value {
-                    Some(value) => env::set_var(key, value),
-                    None => env::remove_var(key),
+                // SAFETY: single-threaded test env mutation under the test's env lock.
+                unsafe {
+                    match value {
+                        Some(value) => env::set_var(key, value),
+                        None => env::remove_var(key),
+                    }
                 }
             }
         }
@@ -1593,7 +1592,10 @@ mod tests {
     fn temp_memory() -> (tempfile::TempDir, PathBuf) {
         let dir = tempfile::tempdir().expect("tempdir");
         let path = dir.path().join("memory.gts");
-        env::set_var("GMEOW_MEMORY_PATH", &path);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::set_var("GMEOW_MEMORY_PATH", &path);
+        }
         (dir, path)
     }
 
@@ -1601,7 +1603,10 @@ mod tests {
     fn modes_advertise_consumer_and_dev_surfaces() {
         let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
         let _env = EnvRestore::capture(&["GMEOW_LANG", "GMEOW_MEMORY_PATH", "HOME", "USERPROFILE"]);
-        env::remove_var("GMEOW_LANG");
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
         let bytes = snapshot();
         let consumer = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
         let consumer_tools = consumer.tools_result().to_string();
@@ -1612,10 +1617,12 @@ mod tests {
         assert!(consumer_tools.contains("\"query_docs\""));
         assert!(consumer_tools.contains("\"store_claim\""));
         assert!(!consumer_tools.contains("\"validate\""));
-        assert!(!consumer
-            .resources_result()
-            .to_string()
-            .contains("constitution"));
+        assert!(
+            !consumer
+                .resources_result()
+                .to_string()
+                .contains("constitution")
+        );
 
         let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
         let dev = McpServer::from_snapshot(&bytes, Some(root), McpMode::Dev).unwrap();
@@ -1631,7 +1638,10 @@ mod tests {
     fn query_docs_selects_over_the_documentation_graph() {
         let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
         let _env = EnvRestore::capture(&["GMEOW_LANG", "GMEOW_MEMORY_PATH", "HOME", "USERPROFILE"]);
-        env::remove_var("GMEOW_LANG");
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
         let bytes = snapshot();
         let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
 
@@ -1660,17 +1670,22 @@ mod tests {
             &json!({"query": "CONSTRUCT { ?s ?p ?o } WHERE { ?s ?p ?o } LIMIT 1"}),
         ));
         assert_eq!(construct["ok"], false);
-        assert!(construct["error"]
-            .as_str()
-            .unwrap_or_default()
-            .contains("SELECT and ASK"));
+        assert!(
+            construct["error"]
+                .as_str()
+                .unwrap_or_default()
+                .contains("SELECT and ASK")
+        );
     }
 
     #[test]
     fn memory_triad_preserves_suppression_on_every_default_recall_path() {
         let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
         let _env = EnvRestore::capture(&["GMEOW_LANG", "GMEOW_MEMORY_PATH", "HOME", "USERPROFILE"]);
-        env::remove_var("GMEOW_LANG");
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
         let (_dir, memory_path) = temp_memory();
         let bytes = snapshot();
         let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
@@ -1747,7 +1762,10 @@ mod tests {
     fn revision_rejects_unknown_ids_before_writing() {
         let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
         let _env = EnvRestore::capture(&["GMEOW_LANG", "GMEOW_MEMORY_PATH", "HOME", "USERPROFILE"]);
-        env::remove_var("GMEOW_LANG");
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
         let (_dir, _memory_path) = temp_memory();
         let bytes = snapshot();
         let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
@@ -1787,7 +1805,10 @@ mod tests {
     fn dry_run_must_be_a_boolean() {
         let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
         let _env = EnvRestore::capture(&["GMEOW_LANG", "GMEOW_MEMORY_PATH", "HOME", "USERPROFILE"]);
-        env::remove_var("GMEOW_LANG");
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
         let (_dir, _memory_path) = temp_memory();
         let bytes = snapshot();
         let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
@@ -1795,17 +1816,22 @@ mod tests {
             server.call_tool_result("store_claim", &json!({"text": "x", "dry_run": "yes"})),
         );
         assert_eq!(bad["ok"], false);
-        assert!(bad["error"]
-            .as_str()
-            .unwrap()
-            .contains("dry_run must be a boolean"));
+        assert!(
+            bad["error"]
+                .as_str()
+                .unwrap()
+                .contains("dry_run must be a boolean")
+        );
     }
 
     #[test]
     fn store_claim_dry_run_computes_verdict_without_persisting() {
         let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
         let _env = EnvRestore::capture(&["GMEOW_LANG", "GMEOW_MEMORY_PATH", "HOME", "USERPROFILE"]);
-        env::remove_var("GMEOW_LANG");
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
         let (_dir, memory_path) = temp_memory();
         let bytes = snapshot();
         let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
@@ -1837,7 +1863,10 @@ mod tests {
     fn committed_store_records_the_audit_context() {
         let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
         let _env = EnvRestore::capture(&["GMEOW_LANG", "GMEOW_MEMORY_PATH", "HOME", "USERPROFILE"]);
-        env::remove_var("GMEOW_LANG");
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
         let (_dir, memory_path) = temp_memory();
         let bytes = snapshot();
         let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
@@ -1877,16 +1906,21 @@ mod tests {
             .filter(|quad| quad.predicate == GMEOW_EVENT_TEMPORAL_FRAME)
             .map(|quad| quad.object.to_string())
             .collect();
-        assert!(frames
-            .iter()
-            .all(|frame| frame.contains("temporalFrameUTCGregorian")));
+        assert!(
+            frames
+                .iter()
+                .all(|frame| frame.contains("temporalFrameUTCGregorian"))
+        );
     }
 
     #[test]
     fn revise_belief_dry_run_does_not_suppress() {
         let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
         let _env = EnvRestore::capture(&["GMEOW_LANG", "GMEOW_MEMORY_PATH", "HOME", "USERPROFILE"]);
-        env::remove_var("GMEOW_LANG");
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
         let (_dir, _memory_path) = temp_memory();
         let bytes = snapshot();
         let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
@@ -1914,7 +1948,10 @@ mod tests {
     fn committed_revise_suppresses_but_never_deletes() {
         let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
         let _env = EnvRestore::capture(&["GMEOW_LANG", "GMEOW_MEMORY_PATH", "HOME", "USERPROFILE"]);
-        env::remove_var("GMEOW_LANG");
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
         let (_dir, _memory_path) = temp_memory();
         let bytes = snapshot();
         let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
@@ -1939,11 +1976,13 @@ mod tests {
             "recall",
             &json!({"query": "belief retire", "include_suppressed": true}),
         ));
-        assert!(audit["claims"]
-            .as_array()
-            .unwrap()
-            .iter()
-            .any(|claim| claim["id"] == claim_id.as_str() && claim["suppressed"] == true));
+        assert!(
+            audit["claims"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|claim| claim["id"] == claim_id.as_str() && claim["suppressed"] == true)
+        );
     }
 
     #[test]
@@ -1951,14 +1990,20 @@ mod tests {
         let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
         let _env = EnvRestore::capture(&["GMEOW_LANG", "GMEOW_MEMORY_PATH", "HOME", "USERPROFILE"]);
         let bytes = snapshot();
-        env::set_var("GMEOW_LANG", "notatag");
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::set_var("GMEOW_LANG", "notatag");
+        }
         let err = match McpServer::from_snapshot(&bytes, None, McpMode::Consumer) {
             Ok(_) => panic!("invalid startup language must fail"),
             Err(err) => err,
         };
         assert!(err.contains("unknown language tag 'notatag'"));
 
-        env::set_var("GMEOW_LANG", "fr");
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::set_var("GMEOW_LANG", "fr");
+        }
         let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
         let init: Value = serde_json::from_str(
             &server.handle_message(r#"{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}"#),
@@ -1970,29 +2015,43 @@ mod tests {
             &server.handle_message(r#"{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}"#),
         )
         .unwrap();
-        assert!(tools["result"]["tools"]
-            .as_array()
-            .unwrap()
-            .iter()
-            .any(|tool| tool["name"] == "lookup_term"));
+        assert!(
+            tools["result"]["tools"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|tool| tool["name"] == "lookup_term")
+        );
 
-        env::set_var("GMEOW_LANG", "X-GMEOW-FRENCH");
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::set_var("GMEOW_LANG", "X-GMEOW-FRENCH");
+        }
         let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
         let fr = text_payload(
             server.call_tool_result("lookup_term", &json!({"term": "gmeow:langFrench"})),
         );
         assert_eq!(fr["label"], "fran\u{e7}ais");
-        env::remove_var("GMEOW_LANG");
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
     }
 
     #[test]
     fn default_memory_path_lives_under_home() {
         let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
         let _env = EnvRestore::capture(&["GMEOW_LANG", "GMEOW_MEMORY_PATH", "HOME", "USERPROFILE"]);
-        env::remove_var("GMEOW_LANG");
-        env::remove_var("GMEOW_MEMORY_PATH");
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+            env::remove_var("GMEOW_MEMORY_PATH");
+        }
         let dir = tempfile::tempdir().expect("tempdir");
-        env::set_var("HOME", dir.path());
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::set_var("HOME", dir.path());
+        }
         let bytes = snapshot();
         let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
         text_payload(server.call_tool_result("store_claim", &json!({"text": "durable belief"})));
@@ -2004,11 +2063,17 @@ mod tests {
         let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
         let _env = EnvRestore::capture(&["GMEOW_LANG", "GMEOW_MEMORY_PATH", "HOME", "USERPROFILE"]);
         let _cwd = CwdRestore::capture();
-        env::remove_var("GMEOW_LANG");
-        env::remove_var("GMEOW_MEMORY_PATH");
-        env::remove_var("HOME");
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+            env::remove_var("GMEOW_MEMORY_PATH");
+            env::remove_var("HOME");
+        }
         let dir = tempfile::tempdir().expect("tempdir");
-        env::set_var("USERPROFILE", dir.path());
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::set_var("USERPROFILE", dir.path());
+        }
         let bytes = snapshot();
         let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
         text_payload(
@@ -2018,7 +2083,10 @@ mod tests {
 
         let relative_dir = tempfile::tempdir().expect("relative tempdir");
         env::set_current_dir(relative_dir.path()).expect("set current dir");
-        env::set_var("GMEOW_MEMORY_PATH", "memory.gts");
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::set_var("GMEOW_MEMORY_PATH", "memory.gts");
+        }
         let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
         text_payload(
             server.call_tool_result("store_claim", &json!({"text": "relative path belief"})),
@@ -2033,7 +2101,10 @@ mod tests {
     fn local_overlay_is_a_read_only_external_annex() {
         let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
         let _env = EnvRestore::capture(&["GMEOW_LANG", "GMEOW_MEMORY_PATH", "HOME", "USERPROFILE"]);
-        env::remove_var("GMEOW_LANG");
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
         let (mem_dir, memory_path) = temp_memory();
         let bytes = snapshot();
         let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
@@ -2041,8 +2112,7 @@ mod tests {
         // A local lower-tier vocab file the agent supplies (not part of the canon).
         let overlay_dir = tempfile::tempdir().expect("overlay tempdir");
         let overlay_path = overlay_dir.path().join("local-vocab.ttl");
-        let overlay_ttl =
-            "<urn:ex:widget> <urn:ex:label> \"Local Widget\" .\n<urn:ex:widget> a <urn:ex:Thing> .\n";
+        let overlay_ttl = "<urn:ex:widget> <urn:ex:label> \"Local Widget\" .\n<urn:ex:widget> a <urn:ex:Thing> .\n";
         fs::write(&overlay_path, overlay_ttl).unwrap();
         let overlay_before = fs::read(&overlay_path).unwrap();
         let path_str = overlay_path.to_str().unwrap();
@@ -2092,10 +2162,12 @@ mod tests {
             &json!({"path": path_str, "query": "CONSTRUCT { ?s ?p ?o } WHERE { ?s ?p ?o } LIMIT 1"}),
         ));
         assert_eq!(construct["ok"], false);
-        assert!(construct["error"]
-            .as_str()
-            .unwrap_or_default()
-            .contains("SELECT and ASK"));
+        assert!(
+            construct["error"]
+                .as_str()
+                .unwrap_or_default()
+                .contains("SELECT and ASK")
+        );
 
         // Read-only: the overlay file is byte-for-byte unchanged and NOTHING was
         // written to memory (the write triad never touches the overlay or canon).
@@ -2114,7 +2186,10 @@ mod tests {
     fn json_rpc_protocol_conformance_round_trip() {
         let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
         let _env = EnvRestore::capture(&["GMEOW_LANG", "GMEOW_MEMORY_PATH", "HOME", "USERPROFILE"]);
-        env::remove_var("GMEOW_LANG");
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
         let (_mem_dir, memory_path) = temp_memory();
         let bytes = snapshot();
         let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
@@ -2155,10 +2230,12 @@ mod tests {
 
         // resources/list
         let resources = rpc(r#"{"jsonrpc":"2.0","id":3,"method":"resources/list","params":{}}"#);
-        assert!(resources["result"]["resources"]
-            .as_array()
-            .map(|r| !r.is_empty())
-            .unwrap_or(false));
+        assert!(
+            resources["result"]["resources"]
+                .as_array()
+                .map(|r| !r.is_empty())
+                .unwrap_or(false)
+        );
 
         // tools/call — a read tool (query_docs ASK) succeeds.
         let read = rpc(
