@@ -1895,6 +1895,7 @@ dependencies = [
  "pyo3",
  "serde",
  "serde_json",
+ "static_assertions",
 ]
 
 [[package]]
