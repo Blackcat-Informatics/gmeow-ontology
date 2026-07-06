@@ -559,7 +559,7 @@ fn claim_from(law: CorrespondenceLaw, outcome: &DischargeOutcome) -> LawClaimIr 
 
 /// The public entry: discharge every law the `rung` permits by EXECUTION and return the
 /// resulting [`LawClaimIr`]s. Seeds are derived branch-covering from `get_rq`; both legs run;
-/// each permitted law becomes one claim. The caller (a later task) attaches these to the
+/// each permitted law becomes one claim. The caller attaches these to the
 /// `Correspondence` and mints the RDF — this service produces only the typed claims.
 pub fn discharge_laws(get_rq: &str, put_rq: &str, rung: MorphismClass) -> Vec<LawClaimIr> {
     let seeds = derive_seeds(get_rq);
