@@ -179,9 +179,8 @@ kinds the prior vocabulary could not name:
 
 - `gmeow:attestationTypeCrossCheckAgreement` — a native↔oracle agreement matrix
   (matched entailments, divergences, per-reasoner timing), distinct from a generic
-  quality report in that it certifies *inter-engine agreement*. Two artifacts use it:
-  the classic ROBOT/HermiT/Jena/ELK cross-check SARIF and the native gap-zero DL-EL
-  ledger.
+  quality report in that it certifies *inter-engine agreement*. It backs the native
+  gap-zero DL-EL divergence ledger — the in-process purrdf-entail cross-check.
 - `gmeow:attestationTypeConformanceVerdict` — the public conformance-suite verdicts,
   rolled up by `make conformance-report` (a Rust `gmeow-conformance` binary that runs
   every case through the native cores and emits one deterministic canonical-JSON

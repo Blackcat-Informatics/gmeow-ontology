@@ -51,7 +51,6 @@ This bibliography is generated from `metadata/references.ttl`.
 | lexvo.org/ontology | [link](http://lexvo.org/ontology#) | 1 |
 | linkedevents.org/ontology | [link](http://linkedevents.org/ontology/) | 1 |
 | linkedgeodata.org/ontology | [link](http://linkedgeodata.org/ontology/) | 1 |
-| liveontologies.github.io/elk-reasoner | [link](http://liveontologies.github.io/elk-reasoner/) | 1 |
 | loinc.org/rdf | [link](http://loinc.org/rdf#) | 1 |
 | loinc.org/rdf | [link](http://loinc.org/rdf/) | 1 |
 | marineregions.org/ns/ontology | [link](http://marineregions.org/ns/ontology) | 1 |

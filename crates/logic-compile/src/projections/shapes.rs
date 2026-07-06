@@ -461,6 +461,12 @@ fn shex_value_expr(p: &PropertyConstraintIr) -> String {
     };
     if facets.is_empty() {
         base
+    } else if base == "." {
+        // No datatype or node-kind base: the facets themselves ARE the node
+        // constraint (ShExC `xsFacet+`, e.g. a bare `/…/` pattern or a MINLENGTH).
+        // A leading `.` (the any-node shapeAtom) would be a second, illegal
+        // shapeAtom juxtaposed with the facet and the document would not parse.
+        facets.join(" ")
     } else {
         format!("{base} {}", facets.join(" "))
     }
@@ -1031,5 +1037,30 @@ mod shex_tests {
     fn empty_program_yields_empty_shex_document() {
         let prog = LogicProgram::new(vec![], vec![], vec![], None);
         assert_eq!(project_validation_shapes_shex(&prog), "");
+    }
+
+    #[test]
+    fn facet_only_shex_omits_the_any_node_shapeatom() {
+        // A property whose only ShEx-expressible constraint is a facet (here a
+        // pattern) has no datatype/node-kind base. The facets alone ARE the ShExC
+        // node constraint (`xsFacet+`); a leading `.` (the any-node shapeAtom)
+        // would be a second, juxtaposed shapeAtom and the document would not parse.
+        let s = shape(
+            "https://ex/S",
+            "https://ex/C",
+            vec![prop(
+                "https://ex/path",
+                vec![ConstraintComponent::Pattern {
+                    regex: ".*".into(),
+                    flags: None,
+                }],
+            )],
+        );
+        let shex = project_validation_shape_shex(&s);
+        assert!(
+            !shex.contains(". /"),
+            "a facet-only constraint must not be prefixed with the `.` any shapeAtom: {shex}"
+        );
+        assert!(shex.contains("/.*/"), "{shex}");
     }
 }

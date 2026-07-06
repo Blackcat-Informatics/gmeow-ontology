@@ -24,6 +24,15 @@ pub mod dag_profile;
 pub(crate) mod dense;
 pub mod derivation_graph;
 pub mod dispatch;
+/// The native EL/DL ↔ entail-oracle divergence cross-check: drives gmeow's own
+/// reasoner against [`entail_oracle`] and folds the comparison into the structured
+/// [`reason::ledger::DivergenceLedger`]. Docker-free and on-gate; lives OUTSIDE
+/// `reason` so it is not folded into `reason::native_contract_hash`.
+pub mod entail_crosscheck;
+/// Native OWL-RL/OWL-Direct reasoning oracle over purrdf-entail — an independent
+/// cross-check engine, deliberately OUTSIDE `reason` so it is not folded into
+/// `reason::native_contract_hash` (it is not part of gmeow's own reasoning contract).
+pub mod entail_oracle;
 pub mod entrenchment;
 pub mod explain;
 // The typed-fact bridge: dictionary-interned facts (TermInterner / TypedFactSet)
