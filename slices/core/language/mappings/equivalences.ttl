@@ -1,4 +1,5 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix lang: <https://blackcatinformatics.ca/lang/> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
@@ -16,3 +17,97 @@ gmeow:eqWikidata050 a gmeow:TermEquivalence ;
     gmeow:objectLabel "Wikimedia language code" ;
     gmeow:comment "Wikidata P424 is the Wikimedia language code; GMEOW languageCode uses BCP-47. Related but not identical." ;
     gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+# --------------------------------------------------------------------------- #
+# lang: graft supersession cells                                              #
+# The language slice is grafted onto the lang: grounding layer (Principle 19).#
+# The old core terms superseded by lang: carriers are recorded here as        #
+# old-term -> lang:-term correspondences, mirroring the gmeow: -> logic:       #
+# grounding-alignment convention (extensions/procedures). The rung is prose   #
+# in gmeow:comment: the gmeow:TermEquivalence SSSOM row carries only the skos  #
+# predicate grain, not a typed preservation rung.                             #
+# --------------------------------------------------------------------------- #
+
+gmeow:eqLangGraft001 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Language ;
+    gmeow:alignPredicate skos:broadMatch ;
+    gmeow:alignObject lang:SignSystem ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:objectLabel "Sign System" ;
+    gmeow:comment "DEEPEN / EMBEDDING (isomorphism rung): gmeow:Language is grafted as a specialization of lang:SignSystem (rdfs:subClassOf lang:SignSystem in module.ttl), embedding the language kind into the sign-system reference layer with no loss — a language IS a sign system, distinguished by lang:SignSystemKind rather than a local class ladder. broadMatch: lang:SignSystem is the broader grounding class." ;
+    gmeow:sssomFile "gmeow-language.sssom.tsv" .
+
+gmeow:eqLangGraft002 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:FormalLanguage ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject lang:formalLanguageKind ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "formal language" ;
+    gmeow:comment "SECTION-RETRACTION: the removed gmeow:FormalLanguage class is recovered as the lang:SignSystemKind individual lang:formalLanguageKind — the natural/formal/programming distinction moves from a subclass ladder to kind individuals, and a sign system points at this kind through lang:signSystemKind. relatedMatch, not equivalent: a class is retracted onto a kind INDIVIDUAL, a cross-category move." ;
+    gmeow:lossyDrop "the OWL subclass edge gmeow:FormalLanguage rdfs:subClassOf gmeow:Language is not carried by the kind individual; formal-language membership is recovered by lang:signSystemKind pointing at lang:formalLanguageKind, not by class subsumption" ;
+    gmeow:sssomFile "gmeow-language.sssom.tsv" .
+
+gmeow:eqLangGraft003 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:ProgrammingLanguage ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject lang:programmingLanguageKind ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "programming language" ;
+    gmeow:comment "SECTION-RETRACTION: the removed gmeow:ProgrammingLanguage class is recovered as the lang:SignSystemKind individual lang:programmingLanguageKind, which REFINES lang:formalLanguageKind through skos:broader so the ProgrammingLanguage subClassOf FormalLanguage subsumption survives as a kind-individual broader edge. relatedMatch, not equivalent: class retracted onto a kind individual." ;
+    gmeow:lossyDrop "the OWL subclass edge gmeow:ProgrammingLanguage rdfs:subClassOf gmeow:FormalLanguage is carried as skos:broader lang:formalLanguageKind on the kind individual, not as class subsumption" ;
+    gmeow:sssomFile "gmeow-language.sssom.tsv" .
+
+gmeow:eqLangGraft004 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:WritingSystem ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject lang:Script ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:objectLabel "Script" ;
+    gmeow:comment "LENS (leg 1 of 2): the removed gmeow:WritingSystem splits into lang:Script (the character repertoire) and lang:Orthography (the sign-system-to-script convention). This leg maps the repertoire facet — a WritingSystem's script identity — onto lang:Script. relatedMatch: a lossy split, one term projected onto the first of two grounding terms." ;
+    gmeow:lossyDrop "the sign-system-to-script binding facet of gmeow:WritingSystem is not carried by lang:Script alone; it is recovered by lang:Orthography (cell eqLangGraft005)" ;
+    gmeow:sssomFile "gmeow-language.sssom.tsv" .
+
+gmeow:eqLangGraft005 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:WritingSystem ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject lang:Orthography ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:objectLabel "Orthography" ;
+    gmeow:comment "LENS (leg 2 of 2): the removed gmeow:WritingSystem splits into lang:Script and lang:Orthography. This leg maps the writing-convention facet — how a sign system is bound to a script — onto lang:Orthography. relatedMatch: a lossy split, one term projected onto the second of two grounding terms." ;
+    gmeow:lossyDrop "the bare character-repertoire facet of gmeow:WritingSystem is not carried by lang:Orthography alone; it is recovered by lang:Script (cell eqLangGraft004)" ;
+    gmeow:sssomFile "gmeow-language.sssom.tsv" .
+
+gmeow:eqLangGraft006 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:langEnglish ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject lang:english ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "English" ;
+    gmeow:comment "ISOMORPHISM (identity unification): the removed seed individual gmeow:langEnglish is unified with the lang: sign system lang:english — the same English language under one identity. The x-gmeow-english private-use tag now rides lang:carrierTag on the carrier variety lang:gmeowEnglish, and the lexvo/Wikidata alignments move onto lang:english." ;
+    gmeow:sssomFile "gmeow-language.sssom.tsv" .
+
+gmeow:eqLangGraft007 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:langFrench ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject lang:french ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "French" ;
+    gmeow:comment "ISOMORPHISM (identity unification): the removed seed individual gmeow:langFrench is unified with the lang: sign system lang:french. The x-gmeow-french private-use tag now rides lang:carrierTag on the carrier variety lang:gmeowFrench, and the lexvo/Wikidata alignments move onto lang:french." ;
+    gmeow:sssomFile "gmeow-language.sssom.tsv" .
+
+gmeow:eqLangGraft008 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:langMandarin ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject lang:mandarin ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "Mandarin Chinese" ;
+    gmeow:comment "ISOMORPHISM (identity unification): the removed seed individual gmeow:langMandarin is unified with the lang: sign system lang:mandarin. The x-gmeow-mandarin private-use tag now rides lang:carrierTag on the carrier variety lang:gmeowMandarin, and the lexvo/Wikidata alignments move onto lang:mandarin." ;
+    gmeow:sssomFile "gmeow-language.sssom.tsv" .
