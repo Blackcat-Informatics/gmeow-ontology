@@ -14,7 +14,7 @@ dependencies = [
     # compat.rdflib shim, SliceCatalog, SHACL validate) is provided by the
     # external `purrdf` package (not the `gmeow_native` cdylib).
     # `rdflib` still arrives transitively via `linkml` (tracked separately).
-    "purrdf>=0.3,<0.4",
+    "purrdf>=0.2,<0.3",
     "httpx>=0.28",
     "typer>=0.15",
     "rich>=13.9",
