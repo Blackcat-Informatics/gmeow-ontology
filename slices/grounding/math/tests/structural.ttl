@@ -388,3 +388,35 @@ ASK {
     FILTER(?p IN (math:residualMeaning, math:latentDimensionMeaning, math:componentMeaning, math:meaning))
 }""" ;
     gmeow:saRationale "The slice MUST NOT mint a direct residual/latent/component 'meaning' property — whether minted as a datatype, object, or plain RDF property: semantic meaning read off geometry is a vantage-held math:ResidualInterpretationClaim (a gmeow:Observation), never an intrinsic property of the vector, so the property-form of meaning is unauthorable by construction." .
+
+# --- The expression-rendering seam grafts onto lang:Rendering (MUST) -------- #
+ex:saExpressionRenderingGraftsLang a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX lang: <https://blackcatinformatics.ca/lang/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    math:ExpressionRendering a owl:Class ;
+        rdfs:subClassOf lang:Rendering .
+    math:rendersAs a owl:ObjectProperty .
+}""" ;
+    gmeow:saRationale "The math slice MUST re-base its rendering seam onto the general lang:Rendering theory rather than forking it: math:ExpressionRendering MUST be an owl:Class that subclasses lang:Rendering, and the convenience shortcut math:rendersAs MUST exist as an owl:ObjectProperty, so a rendered mathematical expression reads its content, convention, and preservation off the shared lang: rendering facets." .
+
+# --- A well-formed ExpressionRendering carries content, convention, preservation (MUST) --- #
+ex:saExpressionRenderingFacets a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModuleAndExamples ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX lang: <https://blackcatinformatics.ca/lang/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK {
+    ?r a math:ExpressionRendering ;
+        lang:renderedContent ?content ;
+        lang:renderingKind lang:renderingNotation ;
+        lang:renderingConvention ?convention ;
+        lang:renderingPreservation logic:ExactPreservation .
+    ?content a math:ApplicationExpression .
+}""" ;
+    gmeow:saRationale "An authored math:ExpressionRendering MUST name the mathematical expression it renders through lang:renderedContent, fix its kind to lang:renderingNotation, name the notation convention through lang:renderingConvention, and carry a logic:PreservationKind judgment through lang:renderingPreservation — the exact inputs a MathML or LaTeX projection target reads off the record — so the rendering seam is a fully specified crossing rather than a bare display string." .
