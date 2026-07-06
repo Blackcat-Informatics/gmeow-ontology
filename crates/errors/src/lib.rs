@@ -27,6 +27,7 @@ macro_rules! assert_diag_snapshot {
 }
 
 pub mod code;
+pub mod dag;
 pub mod diag;
 pub mod grade;
 pub mod model;
@@ -40,6 +41,7 @@ pub type Result<T, E = diag::Diag> = std::result::Result<T, E>;
 pub mod py;
 
 pub use code::{Code, CodeRegistry, UnknownCode, intern_code, register_code, seed_codes};
+pub use dag::{DagError, DagNode, walk};
 pub use diag::{
     Advice, Diag, DiagInner, DiagKind, DiagRef, DiagSink, Focus, Label, PipelineLocus, ResultExt,
     ResultIterExt, Slot, SourceContext, StageId, TermRole,
