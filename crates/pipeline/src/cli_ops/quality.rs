@@ -3,7 +3,7 @@
 
 //! Quality and FAIR scoring via the OOPS! and FOOPS! web services.
 //!
-//! The Rust port of `gmeow_tools.quality`. Both are NETWORK calls (blocking HTTP
+//! Both are NETWORK calls (blocking HTTP
 //! over the already-vendored `ureq`), so callers gate them (they are never on a
 //! build gate). OOPS! accepts inline ontology content (works pre-publication);
 //! FOOPS! assesses a dereferenceable ontology URL (meaningful only once published).
