@@ -68,6 +68,26 @@ gmeow:eqLangEnglishIso639 a gmeow:TermEquivalence ;
     gmeow:comment "lexvo:iso639-3/eng is the Lexvo resource for the ISO 639-3 code eng (ISO 639-1 en) — the ISO 639 language-code identity for English. A code-scoped identifier, a related resource rather than identity, so skos:relatedMatch." ;
     gmeow:sssomFile "gmeow-lexvo.sssom.tsv" .
 
+gmeow:eqLangScriptWikidata a gmeow:TermEquivalence ;
+    gmeow:alignSubject lang:Script ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q8192 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "writing system" ;
+    gmeow:comment "lang:Script is a first-class character repertoire (a script); wd:Q8192 (writing system) is Wikidata's class for a system of visual signs for writing. GMEOW distinguishes the bare repertoire (lang:Script) from the orthographic convention (lang:Orthography), so the match to the broader Wikidata class is close, not exact." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqLangOrthographyWikidata a gmeow:TermEquivalence ;
+    gmeow:alignSubject lang:Orthography ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q43091 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "orthography" ;
+    gmeow:comment "lang:Orthography is the sign-system→script writing convention (which script a sign system is written in, through lang:orthographyFor + lang:usesScript); wd:Q43091 (orthography) is Wikidata's class for the conventions of writing a language. A close match to the convention concept, distinct from the bare repertoire lang:Script." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
 gmeow:eqLangEnglishBcp47 a gmeow:TermEquivalence ;
     gmeow:alignSubject lang:english ;
     gmeow:alignPredicate skos:relatedMatch ;
