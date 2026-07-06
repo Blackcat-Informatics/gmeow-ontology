@@ -7,7 +7,7 @@ expression: summary
   "version": "7",
   "slice_count": 80,
   "term_count": 2459,
-  "dependency_edge_count": 973,
+  "dependency_edge_count": 980,
   "term_count_by_category": {
     "Class": 738,
     "Datatype": 1,
@@ -295,7 +295,7 @@ expression: summary
   ],
   "mapping_set_count": 80,
   "linkage_count": 1984,
-  "example_count": 137,
+  "example_count": 138,
   "concern_count": 7,
   "external_term_count": 1715,
   "sample_mapping_set": {
