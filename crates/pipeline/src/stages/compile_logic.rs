@@ -376,7 +376,13 @@ impl Stage for CompileLogicStage {
             let (authored_gated, _authored_outcomes) = authored_program
                 .with_derived_puts()
                 .map_err(|e| stage_err(format!("derive authored correspondence put legs: {e}")))?;
-            let authored_report = evaluate_gates(&authored_gated, &[]);
+            // Discharge the authored correspondences' lens laws by EXECUTION and gate on the
+            // resulting per-correspondence verdicts (mirroring the affine lane above) — the
+            // law gate now reads real discharge verdicts, so a claimed Section-Retraction whose
+            // get leg cannot invert reds the build here rather than passing unverified.
+            let authored_verdicts =
+                gmeow_logic::correspondence_exec::program_verdicts(&authored_gated);
+            let authored_report = evaluate_gates(&authored_gated, &[], &authored_verdicts);
             assert_gates(&authored_report)
                 .map_err(|e| stage_err(format!("authored correspondence gate: {e}")))?;
         }
