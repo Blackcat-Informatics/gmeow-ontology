@@ -92,10 +92,10 @@ pub fn reporter_for(mode: ConsoleMode) -> Box<dyn Reporter> {
 pub struct SilentReporter;
 
 impl Reporter for SilentReporter {
-    fn report(&self, _report: &gmeow_diagnostics::Report) {}
+    fn report(&self, _report: &gmeow_errors::Report) {}
     fn stage_start(&self, _stage: &str) {}
     fn stage_end(&self, _stage: &str, _elapsed: std::time::Duration) {}
-    fn summary(&self, _report: &gmeow_diagnostics::Report) {}
+    fn summary(&self, _report: &gmeow_errors::Report) {}
 }
 
 /// Reject a non-positive `--jobs` before it reaches the native `usize` boundary

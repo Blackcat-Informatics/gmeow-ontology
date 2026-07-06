@@ -8,7 +8,7 @@
 //! `gmeow:graph/documentation` named graph, so the documentation surface is
 //! itself SPARQL-queryable RDF folded into the offline `gmeow.gts` bundle beside
 //! the ontology it describes (Principle 4). This mirrors the discipline of
-//! `gmeow-diagnostics`'s `to_gmeow_rdf`: N-Quads (no TriG/prefix handling),
+//! `gmeow-errors`'s `to_gmeow_rdf`: N-Quads (no TriG/prefix handling),
 //! `nq_escape`d literals, IRIs (never blank nodes) so the graph round-trips
 //! through GTS fold without bnode relabeling, sorted iteration over the
 //! already-sorted model collections, and a trailing newline.
@@ -340,7 +340,7 @@ fn set_slug(iri: &str) -> String {
 }
 
 /// Escape a string literal for N-Triples/N-Quads (mirrors
-/// `gmeow_diagnostics::render::nq_escape`).
+/// `gmeow_errors::render::nq_escape`).
 fn nq_escape(value: &str) -> String {
     let mut out = String::with_capacity(value.len() + 2);
     for ch in value.chars() {

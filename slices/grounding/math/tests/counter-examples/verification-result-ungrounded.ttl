@@ -1,0 +1,14 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:FormalVerificationResultShape: a formal-verification result
+# object with NO grounding observation — the QED verdict stated as unconditional truth
+# rather than a verdict held from the checker's vantage (math:ResultRoleConflation avoided
+# by keeping it a result object, but it must still be grounded BY an observation). It fails
+# the sh:sparql grounding constraint, so validation MUST emit
+# shacl.SPARQLConstraintComponent (math:UngroundedVerificationResult).
+# Bound by ex:ecVerificationResultUngrounded.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:qed a math:FormalVerificationResult .

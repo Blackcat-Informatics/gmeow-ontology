@@ -20,7 +20,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use gmeow_diagnostics::{Finding, Report, Severity};
+use gmeow_errors::{Finding, Report, Severity};
 use toml::Value;
 
 /// The generic RDF 1.2 kernel. Slice/domain/adapter semantics layer above it.
@@ -438,7 +438,7 @@ mod tests {
             &[(KERNEL_CRATE, KERNEL_CRATE)],
             &[],
         );
-        write_crate(&crates, "gmeow-diagnostics", &[], &[]);
+        write_crate(&crates, "gmeow-errors", &[], &[]);
         let kernel_dir = crates.join(KERNEL_CRATE);
         fs::create_dir_all(&kernel_dir).unwrap();
         fs::write(
@@ -446,13 +446,13 @@ mod tests {
             format!(
                 "[package]\nname = \"{KERNEL_CRATE}\"\nversion = \"0.1.0\"\n\n\
                  [dependencies]\n{RDF_EVENTS_CRATE} = {{ path = \"../{RDF_EVENTS_CRATE}\" }}\n\
-                 aliased = {{ path = \"../gmeow-diagnostics\", package = \"gmeow-diagnostics\" }}\n"
+                 aliased = {{ path = \"../gmeow-errors\", package = \"gmeow-errors\" }}\n"
             ),
         )
         .unwrap();
         let report = check_crate_layering(&crates);
         // A `package = "..."`-aliased path dependency is recognized as first-party
-        // by its resolved package name (`gmeow-diagnostics`), so it becomes a real
+        // by its resolved package name (`gmeow-errors`), so it becomes a real
         // graph edge. No RDF-core-purity rule constrains it (that layering is the
         // sibling `purrdf` package's concern), so this edge does not trip a gate.
         assert!(report.ok(), "{:?}", report.errors);
@@ -460,7 +460,7 @@ mod tests {
             report.edges.get(KERNEL_CRATE),
             Some(&BTreeSet::from([
                 RDF_EVENTS_CRATE.to_owned(),
-                "gmeow-diagnostics".to_owned(),
+                "gmeow-errors".to_owned(),
             ]))
         );
     }
