@@ -156,7 +156,17 @@ pub struct LedgerEntry {
 
 /// Run every projection back-end over `program` and build the report — the full
 /// compile surface.  Returns `Err` on a Nemo safety violation or an overclaim.
-pub fn compile_program(program: &LogicProgram) -> Result<CompiledArtifacts, String> {
+///
+/// `verdicts` is the per-correspondence EXECUTED lens-law verdict map the five correspondence
+/// gates read (keyed by correspondence IRI). A correspondence-free program supplies an empty
+/// map (the gates never run); a program that authors `logic:Correspondence` cells MUST supply
+/// a verdict for every one (an engine-adjacent caller computes them via
+/// `gmeow_logic::correspondence_exec::program_verdicts` over the derived program) — a present
+/// correspondence with no verdict HARD-fails in the gates, never a silent pass.
+pub fn compile_program(
+    program: &LogicProgram,
+    verdicts: &correspondence_gates::CorrespondenceVerdicts,
+) -> Result<CompiledArtifacts, String> {
     let owl_dl = rdf::project_owl_dl(program).map_err(|e| e.to_string())?;
     let owl_el = rdf::project_owl_el(program).map_err(|e| e.to_string())?;
     let datalog = text::project_datalog(program);
@@ -291,7 +301,7 @@ pub fn compile_program(program: &LogicProgram) -> Result<CompiledArtifacts, Stri
             )
             .with_leg_programs(program.transaction_programs.clone());
             let (derived, outcomes) = assembled.with_derived_puts()?;
-            let report = correspondence_gates::evaluate_gates(&derived, &[]);
+            let report = correspondence_gates::evaluate_gates(&derived, &[], verdicts);
             (Some(report), outcomes, Some(derived))
         };
 

@@ -582,8 +582,17 @@ impl AcceptanceContext {
         let inverse_tag_map = invert_tag_map(&tag_map);
         let sssom_texts = sssom_texts(root)?;
         let projection_ttls = projection_ttls(root)?;
-        let put_program =
-            put_executor::PutLegProgram::derive(&sssom_texts, &projection_ttls, &ontology_nt)?;
+        // The A→B authorization channel: the mnemomorphic `=` cells whose executed lens law
+        // discharged (Deliverable A). Recomputed from `root` through the SAME mappings-stage
+        // discharge so the acceptance harness and the shipped bundle agree by construction.
+        let discharged_section_cells =
+            crate::stages::mappings::discharged_section_cells_from_root(root)?;
+        let put_program = put_executor::PutLegProgram::derive(
+            &sssom_texts,
+            &projection_ttls,
+            &ontology_nt,
+            &discharged_section_cells,
+        )?;
         Ok(Self {
             ontology_nt,
             tag_map,

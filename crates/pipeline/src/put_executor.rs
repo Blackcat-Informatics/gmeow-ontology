@@ -166,8 +166,10 @@ impl PutLegProgram {
         sssom_texts: &[String],
         projection_ttls: &[String],
         ontology_nt: &str,
+        discharged_section_cells: &BTreeSet<String>,
     ) -> gmeow_errors::Result<Self> {
-        let program = gate_verified_lift_program(sssom_texts, projection_ttls)?;
+        let program =
+            gate_verified_lift_program(sssom_texts, projection_ttls, discharged_section_cells)?;
         let lawful = lawful_rules_from_program(&program, ontology_nt)?;
         let value_rule_dropped =
             crate::up_projection_corpus::value_mapped_pairs(projection_ttls)?.len();
@@ -187,8 +189,14 @@ pub fn execute_put_legs(
     sssom_texts: &[String],
     projection_ttls: &[String],
     ontology_nt: &str,
+    discharged_section_cells: &BTreeSet<String>,
 ) -> gmeow_errors::Result<LiftedReport> {
-    let program = PutLegProgram::derive(sssom_texts, projection_ttls, ontology_nt)?;
+    let program = PutLegProgram::derive(
+        sssom_texts,
+        projection_ttls,
+        ontology_nt,
+        discharged_section_cells,
+    )?;
     execute_put_legs_with(source_nt, &program)
 }
 
@@ -424,7 +432,7 @@ fn step_path(ext: &str) -> String {
 
 /// Run one `CONSTRUCT` over the source dataset and return its default-graph quads.
 /// Any engine failure or a non-graph result is a HARD error.
-fn run_construct(
+pub(crate) fn run_construct(
     engine: &NativeSparqlEngine,
     dataset: &std::sync::Arc<purrdf::RdfDataset>,
     query: &str,
@@ -600,8 +608,8 @@ mod tests {
             "gmeow:knows\tskos:exactMatch\tfoaf:knows\n",
         );
         let source_nt = "<http://a/1> <http://xmlns.com/foaf/0.1/knows> <http://a/2> .\n";
-        let report =
-            execute_put_legs(source_nt, &[sssom.to_owned()], &[], "").expect("execute put legs");
+        let report = execute_put_legs(source_nt, &[sssom.to_owned()], &[], "", &BTreeSet::new())
+            .expect("execute put legs");
         assert!(
             report
                 .graph_nt
@@ -624,8 +632,8 @@ mod tests {
             "gmeow:acquaintanceOf\tskos:closeMatch\tfoaf:knows\t0.8\n",
         );
         let source_nt = "<http://a/1> <http://xmlns.com/foaf/0.1/knows> <http://a/2> .\n";
-        let report =
-            execute_put_legs(source_nt, &[sssom.to_owned()], &[], "").expect("execute put legs");
+        let report = execute_put_legs(source_nt, &[sssom.to_owned()], &[], "", &BTreeSet::new())
+            .expect("execute put legs");
         assert!(report.claimed >= 1, "at least one claim cell: {report:?}");
         assert!(
             report
@@ -672,8 +680,8 @@ mod tests {
             "<http://a/1> <http://xmlns.com/foaf/0.1/knows> <http://a/2> .\n",
             "<http://a/1> <http://xmlns.com/foaf/0.1/member> <http://a/3> .\n",
         );
-        let report =
-            execute_put_legs(source_nt, &[sssom.to_owned()], &[], "").expect("execute put legs");
+        let report = execute_put_legs(source_nt, &[sssom.to_owned()], &[], "", &BTreeSet::new())
+            .expect("execute put legs");
         assert_eq!(report.claimed, 2, "two distinct claim cells: {report:?}");
 
         // Parse the lifted graph and map each cell blank -> the set of qPredicate IRIs on it.
@@ -728,8 +736,8 @@ mod tests {
             "<http://a/1> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ",
             "<http://xmlns.com/foaf/0.1/Agent> .\n",
         );
-        let report =
-            execute_put_legs(source_nt, &[sssom.to_owned()], &[], "").expect("execute put legs");
+        let report = execute_put_legs(source_nt, &[sssom.to_owned()], &[], "", &BTreeSet::new())
+            .expect("execute put legs");
         assert!(
             report.claimed >= 1,
             "at least one type-object claim: {report:?}"
@@ -757,7 +765,8 @@ mod tests {
 
     #[test]
     fn empty_source_is_an_error() {
-        let err = execute_put_legs("", &[], &[], "").expect_err("empty source rejected");
+        let err = execute_put_legs("", &[], &[], "", &BTreeSet::new())
+            .expect_err("empty source rejected");
         assert!(err.to_string().contains("source graph is empty"), "{err}");
     }
 
@@ -826,8 +835,8 @@ mod tests {
         ];
 
         // Cross-check the shared producer directly: bad is gate-excluded, good survives.
-        let program =
-            gate_verified_lift_program(&[], &projection_ttls).expect("lift program builds");
+        let program = gate_verified_lift_program(&[], &projection_ttls, &BTreeSet::new())
+            .expect("lift program builds");
         assert!(
             program.rules.contains_key(good),
             "the proved (matching-inverse) term must survive the gate: {program:?}"
@@ -847,8 +856,8 @@ mod tests {
             "<http://a/1> <http://xmlns.com/foaf/0.1/bad> <http://a/3> .\n",
             "<http://a/2> <http://xmlns.com/foaf/0.1/bad> <http://a/4> .\n",
         );
-        let report =
-            execute_put_legs(source_nt, &[], &projection_ttls, "").expect("execute put legs");
+        let report = execute_put_legs(source_nt, &[], &projection_ttls, "", &BTreeSet::new())
+            .expect("execute put legs");
         assert!(
             report
                 .graph_nt

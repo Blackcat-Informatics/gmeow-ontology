@@ -28,7 +28,11 @@ use std::path::Path;
 
 use crate::mapping_purity::lint_dsl_mapping_purity;
 use gmeow_errors::{Finding, Location, Report, Severity};
+use gmeow_logic_compile::ir::{Correspondence, DischargeVerdict};
 use gmeow_logic_compile::projections::ProjectionResult;
+use gmeow_logic_compile::projections::correspondence::{
+    CorrespondenceProgram, project_correspondence,
+};
 use gmeow_logic_compile::projections::report::{ReportHeader, build_projection_report_from};
 use purrdf::RdfSeverity;
 use purrdf::slice::prefix_emit::{emit_core_prefixes, emit_jsonld_context};
@@ -99,6 +103,15 @@ pub struct CompiledMappings {
     /// `lang:translationGap`. Carried as a named graph by [`MappingsStage::run`], excluded
     /// from the reasoned EDB exactly like the other `lang:` corpus graphs.
     pub lang_docs_rendering_corpus: Vec<u8>,
+    /// The correspondence-laws N-Triples graph (`graph/correspondence-laws`): every authored
+    /// `logic:Correspondence` re-projected with the EXECUTED lens-law discharge verdicts
+    /// attached. Each per-`gmeow:ProjectionMapping` binding correspondence whose
+    /// binding emits a put leg has its OWN get/put CONSTRUCT round-trip run through the native
+    /// engine; the resulting `logic:LawClaim`s (SectionLaw / PutGet, `ObligationDischarged` on
+    /// a clean lens) are attached and projected here. A binding with no put leg (Unsupported,
+    /// e.g. `mapSiocTopic`) carries no discharged law. Carried as a named graph by
+    /// [`MappingsStage::run`], excluded from the reasoned EDB like the other corpus graphs.
+    pub correspondence_laws_corpus: Vec<u8>,
 }
 
 /// Compile all five mapping families (SSSOM + FnO + EDOAL + SPARQL + standpoint
@@ -188,6 +201,12 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, gmeow_errors::D
             message: format!("correspondence lowering failed: {e}"),
         })
     })?;
+    // Executed lens-law discharge: for every authored correspondence,
+    // run its OWN per-binding get/put CONSTRUCT round-trip through the native engine, attach
+    // the resulting `logic:LawClaim`s, and project the law-bearing set to a named graph. This
+    // reads `aligned` before its dialect maps are moved out below. HARD-fails on any refuted
+    // law (AC2) — an executed round-trip that does not hold is a real overclaim.
+    let correspondence_laws_corpus = discharge_correspondence_laws(&aligned)?;
     for (filename, tsv) in aligned.sssom {
         artifacts.insert(format!("{SSSOM_DIR}/{filename}"), tsv.into_bytes());
     }
@@ -309,6 +328,158 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, gmeow_errors::D
         lang_form_corpus,
         lang_projection_corpus,
         lang_docs_rendering_corpus,
+        correspondence_laws_corpus,
+    })
+}
+
+/// Discharge each authored correspondence's lens law by EXECUTION and project the
+/// law-bearing set to N-Triples.
+///
+/// For each `logic:Correspondence` minted from a `gmeow:ProjectionMapping` binding, join its
+/// `(cell IRI = get_leg, profile)` against the per-binding SPARQL fragments and — when the
+/// binding emits BOTH a get and a put CONSTRUCT — run
+/// [`crate::correspondence_law::discharge_laws`] over that ONE correspondence's OWN fragment
+/// pair (the per-profile UNION query is the wrong unit — it mixes recoverable and
+/// non-recoverable branches, so `put∘get` always drops). The returned `LawClaimIr`s are
+/// attached (merged with any authored ingest claims) via [`Correspondence::new`], which
+/// sorts + dedups them.
+///
+/// A correspondence whose binding emits NO put fragment (Unsupported — e.g. `mapSiocTopic`),
+/// or a `gmeow:TermEquivalence` cell (no profile), is left untouched: it carries no
+/// discharged section law, which is exactly the intended exclusion (AC3). A non-injective
+/// rung yields no claim (`discharge_laws` returns empty), so it too passes through.
+///
+/// AC2 hard-fail: after attaching, any `ObligationViolated` verdict is a REAL overclaim (the
+/// executed round-trip does not hold) and HARD-fails the stage — never shipped.
+fn discharge_correspondence_laws(
+    aligned: &correspondence_lower::CorrespondenceArtifacts,
+) -> gmeow_errors::Result<Vec<u8>> {
+    let stage_err = |message: String| {
+        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            stage: "stage-mappings".to_string(),
+            message,
+        })
+    };
+
+    let mut rebuilt: Vec<Correspondence> = Vec::new();
+    for corr in &aligned.correspondences.correspondences {
+        // Only a per-profile binding correspondence knows its profile (a TermEquivalence cell
+        // is absent from the map); its `get_leg` is the pattern-bearing cell IRI.
+        let fragment_pair = match (
+            aligned.correspondence_profiles.get(&corr.iri),
+            corr.get_leg.as_deref(),
+        ) {
+            (Some(profile), Some(cell_iri)) => aligned
+                .sparql_fragments
+                .get(&(cell_iri.to_owned(), profile.clone())),
+            _ => None,
+        };
+        // No fragment pair, or a get fragment with no put leg (Unsupported binding): leave
+        // the correspondence untouched — it claims no executed law (AC3).
+        let Some((get_rq, Some(put_rq))) = fragment_pair.map(|(g, p)| (g, p.as_ref())) else {
+            rebuilt.push(corr.clone());
+            continue;
+        };
+        let claims = crate::correspondence_law::discharge_laws(get_rq, put_rq, corr.morphism_class);
+        if claims.is_empty() {
+            // A non-injective rung permits no section/put-get law: nothing to attach.
+            rebuilt.push(corr.clone());
+            continue;
+        }
+        let mut merged = corr.law_claims.clone();
+        merged.extend(claims);
+        let law_bearing = Correspondence::new(
+            corr.iri.clone(),
+            corr.relation,
+            corr.morphism_class,
+            corr.morphism_kind,
+            corr.mnemomorphic,
+            corr.determinacy,
+            corr.get_leg.clone(),
+            corr.put_leg.clone(),
+            merged,
+            corr.confidence,
+            corr.evidence_strength,
+            corr.weight,
+            corr.probability,
+            corr.according_to.clone(),
+        )
+        .map_err(|e| stage_err(format!("law-bearing correspondence <{}>: {e}", corr.iri)))?;
+        rebuilt.push(law_bearing);
+    }
+
+    // AC2 hard-fail: an executed lens-law refutation is a real overclaim — never shipped.
+    for corr in &rebuilt {
+        for claim in &corr.law_claims {
+            if claim.verdict == DischargeVerdict::ObligationViolated {
+                return Err(stage_err(format!(
+                    "correspondence <{}> refuted lens law logic:{} (ObligationViolated): the \
+                     executed put∘get round-trip over its own get/put CONSTRUCT does not hold — \
+                     a real overclaim, not something to suppress",
+                    corr.iri,
+                    claim.law.as_str(),
+                )));
+            }
+        }
+    }
+
+    // Re-project the now-law-bearing correspondence set (reusing the existing
+    // `logic:hasLawClaim` emission). Deterministic: `project_correspondence` sorts + dedups.
+    let program = CorrespondenceProgram::new(
+        rebuilt,
+        aligned.correspondences.caveats.clone(),
+        aligned.correspondences.preservation,
+    )
+    .with_leg_programs(aligned.correspondences.leg_programs.clone());
+    Ok(project_correspondence(&program).into_bytes())
+}
+
+/// The A→B authorization set computed straight from `root`: the `gmeow:ProjectionMapping` cell
+/// IRIs whose EXECUTED lens-law discharge carried an `ObligationDischarged` `logic:SectionLaw`.
+///
+/// This drives the SAME [`discharge_correspondence_laws`] the mappings stage folds into
+/// `graph/correspondence-laws`, so the set the up-projection executor consumes agrees with the
+/// shipped bundle by construction (single source of truth). The consumer that reads the folded
+/// bundle graph ([`crate::projections::discharged_section_cells_from_bundle`]) yields the identical
+/// set; this root-recompute path is for the acceptance harness, which reads fresh `root` inputs.
+pub fn discharged_section_cells_from_root(
+    root: &Path,
+) -> gmeow_errors::Result<std::collections::BTreeSet<String>> {
+    let slices_dir = root.join("slices");
+    let catalog = if slices_dir.is_dir() {
+        Some(
+            purrdf::slice::SliceCatalog::discover(
+                &slices_dir,
+                crate::gmeow_ns::gmeow_slice_vocab(),
+            )
+            .map_err(|e| {
+                gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                    stage: "stage-mappings".to_string(),
+                    message: format!("slice catalog discovery: {e}"),
+                })
+            })?,
+        )
+    } else {
+        None
+    };
+    let aligned = correspondence_lower::lower_all(root, catalog.as_ref()).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            stage: "stage-mappings".to_string(),
+            message: format!("correspondence lowering failed: {e}"),
+        })
+    })?;
+    let corr_laws = discharge_correspondence_laws(&aligned)?;
+    let nt = String::from_utf8(corr_laws).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            stage: "stage-mappings".to_string(),
+            message: format!("correspondence-laws graph is not UTF-8: {e}"),
+        })
+    })?;
+    crate::up_projection_gates::discharged_section_cells_from_corpus(&nt).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            stage: "stage-mappings".to_string(),
+            message: format!("extract discharged section cells: {e}"),
+        })
     })
 }
 
@@ -770,6 +941,17 @@ impl Stage for MappingsStage {
             "application/n-triples",
             crate::stages::carrier::GRAPH_LANG_DOCS_RENDERING_CORPUS,
         )?;
+        // graph/correspondence-laws — every authored `logic:Correspondence` re-projected with
+        // its EXECUTED lens-law discharge verdicts. Carried as a named graph so
+        // the presenter reads it via `producer_graph`; like the other corpus graphs it stays
+        // OUT of the reasoned EDB (`gts_compose` folds only the default graph, so this named
+        // graph never pollutes the composed object-level EDB — the verdicts are
+        // presenter/provenance RDF, not reasoned facts).
+        let correspondence_laws_graph = crate::stages::carrier::parse_into_graph(
+            &compiled.correspondence_laws_corpus,
+            "application/n-triples",
+            crate::stages::carrier::GRAPH_CORRESPONDENCE_LAWS,
+        )?;
         let dataset = std::sync::Arc::new(purrdf::RdfDataset::union(&[
             rdf_dataset.as_ref(),
             ledger_graph.as_ref(),
@@ -778,6 +960,7 @@ impl Stage for MappingsStage {
             lang_form_graph.as_ref(),
             lang_projection_graph.as_ref(),
             lang_docs_rendering_graph.as_ref(),
+            correspondence_laws_graph.as_ref(),
         ]));
         Ok(StageOutput::new(StageProduct::from_artifacts_over(
             self.id(),
@@ -1273,5 +1456,115 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
                 "missing function {name}"
             );
         }
+    }
+
+    // ── AC2 (Deliverable A): the PRODUCTION mappings-stage discharge path
+    //    HARD-fails when a correspondence's put leg fabricates an unrecoverable source atom.
+    //
+    // This drives the REAL `discharge_correspondence_laws` over the REAL lowered
+    // `CorrespondenceArtifacts` (via `lower_all` over the repo) — not a hand-built mock. HEAD
+    // (the authored SIOC cells) must discharge GREEN; mutating one recoverable SIOC cell's put
+    // leg to re-assert an atom absent from the forward image (the `mapSiocTopic`-style
+    // fabrication guard) must make the executed `put∘get` round-trip refuse to recover the
+    // source → `ObligationViolated` → the stage returns `PipelineError::Stage`. ────────────
+    const SIOC_CONTAINER_CELL: &str = "https://blackcatinformatics.ca/gmeow/mapSiocContainer";
+
+    fn lower_repo() -> correspondence_lower::CorrespondenceArtifacts {
+        let root = repo_root();
+        let catalog = purrdf::slice::SliceCatalog::discover(
+            &root.join("slices"),
+            crate::gmeow_ns::gmeow_slice_vocab(),
+        )
+        .expect("slice catalog discovery");
+        correspondence_lower::lower_all(&root, Some(&catalog)).expect("lower_all over the repo")
+    }
+
+    #[test]
+    fn discharge_correspondence_laws_is_green_on_the_authored_cells() {
+        // HEAD control: the un-mutated authored correspondences discharge cleanly — the stage
+        // path returns Ok and yields a non-empty law-bearing N-Triples corpus.
+        let aligned = lower_repo();
+        let corpus = discharge_correspondence_laws(&aligned)
+            .expect("HEAD: authored correspondences discharge green");
+        assert!(
+            !corpus.is_empty(),
+            "the correspondence-laws corpus must carry the law-bearing projection"
+        );
+    }
+
+    #[test]
+    fn discharge_correspondence_laws_hard_fails_on_a_fabricating_put_leg() {
+        let mut aligned = lower_repo();
+
+        // Locate the recoverable SIOC container cell's (get, Some(put)) fragment pair. It is a
+        // mnemomorphic CompleteOver cell, so on HEAD it discharges the section law; we mutate
+        // ONLY its put leg.
+        let key = aligned
+            .sparql_fragments
+            .keys()
+            .find(|(cell, profile)| cell == SIOC_CONTAINER_CELL && profile == "sioc")
+            .cloned()
+            .expect("the mapSiocContainer/sioc fragment pair is present");
+        let (get_rq, put_rq) = aligned
+            .sparql_fragments
+            .get(&key)
+            .cloned()
+            .expect("fragment pair value");
+        assert!(
+            put_rq.is_some(),
+            "mapSiocContainer must ship a put leg on HEAD (it is CompleteOver)"
+        );
+
+        // Sanity: on HEAD this exact pair discharges green (proves the mutation — not a
+        // pre-existing defect — is what turns the verdict red).
+        let head_claims = crate::correspondence_law::discharge_laws(
+            &get_rq,
+            put_rq.as_ref().unwrap(),
+            gmeow_logic_compile::ir::MorphismClass::SectionRetraction,
+        );
+        assert!(
+            head_claims
+                .iter()
+                .all(|c| c.verdict == DischargeVerdict::ObligationDischarged),
+            "HEAD: mapSiocContainer must discharge every claimed law\n{head_claims:#?}"
+        );
+
+        // Fabricating put: recover the true source atom (`?s a gmeow:Thread`) AND fabricate an
+        // unrecoverable extra type atom (`?s a gmeow:FabricatedType`) whenever the forward
+        // sioc image is present. `put∘get` now yields a superset of the source on every seed —
+        // a REAL overclaim the executed round-trip surfaces as spurious.
+        let fabricating_put = "\
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX sioc: <http://rdfs.org/sioc/ns#>
+CONSTRUCT {
+  ?s a gmeow:Thread .
+  ?s a gmeow:FabricatedType .
+} WHERE {
+  ?s a sioc:Thread .
+  ?s a sioc:Container .
+}"
+        .to_owned();
+        aligned
+            .sparql_fragments
+            .insert(key, (get_rq, Some(fabricating_put)));
+
+        // The REAL stage entry must HARD-fail (never ship the overclaim).
+        let err = discharge_correspondence_laws(&aligned)
+            .expect_err("a fabricating put leg must hard-fail the mappings stage");
+        // The dissolved `PipelineError::Stage` is now the `StageFailed` DiagKind; its rendered
+        // message is `stage {stage} failed: {message}`, so assert on the rendered surface.
+        let rendered = err.to_string();
+        assert!(
+            rendered.contains("stage-mappings"),
+            "the hard-fail must name the mappings stage, got: {rendered}"
+        );
+        assert!(
+            rendered.contains("ObligationViolated"),
+            "the hard-fail must name the refuted lens law verdict, got: {rendered}"
+        );
+        assert!(
+            rendered.contains("SectionLaw"),
+            "the hard-fail must name the refuted lens law, got: {rendered}"
+        );
     }
 }

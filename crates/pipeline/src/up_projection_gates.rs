@@ -42,7 +42,9 @@
 //! The audit headline is `(proved + claimed) / total`, with the proved/claimed split disclosed
 //! — preserving the coverage story while distinguishing proved-invertible from claimed-liftable.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
+
+use purrdf::RdfTerm;
 
 use gmeow_logic_compile::ir::{
     Correspondence, CorrespondenceLaw, CorrespondenceRelation, Determinacy, DischargeVerdict,
@@ -54,9 +56,12 @@ use gmeow_logic_compile::projections::correspondence_gates::{
 };
 
 use crate::up_projection_corpus::{
-    AuditReport, canon_qname, combined_class, decimal_confidence, edoalpath_pairs, prefix,
-    run_audit_nt, sssom_best_buckets_pub, sssom_clean_pairs, sssom_closematch_pairs,
-    structural_best_classes_pub, structural_pairs,
+    AuditReport, GM_ANCHOR, GM_ATOM, GM_EDOAL_SOURCE, GM_HAS_BINDING, GM_HAS_MAPPING_PATTERN,
+    GM_MNEMOMORPHIC, GM_OBJECT_VAR, GM_PREDICATE, GM_PROJECTION_MAPPING, GM_RELATION,
+    GM_SUBJECT_VAR, GM_TO_CLASS, GM_TO_PREDICATE, Graph, RDF_TYPE, canon_qname, combined_class,
+    decimal_confidence, edoalpath_pairs, in_projection_ns, objects, prefix, rdf_list, run_audit_nt,
+    sssom_best_buckets_pub, sssom_clean_pairs, sssom_closematch_pairs, structural_best_classes_pub,
+    structural_pairs, subjects, value, value_lexical, value_named,
 };
 
 /// The `logic:` namespace the minted audit-correspondence and leg IRIs live under.
@@ -386,7 +391,8 @@ pub(crate) fn ledger_from_audit(
     let (gated, _outcomes) = program
         .with_derived_puts()
         .map_err(|message| gmeow_errors::Diag::of_kind(crate::error::UpProjection { message }))?;
-    let report = evaluate_gates(&gated, &[]);
+    let verdicts = gmeow_logic::correspondence_exec::program_verdicts(&gated);
+    let report = evaluate_gates(&gated, &[], &verdicts);
 
     // Attribute each gate verdict back to its vocabulary via the corr IRI → vocab map.
     let vocab_of: BTreeMap<&str, &str> = cells
@@ -513,9 +519,19 @@ struct CandidateLift {
 ///
 /// Corpus-independent: the tier depends only on the term's bucket and its EDOAL direct/inverse
 /// paths, so the program is derived ONCE and applied to every source file (no per-file recompute).
+///
+/// `discharged_section_cells` is the A→B authorization channel (issue Deliverable A → B): the set
+/// of `gmeow:ProjectionMapping` cell IRIs whose EXECUTED lens-law discharge (the mappings stage's
+/// [`crate::stages::mappings::discharge_correspondence_laws`], folded into
+/// `graph/correspondence-laws`) carried a `logic:SectionLaw` verdict of `ObligationDischarged`.
+/// A mnemomorphic `=` cell so authorized is promoted to a LAWFUL rename rule — it lifts as a FACT,
+/// not a lossy close-match claim — because the executed round-trip PROVED its `put ∘ get = id`. A
+/// mnemomorphic `=` cell that is NOT authorized is a HARD FAIL (no optional fallback): the discharge
+/// verdict is a required input, never silently missing.
 pub fn gate_verified_lift_program(
     sssom_texts: &[String],
     projection_ttls: &[String],
+    discharged_section_cells: &BTreeSet<String>,
 ) -> gmeow_errors::Result<LiftProgram> {
     // The buckets + EDOAL paths that define each term's gate tier (corpus-independent), keyed by
     // full target IRI — the SAME inputs the audit's `combined_class` / `unique_qname_map` read.
@@ -597,11 +613,261 @@ pub fn gate_verified_lift_program(
         rules.insert(term, rule);
     }
 
+    // A→B consumption: promote every mnemomorphic `=` cell whose EXECUTED SectionLaw was
+    // discharged (Deliverable A) to a LAWFUL rename FACT. This is what makes a real SIOC image
+    // bearing `sioc:has_container` / `sioc:reply_of` lift to `gmeow:partOfThread` /
+    // `gmeow:inReplyTo` (both `rdfs:domain gmeow:Message`) so the reasoned harvest recovers
+    // `gmeow:Message`. The promotion overrides any lossy close-match CLAIM the candidate resolution
+    // produced for the same term (a discharged section is strictly stronger than an asserted
+    // close-match). `mapSiocTopic` is `=` but NOT mnemomorphic (no discharged SectionLaw), so it is
+    // never promoted — the honest floor stays a reified claim.
+    for promo in discharged_renames(projection_ttls, discharged_section_cells)
+        .map_err(|message| gmeow_errors::Diag::of_kind(crate::error::UpProjection { message }))?
+    {
+        rules.insert(
+            promo.ext,
+            LiftRule {
+                gmeow: promo.gmeow,
+                orientation: promo.orientation,
+                kind: LiftKind::Fact,
+            },
+        );
+    }
+
     Ok(LiftProgram {
         rules,
         ambiguous_dropped,
         gate_excluded,
     })
+}
+
+/// A lawful rename promoted from a mnemomorphic `=` cell whose executed SectionLaw is discharged.
+struct DischargedRename {
+    /// The `gmeow:ProjectionMapping` cell IRI that authorized this rename — retained so a
+    /// same-`ext` collision between two DISTINCT discharged cells names both offenders.
+    cell: String,
+    /// The external-vocabulary term the source triple carries (a `toPredicate` / `toClass`).
+    ext: String,
+    /// The gmeow term it lifts to (the cell's `edoalSource`).
+    gmeow: String,
+    /// The rename orientation, derived from the cell's single source atom (subject-anchored =
+    /// direct; object-anchored = inverse). Every shipped mnemomorphic `=` cell is subject-anchored,
+    /// so this is `Direct` today, but the derivation is general so a future object-anchored cell
+    /// inverts correctly rather than silently mis-lifting.
+    orientation: Orientation,
+}
+
+/// Resolve the lawful renames the discharged-SectionLaw `=` cells authorize.
+///
+/// For every `gmeow:ProjectionMapping` binding in `projection_ttls` whose relation is `=` AND which
+/// is `gmeow:mnemomorphic true`, the cell MUST carry an `ObligationDischarged` `logic:SectionLaw`
+/// verdict (present in `discharged`) — otherwise this is a HARD FAIL: the executed discharge
+/// (Deliverable A) is a required authorization for the lawful lift (Deliverable B), never silently
+/// absent. An authorized cell resolves to a `(ext, gmeow, orientation)` rename: the external target
+/// is the binding's `toPredicate` / `toClass`, the gmeow term is the cell's `edoalSource`, and the
+/// orientation follows the single source atom's anchor position.
+fn discharged_renames(
+    projection_ttls: &[String],
+    discharged: &BTreeSet<String>,
+) -> Result<Vec<DischargedRename>, String> {
+    // Keyed by external target so two discharged cells cannot silently promote conflicting renames
+    // for the SAME `ext` (a later `rules.insert(ext, …)` would otherwise last-wins overwrite the
+    // earlier one — a nondeterministic, soundness-losing drop).
+    let mut out: BTreeMap<String, DischargedRename> = BTreeMap::new();
+    for ttl in projection_ttls {
+        // `Graph::parse` is on the Diag substrate; this fn keeps its internal errors String-typed
+        // (surfaced as a Diag at the single call site via `UpProjection`), so flatten at the edge.
+        let graph = Graph::parse(ttl.as_bytes(), "text/turtle").map_err(|e| e.to_string())?;
+        let q = &graph.quads;
+        for cell in subjects(q, RDF_TYPE, GM_PROJECTION_MAPPING) {
+            let RdfTerm::Iri(cell_iri) = &cell else {
+                continue;
+            };
+            let Some(pattern) = value(q, &cell, GM_HAS_MAPPING_PATTERN) else {
+                continue;
+            };
+            let Some(gmeow_src) = value_named(q, &pattern, GM_EDOAL_SOURCE) else {
+                continue;
+            };
+            for binding in objects(q, &cell, GM_HAS_BINDING) {
+                let rel = value_lexical(q, &binding, GM_RELATION).unwrap_or_default();
+                let mnemomorphic =
+                    value_lexical(q, &binding, GM_MNEMOMORPHIC).as_deref() == Some("true");
+                if rel != "=" || !mnemomorphic {
+                    continue;
+                }
+                // A→B authorization: a mnemomorphic `=` cell MUST have discharged its section law.
+                if !discharged.contains(cell_iri.as_str()) {
+                    return Err(format!(
+                        "up-projection lift program: mnemomorphic `=` cell <{cell_iri}> has no \
+                         discharged logic:SectionLaw verdict — the executed correspondence-law \
+                         discharge (Deliverable A) did not authorize its lawful lift; refusing to \
+                         build the lift program (no optional fallback)"
+                    ));
+                }
+                let Some((ext, orientation)) = resolve_rename(q, &pattern, &binding, &gmeow_src)?
+                else {
+                    continue;
+                };
+                if in_projection_ns(&ext) {
+                    let promo = DischargedRename {
+                        cell: cell_iri.to_string(),
+                        ext: ext.clone(),
+                        gmeow: gmeow_src.clone(),
+                        orientation,
+                    };
+                    // Collision guard (no optional fallback, no last-wins overwrite): a second
+                    // discharged rename for an `ext` already claimed is only tolerated when it is a
+                    // byte-identical no-op (same gmeow target AND orientation — the resulting rule is
+                    // unchanged). Any collision that WOULD change the resulting rule — a different
+                    // gmeow target or orientation, i.e. two discharged cells disagreeing on where the
+                    // same external term lifts — is a genuine ambiguity and a HARD FAIL naming both
+                    // cells, never a silent pick-last.
+                    if let Some(existing) = out.get(&ext) {
+                        if existing.gmeow != promo.gmeow
+                            || existing.orientation != promo.orientation
+                        {
+                            return Err(format!(
+                                "up-projection lift program: external term <{ext}> is claimed by TWO \
+                                 discharged mnemomorphic `=` cells with conflicting lawful renames — \
+                                 <{first_cell}> lifts it to <{first_gmeow}> ({first_orient:?}) but \
+                                 <{second_cell}> lifts it to <{second_gmeow}> ({second_orient:?}); \
+                                 the promoted rename is ambiguous. Refusing to silently overwrite one \
+                                 lawful rename with the other (no optional fallback, no last-wins).",
+                                first_cell = existing.cell,
+                                first_gmeow = existing.gmeow,
+                                first_orient = existing.orientation,
+                                second_cell = promo.cell,
+                                second_gmeow = promo.gmeow,
+                                second_orient = promo.orientation,
+                            ));
+                        }
+                        // Identical resulting rule: an idempotent no-op, keep the first.
+                        continue;
+                    }
+                    out.insert(ext, promo);
+                }
+            }
+        }
+    }
+    Ok(out.into_values().collect())
+}
+
+/// Resolve one discharged cell's `(external target, orientation)`. A `toClass` binding is a type
+/// retype — always subject-preserving (`Direct`). A `toPredicate` binding's orientation follows the
+/// single source atom whose predicate is the cell's `edoalSource`: subject-anchored ⇒ `Direct`,
+/// object-anchored ⇒ `Inverse`. A discharged cell whose orientation cannot be resolved is a HARD
+/// FAIL (an authorized rename we cannot orient is a real inconsistency, never a silent drop).
+fn resolve_rename(
+    q: &[purrdf::RdfQuad],
+    pattern: &RdfTerm,
+    binding: &RdfTerm,
+    gmeow_src: &str,
+) -> Result<Option<(String, Orientation)>, String> {
+    if let Some(cls) = value_named(q, binding, GM_TO_CLASS) {
+        return Ok(Some((cls, Orientation::Direct)));
+    }
+    let Some(pred) = value_named(q, binding, GM_TO_PREDICATE) else {
+        return Ok(None);
+    };
+    let Some(anchor) = value(q, pattern, GM_ANCHOR) else {
+        return Err(format!(
+            "discharged `=` cell binding for target <{pred}> has no mapping-pattern anchor"
+        ));
+    };
+    for atom in rdf_list(q, value(q, pattern, GM_ATOM).as_ref()) {
+        if value_named(q, &atom, GM_PREDICATE).as_deref() != Some(gmeow_src) {
+            continue;
+        }
+        if value(q, &atom, GM_SUBJECT_VAR).as_ref() == Some(&anchor) {
+            return Ok(Some((pred, Orientation::Direct)));
+        }
+        if value(q, &atom, GM_OBJECT_VAR).as_ref() == Some(&anchor) {
+            return Ok(Some((pred, Orientation::Inverse)));
+        }
+    }
+    Err(format!(
+        "discharged `=` cell binding for target <{pred}>: no source atom on <{gmeow_src}> anchors \
+         the rename — cannot orient the lawful lift"
+    ))
+}
+
+/// The set of `gmeow:ProjectionMapping` cell IRIs whose EXECUTED lens-law discharge carried a
+/// `logic:SectionLaw` verdict of `ObligationDischarged`, extracted from the `graph/correspondence-laws`
+/// projection (the mappings stage's [`crate::stages::mappings::discharge_correspondence_laws`]
+/// output) presented as `(subject, predicate, object)` value-string triples. A correspondence's
+/// `logic:getLeg` IS its cell IRI; a discharged section-law claim is a `logic:lawClaimed =
+/// logic:SectionLaw` node whose `logic:lawDischargeVerdict` is `logic:ObligationDischarged`. This is
+/// the single extractor both the production bundle consumer and the acceptance harness route
+/// through, so the A→B channel has one shape.
+pub fn discharged_section_cells_from_triples(
+    triples: &[(String, String, String)],
+) -> BTreeSet<String> {
+    let get_leg = format!("{LOGIC_NS}getLeg");
+    let has_law_claim = format!("{LOGIC_NS}hasLawClaim");
+    let law_claimed = format!("{LOGIC_NS}lawClaimed");
+    let discharge_verdict = format!("{LOGIC_NS}lawDischargeVerdict");
+    let section_law = format!("{LOGIC_NS}SectionLaw");
+    let obligation_discharged = format!("{LOGIC_NS}ObligationDischarged");
+
+    let objects_of = |subject: &str, predicate: &str| -> Vec<&str> {
+        triples
+            .iter()
+            .filter(|(s, p, _)| s == subject && p == predicate)
+            .map(|(_, _, o)| o.as_str())
+            .collect()
+    };
+    let is_discharged_section = |claim: &str| -> bool {
+        objects_of(claim, &law_claimed).contains(&section_law.as_str())
+            && objects_of(claim, &discharge_verdict).contains(&obligation_discharged.as_str())
+    };
+
+    let mut cells = BTreeSet::new();
+    for (corr, p, claim) in triples {
+        if p != &has_law_claim || !is_discharged_section(claim) {
+            continue;
+        }
+        for cell in objects_of(corr, &get_leg) {
+            cells.insert(cell.to_owned());
+        }
+    }
+    cells
+}
+
+/// The [`discharged_section_cells_from_triples`] extractor over a `graph/correspondence-laws`
+/// N-Triples projection (the acceptance-harness / root-recompute path). Every relevant term is an
+/// IRI, so the term value strings are compared directly.
+pub fn discharged_section_cells_from_corpus(
+    corr_laws_nt: &str,
+) -> Result<BTreeSet<String>, String> {
+    // `Graph::parse` is on the Diag substrate; this corpus-path fn stays String-typed (its one
+    // caller Display-wraps it into a `StageFailed` Diag), so flatten the Diag at the edge.
+    let graph = Graph::parse(corr_laws_nt.as_bytes(), "application/n-triples")
+        .map_err(|e| e.to_string())?;
+    let triples: Vec<(String, String, String)> = graph
+        .quads
+        .iter()
+        .map(|q| {
+            (
+                term_value(&q.subject),
+                q.predicate.clone(),
+                term_value(&q.object),
+            )
+        })
+        .collect();
+    Ok(discharged_section_cells_from_triples(&triples))
+}
+
+/// The bare value of an RDF term for graph-shape comparison: the IRI, blank-node label, or literal
+/// lexical form (no delimiters). The discharged-cell extraction only matches IRI-valued positions,
+/// so a literal/blank simply fails to match — never mis-attributed.
+fn term_value(term: &RdfTerm) -> String {
+    match term {
+        RdfTerm::Iri(iri) => iri.clone(),
+        RdfTerm::BlankNode(id) => id.clone(),
+        RdfTerm::Literal(lit) => lit.lexical_form.clone(),
+        RdfTerm::Triple(_) => String::new(),
+    }
 }
 
 /// The gate tier for a single term's correspondence shape, computed through the EXACT gate
@@ -662,7 +928,8 @@ fn gate_tier_for(term: &str, shape: &TermShape) -> gmeow_errors::Result<Tier> {
     let (gated, _outcomes) = program
         .with_derived_puts()
         .map_err(|message| gmeow_errors::Diag::of_kind(crate::error::UpProjection { message }))?;
-    let report = evaluate_gates(&gated, &[]);
+    let verdicts = gmeow_logic::correspondence_exec::program_verdicts(&gated);
+    let report = evaluate_gates(&gated, &[], &verdicts);
     let r = report.per_correspondence.first().ok_or_else(|| {
         gmeow_errors::Diag::of_kind(crate::error::UpProjection {
             message: format!("gate report empty for {term}"),

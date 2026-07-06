@@ -213,6 +213,12 @@ pub(crate) fn is_rdf_fanout_class(path: &str) -> bool {
         || path == "generated/logic/projection-report.ttl"
         || path == "generated/logic/gmeow.relational-core.nt"
         || path == "generated/logic/gmeow.correspondence.nt"
+        // The correspondence-laws projection: the on-disk fold of the bundle's
+        // `graph/correspondence-laws` named graph (every authored `logic:Correspondence`
+        // re-projected with its EXECUTED lens-law discharge verdicts). RDF travels as RDF,
+        // so the discharged `logic:SectionLaw` claims land in `generated/` too, not only in
+        // the bundle graph.
+        || path == "generated/logic/gmeow.correspondence-laws.nt"
         || path == "generated/diagnostics/shacl.nq"
         || path == "generated/diagnostics/logic-compile.nq"
         // The generated constraint catalog: its committed `.nq` carries the fanout
