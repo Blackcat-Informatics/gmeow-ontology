@@ -2871,13 +2871,9 @@ math:t0MemX a logic:Formula ; logic:relation math:membershipRel ;
 math:t0MemY a logic:Formula ; logic:relation math:membershipRel ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "y" ] , [ logic:termIndex 1 ; logic:termVariable "U" ] .
 math:t0NotMemY a logic:Formula ;
-    logic:not math:t0NotMemYBody .
-math:t0NotMemYBody a logic:Formula ; logic:relation math:membershipRel ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "y" ] , [ logic:termIndex 1 ; logic:termVariable "U" ] .
+    logic:not math:t0MemY .
 math:t0NotMemX a logic:Formula ;
-    logic:not math:t0NotMemXBody .
-math:t0NotMemXBody a logic:Formula ; logic:relation math:membershipRel ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "x" ] , [ logic:termIndex 1 ; logic:termVariable "U" ] .
+    logic:not math:t0MemX .
 
 # --- Law: T1 (Fréchet) — each of two distinct points has a nbhd excluding the other #
 # ∀x,y: pointOf(x,X) ∧ pointOf(y,X) ∧ distinct(x,y)
