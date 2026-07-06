@@ -1,0 +1,19 @@
+# Competency Q1: "From which R script (at what fidelity) was this model lifted, what did
+# it lose, and what did it route to logic:?" The R ingest run names its retained source
+# witness (math:parseSource), the fidelity rung of its lift correspondence
+# (logic:morphismClass), and the logic:Formula its computation product routed to
+# (math:compilesToLogicFormula on an object gmeow:wasGeneratedBy the run). Exactly one row.
+PREFIX math:  <https://blackcatinformatics.ca/math/>
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+
+SELECT ?run ?source ?rung ?logicTarget WHERE {
+    ?run a math:RIngestRun ;
+         math:parseSource ?source ;
+         math:ingestCorrespondence ?corr .
+    ?corr logic:morphismClass ?rung .
+    ?comp gmeow:wasGeneratedBy ?run ;
+          math:compilesToLogicFormula ?logicTarget .
+    FILTER(STRSTARTS(STR(?run), "http://example.org/math/"))
+}
+ORDER BY ?run ?logicTarget

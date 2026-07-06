@@ -1,0 +1,17 @@
+# Competency Q4: "Which ingests hard-failed as unliftable, and with what diagnostic?" A run
+# that could not lift its source has a math:UnliftableIngest diagnostic held as an
+# observation about it — the hard-fail made queryable. (The run is matched by its concrete
+# bridge subclass, since the asserted lane does not materialize the math:IngestRun parent.)
+PREFIX math:  <https://blackcatinformatics.ca/math/>
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+
+SELECT ?run ?diagnostic WHERE {
+    ?obs gmeow:observedFeature ?run ;
+         gmeow:observationResult ?diagnostic .
+    ?diagnostic a math:UnliftableIngest .
+    ?run a ?runType .
+    FILTER(?runType IN (math:RIngestRun, math:ONNXIngestRun, math:ProofIngestRun))
+    FILTER(STRSTARTS(STR(?run), "http://example.org/math/"))
+}
+ORDER BY ?run ?diagnostic
