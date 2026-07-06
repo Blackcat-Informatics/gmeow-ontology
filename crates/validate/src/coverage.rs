@@ -62,6 +62,19 @@ const IGNORED: [&str; 4] = [
 /// Python `_RECOMMENDED` tuple (SKOS).
 const RECOMMENDED: [&str; 1] = ["http://www.w3.org/2004/02/skos/core#"];
 
+/// GMEOW's own grounding-layer namespaces (`lang:`, `logic:`, `math:`). Like the
+/// primary `gmeow:` namespace, a term here is authored in-repo and is covered by
+/// authorship, not an external identifier requiring an SSSOM alignment — the
+/// coverage gate ensures every USED term is either GMEOW-native or aligned, and a
+/// grounding-layer term is GMEOW-native exactly as a `gmeow:` term is. (Forcing an
+/// external alignment onto a grounding predicate to satisfy the gate would be
+/// fabricated linkage, not real coverage.)
+const GMEOW_GROUNDING: [&str; 3] = [
+    "https://blackcatinformatics.ca/lang/",
+    "https://blackcatinformatics.ca/logic/",
+    "https://blackcatinformatics.ca/math/",
+];
+
 /// Mirror of `coverage._is_ignored`.
 fn is_ignored(iri: &str) -> bool {
     IGNORED.iter().any(|ns| iri.starts_with(ns))
@@ -70,6 +83,7 @@ fn is_ignored(iri: &str) -> bool {
 /// Mirror of `coverage._is_covered`.
 fn is_covered(iri: &str, aligned: &BTreeSet<String>, namespace: &str) -> bool {
     iri.starts_with(namespace)
+        || GMEOW_GROUNDING.iter().any(|ns| iri.starts_with(ns))
         || RECOMMENDED.iter().any(|ns| iri.starts_with(ns))
         || aligned.contains(iri)
 }
