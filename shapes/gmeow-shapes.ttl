@@ -4176,17 +4176,23 @@ gmeow:DerivedAffectIntensityObservationShape
         sh:path gmeow:weightingPolicy ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
-        sh:datatype xsd:string ;
+        sh:nodeKind sh:IRI ;
         sh:severity sh:Violation ;
-        sh:message "A derived affect intensity must declare its gmeow:weightingPolicy — the basis is non-orthogonal, so the weighting is explicit, never assumed." ;
+        sh:message "A derived affect intensity must declare its gmeow:weightingPolicy — the basis is non-orthogonal, so the weighting is an explicit, machine-readable gmeow:WeightingPolicy IRI, never assumed and never a free-text string." ;
     ] ;
     sh:property [
         sh:path gmeow:normFunction ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
-        sh:datatype xsd:string ;
+        sh:nodeKind sh:IRI ;
         sh:severity sh:Violation ;
-        sh:message "A derived affect intensity must declare its gmeow:normFunction (the norm/distance) — a raw L² over the non-orthogonal affect basis is not a default; the metric is explicit or it is a hard fail." ;
+        sh:message "A derived affect intensity must declare its gmeow:normFunction (the math:Norm) — a raw L² over the non-orthogonal affect basis is not a default; the metric is an explicit, grounded math:Norm IRI or it is a hard fail." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:appraisalValue ;
+        sh:maxCount 0 ;
+        sh:severity sh:Violation ;
+        sh:message "A derived affect intensity must NOT carry a stored magnitude (gmeow:appraisalValue) — the norm is a recomputable derived view, never a stored ground fact (Principle 12); a stored intensity value is a hard fail." ;
     ] .
 
 gmeow:ModelInferenceRunShape

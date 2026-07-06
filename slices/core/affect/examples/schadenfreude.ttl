@@ -73,7 +73,7 @@ ex:sfIntensity a gmeow:DerivedAffectIntensityObservation ;
     gmeow:vantage ex:observer ;
     gmeow:observedFeature ex:schadenfreude ;
     gmeow:intensityBasis ex:sfCoreVector ;
-    gmeow:metricProfile ex:padUnitScale ;
-    gmeow:weightingPolicy "equal-weight core-affect axes" ;
-    gmeow:normFunction "weighted metric-tensor norm (non-L2, basis is non-orthogonal)" ;
+    gmeow:metricProfile gmeow:coreAffectMetricPAD ;
+    gmeow:weightingPolicy gmeow:weightingEqualCoreAffect ;
+    gmeow:normFunction gmeow:affectMetricTensorNorm ;
     gmeow:derivedByFunction gmeow:fnAffectiveIntensity .

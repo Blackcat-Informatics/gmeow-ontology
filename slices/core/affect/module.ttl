@@ -5,6 +5,7 @@
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix math: <https://blackcatinformatics.ca/math/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix gmeow-goemotions: <https://blackcatinformatics.ca/gmeow-registry/goemotions/> .
 @prefix gmeow-hf: <https://blackcatinformatics.ca/gmeow-registry/hf/> .
@@ -146,6 +147,15 @@ gmeow:AffectFunction
     skos:definition "An OPEN value vocabulary naming the canonical derived-affect functions the gmeow CLI exposes — seeded with gmeow:fnAffectiveIntensity (the vector norm under a declared metric). A function is a NAMED HANDLE for a computation carried out outside the logic (Principle 12); the function individual declares which derivation was applied, it does not compute in triples."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+gmeow:WeightingPolicy
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "Weighting Policy"@x-gmeow-english ;
+    rdfs:subClassOf logic:QualityValue ;
+    skos:definition "An OPEN value vocabulary naming the declared axis-weighting policy under which a derived affect intensity combines its core-affect axes — seeded with gmeow:weightingEqualCoreAffect (equal-weight axes) and gmeow:weightingValenceDominant (valence-dominant diagonal weights). Weighting is a machine-readable NAMED HANDLE, never a free-text string: applying it is solver work outside the logic (Principle 12), and the individual declares which policy the diagonal/off-diagonal weights of the metric Gram matrix realize. Kept open, never an sh:in enum."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
 gmeow:AffectVectorObservation
     a logic:SubKind ,
         owl:Class ;
@@ -167,7 +177,7 @@ gmeow:DerivedAffectIntensityObservation
     rdfs:label "Derived Affect Intensity Observation"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Observation ;
     skos:definition "Overall affect intensity as a DERIVED view — the norm of a gmeow:AffectVectorObservation computed OUTSIDE the logic under a declared metric (Principle 12), never a separately stored ground fact. Because the axis basis is non-orthogonal (valence correlates with goal-congruence, dominance overlaps coping), a raw Euclidean L² norm is NOT the default: the metric is an explicit declared weighted / metric-tensor form. An intensity record MUST declare its basis (gmeow:intensityBasis), scale normalization (gmeow:metricProfile), weighting policy (gmeow:weightingPolicy), and norm/distance function (gmeow:normFunction) — any missing declaration is a hard fail. No intensity is canonical without that named basis."@x-gmeow-english ;
-    skos:example "ex:intensity a gmeow:DerivedAffectIntensityObservation ; gmeow:intensityBasis ex:vec ; gmeow:metricProfile ex:padUnitScale ; gmeow:weightingPolicy \"equal-weight core-affect axes\" ; gmeow:normFunction \"weighted metric-tensor norm (non-L2)\" ; gmeow:derivedByFunction gmeow:fnAffectiveIntensity ."@x-gmeow-english ;
+    skos:example "ex:intensity a gmeow:DerivedAffectIntensityObservation ; gmeow:intensityBasis ex:vec ; gmeow:metricProfile gmeow:coreAffectMetricPAD ; gmeow:weightingPolicy gmeow:weightingEqualCoreAffect ; gmeow:normFunction gmeow:affectMetricTensorNorm ; gmeow:derivedByFunction gmeow:fnAffectiveIntensity ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid storing it as a canonical ground fact (it is a recomputable view), avoid a bare L² norm over the non-orthogonal basis, and avoid omitting any of basis / scale / weighting / norm (each omission is a hard fail)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:howToUse "Compute the norm externally, then record it as a gmeow:DerivedAffectIntensityObservation declaring gmeow:intensityBasis, gmeow:metricProfile, gmeow:weightingPolicy, and gmeow:normFunction (and gmeow:derivedByFunction gmeow:fnAffectiveIntensity for the CLI handle)."@x-gmeow-english ;
@@ -481,13 +491,13 @@ gmeow:metricProfile
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:normFunction
-    a owl:DatatypeProperty ,
+    a owl:ObjectProperty ,
         owl:FunctionalProperty ;
     rdfs:domain gmeow:DerivedAffectIntensityObservation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "norm function"@x-gmeow-english ;
-    rdfs:range xsd:string ;
-    skos:definition "The declared norm/distance function under which a derived intensity is computed, named as a string spec (e.g. 'weighted metric-tensor norm', never a bare L² over the non-orthogonal basis). Mandatory (SHACL): the metric is explicit, and computing it is solver work (Principle 12)."@x-gmeow-english ;
+    rdfs:range math:Norm ;
+    skos:definition "The declared math:Norm under which a derived intensity is computed — the machine-readable, grounded norm object (never a free-text string), a math:Norm math:inducedByForm a positive-definite math:SymmetricBilinearForm, so ‖x‖ = √(xᵀGx) is exact and never a bare L² over the non-orthogonal basis. The canonical affect norm is gmeow:affectMetricTensorNorm. Mandatory (SHACL); the metric is explicit and computing it is solver work (Principle 12). Functional: one intensity, one norm."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:vectorComponent
@@ -514,13 +524,43 @@ gmeow:vectorProfile
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:weightingPolicy
-    a owl:DatatypeProperty ,
+    a owl:ObjectProperty ,
         owl:FunctionalProperty ;
     rdfs:domain gmeow:DerivedAffectIntensityObservation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "weighting policy"@x-gmeow-english ;
-    rdfs:range xsd:string ;
-    skos:definition "The declared weighting policy under which a derived intensity combines its axes, named as a string spec (e.g. 'equal-weight core-affect axes', 'valence-dominant'). Mandatory (SHACL): weighting is explicit, and applying it is solver work (Principle 12)."@x-gmeow-english ;
+    rdfs:range gmeow:WeightingPolicy ;
+    skos:definition "The declared gmeow:WeightingPolicy individual under which a derived intensity combines its axes — a machine-readable named handle (gmeow:weightingEqualCoreAffect, gmeow:weightingValenceDominant), never a free-text string. Mandatory (SHACL): weighting is explicit, and applying it (the diagonal/off-diagonal weights of the metric Gram matrix) is solver work (Principle 12). Functional: one intensity, one policy."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:metricGram
+    a owl:ObjectProperty ,
+        owl:FunctionalProperty ;
+    rdfs:domain gmeow:AffectScaleProfile ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "metric Gram matrix"@x-gmeow-english ;
+    rdfs:range math:GramMatrix ;
+    skos:definition "The math:GramMatrix G whose induced norm ‖x‖ = √(xᵀGx) is the affect intensity over this profile's core-affect basis — the machine-readable metric tensor of the frame. The canonical PAD metric declares gmeow:coreAffectGram, a positive-definite 4×4 Gram matrix of exact math:RationalValue entries over the {valence, arousal, dominance, unpredictability} basis (diagonal 1, valence–arousal coupling 1/4). Optional on a profile that declares no metric; functional: one profile, one Gram matrix. The norm computation is solver work outside the logic (Principle 12)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:coreAxisIndex
+    a owl:DatatypeProperty ,
+        owl:FunctionalProperty ;
+    rdfs:domain gmeow:CoreAffectDimension ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "core axis index"@x-gmeow-english ;
+    rdfs:range xsd:nonNegativeInteger ;
+    skos:definition "The stable zero-based basis index of a gmeow:CoreAffectDimension in the canonical core-affect basis {valence 0, arousal 1, dominance 2, unpredictability 3} — the row/column position an axis occupies in the metric math:GramMatrix (gmeow:metricGram). It fixes the correspondence between a core-affect axis and its coordinate, so a vector reading maps deterministically onto the exact-rational metric. Functional: one axis, one index."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:sparseAxisCompletion
+    a owl:DatatypeProperty ,
+        owl:FunctionalProperty ;
+    rdfs:domain gmeow:AffectScaleProfile ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "sparse-axis completion"@x-gmeow-english ;
+    rdfs:range xsd:boolean ;
+    skos:definition "Declares (true) that a profile's metric completes an absent core-affect axis of the vector reading with a zero coordinate — a sparse vector is read against the full basis with unlisted axes at 0. This makes the missing-axis policy EXPLICIT, not silent: an axis the metric does not list is zero-completed, while an axis a downstream contract declares REQUIRED but the reading omits is a hard fail (a distinct, contract-level rule, never satisfied by zero-completion). Functional: one profile, one policy."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:canonicalizesAs
@@ -690,6 +730,7 @@ gmeow:dimensionArousal
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "arousal"@x-gmeow-english ;
     skos:definition "The arousal core-affect dimension — activated versus calm (activation / energy)."@x-gmeow-english ;
+    gmeow:coreAxisIndex 1 ;
     gmeow:dimensionFamily gmeow:familyCoreAffect ;
     gmeow:graphBoxRole gmeow:boxABox .
 
@@ -714,6 +755,7 @@ gmeow:dimensionDominance
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "dominance"@x-gmeow-english ;
     skos:definition "The dominance/potency core-affect dimension — in control versus controlled."@x-gmeow-english ;
+    gmeow:coreAxisIndex 2 ;
     gmeow:dimensionFamily gmeow:familyCoreAffect ;
     gmeow:graphBoxRole gmeow:boxABox .
 
@@ -770,6 +812,7 @@ gmeow:dimensionUnpredictability
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "unpredictability"@x-gmeow-english ;
     skos:definition "The unpredictability core-affect dimension — a fourth felt-quality axis several traditions need to separate fear from anger at equal valence and arousal."@x-gmeow-english ;
+    gmeow:coreAxisIndex 3 ;
     gmeow:dimensionFamily gmeow:familyCoreAffect ;
     gmeow:graphBoxRole gmeow:boxABox .
 
@@ -778,6 +821,7 @@ gmeow:dimensionValence
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "valence"@x-gmeow-english ;
     skos:definition "The valence core-affect dimension — pleasant versus unpleasant (hedonic tone)."@x-gmeow-english ;
+    gmeow:coreAxisIndex 0 ;
     gmeow:dimensionFamily gmeow:familyCoreAffect ;
     gmeow:graphBoxRole gmeow:boxABox .
 
@@ -799,7 +843,149 @@ gmeow:fnAffectiveIntensity
     a gmeow:AffectFunction ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "affective intensity"@x-gmeow-english ;
-    skos:definition "The canonical derived-affect function the gmeow CLI exposes for overall intensity — the norm of a gmeow:AffectVectorObservation under a declared weighted / metric-tensor metric (never a bare L² over the non-orthogonal basis). A named handle for a computation carried out outside the logic (Principle 12); it names the derivation, it does not compute in triples."@x-gmeow-english ;
+    skos:definition "The canonical derived-affect function the gmeow CLI exposes for overall intensity — the norm of a gmeow:AffectVectorObservation under a declared weighted / metric-tensor metric (never a bare L² over the non-orthogonal basis). It computes gmeow:affectMetricTensorNorm, the math:Norm induced by the positive-definite core-affect form. A named handle for a computation carried out outside the logic (Principle 12); it names the derivation, it does not compute in triples."@x-gmeow-english ;
+    rdfs:seeAlso gmeow:affectMetricTensorNorm ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+# --- The canonical core-affect intensity metric (resolves the norm open question). --- #
+# G is a positive-definite symmetric 4×4 Gram matrix over the core-affect basis
+# {valence 0, arousal 1, dominance 2, unpredictability 3}: diagonal all 1, the
+# valence–arousal coupling (0,1)=(1,0)=1/4, every other off-diagonal 0. It is
+# positive-definite by its leading principal minors 1 and 15/16 > 0. Intensity is
+# ‖x‖ = √(xᵀGx), the math:Norm induced by the positive-definite form, computed
+# OUTSIDE the logic over EXACT rationals (Principle 12).
+
+gmeow:weightingEqualCoreAffect
+    a gmeow:WeightingPolicy ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "equal-weight core-affect axes"@x-gmeow-english ;
+    skos:definition "The equal-weight core-affect weighting policy — every core-affect axis carries diagonal weight 1 in the metric Gram matrix, so no axis dominates the intensity by construction (the canonical gmeow:coreAffectGram, whose only non-trivial structure is the valence–arousal 1/4 coupling)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:weightingValenceDominant
+    a gmeow:WeightingPolicy ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "valence-dominant"@x-gmeow-english ;
+    skos:definition "A valence-dominant weighting policy — the metric Gram diagonal weights valence 2 and arousal 1, so valence contributes more to the intensity than an equal-weight reading (the G-weighted-dominant axis can differ from the raw-max axis)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:coreAffectBasis
+    a math:Basis ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "core-affect basis"@x-gmeow-english ;
+    skos:definition "The 4-axis core-affect coordinate basis {valence 0, arousal 1, dominance 2, unpredictability 3} the canonical metric Gram matrix and intensity vectors are taken in (gmeow:coreAxisIndex fixes each axis's position)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:coreAffectForm
+    a math:SymmetricBilinearForm ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "core-affect metric form"@x-gmeow-english ;
+    skos:definition "The positive-definite symmetric bilinear form on the core-affect space whose Gram matrix in the core-affect basis is gmeow:coreAffectGram; it induces the affect-intensity norm gmeow:affectMetricTensorNorm and is the inner product carried by gmeow:coreAffectSpace."@x-gmeow-english ;
+    math:definiteness math:positiveDefinite ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:coreAffectGram
+    a math:GramMatrix ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "core-affect Gram matrix G"@x-gmeow-english ;
+    skos:definition "The canonical positive-definite 4×4 Gram matrix G of the core-affect metric form in the core-affect basis: diagonal 1, valence–arousal coupling (0,1)=(1,0)=1/4, all other off-diagonals 0 (omitted entries are exact zero). Positive-definite by leading principal minors 1 and 15/16. Its induced norm √(xᵀGx) is the affect intensity."@x-gmeow-english ;
+    math:definiteness math:positiveDefinite ;
+    math:representsForm gmeow:coreAffectForm ;
+    math:inBasis gmeow:coreAffectBasis ;
+    math:hasEntry
+        gmeow:coreAffectGramE00 ,
+        gmeow:coreAffectGramE11 ,
+        gmeow:coreAffectGramE22 ,
+        gmeow:coreAffectGramE33 ,
+        gmeow:coreAffectGramE01 ,
+        gmeow:coreAffectGramE10 ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:coreAffectGramE00
+    a math:MatrixEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "G(0,0) = 1 (valence diagonal)"@x-gmeow-english ;
+    skos:definition "The (0,0) diagonal entry of the core-affect Gram matrix — G(valence, valence) = 1."@x-gmeow-english ;
+    math:atRow 0 ; math:atColumn 0 ; math:entryValue gmeow:rationalOne ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:coreAffectGramE11
+    a math:MatrixEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "G(1,1) = 1 (arousal diagonal)"@x-gmeow-english ;
+    skos:definition "The (1,1) diagonal entry of the core-affect Gram matrix — G(arousal, arousal) = 1."@x-gmeow-english ;
+    math:atRow 1 ; math:atColumn 1 ; math:entryValue gmeow:rationalOne ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:coreAffectGramE22
+    a math:MatrixEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "G(2,2) = 1 (dominance diagonal)"@x-gmeow-english ;
+    skos:definition "The (2,2) diagonal entry of the core-affect Gram matrix — G(dominance, dominance) = 1."@x-gmeow-english ;
+    math:atRow 2 ; math:atColumn 2 ; math:entryValue gmeow:rationalOne ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:coreAffectGramE33
+    a math:MatrixEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "G(3,3) = 1 (unpredictability diagonal)"@x-gmeow-english ;
+    skos:definition "The (3,3) diagonal entry of the core-affect Gram matrix — G(unpredictability, unpredictability) = 1."@x-gmeow-english ;
+    math:atRow 3 ; math:atColumn 3 ; math:entryValue gmeow:rationalOne ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:coreAffectGramE01
+    a math:MatrixEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "G(0,1) = 1/4 (valence–arousal coupling)"@x-gmeow-english ;
+    skos:definition "The (0,1) off-diagonal entry of the core-affect Gram matrix — the valence–arousal coupling G(valence, arousal) = 1/4."@x-gmeow-english ;
+    math:atRow 0 ; math:atColumn 1 ; math:entryValue gmeow:rationalQuarter ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:coreAffectGramE10
+    a math:MatrixEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "G(1,0) = 1/4 (symmetric transpose of the coupling)"@x-gmeow-english ;
+    skos:definition "The (1,0) off-diagonal entry of the core-affect Gram matrix — the symmetric transpose of the valence–arousal coupling, G(arousal, valence) = 1/4."@x-gmeow-english ;
+    math:atRow 1 ; math:atColumn 0 ; math:entryValue gmeow:rationalQuarter ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:rationalOne
+    a math:RationalValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "the exact rational 1 (the pair (1, 1))"@x-gmeow-english ;
+    skos:definition "The exact rational value 1 — the numerator/denominator pair (1, 1), never the decimal 1.0. Reused for every unit (diagonal) entry of the core-affect Gram matrix."@x-gmeow-english ;
+    math:numerator 1 ; math:denominator 1 ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:rationalQuarter
+    a math:RationalValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "the exact rational 1/4 (the pair (1, 4), never 0.25)"@x-gmeow-english ;
+    skos:definition "The exact rational value 1/4 — the numerator/denominator pair (1, 4), never the decimal 0.25. The valence–arousal coupling weight of the core-affect Gram matrix."@x-gmeow-english ;
+    math:numerator 1 ; math:denominator 4 ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:affectMetricTensorNorm
+    a math:Norm ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "affect metric-tensor norm"@x-gmeow-english ;
+    skos:definition "The canonical affect-intensity norm ‖x‖ = √(xᵀGx) — the math:Norm induced by the positive-definite core-affect form gmeow:coreAffectForm (the weighted metric-tensor norm, NEVER a bare L² over the non-orthogonal basis). It is the norm gmeow:normFunction points at and gmeow:fnAffectiveIntensity computes."@x-gmeow-english ;
+    math:inducedByForm gmeow:coreAffectForm ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:coreAffectMetricPAD
+    a gmeow:AffectScaleProfile ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "core-affect PAD metric profile"@x-gmeow-english ;
+    skos:definition "The canonical core-affect metric profile the gmeow CLI exposes: a bipolar [-1, 1] PAD unit scale that names the positive-definite metric Gram matrix gmeow:coreAffectGram (whose induced norm gmeow:affectMetricTensorNorm is the affect intensity) over the 4-axis core-affect basis. The metric form gmeow:coreAffectForm is the inner product of the core-affect coordinate space — a positive-definite symmetric bilinear form — so the space is an inner-product space in which orthogonality, angles, and the intensity norm are defined (the algebraic carrier lives in the math: charter, not re-minted here). Missing-axis policy is EXPLICIT: gmeow:sparseAxisCompletion true — an axis the metric does not list is zero-completed, while an axis a downstream contract declares REQUIRED but a reading omits is a hard fail (a distinct contract-level rule). The EmotionML unit-clamp normalization of a raw magnitude v is (v − gmeow:profileRangeMin) / (gmeow:profileRangeMax − gmeow:profileRangeMin) = (v + 1) / 2 for this profile's range."@x-gmeow-english ;
+    skos:note "Missing-axis policy: a core-affect axis absent from the metric is zero-completed (gmeow:sparseAxisCompletion true); an axis a downstream contract declares REQUIRED but the reading omits is a hard fail, never satisfied by zero-completion. EmotionML unit-clamp normalization for this profile's range is (v − rangeMin)/(rangeMax − rangeMin) = (v + 1)/2."@x-gmeow-english ;
+    gmeow:profileRangeMin -1.0 ;
+    gmeow:profileRangeMax 1.0 ;
+    gmeow:profileMidpoint 0.0 ;
+    gmeow:profilePolarity gmeow:polarityBipolar ;
+    gmeow:sparseAxisCompletion true ;
+    gmeow:metricGram gmeow:coreAffectGram ;
+    rdfs:seeAlso gmeow:coreAffectForm ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:scoreCalibratedProbability
