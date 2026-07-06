@@ -436,22 +436,41 @@ fn apply_builtins(builtins: &[QBuiltin], sols: Vec<Solution>, gap: &mut bool) ->
     out
 }
 
-/// Whether a negated atom is satisfied (blocks the rule) — its grounded form is
+/// Whether a negated atom is satisfied (blocks the rule) — some grounded form is
 /// PRESENT in the accumulated (frozen-below) store.
 ///
-/// Mirrors `rule_ir::negated_atom_satisfied`, but probes the columnar
-/// [`RelationStore::contains`] rather than the ternary `FactStore`.  Within a
-/// stratum the negated predicate is fully materialized in a strictly lower stratum,
-/// so this membership is the stratified-negation truth value.  A partially-bound
-/// negated atom never arises in the DL-safe gmeow fragment (every negated var is
-/// bound by a positive body atom); an unbound one is treated as not-satisfied,
-/// identical to the reference.
+/// Probes the columnar [`RelationStore`] rather than the ternary `FactStore`.  Within
+/// a stratum the negated predicate is fully materialized in a strictly lower stratum,
+/// so this membership is the stratified-negation truth value.
+///
+/// Two binding modes, mirroring `foundation.rs::negated_atom_satisfied` +
+/// `match_partial` exactly:
+///
+/// * **Fully ground** (both subject and object bound/constant): an O(1)
+///   [`RelationStore::contains`] membership test.
+/// * **Partially bound (existential NAF)**: at least one position is an unbound
+///   variable — e.g. `NOT genericQuality(?Q, ?G)` with `?G` free, meaning "`?Q` has
+///   NO `genericQuality`".  The atom is satisfied iff SOME fact matches the *ground*
+///   positions; an unbound position is unconstrained (even if a variable repeats —
+///   repeated unbound vars are NOT required to agree, matching foundation's
+///   `match_partial` byte for byte).  A ground term that never entered the store
+///   constrains to zero rows → not satisfied.
 fn negated_atom_satisfied(atom: &EvalAtom, sol: &Solution, accumulated: &RelationStore) -> bool {
     let s = ground(&atom.subject, sol);
     let o = ground(&atom.object, sol);
     match (s, o) {
         (Some(s), Some(o)) => accumulated.contains(atom.predicate.as_str(), &s, &o),
-        _ => false,
+        (s, o) => {
+            // At least one position is unbound.  Build the selection bound from the
+            // ground positions only; a ground term the store never interned yields
+            // `None` (no row can match → not satisfied).
+            let Some(bound) = atom_bound(accumulated, s.as_deref(), o.as_deref()) else {
+                return false;
+            };
+            !accumulated
+                .select(atom.predicate.as_str(), bound)
+                .is_empty()
+        }
     }
 }
 

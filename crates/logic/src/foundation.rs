@@ -51,7 +51,6 @@ use std::collections::HashMap;
 use std::collections::HashSet;
 
 use purrdf::TermValue;
-use rayon::prelude::*;
 
 use crate::provenance::{mint_derivation_id, mint_reifier};
 use crate::store::WorldStore;
@@ -1902,6 +1901,147 @@ pub fn head_predicate_iris() -> std::collections::BTreeSet<String> {
     set
 }
 
+// ── Lowering onto the single native chase ───────────────────────────────────────
+//
+// The OntoUML foundation discipline is *data*: the `STRATA` rule tables above are
+// authored by hand, but the chase itself is the crate's ONE native engine
+// ([`crate::physical::materialize_native`]).  These helpers lower the static [`Rule`]
+// tables into the shared [`crate::rule_ir::EvalRule`] IR and drive the physical core,
+// so foundation contributes only its rule program — and, at the [`evaluate`] call
+// site, its cross-world post-passes — never a second chase.
+//
+// The physical stratifier is authoritative: it re-derives the strata from the
+// predicate dependency graph, so the flat table order (not the 5-way grouping) is
+// what the engine consumes.  Every foundation derivation is stamped with the single
+// [`ANON_RULE_IRI`], so the engine's `(max_src_depth, sum_src_depth, sorted_sources,
+// rule_iri)` first-wins tiebreak reduces to foundation's original
+// `(max_src_depth, sum_src_depth, sorted_sources)` — the fourth key is constant
+// across every foundation firing — and the content-addressed `derivation_id`s are
+// byte-identical.
+
+/// Lower a foundation [`TermPat`] into the shared [`crate::rule_ir::EvalTerm`].
+/// Variable names carry their leading `?` verbatim (the surface the shared join
+/// binds on and the inequality guards compare).
+fn lower_term_pat(term: TermPat) -> crate::rule_ir::EvalTerm {
+    match term {
+        TermPat::Var(name) => crate::rule_ir::EvalTerm::Var(name.to_owned()),
+        TermPat::Const(iri) => crate::rule_ir::EvalTerm::ConstNamed(iri.to_owned()),
+    }
+}
+
+/// Lower a foundation [`Atom`] into the shared [`crate::rule_ir::EvalAtom`].  A
+/// foundation predicate is always a constant IRI (the program is Datalog over a
+/// fixed vocabulary); a variable predicate is a malformed rule and cannot occur.
+fn lower_atom(atom: &Atom) -> crate::rule_ir::EvalAtom {
+    let predicate = match atom.predicate {
+        TermPat::Const(iri) => iri.to_owned(),
+        TermPat::Var(name) => unreachable!(
+            "foundation rule atom has a variable predicate {name:?}; every foundation \
+             predicate is a constant IRI"
+        ),
+    };
+    crate::rule_ir::EvalAtom {
+        subject: lower_term_pat(atom.subject),
+        predicate,
+        object: lower_term_pat(atom.object),
+        negated: atom.negated,
+    }
+}
+
+/// Lower the whole foundation program ([`STRATA`], in table order) into the shared
+/// [`crate::rule_ir::EvalRule`] IR.  Every rule is stamped with [`ANON_RULE_IRI`] —
+/// the single rule IRI foundation derivations carry — so the shared engine's
+/// provenance recipe matches foundation's byte for byte.
+fn lower_foundation_rules() -> Vec<crate::rule_ir::EvalRule> {
+    let mut out: Vec<crate::rule_ir::EvalRule> = Vec::new();
+    for stratum in STRATA {
+        for rule in stratum {
+            out.push(crate::rule_ir::EvalRule {
+                head: lower_atom(&rule.head),
+                body: rule.body.iter().map(lower_atom).collect(),
+                rule_iri: ANON_RULE_IRI.to_owned(),
+                distinct_pairs: rule
+                    .distinct_pairs
+                    .iter()
+                    .map(|&(a, b)| (a.to_owned(), b.to_owned()))
+                    .collect(),
+                builtins: Vec::new(),
+            });
+        }
+    }
+    out
+}
+
+/// Assert that every object in `store` is an IRI — foundation's all-IRI contract.
+///
+/// The shared engine is happy with literal objects, but the foundation disciplines
+/// are all-IRI by construction; a non-IRI object is a HARD FAIL (no-optionality),
+/// with the exact message the pre-unification per-world input builder emitted.
+///
+/// # Errors
+///
+/// Returns `Err` on the first non-IRI object.
+fn require_all_iri_objects(store: &WorldStore) -> Result<(), String> {
+    let mut worlds = store.worlds();
+    worlds.sort();
+    for world in &worlds {
+        for r in &store.quads_in_world(world) {
+            if strip_angle_opt(&r[2]).is_none() {
+                return Err(format!(
+                    "foundation requires IRI triples: non-IRI object {:?} \
+                     (subject {:?}, predicate {:?}) in world {world}",
+                    r[2], r[0], r[1]
+                ));
+            }
+        }
+    }
+    Ok(())
+}
+
+/// Chase every world with the single native engine and adapt the derived rows into
+/// [`FoundationQuad`]s (the asserted-EDB echo included).
+///
+/// This is the OntoUML foundation program running on
+/// [`crate::physical::materialize_native`]; [`evaluate`] layers the cross-world
+/// post-passes on top of the result.  The foundation program is stratified by
+/// construction, so an `Unsupported` outcome is a contract violation (hard fail),
+/// never a degraded fallback.
+///
+/// # Errors
+///
+/// Returns `Err` for a non-IRI object, an unbound head/guard variable, a provenance
+/// recipe failure, or an unexpected native gap.
+fn chase_all_worlds_physical(store: &WorldStore) -> Result<Vec<FoundationQuad>, String> {
+    require_all_iri_objects(store)?;
+    let rules = lower_foundation_rules();
+    // Unbounded: the foundation oracle runs to full fixpoint (`BUDGET_OK`).
+    let outcome = crate::physical::materialize_native(store, &rules, None)?;
+    let rows = match outcome {
+        crate::physical::NativeOutcome::Decided(budgeted) => budgeted.rows,
+        crate::physical::NativeOutcome::Unsupported(kind) => {
+            return Err(format!(
+                "foundation program unexpectedly unsupported by the native chase: {kind:?} \
+                 (the foundation program is stratified by construction)"
+            ));
+        }
+    };
+    let mut out: Vec<FoundationQuad> = Vec::with_capacity(rows.len());
+    for row in rows {
+        // `subject`/`predicate` are bare IRIs on a `FoundationQuad`; `object` is N3.
+        // A `DerivedRow` carries native terms whose `term_display` is the N3 surface.
+        out.push(FoundationQuad {
+            graph: row.graph,
+            subject: strip_angle(&crate::provenance::term_display(&row.subject)).to_owned(),
+            predicate: row.predicate,
+            object: crate::provenance::term_display(&row.object),
+            rule_iri: row.rule_iri,
+            source_quad_ids: row.source_quad_ids,
+            derivation_id: row.derivation_id,
+        });
+    }
+    Ok(out)
+}
+
 // ── Output quad type ────────────────────────────────────────────────────────────
 
 /// A materialized quad with the full seam provenance contract.
@@ -1927,45 +2067,9 @@ pub struct FoundationQuad {
     pub derivation_id: String,
 }
 
-// ── Internal fact representation ─────────────────────────────────────────────────
-//
-// A fact is a fully-ground `(subject_iri, predicate_iri, object_iri)`.  Every
-// foundation term is an IRI, so we store bare IRI strings; N3 (`<iri>`) is computed
-// on demand only where a serialized form is needed.  The dedup key is the triple of
-// bare IRIs, matching the Python `fact_index` key under the same first-wins order.
-
-/// A ground fact (all IRIs).
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-struct Fact {
-    subject: String,
-    predicate: String,
-    object: String,
-}
-
-impl Fact {
-    /// The dedup key `(s, p, o)` of bare IRIs — mirrors the Python `fact_index` key.
-    /// The angle-bracket (N3) form is not needed: the key is purely internal
-    /// (membership dedup + provenance source recovery), and the wrap/strip round
-    /// trip only added allocations, so the bare IRIs are stored directly.
-    fn key(&self) -> (String, String, String) {
-        (
-            self.subject.clone(),
-            self.predicate.clone(),
-            self.object.clone(),
-        )
-    }
-}
-
 /// N3 form of an IRI: `<iri>`.
 fn n3(iri: &str) -> String {
     format!("<{iri}>")
-}
-
-/// Reifier IRI for an all-IRI fact, via the golden-pinned recipe.
-fn fact_reifier(fact: &Fact) -> Result<String, String> {
-    let s = TermValue::iri(fact.subject.clone());
-    let o = TermValue::iri(fact.object.clone());
-    mint_reifier(&s, &fact.predicate, &o)
 }
 
 /// The content-addressed reifier IRI of a materialized [`FoundationQuad`].
@@ -1993,570 +2097,6 @@ fn triple_reifier(s: &str, p: &str, o: &str) -> Result<String, String> {
     let sn = TermValue::iri(s);
     let on = TermValue::iri(o);
     mint_reifier(&sn, p, &on)
-}
-
-// ── Per-world fact store (insertion-ordered, first-wins) ────────────────────────
-
-/// Insertion-ordered fact store with O(1) dedup, mirroring the Python `fact_index`.
-///
-/// The Python `fact_index` is a `dict` keyed by the IRI triple, iterated in insertion
-/// order during the join (so binding enumeration order is deterministic and
-/// first-wins).  This wrapper keeps the same two invariants: a `Vec<Fact>` carries
-/// the iteration order, and a `HashSet` of keys provides the membership test.
-struct FactStore {
-    facts: Vec<Fact>,
-    keys: HashSet<(String, String, String)>,
-    /// Predicate → row indices into `facts`, in insertion order.  Maintained in
-    /// lockstep with `facts` so each bucket's order equals insertion order; this
-    /// lets the join scan only the rows for a constant-predicate atom while
-    /// returning exactly the subsequence (same relative order) a full scan would.
-    predicate_index: HashMap<String, Vec<usize>>,
-}
-
-impl FactStore {
-    fn new() -> Self {
-        Self {
-            facts: Vec::new(),
-            keys: HashSet::new(),
-            predicate_index: HashMap::new(),
-        }
-    }
-
-    /// Insert `fact` if its key is new; return `true` if it was inserted.
-    fn insert(&mut self, fact: Fact) -> bool {
-        let key = fact.key();
-        if self.keys.contains(&key) {
-            return false;
-        }
-        self.keys.insert(key);
-        let idx = self.facts.len();
-        self.facts.push(fact);
-        // Push the new row index in lockstep with `facts`, preserving insertion
-        // order within the predicate bucket. Clone the predicate only on first
-        // occurrence to avoid a heap allocation for repeat predicates.
-        let pred = &self.facts[idx].predicate;
-        if let Some(bucket) = self.predicate_index.get_mut(pred.as_str()) {
-            bucket.push(idx);
-        } else {
-            self.predicate_index.insert(pred.clone(), vec![idx]);
-        }
-        true
-    }
-
-    /// Whether a fact with this key exists.
-    fn contains_key(&self, key: &(String, String, String)) -> bool {
-        self.keys.contains(key)
-    }
-
-    /// Row indices (into `facts`, insertion-ordered) of facts with predicate
-    /// `pred`; empty slice if none.
-    fn facts_for_predicate(&self, pred: &str) -> &[usize] {
-        self.predicate_index
-            .get(pred)
-            .map_or(&[][..], Vec::as_slice)
-    }
-}
-
-// ── Body join (semi-naive, NAF, inequality guards) ──────────────────────────────
-
-/// A candidate solution: the variable→IRI bindings plus the N3 keys of the matched
-/// positive body facts (the provenance sources).
-#[derive(Clone)]
-struct Solution {
-    bindings: Vec<(&'static str, String)>,
-    source_keys: Vec<(String, String, String)>,
-}
-
-impl Solution {
-    fn get(&self, var_name: &str) -> Option<&str> {
-        self.bindings
-            .iter()
-            .find(|(k, _)| *k == var_name)
-            .map(|(_, v)| v.as_str())
-    }
-}
-
-/// A candidate derivation within a single chase round.
-///
-/// `sorted_sources` is a sorted copy of `sources` used ONLY for the deterministic
-/// tiebreak comparison.  The emitted [`FoundationQuad`] always uses `sources` in its
-/// original body-order for `source_quad_ids`; the sorted copy never appears in output.
-///
-/// Winner selection uses a **quality-ordered total-order** over same-head candidates:
-/// `(max_src_depth, sum_src_depth, sorted_sources)` — smaller wins.  This prefers the
-/// most-direct (shallowest) derivation, tiebreaks toward asserted-rooted proofs (lower
-/// depth sum), and uses lex-min sorted reifiers as the final content-addressed
-/// tiebreaker, making the winner fully independent of firing-enumeration order.
-#[derive(Clone)]
-struct RoundCandidate {
-    head: Fact,
-    /// Reifiers of matched body facts, in body (scan) order — goes into `source_quad_ids`.
-    sources: Vec<String>,
-    /// Sorted copy of `sources`, used only for deterministic winner comparison.
-    sorted_sources: Vec<String>,
-    /// Content-addressed derivation IRI: `mint_derivation_id(ANON_RULE_IRI, &src_refs)`.
-    deriv: String,
-    /// Maximum derivation depth across the matched source facts.  Depth 0 = asserted.
-    /// `depth = 1 + max(depth[source])` for this candidate; minimised first by the tiebreak.
-    max_src_depth: u32,
-    /// Sum of derivation depths across the matched source facts.  Smaller = closer to
-    /// asserted axioms (tiebreak level 2, after `max_src_depth`).
-    sum_src_depth: u64,
-}
-
-/// Ground a term pattern under bindings to its IRI string, or `None` if an unbound var.
-fn ground(term: &TermPat, sol: &Solution) -> Option<String> {
-    match term {
-        TermPat::Const(iri) => Some((*iri).to_owned()),
-        TermPat::Var(name) => sol.get(name).map(str::to_owned),
-    }
-}
-
-/// Try to match `atom` against fact `f`, extending `base` bindings; return the merged
-/// solution or `None`.  Mirrors `_match_atom` + `_merge_bindings`: a repeated variable
-/// must agree, a constant must equal the fact term exactly.
-fn match_atom(atom: &Atom, f: &Fact, base: &Solution) -> Option<Solution> {
-    // Defer cloning `base` until the atom actually matches.  This runs once per
-    // candidate fact in the join loop, so cloning up front allocates a fresh
-    // Solution for every *non-matching* fact (the common case).  Validate against
-    // the existing bindings first, accumulating any new ones, and materialize the
-    // merged Solution only on a confirmed match.
-    let mut new_bindings: Vec<(&'static str, String)> = Vec::new();
-    for (pat, fact_term) in [
-        (&atom.subject, &f.subject),
-        (&atom.predicate, &f.predicate),
-        (&atom.object, &f.object),
-    ] {
-        match pat {
-            TermPat::Const(iri) => {
-                if iri != fact_term {
-                    return None;
-                }
-            }
-            TermPat::Var(name) => {
-                // A repeated variable must agree with a value already bound in
-                // `base` or earlier in this same atom.
-                let existing = base.get(name).or_else(|| {
-                    new_bindings
-                        .iter()
-                        .find(|(k, _)| *k == *name)
-                        .map(|(_, v)| v.as_str())
-                });
-                match existing {
-                    Some(existing) => {
-                        if existing != fact_term {
-                            return None;
-                        }
-                    }
-                    None => new_bindings.push((name, fact_term.clone())),
-                }
-            }
-        }
-    }
-    let mut sol = base.clone();
-    sol.bindings.extend(new_bindings);
-    Some(sol)
-}
-
-/// Whether a negated atom has at least one match in the fact store under `sol`.
-///
-/// Mirrors `_atom_is_satisfied`: NAF is satisfied (the rule fires) iff this returns
-/// `false`.  Checked after the negated atom's stratum is settled (stratified NAF).
-fn negated_atom_satisfied(atom: &Atom, sol: &Solution, store: &FactStore) -> bool {
-    // Fully-ground fast path: when every term grounds to a bound var or constant
-    // IRI, an O(1) key-membership test suffices (the foundation lowering's negated
-    // atoms are always DL-safe and all-IRI, so this path always applies here).
-    let s = ground(&atom.subject, sol);
-    let p = ground(&atom.predicate, sol);
-    let o = ground(&atom.object, sol);
-    if let (Some(s), Some(p), Some(o)) = (&s, &p, &o) {
-        return store.contains_key(&(s.clone(), p.clone(), o.clone()));
-    }
-    // Partially-bound fallback: scan (defensive; not exercised by the foundation rules).
-    for f in &store.facts {
-        if match_partial(atom, f, sol) {
-            return true;
-        }
-    }
-    false
-}
-
-/// Partial match used only by the NAF scan fallback.
-fn match_partial(atom: &Atom, f: &Fact, sol: &Solution) -> bool {
-    for (pat, fact_term) in [
-        (&atom.subject, &f.subject),
-        (&atom.predicate, &f.predicate),
-        (&atom.object, &f.object),
-    ] {
-        match pat {
-            TermPat::Const(iri) => {
-                if iri != fact_term {
-                    return false;
-                }
-            }
-            TermPat::Var(name) => {
-                if let Some(existing) = sol.get(name)
-                    && existing != fact_term
-                {
-                    return false;
-                }
-            }
-        }
-    }
-    true
-}
-
-/// Whether every inequality guard holds for `sol` (N3-form inequality).
-///
-/// Mirrors `_bindings_satisfy_distinct`: both guard variables MUST be bound by the
-/// positive body — an unbound guard variable is a malformed rule (hard error).
-fn distinct_pairs_satisfied(
-    distinct_pairs: &[(&str, &str)],
-    sol: &Solution,
-) -> Result<bool, String> {
-    for (a, b) in distinct_pairs {
-        let va = sol.get(a).ok_or_else(|| {
-            format!("Inequality guard variable {a:?} is unbound after body matching")
-        })?;
-        let vb = sol.get(b).ok_or_else(|| {
-            format!("Inequality guard variable {b:?} is unbound after body matching")
-        })?;
-        if n3(va) == n3(vb) {
-            return Ok(false);
-        }
-    }
-    Ok(true)
-}
-
-/// Whether a positive atom's binding to fact `f` is restricted to a delta scan.
-///
-/// In a delta-position scan we walk only the rows in the predicate bucket whose key
-/// is in `delta`; in a full-store scan we walk the whole bucket.  Both walk the
-/// insertion-ordered bucket so the matched subsequence (and thus `source_keys`
-/// order) is identical to a full scan filtered after the fact.
-enum Scan {
-    /// Bind `a_p` to facts whose key is **in** `delta` (the "new at p" position).
-    Delta,
-    /// Bind to **any** fact in the full store (no delta constraint).
-    Full,
-    /// Bind only to facts whose key is **not** in `delta` (the "old after p"
-    /// positions, j > p, that keep each delta-touching solution produced once).
-    OldOnly,
-}
-
-/// Extend each partial solution by matching `atom` against the store under `scan`.
-///
-/// Uses the predicate index for the constant-predicate case (every foundation rule)
-/// and intersects the bucket with `delta` membership for the [`Scan::Delta`] /
-/// [`Scan::OldOnly`] positions.  Walks the bucket in insertion order so the produced
-/// solutions (and their `source_keys`) match a full insertion-ordered scan.
-fn extend_solutions(
-    atom: &Atom,
-    store: &FactStore,
-    delta: &HashSet<(String, String, String)>,
-    scan: &Scan,
-    solutions: &[Solution],
-) -> Vec<Solution> {
-    let in_delta = |f: &Fact| delta.contains(&f.key());
-    let keep = |f: &Fact| match scan {
-        Scan::Delta => in_delta(f),
-        Scan::Full => true,
-        Scan::OldOnly => !in_delta(f),
-    };
-    let mut next: Vec<Solution> = Vec::new();
-    for sol in solutions {
-        match &atom.predicate {
-            TermPat::Const(p) => {
-                // Constant predicate: scan only the predicate's (insertion-ordered)
-                // bucket, gated by the delta membership the scan mode requires.
-                for &i in store.facts_for_predicate(p) {
-                    let f = &store.facts[i];
-                    if !keep(f) {
-                        continue;
-                    }
-                    if let Some(mut merged) = match_atom(atom, f, sol) {
-                        merged.source_keys.push(f.key());
-                        next.push(merged);
-                    }
-                }
-            }
-            TermPat::Var(_) => {
-                // Variable predicate: full scan (no foundation rule hits this, but it
-                // must remain correct), gated by the same delta membership.
-                for f in &store.facts {
-                    if !keep(f) {
-                        continue;
-                    }
-                    if let Some(mut merged) = match_atom(atom, f, sol) {
-                        merged.source_keys.push(f.key());
-                        next.push(merged);
-                    }
-                }
-            }
-        }
-    }
-    next
-}
-
-/// Join all body atoms against the fact store with **true semi-naive** delta×full
-/// evaluation.
-///
-/// Instead of computing the full join and discarding non-delta solutions at the end,
-/// this enumerates, for each positive body atom position `p`, the term
-///
-/// ```text
-///   a_p  ∈ delta          (new at p)
-///   a_j  ∈ full store      for j < p   (any binding before p)
-///   a_j  ∈ store \ delta   for j > p   (old after p)
-/// ```
-///
-/// The disjoint "new at p, old after p" decomposition produces every delta-touching
-/// solution **exactly once** — at its *first* (lowest-index) delta position — so the
-/// union over `p` needs no further deduplication.  A round whose `delta` equals the
-/// whole store (the per-stratum first round) degenerates to the full join, as
-/// required for correctness.
-///
-/// NAF literals are filtered after the positive join, and the union over positions is
-/// concatenated in increasing `p` order (so within a fixed `p` the source-key order
-/// is the insertion-ordered scan order).  Mirrors `_join_body_atoms` semantically —
-/// the *answer set* (head facts derived over the whole chase) is identical.
-///
-/// When multiple firings within a single round derive the same head `(s, p, o)` with
-/// different source sets, the winner is chosen by a **quality-ordered total-order**
-/// tiebreak — smaller tuple wins, independent of firing-enumeration order:
-///
-/// 1. **Fewest derivation steps** (`max_src_depth`) — prefer the candidate whose
-///    deepest source fact has the lowest depth (asserted facts have depth 0, so a
-///    derivation grounded directly in assertions scores 0 here).
-/// 2. **Asserted-rooted preference** (`sum_src_depth`) — tiebreak on the sum of
-///    source-fact depths; a derivation rooted closer to asserted axioms scores lower.
-/// 3. **Lexicographically-minimal sorted source reifiers** (`sorted_sources`) — the
-///    final content-addressed tiebreaker that guarantees a unique winner.
-///
-/// Because all three comparison fields are deterministically computable from the
-/// content-addressed source reifiers and depth counts, the winning provenance is
-/// entirely **independent of firing-enumeration order** — multiple valid derivations
-/// of the same head always collapse to the same winner.
-fn join_body(
-    rule: &Rule,
-    store: &FactStore,
-    delta: &HashSet<(String, String, String)>,
-) -> Vec<Solution> {
-    let positive: Vec<&Atom> = rule.body.iter().filter(|a| !a.negated).collect();
-    let negated: Vec<&Atom> = rule.body.iter().filter(|a| a.negated).collect();
-
-    let empty = Solution {
-        bindings: Vec::new(),
-        source_keys: Vec::new(),
-    };
-
-    let mut solutions: Vec<Solution> = if positive.is_empty() {
-        // Zero positive atoms: the empty solution is the only candidate.  It touches
-        // no facts, so it never satisfies the semi-naive delta condition — emit it
-        // only in a "full" round (delta == whole store covers the legitimate first
-        // round; otherwise an empty-body rule has nothing new to fire on).  This
-        // matches the old end-filter, where an empty source_keys list never passed
-        // `any(|k| delta.contains(k))`.
-        Vec::new()
-    } else {
-        // True semi-naive: union over the delta position p of
-        //   { a_p ∈ delta, a_{<p} ∈ full, a_{>p} ∈ store \ delta }.
-        let k = positive.len();
-        let mut all: Vec<Solution> = Vec::new();
-        for p in 0..k {
-            let mut partial: Vec<Solution> = vec![empty.clone()];
-            for (j, atom) in positive.iter().enumerate() {
-                let scan = if j < p {
-                    Scan::Full
-                } else if j == p {
-                    Scan::Delta
-                } else {
-                    Scan::OldOnly
-                };
-                partial = extend_solutions(atom, store, delta, &scan, &partial);
-                if partial.is_empty() {
-                    break;
-                }
-            }
-            all.extend(partial);
-        }
-        all
-    };
-
-    // NAF filter: drop any binding whose grounded negated atoms still match a fact.
-    if !negated.is_empty() {
-        solutions.retain(|sol| {
-            !negated
-                .iter()
-                .any(|neg| negated_atom_satisfied(neg, sol, store))
-        });
-    }
-
-    solutions
-}
-
-// ── Per-world chase ──────────────────────────────────────────────────────────────
-
-/// Run the stratified semi-naive chase in one world, producing asserted + derived
-/// quads with full provenance, with NAF (negation-as-failure) enabled.
-///
-/// # Winner selection (quality-ordered total-order tiebreak)
-///
-/// When multiple rule firings in the same round derive the same head `(s, p, o)`, the
-/// winner is chosen by comparing `(max_src_depth, sum_src_depth, sorted_sources)` —
-/// smaller wins.  This prefers the most-direct derivation (fewest steps from asserted
-/// facts), tiebreaks toward asserted-rooted proofs, and uses lex-min sorted reifiers
-/// as a final content-addressed guarantee.  The comparison is **independent of
-/// firing-enumeration order** by construction.
-fn chase_world(world_iri: &str, initial: &[Fact]) -> Result<Vec<FoundationQuad>, String> {
-    let mut store = FactStore::new();
-    for f in initial {
-        store.insert(f.clone());
-    }
-
-    // Per-fact derivation-depth map: depth 0 for every asserted (initial) fact;
-    // derived facts get depth = 1 + max(source depths) when committed.
-    let mut depth: HashMap<(String, String, String), u32> = HashMap::new();
-
-    // Asserted quads: source = [self reifier], rule = logic:assert.
-    let mut out: Vec<FoundationQuad> = Vec::with_capacity(initial.len());
-    for f in initial {
-        depth.insert(f.key(), 0); // asserted facts have depth 0
-        let reifier = fact_reifier(f)?;
-        let deriv = mint_derivation_id(ASSERT_RULE_IRI, &[reifier.as_str()]);
-        out.push(FoundationQuad {
-            graph: world_iri.to_owned(),
-            subject: f.subject.clone(),
-            predicate: f.predicate.clone(),
-            object: n3(&f.object),
-            rule_iri: ASSERT_RULE_IRI.to_owned(),
-            source_quad_ids: vec![reifier],
-            derivation_id: deriv,
-        });
-    }
-
-    let mut derived: Vec<FoundationQuad> = Vec::new();
-
-    for stratum in STRATA {
-        // Reset delta to ALL current facts so this stratum re-derives against
-        // everything settled below it (per-stratum reset).
-        let mut delta: HashSet<(String, String, String)> = store.keys.clone();
-
-        loop {
-            // Per-round canonical-winner map: keyed by head key, holds the candidate
-            // chosen by a quality-ordered total-order tiebreak (see struct doc).
-            // This makes provenance selection independent of firing-enumeration order.
-            let mut round: HashMap<(String, String, String), RoundCandidate> = HashMap::new();
-
-            for rule in stratum.iter() {
-                for sol in join_body(rule, &store, &delta) {
-                    if !distinct_pairs_satisfied(rule.distinct_pairs, &sol)? {
-                        continue;
-                    }
-                    let hs = ground(&rule.head.subject, &sol)
-                        .ok_or("head subject unbound after body matching")?;
-                    let hp = ground(&rule.head.predicate, &sol)
-                        .ok_or("head predicate unbound after body matching")?;
-                    let ho = ground(&rule.head.object, &sol)
-                        .ok_or("head object unbound after body matching")?;
-                    let head = Fact {
-                        subject: hs,
-                        predicate: hp,
-                        object: ho,
-                    };
-                    let key = head.key();
-                    if store.contains_key(&key) {
-                        continue; // a prior round already derived it; earlier round wins
-                    }
-
-                    // Provenance: reifiers of the matched positive body facts.  All
-                    // foundation terms are IRIs, so every source is included (the
-                    // Python filter to URIRef subj/pred never drops any here).
-                    let mut sources: Vec<String> = Vec::with_capacity(sol.source_keys.len());
-                    // Compute depth fields from source fact keys.  Every source fact was
-                    // already committed (asserted or a prior-round winner), so its depth
-                    // entry is always present.  The `unwrap_or(&0)` is a defensive guard
-                    // only — a missing entry would indicate a chase-ordering bug, NOT a
-                    // legitimate absent depth (we never silently mask that by choosing 0).
-                    let mut max_sd: u32 = 0;
-                    let mut sum_sd: u64 = 0;
-                    for sk in &sol.source_keys {
-                        // sk holds the bare (s, p, o) IRIs of a matched body fact.
-                        sources.push(triple_reifier(&sk.0, &sk.1, &sk.2)?);
-                        let d = *depth.get(sk).unwrap_or(&0);
-                        max_sd = max_sd.max(d);
-                        sum_sd = sum_sd.saturating_add(u64::from(d));
-                    }
-                    let src_refs: Vec<&str> = sources.iter().map(String::as_str).collect();
-                    let deriv = mint_derivation_id(ANON_RULE_IRI, &src_refs);
-                    let mut sorted_sources = sources.clone();
-                    sorted_sources.sort();
-
-                    // Quality-ordered total-order tiebreak:
-                    //   (max_src_depth, sum_src_depth, sorted_sources) — smaller wins.
-                    // Level 1: fewest derivation steps (most direct).
-                    // Level 2: asserted-rooted preference (lower depth sum).
-                    // Level 3: lex-min sorted reifiers (content-addressed final key).
-                    let candidate = RoundCandidate {
-                        head,
-                        sources,
-                        sorted_sources,
-                        deriv,
-                        max_src_depth: max_sd,
-                        sum_src_depth: sum_sd,
-                    };
-                    round
-                        .entry(key)
-                        .and_modify(|existing| {
-                            let cand_key = (
-                                candidate.max_src_depth,
-                                candidate.sum_src_depth,
-                                &candidate.sorted_sources,
-                            );
-                            let exist_key = (
-                                existing.max_src_depth,
-                                existing.sum_src_depth,
-                                &existing.sorted_sources,
-                            );
-                            if cand_key < exist_key {
-                                *existing = candidate.clone();
-                            }
-                        })
-                        .or_insert(candidate);
-                }
-            }
-
-            if round.is_empty() {
-                break; // fixpoint
-            }
-
-            // Commit all winners from this round (commit order doesn't matter; final
-            // output is canonically sorted at the call site).
-            let mut new_delta: HashSet<(String, String, String)> =
-                HashSet::with_capacity(round.len());
-            for (key, c) in round {
-                // Record the winner's depth: 1 + max(source depths).
-                // Empty source sets (zero positive body atoms) get depth 1 by convention.
-                let winner_depth = c.max_src_depth.saturating_add(1);
-                depth.insert(key.clone(), winner_depth);
-                store.insert(c.head.clone());
-                derived.push(FoundationQuad {
-                    graph: world_iri.to_owned(),
-                    subject: c.head.subject,
-                    predicate: c.head.predicate,
-                    object: n3(&c.head.object),
-                    rule_iri: ANON_RULE_IRI.to_owned(),
-                    source_quad_ids: c.sources,
-                    derivation_id: c.deriv,
-                });
-                new_delta.insert(key);
-            }
-            delta = new_delta;
-        }
-    }
-
-    out.extend(derived);
-    Ok(out)
 }
 
 /// Strip a leading `<` and trailing `>` from an N3 IRI form, returning the inner
@@ -3396,81 +2936,13 @@ pub fn evaluate(
     store: &WorldStore,
     policy: AntiRigidityPolicy,
 ) -> Result<Vec<FoundationQuad>, String> {
-    // Collect per-world initial facts, worlds in sorted order (mirrors the oracle's
-    // `for world_iri, facts in sorted(world_facts.items())`).  Within a world, facts
-    // are inserted in the store's iteration order; the chase's first-wins provenance
-    // is robust to that order for the assertions (each asserted quad is self-sourced).
-    let mut worlds = store.worlds();
-    worlds.sort();
-
-    // Build the per-world initial fact sets (IRI validation + deterministic sort).
-    // This is done sequentially because `store.quads_in_world` takes a shared ref
-    // and the error path must abort early.
-    let mut world_inputs: Vec<(String, Vec<Fact>)> = Vec::with_capacity(worlds.len());
-    for world in &worlds {
-        let raw = store.quads_in_world(world);
-        // Foundation facts are all-IRI triples; object is an IRI string (oxigraph
-        // renders IRIs as `<iri>` in to_string()).  Strip the angle brackets so the
-        // Fact carries bare IRIs (object n3 is recomputed on output).
-        let mut initial: Vec<Fact> = Vec::with_capacity(raw.len());
-        for r in &raw {
-            let subject = strip_angle(&r[0]).to_owned();
-            let predicate = strip_angle(&r[1]).to_owned();
-            // Foundation requires all-IRI triples (no-optionality: no literal/blank
-            // support).  oxigraph renders an IRI object as `<iri>`; anything else is a
-            // literal or blank node, which can never match an IRI-constant atom and
-            // would later abort provenance minting (fact_reifier -> NamedNode::new)
-            // with an opaque error.  Reject it up front with a clear message instead.
-            let object = match strip_angle_opt(&r[2]) {
-                Some(iri) => iri.to_owned(),
-                None => {
-                    return Err(format!(
-                        "foundation requires IRI triples: non-IRI object {:?} \
-                         (subject {:?}, predicate {:?}) in world {world}",
-                        r[2], r[0], r[1]
-                    ));
-                }
-            };
-            initial.push(Fact {
-                subject,
-                predicate,
-                object,
-            });
-        }
-        // Sort the initial facts by N3 key so insertion order is deterministic and
-        // independent of oxigraph's internal iteration order.
-        initial.sort_by_key(Fact::key);
-        world_inputs.push((world.clone(), initial));
-    }
-
-    // Chase each world.  When there are multiple worlds each with enough facts to
-    // amortize rayon thread-pool overhead, run in parallel — each `chase_world`
-    // call is a pure function (read-only rules, no shared mutable state) that
-    // produces its own Vec<FoundationQuad>.  Single-world inputs (and the common
-    // case of tiny conformance cases) fall through to the sequential path.
-    //
-    // Threshold: parallel when worlds > 1 AND total facts > 500.  Below that the
-    // thread-pool spin-up cost exceeds the chase cost on these small inputs.
-    let total_facts: usize = world_inputs.iter().map(|(_, f)| f.len()).sum();
-    let use_parallel = world_inputs.len() > 1 && total_facts > 500;
-
-    let mut all: Vec<FoundationQuad> = Vec::new();
-    if use_parallel {
-        // Parallel: collect results indexed by world position so output order is
-        // identical to the sequential case (worlds were sorted above).
-        let results: Vec<Result<Vec<FoundationQuad>, String>> = world_inputs
-            .par_iter()
-            .map(|(world_iri, initial)| chase_world(world_iri, initial))
-            .collect();
-        for r in results {
-            all.extend(r?);
-        }
-    } else {
-        for (world_iri, initial) in &world_inputs {
-            let world_quads = chase_world(world_iri, initial)?;
-            all.extend(world_quads);
-        }
-    }
+    // Chase every world with the single native engine
+    // ([`crate::physical::materialize_native`]).  The foundation program is lowered
+    // into the shared `EvalRule` IR and run against the whole store; the result
+    // includes the asserted-EDB echo and every derived quad, with byte-identical
+    // provenance.  All-IRI validation and the hard-fail contract live inside
+    // `chase_all_worlds_physical`.
+    let mut all: Vec<FoundationQuad> = chase_all_worlds_physical(store)?;
 
     // Cross-world post-passes operate over the union of all materialized quads.  Each
     // reads the chase result, so they are computed before any is folded back in.
