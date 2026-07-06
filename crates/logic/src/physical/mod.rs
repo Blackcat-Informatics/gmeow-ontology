@@ -34,7 +34,9 @@ pub(crate) use store::{Bound, RelationStore, extract_edb};
 // + `NativeOutcome` are the primary forward path consumed by `materialize::materialize_routed`;
 // `evaluate`/`UnsupportedKind` are consumed by the backward `magic` leg.
 #[allow(unused_imports)]
-pub(crate) use seminaive::{NativeOutcome, UnsupportedKind, evaluate, materialize_native};
+pub(crate) use seminaive::{
+    Budgeted, NativeOutcome, UnsupportedKind, evaluate, materialize_native,
+};
 
 // The native restricted (standard) existential-rule chase: value invention for the
 // existential fragment, admitted by the `ChaseAdmission` termination certificate and
