@@ -48,7 +48,7 @@ use purrdf::sparql::NativeSparqlEngine;
 use purrdf::{RdfDataset, SparqlEngine, SparqlRequest, SparqlResult, TermValue};
 use sha2::{Digest, Sha256};
 
-use gmeow_diagnostics::{Finding, Severity};
+use gmeow_errors::{Finding, Severity};
 
 use crate::foundation;
 

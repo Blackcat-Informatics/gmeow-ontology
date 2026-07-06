@@ -10,7 +10,7 @@
 //! (`validate.native_ownership_errors`) collapsed it to a `Vec<String>` and merged
 //! the flat strings into `ValidationResult.errors` — a mid-pipeline fidelity trim
 //! (`.goals` MAXIMAL INFORMATION FLOW). This module — which `gmeow-validate`
-//! already links alongside both `gmeow-slice` and `gmeow-diagnostics`, so no new
+//! already links alongside both `gmeow-slice` and `gmeow-errors`, so no new
 //! crate edge is introduced — projects the report into `Finding`s instead,
 //! preserving the structure and the validate-gate severity split.
 //!
@@ -21,7 +21,7 @@
 //! were previously DROPPED at the string boundary and are now carried with full
 //! structure (non-gating, per `OwnershipReport::has_ownership_defect`).
 
-use gmeow_diagnostics::{Finding, Location, Severity};
+use gmeow_errors::{Finding, Location, Severity};
 use purrdf::slice::{OwnershipDiagnostic, OwnershipReport, OwnershipStatus};
 
 /// The tool / SARIF-rule namespace for every slice-ownership finding.

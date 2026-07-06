@@ -18,7 +18,7 @@ use std::time::Instant;
 
 use std::sync::Arc;
 
-use gmeow_diagnostics::{Finding, FindingCategory, Report, Severity};
+use gmeow_errors::{Finding, FindingCategory, Report, Severity};
 use gmeow_logic::certificate::ContradictionPolicy;
 use purrdf::gts::model::Graph;
 use purrdf::{
@@ -2087,7 +2087,7 @@ ex:governingContract rdf:type logic:ReasoningContract ;
         );
         assert_eq!(
             advisory_findings[0].severity,
-            gmeow_diagnostics::Severity::Note,
+            gmeow_errors::Severity::Note,
             "demonstrator advisory must be a Note"
         );
 

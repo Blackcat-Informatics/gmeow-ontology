@@ -27,7 +27,7 @@ use std::collections::BTreeMap;
 use std::path::Path;
 
 use crate::mapping_purity::lint_dsl_mapping_purity;
-use gmeow_diagnostics::{Finding, Location, Report, Severity};
+use gmeow_errors::{Finding, Location, Report, Severity};
 use gmeow_logic_compile::ir::{Correspondence, DischargeVerdict};
 use gmeow_logic_compile::projections::ProjectionResult;
 use gmeow_logic_compile::projections::correspondence::{

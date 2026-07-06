@@ -20,7 +20,7 @@ use pyo3::types::{PyBytes, PyDict, PyList};
 use crate::model::DocsModel;
 use crate::render::{self, Site};
 use crate::{i18n_compile, lint, rdf};
-use gmeow_diagnostics::py::PyReport;
+use gmeow_errors::py::PyReport;
 
 /// Build the documentation model from the repo `root` and return it as a
 /// deterministic JSON string.
@@ -241,7 +241,7 @@ impl DocSet {
     }
 
     /// Lint the rendered site + model and return the shared diagnostics
-    /// [`Report`](gmeow_diagnostics::py::PyReport) pyclass.
+    /// [`Report`](gmeow_errors::py::PyReport) pyclass.
     ///
     /// Errors are integrity defects (dangling links / broken anchors);
     /// warnings are coverage gaps. The caller (`doc-lint`) fails the gate when

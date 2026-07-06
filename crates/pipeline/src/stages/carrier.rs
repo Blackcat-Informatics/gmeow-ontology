@@ -2831,7 +2831,7 @@ fn run_verify_attestation(root: &Path, edb: &purrdf::RdfDataset) -> Result<Vec<u
     // The failed set: stems whose finding is an error coded `verify.<stem>`.
     let mut failed: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
     for finding in &report.findings {
-        if matches!(finding.severity, gmeow_diagnostics::Severity::Error)
+        if matches!(finding.severity, gmeow_errors::Severity::Error)
             && finding.code.starts_with("verify.")
         {
             failed.insert(finding.code["verify.".len()..].to_string());

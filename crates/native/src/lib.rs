@@ -5,10 +5,10 @@
 //!
 //! # Why one cdylib
 //!
-//! `gmeow-diagnostics` defines the `Report` / `Finding` pyclasses. When that
+//! `gmeow-errors` defines the `Report` / `Finding` pyclasses. When that
 //! crate is statically linked into several *separate* cdylibs (the old
 //! `purrdf` / `gmeow_validate` / `gmeow_logic` / `purrdf::shapes` /
-//! `gmeow_diagnostics` extensions), each cdylib gets its **own** copy of the
+//! `gmeow_errors` extensions), each cdylib gets its **own** copy of the
 //! `Report` type. A `Report` produced by one extension is then "not an instance
 //! of" the `Report` of another — PyO3 raises
 //! `TypeError: 'Report' object is not an instance of 'Report'` across the seam.
@@ -81,13 +81,7 @@ fn gmeow_native(py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()> {
     // The RDF / SHACL / slice Python surface is the external `purrdf` package
     // (PyO3-free crates, so there is no `register` fn to fold here). This cdylib
     // registers only the gmeow-owned engines.
-    add_engine_submodule(
-        py,
-        m,
-        &sys_modules,
-        "diagnostics",
-        gmeow_diagnostics::register,
-    )?;
+    add_engine_submodule(py, m, &sys_modules, "diagnostics", gmeow_errors::register)?;
     add_engine_submodule(py, m, &sys_modules, "validate", gmeow_validate::register)?;
     add_engine_submodule(py, m, &sys_modules, "logic", gmeow_logic::register)?;
     add_engine_submodule(py, m, &sys_modules, "docs", gmeow_docs::register)?;
