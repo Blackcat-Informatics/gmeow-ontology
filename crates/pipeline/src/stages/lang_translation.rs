@@ -45,8 +45,6 @@ use gmeow_logic_compile::ir::PreservationKind;
 use gmeow_logic_compile::projections::ProjectionResult;
 use purrdf::slice::{ArtifactRole, SliceCatalog};
 
-use crate::error::PipelineError;
-
 const LANG_NS: &str = "https://blackcatinformatics.ca/lang/";
 const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
@@ -91,12 +89,14 @@ struct Unit {
 /// Iterates the slice catalog's `ArtifactRole::TranslationCatalog` artifacts and, via
 /// [`parse_po`] (which keeps EVERY entry, including untranslated gaps), types each
 /// `msgctxt = "<term-iri>|<predicate-curie>"` entry as a `lang:TranslationUnit`.
-pub fn build_corpus(root: &Path) -> Result<LangTranslationCorpus, PipelineError> {
+pub fn build_corpus(root: &Path) -> Result<LangTranslationCorpus, gmeow_errors::Diag> {
     let catalog =
         SliceCatalog::discover(&root.join("slices"), crate::gmeow_ns::gmeow_slice_vocab())
-            .map_err(|e| PipelineError::Stage {
-                stage: "stage-mappings".to_string(),
-                message: format!("lang-translation slice catalog: {e}"),
+            .map_err(|e| {
+                gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                    stage: "stage-mappings".to_string(),
+                    message: format!("lang-translation slice catalog: {e}"),
+                })
             })?;
 
     let mut units: Vec<Unit> = Vec::new();
@@ -107,14 +107,15 @@ pub fn build_corpus(root: &Path) -> Result<LangTranslationCorpus, PipelineError>
             }
             // A translation catalog is required input: invalid UTF-8 is a HARD FAIL, never
             // a silent lossy repair that would corrupt the surface text it carries.
-            let text =
-                std::str::from_utf8(&artifact.content).map_err(|e| PipelineError::Stage {
+            let text = std::str::from_utf8(&artifact.content).map_err(|e| {
+                gmeow_errors::Diag::of_kind(crate::error::StageFailed {
                     stage: "stage-mappings".to_string(),
                     message: format!(
                         "lang-translation: translation catalog '{}' is not valid UTF-8: {e}",
                         artifact.logical_path
                     ),
-                })?;
+                })
+            })?;
             let parsed = parse_po(text);
             let lang = parsed.language.trim().to_string();
             // A catalog with no BCP-47 language header, or the English carrier itself,
@@ -207,7 +208,7 @@ pub(crate) fn target_surface_iri(msgctxt: &str, msgstr: &str, lang: &str) -> Str
 /// language. Script is material identity a surface hash needs, so an unknown language is a
 /// HARD FAIL (no silent default): a newly-added catalog forces an explicit script mapping
 /// and its `lang:Script` individual in `slices/grounding/lang/module.ttl`.
-pub(crate) fn script_for_lang(lang: &str) -> Result<&'static str, PipelineError> {
+pub(crate) fn script_for_lang(lang: &str) -> Result<&'static str, gmeow_errors::Diag> {
     let primary = lang
         .split(['-', '_'])
         .next()
@@ -216,14 +217,14 @@ pub(crate) fn script_for_lang(lang: &str) -> Result<&'static str, PipelineError>
     match primary.as_str() {
         "en" | "fr" => Ok("latinScript"),
         "zh" => Ok("hanScript"),
-        _ => Err(PipelineError::Stage {
+        _ => Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
             stage: "stage-mappings".to_string(),
             message: format!(
                 "lang-translation: no lang:Script mapping for BCP-47 language '{lang}'; add \
                  its lang:Script individual to slices/grounding/lang/module.ttl and extend \
                  script_for_lang"
             ),
-        }),
+        })),
     }
 }
 

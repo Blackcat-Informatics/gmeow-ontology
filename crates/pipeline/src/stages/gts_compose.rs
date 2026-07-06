@@ -16,7 +16,6 @@ use std::sync::Arc;
 
 use purrdf::RdfDataset;
 
-use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 use crate::stages::source_load::dataset_to_sorted_nquads;
 
@@ -41,21 +40,25 @@ use crate::stages::source_load::dataset_to_sorted_nquads;
 /// EXPLANATIONS and DL·EL crosscheck LEDGER reports ride its byte lane only and are
 /// therefore EXCLUDED from this union BY CONSTRUCTION (replacing the old path-based
 /// skip) — the composed dataset contains the closure but no report triples.
-pub fn compose(upstream: &BTreeMap<String, StageProduct>) -> Result<RdfDataset, PipelineError> {
+pub fn compose(
+    upstream: &BTreeMap<String, StageProduct>,
+) -> Result<RdfDataset, gmeow_errors::Diag> {
     // The base graph (required).
     let base = upstream
         .get("stage-source-load")
-        .ok_or_else(|| PipelineError::Stage {
-            stage: "stage-gts-compose".to_string(),
-            message: "missing source_load product".to_string(),
+        .ok_or_else(|| {
+            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                stage: "stage-gts-compose".to_string(),
+                message: "missing source_load product".to_string(),
+            })
         })?
         .bundle()
         .clone();
     if base.dataset().quad_count() == 0 {
-        return Err(PipelineError::Stage {
+        return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
             stage: "stage-gts-compose".to_string(),
             message: "source_load base-graph dataset is empty".to_string(),
-        });
+        }));
     }
 
     // The RDF 1.2 statement layer — REQUIRED and non-empty. A declared upstream of
@@ -63,19 +66,22 @@ pub fn compose(upstream: &BTreeMap<String, StageProduct>) -> Result<RdfDataset, 
     // compose a statement-layer-less dataset (no-optionality).
     let statements = upstream
         .get("stage-statements")
-        .ok_or_else(|| PipelineError::Stage {
-            stage: "stage-gts-compose".to_string(),
-            message: "missing stage-statements product (the RDF 1.2 statement layer is required)"
-                .to_string(),
+        .ok_or_else(|| {
+            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                stage: "stage-gts-compose".to_string(),
+                message:
+                    "missing stage-statements product (the RDF 1.2 statement layer is required)"
+                        .to_string(),
+            })
         })?
         .bundle()
         .clone();
     if statements.dataset().quad_count() == 0 {
-        return Err(PipelineError::Stage {
+        return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
             stage: "stage-gts-compose".to_string(),
             message: "stage-statements product carries an empty RDF 1.2 statement-layer dataset"
                 .to_string(),
-        });
+        }));
     }
 
     // Only the statement layer rides WHOLE (its RDF-1.2 reifier/annotation side-tables
@@ -106,7 +112,7 @@ pub fn compose(upstream: &BTreeMap<String, StageProduct>) -> Result<RdfDataset, 
 /// looped contributor's ontology contribution (its default graph) while excluding any
 /// named sidecar graph it carries (the reason product's `graph/reasoning` handle
 /// backing — C7).
-fn default_graph_only(dataset: &RdfDataset) -> Result<Arc<RdfDataset>, PipelineError> {
+fn default_graph_only(dataset: &RdfDataset) -> Result<Arc<RdfDataset>, gmeow_errors::Diag> {
     let mut builder = purrdf::RdfDatasetBuilder::new();
     for quad in dataset.owned_quads() {
         if quad.graph_name.is_none() {
@@ -119,9 +125,11 @@ fn default_graph_only(dataset: &RdfDataset) -> Result<Arc<RdfDataset>, PipelineE
     for annotation in dataset.owned_annotations() {
         builder.push_owned_annotation(&annotation);
     }
-    builder.freeze().map_err(|e| PipelineError::Stage {
-        stage: "stage-gts-compose".to_string(),
-        message: format!("default-graph projection freeze: {e}"),
+    builder.freeze().map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            stage: "stage-gts-compose".to_string(),
+            message: format!("default-graph projection freeze: {e}"),
+        })
     })
 }
 
@@ -131,7 +139,9 @@ fn default_graph_only(dataset: &RdfDataset) -> Result<Arc<RdfDataset>, PipelineE
 /// itself rides the stage product's `bundle.dataset` carrier (C2/C11), so there
 /// is no `composed.nq` artifact byte lane — `snapshot` and every other consumer take the
 /// carried dataset, not a re-parsed byte artifact.
-pub fn compose_nquads(upstream: &BTreeMap<String, StageProduct>) -> Result<Vec<u8>, PipelineError> {
+pub fn compose_nquads(
+    upstream: &BTreeMap<String, StageProduct>,
+) -> Result<Vec<u8>, gmeow_errors::Diag> {
     let composed = compose(upstream)?;
     dataset_to_sorted_nquads(&composed)
 }
@@ -176,7 +186,7 @@ impl Stage for GtsComposeStage {
     fn impl_version(&self) -> &str {
         "gts_compose.v1"
     }
-    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
+    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         // Assemble the composed dataset natively by unioning the upstream stages'
         // carried datasets (C2). The stage's product carries the composed
         // DATASET as its bundle's frozen dataset — the SOLE carrier. The old
@@ -184,13 +194,11 @@ impl Stage for GtsComposeStage {
         // consumer reads the carried dataset, and `reason` re-projects the byte EDB it
         // needs through `compose_nquads` itself, so the artifact had no reader.
         let composed = compose(input.upstream)?;
-        Ok(StageOutput {
-            product: StageProduct::from_artifacts_over(
-                self.id(),
-                Arc::new(composed),
-                BTreeMap::new(),
-            ),
-        })
+        Ok(StageOutput::new(StageProduct::from_artifacts_over(
+            self.id(),
+            Arc::new(composed),
+            BTreeMap::new(),
+        )))
     }
 }
 
