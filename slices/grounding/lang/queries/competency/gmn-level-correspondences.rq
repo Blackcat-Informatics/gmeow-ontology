@@ -1,0 +1,21 @@
+# Competency question: "Which preservation judgment does each GMN level crossing
+# carry?"  The GMN dialect stack is judged, never asserted flat: every crossing
+# between dialect levels is a lang:TranslationUnit carrying its law-spine on
+# exactly one logic:Correspondence, and the honest adequacy of the crossing lives
+# THERE — logic:preservationKind plus the logic:mnemomorphic recoverability
+# witness. This query reads the doctrine off the module: the two GMN-0 encodings
+# (GTS, N-Quads) are ExactPreservation with a retained witness (true), the
+# GMN-0 → GMN-1 view is SoundUnderApproximation with no witness (false), and the
+# GMN-1 → GMN-2 compaction discipline is ValidationOnly with no witness (false).
+PREFIX lang: <https://blackcatinformatics.ca/lang/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+
+SELECT ?unit ?corr ?preservation ?mnemomorphic WHERE {
+    ?unit a lang:TranslationUnit ;
+          lang:translationCorrespondence ?corr .
+    ?corr logic:preservationKind ?preservation ;
+          logic:mnemomorphic ?mnemomorphicRaw .
+    FILTER(STRSTARTS(STR(?unit), "https://blackcatinformatics.ca/gmeow/gmnUnit"))
+    BIND(STR(?mnemomorphicRaw) AS ?mnemomorphic)
+}
+ORDER BY ?unit
