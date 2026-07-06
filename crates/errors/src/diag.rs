@@ -532,10 +532,82 @@ macro_rules! ensure {
     };
 }
 
+/// Define a domain error type that is a [`DiagKind`] in one place — the
+/// mechanical-conversion seam the downstream error-enum migrations build on.
+///
+/// It generates the struct, its `Display` (from a positional format string over
+/// the fields — positional `{}` is used, not implicit `{field}` capture, because
+/// the latter does not work through a macro metavariable), its
+/// [`std::error::Error`] impl, and its [`DiagKind`] impl, and it registers the
+/// code lazily-once via a `LazyLock`. Each type also gets an associated
+/// `register()` for eager startup seeding and a `CODE` string constant.
+///
+/// ```ignore
+/// define_diag_kind! {
+///     /// No stage implementation is registered under `impl_key`.
+///     pub struct UnknownStageImpl { stage: String, impl_key: String }
+///     code = "pipeline.unknown-stage-impl";
+///     grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
+///     message = "no impl `{}` for stage `{}`", impl_key, stage;
+/// }
+/// ```
+#[macro_export]
+macro_rules! define_diag_kind {
+    (
+        $(#[$meta:meta])*
+        $vis:vis struct $name:ident { $( $field:ident : $fty:ty ),* $(,)? }
+        code = $code:literal;
+        grade = $grade:expr;
+        message = $msg:literal $(, $marg:ident)* $(,)?;
+    ) => {
+        $(#[$meta])*
+        #[derive(::std::fmt::Debug, ::std::clone::Clone)]
+        $vis struct $name {
+            $( pub $field: $fty ),*
+        }
+
+        impl $name {
+            /// This kind's registered code string. (Not every caller reads it;
+            /// generated API items carry `allow(dead_code)`.)
+            #[allow(dead_code)]
+            pub const CODE: &'static str = $code;
+
+            /// The registered [`Code`](crate::code::Code) handle for this kind,
+            /// interned once on first use (idempotent). Call eagerly at startup
+            /// to seed the registry before any `intern`.
+            pub fn register() -> $crate::code::Code {
+                static CODE: ::std::sync::LazyLock<$crate::code::Code> =
+                    ::std::sync::LazyLock::new(|| $crate::code::register_code($code));
+                *CODE
+            }
+        }
+
+        impl ::std::fmt::Display for $name {
+            fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+                let Self { $( $field ),* } = self;
+                // Suppress "unused binding" for fields not named in the message.
+                $( let _ = &$field; )*
+                ::std::write!(f, $msg $(, $marg)*)
+            }
+        }
+
+        impl ::std::error::Error for $name {}
+
+        impl $crate::diag::DiagKind for $name {
+            fn code(&self) -> $crate::code::Code {
+                $name::register()
+            }
+            fn grade(&self) -> $crate::grade::Grade {
+                $grade
+            }
+        }
+    };
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::code::register_code;
+    use crate::code::{intern_code, register_code};
     use static_assertions::assert_not_impl_all;
     use std::io;
 
@@ -684,6 +756,37 @@ mod tests {
         let got = items.collect_all(&mut sink);
         assert_eq!(got, vec![1, 3]);
         assert_eq!(sink.len(), 1);
+    }
+
+    crate::define_diag_kind! {
+        /// A generated kind for the macro test.
+        pub struct UnknownStageImpl { stage: String, impl_key: String }
+        code = "test.define.unknown-stage-impl";
+        grade = Grade::new(
+            Severity::Error,
+            FindingCategory::ModelingDisciplineViolation,
+            Standpoint::Binding,
+        );
+        message = "no impl `{}` for stage `{}`", impl_key, stage;
+    }
+
+    #[test]
+    fn define_diag_kind_binds_code_grade_message_and_registers() {
+        let e = UnknownStageImpl {
+            stage: "reason".to_owned(),
+            impl_key: "nemo".to_owned(),
+        };
+        // Message renders from the fields via the positional format.
+        assert_eq!(e.to_string(), "no impl `nemo` for stage `reason`");
+        assert_eq!(UnknownStageImpl::CODE, "test.define.unknown-stage-impl");
+        // Code is registered (eagerly reachable via register(), and via code()).
+        assert_eq!(e.code(), UnknownStageImpl::register());
+        assert!(intern_code("test.define.unknown-stage-impl").is_ok());
+        // Building a Diag from it preserves code + grade + downcast.
+        let diag = Diag::of_kind(e);
+        assert_eq!(diag.code(), UnknownStageImpl::register());
+        assert_eq!(diag.gate(), GateVerdict::Fatal);
+        assert!(diag.downcast_ref::<UnknownStageImpl>().is_some());
     }
 
     #[test]
