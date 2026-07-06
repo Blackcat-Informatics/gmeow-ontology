@@ -62,6 +62,14 @@ pub struct SparqlLowering {
     /// One [`ProjectionResult`] per correspondence (cell::profile binding) that drops
     /// something — the per-correspondence preservation rows for the loss ledger.
     pub ledger: Vec<ProjectionResult>,
+    /// Per-binding get/put CONSTRUCT fragments, keyed by `(cell IRI, profile)`: the
+    /// single-cell slice of the per-profile query (the get fragment) and its inverse
+    /// (`Some` only when the binding emits a put leg — `None` for an Unsupported binding such
+    /// as `mapSiocTopic`). The per-profile `.rq`/`.put.rq` UNION is the WRONG unit for a lens
+    /// law (it mixes recoverable and non-recoverable branches, so `put∘get` always drops); the
+    /// mappings stage discharges each correspondence's OWN branch against its OWN put fragment.
+    /// Pure strings — no SPARQL engine runs in logic-compile (F2).
+    pub fragments: BTreeMap<(String, String), (String, Option<String>)>,
 }
 
 /// Lower every profile's SPARQL projection query, keyed `<profile>.rq`, plus the
@@ -94,10 +102,33 @@ pub fn lower_sparql(
             ledger.extend(put.ledger);
         }
     }
+
+    // Per-binding get/put fragments: a single-cell slice of the same emitters, so each
+    // correspondence's lens law is dischargeable in ISOLATION (the per-profile UNION mixes
+    // recoverable and non-recoverable branches). Byte-independent of the per-profile queries
+    // above — this is a separate, pure re-render over the already-parsed `cells`/`vocab`; no
+    // engine runs here (F2). Keyed `(cell IRI, profile)` — the mappings stage joins it against
+    // the `corr IRI → profile` map and each correspondence's `get_leg` (= its cell IRI).
+    let mut fragments: BTreeMap<(String, String), (String, Option<String>)> = BTreeMap::new();
+    for cell in &cells {
+        let mut profiles: BTreeSet<&str> = BTreeSet::new();
+        for b in &cell.bindings {
+            profiles.insert(b.profile.as_str());
+        }
+        for profile in profiles {
+            let slice = std::slice::from_ref(cell);
+            let get = emit_sparql(slice, profile, &vocab, lookup)?.query;
+            let put = crate::projections::sparql_put::emit_put(slice, profile, &vocab, lookup)?
+                .map(|p| p.query);
+            fragments.insert((cell.iri.clone(), profile.to_owned()), (get, put));
+        }
+    }
+
     Ok(SparqlLowering {
         queries,
         put_queries,
         ledger,
+        fragments,
     })
 }
 
