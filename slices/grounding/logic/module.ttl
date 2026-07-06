@@ -6931,6 +6931,44 @@ logic:Variadic
     rdfs:label "Variadic"@x-gmeow-english ;
     skos:definition "The residue shape tag for an atomic predication whose argument arity is not the binary Horn shape: it carries a logic:SequenceMarker or a non-binary (unary or n-ary) argument list — the generalization beyond the fixed arity-three triple. Disclosed when a Horn-fragment target carries such a formula as flagged unsupported residue."@x-gmeow-english .
 
+# ── The expressiveness-boundary axis (loss-ledger disclosure) ────────────────
+# The closed value set naming which logical fragment a defining statement
+# inhabits — the machine-readable first-order-vs-second-order axis of the loss
+# ledger. Orthogonal to logic:PreservationKind (answer polarity) and to
+# logic:FormulaShape (which first-order constructs a Horn target cannot carry):
+# some statements (e.g. compactness's "every open cover has a finite subcover")
+# genuinely exceed first-order logic altogether, and that boundary is recorded
+# here as an honest ledger entry rather than faked as a first-order formula.
+
+logic:ExpressivenessBoundary
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Expressiveness Boundary"@x-gmeow-english ;
+    skos:definition "The closed class naming which logical fragment a defining statement inhabits — the machine-readable first-order-vs-second-order axis of the loss ledger, distinct from logic:PreservationKind (answer polarity) and logic:FormulaShape (first-order constructs a Horn target cannot carry). Its individuals are logic:FirstOrder and logic:SecondOrder; the set is closed, so a misspelt value names no declared boundary."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:FirstOrder
+    a owl:NamedIndividual ,
+        logic:ExpressivenessBoundary ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "First-Order"@x-gmeow-english ;
+    skos:definition "The expressiveness boundary of a defining statement authorable as a first-order logic:Formula (∀/∃ over individuals of the reified signature). The topological laws math:continuityLaw/math:connectednessLaw/the T0–T4 separation laws sit here."@x-gmeow-english .
+
+logic:SecondOrder
+    a owl:NamedIndividual ,
+        logic:ExpressivenessBoundary ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Second-Order"@x-gmeow-english ;
+    skos:definition "The expressiveness boundary of a defining statement that genuinely exceeds first-order logic — quantification over families/subsets or an appeal to finiteness (e.g. compactness's 'every open cover has a finite subcover'). Not authorable as a logic:Formula; carried in the loss ledger as an honest boundary with logic:preservationKind logic:Unsupported, never as a fake first-order formula."@x-gmeow-english .
+
+logic:expressivenessBoundary
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "expressiveness boundary"@x-gmeow-english ;
+    rdfs:range logic:ExpressivenessBoundary ;
+    skos:definition "Relates a defining law or a loss-ledger boundary record to the logic:ExpressivenessBoundary its statement inhabits."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 logic:formalizes
     a owl:AnnotationProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
