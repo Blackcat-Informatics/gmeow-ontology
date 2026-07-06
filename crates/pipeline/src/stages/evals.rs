@@ -390,10 +390,15 @@ impl Schema {
     }
 
     /// Validate `instance`, returning the first error message (jsonschema order).
-    fn validate(&self, instance: &Value) -> Result<(), String> {
+    /// On failure the diagnostic carries the jsonschema message VERBATIM (the
+    /// [`crate::error::EvalSchema`] kind's `Display` is the bare message), so the
+    /// scorecard `notes` stay byte-identical to the reference validator.
+    fn validate(&self, instance: &Value) -> gmeow_errors::Result<()> {
         match validate_node(&self.raw, instance) {
             None => Ok(()),
-            Some(err) => Err(err),
+            Some(err) => Err(gmeow_errors::Diag::of_kind(crate::error::EvalSchema {
+                message: err,
+            })),
         }
     }
 }
@@ -598,8 +603,8 @@ fn score_emissions(
                 continue;
             }
         };
-        if let Err(msg) = schema.validate(&obj) {
-            notes.push(invalid_note(&msg));
+        if let Err(diag) = schema.validate(&obj) {
+            notes.push(invalid_note(&diag.to_string()));
             continue;
         }
         valid += 1;

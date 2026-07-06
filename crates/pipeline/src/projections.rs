@@ -23,11 +23,13 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
+use gmeow_errors::{Diag, ResultExt};
 use purrdf::sparql::NativeSparqlEngine;
 use purrdf::{
     RdfLiteral, RdfQuad, RdfTerm, SerializeGraph, SparqlEngine, SparqlRequest, SparqlResult,
 };
 
+use crate::error::Projection;
 use crate::transform::{CellInput, TransformReportNative};
 use crate::up_projection_corpus::{PREFIXES, canon_qname};
 
@@ -112,23 +114,26 @@ fn namespace_of(prefix: &str) -> Option<&'static str> {
 
 /// Parse an N-Triples document into its flat quad stream (RDF 1.2 `rdf:reifies` /
 /// quoted-triple rows stay plain quads, matching the transform's flat store view).
-fn flat_quads_from_nt(nt: &str) -> Result<Vec<RdfQuad>, String> {
+fn flat_quads_from_nt(nt: &str) -> gmeow_errors::Result<Vec<RdfQuad>> {
     if nt.trim().is_empty() {
         return Ok(Vec::new());
     }
     let parsed = purrdf::parse_dataset(nt.as_bytes(), NT_MEDIA_TYPE, None)
-        .map_err(|e| format!("N-Triples parse failed: {e}"))?;
+        .with_ctx(|| "N-Triples parse failed")?;
     Ok(purrdf::flat_rdf_quads_from_dataset(parsed.as_ref()))
 }
 
 /// Serialize a flat default-graph quad stream to canonical N-Triples.
-fn quads_to_nt(quads: &[RdfQuad]) -> Result<String, String> {
-    let flat = purrdf::flat_dataset_from_quads(quads)
-        .map_err(|e| format!("N-Triples flatten failed: {e}"))?;
+fn quads_to_nt(quads: &[RdfQuad]) -> gmeow_errors::Result<String> {
+    let flat = purrdf::flat_dataset_from_quads(quads).map_err(|e| {
+        Diag::of_kind(Projection {
+            message: format!("N-Triples flatten failed: {e}"),
+        })
+    })?;
     let bytes =
         purrdf::serialize_dataset(flat.as_ref(), NT_MEDIA_TYPE, SerializeGraph::DefaultGraph)
-            .map_err(|e| format!("N-Triples serialization failed: {e}"))?;
-    String::from_utf8(bytes).map_err(|e| format!("N-Triples output is not UTF-8: {e}"))
+            .with_ctx(|| "N-Triples serialization failed")?;
+    String::from_utf8(bytes).with_ctx(|| "N-Triples output is not UTF-8")
 }
 
 /// Rewrite the language tag of every literal object whose current tag is a key of
@@ -165,10 +170,17 @@ fn retag_quads(quads: &mut [RdfQuad], tag_map: &TagMap) {
 /// * `source_nt` — the data to project, as N-Triples (ontology + instance data).
 /// * `query` — the compiled CONSTRUCT for the profile (the caller loads it).
 /// * `tag_map` — internal→public language-tag remap for emitted literals.
-pub fn project_graph(source_nt: &str, query: &str, tag_map: &TagMap) -> Result<String, String> {
+pub fn project_graph(
+    source_nt: &str,
+    query: &str,
+    tag_map: &TagMap,
+) -> gmeow_errors::Result<String> {
     let source_quads = flat_quads_from_nt(source_nt)?;
-    let ds = purrdf::flat_dataset_from_quads(&source_quads)
-        .map_err(|e| format!("source dataset build failed: {e}"))?;
+    let ds = purrdf::flat_dataset_from_quads(&source_quads).map_err(|e| {
+        Diag::of_kind(Projection {
+            message: format!("source dataset build failed: {e}"),
+        })
+    })?;
     let engine = NativeSparqlEngine::new();
     let result = engine
         .query(
@@ -179,9 +191,11 @@ pub fn project_graph(source_nt: &str, query: &str, tag_map: &TagMap) -> Result<S
                 substitutions: &[],
             },
         )
-        .map_err(|e| format!("projection query evaluation failed: {e}"))?;
+        .with_ctx(|| "projection query evaluation failed")?;
     let SparqlResult::Graph(triples) = result else {
-        return Err("projection query did not return a graph".to_owned());
+        return Err(Diag::of_kind(Projection {
+            message: "projection query did not return a graph".to_owned(),
+        }));
     };
     let mut out: Vec<RdfQuad> = triples.owned_quads().collect();
     retag_quads(&mut out, tag_map);
@@ -197,9 +211,9 @@ pub fn project_graph(source_nt: &str, query: &str, tag_map: &TagMap) -> Result<S
 /// routed through purrdf. Reads through the native GTS loader
 /// ([`purrdf::gts::flattened_dataset_from_bytes`]) + the flat unfold, so no codec text
 /// sits in the middle.
-pub fn gts_base_graph(gts_bytes: &[u8]) -> Result<Vec<RdfQuad>, String> {
-    let dataset = purrdf::gts::flattened_dataset_from_bytes(gts_bytes)
-        .map_err(|e| format!("gts read failed: {e}"))?;
+pub fn gts_base_graph(gts_bytes: &[u8]) -> gmeow_errors::Result<Vec<RdfQuad>> {
+    let dataset =
+        purrdf::gts::flattened_dataset_from_bytes(gts_bytes).with_ctx(|| "gts read failed")?;
     let flat = purrdf::flat_rdf_quads_from_dataset(dataset.as_ref());
     let mut base = Vec::with_capacity(flat.len());
     for quad in flat {
@@ -219,7 +233,7 @@ pub fn gts_base_graph(gts_bytes: &[u8]) -> Result<Vec<RdfQuad>, String> {
 /// The Rust port of `projections._view_namespaces`. `all` / `maximal` keep the whole
 /// maximal product; `gmeow` keeps only the pure GMEOW base; any other name is a
 /// projection profile, whose registered prefixes resolve to their namespaces.
-pub fn view_namespaces(view: &str) -> Result<BTreeSet<String>, String> {
+pub fn view_namespaces(view: &str) -> gmeow_errors::Result<BTreeSet<String>> {
     if GTS_VIEW_ALL.contains(&view) {
         return Ok(BTreeSet::new());
     }
@@ -227,9 +241,11 @@ pub fn view_namespaces(view: &str) -> Result<BTreeSet<String>, String> {
         return Ok(BTreeSet::from([GM.to_owned()]));
     }
     let profiles = profiles();
-    let profile = profiles
-        .get(view)
-        .ok_or_else(|| format!("unknown gts view / projection profile: {view}"))?;
+    let profile = profiles.get(view).ok_or_else(|| {
+        Diag::of_kind(Projection {
+            message: format!("unknown gts view / projection profile: {view}"),
+        })
+    })?;
     Ok(profile
         .prefixes
         .iter()
@@ -249,7 +265,7 @@ pub fn project_gts_subset(
     gts_bytes: &[u8],
     view: &str,
     tag_map: &TagMap,
-) -> Result<String, String> {
+) -> gmeow_errors::Result<String> {
     let base = gts_base_graph(gts_bytes)?;
     let namespaces = view_namespaces(view)?;
     let mut out: Vec<RdfQuad> = if namespaces.is_empty() {
@@ -318,7 +334,7 @@ pub fn up_project(
     source_nt: &str,
     inputs: &UpProjectionInputs,
     internal_tag_map: &TagMap,
-) -> Result<UpProjection, String> {
+) -> gmeow_errors::Result<UpProjection> {
     let report = crate::put_executor::execute_put_legs(
         source_nt,
         &inputs.sssom_texts,
@@ -399,16 +415,18 @@ pub fn transpile_graph(
     up_inputs: &UpProjectionInputs,
     maximal_inputs: &MaximalInputs,
     internal_tag_map: &TagMap,
-) -> Result<TranspileReport, String> {
+) -> gmeow_errors::Result<TranspileReport> {
     if stem.trim().is_empty() {
-        return Err("transpile_graph: stem must be a non-empty string".to_owned());
+        return Err(Diag::of_kind(Projection {
+            message: "transpile_graph: stem must be a non-empty string".to_owned(),
+        }));
     }
 
     let lift = up_project(source_nt, up_inputs, internal_tag_map)?;
     if lift.graph_nt.trim().is_empty() {
-        return Err(format!(
-            "transpile: nothing lifted to GMEOW from {stem} — empty draft"
-        ));
+        return Err(Diag::of_kind(Projection {
+            message: format!("transpile: nothing lifted to GMEOW from {stem} — empty draft"),
+        }));
     }
 
     let gap_report_md = gap_report(source_nt, &lift, stem)?;
@@ -434,7 +452,7 @@ pub fn transpile_graph(
 /// Render a Markdown gap report — every un-lifted source triple, listed under its
 /// term. The Rust port of `transpile._gap_report`. A triple is un-lifted because its
 /// term has **no lift rule** (a coverage gap); never silently dropped.
-fn gap_report(source_nt: &str, lift: &UpProjection, stem: &str) -> Result<String, String> {
+fn gap_report(source_nt: &str, lift: &UpProjection, stem: &str) -> gmeow_errors::Result<String> {
     let gaps = &lift.gap_terms;
     let source_quads = flat_quads_from_nt(source_nt)?;
     let mut held: BTreeMap<String, Vec<(String, String, String)>> = BTreeMap::new();
@@ -801,7 +819,7 @@ mod tests {
             &TagMap::new(),
         )
         .unwrap_err();
-        assert!(err.contains("nothing lifted"), "{err}");
+        assert!(err.to_string().contains("nothing lifted"), "{err}");
     }
 
     /// Compose a `.gts` from an N-Triples (base + RDF-1.2 statement layer) document,

@@ -122,6 +122,92 @@ define_diag_kind! {
     message = "stage {} failed: {}", stage, message;
 }
 
+define_diag_kind! {
+    /// A hard defect raised inside the native MAXIMAL(G) transform (skolemization,
+    /// saturation, projection, GTS emission): a malformed cell, an unparsable
+    /// input graph, or a serialization failure. The RDF value is invalid or the
+    /// codec refused — a HARD FAIL, never papered over.
+    pub struct Transform { message: String }
+    code = "pipeline.transform";
+    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
+    message = "transform error: {}", message;
+}
+
+define_diag_kind! {
+    /// A hard defect raised while assembling or evaluating a scoreboard / acceptance
+    /// gate (dataset build, SPARQL projection, corpus glob, or gate arithmetic).
+    pub struct Scoreboard { message: String }
+    code = "pipeline.scoreboard";
+    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
+    message = "scoreboard error: {}", message;
+}
+
+define_diag_kind! {
+    /// A hard defect raised by the dogfooding MCP server surface (snapshot decode,
+    /// query dispatch, memory access, or transaction append).
+    pub struct Mcp { message: String }
+    code = "pipeline.mcp";
+    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
+    message = "mcp error: {}", message;
+}
+
+define_diag_kind! {
+    /// A hard defect raised while projecting the GTS base graph into a lossy
+    /// surface (flat-quad decode, namespace scan, or transpile).
+    pub struct Projection { message: String }
+    code = "pipeline.projection";
+    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
+    message = "projection error: {}", message;
+}
+
+define_diag_kind! {
+    /// A hard defect raised by the up-projection audit / corpus lane (lift-program
+    /// build, SSSOM/EDOAL corpus parse, tier resolution, or object-property scan).
+    pub struct UpProjection { message: String }
+    code = "pipeline.up-projection";
+    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
+    message = "up-projection error: {}", message;
+}
+
+define_diag_kind! {
+    /// A hard defect raised by the lawful-put executor (rule build, lift, or the
+    /// round-trip quad emission).
+    pub struct Put { message: String }
+    code = "pipeline.put";
+    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
+    message = "put executor error: {}", message;
+}
+
+define_diag_kind! {
+    /// A hard defect raised while hashing generator source or collecting generator
+    /// metadata for the provenance manifest.
+    pub struct Generator { message: String }
+    code = "pipeline.generator";
+    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
+    message = "generator registry error: {}", message;
+}
+
+define_diag_kind! {
+    /// A hard defect raised while building or verifying a release snapshot
+    /// (evidence assembly, blob replay, or the verify report).
+    pub struct Release { message: String }
+    code = "pipeline.release";
+    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
+    message = "release error: {}", message;
+}
+
+define_diag_kind! {
+    /// A JSON-Schema instance failed validation against an evals schema (a closed
+    /// contract violation in the evals stage). The message is the jsonschema
+    /// `validate()` first-line wording VERBATIM (no prefix) — the scorecard `notes`
+    /// are byte-identical to the reference validator, so the diagnostic carries the
+    /// raw message unadorned.
+    pub struct EvalSchema { message: String }
+    code = "pipeline.eval.schema";
+    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
+    message = "{}", message;
+}
+
 /// The complete pipeline diagnostic-code catalog, in registration order. Every
 /// [`DiagKind`](gmeow_errors::DiagKind) minted anywhere in the crate appears here
 /// exactly once — [`register_all`] seeds them and the collision test proves the
@@ -139,6 +225,15 @@ pub const PIPELINE_DIAG_CODES: &[&str] = &[
     CapabilityMismatch::CODE,
     CacheMismatch::CODE,
     StageFailed::CODE,
+    Transform::CODE,
+    Scoreboard::CODE,
+    Mcp::CODE,
+    Projection::CODE,
+    UpProjection::CODE,
+    Put::CODE,
+    Generator::CODE,
+    Release::CODE,
+    EvalSchema::CODE,
     crate::transcode::UnknownCodec::CODE,
     crate::transcode::NonInvertibleSource::CODE,
     crate::transcode::UndecodableInput::CODE,
@@ -169,6 +264,15 @@ pub fn register_all() -> Vec<Code> {
         CapabilityMismatch::register(),
         CacheMismatch::register(),
         StageFailed::register(),
+        Transform::register(),
+        Scoreboard::register(),
+        Mcp::register(),
+        Projection::register(),
+        UpProjection::register(),
+        Put::register(),
+        Generator::register(),
+        Release::register(),
+        EvalSchema::register(),
         crate::transcode::UnknownCodec::register(),
         crate::transcode::NonInvertibleSource::register(),
         crate::transcode::UndecodableInput::register(),
