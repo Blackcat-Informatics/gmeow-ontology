@@ -283,6 +283,13 @@ pub(crate) fn chase_world_explained(
 /// can be EXPLAINED afterward (and, in [`chase_materialize`], so ONE registry spans the
 /// sorted worlds — witness IRIs are content-addressed on rule+frontier, world-independent,
 /// so a shared registry only dedups the recipe map, never changes a fact).
+///
+/// Both callers ([`chase_world_explained`] and [`chase_materialize`]) RETAIN the derived
+/// rows — the existential chase has no closure-only, provenance-discarding lane (the backward
+/// leg uses [`crate::physical::seminaive::evaluate`], not the chase). If a discarding caller
+/// is ever added here, thread a
+/// [`ProvenanceMode`](crate::physical::seminaive::ProvenanceMode)-style skip through the round
+/// loop rather than accumulating `out` it will throw away.
 fn chase_world_into(
     world: &str,
     edb_facts: &[Fact],
