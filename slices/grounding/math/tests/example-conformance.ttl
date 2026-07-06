@@ -521,6 +521,15 @@ ex:ecIngestRunUngrounded a gmeow:ExampleConformance ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
     gmeow:conformanceRationale "The counter-example carries the process-layer witness (logic:instantiatesSchema / logic:instantiatesPlan) but omits math:parseSource (sh:minCount 1 on math:IngestRunShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UngroundedIngestRun)." .
 
+# math:UnliftableIngest is a NATIVE Rust gate (crates/validate structural_lint, keyed on a
+# math:parseSource-retaining math:IngestRun that produces no gmeow:wasGeneratedBy codomain),
+# NOT a SHACL shape, so it has no example-conformance cell here — the conformance harness only
+# asserts SHACL findings. Its slice-resident counter-example
+# (tests/counter-examples/ingest-run-unliftable.ttl — a produced-nothing run that still passes
+# math:IngestRunShape) is exercised by the native lint test
+# unliftable_ingest_fires_when_run_produces_no_codomain, distinguishing the produced-nothing case
+# from the source-dropping math:UngroundedIngestRun SHACL grounding shape above.
+
 # === Bridges: fitted-model data-and-specification =========================== #
 
 ex:ecFittedModelFitted a gmeow:ExampleConformance ;

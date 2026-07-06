@@ -2918,22 +2918,34 @@ mod tests {
 
     #[test]
     fn unliftable_ingest_fires_when_run_produces_no_codomain() {
-        // A bridge run that retains a source witness (math:parseSource) but lifts no structured
-        // math: codomain — nothing is gmeow:wasGeneratedBy it — has silently dropped its content.
-        let ds = dataset_from(&format!(
-            "{MATH_PREFIXES}\
-             ex:rRun a math:RIngestRun ;\n\
-               math:parseSource ex:srcWitness .\n\
-             ex:srcWitness a math:MathematicalObject .\n"
-        ));
-        let report = structural_lint_dataset(&ds, &cfg());
+        // The slice-resident counter-example for the native math:UnliftableIngest gate: a bridge
+        // run that retains a source witness (math:parseSource) and its full grounding frame — so it
+        // is NOT math:UngroundedIngestRun — but lifts no structured math: codomain (nothing is
+        // gmeow:wasGeneratedBy it), silently dropping its content. Authored in the slice, not
+        // inline here, so the (fixture, native-lint) pair is load-bearing rather than a Rust demo.
+        let unliftable = include_str!(
+            "../../../slices/grounding/math/tests/counter-examples/ingest-run-unliftable.ttl"
+        );
+        let report = structural_lint_dataset(&dataset_from(unliftable), &cfg());
         assert!(
             report
                 .errors
                 .iter()
-                .any(|e| e.contains("math:UnliftableIngest") && e.contains("rRun")),
-            "an ingest run with a parseSource but no produced math: codomain must raise \
-             math:UnliftableIngest; errors: {:?}",
+                .any(|e| e.contains("math:UnliftableIngest")
+                    && e.contains("http://example.org/math/run")),
+            "the slice-resident produced-nothing ingest run (parseSource, no gmeow:wasGeneratedBy) \
+             must raise math:UnliftableIngest; errors: {:?}",
+            report.errors
+        );
+        // It retains its source, so the SHACL grounding twin is out of scope: the native gate must
+        // not double-report the run as math:UngroundedIngestRun.
+        assert!(
+            !report
+                .errors
+                .iter()
+                .any(|e| e.contains("math:UngroundedIngestRun")),
+            "the produced-nothing fixture retains math:parseSource, so it must not fire \
+             math:UngroundedIngestRun: {:?}",
             report.errors
         );
     }
