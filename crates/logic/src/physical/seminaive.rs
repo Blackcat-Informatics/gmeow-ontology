@@ -65,8 +65,8 @@ use crate::physical::store::{Bound, RelationStore};
 use crate::provenance::mint_derivation_id;
 use crate::query_ir::QBuiltin;
 use crate::rule_ir::{
-    DerivedRow, EvalAtom, EvalRule, Fact, FactKey, FactStore, RuleRoundCandidate, Solution,
-    distinct_pairs_satisfied, echo_asserted, ground, ground_head, match_atom, sort_rows,
+    DerivedRow, EvalAtom, EvalRule, Fact, FactKey, FactStore, Provenance, RuleRoundCandidate,
+    Solution, distinct_pairs_satisfied, echo_asserted, ground, ground_head, match_atom, sort_rows,
     world_edb_facts,
 };
 use crate::seam::BudgetStatus;
@@ -193,6 +193,26 @@ enum FixpointStatus {
     /// The `max_steps` budget was exhausted mid-fixpoint; the committed prefix is a
     /// sound (FactKey-ordered) partial least model.
     Exhausted,
+}
+
+/// Whether the stratified fixpoint records per-derivation provenance.
+///
+/// `Record` mints reifiers + a content-addressed derivation id per firing and pushes a
+/// [`DerivedRow`] for every committed derivation — the forward `materialize_native` leg
+/// (the proof-graph evaluation). `Skip` commits the identical fact set, insertion order,
+/// and step budget but records nothing — the backward `evaluate` leg, which projects only
+/// [`Fact`]s and discards `DerivedRow`s (the facts-only evaluation). Because every candidate
+/// under one `FactKey` shares an identical head, the committed facts and their order are
+/// independent of provenance recording; `Skip` therefore agrees with `Record` on facts,
+/// order, and step count wherever `Record` succeeds, and is total on the input superset where
+/// reifier minting is partial (an RDF-star source that `Record` hard-fails on).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum ProvenanceMode {
+    /// Mint and retain full per-derivation provenance.
+    Record,
+    /// Commit facts only; record no provenance (no reifier minting, no derivation ids,
+    /// no `DerivedRow`s, no depth bookkeeping).
+    Skip,
 }
 
 /// Governs the step/derivation budget for the native fixpoint.
@@ -611,8 +631,12 @@ pub(crate) fn materialize_native(
                     // A PER-WORLD unbounded governor: it never cuts, so its final
                     // `.consumed` counts exactly this world's derivations.
                     let mut governor = StepGovernor::new(None);
-                    let budgeted =
-                        eval_world_stratified(&edb_facts, &rules_by_stratum, &mut governor)?;
+                    let budgeted = eval_world_stratified(
+                        &edb_facts,
+                        &rules_by_stratum,
+                        &mut governor,
+                        ProvenanceMode::Record,
+                    )?;
                     // Derived rows AFTER the echo rows (same order as the sequential body).
                     for mut row in budgeted.rows {
                         row.graph = world.clone();
@@ -680,7 +704,12 @@ pub(crate) fn materialize_native(
         // Asserted-EDB echo (identical to wellfounded::materialize).
         out.extend(echo_asserted(world, &edb_facts)?);
 
-        let budgeted = eval_world_stratified(&edb_facts, &rules_by_stratum, &mut governor)?;
+        let budgeted = eval_world_stratified(
+            &edb_facts,
+            &rules_by_stratum,
+            &mut governor,
+            ProvenanceMode::Record,
+        )?;
         for mut row in budgeted.rows {
             row.graph = world.clone();
             out.push(row);
@@ -741,6 +770,7 @@ fn eval_world_stratified(
     edb_facts: &[Fact],
     rules_by_stratum: &[Vec<&EvalRule>],
     governor: &mut StepGovernor,
+    mode: ProvenanceMode,
 ) -> Result<Budgeted<Vec<DerivedRow>>, String> {
     // Shared accumulated store (both forms), seeded from the EDB in sorted-key order
     // (world_edb_facts already sorted), so seeding matches the reference.
@@ -760,7 +790,10 @@ fn eval_world_stratified(
         .collect();
 
     for f in edb_facts {
-        depth.insert(f.key(), 0);
+        // Depth 0 for the asserted seed feeds only the Record-mode tiebreak; Skip omits it.
+        if let ProvenanceMode::Record = mode {
+            depth.insert(f.key(), 0);
+        }
         if store.insert(f.clone()) {
             rel.insert(&f.predicate, f.subject.clone(), f.object.clone());
         }
@@ -781,12 +814,15 @@ fn eval_world_stratified(
         }
         match eval_stratum_fixpoint(
             stratum_rules,
-            &mut store,
-            &mut rel,
-            &mut depth,
-            &mut derivations,
+            &mut FixpointState {
+                store: &mut store,
+                rel: &mut rel,
+                depth: &mut depth,
+                derivations: &mut derivations,
+                builtin_gap: &mut builtin_gap,
+            },
             governor,
-            &mut builtin_gap,
+            mode,
         )? {
             FixpointStatus::Complete => {
                 // This stratum reached its natural fixpoint: its head predicates are now
@@ -822,6 +858,18 @@ fn eval_world_stratified(
     })
 }
 
+/// The mutable working set carried across every stratum of one world's fixpoint: the two
+/// lockstep stores, the depth map, the derivation accumulator, and the arithmetic-gap flag.
+/// Bundling them keeps [`eval_stratum_fixpoint`] under clippy's argument-count bar with a
+/// cohesive named type rather than a suppression.
+struct FixpointState<'a> {
+    store: &'a mut FactStore,
+    rel: &'a mut RelationStore,
+    depth: &'a mut HashMap<FactKey, u32>,
+    derivations: &'a mut Vec<DerivedRow>,
+    builtin_gap: &'a mut bool,
+}
+
 /// Run the semi-naive fixpoint for the rules of ONE stratum into the shared stores.
 ///
 /// This loop is a structural copy of `least_model_of_reduct`'s round loop — same
@@ -829,15 +877,24 @@ fn eval_world_stratified(
 /// tiebreak, same depth bookkeeping, same body-order `source_quad_ids` — with the
 /// join replaced by [`join_body_indexed`] (index selection) and NAF read from the
 /// accumulated [`RelationStore`] (`rel`, the frozen-below store).
+///
+/// `mode` selects whether the loop mints and records provenance ([`ProvenanceMode::Record`],
+/// the forward leg) or commits facts only ([`ProvenanceMode::Skip`], the backward leg) — the
+/// committed fact set, insertion order, and step budget are identical either way.
 fn eval_stratum_fixpoint(
     rules: &[&EvalRule],
-    store: &mut FactStore,
-    rel: &mut RelationStore,
-    depth: &mut HashMap<FactKey, u32>,
-    derivations: &mut Vec<DerivedRow>,
+    state: &mut FixpointState<'_>,
     governor: &mut StepGovernor,
-    builtin_gap: &mut bool,
+    mode: ProvenanceMode,
 ) -> Result<FixpointStatus, String> {
+    // Reborrow each accumulator into a single `&mut` local so the loop body below is a verbatim
+    // copy of `least_model_of_reduct`'s — the `FixpointState` bundle exists only to keep the
+    // signature under clippy's argument-count bar without an `#[allow]`, not to change the engine.
+    let store = &mut *state.store;
+    let rel = &mut *state.rel;
+    let depth = &mut *state.depth;
+    let derivations = &mut *state.derivations;
+    let builtin_gap = &mut *state.builtin_gap;
     // Seed delta with ALL currently-known keys so this stratum's rules fire against
     // the seed in round 1 (mirrors `least_model_of_reduct`'s `delta = key_set()`).
     let mut delta: HashSet<FactKey> = store.key_set();
@@ -856,51 +913,58 @@ fn eval_stratum_fixpoint(
                     continue; // a prior round/stratum already derived it; earlier wins
                 }
 
-                // Provenance: reifiers of matched POSITIVE body facts in body order.
-                let mut sources: Vec<String> = Vec::with_capacity(sol.source_facts.len());
-                let mut max_sd: u32 = 0;
-                let mut sum_sd: u64 = 0;
-                for sf in &sol.source_facts {
-                    sources.push(sf.reifier()?);
-                    let d = *depth.get(&sf.key()).unwrap_or(&0);
-                    max_sd = max_sd.max(d);
-                    sum_sd = sum_sd.saturating_add(u64::from(d));
-                }
-                let src_refs: Vec<&str> = sources.iter().map(String::as_str).collect();
-                let deriv = mint_derivation_id(&rule.rule_iri, &src_refs);
-                let mut sorted_sources = sources.clone();
-                sorted_sources.sort();
-
-                let candidate = RuleRoundCandidate {
-                    head,
-                    key: key.clone(),
-                    sources,
-                    sorted_sources,
-                    deriv,
-                    rule_iri: rule.rule_iri.clone(),
-                    max_src_depth: max_sd,
-                    sum_src_depth: sum_sd,
-                };
-                round
-                    .entry(key)
-                    .and_modify(|existing| {
-                        let cand_key = (
-                            candidate.max_src_depth,
-                            candidate.sum_src_depth,
-                            &candidate.sorted_sources,
-                            &candidate.rule_iri,
-                        );
-                        let exist_key = (
-                            existing.max_src_depth,
-                            existing.sum_src_depth,
-                            &existing.sorted_sources,
-                            &existing.rule_iri,
-                        );
-                        if cand_key < exist_key {
-                            *existing = candidate.clone();
+                match mode {
+                    ProvenanceMode::Record => {
+                        // Provenance: reifiers of matched POSITIVE body facts in body order.
+                        let mut sources: Vec<String> = Vec::with_capacity(sol.source_facts.len());
+                        let mut max_sd: u32 = 0;
+                        let mut sum_sd: u64 = 0;
+                        for sf in &sol.source_facts {
+                            sources.push(sf.reifier()?);
+                            let d = *depth.get(&sf.key()).unwrap_or(&0);
+                            max_sd = max_sd.max(d);
+                            sum_sd = sum_sd.saturating_add(u64::from(d));
                         }
-                    })
-                    .or_insert(candidate);
+                        let src_refs: Vec<&str> = sources.iter().map(String::as_str).collect();
+                        let deriv = mint_derivation_id(&rule.rule_iri, &src_refs);
+                        let mut sorted_sources = sources.clone();
+                        sorted_sources.sort();
+
+                        let candidate = RuleRoundCandidate {
+                            head,
+                            key: key.clone(),
+                            prov: Some(Provenance {
+                                sources,
+                                sorted_sources,
+                                deriv,
+                                rule_iri: rule.rule_iri.clone(),
+                                max_src_depth: max_sd,
+                                sum_src_depth: sum_sd,
+                            }),
+                        };
+                        round
+                            .entry(key)
+                            .and_modify(|existing| {
+                                if candidate.tiebreak_key() < existing.tiebreak_key() {
+                                    *existing = candidate.clone();
+                                }
+                            })
+                            .or_insert(candidate);
+                    }
+                    ProvenanceMode::Skip => {
+                        // Facts-only: no `reifier()` minting, no derivation id, no depth read,
+                        // no tiebreak.  Every candidate under `key` shares an identical `head`
+                        // (the key is content-derived from the head), so first-seen wins and the
+                        // committed fact is invariant to the choice.  `prov: None` makes the
+                        // absence of provenance a type-enforced fact, not a sentinel-filled struct.
+                        let cand = RuleRoundCandidate {
+                            head,
+                            key: key.clone(),
+                            prov: None,
+                        };
+                        round.entry(key).or_insert(cand);
+                    }
+                }
             }
         }
 
@@ -924,10 +988,17 @@ fn eval_stratum_fixpoint(
             if governor.spent() {
                 return Ok(FixpointStatus::Exhausted);
             }
-            let winner_depth = winner.max_src_depth.saturating_add(1);
-            depth.insert(winner.key.clone(), winner_depth);
+            // Depth bookkeeping feeds ONLY the provenance tiebreak; the facts-only lane carries
+            // `prov: None`, so it is not maintained there (keeping the `depth` map empty under
+            // Skip — the `assert!` in `evaluate` locks that invariant in release builds too).
+            if let Some(prov) = &winner.prov {
+                let winner_depth = prov.max_src_depth.saturating_add(1);
+                depth.insert(winner.key.clone(), winner_depth);
+            }
             // Insert into both stores in lockstep so the columnar index order tracks
-            // the ternary store's insertion order exactly.
+            // the ternary store's insertion order exactly.  This — and the FactKey-sorted
+            // commit order, the `new_delta`, and the per-winner budget charge — are
+            // provenance-independent, so the committed fact set is byte-identical across modes.
             if store.insert(winner.head.clone()) {
                 rel.insert(
                     &winner.head.predicate,
@@ -939,16 +1010,20 @@ fn eval_stratum_fixpoint(
 
             // A winner is always a NEW key: heads already present (including every
             // EDB fact, seeded into `store` before the fixpoint) are skipped above via
-            // `store.contains_key`. So every winner is a genuine derivation.
-            derivations.push(DerivedRow {
-                graph: String::new(),
-                subject: winner.head.subject,
-                predicate: winner.head.predicate,
-                object: winner.head.object,
-                rule_iri: winner.rule_iri,
-                source_quad_ids: winner.sources, // body-order, NEVER the sorted copy
-                derivation_id: winner.deriv,
-            });
+            // `store.contains_key`. So every winner is a genuine derivation.  Under Skip the
+            // row is not built at all (no reifier strings, no derivation-id hash, no vec growth
+            // — the native analogue of the trace memory the facts-only lane must not pay).
+            if let Some(prov) = winner.prov {
+                derivations.push(DerivedRow {
+                    graph: String::new(),
+                    subject: winner.head.subject,
+                    predicate: winner.head.predicate,
+                    object: winner.head.object,
+                    rule_iri: prov.rule_iri,
+                    source_quad_ids: prov.sources, // body-order, NEVER the sorted copy
+                    derivation_id: prov.deriv,
+                });
+            }
             governor.charge();
         }
 
@@ -1030,17 +1105,19 @@ pub(crate) fn evaluate(
         .filter(|p| !head_preds.contains(p))
         .collect();
 
+    // This leg runs the fixpoint in `Skip` mode: it returns the full fact set
+    // (`store.facts()`) and never reads provenance, so the shared fixpoint mints no
+    // reifiers, no derivation ids, and no `DerivedRow`s (the native analogue of the trace
+    // memory a closure-only lane must not pay).  The seed therefore also skips the
+    // provenance-only `depth` bookkeeping.
     for f in &edb_facts {
-        depth.insert(f.key(), 0);
         if store.insert(f.clone()) {
             rel.insert(&f.predicate, f.subject.clone(), f.object.clone());
         }
     }
 
-    // This leg returns the full fact set (`store.facts()`); the derivation rows are
-    // unused here but the shared fixpoint records them for the forward leg.  The step
-    // governor is honoured identically to the forward path (single EDB, so the frontier
-    // is exact — no cross-world under-claim).
+    // The step governor is honoured identically to the forward path (single EDB, so the
+    // frontier is exact — no cross-world under-claim).
     let mut governor = StepGovernor::new(max_steps);
     let total = rules_by_stratum.len();
     let mut completed = 0usize;
@@ -1058,12 +1135,15 @@ pub(crate) fn evaluate(
         }
         match eval_stratum_fixpoint(
             stratum_rules,
-            &mut store,
-            &mut rel,
-            &mut depth,
-            &mut derivations,
+            &mut FixpointState {
+                store: &mut store,
+                rel: &mut rel,
+                depth: &mut depth,
+                derivations: &mut derivations,
+                builtin_gap: &mut builtin_gap,
+            },
             &mut governor,
-            &mut builtin_gap,
+            ProvenanceMode::Skip,
         )? {
             FixpointStatus::Complete => {
                 for rule in stratum_rules {
@@ -1077,6 +1157,19 @@ pub(crate) fn evaluate(
             }
         }
     }
+
+    // Skip mode records no provenance: the shared fixpoint mints no `DerivedRow`s and never
+    // writes the provenance-only `depth` map.  This is the whole point of the closure-only lane
+    // — the provenance memory it must NOT pay is precisely what OOMs the trace-recording engine —
+    // so the invariant is a hard `assert!` that fires in RELEASE builds too, where OOM actually
+    // bites.  A `debug_assert!` here would compile out of exactly the builds the toggle protects.
+    // It is O(1) (two `is_empty()` checks, once per `evaluate` call), and any future edit that let
+    // `depth` gate fact derivation, or accidentally recorded a row on this lane, hard-fails here
+    // instead of silently diverging the facts-only equivalence — or silently reintroducing the OOM.
+    assert!(
+        derivations.is_empty() && depth.is_empty(),
+        "Skip-mode evaluate must record no DerivedRows and no depth entries"
+    );
 
     if builtin_gap {
         return Ok(NativeOutcome::Unsupported(UnsupportedKind::Arithmetic));
@@ -1916,6 +2009,64 @@ mod tests {
         );
     }
 
+    /// Consumer audit — the closure-only backward lane carries NO provenance.
+    ///
+    /// `resolve_native` magic-transforms a goal and runs the SAME stratified fixpoint through
+    /// [`evaluate`], whose result is `NativeOutcome<Budgeted<Vec<Fact>>>`. A [`Fact`] is a bare
+    /// `(subject, predicate, object)` triple — it has NO `derivation_id` / `source_quad_ids` /
+    /// `rule_iri` field, so there is simply no provenance surface to feed `explain` or
+    /// `derivation_graph`; the backward lane cannot route into them. This is encoded two ways,
+    /// per the audit's honest-executable-form requirement: a COMPILE-TIME fact — the
+    /// `let facts: &Vec<Fact>` binding pins the closure-lane result type, so a regression that
+    /// routed the backward lane through the provenance-carrying `DerivedRow` surface would fail
+    /// to type-check here — PLUS a BEHAVIOURAL check that `evaluate` returns the correct
+    /// reachability closure as bare facts.
+    #[test]
+    fn backward_closure_lane_returns_bare_facts_without_provenance() {
+        // reachable(?X, ?X) :- seed(?X, ?X) .
+        let seed_rule = EvalRule {
+            head: var_atom("?X", "reachable", "?X"),
+            body: vec![var_atom("?X", "seed", "?X")],
+            rule_iri: nn("rule/reach-seed"),
+            distinct_pairs: vec![],
+            builtins: vec![],
+        };
+        // reachable(?Y, ?Y) :- reachable(?X, ?X), edge(?X, ?Y) .
+        let step_rule = EvalRule {
+            head: var_atom("?Y", "reachable", "?Y"),
+            body: vec![
+                var_atom("?X", "reachable", "?X"),
+                var_atom("?X", "edge", "?Y"),
+            ],
+            rule_iri: nn("rule/reach-step"),
+            distinct_pairs: vec![],
+            builtins: vec![],
+        };
+        // EDB: seed(a, a), edge(a, b), edge(b, c).
+        let mut edb = RelationStore::new();
+        edb.insert(&nn("seed"), term("a"), term("a"));
+        edb.insert(&nn("edge"), term("a"), term("b"));
+        edb.insert(&nn("edge"), term("b"), term("c"));
+
+        let out = evaluate(edb, &[seed_rule, step_rule], None).expect("evaluate");
+        let NativeOutcome::Decided(budgeted) = out else {
+            panic!("expected Decided, got a gap");
+        };
+        // Compile-time: the closure-lane result is a bare `Vec<Fact>` with no provenance rows.
+        let facts: &Vec<Fact> = &budgeted.rows;
+        let keys = fact_keys(facts);
+        for node in ["a", "b", "c"] {
+            assert!(
+                keys.contains(&(
+                    format!("<{}>", nn(node)),
+                    nn("reachable"),
+                    format!("<{}>", nn(node)),
+                )),
+                "reachable({node}) must be in the closure: {keys:?}"
+            );
+        }
+    }
+
     #[test]
     fn seminaive_overflow_is_declared_gap_not_wrong_answer() {
         use crate::query_ir::ArithOp;
@@ -1936,6 +2087,379 @@ mod tests {
         assert!(
             matches!(out, NativeOutcome::Unsupported(UnsupportedKind::Arithmetic)),
             "overflow must be a declared Arithmetic gap, never a wrong answer"
+        );
+    }
+
+    // ── The closure-only provenance toggle: Record ≡ Skip through production seams ────
+    //
+    // The forward `materialize_native` leg records provenance (Record); the backward
+    // `evaluate` leg records none (Skip).  These tests drive the WIRED PRODUCTION/REFERENCE
+    // seams — `evaluate` (Skip) and `materialize_native`/`least_model_of_reduct` (Record) —
+    // never the private fixpoint with a hand-passed mode, so they prove the WIRING, not the
+    // parameter.  `materialize_native` runs the SAME binary rules over a single-world store
+    // (the world is only the output graph label), so both lanes drive the identical stratified
+    // engine differing only in `mode` — the committed facts, order, and step budget must match.
+
+    /// A single-world `WorldStore` holding arbitrary `(s, p, o)` IRI triples.  Binary rules
+    /// (no world column) match these facts directly; the world is only the output graph.
+    fn world_store_from(triples: &[(&str, &str, &str)]) -> WorldStore {
+        let store = WorldStore::new();
+        for &(s, p, o) in triples {
+            store.insert_quad(WORLD, &nn(s), &nn(p), &nn(o));
+        }
+        store
+    }
+
+    /// The same `(s, p, o)` triples seeded into a `RelationStore` for the Skip `evaluate` leg.
+    fn rel_store_from(triples: &[(&str, &str, &str)]) -> RelationStore {
+        let mut rel = RelationStore::new();
+        for &(s, p, o) in triples {
+            rel.insert(&nn(p), term(s), term(o));
+        }
+        rel
+    }
+
+    fn neg_atom(subject: &str, pred: &str, object: &str) -> EvalAtom {
+        EvalAtom {
+            subject: EvalTerm::Var(subject.to_owned()),
+            predicate: nn(pred),
+            object: EvalTerm::Var(object.to_owned()),
+            negated: true,
+        }
+    }
+
+    /// `path(?X,?Z) :- edge(?X,?Z) .` and `path(?X,?Z) :- edge(?X,?Y), path(?Y,?Z) .`
+    /// in the plain-triple (binary) encoding shared by both lanes.
+    fn tc_binary_rules() -> Vec<EvalRule> {
+        vec![
+            EvalRule {
+                head: var_atom("?X", "path", "?Z"),
+                body: vec![var_atom("?X", "edge", "?Z")],
+                rule_iri: nn("rule/tc-base"),
+                distinct_pairs: vec![],
+                builtins: vec![],
+            },
+            EvalRule {
+                head: var_atom("?X", "path", "?Z"),
+                body: vec![var_atom("?X", "edge", "?Y"), var_atom("?Y", "path", "?Z")],
+                rule_iri: nn("rule/tc-step"),
+                distinct_pairs: vec![],
+                builtins: vec![],
+            },
+        ]
+    }
+
+    /// Run the Record lane (`materialize_native` — the forward, provenance-recording seam)
+    /// over a single-world store, returning the full `(s, p, o)` fact set and the step count.
+    fn record_seam(
+        triples: &[(&str, &str, &str)],
+        rules: &[EvalRule],
+        max_steps: Option<u64>,
+    ) -> (std::collections::BTreeSet<FactKey>, u64) {
+        let store = world_store_from(triples);
+        match materialize_native(&store, rules, max_steps).expect("record materialize_native") {
+            NativeOutcome::Decided(b) => {
+                let set = b
+                    .rows
+                    .iter()
+                    .map(|r| {
+                        (
+                            term_display(&r.subject),
+                            r.predicate.clone(),
+                            term_display(&r.object),
+                        )
+                    })
+                    .collect();
+                (set, b.consumed_steps)
+            }
+            NativeOutcome::Unsupported(k) => panic!("record lane unsupported: {k:?}"),
+        }
+    }
+
+    /// Run the Skip lane (`evaluate` — the backward, provenance-discarding seam), returning
+    /// the full `(s, p, o)` fact set and the step count.
+    fn skip_seam(
+        triples: &[(&str, &str, &str)],
+        rules: &[EvalRule],
+        max_steps: Option<u64>,
+    ) -> (std::collections::BTreeSet<FactKey>, u64) {
+        match evaluate(rel_store_from(triples), rules, max_steps).expect("skip evaluate") {
+            NativeOutcome::Decided(b) => (fact_keys(&b.rows), b.consumed_steps),
+            NativeOutcome::Unsupported(k) => panic!("skip lane unsupported: {k:?}"),
+        }
+    }
+
+    /// Positive recursion: the Skip (backward) lane derives the identical transitive closure
+    /// the Record (forward) lane does.
+    #[test]
+    fn skip_matches_record_positive_recursion() {
+        let rules = tc_binary_rules();
+        let edb = &[("a", "edge", "b"), ("b", "edge", "c"), ("c", "edge", "d")];
+        let (record, rec_steps) = record_seam(edb, &rules, None);
+        let (skip, skip_steps) = skip_seam(edb, &rules, None);
+        assert_eq!(
+            skip, record,
+            "Skip fact set must equal Record wherever Record succeeds"
+        );
+        assert_eq!(
+            skip_steps, rec_steps,
+            "Skip commits the same number of derivations"
+        );
+        assert!(
+            skip.iter().any(|(_, p, _)| p == &nn("path")),
+            "the closure must actually derive path facts: {skip:?}"
+        );
+    }
+
+    /// Stratified negation: NAF reads the accumulated `RelationStore`, which both lanes fill in
+    /// the unbranched commit loop, so the facts-only Skip lane cannot change stratum evaluation.
+    #[test]
+    fn skip_matches_record_stratified_negation() {
+        // tc(?X,?Y) :- e(?X,?Y) .            tc(?X,?Y) :- e(?X,?Z), tc(?Z,?Y) .
+        // noPath(?X,?Y) :- cand(?X,?Y), NOT tc(?X,?Y) .   (noPath is a strictly-higher stratum)
+        let rules = vec![
+            EvalRule {
+                head: var_atom("?X", "tc", "?Y"),
+                body: vec![var_atom("?X", "e", "?Y")],
+                rule_iri: nn("rule/tc-base"),
+                distinct_pairs: vec![],
+                builtins: vec![],
+            },
+            EvalRule {
+                head: var_atom("?X", "tc", "?Y"),
+                body: vec![var_atom("?X", "e", "?Z"), var_atom("?Z", "tc", "?Y")],
+                rule_iri: nn("rule/tc-step"),
+                distinct_pairs: vec![],
+                builtins: vec![],
+            },
+            EvalRule {
+                head: var_atom("?X", "noPath", "?Y"),
+                body: vec![var_atom("?X", "cand", "?Y"), neg_atom("?X", "tc", "?Y")],
+                rule_iri: nn("rule/nopath"),
+                distinct_pairs: vec![],
+                builtins: vec![],
+            },
+        ];
+        // tc closure over a→b→c is {(a,b),(b,c),(a,c)}; noPath = cand \ tc = {(a,d),(d,e)}.
+        let edb = &[
+            ("a", "e", "b"),
+            ("b", "e", "c"),
+            ("a", "cand", "c"),
+            ("a", "cand", "d"),
+            ("d", "cand", "e"),
+        ];
+        let (record, _) = record_seam(edb, &rules, None);
+        let (skip, _) = skip_seam(edb, &rules, None);
+        assert_eq!(skip, record, "Skip ≡ Record under stratified negation");
+        let no_path =
+            |s: &str, o: &str| (format!("<{}>", nn(s)), nn("noPath"), format!("<{}>", nn(o)));
+        assert!(
+            skip.contains(&no_path("a", "d")),
+            "noPath(a,d): cand but not in tc"
+        );
+        assert!(
+            skip.contains(&no_path("d", "e")),
+            "noPath(d,e): cand but not in tc"
+        );
+        assert!(
+            !skip.contains(&no_path("a", "c")),
+            "noPath(a,c) MUST NOT be derived — (a,c) IS in tc, so negation blocks it"
+        );
+    }
+
+    /// Budget-exhausted: the two lanes cut at the identical FactKey-sorted prefix and report the
+    /// same step count — the partial-model cut point is provenance-independent.
+    ///
+    /// Scope: this drives a SINGLE-world store, which is the exact shape the wired Skip lane
+    /// (`evaluate`) always has — it is single-EDB by construction.  `materialize_native` charges
+    /// one global step counter across sorted worlds, so multi-world cross-budget interleaving is a
+    /// property of the forward lane alone and is not exercised here; the backward lane cannot reach
+    /// that shape, so no production Skip path is left unproven.
+    #[test]
+    fn skip_matches_record_under_budget() {
+        let rules = tc_binary_rules();
+        let edb = &[("a", "edge", "b"), ("b", "edge", "c"), ("c", "edge", "d")];
+        // The closure has 6 derived path facts; cut mid-fixpoint at 3.
+        let (record, rec_steps) = record_seam(edb, &rules, Some(3));
+        let (skip, skip_steps) = skip_seam(edb, &rules, Some(3));
+        assert_eq!(
+            rec_steps, 3,
+            "the Record lane commits exactly the budgeted 3 derivations"
+        );
+        assert_eq!(
+            skip_steps, 3,
+            "the Skip lane commits exactly the budgeted 3 derivations"
+        );
+        assert_eq!(
+            skip, record,
+            "both lanes commit the identical FactKey-sorted partial prefix under budget"
+        );
+    }
+
+    /// A non-stratifiable program is refused identically on the Skip lane (the outcome variant,
+    /// not just the fact set, is provenance-independent).
+    #[test]
+    fn skip_reports_nonstratifiable_like_record() {
+        // p(?X,?Y) :- q(?X,?Y) .   q(?X,?Y) :- e(?X,?Y), NOT p(?X,?Y) .  → negation in a cycle.
+        let rules = vec![
+            EvalRule {
+                head: var_atom("?X", "p", "?Y"),
+                body: vec![var_atom("?X", "q", "?Y")],
+                rule_iri: nn("rule/p"),
+                distinct_pairs: vec![],
+                builtins: vec![],
+            },
+            EvalRule {
+                head: var_atom("?X", "q", "?Y"),
+                body: vec![var_atom("?X", "e", "?Y"), neg_atom("?X", "p", "?Y")],
+                rule_iri: nn("rule/q"),
+                distinct_pairs: vec![],
+                builtins: vec![],
+            },
+        ];
+        let out = evaluate(rel_store_from(&[("a", "e", "b")]), &rules, None).expect("evaluate");
+        assert!(
+            matches!(
+                out,
+                NativeOutcome::Unsupported(UnsupportedKind::NonStratifiable)
+            ),
+            "the Skip lane must refuse a non-stratifiable program exactly as the forward lane does"
+        );
+    }
+
+    /// The two-sided RDF-star contract: on a quoted-triple source the Record reference
+    /// hard-fails at `reifier()`, while the facts-only Skip lane — which never mints reifiers —
+    /// returns the answer.  Skip is strictly MORE-total than Record, agreeing wherever Record
+    /// succeeds and total on the input superset where reifier minting is partial.
+    #[test]
+    fn skip_answers_where_record_hard_fails_on_rdf_star() {
+        // out(?X, ?Y) :- src(?X, ?Y) .   with a quoted-triple SUBJECT in the source fact.
+        let rules = vec![EvalRule {
+            head: var_atom("?X", "out", "?Y"),
+            body: vec![var_atom("?X", "src", "?Y")],
+            rule_iri: nn("rule/copy"),
+            distinct_pairs: vec![],
+            builtins: vec![],
+        }];
+        let quoted = TermValue::Triple {
+            s: Box::new(term("a")),
+            p: Box::new(TermValue::iri(nn("edge"))),
+            o: Box::new(term("b")),
+        };
+
+        // Record reference (positive program → least_model_of_reduct is the exact least model):
+        // firing over the quoted-triple source computes its reifier, which hard-fails.
+        let mut fs = FactStore::new();
+        fs.insert(Fact {
+            subject: quoted.clone(),
+            predicate: nn("src"),
+            object: term("z"),
+        });
+        let record = least_model_of_reduct(&fs, &rules, &FactStore::new());
+        assert!(
+            record.is_err(),
+            "Record must hard-fail: an RDF-star source has no reifier (never a silent skip)"
+        );
+
+        // Skip lane: the same program returns the derived answer, minting no reifier.
+        let mut rel = RelationStore::new();
+        rel.insert(&nn("src"), quoted.clone(), term("z"));
+        let NativeOutcome::Decided(b) = evaluate(rel, &rules, None).expect("skip evaluate") else {
+            panic!("expected Decided from the Skip lane");
+        };
+        let keys = fact_keys(&b.rows);
+        let expected = (term_display(&quoted), nn("out"), format!("<{}>", nn("z")));
+        assert!(
+            keys.contains(&expected),
+            "Skip must derive out(<<a edge b>>, z) with no reifier minting: {keys:?}"
+        );
+    }
+
+    /// Record-mode `derivation_id` recipe is preserved end-to-end on real production rows:
+    /// every derived row's id equals `mint_derivation_id(rule_iri, sorted(source_quad_ids))`
+    /// over its BODY-ORDER sources, and the 2-source step rule carries exactly two sources —
+    /// pinning that the toggle refactor neither reordered nor dropped the source list.
+    #[test]
+    fn record_derivation_id_recipe_holds_on_production_rows() {
+        let store = tc_store();
+        let rules = tc_rules();
+        let NativeOutcome::Decided(Budgeted { rows, .. }) =
+            materialize_native(&store, &rules, None).expect("materialize_native")
+        else {
+            panic!("expected Decided");
+        };
+        let derived = derived_only(&rows);
+        assert!(!derived.is_empty(), "TC must derive rows");
+        let mut saw_two_source = false;
+        for r in &derived {
+            assert!(!r.source_quad_ids.is_empty(), "a derived row has ≥1 source");
+            assert!(
+                !r.derivation_id.is_empty(),
+                "a derived row has a derivation id"
+            );
+            let mut sorted = r.source_quad_ids.clone();
+            sorted.sort();
+            let refs: Vec<&str> = sorted.iter().map(String::as_str).collect();
+            assert_eq!(
+                r.derivation_id,
+                crate::provenance::mint_derivation_id(&r.rule_iri, &refs),
+                "derivation_id must be mint_derivation_id(rule_iri, sorted(sources))"
+            );
+            if r.source_quad_ids.len() == 2 {
+                saw_two_source = true;
+            }
+        }
+        assert!(
+            saw_two_source,
+            "the 2-source step rule (edge, path) must produce a 2-source derivation"
+        );
+    }
+
+    /// The toggle is a REAL behavioural fork, not decoration: over the SAME closure the Record
+    /// (forward) seam attaches full provenance to every derived row, while the Skip (backward)
+    /// seam commits the identical facts carrying NONE.  This falsifiably pins BOTH directions of
+    /// the toggle — if Record ever stopped recording, the "every row has a derivation id + premise
+    /// ids" checks trip; if Skip ever started recording, the promoted `assert!` inside `evaluate`
+    /// (exercised on every `skip_seam` call, in release too) hard-fails.  A behaviour feature that
+    /// changed no behaviour would pass neither leg, so this defeats the dark-feature failure shape.
+    #[test]
+    fn record_pays_provenance_where_skip_pays_none() {
+        let rules = tc_binary_rules();
+        let edb = &[
+            ("a", "edge", "b"),
+            ("b", "edge", "c"),
+            ("c", "edge", "d"),
+            ("d", "edge", "e"),
+        ];
+
+        // Record seam: every derived row carries its rule id + premise (source) ids — the memory
+        // the trace-recording engine pays.
+        let store = world_store_from(edb);
+        let NativeOutcome::Decided(rec) =
+            materialize_native(&store, &rules, None).expect("record materialize_native")
+        else {
+            panic!("record lane unsupported");
+        };
+        let recorded = derived_only(&rec.rows);
+        assert!(
+            !recorded.is_empty(),
+            "the closure must derive rows for Record to have provenance to attach"
+        );
+        for r in &recorded {
+            assert!(
+                !r.derivation_id.is_empty() && !r.source_quad_ids.is_empty(),
+                "Record must attach a derivation id + premise ids to every derived row: {r:?}"
+            );
+        }
+
+        // Skip seam: `evaluate`'s promoted `assert!` guarantees — in release builds too — that zero
+        // `DerivedRow`s / depth entries were accumulated, so the identical closure is committed
+        // WITHOUT paying the provenance memory.  Equal facts, opposite recording cost.
+        let (skip, _) = skip_seam(edb, &rules, None);
+        let (record, _) = record_seam(edb, &rules, None);
+        assert_eq!(
+            skip, record,
+            "Skip commits the identical closure Record does — the fork is in the recording, not the facts"
         );
     }
 }
