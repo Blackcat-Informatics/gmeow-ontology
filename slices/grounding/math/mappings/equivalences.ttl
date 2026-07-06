@@ -239,6 +239,73 @@ gmeow:eqMathVectorSpace a gmeow:TermEquivalence ;
     gmeow:comment "math:VectorSpace is a module over a field; wd:Q125977 (vector space) is the same concept. Identity, so skos:exactMatch." ;
     gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
 
+# --- Linear-algebra numeric layer → Wikidata (concept identity) ------------ #
+# The bilinear-form / matrix / Gram-matrix / vector / distance numeric layer aligned
+# to its Wikidata concepts. A class that IS the concept ("matrix", "bilinear form",
+# "symmetric matrix", "Gram matrix") maps by skos:exactMatch; where the GMEOW class is
+# the coordinate-vector / general-metric reading and the Wikidata item is the specific
+# Euclidean instance, the map is skos:closeMatch. All QIDs curl-validated July 2026.
+
+gmeow:eqMathBilinearForm a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:BilinearForm ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q837924 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "bilinear form" ;
+    gmeow:comment "math:BilinearForm is a map linear in each argument; wd:Q837924 (bilinear form) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathMatrix a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:Matrix ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q44337 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "matrix" ;
+    gmeow:comment "math:Matrix is a rectangular array of scalars representing a linear map or form in a basis; wd:Q44337 (matrix) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathSymmetricMatrix a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:SymmetricMatrix ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q339011 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "symmetric matrix" ;
+    gmeow:comment "math:SymmetricMatrix is a square matrix equal to its transpose; wd:Q339011 (symmetric matrix) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathGramMatrix a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:GramMatrix ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q1409400 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "Gramian matrix" ;
+    gmeow:comment "math:GramMatrix is the symmetric matrix of inner products of a set of vectors (the matrix of a symmetric bilinear form in a basis); wd:Q1409400 (Gramian matrix) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathVector a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:Vector ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q44528 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "Euclidean vector" ;
+    gmeow:comment "math:Vector is the coordinate vector (an element of a vector space in a basis); wd:Q44528 (Euclidean vector) is the geometric magnitude-and-direction reading. closeMatch: the coordinate vector and the geometric vector are close but not invertibly the same object." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathDistance a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:Distance ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q847073 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "Euclidean distance" ;
+    gmeow:comment "math:Distance is the general norm-induced metric distance; wd:Q847073 (Euclidean distance) is the specific ℓ₂ instance. closeMatch: the general metric distance and the Euclidean special case are close but non-invertible counterparts." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
 gmeow:eqMathPolynomialRing a gmeow:TermEquivalence ;
     gmeow:alignSubject math:PolynomialRing ;
     gmeow:alignPredicate skos:exactMatch ;

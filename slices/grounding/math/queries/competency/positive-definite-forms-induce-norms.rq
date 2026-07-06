@@ -1,0 +1,17 @@
+# Competency question: "Which symmetric bilinear forms are positive-definite, what
+# Gram matrix represents each, and what norm do they induce?" Exercises the exact
+# numeric layer: a math:SymmetricBilinearForm marked math:definiteness
+# math:positiveDefinite is represented by a math:GramMatrix (math:representsForm) and
+# induces a math:Norm (math:inducedByForm), so the norm √(xᵀGx) is grounded in math:.
+# Scoped to the fixture namespace so the answer is exactly {intensityForm ->
+# intensityGram, intensityNorm}.
+PREFIX math: <https://blackcatinformatics.ca/math/>
+
+SELECT ?form ?gram ?norm WHERE {
+    ?form a math:SymmetricBilinearForm ;
+          math:definiteness math:positiveDefinite .
+    ?gram math:representsForm ?form .
+    ?norm math:inducedByForm ?form .
+    FILTER(STRSTARTS(STR(?form), "http://example.org/math/"))
+}
+ORDER BY ?form
