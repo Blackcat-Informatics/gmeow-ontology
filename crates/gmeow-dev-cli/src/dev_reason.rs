@@ -376,15 +376,16 @@ pub fn certify(input_path: &Path, profile: Option<&str>) -> i32 {
             ));
         }
     };
-    let arts = match gmeow_logic_compile::projections::compile_program(&program) {
-        Ok(a) => a,
-        Err(e) => {
-            return fail(format!(
-                "certify: cannot compile {}: {e}",
-                input_path.display()
-            ));
-        }
-    };
+    let arts =
+        match gmeow_logic_compile::projections::compile_program(&program, &Default::default()) {
+            Ok(a) => a,
+            Err(e) => {
+                return fail(format!(
+                    "certify: cannot compile {}: {e}",
+                    input_path.display()
+                ));
+            }
+        };
     let verdict = match gmeow_logic::certify::certify(&arts.nemo_rules, &profile_str, None) {
         Ok(v) => v,
         Err(e) => return fail(format!("certify: native certifier failed: {e}")),

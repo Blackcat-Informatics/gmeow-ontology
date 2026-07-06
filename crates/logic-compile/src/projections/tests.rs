@@ -251,7 +251,7 @@ fn run_case(case: &str) {
         diags.is_empty(),
         "[{case}] unexpected parse diagnostics: {diags:?}"
     );
-    let arts = compile_program(&program).expect("compile");
+    let arts = compile_program(&program, &Default::default()).expect("compile");
 
     // One `.snap` per (case, target). The per-case suffix keeps the goldens
     // discoverable and avoids a single mega-snapshot.
@@ -528,7 +528,7 @@ ex:nearbyOrgs a logic:PathShape ;
     logic:pathNamespaceScope \"https://example.org/org/\"^^xsd:anyURI ;
     logic:pathMinDepth 1 ; logic:pathMaxDepth 2 ; logic:pathDepthParam \"maxDepth\" .";
     let (program, _diags) = parse_logic_str(ttl, None).expect("parse");
-    let arts = compile_program(&program).expect("compile");
+    let arts = compile_program(&program, &Default::default()).expect("compile");
 
     // G1a: path_projections is non-empty and carries both surfaces.
     assert_eq!(
@@ -585,7 +585,7 @@ ex:nearbyOrgs a logic:PathShape ;
     logic:pathNamespaceScope \"https://example.org/org/\"^^xsd:anyURI ;
     logic:pathMinDepth 1 ; logic:pathMaxDepth 2 ; logic:pathDepthParam \"maxDepth\" .";
     let (program, _diags) = parse_logic_str(ttl, None).expect("parse");
-    let arts = compile_program(&program).expect("compile");
+    let arts = compile_program(&program, &Default::default()).expect("compile");
 
     // The report Turtle must carry the property-path target as an rdfs:label, in
     // lock-step with the ledger row keyed `property-path:<iri>`.
@@ -630,7 +630,7 @@ fn program_with_satisfied_by() -> crate::ir::LogicProgram {
 #[test]
 fn satisfied_by_axiom_injects_collapse_drop_on_lossy_targets() {
     let program = program_with_satisfied_by();
-    let arts = compile_program(&program).expect("compile ok");
+    let arts = compile_program(&program, &Default::default()).expect("compile ok");
 
     // Every GOAL_EVAL_COLLAPSE_TARGETS entry must carry the drop note.
     for target in GOAL_EVAL_COLLAPSE_TARGETS {
@@ -679,7 +679,7 @@ fn no_satisfied_by_axiom_leaves_ledger_clean() {
     )
     .expect("valid axiom");
     let program = LogicProgram::new(vec![axiom], vec![], vec![], None);
-    let arts = compile_program(&program).expect("compile ok");
+    let arts = compile_program(&program, &Default::default()).expect("compile ok");
 
     // No target in the ledger should carry the collapse drop when there is no
     // satisfiedBy axiom in the program.

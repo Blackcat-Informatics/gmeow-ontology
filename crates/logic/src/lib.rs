@@ -13,6 +13,9 @@
 //! for the unified native extension.
 
 pub mod certificate;
+/// Executed lens-law discharge for a `logic:Correspondence`'s realized `LegPath` legs —
+/// the per-correspondence section-law verdict the (execution-free) correspondence gates read.
+pub mod correspondence_exec;
 pub mod counterfactual;
 /// The DAG-workflow profile certifier (`logic:DagWorkflowResource`): the single
 /// shared acyclicity check the canonical process model and the build pipeline run.
