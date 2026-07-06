@@ -1,5 +1,0 @@
-# Per-run scratch and Python caches — never committed.
-result.txt
-__pycache__/
-*.pyc
-.pytest_cache/

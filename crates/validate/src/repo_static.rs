@@ -22,27 +22,26 @@ use crate::model::rdf;
 
 const TOOL: &str = "repo-static";
 
-// engine_crosscheck.py is the sole remaining rdflib runtime keeper (the
-// rdflib query cross-check). rl_agreement.py + the rest of the classic oracle
-// lane were relocated out of src/ to validations/classic-cross-check/.
-const RDFLIB_KEEPERS: &[&str] = &["oracles/engine_crosscheck.py"];
+// No runtime rdflib keeper remains: the rdflib↔purrdf query cross-check
+// (`oracles/engine_crosscheck.py`) — the last first-party user of upstream
+// rdflib — has been DELETED (purrdf's own rdflib-parity + W3C SPARQL
+// conformance make it redundant), so first-party code is now rdflib-free and
+// must use `purrdf.compat.rdflib` exclusively. An empty keeper list means the
+// lint rejects ANY upstream-rdflib import in `src/gmeow_tools`.
+const RDFLIB_KEEPERS: &[&str] = &[];
 
-// The maint-* targets allowed to reach Docker/Java. The classic-cross-check
-// oracle lane (maint-classic-cross-check / maint-reasoning-cases /
-// maint-statements-docker-check) was relocated to validations/ and is
-// no longer a mainline target.
-const LANE_MAKE_TARGETS: &[&str] = &[
-    "full-release",
-    "maint-reason-hermit",
-    "maint-explain",
-    "maint-verify-docker",
-    "maint-pull-images",
-];
-const LANE_TARGETS_THAT_MUST_HIT: &[&str] = &[
-    "maint-reason-hermit",
-    "maint-verify-docker",
-    "maint-pull-images",
-];
+// The ELK/HermiT/Docker OWL-reasoner lane has been DELETED entirely — the
+// native `logic:` reasoner + in-process `purrdf::entail` oracle replaced it, so
+// no Makefile target reaches Docker/Java anymore. The invariant is now that the
+// Makefile and required CI are ENTIRELY Docker-free.
+//
+// `LANE_MAKE_TARGETS` is the allowlist of targets permitted to reach Docker. No
+// legitimate Docker lane exists any longer, so it is EMPTY: every Makefile
+// target is checked for Docker-freedom, and the lint's job is to catch Docker
+// or Java being RE-INTRODUCED anywhere in the Makefile (or required CI).
+const LANE_MAKE_TARGETS: &[&str] = &[];
+// pull-images.sh (the deleted image-pull helper) is kept as a re-introduction
+// guard: no recipe may shell out to it.
 const LANE_SCRIPTS: &[&str] = &["pull-images.sh"];
 const DOCKER_PATTERNS: &[&str] = &[
     r"\bdocker\s+(?:run|pull|build|image|compose)\b",
@@ -467,9 +466,11 @@ fn collect_ttl_files(dir: &Path, report: &mut RepoStaticReport, out: &mut Vec<Pa
 
 fn check_lane_purity(root: &Path, report: &mut RepoStaticReport) {
     check_required_ci_jobs(root, report);
-    // The classic-cross-check oracle workflow was retired: the lane moved to the
-    // standalone validations/classic-cross-check/ suite, so there is no
-    // .github/workflows/classic-cross-check.yml to structurally police anymore.
+    // The ELK/HermiT/Docker oracle lane has been DELETED: its
+    // .github/workflows/classic-cross-check.yml workflow is gone, so there is no
+    // dedicated oracle workflow to structurally police. What remains is enforcing
+    // that the Makefile is entirely Docker-free (below) and that required CI never
+    // re-introduces the oracle tokens (in check_required_ci_jobs).
     check_makefile_lane_purity(root, report);
 }
 
@@ -561,35 +562,10 @@ fn check_makefile_lane_purity(root: &Path, report: &mut RepoStaticReport) {
                 hits.iter().cloned().collect::<Vec<_>>().join(", ")
             ));
         }
-        let invoked = makefile_invoked_targets(lines);
-        let intruders = invoked
-            .iter()
-            .filter(|target| lane_targets.contains(target.as_str()))
-            .cloned()
-            .collect::<Vec<_>>();
-        if !intruders.is_empty() {
-            report.error(format!(
-                "non-lane Makefile target {target:?} invokes oracle-lane target(s): {}",
-                intruders.join(", ")
-            ));
-        }
     }
 
     if !recipes.contains_key("check") {
         report.error("Makefile: the `check` target vanished");
-        return;
-    }
-
-    for target in LANE_TARGETS_THAT_MUST_HIT {
-        let Some(lines) = recipes.get(*target) else {
-            report.error(format!("expected lane target {target:?} is gone"));
-            continue;
-        };
-        if forbidden_hits(&lines.join("\n")).is_empty() {
-            report.error(format!(
-                "lane target {target:?} no longer carries a Docker/Java token"
-            ));
-        }
     }
 }
 
@@ -658,15 +634,6 @@ fn forbidden_hits(text: &str) -> BTreeSet<String> {
             .map(|script| (*script).to_owned()),
     );
     hits
-}
-
-fn makefile_invoked_targets(lines: &[String]) -> BTreeSet<String> {
-    let token_re = Regex::new(r"[A-Za-z][A-Za-z0-9_-]*").expect("static regex");
-    lines
-        .iter()
-        .filter(|line| line.contains("$(MAKE)") || line.contains("${MAKE}"))
-        .flat_map(|line| token_re.find_iter(line).map(|m| m.as_str().to_owned()))
-        .collect()
 }
 
 fn makefile_recipes(text: &str) -> BTreeMap<String, Vec<String>> {
@@ -1216,17 +1183,20 @@ mod tests {
     }
 
     fn write_minimal_repo(root: &Path) {
-        write(
-            &root.join("src/gmeow_tools/oracles/engine_crosscheck.py"),
-            "import rdflib\n",
-        );
+        // First-party code is rdflib-free (no keeper): a minimal valid repo has a
+        // real src/gmeow_tools package with NO upstream-rdflib import anywhere (it
+        // uses the purrdf.compat.rdflib facade instead).
+        write(&root.join("src/gmeow_tools/sparql.py"), "import purrdf\n");
         write(
             &root.join(".github/workflows/ci.yml"),
             "on:\n  push:\n  pull_request:\njobs:\n  lint:\n    steps:\n      - run: make lint\n  quality:\n    needs: [lint]\n    steps:\n      - run: echo all-good\n",
         );
+        // The Docker-free reality: no target reaches Docker/Java. The ELK/HermiT
+        // lane and its maint-reason-hermit / maint-verify-docker / maint-pull-images
+        // targets are gone.
         write(
             &root.join("Makefile"),
-            "check:\n\t$(MAKE) lint\nlint:\n\ttrue\nmaint-reason-hermit:\n\tdocker run obolibrary/robot\nmaint-explain:\n\ttrue\nmaint-verify-docker:\n\tdocker run obolibrary/robot\nmaint-pull-images:\n\tdocker pull obolibrary/robot\n",
+            "check:\n\t$(MAKE) lint\nlint:\n\ttrue\n",
         );
     }
 
@@ -1460,53 +1430,85 @@ mod tests {
     }
 
     #[test]
-    fn make_check_oracle_target_fails() {
+    fn makefile_target_reaching_docker_fails() {
+        // No legitimate Docker lane exists: any target that reaches `docker` is a
+        // re-introduction of the deleted ELK/HermiT lane and must be flagged.
         let temp = tempfile::tempdir().unwrap();
         write_minimal_repo(temp.path());
         write(
             &temp.path().join("Makefile"),
-            "check:\n\t$(MAKE) maint-verify-docker\nmaint-reason-hermit:\n\tdocker run obolibrary/robot\nmaint-explain:\n\ttrue\nmaint-verify-docker:\n\tdocker run obolibrary/robot\nmaint-pull-images:\n\tdocker pull obolibrary/robot\n",
+            "check:\n\t$(MAKE) lint\nlint:\n\ttrue\nmaint-reason-hermit:\n\tdocker run obolibrary/robot\n",
         );
         let report = check_repo_static(temp.path());
         assert!(
             report
                 .errors
                 .iter()
-                .any(|e| e.contains("target \"check\"") && e.contains("maint-verify-docker"))
+                .any(|e| e.contains("target \"maint-reason-hermit\"")
+                    && e.contains("reaches Docker/Java")),
+            "{:?}",
+            report.errors
         );
     }
 
     #[test]
-    fn non_check_make_oracle_target_fails() {
+    fn makefile_target_reaching_java_fails() {
+        // Java is banned everywhere too — the classic reasoner was a Java robot.jar.
         let temp = tempfile::tempdir().unwrap();
         write_minimal_repo(temp.path());
         write(
             &temp.path().join("Makefile"),
-            "check:\n\t$(MAKE) lint\nci:\n\t$(MAKE) maint-verify-docker\nlint:\n\ttrue\nmaint-reason-hermit:\n\tdocker run obolibrary/robot\nmaint-explain:\n\ttrue\nmaint-verify-docker:\n\tdocker run obolibrary/robot\nmaint-pull-images:\n\tdocker pull obolibrary/robot\n",
+            "check:\n\t$(MAKE) lint\nlint:\n\ttrue\nrobot:\n\tjava -jar robot.jar reason\n",
         );
         let report = check_repo_static(temp.path());
         assert!(
             report
                 .errors
                 .iter()
-                .any(|e| e.contains("target \"ci\"") && e.contains("maint-verify-docker"))
+                .any(|e| e.contains("target \"robot\"") && e.contains("reaches Docker/Java")),
+            "{:?}",
+            report.errors
         );
     }
 
     #[test]
-    fn brace_make_oracle_target_fails() {
+    fn makefile_target_invoking_pull_images_script_fails() {
+        // pull-images.sh was deleted; shelling out to it re-introduces the lane.
         let temp = tempfile::tempdir().unwrap();
         write_minimal_repo(temp.path());
         write(
             &temp.path().join("Makefile"),
-            "check:\n\t$(MAKE) lint\nci:\n\t${MAKE} maint-verify-docker\nlint:\n\ttrue\nmaint-reason-hermit:\n\tdocker run obolibrary/robot\nmaint-explain:\n\ttrue\nmaint-verify-docker:\n\tdocker run obolibrary/robot\nmaint-pull-images:\n\tdocker pull obolibrary/robot\n",
+            "check:\n\t$(MAKE) lint\nlint:\n\ttrue\npull:\n\tbash scripts/pull-images.sh\n",
         );
         let report = check_repo_static(temp.path());
         assert!(
             report
                 .errors
                 .iter()
-                .any(|e| e.contains("target \"ci\"") && e.contains("maint-verify-docker"))
+                .any(|e| e.contains("target \"pull\"") && e.contains("pull-images.sh")),
+            "{:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn required_ci_oracle_reasoner_token_fails() {
+        // The oracle-token ban ENFORCES the lane's removal: a required CI job that
+        // invokes `--reasoner hermit` / `--reasoner elk` must still be rejected.
+        let temp = tempfile::tempdir().unwrap();
+        write_minimal_repo(temp.path());
+        write(
+            &temp.path().join(".github/workflows/ci.yml"),
+            "on:\n  pull_request:\njobs:\n  lint:\n    steps:\n      - run: gmeow-dev reason --reasoner hermit\n  quality:\n    needs: [lint]\n    steps:\n      - run: echo all-good\n",
+        );
+        let report = check_repo_static(temp.path());
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("invokes the oracle lane") && e.contains("--reasoner hermit")),
+            "{:?}",
+            report.errors
         );
     }
 

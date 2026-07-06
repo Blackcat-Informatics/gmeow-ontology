@@ -83,10 +83,10 @@ const EXPLANATIONS_HEADER: &str = "\
 
 /// Banner + prefix block prepended to the native↔oracle divergence ledger.
 const LEDGER_HEADER: &str = "\
-# GMEOW native vs ELK/HermiT DL/EL crosscheck ledger.
-# Built from the native EL/DL reasoning lane ONLY (Java/Docker-free). The
-# oracle comparison runs in the classic-cross-check lane; DlGap rows are
-# native coverage defects and the committed bundle must keep gapCount at 0.
+# GMEOW native vs entail-oracle DL/EL crosscheck ledger.
+# Built from the native EL/DL reasoning lane (Java/Docker-free). The oracle
+# comparison runs the in-process purrdf-entail oracle; DlGap rows are native
+# coverage defects and the committed bundle must keep gapCount at 0.
 # DO NOT EDIT.
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .

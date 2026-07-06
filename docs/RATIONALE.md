@@ -80,8 +80,9 @@ GMEOW answers each challenge with a deliberate architectural choice:
   logical core; the OWL axiom-annotation form a reasoner consumes is a *generated downcast*
   of this layer ([Principle 3](../CONSTITUTION.md)). *(Addresses provenance/confidence,
   temporal validity, and lossless-vs-canonical.)*
-- **Reasoning-centric and FAIR-published.** OWL 2 DL, checked by ELK (fast) and
-  HermiT (sound + complete) on every build; published with content negotiation,
+- **Reasoning-centric and FAIR-published.** OWL 2 DL, checked by the native `logic:`
+  reasoner (fast EL pre-check plus a sound-and-complete OWL 2 DL check, cross-checked
+  in-process against the `purrdf::entail` oracle) on every build; published with content negotiation,
   VoID/DCAT, a DOI, and submitted to the LOD Cloud.
 - **Contested facts as coexisting standpoints — no winner.** A disputed fact is recorded
   as several `gmeow:accordingTo`-indexed claims that coexist, none privileged — *whose
