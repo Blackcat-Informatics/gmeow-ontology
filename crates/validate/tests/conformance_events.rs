@@ -45,6 +45,11 @@ const SCHEMA: &str = "https://schema.org/";
 const ICAL: &str = "http://www.w3.org/2002/12/cal/icaltzd#";
 const TIME: &str = "http://www.w3.org/2006/time#";
 
+// Committed profile CONSTRUCT queries (matches the `MAILMAP_RQ_REL` convention).
+const SCHEMA_ORG_RQ_REL: &str = "generated/queries/schema-org.rq";
+const ICAL_RQ_REL: &str = "generated/queries/ical.rq";
+const OWL_TIME_RQ_REL: &str = "generated/queries/owl-time.rq";
+
 fn gmeow(local: &str) -> String {
     format!("{GMEOW}{local}")
 }
@@ -276,7 +281,7 @@ fn events_projected(query_rel: &str) -> GraphStore {
 /// bleed across predicates (the organizer casey is not also an attendee).
 #[test]
 fn schema_role_projection_keys_by_role() {
-    let out = events_projected("generated/queries/schema-org.rq");
+    let out = events_projected(SCHEMA_ORG_RQ_REL);
     let reception = ex_events("reception");
     let casey = ex_events("casey");
     let band = ex_events("band");
@@ -314,7 +319,7 @@ fn schema_role_projection_keys_by_role() {
 /// participation is displayable false, so it must be dropped.
 #[test]
 fn schema_role_projection_suppresses_withdrawn_participation() {
-    let out = events_projected("generated/queries/schema-org.rq");
+    let out = events_projected(SCHEMA_ORG_RQ_REL);
     let reception = ex_events("reception");
     let erin = ex_events("erin");
     assert!(
@@ -331,7 +336,7 @@ fn schema_role_projection_suppresses_withdrawn_participation() {
 /// ex:siege schema:startDate literal must start "1453-04-01".
 #[test]
 fn schema_fuzzy_time_projects_earliest_bound() {
-    let out = events_projected("generated/queries/schema-org.rq");
+    let out = events_projected(SCHEMA_ORG_RQ_REL);
     let siege = ex_events("siege");
     assert!(
         out.ask(&format!(
@@ -347,7 +352,7 @@ fn schema_fuzzy_time_projects_earliest_bound() {
 /// ex:wedding a ical:Vevent, has ical:dtstart, has ical:dtend, ical:location chapel.
 #[test]
 fn ical_vevent_interval_has_start_end_and_location() {
-    let out = events_projected("generated/queries/ical.rq");
+    let out = events_projected(ICAL_RQ_REL);
     let wedding = ex_events("wedding");
     let chapel = ex_events("chapel");
     assert!(
@@ -376,7 +381,7 @@ fn ical_vevent_interval_has_start_end_and_location() {
 /// ex:reception a ical:Vevent, has ical:dtstart, and has no ical:dtend.
 #[test]
 fn ical_vevent_point_has_start_only() {
-    let out = events_projected("generated/queries/ical.rq");
+    let out = events_projected(ICAL_RQ_REL);
     let reception = ex_events("reception");
     assert!(
         out.ask(&format!("ASK {{ <{reception}> a <{ICAL}Vevent> }}")),
@@ -398,7 +403,7 @@ fn ical_vevent_point_has_start_only() {
 /// ex:siege ical:dtstart starts "1453-04-01" and ical:dtend starts "1453-05-31".
 #[test]
 fn ical_vevent_fuzzy_spans_the_bounds() {
-    let out = events_projected("generated/queries/ical.rq");
+    let out = events_projected(ICAL_RQ_REL);
     let siege = ex_events("siege");
     assert!(
         out.ask(&format!(
@@ -420,7 +425,7 @@ fn ical_vevent_fuzzy_spans_the_bounds() {
 /// ex:wedding ical:summary literal "marriage".
 #[test]
 fn ical_summary_is_the_event_type_label() {
-    let out = events_projected("generated/queries/ical.rq");
+    let out = events_projected(ICAL_RQ_REL);
     let wedding = ex_events("wedding");
     // The summary is language-tagged (STRLANG in the projection); the Python twin
     // compared `str(o)`, which drops the tag — mirror that with STR(?o).
@@ -440,7 +445,7 @@ fn ical_summary_is_the_event_type_label() {
 /// ex:keynote; and the predicate set from dawn→noon is EXACTLY {intervalBefore}.
 #[test]
 fn owl_time_projection_emits_pure_interval_relations() {
-    let out = events_projected("generated/queries/owl-time.rq");
+    let out = events_projected(OWL_TIME_RQ_REL);
     let dawn = ex_events("dawn");
     let noon = ex_events("noon");
     let conference = ex_events("conference");

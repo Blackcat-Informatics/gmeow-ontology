@@ -62,7 +62,8 @@ fn calendar_temporal_datatypes_are_datetime_or_duration() {
         .expect("reminderTrigger range node is a named or blank subject");
 
     assert!(
-        g.value_h(&range_node, RDF_TYPE) == Some(Object::Named(RDFS_DATATYPE.to_owned())),
+        g.objects_h(&range_node, RDF_TYPE)
+            .contains(&Object::Named(RDFS_DATATYPE.to_owned())),
         "reminderTrigger range node must be an rdfs:Datatype"
     );
 
