@@ -362,12 +362,13 @@ fn edoal_and_sparql_share_one_get_leg() {
 }
 
 #[test]
-fn real_corpus_ml_schema_lowers_an_inverse_put_with_mint_envelope() {
+fn real_corpus_ml_schema_lowers_an_inverse_put_as_a_reified_claim() {
     // End-to-end on the ACTUAL authored `ml-schema` corpus (not a hand-built synthetic
     // Correspondence): the `gmeow:ingestClaim` parse + `classify_put` + the inverse
     // emitter must together produce a real `ml-schema.put.rq` carrying the honest
-    // mint-with-claim envelope. This proves the full authored-artifact wiring, the
-    // companion to the byte-parity block in `sparql_lowering_matches_committed_corpus`.
+    // reasoner-inert reified claim, NOT a base-graph assertion. This proves the full
+    // authored-artifact wiring, the companion to the byte-parity block in
+    // `sparql_lowering_matches_committed_corpus`.
     let root = repo_root();
     let dsl = merge_dsl(&root);
     let onto = merge_ontology(&root);
@@ -379,32 +380,57 @@ fn real_corpus_ml_schema_lowers_an_inverse_put_with_mint_envelope() {
     let q = put
         .get("ml-schema.put.rq")
         .expect("the authored ml-schema corpus lowers an inverse put query");
+    let head = q.split("CONSTRUCT {").nth(1).expect("has a CONSTRUCT");
+    let head = head.split('}').next().expect("CONSTRUCT head is closed");
 
-    // The source lift is recovered and the mint-with-claim envelope is minted.
+    // The lift is carried as a reified StatementMetadata claim, NOT asserted — the interior
+    // triple must be absent from the CONSTRUCT head.
     assert!(
-        q.contains("a gmeow:ModelArtifact ."),
-        "put must reconstruct the gmeow source lift:\n{q}"
+        !head.contains("?mlsArtifact a gmeow:ModelArtifact"),
+        "the ValidationOnly lift must NOT assert the interior triple:\n{q}"
     );
     assert!(
-        q.contains("gmeow:wasGeneratedBy _:imp ."),
-        "put must mint the import provenance link:\n{q}"
+        head.contains("gmeow:StatementMetadata"),
+        "put must reify the lift:\n{q}"
     );
     assert!(
-        q.contains("gmeow:mappedFrom mls:"),
-        "put must map each lifted claim back to its mls: source term:\n{q}"
+        head.contains("gmeow:qSubject ?mlsArtifact"),
+        "put must reify the subject:\n{q}"
     );
     assert!(
-        q.contains("_:imp a gmeow:ImportActivity ."),
-        "put must type the generating node as an ImportActivity:\n{q}"
+        head.contains("gmeow:qObject gmeow:ModelArtifact"),
+        "put must reify the object:\n{q}"
     );
+    // mappedFrom moved onto the annotation list, and provenance points at the coalesced import.
+    assert!(
+        head.contains("gmeow:annProperty gmeow:mappedFrom"),
+        "mappedFrom on the ann list:\n{q}"
+    );
+    assert!(
+        head.contains("gmeow:annValue mls:"),
+        "put maps each claim to its mls: term:\n{q}"
+    );
+    assert!(
+        head.contains(
+            "gmeow:wasGeneratedBy <https://blackcatinformatics.ca/gmeow/import/ml-schema>"
+        ),
+        "each claim is wasGeneratedBy the coalesced import IRI:\n{q}"
+    );
+    // Exactly one coalesced ImportActivity — no per-solution blank.
+    assert_eq!(
+        head.matches("a gmeow:ImportActivity").count(),
+        1,
+        "exactly one coalesced ImportActivity node:\n{q}"
+    );
+    assert!(!q.contains("_:imp"), "no per-solution import blank:\n{q}");
     // A ValidationOnly up-lift never overclaims equivalence and never stamps a clock.
     assert!(
         !q.contains("owl:equivalentClass"),
-        "a validation-only put must not assert equivalence:\n{q}"
+        "must not assert equivalence:\n{q}"
     );
     assert!(
         !q.contains("skos:exactMatch"),
-        "a validation-only put must not assert exactMatch:\n{q}"
+        "must not assert exactMatch:\n{q}"
     );
     assert!(!q.contains("NOW("), "the put leg must be clock-free:\n{q}");
 }
