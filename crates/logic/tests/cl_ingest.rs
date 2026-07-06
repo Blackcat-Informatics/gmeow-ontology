@@ -95,7 +95,8 @@ fn sample_kb_clif_ingest_and_reason_derives_ancestor_closure() {
     );
 
     // ── 2. Compile the ingested program down to the Nemo/native rule text. ─────
-    let arts = compile_program(&program).expect("compile_program(ingested CLIF program)");
+    let arts = compile_program(&program, &Default::default())
+        .expect("compile_program(ingested CLIF program)");
 
     // ── 3. Reason: materialize the rules over the committed EDB. ────────────────
     let edb = read_fixture("sample-kb.edb.nq");
