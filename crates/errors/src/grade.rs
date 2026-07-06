@@ -129,6 +129,25 @@ impl Standpoint {
         Standpoint::Perspectival,
         Standpoint::Binding,
     ];
+
+    /// The stable kebab-case wire spelling (matches the `serde` rename).
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Advisory => "advisory",
+            Self::Perspectival => "perspectival",
+            Self::Binding => "binding",
+        }
+    }
+
+    /// The local name of the matching `gmeow:standpoint*` ontology individual, so
+    /// the RDF projection emits the same IRI the diagnostics vocabulary mints.
+    pub fn iri_local(self) -> &'static str {
+        match self {
+            Self::Advisory => "standpointAdvisory",
+            Self::Perspectival => "standpointPerspectival",
+            Self::Binding => "standpointBinding",
+        }
+    }
 }
 
 impl BoundedLattice for Standpoint {
