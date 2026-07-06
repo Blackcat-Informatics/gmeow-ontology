@@ -12,7 +12,6 @@
 #   gmeow: https://blackcatinformatics.ca/gmeow/
 #   gn: http://www.geonames.org/ontology#
 #   gx: http://gedcomx.org/
-#   lang: https://blackcatinformatics.ca/lang/
 #   lime: http://www.w3.org/ns/lemon/lime#
 #   ontolex: http://www.w3.org/ns/lemon/ontolex#
 #   rdfs: http://www.w3.org/2000/01/rdf-schema#
@@ -22,65 +21,59 @@
 #   vcard: http://www.w3.org/2006/vcard/ns#
 #   wd: http://www.wikidata.org/entity/
 #   wdt: http://www.wikidata.org/prop/direct/
-subject_id	predicate_id	object_id	object_label	mapping_justification	confidence	comment
-gmeow:AgreementName	skos:broadMatch	schema:name		semapv:ManualMappingCuration	0.6	schema:name — broad: an AgreementName is a kind of name borne by an agreement
-gmeow:Appellation	rdfs:subClassOf	ontolex:LexicalEntry		semapv:ManualMappingCuration	0.9	GMEOW Appellation subclasses OntoLex LexicalEntry
-gmeow:CreativeWorkTitle	skos:broadMatch	schema:name		semapv:ManualMappingCuration	0.6	schema:name — broad: a CreativeWorkTitle is a kind of name borne by a creative work
-gmeow:NameUsage	skos:relatedMatch	lang:Denotation	Denotation	semapv:ManualMappingCuration	0.4	RETENTION (negative supersession — NOT a Section-Retraction): gmeow:NameUsage is RETAINED. It is the reified observation-spine logic:Relator binding {named entity}×{appellation}×{audience}×{register}×{period}×{evidence} — WHO calls WHOM by which name, toward what audience, in what register, over what interval, on what evidence. lang:Denotation is the reference corner of the Frege triangle (form→referent meaning), carrying none of the audience / register / period / authority / evidence axes. A NameUsage may CARRY a denotation (its appellation's form denotes the named entity through gmeow:appellationDenotation), but the relator's perspectival, standpoint-scoped binding is not recoverable from a meaning record, so lang:Denotation cannot retract onto NameUsage. relatedMatch: related through the shared naming act, on disjoint axes.
-gmeow:PersonName	skos:closeMatch	gx:Name		semapv:ManualMappingCuration	0.8	
-gmeow:PlaceName	skos:closeMatch	crm:E48_Place_Name		semapv:ManualMappingCuration	0.85	CIDOC-CRM E48 Place Name — the appellation borne by a place (CRM's E53 Place)
-gmeow:PronounSet	skos:broadMatch	wd:Q36224		semapv:ManualMappingCuration	0.5	Wikidata 'pronoun' — broader grammatical category; a hint, not an equivalence
-gmeow:PronounSet	skos:closeMatch	wd:Q65067284		semapv:ManualMappingCuration	0.9	Wikidata 'personal pronoun set' — third-person pronouns an individual wants used; its Sept-2025 RfC favours full-declension pronoun sets (modelling each set's forms, not a single lexeme), aligning with GMEOW's reified five-form English model
-gmeow:SoftwareName	skos:broadMatch	schema:name		semapv:ManualMappingCuration	0.6	schema:name — broad: a SoftwareName is a kind of name borne by a software project
-gmeow:appellationDenotation	skos:relatedMatch	lang:Denotation	Denotation	semapv:ManualMappingCuration	0.9	GRAFT SEAM (new consumer, not a supersession): gmeow:appellationDenotation is the naming→referent bridge grounded in lang: (Principle 19). It relates a gmeow:Appellation to the reified lang:Denotation in which the appellation's lang:Form denotes its bearer — lang:denotationKind lang:denotesEntity, lang:denotationTarget the named gmeow:Entity, lang:denotedForm the appellation's non-surface form. The names slice thereby REUSES the lang: reference corner rather than minting a local meaning record; co-reference is a shared lang:denotationTarget. relatedMatch: the property points AT a lang:Denotation, it is not equivalent to one.
-gmeow:fullName	skos:closeMatch	foaf:name		semapv:ManualMappingCuration	0.8	
-gmeow:fullName	skos:closeMatch	ontolex:writtenRep		semapv:ManualMappingCuration	0.85	GMEOW fullName close-matches OntoLex writtenRep
-gmeow:fullName	skos:closeMatch	schema:name		semapv:ManualMappingCuration	0.8	
-gmeow:fullName	skos:closeMatch	vcard:fn		semapv:ManualMappingCuration	0.9	
-gmeow:fullName	skos:closeMatch	wdt:P1559		semapv:ManualMappingCuration	0.7	
-gmeow:hasAgreementName	skos:broadMatch	schema:name		semapv:ManualMappingCuration	0.6	schema:name — downcast: an agreement's structured name objects flatten to the schema:name literal in projection
-gmeow:hasAppellation	skos:relatedMatch	lang:Denotation	Denotation	semapv:ManualMappingCuration	0.3	RETENTION (negative supersession — NOT a Section-Retraction): the core naming-relation family — gmeow:hasAppellation (representative) and its specializations gmeow:hasName / gmeow:hasPlaceName / gmeow:hasOrganizationName / gmeow:hasAgreementName, plus the NameUsage players gmeow:usageNamed / gmeow:usageAppellation — is RETAINED. These are BEARING relations (an entity BEARS a co-equal name-object) or relator-player bindings, structurally distinct from the form→referent MEANING that a lang:Denotation records. A name's form denotes its bearer (the new gmeow:appellationDenotation seam), but the entity→name-object bearing is a separate fact that lang:Denotation carries no term for. lang:Denotation cannot retract onto the bearing family; the denotation is layered ON TOP of the retained bearing. relatedMatch: bearing and denoting meet at the appellation but are disjoint relations.
-gmeow:hasNamePart	skos:closeMatch	gx:nameForm		semapv:ManualMappingCuration	0.6	
-gmeow:hasOrganizationName	skos:broadMatch	foaf:name		semapv:ManualMappingCuration	0.6	foaf:name — downcast from structured OrganizationName to flat literal
-gmeow:hasOrganizationName	skos:broadMatch	schema:name		semapv:ManualMappingCuration	0.6	schema:name — downcast: an organization's structured name objects flatten to the schema:name literal in projection
-gmeow:hasOrganizationName	skos:broadMatch	vcard:organization-name		semapv:ManualMappingCuration	0.7	vcard:organization-name — downcast from structured OrganizationName to flat literal
-gmeow:hasPlaceName	skos:broadMatch	gn:name		semapv:ManualMappingCuration	0.6	GeoNames gn:name — lossy: gn:name links a feature to a name LITERAL, gmeow:hasPlaceName to a structured PlaceName object
-gmeow:hasPlaceName	skos:broadMatch	schema:name		semapv:ManualMappingCuration	0.5	schema:name — downcast: a place's structured name objects flatten to the schema:name literal in projection (non-selected names → schema:alternateName)
-gmeow:hasPronounSet	skos:closeMatch	wdt:P6553		semapv:ManualMappingCuration	0.85	Wikidata 'personal pronoun' property (P6553); lossy — its values are lexemes, GMEOW's range is the full five-form PronounSet
-gmeow:hasSoftwareName	skos:broadMatch	schema:name		semapv:ManualMappingCuration	0.6	schema:name — downcast: a software project's structured name objects flatten to the schema:name literal in projection
-gmeow:hasTitle	skos:broadMatch	schema:headline		semapv:ManualMappingCuration	0.6	schema:headline — downcast from structured CreativeWorkTitle to flat literal
-gmeow:hasTitle	skos:broadMatch	schema:name		semapv:ManualMappingCuration	0.6	schema:name — downcast: a creative work's structured title objects flatten to schema:name in projection
-gmeow:hasTitle	skos:closeMatch	dcterms:title		semapv:ManualMappingCuration	0.85	DCTerms title — GMEOW's reified CreativeWorkTitle downcasts to dcterms:title by projection
-gmeow:honorific	skos:closeMatch	schema:honorificPrefix		semapv:ManualMappingCuration	0.7	
-gmeow:honorific	skos:closeMatch	wdt:P511		semapv:ManualMappingCuration	0.8	
-gmeow:nameLanguage	skos:closeMatch	dcterms:language		semapv:ManualMappingCuration	0.8	
-gmeow:nameLanguage	skos:closeMatch	lime:language		semapv:ManualMappingCuration	0.95	GMEOW nameLanguage close-matches LIME language
-gmeow:nameLanguage	skos:closeMatch	schema:inLanguage		semapv:ManualMappingCuration	0.75	
-gmeow:nameLanguage	skos:closeMatch	wdt:P407		semapv:ManualMappingCuration	0.75	Wikidata 'language of work or name' (P407) — verified live against the Wikidata API
-gmeow:nameLanguage	skos:relatedMatch	lang:Denotation	Denotation	semapv:ManualMappingCuration	0.2	RETENTION (negative supersession — NOT a Section-Retraction): gmeow:nameLanguage is RETAINED. Its range gmeow:Language survives the graft (a language is grafted as a lang:SignSystem but kept as a gmeow: term); nameLanguage carries the FUNCTIONAL language-of-the-form facet (exactly one gmeow:Language per appellation), an axis of the FORM corner, not the reference corner. lang:Denotation is form→referent meaning and has no term for which language a name's surface is in, so it cannot supersede nameLanguage. relatedMatch: both sit on the Frege triangle but on different corners (form-language vs reference).
-gmeow:namePartGiven	skos:closeMatch	foaf:givenName		semapv:ManualMappingCuration	0.8	
-gmeow:namePartGiven	skos:closeMatch	gx:Given		semapv:ManualMappingCuration	0.8	
-gmeow:namePartGiven	skos:closeMatch	schema:givenName		semapv:ManualMappingCuration	0.8	
-gmeow:namePartGiven	skos:closeMatch	vcard:given-name		semapv:ManualMappingCuration	0.8	
-gmeow:namePartGiven	skos:closeMatch	wdt:P735		semapv:ManualMappingCuration	0.7	
-gmeow:namePartHonorificPrefix	skos:closeMatch	schema:honorificPrefix		semapv:ManualMappingCuration	0.9	
-gmeow:namePartHonorificPrefix	skos:closeMatch	vcard:honorific-prefix		semapv:ManualMappingCuration	0.9	
-gmeow:namePartHonorificSuffix	skos:closeMatch	schema:honorificSuffix		semapv:ManualMappingCuration	0.9	
-gmeow:namePartHonorificSuffix	skos:closeMatch	vcard:honorific-suffix		semapv:ManualMappingCuration	0.9	
-gmeow:namePartMiddle	skos:closeMatch	schema:additionalName		semapv:ManualMappingCuration	0.9	
-gmeow:namePartMiddle	skos:closeMatch	vcard:additional-name		semapv:ManualMappingCuration	0.9	
-gmeow:namePartNickname	skos:closeMatch	foaf:nick		semapv:ManualMappingCuration	0.9	
-gmeow:namePartNickname	skos:closeMatch	vcard:nickname		semapv:ManualMappingCuration	0.9	
-gmeow:namePartNickname	skos:closeMatch	wdt:P1449		semapv:ManualMappingCuration	0.8	
-gmeow:namePartPatronymic	skos:closeMatch	gx:Patronymic		semapv:ManualMappingCuration	0.8	
-gmeow:namePartSurname	skos:closeMatch	foaf:familyName		semapv:ManualMappingCuration	0.8	
-gmeow:namePartSurname	skos:closeMatch	gx:Surname		semapv:ManualMappingCuration	0.8	
-gmeow:namePartSurname	skos:closeMatch	schema:familyName		semapv:ManualMappingCuration	0.8	
-gmeow:namePartSurname	skos:closeMatch	vcard:family-name		semapv:ManualMappingCuration	0.8	
-gmeow:namePartSurname	skos:closeMatch	wdt:P734		semapv:ManualMappingCuration	0.7	
-gmeow:namePurposeBirth	skos:closeMatch	wdt:P1477		semapv:ManualMappingCuration	0.8	
-gmeow:namePurposeEndonym	skos:closeMatch	wd:Q1266782		semapv:ManualMappingCuration	0.9	Wikidata 'endonym' (Q1266782) — verified live against the Wikidata API
-gmeow:namePurposeExonym	skos:closeMatch	wd:Q81639		semapv:ManualMappingCuration	0.9	Wikidata 'exonym' (Q81639) — verified live against the Wikidata API
-gmeow:namePurposePenStage	skos:closeMatch	wdt:P742		semapv:ManualMappingCuration	0.8	
-gmeow:nameScript	skos:relatedMatch	lang:Script	Script	semapv:ManualMappingCuration	0.9	REGROUNDING (retention + carrier migration): gmeow:nameScript is RETAINED but migrated from an owl:DatatypeProperty carrying a bare ISO 15924 literal to an owl:ObjectProperty whose rdfs:range is lang:Script. The ISO 15924 code ("Hani", "Latn", "Jpan") now rides the lang:Script individual's skos:notation, so script identity is shared with the writing-system / notation graft rather than duplicated as an opaque per-name tag, and a code-less or newly-minted script names co-equally. The name→script facet survives verbatim; only its carrier deepened. relatedMatch: the property now points at the lang:Script individual it formerly encoded as a string.
-gmeow:romanization	skos:relatedMatch	lang:Denotation	Denotation	semapv:ManualMappingCuration	0.2	RETENTION (negative supersession — NOT a Section-Retraction): gmeow:romanization is RETAINED. It is a Latin-script transliteration of THE SAME appellation (a form→form rendering-layer datum, whose producing system is named by the language slice's gmeow:transliterationScheme, already regrounded onto lang:TransliterationMap in the Task-2 graft). It is NOT a meaning record: it never bridges two co-equal names and never targets a referent. lang:Denotation is form→referent meaning and cannot carry a transliteration string, so it does not supersede romanization; the transliteration axis belongs to lang:Rendering / lang:TransliterationMap, not lang:Denotation. relatedMatch: both concern a form, on the rendering vs reference axes.
+subject_id	predicate_id	object_id	mapping_justification	confidence	comment
+gmeow:AgreementName	skos:broadMatch	schema:name	semapv:ManualMappingCuration	0.6	schema:name — broad: an AgreementName is a kind of name borne by an agreement
+gmeow:Appellation	rdfs:subClassOf	ontolex:LexicalEntry	semapv:ManualMappingCuration	0.9	GMEOW Appellation subclasses OntoLex LexicalEntry
+gmeow:CreativeWorkTitle	skos:broadMatch	schema:name	semapv:ManualMappingCuration	0.6	schema:name — broad: a CreativeWorkTitle is a kind of name borne by a creative work
+gmeow:PersonName	skos:closeMatch	gx:Name	semapv:ManualMappingCuration	0.8	
+gmeow:PlaceName	skos:closeMatch	crm:E48_Place_Name	semapv:ManualMappingCuration	0.85	CIDOC-CRM E48 Place Name — the appellation borne by a place (CRM's E53 Place)
+gmeow:PronounSet	skos:broadMatch	wd:Q36224	semapv:ManualMappingCuration	0.5	Wikidata 'pronoun' — broader grammatical category; a hint, not an equivalence
+gmeow:PronounSet	skos:closeMatch	wd:Q65067284	semapv:ManualMappingCuration	0.9	Wikidata 'personal pronoun set' — third-person pronouns an individual wants used; its Sept-2025 RfC favours full-declension pronoun sets (modelling each set's forms, not a single lexeme), aligning with GMEOW's reified five-form English model
+gmeow:SoftwareName	skos:broadMatch	schema:name	semapv:ManualMappingCuration	0.6	schema:name — broad: a SoftwareName is a kind of name borne by a software project
+gmeow:fullName	skos:closeMatch	foaf:name	semapv:ManualMappingCuration	0.8	
+gmeow:fullName	skos:closeMatch	ontolex:writtenRep	semapv:ManualMappingCuration	0.85	GMEOW fullName close-matches OntoLex writtenRep
+gmeow:fullName	skos:closeMatch	schema:name	semapv:ManualMappingCuration	0.8	
+gmeow:fullName	skos:closeMatch	vcard:fn	semapv:ManualMappingCuration	0.9	
+gmeow:fullName	skos:closeMatch	wdt:P1559	semapv:ManualMappingCuration	0.7	
+gmeow:hasAgreementName	skos:broadMatch	schema:name	semapv:ManualMappingCuration	0.6	schema:name — downcast: an agreement's structured name objects flatten to the schema:name literal in projection
+gmeow:hasNamePart	skos:closeMatch	gx:nameForm	semapv:ManualMappingCuration	0.6	
+gmeow:hasOrganizationName	skos:broadMatch	foaf:name	semapv:ManualMappingCuration	0.6	foaf:name — downcast from structured OrganizationName to flat literal
+gmeow:hasOrganizationName	skos:broadMatch	schema:name	semapv:ManualMappingCuration	0.6	schema:name — downcast: an organization's structured name objects flatten to the schema:name literal in projection
+gmeow:hasOrganizationName	skos:broadMatch	vcard:organization-name	semapv:ManualMappingCuration	0.7	vcard:organization-name — downcast from structured OrganizationName to flat literal
+gmeow:hasPlaceName	skos:broadMatch	gn:name	semapv:ManualMappingCuration	0.6	GeoNames gn:name — lossy: gn:name links a feature to a name LITERAL, gmeow:hasPlaceName to a structured PlaceName object
+gmeow:hasPlaceName	skos:broadMatch	schema:name	semapv:ManualMappingCuration	0.5	schema:name — downcast: a place's structured name objects flatten to the schema:name literal in projection (non-selected names → schema:alternateName)
+gmeow:hasPronounSet	skos:closeMatch	wdt:P6553	semapv:ManualMappingCuration	0.85	Wikidata 'personal pronoun' property (P6553); lossy — its values are lexemes, GMEOW's range is the full five-form PronounSet
+gmeow:hasSoftwareName	skos:broadMatch	schema:name	semapv:ManualMappingCuration	0.6	schema:name — downcast: a software project's structured name objects flatten to the schema:name literal in projection
+gmeow:hasTitle	skos:broadMatch	schema:headline	semapv:ManualMappingCuration	0.6	schema:headline — downcast from structured CreativeWorkTitle to flat literal
+gmeow:hasTitle	skos:broadMatch	schema:name	semapv:ManualMappingCuration	0.6	schema:name — downcast: a creative work's structured title objects flatten to schema:name in projection
+gmeow:hasTitle	skos:closeMatch	dcterms:title	semapv:ManualMappingCuration	0.85	DCTerms title — GMEOW's reified CreativeWorkTitle downcasts to dcterms:title by projection
+gmeow:honorific	skos:closeMatch	schema:honorificPrefix	semapv:ManualMappingCuration	0.7	
+gmeow:honorific	skos:closeMatch	wdt:P511	semapv:ManualMappingCuration	0.8	
+gmeow:nameLanguage	skos:closeMatch	dcterms:language	semapv:ManualMappingCuration	0.8	
+gmeow:nameLanguage	skos:closeMatch	lime:language	semapv:ManualMappingCuration	0.95	GMEOW nameLanguage close-matches LIME language
+gmeow:nameLanguage	skos:closeMatch	schema:inLanguage	semapv:ManualMappingCuration	0.75	
+gmeow:nameLanguage	skos:closeMatch	wdt:P407	semapv:ManualMappingCuration	0.75	Wikidata 'language of work or name' (P407) — verified live against the Wikidata API
+gmeow:namePartGiven	skos:closeMatch	foaf:givenName	semapv:ManualMappingCuration	0.8	
+gmeow:namePartGiven	skos:closeMatch	gx:Given	semapv:ManualMappingCuration	0.8	
+gmeow:namePartGiven	skos:closeMatch	schema:givenName	semapv:ManualMappingCuration	0.8	
+gmeow:namePartGiven	skos:closeMatch	vcard:given-name	semapv:ManualMappingCuration	0.8	
+gmeow:namePartGiven	skos:closeMatch	wdt:P735	semapv:ManualMappingCuration	0.7	
+gmeow:namePartHonorificPrefix	skos:closeMatch	schema:honorificPrefix	semapv:ManualMappingCuration	0.9	
+gmeow:namePartHonorificPrefix	skos:closeMatch	vcard:honorific-prefix	semapv:ManualMappingCuration	0.9	
+gmeow:namePartHonorificSuffix	skos:closeMatch	schema:honorificSuffix	semapv:ManualMappingCuration	0.9	
+gmeow:namePartHonorificSuffix	skos:closeMatch	vcard:honorific-suffix	semapv:ManualMappingCuration	0.9	
+gmeow:namePartMiddle	skos:closeMatch	schema:additionalName	semapv:ManualMappingCuration	0.9	
+gmeow:namePartMiddle	skos:closeMatch	vcard:additional-name	semapv:ManualMappingCuration	0.9	
+gmeow:namePartNickname	skos:closeMatch	foaf:nick	semapv:ManualMappingCuration	0.9	
+gmeow:namePartNickname	skos:closeMatch	vcard:nickname	semapv:ManualMappingCuration	0.9	
+gmeow:namePartNickname	skos:closeMatch	wdt:P1449	semapv:ManualMappingCuration	0.8	
+gmeow:namePartPatronymic	skos:closeMatch	gx:Patronymic	semapv:ManualMappingCuration	0.8	
+gmeow:namePartSurname	skos:closeMatch	foaf:familyName	semapv:ManualMappingCuration	0.8	
+gmeow:namePartSurname	skos:closeMatch	gx:Surname	semapv:ManualMappingCuration	0.8	
+gmeow:namePartSurname	skos:closeMatch	schema:familyName	semapv:ManualMappingCuration	0.8	
+gmeow:namePartSurname	skos:closeMatch	vcard:family-name	semapv:ManualMappingCuration	0.8	
+gmeow:namePartSurname	skos:closeMatch	wdt:P734	semapv:ManualMappingCuration	0.7	
+gmeow:namePurposeBirth	skos:closeMatch	wdt:P1477	semapv:ManualMappingCuration	0.8	
+gmeow:namePurposeEndonym	skos:closeMatch	wd:Q1266782	semapv:ManualMappingCuration	0.9	Wikidata 'endonym' (Q1266782) — verified live against the Wikidata API
+gmeow:namePurposeExonym	skos:closeMatch	wd:Q81639	semapv:ManualMappingCuration	0.9	Wikidata 'exonym' (Q81639) — verified live against the Wikidata API
+gmeow:namePurposePenStage	skos:closeMatch	wdt:P742	semapv:ManualMappingCuration	0.8	

@@ -1,0 +1,435 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# The lang:-graft supersession ledger, authored as machine-checked logic:Correspondence
+# nodes — the canonical rung carrier (Principle 17: SSSOM/EDOAL are its lossy projections).
+# Each removed / deepened / grafted gmeow: term is recorded as a correspondence FROM the
+# old term TO its lang:/logic: replacement, at its TRUE rung on the logic: law-spine. The
+# rung is NOT prose: it is logic:morphismClass + logic:mnemomorphic + (for an injective rung)
+# a logic:getLeg whose LegPath the correspondence gates structurally invert (put ∘ get = id).
+# These correspondences are extracted from the authored surface and run through assert_gates
+# in the logic-compile stage, so a false Section-Retraction (a claimed recovery the leg cannot
+# invert) reds the build.
+#
+# Honesty note: two claims the earlier prose called "SECTION-RETRACTION" are in truth LOSSY —
+# gmeow:WritingSystem drops writingSystemType/textDirection and gmeow:languageTag drops the
+# data-tier tags, so neither recovers its source; both are recorded here as LossyLens, which the
+# gate would demand rather than a section they cannot discharge.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix lang:  <https://blackcatinformatics.ca/lang/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix sup:   <https://blackcatinformatics.ca/gmeow/supersession/> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+
+<https://blackcatinformatics.ca/gmeow/imports/supersession-correspondences>
+    a owl:Ontology ;
+    rdfs:label "GMEOW lang: graft supersession ledger"@x-gmeow-english ;
+    skos:definition "The machine-checked supersession ledger of the lang: grafting migration: every removed / deepened / grafted gmeow: term recorded as a logic:Correspondence FROM the old term (logic:supersededTerm) TO its lang:/logic: replacement (logic:supersedingTerm), at its true rung (logic:morphismClass) with its recoverability witness (logic:mnemomorphic). The rung is gate-enforced through assert_gates in the logic-compile stage — a false Section-Retraction reds the build — so the migration's preservation claims are law, not prose."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/supersession-correspondences> ;
+    gmeow:graphBoxRole gmeow:boxConfigBox .
+
+# =========================================================================== #
+# language slice                                                              #
+# =========================================================================== #
+
+# --- Language ⊑ SignSystem: deepen / embedding (Isomorphism) --------------- #
+sup:langLanguageSignSystem a logic:Correspondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/supersession-correspondences> ;
+    rdfs:label "supersession: gmeow:Language → lang:SignSystem"@x-gmeow-english ;
+    skos:definition "The deepen graft: gmeow:Language is embedded as a specialization of lang:SignSystem (rdfs:subClassOf), a recoverable embedding — a language IS a sign system, distinguished by lang:SignSystemKind rather than a local class ladder. Isomorphism: the language kind embeds into the sign-system reference layer with no loss."@x-gmeow-english ;
+    logic:supersededTerm gmeow:Language ;
+    logic:supersedingTerm lang:SignSystem ;
+    logic:correspondenceRelation logic:SubsumedBy ;
+    logic:morphismClass logic:Isomorphism ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:mnemomorphic "true"^^xsd:boolean ;
+    logic:getLeg sup:langLanguageSignSystemGet ;
+    gmeow:graphBoxRole gmeow:boxABox .
+sup:langLanguageSignSystemGet gmeow:path sup:langLanguageSignSystemStep .
+
+# --- FormalLanguage → formalLanguageKind: collapse (SectionRetraction) ------ #
+# The load-bearing claim: the two-way Formal/Programming distinction is recovered
+# by two distinct lang:SignSystemKind individuals, so the class→kind collapse is a
+# genuine Section-Retraction (put ∘ get = id) — NOT a lossy approximation.
+sup:langFormalKind a logic:Correspondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/supersession-correspondences> ;
+    rdfs:label "supersession: gmeow:FormalLanguage → lang:formalLanguageKind"@x-gmeow-english ;
+    skos:definition "The collapse graft: the removed gmeow:FormalLanguage class is recovered as the lang:SignSystemKind individual lang:formalLanguageKind — a sign system points at this kind through lang:signSystemKind. Section-Retraction: formal-language membership is recovered exactly (the kind value bijects with the old class), so the retraction discharges."@x-gmeow-english ;
+    logic:supersededTerm gmeow:FormalLanguage ;
+    logic:supersedingTerm lang:formalLanguageKind ;
+    logic:correspondenceRelation logic:Subsumes ;
+    logic:morphismClass logic:SectionRetraction ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:mnemomorphic "true"^^xsd:boolean ;
+    logic:getLeg sup:langFormalKindGet ;
+    gmeow:graphBoxRole gmeow:boxABox .
+sup:langFormalKindGet gmeow:path sup:langFormalKindStep .
+
+# --- ProgrammingLanguage → programmingLanguageKind: collapse (SectionRetraction)  #
+# lang:programmingLanguageKind refines lang:formalLanguageKind via skos:broader, so the
+# ProgrammingLanguage ⊑ FormalLanguage subsumption survives as a kind-individual broader
+# edge — the two kind individuals recover the two-way distinction, discharging the section.
+sup:langProgrammingKind a logic:Correspondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/supersession-correspondences> ;
+    rdfs:label "supersession: gmeow:ProgrammingLanguage → lang:programmingLanguageKind"@x-gmeow-english ;
+    skos:definition "The collapse graft: the removed gmeow:ProgrammingLanguage class is recovered as lang:programmingLanguageKind, which refines lang:formalLanguageKind through skos:broader so the ProgrammingLanguage ⊑ FormalLanguage subsumption survives as a kind-individual broader edge. Section-Retraction: the two kind individuals bijectively recover the two-way distinction."@x-gmeow-english ;
+    logic:supersededTerm gmeow:ProgrammingLanguage ;
+    logic:supersedingTerm lang:programmingLanguageKind ;
+    logic:correspondenceRelation logic:Subsumes ;
+    logic:morphismClass logic:SectionRetraction ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:mnemomorphic "true"^^xsd:boolean ;
+    logic:getLeg sup:langProgrammingKindGet ;
+    gmeow:graphBoxRole gmeow:boxABox .
+sup:langProgrammingKindGet gmeow:path sup:langProgrammingKindStep .
+
+# --- WritingSystem → Script + Orthography: split (LossyLens, NOT a section) -- #
+# The (script, orthography) pair recovers the repertoire + binding, but writingSystemType
+# and textDirection have NO lang: home and are DROPPED — so this crossing cannot discharge a
+# section (it does not recover its source). Honest rung: LossyLens, mnemomorphic false.
+sup:langWritingSystemSplit a logic:Correspondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/supersession-correspondences> ;
+    rdfs:label "supersession: gmeow:WritingSystem → lang:Script + lang:Orthography"@x-gmeow-english ;
+    skos:definition "The split graft: the removed gmeow:WritingSystem projects onto lang:Script (the character repertoire, ISO 15924 as skos:notation) and lang:Orthography (the sign-system→script binding). LossyLens, not a section: gmeow:writingSystemType (alphabet/abjad/…) and gmeow:textDirection (ltr/rtl/…), and the WritingSystemUsage role/period facets, have no lang: home and are DROPPED, so the crossing cannot recover its source."@x-gmeow-english ;
+    logic:supersededTerm gmeow:WritingSystem ;
+    logic:supersedingTerm lang:Script ;
+    logic:correspondenceRelation logic:RelatedMatch ;
+    logic:morphismClass logic:LossyLens ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:mnemomorphic "false"^^xsd:boolean ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+# --- seed unification langEnglish/French/Mandarin → lang:english/french/mandarin (Isomorphism) #
+sup:langEnglishUnify a logic:Correspondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/supersession-correspondences> ;
+    rdfs:label "supersession: gmeow:langEnglish → lang:english"@x-gmeow-english ;
+    skos:definition "Identity unification: the removed seed individual gmeow:langEnglish is unified with the lang: sign system lang:english (same English language, one identity). The x-gmeow-english private-use tag rides lang:carrierTag on the carrier variety lang:gmeowEnglish; the lexvo/Wikidata alignments move onto lang:english. Isomorphism: full identity recovery."@x-gmeow-english ;
+    logic:supersededTerm gmeow:langEnglish ;
+    logic:supersedingTerm lang:english ;
+    logic:correspondenceRelation logic:Equiv ;
+    logic:morphismClass logic:Isomorphism ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:mnemomorphic "true"^^xsd:boolean ;
+    logic:getLeg sup:langEnglishUnifyGet ;
+    gmeow:graphBoxRole gmeow:boxABox .
+sup:langEnglishUnifyGet gmeow:path sup:langEnglishUnifyStep .
+
+sup:langFrenchUnify a logic:Correspondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/supersession-correspondences> ;
+    rdfs:label "supersession: gmeow:langFrench → lang:french"@x-gmeow-english ;
+    skos:definition "Identity unification: the removed seed individual gmeow:langFrench is unified with lang:french; the x-gmeow-french tag rides lang:carrierTag on lang:gmeowFrench. Isomorphism."@x-gmeow-english ;
+    logic:supersededTerm gmeow:langFrench ;
+    logic:supersedingTerm lang:french ;
+    logic:correspondenceRelation logic:Equiv ;
+    logic:morphismClass logic:Isomorphism ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:mnemomorphic "true"^^xsd:boolean ;
+    logic:getLeg sup:langFrenchUnifyGet ;
+    gmeow:graphBoxRole gmeow:boxABox .
+sup:langFrenchUnifyGet gmeow:path sup:langFrenchUnifyStep .
+
+sup:langMandarinUnify a logic:Correspondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/supersession-correspondences> ;
+    rdfs:label "supersession: gmeow:langMandarin → lang:mandarin"@x-gmeow-english ;
+    skos:definition "Identity unification: the removed seed individual gmeow:langMandarin is unified with lang:mandarin; the x-gmeow-mandarin tag rides lang:carrierTag on lang:gmeowMandarin. Isomorphism."@x-gmeow-english ;
+    logic:supersededTerm gmeow:langMandarin ;
+    logic:supersedingTerm lang:mandarin ;
+    logic:correspondenceRelation logic:Equiv ;
+    logic:morphismClass logic:Isomorphism ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:mnemomorphic "true"^^xsd:boolean ;
+    logic:getLeg sup:langMandarinUnifyGet ;
+    gmeow:graphBoxRole gmeow:boxABox .
+sup:langMandarinUnifyGet gmeow:path sup:langMandarinUnifyStep .
+
+# --- languageTag → carrierTag: retract to carriers (LossyLens, NOT a section) - #
+sup:langTagCarrier a logic:Correspondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/supersession-correspondences> ;
+    rdfs:label "supersession: gmeow:languageTag → lang:carrierTag"@x-gmeow-english ;
+    skos:definition "The internal x-gmeow-* private-use tag: gmeow:languageTag survives only as lang:carrierTag on the three framework-authoring carrier varieties (lang:gmeowEnglish/gmeowFrench/gmeowMandarin). LossyLens, not a section: the per-language x-gmeow-* tags on the data-tier reference-catalog languages are DROPPED (the self-minted IRI is the identity), so the property does not recover its old per-language extent."@x-gmeow-english ;
+    logic:supersededTerm gmeow:languageTag ;
+    logic:supersedingTerm lang:carrierTag ;
+    logic:correspondenceRelation logic:RelatedMatch ;
+    logic:morphismClass logic:LossyLens ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:mnemomorphic "false"^^xsd:boolean ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+# --- bcp47Tag → generated projection (LossyLens) --------------------------- #
+sup:langBcp47Projection a logic:Correspondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/supersession-correspondences> ;
+    rdfs:label "supersession: gmeow:bcp47Tag (authored) → generated variety projection"@x-gmeow-english ;
+    skos:definition "The authored gmeow:bcp47Tag property is removed; the tag is now GENERATED from lang:LanguageVariety structure (varietyOf parent ISO-639 notation + orthography script) and folded into the bundle. LossyLens: a flat tag carries no variety-relation structure, no diachronic history, and no orthography split — the projection is lossy by construction, the same judgment crates/lang-bridge/src/bcp47.rs carries per emission."@x-gmeow-english ;
+    logic:supersededTerm gmeow:bcp47Tag ;
+    logic:supersedingTerm lang:LanguageVariety ;
+    logic:correspondenceRelation logic:RelatedMatch ;
+    logic:morphismClass logic:LossyLens ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:mnemomorphic "false"^^xsd:boolean ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+# --- transliterationScheme graft: retained + regrounded (AffineCorrespondence) #
+sup:langTransliterationGraft a logic:Correspondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/supersession-correspondences> ;
+    rdfs:label "graft: gmeow:TransliterationScheme retained under lang:TransliterationMap"@x-gmeow-english ;
+    skos:definition "gmeow:TransliterationScheme is RETAINED as the named romanization value vocabulary; the lang: layer regrounds transliteration as a rendering-layer map (lang:TransliterationMap) that names its scheme through lang:transliterationScheme and its source/target orthographies. AffineCorrespondence: the scheme individual is shared across the graft, not superseded — a partial, non-recoverable relation, mnemomorphic false."@x-gmeow-english ;
+    logic:supersededTerm gmeow:transliterationScheme ;
+    logic:supersedingTerm lang:transliterationScheme ;
+    logic:correspondenceRelation logic:RelatedMatch ;
+    logic:morphismClass logic:AffineCorrespondence ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:mnemomorphic "false"^^xsd:boolean ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+# =========================================================================== #
+# notation slice                                                              #
+# =========================================================================== #
+
+# --- SymbolicSystem / NotationSystem ⊑ SignSystem: deepen (Isomorphism) ----- #
+sup:notationSymbolicSignSystem a logic:Correspondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/supersession-correspondences> ;
+    rdfs:label "graft: gmeow:SymbolicSystem → lang:SignSystem"@x-gmeow-english ;
+    skos:definition "The deepen graft: gmeow:SymbolicSystem is embedded as a specialization of lang:SignSystem (rdfs:subClassOf), a recoverable embedding — a symbolic system IS a sign system, distinguished by lang:signSystemKind. Isomorphism: no loss."@x-gmeow-english ;
+    logic:supersededTerm gmeow:SymbolicSystem ;
+    logic:supersedingTerm lang:SignSystem ;
+    logic:correspondenceRelation logic:SubsumedBy ;
+    logic:morphismClass logic:Isomorphism ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:mnemomorphic "true"^^xsd:boolean ;
+    logic:getLeg sup:notationSymbolicSignSystemGet ;
+    gmeow:graphBoxRole gmeow:boxABox .
+sup:notationSymbolicSignSystemGet gmeow:path sup:notationSymbolicSignSystemStep .
+
+sup:notationNotationSignSystem a logic:Correspondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/supersession-correspondences> ;
+    rdfs:label "graft: gmeow:NotationSystem → lang:SignSystem"@x-gmeow-english ;
+    skos:definition "The deepen graft: gmeow:NotationSystem is embedded as a specialization of lang:SignSystem (rdfs:subClassOf), carrying lang:signSystemKind lang:notationalKind. Isomorphism: recoverable embedding."@x-gmeow-english ;
+    logic:supersededTerm gmeow:NotationSystem ;
+    logic:supersedingTerm lang:SignSystem ;
+    logic:correspondenceRelation logic:SubsumedBy ;
+    logic:morphismClass logic:Isomorphism ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:mnemomorphic "true"^^xsd:boolean ;
+    logic:getLeg sup:notationNotationSignSystemGet ;
+    gmeow:graphBoxRole gmeow:boxABox .
+sup:notationNotationSignSystemGet gmeow:path sup:notationNotationSignSystemStep .
+
+# --- ProjectionLoss → logic:PreservationKind (LossyLens) -------------------- #
+sup:notationProjectionLossPreservation a logic:Correspondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/supersession-correspondences> ;
+    rdfs:label "graft: gmeow:ProjectionLoss → logic:PreservationKind"@x-gmeow-english ;
+    skos:definition "The notation projection-loss ledger is regrounded onto the coarse logic:PreservationKind a lang:renderingPreservation records. LossyLens: the per-parameter granularity of gmeow:ProjectionLoss (which canonical parameter each loss omits) is dropped by the coarse preservation grade, so the crossing does not recover its source."@x-gmeow-english ;
+    logic:supersededTerm gmeow:ProjectionLoss ;
+    logic:supersedingTerm logic:PreservationKind ;
+    logic:correspondenceRelation logic:RelatedMatch ;
+    logic:morphismClass logic:LossyLens ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:mnemomorphic "false"^^xsd:boolean ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+# --- Notation profiles / kinds retained + regrounded (AffineCorrespondence) - #
+# Retained-negative: lang: does NOT supersede these; they relate to a lang: term
+# but stay, carrying facets lang: cannot. A weak, non-recovering relation.
+sup:notationProfileRendering a logic:Correspondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/supersession-correspondences> ;
+    rdfs:label "graft-negative: gmeow:NotationProjectionProfile ↔ lang:Rendering"@x-gmeow-english ;
+    skos:definition "Retained-negative: gmeow:NotationProjectionProfile is RETAINED (it carries the representable-parameter/declared-loss ledger and the FnO projectionFunction binding lang:Rendering holds none of); a concrete render is a lang:Rendering that references the profile through lang:renderingConvention. AffineCorrespondence: a partial, non-recovering relation, not a supersession."@x-gmeow-english ;
+    logic:supersededTerm gmeow:NotationProjectionProfile ;
+    logic:supersedingTerm lang:Rendering ;
+    logic:correspondenceRelation logic:RelatedMatch ;
+    logic:morphismClass logic:AffineCorrespondence ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:mnemomorphic "false"^^xsd:boolean ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+sup:notationFunctionRendering a logic:Correspondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/supersession-correspondences> ;
+    rdfs:label "graft-negative: gmeow:ProjectionFunction ↔ lang:Rendering"@x-gmeow-english ;
+    skos:definition "Retained-negative: gmeow:ProjectionFunction (an fno:Function) is RETAINED for its executable render semantics, which lang:Rendering records declaratively but does not carry. AffineCorrespondence, mnemomorphic false."@x-gmeow-english ;
+    logic:supersededTerm gmeow:ProjectionFunction ;
+    logic:supersedingTerm lang:Rendering ;
+    logic:correspondenceRelation logic:RelatedMatch ;
+    logic:morphismClass logic:AffineCorrespondence ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:mnemomorphic "false"^^xsd:boolean ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+sup:notationUsageRendering a logic:Correspondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/supersession-correspondences> ;
+    rdfs:label "graft-negative: gmeow:NotationSystemUsage ↔ lang:Rendering"@x-gmeow-english ;
+    skos:definition "Retained-negative: gmeow:NotationSystemUsage (a reified, vantage-scoped usage relator) is RETAINED; a lang:Rendering records a concrete crossing but not the reified observation. AffineCorrespondence, mnemomorphic false."@x-gmeow-english ;
+    logic:supersededTerm gmeow:NotationSystemUsage ;
+    logic:supersedingTerm lang:Rendering ;
+    logic:correspondenceRelation logic:RelatedMatch ;
+    logic:morphismClass logic:AffineCorrespondence ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:mnemomorphic "false"^^xsd:boolean ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+sup:notationKindSignSystemKind a logic:Correspondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/supersession-correspondences> ;
+    rdfs:label "graft-negative: gmeow:SymbolicSystemKind ↔ lang:SignSystemKind"@x-gmeow-english ;
+    skos:definition "Retained-negative: the gmeow:SymbolicSystemKind value vocabulary is RETAINED alongside the lang:SignSystemKind grounding kinds; the two kind vocabularies relate but the notation-domain kinds carry domain distinctions the grounding kinds do not. AffineCorrespondence, mnemomorphic false."@x-gmeow-english ;
+    logic:supersededTerm gmeow:SymbolicSystemKind ;
+    logic:supersedingTerm lang:SignSystemKind ;
+    logic:correspondenceRelation logic:RelatedMatch ;
+    logic:morphismClass logic:AffineCorrespondence ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:mnemomorphic "false"^^xsd:boolean ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+# =========================================================================== #
+# names slice — retained-negative / new-seam grafts onto lang:Denotation       #
+# =========================================================================== #
+
+sup:namesAppellationDenotation a logic:Correspondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/supersession-correspondences> ;
+    rdfs:label "graft: gmeow:appellationDenotation → lang:Denotation"@x-gmeow-english ;
+    skos:definition "The naming→referent bridge: an appellation denotes its entity through a reified lang:Denotation. gmeow:appellationDenotation is the new consuming property; AffineCorrespondence, a bridge relation, mnemomorphic false."@x-gmeow-english ;
+    logic:supersededTerm gmeow:appellationDenotation ;
+    logic:supersedingTerm lang:Denotation ;
+    logic:correspondenceRelation logic:RelatedMatch ;
+    logic:morphismClass logic:AffineCorrespondence ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:mnemomorphic "false"^^xsd:boolean ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+sup:namesScriptGraft a logic:Correspondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/supersession-correspondences> ;
+    rdfs:label "graft: gmeow:nameScript → lang:Script"@x-gmeow-english ;
+    skos:definition "gmeow:nameScript is regrounded from an ISO-15924 literal onto an object reference to lang:Script. AffineCorrespondence: a regrounding relation, not a recovery, mnemomorphic false."@x-gmeow-english ;
+    logic:supersededTerm gmeow:nameScript ;
+    logic:supersedingTerm lang:Script ;
+    logic:correspondenceRelation logic:RelatedMatch ;
+    logic:morphismClass logic:AffineCorrespondence ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:mnemomorphic "false"^^xsd:boolean ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+sup:namesUsageDenotation a logic:Correspondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/supersession-correspondences> ;
+    rdfs:label "graft-negative: gmeow:NameUsage ↔ lang:Denotation"@x-gmeow-english ;
+    skos:definition "Retained-negative: gmeow:NameUsage (a vantage-held naming observation carrying audience/register/period/authority axes lang:Denotation lacks) is RETAINED. AffineCorrespondence, mnemomorphic false."@x-gmeow-english ;
+    logic:supersededTerm gmeow:NameUsage ;
+    logic:supersedingTerm lang:Denotation ;
+    logic:correspondenceRelation logic:RelatedMatch ;
+    logic:morphismClass logic:AffineCorrespondence ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:mnemomorphic "false"^^xsd:boolean ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+sup:namesLanguageDenotation a logic:Correspondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/supersession-correspondences> ;
+    rdfs:label "graft-negative: gmeow:nameLanguage ↔ lang:Denotation"@x-gmeow-english ;
+    skos:definition "Retained-negative: gmeow:nameLanguage (an appellation's form-language facet, range gmeow:Language) is RETAINED — a form-language attribute, not a reference. AffineCorrespondence, mnemomorphic false."@x-gmeow-english ;
+    logic:supersededTerm gmeow:nameLanguage ;
+    logic:supersedingTerm lang:Denotation ;
+    logic:correspondenceRelation logic:RelatedMatch ;
+    logic:morphismClass logic:AffineCorrespondence ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:mnemomorphic "false"^^xsd:boolean ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+sup:namesRomanizationDenotation a logic:Correspondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/supersession-correspondences> ;
+    rdfs:label "graft-negative: gmeow:romanization ↔ lang:Denotation"@x-gmeow-english ;
+    skos:definition "Retained-negative: gmeow:romanization (a form→form transliteration string, a rendering-layer concern) is RETAINED — not a meaning record. AffineCorrespondence, mnemomorphic false."@x-gmeow-english ;
+    logic:supersededTerm gmeow:romanization ;
+    logic:supersedingTerm lang:Denotation ;
+    logic:correspondenceRelation logic:RelatedMatch ;
+    logic:morphismClass logic:AffineCorrespondence ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:mnemomorphic "false"^^xsd:boolean ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+sup:namesHasAppellationDenotation a logic:Correspondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/supersession-correspondences> ;
+    rdfs:label "graft-negative: gmeow:hasAppellation ↔ lang:Denotation"@x-gmeow-english ;
+    skos:definition "Retained-negative: gmeow:hasAppellation (a bearer→name binding) is RETAINED — a bearing relation, not a denoting one. AffineCorrespondence, mnemomorphic false."@x-gmeow-english ;
+    logic:supersededTerm gmeow:hasAppellation ;
+    logic:supersedingTerm lang:Denotation ;
+    logic:correspondenceRelation logic:RelatedMatch ;
+    logic:morphismClass logic:AffineCorrespondence ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:mnemomorphic "false"^^xsd:boolean ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+# =========================================================================== #
+# coreference slice — reference-resolution seam + retained identity-lineage     #
+# =========================================================================== #
+
+sup:corefDenotationGraft a logic:Correspondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/supersession-correspondences> ;
+    rdfs:label "graft: gmeow:corefDenotation → lang:Denotation"@x-gmeow-english ;
+    skos:definition "The reference-resolution seam: two forms coreffer by sharing a lang:denotationTarget (never owl:sameAs). gmeow:corefDenotation is the new consuming property; AffineCorrespondence, a bridge relation, mnemomorphic false."@x-gmeow-english ;
+    logic:supersededTerm gmeow:corefDenotation ;
+    logic:supersedingTerm lang:Denotation ;
+    logic:correspondenceRelation logic:RelatedMatch ;
+    logic:morphismClass logic:AffineCorrespondence ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:mnemomorphic "false"^^xsd:boolean ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+sup:corefAuthorityLinkDenotation a logic:Correspondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/supersession-correspondences> ;
+    rdfs:label "graft-negative: gmeow:authorityLink ↔ lang:Denotation"@x-gmeow-english ;
+    skos:definition "Retained-negative: gmeow:authorityLink (an entity→external-authority-record pointer) is RETAINED — not a form→referent meaning. AffineCorrespondence, mnemomorphic false."@x-gmeow-english ;
+    logic:supersededTerm gmeow:authorityLink ;
+    logic:supersedingTerm lang:Denotation ;
+    logic:correspondenceRelation logic:RelatedMatch ;
+    logic:morphismClass logic:AffineCorrespondence ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:mnemomorphic "false"^^xsd:boolean ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+sup:corefCounterpartDenotation a logic:Correspondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/supersession-correspondences> ;
+    rdfs:label "graft-negative: gmeow:counterpartOf ↔ lang:Denotation"@x-gmeow-english ;
+    skos:definition "Retained-negative: gmeow:counterpartOf (a symmetric cross-realm entity↔entity pairing) is RETAINED — not a form→referent meaning. AffineCorrespondence, mnemomorphic false."@x-gmeow-english ;
+    logic:supersededTerm gmeow:counterpartOf ;
+    logic:supersedingTerm lang:Denotation ;
+    logic:correspondenceRelation logic:RelatedMatch ;
+    logic:morphismClass logic:AffineCorrespondence ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:mnemomorphic "false"^^xsd:boolean ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+sup:corefVersionDenotation a logic:Correspondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/supersession-correspondences> ;
+    rdfs:label "graft-negative: gmeow:versionOf ↔ lang:Denotation"@x-gmeow-english ;
+    skos:definition "Retained-negative: gmeow:versionOf (a functional version→lineage containment) is RETAINED — not a form→referent meaning. AffineCorrespondence, mnemomorphic false."@x-gmeow-english ;
+    logic:supersededTerm gmeow:versionOf ;
+    logic:supersedingTerm lang:Denotation ;
+    logic:correspondenceRelation logic:RelatedMatch ;
+    logic:morphismClass logic:AffineCorrespondence ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:mnemomorphic "false"^^xsd:boolean ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+sup:corefEditionDenotation a logic:Correspondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/supersession-correspondences> ;
+    rdfs:label "graft-negative: gmeow:editionOf ↔ lang:Denotation"@x-gmeow-english ;
+    skos:definition "Retained-negative: gmeow:editionOf (a functional edition→work containment) is RETAINED — not a form→referent meaning. AffineCorrespondence, mnemomorphic false."@x-gmeow-english ;
+    logic:supersededTerm gmeow:editionOf ;
+    logic:supersedingTerm lang:Denotation ;
+    logic:correspondenceRelation logic:RelatedMatch ;
+    logic:morphismClass logic:AffineCorrespondence ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:mnemomorphic "false"^^xsd:boolean ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+sup:corefSupersedesDenotation a logic:Correspondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/supersession-correspondences> ;
+    rdfs:label "graft-negative: gmeow:supersedes ↔ lang:Denotation"@x-gmeow-english ;
+    skos:definition "Retained-negative: gmeow:supersedes (a successor→predecessor succession link) is RETAINED — not a form→referent meaning. AffineCorrespondence, mnemomorphic false."@x-gmeow-english ;
+    logic:supersededTerm gmeow:supersedes ;
+    logic:supersedingTerm lang:Denotation ;
+    logic:correspondenceRelation logic:RelatedMatch ;
+    logic:morphismClass logic:AffineCorrespondence ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:mnemomorphic "false"^^xsd:boolean ;
+    gmeow:graphBoxRole gmeow:boxABox .

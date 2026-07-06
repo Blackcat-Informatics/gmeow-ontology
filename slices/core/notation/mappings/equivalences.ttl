@@ -99,100 +99,10 @@ gmeow:eqNotation008 a gmeow:TermEquivalence ;
     gmeow:sssomFile "gmeow-notation.sssom.tsv" .
 
 # --------------------------------------------------------------------------- #
-# lang: graft supersession cells                                              #
-# The notation slice is grafted onto the lang: grounding layer (Principle 19).#
-# Two families of cell, mirroring the language-slice graft convention:        #
-#   (a) DEEPEN cells — the retained notation classes embed into lang:SignSystem#
-#       with no loss (positive, isomorphism/embedding rung).                   #
-#   (b) RETENTION cells — for each term the task enumerated under the rendering#
-#       graft, a NEGATIVE supersession cell: a lawful relatedMatch to the lang:#
-#       (or logic:) surface that DOES NOT reach Section-Retraction, proving the #
-#       term is retained by decision, not superseded by oversight. The rung is #
-#       prose in gmeow:comment; the SSSOM row carries only the skos grain.     #
+# lang: graft supersession ledger — the machine-checked rung carrier lives in  #
+# imports/supersession-correspondences.ttl as logic:Correspondence nodes        #
+# (logic:morphismClass + logic:mnemomorphic + logic:getLeg), run through         #
+# assert_gates in the logic-compile stage. The prose-rung gmeow:TermEquivalence  #
+# graft rows are removed: the rung is a gate-enforced correspondence law, not a  #
+# comment (Principle 17 — SSSOM is its lossy projection).                        #
 # --------------------------------------------------------------------------- #
-
-gmeow:eqNotationGraft001 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:SymbolicSystem ;
-    gmeow:alignPredicate skos:broadMatch ;
-    gmeow:alignObject lang:SignSystem ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.95 ;
-    gmeow:objectLabel "Sign System" ;
-    gmeow:comment "DEEPEN / EMBEDDING (isomorphism rung): gmeow:SymbolicSystem is grafted as a specialization of lang:SignSystem (rdfs:subClassOf lang:SignSystem in module.ttl), embedding every convention-bearing symbol system into the sign-system reference layer with no loss — a symbolic system IS a sign system, distinguished by lang:signSystemKind and lang:modality rather than a local class ladder. broadMatch: lang:SignSystem is the broader grounding class." ;
-    gmeow:sssomFile "gmeow-notation.sssom.tsv" .
-
-gmeow:eqNotationGraft002 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:NotationSystem ;
-    gmeow:alignPredicate skos:broadMatch ;
-    gmeow:alignObject lang:SignSystem ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.95 ;
-    gmeow:objectLabel "Sign System" ;
-    gmeow:comment "DEEPEN / EMBEDDING (isomorphism rung): gmeow:NotationSystem is grafted as a specialization of lang:SignSystem, the structured-notation subkind whose lang:signSystemKind is the individual lang:notationalKind. The former language-vs-notation boundary survives as a kind-individual distinction (lang:notationalKind vs lang:naturalLanguageKind / lang:formalLanguageKind), not a subclass overlap. broadMatch: lang:SignSystem is the broader grounding class." ;
-    gmeow:sssomFile "gmeow-notation.sssom.tsv" .
-
-gmeow:eqNotationGraft003 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:NotationProjectionProfile ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject lang:Rendering ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.5 ;
-    gmeow:objectLabel "Rendering" ;
-    gmeow:comment "RETENTION (negative supersession — NOT a Section-Retraction): gmeow:NotationProjectionProfile is RETAINED, not superseded by lang:Rendering. A profile is the reusable per-notation-system rendering convention — the parameter/loss ledger (gmeow:representableParameter, gmeow:declaredLoss, gmeow:accountsForParameter) plus the FnO gmeow:projectionFunction binding — and lang:Rendering, a reified single-crossing record, holds none of that. The rendering role is re-expressed by reuse: a concrete render is a lang:Rendering of lang:renderingKind lang:renderingNotation whose lang:renderingConvention names this profile and whose lang:renderingPreservation carries a logic:PreservationKind. relatedMatch: profile is the convention a Rendering points at, so lang:Rendering cannot retract onto it — retention is the decision." ;
-    gmeow:lossyDrop "the representable-parameter / declared-loss ledger and the FnO projectionFunction binding are not carried by lang:Rendering; they remain on the profile, which a lang:Rendering references through lang:renderingConvention" ;
-    gmeow:sssomFile "gmeow-notation.sssom.tsv" .
-
-gmeow:eqNotationGraft004 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:ProjectionFunction ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject lang:Rendering ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.4 ;
-    gmeow:objectLabel "Rendering" ;
-    gmeow:comment "RETENTION (negative supersession — NOT a Section-Retraction): gmeow:ProjectionFunction (rdfs:subClassOf fno:Function) is RETAINED — it carries FnO executable-transform semantics (a solver-layer render function, P12) that lang:Rendering, a declarative reified crossing, has no term for. The function is the executable hook a lang:Rendering's convention invokes; lang:Rendering names the crossing, never the transform. relatedMatch: related as the render machinery behind a rendering, not superseded." ;
-    gmeow:lossyDrop "the executable fno:Function render semantics are not carried by lang:Rendering; lang:Rendering records the crossing declaratively and delegates the transform to the retained gmeow:ProjectionFunction" ;
-    gmeow:sssomFile "gmeow-notation.sssom.tsv" .
-
-gmeow:eqNotationGraft005 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:ProjectionLoss ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject logic:PreservationKind ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.5 ;
-    gmeow:objectLabel "Preservation Kind" ;
-    gmeow:comment "RETENTION (negative supersession — NOT a Section-Retraction): gmeow:ProjectionLoss is RETAINED. lang:renderingPreservation carries a single coarse logic:PreservationKind grade for a crossing; a ProjectionLoss is the FINE-grained, per-parameter loss individual (each gmeow:accountsForParameter a specific canonical parameter) that the completeness gate reconciles. The per-parameter account is not recoverable from the coarse kind, so the kind cannot retract onto the loss ledger. relatedMatch: ProjectionLoss enumerates the drops that a lossy logic:PreservationKind rolls up." ;
-    gmeow:lossyDrop "the per-parameter granularity of gmeow:ProjectionLoss (which canonical parameter each loss omits) is not carried by the coarse logic:PreservationKind grade a lang:renderingPreservation records" ;
-    gmeow:sssomFile "gmeow-notation.sssom.tsv" .
-
-gmeow:eqNotationGraft006 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:NotationSystemUsage ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject lang:Rendering ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.3 ;
-    gmeow:objectLabel "Rendering" ;
-    gmeow:comment "RETENTION (negative supersession — NOT a Section-Retraction): gmeow:NotationSystemUsage is RETAINED. It is the reified observation-spine relator binding {entity} × {notation system} × {role} × {period} — WHO uses a notation, WHEN, in what role — an axis orthogonal to lang:Rendering's content→form crossing. A rendering realizes content as a form; a usage records a standpoint-scoped fact of use, and neither supersedes the other. relatedMatch: both concern notation but along disjoint axes; the usage relator is not a crossing." ;
-    gmeow:lossyDrop "the entity/role/period usage binding of gmeow:NotationSystemUsage is not a content→form crossing and is not carried by lang:Rendering; the two are orthogonal axes over notation" ;
-    gmeow:sssomFile "gmeow-notation.sssom.tsv" .
-
-gmeow:eqNotationGraft007 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:NotationUsageRole ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject lang:RenderingKind ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.3 ;
-    gmeow:objectLabel "Rendering Kind" ;
-    gmeow:comment "RETENTION (negative supersession — NOT a Section-Retraction): gmeow:NotationUsageRole is RETAINED. Its values name the FUNCTION a notation serves in a usage (transcription, encoding, representation, cipher, …); lang:RenderingKind names the KIND of a rendering crossing (serialization, prose, transliteration, notation, docs-page). These are different axes — a notation used for transcription may still render under lang:renderingNotation — so the rendering-kind vocabulary cannot retract onto the usage-role vocabulary. relatedMatch: both are open value vocabularies over notation, on disjoint axes." ;
-    gmeow:lossyDrop "the usage-function semantics of gmeow:NotationUsageRole (transcription vs encoding vs cipher, …) are not carried by lang:RenderingKind, which classifies the crossing mode, not the role of use" ;
-    gmeow:sssomFile "gmeow-notation.sssom.tsv" .
-
-gmeow:eqNotationGraft008 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:SymbolicSystemKind ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject lang:SignSystemKind ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.4 ;
-    gmeow:objectLabel "Sign System Kind" ;
-    gmeow:comment "RETENTION (negative supersession — NOT a Section-Retraction): gmeow:SymbolicSystemKind is RETAINED. It is the DOMAIN axis of a symbol system (mathematical, musical, stenographic, cryptographic, emoji, gesture, …); lang:SignSystemKind is the KIND axis (natural, formal, notational, gestural, tactile). A single notation system carries BOTH — lang:signSystemKind lang:notationalKind AND gmeow:symbolicSystemKind gmeow:symbolicKindMusical — so lang:SignSystemKind cannot retract onto the domain vocabulary. relatedMatch: orthogonal classificatory axes over the same sign systems." ;
-    gmeow:lossyDrop "the domain-of-notation semantics of gmeow:SymbolicSystemKind (mathematical vs musical vs cryptographic, …) are not carried by lang:SignSystemKind, whose five values fix the sign-system kind, not its subject domain" ;
-    gmeow:sssomFile "gmeow-notation.sssom.tsv" .
