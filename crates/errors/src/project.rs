@@ -30,6 +30,15 @@ impl DiagNode {
         finding.tags = self.tags.clone();
         finding.attributions = self.attributions.clone();
         finding.suggestions = self.advice.iter().map(|a| a.text.clone()).collect();
+        // Secondary labelled spans (Rust-compiler-style "defined here" / SHACL
+        // result-path / offending value) ride as related locations, so a
+        // multi-anchor witness keeps every secondary anchor through the projection
+        // instead of collapsing to its primary source context.
+        for label in &self.labels {
+            if !label.location.is_empty() {
+                finding.related_locations.push(label.location.clone());
+            }
+        }
         // Project the content-addressed antecedent DAG edges as related locations
         // (the stable finding IRI of each cause), so `gmeow explain`, SARIF
         // relatedLocations, and LSP related-information get the provenance chain for
@@ -124,6 +133,42 @@ mod tests {
         let finding = &ledger.findings("validate")[0];
         assert_eq!(finding.standpoint, Some(Standpoint::Binding));
         assert_eq!(finding.category, Some(FindingCategory::DataShapeViolation));
+    }
+
+    #[test]
+    fn projected_finding_carries_labels_as_related_locations() {
+        // A multi-anchor witness (e.g. a SHACL result with a result-path / value,
+        // or a "defined here / used there" lint) carries its secondary Label spans
+        // through the projection as related locations — no secondary anchor is lost
+        // to the single primary source context.
+        use crate::diag::Label;
+        use crate::model::Location as ModelLocation;
+        let mut ledger = DiagLedger::new();
+        let diag = diag_at(
+            "test.project.labels",
+            "s.ttl",
+            Grade::new(
+                Severity::Error,
+                FindingCategory::DataShapeViolation,
+                Standpoint::Binding,
+            ),
+        )
+        .with_label(Label {
+            location: ModelLocation {
+                logical: Some("path https://ex/p".to_owned()),
+                ..ModelLocation::default()
+            },
+            text: "path".to_owned(),
+        });
+        ledger.attach(diag, StageId::new("s"));
+        let finding = &ledger.findings("validate")[0];
+        assert!(
+            finding
+                .related_locations
+                .iter()
+                .any(|l| l.logical.as_deref() == Some("path https://ex/p")),
+            "a Label span must project to a related location"
+        );
     }
 
     #[test]

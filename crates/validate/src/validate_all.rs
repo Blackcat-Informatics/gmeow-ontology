@@ -18,7 +18,10 @@ use std::time::Instant;
 
 use std::sync::Arc;
 
-use gmeow_errors::{Finding, FindingCategory, Report, Severity};
+use gmeow_errors::{
+    Advice, Diag, DiagLedger, Finding, FindingCategory, Grade, Report, Severity, StageId,
+    Standpoint, register_code,
+};
 use gmeow_logic::certificate::ContradictionPolicy;
 use purrdf::gts::model::Graph;
 use purrdf::{
@@ -37,7 +40,7 @@ use crate::cache::{CachedResult, ValidationCache};
 use crate::gufo::{self, GufoConfig};
 use crate::lint::{self, LintConfig};
 use crate::model::{owl, rdf, rdfs};
-use crate::report_bridge::{build_report, shacl_findings_from_report};
+use crate::report_bridge::shacl_findings_from_report;
 use crate::signature;
 use crate::slice_ownership;
 use crate::store;
@@ -120,6 +123,182 @@ struct PhaseResult {
     warnings: Vec<String>,
 }
 
+/// The stage the plain-string phases (syntax, `owl:sameAs` ban, reasoning
+/// invariants, example coverage) and the structured findings (SHACL, signature,
+/// slice ownership) intern under on the single run ledger. The lint sub-ledgers
+/// keep their own `validate.lint` stage and fold in via [`DiagLedger::union`].
+fn run_stage() -> StageId {
+    StageId::new("validate.run")
+}
+
+/// Intern one [`PhaseResult`]'s error/warning strings onto the run ledger and
+/// report whether it contributed any gate-fatal error.
+///
+/// These cheap phases carry no richer focus node than the message itself, so the
+/// message doubles as the hash-cons focus: two distinct messages get distinct
+/// fingerprints and never merge-drop, while an identical message emitted twice
+/// correctly dedups.
+///
+/// This is the DELIBERATE, NARROW exception to the "never key the fingerprint on
+/// the message" rule (Hard Invariant 6): these are anchor-less GLOBAL diagnostics
+/// (syntax error, banned `owl:sameAs`, reasoning-invariant, coverage) whose
+/// identity genuinely IS their message — they have no structural anchor to key on,
+/// so keeping distinct messages as distinct findings requires the message to be the
+/// focus. It is NOT the general rule: anchored findings ([`intern_finding`]) key on
+/// message-INDEPENDENT structural identity and must never fold the message into the
+/// fingerprint.
+///
+/// Errors gate (Error / ModelingDisciplineViolation / Binding —
+/// a Blocking category under a Binding standpoint); warnings are perspectival
+/// policy notes (Warning / PolicyWarning / Perspectival). The `validate.error` /
+/// `validate.warning` codes are the same generic codes the legacy string surface
+/// carried, so the projected report is code-identical for these phases.
+fn intern_phase(ledger: &mut DiagLedger, phase: PhaseResult) -> bool {
+    let had_errors = !phase.errors.is_empty();
+    for message in phase.errors {
+        let diag = Diag::new(
+            register_code("validate.error"),
+            Grade::new(
+                Severity::Error,
+                FindingCategory::ModelingDisciplineViolation,
+                Standpoint::Binding,
+            ),
+            message.clone(),
+        )
+        .with_focus(message);
+        ledger.attach(diag, run_stage());
+    }
+    for message in phase.warnings {
+        let diag = Diag::new(
+            register_code("validate.warning"),
+            Grade::new(
+                Severity::Warning,
+                FindingCategory::PolicyWarning,
+                Standpoint::Perspectival,
+            ),
+            message.clone(),
+        )
+        .with_focus(message);
+        ledger.attach(diag, run_stage());
+    }
+    had_errors
+}
+
+/// Intern one already-structured [`Finding`] (a SHACL result, a slice-ownership
+/// defect, or a signature diagnostic) onto the run ledger as a graded [`Diag`],
+/// preserving its code, severity, category, message, primary location, secondary
+/// (related) locations, detail, tags, and attributions. `standpoint` is the vantage
+/// the producer speaks from (Binding for the gate-contributing SHACL / ownership
+/// surfaces).
+///
+/// Every structural anchor is carried as first-class Diag data so the round-trip
+/// through `to_finding` is lossless:
+///   • the primary location → [`Diag::with_location`];
+///   • each `related_locations` entry (the SHACL result-path / offending value) →
+///     a [`gmeow_errors::Label`] via [`Diag::with_label`], which `to_finding`
+///     projects back into `related_locations`;
+///   • `finding.detail` (e.g. "source shape: X") → a [`Diag::with_context`] frame,
+///     which `to_finding` folds back into the projected finding's `detail`. Context
+///     frames are excluded from the fingerprint, so carrying the detail this way
+///     respects Hard Invariant 6.
+///
+/// The hash-cons focus is the finding's message-INDEPENDENT structural identity
+/// (see [`finding_identity_key`]) — every location logical/path plus the detail —
+/// so two genuinely distinct findings (the same constraint component on different
+/// focus nodes, or two signer diagnostics sharing a code) get distinct fingerprints
+/// and never merge-drop, while two findings identical in structure but differing
+/// only in message correctly hash-cons-merge (their messages ride as observations).
+fn intern_finding(
+    ledger: &mut DiagLedger,
+    stage: StageId,
+    standpoint: Standpoint,
+    finding: &Finding,
+) {
+    let category = finding
+        .category
+        .unwrap_or(FindingCategory::ModelingDisciplineViolation);
+    let mut diag = Diag::new(
+        register_code(&finding.code),
+        Grade::new(finding.severity, category, standpoint),
+        finding.message.clone(),
+    )
+    .with_focus(finding_identity_key(finding));
+    if let Some(location) = finding.locations.first() {
+        diag = diag.with_location(location.clone());
+    }
+    // Carry each secondary anchor (SHACL result-path / offending value) as a
+    // first-class labelled span; `to_finding` re-emits these as related locations.
+    for related in &finding.related_locations {
+        diag = diag.with_label(gmeow_errors::Label {
+            text: related.logical.clone().unwrap_or_default(),
+            location: related.clone(),
+        });
+    }
+    // Carry the finding's detail (e.g. "source shape: X") as a context frame;
+    // `to_finding` folds context frames back into the projected finding's detail,
+    // and context frames are correctly excluded from the fingerprint (Invariant 6).
+    if let Some(detail) = &finding.detail {
+        diag = diag.with_context(detail.clone());
+    }
+    for suggestion in &finding.suggestions {
+        diag = diag.with_advice(Advice {
+            standpoint,
+            text: suggestion.clone(),
+            help_uri: None,
+        });
+    }
+    for tag in &finding.tags {
+        diag = diag.with_tag(tag.clone());
+    }
+    for attribution in &finding.attributions {
+        diag = diag.with_attribution(attribution.clone());
+    }
+    ledger.attach(diag, stage);
+}
+
+/// Intern a batch of SHACL findings (merged, per-example, or DSL) onto the run
+/// ledger under the `validate.shacl` stage at the Binding gate standpoint.
+fn intern_shacl_findings(ledger: &mut DiagLedger, findings: Vec<Finding>) {
+    for finding in &findings {
+        intern_finding(
+            ledger,
+            StageId::new("validate.shacl"),
+            Standpoint::Binding,
+            finding,
+        );
+    }
+}
+
+/// The message-independent structural identity of a [`Finding`] used as its
+/// hash-cons focus — the unit separator joins every primary and related location
+/// logical/path and the detail. It deliberately does NOT include `finding.message`:
+/// the content-address fingerprint (which folds the focus) must NEVER depend on the
+/// message (substrate Hard Invariant 6, see the module docs in
+/// `gmeow_errors::ledger`). Two findings identical in all structural identity but
+/// differing only in message ARE the same witness by the substrate's design and
+/// SHOULD hash-cons-merge; no message is lost, because `LintReport::messages()` /
+/// `errors()` / `warnings()` emit per-observation and the report projection folds
+/// every extra observation into the finding's detail.
+fn finding_identity_key(finding: &Finding) -> String {
+    let mut parts: Vec<String> = Vec::new();
+    for location in finding
+        .locations
+        .iter()
+        .chain(finding.related_locations.iter())
+    {
+        if let Some(logical) = &location.logical {
+            parts.push(logical.clone());
+        }
+        if let Some(path) = &location.path {
+            parts.push(path.clone());
+        }
+    }
+    if let Some(detail) = &finding.detail {
+        parts.push(detail.clone());
+    }
+    parts.join("\u{1f}")
+}
+
 /// A complete validation run: shared store, parsed shapes, timings, diagnostics,
 /// and any data Python needs to finish phases that stay Python-side.
 ///
@@ -173,12 +352,12 @@ impl ValidationRun {
         options: &ValidateOptions,
     ) -> Result<Self, String> {
         let mut timings: Vec<Timing> = Vec::new();
-        // String scratch for the cheap lint phases; the SHACL phases produce
-        // structured findings directly. All three fold into ONE report at the
-        // aggregation points below.
-        let mut errors: Vec<String> = Vec::new();
-        let mut warnings: Vec<String> = Vec::new();
-        let mut shacl_findings: Vec<Finding> = Vec::new();
+        // The SINGLE run-level carrier: every producer — the cheap string phases,
+        // the SHACL/ownership/signature findings, the lint sub-ledgers, and the
+        // advisory diagnostic — interns onto this one hash-consed ledger, and the
+        // final report is its projection. There is no independent Vec<Finding> /
+        // Vec<String> findings store (invariant 8).
+        let mut run_ledger = DiagLedger::new();
 
         if source_paths.is_empty() && options.gts_bytes.is_none() {
             return Err(
@@ -235,18 +414,27 @@ impl ValidationRun {
         // Runs after the GTS bundle has been folded into a graph but before any
         // ontology validation phases, so malformed, unsigned, or untrusted bundles
         // are rejected early.
-        let mut signature_findings: Vec<Finding> = Vec::new();
         let mut signature_hard_failures = false;
         if let (Some(bytes), Some(config)) = (&options.gts_bytes, &options.signature_config) {
             let (findings, hard) = timed(&mut timings, "signature-verify", options, None, || {
                 signature::verify_gts_bundle(bytes, config)
             })?;
-            signature_findings.extend(findings);
+            // Signature diagnostics carry their own category (PolicyWarning); the
+            // vantage is the Binding gate. Interned before the hard-failure gate so
+            // a hard-failed run still projects them.
+            for finding in &findings {
+                intern_finding(
+                    &mut run_ledger,
+                    StageId::new("validate.signature"),
+                    Standpoint::Binding,
+                    finding,
+                );
+            }
             signature_hard_failures = hard;
         }
 
         if signature_hard_failures {
-            let mut report = build_report(Vec::new(), Vec::new(), signature_findings);
+            let mut report = run_ledger.project_report("validate");
             crate::rule_catalog::populate_rules(&mut report);
             return Ok(Self {
                 dataset,
@@ -258,15 +446,16 @@ impl ValidationRun {
             });
         }
 
-        shacl_findings.extend(signature_findings);
-
         // Phase 1: Turtle syntax check (only meaningful for per-file sources).
+        // `short_circuit` tracks the syntax / sameAs errors specifically, matching
+        // Python's "short-circuit iff syntax or sameAs failed" (signature errors
+        // above never drive it).
+        let mut short_circuit = false;
         if options.gts_bytes.is_none() {
             let result = timed(&mut timings, "syntax", options, None, || {
                 check_syntax_from_parsed(&parsed_sources)
             })?;
-            errors.extend(result.errors);
-            warnings.extend(result.warnings);
+            short_circuit |= intern_phase(&mut run_ledger, result);
 
             // Phase 2: owl:sameAs external-entity ban.
             let result = timed(&mut timings, "sameas-ban", options, None, || {
@@ -276,13 +465,12 @@ impl ValidationRun {
                     &options.sameas_allowlist,
                 )
             })?;
-            errors.extend(result.errors);
-            warnings.extend(result.warnings);
+            short_circuit |= intern_phase(&mut run_ledger, result);
         }
 
         // Python short-circuits if syntax or sameAs failed — no merged graph work.
-        if !errors.is_empty() {
-            let mut report = build_report(errors, warnings, shacl_findings);
+        if short_circuit {
+            let mut report = run_ledger.project_report("validate");
             crate::rule_catalog::populate_rules(&mut report);
             return Ok(Self {
                 dataset,
@@ -294,27 +482,18 @@ impl ValidationRun {
             });
         }
 
-        // Phase 3: structural lint.
-        let result = timed(&mut timings, "structural-lint", options, None, || {
-            let report = lint::structural_lint_dataset(&dataset, lint_config);
-            PhaseResult {
-                errors: report.errors(),
-                warnings: report.warnings(),
-            }
+        // Phase 3: structural lint — fold its graded `validate.lint.*` sub-ledger
+        // into the run ledger (never re-stringified).
+        let lint_report = timed(&mut timings, "structural-lint", options, None, || {
+            lint::structural_lint_dataset(&dataset, lint_config)
         });
-        errors.extend(result.errors);
-        warnings.extend(result.warnings);
+        run_ledger.union(lint_report.ledger());
 
-        // Phase 4: term-naming lint.
-        let result = timed(&mut timings, "term-naming-lint", options, None, || {
-            let report = lint::term_naming_lint_dataset(&dataset, lint_config);
-            PhaseResult {
-                errors: report.errors(),
-                warnings: report.warnings(),
-            }
+        // Phase 4: term-naming lint — same union fold.
+        let lint_report = timed(&mut timings, "term-naming-lint", options, None, || {
+            lint::term_naming_lint_dataset(&dataset, lint_config)
         });
-        errors.extend(result.errors);
-        warnings.extend(result.warnings);
+        run_ledger.union(lint_report.ledger());
 
         // Phase 6: declared-term collection for Python's guide-anchor lint.
         let declared_terms = timed(&mut timings, "declared-terms", options, None, || {
@@ -331,8 +510,7 @@ impl ValidationRun {
                 warnings: Vec::new(),
             }
         });
-        errors.extend(result.errors);
-        warnings.extend(result.warnings);
+        intern_phase(&mut run_ledger, result);
 
         // Initialize the content-addressed cache if a project root was supplied.
         let cache = options.project_root.as_ref().map(ValidationCache::new);
@@ -364,11 +542,17 @@ impl ValidationRun {
             None
         };
         if let Some((_, ownership)) = &slice_analysis {
-            shacl_findings.extend(
-                slice_ownership::ownership_findings(ownership)
-                    .into_iter()
-                    .filter(|finding| finding.severity == Severity::Error),
-            );
+            for finding in slice_ownership::ownership_findings(ownership)
+                .into_iter()
+                .filter(|finding| finding.severity == Severity::Error)
+            {
+                intern_finding(
+                    &mut run_ledger,
+                    StageId::new("validate.ownership"),
+                    Standpoint::Binding,
+                    &finding,
+                );
+            }
         }
 
         // Phase 8: merged SHACL validation against the shared store.
@@ -425,15 +609,14 @@ impl ValidationRun {
                 metadata: meta,
             });
         }
-        shacl_findings.extend(result);
+        intern_shacl_findings(&mut run_ledger, result);
 
         // Phase 9: example coverage check.
         if let Some(slices_dir) = &options.slices_dir {
             let result = timed(&mut timings, "example-coverage", options, None, || {
                 check_example_coverage(slices_dir)
             })?;
-            errors.extend(result.errors);
-            warnings.extend(result.warnings);
+            intern_phase(&mut run_ledger, result);
 
             // Phase 10: per-example SHACL via per-example base ∪ example dataset.
             let start = Instant::now();
@@ -451,7 +634,7 @@ impl ValidationRun {
                     metadata: meta,
                 });
             }
-            shacl_findings.extend(result);
+            intern_shacl_findings(&mut run_ledger, result);
         }
 
         // Phases 11-13: mapping / statement / test DSL SHACL. Each builds its OWN
@@ -536,7 +719,7 @@ impl ValidationRun {
 
         for phase_res in [mapping_res, statement_res, test_res] {
             if let Some((result, timing)) = phase_res? {
-                shacl_findings.extend(result);
+                intern_shacl_findings(&mut run_ledger, result);
                 if options.timings {
                     timings.push(timing);
                 }
@@ -546,8 +729,8 @@ impl ValidationRun {
         // Advisory tier (D1): emit one fixed demonstrator advisory on every
         // normal-completion run, so gmeow validate surfaces a Note finding distinct
         // from compliance errors. The dual-projection-always contract: ONE
-        // Advisory::project() call yields BOTH the flat finding AND the in-memory
-        // claim hook D4 materialises. NOT emitted on the two early-return
+        // Advisory::project() call yields BOTH the graded diagnostic AND the
+        // in-memory claim hook D4 materialises. NOT emitted on the two early-return
         // (hard-fail) paths above. D3 replaces this demonstrator with harvested
         // advisory rules (find via the "advisory-demonstrator" tag).
         let advisory = Advisory::note(
@@ -559,8 +742,12 @@ impl ValidationRun {
         .with_tag("advisory-demonstrator");
         let projection = advisory.project();
         let advisory_claims = vec![projection.claim];
-        let mut report = build_report(errors, warnings, shacl_findings);
-        report.add_finding(projection.finding);
+        // Intern the advisory's graded (Standpoint::Advisory) diagnostic onto the
+        // run ledger — it never gates, whatever its severity.
+        run_ledger.attach(projection.diag, StageId::new("validate.advisory"));
+
+        // The single carrier is complete: project it to the one canonical report.
+        let mut report = run_ledger.project_report("validate");
         report.add_rule(advisory.rule());
 
         // Semantic (`--deep`) pass (ME2): reason over the bundle and read the
@@ -2442,6 +2629,108 @@ ex:x rdf:type ex:A .
             "deep_semantic_findings must emit at least one ProjectionLoss finding; \
              got findings: {:?}",
             report.findings.iter().map(|f| &f.code).collect::<Vec<_>>()
+        );
+    }
+
+    #[test]
+    fn interned_shacl_finding_roundtrips_related_locations_and_detail() {
+        use gmeow_errors::Location;
+
+        // A SHACL-shaped finding: focus-node PRIMARY location, result-path + value
+        // RELATED locations, and a "source shape: …" detail (exactly what
+        // `finding_from_shacl` produces). Interning it onto the run ledger and
+        // projecting back via `project_report` must carry ALL of them — the
+        // fingerprint keys on the message-INDEPENDENT structural identity, but no
+        // structural anchor is lost through the ledger round-trip.
+        let mut finding = Finding::new(
+            Severity::Error,
+            "shacl.MinCountConstraintComponent",
+            "missing required property",
+        )
+        .with_tool("shacl")
+        .with_category(FindingCategory::DataShapeViolation);
+        finding.add_location(Location {
+            logical: Some("https://ex/a".to_owned()),
+            ..Location::default()
+        });
+        finding.related_locations.push(Location {
+            logical: Some("path https://ex/p".to_owned()),
+            ..Location::default()
+        });
+        finding.related_locations.push(Location {
+            logical: Some("value https://ex/bad".to_owned()),
+            ..Location::default()
+        });
+        finding.detail = Some("source shape: https://ex/shape".to_owned());
+
+        let mut ledger = DiagLedger::new();
+        intern_finding(
+            &mut ledger,
+            StageId::new("validate.shacl"),
+            Standpoint::Binding,
+            &finding,
+        );
+        let report = ledger.project_report("validate");
+        let projected = report
+            .findings
+            .iter()
+            .find(|f| f.code == "shacl.MinCountConstraintComponent")
+            .expect("interned SHACL finding must project back into the report");
+
+        // The focus-node primary location survives.
+        assert_eq!(
+            projected
+                .primary_location()
+                .and_then(|l| l.logical.as_deref()),
+            Some("https://ex/a"),
+            "focus-node primary location must round-trip"
+        );
+        // The SHACL result-path and offending-value related locations survive
+        // (carried as first-class Labels, re-emitted by `to_finding`).
+        assert!(
+            projected
+                .related_locations
+                .iter()
+                .any(|l| l.logical.as_deref() == Some("path https://ex/p")),
+            "result-path related location must round-trip; got {:?}",
+            projected.related_locations
+        );
+        assert!(
+            projected
+                .related_locations
+                .iter()
+                .any(|l| l.logical.as_deref() == Some("value https://ex/bad")),
+            "offending-value related location must round-trip; got {:?}",
+            projected.related_locations
+        );
+        // The "source shape: …" detail survives (carried as a context frame,
+        // folded back into the projected finding's detail).
+        assert_eq!(
+            projected.detail.as_deref(),
+            Some("source shape: https://ex/shape"),
+            "the source-shape detail must round-trip"
+        );
+
+        // Hard Invariant 6: two findings identical in structural identity but
+        // differing only in message are the SAME witness — interning a
+        // message-variant of the same finding must NOT add a second finding.
+        let mut variant = finding.clone();
+        variant.message = "a differently-worded violation".to_owned();
+        intern_finding(
+            &mut ledger,
+            StageId::new("validate.shacl"),
+            Standpoint::Binding,
+            &variant,
+        );
+        let merged = ledger.project_report("validate");
+        assert_eq!(
+            merged
+                .findings
+                .iter()
+                .filter(|f| f.code == "shacl.MinCountConstraintComponent")
+                .count(),
+            1,
+            "a message-only variant must hash-cons-merge, not fork a new finding"
         );
     }
 }
