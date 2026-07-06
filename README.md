@@ -204,15 +204,16 @@ developer command.
 
 ```bash
 make install         # sync the uv environment
-make check           # fast local gate: lint, validate, native EL/DL reason + verify, mappings, fast tests
-make reason-verify   # native reasoning + verify + on-gate purrdf-entail cross-check oracle (Docker-free)
+make check           # fast local gate: lint, validate, native EL/DL reason + verify, subsumption cross-check, mappings, fast tests
+make reason-verify   # native reasoning + reasoned-graph verify (consistency), one closure (Docker-free)
+make reason-crosscheck  # on-gate purrdf-entail subsumption cross-check oracle (native ⊇ oracle, Docker-free)
 ```
 
 `make check` is the normal local gate — fully Java/Docker-free (native EL/DL
 reasoning and native reasoned-graph verify). The cross-check oracle is the in-process
-`purrdf::entail` engine, folded on-gate into `make reason-verify`, so routine
-development and required CI need no JVM or container; the external engine survives only
-to cross-check the native work.
+`purrdf::entail` engine, folded on-gate into `make reason-crosscheck` (which `make check`
+runs), so routine development and required CI need no JVM or container; the external engine
+survives only to cross-check the native lane's subsumption closure.
 
 ## The `gmeow.gts` bundle
 
@@ -276,7 +277,8 @@ hash, text labels, randomart, and valid/invalid/unverified signature counts. See
 |---|---|
 | `make validate` | Turtle syntax + term-annotation lint + SHACL |
 | `make reason` | Native Docker-free EL/DL reasoning authority |
-| `make reason-verify` | Native reasoning + reasoned-graph verify + on-gate `purrdf::entail` cross-check oracle (Docker-free) |
+| `make reason-verify` | Native reasoning + reasoned-graph verify (consistency), one closure (Docker-free) |
+| `make reason-crosscheck` | On-gate `purrdf::entail` **subsumption** cross-check oracle (native ⊇ oracle, Docker-free) |
 | `make verify` | Reasoned-graph SPARQL QC (native EL/DL closure over `queries/verify/`, Java/Docker-free) — the closed-world half of the [OWL-infers / SHACL-validates split](./docs/reasoning.md) |
 | `make regenerate` | Rebuild EVERY committed artifact under `generated/` via the registered-generator framework: mappings, projections, statements, schemas, lpg, metadata, apache, the module-status matrix |
 | `make check-generated` | Drift + orphan + internal-tag-leak gate over every registered generator |
@@ -286,7 +288,6 @@ hash, text labels, randomart, and valid/invalid/unverified signature counts. See
 | `make acceptance` | Score full transpile on real external RDF snapshots; hard gates plus honest coverage scoreboard |
 | `make docs` | Regenerate `gmeow.gts` docs and extract the committed `ontology-docs/` tree |
 | `make build` | All serializations (`ttl`/`rdf`/`nt`/`jsonld`) + JSON-LD context → `dist/` (ephemeral) |
-| `make reason-verify` | Native reasoning + reasoned-graph verify + on-gate `purrdf::entail` cross-check oracle (Docker-free) |
 | `make maint-quality` | OOPS! pitfall scan (network, best-effort) |
 | `make release` | Regenerate + native reasoning closure + build + compliance report + CrossRef deposit |
 
