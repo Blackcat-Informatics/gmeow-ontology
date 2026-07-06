@@ -323,17 +323,6 @@ LPG_DIR = GENERATED_DIR / "lpg"
 SCHEMAS_DIR = GENERATED_DIR / "schemas"
 
 # --------------------------------------------------------------------------- #
-# Pinned Docker images (reasoning and RDF 1.2 support tools)
-# --------------------------------------------------------------------------- #
-
-ROBOT_IMAGE = "obolibrary/robot:v1.9.7"
-#: Apache Jena CLI (riot + sparql) — the required RDF 1.2 / triple-term engine.
-#: No maintained public Jena 5.4 CLI image exists, so this pinned tag is built
-#: from ``docker/jena/Dockerfile`` (``make maint-pull-images`` / CI build it). A private
-#: mirror under the same tag is pulled if present.
-JENA_IMAGE = "stain/jena:5.4.0"
-
-# --------------------------------------------------------------------------- #
 # Namespace prefixes (single registry — drives serialization + JSON-LD context)
 # --------------------------------------------------------------------------- #
 

@@ -6,7 +6,7 @@ commands to emit human text, JSON, SARIF 2.1.0, and static HTML reports.
 
 The engine model and renderers are PyO3-free. Python bindings live in
 `src/py.rs` and expose the `gmeow_diagnostics` extension module for
-`gmeow_tools.diagnostics`.
+`gmeow_tools.validate`.
 
 ## Projections
 
