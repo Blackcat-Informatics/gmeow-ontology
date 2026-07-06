@@ -48,7 +48,7 @@ blake3 = "1"
 # stage graph delegates to. default-features off — only the core graph + algo are
 # needed. Same version as crates/pipeline so the workspace resolves one copy.
 petgraph = { version = "0.8", default-features = false }
-# rayon: data-parallel iterators for foundation multi-world chase (#822).
+# rayon: data-parallel iterators for foundation multi-world chase.
 # Worlds are independent: each `chase_world` call is pure and produces its own
 # Vec<FoundationQuad> with no shared mutable state.  Only invoked when
 # store.worlds().len() > 1 to avoid thread-pool overhead for single-world inputs.
