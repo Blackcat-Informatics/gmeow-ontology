@@ -22,12 +22,18 @@
 //! empty — but the mechanism (and its fixture, in the tests) MUST exist so the lane is
 //! honest by construction.
 //!
-//! When the full-FOL Formula AST lands (a separate, larger effort whose NNF→Skolem→Horn
-//! lowering produces richer non-Horn shapes — disjunctive heads, quantifier alternation,
-//! non-binary atoms), its lowering plugs into THIS SAME lane: it produces the same
-//! [`RcRule`]s for its Horn-expressible fragment and feeds the rest through
-//! [`RelationalCoreProgram::push_residue`], so the carrier, the named-graph projection,
-//! and the typed handle never change shape.
+//! The full-FOL Formula AST lowering plugs into THIS SAME lane. Its Horn-expressible
+//! fragment produces the same binary [`RcRule`]s. **Fixed-arity n-ary predication** is
+//! evaluable here too: at the lowering boundary a fixed-arity atom `Rel(a₀…aₙ)` is
+//! **reified** into a conjunction of binary atoms over one reifier node —
+//! `logic:instanceOf(R, Rel) ∧ logic:naryArg0(R, a₀) ∧ …` — so the relational core stays
+//! **binary after reification**. A body atom binds a fresh reifier variable; a head atom
+//! derives a new tuple over an existential reifier (carried in [`RcRule::head_conjuncts`]),
+//! whose node the restricted chase mints by content identity. Only what genuinely exceeds
+//! the fragment (a disjunctive head, a Skolem *function*, a genuinely unbounded
+//! sequence-marker atom, or an n-ary head argument the body does not bind) is fed through
+//! [`RelationalCoreProgram::push_residue`], so the carrier, the named-graph projection, and
+//! the typed handle never change shape.
 //!
 //! # Dual carriage
 //!

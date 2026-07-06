@@ -16,10 +16,12 @@
 //! and the carrier/projections agree (one decomposition, no parallel clausifier).
 //!
 //! Floor of the supported fragment (the lane's, verbatim): a formula whose negation-normal
-//! form is a conjunction of Horn clauses of **binary** atoms (`∀x̄. A ← B₁ ∧ … ∧ Bₙ`,
-//! optionally with a leading existential prefix Skolemized to constants). Beyond it — a
-//! disjunctive head, a quantifier alternation (`∃` under `∀`), a non-binary or sequence-marker
-//! atom — is carried as flagged residue, never mis-lowered.
+//! form is a conjunction of Horn clauses whose atoms are binary, or **fixed-arity n-ary**
+//! atoms reified into binary atoms over a reifier node (`∀x̄. A ← B₁ ∧ … ∧ Bₙ`, optionally
+//! with a leading existential prefix Skolemized to constants; an n-ary head derives a tuple
+//! over an existential reifier). Beyond it — a disjunctive head, a quantifier alternation
+//! (`∃` under `∀`), a genuinely unbounded sequence-marker atom, or an n-ary head argument the
+//! body does not bind — is carried as flagged residue, never mis-lowered.
 
 use std::collections::BTreeSet;
 
