@@ -56,8 +56,6 @@ use gmeow_logic::obligations::candidate_source_hash;
 use gmeow_logic_compile::ir::{Correspondence, PreservationKind};
 use gmeow_logic_compile::projections::ProjectionResult;
 
-use crate::error::PipelineError;
-
 const LANG_NS: &str = "https://blackcatinformatics.ca/lang/";
 const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
@@ -122,7 +120,7 @@ struct Prose {
 /// `lang:SurfaceForm`. The catalog is the one the mappings stage already discovered (its
 /// artifact bytes are resident), so the universe is a projection of the composed source —
 /// never a second disk walk. `None` (no `slices/` tree) yields an empty corpus.
-pub fn build_corpus(catalog: Option<&SliceCatalog>) -> Result<LangFormCorpus, PipelineError> {
+pub fn build_corpus(catalog: Option<&SliceCatalog>) -> Result<LangFormCorpus, gmeow_errors::Diag> {
     let texts = collect_english_literals(catalog)?;
 
     let mut proses: Vec<Prose> = Vec::with_capacity(texts.len());
@@ -156,7 +154,9 @@ pub fn build_corpus(catalog: Option<&SliceCatalog>) -> Result<LangFormCorpus, Pi
 /// composed sources — never a second disk walk. Deterministic (sorted by bytes) and —
 /// until a source literal actually crosses the threshold — empty, exactly as the
 /// total-prose corpus is all-inline today.
-pub fn build_surface_blobs(catalog: Option<&SliceCatalog>) -> Result<Vec<BlobRow>, PipelineError> {
+pub fn build_surface_blobs(
+    catalog: Option<&SliceCatalog>,
+) -> Result<Vec<BlobRow>, gmeow_errors::Diag> {
     let texts = collect_english_literals(catalog)?;
     let mut blobs: Vec<BlobRow> = texts
         .iter()
@@ -187,7 +187,7 @@ fn surface_blob_digest(text: &str) -> String {
 /// `BTreeSet`), deduplicated by material identity.
 fn collect_english_literals(
     catalog: Option<&SliceCatalog>,
-) -> Result<BTreeSet<String>, PipelineError> {
+) -> Result<BTreeSet<String>, gmeow_errors::Diag> {
     let mut texts: BTreeSet<String> = BTreeSet::new();
     let Some(catalog) = catalog else {
         return Ok(texts);
@@ -200,10 +200,9 @@ fn collect_english_literals(
                 continue;
             }
             let ds = parse_dataset(&artifact.content, "text/turtle", None).map_err(|e| {
-                PipelineError::Parse(format!(
-                    "lang-form RDF parse of {}: {e}",
-                    artifact.logical_path
-                ))
+                gmeow_errors::Diag::of_kind(crate::error::Parse {
+                    message: format!("lang-form RDF parse of {}: {e}", artifact.logical_path),
+                })
             })?;
             for q in ds.quads_for_pattern(None, None, None, GraphMatch::Any) {
                 if let TermRef::Literal {
@@ -225,24 +224,24 @@ fn collect_english_literals(
 /// correspondence. Degenerate (empty / whitespace-only / control-char) literals still lift;
 /// only non-UTF-8 is a hard fail (it cannot occur for a parsed RDF literal, but the guard
 /// stays honest).
-fn build_prose(text: &str, script_local: &str) -> Result<Prose, PipelineError> {
+fn build_prose(text: &str, script_local: &str) -> Result<Prose, gmeow_errors::Diag> {
     // Drive the shared plain-text bridge: verify the surface round-trip re-emits the bytes
     // verbatim before minting anything (never a silent lossy repair).
-    let lifted = PlainTextBridge
-        .lift(text.as_bytes())
-        .map_err(|d| PipelineError::Stage {
+    let lifted = PlainTextBridge.lift(text.as_bytes()).map_err(|d| {
+        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
             stage: "stage-mappings".to_string(),
             message: format!(
                 "lang-form: plain-text lift hard-failed on a source literal ({}): {}",
                 d.failure_class.as_str(),
                 d.construct
             ),
-        })?;
+        })
+    })?;
     if PlainTextBridge.emit(&lifted) != text.as_bytes() {
-        return Err(PipelineError::Stage {
+        return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
             stage: "stage-mappings".to_string(),
             message: "lang-form: plain-text surface round-trip is not byte-exact".to_string(),
-        });
+        }));
     }
 
     // The script individual is resolved ONCE (data-driven, from the parsed ontology) by the
@@ -255,15 +254,16 @@ fn build_prose(text: &str, script_local: &str) -> Result<Prose, PipelineError> {
         collation: "en".to_owned(),
     };
     let surface_key = surface.surface_key();
-    let correspondence =
-        exact_surface_correspondence(&surface).map_err(|d| PipelineError::Stage {
+    let correspondence = exact_surface_correspondence(&surface).map_err(|d| {
+        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
             stage: "stage-mappings".to_string(),
             message: format!(
                 "lang-form: exact surface correspondence hard-failed ({}): {}",
                 d.failure_class.as_str(),
                 d.construct
             ),
-        })?;
+        })
+    })?;
 
     Ok(Prose {
         text: text.to_owned(),
@@ -293,7 +293,7 @@ fn build_prose(text: &str, script_local: &str) -> Result<Prose, PipelineError> {
 /// `slices/` tree) yields the empty map. Deterministic (a `BTreeMap`).
 fn build_script_bindings(
     catalog: Option<&SliceCatalog>,
-) -> Result<BTreeMap<String, String>, PipelineError> {
+) -> Result<BTreeMap<String, String>, gmeow_errors::Diag> {
     let mut bindings: BTreeMap<String, String> = BTreeMap::new();
     let Some(catalog) = catalog else {
         return Ok(bindings);
@@ -318,10 +318,12 @@ fn build_script_bindings(
                 continue;
             }
             let ds = parse_dataset(&artifact.content, "text/turtle", None).map_err(|e| {
-                PipelineError::Parse(format!(
-                    "lang-form script-binding RDF parse of {}: {e}",
-                    artifact.logical_path
-                ))
+                gmeow_errors::Diag::of_kind(crate::error::Parse {
+                    message: format!(
+                        "lang-form script-binding RDF parse of {}: {e}",
+                        artifact.logical_path
+                    ),
+                })
             })?;
             for q in ds.quads_for_pattern(None, None, None, GraphMatch::Any) {
                 let TermRef::Iri(pred) = ds.resolve(q.p) else {
@@ -381,11 +383,9 @@ fn build_script_bindings(
 fn script_for_tag<'a>(
     tag: &str,
     bindings: &'a BTreeMap<String, String>,
-) -> Result<&'a str, PipelineError> {
-    bindings
-        .get(tag)
-        .map(String::as_str)
-        .ok_or_else(|| PipelineError::Stage {
+) -> Result<&'a str, gmeow_errors::Diag> {
+    bindings.get(tag).map(String::as_str).ok_or_else(|| {
+        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
             stage: "stage-mappings".to_string(),
             message: format!(
                 "lang-form: no lang:Script binding for language tag '{tag}'; declare its \
@@ -393,6 +393,7 @@ fn script_for_tag<'a>(
                  lang:usesScript naming its lang:Script) in slices/grounding/lang/module.ttl"
             ),
         })
+    })
 }
 
 /// Emit the sorted, deduped, byte-stable N-Triples for the whole corpus.

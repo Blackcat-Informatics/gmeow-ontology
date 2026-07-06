@@ -13,7 +13,6 @@ use std::path::Path;
 
 use purrdf::{DatasetView, GraphMatch, RdfDataset, TermId, TermRef, TermValue, parse_dataset};
 
-use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 use crate::stages::source_load::module_files;
 
@@ -42,7 +41,7 @@ struct Row {
 }
 
 /// Render the full matrix document.
-pub fn render_matrix(root: &Path) -> Result<String, PipelineError> {
+pub fn render_matrix(root: &Path) -> Result<String, gmeow_errors::Diag> {
     // Collect rows keyed by slice IRI (the discover_slices ordering).
     let mut rows: BTreeMap<String, Row> = BTreeMap::new();
     for module in module_files(root)? {
@@ -114,10 +113,13 @@ pub fn render_matrix(root: &Path) -> Result<String, PipelineError> {
     Ok(format!("{HEADER}{}\n{footer}", lines.join("\n")))
 }
 
-fn parse_store(path: &Path) -> Result<std::sync::Arc<RdfDataset>, PipelineError> {
+fn parse_store(path: &Path) -> Result<std::sync::Arc<RdfDataset>, gmeow_errors::Diag> {
     let bytes = std::fs::read(path)?;
-    parse_dataset(&bytes, "text/turtle", None)
-        .map_err(|e| PipelineError::Parse(format!("syntax error in {}: {e}", path.display())))
+    parse_dataset(&bytes, "text/turtle", None).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            message: format!("syntax error in {}: {e}", path.display()),
+        })
+    })
 }
 
 /// Resolve an IRI to its dataset-local term id (absent IRIs have no id → `None`).
@@ -126,7 +128,7 @@ fn id(ds: &RdfDataset, iri: &str) -> Option<TermId> {
 }
 
 /// `(slice_iri, tier, depends_on count)` from a manifest.
-fn parse_manifest(path: &Path) -> Result<(String, String, usize), PipelineError> {
+fn parse_manifest(path: &Path) -> Result<(String, String, usize), gmeow_errors::Diag> {
     let ds = parse_store(path)?;
     let ds: &RdfDataset = &ds;
     let mut iri = None;
@@ -137,7 +139,11 @@ fn parse_manifest(path: &Path) -> Result<(String, String, usize), PipelineError>
             }
         }
     }
-    let iri = iri.ok_or_else(|| PipelineError::Parse(format!("no slice in {}", path.display())))?;
+    let iri = iri.ok_or_else(|| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            message: format!("no slice in {}", path.display()),
+        })
+    })?;
     let subj = id(ds, &iri);
     let mut tier = "extension".to_string();
     if let (Some(s), Some(p)) = (subj, id(ds, &format!("{NS}sliceTier"))) {
@@ -162,7 +168,7 @@ fn parse_manifest(path: &Path) -> Result<(String, String, usize), PipelineError>
 }
 
 /// `(classes, props, individuals, advisory_complete, public_total)` from a module.
-fn term_counts(path: &Path) -> Result<(usize, usize, usize, usize, usize), PipelineError> {
+fn term_counts(path: &Path) -> Result<(usize, usize, usize, usize, usize), gmeow_errors::Diag> {
     let ds = parse_store(path)?;
     let ds: &RdfDataset = &ds;
     let in_ns = |s: &str| s.starts_with(NS) || s.starts_with(LOGIC_NS);
@@ -238,7 +244,7 @@ impl Stage for MatrixStage {
     fn impl_version(&self) -> &str {
         "matrix.v1"
     }
-    fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, PipelineError> {
+    fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
         // Pure source read over the slice tree: each row's tier/deps come from the
         // manifest, term counts from the module, the guide column from `docs.md`,
         // and the example count from `examples/*.ttl`. Declare ALL of those so any
@@ -268,7 +274,7 @@ impl Stage for MatrixStage {
         }
         Ok(files)
     }
-    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
+    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         let md = render_matrix(input.root)?;
         let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
         artifacts.insert(MATRIX_PATH.to_string(), md.into_bytes());

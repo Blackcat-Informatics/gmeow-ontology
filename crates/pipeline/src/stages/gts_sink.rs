@@ -16,7 +16,6 @@
 
 use std::collections::BTreeMap;
 
-use crate::error::PipelineError;
 use crate::node::{SINK_CAPABILITY, Stage, StageInput, StageOutput, StageProduct};
 use crate::stages::carrier::SNAPSHOT_PATH;
 
@@ -109,7 +108,7 @@ impl Stage for GtsSinkStage {
         // disk read, matching the validation-shapes.ttl freshness rule.
         "gts_sink.v5-fresh-generated-shape-surfaces"
     }
-    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
+    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         // The terminal gts ARCHIVE writer: serialize THIS run's carrier
         // into the single `gmeow.gts` package. GTS is exit-only — produced HERE and
         // nowhere else; every internal export leaf reads the carrier dataset off the

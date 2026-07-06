@@ -42,7 +42,6 @@ use gmeow_logic_compile::ir::PreservationKind;
 use gmeow_logic_compile::projections::ProjectionResult;
 use purrdf::slice::{ArtifactRole, SliceCatalog};
 
-use crate::error::PipelineError;
 use crate::stages::lang_translation::{script_for_lang, target_surface_iri, unit_iri};
 
 const LANG_NS: &str = "https://blackcatinformatics.ca/lang/";
@@ -90,12 +89,14 @@ struct PageGroup {
 /// artifacts (the same catalogs the docs renderer resolves per-language values from), groups
 /// each catalog's entries by their `msgctxt` term-IRI page key, and emits the page rendering
 /// + roll-up records plus the exec-docs boundary gap.
-pub fn build_corpus(root: &std::path::Path) -> Result<LangDocsRenderingCorpus, PipelineError> {
+pub fn build_corpus(root: &std::path::Path) -> Result<LangDocsRenderingCorpus, gmeow_errors::Diag> {
     let catalog =
         SliceCatalog::discover(&root.join("slices"), crate::gmeow_ns::gmeow_slice_vocab())
-            .map_err(|e| PipelineError::Stage {
-                stage: "stage-mappings".to_string(),
-                message: format!("lang-docs-rendering slice catalog: {e}"),
+            .map_err(|e| {
+                gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                    stage: "stage-mappings".to_string(),
+                    message: format!("lang-docs-rendering slice catalog: {e}"),
+                })
             })?;
 
     // (lang, term-page IRI) -> the entries that render that page in that language. A
@@ -111,14 +112,15 @@ pub fn build_corpus(root: &std::path::Path) -> Result<LangDocsRenderingCorpus, P
             }
             // A translation catalog is required input: invalid UTF-8 is a HARD FAIL, never a
             // silent lossy repair that would corrupt the surface text it carries.
-            let text =
-                std::str::from_utf8(&artifact.content).map_err(|e| PipelineError::Stage {
+            let text = std::str::from_utf8(&artifact.content).map_err(|e| {
+                gmeow_errors::Diag::of_kind(crate::error::StageFailed {
                     stage: "stage-mappings".to_string(),
                     message: format!(
                         "lang-docs-rendering: translation catalog '{}' is not valid UTF-8: {e}",
                         artifact.logical_path
                     ),
-                })?;
+                })
+            })?;
             let parsed = parse_po(text);
             let lang = parsed.language.trim().to_string();
             if lang.is_empty() || lang.eq_ignore_ascii_case("en") {
@@ -200,7 +202,7 @@ fn preservation_of(present: bool) -> PreservationKind {
 }
 
 /// Emit the sorted, deduped, byte-stable N-Triples for the whole corpus.
-fn emit_ntriples(groups: &[PageGroup], langs: &[String]) -> Result<Vec<u8>, PipelineError> {
+fn emit_ntriples(groups: &[PageGroup], langs: &[String]) -> Result<Vec<u8>, gmeow_errors::Diag> {
     let mut lines: Vec<String> = Vec::new();
 
     for group in groups {

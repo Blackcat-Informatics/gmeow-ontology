@@ -54,7 +54,6 @@ use purrdf::{PipelineBundle, RdfDataset, RdfDatasetBuilder, RdfTerm, parse_datas
 use serde::{Deserialize, Serialize};
 
 use crate::bundle::{PipelineHandle, bundle_from_artifacts_over};
-use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 use crate::stages::diag_render::{DiagnosticsPaths, render_diagnostics_artifacts};
 
@@ -199,18 +198,18 @@ pub const DIAG_RDF_PATH: &str = "generated/diagnostics/logic-compile.nq";
 /// The diagnostics tool/code namespace for this surface.
 const TOOL: &str = "logic-compile";
 
-fn stage_err(message: impl Into<String>) -> PipelineError {
-    PipelineError::Stage {
+fn stage_err(message: impl Into<String>) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(crate::error::StageFailed {
         stage: "stage-compile-logic".to_string(),
         message: message.into(),
-    }
+    })
 }
 
 /// Re-serialize an N-Triples projection as the RDFC-1.0 canonical N-Triples document
 /// (blank labels canonicalized, lines bytewise-sorted) so the committed file IS the
 /// fold the superset gate reconstructs. RDFC is idempotent, so the round-trip is
 /// byte-stable even for the blank-node-bearing relational-core program.
-pub(crate) fn canon_fanout_nt(nt: &str) -> Result<Vec<u8>, PipelineError> {
+pub(crate) fn canon_fanout_nt(nt: &str) -> Result<Vec<u8>, gmeow_errors::Diag> {
     let ds = parse_dataset(nt.as_bytes(), "application/n-triples", None)
         .map_err(|e| stage_err(format!("parse N-Triples projection: {e}")))?;
     crate::stages::superset::canonical_ntriples(&ds)
@@ -244,7 +243,7 @@ fn lift_opt_constraints(
     opt_xml: &str,
     base_iri: &str,
     naming: &BTreeMap<String, String>,
-) -> Result<Vec<gmeow_logic_compile::ir::ValidationShapeIr>, PipelineError> {
+) -> Result<Vec<gmeow_logic_compile::ir::ValidationShapeIr>, gmeow_errors::Diag> {
     let constraints = read_all_opt_constraints(opt_xml, base_iri, naming)
         .map_err(|e| stage_err(format!("OPT walk: {e}")))?;
     constraints
@@ -266,7 +265,7 @@ impl Stage for CompileLogicStage {
     fn impl_version(&self) -> &str {
         "compile-logic.v4"
     }
-    fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, PipelineError> {
+    fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
         // The compiler parses the logic: source and the vendored OPT, and derives validation
         // shapes from the whole authored ontology's OWL restrictions — so a change to ANY authored file
         // must bust this stage's cache.
@@ -278,7 +277,7 @@ impl Stage for CompileLogicStage {
         files.extend(crate::stages::source_load::authored_files(root)?);
         Ok(files)
     }
-    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
+    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         let source = std::fs::read_to_string(input.root.join(SOURCE_PATH))
             .map_err(|e| stage_err(format!("read {SOURCE_PATH}: {e}")))?;
         let (program, diagnostics) = parse_logic_str(&source, Some(SOURCE_PATH.to_string()))
@@ -358,9 +357,11 @@ impl Stage for CompileLogicStage {
                 &crate::stages::superset::rdf_prefixes(),
             )
             .map(String::into_bytes)
-            .map_err(|e| PipelineError::Stage {
-                stage: "stage-compile-logic".to_string(),
-                message: format!("canonicalize gufo.ttl: {e}"),
+            .map_err(|e| {
+                gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                    stage: "stage-compile-logic".to_string(),
+                    message: format!("canonicalize gufo.ttl: {e}"),
+                })
             })?,
         );
         // Keep the canonical RDF-1.2 projection: it is BOTH a committed artifact AND
@@ -528,7 +529,7 @@ fn build_logic_bundle(
     correspondence: CorrespondenceProgram,
     correspondence_nt: &str,
     artifacts: BTreeMap<String, Vec<u8>>,
-) -> Result<PipelineBundle<PipelineHandle>, PipelineError> {
+) -> Result<PipelineBundle<PipelineHandle>, gmeow_errors::Diag> {
     // All handles ride one bundle: union their backing graphs (each in its own named
     // graph) so each pins to the dataset the bundle carries.
     let logic_dataset = logic_graph_dataset(canonical_rdf12_turtle)?;
@@ -602,7 +603,9 @@ fn build_logic_bundle(
 /// `graph/correspondence` named graph of a fresh frozen dataset — the backing graph the
 /// typed Correspondence handle pins to and the cache re-derives the program from. Mirrors
 /// [`logic_graph_dataset`] so the in-graph carriage and the handle pin to one identity.
-fn correspondence_graph_dataset(projection_nt: &str) -> Result<Arc<RdfDataset>, PipelineError> {
+fn correspondence_graph_dataset(
+    projection_nt: &str,
+) -> Result<Arc<RdfDataset>, gmeow_errors::Diag> {
     let parsed = parse_dataset(projection_nt.as_bytes(), "application/n-triples", None)
         .map_err(|e| stage_err(format!("parse correspondence projection: {e}")))?;
     let graph = RdfTerm::Iri(GRAPH_CORRESPONDENCE.to_owned());
@@ -621,7 +624,9 @@ fn correspondence_graph_dataset(projection_nt: &str) -> Result<Arc<RdfDataset>, 
 /// `graph/relational-core` named graph of a fresh frozen dataset — the backing graph the
 /// typed RelationalCore handle pins to and the cache re-derives the dialect from. Mirrors
 /// [`logic_graph_dataset`] so the in-graph carriage and the handle pin to one identity.
-fn relational_core_graph_dataset(projection_nt: &str) -> Result<Arc<RdfDataset>, PipelineError> {
+fn relational_core_graph_dataset(
+    projection_nt: &str,
+) -> Result<Arc<RdfDataset>, gmeow_errors::Diag> {
     let parsed = parse_dataset(projection_nt.as_bytes(), "application/n-triples", None)
         .map_err(|e| stage_err(format!("parse relational-core projection: {e}")))?;
     let graph = RdfTerm::Iri(GRAPH_RELATIONAL_CORE.to_owned());
@@ -639,7 +644,9 @@ fn relational_core_graph_dataset(projection_nt: &str) -> Result<Arc<RdfDataset>,
 /// Parse the canonical RDF-1.2 projection Turtle and route every triple into the
 /// `graph/logic` named graph of a fresh frozen dataset — the backing graph the typed
 /// Logic handle pins to and the cache re-derives the program from.
-fn logic_graph_dataset(canonical_rdf12_turtle: &str) -> Result<Arc<RdfDataset>, PipelineError> {
+fn logic_graph_dataset(
+    canonical_rdf12_turtle: &str,
+) -> Result<Arc<RdfDataset>, gmeow_errors::Diag> {
     let parsed = parse_dataset(canonical_rdf12_turtle.as_bytes(), "text/turtle", None)
         .map_err(|e| stage_err(format!("parse canonical rdf12: {e}")))?;
     let graph = RdfTerm::Iri(GRAPH_LOGIC.to_owned());
@@ -1175,7 +1182,7 @@ mod tests {
         assert_gates(&evaluate_gates(&gated, &[])).expect("the §14 affine triangle is lawful");
 
         // A bridge view declaring equivalence is an overclaim RED → `assert_gates` errors,
-        // which is precisely what the stage propagates as a `PipelineError` build failure.
+        // which is precisely what the stage propagates as a `gmeow_errors::Diag` build failure.
         let bridge = Correspondence::new(
             "https://gmeow.example/corr/bridge".to_owned(),
             CorrespondenceRelation::Equiv,

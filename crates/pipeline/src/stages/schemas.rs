@@ -21,7 +21,6 @@ use std::collections::{BTreeMap, BTreeSet};
 use purrdf::RdfDataset;
 use serde::Serialize;
 
-use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 use crate::stages::export::{DEFAULT_SCOPE, FoldView};
 
@@ -134,11 +133,11 @@ struct PermissibleValue {
     description: String,
 }
 
-fn schema_error(message: impl Into<String>) -> PipelineError {
-    PipelineError::Stage {
+fn schema_error(message: impl Into<String>) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(crate::error::StageFailed {
         stage: "stage-export-schemas".into(),
         message: message.into(),
-    }
+    })
 }
 
 fn local_name(iri: &str) -> &str {
@@ -454,7 +453,7 @@ fn emit_linkml_model(dataset: &RdfDataset) -> LinkmlSchema {
     schema
 }
 
-fn render_linkml_yaml(schema: &LinkmlSchema) -> Result<Vec<u8>, PipelineError> {
+fn render_linkml_yaml(schema: &LinkmlSchema) -> Result<Vec<u8>, gmeow_errors::Diag> {
     let mut yaml = serde_yaml::to_string(schema).map_err(|e| schema_error(e.to_string()))?;
     if yaml.starts_with("---\n") {
         yaml = yaml[4..].to_string();
@@ -798,7 +797,7 @@ fn render_graphql(schema: &LinkmlSchema) -> Vec<u8> {
 
 pub(crate) fn render_schemas_from_dataset(
     dataset: &RdfDataset,
-) -> Result<BTreeMap<String, Vec<u8>>, PipelineError> {
+) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
     let schema = emit_linkml_model(dataset);
     let mut artifacts = BTreeMap::new();
     artifacts.insert(LINKML_PATH.to_string(), render_linkml_yaml(&schema)?);
@@ -837,7 +836,7 @@ impl Stage for SchemasStage {
     fn impl_version(&self) -> &str {
         "schemas.v3-native"
     }
-    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
+    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         // Read THIS run's carrier dataset directly off the snapshot product's bundle
         //  — GTS is exit-only, never re-parsed by an export leaf.
         let dataset = crate::stages::carrier::snapshot_dataset(input.upstream)?;

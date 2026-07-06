@@ -26,7 +26,6 @@ use purrdf::{
     flat_rdf_quads_from_dataset, parse_dataset, serialize_dataset,
 };
 
-use crate::error::PipelineError;
 use crate::node::{SOURCE_ORIGIN, Stage, StageInput, StageOutput, StageProduct};
 
 /// The `OriginKind` an authored file contributes, by its repo-relative role:
@@ -65,7 +64,7 @@ fn authored_origin_kind(root: &Path, path: &Path) -> OriginKind {
 /// construction (every quad is recorded as it is seen); the gate is the hard-fail proof.
 pub fn attributed_base_provenance(
     root: &Path,
-) -> Result<(DatasetProvenance, Vec<QuadHandle>), PipelineError> {
+) -> Result<(DatasetProvenance, Vec<QuadHandle>), gmeow_errors::Diag> {
     let mut prov = DatasetProvenance::new();
     // Content key (the per-file-scoped native quad, location stripped so two identical
     // triples on different source lines collapse exactly as the old oxigraph quad key
@@ -86,8 +85,11 @@ pub fn attributed_base_provenance(
         let unit = prov.register_unit(rel.clone(), kind);
         let artifact = prov.register_artifact(rel);
 
-        let dataset = parse_dataset(&bytes, "text/turtle", None)
-            .map_err(|e| PipelineError::Parse(format!("syntax error in {scope}: {e}")))?;
+        let dataset = parse_dataset(&bytes, "text/turtle", None).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Parse {
+                message: format!("syntax error in {scope}: {e}"),
+            })
+        })?;
         // SCOPE blank labels by the source path: each authored file is a distinct RDF
         // document whose anonymous blanks restart per parse, so a structurally-distinct
         // blank axiom in two files must keep two handles. The native flat un-fold mirrors
@@ -167,13 +169,16 @@ pub const BASE_GRAPH_PATH: &str = "pipeline/base-graph.nq";
 /// twin of the old per-source FNV blank-prefix ingest) so two files' identically-labelled
 /// anonymous blanks stay disjoint. The union canonicalizes on freeze, so the result is
 /// order-independent.
-pub fn load_authored_dataset(root: &Path) -> Result<Arc<RdfDataset>, PipelineError> {
+pub fn load_authored_dataset(root: &Path) -> Result<Arc<RdfDataset>, gmeow_errors::Diag> {
     let mut parsed: Vec<Arc<RdfDataset>> = Vec::new();
     for path in authored_files(root)? {
         let bytes = std::fs::read(&path)?;
         let scope = path.display().to_string();
-        let dataset = parse_dataset(&bytes, "text/turtle", None)
-            .map_err(|e| PipelineError::Parse(format!("syntax error in {scope}: {e}")))?;
+        let dataset = parse_dataset(&bytes, "text/turtle", None).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Parse {
+                message: format!("syntax error in {scope}: {e}"),
+            })
+        })?;
         parsed.push(dataset);
     }
     let refs: Vec<&RdfDataset> = parsed.iter().map(|d| d.as_ref()).collect();
@@ -182,7 +187,7 @@ pub fn load_authored_dataset(root: &Path) -> Result<Arc<RdfDataset>, PipelineErr
 
 /// The sorted authored Turtle files that form the base graph (the hidden-input
 /// closure `source_load` declares so the cache key cannot go stale).
-pub fn authored_files(root: &Path) -> Result<Vec<PathBuf>, PipelineError> {
+pub fn authored_files(root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
     let mut files: Vec<PathBuf> = Vec::new();
     let onto = root.join("ontology").join("gmeow.ttl");
     if onto.exists() {
@@ -195,7 +200,7 @@ pub fn authored_files(root: &Path) -> Result<Vec<PathBuf>, PipelineError> {
 }
 
 /// Every `slices/<group>/<name>/module.ttl`.
-pub fn module_files(root: &Path) -> Result<Vec<PathBuf>, PipelineError> {
+pub fn module_files(root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
     let mut out = Vec::new();
     let slices = root.join("slices");
     for group in sorted_dirs(&slices)? {
@@ -213,7 +218,7 @@ pub fn module_files(root: &Path) -> Result<Vec<PathBuf>, PipelineError> {
 /// for export leaves whose cache key must reflect the slice manifests they read
 /// directly from disk (catalog, profiles, matrix — `gmeow:sliceProfile` /
 /// `sliceTier` / `sliceDependsOn` live in the manifest, NOT the composed fold).
-pub fn manifest_files(root: &Path) -> Result<Vec<PathBuf>, PipelineError> {
+pub fn manifest_files(root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
     let mut out = Vec::new();
     for module in module_files(root)? {
         let manifest = module.with_file_name("manifest.ttl");
@@ -230,7 +235,7 @@ pub fn manifest_files(root: &Path) -> Result<Vec<PathBuf>, PipelineError> {
 /// selection. `manifest_files` is deliberately module-gated (a slice that loads
 /// nothing has no composed fold); the profiles stage uses THIS to discover the
 /// selection-only profile slices whose dependency closure it emits.
-pub fn all_manifest_files(root: &Path) -> Result<Vec<PathBuf>, PipelineError> {
+pub fn all_manifest_files(root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
     let mut out = Vec::new();
     let slices = root.join("slices");
     for group in sorted_dirs(&slices)? {
@@ -244,7 +249,7 @@ pub fn all_manifest_files(root: &Path) -> Result<Vec<PathBuf>, PipelineError> {
     Ok(out)
 }
 
-fn ttl_files_in(dir: &Path) -> Result<Vec<PathBuf>, PipelineError> {
+fn ttl_files_in(dir: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
     // Same NotFound-is-empty contract as `sorted_dirs`: an absent directory yields an
     // empty listing, any other IO error hard-fails.
     let mut out = Vec::new();
@@ -263,7 +268,7 @@ fn ttl_files_in(dir: &Path) -> Result<Vec<PathBuf>, PipelineError> {
     Ok(out)
 }
 
-fn sorted_dirs(dir: &Path) -> Result<Vec<PathBuf>, PipelineError> {
+fn sorted_dirs(dir: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
     // An absent directory is not an error — the caller iterating an optional tree gets
     // an empty listing (no manual existence pre-check needed). Any OTHER IO error (e.g.
     // permission denied) and per-entry errors still fail-fast: a transient FS error must
@@ -289,12 +294,22 @@ fn sorted_dirs(dir: &Path) -> Result<Vec<PathBuf>, PipelineError> {
 /// is the single dataset → N-Quads projection the pipeline's in-memory dataflow speaks;
 /// the `gts_compose` stage projects the composed UNION dataset through it for its byte
 /// lane.
-pub fn dataset_to_sorted_nquads(dataset: &purrdf::RdfDataset) -> Result<Vec<u8>, PipelineError> {
-    let buf = serialize_dataset(dataset, "application/n-quads", SerializeGraph::Dataset)
-        .map_err(|e| PipelineError::Parse(format!("serialize failed: {e}")))?;
+pub fn dataset_to_sorted_nquads(
+    dataset: &purrdf::RdfDataset,
+) -> Result<Vec<u8>, gmeow_errors::Diag> {
+    let buf = serialize_dataset(dataset, "application/n-quads", SerializeGraph::Dataset).map_err(
+        |e| {
+            gmeow_errors::Diag::of_kind(crate::error::Parse {
+                message: format!("serialize failed: {e}"),
+            })
+        },
+    )?;
     // Sort lines for determinism (serializer iteration order is not guaranteed).
-    let text = String::from_utf8(buf)
-        .map_err(|e| PipelineError::Parse(format!("non-utf8 n-quads: {e}")))?;
+    let text = String::from_utf8(buf).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            message: format!("non-utf8 n-quads: {e}"),
+        })
+    })?;
     let mut lines: Vec<&str> = text.lines().filter(|l| !l.is_empty()).collect();
     lines.sort_unstable();
     let mut out = lines.join("\n");
@@ -304,9 +319,12 @@ pub fn dataset_to_sorted_nquads(dataset: &purrdf::RdfDataset) -> Result<Vec<u8>,
 
 /// Parse the published base-graph N-Quads artifact back into a frozen dataset (the
 /// in-memory hand-off downstream stages use instead of re-reading from disk).
-pub fn parse_base_graph(bytes: &[u8]) -> Result<Arc<RdfDataset>, PipelineError> {
-    parse_dataset(bytes, "application/n-quads", None)
-        .map_err(|e| PipelineError::Parse(format!("base-graph parse: {e}")))
+pub fn parse_base_graph(bytes: &[u8]) -> Result<Arc<RdfDataset>, gmeow_errors::Diag> {
+    parse_dataset(bytes, "application/n-quads", None).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            message: format!("base-graph parse: {e}"),
+        })
+    })
 }
 
 /// Parse RDF text `bytes` of `media_type` into a fresh frozen [`RdfDataset`] via the
@@ -315,9 +333,12 @@ pub fn rdf_bytes_to_dataset(
     bytes: &[u8],
     media_type: &str,
     context: &str,
-) -> Result<Arc<RdfDataset>, PipelineError> {
-    parse_dataset(bytes, media_type, None)
-        .map_err(|e| PipelineError::Parse(format!("syntax error in {context}: {e}")))
+) -> Result<Arc<RdfDataset>, gmeow_errors::Diag> {
+    parse_dataset(bytes, media_type, None).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            message: format!("syntax error in {context}: {e}"),
+        })
+    })
 }
 
 /// Parse Turtle `bytes` into a fresh frozen [`RdfDataset`] via the native codecs.
@@ -327,7 +348,7 @@ pub fn rdf_bytes_to_dataset(
 pub fn turtle_bytes_to_dataset(
     bytes: &[u8],
     context: &str,
-) -> Result<Arc<RdfDataset>, PipelineError> {
+) -> Result<Arc<RdfDataset>, gmeow_errors::Diag> {
     rdf_bytes_to_dataset(bytes, "text/turtle", context)
 }
 
@@ -374,7 +395,7 @@ impl Stage for SourceLoadStage {
         // default-graph fold `gts_compose` takes are unchanged.
         "source_load.v2-self-description"
     }
-    fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, PipelineError> {
+    fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
         // The self-description graphs read authored sources beyond the base authored
         // files: imports, self-description metadata, SSSOM alignments, slice manifests +
         // shapes (slice-analysis / verify), translation catalogs + docs guides (the
@@ -387,7 +408,7 @@ impl Stage for SourceLoadStage {
         files.dedup();
         Ok(files)
     }
-    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
+    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         // Carry the authored base graph as the bundle's DEFAULT graph (the native
         // contribution `gts_compose`'s default-graph fold unions), and keep emitting the
         // BASE_GRAPH_PATH N-Quads byte lane for the byte readers — BOTH from the base

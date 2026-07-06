@@ -12,8 +12,6 @@ use std::collections::BTreeMap;
 
 use gmeow_errors::Report;
 
-use crate::error::PipelineError;
-
 /// The four committed logical paths a diagnostics report renders to.
 pub struct DiagnosticsPaths<'a> {
     /// JSON projection path.
@@ -39,10 +37,12 @@ pub fn render_diagnostics_artifacts(
     stage: &str,
     report: &Report,
     paths: &DiagnosticsPaths<'_>,
-) -> Result<BTreeMap<String, Vec<u8>>, PipelineError> {
-    let stage_err = |what: &str, detail: String| PipelineError::Stage {
-        stage: stage.to_owned(),
-        message: format!("render {what} diagnostics: {detail}"),
+) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
+    let stage_err = |what: &str, detail: String| {
+        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            stage: stage.to_owned(),
+            message: format!("render {what} diagnostics: {detail}"),
+        })
     };
     let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
     artifacts.insert(

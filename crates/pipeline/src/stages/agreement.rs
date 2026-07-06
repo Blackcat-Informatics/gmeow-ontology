@@ -25,7 +25,6 @@
 
 use std::collections::BTreeMap;
 
-use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 use crate::stages::conformance::{AGREEMENT_TALLIES_PATH, TallyRecord};
 
@@ -39,11 +38,11 @@ pub const AGREEMENT_MATRIX_PATH: &str = "generated/agreement-matrix.md";
 /// documented and intended, not defects).
 const DIVERGENCE_LANE: &str = "divergence";
 
-fn stage_err(message: &str) -> PipelineError {
-    PipelineError::Stage {
+fn stage_err(message: &str) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(crate::error::StageFailed {
         stage: "stage-export-agreement".to_string(),
         message: message.to_string(),
-    }
+    })
 }
 
 /// The agree rate `agree/cases` rendered as `"N.N%"`, rounded to the nearest tenth of
@@ -54,7 +53,7 @@ fn stage_err(message: &str) -> PipelineError {
 /// is exactly perfect (`agree == cases`). An imperfect corpus whose rate rounds up to
 /// `1000` permille is clamped to `99.9%` — the benchmark must never round a real
 /// disagreement or coverage gap away into a false "100%".
-fn agree_rate(agree: usize, cases: usize) -> Result<String, PipelineError> {
+fn agree_rate(agree: usize, cases: usize) -> Result<String, gmeow_errors::Diag> {
     if cases == 0 {
         return Err(stage_err(
             "agreement tally has zero cases — corpus-integrity failure (no degraded 0% row)",
@@ -74,7 +73,7 @@ fn agree_rate(agree: usize, cases: usize) -> Result<String, PipelineError> {
 /// corpus — no degraded fallback.
 pub(crate) fn render_agreement_matrix(
     tallies_json: &[u8],
-) -> Result<BTreeMap<String, Vec<u8>>, PipelineError> {
+) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
     let records: BTreeMap<String, TallyRecord> = serde_json::from_slice(tallies_json)
         .map_err(|e| stage_err(&format!("parse agreement tallies: {e}")))?;
 
@@ -217,7 +216,7 @@ impl Stage for AgreementMatrixStage {
     fn impl_version(&self) -> &str {
         "agreement.v1"
     }
-    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
+    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         let conformance = input.upstream.get("stage-conformance").ok_or_else(|| {
             stage_err("stage-export-agreement requires the stage-conformance product")
         })?;

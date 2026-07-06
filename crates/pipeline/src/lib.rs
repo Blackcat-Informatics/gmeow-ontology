@@ -61,7 +61,6 @@ pub mod py;
 
 pub use bundle::{PipelineHandle, bundle_artifact, bundle_artifacts};
 pub use cache::PipelineCache;
-pub use error::PipelineError;
 pub use fanout::{FanoutReport, fanout};
 pub use generator_registry::{
     GENERATORS, GeneratorInfo, GeneratorMetadata, all_output_paths, committed_generated_paths,

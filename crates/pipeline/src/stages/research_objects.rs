@@ -29,7 +29,6 @@ use std::sync::Arc;
 
 use purrdf::{RdfDataset, RdfLiteral, RdfTerm, SparqlResult};
 
-use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 use crate::stages::native_query;
 use crate::stages::source_load::module_files;
@@ -110,13 +109,13 @@ fn g(local: &str) -> String {
 // ── helpers: load instance graph ──────────────────────────────────────────────
 
 /// Parse `bytes` into a frozen native dataset (the canonical native codec).
-fn parse_into(bytes: &[u8], path: &str) -> Result<Arc<RdfDataset>, PipelineError> {
+fn parse_into(bytes: &[u8], path: &str) -> Result<Arc<RdfDataset>, gmeow_errors::Diag> {
     native_query::dataset_from_turtle(bytes, path)
 }
 
 /// Parse the six worked-example Turtle files into one native A-Box `Store` (each parsed
 /// through the native codec then unioned, blanks standardized apart per source).
-fn load_instance_graph(root: &Path) -> Result<Store, PipelineError> {
+fn load_instance_graph(root: &Path) -> Result<Store, gmeow_errors::Diag> {
     let mut parsed: Vec<Arc<RdfDataset>> = Vec::with_capacity(EXAMPLE_INPUTS.len());
     for (rel, _) in EXAMPLE_INPUTS {
         let bytes = std::fs::read(root.join(rel))?;
@@ -297,22 +296,25 @@ impl DatasetMeta {
     }
 }
 
-fn dataset_meta(store: &Store) -> Result<DatasetMeta, PipelineError> {
+fn dataset_meta(store: &Store) -> Result<DatasetMeta, gmeow_errors::Diag> {
     let mut candidates: Vec<String> = subjects_of_type(store, &g("Dataset"))
         .into_iter()
         .filter(|ds| value_node(store, ds, &g("hasLicense")).is_some())
         .collect();
     candidates.sort();
-    let ds = candidates
-        .into_iter()
-        .next()
-        .ok_or_else(|| PipelineError::Parse("no licensed gmeow:Dataset node found".into()))?;
+    let ds = candidates.into_iter().next().ok_or_else(|| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            message: "no licensed gmeow:Dataset node found".into(),
+        })
+    })?;
     let license_node = value_node(store, &ds, &g("hasLicense")).unwrap();
     let license_id = text(store, &license_node, &g("spdxLicenseId"));
     if license_id.is_empty() {
-        return Err(PipelineError::Parse(format!(
-            "dataset descriptor {ds} has a gmeow:License without a gmeow:spdxLicenseId"
-        )));
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Parse {
+            message: format!(
+                "dataset descriptor {ds} has a gmeow:License without a gmeow:spdxLicenseId"
+            ),
+        }));
     }
     // Canonicalize the UTC offset to `Z` for the JSON / JSON-LD / XML / HTML
     // emitters (datapackage `created`, croissant/ro-crate `datePublished`,
@@ -327,9 +329,9 @@ fn dataset_meta(store: &Store) -> Result<DatasetMeta, PipelineError> {
     let year_ok =
         date_published.len() >= 4 && date_published.chars().take(4).all(|c| c.is_ascii_digit());
     if !year_ok {
-        return Err(PipelineError::Parse(format!(
-            "dataset descriptor {ds} needs a valid gmeow:datePublished"
-        )));
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Parse {
+            message: format!("dataset descriptor {ds} needs a valid gmeow:datePublished"),
+        }));
     }
     let creator_node = value_node(store, &ds, &g("wasAttributedTo"));
     let version = {
@@ -603,16 +605,16 @@ fn s(v: &str) -> Json {
 /// `.0` for integral values, else the shortest decimal of `float(lexical)`. A
 /// non-numeric score lexical HARD-fails — invalid source data is never silently
 /// coerced to `0.0` (no-optionality).
-fn json_float(lexical: &str) -> Result<Json, PipelineError> {
+fn json_float(lexical: &str) -> Result<Json, gmeow_errors::Diag> {
     let f: f64 = lexical.trim().parse().map_err(|e| {
-        PipelineError::Parse(format!(
-            "assessmentScoreValue {lexical:?} is not a valid float: {e}"
-        ))
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            message: format!("assessmentScoreValue {lexical:?} is not a valid float: {e}"),
+        })
     })?;
     if !f.is_finite() {
-        return Err(PipelineError::Parse(format!(
-            "assessmentScoreValue {lexical:?} is not finite"
-        )));
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Parse {
+            message: format!("assessmentScoreValue {lexical:?} is not finite"),
+        }));
     }
     if f == f.trunc() {
         Ok(Json::Num(format!("{f:.1}")))
@@ -658,7 +660,7 @@ fn croissant_field(rs: &str, name: &str, data_type: &str) -> Json {
     ])
 }
 
-fn croissant_record_sets(store: &Store) -> Result<Vec<Json>, PipelineError> {
+fn croissant_record_sets(store: &Store) -> Result<Vec<Json>, gmeow_errors::Diag> {
     let mut record_sets: Vec<Json> = Vec::new();
 
     let chunk_rows: Vec<Json> = subjects_of_type(store, &g("Chunk"))
@@ -773,14 +775,13 @@ fn croissant_record_sets(store: &Store) -> Result<Vec<Json>, PipelineError> {
     Ok(record_sets)
 }
 
-fn build_croissant(store: &Store, ds: &DatasetMeta) -> Result<Json, PipelineError> {
+fn build_croissant(store: &Store, ds: &DatasetMeta) -> Result<Json, gmeow_errors::Diag> {
     let mut distributions: Vec<Json> = Vec::new();
     for doc in documents(store) {
         if doc.content_url.is_empty() {
-            return Err(PipelineError::Parse(format!(
-                "build_croissant: missing contentUrl for {}",
-                doc.iri
-            )));
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Parse {
+                message: format!("build_croissant: missing contentUrl for {}", doc.iri),
+            }));
         }
         let mut fields: Vec<(String, Json)> = vec![
             ("@type".into(), s("cr:FileObject")),
@@ -1362,7 +1363,7 @@ fn build_datacite_xml(ds: &DatasetMeta) -> Vec<u8> {
 
 /// Load the internal→BCP-47 language-tag map from the ontology's language-tag table
 /// (`gmeow:languageTag` → `gmeow:bcp47Tag`).
-fn load_tag_map(root: &Path) -> Result<BTreeMap<String, String>, PipelineError> {
+fn load_tag_map(root: &Path) -> Result<BTreeMap<String, String>, gmeow_errors::Diag> {
     let mut parsed: Vec<Arc<RdfDataset>> = Vec::new();
     for module in module_files(root)? {
         let bytes = std::fs::read(&module)?;
@@ -1416,7 +1417,7 @@ fn serialize_source_turtle(
     bytes: &[u8],
     path: &str,
     tag_map: &BTreeMap<String, String>,
-) -> Result<String, PipelineError> {
+) -> Result<String, gmeow_errors::Diag> {
     let dataset = parse_into(bytes, path)?;
 
     // Re-emit each triple, retagging `@x-gmeow-*` literal language tags to their public
@@ -1438,20 +1439,27 @@ fn serialize_source_turtle(
     for quad in &mut retagged {
         canonicalize_term_xsd(&mut quad.object)?;
     }
-    let flat = purrdf::native_quads::flat_dataset_from_quads(&retagged)
-        .map_err(|e| PipelineError::Parse(format!("{path}: re-freeze retagged quads: {e}")))?;
+    let flat = purrdf::native_quads::flat_dataset_from_quads(&retagged).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            message: format!("{path}: re-freeze retagged quads: {e}"),
+        })
+    })?;
     let nt = purrdf::serialize_dataset(
         &flat,
         "application/n-triples",
         purrdf::SerializeGraph::Dataset,
     )
-    .map_err(|e| PipelineError::Parse(format!("{path}: serialize N-Triples: {e}")))?;
+    .map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            message: format!("{path}: serialize N-Triples: {e}"),
+        })
+    })?;
 
     // Emit EXACTLY the canonical fold (shared prefix authority, no trailing fixup):
     // the file IS `render(graph)`, the same bytes the superset gate reconstructs.
     // `nt` is already bytes from the native serializer, so pass it by reference.
     purrdf::turtle_normalize::canonical_turtle(&nt, &crate::stages::superset::rdf_prefixes())
-        .map_err(PipelineError::Parse)
+        .map_err(|m| gmeow_errors::Diag::of_kind(crate::error::Parse { message: m }))
 }
 
 /// Retag a native literal's `@x-gmeow-*` language tag to its public BCP-47 form.
@@ -1472,7 +1480,7 @@ fn retag_native_literal(lit: &RdfLiteral, tag_map: &BTreeMap<String, String>) ->
 /// canonical lexical form, a quoted-triple term recurses, and every other term is left
 /// VERBATIM. A malformed lexical for a RECOGNIZED XSD datatype HARD-fails. Mirrors the
 /// snapshot carrier's `canonicalize_term_xsd` exactly so the two paths cannot drift.
-fn canonicalize_term_xsd(term: &mut RdfTerm) -> Result<(), PipelineError> {
+fn canonicalize_term_xsd(term: &mut RdfTerm) -> Result<(), gmeow_errors::Diag> {
     match term {
         RdfTerm::Literal(literal) => {
             if literal.language.is_some() {
@@ -1483,10 +1491,12 @@ fn canonicalize_term_xsd(term: &mut RdfTerm) -> Result<(), PipelineError> {
                     Ok(Some(value)) => literal.lexical_form = value.canonical_lexical(),
                     Ok(None) => {}
                     Err(e) => {
-                        return Err(PipelineError::Parse(format!(
-                            "malformed typed literal {:?}^^<{datatype_iri}>: {e:?}",
-                            literal.lexical_form
-                        )));
+                        return Err(gmeow_errors::Diag::of_kind(crate::error::Parse {
+                            message: format!(
+                                "malformed typed literal {:?}^^<{datatype_iri}>: {e:?}",
+                                literal.lexical_form
+                            ),
+                        }));
                     }
                 }
             }
@@ -1508,7 +1518,7 @@ fn canonicalize_term_xsd(term: &mut RdfTerm) -> Result<(), PipelineError> {
 pub fn render_research_objects(
     root: &Path,
     dcat_rq: &str,
-) -> Result<BTreeMap<String, Vec<u8>>, PipelineError> {
+) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
     let store = load_instance_graph(root)?;
     let ds = dataset_meta(&store)?;
     let mut out: BTreeMap<String, Vec<u8>> = BTreeMap::new();
@@ -1562,7 +1572,7 @@ pub fn render_research_objects(
 /// Build the DCAT store (whole ontology + example A-Box), run `dcat.rq`, serialize.
 /// `dcat_rq` is the CONSTRUCT query text, threaded in from the consumed stage-mappings
 /// product (`generated/queries/dcat.rq`) — never re-read off disk (the stale-disk-fold class).
-fn render_dcat(root: &Path, dcat_rq: &str) -> Result<String, PipelineError> {
+fn render_dcat(root: &Path, dcat_rq: &str) -> Result<String, gmeow_errors::Diag> {
     let mut parsed: Vec<Arc<RdfDataset>> = Vec::new();
     // The whole authored ontology: ontology/gmeow.ttl + every slice module.ttl.
     let onto = root.join("ontology").join("gmeow.ttl");
@@ -1583,9 +1593,9 @@ fn render_dcat(root: &Path, dcat_rq: &str) -> Result<String, PipelineError> {
     let graph = match native_query::query(&dataset, dcat_rq)? {
         SparqlResult::Graph(graph) => graph,
         _ => {
-            return Err(PipelineError::Parse(
-                "dcat.rq did not return a CONSTRUCT graph".into(),
-            ));
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Parse {
+                message: "dcat.rq did not return a CONSTRUCT graph".into(),
+            }));
         }
     };
     // The CONSTRUCT result is a native dataset; canonicalize its typed-literal lexical
@@ -1595,19 +1605,26 @@ fn render_dcat(root: &Path, dcat_rq: &str) -> Result<String, PipelineError> {
     for quad in &mut quads {
         canonicalize_term_xsd(&mut quad.object)?;
     }
-    let canon = purrdf::native_quads::flat_dataset_from_quads(&quads)
-        .map_err(|e| PipelineError::Parse(format!("dcat.rq re-freeze: {e}")))?;
+    let canon = purrdf::native_quads::flat_dataset_from_quads(&quads).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            message: format!("dcat.rq re-freeze: {e}"),
+        })
+    })?;
     let nt = purrdf::serialize_dataset(
         &canon,
         "application/n-triples",
         purrdf::SerializeGraph::Dataset,
     )
-    .map_err(|e| PipelineError::Parse(format!("dcat.rq serialize N-Triples: {e}")))?;
+    .map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            message: format!("dcat.rq serialize N-Triples: {e}"),
+        })
+    })?;
     // Emit EXACTLY the canonical fold (shared prefix authority, no banner): the file
     // IS `render(graph)`, the bytes the superset gate reconstructs from the bundle.
     // `nt` is already bytes from the native serializer, so pass it by reference.
     purrdf::turtle_normalize::canonical_turtle(&nt, &crate::stages::superset::rdf_prefixes())
-        .map_err(PipelineError::Parse)
+        .map_err(|m| gmeow_errors::Diag::of_kind(crate::error::Parse { message: m }))
 }
 
 // ── Stage impl ───────────────────────────────────────────────────────────────
@@ -1651,7 +1668,7 @@ impl Stage for ResearchObjectsStage {
         // (`generated/queries/dcat.rq`) instead of a stale disk read.
         "research_objects.v2"
     }
-    fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, PipelineError> {
+    fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
         // Pure authored-source reads: the worked-example A-Box inputs and the
         // language-tag map (root ontology + slice modules). NONE are in the composed
         // fold, so declare them so any edit busts the cache. The DCAT CONSTRUCT query is
@@ -1665,23 +1682,27 @@ impl Stage for ResearchObjectsStage {
         files.extend(module_files(root)?);
         Ok(files)
     }
-    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
+    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         // The generated DCAT CONSTRUCT query, sourced from THIS run's stage-mappings
         // product (fail-closed: a missing artifact is a hard error, never a disk fallback).
         let dcat_rq = input
             .upstream
             .get("stage-mappings")
             .and_then(|p| p.artifact(DCAT_QUERY_PATH))
-            .ok_or_else(|| PipelineError::Stage {
-                stage: self.id().to_owned(),
-                message: format!(
-                    "missing {DCAT_QUERY_PATH} in the stage-mappings product; refusing to \
+            .ok_or_else(|| {
+                gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                    stage: self.id().to_owned(),
+                    message: format!(
+                        "missing {DCAT_QUERY_PATH} in the stage-mappings product; refusing to \
                          re-read the stale committed query off disk (fail-closed)"
-                ),
+                    ),
+                })
             })?;
-        let dcat_rq = std::str::from_utf8(dcat_rq).map_err(|e| PipelineError::Stage {
-            stage: self.id().to_owned(),
-            message: format!("{DCAT_QUERY_PATH} is not utf-8: {e}"),
+        let dcat_rq = std::str::from_utf8(dcat_rq).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                stage: self.id().to_owned(),
+                message: format!("{DCAT_QUERY_PATH} is not utf-8: {e}"),
+            })
         })?;
         Ok(StageOutput {
             product: StageProduct::from_artifacts(

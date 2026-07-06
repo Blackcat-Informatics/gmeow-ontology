@@ -27,7 +27,6 @@ use std::sync::Arc;
 use purrdf::{DatasetView, GraphMatch, RdfDataset, TermRef, TermValue};
 use sha1::{Digest as Sha1Digest, Sha1};
 
-use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 use crate::stages::source_load::turtle_bytes_to_dataset;
 
@@ -134,7 +133,7 @@ struct StatementCell {
 /// Compile the statement DSL under `root` into `(owl_ttl, rdf12_ttl)`, both
 /// banner-prefixed. The OWL form is the axiom-annotation downcast; the RDF 1.2
 /// form is materialized from it by the native codec.
-pub fn compile_statements(root: &Path) -> Result<(String, String), PipelineError> {
+pub fn compile_statements(root: &Path) -> Result<(String, String), gmeow_errors::Diag> {
     let store = parse_statement_dsl(root)?;
     let mut cells = extract_cells(&store)?;
     // Deterministic: by reifier IRI.
@@ -142,10 +141,10 @@ pub fn compile_statements(root: &Path) -> Result<(String, String), PipelineError
 
     let owl_ntriples = emit_owl(&cells);
     let rdf12 = purrdf::statements::project_owl_to_rdf12(&owl_ntriples).map_err(|e| {
-        PipelineError::Stage {
+        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
             stage: "stage-statements".to_string(),
             message: format!("OWL → RDF 1.2 projection failed: {e}"),
-        }
+        })
     })?;
 
     let owl_out = format!("{OWL_BANNER}{}\n", owl_ntriples.trim_end());
@@ -214,7 +213,7 @@ fn add_dsl_error(report: &mut gmeow_errors::Report, message: String) {
 fn invariant_findings(
     statement_owl_ttl: &str,
     ontology_nt: &str,
-) -> Result<Vec<gmeow_errors::Finding>, PipelineError> {
+) -> Result<Vec<gmeow_errors::Finding>, gmeow_errors::Diag> {
     // Union the emitted OWL (Turtle) with the ontology (N-Triples) in one default-graph
     // native dataset — the exact union the Store version built by inserting both into one
     // store — then run the native invariant twin over it.
@@ -231,7 +230,7 @@ fn invariant_findings(
 fn lossless_findings(
     authored_owl_ttl: &str,
     normalized_owl_ttl: &str,
-) -> Result<Vec<gmeow_errors::Finding>, PipelineError> {
+) -> Result<Vec<gmeow_errors::Finding>, gmeow_errors::Diag> {
     let authored = turtle_bytes_to_dataset(authored_owl_ttl.as_bytes(), "authored OWL")?;
     let normalized = turtle_bytes_to_dataset(normalized_owl_ttl.as_bytes(), "normalized OWL")?;
     Ok(gmeow_validate::statement::check_statement_lossless_dataset(
@@ -242,7 +241,7 @@ fn lossless_findings(
 
 /// The sorted `dsl/statements/*.ttl` source files (the leaf's raw inputs — folded
 /// into the cache key via `input_files` so a DSL edit busts the cache).
-pub fn statement_dsl_files(root: &Path) -> Result<Vec<std::path::PathBuf>, PipelineError> {
+pub fn statement_dsl_files(root: &Path) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
     let dir = root.join("dsl").join("statements");
     if !dir.is_dir() {
         return Ok(Vec::new());
@@ -267,7 +266,7 @@ pub fn statement_dsl_files(root: &Path) -> Result<Vec<std::path::PathBuf>, Pipel
 /// twin of the old per-source blank-prefix scoping (annotation cells use anonymous
 /// blanks that restart at `_:gts_0` each parse, so distinct DSL files must not merge
 /// them).
-fn parse_statement_dsl(root: &Path) -> Result<Arc<RdfDataset>, PipelineError> {
+fn parse_statement_dsl(root: &Path) -> Result<Arc<RdfDataset>, gmeow_errors::Diag> {
     let mut parsed: Vec<Arc<RdfDataset>> = Vec::new();
     for path in statement_dsl_files(root)? {
         let bytes = std::fs::read(&path)?;
@@ -279,7 +278,7 @@ fn parse_statement_dsl(root: &Path) -> Result<Arc<RdfDataset>, PipelineError> {
 }
 
 /// Extract every `gmeow:StatementMetadata` cell from the dataset.
-fn extract_cells(ds: &RdfDataset) -> Result<Vec<StatementCell>, PipelineError> {
+fn extract_cells(ds: &RdfDataset) -> Result<Vec<StatementCell>, gmeow_errors::Diag> {
     let mut cells = Vec::new();
     let (Some(type_id), Some(class_id)) = (
         ds.term_id_by_value(&TermValue::iri(RDF_TYPE)),
@@ -289,9 +288,9 @@ fn extract_cells(ds: &RdfDataset) -> Result<Vec<StatementCell>, PipelineError> {
     };
     for q in ds.quads_for_pattern(None, Some(type_id), Some(class_id), GraphMatch::Default) {
         let TermRef::Iri(cell) = ds.resolve(q.s) else {
-            return Err(PipelineError::Parse(
-                "statement metadata cell must be a named IRI".to_string(),
-            ));
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Parse {
+                message: "statement metadata cell must be a named IRI".to_string(),
+            }));
         };
         let cell = Iri(cell.to_owned());
         cells.extend(parse_cell(ds, &cell)?);
@@ -307,7 +306,7 @@ fn extract_cells(ds: &RdfDataset) -> Result<Vec<StatementCell>, PipelineError> {
 /// and carrying the cell's annotations; a cell with no authored reifier mints a
 /// single deterministic one. The base triple and annotations are parsed once and
 /// cloned per reifier.
-fn parse_cell(ds: &RdfDataset, cell: &Iri) -> Result<Vec<StatementCell>, PipelineError> {
+fn parse_cell(ds: &RdfDataset, cell: &Iri) -> Result<Vec<StatementCell>, gmeow_errors::Diag> {
     let cell_id = ds
         .term_id_by_value(&TermValue::iri(cell.as_str()))
         .ok_or_else(|| cell_err(cell, "metadata cell IRI vanished from dataset"))?;
@@ -354,7 +353,7 @@ fn parse_annotations(
     ds: &RdfDataset,
     cell_id: purrdf::TermId,
     cell: &Iri,
-) -> Result<Vec<(Iri, ObjTerm)>, PipelineError> {
+) -> Result<Vec<(Iri, ObjTerm)>, gmeow_errors::Diag> {
     let Some(ann_pred_id) = ds.term_id_by_value(&TermValue::iri(format!("{GMEOW}annotation")))
     else {
         return Ok(Vec::new());
@@ -407,7 +406,7 @@ fn emit_owl(cells: &[StatementCell]) -> String {
 /// the Python `mint_reifier` so an unauthored reifier is stable across compiles. The
 /// `Display` of [`Iri`]/[`ObjTerm`] reproduces the oxigraph `Term` N-Triples form the
 /// old `mint_reifier` hashed, keeping minted IRIs byte-identical across the cutover.
-fn mint_reifier(triple: &QuotedTriple) -> Result<Iri, PipelineError> {
+fn mint_reifier(triple: &QuotedTriple) -> Result<Iri, gmeow_errors::Diag> {
     let s = triple.subject.to_string();
     let p = triple.predicate.to_string();
     let o = term_n3(&triple.object);
@@ -452,7 +451,7 @@ fn single_object(
     subject_id: purrdf::TermId,
     subject: &Iri,
     predicate: &str,
-) -> Result<Option<ObjTerm>, PipelineError> {
+) -> Result<Option<ObjTerm>, gmeow_errors::Diag> {
     let Some(p_id) = ds.term_id_by_value(&TermValue::iri(predicate)) else {
         return Ok(None);
     };
@@ -461,10 +460,12 @@ fn single_object(
         .map(|q| q.o)
         .collect();
     if obj_ids.len() > 1 {
-        return Err(PipelineError::Parse(format!(
-            "{subject} has {} values for {predicate} — expected one",
-            obj_ids.len()
-        )));
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Parse {
+            message: format!(
+                "{subject} has {} values for {predicate} — expected one",
+                obj_ids.len()
+            ),
+        }));
     }
     match obj_ids.into_iter().next() {
         Some(id) => resolve_obj(ds, id).map(Some).ok_or_else(|| {
@@ -485,12 +486,12 @@ fn single_named(
     subject_id: purrdf::TermId,
     subject: &Iri,
     predicate: &str,
-) -> Result<Option<Iri>, PipelineError> {
+) -> Result<Option<Iri>, gmeow_errors::Diag> {
     match single_object(ds, subject_id, subject, predicate)? {
         Some(ObjTerm::Iri(iri)) => Ok(Some(Iri(iri))),
-        Some(_) => Err(PipelineError::Parse(format!(
-            "{subject} {predicate} must be an IRI"
-        ))),
+        Some(_) => Err(gmeow_errors::Diag::of_kind(crate::error::Parse {
+            message: format!("{subject} {predicate} must be an IRI"),
+        })),
         None => Ok(None),
     }
 }
@@ -503,7 +504,7 @@ fn all_named(
     subject_id: purrdf::TermId,
     subject: &Iri,
     predicate: &str,
-) -> Result<Vec<Iri>, PipelineError> {
+) -> Result<Vec<Iri>, gmeow_errors::Diag> {
     let Some(p_id) = ds.term_id_by_value(&TermValue::iri(predicate)) else {
         return Ok(Vec::new());
     };
@@ -516,9 +517,9 @@ fn all_named(
         match ds.resolve(id) {
             TermRef::Iri(iri) => out.push(Iri(iri.to_owned())),
             _ => {
-                return Err(PipelineError::Parse(format!(
-                    "{subject} {predicate} must be an IRI"
-                )));
+                return Err(gmeow_errors::Diag::of_kind(crate::error::Parse {
+                    message: format!("{subject} {predicate} must be an IRI"),
+                }));
             }
         }
     }
@@ -532,8 +533,10 @@ fn term_n3(term: &ObjTerm) -> String {
     term.to_string()
 }
 
-fn cell_err(cell: &Iri, msg: &str) -> PipelineError {
-    PipelineError::Parse(format!("statement {cell} {msg}"))
+fn cell_err(cell: &Iri, msg: &str) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(crate::error::Parse {
+        message: format!("statement {cell} {msg}"),
+    })
 }
 
 fn hex_lower(bytes: &[u8]) -> String {
@@ -562,13 +565,13 @@ impl Stage for StatementsStage {
     fn impl_version(&self) -> &str {
         "statements.v1"
     }
-    fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, PipelineError> {
+    fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
         // Raw source read: the RDF-1.2 statement cells come from `dsl/statements/`,
         // which no upstream product reflects. Declare them so a DSL edit busts the
         // cache. `consumes() == []` (the leaf reads sources, not upstream products).
         statement_dsl_files(root)
     }
-    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
+    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         let (owl, rdf12) = compile_statements(input.root)?;
         // Carry the RDF 1.2 statement layer as the bundle's frozen dataset (the
         // contribution `gts_compose` unions over the base graph). Parsing the rdf12
@@ -576,8 +579,12 @@ impl Stage for StatementsStage {
         // reifier bindings and the reifiers' other triples become annotations — so
         // the side-tables ride in the dataset, not flattened into base quads. The
         // OWL_PATH / RDF12_PATH byte lanes are kept for the pre-C3 byte readers.
-        let dataset = purrdf::parse_dataset(rdf12.as_bytes(), "text/turtle", None)
-            .map_err(|e| PipelineError::Parse(format!("RDF 1.2 statement-layer parse: {e}")))?;
+        let dataset =
+            purrdf::parse_dataset(rdf12.as_bytes(), "text/turtle", None).map_err(|e| {
+                gmeow_errors::Diag::of_kind(crate::error::Parse {
+                    message: format!("RDF 1.2 statement-layer parse: {e}"),
+                })
+            })?;
         let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
         artifacts.insert(OWL_PATH.to_string(), owl.into_bytes());
         artifacts.insert(RDF12_PATH.to_string(), rdf12.into_bytes());

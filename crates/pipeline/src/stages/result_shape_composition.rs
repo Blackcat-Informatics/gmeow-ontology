@@ -20,7 +20,6 @@ use gmeow_logic_compile::result_shape::{
 };
 use purrdf::{RdfDataset, TermValue};
 
-use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 use crate::stages::native_query::{self, Solutions};
 use crate::stages::result_shapes::competency_files;
@@ -47,7 +46,7 @@ impl Row<'_> {
     }
 }
 
-fn run_select(dataset: &Arc<RdfDataset>, query: &str) -> Result<Solutions, PipelineError> {
+fn run_select(dataset: &Arc<RdfDataset>, query: &str) -> Result<Solutions, gmeow_errors::Diag> {
     native_query::select(dataset, query)
 }
 
@@ -67,18 +66,22 @@ fn sol_str(row: &Row<'_>, var: &str) -> Option<String> {
     })
 }
 
-fn sol_u64(row: &Row<'_>, var: &str) -> Result<Option<u64>, PipelineError> {
+fn sol_u64(row: &Row<'_>, var: &str) -> Result<Option<u64>, gmeow_errors::Diag> {
     match row.cell(var) {
         None => Ok(None),
         Some(TermValue::Literal { lexical_form, .. }) => {
             lexical_form.parse::<u64>().map(Some).map_err(|e| {
-                PipelineError::Parse(format!("?{var} is not a non-negative integer: {e}"))
+                gmeow_errors::Diag::of_kind(crate::error::Parse {
+                    message: format!("?{var} is not a non-negative integer: {e}"),
+                })
             })
         }
-        Some(other) => Err(PipelineError::Parse(format!(
-            "?{var} expected a literal, got {}",
-            native_query_term_to_string(other)
-        ))),
+        Some(other) => Err(gmeow_errors::Diag::of_kind(crate::error::Parse {
+            message: format!(
+                "?{var} expected a literal, got {}",
+                native_query_term_to_string(other)
+            ),
+        })),
     }
 }
 
@@ -108,7 +111,7 @@ fn logic_local(iri: &str) -> &str {
 fn parse_result_shape(
     store: &Arc<RdfDataset>,
     shape_iri: &str,
-) -> Result<ResultShape, PipelineError> {
+) -> Result<ResultShape, gmeow_errors::Diag> {
     // Columns — use OPTIONAL so a missing required field is an observable NULL.
     let cols_q = format!(
         "PREFIX logic: <{LOGIC_NS}>\n\
@@ -133,34 +136,44 @@ fn parse_result_shape(
             .unwrap_or_else(|| "<unknown>".to_owned());
 
         let var = sol_str(&sol, "var").ok_or_else(|| {
-            PipelineError::InvalidDeclaration(format!(
-                "ResultShape <{shape_iri}>: logic:declaresColumn {col} \
+            gmeow_errors::Diag::of_kind(crate::error::InvalidDeclaration {
+                message: format!(
+                    "ResultShape <{shape_iri}>: logic:declaresColumn {col} \
                  is missing logic:columnVariable"
-            ))
+                ),
+            })
         })?;
         let kind_iri = sol_iri(&sol, "kind").ok_or_else(|| {
-            PipelineError::InvalidDeclaration(format!(
-                "ResultShape <{shape_iri}>: logic:declaresColumn {col} \
+            gmeow_errors::Diag::of_kind(crate::error::InvalidDeclaration {
+                message: format!(
+                    "ResultShape <{shape_iri}>: logic:declaresColumn {col} \
                  is missing logic:columnTermKind"
-            ))
+                ),
+            })
         })?;
         let kind_local = logic_local(&kind_iri).to_owned();
         let term_kind = TermKind::from_local(&kind_local).ok_or_else(|| {
-            PipelineError::InvalidDeclaration(format!(
-                "ResultShape <{shape_iri}>: unknown logic:columnTermKind logic:{kind_local}"
-            ))
+            gmeow_errors::Diag::of_kind(crate::error::InvalidDeclaration {
+                message: format!(
+                    "ResultShape <{shape_iri}>: unknown logic:columnTermKind logic:{kind_local}"
+                ),
+            })
         })?;
         let binding_iri = sol_iri(&sol, "binding").ok_or_else(|| {
-            PipelineError::InvalidDeclaration(format!(
-                "ResultShape <{shape_iri}>: logic:declaresColumn {col} \
+            gmeow_errors::Diag::of_kind(crate::error::InvalidDeclaration {
+                message: format!(
+                    "ResultShape <{shape_iri}>: logic:declaresColumn {col} \
                  is missing logic:columnBinding"
-            ))
+                ),
+            })
         })?;
         let binding_local = logic_local(&binding_iri).to_owned();
         let binding = ColumnBinding::from_local(&binding_local).ok_or_else(|| {
-            PipelineError::InvalidDeclaration(format!(
-                "ResultShape <{shape_iri}>: unknown logic:columnBinding logic:{binding_local}"
-            ))
+            gmeow_errors::Diag::of_kind(crate::error::InvalidDeclaration {
+                message: format!(
+                    "ResultShape <{shape_iri}>: unknown logic:columnBinding logic:{binding_local}"
+                ),
+            })
         })?;
         let datatype = sol_iri(&sol, "datatype");
         let kind = match term_kind {
@@ -171,10 +184,14 @@ fn parse_result_shape(
         columns.push(ResultColumn { var, kind, binding });
     }
     if columns.is_empty() {
-        return Err(PipelineError::InvalidDeclaration(format!(
-            "ResultShape <{shape_iri}> declares no logic:declaresColumn — \
+        return Err(gmeow_errors::Diag::of_kind(
+            crate::error::InvalidDeclaration {
+                message: format!(
+                    "ResultShape <{shape_iri}> declares no logic:declaresColumn — \
              an empty result shape types nothing"
-        )));
+                ),
+            },
+        ));
     }
 
     // Cardinality.
@@ -187,18 +204,20 @@ fn parse_result_shape(
     );
     let card_sols = run_select(store, &card_q)?;
     let card_cells = card_sols.rows.first().ok_or_else(|| {
-        PipelineError::InvalidDeclaration(format!(
-            "ResultShape <{shape_iri}> has no logic:shapeCardinality"
-        ))
+        gmeow_errors::Diag::of_kind(crate::error::InvalidDeclaration {
+            message: format!("ResultShape <{shape_iri}> has no logic:shapeCardinality"),
+        })
     })?;
     let card_sol = Row {
         vars: &card_sols.variables,
         cells: card_cells,
     };
     let card_iri = sol_iri(&card_sol, "card").ok_or_else(|| {
-        PipelineError::InvalidDeclaration(format!(
-            "ResultShape <{shape_iri}>: logic:shapeCardinality did not bind an IRI"
-        ))
+        gmeow_errors::Diag::of_kind(crate::error::InvalidDeclaration {
+            message: format!(
+                "ResultShape <{shape_iri}>: logic:shapeCardinality did not bind an IRI"
+            ),
+        })
     })?;
     let card_local = logic_local(&card_iri).to_owned();
     let cardinality = match card_local.as_str() {
@@ -206,16 +225,22 @@ fn parse_result_shape(
         "RowsContains" => RowCardinality::Contains,
         "RowsCount" => {
             let count = sol_u64(&card_sol, "count")?.ok_or_else(|| {
-                PipelineError::InvalidDeclaration(format!(
-                    "ResultShape <{shape_iri}>: logic:RowsCount requires logic:shapeRowCount"
-                ))
+                gmeow_errors::Diag::of_kind(crate::error::InvalidDeclaration {
+                    message: format!(
+                        "ResultShape <{shape_iri}>: logic:RowsCount requires logic:shapeRowCount"
+                    ),
+                })
             })?;
             RowCardinality::Count(count)
         }
         other => {
-            return Err(PipelineError::InvalidDeclaration(format!(
-                "ResultShape <{shape_iri}>: unknown logic:shapeCardinality logic:{other}"
-            )));
+            return Err(gmeow_errors::Diag::of_kind(
+                crate::error::InvalidDeclaration {
+                    message: format!(
+                        "ResultShape <{shape_iri}>: unknown logic:shapeCardinality logic:{other}"
+                    ),
+                },
+            ));
         }
     };
     Ok(ResultShape::new(columns, cardinality))
@@ -226,7 +251,7 @@ fn parse_result_shape(
 /// Load every competency file into one native dataset (same approach as `result_shapes`):
 /// each file parsed through the canonical native codec and unioned (blanks standardized
 /// apart per source).
-fn load_competency_store(root: &Path) -> Result<Arc<RdfDataset>, PipelineError> {
+fn load_competency_store(root: &Path) -> Result<Arc<RdfDataset>, gmeow_errors::Diag> {
     native_query::dataset_from_files(&competency_files(root)?)
 }
 
@@ -242,7 +267,7 @@ fn load_competency_store(root: &Path) -> Result<Arc<RdfDataset>, PipelineError> 
 /// All violations are collected and returned as a single combined error message
 /// (sorted by consumer IRI for determinism).  Returns `Ok(())` when every link
 /// is structurally compatible.
-pub fn validate_store(store: &Arc<RdfDataset>) -> Result<(), PipelineError> {
+pub fn validate_store(store: &Arc<RdfDataset>) -> Result<(), gmeow_errors::Diag> {
     // Find all cqConsumes links.
     let links_q = "\
         PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>\n\
@@ -260,14 +285,14 @@ pub fn validate_store(store: &Arc<RdfDataset>) -> Result<(), PipelineError> {
             cells,
         };
         let consumer_iri = sol_iri(&sol, "consumer").ok_or_else(|| {
-            PipelineError::InvalidDeclaration(
-                "cqConsumes: ?consumer did not bind an IRI".to_owned(),
-            )
+            gmeow_errors::Diag::of_kind(crate::error::InvalidDeclaration {
+                message: "cqConsumes: ?consumer did not bind an IRI".to_owned(),
+            })
         })?;
         let producer_iri = sol_iri(&sol, "producer").ok_or_else(|| {
-            PipelineError::InvalidDeclaration(
-                "cqConsumes: ?producer did not bind an IRI".to_owned(),
-            )
+            gmeow_errors::Diag::of_kind(crate::error::InvalidDeclaration {
+                message: "cqConsumes: ?producer did not bind an IRI".to_owned(),
+            })
         })?;
 
         // Resolve the consumer's input shape (required when cqConsumes is declared).
@@ -291,10 +316,12 @@ pub fn validate_store(store: &Arc<RdfDataset>) -> Result<(), PipelineError> {
                 )
             })
             .ok_or_else(|| {
-                PipelineError::InvalidDeclaration(format!(
-                    "composition: <{consumer_iri}> has gmeow:cqConsumes \
+                gmeow_errors::Diag::of_kind(crate::error::InvalidDeclaration {
+                    message: format!(
+                        "composition: <{consumer_iri}> has gmeow:cqConsumes \
                      but no gmeow:cqInputShape"
-                ))
+                    ),
+                })
             })?;
 
         // Resolve the producer's result shape (required when consumed).
@@ -318,10 +345,12 @@ pub fn validate_store(store: &Arc<RdfDataset>) -> Result<(), PipelineError> {
                 )
             })
             .ok_or_else(|| {
-                PipelineError::InvalidDeclaration(format!(
-                    "composition: <{consumer_iri}> consumes <{producer_iri}> \
+                gmeow_errors::Diag::of_kind(crate::error::InvalidDeclaration {
+                    message: format!(
+                        "composition: <{consumer_iri}> consumes <{producer_iri}> \
                      but that producer has no gmeow:cqResultShape"
-                ))
+                    ),
+                })
             })?;
 
         // Parse both shapes.
@@ -350,15 +379,19 @@ pub fn validate_store(store: &Arc<RdfDataset>) -> Result<(), PipelineError> {
             lines.push(msg.clone());
         }
     }
-    Err(PipelineError::InvalidDeclaration(format!(
-        "result-shape composition violations ({} total):\n{}",
-        lines.len(),
-        lines.join("\n")
-    )))
+    Err(gmeow_errors::Diag::of_kind(
+        crate::error::InvalidDeclaration {
+            message: format!(
+                "result-shape composition violations ({} total):\n{}",
+                lines.len(),
+                lines.join("\n")
+            ),
+        },
+    ))
 }
 
 /// Validate all `gmeow:cqConsumes` links found under `root/slices/`.
-pub fn validate_compositions(root: &Path) -> Result<(), PipelineError> {
+pub fn validate_compositions(root: &Path) -> Result<(), gmeow_errors::Diag> {
     let store = load_competency_store(root)?;
     validate_store(&store)
 }
@@ -378,10 +411,10 @@ impl Stage for ResultShapeCompositionStage {
     fn impl_version(&self) -> &str {
         "result_shape_composition.v1"
     }
-    fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, PipelineError> {
+    fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
         competency_files(root)
     }
-    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
+    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         validate_compositions(input.root)?;
         // Pure validation leaf — no artifacts emitted.
         Ok(StageOutput {
