@@ -51,10 +51,10 @@ pub(crate) const GRAPH_DIAGNOSTICS: &str = "https://blackcatinformatics.ca/gmeow
 /// `Vec<gmeow_errors::DiagNode>` (raw JSON) on its product bundle — the SINGLE source
 /// the run-level `DiagLedger` folds. It rides the standard content-store + lookaside
 /// blob lane, so the per-stage cache persists/replays it verbatim; a cache-hit product
-/// re-serves the identical nodes. This constant MUST equal the reader-side
-/// [`crate::bundle_blobs::REP_DIAG_NODES`] (a drifted label silently reads back an empty
-/// node set).
-pub(crate) const REP_DIAG_NODES: &str = "diagnostics:nodes";
+/// re-serves the identical nodes. Re-exported from the reader-side definition in
+/// [`crate::bundle_blobs`] so the producer and reader share ONE constant — the label
+/// cannot drift (a drifted label would silently read back an empty node set).
+pub(crate) use crate::bundle_blobs::REP_DIAG_NODES;
 /// The by-reference blob `representation` under which `stage-source-load` carries its
 /// authored subject→source-position [`SpanIndex`](crate::ingest::SpanIndex) (raw JSON)
 /// on its product bundle — the SINGLE source of the source spans the diagnostics
@@ -62,10 +62,9 @@ pub(crate) const REP_DIAG_NODES: &str = "diagnostics:nodes";
 /// rides the standard content-store + lookaside blob lane, so the per-stage cache
 /// persists/replays it verbatim. It is STRIPPED from the source-load product once the
 /// last span-table consumer has run (drop-after-last-consumer), so it never reaches the
-/// carrier assembly and does NOT ship in `gmeow.gts`. This constant MUST equal the
-/// reader-side [`crate::bundle_blobs::REP_SPAN_TABLE`] (a drifted label silently reads
-/// back an empty table — pinned by `span_table_rep_labels_agree`).
-pub(crate) const REP_SPAN_TABLE: &str = "spans:source-table";
+/// carrier assembly and does NOT ship in `gmeow.gts`. Re-exported from the reader-side
+/// definition in [`crate::bundle_blobs`] so the producer and reader share ONE constant.
+pub(crate) use crate::bundle_blobs::REP_SPAN_TABLE;
 /// The native↔external-corpus reasoning-divergence Findings, folded as their own
 /// queryable named graph so a repo-free consumer reads every coverage divergence
 /// (native-incomplete `DlGap` / native-disagrees `CorpusOnly`) against the W3C
