@@ -527,7 +527,7 @@ gh api repos/<owner>/<repo>/pulls/<PR_NUMBER>/comments \
 
 # 4. Filter to a specific file/line when chasing a known issue
 gh api repos/<owner>/<repo>/pulls/<PR_NUMBER>/comments \
-    | jq -r '.[] | select(.path == "src/gmeow_tools/runner.py" and .line == 98) | .body'
+    | jq -r '.[] | select(.path == "crates/validate/src/repo_static.rs" and .line == 100) | .body'
 ```
 
 Read both automated (CodeRabbit, Gemini) and human reviews. Treat actionable automated feedback as binding unless it contradicts the ontology design principles in [CONSTITUTION.md](./CONSTITUTION.md).
