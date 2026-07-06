@@ -35,11 +35,12 @@ use std::sync::Arc;
 
 use gmeow_errors::{Finding, Location, Severity};
 use gmeow_logic_compile::frontend::parse_logic_str;
-use gmeow_logic_compile::ir::LogicProgram;
+use gmeow_logic_compile::ir::{LogicProgram, PreservationKind};
 use gmeow_logic_compile::openehr_opt::read_all_opt_constraints;
 use gmeow_logic_compile::opt_lift::lift_opt_to_validation_shape;
 use gmeow_logic_compile::projections::correspondence::{
-    CorrespondenceProgram, affine_triangle_worked_example, project_correspondence,
+    CorrespondenceProgram, affine_triangle_worked_example, extract_correspondences,
+    extract_leg_programs, project_correspondence,
 };
 use gmeow_logic_compile::projections::correspondence_gates::{
     assert_gates, evaluate_gates, liftability,
@@ -341,6 +342,32 @@ impl Stage for CompileLogicStage {
         let lift = liftability(&gate_report);
         arts.report_header.correspondence_count = gated.correspondences.len();
         arts.report_header.lawful_uplift_count = lift.lawful;
+
+        // Authored-correspondence enforcement: extract EVERY `a logic:Correspondence`
+        // individual from the merged authored surface (the supersession ledger and any
+        // other authored crossing), derive its lawful put legs, and run the five gates as
+        // a HARD FAIL. This is the throwing seam for authored correspondences — a false
+        // Section-Retraction (a claimed recovery whose get leg cannot invert to put ∘ get =
+        // id) reds the build here, so a supersession rung can never be an unchecked prose
+        // claim. A malformed correspondence cell is surfaced, never silently dropped.
+        let (authored_corrs, authored_errors) = extract_correspondences(ontology.as_ref());
+        if let Some((iri, msg)) = authored_errors.first() {
+            return Err(stage_err(format!(
+                "malformed authored logic:Correspondence <{iri}>: {msg}"
+            )));
+        }
+        if !authored_corrs.is_empty() {
+            let authored_legs = extract_leg_programs(ontology.as_ref(), &authored_corrs);
+            let authored_program =
+                CorrespondenceProgram::new(authored_corrs, Vec::new(), PreservationKind::Exact)
+                    .with_leg_programs(authored_legs);
+            let (authored_gated, _authored_outcomes) = authored_program
+                .with_derived_puts()
+                .map_err(|e| stage_err(format!("derive authored correspondence put legs: {e}")))?;
+            let authored_report = evaluate_gates(&authored_gated, &[]);
+            assert_gates(&authored_report)
+                .map_err(|e| stage_err(format!("authored correspondence gate: {e}")))?;
+        }
 
         let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
         // The nine projection serializations, byte-for-byte as the compiler produced
