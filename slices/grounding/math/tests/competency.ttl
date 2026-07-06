@@ -14,6 +14,9 @@
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/math/tests/> .
 @prefix exf:   <http://example.org/math/> .
+# The authored algebra-law witness elements (examples/*.ttl): the native reasoningLogic
+# lane (#1294) queries the consequents the four laws DERIVE over these witnesses.
+@prefix exa:   <https://blackcatinformatics.ca/gmeow/examples/math/algebra/> .
 
 # === Q1 — number system and exactness ====================================== #
 
@@ -145,34 +148,19 @@ ex:rowPiAnchor a gmeow:ExpectedRow ;
 
 ex:cqStructurePreservingMaps a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "slices/grounding/math/queries/competency/structure-preserving-maps.rq" ;
-    gmeow:cqDataFile "tests/fixtures/algebra.ttl" ;
-    gmeow:cqReasoning gmeow:reasoningNone ;
-    gmeow:cqRationale "The charter's unification made queryable: det (a group homomorphism), the E8 Weyl action (an automorphism), and a homomorphic-encryption scheme (a ring homomorphism) are the same kind of object — a map naming a preserved operation and a preservation law. Over the fixture the answer is exactly the three maps with their operation and law." ;
+    gmeow:cqReasoning gmeow:reasoningLogic ;
+    gmeow:cqRationale "The E8 group-action law (g·h)·x = g·(h·x) made a LIVE entailment consumer (#1294): authored as a real logic:Formula over fixed-arity n-ary comp/act predications and evaluated by the native logic: reasoner over a concrete compatible action, it DERIVES the binary consequent eq((g·h)·x, g·(h·x)) — both association orders reach the same point gaWr. Nothing asserts that eq tuple; only the law derives it. Over the reasoned closure the answer is exactly {gaWr}. Removing the law formula makes the answer empty." ;
     gmeow:cqExactRows true ;
     gmeow:cqResultShape ex:cqMapsShape ;
-    gmeow:cqExpectRow ex:rowDetMap , ex:rowHeMap , ex:rowWeylMap .
+    gmeow:cqExpectRow ex:rowWeylMap .
 
 ex:cqMapsShape a logic:ResultShape ;
     logic:declaresColumn
-        [ logic:columnVariable "map" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
-        [ logic:columnVariable "operation" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
-        [ logic:columnVariable "law" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+        [ logic:columnVariable "value" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
     logic:shapeCardinality logic:RowsExact .
 
-ex:rowDetMap a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "map" ; gmeow:cellValueIri exf:detHom ] ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "operation" ; gmeow:cellValueIri exf:matrixMultiplication ] ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "law" ; gmeow:cellValueIri exf:detLaw ] .
-
-ex:rowHeMap a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "map" ; gmeow:cellValueIri exf:heScheme ] ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "operation" ; gmeow:cellValueIri exf:ringMultiplication ] ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "law" ; gmeow:cellValueIri exf:heLaw ] .
-
 ex:rowWeylMap a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "map" ; gmeow:cellValueIri exf:weylAction ] ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "operation" ; gmeow:cellValueIri exf:rootReflection ] ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "law" ; gmeow:cellValueIri exf:weylLaw ] .
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "value" ; gmeow:cellValueIri exa:gaWr ] .
 
 # === Q7 — the validated E8 root system (240 / rank 8 / Weyl order) ========== #
 
@@ -201,72 +189,59 @@ ex:rowE8 a gmeow:ExpectedRow ;
 
 ex:cqStructureOperationAxioms a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "slices/grounding/math/queries/competency/structure-operation-axioms.rq" ;
-    gmeow:cqDataFile "tests/fixtures/algebra.ttl" ;
-    gmeow:cqReasoning gmeow:reasoningNone ;
-    gmeow:cqRationale "A structure reports the operation and axioms that define it; over the fixture the answer is exactly {exampleGroup → groupOp / assocAxiom}." ;
+    gmeow:cqReasoning gmeow:reasoningLogic ;
+    gmeow:cqRationale "The associativity axiom made a LIVE entailment consumer (#1294): authored as a real logic:Formula over fixed-arity n-ary op(x,y,z) predications and evaluated by the native logic: reasoner over a concrete operation table, it DERIVES the binary consequent eq((a·b)·c, a·(b·c)) — the two bracketings reach the same element assocWv. Nothing asserts that eq tuple; only the law derives it. Over the reasoned closure the answer is exactly {assocWv}. Removing the law formula makes the answer empty." ;
     gmeow:cqExactRows true ;
     gmeow:cqResultShape ex:cqStructOpShape ;
     gmeow:cqExpectRow ex:rowStructOp .
 
 ex:cqStructOpShape a logic:ResultShape ;
     logic:declaresColumn
-        [ logic:columnVariable "structure" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
-        [ logic:columnVariable "operation" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
-        [ logic:columnVariable "axiom" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+        [ logic:columnVariable "value" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
     logic:shapeCardinality logic:RowsExact .
 
 ex:rowStructOp a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "structure" ; gmeow:cellValueIri exf:exampleGroup ] ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "operation" ; gmeow:cellValueIri exf:groupOp ] ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "axiom" ; gmeow:cellValueIri exf:assocAxiom ] .
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "value" ; gmeow:cellValueIri exa:assocWv ] .
 
 # === Q9 — a homomorphism's preserved operation and kernel ================== #
 
 ex:cqHomomorphismKernel a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "slices/grounding/math/queries/competency/homomorphism-preserved-operation-and-kernel.rq" ;
-    gmeow:cqDataFile "tests/fixtures/algebra.ttl" ;
-    gmeow:cqReasoning gmeow:reasoningNone ;
-    gmeow:cqRationale "A homomorphism reports the operation it preserves and its kernel; over the fixture the answer is exactly {detHom → matrixMultiplication / sl2}." ;
+    gmeow:cqReasoning gmeow:reasoningLogic ;
+    gmeow:cqRationale "The determinant preservation law det(A·B) = det(A)·det(B) made a LIVE entailment consumer (#1294): authored as a real logic:Formula and evaluated by the native logic: reasoner, its n-ary HEAD atom mul(dA,dB,dAB) DERIVES a content-addressed reified tuple (logic:instanceOf exa:mulRel + logic:naryArg0/1/2 on a chase-minted reifier) over the concrete determinants — the head-derivation path of #1294. Nothing asserts that tuple; only the law derives it. Over the reasoned closure the answer is exactly {detWdA, detWdB, detWdAB}. Removing the law formula makes the answer empty." ;
     gmeow:cqExactRows true ;
     gmeow:cqResultShape ex:cqHomKernelShape ;
     gmeow:cqExpectRow ex:rowHomKernel .
 
 ex:cqHomKernelShape a logic:ResultShape ;
     logic:declaresColumn
-        [ logic:columnVariable "hom" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
-        [ logic:columnVariable "operation" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
-        [ logic:columnVariable "kernel" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+        [ logic:columnVariable "dA" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "dB" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "dAB" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
     logic:shapeCardinality logic:RowsExact .
 
 ex:rowHomKernel a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "hom" ; gmeow:cellValueIri exf:detHom ] ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "operation" ; gmeow:cellValueIri exf:matrixMultiplication ] ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kernel" ; gmeow:cellValueIri exf:sl2 ] .
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dA" ; gmeow:cellValueIri exa:detWdA ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dB" ; gmeow:cellValueIri exa:detWdB ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dAB" ; gmeow:cellValueIri exa:detWdAB ] .
 
 # === Q10 — which ring op / hardness / noise for an HE scheme (flagship 2) === #
 
 ex:cqHeSchemeFrame a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "slices/grounding/math/queries/competency/he-scheme-frame.rq" ;
-    gmeow:cqDataFile "tests/fixtures/algebra.ttl" ;
-    gmeow:cqReasoning gmeow:reasoningNone ;
-    gmeow:cqRationale "A homomorphic-encryption scheme reports the operation it is homomorphic over, its hardness assumption, and its noise model; over the fixture the answer is exactly {heScheme → ringMultiplication / RLWE / gaussianNoise}." ;
+    gmeow:cqReasoning gmeow:reasoningLogic ;
+    gmeow:cqRationale "The homomorphic-encryption law Dec(E(a) ⊗ E(b)) = a ⊕ b made a LIVE entailment consumer (#1294): authored as a real logic:Formula over fixed-arity n-ary ctMul/ptAdd predications joined with the binary enc/dec atoms and evaluated by the native logic: reasoner over concrete ciphertexts, it DERIVES the binary consequent eq(Dec(E(a) ⊗ E(b)), a ⊕ b) — both reach the same plaintext heWp. Nothing asserts that eq tuple; only the law derives it. Over the reasoned closure the answer is exactly {heWp}. Removing the law formula makes the answer empty. (This is the homomorphicEncryption flagship's pinned competency gate.)" ;
     gmeow:cqExactRows true ;
     gmeow:cqResultShape ex:cqHeFrameShape ;
     gmeow:cqExpectRow ex:rowHeFrame .
 
 ex:cqHeFrameShape a logic:ResultShape ;
     logic:declaresColumn
-        [ logic:columnVariable "scheme" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
-        [ logic:columnVariable "operation" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
-        [ logic:columnVariable "assumption" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
-        [ logic:columnVariable "noise" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+        [ logic:columnVariable "value" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
     logic:shapeCardinality logic:RowsExact .
 
 ex:rowHeFrame a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "scheme" ; gmeow:cellValueIri exf:heScheme ] ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "operation" ; gmeow:cellValueIri exf:ringMultiplication ] ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "assumption" ; gmeow:cellValueIri math:ringLearningWithErrors ] ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "noise" ; gmeow:cellValueIri exf:gaussianNoise ] .
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "value" ; gmeow:cellValueIri exa:heWp ] .
 
 # === Q11 — which structures are isomorphic ================================= #
 

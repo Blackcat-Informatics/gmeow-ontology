@@ -1,9 +1,14 @@
-# Competency question: "What operation and axioms define this structure?"  Over the
-# fixture the answer is exactly {exampleGroup → groupOp / assocAxiom}.
-PREFIX math: <https://blackcatinformatics.ca/math/>
+# Competency question (native gmeow:reasoningLogic lane, #1294): "Does the associativity
+# axiom, evaluated as a real first-order logic:Formula over a concrete operation table,
+# ENTAIL that both bracketings of (a·b)·c reach the same element?"  The op(x,y,z) atoms are
+# fixed-arity n-ary predications the native reasoner reifies and joins; firing the law over
+# the authored witness table DERIVES the binary consequent eq(assocWv, assocWv). That triple
+# exists in the reasoned closure ONLY because the law fired — nothing asserts it. VALUES pins
+# the query to the associativity witness so the answer is isolated from the other laws that
+# also head on exa:eqRel. Over the closure the answer is exactly {assocWv}.
+PREFIX exa: <https://blackcatinformatics.ca/gmeow/examples/math/algebra/>
 
-SELECT ?structure ?operation ?axiom WHERE {
-    ?structure math:structureOperation ?operation ;
-               math:satisfiesAxiom ?axiom .
+SELECT ?value WHERE {
+    VALUES ?value { exa:assocWv }
+    ?value exa:eqRel ?value .
 }
-ORDER BY ?structure ?operation ?axiom
