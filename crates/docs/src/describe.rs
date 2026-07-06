@@ -566,27 +566,29 @@ mod tests {
             "<{term}> <{RDFS_IS_DEFINED_BY}> <{NAMESPACE}slices/lifecycle> .\n"
         ));
 
-        // Language individuals seed the tag map. All three are always present; the
-        // English + French individuals always carry a language-tagged label (so en
+        // Carrier varieties seed the tag map. All three are always present; the
+        // English + French carriers always carry a language-tagged label (so en
         // and fr are "available" — carry literals — regardless of whether the TERM
-        // has that content), while the Mandarin individual's tagged label is gated
+        // has that content), while the Mandarin carrier's tagged label is gated
         // on `include_zh` (so zh is available only when Mandarin content exists).
-        // This mirrors the Python `_multilingual_gts` fixture exactly.
+        // Each internal x-gmeow-* tag rides lang:carrierTag and its generated
+        // (folded) external tag rides gmeow:bcp47Tag on a lang:LanguageVariety —
+        // the post-graft shape the tag map is built from.
+        const LANG_VARIETY: &str = "https://blackcatinformatics.ca/lang/LanguageVariety";
+        const CARRIER_TAG: &str = "https://blackcatinformatics.ca/lang/carrierTag";
         for (local, internal, bcp, label) in [
-            ("langEnglish", "x-gmeow-english", "en", Some("English")),
-            ("langFrench", "x-gmeow-french", "fr", Some("français")),
+            ("gmeowEnglish", "x-gmeow-english", "en", Some("English")),
+            ("gmeowFrench", "x-gmeow-french", "fr", Some("français")),
             (
-                "langMandarin",
+                "gmeowMandarin",
                 "x-gmeow-mandarin",
                 "zh",
                 if include_zh { Some("中文") } else { None },
             ),
         ] {
-            let s = format!("{NAMESPACE}{local}");
-            nt.push_str(&format!("<{s}> <{RDF_TYPE}> <{NAMESPACE}Language> .\n"));
-            nt.push_str(&format!(
-                "<{s}> <{NAMESPACE}languageTag> \"{internal}\" .\n"
-            ));
+            let s = format!("https://blackcatinformatics.ca/lang/{local}");
+            nt.push_str(&format!("<{s}> <{RDF_TYPE}> <{LANG_VARIETY}> .\n"));
+            nt.push_str(&format!("<{s}> <{CARRIER_TAG}> \"{internal}\" .\n"));
             nt.push_str(&format!("<{s}> <{NAMESPACE}bcp47Tag> \"{bcp}\" .\n"));
             if let Some(label) = label {
                 nt.push_str(&format!("<{s}> <{RDFS_LABEL}> \"{label}\"@{internal} .\n"));

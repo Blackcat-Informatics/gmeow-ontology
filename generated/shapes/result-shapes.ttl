@@ -1058,24 +1058,6 @@ gmeow:GenResultRowShape_examples_languages_tests_cqProficiencyLevelsShape
         sh:select """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> SELECT $this WHERE { $this gmeow:rowCell ?c . ?c gmeow:cellVar 'level' ; gmeow:cellValueLiteral ?val }""" ;
     ] .
 
-gmeow:GenResultRowShape_examples_languages_tests_cqWritingSystemsShape
-    a sh:NodeShape ;
-    rdfs:label "result-row shape for <https://blackcatinformatics.ca/gmeow/examples/languages/tests/cqWritingSystemsShape> (generated)"@en ;
-    sh:target [
-        a sh:SPARQLTarget ;
-        sh:select """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> SELECT ?this WHERE { ?cq gmeow:cqResultShape <https://blackcatinformatics.ca/gmeow/examples/languages/tests/cqWritingSystemsShape> . ?cq gmeow:cqExpectRow ?this }""" ;
-    ] ;
-    sh:sparql [
-        sh:severity sh:Violation ;
-        sh:message "result column ?role must be present and bind an IRI" ;
-        sh:select """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> SELECT $this WHERE { FILTER NOT EXISTS { $this gmeow:rowCell ?c . ?c gmeow:cellVar 'role' ; gmeow:cellValueIri ?val } }""" ;
-    ] ;
-    sh:sparql [
-        sh:severity sh:Violation ;
-        sh:message "result column ?role must bind an IRI" ;
-        sh:select """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> SELECT $this WHERE { $this gmeow:rowCell ?c . ?c gmeow:cellVar 'role' ; gmeow:cellValueLiteral ?val }""" ;
-    ] .
-
 gmeow:GenResultRowShape_examples_logic_tests_cqDeliberateNonAssertionsShape
     a sh:NodeShape ;
     rdfs:label "result-row shape for <https://blackcatinformatics.ca/gmeow/examples/logic/tests/cqDeliberateNonAssertionsShape> (generated)"@en ;

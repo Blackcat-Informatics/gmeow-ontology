@@ -1390,12 +1390,6 @@ class LanguageChangeTypeEnum(str, Enum):
     changeStandardization = "changeStandardization"
 
 
-class LanguageEnum(str, Enum):
-    langEnglish = "langEnglish"
-    langFrench = "langFrench"
-    langMandarin = "langMandarin"
-
-
 class LanguageModalityEnum(str, Enum):
     modalityMachine = "modalityMachine"
     modalityMultimodal = "modalityMultimodal"
@@ -2775,17 +2769,6 @@ class ScoreSemanticsEnum(str, Enum):
     scoreSoftmax = "scoreSoftmax"
 
 
-class ScriptRoleEnum(str, Enum):
-    scriptRoleDecorative = "scriptRoleDecorative"
-    scriptRoleHistorical = "scriptRoleHistorical"
-    scriptRoleLiturgical = "scriptRoleLiturgical"
-    scriptRoleLoanword = "scriptRoleLoanword"
-    scriptRoleLogographicContent = "scriptRoleLogographicContent"
-    scriptRolePrimary = "scriptRolePrimary"
-    scriptRoleSyllabicGrammar = "scriptRoleSyllabicGrammar"
-    scriptRoleTransliteration = "scriptRoleTransliteration"
-
-
 class SegmentKindEnum(str, Enum):
     segmentKindCell = "segmentKindCell"
     segmentKindColor = "segmentKindColor"
@@ -3050,16 +3033,6 @@ class TermStabilityEnum(str, Enum):
     stabilityStable = "stabilityStable"
 
 
-class TextDirectionEnum(str, Enum):
-    directionBoustrophedon = "directionBoustrophedon"
-    directionContextual = "directionContextual"
-    directionLtr = "directionLtr"
-    directionNonLinear = "directionNonLinear"
-    directionRtl = "directionRtl"
-    directionVerticalLtr = "directionVerticalLtr"
-    directionVerticalRtl = "directionVerticalRtl"
-
-
 class TimbreDescriptorEnum(str, Enum):
     timbreDescriptorBreathy = "timbreDescriptorBreathy"
     timbreDescriptorBright = "timbreDescriptorBright"
@@ -3265,19 +3238,6 @@ class WalletSchemeEnum(str, Enum):
     walletSchemeXMR = "walletSchemeXMR"
 
 
-class WritingSystemTypeEnum(str, Enum):
-    wsTypeAbjad = "wsTypeAbjad"
-    wsTypeAbugida = "wsTypeAbugida"
-    wsTypeAlphabet = "wsTypeAlphabet"
-    wsTypeFeatural = "wsTypeFeatural"
-    wsTypeIdeographic = "wsTypeIdeographic"
-    wsTypeLogographic = "wsTypeLogographic"
-    wsTypeMixed = "wsTypeMixed"
-    wsTypeNonLinear = "wsTypeNonLinear"
-    wsTypePictographic = "wsTypePictographic"
-    wsTypeSyllabary = "wsTypeSyllabary"
-
-
 class AboutnessMode(ConfiguredBaseModel):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/AboutnessMode"
     pass
@@ -3459,6 +3419,7 @@ class Entity(ConfiguredBaseModel):
     authorityLink: list[str] | None = Field(default=None)
     cites: list[CreativeWork] | None = Field(default=None)
     conditionsOfAccess: list[str] | None = Field(default=None)
+    corefDenotation: list[str] | None = Field(default=None)
     counterpartOf: list[Entity] | None = Field(default=None)
     depictedIn: list[MediaObject] | None = Field(default=None)
     description: list[str] | None = Field(default=None)
@@ -3714,6 +3675,7 @@ class Agreement(ConfiguredBaseModel):
 
 class Appellation(ConfiguredBaseModel):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/Appellation"
+    appellationDenotation: list[str] | None = Field(default=None)
     conferredByEvent: list[LifeEvent] | None = Field(default=None)
     fullName: list[str] | None = Field(default=None)
     hasNamePart: list[NamePart] | None = Field(default=None)
@@ -5449,26 +5411,6 @@ class FormFunction(ConfiguredBaseModel):
     pass
 
 
-class Language(InformationObject):
-    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/Language"
-    is_a: ClassVar[str] = "InformationObject"
-    bcp47Tag: list[str] | None = Field(default=None)
-    designGoal: list[str] | None = Field(default=None)
-    hasNotationSystem: list[NotationSystem] | None = Field(default=None)
-    languageCode: list[str] | None = Field(default=None)
-    languageModality: list[LanguageModality] | None = Field(default=None)
-    languageOrigin: list[LanguageOrigin] | None = Field(default=None)
-    languageStatus: list[LanguageStatus] | None = Field(default=None)
-    languageTag: str | None = Field(default=None)
-    usesWritingSystem: list[WritingSystem] | None = Field(default=None)
-
-
-class FormalLanguage(Language):
-    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/FormalLanguage"
-    is_a: ClassVar[str] = "Language"
-    pass
-
-
 class FosterParentChild(ParentChildRelationship):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/FosterParentChild"
     is_a: ClassVar[str] = "ParentChildRelationship"
@@ -5992,6 +5934,17 @@ class LandTenure(TimeScopedRelation):
 class LandTenureType(ConfiguredBaseModel):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/LandTenureType"
     pass
+
+
+class Language(InformationObject):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/Language"
+    is_a: ClassVar[str] = "InformationObject"
+    designGoal: list[str] | None = Field(default=None)
+    hasNotationSystem: list[NotationSystem] | None = Field(default=None)
+    languageCode: list[str] | None = Field(default=None)
+    languageModality: list[LanguageModality] | None = Field(default=None)
+    languageOrigin: list[LanguageOrigin] | None = Field(default=None)
+    languageStatus: list[LanguageStatus] | None = Field(default=None)
 
 
 class LanguageChangeEvent(Activity):
@@ -7278,12 +7231,6 @@ class ProfilePage(WebPage):
     pass
 
 
-class ProgrammingLanguage(FormalLanguage):
-    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/ProgrammingLanguage"
-    is_a: ClassVar[str] = "FormalLanguage"
-    pass
-
-
 class Prohibition(Rule):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/Prohibition"
     is_a: ClassVar[str] = "Rule"
@@ -7698,13 +7645,8 @@ class ScriptLanguageAttribution(Observation):
     is_a: ClassVar[str] = "Observation"
     attributedLanguage: list[Language] | None = Field(default=None)
     attributedNotation: list[InformationObject] | None = Field(default=None)
-    attributedScript: list[WritingSystem] | None = Field(default=None)
+    attributedScript: list[str] | None = Field(default=None)
     attributionTarget: Inscription | None = Field(default=None)
-
-
-class ScriptRole(ConfiguredBaseModel):
-    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/ScriptRole"
-    pass
 
 
 class SegmentKind(ConfiguredBaseModel):
@@ -8202,11 +8144,6 @@ class TermStability(ConfiguredBaseModel):
     pass
 
 
-class TextDirection(ConfiguredBaseModel):
-    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/TextDirection"
-    pass
-
-
 class TextExtraction(Document):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/TextExtraction"
     is_a: ClassVar[str] = "Document"
@@ -8499,25 +8436,3 @@ class WebSite(Manifestation):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/WebSite"
     is_a: ClassVar[str] = "Manifestation"
     pass
-
-
-class WritingSystem(InformationObject):
-    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/WritingSystem"
-    is_a: ClassVar[str] = "InformationObject"
-    scriptCode: list[str] | None = Field(default=None)
-    textDirection: list[TextDirection] | None = Field(default=None)
-    writingSystemAsNotation: list[NotationSystem] | None = Field(default=None)
-    writingSystemType: list[WritingSystemType] | None = Field(default=None)
-
-
-class WritingSystemType(ConfiguredBaseModel):
-    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/WritingSystemType"
-    pass
-
-
-class WritingSystemUsage(ConfiguredBaseModel):
-    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/WritingSystemUsage"
-    scriptRole: ScriptRole | None = Field(default=None)
-    scriptUsageInterval: list[TimeInterval] | None = Field(default=None)
-    usageLanguage: Language | None = Field(default=None)
-    usageWritingSystem: WritingSystem | None = Field(default=None)

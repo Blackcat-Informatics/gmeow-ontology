@@ -6,13 +6,12 @@ expression: summary
   "title": "GMEOW Ontology Documentation",
   "version": "7",
   "slice_count": 80,
-  "term_count": 2406,
-  "dependency_edge_count": 957,
+  "term_count": 2388,
+  "dependency_edge_count": 961,
   "term_count_by_category": {
-    "Class": 729,
+    "Class": 722,
     "Datatype": 1,
-    "Individual": 3,
-    "Property": 1673
+    "Property": 1665
   },
   "slice_iris": [
     "https://blackcatinformatics.ca/gmeow/slices/accessibility",
@@ -258,51 +257,13 @@ expression: summary
         "music",
         "narrative"
       ]
-    },
-    {
-      "iri": "https://blackcatinformatics.ca/gmeow/langEnglish",
-      "curie": "gmeow:langEnglish",
-      "label": "English",
-      "definition": "The English language — the seed gmeow:Language individual (gmeow:langEnglish) anchoring the internal private-use tag x-gmeow-english carried by the framework's own literals. Registry codes are alignments, never identity.",
-      "category": "Individual",
-      "owner_slice": "https://blackcatinformatics.ca/gmeow/slices/language",
-      "parents": [],
-      "domain": [],
-      "range": [],
-      "scope_notes": [],
-      "examples": [],
-      "use_when": [],
-      "avoid_when": [],
-      "how_to_use": [],
-      "use_for_consumer": [],
-      "avoid_for_consumer": [],
-      "logic_stereotypes": [],
-      "frameworks": [],
-      "related_terms": [],
-      "box_role": "gmeow:boxABox",
-      "box_roles": [
-        "gmeow:boxABox"
-      ],
-      "formalized_by": [],
-      "stability": "stable",
-      "added_in_version": "0.1.0",
-      "changelog": [],
-      "content_digest": "blake3:9377d5bb8e26abf8a92e498d619ffdf9307be63122874c3230d1853052a68c68",
-      "profiles": [
-        "claims",
-        "dreaming",
-        "full",
-        "memory",
-        "music",
-        "narrative"
-      ]
     }
   ],
   "mapping_set_count": 80,
-  "linkage_count": 1984,
-  "example_count": 135,
+  "linkage_count": 2008,
+  "example_count": 136,
   "concern_count": 7,
-  "external_term_count": 1715,
+  "external_term_count": 1724,
   "sample_mapping_set": {
     "iri": "https://blackcatinformatics.ca/gmeow/mapsetAccessibility",
     "curie": "gmeow:mapsetAccessibility",
@@ -421,7 +382,7 @@ expression: summary
     ]
   },
   "shape_count": 308,
-  "competency_count": 114,
+  "competency_count": 113,
   "sample_shape": {
     "shape_iri": "https://blackcatinformatics.ca/gmeow/RetractedAccessibilityAssertionShape",
     "target_term": "https://blackcatinformatics.ca/gmeow/AccessibilityAssertion",
