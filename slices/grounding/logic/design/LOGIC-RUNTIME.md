@@ -249,6 +249,54 @@ IDB predicate, which writes a clearly-marked derived graph carrying the same der
 In all cases the rule holds: **no resolver answer is silently promoted to an asserted base fact**,
 and an explanation must be able to cite every step, virtual or materialized.
 
+### The provenance graph and its three consumers
+
+The `derivation_id` / `rule_iri` / `source_quad_ids` triad above is the **provenance graph**: a
+content-addressed record of how each tuple entered the closure. Per derived tuple it carries the
+`rule_iri` of the rule that fired, the **body-order** `source_quad_ids` (the reifier IRIs of the
+immediate antecedents, one per consumed premise, in the order the rule body names them), and a
+content-addressed `derivation_id`. The id is `mint_derivation_id(rule_iri, sorted(premise reifier
+IRIs))` — the rule IRI folded with the *sorted* premise reifiers, so it is order-independent and
+identifies the firing by content. Numeric interner ids (the graph-local handles the engine assigns
+while evaluating) **never enter the hash**: the same logical derivation minted under a different id
+assignment produces the byte-identical `derivation_id`. An asserted (EDB) tuple is its own single
+antecedent — it carries the `logic:assert` sentinel rule and its own reifier as the lone source.
+
+Three consumers read this graph, and each states exactly what it requires of it:
+
+- **Materialize — mandatory.** The forward materialization driver *mints* the provenance graph and
+  hard-fails without it. It requires the **full immediate premise set** for every derived row: a
+  partial antecedent list would mint a wrong `derivation_id`, so a missing premise, a non-ternary
+  (unreifiable) antecedent, or a driving oracle that reports it cannot attribute derivations is a
+  hard failure, never a provenance-free row. Provenance is a *queried capability* of the forward
+  oracle; an oracle that provides none cannot drive materialize.
+- **Explain — opt-in.** The explanation reconstructor is a depth-first walk **over
+  `source_quad_ids`**, resolving each antecedent reifier to its producing row within the same world
+  and recursing until it reaches asserted facts. It hard-fails on an **unresolved reifier** (a
+  `source_quad_ids` entry with no matching row in that world) and on a **cycle** (a repeated
+  `(graph, reifier)` on the visited path); the proof trace is a DAG, and there is no silent skip.
+- **Derivation graph — opt-in.** The truth-maintenance graph records the **full disjunctive
+  OR-of-AND** built from the coerced quad surface: each fact maps to the *set* of its
+  justifications — `OR( Asserted{unit}, Derived(RuleApplication{rule_iri, premises}), … )` — so a
+  fact proved two independent ways retains both alternatives rather than collapsing to one winner.
+  A single immediate antecedent is insufficient: flattening the disjunction would make
+  deletion-survival undecidable. It hard-fails on **self-attestation** — a rule application whose
+  premise list contains its own conclusion fact — because a fact may never be a premise of its own
+  derivation.
+
+### Record and Skip: the provenance capability boundary
+
+The engine evaluates in one of two provenance modes, and the split is a capability boundary, not a
+correctness one. **Record** is the proof-graph evaluation: the forward-materialize path that mints
+and retains the provenance graph above, so the derived tuples carry `derivation_id` / `rule_iri` /
+`source_quad_ids` and can feed explain and the derivation graph. **Skip** is the facts-only
+evaluation: the backward-closure path commits the **identical fact set, in the identical order,
+under the identical step budget**, but records no provenance — it answers *which* tuples hold
+without attributing *how*. Because the fact set and order are identical across the two modes, the
+backward closure lane never routes into explain or the derivation graph: its result is a bare fact
+set with no provenance rows to consume, and provenance is present exactly when a consumer that
+requires it drives a Record evaluation.
+
 ## Graph versioning and staleness
 
 Because the solver uses materialized stores, transient typed contexts, and memoized
