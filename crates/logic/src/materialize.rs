@@ -253,16 +253,7 @@ pub fn materialize_core(
     // path consumes per-row provenance (EDB/IDB flag, rule, antecedents), so an
     // oracle that cannot attribute derivations cannot drive it — hard-fail
     // rather than fabricate provenance.
-    let oracle = crate::oracle::forward_oracle();
-    if !oracle.provides_provenance() {
-        return Err(MaterializeError::Chase(format!(
-            "forward oracle '{}' provides no provenance, which materialize requires",
-            oracle.name()
-        )));
-    }
-    let chase = oracle
-        .materialize(&edb, rules, &crate::oracle::ForwardBudget::UNBOUNDED)
-        .map_err(|e| MaterializeError::Chase(format!("chase error: {e}")))?;
+    let chase = guarded_chase(&crate::oracle::forward_oracle(), &edb, rules)?;
 
     // ── 4. Coerce typed rows → DerivedQuads with real provenance ─────────────
     // Carry the EDB/IDB flag alongside each quad so the budget governor can bound
@@ -283,6 +274,37 @@ pub fn materialize_core(
         quads: final_quads,
         non_quad_rows,
     })
+}
+
+/// Run the mandatory-provenance guard, then the unbudgeted closure, for a chosen
+/// forward `oracle`.
+///
+/// Materialize *mints* provenance from each row's [`crate::oracle::TypedProvenance`], so an
+/// oracle that reports [`crate::oracle::ForwardOracle::provides_provenance`] `== false` cannot
+/// drive it: the guard hard-fails with [`MaterializeError::Chase`] rather than emit
+/// provenance-free rows (fabricating attribution is a hard error, not a silent default). This is
+/// the single site the guard lives, shared by [`materialize_core`] (which passes the production
+/// [`crate::oracle::forward_oracle`]) so the mandatory-provenance contract is exercised through
+/// the exact code path production runs.
+///
+/// # Errors
+///
+/// Returns [`MaterializeError::Chase`] if `oracle` provides no provenance, or if the chase itself
+/// fails.
+fn guarded_chase(
+    oracle: &impl ForwardOracle,
+    edb: &TypedFactSet,
+    rules: &str,
+) -> Result<crate::oracle::TypedChaseResult, MaterializeError> {
+    if !oracle.provides_provenance() {
+        return Err(MaterializeError::Chase(format!(
+            "forward oracle '{}' provides no provenance, which materialize requires",
+            oracle.name()
+        )));
+    }
+    oracle
+        .materialize(edb, rules, &crate::oracle::ForwardBudget::UNBOUNDED)
+        .map_err(|e| MaterializeError::Chase(format!("chase error: {e}")))
 }
 
 /// Coerce typed chase rows → `(DerivedQuad, is_edb)` pairs plus the non-quad helper
@@ -1469,6 +1491,38 @@ mod tests {
             ),
             other => panic!("expected MaterializeError::Chase, got {other:?}"),
         }
+    }
+
+    // ── consumer audit: materialize requires provenance (mandatory) ────────────
+
+    /// Consumer-driven falsifiable guard: the materialize consumer *mints* provenance and
+    /// cannot be driven by an oracle that attributes nothing. [`NemoFactsOracle`] is a REAL
+    /// production oracle (it backs the existential facts-only demotion) whose
+    /// `provides_provenance() == false`. Driving [`guarded_chase`] — the exact guarded entry
+    /// [`materialize_core`] runs — with it must HARD-FAIL with [`MaterializeError::Chase`],
+    /// never silently produce provenance-free rows. This falsifies a regression that dropped
+    /// the guard: it would then run the facts-only chase and mint attribution-less quads.
+    #[test]
+    fn materialize_guarded_chase_rejects_a_no_provenance_oracle() {
+        let edb = edb_from_nquads(CHAIN_NQUADS).expect("EDB build must succeed");
+        let err = guarded_chase(&crate::oracle::NemoFactsOracle, &edb, TRANSITIVITY_RULES)
+            .expect_err("a no-provenance oracle must be rejected by the mandatory guard");
+        match &err {
+            MaterializeError::Chase(msg) => assert!(
+                msg.contains("provides no provenance"),
+                "the guard must name the missing provenance capability: {msg}"
+            ),
+            other => panic!("expected MaterializeError::Chase, got {other:?}"),
+        }
+        // Contract anchor: the production forward oracle DOES provide provenance, so the guard
+        // does not fire for it — the guard is falsifiable, not vacuously always-Err. Driving the
+        // SAME entry with the production oracle succeeds and yields the closure.
+        let ok = guarded_chase(&crate::oracle::forward_oracle(), &edb, TRANSITIVITY_RULES)
+            .expect("the production provenance-carrying oracle must drive the guarded chase");
+        assert!(
+            !ok.rows.is_empty(),
+            "the provenance-carrying chase must materialize the closure"
+        );
     }
 
     // ── downstream disclosure of unsupported (dropped) rules ───────────────────
