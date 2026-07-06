@@ -227,6 +227,40 @@ pub fn gts_base_graph(gts_bytes: &[u8]) -> Result<Vec<RdfQuad>, String> {
     Ok(base)
 }
 
+/// The A→B authorization set folded into a `.gts`: the `gmeow:ProjectionMapping` cell IRIs whose
+/// EXECUTED lens-law discharge carried an `ObligationDischarged` `logic:SectionLaw`, read from the
+/// bundle's `graph/correspondence-laws` named graph (the mappings stage's
+/// [`crate::stages::mappings::discharge_correspondence_laws`] output).
+///
+/// This is the production consumer of Deliverable A: the bundle carries the executed discharge
+/// verdicts, and the up-projection executor consumes THIS set to promote each mnemomorphic `=` cell
+/// to a lawful FACT rename. Returns the empty set only if the bundle carries no correspondence-laws
+/// graph (a bundle with no discharged section laws) — never a silent partial read.
+pub fn discharged_section_cells_from_bundle(gts_bytes: &[u8]) -> Result<BTreeSet<String>, String> {
+    // The correspondence-laws NAMED graph survives only through the structural GTS reader
+    // (`read_graph`); the flattened-dataset fold collapses to the object-level default graph and
+    // would silently drop it. Read the named graph's triples by term value and extract.
+    let graph = purrdf::gts::read_graph(gts_bytes, true)
+        .map_err(|e| format!("gts read_graph failed: {e}"))?;
+    let corr_graph = crate::stages::carrier::GRAPH_CORRESPONDENCE_LAWS;
+    let term = |id: usize| -> String {
+        graph
+            .terms
+            .get(id)
+            .and_then(|t| t.value.clone())
+            .unwrap_or_default()
+    };
+    let triples: Vec<(String, String, String)> = graph
+        .quads
+        .iter()
+        .filter_map(|&(s, p, o, gname)| {
+            let gid = gname?;
+            (term(gid) == corr_graph).then(|| (term(s), term(p), term(o)))
+        })
+        .collect();
+    Ok(crate::up_projection_gates::discharged_section_cells_from_triples(&triples))
+}
+
 /// The IRI namespaces a single-vocab view keeps (empty = keep everything).
 ///
 /// The Rust port of `projections._view_namespaces`. `all` / `maximal` keep the whole
@@ -297,10 +331,16 @@ fn keep_in_view(quad: &RdfQuad, namespaces: &BTreeSet<String>) -> bool {
 pub struct UpProjectionInputs {
     /// The SSSOM lift maps (`generated/mappings/*.sssom.tsv` text).
     pub sssom_texts: Vec<String>,
-    /// The projection/EDOAL TTL sources.
+    /// The projection/EDOAL TTL sources (the authored `gmeow:ProjectionMapping` cells).
     pub projection_ttls: Vec<String>,
     /// The asserted ontology, as N-Triples.
     pub ontology_nt: String,
+    /// The A→B authorization channel: the set of `gmeow:ProjectionMapping` cell IRIs whose
+    /// EXECUTED lens-law discharge (folded into `graph/correspondence-laws`) carried an
+    /// `ObligationDischarged` `logic:SectionLaw`. Every mnemomorphic `=` cell so authorized lifts
+    /// as a lawful FACT rename (not a lossy close-match claim); a mnemomorphic `=` cell absent from
+    /// this set is a HARD FAIL in [`crate::up_projection_gates::gate_verified_lift_program`].
+    pub discharged_section_cells: std::collections::BTreeSet<String>,
 }
 
 /// The result of an up-projection: the lifted GMEOW graph plus native accounting.
@@ -337,6 +377,7 @@ pub fn up_project(
         &inputs.sssom_texts,
         &inputs.projection_ttls,
         &inputs.ontology_nt,
+        &inputs.discharged_section_cells,
     )?;
 
     // Reasoned superclass recovery. The lawful put legs return only the
@@ -845,6 +886,7 @@ mod tests {
             sssom_texts: vec![knows_sssom()],
             projection_ttls: Vec::new(),
             ontology_nt: String::new(),
+            discharged_section_cells: BTreeSet::new(),
         };
         let up = up_project(&source_nt, &inputs, &TagMap::new()).unwrap();
         assert!(up.lifted >= 1, "nothing lifted: {up:?}");
@@ -870,6 +912,7 @@ mod tests {
             sssom_texts: vec![knows_sssom()],
             projection_ttls: Vec::new(),
             ontology_nt: String::new(),
+            discharged_section_cells: BTreeSet::new(),
         };
         let maximal_inputs = MaximalInputs {
             ontology_nt: format!(
@@ -954,21 +997,6 @@ mod tests {
     const SIOC_THREAD: &str = "https://example.org/thread/1";
     const SIOC_PARENT: &str = "https://example.org/msg/0";
 
-    /// A hermetic SSSOM lift map cleanly renaming the two SIOC thread predicates onto
-    /// their `gmeow:` object properties (`skos:exactMatch` ⇒ lawful FACT rename).
-    fn sioc_thread_sssom() -> String {
-        concat!(
-            "#curie_map:\n",
-            "#  gmeow: https://blackcatinformatics.ca/gmeow/\n",
-            "#  sioc: http://rdfs.org/sioc/ns#\n",
-            "#  skos: http://www.w3.org/2004/02/skos/core#\n",
-            "subject_id\tpredicate_id\tobject_id\n",
-            "gmeow:partOfThread\tskos:exactMatch\tsioc:has_container\n",
-            "gmeow:inReplyTo\tskos:exactMatch\tsioc:reply_of\n",
-        )
-        .to_owned()
-    }
-
     /// The real property-domain TBox fragment the reasoned harvest reasons over. Uses
     /// the actual email/documents module axioms and IRIs. Crucially it INCLUDES the
     /// `EmailMessage ⊑ Message` and `FeedPosting ⊑ Work` axioms, so AC5's negative
@@ -987,20 +1015,70 @@ mod tests {
         t
     }
 
-    /// Drive the production inverse-ingest entry `up_project` on the SIOC image with the
-    /// real thread SSSOM + email TBox — the exact path `gmeow transpile` reaches.
-    fn up_project_sioc() -> UpProjection {
-        let source_nt = format!(
-            "{}{}",
-            nt(SIOC_X, SIOC_HAS_CONTAINER, SIOC_THREAD),
-            nt(SIOC_X, SIOC_REPLY_OF, SIOC_PARENT),
-        );
-        let inputs = UpProjectionInputs {
-            sssom_texts: vec![sioc_thread_sssom()],
-            projection_ttls: Vec::new(),
-            ontology_nt: email_thread_tbox(),
-        };
-        up_project(&source_nt, &inputs, &TagMap::new()).unwrap()
+    /// The committed shipped bundle (`generated/dist/gmeow.gts`) — the exact snapshot the real
+    /// `gmeow-dev up-project` folds.
+    fn committed_gts() -> Vec<u8> {
+        let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("..")
+            .join("..")
+            .join("generated")
+            .join("dist")
+            .join("gmeow.gts");
+        std::fs::read(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+    }
+
+    /// The lifted SIOC image plus the bundle ontology it reasoned against — cached across AC4/AC5.
+    struct SiocRun {
+        up: UpProjection,
+        ontology_nt: String,
+    }
+
+    /// Drive the REAL production inverse-ingest entry `up_project` on the SIOC image with inputs
+    /// assembled from the committed bundle — the exact `(SSSOM, projection cells, ontology,
+    /// discharged verdicts)` the shipped `gmeow-dev up-project` consumes. There is NO synthetic
+    /// exactMatch SSSOM: the SIOC thread predicates ship as closeMatch + EDOAL `=` cells, and the
+    /// executed discharged `logic:SectionLaw` (Deliverable A) is the sole authorization for the
+    /// lawful FACT lift. This test therefore FAILS if the A→B promotion regresses (the SIOC facts
+    /// vanish) and PASSES because the promotion lifts them. Cached (the bundle fold + gate machinery
+    /// runs once for both acceptance criteria).
+    fn sioc_run() -> &'static SiocRun {
+        static CACHE: std::sync::OnceLock<SiocRun> = std::sync::OnceLock::new();
+        CACHE.get_or_init(|| {
+            let gts = committed_gts();
+            let sssom_texts: Vec<String> = crate::bundle_blobs::Bundle::from_snapshot(&gts)
+                .expect("fold bundle")
+                .archive(crate::bundle_blobs::REP_MAPPINGS)
+                .expect("mappings archive")
+                .into_values()
+                .map(|v| String::from_utf8_lossy(&v).into_owned())
+                .collect();
+            let projection_ttls: Vec<String> = crate::bundle_blobs::Bundle::from_snapshot(&gts)
+                .expect("fold bundle")
+                .archive(crate::bundle_blobs::REP_CELLS)
+                .expect("cells archive")
+                .into_iter()
+                .filter(|(k, _)| k.ends_with(".ttl"))
+                .map(|(_, v)| String::from_utf8_lossy(&v).into_owned())
+                .collect();
+            let base = gts_base_graph(&gts).expect("base graph");
+            let ontology_nt = quads_to_nt(&base).expect("ontology nt");
+            let discharged_section_cells =
+                discharged_section_cells_from_bundle(&gts).expect("discharged cells");
+            let source_nt = format!(
+                "{}{}",
+                nt(SIOC_X, SIOC_HAS_CONTAINER, SIOC_THREAD),
+                nt(SIOC_X, SIOC_REPLY_OF, SIOC_PARENT),
+            );
+            let inputs = UpProjectionInputs {
+                sssom_texts,
+                projection_ttls,
+                ontology_nt: ontology_nt.clone(),
+                discharged_section_cells,
+            };
+            let up = up_project(&source_nt, &inputs, &TagMap::new())
+                .expect("up_project over the real bundle inputs");
+            SiocRun { up, ontology_nt }
+        })
     }
 
     /// The `<s> a <class> .` N-Triples line for the SIOC subject.
@@ -1010,11 +1088,12 @@ mod tests {
 
     #[test]
     fn up_project_recovers_message_superclass_via_prp_dom() {
-        // AC4 (positive): the real inverse-ingest surface. `sioc:has_container` /
-        // `sioc:reply_of` lift to `gmeow:partOfThread` / `gmeow:inReplyTo`; both have
-        // `rdfs:domain gmeow:Message`, so the reasoned harvest recovers the entailed
-        // `<X> a gmeow:Message`.
-        let up = up_project_sioc();
+        // AC4 (positive): the real inverse-ingest surface over the SHIPPED bundle. `sioc:has_container`
+        // / `sioc:reply_of` lift to `gmeow:partOfThread` / `gmeow:inReplyTo` — as lawful FACTS,
+        // authorized by their executed discharged `logic:SectionLaw` (Deliverable A), NOT by any
+        // synthetic exactMatch SSSOM. Both lifted predicates have `rdfs:domain gmeow:Message`, so
+        // the reasoned harvest recovers the entailed `<X> a gmeow:Message`.
+        let up = &sioc_run().up;
         assert!(
             up.graph_nt.contains(GM_PART_OF_THREAD),
             "sioc:has_container did not lift to gmeow:partOfThread: {}",
@@ -1024,6 +1103,10 @@ mod tests {
             up.graph_nt.contains(GM_IN_REPLY_TO),
             "sioc:reply_of did not lift to gmeow:inReplyTo: {}",
             up.graph_nt
+        );
+        assert!(
+            up.lifted >= 2,
+            "the two SIOC thread predicates must lift as FACTS (not lossy claims): {up:?}"
         );
         assert!(
             up.graph_nt.contains(&x_type_line(GM_MESSAGE)),
@@ -1038,7 +1121,8 @@ mod tests {
         // upward-only, so the recovered type is exactly `gmeow:Message` (and its
         // superclasses) — never the `gmeow:EmailMessage` SubKind below it, nor the
         // unrelated `gmeow:FeedPosting` sibling.
-        let up = up_project_sioc();
+        let run = sioc_run();
+        let up = &run.up;
         // Sanity: the positive recovery still holds in this same output (guards against
         // the negatives passing only because nothing was reasoned at all).
         assert!(
@@ -1056,12 +1140,12 @@ mod tests {
             "fabricated a sibling (gmeow:FeedPosting): {}",
             up.graph_nt
         );
-        // Non-vacuity: EmailMessage/FeedPosting ARE in the TBox, so their absence above
-        // is due to sound upward-only reasoning, not a missing axiom.
-        let tbox = email_thread_tbox();
+        // Non-vacuity: EmailMessage ⊑ Message and FeedPosting ⊑ Work ARE in the SHIPPED bundle
+        // ontology, so the SubKind/sibling absence above is sound upward-only reasoning, not a
+        // missing axiom.
         assert!(
-            tbox.contains(GM_EMAIL_MESSAGE) && tbox.contains(GM_FEED_POSTING),
-            "negative control would be vacuous: TBox lacks the SubKind/sibling axioms"
+            run.ontology_nt.contains(GM_EMAIL_MESSAGE) && run.ontology_nt.contains(GM_FEED_POSTING),
+            "negative control would be vacuous: bundle ontology lacks the SubKind/sibling axioms"
         );
     }
 

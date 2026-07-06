@@ -142,6 +142,65 @@ pub fn lower_all(
     })
 }
 
+/// The discharged-`logic:SectionLaw` cell IRIs computed directly from in-memory cell TTLs + the
+/// ontology N-Triples — the string-fed twin of the mappings stage's [`discharge_correspondence_laws`]
+/// (crate::stages::mappings). It reuses the SAME `transpile_correspondences_indexed` +
+/// [`sparql::lower_sparql`] + [`crate::correspondence_law::discharge_laws`] pipeline, so it yields
+/// the identical authorization set the bundle folds into `graph/correspondence-laws` — never a
+/// second copy of the discharge algorithm.
+///
+/// This exists for the PyO3 `execute_put_legs` binding: its Python caller supplies the projection
+/// cells and the ontology, but not the folded verdict graph, so the binding recomputes the SAME
+/// verdicts here rather than hard-failing for want of the folded set. The native `gmeow` /
+/// `gmeow-dev` up-projection path consumes the FOLDED verdict from the bundle
+/// ([`crate::projections::discharged_section_cells_from_bundle`]) instead.
+pub fn discharged_section_cells_from_cells(
+    projection_ttls: &[String],
+    ontology_nt: &str,
+) -> Result<std::collections::BTreeSet<String>, String> {
+    use gmeow_logic_compile::ir::{CorrespondenceLaw, DischargeVerdict};
+
+    let mut dsl_b = RdfDatasetBuilder::new();
+    for ttl in projection_ttls {
+        let ds = parse_dataset(ttl.as_bytes(), NativeRdfFormat::Turtle.media_type(), None)
+            .map_err(|e| format!("parse projection cell: {e}"))?;
+        dsl_b.push_dataset(&ds);
+    }
+    let dsl = dsl_b.freeze().map_err(|e| e.to_string())?;
+    let onto = parse_dataset(ontology_nt.as_bytes(), "application/n-triples", None)
+        .map_err(|e| format!("parse ontology: {e}"))?;
+    let dsl_view = DslView::new(&dsl);
+    let onto_view = DslView::new(&onto);
+    let (correspondences, lookup) =
+        transpile_correspondences_indexed(&dsl_view, &onto_view).map_err(|e| e.to_string())?;
+    let sparql = sparql::lower_sparql(&dsl_view, &onto_view, &lookup).map_err(|e| e.to_string())?;
+    let profiles = lookup.binding_profiles();
+
+    let mut cells = std::collections::BTreeSet::new();
+    for corr in &correspondences.correspondences {
+        let (Some(profile), Some(cell_iri)) = (profiles.get(&corr.iri), corr.get_leg.as_deref())
+        else {
+            continue;
+        };
+        let Some((get_rq, Some(put_rq))) = sparql
+            .fragments
+            .get(&(cell_iri.to_owned(), profile.clone()))
+            .map(|(g, p)| (g, p.as_ref()))
+        else {
+            continue;
+        };
+        for claim in crate::correspondence_law::discharge_laws(get_rq, put_rq, corr.morphism_class)
+        {
+            if claim.law == CorrespondenceLaw::SectionLaw
+                && claim.verdict == DischargeVerdict::ObligationDischarged
+            {
+                cells.insert(cell_iri.to_owned());
+            }
+        }
+    }
+    Ok(cells)
+}
+
 fn parse_turtle(bytes: &[u8], context: &str) -> Result<Arc<RdfDataset>, SliceError> {
     parse_dataset(bytes, NativeRdfFormat::Turtle.media_type(), None)
         .map_err(|e| SliceError::Parse(format!("{context}: {e}")))

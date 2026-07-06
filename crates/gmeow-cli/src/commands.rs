@@ -777,14 +777,21 @@ fn assemble_transpile_inputs() -> Result<
         .into_values()
         .map(|v| String::from_utf8_lossy(&v).into_owned())
         .collect();
+    // The authored `gmeow:ProjectionMapping` cells live in the CELLS archive (the mappings
+    // archive holds only the SSSOM surface). Reading REP_CELLS is what puts the EDOAL `=` cells
+    // in front of the lawful-lift program; the old REP_MAPPINGS read folded an EMPTY `.ttl` set.
     let projection_ttls: Vec<String> = bundle_blobs::Bundle::from_snapshot(BUNDLE_GTS)
         .map_err(|e| format!("cannot fold bundle: {e}"))?
-        .archive(bundle_blobs::REP_MAPPINGS)
-        .map_err(|e| format!("cannot read bundled mappings: {e}"))?
+        .archive(bundle_blobs::REP_CELLS)
+        .map_err(|e| format!("cannot read bundled cells: {e}"))?
         .into_iter()
         .filter(|(k, _)| k.ends_with(".ttl"))
         .map(|(_, v)| String::from_utf8_lossy(&v).into_owned())
         .collect();
+    // The A→B authorization channel: the discharged mnemomorphic `=` cells (Deliverable A),
+    // read from the bundle's `graph/correspondence-laws`.
+    let discharged_section_cells =
+        gmeow_pipeline::projections::discharged_section_cells_from_bundle(BUNDLE_GTS)?;
     let base = gmeow_pipeline::projections::gts_base_graph(BUNDLE_GTS)?;
     let ontology_nt = quads_to_nt(&base)?;
 
@@ -808,6 +815,7 @@ fn assemble_transpile_inputs() -> Result<
         sssom_texts,
         projection_ttls,
         ontology_nt: ontology_nt.clone(),
+        discharged_section_cells,
     };
     let maximal_inputs = gmeow_pipeline::projections::MaximalInputs {
         ontology_nt,
