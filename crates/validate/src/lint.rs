@@ -498,6 +498,12 @@ pub fn structural_lint_dataset(ds: &RdfDataset, cfg: &LintConfig) -> LintReport 
     }
 
     // 3. use/avoidForConsumer must point at a gmeow:ProjectionContext.
+    //
+    // This cleanly-structural range constraint also has a declarative SHACL twin
+    // (`slices/core/kernel/shapes.ttl`, the `sh:targetSubjectsOf` consumer-advisory
+    // shapes) that folds into gmeow.gts and is enforced by `make validate`. This
+    // native gate is retained as defense-in-depth (it runs over the same merged
+    // ontology dataset in the same pass, at negligible cost).
     let projection_context = format!("{}ProjectionContext", cfg.namespace);
     for local in ["useForConsumer", "avoidForConsumer"] {
         let predicate = format!("{}{local}", cfg.namespace);

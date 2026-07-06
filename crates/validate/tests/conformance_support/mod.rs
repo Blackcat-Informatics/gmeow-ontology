@@ -586,6 +586,29 @@ impl GraphStore {
         }
     }
 
+    /// Run a SPARQL CONSTRUCT query and return a fresh store over the resulting
+    /// graph (flattened to the default graph). The native twin of Python
+    /// `data.query(construct_text).graph`: it materialises the projection triples
+    /// so the caller can assert over them with `has`/`objects`/`ask`/`objects_h`.
+    pub fn construct(&self, sparql: &str) -> GraphStore {
+        let result = NativeSparqlEngine::new()
+            .query(
+                &self.ds,
+                SparqlRequest {
+                    query: sparql,
+                    base_iri: None,
+                    substitutions: &[],
+                },
+            )
+            .unwrap_or_else(|e| panic!("SPARQL CONSTRUCT failed: {e}\n{sparql}"));
+        match result {
+            SparqlResult::Graph(ds) => GraphStore {
+                ds: flatten_to_default_graph(&ds),
+            },
+            other => panic!("expected CONSTRUCT graph result, got {other:?}"),
+        }
+    }
+
     // ── Blank-node-aware traversal (purrdf 0.3 `slice::rdf_query`) ─────────────
     //
     // The IRI-only helpers above (`has`, `objects`, `subjects`, …) drop blank

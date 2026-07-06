@@ -475,7 +475,7 @@ compliance-report: ## Emit dist/compliance-report.ttl from already-passing gates
 
 ##@ Maintainer Tasks
 
-maint-crosscheck: native-py ## Cross-check rdflib and native purrdf query answers.
+maint-crosscheck: native-py ## Prove every committed query answers on the native purrdf engine.
 	$(GMEOW_DEV) crosscheck-queries
 
 maint-extract: native-py ## Run import/extract policy for TARGET.
