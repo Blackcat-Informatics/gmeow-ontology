@@ -63,6 +63,18 @@ pub struct CorrespondenceArtifacts {
     /// the materialized set is the single source of truth. The four rendered artifacts'
     /// bytes are unchanged (the renderers emit the authored predicate/relation token).
     pub correspondences: CorrespondenceProgram,
+    /// Per-binding get/put CONSTRUCT fragments, keyed by `(cell IRI, profile)` — the
+    /// single-cell slice of each per-profile query (get fragment) plus its inverse (`Some`
+    /// only when the binding emits a put leg). The mappings stage joins this against
+    /// [`correspondence_profiles`](Self::correspondence_profiles) + each correspondence's
+    /// `get_leg` (= its cell IRI) to discharge that ONE correspondence's lens law in
+    /// isolation. Pure strings (no engine ran in logic-compile — F2).
+    pub sparql_fragments: BTreeMap<(String, String), (String, Option<String>)>,
+    /// Correspondence IRI → profile for every `gmeow:ProjectionMapping` binding
+    /// correspondence (absent for `gmeow:TermEquivalence` cells, which are not
+    /// profile-scoped). The join key the mappings stage uses to find a correspondence's own
+    /// `(cell IRI, profile)` fragment pair in [`sparql_fragments`](Self::sparql_fragments).
+    pub correspondence_profiles: BTreeMap<String, String>,
 }
 
 /// Lower every alignment dialect from the sources under `root`, reading slice artifacts
@@ -122,6 +134,11 @@ pub fn lower_all(
         emotionml: emotionml.document,
         ledger,
         correspondences,
+        // The per-binding get/put fragments + the corr→profile join key: the mappings stage
+        // discharges each correspondence's OWN lens law from these (never the per-profile
+        // UNION, which is the wrong unit).
+        sparql_fragments: sparql.fragments,
+        correspondence_profiles: lookup.binding_profiles().clone(),
     })
 }
 

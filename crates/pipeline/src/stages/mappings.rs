@@ -28,7 +28,11 @@ use std::path::Path;
 
 use crate::mapping_purity::lint_dsl_mapping_purity;
 use gmeow_diagnostics::{Finding, Location, Report, Severity};
+use gmeow_logic_compile::ir::{Correspondence, DischargeVerdict};
 use gmeow_logic_compile::projections::ProjectionResult;
+use gmeow_logic_compile::projections::correspondence::{
+    CorrespondenceProgram, project_correspondence,
+};
 use gmeow_logic_compile::projections::report::{ReportHeader, build_projection_report_from};
 use purrdf::RdfSeverity;
 use purrdf::slice::prefix_emit::{emit_core_prefixes, emit_jsonld_context};
@@ -100,6 +104,15 @@ pub struct CompiledMappings {
     /// `lang:translationGap`. Carried as a named graph by [`MappingsStage::run`], excluded
     /// from the reasoned EDB exactly like the other `lang:` corpus graphs.
     pub lang_docs_rendering_corpus: Vec<u8>,
+    /// The correspondence-laws N-Triples graph (`graph/correspondence-laws`): every authored
+    /// `logic:Correspondence` re-projected with the EXECUTED lens-law discharge verdicts
+    /// attached. Each per-`gmeow:ProjectionMapping` binding correspondence whose
+    /// binding emits a put leg has its OWN get/put CONSTRUCT round-trip run through the native
+    /// engine; the resulting `logic:LawClaim`s (SectionLaw / PutGet, `ObligationDischarged` on
+    /// a clean lens) are attached and projected here. A binding with no put leg (Unsupported,
+    /// e.g. `mapSiocTopic`) carries no discharged law. Carried as a named graph by
+    /// [`MappingsStage::run`], excluded from the reasoned EDB like the other corpus graphs.
+    pub correspondence_laws_corpus: Vec<u8>,
 }
 
 /// Compile all five mapping families (SSSOM + FnO + EDOAL + SPARQL + standpoint
@@ -184,6 +197,12 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, PipelineError> 
             message: format!("correspondence lowering failed: {e}"),
         }
     })?;
+    // Executed lens-law discharge: for every authored correspondence,
+    // run its OWN per-binding get/put CONSTRUCT round-trip through the native engine, attach
+    // the resulting `logic:LawClaim`s, and project the law-bearing set to a named graph. This
+    // reads `aligned` before its dialect maps are moved out below. HARD-fails on any refuted
+    // law (AC2) — an executed round-trip that does not hold is a real overclaim.
+    let correspondence_laws_corpus = discharge_correspondence_laws(&aligned)?;
     for (filename, tsv) in aligned.sssom {
         artifacts.insert(format!("{SSSOM_DIR}/{filename}"), tsv.into_bytes());
     }
@@ -301,7 +320,108 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, PipelineError> 
         lang_form_corpus,
         lang_projection_corpus,
         lang_docs_rendering_corpus,
+        correspondence_laws_corpus,
     })
+}
+
+/// Discharge each authored correspondence's lens law by EXECUTION and project the
+/// law-bearing set to N-Triples.
+///
+/// For each `logic:Correspondence` minted from a `gmeow:ProjectionMapping` binding, join its
+/// `(cell IRI = get_leg, profile)` against the per-binding SPARQL fragments and — when the
+/// binding emits BOTH a get and a put CONSTRUCT — run
+/// [`crate::correspondence_law::discharge_laws`] over that ONE correspondence's OWN fragment
+/// pair (the per-profile UNION query is the wrong unit — it mixes recoverable and
+/// non-recoverable branches, so `put∘get` always drops). The returned `LawClaimIr`s are
+/// attached (merged with any authored ingest claims) via [`Correspondence::new`], which
+/// sorts + dedups them.
+///
+/// A correspondence whose binding emits NO put fragment (Unsupported — e.g. `mapSiocTopic`),
+/// or a `gmeow:TermEquivalence` cell (no profile), is left untouched: it carries no
+/// discharged section law, which is exactly the intended exclusion (AC3). A non-injective
+/// rung yields no claim (`discharge_laws` returns empty), so it too passes through.
+///
+/// AC2 hard-fail: after attaching, any `ObligationViolated` verdict is a REAL overclaim (the
+/// executed round-trip does not hold) and HARD-fails the stage — never shipped.
+fn discharge_correspondence_laws(
+    aligned: &correspondence_lower::CorrespondenceArtifacts,
+) -> Result<Vec<u8>, PipelineError> {
+    let stage_err = |message: String| PipelineError::Stage {
+        stage: "stage-mappings".to_string(),
+        message,
+    };
+
+    let mut rebuilt: Vec<Correspondence> = Vec::new();
+    for corr in &aligned.correspondences.correspondences {
+        // Only a per-profile binding correspondence knows its profile (a TermEquivalence cell
+        // is absent from the map); its `get_leg` is the pattern-bearing cell IRI.
+        let fragment_pair = match (
+            aligned.correspondence_profiles.get(&corr.iri),
+            corr.get_leg.as_deref(),
+        ) {
+            (Some(profile), Some(cell_iri)) => aligned
+                .sparql_fragments
+                .get(&(cell_iri.to_owned(), profile.clone())),
+            _ => None,
+        };
+        // No fragment pair, or a get fragment with no put leg (Unsupported binding): leave
+        // the correspondence untouched — it claims no executed law (AC3).
+        let Some((get_rq, Some(put_rq))) = fragment_pair.map(|(g, p)| (g, p.as_ref())) else {
+            rebuilt.push(corr.clone());
+            continue;
+        };
+        let claims = crate::correspondence_law::discharge_laws(get_rq, put_rq, corr.morphism_class);
+        if claims.is_empty() {
+            // A non-injective rung permits no section/put-get law: nothing to attach.
+            rebuilt.push(corr.clone());
+            continue;
+        }
+        let mut merged = corr.law_claims.clone();
+        merged.extend(claims);
+        let law_bearing = Correspondence::new(
+            corr.iri.clone(),
+            corr.relation,
+            corr.morphism_class,
+            corr.morphism_kind,
+            corr.mnemomorphic,
+            corr.determinacy,
+            corr.get_leg.clone(),
+            corr.put_leg.clone(),
+            merged,
+            corr.confidence,
+            corr.evidence_strength,
+            corr.weight,
+            corr.probability,
+            corr.according_to.clone(),
+        )
+        .map_err(|e| stage_err(format!("law-bearing correspondence <{}>: {e}", corr.iri)))?;
+        rebuilt.push(law_bearing);
+    }
+
+    // AC2 hard-fail: an executed lens-law refutation is a real overclaim — never shipped.
+    for corr in &rebuilt {
+        for claim in &corr.law_claims {
+            if claim.verdict == DischargeVerdict::ObligationViolated {
+                return Err(stage_err(format!(
+                    "correspondence <{}> refuted lens law logic:{} (ObligationViolated): the \
+                     executed put∘get round-trip over its own get/put CONSTRUCT does not hold — \
+                     a real overclaim, not something to suppress",
+                    corr.iri,
+                    claim.law.as_str(),
+                )));
+            }
+        }
+    }
+
+    // Re-project the now-law-bearing correspondence set (reusing the existing
+    // `logic:hasLawClaim` emission). Deterministic: `project_correspondence` sorts + dedups.
+    let program = CorrespondenceProgram::new(
+        rebuilt,
+        aligned.correspondences.caveats.clone(),
+        aligned.correspondences.preservation,
+    )
+    .with_leg_programs(aligned.correspondences.leg_programs.clone());
+    Ok(project_correspondence(&program).into_bytes())
 }
 
 /// Emit a Turtle RDF projection as EXACTLY the canonical fold (shared prefix
@@ -753,6 +873,17 @@ impl Stage for MappingsStage {
             "application/n-triples",
             crate::stages::carrier::GRAPH_LANG_DOCS_RENDERING_CORPUS,
         )?;
+        // graph/correspondence-laws — every authored `logic:Correspondence` re-projected with
+        // its EXECUTED lens-law discharge verdicts. Carried as a named graph so
+        // the presenter reads it via `producer_graph`; like the other corpus graphs it stays
+        // OUT of the reasoned EDB (`gts_compose` folds only the default graph, so this named
+        // graph never pollutes the composed object-level EDB — the verdicts are
+        // presenter/provenance RDF, not reasoned facts).
+        let correspondence_laws_graph = crate::stages::carrier::parse_into_graph(
+            &compiled.correspondence_laws_corpus,
+            "application/n-triples",
+            crate::stages::carrier::GRAPH_CORRESPONDENCE_LAWS,
+        )?;
         let dataset = std::sync::Arc::new(purrdf::RdfDataset::union(&[
             rdf_dataset.as_ref(),
             ledger_graph.as_ref(),
@@ -761,6 +892,7 @@ impl Stage for MappingsStage {
             lang_form_graph.as_ref(),
             lang_projection_graph.as_ref(),
             lang_docs_rendering_graph.as_ref(),
+            correspondence_laws_graph.as_ref(),
         ]));
         Ok(StageOutput {
             product: StageProduct::from_artifacts_over(self.id(), dataset, artifacts),
