@@ -84,6 +84,10 @@ Removed because a Rust artifact already asserts the same behavior:
   is covered by `crates/validate/tests/data_validate.rs`. `src/gmeow_tools/validate.py`
   is retained as the Python orchestration wrapper until its remaining consumers
   are migrated.
+- SHACL/TBox black-box cluster → native `crates/validate/tests/conformance_*.rs`
+  (SHACL fixture cases via `Case`, TBox axioms via the bnode-aware `GraphStore`),
+  each Python file deleted in the same commit as its Rust twin. Migrated so far:
+  `test_deception` → `conformance_deception.rs`.
 
 Relocated out of the mainline test tree (dossier removed with the test):
 
