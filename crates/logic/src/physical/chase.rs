@@ -50,7 +50,7 @@ use crate::physical::seminaive::{
     Budgeted, NativeOutcome, StepGovernor, StrataProgress, UnsupportedKind,
 };
 use crate::physical::store::{Bound, RelationStore, SkolemRegistry, SkolemTerm};
-use crate::provenance::{mint_derivation_id, term_display};
+use crate::provenance::{LOGIC_NAMESPACE, mint_derivation_id, mint_nary_reifier, term_display};
 use crate::rule_ir::{
     DerivedRow, EvalAtom, EvalTerm, Fact, FactKey, Solution, distinct_pairs_satisfied,
     echo_asserted, ground, ground_head, match_atom, sort_rows,
@@ -346,15 +346,33 @@ fn chase_world_into(
                     .map(|v| bound_value(&sol, v))
                     .collect::<Result<_, _>>()?;
                 let mut extended = sol.clone();
-                for (ordinal, evar) in existentials.iter().enumerate() {
-                    let witness = registry.mint(SkolemTerm {
-                        rule_iri: rule.rule_iri.clone(),
-                        ordinal,
-                        frontier: frontier.clone(),
-                    });
-                    extended
-                        .bindings
-                        .push((evar.clone(), term_display(&witness)));
+                // A REIFIED n-ary head (`instanceOf(R, Rel) ∧ naryArg{i}(R, aᵢ)` over a single
+                // existential `R`) mints its witness by TUPLE IDENTITY via `mint_nary_reifier`
+                // — content-addressed on the relation + ordered argument VALUES — so the same
+                // derived tuple gets the same node regardless of derivation (parity with a
+                // pre-reified ground fact). Every OTHER existential (DL `some_values_from`, …)
+                // keeps the default frontier-addressed `SkolemTerm` witness.
+                if let Some((reifier_var, rel, arg_terms)) = reified_nary_head(rule) {
+                    let mut arg_values = Vec::with_capacity(arg_terms.len());
+                    for t in &arg_terms {
+                        arg_values.push(eval_term_value(t, &sol)?);
+                    }
+                    let witness_iri = mint_nary_reifier(&rel, &arg_values)?;
+                    extended.bindings.push((
+                        reifier_var,
+                        term_display(&purrdf::TermValue::iri(witness_iri)),
+                    ));
+                } else {
+                    for (ordinal, evar) in existentials.iter().enumerate() {
+                        let witness = registry.mint(SkolemTerm {
+                            rule_iri: rule.rule_iri.clone(),
+                            ordinal,
+                            frontier: frontier.clone(),
+                        });
+                        extended
+                            .bindings
+                            .push((evar.clone(), term_display(&witness)));
+                    }
                 }
                 // Ground every head atom; each becomes a candidate new fact.
                 let sources = reifiers_of(&sol)?;
@@ -634,6 +652,85 @@ fn bound_value(sol: &Solution, var: &str) -> Result<purrdf::TermValue, String> {
 /// The reifier IRIs of a solution's matched body facts, in body order.
 fn reifiers_of(sol: &Solution) -> Result<Vec<String>, String> {
     sol.source_facts.iter().map(Fact::reifier).collect()
+}
+
+/// The LOGIC `instanceOf` predicate IRI (the reified-n-ary typing atom).
+fn instance_of_iri() -> String {
+    format!("{LOGIC_NAMESPACE}instanceOf")
+}
+
+/// Parse a `logic:naryArg{i}` predicate IRI to its positional index, or `None` if the
+/// predicate is not a positional n-ary argument predicate.
+fn nary_arg_index(predicate: &str) -> Option<usize> {
+    let prefix = format!("{LOGIC_NAMESPACE}naryArg");
+    predicate.strip_prefix(&prefix)?.parse().ok()
+}
+
+/// Recognize the REIFIED-n-ary head shape and extract `(reifier_var, relation, args_by_index)`.
+///
+/// The shape is a single existential head variable `R` whose head atoms are EXACTLY
+/// `logic:instanceOf(R, Rel)` (predicate == LOGIC `instanceOf`, object a constant relation IRI
+/// `Rel`) plus `logic:naryArg{i}(R, aᵢ)` atoms (predicate == LOGIC `naryArg{i}`), all sharing
+/// the subject `R`. The arguments are returned ordered by their positional index `i` (NOT by
+/// [`ExistentialRule::frontier_vars`], which is lexical). Returns `None` for any other
+/// existential (a DL `some_values_from` witness, …), which keeps the default `SkolemTerm`
+/// witness.
+fn reified_nary_head(rule: &ExistentialRule) -> Option<(String, String, Vec<EvalTerm>)> {
+    let existentials = rule.existentials();
+    // Exactly one existential — the shared tuple reifier `R`.
+    let [reifier] = existentials.as_slice() else {
+        return None;
+    };
+    let instance_of = instance_of_iri();
+    let mut rel: Option<String> = None;
+    let mut args: Vec<(usize, EvalTerm)> = Vec::new();
+    for atom in &rule.head {
+        // Every head atom of the reified shape has the reifier as its subject.
+        let EvalTerm::Var(subj) = &atom.subject else {
+            return None;
+        };
+        if subj != reifier {
+            return None;
+        }
+        if atom.predicate == instance_of {
+            // The typing atom `instanceOf(R, Rel)` — Rel is a constant relation IRI.
+            let EvalTerm::ConstNamed(r) = &atom.object else {
+                return None;
+            };
+            if rel.is_some() {
+                return None; // more than one typing atom is not the reified shape
+            }
+            rel = Some(r.clone());
+        } else {
+            // A head atom outside the reified `naryArg{i}` vocabulary rules the shape out.
+            let i = nary_arg_index(&atom.predicate)?;
+            args.push((i, atom.object.clone()));
+        }
+    }
+    let rel = rel?;
+    if args.is_empty() {
+        return None;
+    }
+    args.sort_by_key(|(i, _)| *i);
+    let ordered: Vec<EvalTerm> = args.into_iter().map(|(_, t)| t).collect();
+    Some((reifier.clone(), rel, ordered))
+}
+
+/// The [`purrdf::TermValue`] an [`EvalTerm`] denotes under solution `sol`: a named/literal
+/// constant directly, or a variable's bound surface resolved back to a value (a hard error if
+/// the variable is unbound — a range-restricted head argument is bound by the body by
+/// construction).
+fn eval_term_value(term: &EvalTerm, sol: &Solution) -> Result<purrdf::TermValue, String> {
+    match term {
+        EvalTerm::ConstNamed(iri) => Ok(purrdf::TermValue::iri(iri)),
+        EvalTerm::ConstLit(value) => Ok(value.clone()),
+        EvalTerm::Var(name) => {
+            let surface = sol.get(name).ok_or_else(|| {
+                format!("chase: n-ary head argument variable {name:?} unbound after body join")
+            })?;
+            crate::rule_ir::surface_to_value(surface)
+        }
+    }
 }
 
 /// The firing rule IRI recorded for provenance — a fixed chase IRI (the chase is one
