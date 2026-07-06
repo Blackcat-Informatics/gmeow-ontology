@@ -352,7 +352,7 @@ fn chase_world_into(
                 // derived tuple gets the same node regardless of derivation (parity with a
                 // pre-reified ground fact). Every OTHER existential (DL `some_values_from`, …)
                 // keeps the default frontier-addressed `SkolemTerm` witness.
-                if let Some((reifier_var, rel, arg_terms)) = reified_nary_head(rule) {
+                if let Some((reifier_var, rel, arg_terms)) = reified_nary_head(rule)? {
                     let mut arg_values = Vec::with_capacity(arg_terms.len());
                     for t in &arg_terms {
                         arg_values.push(eval_term_value(t, &sol)?);
@@ -672,14 +672,17 @@ fn nary_arg_index(predicate: &str) -> Option<usize> {
 /// `logic:instanceOf(R, Rel)` (predicate == LOGIC `instanceOf`, object a constant relation IRI
 /// `Rel`) plus `logic:naryArg{i}(R, aᵢ)` atoms (predicate == LOGIC `naryArg{i}`), all sharing
 /// the subject `R`. The arguments are returned ordered by their positional index `i` (NOT by
-/// [`ExistentialRule::frontier_vars`], which is lexical). Returns `None` for any other
+/// [`ExistentialRule::frontier_vars`], which is lexical). Returns `Ok(None)` for any other
 /// existential (a DL `some_values_from` witness, …), which keeps the default `SkolemTerm`
-/// witness.
-fn reified_nary_head(rule: &ExistentialRule) -> Option<(String, String, Vec<EvalTerm>)> {
+/// witness. Returns `Err` when the shape IS reified but its positional indices are not the
+/// contiguous set `{0..n-1}` (a gap or duplicate `naryArg{i}` would mint a wrong reifier).
+fn reified_nary_head(
+    rule: &ExistentialRule,
+) -> Result<Option<(String, String, Vec<EvalTerm>)>, String> {
     let existentials = rule.existentials();
     // Exactly one existential — the shared tuple reifier `R`.
     let [reifier] = existentials.as_slice() else {
-        return None;
+        return Ok(None);
     };
     let instance_of = instance_of_iri();
     let mut rel: Option<String> = None;
@@ -687,33 +690,52 @@ fn reified_nary_head(rule: &ExistentialRule) -> Option<(String, String, Vec<Eval
     for atom in &rule.head {
         // Every head atom of the reified shape has the reifier as its subject.
         let EvalTerm::Var(subj) = &atom.subject else {
-            return None;
+            return Ok(None);
         };
         if subj != reifier {
-            return None;
+            return Ok(None);
         }
         if atom.predicate == instance_of {
             // The typing atom `instanceOf(R, Rel)` — Rel is a constant relation IRI.
             let EvalTerm::ConstNamed(r) = &atom.object else {
-                return None;
+                return Ok(None);
             };
             if rel.is_some() {
-                return None; // more than one typing atom is not the reified shape
+                return Ok(None); // more than one typing atom is not the reified shape
             }
             rel = Some(r.clone());
         } else {
             // A head atom outside the reified `naryArg{i}` vocabulary rules the shape out.
-            let i = nary_arg_index(&atom.predicate)?;
+            let Some(i) = nary_arg_index(&atom.predicate) else {
+                return Ok(None);
+            };
             args.push((i, atom.object.clone()));
         }
     }
-    let rel = rel?;
+    let Some(rel) = rel else {
+        return Ok(None);
+    };
     if args.is_empty() {
-        return None;
+        return Ok(None);
     }
     args.sort_by_key(|(i, _)| *i);
+    // The positional indices of a REIFIED head MUST be the contiguous set `{0..n-1}` with no
+    // duplicate: the ordered arg vector feeds `mint_nary_reifier`, so a gap or a duplicate
+    // `naryArg{i}` would mint a wrong (or colliding) content-addressed reifier IRI. Once the
+    // shape is confirmed reified (single existential, `instanceOf` typing, `naryArg{i}` args),
+    // malformed indices are a HARD ERROR — never a silent mis-addressing (no-optionality).
+    for (position, (i, _)) in args.iter().enumerate() {
+        if *i != position {
+            return Err(format!(
+                "reified n-ary head for relation {rel:?} has non-contiguous or duplicate \
+                 positional arguments (naryArg indices {:?}, expected 0..{})",
+                args.iter().map(|(i, _)| *i).collect::<Vec<_>>(),
+                args.len()
+            ));
+        }
+    }
     let ordered: Vec<EvalTerm> = args.into_iter().map(|(_, t)| t).collect();
-    Some((reifier.clone(), rel, ordered))
+    Ok(Some((reifier.clone(), rel, ordered)))
 }
 
 /// The [`purrdf::TermValue`] an [`EvalTerm`] denotes under solution `sol`: a named/literal
@@ -1185,6 +1207,82 @@ mod tests {
     /// Count derived rows for a predicate.
     fn count(rows: &[DerivedRow], predicate: &str) -> usize {
         rows.iter().filter(|r| r.predicate == predicate).count()
+    }
+
+    /// A well-formed reified head extracts its args in positional order regardless of the
+    /// head-atom authoring order.
+    #[test]
+    fn reified_nary_head_accepts_a_contiguous_shape() {
+        let rel = "http://ex/rel/op";
+        let a0 = format!("{LOGIC_NAMESPACE}naryArg0");
+        let a1 = format!("{LOGIC_NAMESPACE}naryArg1");
+        let rule = ExistentialRule {
+            rule_iri: "http://ex/rule/nary".to_owned(),
+            body: vec![atom(var("?x"), P, var("?a")), atom(var("?x"), P, var("?b"))],
+            // naryArg1 authored BEFORE naryArg0 — the extractor must sort to positional order.
+            head: vec![
+                atom(
+                    var("?r"),
+                    &instance_of_iri(),
+                    EvalTerm::ConstNamed(rel.to_owned()),
+                ),
+                atom(var("?r"), &a1, var("?b")),
+                atom(var("?r"), &a0, var("?a")),
+            ],
+            distinct: vec![],
+        };
+        let (reifier, got_rel, args) = reified_nary_head(&rule).unwrap().unwrap();
+        assert_eq!(reifier, "?r");
+        assert_eq!(got_rel, rel);
+        assert_eq!(args, vec![var("?a"), var("?b")]);
+    }
+
+    /// A gapped positional index (naryArg0 + naryArg2, no naryArg1) is a HARD ERROR — the
+    /// ordered arg vector feeds `mint_nary_reifier`, so a gap would mint a wrong reifier.
+    #[test]
+    fn reified_nary_head_rejects_a_gapped_positional_index() {
+        let rel = "http://ex/rel/op";
+        let a0 = format!("{LOGIC_NAMESPACE}naryArg0");
+        let a2 = format!("{LOGIC_NAMESPACE}naryArg2");
+        let rule = ExistentialRule {
+            rule_iri: "http://ex/rule/nary".to_owned(),
+            body: vec![atom(var("?x"), P, var("?a")), atom(var("?x"), P, var("?c"))],
+            head: vec![
+                atom(
+                    var("?r"),
+                    &instance_of_iri(),
+                    EvalTerm::ConstNamed(rel.to_owned()),
+                ),
+                atom(var("?r"), &a0, var("?a")),
+                atom(var("?r"), &a2, var("?c")),
+            ],
+            distinct: vec![],
+        };
+        let err = reified_nary_head(&rule).unwrap_err();
+        assert!(err.contains("non-contiguous or duplicate"), "{err}");
+    }
+
+    /// A duplicate positional index (two naryArg0) is a HARD ERROR for the same reason.
+    #[test]
+    fn reified_nary_head_rejects_a_duplicate_positional_index() {
+        let rel = "http://ex/rel/op";
+        let a0 = format!("{LOGIC_NAMESPACE}naryArg0");
+        let rule = ExistentialRule {
+            rule_iri: "http://ex/rule/nary".to_owned(),
+            body: vec![atom(var("?x"), P, var("?a")), atom(var("?x"), P, var("?b"))],
+            head: vec![
+                atom(
+                    var("?r"),
+                    &instance_of_iri(),
+                    EvalTerm::ConstNamed(rel.to_owned()),
+                ),
+                atom(var("?r"), &a0, var("?a")),
+                atom(var("?r"), &a0, var("?b")),
+            ],
+            distinct: vec![],
+        };
+        let err = reified_nary_head(&rule).unwrap_err();
+        assert!(err.contains("non-contiguous or duplicate"), "{err}");
     }
 
     #[test]
