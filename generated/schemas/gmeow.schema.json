@@ -23037,6 +23037,31 @@
               "@type": {
                 "anyOf": [
                   {
+                    "const": "math:FlagshipScenario"
+                  },
+                  {
+                    "contains": {
+                      "const": "math:FlagshipScenario"
+                    },
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "@type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/math:FlagshipScenario"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "@type": {
+                "anyOf": [
+                  {
                     "const": "math:FormalVerificationResult"
                   },
                   {
@@ -37649,6 +37674,97 @@
       "required": [
         "math:fittedToData",
         "math:modelFormula"
+      ],
+      "type": "object"
+    },
+    "math:FlagshipScenario": {
+      "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
+      "properties": {
+        "@annotation": {
+          "$ref": "#/$defs/Annotation"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "@type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ]
+        },
+        "math:demonstratedByCompetency": {
+          "properties": {
+            "@id": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "@id"
+          ],
+          "type": "object"
+        },
+        "math:demonstratedByExample": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "properties": {
+                "@type": {
+                  "type": "string"
+                },
+                "@value": {}
+              },
+              "required": [
+                "@value"
+              ],
+              "type": "object"
+            }
+          ]
+        },
+        "math:enforcesFailureClass": {
+          "properties": {
+            "@id": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "@id"
+          ],
+          "type": "object"
+        },
+        "math:guardedByCounterExample": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "properties": {
+                "@type": {
+                  "type": "string"
+                },
+                "@value": {}
+              },
+              "required": [
+                "@value"
+              ],
+              "type": "object"
+            }
+          ]
+        }
+      },
+      "required": [
+        "math:demonstratedByCompetency",
+        "math:demonstratedByExample",
+        "math:enforcesFailureClass",
+        "math:guardedByCounterExample"
       ],
       "type": "object"
     },
