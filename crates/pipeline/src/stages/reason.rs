@@ -25,12 +25,12 @@ use gmeow_logic::reason::artifacts::{
 use gmeow_logic::reason::perf_ledger::perf_ledger;
 use gmeow_logic::reason::reason_all;
 use gmeow_logic::result::ReasoningResult;
-use gmeow_logic::result_rdf::{project_reasoning_result, GRAPH_REASONING};
+use gmeow_logic::result_rdf::{GRAPH_REASONING, project_reasoning_result};
 use purrdf::{NativeRdfFormat, RdfDataset, RdfDatasetBuilder, RdfTerm};
 
-use crate::bundle::{bundle_from_artifacts_over, PipelineHandle};
+use crate::bundle::{PipelineHandle, bundle_from_artifacts_over};
 use crate::error::PipelineError;
-use crate::node::{Stage, StageInput, StageOutput, StageProduct, ENGINE_RESOURCE};
+use crate::node::{ENGINE_RESOURCE, Stage, StageInput, StageOutput, StageProduct};
 
 /// COMMITTED logical path of the native told-vs-inferred closure (RDF 1.2). This is
 /// the SOLE reasoning pass: it reasons once over the object-level EDB

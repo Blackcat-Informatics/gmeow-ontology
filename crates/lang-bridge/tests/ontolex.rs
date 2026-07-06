@@ -6,8 +6,8 @@
 //! never folded flat. The fixture is ORIGINAL repo content (no external CC-BY import), so it
 //! carries its own SPDX header.
 
-use gmeow_lang_bridge::ontolex::{ontolex_correspondence, OntoLexBridge, ONTOLEX_SIGN_SYSTEM};
-use gmeow_lang_bridge::{is_exact_correspondence, Bridge, LangFailure};
+use gmeow_lang_bridge::ontolex::{ONTOLEX_SIGN_SYSTEM, OntoLexBridge, ontolex_correspondence};
+use gmeow_lang_bridge::{Bridge, LangFailure, is_exact_correspondence};
 use gmeow_lang_form::Form;
 use gmeow_logic_compile::ir::{MorphismClass, PreservationKind};
 

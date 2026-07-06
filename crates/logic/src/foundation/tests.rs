@@ -287,8 +287,9 @@ fn freerole_bare_role() {
 
 // ── Discipline: MixRig (SubKind under Role) — the parity anchor ──────────────────
 
-const MIXRIG_GOLDEN: &str =
-    include_str!("../../../../conformance/logic/cases/foundation/mixrig-kind-under-role/expected/materialized.nq");
+const MIXRIG_GOLDEN: &str = include_str!(
+    "../../../../conformance/logic/cases/foundation/mixrig-kind-under-role/expected/materialized.nq"
+);
 
 #[test]
 fn mixrig_full_quad_set_matches_golden() {
@@ -718,15 +719,18 @@ fn provenance_rigidity_and_obligation_recipes() {
 
 // ── Golden quad-set parity for the remaining single-world cases ──────────────────
 
-const EXACTLY_ONE_GOLDEN: &str =
-    include_str!("../../../../conformance/logic/cases/foundation/exactly-one-stereotype/expected/materialized.nq");
+const EXACTLY_ONE_GOLDEN: &str = include_str!(
+    "../../../../conformance/logic/cases/foundation/exactly-one-stereotype/expected/materialized.nq"
+);
 const FREE_ROLE_GOLDEN: &str = include_str!(
     "../../../../conformance/logic/cases/foundation/free-role/expected/materialized.nq"
 );
-const IDENTITY_GOLDEN: &str =
-    include_str!("../../../../conformance/logic/cases/foundation/identity-overlap-mixiden/expected/materialized.nq");
-const RELCOMP_GOLDEN: &str =
-    include_str!("../../../../conformance/logic/cases/foundation/relcomp-under-mediated/expected/materialized.nq");
+const IDENTITY_GOLDEN: &str = include_str!(
+    "../../../../conformance/logic/cases/foundation/identity-overlap-mixiden/expected/materialized.nq"
+);
+const RELCOMP_GOLDEN: &str = include_str!(
+    "../../../../conformance/logic/cases/foundation/relcomp-under-mediated/expected/materialized.nq"
+);
 // Holonic emergence (C2): the input.nq seed facts and the full
 // materialized golden are read straight from the conformance case, so this Rust
 // golden and the conformance harness assert the SAME bytes.
@@ -812,11 +816,7 @@ fn golden_quad_sets_match_for_single_world_cases() {
             HOLONIC_GOVERNANCE_GOLDEN,
             HOLONIC_GOVERNANCE_INPUT,
         ),
-        (
-            "holonic-level",
-            HOLONIC_LEVEL_GOLDEN,
-            HOLONIC_LEVEL_INPUT,
-        ),
+        ("holonic-level", HOLONIC_LEVEL_GOLDEN, HOLONIC_LEVEL_INPUT),
     ];
 
     for (name, golden, input) in cases {
@@ -1097,8 +1097,14 @@ fn holonic_level_coherence_is_position_based_and_profile_scoped() {
     let base = "https://example.org/holonic/holonic-level";
     let quads = run(HOLONIC_LEVEL_INPUT, AntiRigidityPolicy::WitnessObligation);
     // Profiled holon WITH a HolonicPosition → coherent, not charged.
-    assert!(!has_violation(&quads, &format!("{base}/Bracket"), "HolonicLevelIncoherence"),
-        "Bracket (profiled holon occupying a HolonicPosition) must NOT fire HolonicLevelIncoherence");
+    assert!(
+        !has_violation(
+            &quads,
+            &format!("{base}/Bracket"),
+            "HolonicLevelIncoherence"
+        ),
+        "Bracket (profiled holon occupying a HolonicPosition) must NOT fire HolonicLevelIncoherence"
+    );
     // Profiled holon in the instantiation tower but with NO position → fires (non-conflation:
     // logic:instanceOf / orderedType do not supply a holonic position).
     assert!(

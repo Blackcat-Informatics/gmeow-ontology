@@ -46,13 +46,13 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use crate::projections::correspondence_frontend::CorrespondenceLookup;
-use crate::projections::get_leg::{curie, ProfileBinding, ProjectionCell};
-use crate::projections::put_derivation::{classify_put, PutClass};
+use crate::projections::get_leg::{ProfileBinding, ProjectionCell, curie};
+use crate::projections::put_derivation::{PutClass, classify_put};
 use crate::projections::sparql::{
-    atom_triple, local_cell, prefix_block, suppression_anchors, templates_of, EmittedQuery,
-    SuppressionVocab, GENERATED_BANNER,
+    EmittedQuery, GENERATED_BANNER, SuppressionVocab, atom_triple, local_cell, prefix_block,
+    suppression_anchors, templates_of,
 };
-use crate::projections::{correspondence_result, ProjectionResult};
+use crate::projections::{ProjectionResult, correspondence_result};
 
 /// Render the gmeow SOURCE atoms of a cell as flat CONSTRUCT-head triple strings — the
 /// pattern the forward WHERE reads, minus every guard/OPTIONAL/FILTER/BIND/VALUES. The
@@ -132,18 +132,16 @@ pub(crate) fn emit_put(
                     // The forward target the claim is mapped from: the binding's toClass else
                     // its toPredicate, as the CURIE. A ValidationOnly binding with neither has
                     // no nameable provenance source — a HARD FAIL (no silent skip).
-                    let target =
-                        b.to_class
-                            .as_ref()
-                            .or(b.to_predicate.as_ref())
-                            .ok_or_else(|| {
-                                format!(
+                    let target = b.to_class.as_ref().or(b.to_predicate.as_ref()).ok_or_else(
+                        || {
+                            format!(
                                 "put emitter: ValidationOnly binding for profile {profile:?} on \
                                  <{}> has neither gmeow:toClass nor gmeow:toPredicate, so its \
                                  mint-with-claim provenance has no nameable forward target",
                                 cell.iri
                             )
-                            })?;
+                        },
+                    )?;
                     let target_curie = curie(target);
                     // Provenance-annotation strength — the honest floor, stated precisely.
                     // These three triples land the source lift in the BASE graph and qualify it

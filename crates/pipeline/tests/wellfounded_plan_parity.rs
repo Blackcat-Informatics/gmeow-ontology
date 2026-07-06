@@ -23,7 +23,7 @@
 
 use std::path::{Path, PathBuf};
 
-use purrdf::{parse_dataset, DatasetView, GraphMatch, RdfDataset, TermRef, TermValue};
+use purrdf::{DatasetView, GraphMatch, RdfDataset, TermRef, TermValue, parse_dataset};
 
 const LOGIC: &str = "https://blackcatinformatics.ca/logic/";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";

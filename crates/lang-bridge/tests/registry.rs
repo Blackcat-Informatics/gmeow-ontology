@@ -8,12 +8,12 @@
 //! carried correspondence, and "Exact" is FALSIFIABLE — a perturbed object fails exactness.
 
 use gmeow_lang_bridge::registry::{
-    assert_registry_covers, registry, LangProjectionInput, LangProjectionTarget, NamedSource,
-    EMISSION_WORTHY_CLASSES,
+    EMISSION_WORTHY_CLASSES, LangProjectionInput, LangProjectionTarget, NamedSource,
+    assert_registry_covers, registry,
 };
 use gmeow_lang_bridge::{
-    exact_round_trip_holds, is_exact_correspondence, parse_grammar, serialize_grammar,
-    ConlluBridge, EbnfBridge, Formalism,
+    ConlluBridge, EbnfBridge, Formalism, exact_round_trip_holds, is_exact_correspondence,
+    parse_grammar, serialize_grammar,
 };
 use gmeow_logic_compile::ir::PreservationKind;
 
@@ -185,10 +185,11 @@ fn ontolex_target_carries_soundunder_over_the_lang_lexicon() {
     );
     assert_eq!(e.lossy_kind, PreservationKind::SoundUnder);
     // The flattened epistemic strata are enumerated.
-    assert!(e
-        .unsupported
-        .iter()
-        .any(|u| u.contains("vantage") || u.contains("epistemic")));
+    assert!(
+        e.unsupported
+            .iter()
+            .any(|u| u.contains("vantage") || u.contains("epistemic"))
+    );
     // The emission carries the emitted OntoLex-Lemon RDF as an artifact.
     let ttl = e
         .artifacts

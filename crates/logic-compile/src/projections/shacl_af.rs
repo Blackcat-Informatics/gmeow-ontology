@@ -34,8 +34,8 @@
 
 use super::super::ir::{LogicAxiom, LogicProgram, LogicRule};
 use super::{
-    contract_drop_notes, is_modal_or_scoped, target_meta, ProjectionResult, GMEOW_NS, LOGIC_NS,
-    RDF_TYPE,
+    GMEOW_NS, LOGIC_NS, ProjectionResult, RDF_TYPE, contract_drop_notes, is_modal_or_scoped,
+    target_meta,
 };
 
 const SH_NS: &str = "http://www.w3.org/ns/shacl#";

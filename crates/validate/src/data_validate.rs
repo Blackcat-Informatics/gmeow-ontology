@@ -31,10 +31,10 @@
 
 use std::sync::Arc;
 
-use gmeow_diagnostics::model::Location;
 use gmeow_diagnostics::Report;
-use purrdf::shapes::shape_union::EXCLUDED;
+use gmeow_diagnostics::model::Location;
 use purrdf::RdfDataset;
+use purrdf::shapes::shape_union::EXCLUDED;
 
 use crate::gufo::{self, GufoConfig};
 use crate::report_bridge::{build_report, shacl_findings_from_report};
@@ -444,13 +444,13 @@ fn cbor_text_field<'a>(meta: &'a ciborium::value::Value, key: &str) -> Option<&'
         return None;
     };
     for (k, v) in entries {
-        if let ciborium::value::Value::Text(name) = k {
-            if name == key {
-                if let ciborium::value::Value::Text(text) = v {
-                    return Some(text.as_str());
-                }
-                return None;
+        if let ciborium::value::Value::Text(name) = k
+            && name == key
+        {
+            if let ciborium::value::Value::Text(text) = v {
+                return Some(text.as_str());
             }
+            return None;
         }
     }
     None
@@ -521,10 +521,12 @@ mod tests {
             "the pre-existing Tier-1 finding must be preserved"
         );
         // No inconsistency error was fabricated from the failed pass.
-        assert!(!report
-            .findings
-            .iter()
-            .any(|f| f.code == "validate.deep.inconsistent"));
+        assert!(
+            !report
+                .findings
+                .iter()
+                .any(|f| f.code == "validate.deep.inconsistent")
+        );
     }
 
     /// Build canonical GTS bytes from an arbitrary Turtle string for use in

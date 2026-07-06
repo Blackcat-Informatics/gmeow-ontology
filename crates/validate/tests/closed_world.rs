@@ -20,7 +20,7 @@
 //! sees `@type: "gmeow:Thing"` and therefore enforces `#/$defs/Thing`'s
 //! `required` list, which an open-world schema would not.
 
-use gmeow_validate::instance::{validate_instance, InstanceFormat};
+use gmeow_validate::instance::{InstanceFormat, validate_instance};
 use purrdf::shapes::{engine, json_schema};
 
 /// A shapes graph with one class `gmeow:Thing` requiring `gmeow:req`.

@@ -77,10 +77,10 @@ fn subcommand_names(path: &[&str]) -> Vec<String> {
             if line.trim().is_empty() || !line.starts_with(' ') {
                 break;
             }
-            if let Some(name) = line.split_whitespace().next() {
-                if name != "help" {
-                    names.push(name.to_string());
-                }
+            if let Some(name) = line.split_whitespace().next()
+                && name != "help"
+            {
+                names.push(name.to_string());
             }
         }
     }

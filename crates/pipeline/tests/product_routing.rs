@@ -23,7 +23,7 @@ use std::path::{Path, PathBuf};
 
 use gmeow_pipeline::node::{Stage, StageInput, StageProduct};
 use gmeow_pipeline::stages::compile_logic::{
-    CompileLogicStage, CANONICAL_RDF12_PATH, DIAG_RDF_PATH, DIAG_SARIF_PATH,
+    CANONICAL_RDF12_PATH, CompileLogicStage, DIAG_RDF_PATH, DIAG_SARIF_PATH,
     LOGIC_PROJECTIONS_CHANNEL, PROJECTION_REPORT_PATH,
 };
 use gmeow_pipeline::stages::mappings::MappingsStage;

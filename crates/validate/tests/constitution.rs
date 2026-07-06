@@ -161,9 +161,11 @@ fn zero_enforcement_is_an_error() {
         MINIMAL_CONSTITUTION,
     );
     let findings = run_report(&manifest, &constitution, tmp.path());
-    assert!(findings
-        .iter()
-        .any(|f| f.message.contains("zero registered enforcement")));
+    assert!(
+        findings
+            .iter()
+            .any(|f| f.message.contains("zero registered enforcement"))
+    );
 }
 
 #[test]
@@ -177,9 +179,11 @@ fn stale_artifact_reference_is_an_error() {
         MINIMAL_CONSTITUTION,
     );
     let findings = run_report(&manifest, &constitution, tmp.path());
-    assert!(findings
-        .iter()
-        .any(|f| f.message.contains("'no/such/file.py' does not exist")));
+    assert!(
+        findings
+            .iter()
+            .any(|f| f.message.contains("'no/such/file.py' does not exist"))
+    );
 }
 
 #[test]
@@ -251,9 +255,11 @@ fn undeclared_enforcement_is_an_error() {
         MINIMAL_CONSTITUTION,
     );
     let findings = run_report(&manifest, &constitution, tmp.path());
-    assert!(findings
-        .iter()
-        .any(|f| f.message.contains("undeclared enforcement")));
+    assert!(
+        findings
+            .iter()
+            .any(|f| f.message.contains("undeclared enforcement"))
+    );
 }
 
 #[test]
@@ -268,12 +274,17 @@ fn practice_only_principle_warns_not_errors() {
         MINIMAL_CONSTITUTION,
     );
     let findings = run_report(&manifest, &constitution, tmp.path());
-    assert!(findings
-        .iter()
-        .any(|f| f.severity == Severity::Warning && f.message.contains("only by review practice")));
-    assert!(!findings
-        .iter()
-        .any(|f| f.message.contains("zero registered enforcement")));
+    assert!(
+        findings
+            .iter()
+            .any(|f| f.severity == Severity::Warning
+                && f.message.contains("only by review practice"))
+    );
+    assert!(
+        !findings
+            .iter()
+            .any(|f| f.message.contains("zero registered enforcement"))
+    );
 }
 
 const SUPERSESSION_MANIFEST: &str = "meta:gate-x a meta:Gate ; meta:artifact \"Makefile\" .\n\
@@ -292,9 +303,11 @@ fn supersession_matching_pair_passes() {
     fs::write(tmp.path().join("Makefile"), "all:\n").unwrap();
     let (manifest, constitution) = write_pair(&tmp, SUPERSESSION_MANIFEST, SUPERSESSION_MD);
     let findings = run_report(&manifest, &constitution, tmp.path());
-    assert!(!findings
-        .iter()
-        .any(|f| f.message.contains("supersededInPartBy drift")));
+    assert!(
+        !findings
+            .iter()
+            .any(|f| f.message.contains("supersededInPartBy drift"))
+    );
 }
 
 #[test]
@@ -305,9 +318,10 @@ fn supersession_markdown_only_is_an_error() {
         SUPERSESSION_MANIFEST.replace(" ; meta:supersededInPartBy meta:Principle1", "");
     let (manifest, constitution) = write_pair(&tmp, &manifest_ttl, SUPERSESSION_MD);
     let findings = run_report(&manifest, &constitution, tmp.path());
-    assert!(findings.iter().any(|f| f
-        .message
-        .contains("principle 2 meta:supersededInPartBy drift")));
+    assert!(findings.iter().any(|f| {
+        f.message
+            .contains("principle 2 meta:supersededInPartBy drift")
+    }));
 }
 
 #[test]
@@ -317,9 +331,10 @@ fn supersession_ttl_only_is_an_error() {
     let md = "## 1. Be good\n\nprose\n\n## 2. Be great\n\nno marker here.\n";
     let (manifest, constitution) = write_pair(&tmp, SUPERSESSION_MANIFEST, md);
     let findings = run_report(&manifest, &constitution, tmp.path());
-    assert!(findings.iter().any(|f| f
-        .message
-        .contains("principle 2 meta:supersededInPartBy drift")));
+    assert!(findings.iter().any(|f| {
+        f.message
+            .contains("principle 2 meta:supersededInPartBy drift")
+    }));
 }
 
 #[test]

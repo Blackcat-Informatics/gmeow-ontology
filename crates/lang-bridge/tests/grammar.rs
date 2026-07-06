@@ -9,9 +9,9 @@
 //! spine ([`LegPath::normalize`]).
 
 use gmeow_lang_bridge::{
+    AbnfBridge, Bridge, EbnfBridge, Formalism, Grammar, GrammarRule, LangFailure, RuleExpr,
     exact_round_trip_holds, grammar_leg_pair, grammar_to_ntriples, is_exact_correspondence,
-    parse_grammar, AbnfBridge, Bridge, EbnfBridge, Formalism, Grammar, GrammarRule, LangFailure,
-    RuleExpr,
+    parse_grammar,
 };
 
 /// The two shipped grammar sources, held under `slices/grounding/lang/grammars/`.
@@ -747,10 +747,9 @@ fn maint_grammar_selfhost_differential() {
                                 required.insert("RDFLiteral");
                                 required.insert("String");
                                 if let purrdf::TermRef::Literal { language, .. } = ds.resolve(term)
+                                    && language.is_some()
                                 {
-                                    if language.is_some() {
-                                        required.insert("LANGTAG");
-                                    }
+                                    required.insert("LANGTAG");
                                 }
                             }
                             // Any other datatype IRI → the `'^^' iri` typed-literal branch.

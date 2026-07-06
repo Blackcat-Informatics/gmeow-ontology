@@ -14,14 +14,14 @@ use gmeow_logic::counterfactual;
 use gmeow_logic::dispatch::dispatch_query;
 use gmeow_logic::probabilistic;
 use gmeow_logic::profile_gate;
-use gmeow_logic::query_ir::{parse_query_program, Budget};
+use gmeow_logic::query_ir::{Budget, parse_query_program};
 use gmeow_logic::seam::WorldStoreForeign;
 use gmeow_logic::store::WorldStore;
 use gmeow_logic_compile::frontend::parse_logic_str;
 use gmeow_logic_compile::projections::compile_program;
-use gmeow_pipeline::run::{run_full, RunMode};
+use gmeow_pipeline::run::{RunMode, run_full};
 
-use crate::dev_common::{fail, project_root, LOGIC_DRIFT_PREFIXES};
+use crate::dev_common::{LOGIC_DRIFT_PREFIXES, fail, project_root};
 
 /// One resolved answer binding, `var → canonical-value`, plus an optional weight.
 struct Answer {
@@ -155,10 +155,10 @@ fn render_query(answers: &[Answer], status: &str, as_json: bool) -> i32 {
                 for (k, v) in &a.vars {
                     row.insert(k.clone(), serde_json::Value::String(v.clone()));
                 }
-                if let Some(p) = a.probability {
-                    if let Some(n) = serde_json::Number::from_f64(p) {
-                        row.insert("probability".to_owned(), serde_json::Value::Number(n));
-                    }
+                if let Some(p) = a.probability
+                    && let Some(n) = serde_json::Number::from_f64(p)
+                {
+                    row.insert("probability".to_owned(), serde_json::Value::Number(n));
                 }
                 serde_json::Value::Object(row)
             })
@@ -206,13 +206,13 @@ pub const LOGIC_MODES: &[&str] = &[
 /// `gmeow-dev logic compile [--check] [--mode M]` — emit or drift-check the
 /// generated logic artifacts.
 pub fn compile(check: bool, mode: Option<&str>) -> i32 {
-    if let Some(m) = mode {
-        if !LOGIC_MODES.contains(&m) {
-            return fail(format!(
-                "unknown --mode {m:?} (valid: {})",
-                LOGIC_MODES.join(", ")
-            ));
-        }
+    if let Some(m) = mode
+        && !LOGIC_MODES.contains(&m)
+    {
+        return fail(format!(
+            "unknown --mode {m:?} (valid: {})",
+            LOGIC_MODES.join(", ")
+        ));
     }
     let root = project_root();
 
@@ -295,7 +295,7 @@ fn compile_one_mode(root: &Path, mode: &str, check: bool) -> i32 {
             return fail(format!(
                 "logic: source not found: {} ({e})",
                 source.display()
-            ))
+            ));
         }
     };
     let (program, diagnostics) = match parse_logic_str(&source_ttl, None) {
@@ -323,10 +323,10 @@ fn compile_one_mode(root: &Path, mode: &str, check: bool) -> i32 {
         println!("--mode {mode}: no drift");
         return 0;
     }
-    if let Some(parent) = target.parent() {
-        if let Err(e) = std::fs::create_dir_all(parent) {
-            return fail(format!("cannot create {}: {e}", parent.display()));
-        }
+    if let Some(parent) = target.parent()
+        && let Err(e) = std::fs::create_dir_all(parent)
+    {
+        return fail(format!("cannot create {}: {e}", parent.display()));
     }
     if let Err(e) = std::fs::write(&target, content) {
         return fail(format!("cannot write {}: {e}", target.display()));

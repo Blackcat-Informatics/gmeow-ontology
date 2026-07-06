@@ -28,7 +28,7 @@ use std::collections::{BTreeSet, HashMap, HashSet};
 use std::path::{Path, PathBuf};
 
 use gmeow_validate::language_tags::{load_inverse_tag_map, load_tag_map, retag_graph_to_internal};
-use purrdf::{parse_dataset, TermRef};
+use purrdf::{TermRef, parse_dataset};
 
 /// The GMEOW namespace prefix.
 const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";

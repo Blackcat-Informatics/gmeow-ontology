@@ -21,12 +21,12 @@
 
 use std::time::Instant;
 
-use purrdf::{parse_dataset, TermValue};
+use purrdf::{TermValue, parse_dataset};
 
 use crate::facts::TypedFactSet;
 use crate::nemo_engine::TypedRow;
 use crate::oracle::ForwardOracle;
-use crate::provenance::{mint_derivation_id, mint_reifier, ASSERT_RULE_IRI, LOGIC_NAMESPACE};
+use crate::provenance::{ASSERT_RULE_IRI, LOGIC_NAMESPACE, mint_derivation_id, mint_reifier};
 use crate::result::PreservationClaim;
 use crate::seam::{BudgetStatus, DerivationId, DerivedQuad};
 
@@ -469,11 +469,11 @@ fn apply_budget(
     };
 
     let mut exhausted = false;
-    if let Some(cap) = derived_cap {
-        if idb.len() > cap {
-            idb.truncate(cap);
-            exhausted = true;
-        }
+    if let Some(cap) = derived_cap
+        && idb.len() > cap
+    {
+        idb.truncate(cap);
+        exhausted = true;
     }
 
     // Time ceiling bounds the post-fixpoint work. If exceeded, mark exhausted but

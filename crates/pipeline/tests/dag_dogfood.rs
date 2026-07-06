@@ -9,7 +9,7 @@
 
 use std::path::{Path, PathBuf};
 
-use gmeow_pipeline::{bind, default_registry, full_spec, PipelineSpec};
+use gmeow_pipeline::{PipelineSpec, bind, default_registry, full_spec};
 
 fn repo_root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))

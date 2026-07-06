@@ -19,7 +19,7 @@
 use std::sync::Arc;
 
 use purrdf::sparql::NativeSparqlEngine;
-use purrdf::{parse_dataset, RdfDataset, SparqlEngine, SparqlRequest, SparqlResult, TermValue};
+use purrdf::{RdfDataset, SparqlEngine, SparqlRequest, SparqlResult, TermValue, parse_dataset};
 
 use crate::error::PipelineError;
 

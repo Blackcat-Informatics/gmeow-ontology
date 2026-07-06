@@ -18,12 +18,12 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use crate::ingest::prefixes::{ns_to_prefix, registry_iri, sssom_id};
 use crate::ingest::DslView;
+use crate::ingest::prefixes::{ns_to_prefix, registry_iri, sssom_id};
 use crate::ir::{CorrespondenceRelation, MorphismClass};
 use crate::projections::correspondence_frontend::CorrespondenceLookup;
 use crate::projections::correspondence_gate::assert_relation_no_overclaim;
-use crate::projections::{correspondence_result, ProjectionResult};
+use crate::projections::{ProjectionResult, correspondence_result};
 
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 
@@ -424,23 +424,23 @@ fn render_one(
             &r.object_id,
             &r.mapping_justification,
         ] {
-            if let Some((prefix, _)) = tok.split_once(':') {
-                if registry_iri(prefix).is_some() {
-                    used.insert(prefix.to_owned());
-                }
+            if let Some((prefix, _)) = tok.split_once(':')
+                && registry_iri(prefix).is_some()
+            {
+                used.insert(prefix.to_owned());
             }
         }
     }
 
     let mut lines = sssom_header(meta, &used, version, release_date);
 
-    if let Some(meta) = meta {
-        if !meta.trailer.is_empty() {
-            // Refused/deferred mappings kept IN the artifact: a second '#' makes each
-            // trailer line a YAML-invisible comment.
-            for line in meta.trailer.lines() {
-                lines.push(format!("# #{}", line.strip_prefix('#').unwrap_or(line)));
-            }
+    if let Some(meta) = meta
+        && !meta.trailer.is_empty()
+    {
+        // Refused/deferred mappings kept IN the artifact: a second '#' makes each
+        // trailer line a YAML-invisible comment.
+        for line in meta.trailer.lines() {
+            lines.push(format!("# #{}", line.strip_prefix('#').unwrap_or(line)));
         }
     }
 
@@ -476,21 +476,21 @@ fn sssom_header(
     release_date: &str,
 ) -> Vec<String> {
     let mut lines: Vec<String> = Vec::new();
-    if let Some(meta) = meta {
-        if !meta.set_id.is_empty() {
-            lines.push(format!("# mapping_set_id: {}", meta.set_id));
-            lines.push(format!("# mapping_set_version: {version}"));
-            lines.push(format!("# license: {}", meta.license));
-        }
+    if let Some(meta) = meta
+        && !meta.set_id.is_empty()
+    {
+        lines.push(format!("# mapping_set_id: {}", meta.set_id));
+        lines.push(format!("# mapping_set_version: {version}"));
+        lines.push(format!("# license: {}", meta.license));
     }
     lines.push("# mapping_tool: gmeow regenerate (mappings)".to_owned());
     lines.push(format!("# mapping_tool_version: {version}"));
     lines.push(format!("# mapping_date: {release_date}"));
-    if let Some(meta) = meta {
-        if !meta.comment.is_empty() {
-            let collapsed = collapse_whitespace(&meta.comment);
-            lines.push(format!("# comment: {}", json_quote_ascii(&collapsed)));
-        }
+    if let Some(meta) = meta
+        && !meta.comment.is_empty()
+    {
+        let collapsed = collapse_whitespace(&meta.comment);
+        lines.push(format!("# comment: {}", json_quote_ascii(&collapsed)));
     }
     lines.push("# curie_map:".to_owned());
     for prefix in used {

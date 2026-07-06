@@ -19,7 +19,7 @@ use gmeow_logic_compile::ir::{
     Correspondence, CorrespondenceLaw, CorrespondenceRelation, Determinacy, DischargeVerdict,
     LawClaimIr, MorphismClass, MorphismKind,
 };
-use purrdf::{parse_dataset, DatasetView, GraphMatch, RdfDataset, TermId, TermRef, TermValue};
+use purrdf::{DatasetView, GraphMatch, RdfDataset, TermId, TermRef, TermValue, parse_dataset};
 
 use crate::bridge::{IngestDiagnostic, LangFailure};
 

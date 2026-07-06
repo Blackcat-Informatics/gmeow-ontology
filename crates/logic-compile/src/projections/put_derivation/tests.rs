@@ -75,10 +75,12 @@ fn mint_recomputes_identically_from_the_stored_cell() {
     // Recomputing from the STORED (put-bearing, section-claim-folded) cell yields the
     // same mint — the gate's `put ∘ get = id` reduces to this string compare.
     assert_eq!(derived_put_iri(&get_leg, stored), mint_before);
-    assert!(stored
-        .law_claims
-        .iter()
-        .any(|lc| lc.law == CorrespondenceLaw::SectionLaw));
+    assert!(
+        stored
+            .law_claims
+            .iter()
+            .any(|lc| lc.law == CorrespondenceLaw::SectionLaw)
+    );
 }
 
 #[test]

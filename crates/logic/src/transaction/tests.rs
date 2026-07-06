@@ -292,9 +292,11 @@ fn choice_guard_true_takes_left() {
     // The left branch ran: its schema was instantiated, and the step is a minted runtime
     // logic:TransactionStep (no longer the static program node).
     assert_eq!(out.steps()[0].schema, format!("{W}#primLSchema"));
-    assert!(out.steps()[0]
-        .attribution
-        .starts_with("https://blackcatinformatics.ca/logic/step/"));
+    assert!(
+        out.steps()[0]
+            .attribution
+            .starts_with("https://blackcatinformatics.ca/logic/step/")
+    );
     assert!(out.sits_end().contains(&format!("{W}#sit_lft")));
     assert!(!out.sits_end().contains(&format!("{W}#sit_rgt")));
 }
@@ -305,9 +307,11 @@ fn choice_guard_false_takes_right() {
     assert!(out.succeeded());
     assert_eq!(out.steps().len(), 1);
     assert_eq!(out.steps()[0].schema, format!("{W}#primRSchema"));
-    assert!(out.steps()[0]
-        .attribution
-        .starts_with("https://blackcatinformatics.ca/logic/step/"));
+    assert!(
+        out.steps()[0]
+            .attribution
+            .starts_with("https://blackcatinformatics.ca/logic/step/")
+    );
     assert!(out.sits_end().contains(&format!("{W}#sit_rgt")));
 }
 
@@ -335,9 +339,11 @@ fn fallback_runs_backup_when_primary_fails() {
     // Only the backup emitted a step — the failed primary produced nothing (no rollback).
     assert_eq!(out.steps().len(), 1);
     assert_eq!(out.steps()[0].schema, format!("{W}#primBackupSchema"));
-    assert!(out.steps()[0]
-        .attribution
-        .starts_with("https://blackcatinformatics.ca/logic/step/"));
+    assert!(
+        out.steps()[0]
+            .attribution
+            .starts_with("https://blackcatinformatics.ca/logic/step/")
+    );
     assert!(out.sits_end().contains(&format!("{W}#sitOk")));
 }
 
@@ -713,12 +719,16 @@ fn materializes_success_outcome_with_path() {
         succeeds.unwrap().object
     );
     // Outcome carries its program + start, and the executed path obtains a successor.
-    assert!(quads
-        .iter()
-        .any(|q| q.predicate.ends_with("outcomeOfProgram") && q.object == format!("<{W}#ch>")));
-    assert!(quads
-        .iter()
-        .any(|q| q.predicate.ends_with("transactionStart") && q.object == format!("<{W}#s0>")));
+    assert!(
+        quads
+            .iter()
+            .any(|q| q.predicate.ends_with("outcomeOfProgram") && q.object == format!("<{W}#ch>"))
+    );
+    assert!(
+        quads
+            .iter()
+            .any(|q| q.predicate.ends_with("transactionStart") && q.object == format!("<{W}#s0>"))
+    );
     assert!(
         quads
             .iter()
@@ -900,20 +910,27 @@ fn verdict_is_identical_committed_vs_hypothetical_only_substrate_differs() {
     );
 
     // Committed emits the path substrate; hypothetical does not.
-    assert!(committed
-        .iter()
-        .any(|q| q.predicate.ends_with("temporallySucceeds")));
-    assert!(!hypo
-        .iter()
-        .any(|q| q.predicate.ends_with("temporallySucceeds")));
+    assert!(
+        committed
+            .iter()
+            .any(|q| q.predicate.ends_with("temporallySucceeds"))
+    );
+    assert!(
+        !hypo
+            .iter()
+            .any(|q| q.predicate.ends_with("temporallySucceeds"))
+    );
 
     // The witness is exclusive to the hypothetical run.
-    assert!(!committed
-        .iter()
-        .any(|q| q.predicate.ends_with("executedHypotheticallyAs")));
-    assert!(hypo
-        .iter()
-        .any(|q| q.predicate.ends_with("executedHypotheticallyAs")));
+    assert!(
+        !committed
+            .iter()
+            .any(|q| q.predicate.ends_with("executedHypotheticallyAs"))
+    );
+    assert!(
+        hypo.iter()
+            .any(|q| q.predicate.ends_with("executedHypotheticallyAs"))
+    );
 }
 
 #[test]
@@ -1108,13 +1125,17 @@ fn concurrent_serializable_emits_no_anomaly() {
         has_type(&quads, "ConcurrentHistory"),
         "history node present"
     );
-    assert!(quads
-        .iter()
-        .any(|q| q.predicate.ends_with("derivedHistory")));
-    assert!(quads
-        .iter()
-        .any(|q| q.predicate.ends_with("serializabilityCriterion")
-            && q.object.ends_with("ConflictSerializability>")));
+    assert!(
+        quads
+            .iter()
+            .any(|q| q.predicate.ends_with("derivedHistory"))
+    );
+    assert!(
+        quads
+            .iter()
+            .any(|q| q.predicate.ends_with("serializabilityCriterion")
+                && q.object.ends_with("ConflictSerializability>"))
+    );
     assert_eq!(
         quads
             .iter()

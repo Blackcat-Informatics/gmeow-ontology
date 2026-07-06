@@ -46,10 +46,11 @@ fn horn_formula_lowers_exactly_to_one_rule() {
     assert_eq!(rule.body.len(), 1, "one body atom (the antecedent)");
     // Exact preservation: nothing was carried as residue.
     assert!(out.preservation.unsupported_constructs.is_empty());
-    assert!(out
-        .preservation
-        .polarities
-        .contains(&PreservationKind::Exact));
+    assert!(
+        out.preservation
+            .polarities
+            .contains(&PreservationKind::Exact)
+    );
 }
 
 #[test]
@@ -195,14 +196,16 @@ fn disjunctive_head_is_unsupported_never_exact() {
     assert!(out.rules.is_empty(), "a disjunctive head yields no rule");
     // The eval-path honesty gate: residue present ⇒ SoundUnder, NEVER Exact.
     assert!(!out.preservation.unsupported_constructs.is_empty());
-    assert!(out
-        .preservation
-        .polarities
-        .contains(&PreservationKind::SoundUnder));
-    assert!(!out
-        .preservation
-        .polarities
-        .contains(&PreservationKind::Exact));
+    assert!(
+        out.preservation
+            .polarities
+            .contains(&PreservationKind::SoundUnder)
+    );
+    assert!(
+        !out.preservation
+            .polarities
+            .contains(&PreservationKind::Exact)
+    );
 }
 
 #[test]
@@ -218,10 +221,11 @@ fn quantifier_alternation_is_unsupported() {
     let out = lower_formulas(&program_with(vec![f]));
     assert!(out.rules.is_empty());
     assert!(!out.preservation.unsupported_constructs.is_empty());
-    assert!(out
-        .preservation
-        .polarities
-        .contains(&PreservationKind::SoundUnder));
+    assert!(
+        out.preservation
+            .polarities
+            .contains(&PreservationKind::SoundUnder)
+    );
 }
 
 #[test]
@@ -281,10 +285,12 @@ fn existential_constant_skolemization_is_deterministic() {
         "alpha-equivalent existentials must produce identical Skolemized rules"
     );
     // And the lowering is Exact (the ∃-constant fragment is fully supported).
-    assert!(out_y
-        .preservation
-        .polarities
-        .contains(&PreservationKind::Exact));
+    assert!(
+        out_y
+            .preservation
+            .polarities
+            .contains(&PreservationKind::Exact)
+    );
 }
 
 #[test]

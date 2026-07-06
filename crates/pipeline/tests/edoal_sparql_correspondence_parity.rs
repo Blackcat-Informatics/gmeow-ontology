@@ -15,13 +15,13 @@ use std::sync::Arc;
 
 use gmeow_logic_compile::ingest::DslView;
 use gmeow_logic_compile::projections::correspondence_frontend::{
-    transpile_correspondences_indexed, CorrespondenceLookup,
+    CorrespondenceLookup, transpile_correspondences_indexed,
 };
 use gmeow_logic_compile::projections::edoal::lower_edoal;
 use gmeow_logic_compile::projections::get_leg::projections;
 use gmeow_logic_compile::projections::sparql::lower_sparql;
 use purrdf::slice::{ArtifactRole, SliceCatalog};
-use purrdf::{parse_dataset, NativeRdfFormat, RdfDataset, RdfDatasetBuilder};
+use purrdf::{NativeRdfFormat, RdfDataset, RdfDatasetBuilder, parse_dataset};
 
 /// The materialized correspondence lookup the four lowerings consume for their overclaim
 /// gate / ledger path (F5 Task 2). Built from the SAME merged DSL the lowerings read, so

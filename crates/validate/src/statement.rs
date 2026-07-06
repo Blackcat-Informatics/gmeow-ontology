@@ -556,30 +556,31 @@ fn ds_base_triple_groundedness(ds: &RdfDataset, cell: &NativeCell, out: &mut Vec
         }
     }
     for (role, term) in [("qSubject", &cell.source), ("qObject", &cell.target)] {
-        if let Some(NativeObject::Iri(node)) = term {
-            if is_gmeow_vocab_term(node) && !ds_is_declared(ds, node) {
-                out.push(format!(
-                    "{cell}: {role} {term} is a gmeow: vocabulary term \
+        if let Some(NativeObject::Iri(node)) = term
+            && is_gmeow_vocab_term(node)
+            && !ds_is_declared(ds, node)
+        {
+            out.push(format!(
+                "{cell}: {role} {term} is a gmeow: vocabulary term \
                      but is not declared in the ontology (typo?)",
-                    cell = cell.reifier,
-                    term = node,
-                ));
-            }
+                cell = cell.reifier,
+                term = node,
+            ));
         }
     }
 }
 
 /// Native twin of [`base_triple_dl_datatypes`].
 fn ds_base_triple_dl_datatypes(cell: &NativeCell, out: &mut Vec<String>) {
-    if let Some(NativeObject::Literal { datatype, .. }) = &cell.target {
-        if !OWL2_DL_DATATYPES.contains(&datatype.as_str()) {
-            out.push(format!(
-                "{cell}: quoted-object literal datatype {datatype} is \
+    if let Some(NativeObject::Literal { datatype, .. }) = &cell.target
+        && !OWL2_DL_DATATYPES.contains(&datatype.as_str())
+    {
+        out.push(format!(
+            "{cell}: quoted-object literal datatype {datatype} is \
                  not an OWL 2 datatype — the reasoned OWL downcast would not be \
                  OWL 2 DL (use xsd:dateTime, xsd:string, …)",
-                cell = cell.reifier,
-            ));
-        }
+            cell = cell.reifier,
+        ));
     }
 }
 
@@ -689,14 +690,18 @@ mod tests {
 
         assert_eq!(findings.len(), 2);
         assert!(findings.iter().all(|f| f.code == LOSSLESS_CODE));
-        assert!(findings
-            .iter()
-            .any(|f| f.message.starts_with("OWL form has, RDF 1.2 lost:")
-                && f.message.contains("Bob")));
-        assert!(findings
-            .iter()
-            .any(|f| f.message.starts_with("RDF 1.2 form has, OWL lacks:")
-                && f.message.contains("Carol")));
+        assert!(
+            findings
+                .iter()
+                .any(|f| f.message.starts_with("OWL form has, RDF 1.2 lost:")
+                    && f.message.contains("Bob"))
+        );
+        assert!(
+            findings
+                .iter()
+                .any(|f| f.message.starts_with("RDF 1.2 form has, OWL lacks:")
+                    && f.message.contains("Carol"))
+        );
     }
 
     #[test]

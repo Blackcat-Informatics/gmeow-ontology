@@ -37,8 +37,8 @@ use purrdf::gts::dataset_from_gts_graph;
 use purrdf::gts::model::Graph;
 use purrdf::gts::reader::read;
 use purrdf::gts::writer::digest_string;
-use purrdf::gts_compose::{emit_gts, BlobRow, SnapshotBuilder, DEFAULT_RSYNCABLE_THRESHOLD};
-use purrdf::{pair_loss_ledger, parse_dataset, NativeRdfFormat, PROJECTION_CODECS};
+use purrdf::gts_compose::{BlobRow, DEFAULT_RSYNCABLE_THRESHOLD, SnapshotBuilder, emit_gts};
+use purrdf::{NativeRdfFormat, PROJECTION_CODECS, pair_loss_ledger, parse_dataset};
 
 /// The named graph the release-manifest + per-artifact attestations ride in.
 pub const GRAPH_ATTESTATIONS: &str = "https://blackcatinformatics.ca/gmeow/graph/attestations";
@@ -272,8 +272,8 @@ pub fn verify_release_bundle(
     bundle_bytes: &[u8],
     expected_public_armor: Option<&str>,
 ) -> Result<ReleaseVerifyReport, String> {
-    use purrdf::gts::verify::{verify_file_with_options, VerifyOptions};
     use purrdf::RdfTerm;
+    use purrdf::gts::verify::{VerifyOptions, verify_file_with_options};
 
     // --- 1. Cryptographic signature + trust policy (native, subsumes gts verify).
     let mut opts = VerifyOptions::default().require_signatures(true);
@@ -313,15 +313,15 @@ pub fn verify_release_bundle(
             continue;
         }
         if q.predicate == attestation_type_pred {
-            if let RdfTerm::Iri(o) = &q.object {
-                if o == &manifest_type {
-                    saw_manifest = true;
-                }
+            if let RdfTerm::Iri(o) = &q.object
+                && o == &manifest_type
+            {
+                saw_manifest = true;
             }
-        } else if q.predicate == content_digest_pred {
-            if let RdfTerm::Literal(lit) = &q.object {
-                digests.push(lit.lexical_form.clone());
-            }
+        } else if q.predicate == content_digest_pred
+            && let RdfTerm::Literal(lit) = &q.object
+        {
+            digests.push(lit.lexical_form.clone());
         }
     }
 
@@ -795,9 +795,11 @@ mod tests {
         let evidence = build_coherence_evidence(&snapshot, "2026-06-28T00:00:00Z")
             .expect("a consistent snapshot must yield a coherence artifact");
         assert_eq!(evidence.rep, "coherence");
-        assert!(evidence
-            .attestation_type_iri
-            .ends_with("attestationTypeCoherenceCertificate"));
+        assert!(
+            evidence
+                .attestation_type_iri
+                .ends_with("attestationTypeCoherenceCertificate")
+        );
         let nq = String::from_utf8(evidence.data.clone()).expect("utf8 nquads");
         // The native reasoner names no certified fragment, so the strongest HONEST
         // claim over a consistent bundle is the attestation, never a fragment-less
@@ -847,7 +849,7 @@ mod tests {
     #[test]
     fn minted_attestations_satisfy_the_assertional_contract() {
         use gmeow_validate::lint::{
-            default_annotation_predicates, structural_lint_dataset, LintConfig,
+            LintConfig, default_annotation_predicates, structural_lint_dataset,
         };
         use purrdf::parse_dataset;
 

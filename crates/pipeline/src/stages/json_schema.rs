@@ -167,10 +167,10 @@ mod tests {
     fn collect_def_refs(v: &serde_json::Value, out: &mut Vec<String>) {
         match v {
             serde_json::Value::Object(map) => {
-                if let Some(serde_json::Value::String(r)) = map.get("$ref") {
-                    if let Some(name) = r.strip_prefix("#/$defs/") {
-                        out.push(name.to_owned());
-                    }
+                if let Some(serde_json::Value::String(r)) = map.get("$ref")
+                    && let Some(name) = r.strip_prefix("#/$defs/")
+                {
+                    out.push(name.to_owned());
                 }
                 for child in map.values() {
                     collect_def_refs(child, out);
