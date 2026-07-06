@@ -76,6 +76,26 @@ pub(crate) const GRAPH_LANG_TRANSLATION_CORPUS: &str =
 /// axioms).
 pub(crate) const GRAPH_LANG_FORM_CORPUS: &str =
     "https://blackcatinformatics.ca/gmeow/graph/lang-form-corpus";
+/// The `lang:` projection corpus: one `lang:ProjectionEmission` per (source, target) —
+/// the honest per-emission preservation judgment of every lowering to an external
+/// linguistic ecosystem (OntoLex-Lemon, CoNLL-U, EBNF, ABNF) plus the lifted `lang:Grammar`
+/// structure it projects. Folded as its own queryable named graph so a repo-free consumer
+/// reads what each projection loses without re-running the projection registry. Excluded
+/// from the reasoned object-level EDB exactly like `graph/lang-form-corpus` (it asserts a
+/// self-description corpus, not object-level axioms).
+pub(crate) const GRAPH_LANG_PROJECTION_CORPUS: &str =
+    "https://blackcatinformatics.ca/gmeow/graph/lang-projection-corpus";
+/// The docs-rendering corpus: the `.po`-derived documentation language trees re-typed as
+/// reified crossings — one `lang:Rendering` (`lang:renderingDocsPage`) per non-English page,
+/// one `lang:Translation` per (page, language) pairing rolling up the page's live
+/// `lang:TranslationUnit`s with a DERIVED document judgment, and the exec-docs English-only
+/// asset boundary recorded as a declared `lang:translationGap`. Folded as its own queryable
+/// named graph so a repo-free consumer reads what the documentation translation loses without
+/// re-rendering the site. Excluded from the reasoned object-level EDB exactly like
+/// `graph/lang-projection-corpus` (it asserts a self-description corpus, not object-level
+/// axioms).
+pub(crate) const GRAPH_LANG_DOCS_RENDERING_CORPUS: &str =
+    "https://blackcatinformatics.ca/gmeow/graph/lang-docs-rendering-corpus";
 /// The authored default graph (root ontology + slice modules + translations + guide
 /// anchors, NO imports) carried as a named graph on the `stage-source-load` product so
 /// the presenter reads it instead of re-loading the sources. It is an INTERNAL transport
@@ -492,6 +512,10 @@ fn assemble_carrier(
     let lang_translation_corpus =
         producer_graph(upstream, "stage-mappings", GRAPH_LANG_TRANSLATION_CORPUS)?;
     let lang_form_corpus = producer_graph(upstream, "stage-mappings", GRAPH_LANG_FORM_CORPUS)?;
+    let lang_projection_corpus =
+        producer_graph(upstream, "stage-mappings", GRAPH_LANG_PROJECTION_CORPUS)?;
+    let lang_docs_rendering_corpus =
+        producer_graph(upstream, "stage-mappings", GRAPH_LANG_DOCS_RENDERING_CORPUS)?;
 
     // ── the carried graphs ride in from the producers' carriers ────────────────
     let reason = upstream
@@ -517,6 +541,8 @@ fn assemble_carrier(
         projection_ledger,
         lang_translation_corpus,
         lang_form_corpus,
+        lang_projection_corpus,
+        lang_docs_rendering_corpus,
     ];
     datasets.extend(compile_logic_object_graphs(upstream)?);
     datasets.push(rooted_in_graph(
@@ -1406,6 +1432,24 @@ fn build_fanout_opaque_blob(
             upstream,
         )?,
     );
+
+    // The `lang:` projection deliverables under `generated/projections/lang/` are STANDALONE
+    // external-format files a consumer reads — the EBNF/ABNF grammar files, the TEI XML, the
+    // Web-Annotation JSON-LD, AND the RDF side formats (a NIF `.nt` stand-off annotation, the
+    // `bcp47-tags.ttl` tag set). None of them reconstructs from a canonical named-graph fold:
+    // the RDF ones are lowerings a consumer reads as files, not reasoned graphs (their
+    // `lang:ProjectionEmission` semantics ride the `graph/lang-projection-corpus` named graph
+    // independently). So every lang-projection artifact — RDF-extension or not — is carried as
+    // a committed byte projection, read off the sink-consumed stage-mappings product (rendered
+    // once by that stage) via a keyed fold over the in-memory product, never a disk walk.
+    for (path, bytes) in producer_artifacts("stage-mappings", upstream)? {
+        if path.starts_with(&format!(
+            "{}/",
+            crate::stages::lang_projection::LANG_PROJECTION_DIR
+        )) {
+            members.insert(path, bytes);
+        }
+    }
 
     let mut members: Vec<(String, Vec<u8>)> = members.into_iter().collect();
     members.sort_by(|a, b| a.0.cmp(&b.0));
