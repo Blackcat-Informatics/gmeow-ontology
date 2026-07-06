@@ -48,8 +48,8 @@ pub struct FoopsResult {
 
 /// Run the OOPS! pitfall scanner on inline ontology content.
 ///
-/// The Rust port of `quality.run_oops`. Posts the ontology (Turtle / RDF-XML) inside
-/// an OOPS! request envelope and returns the evaluation as RDF/XML text.
+/// Posts the ontology (Turtle / RDF-XML) inside an OOPS! request envelope and
+/// returns the evaluation as RDF/XML text.
 ///
 /// * `ttl_content` — the ontology serialized as RDF (Turtle/RDF-XML).
 /// * `timeout` — the HTTP timeout.
@@ -74,8 +74,7 @@ pub fn run_oops(ttl_content: &str, timeout: Duration) -> Result<String, Pipeline
 
 /// Run the FOOPS! FAIR assessment on a dereferenceable ontology URL.
 ///
-/// The Rust port of `quality.run_foops`. Posts the ontology URL as a form field and
-/// summarizes the returned FAIR score.
+/// Posts the ontology URL as a form field and summarizes the returned FAIR score.
 ///
 /// * `ontology_url` — the published ontology IRI/URL to assess.
 /// * `timeout` — the HTTP timeout.
