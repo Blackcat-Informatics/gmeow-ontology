@@ -3549,6 +3549,267 @@ math:singularValue
     skos:definition "Relates a math:SingularValueDecomposition to one of its singular values σ ≥ 0 (the diagonal of Σ). Domain math:SingularValueDecomposition, range a non-negative math:Number (stated in prose). The count of non-zero singular values is the math:Rank."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+# --- Bilinear forms, matrices, norms, and exact numeric carriers ------------ #
+# The reusable numeric layer of the linear-algebra charter: a bilinear form and its
+# symmetric case, the matrix (and symmetric / Gram matrix) that represents a form in
+# a basis, the coordinate vector, and the norm and distance a positive-definite
+# symmetric form induces (‖x‖ = √⟨x,x⟩). The coordinates are carried EXACTLY: a
+# math:RationalValue is a numerator/denominator integer pair (never a decimal — the
+# decimal belongs to a math:ApproximateValue), so a norm √(xᵀGx) grounded on a
+# math:GramMatrix of rational entries is exact by construction. These frame classes
+# are reused, not re-minted: math:MetricTensor is the tangent-space instance of the
+# math:SymmetricBilinearForm idiom, and math:InnerProductSpace remains the frame the
+# math:innerProduct is carried on.
+
+math:BilinearForm
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Bilinear Form"@x-gmeow-english ;
+    skos:definition "A bilinear form B on a vector space: a map B(·, ·) that is linear in each argument separately. A subclass of math:MathematicalObject. Its definiteness (math:definiteness) records whether it is positive-definite, positive-semidefinite, indefinite, or negative-definite; represented in a math:Basis it becomes a math:Matrix. An inner product is a positive-definite symmetric (or Hermitian) bilinear form; the symmetric case is math:SymmetricBilinearForm."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:SymmetricBilinearForm
+    a owl:Class ;
+    rdfs:subClassOf math:BilinearForm ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Symmetric Bilinear Form"@x-gmeow-english ;
+    skos:definition "A symmetric bilinear form: a math:BilinearForm B with B(x, y) = B(y, x). A subclass of math:BilinearForm. Represented in a basis it is a math:SymmetricMatrix (a math:GramMatrix); when positive-definite it induces a math:Norm and a metric math:Distance. A math:MetricTensor is the tangent-space instance of this idiom — a symmetric bilinear form on each tangent space giving lengths and angles — so the geometry charter's metric and this numeric layer share one notion of a symmetric form."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Matrix
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Matrix"@x-gmeow-english ;
+    skos:definition "A matrix: a rectangular array of scalars representing a math:LinearMap or a math:BilinearForm relative to a chosen math:Basis. A subclass of math:MathematicalObject carrying its scalars as indexed math:MatrixEntry cells through math:hasEntry (each a math:atRow / math:atColumn / math:entryValue triple over an exact math:RationalValue) and, where relevant, its math:definiteness. The specialized math:CartanMatrix (integer Cartan matrix of a root system) and math:DatasetMatrix (a data frame held by reference) are their own classes and are not reparented here."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:SymmetricMatrix
+    a owl:Class ;
+    rdfs:subClassOf math:Matrix ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Symmetric Matrix"@x-gmeow-english ;
+    skos:definition "A symmetric matrix: a square math:Matrix equal to its transpose (Aᵢⱼ = Aⱼᵢ). A subclass of math:Matrix; the matrix of a math:SymmetricBilinearForm in a basis. Its symmetry is checkable on its math:MatrixEntry cells (every entry has a transpose entry of equal value); a math:GramMatrix is the distinguished symmetric matrix of an inner-product-defining form."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:GramMatrix
+    a owl:Class ;
+    rdfs:subClassOf math:SymmetricMatrix ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Gram Matrix"@x-gmeow-english ;
+    skos:definition "A Gram matrix G: the math:SymmetricMatrix of a math:SymmetricBilinearForm in a math:Basis, Gᵢⱼ = B(eᵢ, eⱼ). A subclass of math:SymmetricMatrix that names the form it represents through math:representsForm and the basis it is taken in through math:inBasis. When the form is positive-definite the Gram matrix is positive-definite and the quadratic form xᵀGx is a squared norm; the affect-intensity norm √(xᵀGx) is grounded on such a Gram matrix of exact math:RationalValue entries."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Vector
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Vector"@x-gmeow-english ;
+    skos:definition "A coordinate vector: an element of a math:VectorSpace given by its coordinates relative to a math:Basis. A subclass of math:MathematicalObject carrying its coordinates as indexed math:VectorComponent cells through math:hasComponent (each a math:atIndex / math:componentValue pair over an exact math:RationalValue) and naming its basis through math:inBasis. The x in the quadratic form xᵀGx is such a vector."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Norm
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Norm"@x-gmeow-english ;
+    skos:definition "A norm ‖·‖: the length function induced by a positive-definite math:SymmetricBilinearForm, ‖x‖ = √⟨x, x⟩ = √(xᵀGx). A subclass of math:MathematicalObject that names the form inducing it through math:inducedByForm. A norm is well-defined only when its form is positive-definite (a math:NonPositiveDefiniteNorm otherwise); it induces a metric math:Distance d(x, y) = ‖x − y‖."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Distance
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Distance"@x-gmeow-english ;
+    skos:definition "A metric distance: the value d(x, y) = ‖x − y‖ of the metric induced by a math:Norm. A subclass of math:MathematicalObject that names the norm giving it through math:inducedByNorm. It is the length of the difference vector under the norm; the norm-induced metric satisfies the metric axioms because the norm comes from a positive-definite form."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:DefinitenessKind
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Definiteness Kind"@x-gmeow-english ;
+    skos:definition "The definiteness of a math:BilinearForm or math:Matrix: one of math:positiveDefinite, math:positiveSemidefinite, math:indefinite, or math:negativeDefinite. An open value vocabulary (individuals, never owl:oneOf), named through math:definiteness. Positive-definiteness is the condition under which a symmetric form induces a genuine math:Norm; the sign structure is the object-layer counterpart of a math:MetricSignature."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:RationalValue
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Rational Value"@x-gmeow-english ;
+    skos:definition "An exact rational carrier: a concrete p/q value held as a math:numerator and math:denominator integer pair (math:denominator ≠ 0). A subclass of math:MathematicalObject. It realizes the ℚ coordinate that the tower's math:RationalNumber describes abstractly, and — unlike math:ApproximateValue, which carries a decimal literal — it carries NO decimal: 1/4 is the pair (1, 4), never 0.25. Matrix entries and vector components of the exact numeric layer are math:RationalValue, so xᵀGx and the norm √(xᵀGx) are computed exactly."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:VectorComponent
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Vector Component"@x-gmeow-english ;
+    skos:definition "An indexed component of a math:Vector: the cell pairing a position math:atIndex (a zero-based non-negative integer) with a math:componentValue (an exact math:RationalValue). A subclass of math:MathematicalObject named by a vector through math:hasComponent. The component-at-index model keeps coordinates exact and inspectable rather than inlining a decimal tuple."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:MatrixEntry
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Matrix Entry"@x-gmeow-english ;
+    skos:definition "An indexed entry of a math:Matrix: the cell pairing a position math:atRow and math:atColumn (zero-based non-negative integers) with a math:entryValue (an exact math:RationalValue). A subclass of math:MathematicalObject named by a matrix through math:hasEntry. The row/column/value model makes a matrix's symmetry checkable entry-by-entry (a math:SymmetricMatrix's transpose entries carry equal value)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+# --- Numeric-layer conformance failures ------------------------------------- #
+
+math:ZeroDenominator
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Zero Denominator"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:RationalValue declares a math:denominator of 0. Zero is not a valid denominator — p/0 is not a rational value — so the exact carrier is ill-formed. The object-layer analogue of the dimension-exponent zero-denominator rule."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:NonPositiveDefiniteNorm
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Non-Positive-Definite Norm"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:Norm is induced (math:inducedByForm) by a symmetric bilinear form whose math:definiteness is not math:positiveDefinite. ‖x‖ = √⟨x, x⟩ is a genuine norm only for a positive-definite form; a norm resting on an indefinite or semidefinite form is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:AsymmetricGramMatrix
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Asymmetric Gram Matrix"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:GramMatrix carries a math:MatrixEntry with no transpose entry of equal value — an entry at (row, column) whose (column, row) mate is absent or carries a different math:entryValue. A Gram matrix is the matrix of a symmetric form and must be symmetric; a non-symmetric one is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+# --- Definiteness value individuals (open vocabulary) ----------------------- #
+
+math:positiveDefinite
+    a owl:NamedIndividual , math:DefinitenessKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "positive-definite"@x-gmeow-english ;
+    skos:definition "Positive-definite: xᵀAx > 0 for every non-zero x. The definiteness under which a symmetric bilinear form is an inner product and induces a math:Norm; the object-layer counterpart of a Riemannian metric signature (n, 0)."@x-gmeow-english .
+
+math:positiveSemidefinite
+    a owl:NamedIndividual , math:DefinitenessKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "positive-semidefinite"@x-gmeow-english ;
+    skos:definition "Positive-semidefinite: xᵀAx ≥ 0 for every x, with equality possible for some non-zero x. A math:CovarianceOperator is positive-semidefinite; it induces a seminorm, not a norm."@x-gmeow-english .
+
+math:indefinite
+    a owl:NamedIndividual , math:DefinitenessKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "indefinite"@x-gmeow-english ;
+    skos:definition "Indefinite: xᵀAx takes both positive and negative values. A Lorentzian metric is indefinite; an indefinite form does not induce a norm."@x-gmeow-english .
+
+math:negativeDefinite
+    a owl:NamedIndividual , math:DefinitenessKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "negative-definite"@x-gmeow-english ;
+    skos:definition "Negative-definite: xᵀAx < 0 for every non-zero x — the negation of a positive-definite form. It induces a norm on the negated form, not on itself."@x-gmeow-english .
+
+# --- Numeric-layer object properties ---------------------------------------- #
+
+math:inducedByForm
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "induced by form"@x-gmeow-english ;
+    skos:definition "Relates a math:Norm to the math:SymmetricBilinearForm that induces it (‖x‖ = √⟨x, x⟩). Domain math:Norm, range math:SymmetricBilinearForm (stated in prose). The form must be positive-definite for the norm to be well-defined (math:NonPositiveDefiniteNorm otherwise)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:inducedByNorm
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "induced by norm"@x-gmeow-english ;
+    skos:definition "Relates a math:Distance to the math:Norm that induces its metric (d(x, y) = ‖x − y‖). Domain math:Distance, range math:Norm (stated in prose). The norm-induced metric is the distance function of the length structure."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:representsForm
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "represents form"@x-gmeow-english ;
+    skos:definition "Relates a math:GramMatrix to the math:SymmetricBilinearForm it is the matrix of in a basis (Gᵢⱼ = B(eᵢ, eⱼ)). Domain math:GramMatrix, range math:SymmetricBilinearForm (stated in prose). Paired with math:inBasis — the matrix represents THIS form in THAT basis."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:inBasis
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "in basis"@x-gmeow-english ;
+    skos:definition "Relates a math:GramMatrix or a math:Vector to the math:Basis its entries or coordinates are taken relative to. Domain a math:GramMatrix or math:Vector, range math:Basis (stated in prose). Coordinates and matrix entries are basis-relative; naming the basis makes the representation unambiguous."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:definiteness
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "definiteness"@x-gmeow-english ;
+    skos:definition "Relates a math:BilinearForm or math:Matrix to its math:DefinitenessKind — positive-definite, positive-semidefinite, indefinite, or negative-definite. Domain a math:BilinearForm or math:Matrix, range math:DefinitenessKind (stated in prose). Positive-definiteness is the precondition for inducing a math:Norm."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:hasComponent
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "has component"@x-gmeow-english ;
+    skos:definition "Relates a math:Vector to one of its indexed math:VectorComponent cells. Domain math:Vector, range math:VectorComponent (stated in prose). Each component carries a math:atIndex position and a math:componentValue; the vector is the family of its components."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:componentValue
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "component value"@x-gmeow-english ;
+    skos:definition "Relates a math:VectorComponent to the exact math:RationalValue at its index. Domain math:VectorComponent, range math:RationalValue (stated in prose). Single-valued (documented in prose, not an OWL characteristic — the math profile is EL-clean) — a component has exactly one value. The value is exact (a numerator/denominator pair), never a decimal literal."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:hasEntry
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "has entry"@x-gmeow-english ;
+    skos:definition "Relates a math:Matrix to one of its indexed math:MatrixEntry cells. Domain math:Matrix, range math:MatrixEntry (stated in prose). Each entry carries a math:atRow, a math:atColumn, and a math:entryValue; the matrix is the family of its entries, and its symmetry is checkable across transpose entries."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:entryValue
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "entry value"@x-gmeow-english ;
+    skos:definition "Relates a math:MatrixEntry to the exact math:RationalValue at its row/column position. Domain math:MatrixEntry, range math:RationalValue (stated in prose). Single-valued (documented in prose, not an OWL characteristic — the math profile is EL-clean) — an entry has exactly one value. The value is exact (a numerator/denominator pair), never a decimal literal."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# --- Numeric-layer datatype properties -------------------------------------- #
+
+math:numerator
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "numerator"@x-gmeow-english ;
+    skos:definition "The integer numerator p of a math:RationalValue p/q. Domain math:RationalValue, range xsd:integer (stated in prose). Single-valued (documented in prose, not an OWL characteristic — the math profile is EL-clean) — a rational value has exactly one numerator. Carried as an exact integer, never a decimal."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:denominator
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "denominator"@x-gmeow-english ;
+    skos:definition "The integer denominator q of a math:RationalValue p/q. Domain math:RationalValue, range xsd:integer (stated in prose; SHACL forbids the value 0). Single-valued (documented in prose, not an OWL characteristic — the math profile is EL-clean) — a rational value has exactly one denominator. A zero denominator is ill-formed (math:ZeroDenominator)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:atIndex
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "at index"@x-gmeow-english ;
+    skos:definition "The zero-based position of a math:VectorComponent within its vector. Domain math:VectorComponent, range xsd:nonNegativeInteger (stated in prose). Single-valued (documented in prose, not an OWL characteristic — the math profile is EL-clean) — a component sits at exactly one index."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:atRow
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "at row"@x-gmeow-english ;
+    skos:definition "The zero-based row index of a math:MatrixEntry. Domain math:MatrixEntry, range xsd:nonNegativeInteger (stated in prose). Single-valued (documented in prose, not an OWL characteristic — the math profile is EL-clean) — an entry sits in exactly one row. Paired with math:atColumn to place the entry, so a symmetric matrix's transpose entries are identifiable."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:atColumn
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "at column"@x-gmeow-english ;
+    skos:definition "The zero-based column index of a math:MatrixEntry. Domain math:MatrixEntry, range xsd:nonNegativeInteger (stated in prose). Single-valued (documented in prose, not an OWL characteristic — the math profile is EL-clean) — an entry sits in exactly one column. Paired with math:atRow to place the entry."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 # --- PCA and the KG-projection flagship ------------------------------------- #
 
 math:PCAAnalysis

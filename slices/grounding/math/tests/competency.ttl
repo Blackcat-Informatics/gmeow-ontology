@@ -742,6 +742,29 @@ ex:rowTensorGraph a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "parameterSpace" ; gmeow:cellValueIri exf:pspace ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "reflection" ; gmeow:cellValueIri exf:reflectFormula ] .
 
+# === Q27 — positive-definite symmetric forms, their Gram matrix, and the norm they induce == #
+
+ex:cqPositiveDefiniteFormsNorms a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/positive-definite-forms-induce-norms.rq" ;
+    gmeow:cqDataFile "tests/fixtures/linear-algebra-learning.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A positive-definite math:SymmetricBilinearForm is represented by a math:GramMatrix (math:representsForm) and induces a math:Norm (math:inducedByForm) — the numeric layer grounding the norm √(xᵀGx); over the fixture the answer is exactly {intensityForm -> intensityGram, intensityNorm}." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqPositiveDefiniteFormsNormsShape ;
+    gmeow:cqExpectRow ex:rowPositiveDefiniteFormsNorms .
+
+ex:cqPositiveDefiniteFormsNormsShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "form" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "gram" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "norm" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowPositiveDefiniteFormsNorms a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "form" ; gmeow:cellValueIri exf:intensityForm ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "gram" ; gmeow:cellValueIri exf:intensityGram ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "norm" ; gmeow:cellValueIri exf:intensityNorm ] .
+
 # === Bridges Q1 — R-bridge source, fidelity, and logic: routing ============= #
 ex:cqBridgeRFidelity a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "slices/grounding/math/queries/competency/r-bridge-source-fidelity-and-loss.rq" ;

@@ -75,3 +75,21 @@ ex:selfReflect a math:ResidualInterpretationClaim ;
     gmeow:observationResult ex:reflectFormula .
 ex:reflectFormula a logic:MetaLevelFormula .
 ex:frameC a gmeow:Standpoint .
+
+# Numeric layer — a positive-definite symmetric bilinear form, its Gram matrix
+# [[1, 1/4], [1/4, 1]] of exact rational entries, and the norm √(xᵀGx) it induces.
+ex:intensityForm a math:SymmetricBilinearForm ;
+    math:definiteness math:positiveDefinite .
+ex:intensityBasis a math:Basis .
+ex:intensityGram a math:GramMatrix ;
+    math:representsForm ex:intensityForm ;
+    math:inBasis ex:intensityBasis ;
+    math:hasEntry ex:g00 , ex:g01 , ex:g10 , ex:g11 .
+ex:g00 a math:MatrixEntry ; math:atRow 0 ; math:atColumn 0 ; math:entryValue ex:ratOne .
+ex:g01 a math:MatrixEntry ; math:atRow 0 ; math:atColumn 1 ; math:entryValue ex:ratQuarter .
+ex:g10 a math:MatrixEntry ; math:atRow 1 ; math:atColumn 0 ; math:entryValue ex:ratQuarter .
+ex:g11 a math:MatrixEntry ; math:atRow 1 ; math:atColumn 1 ; math:entryValue ex:ratOne .
+ex:ratOne a math:RationalValue ; math:numerator 1 ; math:denominator 1 .
+ex:ratQuarter a math:RationalValue ; math:numerator 1 ; math:denominator 4 .
+ex:intensityNorm a math:Norm ;
+    math:inducedByForm ex:intensityForm .

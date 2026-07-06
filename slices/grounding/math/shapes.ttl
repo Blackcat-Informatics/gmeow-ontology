@@ -1217,6 +1217,115 @@ math:WeightTensorShape
     ] .
 
 # =========================================================================== #
+# Numeric-layer hard-rule gates (LINEAR-ALGEBRA-AND-LEARNING charter)          #
+#                                                                              #
+# The exact-numeric layer's well-formedness: a rational carrier has a non-zero #
+# denominator; a norm rests on a positive-definite symmetric form; a Gram      #
+# matrix is symmetric. Each shape names the typed math:MathConformanceFailure  #
+# it raises through math:enforcesFailureClass.                                 #
+# =========================================================================== #
+
+# Rule — an exact rational carrier has a non-zero denominator.
+math:RationalValueShape
+    a sh:NodeShape ;
+    rdfs:label "Rational-value non-zero-denominator shape"@x-gmeow-english ;
+    skos:definition "SHACL constraints for math:RationalValue: it carries exactly one integer math:numerator and exactly one integer math:denominator, and the denominator is non-zero. A zero denominator is not a rational value (p/0 is undefined); the object-layer twin of the dimension-exponent zero-denominator rule."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    math:enforcesFailureClass math:ZeroDenominator ;
+    sh:targetClass math:RationalValue ;
+    sh:property [
+        sh:path math:numerator ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:integer ;
+        sh:severity sh:Violation ;
+        sh:message "A math:RationalValue must declare exactly one integer math:numerator — the p of its exact p/q value." ;
+    ] ;
+    sh:property [
+        sh:path math:denominator ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:integer ;
+        sh:not [ sh:hasValue 0 ] ;
+        sh:severity sh:Violation ;
+        sh:message "A math:RationalValue must declare exactly one non-zero integer math:denominator — the q of its exact p/q value; a zero denominator is not a rational value (math:ZeroDenominator)." ;
+    ] .
+
+# Rule — a norm rests on a positive-definite symmetric bilinear form.
+math:NormPositiveDefiniteShape
+    a sh:NodeShape ;
+    rdfs:label "Norm positive-definite-form shape"@x-gmeow-english ;
+    skos:definition "SHACL constraint for math:Norm: it names the symmetric bilinear form inducing it through math:inducedByForm, and that form's math:definiteness is math:positiveDefinite — ‖x‖ = √⟨x, x⟩ is a genuine norm only for a positive-definite form. A norm resting on an indefinite, semidefinite, or definiteness-unstated form is ill-formed (math:NonPositiveDefiniteNorm)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    math:enforcesFailureClass math:NonPositiveDefiniteNorm ;
+    sh:targetClass math:Norm ;
+    sh:property [
+        sh:path math:inducedByForm ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A math:Norm must name exactly one math:inducedByForm — the symmetric bilinear form whose √⟨x, x⟩ it is." ;
+    ] ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "A math:Norm's math:inducedByForm must be positive-definite (math:definiteness math:positiveDefinite); a norm resting on a non-positive-definite form is ill-formed (math:NonPositiveDefiniteNorm)." ;
+        sh:select """
+            SELECT $this WHERE {
+                $this <https://blackcatinformatics.ca/math/inducedByForm> ?form .
+                FILTER NOT EXISTS {
+                    ?form <https://blackcatinformatics.ca/math/definiteness> <https://blackcatinformatics.ca/math/positiveDefinite> .
+                }
+            }
+        """ ;
+    ] .
+
+# Rule — a Gram matrix names its form and basis and is symmetric.
+math:GramMatrixShape
+    a sh:NodeShape ;
+    rdfs:label "Gram-matrix symmetry shape"@x-gmeow-english ;
+    skos:definition "SHACL constraints for math:GramMatrix: it names the math:SymmetricBilinearForm it represents through math:representsForm, the math:Basis it is taken in through math:inBasis, and is symmetric — every math:MatrixEntry at (row, column) has a transpose entry at (column, row) carrying the same math:entryValue. A Gram matrix is the matrix of a symmetric form; a non-symmetric one is ill-formed (math:AsymmetricGramMatrix)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    math:enforcesFailureClass math:AsymmetricGramMatrix ;
+    sh:targetClass math:GramMatrix ;
+    sh:property [
+        sh:path math:representsForm ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:class math:SymmetricBilinearForm ;
+        sh:severity sh:Violation ;
+        sh:message "A math:GramMatrix must name exactly one math:representsForm — the math:SymmetricBilinearForm it is the matrix of." ;
+    ] ;
+    sh:property [
+        sh:path math:inBasis ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:class math:Basis ;
+        sh:severity sh:Violation ;
+        sh:message "A math:GramMatrix must name exactly one math:inBasis — the math:Basis its entries are taken relative to." ;
+    ] ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "A math:GramMatrix must be symmetric: every math:MatrixEntry at (row, column) needs a transpose entry at (column, row) with the same math:entryValue; a missing or mismatched transpose entry is ill-formed (math:AsymmetricGramMatrix)." ;
+        sh:select """
+            SELECT $this WHERE {
+                $this <https://blackcatinformatics.ca/math/hasEntry> ?entry .
+                ?entry <https://blackcatinformatics.ca/math/atRow> ?row ;
+                       <https://blackcatinformatics.ca/math/atColumn> ?col ;
+                       <https://blackcatinformatics.ca/math/entryValue> ?val .
+                FILTER NOT EXISTS {
+                    $this <https://blackcatinformatics.ca/math/hasEntry> ?mate .
+                    ?mate <https://blackcatinformatics.ca/math/atRow> ?col ;
+                          <https://blackcatinformatics.ca/math/atColumn> ?row ;
+                          <https://blackcatinformatics.ca/math/entryValue> ?val .
+                }
+            }
+        """ ;
+    ] .
+
+# =========================================================================== #
 # Bridges slice SHACL shapes — the ingestion-bridge hard-rule gates            #
 # (BRIDGES charter). A bridge run retains its source witness and the process-  #
 # layer in-band witness; a fitted model references data and specification; a   #
