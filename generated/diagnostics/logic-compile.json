@@ -246,6 +246,50 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection gufo drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleIndirectContributor> has no gUFO bridge equivalent",
       "tool": "logic-compile",
       "locations": [
@@ -961,6 +1005,17 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateCategory on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection gufo drops: actual: logic:candidateCategory on <https://blackcatinformatics.ca/logic/candidateIndirectContributor> has no gUFO bridge equivalent",
       "tool": "logic-compile",
       "locations": [
@@ -1182,6 +1237,17 @@
       "severity": "note",
       "code": "logic-compile.lossy-drop",
       "message": "projection gufo drops: actual: logic:candidateContract on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateContract on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no gUFO bridge equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -1478,6 +1544,17 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateExtractionProvenance on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection gufo drops: actual: logic:candidateExtractionProvenance on <https://blackcatinformatics.ca/logic/candidateIndirectContributor> has no gUFO bridge equivalent",
       "tool": "logic-compile",
       "locations": [
@@ -1677,6 +1754,17 @@
       "severity": "note",
       "code": "logic-compile.lossy-drop",
       "message": "projection gufo drops: actual: logic:candidateFormalizes on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateFormalizes on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no gUFO bridge equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -1907,6 +1995,17 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateLifecycle on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection gufo drops: actual: logic:candidateLifecycle on <https://blackcatinformatics.ca/logic/candidateIndirectContributor> has no gUFO bridge equivalent",
       "tool": "logic-compile",
       "locations": [
@@ -2117,6 +2216,28 @@
       "severity": "note",
       "code": "logic-compile.lossy-drop",
       "message": "projection gufo drops: actual: logic:candidateNegativeCase on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateNegativeCase on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateNegativeCase on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no gUFO bridge equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -2369,6 +2490,17 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidatePositiveCase on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection gufo drops: actual: logic:candidatePositiveCase on <https://blackcatinformatics.ca/logic/candidateIndirectContributor> has no gUFO bridge equivalent",
       "tool": "logic-compile",
       "locations": [
@@ -2579,6 +2711,17 @@
       "severity": "note",
       "code": "logic-compile.lossy-drop",
       "message": "projection gufo drops: actual: logic:candidateProjectionBehavior on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateProjectionBehavior on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no gUFO bridge equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -2820,6 +2963,17 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateScope on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection gufo drops: actual: logic:candidateScope on <https://blackcatinformatics.ca/logic/candidateIndirectContributor> has no gUFO bridge equivalent",
       "tool": "logic-compile",
       "locations": [
@@ -3051,6 +3205,17 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateSemanticRisk on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection gufo drops: actual: logic:candidateSemanticRisk on <https://blackcatinformatics.ca/logic/candidateIndirectContributor> has no gUFO bridge equivalent",
       "tool": "logic-compile",
       "locations": [
@@ -3250,6 +3415,17 @@
       "severity": "note",
       "code": "logic-compile.lossy-drop",
       "message": "projection gufo drops: actual: logic:candidateSourceField on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateSourceField on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no gUFO bridge equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -3470,6 +3646,17 @@
       "severity": "note",
       "code": "logic-compile.lossy-drop",
       "message": "projection gufo drops: actual: logic:candidateSourceHash on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateSourceHash on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no gUFO bridge equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -4349,6 +4536,17 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:formalizes on <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection gufo drops: actual: logic:formalizes on <https://blackcatinformatics.ca/logic/ruleIndirectContributor> has no gUFO bridge equivalent",
       "tool": "logic-compile",
       "locations": [
@@ -4482,6 +4680,17 @@
       "severity": "note",
       "code": "logic-compile.lossy-drop",
       "message": "projection gufo drops: actual: logic:hasThresholdRow on <https://blackcatinformatics.ca/logic/defaultLadderProfile> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:head on <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> has no gUFO bridge equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -5328,6 +5537,17 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:provenance on <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection gufo drops: actual: logic:provenance on <https://blackcatinformatics.ca/logic/ruleIndirectContributor> has no gUFO bridge equivalent",
       "tool": "logic-compile",
       "locations": [
@@ -5516,6 +5736,17 @@
       "severity": "note",
       "code": "logic-compile.lossy-drop",
       "message": "projection gufo drops: actual: logic:reviewedBy on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:reviewedBy on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no gUFO bridge equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -5955,6 +6186,17 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: rule head <?finding> dropped (gUFO bridge has no rule surface)",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection gufo drops: actual: rule head <?item> dropped (gUFO bridge has no rule surface)",
       "tool": "logic-compile",
       "locations": [
@@ -6374,6 +6616,50 @@
       "severity": "note",
       "code": "logic-compile.lossy-drop",
       "message": "projection owl-dl drops: actual: logic:Formula #5 [Nested+Quantified+StrongNegation] (full first-order quantifier / connective tree) is not representable in OWL 2 DL; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> has no OWL DL equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -7099,6 +7385,17 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateCategory on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection owl-dl drops: actual: logic:candidateCategory on <https://blackcatinformatics.ca/logic/candidateIndirectContributor> has no OWL DL equivalent",
       "tool": "logic-compile",
       "locations": [
@@ -7320,6 +7617,17 @@
       "severity": "note",
       "code": "logic-compile.lossy-drop",
       "message": "projection owl-dl drops: actual: logic:candidateContract on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateContract on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no OWL DL equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -7616,6 +7924,17 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateExtractionProvenance on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection owl-dl drops: actual: logic:candidateExtractionProvenance on <https://blackcatinformatics.ca/logic/candidateIndirectContributor> has no OWL DL equivalent",
       "tool": "logic-compile",
       "locations": [
@@ -7815,6 +8134,17 @@
       "severity": "note",
       "code": "logic-compile.lossy-drop",
       "message": "projection owl-dl drops: actual: logic:candidateFormalizes on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateFormalizes on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no OWL DL equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -8045,6 +8375,17 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateLifecycle on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection owl-dl drops: actual: logic:candidateLifecycle on <https://blackcatinformatics.ca/logic/candidateIndirectContributor> has no OWL DL equivalent",
       "tool": "logic-compile",
       "locations": [
@@ -8255,6 +8596,28 @@
       "severity": "note",
       "code": "logic-compile.lossy-drop",
       "message": "projection owl-dl drops: actual: logic:candidateNegativeCase on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateNegativeCase on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateNegativeCase on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no OWL DL equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -8507,6 +8870,17 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidatePositiveCase on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection owl-dl drops: actual: logic:candidatePositiveCase on <https://blackcatinformatics.ca/logic/candidateIndirectContributor> has no OWL DL equivalent",
       "tool": "logic-compile",
       "locations": [
@@ -8717,6 +9091,17 @@
       "severity": "note",
       "code": "logic-compile.lossy-drop",
       "message": "projection owl-dl drops: actual: logic:candidateProjectionBehavior on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateProjectionBehavior on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no OWL DL equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -8958,6 +9343,17 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateScope on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection owl-dl drops: actual: logic:candidateScope on <https://blackcatinformatics.ca/logic/candidateIndirectContributor> has no OWL DL equivalent",
       "tool": "logic-compile",
       "locations": [
@@ -9189,6 +9585,17 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateSemanticRisk on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection owl-dl drops: actual: logic:candidateSemanticRisk on <https://blackcatinformatics.ca/logic/candidateIndirectContributor> has no OWL DL equivalent",
       "tool": "logic-compile",
       "locations": [
@@ -9388,6 +9795,17 @@
       "severity": "note",
       "code": "logic-compile.lossy-drop",
       "message": "projection owl-dl drops: actual: logic:candidateSourceField on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateSourceField on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no OWL DL equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -9608,6 +10026,17 @@
       "severity": "note",
       "code": "logic-compile.lossy-drop",
       "message": "projection owl-dl drops: actual: logic:candidateSourceHash on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateSourceHash on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no OWL DL equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -10487,6 +10916,17 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:formalizes on <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection owl-dl drops: actual: logic:formalizes on <https://blackcatinformatics.ca/logic/ruleIndirectContributor> has no OWL DL equivalent",
       "tool": "logic-compile",
       "locations": [
@@ -10620,6 +11060,17 @@
       "severity": "note",
       "code": "logic-compile.lossy-drop",
       "message": "projection owl-dl drops: actual: logic:hasThresholdRow on <https://blackcatinformatics.ca/logic/defaultLadderProfile> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:head on <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> has no OWL DL equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -11466,6 +11917,17 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:provenance on <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection owl-dl drops: actual: logic:provenance on <https://blackcatinformatics.ca/logic/ruleIndirectContributor> has no OWL DL equivalent",
       "tool": "logic-compile",
       "locations": [
@@ -11654,6 +12116,17 @@
       "severity": "note",
       "code": "logic-compile.lossy-drop",
       "message": "projection owl-dl drops: actual: logic:reviewedBy on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:reviewedBy on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no OWL DL equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -12093,6 +12566,17 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: rule head <?finding> 'https://blackcatinformatics.ca/gmeow/findingGateVerdict' not expressible in OWL DL (body complexity)",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection owl-dl drops: actual: rule head <?item> 'https://blackcatinformatics.ca/gmeow/instantiatesWork' not expressible in OWL DL (body complexity)",
       "tool": "logic-compile",
       "locations": [
@@ -12215,6 +12699,50 @@
       "severity": "note",
       "code": "logic-compile.lossy-drop",
       "message": "projection owl-el drops: actual: logic:Formula #5 [Nested+Quantified+StrongNegation] (full first-order quantifier / connective tree) is not representable in OWL 2 EL; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> has no EL equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -12940,6 +13468,17 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateCategory on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection owl-el drops: actual: logic:candidateCategory on <https://blackcatinformatics.ca/logic/candidateIndirectContributor> has no EL equivalent",
       "tool": "logic-compile",
       "locations": [
@@ -13161,6 +13700,17 @@
       "severity": "note",
       "code": "logic-compile.lossy-drop",
       "message": "projection owl-el drops: actual: logic:candidateContract on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateContract on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no EL equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -13457,6 +14007,17 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateExtractionProvenance on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection owl-el drops: actual: logic:candidateExtractionProvenance on <https://blackcatinformatics.ca/logic/candidateIndirectContributor> has no EL equivalent",
       "tool": "logic-compile",
       "locations": [
@@ -13656,6 +14217,17 @@
       "severity": "note",
       "code": "logic-compile.lossy-drop",
       "message": "projection owl-el drops: actual: logic:candidateFormalizes on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateFormalizes on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no EL equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -13886,6 +14458,17 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateLifecycle on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection owl-el drops: actual: logic:candidateLifecycle on <https://blackcatinformatics.ca/logic/candidateIndirectContributor> has no EL equivalent",
       "tool": "logic-compile",
       "locations": [
@@ -14096,6 +14679,28 @@
       "severity": "note",
       "code": "logic-compile.lossy-drop",
       "message": "projection owl-el drops: actual: logic:candidateNegativeCase on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateNegativeCase on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateNegativeCase on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no EL equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -14348,6 +14953,17 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidatePositiveCase on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection owl-el drops: actual: logic:candidatePositiveCase on <https://blackcatinformatics.ca/logic/candidateIndirectContributor> has no EL equivalent",
       "tool": "logic-compile",
       "locations": [
@@ -14558,6 +15174,17 @@
       "severity": "note",
       "code": "logic-compile.lossy-drop",
       "message": "projection owl-el drops: actual: logic:candidateProjectionBehavior on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateProjectionBehavior on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no EL equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -14799,6 +15426,17 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateScope on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection owl-el drops: actual: logic:candidateScope on <https://blackcatinformatics.ca/logic/candidateIndirectContributor> has no EL equivalent",
       "tool": "logic-compile",
       "locations": [
@@ -15030,6 +15668,17 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateSemanticRisk on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection owl-el drops: actual: logic:candidateSemanticRisk on <https://blackcatinformatics.ca/logic/candidateIndirectContributor> has no EL equivalent",
       "tool": "logic-compile",
       "locations": [
@@ -15229,6 +15878,17 @@
       "severity": "note",
       "code": "logic-compile.lossy-drop",
       "message": "projection owl-el drops: actual: logic:candidateSourceField on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateSourceField on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no EL equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -15449,6 +16109,17 @@
       "severity": "note",
       "code": "logic-compile.lossy-drop",
       "message": "projection owl-el drops: actual: logic:candidateSourceHash on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateSourceHash on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no EL equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -16328,6 +16999,17 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:formalizes on <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection owl-el drops: actual: logic:formalizes on <https://blackcatinformatics.ca/logic/ruleIndirectContributor> has no EL equivalent",
       "tool": "logic-compile",
       "locations": [
@@ -16461,6 +17143,17 @@
       "severity": "note",
       "code": "logic-compile.lossy-drop",
       "message": "projection owl-el drops: actual: logic:hasThresholdRow on <https://blackcatinformatics.ca/logic/defaultLadderProfile> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:head on <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> has no EL equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -17307,6 +18000,17 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:provenance on <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection owl-el drops: actual: logic:provenance on <https://blackcatinformatics.ca/logic/ruleIndirectContributor> has no EL equivalent",
       "tool": "logic-compile",
       "locations": [
@@ -17495,6 +18199,17 @@
       "severity": "note",
       "code": "logic-compile.lossy-drop",
       "message": "projection owl-el drops: actual: logic:reviewedBy on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:reviewedBy on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no EL equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -17924,6 +18639,17 @@
       "severity": "note",
       "code": "logic-compile.lossy-drop",
       "message": "projection owl-el drops: actual: rule head <?entity> dropped (EL has no rule surface)",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: rule head <?finding> dropped (EL has no rule surface)",
       "tool": "logic-compile",
       "locations": [
         {
@@ -19772,6 +20498,160 @@
       "severity": "note",
       "code": "logic-compile.lossy-drop",
       "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> <https://blackcatinformatics.ca/logic/reviewedBy> <https://blackcatinformatics.ca/logic/reviewerLogicFoundation> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> <https://blackcatinformatics.ca/logic/candidateCategory> <https://blackcatinformatics.ca/logic/CategoryDerivationRule> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> <https://blackcatinformatics.ca/logic/candidateContract> <https://blackcatinformatics.ca/logic/PositiveHornProfile> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> <https://blackcatinformatics.ca/logic/candidateExtractionProvenance> \"hand-harvested from gmeow:findingGateVerdict's skos:definition, which states the verdict is derived on exactly the principal up-set ↑(Error, Blocking, Binding) of the truth ordering, mirroring the Rust gmeow_errors::grade::gate() morphism (design/LOGIC-FOUNDATION.md, §Typed formalization governance)\" is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> <https://blackcatinformatics.ca/logic/candidateFormalizes> <https://blackcatinformatics.ca/gmeow/findingGateVerdict> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> <https://blackcatinformatics.ca/logic/candidateLifecycle> <https://blackcatinformatics.ca/logic/CandidateAccepted> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> <https://blackcatinformatics.ca/logic/candidateNegativeCase> <https://blackcatinformatics.ca/logic/cqGateFatalAdvisoryNeverFatalRejected> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> <https://blackcatinformatics.ca/logic/candidateNegativeCase> <https://blackcatinformatics.ca/logic/cqGateFatalPermittedConflictNeverFatalRejected> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> <https://blackcatinformatics.ca/logic/candidatePositiveCase> <https://blackcatinformatics.ca/logic/cqGateFatalVerdictHolds> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> <https://blackcatinformatics.ca/logic/candidateProjectionBehavior> <https://blackcatinformatics.ca/logic/ExactPreservation> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> <https://blackcatinformatics.ca/logic/candidateScope> \"derivation: (gmeow:findingSeverity gmeow:severityError) ∧ (gmeow:findingCategory ∘ gmeow:categoryBlocking gmeow:blockingBlocking) ∧ (gmeow:findingStandpoint gmeow:standpointBinding) ⇒ gmeow:findingGateVerdict gmeow:gateFatal\" is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> <https://blackcatinformatics.ca/logic/candidateSemanticRisk> <https://blackcatinformatics.ca/logic/RiskCoreContaminating> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> <https://blackcatinformatics.ca/logic/candidateSourceField> <https://blackcatinformatics.ca/logic/ProseFieldDefinition> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> <https://blackcatinformatics.ca/logic/candidateSourceHash> \"sha256:e12a391fb8dfadd6f26028567308db254ed169b158f4320f05e527c59b376359\" is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> <https://blackcatinformatics.ca/logic/reviewedBy> <https://blackcatinformatics.ca/logic/reviewerLogicFoundation> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
       "tool": "logic-compile",
       "locations": [
         {
@@ -22378,7 +23258,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleIndirectContributor> <https://blackcatinformatics.ca/logic/body> <c14n27> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> <https://blackcatinformatics.ca/logic/body> <c14n19> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
       "tool": "logic-compile",
       "locations": [
         {
@@ -22389,7 +23269,84 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleIndirectContributor> <https://blackcatinformatics.ca/logic/body> <c14n44> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> <https://blackcatinformatics.ca/logic/body> <c14n28> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> <https://blackcatinformatics.ca/logic/body> <c14n62> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> <https://blackcatinformatics.ca/logic/body> <c14n9> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> <https://blackcatinformatics.ca/logic/formalizes> <https://blackcatinformatics.ca/gmeow/findingGateVerdict> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> <https://blackcatinformatics.ca/logic/head> <c14n18> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> <https://blackcatinformatics.ca/logic/provenance> <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleIndirectContributor> <https://blackcatinformatics.ca/logic/body> <c14n31> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleIndirectContributor> <https://blackcatinformatics.ca/logic/body> <c14n48> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
       "tool": "logic-compile",
       "locations": [
         {
@@ -22411,7 +23368,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleIndirectContributor> <https://blackcatinformatics.ca/logic/head> <c14n24> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleIndirectContributor> <https://blackcatinformatics.ca/logic/head> <c14n27> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
       "tool": "logic-compile",
       "locations": [
         {
@@ -22433,7 +23390,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleInstantiatesWork> <https://blackcatinformatics.ca/logic/body> <c14n18> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleInstantiatesWork> <https://blackcatinformatics.ca/logic/body> <c14n21> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
       "tool": "logic-compile",
       "locations": [
         {
@@ -22444,7 +23401,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleInstantiatesWork> <https://blackcatinformatics.ca/logic/body> <c14n30> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleInstantiatesWork> <https://blackcatinformatics.ca/logic/body> <c14n34> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
       "tool": "logic-compile",
       "locations": [
         {
@@ -22455,7 +23412,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleInstantiatesWork> <https://blackcatinformatics.ca/logic/body> <c14n37> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleInstantiatesWork> <https://blackcatinformatics.ca/logic/body> <c14n41> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
       "tool": "logic-compile",
       "locations": [
         {
@@ -22477,7 +23434,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleInstantiatesWork> <https://blackcatinformatics.ca/logic/head> <c14n10> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleInstantiatesWork> <https://blackcatinformatics.ca/logic/head> <c14n11> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
       "tool": "logic-compile",
       "locations": [
         {
@@ -22499,7 +23456,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleOrgMembershipPropagation> <https://blackcatinformatics.ca/logic/body> <c14n35> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleOrgMembershipPropagation> <https://blackcatinformatics.ca/logic/body> <c14n39> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
       "tool": "logic-compile",
       "locations": [
         {
@@ -22510,7 +23467,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleOrgMembershipPropagation> <https://blackcatinformatics.ca/logic/body> <c14n55> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleOrgMembershipPropagation> <https://blackcatinformatics.ca/logic/body> <c14n59> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
       "tool": "logic-compile",
       "locations": [
         {
@@ -22532,7 +23489,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleOrgMembershipPropagation> <https://blackcatinformatics.ca/logic/head> <c14n22> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleOrgMembershipPropagation> <https://blackcatinformatics.ca/logic/head> <c14n25> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
       "tool": "logic-compile",
       "locations": [
         {
@@ -22554,7 +23511,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n12> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n13> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
       "tool": "logic-compile",
       "locations": [
         {
@@ -22565,29 +23522,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n14> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n17> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n19> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n15> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
       "tool": "logic-compile",
       "locations": [
         {
@@ -22609,7 +23544,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n26> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n20> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
       "tool": "logic-compile",
       "locations": [
         {
@@ -22620,7 +23555,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n28> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n22> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
       "tool": "logic-compile",
       "locations": [
         {
@@ -22642,6 +23577,17 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n30> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n32> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
       "tool": "logic-compile",
       "locations": [
@@ -22653,7 +23599,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n33> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n36> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
       "tool": "logic-compile",
       "locations": [
         {
@@ -22664,7 +23610,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n34> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n37> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
       "tool": "logic-compile",
       "locations": [
         {
@@ -22675,7 +23621,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n42> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n38> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
       "tool": "logic-compile",
       "locations": [
         {
@@ -22686,18 +23632,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n48> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n49> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n46> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
       "tool": "logic-compile",
       "locations": [
         {
@@ -22719,7 +23654,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n58> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n53> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
       "tool": "logic-compile",
       "locations": [
         {
@@ -22730,7 +23665,29 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n62> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n56> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n63> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n67> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
       "tool": "logic-compile",
       "locations": [
         {
@@ -22752,7 +23709,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/head> <c14n59> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/head> <c14n64> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
       "tool": "logic-compile",
       "locations": [
         {
@@ -22774,17 +23731,6 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf> <https://blackcatinformatics.ca/logic/body> <c14n20> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
       "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf> <https://blackcatinformatics.ca/logic/body> <c14n23> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
       "tool": "logic-compile",
       "locations": [
@@ -22796,7 +23742,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf> <https://blackcatinformatics.ca/logic/body> <c14n25> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf> <https://blackcatinformatics.ca/logic/body> <c14n26> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
       "tool": "logic-compile",
       "locations": [
         {
@@ -22807,7 +23753,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf> <https://blackcatinformatics.ca/logic/body> <c14n36> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf> <https://blackcatinformatics.ca/logic/body> <c14n29> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
       "tool": "logic-compile",
       "locations": [
         {
@@ -22818,7 +23764,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf> <https://blackcatinformatics.ca/logic/body> <c14n38> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf> <https://blackcatinformatics.ca/logic/body> <c14n40> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
       "tool": "logic-compile",
       "locations": [
         {
@@ -22829,7 +23775,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf> <https://blackcatinformatics.ca/logic/body> <c14n43> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf> <https://blackcatinformatics.ca/logic/body> <c14n42> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
       "tool": "logic-compile",
       "locations": [
         {
@@ -22841,6 +23787,17 @@
       "severity": "note",
       "code": "logic-compile.lossy-drop",
       "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf> <https://blackcatinformatics.ca/logic/body> <c14n47> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf> <https://blackcatinformatics.ca/logic/body> <c14n51> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
       "tool": "logic-compile",
       "locations": [
         {
@@ -22906,18 +23863,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> <https://blackcatinformatics.ca/logic/body> <c14n11> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> <https://blackcatinformatics.ca/logic/body> <c14n15> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> <https://blackcatinformatics.ca/logic/body> <c14n12> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
       "tool": "logic-compile",
       "locations": [
         {
@@ -22939,7 +23885,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> <https://blackcatinformatics.ca/logic/body> <c14n21> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> <https://blackcatinformatics.ca/logic/body> <c14n17> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
       "tool": "logic-compile",
       "locations": [
         {
@@ -22950,7 +23896,18 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> <https://blackcatinformatics.ca/logic/body> <c14n31> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> <https://blackcatinformatics.ca/logic/body> <c14n24> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> <https://blackcatinformatics.ca/logic/body> <c14n35> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
       "tool": "logic-compile",
       "locations": [
         {
@@ -22972,7 +23929,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> <https://blackcatinformatics.ca/logic/body> <c14n50> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> <https://blackcatinformatics.ca/logic/body> <c14n54> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
       "tool": "logic-compile",
       "locations": [
         {
@@ -22983,7 +23940,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> <https://blackcatinformatics.ca/logic/body> <c14n61> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> <https://blackcatinformatics.ca/logic/body> <c14n66> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
       "tool": "logic-compile",
       "locations": [
         {
@@ -22994,7 +23951,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> <https://blackcatinformatics.ca/logic/head> <c14n56> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> <https://blackcatinformatics.ca/logic/head> <c14n60> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
       "tool": "logic-compile",
       "locations": [
         {
@@ -23016,7 +23973,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> <https://blackcatinformatics.ca/logic/body> <c14n13> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> <https://blackcatinformatics.ca/logic/body> <c14n10> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
       "tool": "logic-compile",
       "locations": [
         {
@@ -23027,7 +23984,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> <https://blackcatinformatics.ca/logic/body> <c14n40> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> <https://blackcatinformatics.ca/logic/body> <c14n14> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
       "tool": "logic-compile",
       "locations": [
         {
@@ -23038,7 +23995,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> <https://blackcatinformatics.ca/logic/body> <c14n46> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> <https://blackcatinformatics.ca/logic/body> <c14n44> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
       "tool": "logic-compile",
       "locations": [
         {
@@ -23060,7 +24017,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> <https://blackcatinformatics.ca/logic/body> <c14n57> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> <https://blackcatinformatics.ca/logic/body> <c14n50> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
       "tool": "logic-compile",
       "locations": [
         {
@@ -23071,7 +24028,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> <https://blackcatinformatics.ca/logic/body> <c14n60> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> <https://blackcatinformatics.ca/logic/body> <c14n61> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
       "tool": "logic-compile",
       "locations": [
         {
@@ -23082,7 +24039,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> <https://blackcatinformatics.ca/logic/body> <c14n63> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> <https://blackcatinformatics.ca/logic/body> <c14n65> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
       "tool": "logic-compile",
       "locations": [
         {
@@ -23093,7 +24050,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> <https://blackcatinformatics.ca/logic/body> <c14n64> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> <https://blackcatinformatics.ca/logic/body> <c14n68> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
       "tool": "logic-compile",
       "locations": [
         {
@@ -23104,7 +24061,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> <https://blackcatinformatics.ca/logic/body> <c14n9> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> <https://blackcatinformatics.ca/logic/body> <c14n69> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
       "tool": "logic-compile",
       "locations": [
         {
@@ -23115,7 +24072,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> <https://blackcatinformatics.ca/logic/head> <c14n51> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> <https://blackcatinformatics.ca/logic/head> <c14n55> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
       "tool": "logic-compile",
       "locations": [
         {
@@ -23137,7 +24094,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleTenureClaimObservedFeature> <https://blackcatinformatics.ca/logic/body> <c14n41> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleTenureClaimObservedFeature> <https://blackcatinformatics.ca/logic/body> <c14n45> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
       "tool": "logic-compile",
       "locations": [
         {
@@ -23148,7 +24105,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleTenureClaimObservedFeature> <https://blackcatinformatics.ca/logic/body> <c14n53> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleTenureClaimObservedFeature> <https://blackcatinformatics.ca/logic/body> <c14n57> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
       "tool": "logic-compile",
       "locations": [
         {
@@ -23170,7 +24127,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleTenureClaimObservedFeature> <https://blackcatinformatics.ca/logic/head> <c14n39> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleTenureClaimObservedFeature> <https://blackcatinformatics.ca/logic/head> <c14n43> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
       "tool": "logic-compile",
       "locations": [
         {
@@ -23192,7 +24149,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleTenureClaimVantage> <https://blackcatinformatics.ca/logic/body> <c14n45> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleTenureClaimVantage> <https://blackcatinformatics.ca/logic/body> <c14n49> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
       "tool": "logic-compile",
       "locations": [
         {
@@ -23203,7 +24160,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleTenureClaimVantage> <https://blackcatinformatics.ca/logic/body> <c14n54> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleTenureClaimVantage> <https://blackcatinformatics.ca/logic/body> <c14n58> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
       "tool": "logic-compile",
       "locations": [
         {
@@ -23225,7 +24182,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleTenureClaimVantage> <https://blackcatinformatics.ca/logic/head> <c14n29> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleTenureClaimVantage> <https://blackcatinformatics.ca/logic/head> <c14n33> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
       "tool": "logic-compile",
       "locations": [
         {

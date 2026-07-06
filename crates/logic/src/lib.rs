@@ -37,7 +37,7 @@ pub mod explain;
 pub(crate) mod facts;
 pub mod foundation;
 // Runtime-side projection of compiler parse diagnostics into the PyO3-tainted
-// gmeow-diagnostics Report — kept out of the wasm-able compiler crate.
+// gmeow-errors Report — kept out of the wasm-able compiler crate.
 pub mod logic_diagnostics;
 // Compiler-IR → runtime EvalRule bridge: depends on crate::rule_ir (Nemo),
 // so it stays in the runtime crate, not the wasm-able gmeow-logic-compile crate.

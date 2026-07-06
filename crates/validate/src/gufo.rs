@@ -36,7 +36,7 @@
 
 use std::collections::{BTreeSet, HashSet, VecDeque};
 
-use gmeow_diagnostics::model::{Finding, Location, Severity};
+use gmeow_errors::model::{Finding, Location, Severity};
 use purrdf::{DatasetView, GraphMatch, RdfDataset, TermId, TermRef, TermValue};
 
 use crate::model::{owl, rdf, rdfs};

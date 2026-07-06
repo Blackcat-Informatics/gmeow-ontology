@@ -1,6 +1,6 @@
-# gmeow-diagnostics
+# gmeow-errors
 
-`gmeow-diagnostics` is the Rust-owned diagnostics core for GMEOW developer
+`gmeow-errors` is the Rust-owned diagnostics core for GMEOW developer
 tooling. It defines the canonical `Finding` and `Report` model used by Python
 commands to emit human text, JSON, SARIF 2.1.0, and static HTML reports.
 

@@ -3,7 +3,7 @@
 
 //! The diagnostics-rail commands: `external-tool`, `feedback`, `slice-fix-deps`.
 //!
-//! All three project onto the shared `gmeow_diagnostics` rail: `external-tool`
+//! All three project onto the shared `gmeow_errors` rail: `external-tool`
 //! wraps a foreign tool's failure as one canonical finding and MIRRORS its exit
 //! code; `feedback` folds every offline dev-gate surface into one report,
 //! projects it to the console, and writes the `{json,sarif,html,gts}` artifacts;
@@ -16,7 +16,7 @@ use std::path::Path;
 use std::process::Command;
 
 use gmeow_cli_core::{ConsoleMode, DiagnosticsConfig};
-use gmeow_diagnostics::{Finding, Report, Severity, render};
+use gmeow_errors::{Finding, Report, Severity, render};
 
 use crate::dev_common::{NAMESPACE, ONTOLOGY_IRI, fail, project_root, reporter_for};
 
@@ -376,12 +376,7 @@ fn surfaces() -> Vec<(&'static str, SurfaceThunk)> {
             for rel in drifted {
                 let mut finding = Finding::new(Severity::Error, "generator.drift", rel.clone())
                     .with_tool("pipeline");
-                finding.add_location(gmeow_diagnostics::Location::new(
-                    Some(rel),
-                    None,
-                    None,
-                    None,
-                ));
+                finding.add_location(gmeow_errors::Location::new(Some(rel), None, None, None));
                 r.add_finding(finding);
             }
             for finding in run.findings {
