@@ -26,6 +26,7 @@ macro_rules! assert_diag_snapshot {
     };
 }
 
+pub mod code;
 pub mod grade;
 pub mod model;
 pub mod render;
@@ -34,6 +35,7 @@ pub mod render;
 #[cfg(feature = "python")]
 pub mod py;
 
+pub use code::{Code, CodeRegistry, UnknownCode, intern_code, register_code, seed_codes};
 pub use grade::{
     Belnap, Blocking, BoundedLattice, GateVerdict, Grade, GradeMerge, Standpoint, gate,
 };
