@@ -12,7 +12,7 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use std::time::Duration;
 
-use gmeow_diagnostics::{Finding, Report, Severity, render};
+use gmeow_errors::{Finding, Report, Severity, render};
 
 use crate::dev_common::{NAMESPACE, ONTOLOGY_IRI, fail, project_root, snapshot_bytes};
 

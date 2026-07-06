@@ -341,6 +341,11 @@ class AxisEnum(str, Enum):
     axisZ = "axisZ"
 
 
+class BlockingDispositionEnum(str, Enum):
+    blockingBlocking = "blockingBlocking"
+    blockingCoherent = "blockingCoherent"
+
+
 class BranchConditionTypeEnum(str, Enum):
     branchConditionIf = "branchConditionIf"
     branchConditionLoop = "branchConditionLoop"
@@ -782,6 +787,12 @@ class DiagnosticSeverityEnum(str, Enum):
     severityWarning = "severityWarning"
 
 
+class DiagnosticStandpointEnum(str, Enum):
+    standpointAdvisory = "standpointAdvisory"
+    standpointBinding = "standpointBinding"
+    standpointPerspectival = "standpointPerspectival"
+
+
 class DimensionFamilyEnum(str, Enum):
     familyAppraisal = "familyAppraisal"
     familyCoreAffect = "familyCoreAffect"
@@ -1104,6 +1115,11 @@ class GTSProfileEnum(str, Enum):
     gtsProfileGeneric = "gtsProfileGeneric"
     gtsProfileImage = "gtsProfileImage"
     gtsProfileOpaque = "gtsProfileOpaque"
+
+
+class GateVerdictEnum(str, Enum):
+    gateCollected = "gateCollected"
+    gateFatal = "gateFatal"
 
 
 class GenderEnum(str, Enum):
@@ -4114,6 +4130,11 @@ class BlockchainNetwork(Entity):
     chainId: str | None = Field(default=None)
 
 
+class BlockingDisposition(ConfiguredBaseModel):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/BlockingDisposition"
+    pass
+
+
 class BodyValue(InformationObject):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/BodyValue"
     is_a: ClassVar[str] = "InformationObject"
@@ -4990,6 +5011,11 @@ class DiagnosticSeverity(ConfiguredBaseModel):
     pass
 
 
+class DiagnosticStandpoint(ConfiguredBaseModel):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/DiagnosticStandpoint"
+    pass
+
+
 class Diff(InformationObject):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/Diff"
     is_a: ClassVar[str] = "InformationObject"
@@ -5430,10 +5456,12 @@ class Finding(Observation):
     is_a: ClassVar[str] = "Observation"
     findingCategory: list[str] | None = Field(default=None)
     findingCode: list[str] | None = Field(default=None)
+    findingGateVerdict: list[GateVerdict] | None = Field(default=None)
     findingHelpUri: list[str] | None = Field(default=None)
     findingLocation: list[str] | None = Field(default=None)
     findingMessage: list[str] | None = Field(default=None)
     findingSeverity: list[DiagnosticSeverity] | None = Field(default=None)
+    findingStandpoint: list[DiagnosticStandpoint] | None = Field(default=None)
     findingSuggestion: list[str] | None = Field(default=None)
     findingTool: list[str] | None = Field(default=None)
 
@@ -5510,6 +5538,11 @@ class GTSSegment(Manifestation):
     gtsSegmentIndex: int | None = Field(default=None)
     gtsSegmentOf: GTSDocument | None = Field(default=None)
     usesTransformCodec: list[TransformCodec] | None = Field(default=None)
+
+
+class GateVerdict(ConfiguredBaseModel):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/GateVerdict"
+    pass
 
 
 class Gender(ConfiguredBaseModel):
