@@ -1,21 +1,20 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Divergence ledger over the native reasoner versus classic oracles.
+//! Divergence ledger over the native reasoner versus an independent oracle.
 //!
-//! This module compares the native engine's results ([`crate::reason::el`] for EL
-//! subsumption, [`crate::reason::dl`] for DL consistency) against the classic
-//! oracles (ELK for subsumption, HermiT for consistency) on **structured tuples,
-//! not message bytes** — mirroring the doctrine that comparison happens on
-//! the structured shape, never on rendered human strings.
+//! This module compares the native engine's subsumption results
+//! ([`crate::reason::el`]) against an independent reasoning oracle — the
+//! in-process, conformance-tested [`crate::entail_oracle`] over `purrdf::entail` —
+//! on **structured tuples, not message bytes**, mirroring the doctrine that
+//! comparison happens on the structured shape, never on rendered human strings.
 //!
 //! It classifies each tuple as agreeing, native-only, oracle-only, or a native
-//! DL coverage defect, and tallies the counts. The Docker oracles themselves run
-//! in Python; this Rust module owns only the comparison logic and the structured
-//! ledger shape.
+//! DL coverage defect, and tallies the counts. This Rust module owns the comparison
+//! logic and the structured ledger shape.
 //!
-//! There is no I/O and no TTL emission here — serialization is the job of a later
-//! task. This module produces only the in-memory structured ledger.
+//! There is no I/O and no TTL emission here — this module produces only the
+//! in-memory structured ledger; serialization is a separate concern.
 
 use gmeow_errors::{Finding, Severity};
 use purrdf::RdfLoss;
@@ -38,8 +37,8 @@ pub enum DivergenceKind {
     /// This is disjoint from [`DivergenceKind::DlGap`]: a case the native path
     /// **cannot decide** (beyond the EL/RL fragment) is a `DlGap`, never a
     /// `CorpusOnly`; only a wrong *decided* answer is a `CorpusOnly`. It is also
-    /// distinct from [`DivergenceKind::OracleOnly`], which records a live ELK/HermiT
-    /// oracle decision rather than a corpus's frozen published verdict.
+    /// distinct from [`DivergenceKind::OracleOnly`], which records a live oracle
+    /// decision rather than a corpus's frozen published verdict.
     CorpusOnly,
 }
 
@@ -74,39 +73,39 @@ pub struct DivergenceLedger {
 ///
 /// `passed` is the gate decision; `reasons` is a short, deterministic English
 /// list naming each failing category (empty when `passed` is `true`). There is
-/// **no severity knob** (ETHOS §5/§19): any `NativeOnly`, `OracleOnly`, or `DlGap`
-/// row fails the lane. This is the single authority for the decision — Python only
-/// surfaces this verdict, it never recomputes it.
+/// **no severity knob** (ETHOS §5/§19): any `OracleOnly`, `DlGap`, or `CorpusOnly`
+/// row fails the lane (a `NativeOnly` row is expected superset richness, not a
+/// failure). This is the single authority for the decision.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct LedgerVerdict {
     pub passed: bool,
     pub reasons: Vec<String>,
 }
 
-/// Decide the strict native↔oracle cross-check verdict (the anti-regression
-/// superset gate criterion 3): the native-decided construct set must be a
-/// superset of the oracle-decided set, with no native coverage defect.
+/// Decide the native↔oracle cross-check verdict (the anti-regression **superset**
+/// gate criterion 3): the native-decided construct set must be a superset of the
+/// independent oracle's, with no native coverage defect.
 ///
-/// The verdict is `passed` only when the ledger has **zero** `NativeOnly`,
-/// `OracleOnly`, and `DlGap` rows:
+/// The verdict is `passed` only when the ledger has **zero** `OracleOnly`,
+/// `DlGap`, and `CorpusOnly` rows:
 ///
-/// * an `OracleOnly` row is a coverage regression — the oracle decided a construct
-///   the native path did not (native ⊉ oracle);
+/// * an `OracleOnly` row is a native SOUNDNESS/coverage regression — the standard
+///   oracle decided a construct the native path did NOT (native ⊉ oracle), the one
+///   thing this gate must catch;
 /// * a `DlGap` row is a native coverage defect (a construct the native path did
 ///   not decide at all);
-/// * a `NativeOnly` row is a genuine native↔oracle divergence.
+/// * a `CorpusOnly` row is a disagreement with published external ground truth.
 ///
-/// Each non-zero tally contributes one deterministic English reason. This is the
-/// Rust authority for the decision the Python `classic_cross_check.enforce()`
-/// thin wrapper surfaces unchanged.
+/// A `NativeOnly` row is **NOT** a failure: gmeow's native reasoner runs over the
+/// full world-scoped bundle with the standpoint calculus, whereas the entail oracle
+/// runs standard OWL-RL over each world's plain-RDF projection, so native
+/// legitimately derives a *richer* superset. Native-only rows are recorded (counted
+/// and printed) purely for diagnosis — `native ⊇ oracle` is exactly the success
+/// condition, not a divergence.
+///
+/// Each remaining non-zero tally contributes one deterministic English reason.
 pub fn enforce(ledger: &DivergenceLedger) -> LedgerVerdict {
     let mut reasons: Vec<String> = Vec::new();
-    if ledger.native_only > 0 {
-        reasons.push(format!(
-            "{} native-only divergence row(s): derived natively but not by the oracle",
-            ledger.native_only
-        ));
-    }
     if ledger.oracle_only > 0 {
         reasons.push(format!(
             "{} oracle-only row(s): the oracle decided a construct the native path did not \
@@ -136,7 +135,7 @@ pub fn enforce(ledger: &DivergenceLedger) -> LedgerVerdict {
 /// Strip a single surrounding pair of angle brackets from `s`.
 ///
 /// The native [`crate::reason::InferredAxiom`] object comes through as a Nemo
-/// display form (`<iri>`); ELK tuples arrive as bare IRIs. Normalizing both by
+/// display form (`<iri>`); oracle tuples arrive as bare IRIs. Normalizing both by
 /// trimming one leading `<` and one trailing `>` lets the two forms compare equal.
 fn unbracket(s: &str) -> String {
     s.strip_prefix('<')
@@ -156,20 +155,20 @@ fn normalize_key(tuple: &(String, String, String)) -> (String, String, String) {
     )
 }
 
-/// Compare native and ELK subsumption tuples, emitting one classified row per key.
+/// Compare native and oracle subsumption tuples, emitting one classified row per key.
 ///
 /// Both inputs are `(subject, object, world)` tuples; they are normalized (angle
 /// brackets stripped) and collected into [`BTreeSet`]s so the result is
 /// deterministic. The intersection yields [`DivergenceKind::Agree`] rows, native
-/// ∖ ELK yields [`DivergenceKind::NativeOnly`], and ELK ∖ native yields
+/// ∖ oracle yields [`DivergenceKind::NativeOnly`], and oracle ∖ native yields
 /// [`DivergenceKind::OracleOnly`]. Rows are emitted in sorted-key order.
 pub fn compare_subsumption(
     native: &[(String, String, String)],
-    elk: &[(String, String, String)],
+    oracle: &[(String, String, String)],
 ) -> Vec<LedgerRow> {
     let native_keys: BTreeSet<(String, String, String)> =
         native.iter().map(normalize_key).collect();
-    let elk_keys: BTreeSet<(String, String, String)> = elk.iter().map(normalize_key).collect();
+    let elk_keys: BTreeSet<(String, String, String)> = oracle.iter().map(normalize_key).collect();
 
     let mut rows: Vec<LedgerRow> = Vec::new();
 
@@ -180,152 +179,36 @@ pub fn compare_subsumption(
         rows.push(LedgerRow {
             kind: DivergenceKind::Agree,
             category: "subsumption".to_owned(),
-            detail: format!("native and ELK agree: {subject} ⊑ {object}"),
+            detail: format!("native and the oracle agree: {subject} ⊑ {object}"),
             subject,
             object,
             world,
         });
     }
 
-    // NativeOnly: native ∖ ELK.
+    // NativeOnly: native ∖ oracle.
     for key in native_keys.difference(&elk_keys) {
         let (subject, object, world) = key.clone();
         rows.push(LedgerRow {
             kind: DivergenceKind::NativeOnly,
             category: "subsumption".to_owned(),
-            detail: format!("derived natively but not by ELK: {subject} ⊑ {object}"),
+            detail: format!("derived natively but not by the oracle: {subject} ⊑ {object}"),
             subject,
             object,
             world,
         });
     }
 
-    // OracleOnly: ELK ∖ native.
+    // OracleOnly: oracle ∖ native.
     for key in elk_keys.difference(&native_keys) {
         let (subject, object, world) = key.clone();
         rows.push(LedgerRow {
             kind: DivergenceKind::OracleOnly,
             category: "subsumption".to_owned(),
-            detail: format!("derived by ELK but not natively: {subject} ⊑ {object}"),
+            detail: format!("derived by the oracle but not natively: {subject} ⊑ {object}"),
             subject,
             object,
             world,
-        });
-    }
-
-    rows
-}
-
-/// Render a boolean consistency verdict as its English token.
-fn verdict_token(consistent: bool) -> &'static str {
-    if consistent {
-        "consistent"
-    } else {
-        "inconsistent"
-    }
-}
-
-/// Compare native and HermiT consistency verdicts (and their unsat class sets).
-///
-/// If `hermit_consistent` is `None` the oracle was not run: a single note row is
-/// emitted (classified [`DivergenceKind::NativeOnly`]) recording that only the
-/// native verdict is known, with `object` set to the native verdict token. The
-/// knowledge is native-only — no oracle ran — so the row is `NativeOnly`, never
-/// `OracleOnly` (naming the source honestly).
-///
-/// If `Some(h)`, one [`DivergenceKind::Agree`] row is emitted when the verdicts
-/// match; otherwise the disagreement is recorded as a [`DivergenceKind::NativeOnly`]
-/// row (native verdict) plus a [`DivergenceKind::OracleOnly`] row (HermiT verdict).
-///
-/// The two unsatisfiable-class sets are then compared like subsumption keys:
-/// intersection ⇒ `Agree`, native ∖ hermit ⇒ `NativeOnly`, hermit ∖ native ⇒
-/// `OracleOnly`, each `object` being `"owl:Nothing"`. All output is deterministic.
-pub fn compare_consistency(
-    native_consistent: bool,
-    native_unsat: &[String],
-    hermit_consistent: Option<bool>,
-    hermit_unsat: &[String],
-) -> Vec<LedgerRow> {
-    let mut rows: Vec<LedgerRow> = Vec::new();
-    let native_token = verdict_token(native_consistent).to_owned();
-
-    match hermit_consistent {
-        None => {
-            rows.push(LedgerRow {
-                kind: DivergenceKind::NativeOnly,
-                category: "consistency".to_owned(),
-                subject: String::new(),
-                object: native_token.clone(),
-                world: String::new(),
-                detail: format!(
-                    "HermiT was not run; only the native verdict is recorded: {native_token}"
-                ),
-            });
-        }
-        Some(h) => {
-            if native_consistent == h {
-                rows.push(LedgerRow {
-                    kind: DivergenceKind::Agree,
-                    category: "consistency".to_owned(),
-                    subject: String::new(),
-                    object: native_token.clone(),
-                    world: String::new(),
-                    detail: format!("native and HermiT agree: ontology is {native_token}"),
-                });
-            } else {
-                let hermit_token = verdict_token(h).to_owned();
-                rows.push(LedgerRow {
-                    kind: DivergenceKind::NativeOnly,
-                    category: "consistency".to_owned(),
-                    subject: String::new(),
-                    object: native_token.clone(),
-                    world: String::new(),
-                    detail: format!("native says {native_token} but HermiT says {hermit_token}"),
-                });
-                rows.push(LedgerRow {
-                    kind: DivergenceKind::OracleOnly,
-                    category: "consistency".to_owned(),
-                    subject: String::new(),
-                    object: hermit_token.clone(),
-                    world: String::new(),
-                    detail: format!("HermiT says {hermit_token} but native says {native_token}"),
-                });
-            }
-        }
-    }
-
-    // Compare the unsatisfiable-class sets, normalized like subsumption.
-    let native_unsat_keys: BTreeSet<String> = native_unsat.iter().map(|c| unbracket(c)).collect();
-    let hermit_unsat_keys: BTreeSet<String> = hermit_unsat.iter().map(|c| unbracket(c)).collect();
-
-    for class in native_unsat_keys.intersection(&hermit_unsat_keys) {
-        rows.push(LedgerRow {
-            kind: DivergenceKind::Agree,
-            category: "consistency".to_owned(),
-            subject: class.clone(),
-            object: "owl:Nothing".to_owned(),
-            world: String::new(),
-            detail: format!("native and HermiT agree: {class} is unsatisfiable"),
-        });
-    }
-    for class in native_unsat_keys.difference(&hermit_unsat_keys) {
-        rows.push(LedgerRow {
-            kind: DivergenceKind::NativeOnly,
-            category: "consistency".to_owned(),
-            subject: class.clone(),
-            object: "owl:Nothing".to_owned(),
-            world: String::new(),
-            detail: format!("{class} is unsatisfiable natively but not per HermiT"),
-        });
-    }
-    for class in hermit_unsat_keys.difference(&native_unsat_keys) {
-        rows.push(LedgerRow {
-            kind: DivergenceKind::OracleOnly,
-            category: "consistency".to_owned(),
-            subject: class.clone(),
-            object: "owl:Nothing".to_owned(),
-            world: String::new(),
-            detail: format!("{class} is unsatisfiable per HermiT but not natively"),
         });
     }
 
@@ -563,8 +446,8 @@ mod tests {
     #[test]
     fn identical_lists_all_agree() {
         let native = vec![t(A, B, W), t(B, C, W)];
-        let elk = vec![t(A, B, W), t(B, C, W)];
-        let rows = compare_subsumption(&native, &elk);
+        let oracle = vec![t(A, B, W), t(B, C, W)];
+        let rows = compare_subsumption(&native, &oracle);
         assert!(
             rows.iter().all(|r| r.kind == DivergenceKind::Agree),
             "identical lists must all be Agree: {rows:?}"
@@ -578,8 +461,8 @@ mod tests {
     #[test]
     fn native_extra_tuple_is_native_only() {
         let native = vec![t(A, B, W), t(B, C, W)];
-        let elk = vec![t(A, B, W)];
-        let rows = compare_subsumption(&native, &elk);
+        let oracle = vec![t(A, B, W)];
+        let rows = compare_subsumption(&native, &oracle);
         let native_only: Vec<&LedgerRow> = rows
             .iter()
             .filter(|r| r.kind == DivergenceKind::NativeOnly)
@@ -590,10 +473,10 @@ mod tests {
     }
 
     #[test]
-    fn elk_extra_tuple_is_oracle_only() {
+    fn oracle_extra_tuple_is_oracle_only() {
         let native = vec![t(A, B, W)];
-        let elk = vec![t(A, B, W), t(B, C, W)];
-        let rows = compare_subsumption(&native, &elk);
+        let oracle = vec![t(A, B, W), t(B, C, W)];
+        let rows = compare_subsumption(&native, &oracle);
         let oracle_only: Vec<&LedgerRow> = rows
             .iter()
             .filter(|r| r.kind == DivergenceKind::OracleOnly)
@@ -605,10 +488,10 @@ mod tests {
 
     #[test]
     fn bracket_normalization_makes_them_agree() {
-        // Native carries angle-bracketed display forms; ELK carries bare IRIs.
+        // Native carries angle-bracketed display forms; the oracle carries bare IRIs.
         let native = vec![t("<http://ex/A>", "<http://ex/B>", "<http://ex/w>")];
-        let elk = vec![t(A, B, W)];
-        let rows = compare_subsumption(&native, &elk);
+        let oracle = vec![t(A, B, W)];
+        let rows = compare_subsumption(&native, &oracle);
         assert_eq!(
             rows.len(),
             1,
@@ -620,45 +503,6 @@ mod tests {
             "bracket forms must normalize to Agree"
         );
         assert_eq!(rows[0].subject, A, "subject normalized to bare IRI");
-    }
-
-    #[test]
-    fn consistency_agreement_when_both_consistent() {
-        let rows = compare_consistency(true, &[], Some(true), &[]);
-        assert_eq!(rows.len(), 1, "single agree row: {rows:?}");
-        assert_eq!(rows[0].kind, DivergenceKind::Agree);
-        assert_eq!(rows[0].object, "consistent");
-    }
-
-    #[test]
-    fn consistency_disagreement_native_vs_hermit() {
-        let rows = compare_consistency(true, &[], Some(false), &[]);
-        assert_eq!(rows.len(), 2, "one NativeOnly + one OracleOnly: {rows:?}");
-        assert!(
-            rows.iter().any(|r| r.kind == DivergenceKind::NativeOnly),
-            "native says consistent — a NativeOnly divergence"
-        );
-        assert!(
-            rows.iter().any(|r| r.kind == DivergenceKind::OracleOnly),
-            "HermiT says inconsistent — an OracleOnly divergence"
-        );
-    }
-
-    #[test]
-    fn consistency_oracle_not_run_records_native_only() {
-        let rows = compare_consistency(false, &[], None, &[]);
-        assert_eq!(
-            rows.len(),
-            1,
-            "single note row when HermiT not run: {rows:?}"
-        );
-        assert_eq!(
-            rows[0].kind,
-            DivergenceKind::NativeOnly,
-            "no oracle ran — the verdict is native-only knowledge, not oracle-only"
-        );
-        assert_eq!(rows[0].object, "inconsistent", "records the native verdict");
-        assert!(rows[0].detail.contains("not run"));
     }
 
     #[test]
@@ -723,32 +567,39 @@ mod tests {
 
     #[test]
     fn enforce_passes_on_pure_agreement() {
-        // Identical native+ELK subsumptions and matching consistency → all Agree.
+        // Identical native+oracle subsumptions → all Agree, verdict passes.
         let subs = compare_subsumption(&[t(A, B, W)], &[t(A, B, W)]);
-        let cons = compare_consistency(true, &[], Some(true), &[]);
-        let ledger = build_ledger(subs, cons, Vec::new(), Vec::new());
+        let ledger = build_ledger(subs, Vec::new(), Vec::new(), Vec::new());
         let verdict = enforce(&ledger);
         assert!(verdict.passed, "pure agreement must pass: {verdict:?}");
         assert!(verdict.reasons.is_empty(), "no reasons when passing");
     }
 
     #[test]
-    fn enforce_fails_on_native_only() {
-        // native ∖ ELK = one NativeOnly row.
+    fn enforce_passes_on_native_only_richness() {
+        // native ∖ oracle = one NativeOnly row. Under the superset criterion this is
+        // gmeow's richer world-scoped closure, NOT a divergence: `native ⊇ oracle`
+        // passes. The row is still counted (for diagnosis) but never fails the gate.
         let subs = compare_subsumption(&[t(A, B, W), t(B, C, W)], &[t(A, B, W)]);
         let ledger = build_ledger(subs, Vec::new(), Vec::new(), Vec::new());
-        assert_eq!(ledger.native_only, 1);
+        assert_eq!(
+            ledger.native_only, 1,
+            "the native-only row is still counted"
+        );
         let verdict = enforce(&ledger);
-        assert!(!verdict.passed, "a NativeOnly row must fail");
         assert!(
-            verdict.reasons.iter().any(|r| r.contains("native-only")),
-            "reason names the native-only divergence: {verdict:?}"
+            verdict.passed,
+            "native ⊇ oracle: a NativeOnly row is richness, not a failure: {verdict:?}"
+        );
+        assert!(
+            verdict.reasons.is_empty(),
+            "no failing reasons for native-only"
         );
     }
 
     #[test]
     fn enforce_fails_on_oracle_only() {
-        // ELK ∖ native = one OracleOnly row → a coverage regression (native ⊉ oracle).
+        // oracle ∖ native = one OracleOnly row → a coverage regression (native ⊉ oracle).
         let subs = compare_subsumption(&[t(A, B, W)], &[t(A, B, W), t(B, C, W)]);
         let ledger = build_ledger(subs, Vec::new(), Vec::new(), Vec::new());
         assert_eq!(ledger.oracle_only, 1);
@@ -779,9 +630,9 @@ mod tests {
 
     #[test]
     fn enforce_accumulates_every_failing_category() {
-        // One of each failing kind → three distinct reasons, deterministic order.
+        // One of each kind. native {A⊑B}, oracle {C⊑B}: A⊑B is NativeOnly (richness,
+        // NOT a failure under the superset criterion), C⊑B is OracleOnly (a failure).
         let subs = compare_subsumption(&[t(A, B, W)], &[t(C, B, W)]);
-        // native {A⊑B}, elk {C⊑B}: A⊑B is NativeOnly, C⊑B is OracleOnly.
         let gaps = dl_gap_rows(&[RdfLoss::new("reason.dl-gap.union", "beyond EL")]);
         let ledger = build_ledger(subs, Vec::new(), gaps, Vec::new());
         assert_eq!(ledger.native_only, 1);
@@ -789,7 +640,11 @@ mod tests {
         assert_eq!(ledger.dl_gap, 1);
         let verdict = enforce(&ledger);
         assert!(!verdict.passed);
-        assert_eq!(verdict.reasons.len(), 3, "one reason per failing category");
+        assert_eq!(
+            verdict.reasons.len(),
+            2,
+            "one reason per FAILING category (oracle-only + dl-gap); native-only is not a failure"
+        );
     }
 
     // ── external-corpus grading (CorpusOnly vs DlGap disjointness) ──────────────

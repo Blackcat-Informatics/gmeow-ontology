@@ -3,8 +3,8 @@
 
 //! Native, ontology-independent OWL-2 reasoning over the Nemo chase.
 //!
-//! This module hosts fixed entailment rule sets — like ELK's built-in
-//! calculus — that run over an arbitrary TBox/ABox through the world-scoped
+//! This module hosts fixed, built-in entailment rule sets — an intrinsic
+//! entailment calculus — that run over an arbitrary TBox/ABox through the world-scoped
 //! ternary gmeow encoding. Unlike the user-authored `logic:` programs the
 //! the compiler pipeline projects, these rule sets are intrinsic to the
 //! reasoner: they encode the OWL semantics themselves, not a domain ontology.
@@ -24,8 +24,7 @@ pub use dl::{DlVerdict, InconsistencyWitness, UnsatClass, dl_consistency};
 pub use el::{ElClosure, InferredAxiom, el_closure};
 pub use ledger::{
     DivergenceKind, DivergenceLedger, ExternalComparison, LedgerRow, LedgerVerdict, build_ledger,
-    compare_consistency, compare_external_corpus, compare_subsumption, divergence_findings,
-    dl_gap_rows, enforce,
+    compare_external_corpus, compare_subsumption, divergence_findings, dl_gap_rows, enforce,
 };
 pub use rl::{RlClosure, RlTriple, rl_closure};
 

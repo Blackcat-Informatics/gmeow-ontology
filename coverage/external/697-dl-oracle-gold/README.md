@@ -6,9 +6,9 @@ SPDX-License-Identifier: CC-BY-4.0
 # native ⊇ oracle DL gold
 
 A frozen, **oracle-generated** conformance corpus proving that GMEOW's native,
-Docker-free reasoner catches every inconsistency / unsatisfiable class the classic
-Java OWL 2 DL oracle (HermiT) catches — `native ⊇ oracle` (criteria 2
-and 4 of the cross-check policy). The gold here is the **oracle's** verdict, frozen from a real HermiT run;
+Docker-free reasoner catches every inconsistency / unsatisfiable class the external
+OWL 2 DL oracle catches — `native ⊇ oracle` (criteria 2
+and 4 of the cross-check policy). The gold here is the **oracle's** verdict, frozen from a real external OWL 2 DL oracle run;
 the native engine is then asserted to reproduce it OFFLINE.
 
 ## Layout
@@ -20,18 +20,18 @@ the native engine is then asserted to reproduce it OFFLINE.
 
 Each `expected/<stem>.json` records: `consistent`, the sorted set of
 `unsatisfiable_classes`, the producing oracle + Docker image + UTC timestamp +
-dataset license, and a cross-reference ELK verdict (recorded for context only —
-ELK is the EL oracle and silently ignores beyond-EL axioms, so it is **not** the
+dataset license, and a cross-reference EL-oracle verdict (recorded for context only —
+the EL oracle silently ignores beyond-EL axioms, so it is **not** the
 authority).
 
 ## Construct families covered
 
-| dataset | family | HermiT verdict |
+| dataset | family | DL oracle verdict |
 | --- | --- | --- |
 | `disjoint-subclass-unsat.ttl` | class disjointness ⇒ unsatisfiable class | consistent, 1 unsat |
 | `complementof-unsat.ttl` | `owl:complementOf` ⇒ unsatisfiable class | consistent, 1 unsat |
 | `disjoint-instance-inconsistent.ttl` | disjointness on an individual | inconsistent |
-| `some-all-values-clash.ttl` | `∃p.C ⊓ ∀p.D`, C ⊓ D = ⊥ (beyond-EL; ELK misses it) | inconsistent |
+| `some-all-values-clash.ttl` | `∃p.C ⊓ ∀p.D`, C ⊓ D = ⊥ (beyond-EL; the EL oracle misses it) | inconsistent |
 | `max-cardinality-clash.ttl` | `≤1 p` with two distinct fillers | inconsistent |
 | `qualified-cardinality-clash.ttl` | `≤1 p.C` with two distinct C-fillers | inconsistent |
 | `oneof-nominal-clash.ttl` | nominal / `owl:oneOf` closure | inconsistent |
@@ -41,24 +41,25 @@ authority).
 
 ## Provenance + honesty
 
-* **Producing oracle:** ROBOT/HermiT, image `obolibrary/robot:v1.9.7`
-  (HermiT is the sound-and-complete OWL 2 DL reasoner; the authority for every
+* **Producing oracle:** an external OWL 2 DL oracle in a pinned Docker image
+  (a sound-and-complete OWL 2 DL reasoner; the authority for every
   beyond-EL family).
 * **Dataset license:** CC-BY-4.0 (hand-authored here; same license as the gUFO
   alignment the project dogfoods).
 * The frozen verdicts are **never** hand-typed to match native and **never**
   edited to make a test pass (honesty doctrine). They come straight
-  from a real HermiT run.
+  from a real external OWL 2 DL oracle run.
 
 ## Regenerating the gold
 
-```sh
-make maint-697-oracle-gold      # non-required maintainer lane; needs Docker + ROBOT image
-```
-
-This re-runs HermiT (and, where the dataset is EL-decidable, ELK) in Docker over
-every `datasets/*.ttl` and rewrites every `expected/*.json`. It is the only step
-that needs Docker/Java; the conformance gate below does not.
+The gold is **permanently frozen** from its historical external OWL 2 DL oracle run: the
+Docker/Java external DL oracle stack (and its regeneration lane) has been **removed**, so the
+`expected/*.json` verdicts are no longer regenerated in-repo. The reasoning oracle that
+now runs continuously is the native, in-process, Docker-free `purrdf::entail` engine
+(OWL-RL subsumption + OWL-Direct-tableau consistency, 70/70 W3C-entailment
+conformance-tested), exercised on-gate by `make reason-verify`; this frozen corpus is
+kept as an independent external-oracle-authored baseline that the native reasoner must
+still strictly cover, checked offline by the gate below.
 
 ## The offline gate
 
@@ -73,11 +74,13 @@ runs native `gmeow_logic::reason::reason_all`, and asserts native ⊇ oracle:
 It needs **no Docker, Java, or network** and is deterministic, so it runs in the
 default `cargo nextest` / `make conformance` gate.
 
-## Full-bundle oracle: BLOCKED (documented)
+## Full-bundle oracle: historically BLOCKED, now removed
 
-Running the oracle over the *entire* GMEOW bundle (`gmeow-dev reason --mode docker
---reasoner hermit|ELK`) is currently **blocked** at the ROBOT OWL 2 DL profile
-check, reproduced 2026-06-25:
+Running the external oracle over the *entire* GMEOW bundle was never possible: the
+Docker reasoning path (`gmeow-dev reason --mode docker`) has since been **removed**
+entirely — it now hard-fails, since the native binary embeds no external DL oracle container
+stack. Even before removal it was **blocked** at the external OWL 2 DL profile check
+(reproduced 2026-06-25):
 
 ```text
 PROFILE VIOLATION ERROR https://blackcatinformatics.ca/gmeow/full violates profile DL
@@ -88,7 +91,8 @@ PROFILE VIOLATION ERROR https://blackcatinformatics.ca/gmeow/full violates profi
 ```
 
 `gmeow:usesTerm`'s `rdfs:Resource` range (and a `Declaration(Class(rdfs:Resource))`)
-sit outside OWL 2 DL, so ROBOT/HermiT refuses to reason over the merged bundle.
-This is the PR's known blocker; the curated small datasets above are where
-HermiT/ELK run clean, so the frozen gold is scoped to them — not faked over the
-bundle.
+sit outside OWL 2 DL, so the external DL oracle refused to reason over the merged bundle. The
+curated small datasets above are where the external DL/EL oracles ran clean, so the frozen gold is
+scoped to them — not faked over the bundle. Full-bundle reasoning is now handled by
+the native EL/DL engine and the in-process `purrdf::entail` cross-check, neither of
+which needs OWL 2 DL profile conformance.

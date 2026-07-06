@@ -330,7 +330,23 @@ fn data_dataset(data_bytes: &[u8], data_format: &str) -> Result<Arc<RdfDataset>,
             .map_err(|e| format!("JSON-LD parse error: {e}"));
     }
     purrdf::parse_dataset(data_bytes, data_format, None)
-        .map_err(|e| format!("data graph parse error: {e}"))
+        .map_err(|e| located_parse_error("data graph parse error", &e))
+}
+
+/// Render a parse [`purrdf::RdfDiagnostic`] as a hard-fail message that surfaces the
+/// source location (line/column) purrdf records on the diagnostic but its `Display`
+/// omits — so a malformed data graph reports *where* it broke, not just *that* it did.
+fn located_parse_error(context: &str, diagnostic: &purrdf::RdfDiagnostic) -> String {
+    let at = diagnostic
+        .location
+        .as_ref()
+        .and_then(|loc| match (loc.line, loc.column) {
+            (Some(line), Some(column)) => Some(format!(" at line {line}, column {column}")),
+            (Some(line), None) => Some(format!(" at line {line}")),
+            _ => None,
+        })
+        .unwrap_or_default();
+    format!("{context}{at}: {diagnostic}")
 }
 
 /// Build a frozen native [`RdfDataset`] from external RDF data bytes, flattening any
@@ -351,7 +367,7 @@ fn data_dataset_flat(data_bytes: &[u8], data_format: &str) -> Result<Arc<RdfData
     // Parse to the native IR, then re-home every named graph to the default graph so
     // the flattened graph matches the old `FlattenToDefaultGraph` store.
     let dataset = purrdf::parse_dataset(data_bytes, data_format, None)
-        .map_err(|e| format!("data graph parse error: {e}"))?;
+        .map_err(|e| located_parse_error("data graph parse error", &e))?;
     flatten_to_default_graph(&dataset)
 }
 
