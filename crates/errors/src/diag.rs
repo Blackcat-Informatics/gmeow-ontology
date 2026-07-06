@@ -152,13 +152,12 @@ pub struct ContextFrame {
 }
 
 /// The ambient pipeline locus a diagnostic was emitted from: the Rust emit site
-/// (always), plus the scheduler-stamped stage/shard once it is folded onto the
-/// carrier (filled at attach time).
+/// (always), plus the scheduler-stamped stage once it is folded onto the carrier
+/// (filled at attach time).
 #[derive(Debug, Clone)]
 pub struct PipelineLocus {
     pub emitted_at: &'static Location<'static>,
     pub stage: Option<StageId>,
-    pub shard: Option<u32>,
 }
 
 impl PipelineLocus {
@@ -167,7 +166,6 @@ impl PipelineLocus {
         PipelineLocus {
             emitted_at: Location::caller(),
             stage: None,
-            shard: None,
         }
     }
 }
@@ -339,10 +337,9 @@ impl Diag {
         self.0.antecedents.extend(antecedents);
         self
     }
-    /// Set the scheduler-stamped stage/shard (used at carrier attach time).
-    pub fn with_locus(mut self, stage: StageId, shard: u32) -> Self {
+    /// Set the scheduler-stamped stage (used at carrier attach time).
+    pub fn with_locus(mut self, stage: StageId) -> Self {
         self.0.locus.stage = Some(stage);
-        self.0.locus.shard = Some(shard);
         self
     }
 }
