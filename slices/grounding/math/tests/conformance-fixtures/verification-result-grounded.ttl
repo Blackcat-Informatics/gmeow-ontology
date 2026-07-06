@@ -1,0 +1,17 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Well-formed: a formal-verification result object grounded BY a separate gmeow:Observation
+# that names it through gmeow:observationResult and carries a gmeow:vantage (the checker).
+# The result is not the claim; the observation holds the verdict from the checker's
+# standpoint. Conforms to math:FormalVerificationResultShape.
+# Bound by ex:ecVerificationResultGrounded.
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <http://example.org/math/> .
+
+ex:qed a math:FormalVerificationResult .
+ex:obs a gmeow:Observation ;
+    gmeow:observationResult ex:qed ;
+    gmeow:vantage ex:checker .
+ex:checker a gmeow:Standpoint .

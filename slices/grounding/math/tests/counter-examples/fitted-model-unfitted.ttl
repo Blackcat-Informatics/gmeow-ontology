@@ -1,0 +1,18 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:FittedModelShape: a fitted model that names its specification
+# (math:modelFormula) but is NOT bound to any data — a fitted model is a statistical model
+# bound to concrete data, so a model with no math:fittedToData is ill-formed. It fails ONLY
+# on sh:minCount 1 for math:fittedToData, so validation MUST emit
+# shacl.MinCountConstraintComponent and NO other finding (math:UnfittedModel).
+# Bound by ex:ecFittedModelUnfitted.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:fit a math:FittedModel ;
+    math:modelFormula ex:formula .
+ex:formula a math:ModelFormula ;
+    math:argumentSlot ex:slot0 .
+ex:slot0 a math:ArgumentSlot ; math:slotIndex 0 ; math:slotExpression ex:respVar .
+ex:respVar a math:VariableExpression .
