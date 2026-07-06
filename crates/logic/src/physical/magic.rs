@@ -49,8 +49,10 @@
 //!    no magic rule — it demands nothing).
 //!
 //! The positive query corpus introduces no negation, so the transformed program is
-//! stratifiable; a transform that WOULD break stratification surfaces as
-//! [`crate::physical::seminaive::UnsupportedKind::DemandBreaksStratification`].
+//! always stratifiable.  A transform that WOULD break stratification (only possible
+//! once native rules carry negation) falls back to a full stratified evaluation of
+//! the UNTRANSFORMED base program — correct, without the demand pruning — rather than
+//! demoting to an external engine (no-optionality: the native core stays authoritative).
 
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -639,14 +641,35 @@ pub(crate) fn resolve_native(
                 let frontier = budgeted.frontier();
                 (budgeted.rows, budgeted.status, frontier)
             }
-            NativeOutcome::Unsupported(kind) => {
-                // A demand transform that breaks stratification is the documented gap kind;
-                // surface any non-stratifiable transform under that name.
-                let kind = match kind {
-                    UnsupportedKind::NonStratifiable => UnsupportedKind::DemandBreaksStratification,
-                    other => other,
-                };
-                return Ok(NativeOutcome::Unsupported(kind));
+            // The magic (demand) transform threads a magic guard through the program; a
+            // negative edge in that guarded cycle could make the transformed program
+            // non-stratifiable even though the UNTRANSFORMED program is stratified by
+            // construction.  Fall back to a full stratified evaluation of the BASE rules —
+            // correct, only without the demand pruning (it materializes more than the query
+            // strictly needs).  This is a NATIVE fallback, never an external-engine demotion
+            // (no-optionality: the native core stays authoritative).  The base EDB is
+            // re-extracted WITHOUT the demand seed, which the untransformed rules never
+            // reference.  (The query IR carries no negation today, so a demand transform is
+            // always stratifiable and this arm is not corpus-reachable yet; it is the correct
+            // seam for when native negation lands.)
+            NativeOutcome::Unsupported(UnsupportedKind::NonStratifiable) => {
+                let base_edb = extract_edb(foreign, world);
+                match evaluate(base_edb, &rules, budget.max_steps)? {
+                    NativeOutcome::Decided(budgeted) => {
+                        let frontier = budgeted.frontier();
+                        (budgeted.rows, budgeted.status, frontier)
+                    }
+                    // If the BASE program is also non-stratifiable, the program genuinely is
+                    // — a real declared gap the caller routes to the oracle.
+                    NativeOutcome::Unsupported(other) => {
+                        return Ok(NativeOutcome::Unsupported(other));
+                    }
+                }
+            }
+            // Any other declared native gap (cut / arithmetic / non-binary) passes through
+            // to the caller's oracle route unchanged.
+            NativeOutcome::Unsupported(other) => {
+                return Ok(NativeOutcome::Unsupported(other));
             }
         };
 

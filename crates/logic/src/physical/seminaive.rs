@@ -85,8 +85,6 @@ pub(crate) enum UnsupportedKind {
     Arithmetic,
     /// A non-binary atom (arity ≠ 2 after the world slot is dropped).
     NonBinaryAtom,
-    /// A demand (magic-set) transformation that would break stratification.
-    DemandBreaksStratification,
     /// An existential-rule program whose termination the acyclicity certifier could
     /// not establish (outside the certified-terminating chase fragment).  The router
     /// refuses it to the oracle, or runs it budgeted-partial — never a wrong or
