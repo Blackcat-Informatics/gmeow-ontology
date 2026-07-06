@@ -317,6 +317,11 @@ export enum AxisEnum {
     axisZ = "axisZ",
 }
 
+export enum BlockingDispositionEnum {
+    blockingBlocking = "blockingBlocking",
+    blockingCoherent = "blockingCoherent",
+}
+
 export enum BranchConditionTypeEnum {
     branchConditionIf = "branchConditionIf",
     branchConditionLoop = "branchConditionLoop",
@@ -758,6 +763,12 @@ export enum DiagnosticSeverityEnum {
     severityWarning = "severityWarning",
 }
 
+export enum DiagnosticStandpointEnum {
+    standpointAdvisory = "standpointAdvisory",
+    standpointBinding = "standpointBinding",
+    standpointPerspectival = "standpointPerspectival",
+}
+
 export enum DimensionFamilyEnum {
     familyAppraisal = "familyAppraisal",
     familyCoreAffect = "familyCoreAffect",
@@ -1080,6 +1091,11 @@ export enum GTSProfileEnum {
     gtsProfileGeneric = "gtsProfileGeneric",
     gtsProfileImage = "gtsProfileImage",
     gtsProfileOpaque = "gtsProfileOpaque",
+}
+
+export enum GateVerdictEnum {
+    gateCollected = "gateCollected",
+    gateFatal = "gateFatal",
 }
 
 export enum GenderEnum {
@@ -3595,6 +3611,9 @@ export interface BlockchainNetwork extends Entity {
     chainId?: string,
 }
 
+export interface BlockingDisposition {
+}
+
 export interface BodyPart extends InformationObject {
     charset?: string[],
     contentId?: string[],
@@ -4169,6 +4188,9 @@ export interface DeterminationStatus {
 export interface DiagnosticSeverity {
 }
 
+export interface DiagnosticStandpoint {
+}
+
 export interface Diff extends InformationObject {
     diffFrom?: Commit,
     diffTo?: Commit,
@@ -4576,10 +4598,12 @@ export interface FinancialTransaction extends Event {
 export interface Finding extends Observation {
     findingCategory?: string[],
     findingCode?: string[],
+    findingGateVerdict?: GateVerdict[],
     findingHelpUri?: string[],
     findingLocation?: string[],
     findingMessage?: string[],
     findingSeverity?: DiagnosticSeverity[],
+    findingStandpoint?: DiagnosticStandpoint[],
     findingSuggestion?: string[],
     findingTool?: string[],
 }
@@ -4615,6 +4639,9 @@ export interface GTSSegment extends Manifestation {
     gtsSegmentIndex?: number,
     gtsSegmentOf?: GTSDocument,
     usesTransformCodec?: TransformCodec[],
+}
+
+export interface GateVerdict {
 }
 
 export interface Gender {

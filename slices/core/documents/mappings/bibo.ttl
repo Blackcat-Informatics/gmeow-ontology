@@ -29,7 +29,7 @@ gmeow:mapBiboPatent a gmeow:ProjectionMapping ;
         gmeow:anchor "bpat" ;
         gmeow:atom ( [ gmeow:subjectVar "bpat" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Patent ] ) ;
         gmeow:edoalSource gmeow:Patent ; gmeow:edoalSourceKind "class" ] ;
-    gmeow:hasBinding [ gmeow:profile "bibo" ; gmeow:toClass bibo:Patent ; gmeow:relation "=" ; gmeow:confidence 0.95 ] .
+    gmeow:hasBinding [ gmeow:profile "bibo" ; gmeow:toClass bibo:Patent ; gmeow:relation "=" ; gmeow:confidence 0.95 ; gmeow:mnemomorphic true ] .
 
 gmeow:mapBiboDoi a gmeow:ProjectionMapping ;
     rdfs:label "DOI-shaped identifier → bibo:doi"@x-gmeow-english ;

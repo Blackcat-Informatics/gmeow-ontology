@@ -14,7 +14,7 @@ use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
 use std::time::{Duration, SystemTime};
 
-use gmeow_diagnostics::{Finding, Location, Report, Severity};
+use gmeow_errors::{Finding, Location, Report, Severity};
 use purrdf::{DatasetView, GraphMatch, TermRef, TermValue};
 use serde::Serialize;
 use serde_json::Value;

@@ -8,7 +8,7 @@
 //! asserted RDF-1.2 graph *unioned* with the native EL/DL derived subsumption /
 //! type / equivalent-class edges), then run each `queries/verify/*.rq`
 //! "bad-example" SPARQL SELECT over it. Any returned solution row is a
-//! violation, surfaced as an `error` [`gmeow_diagnostics::Finding`].
+//! violation, surfaced as an `error` [`gmeow_errors::Finding`].
 //!
 //! The authority lives here (Principles 17/18): closure materialization, SPARQL
 //! execution, and `Finding`/`Report` construction are all native. Python only
@@ -17,7 +17,7 @@
 
 use std::sync::Arc;
 
-use gmeow_diagnostics::{Finding, Location, Report, Severity};
+use gmeow_errors::{Finding, Location, Report, Severity};
 use purrdf::sparql::NativeSparqlEngine;
 use purrdf::{
     DatasetMut, MutableDataset, QuadValues, RdfDataset, SparqlEngine, SparqlRequest, SparqlResult,

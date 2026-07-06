@@ -14,7 +14,7 @@
 use std::collections::{BTreeSet, HashSet};
 use std::path::Path;
 
-use gmeow_diagnostics::render;
+use gmeow_errors::render;
 use gmeow_validate::lint::{LintConfig, default_annotation_predicates};
 use gmeow_validate::validate_all::{SignatureConfig, ValidateOptions, ValidationRun};
 

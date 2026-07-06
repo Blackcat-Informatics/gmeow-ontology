@@ -3575,3 +3575,320 @@ math:ApplicationOperatorCardinality
     rdfs:label "Application Operator Cardinality"@x-gmeow-english ;
     skos:definition "The failure raised when a math:ApplicationExpression does not apply exactly one math:operator — zero operators leave the application undefined, two or more make it ambiguous which operator is applied. Every application (a tensor computation node or an arithmetic application) names the single operator it invokes through math:operator; the sibling binder AST (math:BindingExpression) is not an application and is exempt."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
+
+# --- The ingestion bridges — front-ends that lift external artifacts ---------- #
+# A bridge is the mnemomorphic put leg of a logic:Correspondence: GMEOW is the
+# source S, the external artifact the view V; get (down-projection) is the future
+# math->external projection, put (up-projection) IS the lift. Running a leg backward
+# is the calculus's named anti-pattern; a lawful put comes from a retained
+# mnemomorphic witness (math:parseSource, marked logic:loadBearing). Each bridge run
+# is a gmeow:Activity that carries the process-layer in-band witness through the
+# reused logic:instantiatesSchema / logic:instantiatesPlan back-references, ties its
+# produced math: codomain back through gmeow:wasGeneratedBy, routes computation to
+# logic: through the existing math:compilesToLogicFormula / math:compilesToLogicTerm,
+# and hard-fails (math:UnliftableIngest) on anything it cannot lift.
+
+math:IngestRun
+    a owl:Class ;
+    rdfs:subClassOf gmeow:Activity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Ingest Run"@x-gmeow-english ;
+    skos:definition "A bridge run: the executed occurrence of the up-projection (put) leg of a logic:Correspondence that lifts an external artifact into the grounding layers, splitting mathematical/structural content into math: and computation into logic:. A subclass of gmeow:Activity — the process half of the process / result / claim separation — abstracting the three concrete bridges (math:RIngestRun, math:ONNXIngestRun, math:ProofIngestRun). It retains its source as a math:parseSource witness (the in-band mnemomorphic complement, marked logic:loadBearing, that discharges put after get equals identity), carries the process-layer in-band witness through logic:instantiatesSchema and logic:instantiatesPlan, and ties each produced math: object back through gmeow:wasGeneratedBy. A run that retains a source but lifts no structured math: codomain and enumerates no residue is ill-formed (math:UnliftableIngest)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:RIngestRun
+    a owl:Class ;
+    rdfs:subClassOf math:IngestRun ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "R Ingest Run"@x-gmeow-english ;
+    skos:definition "The R bridge run: an ingest run that lifts an R script's mathematical and statistical content into math: and its computation into logic:. Data frames lift to math:DatasetMatrix (held by reference), a model formula (the ~ operator, a binder not a string) to a math:ModelFormula, lm/glm/lmer to a math:StatisticalModel / math:FittedModel, distribution calls to a math:Distribution, and the broom tidy/glance/augment triple to math:Estimate / math:FittedModel / math:Residual; control flow and general computation route to logic:. Its correspondence's assertable rung is a lossy lens on the non-injective fit, climbing to section on the formula/data/coefficient sub-fragment recorded by the mnemomorphic witness. Anchored externally by reference to the R language and the broom vocabulary; no R ontology exists — the lifter is an authored Rust front-end."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:ONNXIngestRun
+    a owl:Class ;
+    rdfs:subClassOf math:IngestRun ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "ONNX Ingest Run"@x-gmeow-english ;
+    skos:definition "The ONNX bridge run: an ingest run that lifts a model graph into a math:TensorComputationGraph — ONNX node protos to tensor-operator math:ApplicationExpressions, initializers to math:WeightTensors in a math:ParameterSpace, graph inputs/outputs to typed tensor slots, and metadata to provenance. The result is exactly the self-structure object of the learning charter, so an AI can describe its own architecture by lifting its own ONNX export; its correspondence's aspired rung is section/retraction (the structure fully recovers). ONNX (Apache-2.0) is the interchange anchor by reference; the meaning of the architecture is authored, not in ONNX."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:ProofIngestRun
+    a owl:Class ;
+    rdfs:subClassOf math:IngestRun ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Proof Ingest Run"@x-gmeow-english ;
+    skos:definition "The proof-as-process bridge run: an ingest run that lifts a proof-assistant declaration dependency DAG into a math:ProofDependencyGraph and the math: proof layer (math:Proof / math:ProofStep / math:dependsOnAxiom), framing the proof effort as a goal-decomposed process — each lemma a logic:GoalExpression sub-goal (kind logic:AchievementGoal) reached through math:provesGoal, each step an action, and the QED a math:FormalVerificationResult result object grounded by a gmeow:Observation. Its correspondence's aspired rung is section/retraction (the DAG recovers from the lift and witness). Anchored externally by reference to mathlib, Metamath (CC0), and TPTP/TSTP; GMEOW's workflow is the executable shape of the proof search."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:parseSource
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "parse source"@x-gmeow-english ;
+    skos:definition "Relates a math:IngestRun to the in-band source witness it retains — the mnemomorphic complement that lets the up-projection (put) leg recover the source rather than synthesize a plausible one. Domain math:IngestRun; range the retained source witness, a structured node marked logic:loadBearing true and carrying enough of the source to recover what the lift did not map (never a bare droppable string — an opaque blob is the amnesic case), stated in prose. The witness is why 'retain the source' is a law (the Mnemomorphism gate), not a decoration."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:ingestCorrespondence
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "ingest correspondence"@x-gmeow-english ;
+    skos:definition "Relates a math:IngestRun to the single logic:Correspondence node it carries — THE attachment point of the lift's law-spine. Domain math:IngestRun, range logic:Correspondence (stated in prose). Everything about the lift that is a law rather than a facet lives on that Correspondence: its logic:morphismClass (the ordered law-spine rung), logic:preservationKind, logic:mnemomorphic witness flag, logic:correspondenceRelation, logic:hasDeterminacy, and any logic:LawClaim with its logic:DischargeVerdict. math: never shadows those properties; it only points at the node that holds them, exactly as the language slice's lang:translationCorrespondence attaches a translation unit to its crossing. A bridge run carries exactly one."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# --- R-bridge codomain: statistical objects (STATISTICS-charter vocabulary) --- #
+
+math:StatisticalModel
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Statistical Model"@x-gmeow-english ;
+    skos:definition "A statistical model: a family of probability distributions (with a math:ModelFormula specification and declared assumptions) posited to have generated data. A subclass of math:MathematicalObject; when bound to concrete data by fitting it becomes a math:FittedModel. The specification names its structure through math:modelFormula; the model is the process-independent object an R lm/glm/lmer call lifts into."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:FittedModel
+    a owl:Class ;
+    rdfs:subClassOf math:StatisticalModel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Fitted Model"@x-gmeow-english ;
+    skos:definition "A fitted model: a math:StatisticalModel bound to concrete data through math:fittedToData and specified by a math:modelFormula — the trained artifact an lm/glm/lmer fit produces, from which math:Estimate coefficients and math:Residual values are read. A fitted model missing its data or its specification is ill-formed (math:UnfittedModel). The R broom glance triple lifts a model's summary statistics onto this object."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:ModelFormula
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalExpression ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Model Formula"@x-gmeow-english ;
+    skos:definition "A model formula: the structured specification a math:StatisticalModel relates a response to its terms by — the R y ~ x1 + x2 form lifted as a math:BindingExpression AST (the ~ is a binder over indexed math:ArgumentSlot operands, never a string), so the response, terms, interactions, and offsets are inspectable structure. A subclass of math:MathematicalExpression; carried by math:modelFormula."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:DatasetMatrix
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Dataset Matrix"@x-gmeow-english ;
+    skos:definition "A dataset matrix: the data a math:FittedModel is fitted to (math:fittedToData), framed by name and structure but held BY REFERENCE — a blob reference and origin, never the payload bytes inlined (the project's blob-by-reference doctrine). A subclass of math:MathematicalObject; an R data frame lifts to this object, which names and frames the data without embedding it."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Distribution
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Distribution"@x-gmeow-english ;
+    skos:definition "A probability distribution: a law assigning probabilities over outcomes, named by its family through math:distributionFamily (normal, binomial, Poisson, …) and parameterized. A subclass of math:MathematicalObject; an R rnorm/dbinom/… call lifts to this object with its family and parameterization, distinct from the math:ProbabilityMeasure it induces."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Estimate
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Estimate"@x-gmeow-english ;
+    skos:definition "An estimate: a produced value that estimates an estimand (math:estimatesEstimand) and, where relevant, a model parameter (math:estimatedParameter), carrying its value (math:estimateValue) and the estimator that produced it (math:estimator). A subclass of math:MathematicalObject and the structured result object of the process / result / claim separation — neither the analysis activity nor the held claim. The R broom tidy triple lifts model coefficients onto these objects."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Residual
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Residual"@x-gmeow-english ;
+    skos:definition "A residual: the difference between an observed value and the value a math:FittedModel predicts, related to the fit it is a residual of through math:residualOf. A subclass of math:MathematicalObject; the R broom augment triple lifts per-observation residuals onto these objects. Its statistical MEANING, if read, is a vantage-held gmeow:Observation, never an intrinsic property of the number."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:modelFormula
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "model formula"@x-gmeow-english ;
+    skos:definition "Relates a math:StatisticalModel or math:FittedModel to its math:ModelFormula specification. Domain a math:StatisticalModel, range math:ModelFormula (stated in prose). The specification is a math:BindingExpression AST, never a string; a fitted model without one is ill-formed (math:UnfittedModel)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:fittedToData
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "fitted to data"@x-gmeow-english ;
+    skos:definition "Relates a math:FittedModel to the math:DatasetMatrix it was fitted to. Domain math:FittedModel, range math:DatasetMatrix (stated in prose). Reserved for math:FittedModel — it is the data binding that distinguishes a fitted model from an unbound math:StatisticalModel, never attached to an estimate; a fitted model without it is ill-formed (math:UnfittedModel)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:estimatesEstimand
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "estimates estimand"@x-gmeow-english ;
+    skos:definition "Relates a math:Estimate to the estimand — the target quantity — it estimates. Domain math:Estimate, range the estimand it targets (stated in prose). An estimate references its estimand and/or its estimated parameter and its estimator; missing them it is underspecified."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:estimatedParameter
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "estimated parameter"@x-gmeow-english ;
+    skos:definition "Relates a math:Estimate to the model parameter it estimates, where the estimand is a parameter of a math:StatisticalModel. Domain math:Estimate, range the model parameter (stated in prose). The companion of math:estimatesEstimand for model-based estimation."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:estimateValue
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "estimate value"@x-gmeow-english ;
+    skos:definition "Relates a math:Estimate to the value it carries — a math:Quantity or number. Domain math:Estimate, range the estimated value (stated in prose). The produced value, distinct from the estimand it estimates and the estimator that produced it."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:estimator
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "estimator"@x-gmeow-english ;
+    skos:definition "Relates a math:Estimate to the estimator — the rule or procedure — that produced it (ordinary least squares, maximum likelihood, …). Domain math:Estimate, range the estimator (stated in prose). An estimate names its estimator so the produced value is never a bare number without its act."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:residualOf
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "residual of"@x-gmeow-english ;
+    skos:definition "Relates a math:Residual to the math:FittedModel it is a residual of. Domain math:Residual, range math:FittedModel (stated in prose). Names which fit an observed-minus-predicted difference belongs to."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:distributionFamily
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "distribution family"@x-gmeow-english ;
+    skos:definition "Relates a math:Distribution to the family it belongs to — normal, binomial, Poisson, and the rest. Domain math:Distribution, range the distribution family (stated in prose). A distribution names its family and its parameterization; missing the family it is underspecified."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# --- Proof-bridge codomain: the proof layer (EXPRESSIONS-charter vocabulary) -- #
+
+math:ProofDependencyGraph
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Proof Dependency Graph"@x-gmeow-english ;
+    skos:definition "A proof dependency graph: the declaration dependency DAG a proof-assistant library exposes — mathlib's declaration graph, Metamath's axiom-to-theorem DAG, a TPTP/TSTP proof-step DAG — lifted as a math: object. A subclass of math:MathematicalObject naming the math:Proof it underlies; the DAG's recoverability from the lift and its witness is why a math:ProofIngestRun's aspired correspondence rung is section/retraction."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Proof
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Proof"@x-gmeow-english ;
+    skos:definition "A proof: a structured derivation establishing a statement (math:provesStatement) through a sequence of math:ProofStep actions, depending on axioms through math:dependsOnAxiom. A subclass of math:MathematicalObject; as a process the proof effort is goal-decomposed (each lemma a logic:GoalExpression sub-goal reached through math:provesGoal), and its successful checking is a math:FormalVerificationResult grounded by a gmeow:Observation."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:ProofStep
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Proof Step"@x-gmeow-english ;
+    skos:definition "A proof step: one inference action of a math:Proof, drawing conclusions (math:hasConclusion) from premises (math:hasPremise). A subclass of math:MathematicalObject; steps compose into the proof reached through math:proofStep, each an action in the goal-decomposed process a math:ProofIngestRun frames."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:FormalVerificationResult
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    owl:disjointWith gmeow:Observation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Formal Verification Result"@x-gmeow-english ;
+    skos:definition "A formal verification result: the structured RESULT OBJECT of checking a math:Proof — the QED verdict a proof assistant returns. A subclass of math:MathematicalObject, NOT a gmeow:Observation: it is the result object of the process / result / claim separation, and the held verdict is a separate gmeow:Observation naming the checker as gmeow:vantage, the result through gmeow:observationResult, and the run through gmeow:wasGeneratedBy. None is typed as another; a result object roled as the claim is ill-formed (math:ResultRoleConflation), and a result not grounded by such an observation is ill-formed (math:UngroundedVerificationResult)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:dependsOnAxiom
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "depends on axiom"@x-gmeow-english ;
+    skos:definition "Relates a math:Proof or math:ProofStep to a math:Axiom it depends on. Domain a math:Proof or math:ProofStep, range math:Axiom (stated in prose). The axiom dependencies are what a proof dependency DAG records, so a theorem's foundations are first-class and queryable."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:provesStatement
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "proves statement"@x-gmeow-english ;
+    skos:definition "Relates a math:Proof to the statement it establishes. Domain math:Proof, range the statement proved (stated in prose). The statement is asserted under a theory context, not as unconditional truth; the proof is the derivation that establishes it."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:proofStep
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "proof step"@x-gmeow-english ;
+    skos:definition "Relates a math:Proof to one of its math:ProofStep actions. Domain math:Proof, range math:ProofStep (stated in prose). Steps compose into the derivation; each is an action in the goal-decomposed process a math:ProofIngestRun frames."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:hasPremise
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "has premise"@x-gmeow-english ;
+    skos:definition "Relates a math:ProofStep to a premise it draws on. Domain math:ProofStep, range the premise (a statement or prior result, stated in prose). The companion of math:hasConclusion; an inference goes from premises to conclusions."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:hasConclusion
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "has conclusion"@x-gmeow-english ;
+    skos:definition "Relates a math:ProofStep to the conclusion it draws. Domain math:ProofStep, range the conclusion (a statement, stated in prose). The companion of math:hasPremise; the conclusion of one step may be a premise of a later one."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:provesGoal
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "proves goal"@x-gmeow-english ;
+    skos:definition "Relates a math:Proof or math:ProofStep to the logic:GoalExpression sub-goal it discharges — binding the proof layer to logic:'s teleology so a complex proof is a goal-decomposed process. Domain a math:Proof or math:ProofStep, range logic:GoalExpression (stated in prose). Each lemma is a logic:GoalExpression whose logic:goalExpressionKind is logic:AchievementGoal (the target first obtains) — the kind is a value carried by the property, never a class the goal is typed with."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# --- Process / observation disjointness (process is never the claim) --------- #
+# The OWL-axiom gate backing math:ProcessObservationConflation: an inference or
+# analysis process is a gmeow:Activity and is NEVER typed as a gmeow:Observation —
+# the process half of the process / result / claim separation. Mirrors the
+# language slice's lang:InterpretationAct owl:disjointWith gmeow:Observation; the
+# native DL coherence gate reads the disjointness directly, forcing any individual
+# typed both a bridge/analysis process and an observation to owl:Nothing.
+math:IngestRun owl:disjointWith gmeow:Observation .
+math:PCAAnalysis owl:disjointWith gmeow:Observation .
+
+# --- Bridge failure classes -------------------------------------------------- #
+
+math:UnliftableIngest
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Unliftable Ingest"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:IngestRun's lift is unsupported or silently partial — it retains a math:parseSource but produces no structured math: codomain, or drops residue that is neither carried in the correspondence's mnemomorphic witness nor enumerated as an unsupported construct. It is the process-layer projection of the correspondence calculus's Overclaim and Mnemomorphism verdict (get non-injective and no witness — the logic:ObligationViolated / unsupported outcome), reusing the shared logic: discharge vocabulary. A bridge hard-fails on the unliftable; it never emits a degraded or string-valued placeholder, because 'for any input' is a universality bar, not a best-effort aspiration."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:UngroundedIngestRun
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Ungrounded Ingest Run"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:IngestRun does not retain its source witness through math:parseSource, or does not carry the process-layer in-band witness through logic:instantiatesSchema and logic:instantiatesPlan. A bridge run without its retained source and schema/plan witness cannot support the lawful put leg — the lift would be a backward-execution guess, not a mnemomorphic recovery — so it is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:UngroundedVerificationResult
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Ungrounded Verification Result"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:FormalVerificationResult is not grounded by a gmeow:Observation carrying a gmeow:vantage — the result object stated as unconditional truth rather than a verdict held from the checker's standpoint. A verification result is the structured result object; the held claim is a separate observation with the checker as vantage and the run as gmeow:wasGeneratedBy. A result roled as its own claim, or lacking a grounding observation, is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:UnfittedModel
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Unfitted Model"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:FittedModel does not reference the data it was fitted to through math:fittedToData or the specification it fits through math:modelFormula. A fitted model is a math:StatisticalModel bound to concrete data by a declared specification; missing either, it is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:ResultRoleConflation
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Result Role Conflation"@x-gmeow-english ;
+    skos:definition "The failure raised when a structured result object — a math:FormalVerificationResult, an estimate, a p-value, a posterior — is roled as the held claim it stands for: typed as, or asserted to BE, the gmeow:Observation that holds the verdict, rather than remaining the result object of the process / result / claim separation. A result object is what a checking or estimation process returns; the held claim is a SEPARATE gmeow:Observation naming the checker as gmeow:vantage, the result through gmeow:observationResult, and the run through gmeow:wasGeneratedBy. Roling the result object as its own claim — collapsing the three-way separation of process, result object, and observation-borne claim into a single conflated node — is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:ProcessObservationConflation
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Process Observation Conflation"@x-gmeow-english ;
+    skos:definition "The failure raised when an inference or analysis process — a gmeow:Activity such as a math:IngestRun or a math:PCAAnalysis — is typed as a gmeow:Observation, collapsing the process half of the process / result / claim separation into the held claim. A process is the executed occurrence that produces result objects and grounds claims; it is NEVER the observation that holds a claim about what it produced. Primary gate: the OWL disjointness of the math process classes and gmeow:Observation (mirroring the language slice's lang:InterpretationAct owl:disjointWith gmeow:Observation) — an individual typed BOTH a bridge or analysis process and an observation is forced to owl:Nothing by the native DL coherence gate."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:UngroundedResultClaim
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Ungrounded Result Claim"@x-gmeow-english ;
+    skos:definition "The failure raised when a held statistical or probabilistic result claim — that an estimate, a p-value, a posterior, a component's meaning, or a verdict holds — is stated without a gmeow:Observation carrying a gmeow:vantage, so the claim floats free of the standpoint that holds it. The claim leg of the process / result / claim separation is a gmeow:Observation naming its gmeow:vantage (whose frame), its gmeow:observedFeature (which result), and its gmeow:observationResult (the grounded conclusion); a result claim asserted as an unconditional property rather than a vantage-held observation is ill-formed. Primary gate: the SHACL Core requirement that a held result claim carry a gmeow:vantage (math:ResidualInterpretationClaimShape)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .

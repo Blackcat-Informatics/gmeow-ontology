@@ -475,6 +475,9 @@ classes:
     is_a: Entity
     slots:
     - chainId
+  BlockingDisposition:
+    class_uri: https://blackcatinformatics.ca/gmeow/BlockingDisposition
+    title: Blocking Disposition
   BodyPart:
     class_uri: https://blackcatinformatics.ca/gmeow/BodyPart
     title: Body Part
@@ -1170,6 +1173,9 @@ classes:
   DiagnosticSeverity:
     class_uri: https://blackcatinformatics.ca/gmeow/DiagnosticSeverity
     title: Diagnostic Severity
+  DiagnosticStandpoint:
+    class_uri: https://blackcatinformatics.ca/gmeow/DiagnosticStandpoint
+    title: Diagnostic Standpoint
   Diff:
     class_uri: https://blackcatinformatics.ca/gmeow/Diff
     title: Diff
@@ -1653,10 +1659,12 @@ classes:
     slots:
     - findingCategory
     - findingCode
+    - findingGateVerdict
     - findingHelpUri
     - findingLocation
     - findingMessage
     - findingSeverity
+    - findingStandpoint
     - findingSuggestion
     - findingTool
   ForgePlatform:
@@ -1699,6 +1707,9 @@ classes:
     - gtsSegmentIndex
     - gtsSegmentOf
     - usesTransformCodec
+  GateVerdict:
+    class_uri: https://blackcatinformatics.ca/gmeow/GateVerdict
+    title: Gate Verdict
   Gender:
     class_uri: https://blackcatinformatics.ca/gmeow/Gender
     title: Gender
@@ -5663,6 +5674,11 @@ slots:
     range: SeverityLevel
     domain: Cascade
     multivalued: true
+  categoryBlocking:
+    slot_uri: https://blackcatinformatics.ca/gmeow/categoryBlocking
+    title: category blocking
+    range: BlockingDisposition
+    multivalued: true
   causalModality:
     slot_uri: https://blackcatinformatics.ca/gmeow/causalModality
     title: causal modality
@@ -7667,6 +7683,12 @@ slots:
     range: string
     domain: Finding
     multivalued: true
+  findingGateVerdict:
+    slot_uri: https://blackcatinformatics.ca/gmeow/findingGateVerdict
+    title: finding gate verdict
+    range: GateVerdict
+    domain: Finding
+    multivalued: true
   findingHelpUri:
     slot_uri: https://blackcatinformatics.ca/gmeow/findingHelpUri
     title: finding help URI
@@ -7689,6 +7711,12 @@ slots:
     slot_uri: https://blackcatinformatics.ca/gmeow/findingSeverity
     title: finding severity
     range: DiagnosticSeverity
+    domain: Finding
+    multivalued: true
+  findingStandpoint:
+    slot_uri: https://blackcatinformatics.ca/gmeow/findingStandpoint
+    title: finding standpoint
+    range: DiagnosticStandpoint
     domain: Finding
     multivalued: true
   findingSuggestion:
@@ -15201,6 +15229,15 @@ enums:
       axisZ:
         meaning: https://blackcatinformatics.ca/gmeow/axisZ
         title: Z axis
+  BlockingDispositionEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/BlockingDisposition
+    permissible_values:
+      blockingBlocking:
+        meaning: https://blackcatinformatics.ca/gmeow/blockingBlocking
+        title: blocking
+      blockingCoherent:
+        meaning: https://blackcatinformatics.ca/gmeow/blockingCoherent
+        title: coherent
   BranchConditionTypeEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/BranchConditionType
     permissible_values:
@@ -16254,6 +16291,18 @@ enums:
       severityWarning:
         meaning: https://blackcatinformatics.ca/gmeow/severityWarning
         title: warning
+  DiagnosticStandpointEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/DiagnosticStandpoint
+    permissible_values:
+      standpointAdvisory:
+        meaning: https://blackcatinformatics.ca/gmeow/standpointAdvisory
+        title: advisory
+      standpointBinding:
+        meaning: https://blackcatinformatics.ca/gmeow/standpointBinding
+        title: binding
+      standpointPerspectival:
+        meaning: https://blackcatinformatics.ca/gmeow/standpointPerspectival
+        title: perspectival
   DimensionFamilyEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/DimensionFamily
     permissible_values:
@@ -17082,6 +17131,15 @@ enums:
       gtsProfileOpaque:
         meaning: https://blackcatinformatics.ca/gmeow/gtsProfileOpaque
         title: opaque profile
+  GateVerdictEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/GateVerdict
+    permissible_values:
+      gateCollected:
+        meaning: https://blackcatinformatics.ca/gmeow/gateCollected
+        title: collected
+      gateFatal:
+        meaning: https://blackcatinformatics.ca/gmeow/gateFatal
+        title: fatal
   GenderEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/Gender
     permissible_values:
