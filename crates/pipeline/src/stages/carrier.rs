@@ -107,6 +107,14 @@ pub(crate) const GRAPH_LANG_DOCS_RENDERING_CORPUS: &str =
 /// provenance corpus, not object-level axioms).
 pub(crate) const GRAPH_CORRESPONDENCE_LAWS: &str =
     "https://blackcatinformatics.ca/gmeow/graph/correspondence-laws";
+/// The committed on-disk projection of the correspondence-laws corpus (PIPELINE_SPINE §5:
+/// RDF travels as RDF, so the discharged `logic:SectionLaw` claims are reconstructible from
+/// `gmeow.gts` as a flat `generated/` file, not only as a bundle-internal named graph). Its
+/// `graph/fanout/<path>` reconstruction graph carries the SAME triples as
+/// `GRAPH_CORRESPONDENCE_LAWS`; the base graph serves the up-projection gates, the fanout copy
+/// serves the superset gate / fanout writer (the diagnostics `.nq` follow the same twin-graph
+/// pattern).
+pub(crate) const CORRESPONDENCE_LAWS_PATH: &str = "generated/logic/gmeow.correspondence-laws.nt";
 /// The authored default graph (root ontology + slice modules + translations + guide
 /// anchors, NO imports) carried as a named graph on the `stage-source-load` product so
 /// the presenter reads it instead of re-loading the sources. It is an INTERNAL transport
@@ -529,6 +537,17 @@ fn assemble_carrier(
         producer_graph(upstream, "stage-mappings", GRAPH_LANG_DOCS_RENDERING_CORPUS)?;
     let correspondence_laws =
         producer_graph(upstream, "stage-mappings", GRAPH_CORRESPONDENCE_LAWS)?;
+    // The on-disk projection of the correspondence-laws corpus: the SAME triples re-rooted into
+    // their `graph/fanout/<path>` reconstruction graph so the superset gate folds them to
+    // `generated/logic/gmeow.correspondence-laws.nt` (PIPELINE_SPINE §5 — RDF travels as RDF, so
+    // the discharged `logic:SectionLaw` claims land in `generated/` too). The base
+    // `graph/correspondence-laws` copy still serves the up-projection gates (single corpus, two
+    // reconstruction roles — the diagnostics `.nq` follow the same twin-graph pattern).
+    let correspondence_laws_fanout = {
+        let iri = crate::stages::superset::rdf_fanout_graph_iri(CORRESPONDENCE_LAWS_PATH)
+            .ok_or_else(|| stage_err("correspondence-laws fanout path is not an RDF path"))?;
+        rooted_in_graph(correspondence_laws.as_ref(), &iri)?
+    };
 
     // ── the carried graphs ride in from the producers' carriers ────────────────
     let reason = upstream
@@ -557,6 +576,7 @@ fn assemble_carrier(
         lang_projection_corpus,
         lang_docs_rendering_corpus,
         correspondence_laws,
+        correspondence_laws_fanout,
     ];
     datasets.extend(compile_logic_object_graphs(upstream)?);
     datasets.push(rooted_in_graph(
