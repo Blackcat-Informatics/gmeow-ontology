@@ -24,7 +24,8 @@ pub use dl::{DlVerdict, InconsistencyWitness, UnsatClass, dl_consistency};
 pub use el::{ElClosure, InferredAxiom, el_closure};
 pub use ledger::{
     DivergenceKind, DivergenceLedger, ExternalComparison, LedgerRow, LedgerVerdict, build_ledger,
-    compare_external_corpus, compare_subsumption, divergence_findings, dl_gap_rows, enforce,
+    compare_external_corpus, compare_subsumption, divergence_diag_ledger, divergence_findings,
+    dl_gap_rows, enforce,
 };
 pub use rl::{RlClosure, RlTriple, rl_closure};
 
