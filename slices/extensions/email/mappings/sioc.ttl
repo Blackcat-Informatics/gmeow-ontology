@@ -31,7 +31,7 @@ gmeow:mapSiocContainer a gmeow:ProjectionMapping ;
         gmeow:atom ( [ gmeow:subjectVar "sthread" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Thread ] ) ;
         gmeow:edoalSource gmeow:Thread ; gmeow:edoalSourceKind "class" ] ;
     gmeow:hasBinding [
-        gmeow:profile "sioc" ; gmeow:toClass sioc:Thread ; gmeow:relation "=" ; gmeow:confidence 0.9 ;
+        gmeow:profile "sioc" ; gmeow:toClass sioc:Thread ; gmeow:relation "=" ; gmeow:confidence 0.9 ; gmeow:mnemomorphic true ;
         gmeow:templateAtoms (
             [ gmeow:tSubj "sthread" ; gmeow:tPred rdf:type ; gmeow:tObjValue sioc:Thread ]
             [ gmeow:tSubj "sthread" ; gmeow:tPred rdf:type ; gmeow:tObjValue sioc:Container ] ) ] .
@@ -43,7 +43,7 @@ gmeow:mapSiocHasContainer a gmeow:ProjectionMapping ;
         gmeow:atom ( [ gmeow:subjectVar "scmsg" ; gmeow:predicate gmeow:partOfThread ; gmeow:objectVar "scthread" ] ) ;
         gmeow:edoalSource gmeow:partOfThread ] ;
     gmeow:hasBinding [
-        gmeow:profile "sioc" ; gmeow:toPredicate sioc:has_container ; gmeow:relation "=" ; gmeow:confidence 0.9 ;
+        gmeow:profile "sioc" ; gmeow:toPredicate sioc:has_container ; gmeow:relation "=" ; gmeow:confidence 0.9 ; gmeow:mnemomorphic true ;
         gmeow:templateAtoms (
             [ gmeow:tSubj "scmsg" ; gmeow:tPred sioc:has_container ; gmeow:tObj "scthread" ]
             [ gmeow:tSubj "scthread" ; gmeow:tPred sioc:container_of ; gmeow:tObj "scmsg" ] ) ] .
@@ -55,7 +55,7 @@ gmeow:mapSiocReplyOf a gmeow:ProjectionMapping ;
         gmeow:atom ( [ gmeow:subjectVar "srmsg" ; gmeow:predicate gmeow:inReplyTo ; gmeow:objectVar "sparent" ] ) ;
         gmeow:edoalSource gmeow:inReplyTo ] ;
     gmeow:hasBinding [
-        gmeow:profile "sioc" ; gmeow:toPredicate sioc:reply_of ; gmeow:relation "=" ; gmeow:confidence 0.95 ;
+        gmeow:profile "sioc" ; gmeow:toPredicate sioc:reply_of ; gmeow:relation "=" ; gmeow:confidence 0.95 ; gmeow:mnemomorphic true ;
         gmeow:templateAtoms (
             [ gmeow:tSubj "srmsg" ; gmeow:tPred sioc:reply_of ; gmeow:tObj "sparent" ]
             [ gmeow:tSubj "sparent" ; gmeow:tPred sioc:has_reply ; gmeow:tObj "srmsg" ] ) ] .
@@ -91,6 +91,11 @@ gmeow:mapSiocUserAccount a gmeow:ProjectionMapping ;
 
 # --- PROV activity alignment backlog audit: topic/name/link have real sources after all. ------ #
 
+# NOT mnemomorphic: the source pattern uses `stMsg a gmeow:EmailMessage` as a
+# selection GUARD, but sioc:topic carries no email-hood — a bare sioc:topic edge
+# cannot recover the EmailMessage type, so a CompleteOver put would FABRICATE it.
+# The put leg stays Unsupported (the honest floor); recovering it would need a
+# co-authored ingest claim, not a witness.
 gmeow:mapSiocTopic a gmeow:ProjectionMapping ;
     rdfs:label "message isAbout → sioc:topic"@x-gmeow-english ;
     gmeow:hasMappingPattern [

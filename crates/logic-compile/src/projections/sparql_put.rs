@@ -441,6 +441,88 @@ mod tests {
         after.split('}').next().expect("CONSTRUCT head is closed")
     }
 
+    /// A `?x <predicate> ?obj` source atom.
+    fn predicate_atom(subject: &str, predicate_iri: &str, object: &str) -> Atom {
+        Atom {
+            subject_var: subject.to_owned(),
+            predicate: Some(predicate_iri.to_owned()),
+            predicate_var: None,
+            path: None,
+            path_alts: Vec::new(),
+            object_var: Some(object.to_owned()),
+            object_value: None,
+            object_literal: None,
+            optional: false,
+        }
+    }
+
+    #[test]
+    fn complete_over_multi_atom_emits_every_source_atom_bare_and_no_envelope() {
+        // R2 — the emitter is what ships, not the round-trip gate (which compares LegPath
+        // bodies, not emitted bytes). For a multi-atom CompleteOver cell the CONSTRUCT head must
+        // be EXACTLY the flat source atoms — every one recovered, none reified, no ImportActivity
+        // envelope — so an author can read the emitted `.put.rq` and see precisely what a lift
+        // reconstructs. (A source pattern that hides an unrecoverable guard atom would therefore
+        // surface here as a spurious CONSTRUCT-head triple, which is how the SIOC audit caught
+        // the non-mnemomorphic mapSiocTopic.)
+        let gm_pred = "https://blackcatinformatics.ca/gmeow/relatedThread";
+        let pattern = MappingPattern {
+            anchor: "x".to_owned(),
+            value: Some("y".to_owned()),
+            atoms: vec![
+                Item::Atom(type_atom("x", GM_MODEL_ARTIFACT)),
+                Item::Atom(predicate_atom("x", gm_pred, "y")),
+            ],
+            suppress_when: Vec::new(),
+            project_when: Vec::new(),
+            exclude_when: Vec::new(),
+            filters: Vec::new(),
+            binds: Vec::new(),
+            mints: Vec::new(),
+            edoal_source: None,
+            edoal_source_kind: "relation".to_owned(),
+            edoal_path: false,
+        };
+        let mut cell = class_cell("=", true, None);
+        cell.pattern = pattern;
+        let q = emit(&[cell]).expect("CompleteOver emits").query;
+        let head = construct_head(&q);
+
+        // Every source atom appears verbatim in the CONSTRUCT head.
+        assert!(
+            head.contains("?x a gmeow:ModelArtifact ."),
+            "missing type atom:\n{head}"
+        );
+        assert!(
+            head.contains("?x gmeow:relatedThread ?y ."),
+            "missing predicate atom:\n{head}"
+        );
+        // No reification / provenance envelope on a lawful recovery.
+        assert!(
+            !head.contains("gmeow:StatementMetadata"),
+            "no reified claim on a recovery:\n{head}"
+        );
+        assert!(
+            !head.contains("gmeow:ImportActivity"),
+            "no import activity on a recovery:\n{head}"
+        );
+        assert!(
+            !head.contains("gmeow:wasGeneratedBy"),
+            "no provenance edge on a recovery:\n{head}"
+        );
+        // The head is EXACTLY the two source atoms — nothing spurious.
+        let triples: Vec<&str> = head
+            .lines()
+            .map(str::trim)
+            .filter(|l| !l.is_empty())
+            .collect();
+        assert_eq!(
+            triples.len(),
+            2,
+            "exactly the two source atoms, no extra:\n{head}"
+        );
+    }
+
     #[test]
     fn validation_only_binding_reifies_the_lift_as_an_inert_claim() {
         // Lossy rung (`<=` → LossyLens) + a co-authored ingest claim → ValidationOnly:
