@@ -929,6 +929,192 @@ mod tests {
         assert!(err.contains("nothing lifted"), "{err}");
     }
 
+    // ── SIOC reasoned-superclass recovery (Deliverable B) ────────────────
+    //
+    // The real SIOC ↔ email-thread correspondence: a subject bearing `sioc:has_container`
+    // / `sioc:reply_of` lifts to `gmeow:partOfThread` / `gmeow:inReplyTo` (both
+    // `rdfs:domain gmeow:Message`), so prp-dom entails it IS a `gmeow:Message`. The IRIs
+    // and axioms below are the real ones from `slices/extensions/email/module.ttl`
+    // (partOfThread/inReplyTo domain=Message, subPropertyOf=partOf, range=Thread;
+    // EmailMessage⊑Message; Message⊑InformationObject) and
+    // `slices/core/documents/module.ttl` (FeedPosting⊑Work).
+    const SIOC_HAS_CONTAINER: &str = "http://rdfs.org/sioc/ns#has_container";
+    const SIOC_REPLY_OF: &str = "http://rdfs.org/sioc/ns#reply_of";
+    const GM_PART_OF_THREAD: &str = "https://blackcatinformatics.ca/gmeow/partOfThread";
+    const GM_IN_REPLY_TO: &str = "https://blackcatinformatics.ca/gmeow/inReplyTo";
+    const GM_PART_OF: &str = "https://blackcatinformatics.ca/gmeow/partOf";
+    const GM_MESSAGE: &str = "https://blackcatinformatics.ca/gmeow/Message";
+    const GM_EMAIL_MESSAGE: &str = "https://blackcatinformatics.ca/gmeow/EmailMessage";
+    const GM_FEED_POSTING: &str = "https://blackcatinformatics.ca/gmeow/FeedPosting";
+    const GM_INFORMATION_OBJECT: &str = "https://blackcatinformatics.ca/gmeow/InformationObject";
+    const GM_WORK: &str = "https://blackcatinformatics.ca/gmeow/Work";
+    const GM_THREAD: &str = "https://blackcatinformatics.ca/gmeow/Thread";
+
+    const SIOC_X: &str = "https://example.org/msg/1";
+    const SIOC_THREAD: &str = "https://example.org/thread/1";
+    const SIOC_PARENT: &str = "https://example.org/msg/0";
+
+    /// A hermetic SSSOM lift map cleanly renaming the two SIOC thread predicates onto
+    /// their `gmeow:` object properties (`skos:exactMatch` ⇒ lawful FACT rename).
+    fn sioc_thread_sssom() -> String {
+        concat!(
+            "#curie_map:\n",
+            "#  gmeow: https://blackcatinformatics.ca/gmeow/\n",
+            "#  sioc: http://rdfs.org/sioc/ns#\n",
+            "#  skos: http://www.w3.org/2004/02/skos/core#\n",
+            "subject_id\tpredicate_id\tobject_id\n",
+            "gmeow:partOfThread\tskos:exactMatch\tsioc:has_container\n",
+            "gmeow:inReplyTo\tskos:exactMatch\tsioc:reply_of\n",
+        )
+        .to_owned()
+    }
+
+    /// The real property-domain TBox fragment the reasoned harvest reasons over. Uses
+    /// the actual email/documents module axioms and IRIs. Crucially it INCLUDES the
+    /// `EmailMessage ⊑ Message` and `FeedPosting ⊑ Work` axioms, so AC5's negative
+    /// assertions are non-vacuous: EmailMessage/FeedPosting are absent only because
+    /// prp-dom + subClassOf propagate UPWARD, never because the axiom is missing.
+    fn email_thread_tbox() -> String {
+        let mut t = String::new();
+        t.push_str(&nt(GM_PART_OF_THREAD, RDFS_DOMAIN, GM_MESSAGE));
+        t.push_str(&nt(GM_PART_OF_THREAD, RDFS_RANGE, GM_THREAD));
+        t.push_str(&nt(GM_PART_OF_THREAD, RDFS_SUBPROPERTYOF, GM_PART_OF));
+        t.push_str(&nt(GM_IN_REPLY_TO, RDFS_DOMAIN, GM_MESSAGE));
+        t.push_str(&nt(GM_IN_REPLY_TO, RDFS_RANGE, GM_MESSAGE));
+        t.push_str(&nt(GM_MESSAGE, RDFS_SUBCLASSOF, GM_INFORMATION_OBJECT));
+        t.push_str(&nt(GM_EMAIL_MESSAGE, RDFS_SUBCLASSOF, GM_MESSAGE));
+        t.push_str(&nt(GM_FEED_POSTING, RDFS_SUBCLASSOF, GM_WORK));
+        t
+    }
+
+    /// Drive the production inverse-ingest entry `up_project` on the SIOC image with the
+    /// real thread SSSOM + email TBox — the exact path `gmeow transpile` reaches.
+    fn up_project_sioc() -> UpProjection {
+        let source_nt = format!(
+            "{}{}",
+            nt(SIOC_X, SIOC_HAS_CONTAINER, SIOC_THREAD),
+            nt(SIOC_X, SIOC_REPLY_OF, SIOC_PARENT),
+        );
+        let inputs = UpProjectionInputs {
+            sssom_texts: vec![sioc_thread_sssom()],
+            projection_ttls: Vec::new(),
+            ontology_nt: email_thread_tbox(),
+        };
+        up_project(&source_nt, &inputs, &TagMap::new()).unwrap()
+    }
+
+    /// The `<s> a <class> .` N-Triples line for the SIOC subject.
+    fn x_type_line(class: &str) -> String {
+        format!("<{SIOC_X}> <{RDF_TYPE}> <{class}> .")
+    }
+
+    #[test]
+    fn up_project_recovers_message_superclass_via_prp_dom() {
+        // AC4 (positive): the real inverse-ingest surface. `sioc:has_container` /
+        // `sioc:reply_of` lift to `gmeow:partOfThread` / `gmeow:inReplyTo`; both have
+        // `rdfs:domain gmeow:Message`, so the reasoned harvest recovers the entailed
+        // `<X> a gmeow:Message`.
+        let up = up_project_sioc();
+        assert!(
+            up.graph_nt.contains(GM_PART_OF_THREAD),
+            "sioc:has_container did not lift to gmeow:partOfThread: {}",
+            up.graph_nt
+        );
+        assert!(
+            up.graph_nt.contains(GM_IN_REPLY_TO),
+            "sioc:reply_of did not lift to gmeow:inReplyTo: {}",
+            up.graph_nt
+        );
+        assert!(
+            up.graph_nt.contains(&x_type_line(GM_MESSAGE)),
+            "entailed gmeow:Message superclass NOT recovered: {}",
+            up.graph_nt
+        );
+    }
+
+    #[test]
+    fn up_project_never_fabricates_subkind_or_sibling() {
+        // AC5 (negative control, SAME output as AC4): prp-dom + subClassOf are
+        // upward-only, so the recovered type is exactly `gmeow:Message` (and its
+        // superclasses) — never the `gmeow:EmailMessage` SubKind below it, nor the
+        // unrelated `gmeow:FeedPosting` sibling.
+        let up = up_project_sioc();
+        // Sanity: the positive recovery still holds in this same output (guards against
+        // the negatives passing only because nothing was reasoned at all).
+        assert!(
+            up.graph_nt.contains(&x_type_line(GM_MESSAGE)),
+            "sanity: gmeow:Message must be recovered here too: {}",
+            up.graph_nt
+        );
+        assert!(
+            !up.graph_nt.contains(&x_type_line(GM_EMAIL_MESSAGE)),
+            "fabricated a SubKind (gmeow:EmailMessage) — downward invention: {}",
+            up.graph_nt
+        );
+        assert!(
+            !up.graph_nt.contains(&x_type_line(GM_FEED_POSTING)),
+            "fabricated a sibling (gmeow:FeedPosting): {}",
+            up.graph_nt
+        );
+        // Non-vacuity: EmailMessage/FeedPosting ARE in the TBox, so their absence above
+        // is due to sound upward-only reasoning, not a missing axiom.
+        let tbox = email_thread_tbox();
+        assert!(
+            tbox.contains(GM_EMAIL_MESSAGE) && tbox.contains(GM_FEED_POSTING),
+            "negative control would be vacuous: TBox lacks the SubKind/sibling axioms"
+        );
+    }
+
+    #[test]
+    fn harvest_reasoned_types_needs_world_colocation() {
+        // Mis-scope regression — driven at the `harvest_reasoned_types` level (not
+        // through `up_project`). WHY this level: the public `up_project` input cannot
+        // mis-scope — `harvest_reasoned_types` always lands the lifted assertions and the
+        // extracted TBox fragment in the SAME (default) world via
+        // `flat_dataset_from_quads`, so co-location is structurally guaranteed for every
+        // public caller. To exercise the silent-failure mode we feed the harvest a
+        // deliberately mis-scoped dataset: the `gmeow:partOfThread` assertion pinned to a
+        // NAMED graph (a distinct reasoning world) while the `rdfs:domain` axiom stays in
+        // the default world. The native reasoner is world-indexed with no cross-world
+        // union, so prp-dom cannot fire and `gmeow:Message` is NOT derived. If a future
+        // refactor breaks world co-location, prp-dom silently no-ops and THIS test fails.
+        let tbox = email_thread_tbox();
+
+        // Co-located control: default-graph lifted assertion DOES recover Message — proves
+        // the harvest genuinely fires when the worlds coincide (so the negative below is
+        // about co-location, not a dead harvest).
+        let colocated = vec![RdfQuad::new(
+            RdfTerm::iri(SIOC_X),
+            GM_PART_OF_THREAD.to_owned(),
+            RdfTerm::iri(SIOC_THREAD),
+        )];
+        let recovered = harvest_reasoned_types(&colocated, &tbox).unwrap();
+        assert!(
+            recovered.iter().any(|q| q.predicate == RDF_TYPE
+                && matches!(&q.object, RdfTerm::Iri(c) if c == GM_MESSAGE)),
+            "co-located harvest must recover gmeow:Message: {recovered:?}"
+        );
+
+        // Mis-scoped: the SAME assertion in a named graph (a different world) than the
+        // domain axiom ⇒ prp-dom no-ops, nothing derived.
+        let misscoped = vec![
+            RdfQuad::new(
+                RdfTerm::iri(SIOC_X),
+                GM_PART_OF_THREAD.to_owned(),
+                RdfTerm::iri(SIOC_THREAD),
+            )
+            .in_graph(RdfTerm::iri("https://example.org/other-world")),
+        ];
+        let harvested = harvest_reasoned_types(&misscoped, &tbox).unwrap();
+        assert!(
+            !harvested
+                .iter()
+                .any(|q| matches!(&q.object, RdfTerm::Iri(c) if c == GM_MESSAGE)),
+            "mis-scoped assertion must NOT derive gmeow:Message — world co-location is \
+             load-bearing: {harvested:?}"
+        );
+    }
+
     /// Compose a `.gts` from an N-Triples (base + RDF-1.2 statement layer) document,
     /// via the same native `gts_compose` path the transform kernel uses.
     fn build_gts(nt: &str) -> Vec<u8> {
