@@ -548,13 +548,15 @@ jobs:
   # === REASONING CROSS-CHECK ORACLE (Principle 18; native, on-gate) ===
   # The Java+Docker classic oracle lane (ELK/HermiT/ROBOT/Jena/owlrl) has been
   # REMOVED. Its replacement is a native, in-process, Docker-free reasoning oracle
-  # over `purrdf::entail` (OWL-RL subsumption + OWL-Direct-tableau consistency,
-  # 70/70 W3C-entailment conformance-tested) — `gmeow-dev reason-crosscheck`, run
-  # ON-GATE inside the required `quality` aggregator's reason lane. The authoritative
-  # gate stays native and Docker-free; Principle 18 is proven natively by the
-  # divergence-ledger enforcer, the on-gate entail cross-check, and the frozen
-  # oracle-gold conformance case (in `make conformance`). (The rdflib query
-  # cross-check lane stays in `gmeow-dev crosscheck-queries`.)
+  # over `purrdf::entail` (an OWL-RL + OWL-Direct-tableau engine, 70/70
+  # W3C-entailment conformance-tested) — `gmeow-dev reason-crosscheck`, run ON-GATE
+  # inside the required `quality` aggregator's reason lane. The on-gate cross-check
+  # exercises SUBSUMPTION only (native ⊇ oracle); consistency is NOT on this gate —
+  # it is decided by the native reasoner and checked separately via `reason-verify`.
+  # The authoritative gate stays native and Docker-free; Principle 18 is proven
+  # natively by the divergence-ledger enforcer, the on-gate subsumption entail
+  # cross-check, and the frozen oracle-gold conformance case (in `make conformance`).
+  # (The rdflib query cross-check lane stays in `gmeow-dev crosscheck-queries`.)
 
   # purrdf wasm build + Node real-execution lane (P10). The in-memory RDF/JS
   # engine MUST compile to wasm32-unknown-unknown (`make wasm` hard-fails if the

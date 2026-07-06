@@ -46,7 +46,7 @@ GMEOW runs four complementary verification lanes. Each owns a distinct class of 
 | Lane | Tool | World | Owns | Where |
 |---|---|---|---|---|
 | **Native EL/DL gate** | `gmeow_logic` | open | Docker-free profile, consistency, and entailment authority | `make reason` |
-| **Entailment cross-check oracle** | `purrdf::entail` (in-process OWL-RL + OWL-Direct tableau) | open | on-gate cross-check of the native lane — subsumption + consistency | `gmeow-dev reason-crosscheck`, `make reason-verify` |
+| **Entailment cross-check oracle** | `purrdf::entail` (in-process OWL-RL + OWL-Direct tableau) | open | on-gate cross-check of the native lane's **subsumption** closure (native ⊇ oracle); consistency is decided by the native lane, off this gate | `gmeow-dev reason-crosscheck`, `make reason-crosscheck` |
 | **Entailment tests** | `owlrl` (pure-Python OWL 2 RL) | open | positive derivations — property chains, transitivity, sub-property closure | `tests/test_reasoning_entailments.py`, `tests/test_competency.py` |
 | **Closed-world validation** | SHACL (`gmeow_shacl`) + native `verify` | closed | cardinality, required shapes, display contract, orthogonality data-checks | `make validate`, `make verify`, `tests/test_shapes.py` |
 
@@ -56,14 +56,15 @@ in-process, Docker-free cross-check oracle, run on-gate.
 
 ### Lane 1–2 — Native reasoner plus the entailment cross-check oracle
 
-`make reason` runs the native Docker-free EL/DL authority. `gmeow-dev reason-crosscheck` (folded
-into `make reason-verify`) runs the **`purrdf::entail`** engine — an in-process OWL-RL
-subsumption + OWL-Direct-tableau consistency reasoner, itself 70/70 W3C-entailment
-conformance-tested — as a Docker-free oracle that cross-checks the native lane's subsumption
-and consistency verdicts. A contradiction — e.g. an individual placed in two disjoint identity
-axes, or two disjoint Kinds (Person ⊓ Organization) — makes the reasoner report an
-inconsistency. These are the *open-world* gates: unsatisfiability and inconsistency, nothing
-else.
+`make reason` runs the native Docker-free EL/DL authority. `gmeow-dev reason-crosscheck` (its own
+`make reason-crosscheck` gate) runs the **`purrdf::entail`** engine — an in-process OWL-RL +
+OWL-Direct-tableau reasoner, itself 70/70 W3C-entailment conformance-tested — as a Docker-free
+oracle that cross-checks the native lane's **subsumption** closure (native ⊇ oracle). Consistency
+is not part of this on-gate cross-check: the native reasoner decides consistency, checked
+separately by `make reason-verify` / native `is_consistent()`. A contradiction — e.g. an
+individual placed in two disjoint identity axes, or two disjoint Kinds (Person ⊓ Organization) —
+makes the native reasoner report an inconsistency. These are the *open-world* gates:
+unsatisfiability and inconsistency, nothing else.
 
 ### Lane 3 — `owlrl` entailment tests (pure-Python, Docker-free)
 
@@ -116,7 +117,7 @@ Two sub-lanes, both closed-world, for the constraints OWL deliberately cannot en
   This lane is now on the required path (the `ontology` CI job) and in `make check`, with no
   Docker. The independent cross-check of the native verdicts is likewise Docker-free: the
   in-process `purrdf::entail` oracle (`gmeow-dev reason-crosscheck`) confirms the native
-  subsumption and consistency results on-gate.
+  **subsumption** closure on-gate (consistency stays with the native reasoner, off this gate).
 
 ## The gUFO grounding reaches outward (foundational bridging)
 
