@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Shared diagnostics-projection renderer: one canonical `gmeow_diagnostics::Report`
+//! Shared diagnostics-projection renderer: one canonical `gmeow_errors::Report`
 //! → the four committed diagnostics artifacts (JSON, SARIF, HTML, and `gmeow:Finding`
 //! N-Quads). Both `stage-validate` (SHACL) and `stage-compile-logic` (the logic
 //! compiler) route their reports through this single path, so the SARIF surface and
@@ -10,7 +10,7 @@
 
 use std::collections::BTreeMap;
 
-use gmeow_diagnostics::Report;
+use gmeow_errors::Report;
 
 use crate::error::PipelineError;
 
@@ -48,25 +48,24 @@ pub fn render_diagnostics_artifacts(
     artifacts.insert(
         paths.json.to_owned(),
         text_artifact(
-            gmeow_diagnostics::render::to_json(report)
-                .map_err(|e| stage_err("JSON", e.to_string()))?,
+            gmeow_errors::render::to_json(report).map_err(|e| stage_err("JSON", e.to_string()))?,
         ),
     );
     artifacts.insert(
         paths.sarif.to_owned(),
         text_artifact(
-            gmeow_diagnostics::render::to_sarif(report)
+            gmeow_errors::render::to_sarif(report)
                 .map_err(|e| stage_err("SARIF", e.to_string()))?,
         ),
     );
     artifacts.insert(
         paths.html.to_owned(),
-        text_artifact(gmeow_diagnostics::render::to_html(report)),
+        text_artifact(gmeow_errors::render::to_html(report)),
     );
     // The `.nq` diagnostics graph rides as an RDF-fanout named graph: emit the RDFC-1.0
     // canonical N-Quads (keeping the `graph/diagnostics` 4th-column label) so the
     // superset gate reconstructs it byte-for-byte.
-    let nq = gmeow_diagnostics::render::to_gmeow_rdf(report);
+    let nq = gmeow_errors::render::to_gmeow_rdf(report);
     let nq_ds = purrdf::parse_dataset(nq.as_bytes(), "application/n-quads", None)
         .map_err(|e| stage_err("RDF", format!("parse N-Quads: {e}")))?;
     artifacts.insert(
