@@ -65,8 +65,8 @@ use crate::physical::store::{Bound, RelationStore};
 use crate::provenance::mint_derivation_id;
 use crate::query_ir::QBuiltin;
 use crate::rule_ir::{
-    DerivedRow, EvalAtom, EvalRule, Fact, FactKey, FactStore, RuleRoundCandidate, Solution,
-    distinct_pairs_satisfied, echo_asserted, ground, ground_head, match_atom, sort_rows,
+    DerivedRow, EvalAtom, EvalRule, Fact, FactKey, FactStore, Provenance, RuleRoundCandidate,
+    Solution, distinct_pairs_satisfied, echo_asserted, ground, ground_head, match_atom, sort_rows,
     world_edb_facts,
 };
 use crate::seam::BudgetStatus;
@@ -814,12 +814,14 @@ fn eval_world_stratified(
         }
         match eval_stratum_fixpoint(
             stratum_rules,
-            &mut store,
-            &mut rel,
-            &mut depth,
-            &mut derivations,
+            &mut FixpointState {
+                store: &mut store,
+                rel: &mut rel,
+                depth: &mut depth,
+                derivations: &mut derivations,
+                builtin_gap: &mut builtin_gap,
+            },
             governor,
-            &mut builtin_gap,
             mode,
         )? {
             FixpointStatus::Complete => {
@@ -856,6 +858,18 @@ fn eval_world_stratified(
     })
 }
 
+/// The mutable working set carried across every stratum of one world's fixpoint: the two
+/// lockstep stores, the depth map, the derivation accumulator, and the arithmetic-gap flag.
+/// Bundling them keeps [`eval_stratum_fixpoint`] under clippy's argument-count bar with a
+/// cohesive named type rather than a suppression.
+struct FixpointState<'a> {
+    store: &'a mut FactStore,
+    rel: &'a mut RelationStore,
+    depth: &'a mut HashMap<FactKey, u32>,
+    derivations: &'a mut Vec<DerivedRow>,
+    builtin_gap: &'a mut bool,
+}
+
 /// Run the semi-naive fixpoint for the rules of ONE stratum into the shared stores.
 ///
 /// This loop is a structural copy of `least_model_of_reduct`'s round loop — same
@@ -867,17 +881,20 @@ fn eval_world_stratified(
 /// `mode` selects whether the loop mints and records provenance ([`ProvenanceMode::Record`],
 /// the forward leg) or commits facts only ([`ProvenanceMode::Skip`], the backward leg) — the
 /// committed fact set, insertion order, and step budget are identical either way.
-#[allow(clippy::too_many_arguments)]
 fn eval_stratum_fixpoint(
     rules: &[&EvalRule],
-    store: &mut FactStore,
-    rel: &mut RelationStore,
-    depth: &mut HashMap<FactKey, u32>,
-    derivations: &mut Vec<DerivedRow>,
+    state: &mut FixpointState<'_>,
     governor: &mut StepGovernor,
-    builtin_gap: &mut bool,
     mode: ProvenanceMode,
 ) -> Result<FixpointStatus, String> {
+    // Reborrow each accumulator into a single `&mut` local so the loop body below is a verbatim
+    // copy of `least_model_of_reduct`'s — the `FixpointState` bundle exists only to keep the
+    // signature under clippy's argument-count bar without an `#[allow]`, not to change the engine.
+    let store = &mut *state.store;
+    let rel = &mut *state.rel;
+    let depth = &mut *state.depth;
+    let derivations = &mut *state.derivations;
+    let builtin_gap = &mut *state.builtin_gap;
     // Seed delta with ALL currently-known keys so this stratum's rules fire against
     // the seed in round 1 (mirrors `least_model_of_reduct`'s `delta = key_set()`).
     let mut delta: HashSet<FactKey> = store.key_set();
@@ -916,29 +933,19 @@ fn eval_stratum_fixpoint(
                         let candidate = RuleRoundCandidate {
                             head,
                             key: key.clone(),
-                            sources,
-                            sorted_sources,
-                            deriv,
-                            rule_iri: rule.rule_iri.clone(),
-                            max_src_depth: max_sd,
-                            sum_src_depth: sum_sd,
+                            prov: Some(Provenance {
+                                sources,
+                                sorted_sources,
+                                deriv,
+                                rule_iri: rule.rule_iri.clone(),
+                                max_src_depth: max_sd,
+                                sum_src_depth: sum_sd,
+                            }),
                         };
                         round
                             .entry(key)
                             .and_modify(|existing| {
-                                let cand_key = (
-                                    candidate.max_src_depth,
-                                    candidate.sum_src_depth,
-                                    &candidate.sorted_sources,
-                                    &candidate.rule_iri,
-                                );
-                                let exist_key = (
-                                    existing.max_src_depth,
-                                    existing.sum_src_depth,
-                                    &existing.sorted_sources,
-                                    &existing.rule_iri,
-                                );
-                                if cand_key < exist_key {
+                                if candidate.tiebreak_key() < existing.tiebreak_key() {
                                     *existing = candidate.clone();
                                 }
                             })
@@ -948,17 +955,12 @@ fn eval_stratum_fixpoint(
                         // Facts-only: no `reifier()` minting, no derivation id, no depth read,
                         // no tiebreak.  Every candidate under `key` shares an identical `head`
                         // (the key is content-derived from the head), so first-seen wins and the
-                        // committed fact is invariant to the choice.  The provenance fields are
-                        // never read on this path.
+                        // committed fact is invariant to the choice.  `prov: None` makes the
+                        // absence of provenance a type-enforced fact, not a sentinel-filled struct.
                         let cand = RuleRoundCandidate {
                             head,
                             key: key.clone(),
-                            sources: Vec::new(),
-                            sorted_sources: Vec::new(),
-                            deriv: String::new(),
-                            rule_iri: String::new(),
-                            max_src_depth: 0,
-                            sum_src_depth: 0,
+                            prov: None,
                         };
                         round.entry(key).or_insert(cand);
                     }
@@ -986,11 +988,11 @@ fn eval_stratum_fixpoint(
             if governor.spent() {
                 return Ok(FixpointStatus::Exhausted);
             }
-            // Depth bookkeeping feeds ONLY the Record-mode provenance tiebreak; Skip never
-            // reads it, so it is not maintained there (keeping the `depth` map empty under
-            // Skip — the debug-assert in `evaluate` locks that invariant).
-            if let ProvenanceMode::Record = mode {
-                let winner_depth = winner.max_src_depth.saturating_add(1);
+            // Depth bookkeeping feeds ONLY the provenance tiebreak; the facts-only lane carries
+            // `prov: None`, so it is not maintained there (keeping the `depth` map empty under
+            // Skip — the `assert!` in `evaluate` locks that invariant in release builds too).
+            if let Some(prov) = &winner.prov {
+                let winner_depth = prov.max_src_depth.saturating_add(1);
                 depth.insert(winner.key.clone(), winner_depth);
             }
             // Insert into both stores in lockstep so the columnar index order tracks
@@ -1011,15 +1013,15 @@ fn eval_stratum_fixpoint(
             // `store.contains_key`. So every winner is a genuine derivation.  Under Skip the
             // row is not built at all (no reifier strings, no derivation-id hash, no vec growth
             // — the native analogue of the trace memory the facts-only lane must not pay).
-            if let ProvenanceMode::Record = mode {
+            if let Some(prov) = winner.prov {
                 derivations.push(DerivedRow {
                     graph: String::new(),
                     subject: winner.head.subject,
                     predicate: winner.head.predicate,
                     object: winner.head.object,
-                    rule_iri: winner.rule_iri,
-                    source_quad_ids: winner.sources, // body-order, NEVER the sorted copy
-                    derivation_id: winner.deriv,
+                    rule_iri: prov.rule_iri,
+                    source_quad_ids: prov.sources, // body-order, NEVER the sorted copy
+                    derivation_id: prov.deriv,
                 });
             }
             governor.charge();
@@ -1133,12 +1135,14 @@ pub(crate) fn evaluate(
         }
         match eval_stratum_fixpoint(
             stratum_rules,
-            &mut store,
-            &mut rel,
-            &mut depth,
-            &mut derivations,
+            &mut FixpointState {
+                store: &mut store,
+                rel: &mut rel,
+                depth: &mut depth,
+                derivations: &mut derivations,
+                builtin_gap: &mut builtin_gap,
+            },
             &mut governor,
-            &mut builtin_gap,
             ProvenanceMode::Skip,
         )? {
             FixpointStatus::Complete => {
@@ -2265,6 +2269,12 @@ mod tests {
 
     /// Budget-exhausted: the two lanes cut at the identical FactKey-sorted prefix and report the
     /// same step count — the partial-model cut point is provenance-independent.
+    ///
+    /// Scope: this drives a SINGLE-world store, which is the exact shape the wired Skip lane
+    /// (`evaluate`) always has — it is single-EDB by construction.  `materialize_native` charges
+    /// one global step counter across sorted worlds, so multi-world cross-budget interleaving is a
+    /// property of the forward lane alone and is not exercised here; the backward lane cannot reach
+    /// that shape, so no production Skip path is left unproven.
     #[test]
     fn skip_matches_record_under_budget() {
         let rules = tc_binary_rules();
