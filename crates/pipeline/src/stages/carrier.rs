@@ -27,7 +27,6 @@ use purrdf::{
 };
 use rayon::prelude::*;
 
-use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 use crate::stages::statements::RDF12_PATH;
 
@@ -47,6 +46,25 @@ const GRAPH_SLICE_ANALYSIS: &str = "https://blackcatinformatics.ca/gmeow/graph/s
 pub(crate) const GRAPH_DOCUMENTATION: &str =
     "https://blackcatinformatics.ca/gmeow/graph/documentation";
 pub(crate) const GRAPH_DIAGNOSTICS: &str = "https://blackcatinformatics.ca/gmeow/graph/diagnostics";
+/// The by-reference blob `representation` under which a diagnostics producer
+/// (`stage-validate` / `stage-compile-logic`) carries its FORWARD-projected
+/// `Vec<gmeow_errors::DiagNode>` (raw JSON) on its product bundle — the SINGLE source
+/// the run-level `DiagLedger` folds. It rides the standard content-store + lookaside
+/// blob lane, so the per-stage cache persists/replays it verbatim; a cache-hit product
+/// re-serves the identical nodes. Re-exported from the reader-side definition in
+/// [`crate::bundle_blobs`] so the producer and reader share ONE constant — the label
+/// cannot drift (a drifted label would silently read back an empty node set).
+pub(crate) use crate::bundle_blobs::REP_DIAG_NODES;
+/// The by-reference blob `representation` under which `stage-source-load` carries its
+/// authored subject→source-position [`SpanIndex`](crate::ingest::SpanIndex) (raw JSON)
+/// on its product bundle — the SINGLE source of the source spans the diagnostics
+/// consumers (`stage-validate` / `stage-compile-logic`) lift onto their findings. It
+/// rides the standard content-store + lookaside blob lane, so the per-stage cache
+/// persists/replays it verbatim. It is STRIPPED from the source-load product once the
+/// last span-table consumer has run (drop-after-last-consumer), so it never reaches the
+/// carrier assembly and does NOT ship in `gmeow.gts`. Re-exported from the reader-side
+/// definition in [`crate::bundle_blobs`] so the producer and reader share ONE constant.
+pub(crate) use crate::bundle_blobs::REP_SPAN_TABLE;
 /// The native↔external-corpus reasoning-divergence Findings, folded as their own
 /// queryable named graph so a repo-free consumer reads every coverage divergence
 /// (native-incomplete `DlGap` / native-disagrees `CorpusOnly`) against the W3C
@@ -139,7 +157,7 @@ pub(crate) fn serialize_carrier_snapshot(
     root: &Path,
     upstream: &BTreeMap<String, StageProduct>,
     carrier: &purrdf::RdfDataset,
-) -> Result<Vec<u8>, PipelineError> {
+) -> Result<Vec<u8>, gmeow_errors::Diag> {
     // Discover the whole-repo docs model (with the native-reasoner verdict attached) and pass
     // it to the injectable core. Threading the model as a parameter lets a unit test inject a
     // fixture-scoped model (e.g. an empty `DocsModel`) to exercise the serialization/blob wiring
@@ -163,7 +181,7 @@ pub(crate) fn serialize_carrier_snapshot_with_docs_model(
     upstream: &BTreeMap<String, StageProduct>,
     carrier: &purrdf::RdfDataset,
     docs_model: &gmeow_docs::model::DocsModel,
-) -> Result<Vec<u8>, PipelineError> {
+) -> Result<Vec<u8>, gmeow_errors::Diag> {
     // THIS run's freshly-emitted JSON Schema + OpenAPI bytes (from the in-memory
     // product, not the on-disk files which are not written until phase 1 returns).
     let schema_json = upstream
@@ -295,7 +313,7 @@ pub(crate) fn serialize_carrier_snapshot_with_docs_model(
 fn assert_okf_docs_cover_documented_terms(
     carrier: &purrdf::RdfDataset,
     model: &gmeow_docs::model::DocsModel,
-) -> Result<(), PipelineError> {
+) -> Result<(), gmeow_errors::Diag> {
     let (_, _, terms) = crate::stages::export::collect_term_surface(carrier)?;
     let emitted: std::collections::BTreeSet<String> =
         terms.iter().map(crate::stages::okf::doc_relpath).collect();
@@ -362,7 +380,9 @@ fn okf_link_targets_missing_from(
 /// and the docs sources (translations + guides folded into the authored default). The
 /// generated SSSOM alignments (`generated/mappings/`) are a produced artifact, not an
 /// authored source, so they are covered by the producing stage's own cache, not here.
-pub(crate) fn self_description_source_files(root: &Path) -> Result<Vec<PathBuf>, PipelineError> {
+pub(crate) fn self_description_source_files(
+    root: &Path,
+) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
     let mut files = crate::stages::source_load::authored_files(root)?;
     files.extend(crate::stages::source_load::manifest_files(root)?);
     files.extend(crate::stages::docs_render::docs_source_files(root)?);
@@ -404,7 +424,7 @@ pub(crate) fn self_description_source_files(root: &Path) -> Result<Vec<PathBuf>,
 /// `generated/mappings/*.sssom.tsv` off disk (the stale-disk-fold class).
 pub(crate) fn build_self_description_dataset(
     root: &Path,
-) -> Result<std::sync::Arc<purrdf::RdfDataset>, PipelineError> {
+) -> Result<std::sync::Arc<purrdf::RdfDataset>, gmeow_errors::Diag> {
     let authored = load_authored_default(root)?;
     let authored_canon = canonicalize_nq(&authored, "base")?;
     reject_quoted_triples(&parse_nq(authored_canon.as_bytes())?, "<default>")?;
@@ -444,7 +464,7 @@ pub(crate) fn build_self_description_dataset(
 /// plus the self-description named graphs it attaches). HARD-fails if the edge is missing.
 fn source_load_dataset(
     upstream: &BTreeMap<String, StageProduct>,
-) -> Result<std::sync::Arc<purrdf::RdfDataset>, PipelineError> {
+) -> Result<std::sync::Arc<purrdf::RdfDataset>, gmeow_errors::Diag> {
     Ok(upstream
         .get("stage-source-load")
         .ok_or_else(|| {
@@ -461,7 +481,7 @@ fn source_load_dataset(
 fn source_load_graph(
     upstream: &BTreeMap<String, StageProduct>,
     graph_iri: &str,
-) -> Result<std::sync::Arc<purrdf::RdfDataset>, PipelineError> {
+) -> Result<std::sync::Arc<purrdf::RdfDataset>, gmeow_errors::Diag> {
     rooted_in_graph(
         &source_load_dataset(upstream)?.project_named_graph(graph_iri),
         graph_iri,
@@ -477,7 +497,7 @@ fn producer_graph(
     upstream: &BTreeMap<String, StageProduct>,
     stage: &str,
     graph_iri: &str,
-) -> Result<std::sync::Arc<purrdf::RdfDataset>, PipelineError> {
+) -> Result<std::sync::Arc<purrdf::RdfDataset>, gmeow_errors::Diag> {
     let product = upstream.get(stage).ok_or_else(|| {
         stage_err(&format!(
             "missing {stage} product for the <{graph_iri}> graph"
@@ -491,7 +511,7 @@ fn producer_graph(
 
 fn assemble_carrier(
     upstream: &BTreeMap<String, StageProduct>,
-) -> Result<std::sync::Arc<purrdf::RdfDataset>, PipelineError> {
+) -> Result<std::sync::Arc<purrdf::RdfDataset>, gmeow_errors::Diag> {
     // ── the self-description graphs ride in from stage-source-load's carrier ────
     // The presenter no longer loads or canonicalizes any source: the authored default,
     // imports, metadata, alignments, slice-analysis, verify attestation, and provenance
@@ -629,7 +649,7 @@ fn assemble_carrier(
 /// fold the producing stage also emits as its committed file. Grows class-by-class.
 fn rdf_fanout_members(
     upstream: &BTreeMap<String, StageProduct>,
-) -> Result<BTreeMap<String, Vec<u8>>, PipelineError> {
+) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
     let mut out: BTreeMap<String, Vec<u8>> = BTreeMap::new();
     // profiles — `owl:Ontology` import closures, canonical Turtle. Read off the
     // stage-export-profiles product (rendered once, in that leaf; keyed by full path).
@@ -724,7 +744,7 @@ fn rdf_fanout_members(
 /// assembly. `stage-reason` already consumes all four (see `run.rs`).
 pub(crate) fn assemble_object_level_edb(
     upstream: &BTreeMap<String, StageProduct>,
-) -> Result<std::sync::Arc<purrdf::RdfDataset>, PipelineError> {
+) -> Result<std::sync::Arc<purrdf::RdfDataset>, gmeow_errors::Diag> {
     // The authored default and imports are read (not re-loaded) off stage-source-load —
     // the same self-description graphs the presenter folds — so the reasoned closure's
     // worlds match the bundle's by construction, with ONE load. graph/alignments is a
@@ -757,7 +777,7 @@ pub(crate) fn assemble_object_level_edb(
 /// [`assemble_object_level_edb`], so the two folds can never drift on the set.
 fn compile_logic_object_graphs(
     upstream: &BTreeMap<String, StageProduct>,
-) -> Result<Vec<std::sync::Arc<purrdf::RdfDataset>>, PipelineError> {
+) -> Result<Vec<std::sync::Arc<purrdf::RdfDataset>>, gmeow_errors::Diag> {
     let compile = upstream
         .get("stage-compile-logic")
         .ok_or_else(|| stage_err("missing stage-compile-logic product"))?;
@@ -774,7 +794,7 @@ fn serialize_snapshot(
     carrier: &purrdf::RdfDataset,
     blobs: Vec<BlobRow>,
     report_blobs: Vec<BlobRow>,
-) -> Result<Vec<u8>, PipelineError> {
+) -> Result<Vec<u8>, gmeow_errors::Diag> {
     let mut builder = SnapshotBuilder::new();
     builder
         .add_dataset(carrier)
@@ -811,7 +831,7 @@ pub(crate) fn parse_into_graph(
     bytes: &[u8],
     media_type: &str,
     graph_iri: &str,
-) -> Result<std::sync::Arc<purrdf::RdfDataset>, PipelineError> {
+) -> Result<std::sync::Arc<purrdf::RdfDataset>, gmeow_errors::Diag> {
     let parsed = parse_dataset(bytes, media_type, None)
         .map_err(|e| stage_err(&format!("parse <{graph_iri}>: {e}")))?;
     rooted_in_graph(&parsed, graph_iri)
@@ -821,7 +841,7 @@ pub(crate) fn parse_into_graph(
 /// declare the consumes edge — fail-closed, no-optionality).
 fn snapshot_product(
     upstream: &BTreeMap<String, StageProduct>,
-) -> Result<&StageProduct, PipelineError> {
+) -> Result<&StageProduct, gmeow_errors::Diag> {
     upstream
         .get("stage-snapshot")
         .ok_or_else(|| stage_err("missing stage-snapshot product"))
@@ -839,7 +859,7 @@ fn snapshot_product(
 /// correspondence, reasoning).
 pub(crate) fn snapshot_dataset(
     upstream: &BTreeMap<String, StageProduct>,
-) -> Result<std::sync::Arc<purrdf::RdfDataset>, PipelineError> {
+) -> Result<std::sync::Arc<purrdf::RdfDataset>, gmeow_errors::Diag> {
     Ok(snapshot_product(upstream)?.bundle().dataset_arc())
 }
 
@@ -922,7 +942,7 @@ const ARCHIVE_MEDIA_TYPE: &str = "application/x-tar";
 /// (`digest_string` = `blake3:<hex>`) equals the reference, so adding the SAME
 /// `guide.content` bytes resolves the reference. The `doc-guide` rep is read by
 /// digest (not by rep), so it just tags the channel.
-fn build_guide_blobs(root: &Path) -> Result<Vec<BlobRow>, PipelineError> {
+fn build_guide_blobs(root: &Path) -> Result<Vec<BlobRow>, gmeow_errors::Diag> {
     let catalog = purrdf::slice::SliceCatalog::discover(
         &root.join("slices"),
         crate::gmeow_ns::gmeow_slice_vocab(),
@@ -966,7 +986,7 @@ fn build_archive_blobs(
     axiom_artifacts: &BTreeMap<String, Vec<u8>>,
     mappings_artifacts: &BTreeMap<String, Vec<u8>>,
     shape_surfaces: &ShapeSurfaces<'_>,
-) -> Result<Vec<BlobRow>, PipelineError> {
+) -> Result<Vec<BlobRow>, gmeow_errors::Diag> {
     // mappings: member = bare filename, sourced from THIS run's stage-mappings product
     // (not re-read from disk) so a mapping-source edit folds into the bundle in one
     // regenerate — the committed generated/mappings/*.sssom.tsv are not written until
@@ -1115,7 +1135,7 @@ fn build_archive_blobs(
 fn producer_artifacts(
     stage: &str,
     upstream: &BTreeMap<String, StageProduct>,
-) -> Result<BTreeMap<String, Vec<u8>>, PipelineError> {
+) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
     Ok(upstream
         .get(stage)
         .ok_or_else(|| stage_err(&format!("missing {stage} product for the fanout presenter")))?
@@ -1127,7 +1147,7 @@ fn producer_artifact(
     stage: &str,
     path: &str,
     upstream: &BTreeMap<String, StageProduct>,
-) -> Result<Vec<u8>, PipelineError> {
+) -> Result<Vec<u8>, gmeow_errors::Diag> {
     upstream
         .get(stage)
         .and_then(|p| p.artifact(path))
@@ -1210,7 +1230,7 @@ fn opaque_already_carried(path: &str) -> bool {
 fn build_fanout_opaque_blob(
     carrier: &purrdf::RdfDataset,
     upstream: &BTreeMap<String, StageProduct>,
-) -> Result<BlobRow, PipelineError> {
+) -> Result<BlobRow, gmeow_errors::Diag> {
     let mut members: BTreeMap<String, Vec<u8>> = BTreeMap::new();
 
     // carrier-reading leaves (project from THIS run's carrier dataset — §8 permits a
@@ -1499,8 +1519,8 @@ fn build_fanout_opaque_blob(
 /// fail-closed): a partial archive would silently strip the reasoning reports.
 fn build_reasoning_blob(
     upstream: &BTreeMap<String, StageProduct>,
-) -> Result<BlobRow, PipelineError> {
-    let get = |path: &str| -> Result<Vec<u8>, PipelineError> {
+) -> Result<BlobRow, gmeow_errors::Diag> {
+    let get = |path: &str| -> Result<Vec<u8>, gmeow_errors::Diag> {
         upstream
             .get("stage-reason")
             .and_then(|p| p.artifact(path))
@@ -1530,7 +1550,7 @@ fn build_reasoning_blob(
 
 /// Pack the JSON-LD-star + YAML-LD-star serializations into a deterministic tar
 /// archive blob. Member names mirror the `dist/` logical paths.
-fn build_yaml_ld_blob(jsonld: &[u8], yamlld: &[u8]) -> Result<BlobRow, PipelineError> {
+fn build_yaml_ld_blob(jsonld: &[u8], yamlld: &[u8]) -> Result<BlobRow, gmeow_errors::Diag> {
     let members = vec![
         ("gmeow.jsonld".to_string(), jsonld.to_vec()),
         ("gmeow.yamlld".to_string(), yamlld.to_vec()),
@@ -1540,7 +1560,9 @@ fn build_yaml_ld_blob(jsonld: &[u8], yamlld: &[u8]) -> Result<BlobRow, PipelineE
 
 /// Build the YAML-LD archive by serializing the carrier dataset in-memory — the
 /// SAME native carrier every fold-reading export leaf consumes (no gts round-trip).
-fn build_yaml_ld_blob_from_dataset(carrier: &purrdf::RdfDataset) -> Result<BlobRow, PipelineError> {
+fn build_yaml_ld_blob_from_dataset(
+    carrier: &purrdf::RdfDataset,
+) -> Result<BlobRow, gmeow_errors::Diag> {
     let jsonld = crate::stages::yaml_ld::serialize_graph(carrier)?;
     let yamlld = crate::stages::yaml_ld::serialize_graph_yaml(carrier, None)?;
     build_yaml_ld_blob(jsonld.as_bytes(), yamlld.as_bytes())
@@ -1554,7 +1576,9 @@ fn build_yaml_ld_blob_from_dataset(carrier: &purrdf::RdfDataset) -> Result<BlobR
 /// the bundle root (`gmeow-okf/classes/Foo.md`), while the export leaf product is a
 /// disk artifact under `dist/`. Strip only that leading `dist/` boundary and hard-fail
 /// if a renderer path escapes it.
-fn build_okf_blob_from_dataset(carrier: &purrdf::RdfDataset) -> Result<BlobRow, PipelineError> {
+fn build_okf_blob_from_dataset(
+    carrier: &purrdf::RdfDataset,
+) -> Result<BlobRow, gmeow_errors::Diag> {
     let (title, version, terms) = crate::stages::export::collect_term_surface(carrier)?;
     let artifacts = crate::stages::okf::render_okf(&title, &version, &terms)?;
     let mut members: Vec<(String, Vec<u8>)> = Vec::with_capacity(artifacts.len());
@@ -1587,7 +1611,7 @@ fn build_docs_archive(
     root: &Path,
     model: &gmeow_docs::model::DocsModel,
     exec: &gmeow_docs::ExecutableDocsData,
-) -> Result<BlobRow, PipelineError> {
+) -> Result<BlobRow, gmeow_errors::Diag> {
     let catalog = purrdf::slice::SliceCatalog::discover(
         &root.join("slices"),
         crate::gmeow_ns::gmeow_slice_vocab(),
@@ -1631,7 +1655,7 @@ fn build_executable_docs_data(
     upstream: &BTreeMap<String, StageProduct>,
     carrier: &purrdf::RdfDataset,
     model: &gmeow_docs::model::DocsModel,
-) -> Result<gmeow_docs::ExecutableDocsData, PipelineError> {
+) -> Result<gmeow_docs::ExecutableDocsData, gmeow_errors::Diag> {
     // The reasoning seed for the "try it" hypothetical is the AUTHORED default-world
     // ontology ALONE — NOT the full object-level EDB. Reason-once, project-many
     // (PIPELINE_SPINE §3.2/§8): the expensive full-EDB closure is computed exactly ONCE, in
@@ -1693,7 +1717,7 @@ pub(crate) fn executable_docs_from_sources(
     base_closure_bytes: &[u8],
     examples: &[ExampleSource],
     carrier: &purrdf::RdfDataset,
-) -> Result<gmeow_docs::ExecutableDocsData, PipelineError> {
+) -> Result<gmeow_docs::ExecutableDocsData, gmeow_errors::Diag> {
     use std::collections::{BTreeMap as StdBTreeMap, BTreeSet, HashSet};
 
     // Parse every worked example's ABox; remember its subjects + asserted display lines.
@@ -1844,7 +1868,7 @@ pub(crate) fn executable_docs_from_sources(
 fn parse_example(
     logical_path: &str,
     text: &str,
-) -> Result<std::sync::Arc<purrdf::RdfDataset>, PipelineError> {
+) -> Result<std::sync::Arc<purrdf::RdfDataset>, gmeow_errors::Diag> {
     let ext = logical_path
         .rsplit('.')
         .next()
@@ -1881,7 +1905,7 @@ fn parse_example(
 fn build_playground_trig(
     carrier: &purrdf::RdfDataset,
     base_closure: &purrdf::RdfDataset,
-) -> Result<Vec<u8>, PipelineError> {
+) -> Result<Vec<u8>, gmeow_errors::Diag> {
     let mut pg = RdfDatasetBuilder::new();
     // The documentation graph, routed back into its named graph.
     let docs_graph = carrier.project_named_graph(GRAPH_DOCUMENTATION);
@@ -1969,7 +1993,7 @@ fn format_literal(lit: &RdfLiteral) -> String {
 }
 
 /// Every `*.<ext>` directly under `dir`, sorted by path (empty if the dir is absent).
-fn list_files(dir: &Path, ext: &str) -> Result<Vec<PathBuf>, PipelineError> {
+fn list_files(dir: &Path, ext: &str) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
     let entries = match std::fs::read_dir(dir) {
         Ok(e) => e,
         Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(Vec::new()),
@@ -1990,7 +2014,7 @@ fn list_files(dir: &Path, ext: &str) -> Result<Vec<PathBuf>, PipelineError> {
 }
 
 /// Every `slices/<group>/<name>/<sub>/*.ttl` (non-recursive past `<sub>/`), sorted.
-fn slice_files(root: &Path, sub: &str) -> Result<Vec<PathBuf>, PipelineError> {
+fn slice_files(root: &Path, sub: &str) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
     let slices = root.join("slices");
     let mut out: Vec<PathBuf> = Vec::new();
     let groups = match std::fs::read_dir(&slices) {
@@ -2026,7 +2050,7 @@ fn slice_files(root: &Path, sub: &str) -> Result<Vec<PathBuf>, PipelineError> {
 /// shacl crate's private `shape_union::slice_shape_files` walk (re-implemented here
 /// because it is not `pub`, the same way [`slice_files`] duplicates a walk). A read
 /// error HARD-FAILS so a slice subtree is never silently dropped.
-fn slice_named_files(root: &Path, file: &str) -> Result<Vec<PathBuf>, PipelineError> {
+fn slice_named_files(root: &Path, file: &str) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
     let slices = root.join("slices");
     let mut out: Vec<PathBuf> = Vec::new();
     let groups = match std::fs::read_dir(&slices) {
@@ -2090,7 +2114,7 @@ fn members_basename_from_artifacts(
 fn members_relpath(
     root: &Path,
     files: &[PathBuf],
-) -> Result<Vec<(String, Vec<u8>)>, PipelineError> {
+) -> Result<Vec<(String, Vec<u8>)>, gmeow_errors::Diag> {
     let mut out: Vec<(String, Vec<u8>)> = Vec::with_capacity(files.len());
     for p in files {
         let rel = p
@@ -2106,7 +2130,7 @@ fn members_relpath(
 }
 
 /// One archive blob: a deterministic USTAR tar over `members`, tagged with `rep`.
-fn archive_blob(rep: &str, members: &[(String, Vec<u8>)]) -> Result<BlobRow, PipelineError> {
+fn archive_blob(rep: &str, members: &[(String, Vec<u8>)]) -> Result<BlobRow, gmeow_errors::Diag> {
     Ok(BlobRow {
         data: purrdf::ustar::write_archive(members).map_err(|e| stage_err(&e))?,
         media_type: ARCHIVE_MEDIA_TYPE.to_string(),
@@ -2243,7 +2267,7 @@ impl Stage for SnapshotStage {
         // regenerate.
         "snapshot.v19-fresh-generated-shape-surfaces"
     }
-    fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, PipelineError> {
+    fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
         // The embedded ontology-docs site (`build_docs_archive`) is rendered from
         // the docs model's raw sources (slice modules / `docs.md` / examples /
         // `docs/four-boxes.md` / per-slice `i18n/<lang>.po` translation catalogs),
@@ -2267,7 +2291,7 @@ impl Stage for SnapshotStage {
         files.dedup();
         Ok(files)
     }
-    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
+    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         // Assemble the terminal carrier ONCE — the single native RdfDataset that every
         // export leaf (N-Quads/TriG/JSON-LD/OKF/LPG/metadata/logic AND the gts export)
         // reads off this product's bundle. NOTHING is serialized here: GTS is exit-only,
@@ -2275,9 +2299,10 @@ impl Stage for SnapshotStage {
         // never by this stage — the snapshot product carries the carrier, no byte lane.
         let carrier = assemble_carrier(input.upstream)?;
         let bundle = build_snapshot_bundle(carrier, input.upstream)?;
-        Ok(StageOutput {
-            product: StageProduct::from_bundle(self.id(), std::sync::Arc::new(bundle)),
-        })
+        Ok(StageOutput::new(StageProduct::from_bundle(
+            self.id(),
+            std::sync::Arc::new(bundle),
+        )))
     }
 }
 
@@ -2296,7 +2321,7 @@ impl Stage for SnapshotStage {
 fn build_snapshot_bundle(
     carrier: std::sync::Arc<purrdf::RdfDataset>,
     upstream: &BTreeMap<String, StageProduct>,
-) -> Result<purrdf::PipelineBundle<crate::bundle::PipelineHandle>, PipelineError> {
+) -> Result<purrdf::PipelineBundle<crate::bundle::PipelineHandle>, gmeow_errors::Diag> {
     // ── the Logic handle payload + its backing graph/logic projection ────────────
     let compile = upstream
         .get("stage-compile-logic")
@@ -2412,7 +2437,7 @@ fn build_snapshot_bundle(
 /// artifact paths reach the projection — NO runtime `UnitId` / `ArtifactId` /
 /// `OriginSetId` (S0.5). The fixed carrier-lane manifest + the realized process
 /// vocab (`gmeow:Procedure` / `gmeow:ProcedureStep` / `gmeow:Execution`) round it out.
-fn build_provenance_projection(root: &Path) -> Result<String, PipelineError> {
+fn build_provenance_projection(root: &Path) -> Result<String, gmeow_errors::Diag> {
     let (prov, expected) = crate::stages::source_load::attributed_base_provenance(root)?;
     // The hard-fail gate: every authored quad has ≥1 stage-origin occurrence and every
     // occurrence references a registered unit + artifact. A violation aborts the build.
@@ -2440,7 +2465,7 @@ fn build_provenance_projection(root: &Path) -> Result<String, PipelineError> {
 pub(crate) fn rooted_in_graph(
     src: &purrdf::RdfDataset,
     graph_iri: &str,
-) -> Result<std::sync::Arc<purrdf::RdfDataset>, PipelineError> {
+) -> Result<std::sync::Arc<purrdf::RdfDataset>, gmeow_errors::Diag> {
     use purrdf::{RdfDatasetBuilder, RdfTerm};
     let graph = RdfTerm::Iri(graph_iri.to_owned());
     let mut builder = RdfDatasetBuilder::new();
@@ -2484,7 +2509,7 @@ const LOCALIZABLE_PREDICATES: &[&str] = &[
 /// slice `.po` translations onto its localizable literals, and return canonical
 /// N-Quads. This is `load_merged_graph(include_imports=False)` followed by
 /// `merge_terms(graph, po_paths)` — the committed default graph is multilingual.
-fn load_authored_default(root: &Path) -> Result<Vec<u8>, PipelineError> {
+fn load_authored_default(root: &Path) -> Result<Vec<u8>, gmeow_errors::Diag> {
     let onto = root.join("ontology").join("gmeow.ttl");
     // The root ontology is REQUIRED — the authored default graph is meaningless
     // without it. A missing `ontology/gmeow.ttl` HARD-fails rather than silently
@@ -2526,7 +2551,7 @@ fn load_authored_default(root: &Path) -> Result<Vec<u8>, PipelineError> {
 /// default graph: for every slice carrying a `docs.md`, link the slice IRI to the
 /// `blake3:<hex>` content digest of that guide. The guide itself rides the bundle
 /// as a content-addressed blob; this triple is its in-graph anchor.
-fn add_guide_blobs(root: &Path, quads: &mut Vec<RdfQuad>) -> Result<(), PipelineError> {
+fn add_guide_blobs(root: &Path, quads: &mut Vec<RdfQuad>) -> Result<(), gmeow_errors::Diag> {
     let guide_blob = format!("{GMEOW_NS}guideBlob");
     let catalog = purrdf::slice::SliceCatalog::discover(
         &root.join("slices"),
@@ -2558,7 +2583,7 @@ fn add_guide_blobs(root: &Path, quads: &mut Vec<RdfQuad>) -> Result<(), Pipeline
 /// The scan is over the pre-translation base quads (a snapshot taken before any
 /// additions), so a translated literal is never itself re-scanned — matching the
 /// original `quads_for_pattern` view of the base store.
-fn merge_translations(root: &Path, quads: &mut Vec<RdfQuad>) -> Result<(), PipelineError> {
+fn merge_translations(root: &Path, quads: &mut Vec<RdfQuad>) -> Result<(), gmeow_errors::Diag> {
     let catalog = purrdf::slice::SliceCatalog::discover(
         &root.join("slices"),
         crate::gmeow_ns::gmeow_slice_vocab(),
@@ -2604,7 +2629,7 @@ fn merge_translations(root: &Path, quads: &mut Vec<RdfQuad>) -> Result<(), Pipel
 
 // ── imports (graph/imports) ─────────────────────────────────────────────────────
 
-fn load_imports(root: &Path) -> Result<Vec<u8>, PipelineError> {
+fn load_imports(root: &Path) -> Result<Vec<u8>, gmeow_errors::Diag> {
     let dir = root.join("imports");
     let mut files: Vec<std::path::PathBuf> = Vec::new();
     for entry in std::fs::read_dir(&dir)? {
@@ -2622,7 +2647,7 @@ fn load_imports(root: &Path) -> Result<Vec<u8>, PipelineError> {
 
 // ── metadata (graph/metadata) ───────────────────────────────────────────────────
 
-fn load_metadata(root: &Path) -> Result<Vec<u8>, PipelineError> {
+fn load_metadata(root: &Path) -> Result<Vec<u8>, gmeow_errors::Diag> {
     let path = root.join("metadata").join("gmeow-self.ttl");
     turtle_to_nquads(&std::fs::read(&path)?)
 }
@@ -2633,7 +2658,7 @@ fn load_metadata(root: &Path) -> Result<Vec<u8>, PipelineError> {
 /// analyzer — the Rust twin of `gts_gen.build_slice_analysis_graph`. The analyzer
 /// reads AUTHORED slices only; `authored_nq` (the authored base graph as text)
 /// feeds the emitter's self-attestation guard.
-fn build_slice_analysis(root: &Path, authored_nq: &[u8]) -> Result<Vec<u8>, PipelineError> {
+fn build_slice_analysis(root: &Path, authored_nq: &[u8]) -> Result<Vec<u8>, gmeow_errors::Diag> {
     use purrdf::slice::{
         OwnershipAnalyzer, OwnershipStatus, SliceCatalog, ToolchainContext, emit_analysis_graph,
     };
@@ -2702,7 +2727,7 @@ fn tier_priority(tier: Option<&purrdf::slice::SliceTier>) -> u8 {
 }
 
 /// The authored ontology `owl:versionInfo` (a hard requirement — never defaulted).
-fn ontology_version(authored_nq: &[u8]) -> Result<String, PipelineError> {
+fn ontology_version(authored_nq: &[u8]) -> Result<String, gmeow_errors::Diag> {
     let onto = GMEOW_NS.trim_end_matches('/');
     let version_info = "http://www.w3.org/2002/07/owl#versionInfo";
     for quad in parse_nq(authored_nq)? {
@@ -2731,7 +2756,7 @@ fn ontology_version(authored_nq: &[u8]) -> Result<String, PipelineError> {
 /// product; the presenter and the reasoning EDB read it back via `producer_graph`.
 pub(crate) fn alignment_nquads_from_artifacts(
     artifacts: &BTreeMap<String, Vec<u8>>,
-) -> Result<Vec<u8>, PipelineError> {
+) -> Result<Vec<u8>, gmeow_errors::Diag> {
     // BTreeMap iterates by key (repo-relative path), so the `generated/mappings/*.sssom.tsv`
     // are visited in the same sorted order the former disk `read_dir(...).sort()` produced.
     let mut quads: Vec<RdfQuad> = Vec::new();
@@ -2752,7 +2777,7 @@ pub(crate) fn alignment_nquads_from_artifacts(
 
 /// Parse one SSSOM TSV into `(subject_iri, predicate_iri, object_iri)` rows,
 /// expanding CURIEs through the file's `# curie_map:` header block.
-fn alignment_rows(text: &str) -> Result<Vec<(String, String, String)>, PipelineError> {
+fn alignment_rows(text: &str) -> Result<Vec<(String, String, String)>, gmeow_errors::Diag> {
     let mut curie_map: BTreeMap<String, String> = BTreeMap::new();
     let mut in_curie_map = false;
     let mut header: Option<Vec<String>> = None;
@@ -2817,7 +2842,7 @@ fn alignment_rows(text: &str) -> Result<Vec<(String, String, String)>, PipelineE
 fn expand_curie(
     curie: &str,
     curie_map: &BTreeMap<String, String>,
-) -> Result<String, PipelineError> {
+) -> Result<String, gmeow_errors::Diag> {
     if curie.starts_with("http://") || curie.starts_with("https://") || curie.starts_with("urn:") {
         return Ok(curie.to_string());
     }
@@ -2834,14 +2859,21 @@ fn expand_curie(
 /// Run the native verify lane over `edb` and build the attestation graph as
 /// N-Quads. Mirrors `gts_gen.build_verify_attestation_graph` exactly (the same
 /// `gmeow:QualityAssessment` vocabulary, one per query).
-fn run_verify_attestation(root: &Path, edb: &purrdf::RdfDataset) -> Result<Vec<u8>, PipelineError> {
+fn run_verify_attestation(
+    root: &Path,
+    edb: &purrdf::RdfDataset,
+) -> Result<Vec<u8>, gmeow_errors::Diag> {
     let query_paths = verify_query_paths(root)?;
     let pairs: Vec<(String, String)> = query_paths
         .iter()
         .map(|(name, path)| {
             std::fs::read_to_string(path)
                 .map(|sparql| (name.clone(), sparql))
-                .map_err(PipelineError::from)
+                .map_err(|e| {
+                    gmeow_errors::Diag::of_kind(crate::error::Io {
+                        message: e.to_string(),
+                    })
+                })
         })
         .collect::<Result<_, _>>()?;
 
@@ -2863,7 +2895,9 @@ fn run_verify_attestation(root: &Path, edb: &purrdf::RdfDataset) -> Result<Vec<u
 }
 
 /// Sorted `(repo_relative_name, path)` for every verify query (core + slice).
-fn verify_query_paths(root: &Path) -> Result<Vec<(String, std::path::PathBuf)>, PipelineError> {
+fn verify_query_paths(
+    root: &Path,
+) -> Result<Vec<(String, std::path::PathBuf)>, gmeow_errors::Diag> {
     let mut out: Vec<(String, std::path::PathBuf)> = Vec::new();
     // Core: sorted queries/verify/*.rq.
     let core = root.join("queries").join("verify");
@@ -2997,7 +3031,7 @@ fn add_named(
     nq_bytes: &[u8],
     graph_name: &str,
     scope: &str,
-) -> Result<(), PipelineError> {
+) -> Result<(), gmeow_errors::Diag> {
     let canon = canonicalize_nq(nq_bytes, scope)?;
     let quads = parse_nq(canon.as_bytes())?;
     reject_quoted_triples(&quads, graph_name)?;
@@ -3017,7 +3051,7 @@ fn add_base_nq(
     builder: &mut SnapshotBuilder,
     nq_bytes: &[u8],
     scope: &str,
-) -> Result<(), PipelineError> {
+) -> Result<(), gmeow_errors::Diag> {
     let canon = canonicalize_nq(nq_bytes, scope)?;
     let quads = parse_nq(canon.as_bytes())?;
     reject_quoted_triples(&quads, "default")?;
@@ -3034,7 +3068,7 @@ fn add_base_nq(
 /// `add_dataset` folds), never a base quoted-triple object. A quoted triple here would
 /// be a real defect — HARD-fail rather than let it shrink the fold (no-optionality /
 /// no silent data loss).
-fn reject_quoted_triples(quads: &[RdfQuad], graph_name: &str) -> Result<(), PipelineError> {
+fn reject_quoted_triples(quads: &[RdfQuad], graph_name: &str) -> Result<(), gmeow_errors::Diag> {
     if quads.iter().any(|q| matches!(q.object, RdfTerm::Triple(_))) {
         return Err(stage_err(&format!(
             "graph {graph_name} carries a quoted-triple (<<>>) object that the base-quad fold \
@@ -3047,7 +3081,7 @@ fn reject_quoted_triples(quads: &[RdfQuad], graph_name: &str) -> Result<(), Pipe
 
 /// Canonicalize a graph's blank-node labels under RDFC-1.0, returning N-Quads.
 /// Mirrors `compile_gts`'s `to_canonical_graph` before each `add_graph`.
-fn canonicalize_nq(nq_bytes: &[u8], _scope: &str) -> Result<String, PipelineError> {
+fn canonicalize_nq(nq_bytes: &[u8], _scope: &str) -> Result<String, gmeow_errors::Diag> {
     // Native full RDFC-1.0, replacing oxrdf `Dataset::canonicalize`.
     // `canonical_flat_nquads` parses → flattens the RDF 1.2 statement overlay → RDFC-1.0
     // canonicalizes, byte-identical to the prior oxigraph `canonicalize_quads` flat path
@@ -3058,7 +3092,7 @@ fn canonicalize_nq(nq_bytes: &[u8], _scope: &str) -> Result<String, PipelineErro
     purrdf::canonical_flat_nquads(&dataset).map_err(|e| stage_err(&format!("canonicalize: {e}")))
 }
 
-fn parse_nq(bytes: &[u8]) -> Result<Vec<RdfQuad>, PipelineError> {
+fn parse_nq(bytes: &[u8]) -> Result<Vec<RdfQuad>, gmeow_errors::Diag> {
     parse_rdf(bytes, "application/n-quads")
 }
 
@@ -3066,7 +3100,7 @@ fn parse_nq(bytes: &[u8]) -> Result<Vec<RdfQuad>, PipelineError> {
 /// The IR fold + [`flat_rdf_quads_from_dataset`] un-fold are exact inverses (set-equal
 /// to the original parse), so the RDF 1.2 statement layer's `rdf:reifies`/annotation
 /// rows are re-materialized for `add_rdf12`'s own fold.
-fn parse_rdf(bytes: &[u8], media_type: &str) -> Result<Vec<RdfQuad>, PipelineError> {
+fn parse_rdf(bytes: &[u8], media_type: &str) -> Result<Vec<RdfQuad>, gmeow_errors::Diag> {
     let dataset =
         parse_dataset(bytes, media_type, None).map_err(|e| stage_err(&format!("parse: {e}")))?;
     Ok(flat_rdf_quads_from_dataset(&dataset))
@@ -3075,7 +3109,9 @@ fn parse_rdf(bytes: &[u8], media_type: &str) -> Result<Vec<RdfQuad>, PipelineErr
 /// Parse one Turtle source's bytes into a frozen [`RdfDataset`] via the native
 /// codec. The IR fold standardizes blank labels per-dataset, so each parse is an
 /// independent blank-node scope — [`RdfDataset::union`] keeps those scopes disjoint.
-fn parse_turtle_dataset(bytes: &[u8]) -> Result<std::sync::Arc<purrdf::RdfDataset>, PipelineError> {
+fn parse_turtle_dataset(
+    bytes: &[u8],
+) -> Result<std::sync::Arc<purrdf::RdfDataset>, gmeow_errors::Diag> {
     parse_dataset(bytes, "text/turtle", None).map_err(|e| stage_err(&format!("parse: {e}")))
 }
 
@@ -3095,7 +3131,7 @@ fn parse_turtle_dataset(bytes: &[u8]) -> Result<std::sync::Arc<purrdf::RdfDatase
 /// The mapped quads / reifier bindings / annotations are re-interned through a fresh
 /// [`purrdf::RdfDatasetBuilder`] (carrying the full RDF 1.2 statement layer), so the
 /// whole pass stays on the native kernel — no transient oxigraph `Store`.
-fn dataset_to_nquads(dataset: &purrdf::RdfDataset) -> Result<Vec<u8>, PipelineError> {
+fn dataset_to_nquads(dataset: &purrdf::RdfDataset) -> Result<Vec<u8>, gmeow_errors::Diag> {
     let mut builder = purrdf::RdfDatasetBuilder::new();
     for quad in dataset.owned_quads() {
         builder.push_owned_quad(&canonicalize_quad_xsd(quad)?);
@@ -3119,7 +3155,7 @@ fn dataset_to_nquads(dataset: &purrdf::RdfDataset) -> Result<Vec<u8>, PipelineEr
 
 /// Canonicalize every typed-literal lexical form in an owned [`purrdf::RdfQuad`] to
 /// the W3C XSD canonical mapping via gmeow-xsd, recursing into quoted-triple terms.
-fn canonicalize_quad_xsd(mut quad: purrdf::RdfQuad) -> Result<purrdf::RdfQuad, PipelineError> {
+fn canonicalize_quad_xsd(mut quad: purrdf::RdfQuad) -> Result<purrdf::RdfQuad, gmeow_errors::Diag> {
     canonicalize_term_xsd(&mut quad.subject)?;
     canonicalize_term_xsd(&mut quad.object)?;
     if let Some(graph_name) = quad.graph_name.as_mut() {
@@ -3131,7 +3167,7 @@ fn canonicalize_quad_xsd(mut quad: purrdf::RdfQuad) -> Result<purrdf::RdfQuad, P
 /// As [`canonicalize_quad_xsd`] for an owned RDF 1.2 reifier binding.
 fn canonicalize_reifier_xsd(
     mut reifier: purrdf::RdfReifier,
-) -> Result<purrdf::RdfReifier, PipelineError> {
+) -> Result<purrdf::RdfReifier, gmeow_errors::Diag> {
     canonicalize_triple_xsd(&mut reifier.statement)?;
     canonicalize_term_xsd(&mut reifier.reifier)?;
     Ok(reifier)
@@ -3140,14 +3176,14 @@ fn canonicalize_reifier_xsd(
 /// As [`canonicalize_quad_xsd`] for an owned RDF 1.2 statement annotation.
 fn canonicalize_annotation_xsd(
     mut annotation: purrdf::RdfAnnotation,
-) -> Result<purrdf::RdfAnnotation, PipelineError> {
+) -> Result<purrdf::RdfAnnotation, gmeow_errors::Diag> {
     canonicalize_term_xsd(&mut annotation.reifier)?;
     canonicalize_term_xsd(&mut annotation.object)?;
     Ok(annotation)
 }
 
 /// Recurse a single owned [`purrdf::RdfTriple`], canonicalizing its term literals.
-fn canonicalize_triple_xsd(triple: &mut purrdf::RdfTriple) -> Result<(), PipelineError> {
+fn canonicalize_triple_xsd(triple: &mut purrdf::RdfTriple) -> Result<(), gmeow_errors::Diag> {
     canonicalize_term_xsd(&mut triple.subject)?;
     canonicalize_term_xsd(&mut triple.object)?;
     Ok(())
@@ -3161,7 +3197,7 @@ fn canonicalize_triple_xsd(triple: &mut purrdf::RdfTriple) -> Result<(), Pipelin
 /// A malformed lexical for a RECOGNIZED XSD datatype HARD-fails (`Err` from
 /// `parse_by_iri`): an authored ontology should never carry one, so surface it
 /// (no-optionality) rather than silently passing it through.
-fn canonicalize_term_xsd(term: &mut purrdf::RdfTerm) -> Result<(), PipelineError> {
+fn canonicalize_term_xsd(term: &mut purrdf::RdfTerm) -> Result<(), gmeow_errors::Diag> {
     match term {
         purrdf::RdfTerm::Literal(literal) => {
             // A language tag (rdf:langString) has no numeric value space — verbatim.
@@ -3195,7 +3231,7 @@ fn canonicalize_term_xsd(term: &mut purrdf::RdfTerm) -> Result<(), PipelineError
 /// Parse a single Turtle source and serialize it straight to N-Quads (no `Store`).
 /// The native equivalent of the old `Store::new()+ingest_turtle+store_to_nquads`
 /// trio for single-file named-graph sources (metadata, slice-analysis).
-pub(crate) fn turtle_to_nquads(bytes: &[u8]) -> Result<Vec<u8>, PipelineError> {
+pub(crate) fn turtle_to_nquads(bytes: &[u8]) -> Result<Vec<u8>, gmeow_errors::Diag> {
     dataset_to_nquads(parse_turtle_dataset(bytes)?.as_ref())
 }
 
@@ -3204,7 +3240,7 @@ pub(crate) fn turtle_to_nquads(bytes: &[u8]) -> Result<Vec<u8>, PipelineError> {
 /// [`RdfDataset::union`], whose per-input `BlankScope` keeps structurally-distinct
 /// blank-node axioms (e.g. two `owl:AllDisjointClasses` lists) disjoint — the native
 /// replacement for the removed `ingest_turtle_scoped` string-prefix scoping.
-fn union_turtle_datasets(sources: &[Vec<u8>]) -> Result<purrdf::RdfDataset, PipelineError> {
+fn union_turtle_datasets(sources: &[Vec<u8>]) -> Result<purrdf::RdfDataset, gmeow_errors::Diag> {
     let owned: Vec<std::sync::Arc<purrdf::RdfDataset>> = sources
         .iter()
         .map(|bytes| parse_turtle_dataset(bytes))
@@ -3213,7 +3249,7 @@ fn union_turtle_datasets(sources: &[Vec<u8>]) -> Result<purrdf::RdfDataset, Pipe
     Ok(purrdf::RdfDataset::union(&refs))
 }
 
-fn sorted_dirs(dir: &Path) -> Result<Vec<std::path::PathBuf>, PipelineError> {
+fn sorted_dirs(dir: &Path) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
     let mut out: Vec<std::path::PathBuf> = Vec::new();
     for entry in std::fs::read_dir(dir)? {
         let path = entry?.path();
@@ -3232,11 +3268,11 @@ fn rel_name(root: &Path, path: &Path) -> String {
         .into_owned()
 }
 
-fn stage_err(message: &str) -> PipelineError {
-    PipelineError::Stage {
+fn stage_err(message: &str) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(crate::error::StageFailed {
         stage: "stage-gts-sink".to_string(),
         message: message.to_string(),
-    }
+    })
 }
 
 #[cfg(test)]

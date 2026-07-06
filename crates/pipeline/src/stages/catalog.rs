@@ -13,7 +13,6 @@ use std::path::Path;
 
 use purrdf::{DatasetView, GraphMatch, TermRef, TermValue, parse_dataset};
 
-use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 use crate::stages::source_load::module_files;
 
@@ -26,7 +25,7 @@ const SLICE_CLASS: &str = "https://blackcatinformatics.ca/gmeow/Slice";
 const SLICE_PROFILE: &str = "https://blackcatinformatics.ca/gmeow/sliceProfile";
 
 /// Render `catalog-v001.xml` from the slice manifests under `root`.
-pub fn render_catalog(root: &Path) -> Result<String, PipelineError> {
+pub fn render_catalog(root: &Path) -> Result<String, gmeow_errors::Diag> {
     // (slice_iri, module-rel-path) sorted by IRI; distinct profile names sorted.
     let mut slices: BTreeMap<String, String> = BTreeMap::new();
     let mut profiles: BTreeSet<String> = BTreeSet::new();
@@ -84,10 +83,13 @@ pub fn render_catalog(root: &Path) -> Result<String, PipelineError> {
 }
 
 /// Parse one manifest for `(slice_iri, sliceProfile names)`.
-fn parse_manifest(path: &Path) -> Result<(String, Vec<String>), PipelineError> {
+fn parse_manifest(path: &Path) -> Result<(String, Vec<String>), gmeow_errors::Diag> {
     let bytes = std::fs::read(path)?;
-    let ds = parse_dataset(&bytes, "text/turtle", None)
-        .map_err(|e| PipelineError::Parse(format!("syntax error in {}: {e}", path.display())))?;
+    let ds = parse_dataset(&bytes, "text/turtle", None).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            message: format!("syntax error in {}: {e}", path.display()),
+        })
+    })?;
     let mut iri: Option<String> = None;
     if let (Some(p), Some(o)) = (
         ds.term_id_by_value(&TermValue::iri(RDF_TYPE)),
@@ -99,8 +101,11 @@ fn parse_manifest(path: &Path) -> Result<(String, Vec<String>), PipelineError> {
             }
         }
     }
-    let iri = iri
-        .ok_or_else(|| PipelineError::Parse(format!("no `a gmeow:Slice` in {}", path.display())))?;
+    let iri = iri.ok_or_else(|| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            message: format!("no `a gmeow:Slice` in {}", path.display()),
+        })
+    })?;
     let mut profiles = Vec::new();
     if let (Some(s), Some(p)) = (
         ds.term_id_by_value(&TermValue::iri(&iri)),
@@ -130,20 +135,21 @@ impl Stage for CatalogStage {
     fn impl_version(&self) -> &str {
         "catalog.v1"
     }
-    fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, PipelineError> {
+    fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
         // Pure source read: the IRI→file map is derived from the slice manifests
         // (`gmeow:sliceProfile` lives in `manifest.ttl`, which is NOT folded into
         // the snapshot — only `module.ttl` is). Declare the manifests so a slice
         // add/rename/profile-change busts the cache. `consumes() == []`.
         crate::stages::source_load::manifest_files(root)
     }
-    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
+    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         let xml = render_catalog(input.root)?;
         let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
         artifacts.insert(CATALOG_PATH.to_string(), xml.into_bytes());
-        Ok(StageOutput {
-            product: StageProduct::from_artifacts(self.id(), artifacts),
-        })
+        Ok(StageOutput::new(StageProduct::from_artifacts(
+            self.id(),
+            artifacts,
+        )))
     }
 }
 

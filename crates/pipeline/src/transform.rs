@@ -27,6 +27,8 @@ use purrdf::{
 };
 use sha2::{Digest, Sha256};
 
+use gmeow_errors::ResultExt;
+
 const GM: &str = "https://blackcatinformatics.ca/gmeow/";
 const SKOLEM_BASE: &str = "https://blackcatinformatics.ca/gmeow/.well-known/genid/";
 
@@ -179,9 +181,12 @@ struct Graph {
 }
 
 impl Graph {
-    fn from_quads(quads: Vec<RdfQuad>) -> Result<Self, String> {
-        let ds = purrdf::flat_dataset_from_quads(&quads)
-            .map_err(|e| format!("flat dataset build failed: {e}"))?;
+    fn from_quads(quads: Vec<RdfQuad>) -> gmeow_errors::Result<Self> {
+        let ds = purrdf::flat_dataset_from_quads(&quads).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Transform {
+                message: format!("flat dataset build failed: {e}"),
+            })
+        })?;
         Ok(Self { quads, ds })
     }
 
@@ -271,7 +276,7 @@ fn resolve_term(ds: &RdfDataset, id: TermId) -> RdfTerm {
 }
 
 /// Return the deterministic skolemized default graph as N-Triples.
-pub fn skolemize_nt(raw_nt: &str) -> Result<String, String> {
+pub fn skolemize_nt(raw_nt: &str) -> gmeow_errors::Result<String> {
     let graph = skolemized_graph(raw_nt)?;
     dump_nt(&graph)
 }
@@ -282,7 +287,7 @@ pub fn saturate_nt(
     ontology_nt: &str,
     cells: &[CellInput],
     denied: &[(String, String, String)],
-) -> Result<Vec<DerivedRowNative>, String> {
+) -> gmeow_errors::Result<Vec<DerivedRowNative>> {
     let abox = parse_graph(abox_nt.as_bytes())?;
     let onto = parse_graph(ontology_nt.as_bytes())?;
     let cells = convert_cells(cells)?;
@@ -299,7 +304,7 @@ pub fn transform_nt(
     cells: &[CellInput],
     denied: &[(String, String, String)],
     projection_queries: &[(String, String)],
-) -> Result<TransformReportNative, String> {
+) -> gmeow_errors::Result<TransformReportNative> {
     let mut abox = skolemized_graph(raw_nt)?;
     let onto = parse_graph(ontology_nt.as_bytes())?;
     let cells = convert_cells(cells)?;
@@ -332,7 +337,7 @@ pub fn transform_nt(
     })
 }
 
-fn convert_cells(inputs: &[CellInput]) -> Result<Vec<Cell>, String> {
+fn convert_cells(inputs: &[CellInput]) -> gmeow_errors::Result<Vec<Cell>> {
     inputs
         .iter()
         .map(|cell| {
@@ -343,10 +348,12 @@ fn convert_cells(inputs: &[CellInput]) -> Result<Vec<Cell>, String> {
             if !cell.confidence.is_empty()
                 && crate::up_projection_corpus::decimal_confidence(&cell.confidence).is_none()
             {
-                return Err(format!(
-                    "cell {} carries a malformed gmeow:confidence {:?}: expected a decimal in [0.0, 1.0]",
-                    cell.iri, cell.confidence
-                ));
+                return Err(gmeow_errors::Diag::of_kind(crate::error::Transform {
+                    message: format!(
+                        "cell {} carries a malformed gmeow:confidence {:?}: expected a decimal in [0.0, 1.0]",
+                        cell.iri, cell.confidence
+                    ),
+                }));
             }
             Ok(Cell {
                 iri: cell.iri.clone(),
@@ -359,7 +366,7 @@ fn convert_cells(inputs: &[CellInput]) -> Result<Vec<Cell>, String> {
         .collect()
 }
 
-fn skolemized_graph(raw_nt: &str) -> Result<Graph, String> {
+fn skolemized_graph(raw_nt: &str) -> gmeow_errors::Result<Graph> {
     // Native full RDFC-1.0 (SHA-256) canonical N-Quads — the canonical `_:c14nN`
     // labels (hence the persisted skolem IRIs) are stable. We canonicalize the parsed
     // input then map each canonical blank to its deterministic skolem IRI.
@@ -368,15 +375,18 @@ fn skolemized_graph(raw_nt: &str) -> Result<Graph, String> {
         NativeRdfFormat::NTriples.media_type(),
         None,
     )
-    .map_err(|e| format!("skolem input parse failed: {e}"))?;
-    let canon_nq = purrdf::canonical_flat_nquads(parsed.as_ref())
-        .map_err(|e| format!("canonicalization failed: {e}"))?;
+    .ctx("skolem input parse failed")?;
+    let canon_nq = purrdf::canonical_flat_nquads(parsed.as_ref()).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Transform {
+            message: format!("canonicalization failed: {e}"),
+        })
+    })?;
     let canon = purrdf::parse_dataset(
         canon_nq.as_bytes(),
         NativeRdfFormat::NQuads.media_type(),
         None,
     )
-    .map_err(|e| format!("canonical re-parse failed: {e}"))?;
+    .ctx("canonical re-parse failed")?;
 
     let flat = purrdf::flat_rdf_quads_from_dataset(canon.as_ref());
     let mut out: Vec<RdfQuad> = Vec::with_capacity(flat.len());
@@ -402,7 +412,7 @@ fn skolemized_graph(raw_nt: &str) -> Result<Graph, String> {
 /// Map a term to its skolemized form: a blank node becomes the deterministic skolem
 /// IRI `{SKOLEM_BASE}{label}`; every other term passes through. Recurses into quoted
 /// triple components.
-fn skolem_term(term: &RdfTerm) -> Result<RdfTerm, String> {
+fn skolem_term(term: &RdfTerm) -> gmeow_errors::Result<RdfTerm> {
     Ok(match term {
         RdfTerm::Iri(iri) => RdfTerm::iri(iri.clone()),
         RdfTerm::BlankNode(label) => RdfTerm::iri(format!("{SKOLEM_BASE}{label}")),
@@ -419,7 +429,7 @@ fn build_strong_edges(
     cells: &[Cell],
     onto: &Graph,
     denied: &BTreeSet<(String, String, String)>,
-) -> Result<(EdgeMap, EdgeMap), String> {
+) -> gmeow_errors::Result<(EdgeMap, EdgeMap)> {
     let mut class_edges: EdgeMap = BTreeMap::new();
     let mut property_edges: EdgeMap = BTreeMap::new();
     for cell in cells {
@@ -469,7 +479,7 @@ fn saturate_graph(
     cells: &[Cell],
     denied: &BTreeSet<(String, String, String)>,
     vocab: &SuppressionVocab,
-) -> Result<BTreeMap<TripleKey, DerivedTriple>, String> {
+) -> gmeow_errors::Result<BTreeMap<TripleKey, DerivedTriple>> {
     let (class_edges, property_edges) = build_strong_edges(cells, onto, denied)?;
     let suppressed = suppressed_nodes(abox, vocab)?;
     let mut derived: BTreeMap<TripleKey, DerivedTriple> = BTreeMap::new();
@@ -554,7 +564,7 @@ fn emit_derived(
     predicate: String,
     object: RdfTerm,
     annotations: Vec<AnnotationKey>,
-) -> Result<(), String> {
+) -> gmeow_errors::Result<()> {
     if contains_triple(abox, &subject, &predicate, &object) {
         return Ok(());
     }
@@ -586,7 +596,7 @@ fn projection_derived(
     onto: &Graph,
     projection_queries: &[(String, String)],
     suppressed: &BTreeSet<String>,
-) -> Result<BTreeMap<TripleKey, DerivedTriple>, String> {
+) -> gmeow_errors::Result<BTreeMap<TripleKey, DerivedTriple>> {
     let projection_input = projection_input_graph(abox, onto)?;
     let onto_subjects = subjects(onto);
     let mut derived: BTreeMap<TripleKey, DerivedTriple> = BTreeMap::new();
@@ -602,9 +612,11 @@ fn projection_derived(
                     substitutions: &[],
                 },
             )
-            .map_err(|e| format!("projection query evaluation failed for {name}: {e}"))?;
+            .with_ctx(|| format!("projection query evaluation failed for {name}"))?;
         let SparqlResult::Graph(triples) = result else {
-            return Err(format!("projection query {name} did not return a graph"));
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Transform {
+                message: format!("projection query {name} did not return a graph"),
+            }));
         };
         for quad in triples.owned_quads() {
             let subject = quad.subject;
@@ -635,7 +647,7 @@ fn projection_derived(
     Ok(derived)
 }
 
-fn projection_input_graph(abox: &Graph, onto: &Graph) -> Result<Graph, String> {
+fn projection_input_graph(abox: &Graph, onto: &Graph) -> gmeow_errors::Result<Graph> {
     let mut quads: Vec<RdfQuad> = Vec::new();
     quads.extend(default_quads(onto));
     quads.extend(default_quads(abox));
@@ -692,7 +704,7 @@ fn merge_derived(
 fn base_plus_derived_graph(
     base: &Graph,
     derived: &BTreeMap<TripleKey, DerivedTriple>,
-) -> Result<Graph, String> {
+) -> gmeow_errors::Result<Graph> {
     let mut quads: Vec<RdfQuad> = default_quads(base);
     for row in derived.values() {
         quads.push(RdfQuad::new(
@@ -707,22 +719,24 @@ fn base_plus_derived_graph(
 fn gts_from_maximal(
     base_plus_derived: &Graph,
     derived: &BTreeMap<TripleKey, DerivedTriple>,
-) -> Result<Vec<u8>, String> {
+) -> gmeow_errors::Result<Vec<u8>> {
     let mut builder = purrdf::gts_compose::SnapshotBuilder::new();
     // Native carrier ingestion: serialize the default graph to N-Triples and
     // parse it into a frozen dataset, then fold it in. The native parse folds any RDF
     // 1.2 statement layer into the dataset's reifier/annotation side-tables, so a
     // single `add_dataset` reproduces the old `add_quads` + `add_rdf12` split.
     let base_nt = dump_nt(base_plus_derived)?;
-    let base_dataset = purrdf::parse_dataset(base_nt.as_bytes(), "application/n-triples", None)
-        .map_err(|e| e.to_string())?;
-    builder.add_dataset(&base_dataset)?;
+    let base_dataset = purrdf::parse_dataset(base_nt.as_bytes(), "application/n-triples", None)?;
+    builder
+        .add_dataset(&base_dataset)
+        .map_err(|message| gmeow_errors::Diag::of_kind(crate::error::Transform { message }))?;
     let statement_nt = statement_layer_nt(derived);
     if !statement_nt.trim().is_empty() {
         let statement_dataset =
-            purrdf::parse_dataset(statement_nt.as_bytes(), "application/n-triples", None)
-                .map_err(|e| e.to_string())?;
-        builder.add_dataset(&statement_dataset)?;
+            purrdf::parse_dataset(statement_nt.as_bytes(), "application/n-triples", None)?;
+        builder
+            .add_dataset(&statement_dataset)
+            .map_err(|message| gmeow_errors::Diag::of_kind(crate::error::Transform { message }))?;
     }
     purrdf::gts_compose::emit_gts(
         &builder,
@@ -735,6 +749,7 @@ fn gts_from_maximal(
         None,
         purrdf::gts_compose::DEFAULT_RSYNCABLE_THRESHOLD,
     )
+    .map_err(|message| gmeow_errors::Diag::of_kind(crate::error::Transform { message }))
 }
 
 fn statement_layer_nt(derived: &BTreeMap<TripleKey, DerivedTriple>) -> String {
@@ -774,7 +789,7 @@ fn derived_to_rows(derived: &BTreeMap<TripleKey, DerivedTriple>) -> Vec<DerivedR
         .collect()
 }
 
-fn published_graph(abox: &Graph, suppressed: &BTreeSet<String>) -> Result<Graph, String> {
+fn published_graph(abox: &Graph, suppressed: &BTreeSet<String>) -> gmeow_errors::Result<Graph> {
     let mut quads: Vec<RdfQuad> = Vec::new();
     for q in abox.default_triples() {
         if !suppressed.contains(&term_token(&q.subject))
@@ -790,7 +805,7 @@ fn published_graph(abox: &Graph, suppressed: &BTreeSet<String>) -> Result<Graph,
     Graph::from_quads(quads)
 }
 
-fn suppression_vocab(onto: &Graph) -> Result<SuppressionVocab, String> {
+fn suppression_vocab(onto: &Graph) -> gmeow_errors::Result<SuppressionVocab> {
     let classes = subclass_closure(onto, GM_APPELLATION);
     let mut bearer: BTreeSet<String> = BTreeSet::new();
     for (prop, rng) in subject_objects(onto, RDFS_RANGE) {
@@ -824,7 +839,10 @@ fn suppression_vocab(onto: &Graph) -> Result<SuppressionVocab, String> {
     })
 }
 
-fn suppressed_nodes(abox: &Graph, vocab: &SuppressionVocab) -> Result<BTreeSet<String>, String> {
+fn suppressed_nodes(
+    abox: &Graph,
+    vocab: &SuppressionVocab,
+) -> gmeow_errors::Result<BTreeSet<String>> {
     let mut suppressed = BTreeSet::new();
     for (subject, object) in subject_objects(abox, GM_DISPLAYABLE) {
         if matches!(&object, RdfTerm::Literal(lit) if lit.lexical_form == "false" || lit.lexical_form == "0")
@@ -968,19 +986,22 @@ fn default_quads(graph: &Graph) -> Vec<RdfQuad> {
         .collect()
 }
 
-fn dump_nt(graph: &Graph) -> Result<String, String> {
+fn dump_nt(graph: &Graph) -> gmeow_errors::Result<String> {
     // Serialize the FLAT default graph to N-Triples, matching oxigraph's
     // `dump_graph_to_writer(DefaultGraph, NTriples)`: every default-graph quad as a
     // single `s p o .` line, in canonical dataset order.
-    let flat = purrdf::flat_dataset_from_quads(&default_quads(graph))
-        .map_err(|e| format!("N-Triples flatten failed: {e}"))?;
+    let flat = purrdf::flat_dataset_from_quads(&default_quads(graph)).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Transform {
+            message: format!("N-Triples flatten failed: {e}"),
+        })
+    })?;
     let bytes = purrdf::serialize_dataset(
         flat.as_ref(),
         NativeRdfFormat::NTriples.media_type(),
         purrdf::SerializeGraph::DefaultGraph,
     )
-    .map_err(|e| format!("N-Triples serialization failed: {e}"))?;
-    String::from_utf8(bytes).map_err(|e| format!("N-Triples output is not UTF-8: {e}"))
+    .ctx("N-Triples serialization failed")?;
+    String::from_utf8(bytes).ctx("N-Triples output is not UTF-8")
 }
 
 fn subject_iri(subject: &RdfTerm) -> Option<String> {
@@ -1077,17 +1098,21 @@ fn curie(iri: &str) -> String {
     iri.to_owned()
 }
 
-fn iri_from_token(token: &str) -> Result<String, String> {
+fn iri_from_token(token: &str) -> gmeow_errors::Result<String> {
     token
         .strip_prefix('<')
         .and_then(|s| s.strip_suffix('>'))
         .map(str::to_owned)
-        .ok_or_else(|| format!("expected IRI token, got {token:?}"))
+        .ok_or_else(|| {
+            gmeow_errors::Diag::of_kind(crate::error::Transform {
+                message: format!("expected IRI token, got {token:?}"),
+            })
+        })
 }
 
-fn parse_graph(data: &[u8]) -> Result<Graph, String> {
+fn parse_graph(data: &[u8]) -> gmeow_errors::Result<Graph> {
     let parsed = purrdf::parse_dataset(data, NativeRdfFormat::NTriples.media_type(), None)
-        .map_err(|e| format!("RDF parse failed: {e}"))?;
+        .ctx("RDF parse failed")?;
     // Un-fold to the flat quad stream so `rdf:reifies` / quoted-triple rows stay plain
     // quads (the old oxigraph `Store` held them flat), then re-freeze flat.
     let flat = purrdf::flat_rdf_quads_from_dataset(parsed.as_ref());
@@ -1471,7 +1496,11 @@ mod tests {
             "1.5",
         )];
         let err = saturate_nt(&person_abox(), &person_onto(), &cells, &[]).unwrap_err();
-        assert!(err.contains("malformed gmeow:confidence"), "{err}");
+        assert_eq!(err.code(), crate::error::Transform::register());
+        assert!(
+            err.to_string().contains("malformed gmeow:confidence"),
+            "{err}"
+        );
     }
 
     #[test]
@@ -1485,7 +1514,11 @@ mod tests {
             "abc",
         )];
         let err = saturate_nt(&person_abox(), &person_onto(), &cells, &[]).unwrap_err();
-        assert!(err.contains("malformed gmeow:confidence"), "{err}");
+        assert_eq!(err.code(), crate::error::Transform::register());
+        assert!(
+            err.to_string().contains("malformed gmeow:confidence"),
+            "{err}"
+        );
     }
 
     #[test]
