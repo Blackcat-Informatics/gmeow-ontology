@@ -1054,7 +1054,29 @@ fn parse_positive_int(lexical: &str) -> Option<u32> {
 /// Hard-fails (returns `Err`) if a derived constraint is malformed (e.g. a cardinality
 /// restriction with `minCardinality > maxCardinality`) rather than silently dropping it — a
 /// required structural element that cannot be represented is a hard error, not a fallback.
+/// The per-property / per-class **validation-reading opt-out** set (R3): a `logic:closureEntry`
+/// whose `logic:closureValue` is `logic:OpenWorldClosure` and whose `logic:closureKey` names a
+/// property or class IRI marks that axiom as *genuinely open-world only* — it takes no
+/// closed-world validation reading, so no shape is derived for it. This reuses the existing
+/// closure vocabulary verbatim (no new shape DSL); it is the single authored signal the issue
+/// allows. The default is to derive a shape for every eligible axiom (MAXIMAL UTILITY), so an
+/// absent annotation means "derive". Read directly off the merged authored store, consistent
+/// with the dataset-derive architecture.
+fn closure_validation_optouts(store: &RdfDataset) -> std::collections::BTreeSet<String> {
+    let open = Node::iri(logic_iri("OpenWorldClosure"));
+    let mut set = std::collections::BTreeSet::new();
+    for entry in subjects_with(store, &nn(&logic_iri("closureValue")), &open) {
+        if let Some(key) = value(store, &entry, &nn(&logic_iri("closureKey"))) {
+            set.insert(term_str(&key));
+        }
+    }
+    set
+}
+
 pub fn derive_validation_shapes(store: &RdfDataset) -> Result<Vec<ValidationShapeIr>, String> {
+    // The per-property/per-class closed-world-reading opt-out (R3). Default is derive-all; a
+    // property/class named by an `OpenWorldClosure` closure entry is suppressed below.
+    let optouts = closure_validation_optouts(store);
     let owl = "http://www.w3.org/2002/07/owl#";
     let rdfs = "http://www.w3.org/2000/01/rdf-schema#";
     let xsd = "http://www.w3.org/2001/XMLSchema#";
@@ -1113,6 +1135,11 @@ pub fn derive_validation_shapes(store: &RdfDataset) -> Result<Vec<ValidationShap
         if !class_iri.starts_with(GMEOW_NS) {
             continue;
         }
+        // Per-class validation-reading opt-out (R3): a class annotated OpenWorldClosure takes
+        // no closed-world shape reading at all.
+        if optouts.contains(&class_iri) {
+            continue;
+        }
         for restr in objects(store, &class, &p_subclass) {
             let Some(restr_subj) = term_as_subject(&restr) else {
                 continue;
@@ -1122,6 +1149,11 @@ pub fn derive_validation_shapes(store: &RdfDataset) -> Result<Vec<ValidationShap
             let Some(Node::Iri(on)) = value(store, &restr_subj, &p_on) else {
                 continue;
             };
+            // Per-property validation-reading opt-out (R3): this property is genuinely
+            // open-world only, so derive no closed-world shape for it.
+            if optouts.contains(&on) {
+                continue;
+            }
             // someValuesFrom → sh:class / sh:datatype. Only an IRI-valued target has a shape
             // form: a blank someValuesFrom is an anonymous class expression (union/intersection),
             // carried in the canon but never emitted as a bare blank label.
