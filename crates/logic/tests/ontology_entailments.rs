@@ -691,9 +691,9 @@ fn mental_reference_frame_specialises_reference_frame() {
 
 #[test]
 fn mental_reference_frame_hosted_instance_is_consistent() {
-    // Issue #87: a hosted MentalReferenceFrame instance is consistent under OWL 2 RL, and the
+    // A hosted MentalReferenceFrame instance is consistent under OWL 2 RL, and the
     // instance is classified a ReferenceFrame (MentalReferenceFrame ⊑ ReferenceFrame). The native
-    // twin of `test_mental_reference_frame_requires_host` — parses the sensory-environment + places
+    // twin of the retained sensory-environment host-consistency test — parses the sensory-environment + places
     // modules, injects the host A-Box, closes under RL, and asserts BOTH the consistency arm (no
     // subject typed owl:Nothing) and the subsumption entailment.
     let (host1, mrf1) = (ex("host1"), ex("mrf1"));

@@ -15,7 +15,7 @@ The OWL-RL consistency + ReferenceFrame-classification arm of the former
 test_mental_reference_frame_requires_host has been migrated to the native RL
 harness as
 crates/logic/tests/ontology_entailments.rs::mental_reference_frame_hosted_instance_is_consistent;
-the structural blank-node restriction arm is cell 14 in structural.ttl (#867).
+the structural blank-node restriction arm is cell 14 in structural.ttl.
 """
 
 from __future__ import annotations
