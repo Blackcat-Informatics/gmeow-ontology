@@ -66,6 +66,8 @@ pub const GM_ANN_PROPERTY: &str = "https://blackcatinformatics.ca/gmeow/annPrope
 pub const GM_ANN_VALUE: &str = "https://blackcatinformatics.ca/gmeow/annValue";
 /// `gmeow:mappedFrom` — the forward-projection target the claim is mapped from.
 pub const GM_MAPPED_FROM: &str = "https://blackcatinformatics.ca/gmeow/mappedFrom";
+/// `gmeow:wasGeneratedBy` — links a reified claim to the import activity that generated it.
+pub const GM_WAS_GENERATED_BY: &str = "https://blackcatinformatics.ca/gmeow/wasGeneratedBy";
 
 /// The RDF assertion polarity an up-lift renders to — the second leg of the
 /// [`classify_put`](crate::projections::put_derivation::classify_put) morphism: given the
@@ -213,9 +215,6 @@ pub fn reified_claim_head(claim: &ReifiedClaim, style: IriStyle) -> Vec<String> 
     }
     lines
 }
-
-/// `gmeow:wasGeneratedBy` — links a reified claim to the import activity that generated it.
-pub const GM_WAS_GENERATED_BY: &str = "https://blackcatinformatics.ca/gmeow/wasGeneratedBy";
 
 #[cfg(test)]
 mod tests {
