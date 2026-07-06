@@ -91,9 +91,23 @@
 #     these three past budget on bundle-size alone, not fixture cost. Coverage stays:
 #     the written serializations are drift-gated on every `make check` via
 #     `make check-generated`, and all three stay on-gate on `maint-heavy`.
+#   - gmeow-pipeline projections::tests::up_project_recovers_message_superclass_via_prp_dom
+#     + projections::tests::up_project_never_fabricates_subkind_or_sibling:
+#     6.2 s each standalone but 26.9-27.3 s under full-parallelism contention. Each
+#     folds the WHOLE committed `gmeow.gts` bundle and drives the real inverse-ingest
+#     `up_project` over its mappings/cells archives (nextest's process-per-test model
+#     means each pays the full fold despite the in-process `sioc_run` cache) —
+#     irreducibly O(bundle size), the same whole-committed-bundle class as
+#     fanout_parity / end_to_end above. The lang: GMN dialect graft grew the bundle
+#     and nudged both past budget on bundle-size alone, not fixture cost. Coverage
+#     stays: the up-projection surface keeps its fixture-scale on-gate tests in the
+#     same module (up_project_lifts_consumer_vocab_to_gmeow,
+#     harvest_reasoned_types_needs_world_colocation), and both bundle-scale tests
+#     stay on-gate on `maint-heavy`.
 default-filter = '''
   not (
     (package(gmeow-validate) & test(/deep_surfaces_entailed_inconsistency.*heavy_offgate/))
+    | (package(gmeow-pipeline) & test(/projections::tests::up_project_(recovers_message_superclass_via_prp_dom|never_fabricates_subkind_or_sibling)/))
     | (package(gmeow-pipeline) & binary(fold_parity))
     | test(/corpus_conformance_heavy_offgate/)
     | test(/w3c_rdfc10_heavy_offgate/)

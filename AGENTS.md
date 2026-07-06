@@ -339,6 +339,16 @@ serialize / export / project-a-view over the WHOLE bundle, irreducibly
 O(bundle size), the same whole-committed-bundle class as `fanout_parity` /
 `end_to_end`; the written serializations stay drift-gated on every `make check`
 via `make check-generated`, and all three stay on-gate on `maint-heavy`).
+The `lang:` GMN dialect graft grew the bundle again and nudged the two
+whole-bundle inverse-ingest acceptance tests past budget —
+`gmeow-pipeline::projections::tests::up_project_recovers_message_superclass_via_prp_dom`
+and `gmeow-pipeline::projections::tests::up_project_never_fabricates_subkind_or_sibling`
+(6.2 s each standalone but 26.9–27.3 s under full-parallelism contention; each
+folds the WHOLE committed `gmeow.gts` bundle and drives the real `up_project`
+over its mappings/cells archives, irreducibly O(bundle size), the same
+whole-committed-bundle class as the CLI trio above; the up-projection surface
+keeps its fixture-scale on-gate tests in the same module, and both bundle-scale
+tests stay on-gate on `maint-heavy`).
 Former off-gate groups such as
 ontology entailments, SPARQL path parity, RDF/RDFC parity outliers,
 correspondence parity, mapping parity, carrier/docs archive tests, scoreboards
