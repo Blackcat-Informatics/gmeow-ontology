@@ -2081,4 +2081,323 @@ mod tests {
             "overflow must be a declared Arithmetic gap, never a wrong answer"
         );
     }
+
+    // ── The closure-only provenance toggle: Record ≡ Skip through production seams ────
+    //
+    // The forward `materialize_native` leg records provenance (Record); the backward
+    // `evaluate` leg records none (Skip).  These tests drive the WIRED PRODUCTION/REFERENCE
+    // seams — `evaluate` (Skip) and `materialize_native`/`least_model_of_reduct` (Record) —
+    // never the private fixpoint with a hand-passed mode, so they prove the WIRING, not the
+    // parameter.  `materialize_native` runs the SAME binary rules over a single-world store
+    // (the world is only the output graph label), so both lanes drive the identical stratified
+    // engine differing only in `mode` — the committed facts, order, and step budget must match.
+
+    /// A single-world `WorldStore` holding arbitrary `(s, p, o)` IRI triples.  Binary rules
+    /// (no world column) match these facts directly; the world is only the output graph.
+    fn world_store_from(triples: &[(&str, &str, &str)]) -> WorldStore {
+        let store = WorldStore::new();
+        for &(s, p, o) in triples {
+            store.insert_quad(WORLD, &nn(s), &nn(p), &nn(o));
+        }
+        store
+    }
+
+    /// The same `(s, p, o)` triples seeded into a `RelationStore` for the Skip `evaluate` leg.
+    fn rel_store_from(triples: &[(&str, &str, &str)]) -> RelationStore {
+        let mut rel = RelationStore::new();
+        for &(s, p, o) in triples {
+            rel.insert(&nn(p), term(s), term(o));
+        }
+        rel
+    }
+
+    fn neg_atom(subject: &str, pred: &str, object: &str) -> EvalAtom {
+        EvalAtom {
+            subject: EvalTerm::Var(subject.to_owned()),
+            predicate: nn(pred),
+            object: EvalTerm::Var(object.to_owned()),
+            negated: true,
+        }
+    }
+
+    /// `path(?X,?Z) :- edge(?X,?Z) .` and `path(?X,?Z) :- edge(?X,?Y), path(?Y,?Z) .`
+    /// in the plain-triple (binary) encoding shared by both lanes.
+    fn tc_binary_rules() -> Vec<EvalRule> {
+        vec![
+            EvalRule {
+                head: var_atom("?X", "path", "?Z"),
+                body: vec![var_atom("?X", "edge", "?Z")],
+                rule_iri: nn("rule/tc-base"),
+                distinct_pairs: vec![],
+                builtins: vec![],
+            },
+            EvalRule {
+                head: var_atom("?X", "path", "?Z"),
+                body: vec![var_atom("?X", "edge", "?Y"), var_atom("?Y", "path", "?Z")],
+                rule_iri: nn("rule/tc-step"),
+                distinct_pairs: vec![],
+                builtins: vec![],
+            },
+        ]
+    }
+
+    /// Run the Record lane (`materialize_native` — the forward, provenance-recording seam)
+    /// over a single-world store, returning the full `(s, p, o)` fact set and the step count.
+    fn record_seam(
+        triples: &[(&str, &str, &str)],
+        rules: &[EvalRule],
+        max_steps: Option<u64>,
+    ) -> (std::collections::BTreeSet<FactKey>, u64) {
+        let store = world_store_from(triples);
+        match materialize_native(&store, rules, max_steps).expect("record materialize_native") {
+            NativeOutcome::Decided(b) => {
+                let set = b
+                    .rows
+                    .iter()
+                    .map(|r| {
+                        (
+                            term_display(&r.subject),
+                            r.predicate.clone(),
+                            term_display(&r.object),
+                        )
+                    })
+                    .collect();
+                (set, b.consumed_steps)
+            }
+            NativeOutcome::Unsupported(k) => panic!("record lane unsupported: {k:?}"),
+        }
+    }
+
+    /// Run the Skip lane (`evaluate` — the backward, provenance-discarding seam), returning
+    /// the full `(s, p, o)` fact set and the step count.
+    fn skip_seam(
+        triples: &[(&str, &str, &str)],
+        rules: &[EvalRule],
+        max_steps: Option<u64>,
+    ) -> (std::collections::BTreeSet<FactKey>, u64) {
+        match evaluate(rel_store_from(triples), rules, max_steps).expect("skip evaluate") {
+            NativeOutcome::Decided(b) => (fact_keys(&b.rows), b.consumed_steps),
+            NativeOutcome::Unsupported(k) => panic!("skip lane unsupported: {k:?}"),
+        }
+    }
+
+    /// Positive recursion: the Skip (backward) lane derives the identical transitive closure
+    /// the Record (forward) lane does.
+    #[test]
+    fn skip_matches_record_positive_recursion() {
+        let rules = tc_binary_rules();
+        let edb = &[("a", "edge", "b"), ("b", "edge", "c"), ("c", "edge", "d")];
+        let (record, rec_steps) = record_seam(edb, &rules, None);
+        let (skip, skip_steps) = skip_seam(edb, &rules, None);
+        assert_eq!(
+            skip, record,
+            "Skip fact set must equal Record wherever Record succeeds"
+        );
+        assert_eq!(
+            skip_steps, rec_steps,
+            "Skip commits the same number of derivations"
+        );
+        assert!(
+            skip.iter().any(|(_, p, _)| p == &nn("path")),
+            "the closure must actually derive path facts: {skip:?}"
+        );
+    }
+
+    /// Stratified negation: NAF reads the accumulated `RelationStore`, which both lanes fill in
+    /// the unbranched commit loop, so the facts-only Skip lane cannot change stratum evaluation.
+    #[test]
+    fn skip_matches_record_stratified_negation() {
+        // tc(?X,?Y) :- e(?X,?Y) .            tc(?X,?Y) :- e(?X,?Z), tc(?Z,?Y) .
+        // noPath(?X,?Y) :- cand(?X,?Y), NOT tc(?X,?Y) .   (noPath is a strictly-higher stratum)
+        let rules = vec![
+            EvalRule {
+                head: var_atom("?X", "tc", "?Y"),
+                body: vec![var_atom("?X", "e", "?Y")],
+                rule_iri: nn("rule/tc-base"),
+                distinct_pairs: vec![],
+                builtins: vec![],
+            },
+            EvalRule {
+                head: var_atom("?X", "tc", "?Y"),
+                body: vec![var_atom("?X", "e", "?Z"), var_atom("?Z", "tc", "?Y")],
+                rule_iri: nn("rule/tc-step"),
+                distinct_pairs: vec![],
+                builtins: vec![],
+            },
+            EvalRule {
+                head: var_atom("?X", "noPath", "?Y"),
+                body: vec![var_atom("?X", "cand", "?Y"), neg_atom("?X", "tc", "?Y")],
+                rule_iri: nn("rule/nopath"),
+                distinct_pairs: vec![],
+                builtins: vec![],
+            },
+        ];
+        // tc closure over a→b→c is {(a,b),(b,c),(a,c)}; noPath = cand \ tc = {(a,d),(d,e)}.
+        let edb = &[
+            ("a", "e", "b"),
+            ("b", "e", "c"),
+            ("a", "cand", "c"),
+            ("a", "cand", "d"),
+            ("d", "cand", "e"),
+        ];
+        let (record, _) = record_seam(edb, &rules, None);
+        let (skip, _) = skip_seam(edb, &rules, None);
+        assert_eq!(skip, record, "Skip ≡ Record under stratified negation");
+        let no_path =
+            |s: &str, o: &str| (format!("<{}>", nn(s)), nn("noPath"), format!("<{}>", nn(o)));
+        assert!(
+            skip.contains(&no_path("a", "d")),
+            "noPath(a,d): cand but not in tc"
+        );
+        assert!(
+            skip.contains(&no_path("d", "e")),
+            "noPath(d,e): cand but not in tc"
+        );
+        assert!(
+            !skip.contains(&no_path("a", "c")),
+            "noPath(a,c) MUST NOT be derived — (a,c) IS in tc, so negation blocks it"
+        );
+    }
+
+    /// Budget-exhausted: the two lanes cut at the identical FactKey-sorted prefix and report the
+    /// same step count — the partial-model cut point is provenance-independent.
+    #[test]
+    fn skip_matches_record_under_budget() {
+        let rules = tc_binary_rules();
+        let edb = &[("a", "edge", "b"), ("b", "edge", "c"), ("c", "edge", "d")];
+        // The closure has 6 derived path facts; cut mid-fixpoint at 3.
+        let (record, rec_steps) = record_seam(edb, &rules, Some(3));
+        let (skip, skip_steps) = skip_seam(edb, &rules, Some(3));
+        assert_eq!(
+            rec_steps, 3,
+            "the Record lane commits exactly the budgeted 3 derivations"
+        );
+        assert_eq!(
+            skip_steps, 3,
+            "the Skip lane commits exactly the budgeted 3 derivations"
+        );
+        assert_eq!(
+            skip, record,
+            "both lanes commit the identical FactKey-sorted partial prefix under budget"
+        );
+    }
+
+    /// A non-stratifiable program is refused identically on the Skip lane (the outcome variant,
+    /// not just the fact set, is provenance-independent).
+    #[test]
+    fn skip_reports_nonstratifiable_like_record() {
+        // p(?X,?Y) :- q(?X,?Y) .   q(?X,?Y) :- e(?X,?Y), NOT p(?X,?Y) .  → negation in a cycle.
+        let rules = vec![
+            EvalRule {
+                head: var_atom("?X", "p", "?Y"),
+                body: vec![var_atom("?X", "q", "?Y")],
+                rule_iri: nn("rule/p"),
+                distinct_pairs: vec![],
+                builtins: vec![],
+            },
+            EvalRule {
+                head: var_atom("?X", "q", "?Y"),
+                body: vec![var_atom("?X", "e", "?Y"), neg_atom("?X", "p", "?Y")],
+                rule_iri: nn("rule/q"),
+                distinct_pairs: vec![],
+                builtins: vec![],
+            },
+        ];
+        let out = evaluate(rel_store_from(&[("a", "e", "b")]), &rules, None).expect("evaluate");
+        assert!(
+            matches!(
+                out,
+                NativeOutcome::Unsupported(UnsupportedKind::NonStratifiable)
+            ),
+            "the Skip lane must refuse a non-stratifiable program exactly as the forward lane does"
+        );
+    }
+
+    /// The two-sided RDF-star contract: on a quoted-triple source the Record reference
+    /// hard-fails at `reifier()`, while the facts-only Skip lane — which never mints reifiers —
+    /// returns the answer.  Skip is strictly MORE-total than Record, agreeing wherever Record
+    /// succeeds and total on the input superset where reifier minting is partial.
+    #[test]
+    fn skip_answers_where_record_hard_fails_on_rdf_star() {
+        // out(?X, ?Y) :- src(?X, ?Y) .   with a quoted-triple SUBJECT in the source fact.
+        let rules = vec![EvalRule {
+            head: var_atom("?X", "out", "?Y"),
+            body: vec![var_atom("?X", "src", "?Y")],
+            rule_iri: nn("rule/copy"),
+            distinct_pairs: vec![],
+            builtins: vec![],
+        }];
+        let quoted = TermValue::Triple {
+            s: Box::new(term("a")),
+            p: Box::new(TermValue::iri(nn("edge"))),
+            o: Box::new(term("b")),
+        };
+
+        // Record reference (positive program → least_model_of_reduct is the exact least model):
+        // firing over the quoted-triple source computes its reifier, which hard-fails.
+        let mut fs = FactStore::new();
+        fs.insert(Fact {
+            subject: quoted.clone(),
+            predicate: nn("src"),
+            object: term("z"),
+        });
+        let record = least_model_of_reduct(&fs, &rules, &FactStore::new());
+        assert!(
+            record.is_err(),
+            "Record must hard-fail: an RDF-star source has no reifier (never a silent skip)"
+        );
+
+        // Skip lane: the same program returns the derived answer, minting no reifier.
+        let mut rel = RelationStore::new();
+        rel.insert(&nn("src"), quoted.clone(), term("z"));
+        let NativeOutcome::Decided(b) = evaluate(rel, &rules, None).expect("skip evaluate") else {
+            panic!("expected Decided from the Skip lane");
+        };
+        let keys = fact_keys(&b.rows);
+        let expected = (term_display(&quoted), nn("out"), format!("<{}>", nn("z")));
+        assert!(
+            keys.contains(&expected),
+            "Skip must derive out(<<a edge b>>, z) with no reifier minting: {keys:?}"
+        );
+    }
+
+    /// Record-mode `derivation_id` recipe is preserved end-to-end on real production rows:
+    /// every derived row's id equals `mint_derivation_id(rule_iri, sorted(source_quad_ids))`
+    /// over its BODY-ORDER sources, and the 2-source step rule carries exactly two sources —
+    /// pinning that the toggle refactor neither reordered nor dropped the source list.
+    #[test]
+    fn record_derivation_id_recipe_holds_on_production_rows() {
+        let store = tc_store();
+        let rules = tc_rules();
+        let NativeOutcome::Decided(Budgeted { rows, .. }) =
+            materialize_native(&store, &rules, None).expect("materialize_native")
+        else {
+            panic!("expected Decided");
+        };
+        let derived = derived_only(&rows);
+        assert!(!derived.is_empty(), "TC must derive rows");
+        let mut saw_two_source = false;
+        for r in &derived {
+            assert!(!r.source_quad_ids.is_empty(), "a derived row has ≥1 source");
+            assert!(
+                !r.derivation_id.is_empty(),
+                "a derived row has a derivation id"
+            );
+            let mut sorted = r.source_quad_ids.clone();
+            sorted.sort();
+            let refs: Vec<&str> = sorted.iter().map(String::as_str).collect();
+            assert_eq!(
+                r.derivation_id,
+                crate::provenance::mint_derivation_id(&r.rule_iri, &refs),
+                "derivation_id must be mint_derivation_id(rule_iri, sorted(sources))"
+            );
+            if r.source_quad_ids.len() == 2 {
+                saw_two_source = true;
+            }
+        }
+        assert!(
+            saw_two_source,
+            "the 2-source step rule (edge, path) must produce a 2-source derivation"
+        );
+    }
 }
