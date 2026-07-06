@@ -1,4 +1,4 @@
-# Competency question (native gmeow:reasoningLogic lane, #1294): "Does the E8 group-action
+# Competency question (native gmeow:reasoningLogic lane): "Does the E8 group-action
 # law (g·h)·x = g·(h·x), evaluated as a real logic:Formula over a concrete compatible action,
 # ENTAIL that both association orders reach the same point?"  The comp(·,·,·)/act(·,·,·) atoms
 # are fixed-arity n-ary predications the native reasoner reifies and joins; firing the law

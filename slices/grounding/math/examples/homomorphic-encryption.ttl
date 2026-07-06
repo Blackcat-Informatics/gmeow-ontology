@@ -108,7 +108,7 @@ exa:heCons a logic:Formula ; logic:relation exa:eqRel ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "decv" ] , [ logic:termIndex 1 ; logic:termVariable "sum" ] .
 
 # ===========================================================================
-# LIVE-ENTAILMENT WITNESS EDB (#1294) — the homomorphic-encryption law as an
+# LIVE-ENTAILMENT WITNESS EDB — the homomorphic-encryption law as an
 # evaluable consumer in the native competency lane (gmeow:reasoningLogic).
 # ===========================================================================
 # Concrete plaintexts a,b encrypting to ea,eb; the ciphertext product decrypts to

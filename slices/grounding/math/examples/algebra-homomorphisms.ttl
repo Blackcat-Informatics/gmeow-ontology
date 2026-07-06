@@ -127,7 +127,7 @@ exa:firstIsoWitness a math:Isomorphism ;
     math:preservationLaw exa:detProductLaw .
 
 # ===========================================================================
-# LIVE-ENTAILMENT WITNESS EDB (#1294) — the determinant preservation law as an
+# LIVE-ENTAILMENT WITNESS EDB — the determinant preservation law as an
 # evaluable consumer in the native competency lane (gmeow:reasoningLogic).
 # ===========================================================================
 # Concrete matrices A,B with product AB and their determinants dA,dB,dAB. The
@@ -135,7 +135,7 @@ exa:firstIsoWitness a math:Isomorphism ;
 # + logic:naryArg0/1/2); the binary det(·,·) atoms are plain triples over exa:detRel.
 # Firing detProductLaw over this data DERIVES the ternary consequent
 # mul(dA,dB,dAB) as a content-addressed reified tuple (logic:instanceOf exa:mulRel +
-# logic:naryArg0/1/2 on a chase-minted reifier) — the head-derivation path of #1294.
+# logic:naryArg0/1/2 on a chase-minted reifier) — the head-derivation path.
 # The homomorphism competency question queries exactly that derived tuple.
 
 exa:detWmatA  rdfs:label "det witness matrix A"@x-gmeow-english .

@@ -188,7 +188,7 @@ exa:distCons a logic:Formula ; logic:relation exa:eqRel ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "l" ] , [ logic:termIndex 1 ; logic:termVariable "r" ] .
 
 # ===========================================================================
-# LIVE-ENTAILMENT WITNESS EDB (#1294) — the associativity law as an evaluable
+# LIVE-ENTAILMENT WITNESS EDB — the associativity law as an evaluable
 # consumer in the native competency lane (gmeow:reasoningLogic).
 # ===========================================================================
 # A concrete associative operation table where (a·b)·c and a·(b·c) both reach the
