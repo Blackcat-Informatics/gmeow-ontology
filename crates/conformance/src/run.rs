@@ -199,8 +199,9 @@ pub fn run_case(case_dir: &Path) -> Result<CaseOutputs, String> {
     // correspondence-free case yields an empty map (the gates never run). A deliberately-RED
     // fixture (an authored put that is not the derived inverse) discharges as
     // ObligationViolated, matching its blessed-RED gate report.
-    let correspondence_verdicts = correspondence_verdicts_for(&program)
-        .map_err(|e| prefix(format!("discharge correspondence lens laws: {e}")))?;
+    let correspondence_verdicts =
+        gmeow_logic::correspondence_exec::logic_program_verdicts(&program)
+            .map_err(|e| prefix(format!("discharge correspondence lens laws: {e}")))?;
     let arts = compile_program(&program, &correspondence_verdicts)
         .map_err(|e| prefix(format!("compile failed: {e}")))?;
     // The program's Horn rules, plus the relational-core lowering of its full-FOL formulas
@@ -348,32 +349,6 @@ pub fn run_case(case_dir: &Path) -> Result<CaseOutputs, String> {
         // case pins the dialect texts + verdict).
         cl_dialects: None,
     })
-}
-
-/// Compute the per-correspondence EXECUTED lens-law verdict map for a case's program — the
-/// map the five correspondence gates read (`compile_program` and the composition
-/// re-evaluation both consume it). Mirrors `compile_program`'s internal assembly (the same
-/// leg registry + derived puts) so the verdict keys match the derived program's correspondence
-/// IRIs, then discharges each cell by execution via
-/// `gmeow_logic::correspondence_exec::program_verdicts`. A correspondence-free program yields
-/// an empty map (the gates never run).
-fn correspondence_verdicts_for(
-    program: &gmeow_logic_compile::ir::LogicProgram,
-) -> Result<std::collections::BTreeMap<String, gmeow_logic_compile::ir::DischargeVerdict>, String> {
-    use gmeow_logic_compile::ir::PreservationKind;
-    use gmeow_logic_compile::projections::correspondence::CorrespondenceProgram;
-
-    if program.correspondences.is_empty() {
-        return Ok(std::collections::BTreeMap::new());
-    }
-    let assembled = CorrespondenceProgram::new(
-        program.correspondences.clone(),
-        Vec::new(),
-        PreservationKind::SoundUnder,
-    )
-    .with_leg_programs(program.transaction_programs.clone());
-    let (derived, _outcomes) = assembled.with_derived_puts()?;
-    Ok(gmeow_logic::correspondence_exec::program_verdicts(&derived))
 }
 
 /// Whether `diags` carries at least one `Severity::Error` diagnostic, returning

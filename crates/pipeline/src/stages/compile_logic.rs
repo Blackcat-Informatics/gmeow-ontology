@@ -322,11 +322,16 @@ impl Stage for CompileLogicStage {
         let program = program.with_validation_shapes(validation_shapes);
         // The overclaim / rule-safety gate runs inside `compile_program`; a violation
         // is a hard error (fail-closed), never a silently dropped product.
-        // The canonical logic: source authors no `logic:Correspondence` cells, so the gates
-        // inside `compile_program` never run — an empty executed-verdict map is correct here
-        // (the affine-triangle correspondence lane is discharged + gated separately below).
-        let mut arts = compile_program(&program, &Default::default())
-            .map_err(|e| stage_err(format!("compile: {e}")))?;
+        // Discharge every authored correspondence's lens law by EXECUTION so the five
+        // correspondence gates inside `compile_program` read a real per-correspondence verdict.
+        // The canonical logic: source authors no `logic:Correspondence` cells today, so this is
+        // an empty map (the gates never run) — but authoring one MUST not reach the gates'
+        // missing-verdict hard-fail; computing the verdicts here is what guarantees that. (The
+        // affine-triangle correspondence lane is discharged + gated separately below.)
+        let verdicts = gmeow_logic::correspondence_exec::logic_program_verdicts(&program)
+            .map_err(|e| stage_err(format!("discharge correspondence lens laws: {e}")))?;
+        let mut arts =
+            compile_program(&program, &verdicts).map_err(|e| stage_err(format!("compile: {e}")))?;
 
         // Correspondence carrier lane (F4): derive the lawful put legs for the §14 affine
         // triangle, run the five gates as a HARD FAIL, and fold the gate-derived liftability
