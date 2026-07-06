@@ -3,21 +3,19 @@
 
 //! The `parquet` export leaf (P4): columnar gts_db tables (dist/, gitignored).
 //!
-//! A genuine Rust port of `src/gmeow_tools/parquet_gen.py` + the relational
-//! projection in `src/gmeow_tools/gts_db.py` (#12). Projects the folded gts
+//! Projects the folded gts
 //! `Graph` into one Parquet file per non-empty table of the dictionary-encoded
 //! integer-id schema — `terms`, `quads`, `reifiers`, `annotations`, `blobs` — the
 //! columnar interchange form for DataFrame/SQL consumers (DuckDB, pandas, polars,
 //! Spark) who should not need an RDF parser. LOSSLESS: the tables jointly carry
 //! every term, quad, reifier binding, statement annotation, and inline blob.
 //!
-//! The Python path loads the rows into an in-memory DuckDB and `COPY`-exports; this
-//! port builds Arrow record batches in the SAME enumerate-order (`graph.terms` /
+//! The exporter builds Arrow record batches in a stable enumerate-order (`graph.terms` /
 //! `graph.quads` / …) so ids are stable, and serializes them with the `parquet`
 //! crate's writer. Outputs live under git-ignored `dist/parquet/`, so the bar is
 //! structural validity (re-reads with the expected row counts) + determinism
 //! (fixed row order), not byte-parity — Parquet bytes embed writer metadata that
-//! varies across library versions (the Python `compare` gates SEMANTICALLY).
+//! varies across library versions, so equivalence is checked semantically.
 
 use std::collections::BTreeMap;
 use std::sync::Arc;
