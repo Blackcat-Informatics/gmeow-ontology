@@ -33,3 +33,8 @@ blake3 = "1"
 # hash, so the output is fully deterministic — snapshots carry it verbatim, no
 # redaction. Pinned to match crates/docs / crates/logic.
 insta = { version = "1.48", features = ["json"] }
+# static_assertions: compile-time negative trait-bound checks (macro_rules, not a
+# proc-macro; no brittle stderr goldens). Guards `Diag: !std::error::Error`
+# (the blanket-From coherence invariant) and `Diag: !Serialize` (lowering is the
+# only serialization surface).
+static_assertions = "1"

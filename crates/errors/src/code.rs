@@ -138,6 +138,14 @@ pub fn seed_codes(codes: &[&'static str]) {
         .seed(codes);
 }
 
+/// The reserved code every foreign `std::error::Error` gets when it is converted
+/// into a [`Diag`](crate::Diag) through the blanket `From` (no specialization is
+/// available to recover a more specific code — the original typed error stays
+/// downcastable off the diagnostic's source). Registered on first use.
+pub fn foreign_code() -> Code {
+    register_code("diag.foreign-error")
+}
+
 /// Resolve a code string against the process-wide registry. HARD FAIL if the
 /// string was never registered.
 pub fn intern_code(code: &str) -> Result<Code, UnknownCode> {
