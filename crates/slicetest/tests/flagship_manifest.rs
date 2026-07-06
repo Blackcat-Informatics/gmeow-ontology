@@ -15,8 +15,9 @@
 //! competency corpus and asserts, for each scenario:
 //!
 //! * its competency reference resolves to a real `gmeow:CompetencyQuestion` that
-//!   carries a `gmeow:cqExpectRow` expectation (i.e. it is a GREEN, pinned gate,
-//!   not a dangling IRI), and its `gmeow:cqQueryFile` exists on disk;
+//!   carries a `gmeow:cqExpectRow` expectation (i.e. it is a PINNED gate whose
+//!   green execution the competency lane proves, not a dangling IRI), and its
+//!   `gmeow:cqQueryFile` exists on disk;
 //! * its worked example and its counter-example both exist on disk.
 //!
 //! It also pins the coverage set: exactly the five canonical scenarios, no more, no
@@ -24,7 +25,6 @@
 //! file, or add/drop a scenario, and this test fails.
 
 use std::collections::BTreeSet;
-use std::path::Path;
 
 use gmeow_slicetest::native_query::{dataset_from_file, render_term, select, union};
 use gmeow_slicetest::paths::{example_file, query_file, slices_root};
@@ -64,10 +64,11 @@ fn as_literal(rendered: &str) -> String {
     let inner = rendered
         .strip_prefix('"')
         .unwrap_or_else(|| panic!("expected a literal term, got {rendered}"));
-    let end = inner
-        .find('"')
-        .unwrap_or_else(|| panic!("literal term missing closing quote: {rendered}"));
-    inner[..end].to_owned()
+    inner
+        .split_once('"')
+        .unwrap_or_else(|| panic!("literal term missing closing quote: {rendered}"))
+        .0
+        .to_owned()
 }
 
 #[test]
@@ -162,7 +163,7 @@ fn assert_competency_is_green(
     let query_rel = as_literal(&rendered(&hits.rows[0][0]));
     let query_abs = query_file(&query_rel);
     assert!(
-        Path::new(&query_abs).exists(),
+        query_abs.exists(),
         "{scenario}: cqQueryFile {query_rel} for {competency_iri} does not exist at {}",
         query_abs.display()
     );
