@@ -31,8 +31,8 @@
 
 use std::sync::Arc;
 
-use gmeow_diagnostics::Report;
-use gmeow_diagnostics::model::Location;
+use gmeow_errors::Report;
+use gmeow_errors::model::Location;
 use purrdf::RdfDataset;
 use purrdf::shapes::shape_union::EXCLUDED;
 
@@ -44,7 +44,7 @@ use crate::store;
 // (and its tests). The wasm Tier-1 surface folds findings through `report_bridge`
 // and never names these types directly.
 #[cfg(not(target_arch = "wasm32"))]
-use gmeow_diagnostics::{Finding, Severity};
+use gmeow_errors::{Finding, Severity};
 
 /// Typed error for the Tier-2 deep pass, distinguishing failure modes that
 /// require different treatment at the graceful-degradation boundary.
@@ -139,7 +139,7 @@ pub fn run_tier1(
 ///
 /// This is the sole validation surface exposed to wasm: it wraps [`run_tier1`]
 /// (never the native `--deep` path) and serializes the canonical
-/// `gmeow_diagnostics::Report` with serde_json, so a browser / editor / LLM client
+/// `gmeow_errors::Report` with serde_json, so a browser / editor / LLM client
 /// receives structured findings without any PyO3 or filesystem coupling. Native
 /// callers that want a JSON result share this same entry.
 ///

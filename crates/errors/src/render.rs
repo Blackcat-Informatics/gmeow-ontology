@@ -1063,17 +1063,17 @@ mod tests {
 
     #[test]
     fn gmeow_rdf_full_snapshot() {
-        insta::assert_snapshot!(to_gmeow_rdf(&comprehensive_report()));
+        crate::assert_diag_snapshot!(to_gmeow_rdf(&comprehensive_report()));
     }
 
     #[test]
     fn text_full_snapshot() {
-        insta::assert_snapshot!(to_text(&comprehensive_report()));
+        crate::assert_diag_snapshot!(to_text(&comprehensive_report()));
     }
 
     #[test]
     fn html_full_snapshot() {
-        insta::assert_snapshot!(to_html(&comprehensive_report()));
+        crate::assert_diag_snapshot!(to_html(&comprehensive_report()));
     }
 
     #[test]
@@ -1363,7 +1363,7 @@ mod tests {
 
     #[test]
     fn advisory_text_snapshot() {
-        insta::assert_snapshot!(to_text(&advisory_report()));
+        crate::assert_diag_snapshot!(to_text(&advisory_report()));
     }
 
     #[test]
@@ -1401,12 +1401,12 @@ mod tests {
 
     #[test]
     fn advisory_only_text_snapshot() {
-        insta::assert_snapshot!(to_text_advisories(&advisory_report()));
+        crate::assert_diag_snapshot!(to_text_advisories(&advisory_report()));
     }
 
     #[test]
     fn advisory_html_snapshot() {
-        insta::assert_snapshot!(to_html(&advisory_report()));
+        crate::assert_diag_snapshot!(to_html(&advisory_report()));
     }
 
     #[test]
@@ -1417,7 +1417,7 @@ mod tests {
 
     #[test]
     fn advisory_gmeow_rdf_snapshot() {
-        insta::assert_snapshot!(to_gmeow_rdf(&advisory_report()));
+        crate::assert_diag_snapshot!(to_gmeow_rdf(&advisory_report()));
     }
 
     #[test]

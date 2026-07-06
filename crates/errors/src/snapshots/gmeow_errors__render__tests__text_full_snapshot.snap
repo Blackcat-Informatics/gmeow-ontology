@@ -1,5 +1,5 @@
 ---
-source: crates/diagnostics/src/render.rs
+source: crates/errors/src/render.rs
 expression: to_text(&comprehensive_report())
 ---
 error shacl.MinCount: missing property (bundle.gts quad#42 segment#2)

@@ -15,7 +15,7 @@ use std::path::Path;
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyDict, PyList, PyModule};
 
-use gmeow_diagnostics::py::PyReport;
+use gmeow_errors::py::PyReport;
 
 use crate::run::{RunMode, run_full};
 use crate::scoreboards;

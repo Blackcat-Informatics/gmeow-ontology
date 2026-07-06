@@ -11,7 +11,7 @@
 
 use std::path::Path;
 
-use gmeow_diagnostics::Report;
+use gmeow_errors::Report;
 use gmeow_validate::constitution::constitution_full_report;
 
 #[test]

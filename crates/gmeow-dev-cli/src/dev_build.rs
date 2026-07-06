@@ -28,7 +28,7 @@ fn stream_run_report(reporter: &dyn Reporter, report: &RunReport) {
     for t in &report.timings {
         reporter.stage_end(&t.phase, Duration::from_millis(t.elapsed_ms as u64));
     }
-    let mut diag = gmeow_diagnostics::Report::new("pipeline");
+    let mut diag = gmeow_errors::Report::new("pipeline");
     for f in &report.findings {
         diag.add_finding(f.clone());
     }
@@ -212,7 +212,7 @@ pub fn fanout(
         Ok(r) => r,
         Err(e) => return fail(format!("fanout failed: {e}")),
     };
-    reporter.summary(&gmeow_diagnostics::Report::new("fanout"));
+    reporter.summary(&gmeow_errors::Report::new("fanout"));
     if let Some(path) = timings_json {
         let payload = serde_json::json!({
             "command": "fanout",

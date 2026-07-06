@@ -8,7 +8,7 @@
 //! One [`Advisory`] value produces, via a single [`Advisory::project`] call,
 //! BOTH projections simultaneously:
 //!
-//! 1. A flat [`gmeow_diagnostics::Finding`] at [`Severity::Note`] or
+//! 1. A flat [`gmeow_errors::Finding`] at [`Severity::Note`] or
 //!    [`Severity::Info`] — the linter/SARIF/CLI surface consumed by every
 //!    existing diagnostics renderer.
 //! 2. An in-memory [`AdvisoryClaim`] hook carrying the vantage IRI, the advised
@@ -30,7 +30,7 @@
 //! D4 reconciles the string IRI with a real `gmeow:Standpoint` individual
 //! when it materialises the RDF claim.
 
-use gmeow_diagnostics::{Finding, Location, Rule, Severity};
+use gmeow_errors::{Finding, Location, Rule, Severity};
 
 // ── Standpoint & modality constants ─────────────────────────────────────────
 
@@ -219,7 +219,7 @@ impl Advisory {
         AdvisoryProjection { finding, claim }
     }
 
-    /// The soft [`Rule`] to register on the [`gmeow_diagnostics::Report`] so
+    /// The soft [`Rule`] to register on the [`gmeow_errors::Report`] so
     /// SARIF/text/HTML renderers can surface the `help_uri`.
     ///
     /// `default_severity` mirrors `self.severity`; `help_uri` is forwarded from

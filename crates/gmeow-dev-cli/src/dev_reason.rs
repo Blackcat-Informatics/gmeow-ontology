@@ -199,7 +199,7 @@ pub fn verify(mode: &str, fresh: bool, timings_json: Option<&Path>) -> i32 {
         }
     };
     let elapsed = elapsed_ms(started);
-    let text = gmeow_diagnostics::render::to_text(&report.normalized());
+    let text = gmeow_errors::render::to_text(&report.normalized());
     if !text.trim().is_empty() {
         eprintln!("{text}");
     }

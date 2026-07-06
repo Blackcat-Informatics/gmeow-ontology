@@ -11,7 +11,7 @@
 use std::collections::HashMap;
 use std::path::PathBuf;
 
-use gmeow_diagnostics::{Finding, Location, Severity};
+use gmeow_errors::{Finding, Location, Severity};
 use purrdf::shapes::term::Term;
 
 use crate::dsl;

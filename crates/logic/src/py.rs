@@ -893,14 +893,11 @@ fn compile_logic<'py>(py: Python<'py>, source_ttl: &str) -> PyResult<Bound<'py, 
         path_projections_list.append(entry)?;
     }
     out.set_item("path_projections", path_projections_list)?;
-    // The parse diagnostics as a live, normalized `gmeow_diagnostics` Report,
+    // The parse diagnostics as a live, normalized `gmeow_errors` Report,
     // not a `list[dict]`. The Python surface forwards it directly.
     out.set_item(
         "diagnostics_report",
-        Py::new(
-            py,
-            gmeow_diagnostics::py::PyReport::from_engine(diag_report),
-        )?,
+        Py::new(py, gmeow_errors::py::PyReport::from_engine(diag_report))?,
     )?;
     Ok(out)
 }
@@ -981,7 +978,7 @@ fn native_reason_verify_payload_with_artifacts(
     (
         NativeReasonPayload,
         NativeReasonArtifacts,
-        gmeow_diagnostics::Report,
+        gmeow_errors::Report,
     ),
     NativeReasonPyError,
 > {
@@ -1201,7 +1198,7 @@ fn reason_and_verify_native(
 
     let verify = Py::new(
         py,
-        gmeow_diagnostics::py::PyReport::from_engine(verify_report.normalized()),
+        gmeow_errors::py::PyReport::from_engine(verify_report.normalized()),
     )?;
     let out = PyDict::new(py);
     out.set_item("reason", reason)?;
@@ -1384,7 +1381,7 @@ fn rl_closure_nt(py: Python<'_>, input: &str) -> PyResult<String> {
 ///
 /// # Returns
 ///
-/// The normalized [`gmeow_diagnostics::Report`] as a live pyclass. The report's
+/// The normalized [`gmeow_errors::Report`] as a live pyclass. The report's
 /// `ok` is false iff any verify query returned a row.
 ///
 /// # Errors
@@ -1397,19 +1394,17 @@ fn verify_native(
     py: Python<'_>,
     gts_bytes: &[u8],
     queries: Vec<(String, String)>,
-) -> PyResult<Py<gmeow_diagnostics::py::PyReport>> {
+) -> PyResult<Py<gmeow_errors::py::PyReport>> {
     enum VerifyNativeError {
         GtsRead(String),
         Verify(String),
     }
     let bytes = gts_bytes.to_vec();
-    let verify_result: Result<gmeow_diagnostics::Report, VerifyNativeError> =
-        py.detach(move || {
-            let bundle = purrdf::import_gts_events(&bytes)
-                .map_err(|e| VerifyNativeError::GtsRead(format!("GTS read error: {e}")))?;
-            crate::verify::verify(bundle.dataset.as_ref(), &queries)
-                .map_err(VerifyNativeError::Verify)
-        });
+    let verify_result: Result<gmeow_errors::Report, VerifyNativeError> = py.detach(move || {
+        let bundle = purrdf::import_gts_events(&bytes)
+            .map_err(|e| VerifyNativeError::GtsRead(format!("GTS read error: {e}")))?;
+        crate::verify::verify(bundle.dataset.as_ref(), &queries).map_err(VerifyNativeError::Verify)
+    });
     let report = verify_result.map_err(|e| match e {
         VerifyNativeError::GtsRead(m) => pyo3::exceptions::PyValueError::new_err(m),
         VerifyNativeError::Verify(m) => {
@@ -1421,7 +1416,7 @@ fn verify_native(
     // contract.
     Py::new(
         py,
-        gmeow_diagnostics::py::PyReport::from_engine(report.normalized()),
+        gmeow_errors::py::PyReport::from_engine(report.normalized()),
     )
 }
 

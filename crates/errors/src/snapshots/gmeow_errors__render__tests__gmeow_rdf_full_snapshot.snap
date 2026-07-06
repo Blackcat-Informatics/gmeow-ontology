@@ -1,5 +1,5 @@
 ---
-source: crates/diagnostics/src/render.rs
+source: crates/errors/src/render.rs
 expression: to_gmeow_rdf(&comprehensive_report())
 ---
 <https://blackcatinformatics.ca/gmeow/diagnostics/finding/1dd8166d263293b6-0> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Finding> <https://blackcatinformatics.ca/gmeow/graph/diagnostics> .

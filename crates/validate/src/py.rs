@@ -20,7 +20,7 @@ use std::collections::{BTreeSet, HashMap, HashSet};
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 
-use gmeow_diagnostics::py::PyReport;
+use gmeow_errors::py::PyReport;
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyCapsule, PyDict, PyList};
 
@@ -537,7 +537,7 @@ fn errors_dict(py: Python<'_>, errors: Vec<String>) -> PyResult<Py<PyAny>> {
 }
 
 /// A gUFO anti-pattern check: `(dataset, cfg) -> structured findings`.
-type GufoCheck = fn(&purrdf::RdfDataset, &GufoConfig) -> Vec<gmeow_diagnostics::model::Finding>;
+type GufoCheck = fn(&purrdf::RdfDataset, &GufoConfig) -> Vec<gmeow_errors::model::Finding>;
 
 /// Run one gUFO check over the merged sources (the production `validate_all`
 /// path passes file paths directly — no rdflib graph).
@@ -1186,7 +1186,7 @@ fn check_statement_invariants(
 ) -> PyResult<Py<PyAny>> {
     let dataset = dataset_from_turtle_and_nt(statement_owl_ttl, ontology_nt)?;
 
-    let mut report = gmeow_diagnostics::Report::new("statement");
+    let mut report = gmeow_errors::Report::new("statement");
     for finding in statement::check_statement_invariants_dataset(&dataset) {
         report.add_finding(finding);
     }
@@ -1209,7 +1209,7 @@ fn check_statement_lossless(
     let authored = dataset_from_turtle(authored_owl_ttl)?;
     let normalized = dataset_from_turtle(normalized_owl_ttl)?;
 
-    let mut report = gmeow_diagnostics::Report::new("statement-compile");
+    let mut report = gmeow_errors::Report::new("statement-compile");
     for finding in statement::check_statement_lossless_dataset(&authored, &normalized) {
         report.add_finding(finding);
     }
@@ -1227,7 +1227,7 @@ fn check_statement_lossless(
 fn constitution_enforcement_report(py: Python<'_>, manifest_ttl: &str) -> PyResult<Py<PyAny>> {
     let dataset = dataset_from_turtle(manifest_ttl)?;
 
-    let mut report = gmeow_diagnostics::Report::new("constitution");
+    let mut report = gmeow_errors::Report::new("constitution");
     for finding in constitution::check_enforcement_coverage(&dataset) {
         report.add_finding(finding);
     }
@@ -1249,7 +1249,7 @@ fn constitution_full_report(
     let constitution = std::path::Path::new(constitution_path);
     let root = std::path::Path::new(root);
     let findings = constitution::constitution_full_report(manifest, constitution, root);
-    let mut report = gmeow_diagnostics::Report::new("constitution");
+    let mut report = gmeow_errors::Report::new("constitution");
     for finding in findings {
         report.add_finding(finding);
     }
@@ -1274,7 +1274,7 @@ fn slice_ownership_report(py: Python<'_>, slices_root: &str) -> PyResult<Py<PyAn
         .analyze()
         .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
 
-    let mut report = gmeow_diagnostics::Report::new("slice-ownership");
+    let mut report = gmeow_errors::Report::new("slice-ownership");
     for finding in slice_ownership::ownership_findings(&analysis) {
         report.add_finding(finding);
     }
