@@ -43,6 +43,12 @@ use crate::scheduler::{RunContext, run};
 /// ledger (pin-on-attach).
 const PIPELINE_STAGE_ID: &str = "stage-pipeline-reconcile";
 
+/// The two real stages that project `gmeow:Finding` RDF into the carrier's
+/// `graph/diagnostics` fold (`stages::carrier` unions exactly these two). The run
+/// ledger ingests each producer's slice attributed to its own id.
+const DIAG_PRODUCER_VALIDATE: &str = "stage-validate";
+const DIAG_PRODUCER_COMPILE_LOGIC: &str = "stage-compile-logic";
+
 // The registered finding codes the reconcile phase emits. Declared here as the
 // enumeration authority (the same discipline as `validate::codes`).
 const CODE_SUPERSET_MISSING: &str = "pipeline.superset.missing";
@@ -67,6 +73,37 @@ fn attach_pipeline_finding(ledger: &mut DiagLedger, code: &str, focus: &str, mes
     )
     .with_focus(focus);
     ledger.attach(diag, StageId::new(PIPELINE_STAGE_ID));
+}
+
+/// Ingest the carrier's `graph/diagnostics` fold into the run `ledger`.
+///
+/// `stage-validate` and `stage-compile-logic` each attach their `gmeow:Finding` RDF
+/// to `graph/diagnostics` (the cache-stable, content-addressed carrier graph
+/// `stage-snapshot` unions and ships in `gmeow.gts`). This reads that SAME graph off
+/// each real producer's dataset — the exact slices [`crate::stages::carrier`] unions
+/// — and ingests every finding into the run ledger through the designed purrdf
+/// boundary [`Diag::from_rdf`], attributed to its REAL producing stage (never the
+/// synthetic reconcile stage).
+///
+/// This makes the ledger a load-bearing projection of the SHIPPED diagnostics rather
+/// than only carrying reconcile drift, and it is deterministic across warm/cold cache
+/// runs: the source is the content-addressed producer graph, walked in sorted subject
+/// order, so a cache hit (which returns the identical bundle) ingests byte-identical
+/// content. It is the SINGLE consumer of that canonical graph — it does not recompute
+/// a divergent second copy of the diagnostics.
+fn ingest_carrier_diagnostics(
+    products: &BTreeMap<String, StageProduct>,
+    ledger: &mut DiagLedger,
+) -> Result<(), PipelineError> {
+    for stage in [DIAG_PRODUCER_VALIDATE, DIAG_PRODUCER_COMPILE_LOGIC] {
+        if let Some(product) = products.get(stage) {
+            let diagnostics = product
+                .dataset()
+                .project_named_graph(crate::stages::carrier::GRAPH_DIAGNOSTICS);
+            crate::diagnostics_ingest::ingest_diagnostics_graph(&diagnostics, ledger, stage)?;
+        }
+    }
+    Ok(())
 }
 
 /// The id of the stage that projects the exact sink GTS bytes into schema files.
@@ -646,6 +683,9 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, Pi
         skipped_writes += report.skipped;
     }
 
+    // ── Ingest the carrier's `graph/diagnostics` fold into the run ledger. ──
+    ingest_carrier_diagnostics(&products, &mut ledger)?;
+
     drifted.sort();
     drifted.dedup();
 
@@ -1106,6 +1146,112 @@ mod single_writer_gate {
         assert!(
             msg.contains("stage-impostor") && msg.contains("stage-gts-sink"),
             "the error must name both the actual writer and the declared sink: got {msg}"
+        );
+    }
+}
+
+/// G4/G5: the carrier diagnostics fold is a LOAD-BEARING input to the run ledger,
+/// attributed to the REAL producing stage. Drives the real `stage-validate` stage
+/// over a fixture whose (empty) source graph violates a SHACL shape, then runs the
+/// EXACT `run_full` ingestion step ([`ingest_carrier_diagnostics`]) and asserts the
+/// resulting SHACL diagnostic reaches the ledger attributed to `stage-validate`
+/// (never the synthetic reconcile stage) and projects into the wire findings.
+#[cfg(test)]
+mod diagnostics_ingest_gate {
+    use super::{DIAG_PRODUCER_VALIDATE, PIPELINE_STAGE_ID, ingest_carrier_diagnostics};
+    use crate::node::{Stage, StageInput, StageProduct};
+    use crate::stages::source_load::BASE_GRAPH_PATH;
+    use crate::stages::validate::ValidateStage;
+    use gmeow_errors::DiagLedger;
+    use std::collections::BTreeMap;
+    use std::path::Path;
+
+    fn write(path: &Path, content: &str) {
+        std::fs::create_dir_all(path.parent().expect("parent")).unwrap();
+        std::fs::write(path, content).unwrap();
+    }
+
+    /// A fixture repo carrying one SHACL shape that requires `ex:required` on the
+    /// target node `ex:thing` — an empty source graph therefore violates minCount.
+    fn violating_repo() -> tempfile::TempDir {
+        let repo = tempfile::tempdir().unwrap();
+        write(
+            &repo.path().join("shapes/gmeow-shapes.ttl"),
+            r#"
+@prefix ex: <https://example.test/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+
+ex:RequiredShape a sh:NodeShape ;
+    sh:targetNode ex:thing ;
+    sh:property [
+        sh:path ex:required ;
+        sh:minCount 1 ;
+        sh:message "required value is missing" ;
+    ] .
+"#,
+        );
+        write(
+            &repo.path().join("generated/shapes/frame-shapes.ttl"),
+            "# generated\n",
+        );
+        std::fs::create_dir_all(repo.path().join("slices")).unwrap();
+        repo
+    }
+
+    #[test]
+    fn shacl_diagnostic_reaches_the_run_ledger_attributed_to_stage_validate() {
+        let repo = violating_repo();
+
+        // The real stage-source-load product the scheduler would hand stage-validate:
+        // the loaded source-graph N-Quads (empty here → the shape is violated).
+        let mut source_artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+        source_artifacts.insert(BASE_GRAPH_PATH.to_owned(), Vec::new());
+        let source_load = StageProduct::from_artifacts("stage-source-load", source_artifacts);
+
+        let mut upstream: BTreeMap<String, StageProduct> = BTreeMap::new();
+        upstream.insert("stage-source-load".to_owned(), source_load);
+
+        // Run the REAL validate stage exactly as the scheduler dispatches it: it folds
+        // its gmeow:Finding RDF into the carrier's graph/diagnostics named graph.
+        let product = ValidateStage::new()
+            .run(StageInput {
+                root: repo.path(),
+                upstream: &upstream,
+            })
+            .expect("validate stage")
+            .product;
+
+        let mut products: BTreeMap<String, StageProduct> = BTreeMap::new();
+        products.insert(DIAG_PRODUCER_VALIDATE.to_owned(), product);
+
+        // The EXACT run_full ingestion step: ingest the carrier's diagnostics graph
+        // into the run ledger through the production purrdf boundary.
+        let mut ledger = DiagLedger::new();
+        ingest_carrier_diagnostics(&products, &mut ledger).expect("ingest carrier diagnostics");
+
+        // The ledger node for the SHACL violation is attributed to the REAL producing
+        // stage, never the synthetic reconcile stage.
+        let nodes = ledger.emit_sorted();
+        let shacl = nodes
+            .iter()
+            .find(|n| n.code.starts_with("shacl."))
+            .expect("SHACL diagnostic ingested into the run ledger");
+        assert_eq!(
+            shacl.stage.as_str(),
+            DIAG_PRODUCER_VALIDATE,
+            "the SHACL diagnostic must be attributed to the real producing stage"
+        );
+        assert_ne!(
+            shacl.stage.as_str(),
+            PIPELINE_STAGE_ID,
+            "the SHACL diagnostic must NOT be attributed to the synthetic reconcile stage"
+        );
+
+        // It projects into RunReport.findings (the ledger is the single source).
+        let findings = ledger.findings("gmeow-pipeline");
+        assert!(
+            findings.iter().any(|f| f.code.starts_with("shacl.")),
+            "the ingested SHACL diagnostic must project into the wire findings"
         );
     }
 }
