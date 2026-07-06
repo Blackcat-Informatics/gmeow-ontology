@@ -35,9 +35,16 @@ use crate::rule_ir::{EvalAtom, EvalRule, EvalTerm};
 /// The outcome of lowering a program's full-FOL formulas to the evaluable engine IR.
 #[derive(Debug, Clone)]
 pub(crate) struct RelationalCoreLowering {
-    /// The [`EvalRule`]s the Horn-expressible formula fragment produced, mapped from the
-    /// lane's [`RcRule`]s.
+    /// The [`EvalRule`]s the Horn-expressible (ordinary, single-head) formula fragment
+    /// produced, mapped from the lane's [`RcRule`]s. These render to the Nemo `.rls` the
+    /// provenance-carrying forward chase runs.
     pub(crate) rules: Vec<EvalRule>,
+    /// The conjunctive-head existential `.rls` for the program's n-ary HEAD-derivation rules
+    /// (each carrying `head_conjuncts`). This is rendered SEPARATELY from [`Self::rules`]
+    /// because it invents a reifier null the Nemo provenance trace cannot follow — it is
+    /// evaluated by the native restricted chase, not the provenance oracle. Empty when the
+    /// program derives no n-ary tuples.
+    pub(crate) nary_head_rls: String,
     /// An honest preservation claim: `{exact}` when every formula lowered, else
     /// `{sound-under}` carrying a description of each unsupported formula.
     pub(crate) preservation: PreservationClaim,
@@ -54,7 +61,15 @@ pub(crate) fn lower_formulas(program: &LogicProgram) -> RelationalCoreLowering {
 
     let mut rules: Vec<EvalRule> = Vec::new();
     let mut residue: BTreeSet<String> = lane_residue.into_iter().collect();
+    // Partition the lane's rules: an n-ary HEAD-derivation rule (non-empty `head_conjuncts`)
+    // renders to a conjunctive-head EXISTENTIAL `.rls` the native chase runs; every ordinary
+    // (single-head) rule maps onward to an evaluable [`EvalRule`] for the Nemo chase.
+    let mut nary: Vec<&RcRule> = Vec::new();
     for rc in &rc_rules {
+        if !rc.head_conjuncts.is_empty() {
+            nary.push(rc);
+            continue;
+        }
         match rc_rule_to_eval(rc) {
             Ok(rule) => rules.push(rule),
             Err(reason) => {
@@ -62,10 +77,20 @@ pub(crate) fn lower_formulas(program: &LogicProgram) -> RelationalCoreLowering {
             }
         }
     }
+    let nary_head_rls = match render_nary_head_rules(&nary) {
+        Ok(rls) => rls,
+        Err(reason) => {
+            // A render failure (e.g. an unexpected blank node) is carried as flagged residue,
+            // never a silently-dropped derivation.
+            residue.insert(reason);
+            String::new()
+        }
+    };
 
     RelationalCoreLowering {
         preservation: PreservationClaim::for_unsupported(residue),
         rules,
+        nary_head_rls,
     }
 }
 
@@ -81,6 +106,133 @@ pub fn formula_eval_rls(program: &LogicProgram) -> (String, PreservationClaim) {
     let lowering = lower_formulas(program);
     let rls = crate::rule_ir::eval_rules_to_rls(&lowering.rules);
     (rls, lowering.preservation)
+}
+
+/// The conjunctive-head EXISTENTIAL `.rls` for the program's n-ary HEAD-derivation formula
+/// rules — the leg [`crate::reason::reason_program`] evaluates through the NATIVE restricted
+/// chase (never the Nemo provenance chase, whose trace hard-fails on the invented reifier
+/// null). Each rule invents one shared reifier `!R` per firing (Nemo existential syntax) and
+/// reifies the derived tuple as `logic:instanceOf(R, Rel) ∧ logic:naryArg{i}(R, aᵢ)`, world-
+/// threaded like the ordinary Nemo projection. A program that derives no n-ary tuples yields
+/// the empty string (no chase leg to run).
+pub fn formula_nary_head_rls(program: &LogicProgram) -> String {
+    lower_formulas(program).nary_head_rls
+}
+
+// --------------------------------------------------------------------------- //
+// Conjunctive-head existential RLS renderer (the n-ary HEAD leg)
+// --------------------------------------------------------------------------- //
+
+/// Render each n-ary HEAD-derivation [`RcRule`] as ONE conjunctive-head existential Nemo
+/// rule in the ternary `<pred>(subject, object, world)` encoding: the shared reifier subject
+/// (`?naryH…`) is emitted with Nemo existential syntax `!naryH…` so the chase
+/// mints it once per firing and shares it across the whole `instanceOf` + `naryArg{i}`
+/// conjunction; every body atom is the ordinary binary reification, rendered in the same
+/// fresh world variable. The rule carries a deterministic `#[name(...)]` content-addressed on
+/// the rule key.
+///
+/// # Errors
+///
+/// Returns `Err` if a rule's reifier subject is not a variable or an atom carries a blank
+/// node (the clausifier mints constants, never blanks) — carried as flagged residue rather
+/// than emitted as unsound `.rls`.
+fn render_nary_head_rules(rules: &[&RcRule]) -> Result<String, String> {
+    let mut out = String::new();
+    for rc in rules {
+        let RcTerm::Var(reifier) = &rc.head.subject else {
+            return Err(format!(
+                "n-ary head rule reifier subject is not a variable: {:?}",
+                rc.head.subject
+            ));
+        };
+        let name = format!("{LOGIC_NAMESPACE}formula-nary-head/{}", sha1_hex(&rc.key()));
+        let name_esc = name.replace('\\', "\\\\").replace('"', "\\\"");
+        out.push_str(&format!("#[name(\"{name_esc}\")]\n"));
+
+        let world = fresh_world_var(rc);
+        // Head = the instanceOf typing atom + every naryArg conjunct, sharing the reifier.
+        let mut head_parts = vec![render_rc_atom(&rc.head, &world, reifier)?];
+        for hc in &rc.head_conjuncts {
+            head_parts.push(render_rc_atom(hc, &world, reifier)?);
+        }
+        let mut body_parts: Vec<String> = rc
+            .body
+            .iter()
+            .map(|b| render_rc_atom(b, &world, reifier))
+            .collect::<Result<_, _>>()?;
+        for (a, b) in &rc.distinct_pairs {
+            body_parts.push(format!("{a} != {b}"));
+        }
+        out.push_str(&format!(
+            "{} :-\n    {} .\n",
+            head_parts.join(", "),
+            body_parts.join(",\n    ")
+        ));
+    }
+    Ok(out)
+}
+
+/// Render one [`RcAtom`] as `[~]<pred>(subject, object, world)`, emitting the shared reifier
+/// variable `existential` with Nemo existential syntax (`!name`).
+fn render_rc_atom(atom: &RcAtom, world: &str, existential: &str) -> Result<String, String> {
+    let subject = render_rc_term(&atom.subject, existential)?;
+    let object = render_rc_term(&atom.object, existential)?;
+    let prefix = if atom.negated { "~" } else { "" };
+    Ok(format!(
+        "{prefix}<{}>({subject}, {object}, {world})",
+        atom.predicate
+    ))
+}
+
+/// Render one [`RcTerm`] in Nemo surface syntax. The `existential` reifier var becomes
+/// `!name` (invention); every other variable stays `?name`; an IRI is `<iri>`; a literal is
+/// `"lex"`. A blank node has no Nemo surface form and is a hard error (the clausifier mints
+/// Skolem constants, never blanks).
+fn render_rc_term(term: &RcTerm, existential: &str) -> Result<String, String> {
+    match term {
+        RcTerm::Var(name) if name == existential => {
+            Ok(format!("!{}", name.trim_start_matches('?')))
+        }
+        RcTerm::Var(name) => Ok(name.clone()),
+        RcTerm::Iri(iri) => Ok(format!("<{iri}>")),
+        RcTerm::Literal(lex) => {
+            let escaped = lex.replace('\\', "\\\\").replace('"', "\\\"");
+            Ok(format!("\"{escaped}\""))
+        }
+        RcTerm::Blank(label) => Err(format!(
+            "n-ary head rule carries a blank node {label:?} — the clausifier mints Skolem \
+             constants, never blanks (no-optionality)"
+        )),
+    }
+}
+
+/// A `?W`-style world variable not already used by `rc`, so the head's world slot is bound by
+/// the body (Nemo safety). Only freshness matters (the world slot is not part of tuple
+/// identity), so the exact name is immaterial.
+fn fresh_world_var(rc: &RcRule) -> String {
+    let mut used: BTreeSet<String> = BTreeSet::new();
+    let mut note = |t: &RcTerm| {
+        if let RcTerm::Var(name) = t {
+            used.insert(name.clone());
+        }
+    };
+    note(&rc.head.subject);
+    note(&rc.head.object);
+    for a in &rc.head_conjuncts {
+        note(&a.subject);
+        note(&a.object);
+    }
+    for a in &rc.body {
+        note(&a.subject);
+        note(&a.object);
+    }
+    let mut candidate = "?W".to_owned();
+    let mut i = 0u32;
+    while used.contains(&candidate) {
+        i += 1;
+        candidate = format!("?W{i}");
+    }
+    candidate
 }
 
 // --------------------------------------------------------------------------- //
