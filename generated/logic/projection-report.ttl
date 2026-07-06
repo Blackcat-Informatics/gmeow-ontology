@@ -2,6 +2,79 @@
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 
+<https://blackcatinformatics.ca/logic/target/abnf:gts>
+    a logic:ProjectionTarget ;
+    rdfs:label "abnf:gts" ;
+    gmeow:lossyDrop "actual: grammar versioning is not carried into the emitted file" ,
+        "actual: licensing links from the source forms have no grammar-notation target" ,
+        "actual: rule 'ECHAR': EBNF character class '[tbnrf\"'\\]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'IRICHAR': EBNF character class '[^#x00-#x20<>\"{}|^`\\]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'NAMECHAR': EBNF character class '[A-Za-z0-9_-]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'STRCHAR': EBNF character class '[^#x22#x5C]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'langtag': EBNF character class '[a-zA-Z0-9]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'langtag': EBNF character class '[a-zA-Z]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule provenance is not carried into the grammar file (comments at best)" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
+<https://blackcatinformatics.ca/logic/target/abnf:turtle>
+    a logic:ProjectionTarget ;
+    rdfs:label "abnf:turtle" ;
+    gmeow:lossyDrop "actual: grammar versioning is not carried into the emitted file" ,
+        "actual: licensing links from the source forms have no grammar-notation target" ,
+        "actual: rule 'BLANK_NODE_LABEL': EBNF character class '[0-9]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'DECIMAL': EBNF character class '[+-]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'DECIMAL': EBNF character class '[0-9]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'DOUBLE': EBNF character class '[+-]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'DOUBLE': EBNF character class '[0-9]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'ECHAR': EBNF character class '[tbnrf\"'\\]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'EXPONENT': EBNF character class '[+-]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'EXPONENT': EBNF character class '[0-9]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'EXPONENT': EBNF character class '[eE]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'HEX': EBNF character class '[0-9]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'HEX': EBNF character class '[A-F]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'HEX': EBNF character class '[a-f]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'INTEGER': EBNF character class '[+-]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'INTEGER': EBNF character class '[0-9]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'IRIREF': EBNF character class '[^#x00-#x20<>\"{}|^`\\]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'LANGTAG': EBNF character class '[a-zA-Z0-9]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'LANGTAG': EBNF character class '[a-zA-Z]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'PN_CHARS': EBNF character class '[#x0300-#x036F]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'PN_CHARS': EBNF character class '[#x203F-#x2040]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'PN_CHARS': EBNF character class '[0-9]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'PN_CHARS_BASE': EBNF character class '[#x00C0-#x00D6]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'PN_CHARS_BASE': EBNF character class '[#x00D8-#x00F6]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'PN_CHARS_BASE': EBNF character class '[#x00F8-#x02FF]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'PN_CHARS_BASE': EBNF character class '[#x0370-#x037D]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'PN_CHARS_BASE': EBNF character class '[#x037F-#x1FFF]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'PN_CHARS_BASE': EBNF character class '[#x10000-#xEFFFF]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'PN_CHARS_BASE': EBNF character class '[#x200C-#x200D]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'PN_CHARS_BASE': EBNF character class '[#x2070-#x218F]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'PN_CHARS_BASE': EBNF character class '[#x2C00-#x2FEF]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'PN_CHARS_BASE': EBNF character class '[#x3001-#xD7FF]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'PN_CHARS_BASE': EBNF character class '[#xF900-#xFDCF]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'PN_CHARS_BASE': EBNF character class '[#xFDF0-#xFFFD]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'PN_CHARS_BASE': EBNF character class '[A-Z]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'PN_CHARS_BASE': EBNF character class '[a-z]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'PN_LOCAL': EBNF character class '[0-9]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'STRING_LITERAL_LONG_QUOTE': EBNF character class '[^\"\\]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'STRING_LITERAL_LONG_SINGLE_QUOTE': EBNF character class '[^'\\]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'STRING_LITERAL_QUOTE': EBNF character class '[^#x22#x5C#xA#xD]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'STRING_LITERAL_SINGLE_QUOTE': EBNF character class '[^#x27#x5C#xA#xD]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule provenance is not carried into the grammar file (comments at best)" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
+<https://blackcatinformatics.ca/logic/target/bcp47:tag-set>
+    a logic:ProjectionTarget ;
+    rdfs:label "bcp47:tag-set" ;
+    gmeow:lossyDrop "actual: a BCP-47 tag carries no diachronic history of the variety (no lang: temporal-stage lineage)" ,
+        "actual: a BCP-47 tag carries no orthography split (a sign system with several orthographies collapses to one script subtag)" ,
+        "actual: a BCP-47 tag carries no variety relations beyond the primary subtag (the lang:varietyOf structure is flattened to a single differentiating subtag)" ,
+        "actual: variety <https://blackcatinformatics.ca/lang/gmeowEnglish> has no derivable BCP-47 primary subtag: its lang:varietyOf parent carries no ISO 639 skos:notation (GMEOW sign systems keep ISO codes as alignments, not asserted data), so gmeow:bcp47Tag is absent — a data row, not a failure" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
 <https://blackcatinformatics.ca/logic/target/canonical-rdf12>
     a logic:ProjectionTarget ;
     rdfs:label "canonical-rdf12" ;
@@ -18,6 +91,12 @@
     a logic:ProjectionTarget ;
     rdfs:label "clif" ;
     logic:complexityClass "full first-order (semi-decidable)" ;
+    logic:preservationKind logic:ExactPreservation .
+
+<https://blackcatinformatics.ca/logic/target/conllu:forms-and-sign-systems#sentCatsChaseMice>
+    a logic:ProjectionTarget ;
+    rdfs:label "conllu:forms-and-sign-systems#sentCatsChaseMice" ;
+    logic:complexityClass "n/a" ;
     logic:preservationKind logic:ExactPreservation .
 
 <https://blackcatinformatics.ca/logic/target/datalog>
@@ -41,6 +120,18 @@
         "no existential rule heads (skolemisation not emitted)" ;
     logic:complexityClass "terminating/PTIME-data" ;
     logic:preservationKind logic:SoundUnderApproximation .
+
+<https://blackcatinformatics.ca/logic/target/ebnf:gts>
+    a logic:ProjectionTarget ;
+    rdfs:label "ebnf:gts" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ExactPreservation .
+
+<https://blackcatinformatics.ca/logic/target/ebnf:turtle>
+    a logic:ProjectionTarget ;
+    rdfs:label "ebnf:turtle" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ExactPreservation .
 
 <https://blackcatinformatics.ca/logic/target/edoal:0051d4462bb2a37f>
     a logic:ProjectionTarget ;
@@ -7317,6 +7408,274 @@
     logic:complexityClass "PTIME" ;
     logic:preservationKind logic:ValidationOnly .
 
+<https://blackcatinformatics.ca/logic/target/lang-docs-execgap:fr>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-execgap:fr" ;
+    gmeow:lossyDrop "actual: english carrier: GMEOW executable documentation surfaces (the offline SPARQL playground, the reasoned try-it inference diffs, and the export substrate) are rendered only in the English documentation tree." ,
+        "actual: exec-docs boundary (fr): executable documentation surfaces are rendered only in the English tree; the fr tree carries no non-English rendering" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:Unsupported .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-execgap:zh>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-execgap:zh" ;
+    gmeow:lossyDrop "actual: english carrier: GMEOW executable documentation surfaces (the offline SPARQL playground, the reasoned try-it inference diffs, and the export substrate) are rendered only in the English documentation tree." ,
+        "actual: exec-docs boundary (zh): executable documentation surfaces are rendered only in the English tree; the zh tree carries no non-English rendering" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:Unsupported .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-rendering:0776b6220c70e46f>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-rendering:0776b6220c70e46f" ;
+    gmeow:lossyDrop "actual: docs page rendering (fr, https://blackcatinformatics.ca/gmeow/existenceEntity): 2 target surface(s); derived preservation = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-rendering:095abce697afd663>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-rendering:095abce697afd663" ;
+    gmeow:lossyDrop "actual: docs page rendering (zh, https://blackcatinformatics.ca/gmeow/existenceInterval): 2 target surface(s); derived preservation = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-rendering:25c68ee2e503dfb4>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-rendering:25c68ee2e503dfb4" ;
+    gmeow:lossyDrop "actual: docs page rendering (zh, https://blackcatinformatics.ca/gmeow/supersededBy): 2 target surface(s); derived preservation = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-rendering:4aba893dbfaf460c>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-rendering:4aba893dbfaf460c" ;
+    gmeow:lossyDrop "actual: docs page rendering (fr, https://blackcatinformatics.ca/gmeow/supersededBy): 2 target surface(s); derived preservation = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-rendering:5ed33520cc814b28>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-rendering:5ed33520cc814b28" ;
+    gmeow:lossyDrop "actual: docs page rendering (zh, https://blackcatinformatics.ca/gmeow/hasCreationEvent): 2 target surface(s); derived preservation = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-rendering:7bdb4fddda4a45ca>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-rendering:7bdb4fddda4a45ca" ;
+    gmeow:lossyDrop "actual: docs page rendering (zh, https://blackcatinformatics.ca/gmeow/hasDestructionEvent): 2 target surface(s); derived preservation = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-rendering:8816ee801f5ff5c2>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-rendering:8816ee801f5ff5c2" ;
+    gmeow:lossyDrop "actual: docs page rendering (zh, https://blackcatinformatics.ca/gmeow/EntityExistence): 2 target surface(s); derived preservation = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-rendering:b9669710a233d8c4>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-rendering:b9669710a233d8c4" ;
+    gmeow:lossyDrop "actual: docs page rendering (fr, https://blackcatinformatics.ca/gmeow/hasDestructionEvent): 2 target surface(s); derived preservation = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-rendering:bc4a940a5b76c878>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-rendering:bc4a940a5b76c878" ;
+    gmeow:lossyDrop "actual: docs page rendering (zh, https://blackcatinformatics.ca/gmeow/existenceCreationEvent): 2 target surface(s); derived preservation = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-rendering:bf99c890cef32126>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-rendering:bf99c890cef32126" ;
+    gmeow:lossyDrop "actual: docs page rendering (zh, https://blackcatinformatics.ca/gmeow/slices/lifecycle): 3 target surface(s); derived preservation = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-rendering:c41a1af86cd13ac6>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-rendering:c41a1af86cd13ac6" ;
+    gmeow:lossyDrop "actual: docs page rendering (fr, https://blackcatinformatics.ca/gmeow/EntityExistence): 2 target surface(s); derived preservation = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-rendering:c4defe4fa29ce722>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-rendering:c4defe4fa29ce722" ;
+    gmeow:lossyDrop "actual: docs page rendering (fr, https://blackcatinformatics.ca/gmeow/hasCreationEvent): 2 target surface(s); derived preservation = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-rendering:c5c2767d9118a29c>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-rendering:c5c2767d9118a29c" ;
+    gmeow:lossyDrop "actual: docs page rendering (fr, https://blackcatinformatics.ca/gmeow/existenceCreationEvent): 2 target surface(s); derived preservation = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-rendering:c628afacfabb70cf>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-rendering:c628afacfabb70cf" ;
+    gmeow:lossyDrop "actual: docs page rendering (fr, https://blackcatinformatics.ca/gmeow/existenceInterval): 2 target surface(s); derived preservation = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-rendering:cd86977fcee87605>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-rendering:cd86977fcee87605" ;
+    gmeow:lossyDrop "actual: docs page rendering (zh, https://blackcatinformatics.ca/gmeow/existenceEntity): 2 target surface(s); derived preservation = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-rendering:dd844da76d4e1bc6>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-rendering:dd844da76d4e1bc6" ;
+    gmeow:lossyDrop "actual: docs page rendering (zh, https://blackcatinformatics.ca/gmeow/existenceDestructionEvent): 2 target surface(s); derived preservation = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-rendering:ea729607c361a9b4>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-rendering:ea729607c361a9b4" ;
+    gmeow:lossyDrop "actual: docs page rendering (fr, https://blackcatinformatics.ca/gmeow/slices/lifecycle): 3 target surface(s); derived preservation = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-rendering:fb299538cc07f71b>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-rendering:fb299538cc07f71b" ;
+    gmeow:lossyDrop "actual: docs page rendering (fr, https://blackcatinformatics.ca/gmeow/existenceDestructionEvent): 2 target surface(s); derived preservation = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-translation:0776b6220c70e46f>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-translation:0776b6220c70e46f" ;
+    gmeow:lossyDrop "actual: docs page translation roll-up (fr, https://blackcatinformatics.ca/gmeow/existenceEntity) over 2 unit(s); weakest-dominates join = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-translation:095abce697afd663>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-translation:095abce697afd663" ;
+    gmeow:lossyDrop "actual: docs page translation roll-up (zh, https://blackcatinformatics.ca/gmeow/existenceInterval) over 2 unit(s); weakest-dominates join = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-translation:25c68ee2e503dfb4>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-translation:25c68ee2e503dfb4" ;
+    gmeow:lossyDrop "actual: docs page translation roll-up (zh, https://blackcatinformatics.ca/gmeow/supersededBy) over 2 unit(s); weakest-dominates join = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-translation:4aba893dbfaf460c>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-translation:4aba893dbfaf460c" ;
+    gmeow:lossyDrop "actual: docs page translation roll-up (fr, https://blackcatinformatics.ca/gmeow/supersededBy) over 2 unit(s); weakest-dominates join = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-translation:5ed33520cc814b28>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-translation:5ed33520cc814b28" ;
+    gmeow:lossyDrop "actual: docs page translation roll-up (zh, https://blackcatinformatics.ca/gmeow/hasCreationEvent) over 2 unit(s); weakest-dominates join = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-translation:7bdb4fddda4a45ca>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-translation:7bdb4fddda4a45ca" ;
+    gmeow:lossyDrop "actual: docs page translation roll-up (zh, https://blackcatinformatics.ca/gmeow/hasDestructionEvent) over 2 unit(s); weakest-dominates join = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-translation:8816ee801f5ff5c2>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-translation:8816ee801f5ff5c2" ;
+    gmeow:lossyDrop "actual: docs page translation roll-up (zh, https://blackcatinformatics.ca/gmeow/EntityExistence) over 2 unit(s); weakest-dominates join = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-translation:b9669710a233d8c4>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-translation:b9669710a233d8c4" ;
+    gmeow:lossyDrop "actual: docs page translation roll-up (fr, https://blackcatinformatics.ca/gmeow/hasDestructionEvent) over 2 unit(s); weakest-dominates join = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-translation:bc4a940a5b76c878>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-translation:bc4a940a5b76c878" ;
+    gmeow:lossyDrop "actual: docs page translation roll-up (zh, https://blackcatinformatics.ca/gmeow/existenceCreationEvent) over 2 unit(s); weakest-dominates join = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-translation:bf99c890cef32126>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-translation:bf99c890cef32126" ;
+    gmeow:lossyDrop "actual: docs page translation roll-up (zh, https://blackcatinformatics.ca/gmeow/slices/lifecycle) over 3 unit(s); weakest-dominates join = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-translation:c41a1af86cd13ac6>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-translation:c41a1af86cd13ac6" ;
+    gmeow:lossyDrop "actual: docs page translation roll-up (fr, https://blackcatinformatics.ca/gmeow/EntityExistence) over 2 unit(s); weakest-dominates join = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-translation:c4defe4fa29ce722>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-translation:c4defe4fa29ce722" ;
+    gmeow:lossyDrop "actual: docs page translation roll-up (fr, https://blackcatinformatics.ca/gmeow/hasCreationEvent) over 2 unit(s); weakest-dominates join = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-translation:c5c2767d9118a29c>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-translation:c5c2767d9118a29c" ;
+    gmeow:lossyDrop "actual: docs page translation roll-up (fr, https://blackcatinformatics.ca/gmeow/existenceCreationEvent) over 2 unit(s); weakest-dominates join = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-translation:c628afacfabb70cf>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-translation:c628afacfabb70cf" ;
+    gmeow:lossyDrop "actual: docs page translation roll-up (fr, https://blackcatinformatics.ca/gmeow/existenceInterval) over 2 unit(s); weakest-dominates join = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-translation:cd86977fcee87605>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-translation:cd86977fcee87605" ;
+    gmeow:lossyDrop "actual: docs page translation roll-up (zh, https://blackcatinformatics.ca/gmeow/existenceEntity) over 2 unit(s); weakest-dominates join = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-translation:dd844da76d4e1bc6>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-translation:dd844da76d4e1bc6" ;
+    gmeow:lossyDrop "actual: docs page translation roll-up (zh, https://blackcatinformatics.ca/gmeow/existenceDestructionEvent) over 2 unit(s); weakest-dominates join = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-translation:ea729607c361a9b4>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-translation:ea729607c361a9b4" ;
+    gmeow:lossyDrop "actual: docs page translation roll-up (fr, https://blackcatinformatics.ca/gmeow/slices/lifecycle) over 3 unit(s); weakest-dominates join = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-translation:fb299538cc07f71b>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-translation:fb299538cc07f71b" ;
+    gmeow:lossyDrop "actual: docs page translation roll-up (fr, https://blackcatinformatics.ca/gmeow/existenceDestructionEvent) over 2 unit(s); weakest-dominates join = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
 <https://blackcatinformatics.ca/logic/target/lang-form>
     a logic:ProjectionTarget ;
     rdfs:label "lang-form" ;
@@ -7635,6 +7994,24 @@
         "actual: logic:Formula #4 [Disjunctive+Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in Nemo; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
         "actual: logic:Formula #5 [Nested+Quantified+StrongNegation] (full first-order quantifier / connective tree) is not representable in Nemo; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ;
     logic:complexityClass "PTIME/datalog" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
+<https://blackcatinformatics.ca/logic/target/nif:forms-and-sign-systems#sentAnchor>
+    a logic:ProjectionTarget ;
+    rdfs:label "nif:forms-and-sign-systems#sentAnchor" ;
+    gmeow:lossyDrop "actual: offset fragility (declared): NIF/OA offsets [0,15) for anchor <https://blackcatinformatics.ca/gmeow/examples/lang/sentAnchor> bind to surface <https://blackcatinformatics.ca/gmeow/examples/lang/sentSurface> under offsetSpace=lang:codepointOffset, unicodeNormalization=NFC; re-encoding or re-normalizing that surface (NFC↔NFD, codepoint↔byte, a different encoding) shifts the addressed span so the offsets no longer address the same characters — this invalidation is by design, not carried into NIF" ,
+        "actual: the lang:Form / lang:Sense / lang:Denotation strata above the surface are not carried into NIF (NIF addresses spans of a surface, not analyzed forms)" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
+<https://blackcatinformatics.ca/logic/target/ontolex-lemon:forms-and-sign-systems>
+    a logic:ProjectionTarget ;
+    rdfs:label "ontolex-lemon:forms-and-sign-systems" ;
+    gmeow:lossyDrop "actual: lang:InterpretationAct and co-resident lang:Reading alternatives with held support have no OntoLex-Lemon form" ,
+        "actual: lang:denotationKind beyond entity/class reference (lang:denotesLogicFormula and kin) has no ontolex:denotes / ontolex:reference target" ,
+        "actual: lang:vantage / perspectival standpoint has no OntoLex-Lemon target: the sense inventory flattens to unattributed lexical structure" ,
+        "actual: preservation-judged lang:Translation has no OntoLex-Lemon target" ;
+    logic:complexityClass "n/a" ;
     logic:preservationKind logic:SoundUnderApproximation .
 
 <https://blackcatinformatics.ca/logic/target/owl-dl>
@@ -8568,6 +8945,16 @@
         "rules beyond EL expressivity are dropped" ,
         "transaction-path evolution has no faithful OWL EL projection: serial conjunction, executional entailment over a path of states, elementary update as supersession, the hypothetical-execution sandbox and its discarded-run witness, and concurrent composition with conflict-serializability have no OWL axiom form and are dropped — OWL describes a single static state, not a transaction path" ;
     logic:complexityClass "PTIME" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
+<https://blackcatinformatics.ca/logic/target/semaf:forms-and-sign-systems#denCatsChaseMice>
+    a logic:ProjectionTarget ;
+    rdfs:label "semaf:forms-and-sign-systems#denCatsChaseMice" ;
+    gmeow:lossyDrop "actual: AMR / SemAF carry no vantage: perspectival / standpoint support is dropped" ,
+        "actual: AMR has no modality depth: modal operators in the denotation collapse" ,
+        "actual: AMR has no quantifier scope: quantifier scoping in the logic: formula is not carried" ,
+        "actual: SemAF role inventory is coarser than the full logic: predicate-argument structure" ;
+    logic:complexityClass "n/a" ;
     logic:preservationKind logic:SoundUnderApproximation .
 
 <https://blackcatinformatics.ca/logic/target/shacl-af>
@@ -15978,6 +16365,17 @@
     logic:complexityClass "N/A (1:1 lattice band)" ;
     logic:preservationKind logic:SoundUnderApproximation .
 
+<https://blackcatinformatics.ca/logic/target/sssom:0532dfee142a4861>
+    a logic:ProjectionTarget ;
+    rdfs:label "sssom:0532dfee142a4861" ;
+    gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/gmeow/examples/lang/senseCat|http://www.w3.org/2004/02/skos/core#closeMatch|http://www.wikidata.org/entity/Q146" ,
+        "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
+        "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
+        "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
+        "world/standpoint scope and the put leg are not carried" ;
+    logic:complexityClass "N/A (1:1 lattice band)" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
 <https://blackcatinformatics.ca/logic/target/sssom:053d66f18a2921f6>
     a logic:ProjectionTarget ;
     rdfs:label "sssom:053d66f18a2921f6" ;
@@ -16774,6 +17172,17 @@
     a logic:ProjectionTarget ;
     rdfs:label "sssom:0fd6f218c102db38" ;
     gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/gmeow/logicAndSequence|http://www.w3.org/2004/02/skos/core#exactMatch|http://www.w3.org/ns/odrl/2/andSequence" ,
+        "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
+        "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
+        "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
+        "world/standpoint scope and the put leg are not carried" ;
+    logic:complexityClass "N/A (1:1 lattice band)" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
+<https://blackcatinformatics.ca/logic/target/sssom:0fe6c74597f8012a>
+    a logic:ProjectionTarget ;
+    rdfs:label "sssom:0fe6c74597f8012a" ;
+    gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/gmeow/examples/lang/senseCat|http://www.w3.org/2004/02/skos/core#closeMatch|http://www.wikidata.org/entity/L7-S1" ,
         "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
         "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
         "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
@@ -18303,6 +18712,17 @@
     a logic:ProjectionTarget ;
     rdfs:label "sssom:214bb3278139a919" ;
     gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/math/errorFunction|http://www.w3.org/2004/02/skos/core#relatedMatch|https://dlmf.nist.gov/7" ,
+        "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
+        "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
+        "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
+        "world/standpoint scope and the put leg are not carried" ;
+    logic:complexityClass "N/A (1:1 lattice band)" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
+<https://blackcatinformatics.ca/logic/target/sssom:218603811475e283>
+    a logic:ProjectionTarget ;
+    rdfs:label "sssom:218603811475e283" ;
+    gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/gmeow/examples/lang/lexMouse|http://www.w3.org/2004/02/skos/core#closeMatch|http://www.wikidata.org/entity/L1119" ,
         "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
         "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
         "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
@@ -23305,6 +23725,17 @@
     logic:complexityClass "N/A (1:1 lattice band)" ;
     logic:preservationKind logic:SoundUnderApproximation .
 
+<https://blackcatinformatics.ca/logic/target/sssom:59ab4b7b4c791775>
+    a logic:ProjectionTarget ;
+    rdfs:label "sssom:59ab4b7b4c791775" ;
+    gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/gmeow/examples/lang/lexChase|http://www.w3.org/2004/02/skos/core#closeMatch|http://www.wikidata.org/entity/L14462" ,
+        "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
+        "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
+        "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
+        "world/standpoint scope and the put leg are not carried" ;
+    logic:complexityClass "N/A (1:1 lattice band)" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
 <https://blackcatinformatics.ca/logic/target/sssom:59c8a05eb2a15f1c>
     a logic:ProjectionTarget ;
     rdfs:label "sssom:59c8a05eb2a15f1c" ;
@@ -24708,6 +25139,17 @@
     a logic:ProjectionTarget ;
     rdfs:label "sssom:698a2c052d9b8b94" ;
     gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/gmeow/Mark|http://www.w3.org/2004/02/skos/core#closeMatch|http://www.wikidata.org/entity/Q431289" ,
+        "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
+        "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
+        "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
+        "world/standpoint scope and the put leg are not carried" ;
+    logic:complexityClass "N/A (1:1 lattice band)" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
+<https://blackcatinformatics.ca/logic/target/sssom:69c70f66c0d37aa8>
+    a logic:ProjectionTarget ;
+    rdfs:label "sssom:69c70f66c0d37aa8" ;
+    gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/gmeow/examples/lang/senseMouse|http://www.w3.org/2004/02/skos/core#closeMatch|http://www.wikidata.org/entity/L1119-S1" ,
         "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
         "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
         "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
@@ -30207,6 +30649,17 @@
     logic:complexityClass "N/A (1:1 lattice band)" ;
     logic:preservationKind logic:SoundUnderApproximation .
 
+<https://blackcatinformatics.ca/logic/target/sssom:ade02afa4f2d0d1b>
+    a logic:ProjectionTarget ;
+    rdfs:label "sssom:ade02afa4f2d0d1b" ;
+    gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/gmeow/examples/lang/lexCat|http://www.w3.org/2004/02/skos/core#closeMatch|http://www.wikidata.org/entity/L7" ,
+        "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
+        "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
+        "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
+        "world/standpoint scope and the put leg are not carried" ;
+    logic:complexityClass "N/A (1:1 lattice band)" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
 <https://blackcatinformatics.ca/logic/target/sssom:ae0e0990cd3b9438>
     a logic:ProjectionTarget ;
     rdfs:label "sssom:ae0e0990cd3b9438" ;
@@ -30510,6 +30963,17 @@
     a logic:ProjectionTarget ;
     rdfs:label "sssom:b23e72934af0f3ac" ;
     gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/math/Limit|http://www.w3.org/2004/02/skos/core#closeMatch|http://www.wikidata.org/entity/Q33540" ,
+        "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
+        "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
+        "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
+        "world/standpoint scope and the put leg are not carried" ;
+    logic:complexityClass "N/A (1:1 lattice band)" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
+<https://blackcatinformatics.ca/logic/target/sssom:b26681598837085e>
+    a logic:ProjectionTarget ;
+    rdfs:label "sssom:b26681598837085e" ;
+    gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/gmeow/examples/lang/senseMouse|http://www.w3.org/2004/02/skos/core#closeMatch|http://www.wikidata.org/entity/Q39275" ,
         "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
         "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
         "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
@@ -34011,6 +34475,17 @@
     logic:complexityClass "N/A (1:1 lattice band)" ;
     logic:preservationKind logic:SoundUnderApproximation .
 
+<https://blackcatinformatics.ca/logic/target/sssom:db88b1893ae7027c>
+    a logic:ProjectionTarget ;
+    rdfs:label "sssom:db88b1893ae7027c" ;
+    gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/gmeow/examples/lang/senseChase|http://www.w3.org/2004/02/skos/core#closeMatch|http://www.wikidata.org/entity/Q101574237" ,
+        "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
+        "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
+        "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
+        "world/standpoint scope and the put leg are not carried" ;
+    logic:complexityClass "N/A (1:1 lattice band)" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
 <https://blackcatinformatics.ca/logic/target/sssom:db9110c15b6cd329>
     a logic:ProjectionTarget ;
     rdfs:label "sssom:db9110c15b6cd329" ;
@@ -36962,6 +37437,17 @@
     logic:complexityClass "N/A (1:1 lattice band)" ;
     logic:preservationKind logic:SoundUnderApproximation .
 
+<https://blackcatinformatics.ca/logic/target/sssom:ff3239acb0ebcf03>
+    a logic:ProjectionTarget ;
+    rdfs:label "sssom:ff3239acb0ebcf03" ;
+    gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/gmeow/examples/lang/senseChase|http://www.w3.org/2004/02/skos/core#closeMatch|http://www.wikidata.org/entity/L14462-S2" ,
+        "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
+        "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
+        "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
+        "world/standpoint scope and the put leg are not carried" ;
+    logic:complexityClass "N/A (1:1 lattice band)" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
 <https://blackcatinformatics.ca/logic/target/sssom:ff575d94cb419b45>
     a logic:ProjectionTarget ;
     rdfs:label "sssom:ff575d94cb419b45" ;
@@ -37017,6 +37503,18 @@
     logic:complexityClass "N/A (1:1 lattice band)" ;
     logic:preservationKind logic:SoundUnderApproximation .
 
+<https://blackcatinformatics.ca/logic/target/tei:forms-and-sign-systems#sentCatsChaseMice>
+    a logic:ProjectionTarget ;
+    rdfs:label "tei:forms-and-sign-systems#sentCatsChaseMice" ;
+    gmeow:lossyDrop "actual: co-resident lang:Reading alternatives of an ambiguous form collapse to a single TEI constituent structure" ,
+        "actual: dependency relations among the constituents of composed form <https://blackcatinformatics.ca/gmeow/examples/lang/sentCatsChaseMice> are not carried into the flat TEI <s> token run (only the analyzed head is hinted)" ,
+        "actual: lang:Denotation meaning records (form→referent assignments) have no TEI element" ,
+        "actual: lang:Sense inventory (the middle Frege corner) has no TEI element" ,
+        "actual: lang:vantage / perspectival standpoint support is not carried into TEI" ,
+        "actual: logic:preservationKind / preservation judgments have no TEI target" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
 <https://blackcatinformatics.ca/logic/target/xcl>
     a logic:ProjectionTarget ;
     rdfs:label "xcl" ;
@@ -37029,10 +37527,16 @@ logic:projection-report
     logic:claimedUpliftCount 479 ;
     logic:correspondenceCount 592 ;
     logic:formulaCount 6 ;
-    logic:hasProjection <https://blackcatinformatics.ca/logic/target/canonical-rdf12> ,
+    logic:hasProjection <https://blackcatinformatics.ca/logic/target/abnf:gts> ,
+        <https://blackcatinformatics.ca/logic/target/abnf:turtle> ,
+        <https://blackcatinformatics.ca/logic/target/bcp47:tag-set> ,
+        <https://blackcatinformatics.ca/logic/target/canonical-rdf12> ,
         <https://blackcatinformatics.ca/logic/target/cgif> ,
         <https://blackcatinformatics.ca/logic/target/clif> ,
+        <https://blackcatinformatics.ca/logic/target/conllu:forms-and-sign-systems#sentCatsChaseMice> ,
         <https://blackcatinformatics.ca/logic/target/datalog> ,
+        <https://blackcatinformatics.ca/logic/target/ebnf:gts> ,
+        <https://blackcatinformatics.ca/logic/target/ebnf:turtle> ,
         <https://blackcatinformatics.ca/logic/target/edoal:0051d4462bb2a37f> ,
         <https://blackcatinformatics.ca/logic/target/edoal:00c96a1f9ac5fef0> ,
         <https://blackcatinformatics.ca/logic/target/edoal:00f90587491177f4> ,
@@ -37625,6 +38129,44 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/fno:f97ab23988289696> ,
         <https://blackcatinformatics.ca/logic/target/fno:fda31433851be3f9> ,
         <https://blackcatinformatics.ca/logic/target/gufo> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-execgap:fr> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-execgap:zh> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:0776b6220c70e46f> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:095abce697afd663> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:25c68ee2e503dfb4> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:4aba893dbfaf460c> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:5ed33520cc814b28> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:7bdb4fddda4a45ca> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:8816ee801f5ff5c2> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:b9669710a233d8c4> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:bc4a940a5b76c878> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:bf99c890cef32126> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:c41a1af86cd13ac6> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:c4defe4fa29ce722> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:c5c2767d9118a29c> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:c628afacfabb70cf> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:cd86977fcee87605> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:dd844da76d4e1bc6> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:ea729607c361a9b4> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:fb299538cc07f71b> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-translation:0776b6220c70e46f> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-translation:095abce697afd663> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-translation:25c68ee2e503dfb4> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-translation:4aba893dbfaf460c> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-translation:5ed33520cc814b28> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-translation:7bdb4fddda4a45ca> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-translation:8816ee801f5ff5c2> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-translation:b9669710a233d8c4> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-translation:bc4a940a5b76c878> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-translation:bf99c890cef32126> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-translation:c41a1af86cd13ac6> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-translation:c4defe4fa29ce722> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-translation:c5c2767d9118a29c> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-translation:c628afacfabb70cf> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-translation:cd86977fcee87605> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-translation:dd844da76d4e1bc6> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-translation:ea729607c361a9b4> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-translation:fb299538cc07f71b> ,
         <https://blackcatinformatics.ca/logic/target/lang-form> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation-doc:fr> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation-doc:zh> ,
@@ -37668,8 +38210,11 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/lang-translation:fbc4625af3032a5d> ,
         <https://blackcatinformatics.ca/logic/target/n3> ,
         <https://blackcatinformatics.ca/logic/target/nemo> ,
+        <https://blackcatinformatics.ca/logic/target/nif:forms-and-sign-systems#sentAnchor> ,
+        <https://blackcatinformatics.ca/logic/target/ontolex-lemon:forms-and-sign-systems> ,
         <https://blackcatinformatics.ca/logic/target/owl-dl> ,
         <https://blackcatinformatics.ca/logic/target/owl-el> ,
+        <https://blackcatinformatics.ca/logic/target/semaf:forms-and-sign-systems#denCatsChaseMice> ,
         <https://blackcatinformatics.ca/logic/target/shacl-af> ,
         <https://blackcatinformatics.ca/logic/target/shacl-core> ,
         <https://blackcatinformatics.ca/logic/target/shex> ,
@@ -38249,6 +38794,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sssom:05126d337e9bb598> ,
         <https://blackcatinformatics.ca/logic/target/sssom:0514711c67c8b6e7> ,
         <https://blackcatinformatics.ca/logic/target/sssom:0529c5531ae9c5d5> ,
+        <https://blackcatinformatics.ca/logic/target/sssom:0532dfee142a4861> ,
         <https://blackcatinformatics.ca/logic/target/sssom:053d66f18a2921f6> ,
         <https://blackcatinformatics.ca/logic/target/sssom:055d218a5939d9ba> ,
         <https://blackcatinformatics.ca/logic/target/sssom:05ac012307c6dec3> ,
@@ -38322,6 +38868,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sssom:0f4191f78e6ee2b2> ,
         <https://blackcatinformatics.ca/logic/target/sssom:0f99279cee2e6230> ,
         <https://blackcatinformatics.ca/logic/target/sssom:0fd6f218c102db38> ,
+        <https://blackcatinformatics.ca/logic/target/sssom:0fe6c74597f8012a> ,
         <https://blackcatinformatics.ca/logic/target/sssom:101a666aba768a94> ,
         <https://blackcatinformatics.ca/logic/target/sssom:10241daaf06b4c9d> ,
         <https://blackcatinformatics.ca/logic/target/sssom:1088fb23c2260326> ,
@@ -38461,6 +39008,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sssom:2123eab05bef3952> ,
         <https://blackcatinformatics.ca/logic/target/sssom:212bb175fa0eb687> ,
         <https://blackcatinformatics.ca/logic/target/sssom:214bb3278139a919> ,
+        <https://blackcatinformatics.ca/logic/target/sssom:218603811475e283> ,
         <https://blackcatinformatics.ca/logic/target/sssom:21e445adbf4b7249> ,
         <https://blackcatinformatics.ca/logic/target/sssom:21e6b321786e2427> ,
         <https://blackcatinformatics.ca/logic/target/sssom:21edb0c0751de1ec> ,
@@ -38915,6 +39463,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sssom:5965b882134e9363> ,
         <https://blackcatinformatics.ca/logic/target/sssom:59978b4dca846524> ,
         <https://blackcatinformatics.ca/logic/target/sssom:599d0b56b1f9a644> ,
+        <https://blackcatinformatics.ca/logic/target/sssom:59ab4b7b4c791775> ,
         <https://blackcatinformatics.ca/logic/target/sssom:59c8a05eb2a15f1c> ,
         <https://blackcatinformatics.ca/logic/target/sssom:59d906a5805bd8c2> ,
         <https://blackcatinformatics.ca/logic/target/sssom:59f6ad47ab4c2770> ,
@@ -39043,6 +39592,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sssom:690710e6f82e6d4f> ,
         <https://blackcatinformatics.ca/logic/target/sssom:692e0ad78137b3d0> ,
         <https://blackcatinformatics.ca/logic/target/sssom:698a2c052d9b8b94> ,
+        <https://blackcatinformatics.ca/logic/target/sssom:69c70f66c0d37aa8> ,
         <https://blackcatinformatics.ca/logic/target/sssom:6a05ea6f4825d7f3> ,
         <https://blackcatinformatics.ca/logic/target/sssom:6a0ba6527578349e> ,
         <https://blackcatinformatics.ca/logic/target/sssom:6a235d7013d58348> ,
@@ -39542,6 +40092,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sssom:ad960ce5dae37c01> ,
         <https://blackcatinformatics.ca/logic/target/sssom:adbb8f71d820e661> ,
         <https://blackcatinformatics.ca/logic/target/sssom:adc47f1a1d393427> ,
+        <https://blackcatinformatics.ca/logic/target/sssom:ade02afa4f2d0d1b> ,
         <https://blackcatinformatics.ca/logic/target/sssom:ae0e0990cd3b9438> ,
         <https://blackcatinformatics.ca/logic/target/sssom:ae0ea1134c6a28f1> ,
         <https://blackcatinformatics.ca/logic/target/sssom:ae0f623b5223fe0e> ,
@@ -39570,6 +40121,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sssom:b20eb37189bfddf9> ,
         <https://blackcatinformatics.ca/logic/target/sssom:b2349b256b133d03> ,
         <https://blackcatinformatics.ca/logic/target/sssom:b23e72934af0f3ac> ,
+        <https://blackcatinformatics.ca/logic/target/sssom:b26681598837085e> ,
         <https://blackcatinformatics.ca/logic/target/sssom:b2713714d09e6715> ,
         <https://blackcatinformatics.ca/logic/target/sssom:b27168ac4db4fea1> ,
         <https://blackcatinformatics.ca/logic/target/sssom:b295bccc8e0dd86e> ,
@@ -39887,6 +40439,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sssom:db6e97e34826f0cb> ,
         <https://blackcatinformatics.ca/logic/target/sssom:db81cc35d0d61183> ,
         <https://blackcatinformatics.ca/logic/target/sssom:db82f8d20d856f4f> ,
+        <https://blackcatinformatics.ca/logic/target/sssom:db88b1893ae7027c> ,
         <https://blackcatinformatics.ca/logic/target/sssom:db9110c15b6cd329> ,
         <https://blackcatinformatics.ca/logic/target/sssom:db97e8f72b49a389> ,
         <https://blackcatinformatics.ca/logic/target/sssom:dbb2c99d9de8508a> ,
@@ -40155,11 +40708,13 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sssom:feb881e7b7df321d> ,
         <https://blackcatinformatics.ca/logic/target/sssom:fec7563ee5681c1d> ,
         <https://blackcatinformatics.ca/logic/target/sssom:fed24a7bdbe68b19> ,
+        <https://blackcatinformatics.ca/logic/target/sssom:ff3239acb0ebcf03> ,
         <https://blackcatinformatics.ca/logic/target/sssom:ff575d94cb419b45> ,
         <https://blackcatinformatics.ca/logic/target/sssom:ff6b1e4d205820ab> ,
         <https://blackcatinformatics.ca/logic/target/sssom:ff87ea1918a93a68> ,
         <https://blackcatinformatics.ca/logic/target/sssom:ff8e660cb599cd82> ,
         <https://blackcatinformatics.ca/logic/target/sssom:fffc3b18a883cc6c> ,
+        <https://blackcatinformatics.ca/logic/target/tei:forms-and-sign-systems#sentCatsChaseMice> ,
         <https://blackcatinformatics.ca/logic/target/xcl> ;
     logic:lawfulUpliftCount 0 ;
     logic:profileCount 7 ;
