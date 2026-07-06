@@ -14,7 +14,6 @@ use std::path::Path;
 
 use purrdf::slice::rdf_query::{Dataset, Object};
 
-use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 use crate::stages::source_load::{all_manifest_files, module_files};
 
@@ -44,7 +43,9 @@ pub(crate) struct SliceMeta {
 
 /// Discover every slice's profile-relevant manifest facts, keyed by slice IRI.
 /// Shared with the `metadata` stage (DCAT profile membership).
-pub(crate) fn discover_slices(root: &Path) -> Result<BTreeMap<String, SliceMeta>, PipelineError> {
+pub(crate) fn discover_slices(
+    root: &Path,
+) -> Result<BTreeMap<String, SliceMeta>, gmeow_errors::Diag> {
     let mut slices: BTreeMap<String, SliceMeta> = BTreeMap::new();
     for module in module_files(root)? {
         let manifest = module.with_file_name("manifest.ttl");
@@ -58,7 +59,7 @@ pub(crate) fn discover_slices(root: &Path) -> Result<BTreeMap<String, SliceMeta>
 }
 
 /// Render every profile document under `root`: `{filename → Turtle}`.
-pub fn render_profiles(root: &Path) -> Result<BTreeMap<String, String>, PipelineError> {
+pub fn render_profiles(root: &Path) -> Result<BTreeMap<String, String>, gmeow_errors::Diag> {
     let slices = discover_slices(root)?;
 
     let mut out: BTreeMap<String, String> = BTreeMap::new();
@@ -128,7 +129,7 @@ fn profile_slug(iri: &str) -> String {
 
 /// Discover the `gmeow:tierProfile` pure-selection slices (manifest-only, no
 /// `module.ttl`). Sorted by IRI for deterministic emission.
-fn discover_profile_slices(root: &Path) -> Result<Vec<SliceMeta>, PipelineError> {
+fn discover_profile_slices(root: &Path) -> Result<Vec<SliceMeta>, gmeow_errors::Diag> {
     let mut out: Vec<SliceMeta> = Vec::new();
     for manifest in all_manifest_files(root)? {
         let meta = parse_manifest(&manifest)?;
@@ -163,12 +164,12 @@ pub(crate) fn dependency_closure(
     name: &str,
     members: &[String],
     slices: &BTreeMap<String, SliceMeta>,
-) -> Result<Vec<String>, PipelineError> {
+) -> Result<Vec<String>, gmeow_errors::Diag> {
     if members.is_empty() {
-        return Err(PipelineError::Stage {
+        return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
             stage: "stage-export-profiles".to_string(),
             message: format!("named profile {name} has no declared members"),
-        });
+        }));
     }
     let mut closed: BTreeSet<String> = BTreeSet::new();
     let mut frontier: Vec<String> = members.to_vec();
@@ -176,12 +177,12 @@ pub(crate) fn dependency_closure(
         if closed.contains(&iri) {
             continue;
         }
-        let s = slices.get(&iri).ok_or_else(|| PipelineError::Stage {
+        let s = slices.get(&iri).ok_or_else(|| gmeow_errors::Diag::of_kind(crate::error::StageFailed {
             stage: "stage-export-profiles".to_string(),
             message: format!(
                 "profile dependency closure escapes the registry: {iri} is not a discovered slice"
             ),
-        })?;
+        }))?;
         closed.insert(iri.clone());
         frontier.extend(s.depends_on.iter().cloned());
     }
@@ -198,7 +199,7 @@ fn profile_document(
     label: &str,
     comment: &str,
     imports: &[String],
-) -> Result<String, PipelineError> {
+) -> Result<String, gmeow_errors::Diag> {
     let mut lines: Vec<String> = vec![
         "@prefix owl:  <http://www.w3.org/2002/07/owl#> .".to_string(),
         "@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .".to_string(),
@@ -223,37 +224,56 @@ fn profile_document(
         body.as_bytes(),
         &crate::stages::superset::rdf_prefixes(),
     )
-    .map_err(|e| PipelineError::Stage {
-        stage: "stage-export-profiles".to_string(),
-        message: format!("canonicalize profile <{iri}>: {e}"),
+    .map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            stage: "stage-export-profiles".to_string(),
+            message: format!("canonicalize profile <{iri}>: {e}"),
+        })
     })
 }
 
-fn parse_manifest(path: &Path) -> Result<SliceMeta, PipelineError> {
+fn parse_manifest(path: &Path) -> Result<SliceMeta, gmeow_errors::Diag> {
     let bytes = std::fs::read(path)?;
-    let dataset = Dataset::parse_turtle(&bytes, &path.display().to_string())
-        .map_err(|e| PipelineError::Parse(e.to_string()))?;
+    let dataset = Dataset::parse_turtle(&bytes, &path.display().to_string()).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            message: e.to_string(),
+        })
+    })?;
 
     // The slice IRI: the last named subject of `?s a gmeow:Slice` (the old scan kept
     // the final match, so mirror that — `subjects_of_type` is in dataset order).
     let iri = dataset
         .subjects_of_type(SLICE_CLASS)
-        .map_err(|e| PipelineError::Parse(e.to_string()))?
+        .map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Parse {
+                message: e.to_string(),
+            })
+        })?
         .into_iter()
         .next_back()
-        .ok_or_else(|| PipelineError::Parse(format!("no `a gmeow:Slice` in {}", path.display())))?;
+        .ok_or_else(|| {
+            gmeow_errors::Diag::of_kind(crate::error::Parse {
+                message: format!("no `a gmeow:Slice` in {}", path.display()),
+            })
+        })?;
 
     // sliceTier: core iff any named-node object equals tierCore; profile iff tierProfile.
-    let tiers = dataset
-        .object_iris(&iri, SLICE_TIER)
-        .map_err(|e| PipelineError::Parse(e.to_string()))?;
+    let tiers = dataset.object_iris(&iri, SLICE_TIER).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            message: e.to_string(),
+        })
+    })?;
     let is_core = tiers.iter().any(|n| n == TIER_CORE);
     let is_profile = tiers.iter().any(|n| n == TIER_PROFILE);
 
     // sliceProfile: every literal-object lexical value, in dataset order.
     let profiles: Vec<String> = dataset
         .objects(&iri, SLICE_PROFILE)
-        .map_err(|e| PipelineError::Parse(e.to_string()))?
+        .map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Parse {
+                message: e.to_string(),
+            })
+        })?
         .into_iter()
         .filter_map(|o| match o {
             Object::Literal { value, .. } => Some(value),
@@ -262,9 +282,11 @@ fn parse_manifest(path: &Path) -> Result<SliceMeta, PipelineError> {
         .collect();
 
     // sliceDependsOn: every named-node object, in dataset order.
-    let depends_on = dataset
-        .object_iris(&iri, SLICE_DEPENDS_ON)
-        .map_err(|e| PipelineError::Parse(e.to_string()))?;
+    let depends_on = dataset.object_iris(&iri, SLICE_DEPENDS_ON).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            message: e.to_string(),
+        })
+    })?;
 
     Ok(SliceMeta {
         iri,
@@ -290,22 +312,23 @@ impl Stage for ProfilesStage {
     fn impl_version(&self) -> &str {
         "profiles.v1"
     }
-    fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, PipelineError> {
+    fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
         // Pure source read: profile membership + dependency closures are derived
         // from the slice manifests (`gmeow:sliceProfile` / `sliceTier` /
         // `sliceDependsOn` live in `manifest.ttl`, NOT the composed fold). Declare
         // the manifests so a membership/dependency change busts the cache.
         crate::stages::source_load::manifest_files(root)
     }
-    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
+    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         let docs = render_profiles(input.root)?;
         let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
         for (name, text) in docs {
             artifacts.insert(format!("{PROFILES_DIR}/{name}"), text.into_bytes());
         }
-        Ok(StageOutput {
-            product: StageProduct::from_artifacts(self.id(), artifacts),
-        })
+        Ok(StageOutput::new(StageProduct::from_artifacts(
+            self.id(),
+            artifacts,
+        )))
     }
 }
 

@@ -33,12 +33,15 @@
 
 use std::collections::BTreeSet;
 
+use gmeow_errors::Diag;
 use purrdf::gts::dataset_from_gts_graph;
 use purrdf::gts::model::Graph;
 use purrdf::gts::reader::read;
 use purrdf::gts::writer::digest_string;
 use purrdf::gts_compose::{BlobRow, DEFAULT_RSYNCABLE_THRESHOLD, SnapshotBuilder, emit_gts};
 use purrdf::{NativeRdfFormat, PROJECTION_CODECS, pair_loss_ledger, parse_dataset};
+
+use crate::error::Release;
 
 /// The named graph the release-manifest + per-artifact attestations ride in.
 pub const GRAPH_ATTESTATIONS: &str = "https://blackcatinformatics.ca/gmeow/graph/attestations";
@@ -91,7 +94,7 @@ pub fn fold_release_bundle(
     signer_secret: [u8; 32],
     signer_kid: &str,
     public_key_armor: &str,
-) -> Result<Vec<u8>, String> {
+) -> gmeow_errors::Result<Vec<u8>> {
     // 1. Read the committed unsigned snapshot back into a folded graph and
     //    replay it into a fresh builder so we emit the SAME snapshot content.
     let graph = read(snapshot_bytes, true, None);
@@ -117,8 +120,16 @@ pub fn fold_release_bundle(
         NativeRdfFormat::NQuads.media_type(),
         None,
     )
-    .map_err(|e| format!("parsing minted attestations graph: {e}"))?;
-    builder.add_dataset(&att_dataset)?;
+    .map_err(|e| {
+        Diag::of_kind(Release {
+            message: format!("parsing minted attestations graph: {e}"),
+        })
+    })?;
+    builder.add_dataset(&att_dataset).map_err(|e| {
+        Diag::of_kind(Release {
+            message: format!("adding minted attestations graph: {e}"),
+        })
+    })?;
 
     // 3. Fold each evidence artifact as a content-addressed report blob — but
     //    NEVER a second time for bytes the committed snapshot already carries.
@@ -152,6 +163,11 @@ pub fn fold_release_bundle(
         Some(public_key_armor.to_string()),
         DEFAULT_RSYNCABLE_THRESHOLD,
     )
+    .map_err(|e| {
+        Diag::of_kind(Release {
+            message: format!("emitting signed release bundle: {e}"),
+        })
+    })
 }
 
 /// The `rep` discriminator the scoped coherence-certificate evidence rides under.
@@ -175,19 +191,29 @@ const COHERENCE_REP: &str = "coherence";
 pub fn build_coherence_evidence(
     snapshot_bytes: &[u8],
     issued_at: &str,
-) -> Result<EvidenceInput, String> {
+) -> gmeow_errors::Result<EvidenceInput> {
     use gmeow_logic::certificate::{CoherenceOutcome, ContradictionPolicy};
 
-    let bundle = purrdf::import_gts_events(snapshot_bytes)
-        .map_err(|e| format!("coherence certificate: GTS read error: {e}"))?;
-    let result = gmeow_logic::reason::reason_all(bundle.dataset.as_ref())
-        .map_err(|e| format!("coherence certificate: native reasoning failed: {e}"))?;
+    let bundle = purrdf::import_gts_events(snapshot_bytes).map_err(|e| {
+        Diag::of_kind(Release {
+            message: format!("coherence certificate: GTS read error: {e}"),
+        })
+    })?;
+    let result = gmeow_logic::reason::reason_all(bundle.dataset.as_ref()).map_err(|e| {
+        Diag::of_kind(Release {
+            message: format!("coherence certificate: native reasoning failed: {e}"),
+        })
+    })?;
     // The governing contradiction policy is READ from the bundle's declared
     // logic:ReasoningContract (logic:admissibleValuation), not pinned: no contract /
     // no valuation ⇒ conservative classical DEFAULT, multiple conflicting valuations
     // ⇒ the MOST CONSERVATIVE governs, a garbled valuation HARD-FAILS.
-    let policy = ContradictionPolicy::resolve_from_dataset(bundle.dataset.as_ref())
-        .map_err(|e| format!("coherence certificate: contract resolution failed: {e}"))?;
+    let policy =
+        ContradictionPolicy::resolve_from_dataset(bundle.dataset.as_ref()).map_err(|e| {
+            Diag::of_kind(Release {
+                message: format!("coherence certificate: contract resolution failed: {e}"),
+            })
+        })?;
     let bundle_hash = digest_string(snapshot_bytes);
     // Real per-axiom-bearing-graph digests, computed with the SAME digest primitive
     // as the bundle hash and sorted for determinism, so the certificate pins exactly
@@ -216,13 +242,17 @@ pub fn build_coherence_evidence(
         issued_at,
         projection_loss_codes,
     )
-    .map_err(|e| format!("coherence certificate: build failed: {e}"))?;
+    .map_err(|e| {
+        Diag::of_kind(Release {
+            message: format!("coherence certificate: build failed: {e}"),
+        })
+    })?;
     if outcome.is_refused() {
-        return Err(
-            "coherence certificate: the bundle being released carries a forbidden \
-             integrity violation; an incoherent bundle must not be signed as coherent"
+        return Err(Diag::of_kind(Release {
+            message: "coherence certificate: the bundle being released carries a forbidden \
+                      integrity violation; an incoherent bundle must not be signed as coherent"
                 .to_owned(),
-        );
+        }));
     }
     let label = if outcome.issues_certificate() {
         "Scoped coherence certificate"
@@ -271,7 +301,7 @@ pub struct ReleaseVerifyReport {
 pub fn verify_release_bundle(
     bundle_bytes: &[u8],
     expected_public_armor: Option<&str>,
-) -> Result<ReleaseVerifyReport, String> {
+) -> gmeow_errors::Result<ReleaseVerifyReport> {
     use purrdf::RdfTerm;
     use purrdf::gts::verify::{VerifyOptions, verify_file_with_options};
 
@@ -287,16 +317,19 @@ pub fn verify_release_bundle(
         } else {
             result.errors.join("; ")
         };
-        return Err(format!(
-            "release bundle signature/trust verification failed: {detail}"
-        ));
+        return Err(Diag::of_kind(Release {
+            message: format!("release bundle signature/trust verification failed: {detail}"),
+        }));
     }
 
     // --- 2 + 3. Walk the attestation frames and confirm each attested digest is
     //            backed by a blob actually present in the bundle.
     let graph = read(bundle_bytes, true, None);
-    let dataset = dataset_from_gts_graph(&graph)
-        .map_err(|e| format!("folding bundle into a dataset for the attestation walk: {e}"))?;
+    let dataset = dataset_from_gts_graph(&graph).map_err(|e| {
+        Diag::of_kind(Release {
+            message: format!("folding bundle into a dataset for the attestation walk: {e}"),
+        })
+    })?;
 
     let content_digest_pred = format!("{GMEOW_NS}contentDigest");
     let attestation_type_pred = format!("{GMEOW_NS}attestationType");
@@ -326,23 +359,27 @@ pub fn verify_release_bundle(
     }
 
     if !saw_manifest {
-        return Err(
-            "release bundle graph/attestations carries no release-manifest attestation".to_string(),
-        );
+        return Err(Diag::of_kind(Release {
+            message: "release bundle graph/attestations carries no release-manifest attestation"
+                .to_owned(),
+        }));
     }
     if digests.is_empty() {
-        return Err(
-            "release bundle carries no per-artifact gmeow:contentDigest attestation".to_string(),
-        );
+        return Err(Diag::of_kind(Release {
+            message: "release bundle carries no per-artifact gmeow:contentDigest attestation"
+                .to_owned(),
+        }));
     }
 
     let mut artifacts_verified = 0usize;
     for digest in &digests {
         if graph.blob_entry(digest).is_none() {
-            return Err(format!(
-                "attested artifact {digest} has no backing blob in the bundle \
-                 (attestation references bytes that are not present)"
-            ));
+            return Err(Diag::of_kind(Release {
+                message: format!(
+                    "attested artifact {digest} has no backing blob in the bundle \
+                     (attestation references bytes that are not present)"
+                ),
+            }));
         }
         artifacts_verified += 1;
     }
@@ -374,24 +411,33 @@ pub fn verify_release_bundle(
 /// re-ids by that same content sort key. The ingestion order is therefore a pure
 /// function of the quad SET, never of any hash-seeded iteration order — exactly the
 /// property the old N-Quads line-sort pinned, now intrinsic to the native fold.
-fn replay_graph(graph: &Graph, builder: &mut SnapshotBuilder) -> Result<(), String> {
-    let dataset = dataset_from_gts_graph(graph)
-        .map_err(|e| format!("folding committed snapshot into a dataset: {e}"))?;
+fn replay_graph(graph: &Graph, builder: &mut SnapshotBuilder) -> gmeow_errors::Result<()> {
+    let dataset = dataset_from_gts_graph(graph).map_err(|e| {
+        Diag::of_kind(Release {
+            message: format!("folding committed snapshot into a dataset: {e}"),
+        })
+    })?;
     // `add_dataset` is a no-op for a wholly empty dataset, so no early-return guard
     // is needed: an empty snapshot contributes no base quads, reifiers, or annotations.
-    builder.add_dataset(&dataset)?;
+    builder.add_dataset(&dataset).map_err(|e| {
+        Diag::of_kind(Release {
+            message: format!("replaying committed snapshot into the release builder: {e}"),
+        })
+    })?;
     Ok(())
 }
 
 /// Decode every existing snapshot blob into a [`BlobRow`], preserving the
 /// declared media type + `rep`. Hard-fails a lazy blob that cannot decode (a
 /// damaged committed snapshot is a hard build failure, never a silent drop).
-fn existing_blobs(graph: &Graph) -> Result<Vec<BlobRow>, String> {
+fn existing_blobs(graph: &Graph) -> gmeow_errors::Result<Vec<BlobRow>> {
     let mut rows = Vec::with_capacity(graph.blobs.len());
     for (digest, entry) in &graph.blobs {
-        let data = entry
-            .decoded_vec()
-            .map_err(|e| format!("decoding committed snapshot blob {digest}: {e}"))?;
+        let data = entry.decoded_vec().map_err(|e| {
+            Diag::of_kind(Release {
+                message: format!("decoding committed snapshot blob {digest}: {e}"),
+            })
+        })?;
         let (media_type, rep) = blob_meta_for(graph, digest)?;
         rows.push(BlobRow {
             data,
@@ -409,7 +455,7 @@ fn existing_blobs(graph: &Graph) -> Result<Vec<BlobRow>, String> {
 /// that would lose the blob's declared identity on re-emit). A committed,
 /// drift-gated snapshot always carries this metadata; its absence means a
 /// corrupt snapshot, which must stop the release fold, not be papered over.
-fn blob_meta_for(graph: &Graph, digest: &str) -> Result<(String, String), String> {
+fn blob_meta_for(graph: &Graph, digest: &str) -> gmeow_errors::Result<(String, String)> {
     use ciborium::value::Value;
     let Some(Value::Map(entries)) = graph
         .blob_meta
@@ -417,9 +463,11 @@ fn blob_meta_for(graph: &Graph, digest: &str) -> Result<(String, String), String
         .find(|(d, _)| d == digest)
         .map(|(_, v)| v)
     else {
-        return Err(format!(
-            "committed snapshot blob {digest} has no blob_meta entry (corrupt snapshot)"
-        ));
+        return Err(Diag::of_kind(Release {
+            message: format!(
+                "committed snapshot blob {digest} has no blob_meta entry (corrupt snapshot)"
+            ),
+        }));
     };
     let mut media_type: Option<String> = None;
     let mut rep: Option<String> = None;
@@ -434,14 +482,16 @@ fn blob_meta_for(graph: &Graph, digest: &str) -> Result<(String, String), String
     }
     match (media_type, rep) {
         (Some(mt), Some(rep)) => Ok((mt, rep)),
-        (mt, rep) => Err(format!(
-            "committed snapshot blob {digest} blob_meta missing {} (corrupt snapshot)",
-            match (mt.is_none(), rep.is_none()) {
-                (true, true) => "both `mt` and `rep`",
-                (true, false) => "`mt`",
-                _ => "`rep`",
-            }
-        )),
+        (mt, rep) => Err(Diag::of_kind(Release {
+            message: format!(
+                "committed snapshot blob {digest} blob_meta missing {} (corrupt snapshot)",
+                match (mt.is_none(), rep.is_none()) {
+                    (true, true) => "both `mt` and `rep`",
+                    (true, false) => "`mt`",
+                    _ => "`rep`",
+                }
+            ),
+        })),
     }
 }
 

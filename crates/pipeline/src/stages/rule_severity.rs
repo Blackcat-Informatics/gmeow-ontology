@@ -20,7 +20,15 @@
 //! behaviour. An unrecognized non-empty literal is a hard error: the value set
 //! is closed, so a typo is a modeling mistake, never a silently-coerced default.
 
-use gmeow_errors::Severity;
+use gmeow_errors::{Advice, Diag, FindingCategory, Grade, Severity, Standpoint, define_diag_kind};
+
+define_diag_kind! {
+    /// A `gmeow:ruleSeverity` literal outside the closed `{binding, advisory}` set.
+    pub struct UnknownRuleSeverity { value: String }
+    code = "pipeline.rule-severity.unknown";
+    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
+    message = "unknown gmeow:ruleSeverity `{}`; expected binding or advisory", value;
+}
 
 /// The binding-vs-advisory severity tier declared by `gmeow:ruleSeverity`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -40,7 +48,7 @@ impl RuleSeverity {
     ///
     /// Matching is case-insensitive and trims surrounding whitespace. Any other
     /// non-empty literal is rejected (hard fail): the value set is closed.
-    pub fn parse(value: Option<&str>) -> Result<Self, String> {
+    pub fn parse(value: Option<&str>) -> gmeow_errors::Result<Self> {
         match value {
             None => Ok(Self::Binding),
             Some(raw) => {
@@ -50,9 +58,14 @@ impl RuleSeverity {
                 } else if trimmed.eq_ignore_ascii_case("advisory") {
                     Ok(Self::Advisory)
                 } else {
-                    Err(format!(
-                        "unknown gmeow:ruleSeverity `{trimmed}`; expected binding or advisory"
-                    ))
+                    Err(Diag::of_kind(UnknownRuleSeverity {
+                        value: trimmed.to_owned(),
+                    })
+                    .with_advice(Advice {
+                        standpoint: Standpoint::Advisory,
+                        text: "the closed value set is `binding` or `advisory`".to_owned(),
+                        help_uri: None,
+                    }))
                 }
             }
         }

@@ -28,7 +28,6 @@ use std::process::Command;
 
 use purrdf::{RdfLiteral, RdfQuad, RdfTerm, SerializeGraph};
 
-use crate::error::PipelineError;
 use crate::projections::{MaximalInputs, gts_base_graph};
 use crate::transform::{TransformReportNative, transform_nt};
 
@@ -45,11 +44,11 @@ const OWL_CLASS: &str = "http://www.w3.org/2002/07/owl#Class";
 const OWL_NAMED_INDIVIDUAL: &str = "http://www.w3.org/2002/07/owl#NamedIndividual";
 const NT_MEDIA_TYPE: &str = "application/n-triples";
 
-fn stage_err(message: impl Into<String>) -> PipelineError {
-    PipelineError::Stage {
+fn stage_err(message: impl Into<String>) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(crate::error::StageFailed {
         stage: "okf-import".to_string(),
         message: message.into(),
-    }
+    })
 }
 
 /// The `okf:type` string literal → the `rdf:type` IRI it lifts to.
@@ -112,7 +111,7 @@ pub struct OkfTranspileReport {
 /// (relative to `sibling_base`, when the caller supplies a repo root). No degraded
 /// fallback — OKF import requires the external Rust codec, so a missing binary is a
 /// hard error with a clear remedy (mirrors the Python `OkfBinaryNotFoundError`).
-pub fn find_gts_binary(sibling_base: Option<&Path>) -> Result<PathBuf, PipelineError> {
+pub fn find_gts_binary(sibling_base: Option<&Path>) -> Result<PathBuf, gmeow_errors::Diag> {
     if let Some(env) = std::env::var_os("GMEOW_GTS_BIN") {
         let candidate = PathBuf::from(&env);
         if candidate.is_file() {
@@ -169,7 +168,7 @@ pub fn okf_dir_to_graph(
     okf_dir: &Path,
     gts_bin: Option<&Path>,
     sibling_base: Option<&Path>,
-) -> Result<Vec<RdfQuad>, PipelineError> {
+) -> Result<Vec<RdfQuad>, gmeow_errors::Diag> {
     let binary = match gts_bin {
         Some(path) => path.to_path_buf(),
         None => find_gts_binary(sibling_base)?,
@@ -177,7 +176,11 @@ pub fn okf_dir_to_graph(
     let tmp = tempfile::Builder::new()
         .prefix(".gmeow-tmp-okfin-")
         .tempdir()
-        .map_err(PipelineError::Io)?;
+        .map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Io {
+                message: e.to_string(),
+            })
+        })?;
     let out = tmp.path().join("from-okf.gts");
     let output = Command::new(&binary)
         .arg("from-okf")
@@ -194,8 +197,12 @@ pub fn okf_dir_to_graph(
             stderr.trim()
         )));
     }
-    let bytes = std::fs::read(&out).map_err(PipelineError::Io)?;
-    gts_base_graph(&bytes).map_err(stage_err)
+    let bytes = std::fs::read(&out).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Io {
+            message: e.to_string(),
+        })
+    })?;
+    gts_base_graph(&bytes).map_err(|e| stage_err(e.to_string()))
 }
 
 /// Lift recognized `okf:` predicates to GMEOW; retain the rest as annotations.
@@ -293,7 +300,7 @@ pub fn transpile_okf(
     maximal: &MaximalInputs,
     gts_bin: Option<&Path>,
     sibling_base: Option<&Path>,
-) -> Result<OkfTranspileReport, PipelineError> {
+) -> Result<OkfTranspileReport, gmeow_errors::Diag> {
     let graph = okf_dir_to_graph(okf_dir, gts_bin, sibling_base)?;
     let (lifted, report) = lift_okf_graph(&graph);
     if report.lifted == 0 {
@@ -310,7 +317,7 @@ pub fn transpile_okf(
         &maximal.denied,
         &maximal.projection_queries,
     )
-    .map_err(stage_err)?;
+    .map_err(|e| stage_err(e.to_string()))?;
     Ok(OkfTranspileReport {
         lift: report,
         draft_nt,
@@ -344,7 +351,7 @@ fn subject_key(term: &RdfTerm) -> String {
 }
 
 /// Serialize a flat default-graph quad stream to canonical N-Triples.
-fn quads_to_nt(quads: &[RdfQuad]) -> Result<String, PipelineError> {
+fn quads_to_nt(quads: &[RdfQuad]) -> Result<String, gmeow_errors::Diag> {
     let flat = purrdf::flat_dataset_from_quads(quads)
         .map_err(|e| stage_err(format!("N-Triples flatten failed: {e}")))?;
     let bytes =

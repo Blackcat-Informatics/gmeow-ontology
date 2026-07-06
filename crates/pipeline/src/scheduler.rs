@@ -23,7 +23,6 @@ use rayon::prelude::*;
 
 use crate::bundle::set_bundle_provenance;
 use crate::cache::{PipelineCache, content_digest, stage_key};
-use crate::error::PipelineError;
 use crate::graph::StageGraph;
 use crate::node::{Stage, StageInput, StageProduct};
 use crate::provenance::register_stage_unit;
@@ -73,7 +72,7 @@ impl RunContext {
     /// embeds the fingerprint, a code/dependency/toolchain change orphans the whole
     /// prior cache; GC-ing it bounds disk to a single build's products instead of
     /// growing unbounded across edits.
-    pub fn open(root: impl Into<PathBuf>, jobs: usize) -> Result<Self, PipelineError> {
+    pub fn open(root: impl Into<PathBuf>, jobs: usize) -> Result<Self, gmeow_errors::Diag> {
         let root = root.into();
         let base = PipelineCache::default_dir(&root);
         let fp = &crate::cache::BUILD_FINGERPRINT[..16];
@@ -103,7 +102,10 @@ impl RunContext {
     /// folds [`crate::cache::BUILD_FINGERPRINT`], so a changed Rust impl (here or in
     /// any workspace crate) yields a fresh key and recomputes — the stale-serve hazard
     /// that once forced an ephemeral full build no longer exists.
-    pub fn open_ephemeral(root: impl Into<PathBuf>, jobs: usize) -> Result<Self, PipelineError> {
+    pub fn open_ephemeral(
+        root: impl Into<PathBuf>,
+        jobs: usize,
+    ) -> Result<Self, gmeow_errors::Diag> {
         let root = root.into();
         // A process- + nanosecond-unique cache dir under the system temp root, so
         // concurrent runs never collide and nothing leaks into the repo tree.
@@ -142,6 +144,14 @@ pub struct RunResult {
     pub stage_timings: Vec<StageTiming>,
     /// Per-level critical-stage timings in topological level order.
     pub level_timings: Vec<LevelTiming>,
+    /// The run-level diagnostic ledger: the FORWARD fold of every stage's emitted
+    /// `DiagNode`s (each producer's report findings, projected once). It is built by
+    /// replaying each stage's `diags` (fresh run) or its cache-restored
+    /// `diagnostics:nodes` blob (cache hit) into one hash-consed ledger; `replay` +
+    /// content-addressed fingerprints make a warm-cache run byte-identical to a cold
+    /// one regardless of level/commit interleaving. `run_full` threads this into
+    /// `RunReport.ledger` and attaches its own run-level reconcile findings to it.
+    pub ledger: gmeow_errors::DiagLedger,
 }
 
 /// One stage's wall-clock timing.
@@ -177,6 +187,10 @@ struct StageRun {
     cached: bool,
     /// Wall-clock spent in [`exec_stage`] for this stage (compute + cache probe).
     elapsed_ms: u128,
+    /// This stage's FORWARD-projected diagnostic nodes: `out.diags` on a fresh run,
+    /// or the cache-restored `diagnostics:nodes` blob on a hit. Replayed into the
+    /// run-wide ledger in the sequential commit phase.
+    diags: Vec<gmeow_errors::DiagNode>,
 }
 
 /// Run a validated, bound pipeline. `bound` is the stages in topological order
@@ -185,16 +199,18 @@ pub fn run(
     graph: &StageGraph,
     bound: &[Arc<dyn Stage>],
     ctx: &mut RunContext,
-) -> Result<RunResult, PipelineError> {
+) -> Result<RunResult, gmeow_errors::Diag> {
     let by_id: BTreeMap<&str, &Arc<dyn Stage>> = bound.iter().map(|s| (s.id(), s)).collect();
 
     // A local rayon pool honours the jobs budget without touching the global one.
     let pool = rayon::ThreadPoolBuilder::new()
         .num_threads(ctx.jobs)
         .build()
-        .map_err(|e| PipelineError::Stage {
-            stage: "<scheduler>".to_string(),
-            message: format!("failed to build rayon pool: {e}"),
+        .map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                stage: "<scheduler>".to_string(),
+                message: format!("failed to build rayon pool: {e}"),
+            })
         })?;
 
     let mut products: BTreeMap<String, StageProduct> = BTreeMap::new();
@@ -206,6 +222,30 @@ pub fn run(
     // (level_index, slowest-stage ms in the level, slowest-stage id): the sum of the
     // per-level maxima is the critical-path floor the level-barrier scheduler imposes.
     let mut level_timings: Vec<LevelTiming> = Vec::new();
+    // The run-wide FORWARD diagnostics ledger: each stage's `diags` (fresh or cache-
+    // restored) are replayed here in the sequential commit phase. `replay` hash-conses
+    // by content-addressed fingerprint, so the folded ledger is byte-identical
+    // regardless of level order or fresh/cache interleaving.
+    let mut run_ledger = gmeow_errors::DiagLedger::new();
+
+    // Drop-after-last-consumer point for stage-source-load's source-span table: the MAX
+    // topological level holding a stage that declares `consumes_span_table()`. The real
+    // consumers (stage-validate / stage-compile-logic) all run at or before this level, so
+    // stripping the span blob AFTER this level commits keeps the drop reachable but never
+    // spurious — every legitimate reader has already run, and any later reader HARD-fails.
+    let span_drop_level: Option<usize> = graph
+        .levels
+        .iter()
+        .enumerate()
+        .rev()
+        .find(|(_, level)| {
+            level.iter().any(|id| {
+                by_id
+                    .get(id.as_str())
+                    .is_some_and(|s| s.consumes_span_table())
+            })
+        })
+        .map(|(idx, _)| idx);
 
     for (level_idx, level) in graph.levels.iter().enumerate() {
         // Parallel phase: every stage in the level runs concurrently; stages that
@@ -217,10 +257,12 @@ pub fn run(
         let runs: Vec<StageRun> = pool.install(|| {
             level
                 .par_iter()
-                .map(|id| -> Result<StageRun, PipelineError> {
-                    let stage = by_id.get(id.as_str()).ok_or_else(|| PipelineError::Stage {
-                        stage: id.clone(),
-                        message: "stage in graph was not bound".to_string(),
+                .map(|id| -> Result<StageRun, gmeow_errors::Diag> {
+                    let stage = by_id.get(id.as_str()).ok_or_else(|| {
+                        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                            stage: id.clone(),
+                            message: "stage in graph was not bound".to_string(),
+                        })
                     })?;
                     exec_stage(stage.as_ref(), root, &products, cache)
                 })
@@ -235,6 +277,8 @@ pub fn run(
             if !r.cached {
                 ctx.cache.put(&r.key, &r.product)?;
             }
+            // Fold this stage's forward diagnostic nodes into the run-wide ledger.
+            run_ledger.replay(std::mem::take(&mut r.diags));
             let stage = by_id[r.id.as_str()];
             // Register this stage as a provenance unit in the run-wide sidecar
             // (capability-derived origin: sourceOrigin → Source, else → Generated).
@@ -268,6 +312,27 @@ pub fn run(
             elapsed_ms: level_max,
             critical_stage: level_max_id,
         });
+
+        // Once the last span-table consumer's level has committed, STRIP the source-span
+        // blob from the stage-source-load product: every later stage that calls
+        // `span_index()` now HARD-fails, and the shippable bundle the sink assembles from
+        // this product never carries the span table. Deterministic and idempotent — the
+        // stripped digest is a pure function of the source-load product, so a warm-cache
+        // run reproduces it. (source-load is at level 0, so it is committed well before any
+        // consumer level; the guard is defensive.)
+        if Some(level_idx) == span_drop_level
+            && let Some(product) = products.get("stage-source-load")
+        {
+            let stripped = crate::bundle::strip_rep_blob(
+                product.bundle(),
+                crate::stages::carrier::REP_SPAN_TABLE,
+            )?;
+            let stage_id = product.stage_id.clone();
+            products.insert(
+                stage_id.clone(),
+                StageProduct::from_bundle(stage_id, Arc::new(stripped)),
+            );
+        }
     }
 
     if profile {
@@ -305,6 +370,7 @@ pub fn run(
         combined_digest,
         stage_timings,
         level_timings,
+        ledger: run_ledger,
     })
 }
 
@@ -315,13 +381,15 @@ fn exec_stage(
     root: &Path,
     products: &BTreeMap<String, StageProduct>,
     cache: &PipelineCache,
-) -> Result<StageRun, PipelineError> {
+) -> Result<StageRun, gmeow_errors::Diag> {
     // Assemble exactly the upstream products this stage declared.
     let mut upstream: BTreeMap<String, StageProduct> = BTreeMap::new();
     for dep in stage.consumes() {
-        let p = products.get(dep).ok_or_else(|| PipelineError::Stage {
-            stage: stage.id().to_string(),
-            message: format!("missing upstream product {dep}"),
+        let p = products.get(dep).ok_or_else(|| {
+            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                stage: stage.id().to_string(),
+                message: format!("missing upstream product {dep}"),
+            })
         })?;
         upstream.insert(dep.clone(), p.clone());
     }
@@ -368,12 +436,17 @@ fn exec_stage(
     let started = std::time::Instant::now();
 
     if let Some(product) = cache.get(&key)? {
+        // A cache hit re-serves the identical product, so its `diagnostics:nodes` blob
+        // (empty for a non-producer) recovers this stage's run-ledger contribution
+        // WITHOUT re-running it — byte-identical to the fresh `out.diags`.
+        let diags = product.diag_nodes();
         return Ok(StageRun {
             id: stage.id().to_string(),
             key,
             product,
             cached: true,
             elapsed_ms: started.elapsed().as_millis(),
+            diags,
         });
     }
 
@@ -391,9 +464,11 @@ fn exec_stage(
     let locks: Vec<Arc<Mutex<()>>> = resources.iter().map(|r| resource_lock(r)).collect();
     let mut _guards = Vec::with_capacity(locks.len());
     for (lock, resource) in locks.iter().zip(&resources) {
-        _guards.push(lock.lock().map_err(|e| PipelineError::Stage {
-            stage: stage.id().to_string(),
-            message: format!("resource lock {resource} poisoned: {e}"),
+        _guards.push(lock.lock().map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                stage: stage.id().to_string(),
+                message: format!("resource lock {resource} poisoned: {e}"),
+            })
         })?);
     }
     let out = stage.run(input)?;
@@ -405,6 +480,7 @@ fn exec_stage(
         product: out.product,
         cached: false,
         elapsed_ms: started.elapsed().as_millis(),
+        diags: out.diags,
     })
 }
 
@@ -413,7 +489,10 @@ fn exec_stage(
 /// folds each file's repo-relative logical path AND its bytes (sorted by path, so
 /// it is order-independent); a declared file that cannot be read HARD-fails — a
 /// missing required input is never silently treated as "unchanged" (no-optionality).
-fn input_files_digest(stage: &dyn Stage, root: &Path) -> Result<Option<String>, PipelineError> {
+fn input_files_digest(
+    stage: &dyn Stage,
+    root: &Path,
+) -> Result<Option<String>, gmeow_errors::Diag> {
     let mut files = stage.input_files(root)?;
     if files.is_empty() {
         return Ok(None);
@@ -428,9 +507,11 @@ fn input_files_digest(stage: &dyn Stage, root: &Path) -> Result<Option<String>, 
             .unwrap_or(path)
             .to_string_lossy()
             .into_owned();
-        let content = std::fs::read(path).map_err(|e| PipelineError::Stage {
-            stage: stage.id().to_string(),
-            message: format!("declared input file {} could not be read: {e}", rel),
+        let content = std::fs::read(path).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                stage: stage.id().to_string(),
+                message: format!("declared input file {} could not be read: {e}", rel),
+            })
         })?;
         rels.push(rel.into_bytes());
         bytes.push(content);
