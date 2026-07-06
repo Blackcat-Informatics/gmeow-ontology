@@ -409,6 +409,12 @@ pub fn validate(data_nt: &str) -> ValidationReport {
 #[derive(Clone)]
 pub struct GraphStore {
     ds: Arc<RdfDataset>,
+    /// Lazily-built, cached blank-node-aware slice view of `ds` (see
+    /// [`Self::slice_dataset`]). `Arc<OnceLock<_>>` is always `Clone` regardless
+    /// of whether [`SliceDataset`] is, and every clone SHARES the same cache —
+    /// correct because all clones share the same immutable `ds`. A genuinely new
+    /// store (a different `ds`) must get a FRESH `Arc::new(OnceLock::new())`.
+    slice_ds: Arc<OnceLock<SliceDataset>>,
 }
 
 impl GraphStore {
@@ -425,12 +431,16 @@ impl GraphStore {
             .unwrap_or_else(|e| panic!("Turtle parse failed: {e}\nInput:\n{ttl}"));
         Self {
             ds: flatten_to_default_graph(&dataset),
+            slice_ds: Arc::new(OnceLock::new()),
         }
     }
 
     /// Wrap an already-parsed default-graph dataset.
     pub fn from_dataset(ds: Arc<RdfDataset>) -> Self {
-        Self { ds }
+        Self {
+            ds,
+            slice_ds: Arc::new(OnceLock::new()),
+        }
     }
 
     /// The merged ontology store (no imports), mirroring `_graph()`.
@@ -451,7 +461,10 @@ impl GraphStore {
             quads.push(quad);
         }
         let merged = flat_dataset_from_quads(&quads).expect("merged dataset must freeze");
-        Self { ds: merged }
+        Self {
+            ds: merged,
+            slice_ds: Arc::new(OnceLock::new()),
+        }
     }
 
     fn term_id(&self, value: &TermValue) -> Option<purrdf::TermId> {
@@ -604,6 +617,7 @@ impl GraphStore {
         match result {
             SparqlResult::Graph(ds) => GraphStore {
                 ds: flatten_to_default_graph(&ds),
+                slice_ds: Arc::new(OnceLock::new()),
             },
             other => panic!("expected CONSTRUCT graph result, got {other:?}"),
         }
@@ -629,12 +643,17 @@ impl GraphStore {
     /// blank lookup can no longer resolve. So we reconstruct a fresh, uniquely-owned
     /// dataset from the store's flat quads via `from_owned_quads`; its blank labels
     /// are assigned deterministically (same quad order → same labels), so a blank
-    /// `Subject` obtained from one call resolves in the next. Cheap for the small
-    /// fixtures the harness queries.
-    fn slice_dataset(&self) -> SliceDataset {
-        let quads = flat_rdf_quads_from_dataset(&self.ds);
-        SliceDataset::from_owned_quads(&quads)
-            .unwrap_or_else(|e| panic!("slice dataset reconstruction failed: {e}"))
+    /// `Subject` obtained from one call resolves in the next. Built once and cached
+    /// per store instance (`slice_ds`), so the many `*_h` helper calls a heavy
+    /// conformance test makes share one reconstruction rather than rebuilding —
+    /// and, since every call returns the SAME dataset instance, the blank-node
+    /// round-trip guarantee is strengthened, not merely preserved.
+    fn slice_dataset(&self) -> &SliceDataset {
+        self.slice_ds.get_or_init(|| {
+            let quads = flat_rdf_quads_from_dataset(&self.ds);
+            SliceDataset::from_owned_quads(&quads)
+                .unwrap_or_else(|e| panic!("slice dataset reconstruction failed: {e}"))
+        })
     }
 
     /// Convert an [`Object`] into the [`Subject`] you would traverse INTO: a named
