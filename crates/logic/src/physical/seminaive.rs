@@ -1155,10 +1155,14 @@ pub(crate) fn evaluate(
     }
 
     // Skip mode records no provenance: the shared fixpoint mints no `DerivedRow`s and never
-    // writes the provenance-only `depth` map.  Locking this here means a future edit that made
-    // `depth` gate fact derivation (rather than only the provenance tiebreak) would trip the
-    // assertion instead of silently diverging the facts-only equivalence from the forward leg.
-    debug_assert!(
+    // writes the provenance-only `depth` map.  This is the whole point of the closure-only lane
+    // — the provenance memory it must NOT pay is precisely what OOMs the trace-recording engine —
+    // so the invariant is a hard `assert!` that fires in RELEASE builds too, where OOM actually
+    // bites.  A `debug_assert!` here would compile out of exactly the builds the toggle protects.
+    // It is O(1) (two `is_empty()` checks, once per `evaluate` call), and any future edit that let
+    // `depth` gate fact derivation, or accidentally recorded a row on this lane, hard-fails here
+    // instead of silently diverging the facts-only equivalence — or silently reintroducing the OOM.
+    assert!(
         derivations.is_empty() && depth.is_empty(),
         "Skip-mode evaluate must record no DerivedRows and no depth entries"
     );
@@ -2398,6 +2402,54 @@ mod tests {
         assert!(
             saw_two_source,
             "the 2-source step rule (edge, path) must produce a 2-source derivation"
+        );
+    }
+
+    /// The toggle is a REAL behavioural fork, not decoration: over the SAME closure the Record
+    /// (forward) seam attaches full provenance to every derived row, while the Skip (backward)
+    /// seam commits the identical facts carrying NONE.  This falsifiably pins BOTH directions of
+    /// the toggle — if Record ever stopped recording, the "every row has a derivation id + premise
+    /// ids" checks trip; if Skip ever started recording, the promoted `assert!` inside `evaluate`
+    /// (exercised on every `skip_seam` call, in release too) hard-fails.  A behaviour feature that
+    /// changed no behaviour would pass neither leg, so this defeats the dark-feature failure shape.
+    #[test]
+    fn record_pays_provenance_where_skip_pays_none() {
+        let rules = tc_binary_rules();
+        let edb = &[
+            ("a", "edge", "b"),
+            ("b", "edge", "c"),
+            ("c", "edge", "d"),
+            ("d", "edge", "e"),
+        ];
+
+        // Record seam: every derived row carries its rule id + premise (source) ids — the memory
+        // the trace-recording engine pays.
+        let store = world_store_from(edb);
+        let NativeOutcome::Decided(rec) =
+            materialize_native(&store, &rules, None).expect("record materialize_native")
+        else {
+            panic!("record lane unsupported");
+        };
+        let recorded = derived_only(&rec.rows);
+        assert!(
+            !recorded.is_empty(),
+            "the closure must derive rows for Record to have provenance to attach"
+        );
+        for r in &recorded {
+            assert!(
+                !r.derivation_id.is_empty() && !r.source_quad_ids.is_empty(),
+                "Record must attach a derivation id + premise ids to every derived row: {r:?}"
+            );
+        }
+
+        // Skip seam: `evaluate`'s promoted `assert!` guarantees — in release builds too — that zero
+        // `DerivedRow`s / depth entries were accumulated, so the identical closure is committed
+        // WITHOUT paying the provenance memory.  Equal facts, opposite recording cost.
+        let (skip, _) = skip_seam(edb, &rules, None);
+        let (record, _) = record_seam(edb, &rules, None);
+        assert_eq!(
+            skip, record,
+            "Skip commits the identical closure Record does — the fork is in the recording, not the facts"
         );
     }
 }
