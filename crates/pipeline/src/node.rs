@@ -159,6 +159,37 @@ impl StageProduct {
             None => Vec::new(),
         }
     }
+
+    /// The authored subject→source-position [`SpanIndex`](crate::ingest::SpanIndex) this
+    /// product carries on its `spans:source-table` blob lane
+    /// ([`crate::stages::carrier::REP_SPAN_TABLE`]), deserialized. Read by the span-table
+    /// consumers (`stage-validate` / `stage-compile-logic`) off the `stage-source-load`
+    /// product to lift spans onto their findings.
+    ///
+    /// The blob being ABSENT is a HARD FAIL ([`crate::error::SpanTableConsumedAfterDrop`]):
+    /// the span table is stripped from the source-load product once the last consumer has
+    /// run (drop-after-last-consumer), so a reader finding it absent is a stage reaching
+    /// for it AFTER the drop — never a legitimate read (the drop level is computed as the
+    /// max consumer level, so real consumers always run before it). A present-but-malformed
+    /// blob is likewise a HARD FAIL (no-optionality).
+    pub fn span_index(&self) -> gmeow_errors::Result<crate::ingest::SpanIndex> {
+        match crate::bundle::bundle_rep_blob(&self.bundle, crate::stages::carrier::REP_SPAN_TABLE) {
+            Some(bytes) => serde_json::from_slice(bytes).map_err(|e| {
+                gmeow_errors::Diag::of_kind(crate::error::Decode {
+                    message: format!("source-span table blob JSON: {e}"),
+                })
+            }),
+            None => Err(gmeow_errors::Diag::of_kind(
+                crate::error::SpanTableConsumedAfterDrop {
+                    detail: format!(
+                        "product `{}` carries no {} blob",
+                        self.stage_id,
+                        crate::stages::carrier::REP_SPAN_TABLE
+                    ),
+                },
+            )),
+        }
+    }
 }
 
 /// The input handed to a stage's `run`: the repo root and the products of every
@@ -240,6 +271,16 @@ pub trait Stage: Send + Sync {
     /// `gmeow:DataFlow` declaration (single source of truth).
     fn consumed_entities(&self) -> &[(String, Vec<String>)] {
         &[]
+    }
+    /// Whether this stage READS `stage-source-load`'s source-span table (via
+    /// [`StageProduct::span_index`]). Overridden to `true` by the two diagnostics
+    /// consumers (`stage-validate` / `stage-compile-logic`) ONLY. The scheduler folds the
+    /// max topological level holding a span-table consumer into the drop-after-last-consumer
+    /// point: after that level commits, the span-table blob is stripped from the source-load
+    /// product, so every later stage that reaches for it HARD-fails and the shipped bundle
+    /// never carries it. The default is `false` — a stage that does not read spans.
+    fn consumes_span_table(&self) -> bool {
+        false
     }
     /// A version string folded into the cache key; bump to invalidate this
     /// stage's cached products when its logic changes.

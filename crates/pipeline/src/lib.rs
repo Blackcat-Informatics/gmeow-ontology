@@ -37,6 +37,7 @@ pub mod fanout;
 pub mod generator_registry;
 pub(crate) mod gmeow_ns;
 pub mod graph;
+pub mod ingest;
 pub mod loader;
 pub mod mapping_purity;
 pub mod node;
