@@ -41,6 +41,39 @@ ASK {
 }""" ;
     gmeow:saRationale "Each of the seven bedrock hard-rule failures MUST be a subclass of math:MathConformanceFailure, so a violation is a typed, queryable object." .
 
+# --- 2b. The flagship-manifest failure class subclasses math:MathConformanceFailure (MUST) ---
+ex:saFlagshipFailureTyped a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    math:UnwiredFlagshipScenario rdfs:subClassOf math:MathConformanceFailure .
+}""" ;
+    gmeow:saRationale "The unwired-flagship failure MUST be a subclass of math:MathConformanceFailure, so an unwired acceptance scenario is a typed, queryable violation like every other math: hard-rule failure." .
+
+# --- 2c. The five flagship scenarios are present and fully wired (MUST) ---
+ex:saFlagshipCoverage a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModuleAndExamples ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX exa: <https://blackcatinformatics.ca/gmeow/examples/math/acceptance/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    VALUES ?scenario {
+        exa:e8Symmetry exa:homomorphicEncryption exa:proofAsProcess
+        exa:rBridge exa:aiSelfStructure
+    }
+    ?scenario a math:FlagshipScenario ;
+        math:demonstratedByExample ?ex ;
+        math:demonstratedByCompetency ?cq ;
+        math:guardedByCounterExample ?ce ;
+        math:enforcesFailureClass ?fc .
+    ?fc rdfs:subClassOf+ math:MathConformanceFailure .
+    FILTER(isLiteral(?ex) && isIRI(?cq) && isLiteral(?ce) && isIRI(?fc))
+}""" ;
+    gmeow:saRationale "The epic's five flagship acceptance scenarios MUST each be present as a math:FlagshipScenario binding its worked example, competency question, counter-example, and a real math:MathConformanceFailure subclass. If any of the five is absent or missing a link, the acceptance bar is not met and this assertion fails — the depth bar is a contract, not prose." .
+
 # --- 3. The seven arithmetic operators exist as math:ArithmeticOperation (MUST) ---
 ex:saArithmeticOperators a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;

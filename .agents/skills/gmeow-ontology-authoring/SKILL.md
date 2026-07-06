@@ -53,16 +53,10 @@ This skill guides the agent in modifying, compiling, and validating GMEOW ontolo
      ```
 
 - **Run Ontology Reasoning**:
-  - Run fast ELK reasoner:
+  - Run the native reasoner:
 
     ```bash
     make reason
-    ```
-
-  - Run full HermiT reasoner (gated for releases):
-
-    ```bash
-    make reason-hermit
     ```
 
   - If reasoning fails, explain unsatisfiable classes:

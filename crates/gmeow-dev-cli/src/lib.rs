@@ -190,8 +190,6 @@ pub enum Commands {
         fresh: bool,
         #[arg(long = "merge")]
         merge: bool,
-        #[arg(long = "reasoner", default_value = "ELK")]
-        reasoner: String,
         #[arg(long = "profile", default_value = "DL")]
         profile: String,
         #[arg(long = "full")]
@@ -210,13 +208,14 @@ pub enum Commands {
         /// Recompute the closure instead of reusing the shipped graph/reasoning verdict.
         #[arg(long = "fresh")]
         fresh: bool,
-        #[arg(long = "reasoner", default_value = "ELK")]
-        reasoner: String,
         #[arg(long = "reasoned-input")]
         reasoned_input: Option<PathBuf>,
         #[arg(long = "timings-json")]
         timings_json: Option<PathBuf>,
     },
+    /// Cross-check the native EL/DL reasoner against the entail oracle (Docker-free).
+    #[command(name = "reason-crosscheck")]
+    ReasonCrosscheck,
     /// Run native reasoning followed by reasoned-graph verify.
     #[command(name = "reason-verify")]
     ReasonVerify {
@@ -688,6 +687,7 @@ pub fn run() -> i32 {
             timings_json,
             ..
         } => dev_reason::verify(&mode, fresh, timings_json.as_deref()),
+        Commands::ReasonCrosscheck => dev_reason::reason_crosscheck(),
         Commands::ReasonVerify {
             fresh,
             merge: _,

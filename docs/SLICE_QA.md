@@ -144,7 +144,7 @@ Rust test can express it. The standing categories:
   mappings, saturate, coverage, crossref, language-tags, GTS shims, music package
   (these are being subsumed: alignment/projection by the Correspondence Calculus;
   the rest by per-tool Rust ports).
-- **External oracle / Docker orchestration** — rdflib/ELK/HermiT lanes.
+- **External oracle / Docker orchestration** — retired rdflib / external OWL 2 DL lanes.
 - **Static repo guard** — Python-AST / workflow assertions about the repo.
 
 Every survivor pays two costs, both mandatory:

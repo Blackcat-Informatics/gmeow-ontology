@@ -75,7 +75,7 @@ according to the 2024 city audit, disputed by the user survey".
 
 The three functional role properties of the relator: one subject, one facet, one polarity
 per assertion. Relator mediation is axiomatized (`someValuesFrom` restrictions, EL-safe)
-so ELK sees the doctrine; closed-world cardinality is SHACL's job.
+so the EL reasoner sees the doctrine; closed-world cardinality is SHACL's job.
 
 ## Solver layer & bridges
 
