@@ -550,6 +550,59 @@ ex:rowEvenComplement a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "ambientSpace" ; gmeow:cellValueIri exf:naturalsSet ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "semantics" ; gmeow:cellValueIri math:setTheoreticComplement ] .
 
+# === Q — every grounded topological property with its defining law/boundary === #
+# Unlike the fixture-backed questions above, this one carries NO gmeow:cqDataFile:
+# the math:definingLaw backing edges live in the ontology (module.ttl), so the query
+# runs over the merged asserted store directly (crates/slicetest exec.rs: data_file
+# None => the merged store itself). The answer is exactly the eight grounded
+# topological property -> law/boundary pairs.
+ex:cqTopologicalDefiningLaw a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/topological-property-defining-law.rq" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "Each grounded topological property reports its machine-audited backing edge math:definingLaw; over the merged ontology the answer is exactly the eight pairs {ContinuousMap → continuityLaw, ConnectedSpace → connectednessLaw, CompactSpace → compactnessBoundary, t0Separation → t0SeparationLaw, t1Separation → t1SeparationLaw, hausdorffSeparation → hausdorffLaw, t3Separation → regularitySeparationLaw, t4Separation → normalitySeparationLaw}." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqTopoLawShape ;
+    gmeow:cqExpectRow ex:rowLawContinuity , ex:rowLawConnectedness , ex:rowLawCompactness ,
+        ex:rowLawT0 , ex:rowLawT1 , ex:rowLawHausdorff , ex:rowLawT3 , ex:rowLawT4 .
+
+ex:cqTopoLawShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "property" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "backing" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowLawContinuity a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "property" ; gmeow:cellValueIri math:ContinuousMap ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "backing" ; gmeow:cellValueIri math:continuityLaw ] .
+
+ex:rowLawConnectedness a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "property" ; gmeow:cellValueIri math:ConnectedSpace ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "backing" ; gmeow:cellValueIri math:connectednessLaw ] .
+
+ex:rowLawCompactness a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "property" ; gmeow:cellValueIri math:CompactSpace ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "backing" ; gmeow:cellValueIri math:compactnessBoundary ] .
+
+ex:rowLawT0 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "property" ; gmeow:cellValueIri math:t0Separation ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "backing" ; gmeow:cellValueIri math:t0SeparationLaw ] .
+
+ex:rowLawT1 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "property" ; gmeow:cellValueIri math:t1Separation ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "backing" ; gmeow:cellValueIri math:t1SeparationLaw ] .
+
+ex:rowLawHausdorff a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "property" ; gmeow:cellValueIri math:hausdorffSeparation ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "backing" ; gmeow:cellValueIri math:hausdorffLaw ] .
+
+ex:rowLawT3 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "property" ; gmeow:cellValueIri math:t3Separation ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "backing" ; gmeow:cellValueIri math:regularitySeparationLaw ] .
+
+ex:rowLawT4 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "property" ; gmeow:cellValueIri math:t4Separation ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "backing" ; gmeow:cellValueIri math:normalitySeparationLaw ] .
+
 # === Q22 — orthogonal complement's subspace, ambient space, and inner product = #
 
 ex:cqOrthogonalComplement a gmeow:CompetencyQuestion ;
