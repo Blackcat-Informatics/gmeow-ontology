@@ -94,6 +94,30 @@ subclasses), so a violation is itself a typed, queryable object, not a log line.
 | Promotion from engine reading to slice assertion is an explicit provenance-carrying act | SHACL-SPARQL | `lang:SilentPromotion` |
 | Document-scale surfaces hold blob references, never inline payload bytes | Rust validator | `lang:InlineBlobPayload` |
 
+### GMN dialect rules
+
+The hard rules of the GMN dialect charter ([`LANG-GMN.md`](LANG-GMN.md)). SHACL-tier rows are
+enforced by the `lang:Gmn*Shape` gates in `shapes.ttl` (each naming its class through
+`lang:enforcesFailureClass`) and cite their `tests/counter-examples/` fixture; Rust-validator rows
+are the GMN parser/writer's table-driven tier and cite the charter normative-example block their
+machine fixtures are seeded from.
+
+| Rule | Primary gate | Failure class |
+|---|---|---|
+| Every glyph of the GMN script carries a canonical "U+XXXX"-style codepoint spelling | SHACL Core + SHACL-SPARQL (`tests/counter-examples/gmn-noncanonical-codepoint.ttl`) | `lang:GmnNonCanonicalCodepoint` |
+| No co-resident confusable pair in the glyph inventory (UTS #39 skeleton rule) | SHACL-SPARQL (`tests/counter-examples/gmn-confusable-glyph.ttl`) | `lang:GmnConfusableGlyph` |
+| One codepoint sequence, one glyph identity per script, unless both readings are sigil-scoped | SHACL-SPARQL (`tests/counter-examples/gmn-glyph-collision.ttl`) | `lang:GmnGlyphCollision` |
+| Every envelope carries its full eight-field contract | SHACL Core (`tests/counter-examples/gmn-envelope-missing-field.ttl`) | `lang:GmnMissingEnvelopeField` |
+| No mnemomorphic migration over a stronger-than-additive bump; no accept window beyond 1 | SHACL-SPARQL (`tests/counter-examples/gmn-version-overclaim.ttl`) | `lang:GmnVersionOverclaim` |
+| Every compaction names its sources and its holding vantage | SHACL Core (`tests/counter-examples/gmn-compaction-without-provenance.ttl`) | `lang:GmnCompactionWithoutProvenance` |
+| No compaction correspondence stronger than `ValidationOnly` | SHACL-SPARQL (`tests/counter-examples/gmn-compaction-overclaim.ttl`) | `lang:GmnCompactionOverclaim` |
+| Every document token resolves through the pinned dictionary or a named-key ruling | Rust validator (`LANG-GMN.md`, the invalid-uncovered-term block) | `lang:GmnUncoveredTerm` |
+| Records in content-sorted order; keys in generation order (`s p o v q st ev`) | Rust validator (`LANG-GMN.md`, the invalid-key-order block) | `lang:GmnNonCanonicalOrder` |
+| Confidences at two fractional digits; no scientific notation; one spelling per value | Rust validator (`LANG-GMN.md`, the invalid-number block) | `lang:GmnMalformedNumber` |
+| No record before the `@gmn` header pins the dialect coordinates | Rust validator (`LANG-GMN.md`, the invalid-missing-header block) | `lang:GmnUndeclaredDialectVersion` |
+| The declared `LL(1)` determinism class survives parse-table construction | Rust validator (the `grammars/gmn.ebnf` exact round-trip lift) | `lang:GmnNonDecodableGrammar` |
+| A compaction run never silently collapses co-resident readings (`gmeow:GmnCompaction` inputs included) | Rust validator (`tests/counter-examples/gmn-compaction-silent-disambiguation.ttl`, native lint) | `lang:SilentDisambiguation` (reused discipline) |
+
 ## Preservation vocabulary — reuse, do not re-mint
 
 Projection, rendering, and translation preservation use the **existing** `logic:` loss-ledger

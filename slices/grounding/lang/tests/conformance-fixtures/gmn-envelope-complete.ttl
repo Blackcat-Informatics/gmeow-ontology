@@ -30,5 +30,5 @@ ex:envelopeComplete a gmeow:GmnEnvelope ;
     gmeow:gmnSecurityRing gmeow:gmnRingTrusted ;
     gmeow:accordingTo ex:archiveTeam ;
     gmeow:wasGeneratedBy ex:gmnWriterRun ;
-    gmeow:contentDigest "sha256:5f2acdc6e1a1e9f4f6b0e0a7c9d3b8a1c4e7f0a3b6d9c2e5f8a1b4d7c0e3f6a9" ;
+    gmeow:contentDigest "blake3:5f2acdc6e1a1e9f4f6b0e0a7c9d3b8a1c4e7f0a3b6d9c2e5f8a1b4d7c0e3f6a9" ;
     gmeow:gmnEnvelopeCorrespondence ex:corrEnvelope .

@@ -47,6 +47,10 @@ ex:denSubsumesOperator
     lang:denotationTarget rdfs:subClassOf ;
     lang:denotationContext ex:gmnGlyphTableContext .
 
+ex:gmnGlyphTableContext
+    a gmeow:InformationObject ;
+    rdfs:label "the GMN glyph-table context"@x-gmeow-english .
+
 ex:glyphSourceRecordSquareImage
     a gmeow:InformationObject ;
     rdfs:label "glyph-table source record for ⊑"@x-gmeow-english ;
@@ -87,7 +91,7 @@ ex:nightlyEnvelope
     gmeow:gmnSecurityRing gmeow:gmnRingTrusted ;
     gmeow:accordingTo ex:archiveKeeper ;
     gmeow:wasGeneratedBy ex:nightlyGmnWrite ;
-    gmeow:contentDigest "sha256:9c4b1d7e2f5a8c0b3e6d9f2a5c8b1e4d7a0c3f6b9e2d5a8c1b4e7d0a3c6f9b2e" ;
+    gmeow:contentDigest "blake3:9c4b1d7e2f5a8c0b3e6d9f2a5c8b1e4d7a0c3f6b9e2d5a8c1b4e7d0a3c6f9b2e" ;
     gmeow:gmnEnvelopeCorrespondence ex:corrNightlyEnvelope .
 
 # --- An honest GMN-2 compaction: provenance-linked, vantage-held ------------- #
