@@ -1042,3 +1042,86 @@ fn derive_contradictory_cardinality_hard_fails() {
         "min > max cardinality must hard-fail, not drop the shape"
     );
 }
+
+// ── R3: the per-property / per-class closed-world-reading opt-out (closure selector) ──────
+
+/// Parse a fragment that also declares the `logic:` prefix, for the closure-entry opt-out tests.
+fn shape_dataset_with_logic(ttl: &str) -> std::sync::Arc<RdfDataset> {
+    let full = format!(
+        "@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n\
+         @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .\n\
+         @prefix owl:   <http://www.w3.org/2002/07/owl#> .\n\
+         @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .\n\
+         @prefix g:     <https://blackcatinformatics.ca/gmeow/> .\n\
+         @prefix logic: <https://blackcatinformatics.ca/logic/> .\n{ttl}"
+    );
+    parse_dataset(full.as_bytes(), "text/turtle", None).expect("parse dataset ok")
+}
+
+#[test]
+fn derive_default_is_derive_all_without_any_closure_annotation() {
+    // MAXIMAL UTILITY: with NO closure annotation, every eligible axiom derives a shape.
+    let ds = shape_dataset_with_logic(
+        "g:Doc a owl:Class . \
+         g:Article a owl:Class ; rdfs:subClassOf \
+         [ a owl:Restriction ; owl:onProperty g:cites ; owl:someValuesFrom g:Doc ] .",
+    );
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    assert!(
+        shapes.iter().any(|s| s.iri.contains("Article")),
+        "default (no annotation) must derive the Article shape: {shapes:?}"
+    );
+}
+
+#[test]
+fn derive_property_optout_suppresses_that_property_shape() {
+    // A closure entry keyed by the PROPERTY IRI with logic:OpenWorldClosure marks the property
+    // genuinely open-world-only, so no closed-world shape is derived for it.
+    let ds = shape_dataset_with_logic(
+        "g:Doc a owl:Class . \
+         g:Article a owl:Class ; rdfs:subClassOf \
+         [ a owl:Restriction ; owl:onProperty g:cites ; owl:someValuesFrom g:Doc ] . \
+         [] logic:closureKey <https://blackcatinformatics.ca/gmeow/cites> ; \
+            logic:closureValue logic:OpenWorldClosure .",
+    );
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    assert!(
+        !shapes.iter().any(|s| s.iri.contains("Article")),
+        "an OpenWorldClosure opt-out on g:cites must suppress the Article shape: {shapes:?}"
+    );
+}
+
+#[test]
+fn derive_class_optout_suppresses_the_whole_class_shape() {
+    // A closure entry keyed by the CLASS IRI opts the entire class out of the closed-world reading.
+    let ds = shape_dataset_with_logic(
+        "g:Doc a owl:Class . \
+         g:Article a owl:Class ; rdfs:subClassOf \
+         [ a owl:Restriction ; owl:onProperty g:cites ; owl:someValuesFrom g:Doc ] . \
+         [] logic:closureKey <https://blackcatinformatics.ca/gmeow/Article> ; \
+            logic:closureValue logic:OpenWorldClosure .",
+    );
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    assert!(
+        !shapes.iter().any(|s| s.iri.contains("Article")),
+        "an OpenWorldClosure opt-out on g:Article must suppress its shape entirely: {shapes:?}"
+    );
+}
+
+#[test]
+fn derive_closed_world_closure_entry_does_not_suppress() {
+    // Only OpenWorldClosure is an opt-out; a ClosedWorldClosure entry (the default reading made
+    // explicit) leaves derivation on — the shape is still produced.
+    let ds = shape_dataset_with_logic(
+        "g:Doc a owl:Class . \
+         g:Article a owl:Class ; rdfs:subClassOf \
+         [ a owl:Restriction ; owl:onProperty g:cites ; owl:someValuesFrom g:Doc ] . \
+         [] logic:closureKey <https://blackcatinformatics.ca/gmeow/cites> ; \
+            logic:closureValue logic:ClosedWorldClosure .",
+    );
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    assert!(
+        shapes.iter().any(|s| s.iri.contains("Article")),
+        "a ClosedWorldClosure entry is the default reading, not an opt-out: {shapes:?}"
+    );
+}
