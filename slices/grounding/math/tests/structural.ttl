@@ -368,6 +368,21 @@ ASK {
 }""" ;
     gmeow:saRationale "Each analysis-and-geometry hard-rule failure MUST be a subclass of math:MathConformanceFailure, so a violation — a malformed argument slot or binder, a silent logic: lowering, an unscoped occurrence, an underspecified derivative/limit/convergence/manifold/chart, an assumed topological property, or a dimension mismatch — is a typed, queryable object." .
 
+# --- 20. Every topological property's math:definingLaw resolves to a law or boundary (MUST) ---
+ex:saTopologicalLawBacking a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK {
+  FILTER NOT EXISTS {
+    ?concept math:definingLaw ?law .
+    FILTER NOT EXISTS { ?law a logic:Formula }
+    FILTER NOT EXISTS { ?law logic:expressivenessBoundary ?boundary }
+  }
+}""" ;
+    gmeow:saRationale "Every concept carrying math:definingLaw MUST resolve to a real first-order logic:Formula (math:continuityLaw, math:connectednessLaw, math:t0SeparationLaw … math:normalitySeparationLaw) or a recorded logic:expressivenessBoundary boundary (math:compactnessBoundary) — turning 'backed by a law' from prose into an open, machine-checked, type-checked invariant. The ASK is OPEN (it hand-enumerates no concept: it finds NO math:definingLaw edge whose target is neither a logic:Formula NOR carries logic:expressivenessBoundary) and TYPE-CHECKED (a dangling or mistyped backing edge — one pointing at a bare type — fails it). A new grounded property joins the audit simply by carrying math:definingLaw, with no list to maintain." .
+
 # --- Linear algebra & learning: subsumption and framing invariants (MUST) --- #
 ex:saLinearAlgebraSubsumption a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
