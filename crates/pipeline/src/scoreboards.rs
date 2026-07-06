@@ -17,7 +17,7 @@ use std::time::Instant;
 use crate::put_executor;
 use crate::stages::native_query;
 use crate::transform::{self, CellInput};
-use gmeow_errors::{Finding, Location, Report, Severity};
+use gmeow_errors::{Finding, Location, Report, ResultExt, Severity};
 use purrdf::{
     DatasetView, GraphMatch, RdfDataset, RdfLiteral, RdfTerm, SerializeGraph, TermRef, TermValue,
     flat_dataset_from_quads, parse_dataset, serialize_dataset,
@@ -239,13 +239,12 @@ impl FileAcceptance {
 
 /// Parse a set of Turtle sources and union them into one frozen dataset — the
 /// IR-native twin of `gmeow_validate::store::load_sources_into_store`.
-fn dataset_from_files(paths: &[PathBuf]) -> Result<Arc<RdfDataset>, String> {
+fn dataset_from_files(paths: &[PathBuf]) -> gmeow_errors::Result<Arc<RdfDataset>> {
     let parsed: Vec<Arc<RdfDataset>> = paths
         .iter()
         .map(|p| {
-            let bytes = fs::read(p).map_err(|e| format!("read {}: {e}", p.display()))?;
-            parse_dataset(&bytes, "text/turtle", None)
-                .map_err(|e| format!("parse {}: {e}", p.display()))
+            let bytes = fs::read(p).with_ctx(|| format!("read {}", p.display()))?;
+            parse_dataset(&bytes, "text/turtle", None).with_ctx(|| format!("parse {}", p.display()))
         })
         .collect::<Result<_, _>>()?;
     let refs: Vec<&RdfDataset> = parsed.iter().map(AsRef::as_ref).collect();
@@ -253,19 +252,18 @@ fn dataset_from_files(paths: &[PathBuf]) -> Result<Arc<RdfDataset>, String> {
 }
 
 /// Parse an N-Triples string into one frozen dataset.
-fn dataset_from_nt(nt: &str) -> Result<Arc<RdfDataset>, String> {
-    parse_dataset(nt.as_bytes(), "application/n-triples", None)
-        .map_err(|e| format!("parse n-triples: {e}"))
+fn dataset_from_nt(nt: &str) -> gmeow_errors::Result<Arc<RdfDataset>> {
+    parse_dataset(nt.as_bytes(), "application/n-triples", None).ctx("parse n-triples")
 }
 
 /// Serialize the default graph of a dataset to N-Triples text. Preserves the exact
 /// byte form the prior `dump_store_to_ntriples` produced (media type
 /// `application/n-quads` + `SerializeGraph::DefaultGraph`), which `up_projection` /
 /// `transform` consume downstream.
-fn dump_ds_to_nt(ds: &RdfDataset) -> Result<String, String> {
+fn dump_ds_to_nt(ds: &RdfDataset) -> gmeow_errors::Result<String> {
     let bytes = serialize_dataset(ds, "application/n-quads", SerializeGraph::DefaultGraph)
-        .map_err(|e| format!("serialize dataset: {e}"))?;
-    String::from_utf8(bytes).map_err(|e| format!("serialize dataset (utf8): {e}"))
+        .ctx("serialize dataset")?;
+    String::from_utf8(bytes).ctx("serialize dataset (utf8)")
 }
 
 /// The plain string value a result term carries: the IRI, the blank label, or the
@@ -362,9 +360,11 @@ fn iri_id(ds: &RdfDataset, iri: &str) -> Option<purrdf::TermId> {
     ds.term_id_by_value(&TermValue::iri(iri))
 }
 
-pub fn claim_audit(root: &Path, files: &[PathBuf]) -> Result<ClaimAuditReport, String> {
+pub fn claim_audit(root: &Path, files: &[PathBuf]) -> gmeow_errors::Result<ClaimAuditReport> {
     if files.is_empty() {
-        return Err("audit requires at least one Turtle data file".to_owned());
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Scoreboard {
+            message: "audit requires at least one Turtle data file".to_owned(),
+        }));
     }
     let trace = std::env::var_os("GMEOW_CLAIM_AUDIT_TIMING").is_some();
     let total_started = Instant::now();
@@ -383,10 +383,14 @@ pub fn claim_audit(root: &Path, files: &[PathBuf]) -> Result<ClaimAuditReport, S
         let name = query_path
             .file_stem()
             .and_then(|s| s.to_str())
-            .ok_or_else(|| format!("invalid audit query filename: {}", query_path.display()))?
+            .ok_or_else(|| {
+                gmeow_errors::Diag::of_kind(crate::error::Scoreboard {
+                    message: format!("invalid audit query filename: {}", query_path.display()),
+                })
+            })?
             .to_owned();
         let text = fs::read_to_string(&query_path)
-            .map_err(|e| format!("failed to read {}: {e}", query_path.display()))?;
+            .with_ctx(|| format!("failed to read {}", query_path.display()))?;
         report.findings.insert(name, select_rows(&store, &text)?);
     }
     trace_claim_audit_phase(trace, "audit-queries", phase_started);
@@ -434,9 +438,9 @@ pub fn render_claim_audit_text(report: &ClaimAuditReport) -> String {
     lines.join("\n")
 }
 
-pub fn render_claim_audit_json(report: &ClaimAuditReport) -> Result<String, String> {
+pub fn render_claim_audit_json(report: &ClaimAuditReport) -> gmeow_errors::Result<String> {
     serde_json::to_string_pretty(&serde_json::json!({ "claims": report.claims }))
-        .map_err(|e| format!("render claim audit JSON: {e}"))
+        .ctx("render claim audit JSON")
 }
 
 pub fn claim_audit_diagnostics(report: &ClaimAuditReport) -> Report {
@@ -536,7 +540,7 @@ fn draft_gates(
     graph_nt: &str,
     lifted: usize,
     gap_terms: &BTreeMap<String, usize>,
-) -> Result<(Vec<GateResult>, usize), String> {
+) -> gmeow_errors::Result<(Vec<GateResult>, usize)> {
     let draft_nt = retag_nt_to_internal(graph_nt, inverse_tag_map)?;
     let draft_store = dataset_from_nt(&draft_nt)?;
     let transformed = transform::transform_nt(
@@ -571,9 +575,10 @@ struct AcceptanceContext {
 }
 
 impl AcceptanceContext {
-    fn load(root: &Path) -> Result<Self, String> {
+    fn load(root: &Path) -> gmeow_errors::Result<Self> {
         let ontology_nt = ontology_nt(root)?;
-        let tag_map = gmeow_validate::language_tags::load_tag_map(ontology_nt.as_bytes(), "nt")?;
+        let tag_map = gmeow_validate::language_tags::load_tag_map(ontology_nt.as_bytes(), "nt")
+            .map_err(|e| gmeow_errors::Diag::of_kind(crate::error::Scoreboard { message: e }))?;
         let inverse_tag_map = invert_tag_map(&tag_map);
         let sssom_texts = sssom_texts(root)?;
         let projection_ttls = projection_ttls(root)?;
@@ -581,8 +586,7 @@ impl AcceptanceContext {
         // discharged (Deliverable A). Recomputed from `root` through the SAME mappings-stage
         // discharge so the acceptance harness and the shipped bundle agree by construction.
         let discharged_section_cells =
-            crate::stages::mappings::discharged_section_cells_from_root(root)
-                .map_err(|e| e.to_string())?;
+            crate::stages::mappings::discharged_section_cells_from_root(root)?;
         let put_program = put_executor::PutLegProgram::derive(
             &sssom_texts,
             &projection_ttls,
@@ -598,7 +602,7 @@ impl AcceptanceContext {
     }
 }
 
-pub fn run_acceptance(root: &Path, source: &Path) -> Result<FileAcceptance, String> {
+pub fn run_acceptance(root: &Path, source: &Path) -> gmeow_errors::Result<FileAcceptance> {
     let ctx = AcceptanceContext::load(root)?;
     run_acceptance_with(root, source, &ctx)
 }
@@ -609,10 +613,9 @@ fn run_acceptance_with(
     root: &Path,
     source: &Path,
     ctx: &AcceptanceContext,
-) -> Result<FileAcceptance, String> {
+) -> gmeow_errors::Result<FileAcceptance> {
     let source_store = dataset_from_files(&[source.to_path_buf()])?;
-    let source_nt =
-        dump_ds_to_nt(&source_store).map_err(|e| format!("serialize source graph: {e}"))?;
+    let source_nt = dump_ds_to_nt(&source_store).ctx("serialize source graph")?;
     let ontology_nt = &ctx.ontology_nt;
     let tag_map = &ctx.tag_map;
     let inverse_tag_map = &ctx.inverse_tag_map;
@@ -620,13 +623,15 @@ fn run_acceptance_with(
     // The lawful native put-leg executor is the sole draft source.
     let executor = put_executor::execute_put_legs_with(&source_nt, &ctx.put_program)?;
     if executor.graph_nt.trim().is_empty() {
-        return Err(format!(
-            "transpile: nothing lifted to GMEOW from {} — empty draft",
-            source
-                .file_stem()
-                .and_then(|s| s.to_str())
-                .unwrap_or("source")
-        ));
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Scoreboard {
+            message: format!(
+                "transpile: nothing lifted to GMEOW from {} — empty draft",
+                source
+                    .file_stem()
+                    .and_then(|s| s.to_str())
+                    .unwrap_or("source")
+            ),
+        }));
     }
     let (mut gates, output_triples) = draft_gates(
         root,
@@ -658,13 +663,15 @@ fn run_acceptance_with(
 pub fn run_acceptance_corpus(
     root: &Path,
     source: Option<&Path>,
-) -> Result<Vec<FileAcceptance>, String> {
+) -> gmeow_errors::Result<Vec<FileAcceptance>> {
     let sources = match source {
         Some(path) => vec![path.to_path_buf()],
         None => default_corpus(root)?,
     };
     if sources.is_empty() {
-        return Err("no source given and no external/ snapshots found".to_owned());
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Scoreboard {
+            message: "no source given and no external/ snapshots found".to_owned(),
+        }));
     }
     // Derive the corpus-independent context (ontology + gate-verified put-leg program) ONCE, then
     // apply it to every source file — the gate machinery is not re-run per file (GAP 5).
@@ -675,7 +682,7 @@ pub fn run_acceptance_corpus(
         .collect()
 }
 
-pub fn default_corpus(root: &Path) -> Result<Vec<PathBuf>, String> {
+pub fn default_corpus(root: &Path) -> gmeow_errors::Result<Vec<PathBuf>> {
     glob_ttl(
         &root
             .join("tests")
@@ -843,10 +850,12 @@ pub fn acceptance_diagnostics(results: &[FileAcceptance]) -> Report {
     out
 }
 
-fn ontology_source_files(root: &Path, include_imports: bool) -> Result<Vec<PathBuf>, String> {
+fn ontology_source_files(root: &Path, include_imports: bool) -> gmeow_errors::Result<Vec<PathBuf>> {
     let ontology = root.join("ontology").join("gmeow.ttl");
     if !ontology.exists() {
-        return Err(format!("root ontology not found: {}", ontology.display()));
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Scoreboard {
+            message: format!("root ontology not found: {}", ontology.display()),
+        }));
     }
     let mut files = vec![ontology];
     files.extend(slice_files(root, "module.ttl")?);
@@ -857,7 +866,7 @@ fn ontology_source_files(root: &Path, include_imports: bool) -> Result<Vec<PathB
     Ok(files.into_iter().filter(|p| p.exists()).collect())
 }
 
-fn slice_files(root: &Path, leaf: &str) -> Result<Vec<PathBuf>, String> {
+fn slice_files(root: &Path, leaf: &str) -> gmeow_errors::Result<Vec<PathBuf>> {
     let mut out = Vec::new();
     let slices = root.join("slices");
     for group in sorted_dirs(&slices)? {
@@ -871,15 +880,13 @@ fn slice_files(root: &Path, leaf: &str) -> Result<Vec<PathBuf>, String> {
     Ok(out)
 }
 
-fn sorted_dirs(path: &Path) -> Result<Vec<PathBuf>, String> {
+fn sorted_dirs(path: &Path) -> gmeow_errors::Result<Vec<PathBuf>> {
     let mut dirs = Vec::new();
-    for entry in
-        fs::read_dir(path).map_err(|e| format!("failed to read {}: {e}", path.display()))?
-    {
-        let entry = entry.map_err(|e| format!("failed to read {}: {e}", path.display()))?;
+    for entry in fs::read_dir(path).with_ctx(|| format!("failed to read {}", path.display()))? {
+        let entry = entry.with_ctx(|| format!("failed to read {}", path.display()))?;
         let file_type = entry
             .file_type()
-            .map_err(|e| format!("failed to stat {}: {e}", entry.path().display()))?;
+            .with_ctx(|| format!("failed to stat {}", entry.path().display()))?;
         if file_type.is_dir() {
             dirs.push(entry.path());
         }
@@ -888,15 +895,13 @@ fn sorted_dirs(path: &Path) -> Result<Vec<PathBuf>, String> {
     Ok(dirs)
 }
 
-fn glob_ttl(path: &Path) -> Result<Vec<PathBuf>, String> {
+fn glob_ttl(path: &Path) -> gmeow_errors::Result<Vec<PathBuf>> {
     if !path.exists() {
         return Ok(Vec::new());
     }
     let mut files = Vec::new();
-    for entry in
-        fs::read_dir(path).map_err(|e| format!("failed to read {}: {e}", path.display()))?
-    {
-        let entry = entry.map_err(|e| format!("failed to read {}: {e}", path.display()))?;
+    for entry in fs::read_dir(path).with_ctx(|| format!("failed to read {}", path.display()))? {
+        let entry = entry.with_ctx(|| format!("failed to read {}", path.display()))?;
         let path = entry.path();
         if path.extension().and_then(|e| e.to_str()) == Some("ttl") {
             files.push(path);
@@ -906,21 +911,21 @@ fn glob_ttl(path: &Path) -> Result<Vec<PathBuf>, String> {
     Ok(files)
 }
 
-fn audit_query_files(root: &Path) -> Result<Vec<PathBuf>, String> {
+fn audit_query_files(root: &Path) -> gmeow_errors::Result<Vec<PathBuf>> {
     let dir = root.join("queries").join("audit");
     let files = glob_ttl_like(&dir, "rq")?;
     if files.is_empty() {
-        return Err(format!("no audit queries found under {}", dir.display()));
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Scoreboard {
+            message: format!("no audit queries found under {}", dir.display()),
+        }));
     }
     Ok(files)
 }
 
-fn glob_ttl_like(path: &Path, extension: &str) -> Result<Vec<PathBuf>, String> {
+fn glob_ttl_like(path: &Path, extension: &str) -> gmeow_errors::Result<Vec<PathBuf>> {
     let mut files = Vec::new();
-    for entry in
-        fs::read_dir(path).map_err(|e| format!("failed to read {}: {e}", path.display()))?
-    {
-        let entry = entry.map_err(|e| format!("failed to read {}: {e}", path.display()))?;
+    for entry in fs::read_dir(path).with_ctx(|| format!("failed to read {}", path.display()))? {
+        let entry = entry.with_ctx(|| format!("failed to read {}", path.display()))?;
         let path = entry.path();
         if path.extension().and_then(|e| e.to_str()) == Some(extension) {
             files.push(path);
@@ -930,9 +935,8 @@ fn glob_ttl_like(path: &Path, extension: &str) -> Result<Vec<PathBuf>, String> {
     Ok(files)
 }
 
-fn select_rows(store: &Arc<RdfDataset>, query: &str) -> Result<Vec<Vec<String>>, String> {
-    let solutions = native_query::select(store, query)
-        .map_err(|e| format!("SPARQL query evaluation failed: {e}"))?;
+fn select_rows(store: &Arc<RdfDataset>, query: &str) -> gmeow_errors::Result<Vec<Vec<String>>> {
+    let solutions = native_query::select(store, query).ctx("SPARQL query evaluation failed")?;
     Ok(solutions
         .rows
         .into_iter()
@@ -947,18 +951,22 @@ fn select_rows(store: &Arc<RdfDataset>, query: &str) -> Result<Vec<Vec<String>>,
 fn run_claim_shacl(
     root: &Path,
     store: &Arc<RdfDataset>,
-) -> Result<(Vec<String>, Vec<String>), String> {
+) -> gmeow_errors::Result<(Vec<String>, Vec<String>)> {
     let trace = std::env::var_os("GMEOW_CLAIM_AUDIT_TIMING").is_some();
     let phase_started = Instant::now();
     let shapes_ttl = shapes_turtle(root)?;
     trace_claim_audit_phase(trace, "shacl.load-shapes", phase_started);
 
     let phase_started = Instant::now();
-    let shapes = retain_claim_audit_shapes(purrdf::shapes::engine::parse_shapes(&shapes_ttl)?)?;
+    let shapes = retain_claim_audit_shapes(
+        purrdf::shapes::engine::parse_shapes(&shapes_ttl)
+            .map_err(|e| gmeow_errors::Diag::of_kind(crate::error::Scoreboard { message: e }))?,
+    )?;
     trace_claim_audit_phase(trace, "shacl.parse-shapes", phase_started);
 
     let phase_started = Instant::now();
-    let shacl = purrdf::shapes::engine::validate_dataset(store.as_ref(), &shapes)?;
+    let shacl = purrdf::shapes::engine::validate_dataset(store.as_ref(), &shapes)
+        .map_err(|e| gmeow_errors::Diag::of_kind(crate::error::Scoreboard { message: e }))?;
     trace_claim_audit_phase(trace, "shacl.validate", phase_started);
     if shacl.conforms {
         return Ok((Vec::new(), Vec::new()));
@@ -991,7 +999,7 @@ fn run_claim_shacl(
 
 fn retain_claim_audit_shapes(
     mut shapes: purrdf::shapes::shapes::Shapes,
-) -> Result<purrdf::shapes::shapes::Shapes, String> {
+) -> gmeow_errors::Result<purrdf::shapes::shapes::Shapes> {
     let wanted = CLAIM_AUDIT_SHAPES
         .iter()
         .map(|local| format!("<{GM}{local}>"))
@@ -1010,20 +1018,24 @@ fn retain_claim_audit_shapes(
 
     if seen.len() != wanted.len() {
         let missing = wanted.difference(&seen).cloned().collect::<Vec<_>>();
-        return Err(format!(
-            "claim audit SHACL shapes missing from production shapes: {}",
-            missing.join(", ")
-        ));
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Scoreboard {
+            message: format!(
+                "claim audit SHACL shapes missing from production shapes: {}",
+                missing.join(", ")
+            ),
+        }));
     }
 
     Ok(shapes)
 }
 
-fn shapes_turtle(root: &Path) -> Result<String, String> {
+fn shapes_turtle(root: &Path) -> gmeow_errors::Result<String> {
     let shapes_dir = root.join("shapes");
     let base = shapes_dir.join("gmeow-shapes.ttl");
     if !base.exists() {
-        return Err(format!("SHACL shapes not found: {}", base.display()));
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Scoreboard {
+            message: format!("SHACL shapes not found: {}", base.display()),
+        }));
     }
     let mut files = vec![base.clone()];
     let excluded = BTreeSet::from([
@@ -1043,10 +1055,9 @@ fn shapes_turtle(root: &Path) -> Result<String, String> {
     let generated_shapes = root.join("generated").join("shapes"); // GENERATED-READ-OK: dev-CLI scoreboard audit of committed shapes; never folds into gmeow.gts
     let generated = glob_ttl(&generated_shapes)?;
     if generated.is_empty() {
-        return Err(format!(
-            "no generated shapes under {}",
-            generated_shapes.display()
-        ));
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Scoreboard {
+            message: format!("no generated shapes under {}", generated_shapes.display()),
+        }));
     }
     files.extend(generated);
     files.extend(slice_files(root, "shapes.ttl")?);
@@ -1058,17 +1069,19 @@ fn shapes_turtle(root: &Path) -> Result<String, String> {
     // It is a generated artifact, so a missing file is a real pipeline error.
     let core_prefixes = root.join(crate::stages::mappings::CORE_PREFIXES_PATH);
     if !core_prefixes.exists() {
-        return Err(format!(
-            "core prefix set not found (run `make regenerate`): {}",
-            core_prefixes.display()
-        ));
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Scoreboard {
+            message: format!(
+                "core prefix set not found (run `make regenerate`): {}",
+                core_prefixes.display()
+            ),
+        }));
     }
     files.push(core_prefixes);
     files
         .iter()
         .map(|path| {
             fs::read_to_string(path)
-                .map_err(|e| format!("failed to read SHACL shapes {}: {e}", path.display()))
+                .with_ctx(|| format!("failed to read SHACL shapes {}", path.display()))
         })
         .collect::<Result<Vec<_>, _>>()
         .map(|parts| parts.join("\n"))
@@ -1085,7 +1098,7 @@ fn shacl_line(result: &purrdf::shapes::report::ValidationResult) -> String {
 fn flat_claims(
     store: &Arc<RdfDataset>,
     report: &ClaimAuditReport,
-) -> Result<Vec<FlatClaim>, String> {
+) -> gmeow_errors::Result<Vec<FlatClaim>> {
     let flagged: BTreeMap<&str, BTreeSet<String>> = AUDIT_HEADLINE
         .iter()
         .map(|name| {
@@ -1158,14 +1171,14 @@ fn nonempty(value: Option<&String>) -> Option<String> {
     value.and_then(|v| if v.is_empty() { None } else { Some(v.clone()) })
 }
 
-fn parse_optional_i64(value: Option<&String>) -> Result<Option<i64>, String> {
+fn parse_optional_i64(value: Option<&String>) -> gmeow_errors::Result<Option<i64>> {
     let Some(value) = nonempty(value) else {
         return Ok(None);
     };
     value
         .parse::<i64>()
         .map(Some)
-        .map_err(|e| format!("invalid integer literal {value:?}: {e}"))
+        .with_ctx(|| format!("invalid integer literal {value:?}"))
 }
 
 fn local(value: &str) -> &str {
@@ -1175,32 +1188,36 @@ fn local(value: &str) -> &str {
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 struct RdfTripleKey(String, String, String);
 
-fn ontology_nt(root: &Path) -> Result<String, String> {
+fn ontology_nt(root: &Path) -> gmeow_errors::Result<String> {
     let sources = ontology_source_files(root, false)?;
     let store = dataset_from_files(&sources)?;
-    dump_ds_to_nt(&store).map_err(|e| format!("serialize ontology graph: {e}"))
+    dump_ds_to_nt(&store).ctx("serialize ontology graph")
 }
 
-fn sssom_texts(root: &Path) -> Result<Vec<String>, String> {
+fn sssom_texts(root: &Path) -> gmeow_errors::Result<Vec<String>> {
     // GENERATED-READ-OK: dev-CLI scoreboard audit of committed mappings; result never folds into gmeow.gts.
     let dir = root.join("generated").join("mappings");
     let paths = glob_suffix(&dir, ".sssom.tsv")?;
     if paths.is_empty() {
-        return Err(format!("no generated SSSOM files under {}", dir.display()));
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Scoreboard {
+            message: format!("no generated SSSOM files under {}", dir.display()),
+        }));
     }
     read_texts(&paths)
 }
 
-fn projection_ttls(root: &Path) -> Result<Vec<String>, String> {
+fn projection_ttls(root: &Path) -> gmeow_errors::Result<Vec<String>> {
     let mut paths = glob_ttl(&root.join("dsl").join("mappings").join("projections"))?;
     paths.extend(slice_mapping_files(root)?);
     if paths.is_empty() {
-        return Err("no projection mapping TTL files found".to_owned());
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Scoreboard {
+            message: "no projection mapping TTL files found".to_owned(),
+        }));
     }
     read_texts(&paths)
 }
 
-fn projection_queries(root: &Path) -> Result<Vec<(String, String)>, String> {
+fn projection_queries(root: &Path) -> gmeow_errors::Result<Vec<(String, String)>> {
     // GENERATED-READ-OK: dev-CLI scoreboard audit of committed queries; result never folds into gmeow.gts.
     let dir = root.join("generated").join("queries");
     ACCEPTANCE_PROFILES
@@ -1208,17 +1225,19 @@ fn projection_queries(root: &Path) -> Result<Vec<(String, String)>, String> {
         .map(|profile| {
             let path = dir.join(format!("{profile}.rq"));
             let text = fs::read_to_string(&path)
-                .map_err(|e| format!("failed to read projection query {}: {e}", path.display()))?;
+                .with_ctx(|| format!("failed to read projection query {}", path.display()))?;
             Ok(((*profile).to_owned(), text))
         })
         .collect()
 }
 
-fn load_cells(root: &Path) -> Result<Vec<CellInput>, String> {
+fn load_cells(root: &Path) -> gmeow_errors::Result<Vec<CellInput>> {
     let mut paths = glob_ttl(&root.join("dsl").join("mappings").join("equivalences"))?;
     paths.extend(slice_mapping_files(root)?);
     if paths.is_empty() {
-        return Err("no mapping cell TTL files found".to_owned());
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Scoreboard {
+            message: "no mapping cell TTL files found".to_owned(),
+        }));
     }
     let store = dataset_from_files(&paths)?;
     let rows = select_rows(
@@ -1257,7 +1276,7 @@ ORDER BY ?cell
     Ok(cells)
 }
 
-fn denied_cells(root: &Path) -> Result<Vec<(String, String, String)>, String> {
+fn denied_cells(root: &Path) -> gmeow_errors::Result<Vec<(String, String, String)>> {
     const ALIGNMENT_CHECKS: &[&str] = &[
         "inverse-direction",
         "domain-range",
@@ -1267,8 +1286,7 @@ fn denied_cells(root: &Path) -> Result<Vec<(String, String, String)>, String> {
         "dc-hand-authored",
     ];
     let findings =
-        crate::stages::correspondence_soundness::lint_correspondence_soundness(root, false)
-            .map_err(|e| e.to_string())?;
+        crate::stages::correspondence_soundness::lint_correspondence_soundness(root, false)?;
     let alignment = findings
         .into_iter()
         .filter(|f| ALIGNMENT_CHECKS.contains(&f.check.as_str()))
@@ -1284,9 +1302,9 @@ fn denied_cells(root: &Path) -> Result<Vec<(String, String, String)>, String> {
             .map(|f| f.message.as_str())
             .collect::<Vec<_>>()
             .join("; ");
-        return Err(format!(
-            "equivalence-collapse ERROR - transform refused: {details}"
-        ));
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Scoreboard {
+            message: format!("equivalence-collapse ERROR - transform refused: {details}"),
+        }));
     }
     Ok(alignment
         .into_iter()
@@ -1295,7 +1313,7 @@ fn denied_cells(root: &Path) -> Result<Vec<(String, String, String)>, String> {
         .collect())
 }
 
-fn slice_mapping_files(root: &Path) -> Result<Vec<PathBuf>, String> {
+fn slice_mapping_files(root: &Path) -> gmeow_errors::Result<Vec<PathBuf>> {
     let mut out = Vec::new();
     let slices = root.join("slices");
     for group in sorted_dirs(&slices)? {
@@ -1307,15 +1325,13 @@ fn slice_mapping_files(root: &Path) -> Result<Vec<PathBuf>, String> {
     Ok(out)
 }
 
-fn glob_suffix(path: &Path, suffix: &str) -> Result<Vec<PathBuf>, String> {
+fn glob_suffix(path: &Path, suffix: &str) -> gmeow_errors::Result<Vec<PathBuf>> {
     if !path.exists() {
         return Ok(Vec::new());
     }
     let mut files = Vec::new();
-    for entry in
-        fs::read_dir(path).map_err(|e| format!("failed to read {}: {e}", path.display()))?
-    {
-        let entry = entry.map_err(|e| format!("failed to read {}: {e}", path.display()))?;
+    for entry in fs::read_dir(path).with_ctx(|| format!("failed to read {}", path.display()))? {
+        let entry = entry.with_ctx(|| format!("failed to read {}", path.display()))?;
         let path = entry.path();
         if path
             .file_name()
@@ -1329,11 +1345,11 @@ fn glob_suffix(path: &Path, suffix: &str) -> Result<Vec<PathBuf>, String> {
     Ok(files)
 }
 
-fn read_texts(paths: &[PathBuf]) -> Result<Vec<String>, String> {
+fn read_texts(paths: &[PathBuf]) -> gmeow_errors::Result<Vec<String>> {
     paths
         .iter()
         .map(|path| {
-            fs::read_to_string(path).map_err(|e| format!("failed to read {}: {e}", path.display()))
+            fs::read_to_string(path).with_ctx(|| format!("failed to read {}", path.display()))
         })
         .collect()
 }
@@ -1385,7 +1401,7 @@ fn invert_tag_map(tag_map: &HashMap<String, String>) -> HashMap<String, String> 
 fn retag_nt_to_internal(
     nt: &str,
     inverse_tag_map: &HashMap<String, String>,
-) -> Result<String, String> {
+) -> gmeow_errors::Result<String> {
     retag_nt(nt, |lang| {
         if gmeow_validate::language_tags::is_internal_tag(lang) {
             None
@@ -1395,7 +1411,7 @@ fn retag_nt_to_internal(
     })
 }
 
-fn retag_nt_to_public(nt: &str, tag_map: &HashMap<String, String>) -> Result<String, String> {
+fn retag_nt_to_public(nt: &str, tag_map: &HashMap<String, String>) -> gmeow_errors::Result<String> {
     retag_nt(nt, |lang| {
         if gmeow_validate::language_tags::is_internal_tag(lang) {
             tag_map
@@ -1408,7 +1424,7 @@ fn retag_nt_to_public(nt: &str, tag_map: &HashMap<String, String>) -> Result<Str
     })
 }
 
-fn retag_nt<F>(nt: &str, mut rewrite: F) -> Result<String, String>
+fn retag_nt<F>(nt: &str, mut rewrite: F) -> gmeow_errors::Result<String>
 where
     F: FnMut(&str) -> Option<String>,
 {
@@ -1423,14 +1439,15 @@ where
         }
         quads.push(quad);
     }
-    let retagged = flat_dataset_from_quads(&quads)?;
+    let retagged = flat_dataset_from_quads(&quads)
+        .map_err(|e| gmeow_errors::Diag::of_kind(crate::error::Scoreboard { message: e }))?;
     let bytes = serialize_dataset(
         &retagged,
         "application/n-quads",
         SerializeGraph::DefaultGraph,
     )
-    .map_err(|e| format!("serialize retagged graph: {e}"))?;
-    String::from_utf8(bytes).map_err(|e| format!("serialize retagged graph (utf8): {e}"))
+    .ctx("serialize retagged graph")?;
+    String::from_utf8(bytes).ctx("serialize retagged graph (utf8)")
 }
 
 fn retag_literal(lit: &RdfLiteral, language: &str) -> RdfLiteral {
@@ -1442,11 +1459,11 @@ fn retag_literal(lit: &RdfLiteral, language: &str) -> RdfLiteral {
     }
 }
 
-fn store_len(store: &RdfDataset) -> Result<usize, String> {
+fn store_len(store: &RdfDataset) -> gmeow_errors::Result<usize> {
     Ok(store.quad_count())
 }
 
-fn gate_pure_gmeow(draft: &RdfDataset) -> Result<GateResult, String> {
+fn gate_pure_gmeow(draft: &RdfDataset) -> gmeow_errors::Result<GateResult> {
     let mut foreign: BTreeMap<String, usize> = BTreeMap::new();
     for (predicate, object) in default_graph_predicate_object(draft) {
         let predicate = predicate.as_str();
@@ -1508,7 +1525,7 @@ fn gate_round_trip(
     source: &RdfDataset,
     output: &RdfDataset,
     tag_map: &HashMap<String, String>,
-) -> Result<GateResult, String> {
+) -> gmeow_errors::Result<GateResult> {
     let source_by_vocab = by_vocab(source, true, tag_map)?;
     let output_by_vocab = by_vocab(output, true, tag_map)?;
     let mut rows = Vec::new();
@@ -1560,7 +1577,10 @@ fn gate_round_trip(
     Ok(gate)
 }
 
-fn gate_size_invariant(source: &RdfDataset, output: &RdfDataset) -> Result<GateResult, String> {
+fn gate_size_invariant(
+    source: &RdfDataset,
+    output: &RdfDataset,
+) -> gmeow_errors::Result<GateResult> {
     let source_len = store_len(source)?;
     let output_len = store_len(output)?;
     let passed = output_len > source_len;
@@ -1588,7 +1608,7 @@ fn gate_external_validator(
     root: &Path,
     output: &RdfDataset,
     _tag_map: &HashMap<String, String>,
-) -> Result<GateResult, String> {
+) -> gmeow_errors::Result<GateResult> {
     let mut detail = Vec::new();
     let leaked = default_graph_quads(output)
         .iter()
@@ -1654,7 +1674,7 @@ fn gate_coverage(
     output: &RdfDataset,
     lifted: usize,
     gap_terms: &BTreeMap<String, usize>,
-) -> Result<GateResult, String> {
+) -> gmeow_errors::Result<GateResult> {
     let table = vocab_coverage(output, source)?;
     // Report BOTH honest figures, never conflate them: `gap_terms.len()` is the count
     // of DISTINCT uncovered projection terms, while `gap_terms.values().sum()` is the
@@ -1803,7 +1823,7 @@ fn by_vocab(
     store: &RdfDataset,
     iri_subjects_only: bool,
     tag_map: &HashMap<String, String>,
-) -> Result<BTreeMap<String, BTreeSet<RdfTripleKey>>, String> {
+) -> gmeow_errors::Result<BTreeMap<String, BTreeSet<RdfTripleKey>>> {
     let mut buckets: BTreeMap<String, BTreeSet<RdfTripleKey>> = BTreeMap::new();
     for quad in default_graph_quads(store) {
         if iri_subjects_only && !matches!(quad.subject, ResolvedTerm::Iri(_)) {
@@ -1867,7 +1887,7 @@ fn normalized_term(term: &ResolvedTerm, tag_map: &HashMap<String, String>) -> St
 
 fn emitted_terms_by_vocab(
     output: &RdfDataset,
-) -> Result<BTreeMap<String, BTreeSet<String>>, String> {
+) -> gmeow_errors::Result<BTreeMap<String, BTreeSet<String>>> {
     let mut terms: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
     for quad in default_graph_quads(output) {
         if quad.predicate != RDF_TYPE
@@ -1891,7 +1911,7 @@ fn emitted_terms_by_vocab(
     Ok(terms)
 }
 
-fn known_terms(root: &Path, prefix: &str) -> Result<BTreeSet<String>, String> {
+fn known_terms(root: &Path, prefix: &str) -> gmeow_errors::Result<BTreeSet<String>> {
     let path = root
         .join("imports")
         .join("targets")
@@ -1916,14 +1936,16 @@ fn run_range_shacl(
     root: &Path,
     output: &RdfDataset,
     detail: &mut Vec<String>,
-) -> Result<usize, String> {
+) -> gmeow_errors::Result<usize> {
     let mut total = 0usize;
     for prefix in VENDORED_DEFS {
         let Some(shapes_ttl) = generate_range_shapes(root, prefix)? else {
             continue;
         };
-        let shapes = purrdf::shapes::engine::parse_shapes(&shapes_ttl)?;
-        let report = purrdf::shapes::engine::validate_dataset(output, &shapes)?;
+        let shapes = purrdf::shapes::engine::parse_shapes(&shapes_ttl)
+            .map_err(|e| gmeow_errors::Diag::of_kind(crate::error::Scoreboard { message: e }))?;
+        let report = purrdf::shapes::engine::validate_dataset(output, &shapes)
+            .map_err(|e| gmeow_errors::Diag::of_kind(crate::error::Scoreboard { message: e }))?;
         if report.conforms {
             continue;
         }
@@ -1936,7 +1958,7 @@ fn run_range_shacl(
     Ok(total)
 }
 
-fn generate_range_shapes(root: &Path, prefix: &str) -> Result<Option<String>, String> {
+fn generate_range_shapes(root: &Path, prefix: &str) -> gmeow_errors::Result<Option<String>> {
     let path = root
         .join("imports")
         .join("targets")
@@ -1978,7 +2000,7 @@ fn generate_range_shapes(root: &Path, prefix: &str) -> Result<Option<String>, St
     )))
 }
 
-fn vocab_coverage(output: &RdfDataset, source: &RdfDataset) -> Result<String, String> {
+fn vocab_coverage(output: &RdfDataset, source: &RdfDataset) -> gmeow_errors::Result<String> {
     let ours = by_namespace(vocab_terms(output)?);
     let theirs = by_namespace(vocab_terms(source)?);
     let mut lines = vec![
@@ -2026,7 +2048,7 @@ fn vocab_coverage(output: &RdfDataset, source: &RdfDataset) -> Result<String, St
     Ok(lines.join("\n") + "\n")
 }
 
-fn vocab_terms(store: &RdfDataset) -> Result<BTreeSet<String>, String> {
+fn vocab_terms(store: &RdfDataset) -> gmeow_errors::Result<BTreeSet<String>> {
     let mut terms = BTreeSet::new();
     for quad in default_graph_quads(store) {
         terms.insert(quad.predicate.clone());

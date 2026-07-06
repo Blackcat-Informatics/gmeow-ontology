@@ -41,7 +41,6 @@ use purrdf::slice::{
     lint_prefix_consistency,
 };
 
-use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 use crate::stages::compile_logic::{
     LOGIC_PROJECTIONS_CHANNEL, LogicProjectionsChannel, PROJECTION_REPORT_PATH,
@@ -118,7 +117,7 @@ pub struct CompiledMappings {
 /// Compile all five mapping families (SSSOM + FnO + EDOAL + SPARQL + standpoint
 /// projections) plus the DSL surface-count summary from `root`, returning
 /// `{logical_path → bytes}`. The mappings stage is now complete.
-pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, PipelineError> {
+pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, gmeow_errors::Diag> {
     let vocab = crate::gmeow_ns::gmeow_slice_vocab();
     let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
 
@@ -135,9 +134,11 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, PipelineError> 
                 &slices_dir,
                 crate::gmeow_ns::gmeow_slice_vocab(),
             )
-            .map_err(|e| PipelineError::Stage {
-                stage: "stage-mappings".to_string(),
-                message: format!("slice catalog discovery: {e}"),
+            .map_err(|e| {
+                gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                    stage: "stage-mappings".to_string(),
+                    message: format!("slice catalog discovery: {e}"),
+                })
             })?,
         )
     } else {
@@ -149,20 +150,21 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, PipelineError> 
     // the registry-driven shortener. Hard-fail before emitting any artifact
     // (no-optionality); this makes `regenerate` / `check-generated` / `make check`
     // all reject a shadow.
-    let prefix_problems =
-        lint_prefix_consistency(root, &vocab).map_err(|e| PipelineError::Stage {
+    let prefix_problems = lint_prefix_consistency(root, &vocab).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
             stage: "stage-mappings".to_string(),
             message: format!("prefix-consistency lint failed: {e}"),
-        })?;
+        })
+    })?;
     if let Some(first) = prefix_problems.first() {
-        return Err(PipelineError::Stage {
+        return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
             stage: "stage-mappings".to_string(),
             message: format!(
                 "prefix-consistency: {} registry-prefix shadow(s); first: {}",
                 prefix_problems.len(),
                 first.message
             ),
-        });
+        }));
     }
 
     // DSL mapping-purity gate: alignment linkage flows from slices. A
@@ -170,12 +172,14 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, PipelineError> 
     // restatement in the wrong place — it must live in the slice that defines its
     // alignSubject. Hard-fail before emitting any artifact (no-optionality); this
     // makes `regenerate` / `check-generated` / `make check` reject a stray cell.
-    let purity_problems = lint_dsl_mapping_purity(root).map_err(|e| PipelineError::Stage {
-        stage: "stage-mappings".to_string(),
-        message: format!("dsl mapping-purity gate failed: {e}"),
+    let purity_problems = lint_dsl_mapping_purity(root).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            stage: "stage-mappings".to_string(),
+            message: format!("dsl mapping-purity gate failed: {e}"),
+        })
     })?;
     if let Some(first) = purity_problems.first() {
-        return Err(PipelineError::Stage {
+        return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
             stage: "stage-mappings".to_string(),
             message: format!(
                 "dsl-linkage-purity: {} dsl/mappings file(s) author alignment linkage that must \
@@ -183,7 +187,7 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, PipelineError> 
                 purity_problems.len(),
                 first.message
             ),
-        });
+        }));
     }
 
     // The four alignment dialects are now produced by the oxigraph-free
@@ -192,10 +196,10 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, PipelineError> 
     // `spec-drift` is gone by construction). One native parse of the DSL + ontology
     // sources drives all four.
     let aligned = correspondence_lower::lower_all(root, catalog.as_ref()).map_err(|e| {
-        PipelineError::Stage {
+        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
             stage: "stage-mappings".to_string(),
             message: format!("correspondence lowering failed: {e}"),
-        }
+        })
     })?;
     // Executed lens-law discharge: for every authored correspondence,
     // run its OWN per-binding get/put CONSTRUCT round-trip through the native engine, attach
@@ -268,9 +272,11 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, PipelineError> 
 
     // Standpoint projections — the seven fixed `standpoint-*.rq` queries (byte-identical
     // to the Python template-coded emitters; no DSL input).
-    let standpoint = emit_standpoint_sets(root, &vocab).map_err(|e| PipelineError::Stage {
-        stage: "stage-mappings".to_string(),
-        message: format!("standpoint emission failed: {e}"),
+    let standpoint = emit_standpoint_sets(root, &vocab).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            stage: "stage-mappings".to_string(),
+            message: format!("standpoint emission failed: {e}"),
+        })
     })?;
     for (filename, rq) in standpoint {
         artifacts.insert(format!("{QUERIES_DIR}/{filename}"), rq.into_bytes());
@@ -285,9 +291,11 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, PipelineError> 
     );
 
     // DSL surface-count summary — the committed, drift-gated counts JSON.
-    let dsl_stats = emit_dsl_stats(root, &vocab).map_err(|e| PipelineError::Stage {
-        stage: "stage-mappings".to_string(),
-        message: format!("dsl-stats emission failed: {e}"),
+    let dsl_stats = emit_dsl_stats(root, &vocab).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            stage: "stage-mappings".to_string(),
+            message: format!("dsl-stats emission failed: {e}"),
+        })
     })?;
     artifacts.insert(DSL_STATS_PATH.to_string(), dsl_stats.into_bytes());
 
@@ -345,10 +353,12 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, PipelineError> 
 /// executed round-trip does not hold) and HARD-fails the stage — never shipped.
 fn discharge_correspondence_laws(
     aligned: &correspondence_lower::CorrespondenceArtifacts,
-) -> Result<Vec<u8>, PipelineError> {
-    let stage_err = |message: String| PipelineError::Stage {
-        stage: "stage-mappings".to_string(),
-        message,
+) -> gmeow_errors::Result<Vec<u8>> {
+    let stage_err = |message: String| {
+        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            stage: "stage-mappings".to_string(),
+            message,
+        })
     };
 
     let mut rebuilt: Vec<Correspondence> = Vec::new();
@@ -434,7 +444,7 @@ fn discharge_correspondence_laws(
 /// set; this root-recompute path is for the acceptance harness, which reads fresh `root` inputs.
 pub fn discharged_section_cells_from_root(
     root: &Path,
-) -> Result<std::collections::BTreeSet<String>, PipelineError> {
+) -> gmeow_errors::Result<std::collections::BTreeSet<String>> {
     let slices_dir = root.join("slices");
     let catalog = if slices_dir.is_dir() {
         Some(
@@ -442,46 +452,52 @@ pub fn discharged_section_cells_from_root(
                 &slices_dir,
                 crate::gmeow_ns::gmeow_slice_vocab(),
             )
-            .map_err(|e| PipelineError::Stage {
-                stage: "stage-mappings".to_string(),
-                message: format!("slice catalog discovery: {e}"),
+            .map_err(|e| {
+                gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                    stage: "stage-mappings".to_string(),
+                    message: format!("slice catalog discovery: {e}"),
+                })
             })?,
         )
     } else {
         None
     };
     let aligned = correspondence_lower::lower_all(root, catalog.as_ref()).map_err(|e| {
-        PipelineError::Stage {
+        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
             stage: "stage-mappings".to_string(),
             message: format!("correspondence lowering failed: {e}"),
-        }
+        })
     })?;
     let corr_laws = discharge_correspondence_laws(&aligned)?;
-    let nt = String::from_utf8(corr_laws).map_err(|e| PipelineError::Stage {
-        stage: "stage-mappings".to_string(),
-        message: format!("correspondence-laws graph is not UTF-8: {e}"),
+    let nt = String::from_utf8(corr_laws).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            stage: "stage-mappings".to_string(),
+            message: format!("correspondence-laws graph is not UTF-8: {e}"),
+        })
     })?;
     crate::up_projection_gates::discharged_section_cells_from_corpus(&nt).map_err(|e| {
-        PipelineError::Stage {
+        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
             stage: "stage-mappings".to_string(),
             message: format!("extract discharged section cells: {e}"),
-        }
+        })
     })
 }
 
 /// Emit a Turtle RDF projection as EXACTLY the canonical fold (shared prefix
 /// authority, no banner) so it rides as an RDF-fanout named graph and the superset
 /// gate reconstructs it byte-for-byte.
-fn canon_fanout_ttl(body: &str) -> Result<Vec<u8>, PipelineError> {
+fn canon_fanout_ttl(body: &str) -> Result<Vec<u8>, gmeow_errors::Diag> {
     canon_fanout_ttl_bytes(body.as_bytes())
 }
 
-fn canon_fanout_ttl_bytes(body: &[u8]) -> Result<Vec<u8>, PipelineError> {
+fn canon_fanout_ttl_bytes(body: &[u8]) -> Result<Vec<u8>, gmeow_errors::Diag> {
     purrdf::turtle_normalize::canonical_turtle(body, &crate::stages::superset::rdf_prefixes())
         .map(String::into_bytes)
-        .map_err(|e| PipelineError::Stage {
-            stage: "stage-mappings".to_string(),
-            message: format!("canonicalize RDF projection: {e}"),
+        .map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                stage: "stage-mappings".to_string(),
+                message: format!("canonicalize RDF projection: {e}"),
+            })
         })
 }
 
@@ -495,12 +511,14 @@ fn build_union_report(
     header: ReportHeader,
     channel: &LogicProjectionsChannel,
     correspondence_ledger: &[ProjectionResult],
-) -> Result<Vec<u8>, PipelineError> {
+) -> Result<Vec<u8>, gmeow_errors::Diag> {
     let mut rows: Vec<ProjectionResult> = channel.projections.clone();
     rows.extend(correspondence_ledger.iter().cloned());
-    let report = build_projection_report_from(header, &rows).map_err(|e| PipelineError::Stage {
-        stage: "stage-mappings".to_string(),
-        message: format!("projection-report assembly: {e}"),
+    let report = build_projection_report_from(header, &rows).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            stage: "stage-mappings".to_string(),
+            message: format!("projection-report assembly: {e}"),
+        })
     })?;
     Ok(report.into_bytes())
 }
@@ -519,10 +537,12 @@ fn fold_up_projection_audit(
     root: &Path,
     artifacts: &BTreeMap<String, Vec<u8>>,
     mut header: ReportHeader,
-) -> Result<ReportHeader, PipelineError> {
-    let stage_err = |message: String| PipelineError::Stage {
-        stage: "stage-mappings".to_string(),
-        message,
+) -> Result<ReportHeader, gmeow_errors::Diag> {
+    let stage_err = |message: String| {
+        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            stage: "stage-mappings".to_string(),
+            message,
+        })
     };
 
     // The freshly-generated SSSOM (never the on-disk copy, which may be stale this run).
@@ -706,7 +726,7 @@ fn sssom_finding(
 fn collect_files_recursive(
     dir: &Path,
     out: &mut Vec<std::path::PathBuf>,
-) -> Result<(), PipelineError> {
+) -> Result<(), gmeow_errors::Diag> {
     if !dir.is_dir() {
         return Ok(());
     }
@@ -763,7 +783,7 @@ impl Stage for MappingsStage {
         // runs against existing cached inputs.
         "mappings.v10-dsl-linkage-purity-gate"
     }
-    fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, PipelineError> {
+    fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
         // Raw source read: the alignment artifacts compile from the `dsl/mappings/`
         // tree plus the per-slice mapping cells in the slice modules — none of which
         // any upstream product reflects. The vendored coverage corpus
@@ -806,7 +826,7 @@ impl Stage for MappingsStage {
         files.dedup();
         Ok(files)
     }
-    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
+    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         let compiled = compile_mappings(input.root)?;
         let mut artifacts = compiled.artifacts;
 
@@ -818,16 +838,20 @@ impl Stage for MappingsStage {
             .upstream
             .get("stage-compile-logic")
             .and_then(|p| p.artifact(LOGIC_PROJECTIONS_CHANNEL))
-            .ok_or_else(|| PipelineError::Stage {
-                stage: "stage-mappings".to_string(),
-                message: format!(
-                    "missing compile-logic projection channel ({LOGIC_PROJECTIONS_CHANNEL})"
-                ),
+            .ok_or_else(|| {
+                gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                    stage: "stage-mappings".to_string(),
+                    message: format!(
+                        "missing compile-logic projection channel ({LOGIC_PROJECTIONS_CHANNEL})"
+                    ),
+                })
             })?;
         let channel: LogicProjectionsChannel =
-            serde_json::from_slice(channel_bytes).map_err(|e| PipelineError::Stage {
-                stage: "stage-mappings".to_string(),
-                message: format!("decode logic-projections channel: {e}"),
+            serde_json::from_slice(channel_bytes).map_err(|e| {
+                gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                    stage: "stage-mappings".to_string(),
+                    message: format!("decode logic-projections channel: {e}"),
+                })
             })?;
         // Fold the gate-derived 591-term up-projection audit into the curated-cell header
         // counts, so the committed loss ledger carries the gate-verdict liftability statistic
@@ -853,13 +877,12 @@ impl Stage for MappingsStage {
         // artifact. `gts_compose` folds only the default graph, so the named ledger graph
         // never pollutes the composed EDB.
         let rdf_dataset = mappings_rdf_dataset(&artifacts)?;
-        let report_ttl =
-            artifacts
-                .get(PROJECTION_REPORT_PATH)
-                .ok_or_else(|| PipelineError::Stage {
-                    stage: self.id().to_owned(),
-                    message: format!("mappings run omitted {PROJECTION_REPORT_PATH}"),
-                })?;
+        let report_ttl = artifacts.get(PROJECTION_REPORT_PATH).ok_or_else(|| {
+            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                stage: self.id().to_owned(),
+                message: format!("mappings run omitted {PROJECTION_REPORT_PATH}"),
+            })
+        })?;
         let ledger_graph = crate::stages::carrier::parse_into_graph(
             &crate::stages::carrier::turtle_to_nquads(report_ttl)?,
             "application/n-quads",
@@ -939,9 +962,11 @@ impl Stage for MappingsStage {
             lang_docs_rendering_graph.as_ref(),
             correspondence_laws_graph.as_ref(),
         ]));
-        Ok(StageOutput {
-            product: StageProduct::from_artifacts_over(self.id(), dataset, artifacts),
-        })
+        Ok(StageOutput::new(StageProduct::from_artifacts_over(
+            self.id(),
+            dataset,
+            artifacts,
+        )))
     }
 }
 
@@ -952,7 +977,7 @@ impl Stage for MappingsStage {
 /// standardizes blank scopes apart per input and canonicalizes on freeze.
 fn mappings_rdf_dataset(
     artifacts: &BTreeMap<String, Vec<u8>>,
-) -> Result<std::sync::Arc<purrdf::RdfDataset>, PipelineError> {
+) -> Result<std::sync::Arc<purrdf::RdfDataset>, gmeow_errors::Diag> {
     let mut parsed: Vec<std::sync::Arc<purrdf::RdfDataset>> = Vec::new();
     for (path, bytes) in artifacts {
         let media_type = if path.ends_with(".nq") {
@@ -964,8 +989,11 @@ fn mappings_rdf_dataset(
         } else {
             continue;
         };
-        let ds = purrdf::parse_dataset(bytes, media_type, None)
-            .map_err(|e| PipelineError::Parse(format!("mappings RDF parse of {path}: {e}")))?;
+        let ds = purrdf::parse_dataset(bytes, media_type, None).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Parse {
+                message: format!("mappings RDF parse of {path}: {e}"),
+            })
+        })?;
         parsed.push(ds);
     }
     let refs: Vec<&purrdf::RdfDataset> = parsed.iter().map(|a| a.as_ref()).collect();
@@ -1580,19 +1608,20 @@ CONSTRUCT {
         // The REAL stage entry must HARD-fail (never ship the overclaim).
         let err = discharge_correspondence_laws(&aligned)
             .expect_err("a fabricating put leg must hard-fail the mappings stage");
-        match err {
-            PipelineError::Stage { stage, message } => {
-                assert_eq!(stage, "stage-mappings");
-                assert!(
-                    message.contains("ObligationViolated"),
-                    "the hard-fail must name the refuted lens law verdict, got: {message}"
-                );
-                assert!(
-                    message.contains("SectionLaw"),
-                    "the hard-fail must name the refuted lens law, got: {message}"
-                );
-            }
-            other => panic!("expected PipelineError::Stage, got {other:?}"),
-        }
+        // The dissolved `PipelineError::Stage` is now the `StageFailed` DiagKind; its rendered
+        // message is `stage {stage} failed: {message}`, so assert on the rendered surface.
+        let rendered = err.to_string();
+        assert!(
+            rendered.contains("stage-mappings"),
+            "the hard-fail must name the mappings stage, got: {rendered}"
+        );
+        assert!(
+            rendered.contains("ObligationViolated"),
+            "the hard-fail must name the refuted lens law verdict, got: {rendered}"
+        );
+        assert!(
+            rendered.contains("SectionLaw"),
+            "the hard-fail must name the refuted lens law, got: {rendered}"
+        );
     }
 }

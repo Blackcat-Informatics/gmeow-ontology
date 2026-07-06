@@ -54,8 +54,6 @@ use gmeow_lang_bridge::{exact_round_trip_holds, is_exact_correspondence, ntriple
 use gmeow_logic_compile::ir::PreservationKind;
 use gmeow_logic_compile::projections::{ProjectionResult, assert_no_overclaim};
 
-use crate::error::PipelineError;
-
 const LANG_NS: &str = "https://blackcatinformatics.ca/lang/";
 const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
@@ -84,7 +82,9 @@ pub struct LangProjectionCorpus {
 /// Build the projection corpus by driving every registered [`LangProjectionTarget`] over
 /// the sources the shared in-memory [`SliceCatalog`] carries. `None` (no `slices/` tree)
 /// yields the empty-input corpus (every target folds its honest no-source row).
-pub fn build_corpus(catalog: Option<&SliceCatalog>) -> Result<LangProjectionCorpus, PipelineError> {
+pub fn build_corpus(
+    catalog: Option<&SliceCatalog>,
+) -> Result<LangProjectionCorpus, gmeow_errors::Diag> {
     // Functor totality (Invariant 4): every emission-worthy class must map to a registered
     // target BEFORE any emission runs — a gap is a hard fail, not a silent omission.
     for (class, _) in EMISSION_WORTHY_CLASSES {
@@ -177,7 +177,7 @@ fn enforce_invariants(
     target: &str,
     emission: &LangEmission,
     derived: PreservationKind,
-) -> Result<(), PipelineError> {
+) -> Result<(), gmeow_errors::Diag> {
     // Invariant 1: an emission that DERIVES Exact must actually round-trip (measured), and
     // its carried leg pair must be the structural inverse.
     if derived == PreservationKind::Exact {
@@ -312,7 +312,9 @@ fn no_source_row(target: &str) -> ProjectionResult {
 /// `*.ebnf` grammar surface (the grammar SOURCE surface), and every lang-bearing
 /// `examples/*.ttl` (the `lang:` A-box the OntoLex/CoNLL-U/TEI/NIF/SemAF targets lower FROM,
 /// and — with the lang module surface — the BCP-47 target's variety scan).
-fn collect_input(catalog: Option<&SliceCatalog>) -> Result<LangProjectionInput, PipelineError> {
+fn collect_input(
+    catalog: Option<&SliceCatalog>,
+) -> Result<LangProjectionInput, gmeow_errors::Diag> {
     let mut grammars: Vec<NamedSource> = Vec::new();
     let mut lang_models: Vec<NamedSource> = Vec::new();
     let mut varieties: Vec<NamedSource> = Vec::new();
@@ -415,11 +417,11 @@ fn grammar_stem(logical_path: &str) -> String {
 
 // ── N-Triples helpers (mirroring the sibling lang: producers) ──────────────────────
 
-fn stage_err(message: impl Into<String>) -> PipelineError {
-    PipelineError::Stage {
+fn stage_err(message: impl Into<String>) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(crate::error::StageFailed {
         stage: "stage-mappings".to_string(),
         message: message.into(),
-    }
+    })
 }
 
 fn iri(ns: &str, local: &str) -> String {
