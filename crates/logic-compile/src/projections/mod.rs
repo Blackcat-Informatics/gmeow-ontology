@@ -51,6 +51,7 @@ pub mod fno;
 pub mod get_leg;
 pub mod paths;
 pub mod rdf;
+pub mod reified_claim;
 pub mod report;
 // The SHACL-AF rule projection (logic: derivation rules → sh:SPARQLRule) — the
 // computation surface (design/LOGIC-SHACL-AF.md): computation added to the canon and
