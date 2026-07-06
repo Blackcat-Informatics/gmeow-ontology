@@ -1276,6 +1276,87 @@ mod tests {
         );
     }
 
+    /// Existential / partial-bind negation-as-failure, driven end-to-end through the
+    /// production `materialize_native` path (the arm this PR ported from `foundation`).
+    ///
+    /// Two stratum-1 rules negate a stratum-0 base predicate with a FREE object variable,
+    /// so `negated_atom_satisfied` takes its partial-bind branch (`atom_bound` + `select`),
+    /// not the fully-ground `contains` branch:
+    ///
+    /// * `hasNoP(?X) :- node(?X), ~p(?X, ?Free)` — "`?X` has NO `p` fact at all".  Over
+    ///   `node = {a, b}` and the single base fact `p(a, x)`: `a` is BLOCKED (some `p(a, ·)`
+    ///   is present → the atom is satisfied-as-present) while `b` FIRES (no `p(b, ·)` row →
+    ///   the selection is empty → satisfied-as-absent).
+    /// * `agnostic(?X) :- node(?X), ~r(?Z, ?Z)` — the negated atom repeats an UNBOUND var
+    ///   in both positions.  The two `?Z` positions are NOT required to agree, so the lone
+    ///   base fact `r(m, n)` with `m ≠ n` still matches (`Bound::Any` → non-empty selection),
+    ///   BLOCKING every node.  Were agreement (wrongly) enforced, `r(m, n)` would match
+    ///   nothing and `agnostic` would fire for `{a, b}` — the falsifiable inverse.
+    #[test]
+    fn physical_existential_naf_partial_bind() {
+        let rls = format!(
+            "#[name(\"{NS}rHasNoP\")]\n\
+             <{NS}hasNoP>(?X, ?X, ?W) :-\n\
+                 <{NS}node>(?X, ?X, ?W),\n\
+                 ~<{NS}p>(?X, ?Free, ?W) .\n\
+             #[name(\"{NS}rAgnostic\")]\n\
+             <{NS}agnostic>(?X, ?X, ?W) :-\n\
+                 <{NS}node>(?X, ?X, ?W),\n\
+                 ~<{NS}r>(?Z, ?Z, ?W) .\n"
+        );
+        let rules = parse_eval_rules(&rls).expect("parse existential-NAF rules");
+
+        let store = WorldStore::new();
+        // node(a), node(b) — encoded as the self-loop (s == o) the head threads through.
+        for x in ["a", "b"] {
+            store.insert_quad(WORLD, &nn(x), &nn("node"), &nn(x));
+        }
+        // p(a, x): `a` HAS a p fact (object x ≠ a, so the negated atom's object slot is the
+        // free position). `b` has NO p fact.
+        store.insert_quad(WORLD, &nn("a"), &nn("p"), &nn("x"));
+        // r(m, n) with m ≠ n: the sole base fact for the repeated-unbound-var probe.
+        store.insert_quad(WORLD, &nn("m"), &nn("r"), &nn("n"));
+
+        let outcome = materialize_native(&store, &rules, None).expect("materialize_native");
+        let NativeOutcome::Decided(Budgeted { rows, .. }) = outcome else {
+            panic!("expected Decided for a stratifiable existential-NAF program");
+        };
+
+        let hasnop_pred = nn("hasNoP");
+        let agnostic_pred = nn("agnostic");
+        let mut hasnop: BTreeSet<String> = BTreeSet::new();
+        let mut agnostic: BTreeSet<String> = BTreeSet::new();
+        let mut hasnop_has_provenance = false;
+        for row in derived_only(&rows) {
+            if row.predicate.as_str() == hasnop_pred {
+                hasnop.insert(term_display(&row.subject));
+                if !row.source_quad_ids.is_empty() && !row.derivation_id.is_empty() {
+                    hasnop_has_provenance = true;
+                }
+            } else if row.predicate.as_str() == agnostic_pred {
+                agnostic.insert(term_display(&row.subject));
+            }
+        }
+
+        // (1) `b` (no p fact) fires; (2) `a` (has a p fact) is blocked.
+        let want_hasnop: BTreeSet<String> =
+            ["b"].into_iter().map(|x| format!("<{NS}{x}>")).collect();
+        assert_eq!(
+            hasnop, want_hasnop,
+            "hasNoP must be {{b}}: existential NAF fires only for the subject with no p fact"
+        );
+        assert!(
+            hasnop_has_provenance,
+            "a derived existential-NAF row must still carry provenance"
+        );
+        // (3) repeated unbound vars are NOT required to agree: r(m, n) with m ≠ n matches
+        // `~r(?Z, ?Z)`, so `agnostic` fires for no node.
+        assert!(
+            agnostic.is_empty(),
+            "agnostic must be empty: r(m,n) with m≠n satisfies ~r(?Z,?Z) (no agreement required)"
+        );
+    }
+
     /// A non-stratifiable program (negative edge in a cycle) is a declared gap.
     #[test]
     fn physical_non_stratifiable_is_unsupported() {
