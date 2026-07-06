@@ -12,10 +12,11 @@
 # gmeow:useForConsumer / gmeow:avoidForConsumer are term-level advisory
 # annotations whose value MUST be a declared gmeow:ProjectionContext individual
 # (the OWL rdfs:range says so; this is the enforceable data-shape twin). A pure
-# class-membership constraint over asserted triples — the cleanly-structural
-# subset of the native structural lint, authored declaratively so it folds into
-# gmeow.gts and is enforced by `make validate` (dogfooding). The equivalent
-# native gate in crates/validate/src/lint.rs is retained as defense-in-depth.
+# class-membership constraint over asserted triples, authored declaratively so it
+# folds into gmeow.gts and is enforced by `make validate` (dogfooding). This is
+# the sole enforcement of the range constraint: `sh:nodeKind sh:IRI` rejects
+# blank-node/literal values and `sh:class gmeow:ProjectionContext` rejects any
+# IRI that is not a declared ProjectionContext individual.
 # =========================================================================== #
 
 gmeow:UseForConsumerTargetShape
