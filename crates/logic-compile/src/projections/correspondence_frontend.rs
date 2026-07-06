@@ -116,6 +116,13 @@ enum NaturalKey {
 #[derive(Debug, Clone, Default)]
 pub struct CorrespondenceLookup {
     by_key: BTreeMap<NaturalKey, TypedRelation>,
+    /// Correspondence IRI → the profile of the `gmeow:ProjectionMapping` binding it was
+    /// minted from. Only per-profile binding correspondences carry a profile (a
+    /// `gmeow:TermEquivalence` cell is not profile-scoped and is absent here). Consumed by
+    /// the mappings stage to pair a correspondence with its OWN per-binding get/put CONSTRUCT
+    /// fragments for executed lens-law discharge — the per-profile UNION query is the wrong
+    /// unit (a single UNION branch's law must be checked in isolation).
+    binding_profiles: BTreeMap<String, String>,
 }
 
 impl CorrespondenceLookup {
@@ -165,6 +172,13 @@ impl CorrespondenceLookup {
         })
     }
 
+    /// Correspondence IRI → profile for every `gmeow:ProjectionMapping` binding
+    /// correspondence (the map the mappings stage joins against the per-binding SPARQL
+    /// fragments to discharge each correspondence's own lens law in isolation).
+    pub fn binding_profiles(&self) -> &BTreeMap<String, String> {
+        &self.binding_profiles
+    }
+
     /// Build a lookup carrying a single `(cell IRI, profile)` binding entry — for the
     /// dialect lowerings' unit tests that construct a `ProfileBinding` directly (without a
     /// DSL store to transpile from). Production builds the lookup only via
@@ -179,7 +193,10 @@ impl CorrespondenceLookup {
             },
             typed,
         );
-        Self { by_key }
+        Self {
+            by_key,
+            binding_profiles: BTreeMap::new(),
+        }
     }
 }
 
@@ -222,6 +239,7 @@ pub fn transpile_correspondences_indexed(
 ) -> Result<(CorrespondenceProgram, CorrespondenceLookup), String> {
     let mut correspondences: Vec<Correspondence> = Vec::new();
     let mut by_key: BTreeMap<NaturalKey, TypedRelation> = BTreeMap::new();
+    let mut binding_profiles: BTreeMap<String, String> = BTreeMap::new();
 
     // ── gmeow:TermEquivalence cells (the SSSOM 1:1 band) ───────────────────────────
     for cell in equivalence_cells(dsl_view) {
@@ -274,6 +292,7 @@ pub fn transpile_correspondences_indexed(
     for cell in projections(dsl_view)? {
         for binding in &cell.bindings {
             let (corr, typed) = correspondence_for_binding(&cell.iri, binding)?;
+            binding_profiles.insert(corr.iri.clone(), binding.profile.clone());
             correspondences.push(corr);
             by_key.insert(
                 NaturalKey::Binding {
@@ -289,7 +308,13 @@ pub fn transpile_correspondences_indexed(
     // sound under-approximation (they refuse the forced-equality reading), never exact.
     let program =
         CorrespondenceProgram::new(correspondences, Vec::new(), PreservationKind::SoundUnder);
-    Ok((program, CorrespondenceLookup { by_key }))
+    Ok((
+        program,
+        CorrespondenceLookup {
+            by_key,
+            binding_profiles,
+        },
+    ))
 }
 
 /// Materialize the typed [`Correspondence`] for one `gmeow:ProjectionMapping` profile
