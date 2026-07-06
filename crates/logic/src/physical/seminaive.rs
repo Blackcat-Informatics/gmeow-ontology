@@ -1916,6 +1916,64 @@ mod tests {
         );
     }
 
+    /// Consumer audit — the closure-only backward lane carries NO provenance.
+    ///
+    /// `resolve_native` magic-transforms a goal and runs the SAME stratified fixpoint through
+    /// [`evaluate`], whose result is `NativeOutcome<Budgeted<Vec<Fact>>>`. A [`Fact`] is a bare
+    /// `(subject, predicate, object)` triple — it has NO `derivation_id` / `source_quad_ids` /
+    /// `rule_iri` field, so there is simply no provenance surface to feed `explain` or
+    /// `derivation_graph`; the backward lane cannot route into them. This is encoded two ways,
+    /// per the audit's honest-executable-form requirement: a COMPILE-TIME fact — the
+    /// `let facts: &Vec<Fact>` binding pins the closure-lane result type, so a regression that
+    /// routed the backward lane through the provenance-carrying `DerivedRow` surface would fail
+    /// to type-check here — PLUS a BEHAVIOURAL check that `evaluate` returns the correct
+    /// reachability closure as bare facts.
+    #[test]
+    fn backward_closure_lane_returns_bare_facts_without_provenance() {
+        // reachable(?X, ?X) :- seed(?X, ?X) .
+        let seed_rule = EvalRule {
+            head: var_atom("?X", "reachable", "?X"),
+            body: vec![var_atom("?X", "seed", "?X")],
+            rule_iri: nn("rule/reach-seed"),
+            distinct_pairs: vec![],
+            builtins: vec![],
+        };
+        // reachable(?Y, ?Y) :- reachable(?X, ?X), edge(?X, ?Y) .
+        let step_rule = EvalRule {
+            head: var_atom("?Y", "reachable", "?Y"),
+            body: vec![
+                var_atom("?X", "reachable", "?X"),
+                var_atom("?X", "edge", "?Y"),
+            ],
+            rule_iri: nn("rule/reach-step"),
+            distinct_pairs: vec![],
+            builtins: vec![],
+        };
+        // EDB: seed(a, a), edge(a, b), edge(b, c).
+        let mut edb = RelationStore::new();
+        edb.insert(&nn("seed"), term("a"), term("a"));
+        edb.insert(&nn("edge"), term("a"), term("b"));
+        edb.insert(&nn("edge"), term("b"), term("c"));
+
+        let out = evaluate(edb, &[seed_rule, step_rule], None).expect("evaluate");
+        let NativeOutcome::Decided(budgeted) = out else {
+            panic!("expected Decided, got a gap");
+        };
+        // Compile-time: the closure-lane result is a bare `Vec<Fact>` with no provenance rows.
+        let facts: &Vec<Fact> = &budgeted.rows;
+        let keys = fact_keys(facts);
+        for node in ["a", "b", "c"] {
+            assert!(
+                keys.contains(&(
+                    format!("<{}>", nn(node)),
+                    nn("reachable"),
+                    format!("<{}>", nn(node)),
+                )),
+                "reachable({node}) must be in the closure: {keys:?}"
+            );
+        }
+    }
+
     #[test]
     fn seminaive_overflow_is_declared_gap_not_wrong_answer() {
         use crate::query_ir::ArithOp;
