@@ -66,9 +66,10 @@ impl Stage for JsonSchemaStage {
             compiled.schema_json.into_bytes(),
         );
         artifacts.insert(OPENAPI_PATH.to_string(), compiled.openapi_json.into_bytes());
-        Ok(StageOutput {
-            product: StageProduct::from_artifacts(self.id(), artifacts),
-        })
+        Ok(StageOutput::new(StageProduct::from_artifacts(
+            self.id(),
+            artifacts,
+        )))
     }
 }
 

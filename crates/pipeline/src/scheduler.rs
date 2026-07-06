@@ -144,6 +144,14 @@ pub struct RunResult {
     pub stage_timings: Vec<StageTiming>,
     /// Per-level critical-stage timings in topological level order.
     pub level_timings: Vec<LevelTiming>,
+    /// The run-level diagnostic ledger: the FORWARD fold of every stage's emitted
+    /// `DiagNode`s (each producer's report findings, projected once). It is built by
+    /// replaying each stage's `diags` (fresh run) or its cache-restored
+    /// `diagnostics:nodes` blob (cache hit) into one hash-consed ledger; `replay` +
+    /// content-addressed fingerprints make a warm-cache run byte-identical to a cold
+    /// one regardless of level/commit interleaving. `run_full` threads this into
+    /// `RunReport.ledger` and attaches its own run-level reconcile findings to it.
+    pub ledger: gmeow_errors::DiagLedger,
 }
 
 /// One stage's wall-clock timing.
@@ -179,6 +187,10 @@ struct StageRun {
     cached: bool,
     /// Wall-clock spent in [`exec_stage`] for this stage (compute + cache probe).
     elapsed_ms: u128,
+    /// This stage's FORWARD-projected diagnostic nodes: `out.diags` on a fresh run,
+    /// or the cache-restored `diagnostics:nodes` blob on a hit. Replayed into the
+    /// run-wide ledger in the sequential commit phase.
+    diags: Vec<gmeow_errors::DiagNode>,
 }
 
 /// Run a validated, bound pipeline. `bound` is the stages in topological order
@@ -210,6 +222,11 @@ pub fn run(
     // (level_index, slowest-stage ms in the level, slowest-stage id): the sum of the
     // per-level maxima is the critical-path floor the level-barrier scheduler imposes.
     let mut level_timings: Vec<LevelTiming> = Vec::new();
+    // The run-wide FORWARD diagnostics ledger: each stage's `diags` (fresh or cache-
+    // restored) are replayed here in the sequential commit phase. `replay` hash-conses
+    // by content-addressed fingerprint, so the folded ledger is byte-identical
+    // regardless of level order or fresh/cache interleaving.
+    let mut run_ledger = gmeow_errors::DiagLedger::new();
 
     for (level_idx, level) in graph.levels.iter().enumerate() {
         // Parallel phase: every stage in the level runs concurrently; stages that
@@ -241,6 +258,8 @@ pub fn run(
             if !r.cached {
                 ctx.cache.put(&r.key, &r.product)?;
             }
+            // Fold this stage's forward diagnostic nodes into the run-wide ledger.
+            run_ledger.replay(std::mem::take(&mut r.diags));
             let stage = by_id[r.id.as_str()];
             // Register this stage as a provenance unit in the run-wide sidecar
             // (capability-derived origin: sourceOrigin → Source, else → Generated).
@@ -311,6 +330,7 @@ pub fn run(
         combined_digest,
         stage_timings,
         level_timings,
+        ledger: run_ledger,
     })
 }
 
@@ -376,12 +396,17 @@ fn exec_stage(
     let started = std::time::Instant::now();
 
     if let Some(product) = cache.get(&key)? {
+        // A cache hit re-serves the identical product, so its `diagnostics:nodes` blob
+        // (empty for a non-producer) recovers this stage's run-ledger contribution
+        // WITHOUT re-running it — byte-identical to the fresh `out.diags`.
+        let diags = product.diag_nodes();
         return Ok(StageRun {
             id: stage.id().to_string(),
             key,
             product,
             cached: true,
             elapsed_ms: started.elapsed().as_millis(),
+            diags,
         });
     }
 
@@ -415,6 +440,7 @@ fn exec_stage(
         product: out.product,
         cached: false,
         elapsed_ms: started.elapsed().as_millis(),
+        diags: out.diags,
     })
 }
 

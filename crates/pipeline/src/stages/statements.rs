@@ -588,9 +588,11 @@ impl Stage for StatementsStage {
         let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
         artifacts.insert(OWL_PATH.to_string(), owl.into_bytes());
         artifacts.insert(RDF12_PATH.to_string(), rdf12.into_bytes());
-        Ok(StageOutput {
-            product: StageProduct::from_artifacts_over(self.id(), dataset, artifacts),
-        })
+        Ok(StageOutput::new(StageProduct::from_artifacts_over(
+            self.id(),
+            dataset,
+            artifacts,
+        )))
     }
 }
 

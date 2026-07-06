@@ -2595,9 +2595,10 @@ impl Stage for ExportStage {
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         let graph = read_fold_upstream(input.upstream)?;
-        Ok(StageOutput {
-            product: StageProduct::from_artifacts(self.id(), render_all(graph.as_ref())?),
-        })
+        Ok(StageOutput::new(StageProduct::from_artifacts(
+            self.id(),
+            render_all(graph.as_ref())?,
+        )))
     }
 }
 

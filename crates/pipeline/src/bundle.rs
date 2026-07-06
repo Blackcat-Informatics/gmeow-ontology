@@ -42,8 +42,8 @@ use gmeow_logic_compile::projections::correspondence::CorrespondenceProgram;
 use gmeow_logic_compile::relational_core::RelationalCoreProgram;
 use purrdf::provenance::DatasetProvenance;
 use purrdf::{
-    ContentStore, PipelineBundle, RdfDataset, RdfDatasetBuilder, RdfLookaside, RdfLookasideKind,
-    RdfLookasideResource,
+    ContentDigest, ContentStore, PipelineBundle, RdfBlobRecord, RdfDataset, RdfDatasetBuilder,
+    RdfLookaside, RdfLookasideKind, RdfLookasideResource,
 };
 
 /// The pipeline-side typed-handle payload carried in the bundle's handle lane.
@@ -152,6 +152,117 @@ pub fn bundle_from_artifacts_over(
         );
     }
     PipelineBundle::new(dataset, lookaside, Arc::new(blobs), provenance)
+}
+
+/// Like [`bundle_from_artifacts_over`] but ALSO folds one representation-keyed raw
+/// blob into the bundle's by-reference blob lane: the bytes ride the same
+/// [`ContentStore`] and an [`RdfBlobRecord`] indexes them by `representation` (the
+/// model the `transform:denied` raw-JSON lane uses). The blob round-trips through the
+/// per-stage cache unchanged (the cache mirrors the lookaside blob records + the
+/// content store), so a cache-hit product carries the identical blob. `bundle_rep_blob`
+/// reads it back by representation.
+///
+/// Because the blob is content-addressed into the store, it participates in the
+/// bundle's `digest()` (so a diagnostics change re-keys the producer's product), but it
+/// does NOT touch the byte-artifact lane [`bundle_artifacts`] reads — it is a distinct
+/// lane, invisible to the committed-artifact reconcile.
+pub fn bundle_from_artifacts_over_with_rep_blob(
+    dataset: Arc<RdfDataset>,
+    artifacts: BTreeMap<String, Vec<u8>>,
+    provenance: DatasetProvenance,
+    representation: &str,
+    media_type: &str,
+    blob_bytes: Vec<u8>,
+) -> PipelineBundle<PipelineHandle> {
+    let mut blobs = ContentStore::new();
+    let mut lookaside = RdfLookaside::default();
+    for (path, bytes) in artifacts {
+        let digest = blobs.insert(bytes);
+        lookaside.resources.push(
+            RdfLookasideResource::new(ARTIFACT_KIND)
+                .with_name(path)
+                .with_digest(digest.to_hex()),
+        );
+    }
+    let decoded_len = blob_bytes.len();
+    let digest = blobs.insert(blob_bytes);
+    lookaside.blobs.push(RdfBlobRecord {
+        digest: digest.to_hex(),
+        media_type: Some(media_type.to_owned()),
+        representation: Some(representation.to_owned()),
+        decoded_len: Some(decoded_len),
+        metadata: BTreeMap::new(),
+        origin: None,
+    });
+    PipelineBundle::new(dataset, lookaside, Arc::new(blobs), provenance)
+}
+
+/// Fold one representation-keyed raw blob into an ALREADY-ASSEMBLED bundle (e.g. the
+/// compile-logic bundle, after its typed handles are pinned), returning the bundle with
+/// the blob in its by-reference lane. Rebuilds the content store + lookaside blob lane
+/// and re-attaches every pinned handle to its original backing graph (the handle pins
+/// are dataset-scoped, so they survive verbatim). See
+/// [`bundle_from_artifacts_over_with_rep_blob`] for the lane semantics.
+pub fn attach_rep_blob(
+    bundle: PipelineBundle<PipelineHandle>,
+    representation: &str,
+    media_type: &str,
+    blob_bytes: Vec<u8>,
+) -> Result<PipelineBundle<PipelineHandle>, gmeow_errors::Diag> {
+    // Clone the content store contents into a fresh mutable store, add the rep blob.
+    let mut blobs = ContentStore::new();
+    for (digest, bytes) in bundle.blobs().iter() {
+        blobs.insert_checked(*digest, bytes.clone()).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Decode {
+                message: format!("attach_rep_blob: re-insert content-store blob: {e}"),
+            })
+        })?;
+    }
+    let mut lookaside = bundle.lookaside().clone();
+    let decoded_len = blob_bytes.len();
+    let digest = blobs.insert(blob_bytes);
+    lookaside.blobs.push(RdfBlobRecord {
+        digest: digest.to_hex(),
+        media_type: Some(media_type.to_owned()),
+        representation: Some(representation.to_owned()),
+        decoded_len: Some(decoded_len),
+        metadata: BTreeMap::new(),
+        origin: None,
+    });
+    let mut rebuilt = PipelineBundle::new(
+        bundle.dataset_arc(),
+        lookaside,
+        Arc::new(blobs),
+        bundle.provenance().clone(),
+    );
+    // Re-attach every pinned handle to the SAME backing graph digest it already carried
+    // (the pins are stable against the unchanged dataset).
+    for (graph, entry) in bundle.handles() {
+        rebuilt
+            .pin_handle(graph.clone(), entry.payload.clone(), entry.content_digest)
+            .map_err(|e| {
+                gmeow_errors::Diag::of_kind(crate::error::Decode {
+                    message: format!("attach_rep_blob: re-pin handle <{graph}>: {e}"),
+                })
+            })?;
+    }
+    Ok(rebuilt)
+}
+
+/// Read back the bytes of the representation-keyed blob folded by
+/// [`bundle_from_artifacts_over_with_rep_blob`] / [`attach_rep_blob`], or `None` when no
+/// blob record declares `representation`.
+pub fn bundle_rep_blob<'b>(
+    bundle: &'b PipelineBundle<PipelineHandle>,
+    representation: &str,
+) -> Option<&'b [u8]> {
+    let record = bundle
+        .lookaside()
+        .blobs
+        .iter()
+        .find(|r| r.representation.as_deref() == Some(representation))?;
+    let digest = ContentDigest::from_hex(&record.digest)?;
+    bundle.blobs().get(&digest).map(Vec::as_slice)
 }
 
 /// Reconstruct the exact bytes of the byte-artifact lane entry at `logical_path`,

@@ -114,9 +114,10 @@ impl Stage for TestSink {
                 message: "missing stage-snapshot input".to_string(),
             })
         })?;
-        Ok(StageOutput {
-            product: StageProduct::new(self.id(), snapshot.digest.clone()),
-        })
+        Ok(StageOutput::new(StageProduct::new(
+            self.id(),
+            snapshot.digest.clone(),
+        )))
     }
 }
 

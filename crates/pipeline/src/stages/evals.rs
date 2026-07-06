@@ -1023,9 +1023,10 @@ impl Stage for EvalsStage {
         Ok(files)
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
-        Ok(StageOutput {
-            product: StageProduct::from_artifacts(self.id(), render_evals(input.root)?),
-        })
+        Ok(StageOutput::new(StageProduct::from_artifacts(
+            self.id(),
+            render_evals(input.root)?,
+        )))
     }
 }
 

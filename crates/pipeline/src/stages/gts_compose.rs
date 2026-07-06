@@ -194,13 +194,11 @@ impl Stage for GtsComposeStage {
         // consumer reads the carried dataset, and `reason` re-projects the byte EDB it
         // needs through `compose_nquads` itself, so the artifact had no reader.
         let composed = compose(input.upstream)?;
-        Ok(StageOutput {
-            product: StageProduct::from_artifacts_over(
-                self.id(),
-                Arc::new(composed),
-                BTreeMap::new(),
-            ),
-        })
+        Ok(StageOutput::new(StageProduct::from_artifacts_over(
+            self.id(),
+            Arc::new(composed),
+            BTreeMap::new(),
+        )))
     }
 }
 

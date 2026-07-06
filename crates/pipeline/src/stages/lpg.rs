@@ -800,12 +800,10 @@ impl Stage for LpgStage {
         // Consume THIS run's snapshot carrier dataset DIRECTLY off the product bundle —
         // no re-parse of the gmeow.gts bytes (GTS is exit-only).
         let dataset = crate::stages::carrier::snapshot_dataset(input.upstream)?;
-        Ok(StageOutput {
-            product: StageProduct::from_artifacts(
-                self.id(),
-                render_from_dataset(dataset.as_ref())?,
-            ),
-        })
+        Ok(StageOutput::new(StageProduct::from_artifacts(
+            self.id(),
+            render_from_dataset(dataset.as_ref())?,
+        )))
     }
 }
 

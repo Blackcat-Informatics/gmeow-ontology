@@ -840,12 +840,10 @@ impl Stage for SchemasStage {
         // Read THIS run's carrier dataset directly off the snapshot product's bundle
         //  — GTS is exit-only, never re-parsed by an export leaf.
         let dataset = crate::stages::carrier::snapshot_dataset(input.upstream)?;
-        Ok(StageOutput {
-            product: StageProduct::from_artifacts(
-                self.id(),
-                render_schemas_from_dataset(dataset.as_ref())?,
-            ),
-        })
+        Ok(StageOutput::new(StageProduct::from_artifacts(
+            self.id(),
+            render_schemas_from_dataset(dataset.as_ref())?,
+        )))
     }
 }
 

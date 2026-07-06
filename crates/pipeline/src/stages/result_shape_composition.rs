@@ -417,9 +417,10 @@ impl Stage for ResultShapeCompositionStage {
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         validate_compositions(input.root)?;
         // Pure validation leaf — no artifacts emitted.
-        Ok(StageOutput {
-            product: StageProduct::new(self.id(), "result-shape-composition-ok"),
-        })
+        Ok(StageOutput::new(StageProduct::new(
+            self.id(),
+            "result-shape-composition-ok",
+        )))
     }
 }
 

@@ -11,8 +11,10 @@
 
 use std::collections::BTreeMap;
 use std::path::Path;
+use std::sync::Arc;
 
 use gmeow_errors::{Finding, Report, Severity};
+use purrdf::provenance::DatasetProvenance;
 use serde_json::json;
 
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
@@ -159,8 +161,29 @@ impl Stage for ValidateStage {
             "application/n-quads",
             crate::stages::carrier::GRAPH_DIAGNOSTICS,
         )?;
+        // FORWARD diagnostics fold: the producer's report findings are the SINGLE source
+        // of both the shipped `graph/diagnostics` RDF (above) AND the run-level
+        // DiagLedger. Project the findings once to pre-lowered DiagNodes, carry them on
+        // the product's `diagnostics:nodes` blob (so a cache hit re-serves them), and
+        // hand them up as `StageOutput.diags` for the scheduler to fold on a fresh run.
+        let nodes = crate::stages::diag_render::finding_nodes(&report, self.id());
+        let diag_blob = serde_json::to_vec(&nodes).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                stage: self.id().to_owned(),
+                message: format!("encode diagnostics nodes blob: {e}"),
+            })
+        })?;
+        let bundle = crate::bundle::bundle_from_artifacts_over_with_rep_blob(
+            dataset,
+            artifacts,
+            DatasetProvenance::new(),
+            crate::stages::carrier::REP_DIAG_NODES,
+            "application/json",
+            diag_blob,
+        );
         Ok(StageOutput {
-            product: StageProduct::from_artifacts_over(self.id(), dataset, artifacts),
+            product: StageProduct::from_bundle(self.id(), Arc::new(bundle)),
+            diags: nodes,
         })
     }
 }

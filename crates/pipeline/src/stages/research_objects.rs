@@ -1704,12 +1704,10 @@ impl Stage for ResearchObjectsStage {
                 message: format!("{DCAT_QUERY_PATH} is not utf-8: {e}"),
             })
         })?;
-        Ok(StageOutput {
-            product: StageProduct::from_artifacts(
-                self.id(),
-                render_research_objects(input.root, dcat_rq)?,
-            ),
-        })
+        Ok(StageOutput::new(StageProduct::from_artifacts(
+            self.id(),
+            render_research_objects(input.root, dcat_rq)?,
+        )))
     }
 }
 

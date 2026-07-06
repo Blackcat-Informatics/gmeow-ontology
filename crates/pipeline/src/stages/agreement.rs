@@ -227,9 +227,10 @@ impl Stage for AgreementMatrixStage {
                     "stage-conformance product is missing {AGREEMENT_TALLIES_PATH}"
                 ))
             })?;
-        Ok(StageOutput {
-            product: StageProduct::from_artifacts(self.id(), render_agreement_matrix(tallies)?),
-        })
+        Ok(StageOutput::new(StageProduct::from_artifacts(
+            self.id(),
+            render_agreement_matrix(tallies)?,
+        )))
     }
 }
 

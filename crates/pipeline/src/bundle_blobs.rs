@@ -56,6 +56,14 @@ pub const REP_SHAPES: &str = "shapes-archive";
 pub const REP_AXIOMS: &str = "axioms-archive";
 /// JSON (NOT a tar) of the saturation refusal set (the alignment-lint ERROR rows).
 pub const REP_DENIED: &str = "transform:denied";
+/// JSON (NOT a tar) of a diagnostics producer's FORWARD-projected
+/// `Vec<gmeow_errors::DiagNode>` — the pre-lowered run-ledger nodes. On the pipeline
+/// CARRIER this rides `stage-validate` / `stage-compile-logic`'s product bundle (the
+/// run ledger's single source); on the SHIPPED gts it is absent (the run ledger is a
+/// build-time projection, not a folded gts surface), so `diag_nodes` resolves to an
+/// empty set — the wheel-only contract. This constant MUST equal the producer-side
+/// [`crate::stages::carrier::REP_DIAG_NODES`] (a drifted label silently reads empty).
+pub const REP_DIAG_NODES: &str = "diagnostics:nodes";
 
 /// The saturation refusal set: one `(subject, predicate, object)` ERROR row per
 /// denied alignment cell, as recovered from the [`REP_DENIED`] JSON payload.
@@ -315,6 +323,21 @@ impl Bundle {
         let mut out = lines.join("\n");
         out.push('\n');
         Ok(out.into_bytes())
+    }
+
+    /// The FORWARD-projected diagnostics nodes ([`REP_DIAG_NODES`]) folded on a bundle,
+    /// or an EMPTY vec when the rep is absent (the shipped gts carries no run ledger —
+    /// the run ledger is a build-time projection, not a folded gts surface). Absent is
+    /// NOT an error (wheel-only contract); malformed JSON IS a hard fail (no-optionality).
+    pub fn diag_nodes(&self) -> Result<Vec<gmeow_errors::DiagNode>, gmeow_errors::Diag> {
+        let Some(raw) = self.blob_by_rep(REP_DIAG_NODES)? else {
+            return Ok(Vec::new());
+        };
+        serde_json::from_slice(&raw).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::bundle_blobs::BundleJson {
+                message: format!("diagnostics nodes JSON: {e}"),
+            })
+        })
     }
 
     /// The precomputed saturation refusal set (the alignment-lint ERROR rows) as

@@ -198,9 +198,10 @@ impl Stage for FakeStage {
         "v1"
     }
     fn run(&self, _input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
-        Ok(StageOutput {
-            product: StageProduct::new(self.id.clone(), "deadbeef"),
-        })
+        Ok(StageOutput::new(StageProduct::new(
+            self.id.clone(),
+            "deadbeef",
+        )))
     }
 }
 
@@ -486,9 +487,7 @@ impl Stage for ComputeStage {
             fields.push(u.as_bytes());
         }
         let digest = crate::cache::content_digest(&fields);
-        Ok(StageOutput {
-            product: StageProduct::new(self.id.clone(), digest),
-        })
+        Ok(StageOutput::new(StageProduct::new(self.id.clone(), digest)))
     }
 }
 
@@ -582,9 +581,10 @@ impl Stage for FileReadingStage {
     fn run(&self, _input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         self.runs.fetch_add(1, Ordering::SeqCst);
         let bytes = std::fs::read(&self.file)?;
-        Ok(StageOutput {
-            product: StageProduct::new("file-leaf", crate::cache::content_digest(&[&bytes])),
-        })
+        Ok(StageOutput::new(StageProduct::new(
+            "file-leaf",
+            crate::cache::content_digest(&[&bytes]),
+        )))
     }
 }
 
@@ -703,13 +703,11 @@ impl Stage for TwoGraphProducer {
                     message: format!("producer dataset: {e}"),
                 })
             })?;
-        Ok(StageOutput {
-            product: StageProduct::from_artifacts_over(
-                "producer",
-                dataset,
-                std::collections::BTreeMap::new(),
-            ),
-        })
+        Ok(StageOutput::new(StageProduct::from_artifacts_over(
+            "producer",
+            dataset,
+            std::collections::BTreeMap::new(),
+        )))
     }
 }
 
@@ -736,9 +734,10 @@ impl Stage for EntityConsumer {
     }
     fn run(&self, _input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         self.runs.fetch_add(1, Ordering::SeqCst);
-        Ok(StageOutput {
-            product: StageProduct::new(self.id.clone(), "deadbeef"),
-        })
+        Ok(StageOutput::new(StageProduct::new(
+            self.id.clone(),
+            "deadbeef",
+        )))
     }
 }
 

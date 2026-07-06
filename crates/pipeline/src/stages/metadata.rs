@@ -730,9 +730,10 @@ impl Stage for MetadataStage {
         let store = dataset.as_ref();
         let artifacts = render_metadata_from_dataset(input.root, store)?;
 
-        Ok(StageOutput {
-            product: StageProduct::from_artifacts(self.id(), artifacts),
-        })
+        Ok(StageOutput::new(StageProduct::from_artifacts(
+            self.id(),
+            artifacts,
+        )))
     }
 }
 

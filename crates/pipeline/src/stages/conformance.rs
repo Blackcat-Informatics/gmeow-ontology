@@ -514,9 +514,11 @@ impl Stage for ConformanceStage {
         // The single graded result, attached for `stage-export-agreement` to project
         // into the benchmark dashboard — never written to disk (`pipeline/` prefix).
         artifacts.insert(AGREEMENT_TALLIES_PATH.to_string(), tallies);
-        Ok(StageOutput {
-            product: StageProduct::from_artifacts_over(self.id(), dataset, artifacts),
-        })
+        Ok(StageOutput::new(StageProduct::from_artifacts_over(
+            self.id(),
+            dataset,
+            artifacts,
+        )))
     }
 }
 

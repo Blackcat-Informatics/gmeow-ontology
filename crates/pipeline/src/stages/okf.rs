@@ -623,9 +623,10 @@ impl Stage for OkfStage {
         let graph = read_fold_upstream(input.upstream)?;
         let (title, version, terms) = collect_term_surface(graph.as_ref())?;
         let artifacts = render_okf(&title, &version, &terms)?;
-        Ok(StageOutput {
-            product: StageProduct::from_artifacts(self.id(), artifacts),
-        })
+        Ok(StageOutput::new(StageProduct::from_artifacts(
+            self.id(),
+            artifacts,
+        )))
     }
 }
 
