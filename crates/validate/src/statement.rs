@@ -123,8 +123,8 @@ fn is_property_type(iri: &str) -> bool {
 
 /// The diagnostic code for the RDF-1.2 ↔ OWL round-trip lossless check.
 const LOSSLESS_CODE: &str = crate::codes::STATEMENT_COMPILE_LOSSLESS_ROUND_TRIP;
-fn lossless_finding(message: String) -> gmeow_diagnostics::Finding {
-    gmeow_diagnostics::Finding::new(gmeow_diagnostics::Severity::Error, LOSSLESS_CODE, message)
+fn lossless_finding(message: String) -> gmeow_errors::Finding {
+    gmeow_errors::Finding::new(gmeow_errors::Severity::Error, LOSSLESS_CODE, message)
         .with_tool("statement-compile")
 }
 
@@ -390,7 +390,7 @@ fn native_object_n3(obj: &NativeObject) -> String {
 /// `ds` must hold the `emit_owl` output UNIONED with the ontology in the default
 /// graph (the native pipeline builds it via `parse_dataset` + `RdfDataset::union`).
 /// Message text, severity, and check order are byte-identical to the `Store` version.
-pub fn check_statement_invariants_dataset(ds: &RdfDataset) -> Vec<gmeow_diagnostics::Finding> {
+pub fn check_statement_invariants_dataset(ds: &RdfDataset) -> Vec<gmeow_errors::Finding> {
     let mut messages: Vec<String> = Vec::new();
     let confidence_iri = format!("{NAMESPACE}confidence");
     let cells = ds_collect_cells(ds);
@@ -411,12 +411,8 @@ pub fn check_statement_invariants_dataset(ds: &RdfDataset) -> Vec<gmeow_diagnost
     messages
         .into_iter()
         .map(|message| {
-            gmeow_diagnostics::Finding::new(
-                gmeow_diagnostics::Severity::Error,
-                STATEMENT_CODE,
-                message,
-            )
-            .with_tool("statement")
+            gmeow_errors::Finding::new(gmeow_errors::Severity::Error, STATEMENT_CODE, message)
+                .with_tool("statement")
         })
         .collect()
 }
@@ -431,7 +427,7 @@ pub fn check_statement_invariants_dataset(ds: &RdfDataset) -> Vec<gmeow_diagnost
 pub fn check_statement_lossless_dataset(
     authored: &RdfDataset,
     normalized: &RdfDataset,
-) -> Vec<gmeow_diagnostics::Finding> {
+) -> Vec<gmeow_errors::Finding> {
     let owl_triples = ds_triple_set(authored);
     let rdf12_triples = ds_triple_set(normalized);
 

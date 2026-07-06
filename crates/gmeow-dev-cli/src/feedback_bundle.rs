@@ -15,7 +15,7 @@
 use std::collections::BTreeMap;
 
 use ciborium::value::Value as CborValue;
-use gmeow_diagnostics::{Report, render};
+use gmeow_errors::{Report, render};
 use purrdf::gts::dataset_from_gts_graph;
 use purrdf::gts::reader::read;
 use purrdf::gts_compose::{BlobRow, DEFAULT_RSYNCABLE_THRESHOLD, SnapshotBuilder, emit_gts};

@@ -13,7 +13,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::sync::LazyLock;
 
-use gmeow_diagnostics::{Finding, Report, Severity};
+use gmeow_errors::{Finding, Report, Severity};
 use purrdf::{DatasetView, GraphMatch, RdfDataset, TermId, TermRef, TermValue};
 use regex::Regex;
 use serde_yaml::Value as Yaml;

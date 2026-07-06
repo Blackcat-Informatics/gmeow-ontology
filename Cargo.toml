@@ -11,7 +11,7 @@ members = [
     "crates/cli-core",
     # Native logic-conformance harness (#785): datatest-stable over the corpus.
     "crates/conformance",
-    "crates/diagnostics",
+    "crates/errors",
     # Rust-owned typed documentation model built from the slice catalog (#853).
     "crates/docs",
     # Foundation-corpus importer (#364): narrative JSONL corpus → RDF graph +
@@ -242,7 +242,7 @@ codegen-units = 1
 [profile.release.package.gmeow-validate]
 codegen-units = 1
 
-[profile.release.package.gmeow-diagnostics]
+[profile.release.package.gmeow-errors]
 codegen-units = 1
 
 [profile.release.package.gmeow-docs]

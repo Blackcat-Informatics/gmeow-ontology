@@ -440,6 +440,82 @@
             }
           ],
           "message": {
+            "text": "projection gufo drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> has no gUFO bridge equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "126bcbc2c70540d7"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection gufo drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> has no gUFO bridge equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "126bcbc2c70540d7"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection gufo drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> has no gUFO bridge equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "126bcbc2c70540d7"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection gufo drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> has no gUFO bridge equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "126bcbc2c70540d7"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
             "text": "projection gufo drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleIndirectContributor> has no gUFO bridge equivalent"
           },
           "partialFingerprints": {
@@ -1675,6 +1751,25 @@
             }
           ],
           "message": {
+            "text": "projection gufo drops: actual: logic:candidateCategory on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no gUFO bridge equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "b07aa542ab6a522f"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
             "text": "projection gufo drops: actual: logic:candidateCategory on <https://blackcatinformatics.ca/logic/candidateIndirectContributor> has no gUFO bridge equivalent"
           },
           "partialFingerprints": {
@@ -2059,6 +2154,25 @@
           },
           "partialFingerprints": {
             "gmeowFindingHash/v2": "d91e37eac076611c"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection gufo drops: actual: logic:candidateContract on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no gUFO bridge equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "337c2aeb5e41bf7d"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -2568,6 +2682,25 @@
             }
           ],
           "message": {
+            "text": "projection gufo drops: actual: logic:candidateExtractionProvenance on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no gUFO bridge equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "6df8071889aa62ed"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
             "text": "projection gufo drops: actual: logic:candidateExtractionProvenance on <https://blackcatinformatics.ca/logic/candidateIndirectContributor> has no gUFO bridge equivalent"
           },
           "partialFingerprints": {
@@ -2914,6 +3047,25 @@
           },
           "partialFingerprints": {
             "gmeowFindingHash/v2": "806bdff88602d73e"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection gufo drops: actual: logic:candidateFormalizes on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no gUFO bridge equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "c5dda7d3d9f440eb"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -3309,6 +3461,25 @@
             }
           ],
           "message": {
+            "text": "projection gufo drops: actual: logic:candidateLifecycle on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no gUFO bridge equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "d31346b2971be91b"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
             "text": "projection gufo drops: actual: logic:candidateLifecycle on <https://blackcatinformatics.ca/logic/candidateIndirectContributor> has no gUFO bridge equivalent"
           },
           "partialFingerprints": {
@@ -3674,6 +3845,44 @@
           },
           "partialFingerprints": {
             "gmeowFindingHash/v2": "2fc46e5df8febf4f"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection gufo drops: actual: logic:candidateNegativeCase on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no gUFO bridge equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "ab156c8114be9084"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection gufo drops: actual: logic:candidateNegativeCase on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no gUFO bridge equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "ab156c8114be9084"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -4107,6 +4316,25 @@
             }
           ],
           "message": {
+            "text": "projection gufo drops: actual: logic:candidatePositiveCase on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no gUFO bridge equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "fb208f63fbea93d0"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
             "text": "projection gufo drops: actual: logic:candidatePositiveCase on <https://blackcatinformatics.ca/logic/candidateIndirectContributor> has no gUFO bridge equivalent"
           },
           "partialFingerprints": {
@@ -4472,6 +4700,25 @@
           },
           "partialFingerprints": {
             "gmeowFindingHash/v2": "8d544717f596363f"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection gufo drops: actual: logic:candidateProjectionBehavior on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no gUFO bridge equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "087a4e0e25cf2634"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -4886,6 +5133,25 @@
             }
           ],
           "message": {
+            "text": "projection gufo drops: actual: logic:candidateScope on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no gUFO bridge equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "37c76a586ea1a53b"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
             "text": "projection gufo drops: actual: logic:candidateScope on <https://blackcatinformatics.ca/logic/candidateIndirectContributor> has no gUFO bridge equivalent"
           },
           "partialFingerprints": {
@@ -5285,6 +5551,25 @@
             }
           ],
           "message": {
+            "text": "projection gufo drops: actual: logic:candidateSemanticRisk on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no gUFO bridge equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "8e53a91745a2229c"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
             "text": "projection gufo drops: actual: logic:candidateSemanticRisk on <https://blackcatinformatics.ca/logic/candidateIndirectContributor> has no gUFO bridge equivalent"
           },
           "partialFingerprints": {
@@ -5631,6 +5916,25 @@
           },
           "partialFingerprints": {
             "gmeowFindingHash/v2": "39cca75be2fa15bf"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection gufo drops: actual: logic:candidateSourceField on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no gUFO bridge equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "19e04d911b1fd0b4"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -6011,6 +6315,25 @@
           },
           "partialFingerprints": {
             "gmeowFindingHash/v2": "ba1a1551f317d981"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection gufo drops: actual: logic:candidateSourceHash on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no gUFO bridge equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "053dc8378c5264c2"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -7527,6 +7850,25 @@
             }
           ],
           "message": {
+            "text": "projection gufo drops: actual: logic:formalizes on <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> has no gUFO bridge equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "cad1a05123aab397"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
             "text": "projection gufo drops: actual: logic:formalizes on <https://blackcatinformatics.ca/logic/ruleIndirectContributor> has no gUFO bridge equivalent"
           },
           "partialFingerprints": {
@@ -7759,6 +8101,25 @@
           },
           "partialFingerprints": {
             "gmeowFindingHash/v2": "825b213a286fcc9a"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection gufo drops: actual: logic:head on <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> has no gUFO bridge equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "28efbdfa33822f65"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -9218,6 +9579,25 @@
             }
           ],
           "message": {
+            "text": "projection gufo drops: actual: logic:provenance on <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> has no gUFO bridge equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "563bfb33e47f9312"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
             "text": "projection gufo drops: actual: logic:provenance on <https://blackcatinformatics.ca/logic/ruleIndirectContributor> has no gUFO bridge equivalent"
           },
           "partialFingerprints": {
@@ -9545,6 +9925,25 @@
           },
           "partialFingerprints": {
             "gmeowFindingHash/v2": "b91d5c866978208b"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection gufo drops: actual: logic:reviewedBy on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no gUFO bridge equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "359b3a5c33943420"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -10301,6 +10700,25 @@
             }
           ],
           "message": {
+            "text": "projection gufo drops: actual: rule head <?finding> dropped (gUFO bridge has no rule surface)"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "f7bfe8e2bdf3e3a9"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
             "text": "projection gufo drops: actual: rule head <?item> dropped (gUFO bridge has no rule surface)"
           },
           "partialFingerprints": {
@@ -11027,6 +11445,82 @@
           },
           "partialFingerprints": {
             "gmeowFindingHash/v2": "e1419ea8151b4e9f"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-dl drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> has no OWL DL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "ce0e0df71f9192a3"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-dl drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> has no OWL DL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "ce0e0df71f9192a3"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-dl drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> has no OWL DL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "ce0e0df71f9192a3"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-dl drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> has no OWL DL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "ce0e0df71f9192a3"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -12277,6 +12771,25 @@
             }
           ],
           "message": {
+            "text": "projection owl-dl drops: actual: logic:candidateCategory on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no OWL DL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "c7e74826aefcd64f"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
             "text": "projection owl-dl drops: actual: logic:candidateCategory on <https://blackcatinformatics.ca/logic/candidateIndirectContributor> has no OWL DL equivalent"
           },
           "partialFingerprints": {
@@ -12661,6 +13174,25 @@
           },
           "partialFingerprints": {
             "gmeowFindingHash/v2": "88130ab7c70461de"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-dl drops: actual: logic:candidateContract on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no OWL DL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "a6b7c7c5aebd234d"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -13170,6 +13702,25 @@
             }
           ],
           "message": {
+            "text": "projection owl-dl drops: actual: logic:candidateExtractionProvenance on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no OWL DL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "9d200687082a6279"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
             "text": "projection owl-dl drops: actual: logic:candidateExtractionProvenance on <https://blackcatinformatics.ca/logic/candidateIndirectContributor> has no OWL DL equivalent"
           },
           "partialFingerprints": {
@@ -13516,6 +14067,25 @@
           },
           "partialFingerprints": {
             "gmeowFindingHash/v2": "0179a1b4a1f6fbe4"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-dl drops: actual: logic:candidateFormalizes on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no OWL DL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "7c70b62e91a2a5df"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -13911,6 +14481,25 @@
             }
           ],
           "message": {
+            "text": "projection owl-dl drops: actual: logic:candidateLifecycle on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no OWL DL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "83f53004e3727cab"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
             "text": "projection owl-dl drops: actual: logic:candidateLifecycle on <https://blackcatinformatics.ca/logic/candidateIndirectContributor> has no OWL DL equivalent"
           },
           "partialFingerprints": {
@@ -14276,6 +14865,44 @@
           },
           "partialFingerprints": {
             "gmeowFindingHash/v2": "8610e93207764fd7"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-dl drops: actual: logic:candidateNegativeCase on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no OWL DL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "1dffa1c624b6d7da"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-dl drops: actual: logic:candidateNegativeCase on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no OWL DL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "1dffa1c624b6d7da"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -14709,6 +15336,25 @@
             }
           ],
           "message": {
+            "text": "projection owl-dl drops: actual: logic:candidatePositiveCase on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no OWL DL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "b9cafdd77ba104fe"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
             "text": "projection owl-dl drops: actual: logic:candidatePositiveCase on <https://blackcatinformatics.ca/logic/candidateIndirectContributor> has no OWL DL equivalent"
           },
           "partialFingerprints": {
@@ -15074,6 +15720,25 @@
           },
           "partialFingerprints": {
             "gmeowFindingHash/v2": "4e81ee8a8d188953"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-dl drops: actual: logic:candidateProjectionBehavior on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no OWL DL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "bda5d361b5ca13f6"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -15488,6 +16153,25 @@
             }
           ],
           "message": {
+            "text": "projection owl-dl drops: actual: logic:candidateScope on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no OWL DL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "79f695c2e9524adb"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
             "text": "projection owl-dl drops: actual: logic:candidateScope on <https://blackcatinformatics.ca/logic/candidateIndirectContributor> has no OWL DL equivalent"
           },
           "partialFingerprints": {
@@ -15887,6 +16571,25 @@
             }
           ],
           "message": {
+            "text": "projection owl-dl drops: actual: logic:candidateSemanticRisk on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no OWL DL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "e789ba1621c0be0e"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
             "text": "projection owl-dl drops: actual: logic:candidateSemanticRisk on <https://blackcatinformatics.ca/logic/candidateIndirectContributor> has no OWL DL equivalent"
           },
           "partialFingerprints": {
@@ -16233,6 +16936,25 @@
           },
           "partialFingerprints": {
             "gmeowFindingHash/v2": "8780a250cc70c3eb"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-dl drops: actual: logic:candidateSourceField on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no OWL DL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "bedd1558439bf4ee"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -16613,6 +17335,25 @@
           },
           "partialFingerprints": {
             "gmeowFindingHash/v2": "2730b7f23aa2c53d"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-dl drops: actual: logic:candidateSourceHash on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no OWL DL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "df6ef9b60ba2a78c"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -18129,6 +18870,25 @@
             }
           ],
           "message": {
+            "text": "projection owl-dl drops: actual: logic:formalizes on <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> has no OWL DL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "55b55a63ab505697"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
             "text": "projection owl-dl drops: actual: logic:formalizes on <https://blackcatinformatics.ca/logic/ruleIndirectContributor> has no OWL DL equivalent"
           },
           "partialFingerprints": {
@@ -18361,6 +19121,25 @@
           },
           "partialFingerprints": {
             "gmeowFindingHash/v2": "606fdbd9df9f5b30"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-dl drops: actual: logic:head on <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> has no OWL DL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "fa2f0084a990993d"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -19820,6 +20599,25 @@
             }
           ],
           "message": {
+            "text": "projection owl-dl drops: actual: logic:provenance on <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> has no OWL DL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "62c68d394add499c"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
             "text": "projection owl-dl drops: actual: logic:provenance on <https://blackcatinformatics.ca/logic/ruleIndirectContributor> has no OWL DL equivalent"
           },
           "partialFingerprints": {
@@ -20147,6 +20945,25 @@
           },
           "partialFingerprints": {
             "gmeowFindingHash/v2": "cb7cae8deb658a03"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-dl drops: actual: logic:reviewedBy on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no OWL DL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "4d92d13421715166"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -20903,6 +21720,25 @@
             }
           ],
           "message": {
+            "text": "projection owl-dl drops: actual: rule head <?finding> 'https://blackcatinformatics.ca/gmeow/findingGateVerdict' not expressible in OWL DL (body complexity)"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "9a7cf465d32c9460"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
             "text": "projection owl-dl drops: actual: rule head <?item> 'https://blackcatinformatics.ca/gmeow/instantiatesWork' not expressible in OWL DL (body complexity)"
           },
           "partialFingerprints": {
@@ -21116,6 +21952,82 @@
           },
           "partialFingerprints": {
             "gmeowFindingHash/v2": "a69c8e305f9d8a4f"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-el drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> has no EL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "034c8df580bcb2ef"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-el drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> has no EL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "034c8df580bcb2ef"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-el drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> has no EL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "034c8df580bcb2ef"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-el drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> has no EL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "034c8df580bcb2ef"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -22366,6 +23278,25 @@
             }
           ],
           "message": {
+            "text": "projection owl-el drops: actual: logic:candidateCategory on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no EL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "1d4cb2115a4b83eb"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
             "text": "projection owl-el drops: actual: logic:candidateCategory on <https://blackcatinformatics.ca/logic/candidateIndirectContributor> has no EL equivalent"
           },
           "partialFingerprints": {
@@ -22750,6 +23681,25 @@
           },
           "partialFingerprints": {
             "gmeowFindingHash/v2": "9d72874b023d9aa0"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-el drops: actual: logic:candidateContract on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no EL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "a1d22ecb0c1dc975"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -23259,6 +24209,25 @@
             }
           ],
           "message": {
+            "text": "projection owl-el drops: actual: logic:candidateExtractionProvenance on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no EL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "fb382d40d51fe609"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
             "text": "projection owl-el drops: actual: logic:candidateExtractionProvenance on <https://blackcatinformatics.ca/logic/candidateIndirectContributor> has no EL equivalent"
           },
           "partialFingerprints": {
@@ -23605,6 +24574,25 @@
           },
           "partialFingerprints": {
             "gmeowFindingHash/v2": "eb58d167ea0232c2"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-el drops: actual: logic:candidateFormalizes on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no EL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "f40865f83f96688b"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -24000,6 +24988,25 @@
             }
           ],
           "message": {
+            "text": "projection owl-el drops: actual: logic:candidateLifecycle on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no EL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "ec780e9b2bdea10d"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
             "text": "projection owl-el drops: actual: logic:candidateLifecycle on <https://blackcatinformatics.ca/logic/candidateIndirectContributor> has no EL equivalent"
           },
           "partialFingerprints": {
@@ -24365,6 +25372,44 @@
           },
           "partialFingerprints": {
             "gmeowFindingHash/v2": "84e3c319472c0639"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-el drops: actual: logic:candidateNegativeCase on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no EL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "3a87cb75103b12ee"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-el drops: actual: logic:candidateNegativeCase on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no EL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "3a87cb75103b12ee"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -24798,6 +25843,25 @@
             }
           ],
           "message": {
+            "text": "projection owl-el drops: actual: logic:candidatePositiveCase on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no EL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "780b38ef2dba1d66"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
             "text": "projection owl-el drops: actual: logic:candidatePositiveCase on <https://blackcatinformatics.ca/logic/candidateIndirectContributor> has no EL equivalent"
           },
           "partialFingerprints": {
@@ -25163,6 +26227,25 @@
           },
           "partialFingerprints": {
             "gmeowFindingHash/v2": "0fe9c6bd893a8331"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-el drops: actual: logic:candidateProjectionBehavior on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no EL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "56dbb3a983372ec6"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -25577,6 +26660,25 @@
             }
           ],
           "message": {
+            "text": "projection owl-el drops: actual: logic:candidateScope on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no EL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "91d538b5d541d499"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
             "text": "projection owl-el drops: actual: logic:candidateScope on <https://blackcatinformatics.ca/logic/candidateIndirectContributor> has no EL equivalent"
           },
           "partialFingerprints": {
@@ -25976,6 +27078,25 @@
             }
           ],
           "message": {
+            "text": "projection owl-el drops: actual: logic:candidateSemanticRisk on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no EL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "61caa2022e015e7a"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
             "text": "projection owl-el drops: actual: logic:candidateSemanticRisk on <https://blackcatinformatics.ca/logic/candidateIndirectContributor> has no EL equivalent"
           },
           "partialFingerprints": {
@@ -26322,6 +27443,25 @@
           },
           "partialFingerprints": {
             "gmeowFindingHash/v2": "dd5809024a75e14b"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-el drops: actual: logic:candidateSourceField on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no EL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "b50da29f55e5987c"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -26702,6 +27842,25 @@
           },
           "partialFingerprints": {
             "gmeowFindingHash/v2": "99ce50fe9fd274cb"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-el drops: actual: logic:candidateSourceHash on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no EL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "9de8f598b0ff7efc"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -28218,6 +29377,25 @@
             }
           ],
           "message": {
+            "text": "projection owl-el drops: actual: logic:formalizes on <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> has no EL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "5ad833b83fe57f27"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
             "text": "projection owl-el drops: actual: logic:formalizes on <https://blackcatinformatics.ca/logic/ruleIndirectContributor> has no EL equivalent"
           },
           "partialFingerprints": {
@@ -28450,6 +29628,25 @@
           },
           "partialFingerprints": {
             "gmeowFindingHash/v2": "728684f98a9c17de"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-el drops: actual: logic:head on <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> has no EL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "c83ff6a50209f641"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -29909,6 +31106,25 @@
             }
           ],
           "message": {
+            "text": "projection owl-el drops: actual: logic:provenance on <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> has no EL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "c535f6cfc0cc1d7c"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
             "text": "projection owl-el drops: actual: logic:provenance on <https://blackcatinformatics.ca/logic/ruleIndirectContributor> has no EL equivalent"
           },
           "partialFingerprints": {
@@ -30236,6 +31452,25 @@
           },
           "partialFingerprints": {
             "gmeowFindingHash/v2": "56b8d2ba33bcf95f"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-el drops: actual: logic:reviewedBy on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no EL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "28b1462c099847b0"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -30977,6 +32212,25 @@
           },
           "partialFingerprints": {
             "gmeowFindingHash/v2": "dbc0b355ade92b29"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-el drops: actual: rule head <?finding> dropped (EL has no rule surface)"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "71a3df96ac74074d"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -34169,6 +35423,272 @@
           },
           "partialFingerprints": {
             "gmeowFindingHash/v2": "415065917924c06e"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> <https://blackcatinformatics.ca/logic/candidateCategory> <https://blackcatinformatics.ca/logic/CategoryDerivationRule> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "913e5d2ac86df049"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> <https://blackcatinformatics.ca/logic/candidateContract> <https://blackcatinformatics.ca/logic/PositiveHornProfile> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "861008e408fee30d"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> <https://blackcatinformatics.ca/logic/candidateExtractionProvenance> \"hand-harvested from gmeow:findingGateVerdict's skos:definition, which states the verdict is derived on exactly the principal up-set ↑(Error, Blocking, Binding) of the truth ordering, mirroring the Rust gmeow_errors::grade::gate() morphism (design/LOGIC-FOUNDATION.md, §Typed formalization governance)\" is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "b9d281c54a7088a5"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> <https://blackcatinformatics.ca/logic/candidateFormalizes> <https://blackcatinformatics.ca/gmeow/findingGateVerdict> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "7ce87ce25c73b246"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> <https://blackcatinformatics.ca/logic/candidateLifecycle> <https://blackcatinformatics.ca/logic/CandidateAccepted> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "a7f824fd956c2dc2"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> <https://blackcatinformatics.ca/logic/candidateNegativeCase> <https://blackcatinformatics.ca/logic/cqGateFatalAdvisoryNeverFatalRejected> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "9feb87c0506f65ff"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> <https://blackcatinformatics.ca/logic/candidateNegativeCase> <https://blackcatinformatics.ca/logic/cqGateFatalPermittedConflictNeverFatalRejected> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "cffdf713d0c31b7a"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> <https://blackcatinformatics.ca/logic/candidatePositiveCase> <https://blackcatinformatics.ca/logic/cqGateFatalVerdictHolds> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "bfeae8b20e30b8df"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> <https://blackcatinformatics.ca/logic/candidateProjectionBehavior> <https://blackcatinformatics.ca/logic/ExactPreservation> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "3785a9d90142118e"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> <https://blackcatinformatics.ca/logic/candidateScope> \"derivation: (gmeow:findingSeverity gmeow:severityError) ∧ (gmeow:findingCategory ∘ gmeow:categoryBlocking gmeow:blockingBlocking) ∧ (gmeow:findingStandpoint gmeow:standpointBinding) ⇒ gmeow:findingGateVerdict gmeow:gateFatal\" is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "c0fd55440060891a"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> <https://blackcatinformatics.ca/logic/candidateSemanticRisk> <https://blackcatinformatics.ca/logic/RiskCoreContaminating> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "6f03310c079ec37d"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> <https://blackcatinformatics.ca/logic/candidateSourceField> <https://blackcatinformatics.ca/logic/ProseFieldDefinition> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "627ff9544e33b54d"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> <https://blackcatinformatics.ca/logic/candidateSourceHash> \"sha256:e12a391fb8dfadd6f26028567308db254ed169b158f4320f05e527c59b376359\" is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "72851f1b8da794f0"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> <https://blackcatinformatics.ca/logic/reviewedBy> <https://blackcatinformatics.ca/logic/reviewerLogicFoundation> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "729406006397a603"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -38668,10 +40188,10 @@
             }
           ],
           "message": {
-            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleIndirectContributor> <https://blackcatinformatics.ca/logic/body> <c14n27> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> <https://blackcatinformatics.ca/logic/body> <c14n19> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "2635e7e12651794d"
+            "gmeowFindingHash/v2": "090dd6072578172b"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -38687,10 +40207,143 @@
             }
           ],
           "message": {
-            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleIndirectContributor> <https://blackcatinformatics.ca/logic/body> <c14n44> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> <https://blackcatinformatics.ca/logic/body> <c14n28> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "00e7661698fd7f28"
+            "gmeowFindingHash/v2": "45750a5460496013"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> <https://blackcatinformatics.ca/logic/body> <c14n62> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "fb3e0e7481bbc779"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> <https://blackcatinformatics.ca/logic/body> <c14n9> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "2b6c96cd4fb1a394"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> <https://blackcatinformatics.ca/logic/formalizes> <https://blackcatinformatics.ca/gmeow/findingGateVerdict> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "346375ea5114fa74"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> <https://blackcatinformatics.ca/logic/head> <c14n18> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "1d6a96c21659db14"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> <https://blackcatinformatics.ca/logic/provenance> <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "d8e3c0c9ca98a7b9"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleIndirectContributor> <https://blackcatinformatics.ca/logic/body> <c14n31> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "87b6c0a6696f71f4"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleIndirectContributor> <https://blackcatinformatics.ca/logic/body> <c14n48> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "a262c7bc8b349004"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -38725,10 +40378,10 @@
             }
           ],
           "message": {
-            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleIndirectContributor> <https://blackcatinformatics.ca/logic/head> <c14n24> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleIndirectContributor> <https://blackcatinformatics.ca/logic/head> <c14n27> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "3c65dab22fc37600"
+            "gmeowFindingHash/v2": "884245d5056d7fc7"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -38763,10 +40416,10 @@
             }
           ],
           "message": {
-            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleInstantiatesWork> <https://blackcatinformatics.ca/logic/body> <c14n18> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleInstantiatesWork> <https://blackcatinformatics.ca/logic/body> <c14n21> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "5c43fe8396124e06"
+            "gmeowFindingHash/v2": "830c1abfc96d1a26"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -38782,10 +40435,10 @@
             }
           ],
           "message": {
-            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleInstantiatesWork> <https://blackcatinformatics.ca/logic/body> <c14n30> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleInstantiatesWork> <https://blackcatinformatics.ca/logic/body> <c14n34> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "b092441480705218"
+            "gmeowFindingHash/v2": "0f993fe33d09958c"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -38801,10 +40454,10 @@
             }
           ],
           "message": {
-            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleInstantiatesWork> <https://blackcatinformatics.ca/logic/body> <c14n37> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleInstantiatesWork> <https://blackcatinformatics.ca/logic/body> <c14n41> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "f45d7085bfed2f83"
+            "gmeowFindingHash/v2": "320a72184f20e698"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -38839,10 +40492,10 @@
             }
           ],
           "message": {
-            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleInstantiatesWork> <https://blackcatinformatics.ca/logic/head> <c14n10> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleInstantiatesWork> <https://blackcatinformatics.ca/logic/head> <c14n11> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "93e0177a1d7d7690"
+            "gmeowFindingHash/v2": "aca6198d48583f51"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -38877,10 +40530,10 @@
             }
           ],
           "message": {
-            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleOrgMembershipPropagation> <https://blackcatinformatics.ca/logic/body> <c14n35> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleOrgMembershipPropagation> <https://blackcatinformatics.ca/logic/body> <c14n39> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "002c933bf683a5d5"
+            "gmeowFindingHash/v2": "94bfee5a34d20ca9"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -38896,10 +40549,10 @@
             }
           ],
           "message": {
-            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleOrgMembershipPropagation> <https://blackcatinformatics.ca/logic/body> <c14n55> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleOrgMembershipPropagation> <https://blackcatinformatics.ca/logic/body> <c14n59> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "4177d153f9cecf47"
+            "gmeowFindingHash/v2": "256e86530979c8a3"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -38934,10 +40587,10 @@
             }
           ],
           "message": {
-            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleOrgMembershipPropagation> <https://blackcatinformatics.ca/logic/head> <c14n22> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleOrgMembershipPropagation> <https://blackcatinformatics.ca/logic/head> <c14n25> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "b28738e7c779e5f3"
+            "gmeowFindingHash/v2": "56537287d47fbd08"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -38972,10 +40625,10 @@
             }
           ],
           "message": {
-            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n12> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n13> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "f4f39c3b110d628c"
+            "gmeowFindingHash/v2": "0668e878f76a919d"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -38991,48 +40644,10 @@
             }
           ],
           "message": {
-            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n14> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n15> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "d888b658f0a1e3d6"
-          },
-          "ruleId": "logic-compile.lossy-drop"
-        },
-        {
-          "level": "note",
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "slices/grounding/logic/module.ttl"
-                }
-              }
-            }
-          ],
-          "message": {
-            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n17> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
-          },
-          "partialFingerprints": {
-            "gmeowFindingHash/v2": "70c01ffbca4f87b9"
-          },
-          "ruleId": "logic-compile.lossy-drop"
-        },
-        {
-          "level": "note",
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "slices/grounding/logic/module.ttl"
-                }
-              }
-            }
-          ],
-          "message": {
-            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n19> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
-          },
-          "partialFingerprints": {
-            "gmeowFindingHash/v2": "3f00b825cd48f6cb"
+            "gmeowFindingHash/v2": "c2dab4297d5879bf"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -39067,10 +40682,10 @@
             }
           ],
           "message": {
-            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n26> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n20> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "1b0cfbb5ceeff151"
+            "gmeowFindingHash/v2": "5829dfa27971693b"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -39086,10 +40701,10 @@
             }
           ],
           "message": {
-            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n28> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n22> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "0d113c7e73951b33"
+            "gmeowFindingHash/v2": "e108f1c36fbbf115"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -39124,6 +40739,25 @@
             }
           ],
           "message": {
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n30> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "dc4b0be754404f54"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
             "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n32> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
           },
           "partialFingerprints": {
@@ -39143,10 +40777,10 @@
             }
           ],
           "message": {
-            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n33> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n36> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "4a35934f06a4e92b"
+            "gmeowFindingHash/v2": "51f7b4e111e789fe"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -39162,10 +40796,10 @@
             }
           ],
           "message": {
-            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n34> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n37> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "b7b30db172327840"
+            "gmeowFindingHash/v2": "568a387e96e28e07"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -39181,10 +40815,10 @@
             }
           ],
           "message": {
-            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n42> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n38> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "583f9ed9c5406803"
+            "gmeowFindingHash/v2": "e7142f8b5036dcec"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -39200,29 +40834,10 @@
             }
           ],
           "message": {
-            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n48> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n46> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "13a19b106effa025"
-          },
-          "ruleId": "logic-compile.lossy-drop"
-        },
-        {
-          "level": "note",
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "slices/grounding/logic/module.ttl"
-                }
-              }
-            }
-          ],
-          "message": {
-            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n49> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
-          },
-          "partialFingerprints": {
-            "gmeowFindingHash/v2": "4b0416ecf6594674"
+            "gmeowFindingHash/v2": "41628625aea7e53f"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -39257,10 +40872,10 @@
             }
           ],
           "message": {
-            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n58> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n53> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "0cd86bb9e90b3616"
+            "gmeowFindingHash/v2": "dba3699c7d2eb021"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -39276,10 +40891,48 @@
             }
           ],
           "message": {
-            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n62> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n56> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "42edd562b6e33499"
+            "gmeowFindingHash/v2": "16484e03ad1a2d34"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n63> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "e437405837bcba78"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/body> <c14n67> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "659c01878186486c"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -39314,10 +40967,10 @@
             }
           ],
           "message": {
-            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/head> <c14n59> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> <https://blackcatinformatics.ca/logic/head> <c14n64> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "3f9cf87c8fe92b39"
+            "gmeowFindingHash/v2": "048cf25718ee4e91"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -39352,25 +41005,6 @@
             }
           ],
           "message": {
-            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf> <https://blackcatinformatics.ca/logic/body> <c14n20> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
-          },
-          "partialFingerprints": {
-            "gmeowFindingHash/v2": "4baf9528cff526f3"
-          },
-          "ruleId": "logic-compile.lossy-drop"
-        },
-        {
-          "level": "note",
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "slices/grounding/logic/module.ttl"
-                }
-              }
-            }
-          ],
-          "message": {
             "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf> <https://blackcatinformatics.ca/logic/body> <c14n23> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
           },
           "partialFingerprints": {
@@ -39390,10 +41024,10 @@
             }
           ],
           "message": {
-            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf> <https://blackcatinformatics.ca/logic/body> <c14n25> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf> <https://blackcatinformatics.ca/logic/body> <c14n26> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "c74bfdb01705ec46"
+            "gmeowFindingHash/v2": "e617b15b79d8f9a9"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -39409,10 +41043,10 @@
             }
           ],
           "message": {
-            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf> <https://blackcatinformatics.ca/logic/body> <c14n36> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf> <https://blackcatinformatics.ca/logic/body> <c14n29> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "e0a93cb6d2e985f6"
+            "gmeowFindingHash/v2": "c18f398de2585762"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -39428,10 +41062,10 @@
             }
           ],
           "message": {
-            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf> <https://blackcatinformatics.ca/logic/body> <c14n38> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf> <https://blackcatinformatics.ca/logic/body> <c14n40> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "971a3a3573ffec14"
+            "gmeowFindingHash/v2": "8e8a2aeaa1361535"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -39447,10 +41081,10 @@
             }
           ],
           "message": {
-            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf> <https://blackcatinformatics.ca/logic/body> <c14n43> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf> <https://blackcatinformatics.ca/logic/body> <c14n42> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "a394c4288a1bd842"
+            "gmeowFindingHash/v2": "073b542d1184f45b"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -39470,6 +41104,25 @@
           },
           "partialFingerprints": {
             "gmeowFindingHash/v2": "bbd59a8911883a2e"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf> <https://blackcatinformatics.ca/logic/body> <c14n51> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "0b42622743bcf8bf"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -39580,29 +41233,10 @@
             }
           ],
           "message": {
-            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> <https://blackcatinformatics.ca/logic/body> <c14n11> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> <https://blackcatinformatics.ca/logic/body> <c14n12> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "8db76b8c209e77cd"
-          },
-          "ruleId": "logic-compile.lossy-drop"
-        },
-        {
-          "level": "note",
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "slices/grounding/logic/module.ttl"
-                }
-              }
-            }
-          ],
-          "message": {
-            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> <https://blackcatinformatics.ca/logic/body> <c14n15> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
-          },
-          "partialFingerprints": {
-            "gmeowFindingHash/v2": "c06c02be52271029"
+            "gmeowFindingHash/v2": "e21fb5c1df4a135a"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -39637,10 +41271,10 @@
             }
           ],
           "message": {
-            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> <https://blackcatinformatics.ca/logic/body> <c14n21> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> <https://blackcatinformatics.ca/logic/body> <c14n17> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "a67b270711785290"
+            "gmeowFindingHash/v2": "00233c05b4f802af"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -39656,10 +41290,29 @@
             }
           ],
           "message": {
-            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> <https://blackcatinformatics.ca/logic/body> <c14n31> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> <https://blackcatinformatics.ca/logic/body> <c14n24> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "ee69c0b37408132b"
+            "gmeowFindingHash/v2": "853d1f27dd1f1b15"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> <https://blackcatinformatics.ca/logic/body> <c14n35> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "fabe65e30445b807"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -39694,10 +41347,10 @@
             }
           ],
           "message": {
-            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> <https://blackcatinformatics.ca/logic/body> <c14n50> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> <https://blackcatinformatics.ca/logic/body> <c14n54> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "2502f90342c7be10"
+            "gmeowFindingHash/v2": "1d52ea94a591b2a4"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -39713,10 +41366,10 @@
             }
           ],
           "message": {
-            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> <https://blackcatinformatics.ca/logic/body> <c14n61> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> <https://blackcatinformatics.ca/logic/body> <c14n66> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "ff070b47f2f2e4d4"
+            "gmeowFindingHash/v2": "794637df35952387"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -39732,10 +41385,10 @@
             }
           ],
           "message": {
-            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> <https://blackcatinformatics.ca/logic/head> <c14n56> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> <https://blackcatinformatics.ca/logic/head> <c14n60> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "c0720552f4e3bdb0"
+            "gmeowFindingHash/v2": "02efdf0830401073"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -39770,10 +41423,10 @@
             }
           ],
           "message": {
-            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> <https://blackcatinformatics.ca/logic/body> <c14n13> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> <https://blackcatinformatics.ca/logic/body> <c14n10> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "58876dac7b3b2141"
+            "gmeowFindingHash/v2": "ca230b93a35312fe"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -39789,10 +41442,10 @@
             }
           ],
           "message": {
-            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> <https://blackcatinformatics.ca/logic/body> <c14n40> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> <https://blackcatinformatics.ca/logic/body> <c14n14> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "15db5a1044e003a9"
+            "gmeowFindingHash/v2": "95e5748294d4cb92"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -39808,10 +41461,10 @@
             }
           ],
           "message": {
-            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> <https://blackcatinformatics.ca/logic/body> <c14n46> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> <https://blackcatinformatics.ca/logic/body> <c14n44> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "7b733ddd9afc30f3"
+            "gmeowFindingHash/v2": "e326c2de13576b4d"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -39846,10 +41499,10 @@
             }
           ],
           "message": {
-            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> <https://blackcatinformatics.ca/logic/body> <c14n57> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> <https://blackcatinformatics.ca/logic/body> <c14n50> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "337380e93fa9b2d9"
+            "gmeowFindingHash/v2": "0f2e68a88d7d19ca"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -39865,10 +41518,10 @@
             }
           ],
           "message": {
-            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> <https://blackcatinformatics.ca/logic/body> <c14n60> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> <https://blackcatinformatics.ca/logic/body> <c14n61> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "36fefce1dc8bfe5b"
+            "gmeowFindingHash/v2": "d3586cdd5522e242"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -39884,10 +41537,10 @@
             }
           ],
           "message": {
-            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> <https://blackcatinformatics.ca/logic/body> <c14n63> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> <https://blackcatinformatics.ca/logic/body> <c14n65> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "1be176d856713644"
+            "gmeowFindingHash/v2": "eb99433ddc8f442e"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -39903,10 +41556,10 @@
             }
           ],
           "message": {
-            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> <https://blackcatinformatics.ca/logic/body> <c14n64> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> <https://blackcatinformatics.ca/logic/body> <c14n68> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "b9ae47e4318f89b7"
+            "gmeowFindingHash/v2": "d242630e0e0a4ad3"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -39922,10 +41575,10 @@
             }
           ],
           "message": {
-            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> <https://blackcatinformatics.ca/logic/body> <c14n9> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> <https://blackcatinformatics.ca/logic/body> <c14n69> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "06e419aca78264c0"
+            "gmeowFindingHash/v2": "dfa02f88fc55033a"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -39941,10 +41594,10 @@
             }
           ],
           "message": {
-            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> <https://blackcatinformatics.ca/logic/head> <c14n51> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> <https://blackcatinformatics.ca/logic/head> <c14n55> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "ca07f1195c6e549d"
+            "gmeowFindingHash/v2": "345f289c2f534ab9"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -39979,10 +41632,10 @@
             }
           ],
           "message": {
-            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleTenureClaimObservedFeature> <https://blackcatinformatics.ca/logic/body> <c14n41> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleTenureClaimObservedFeature> <https://blackcatinformatics.ca/logic/body> <c14n45> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "0a4cd76fea52f2f1"
+            "gmeowFindingHash/v2": "22a41bfb2a22e335"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -39998,10 +41651,10 @@
             }
           ],
           "message": {
-            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleTenureClaimObservedFeature> <https://blackcatinformatics.ca/logic/body> <c14n53> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleTenureClaimObservedFeature> <https://blackcatinformatics.ca/logic/body> <c14n57> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "9434acbfc183c540"
+            "gmeowFindingHash/v2": "b8ccaaf5a3919c54"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -40036,10 +41689,10 @@
             }
           ],
           "message": {
-            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleTenureClaimObservedFeature> <https://blackcatinformatics.ca/logic/head> <c14n39> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleTenureClaimObservedFeature> <https://blackcatinformatics.ca/logic/head> <c14n43> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "e34bc9417a9aa786"
+            "gmeowFindingHash/v2": "eac0475a88b74bb5"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -40074,10 +41727,10 @@
             }
           ],
           "message": {
-            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleTenureClaimVantage> <https://blackcatinformatics.ca/logic/body> <c14n45> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleTenureClaimVantage> <https://blackcatinformatics.ca/logic/body> <c14n49> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "06046a1bddcd8d21"
+            "gmeowFindingHash/v2": "b02990f7227e83dd"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -40093,10 +41746,10 @@
             }
           ],
           "message": {
-            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleTenureClaimVantage> <https://blackcatinformatics.ca/logic/body> <c14n54> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleTenureClaimVantage> <https://blackcatinformatics.ca/logic/body> <c14n58> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "281172a75dc338f7"
+            "gmeowFindingHash/v2": "b0fdc81ba2150f13"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -40131,10 +41784,10 @@
             }
           ],
           "message": {
-            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleTenureClaimVantage> <https://blackcatinformatics.ca/logic/head> <c14n29> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ruleTenureClaimVantage> <https://blackcatinformatics.ca/logic/head> <c14n33> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "e2aeb1d3b6f692f5"
+            "gmeowFindingHash/v2": "f2a5c7744ca74aac"
           },
           "ruleId": "logic-compile.lossy-drop"
         },

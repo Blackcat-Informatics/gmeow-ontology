@@ -62,12 +62,12 @@ fn fail_fixture_yields_two_errors_one_warning_with_locations() {
     let errors: Vec<_> = report
         .findings
         .iter()
-        .filter(|f| f.severity == gmeow_diagnostics::Severity::Error)
+        .filter(|f| f.severity == gmeow_errors::Severity::Error)
         .collect();
     let warnings: Vec<_> = report
         .findings
         .iter()
-        .filter(|f| f.severity == gmeow_diagnostics::Severity::Warning)
+        .filter(|f| f.severity == gmeow_errors::Severity::Warning)
         .collect();
 
     assert_eq!(
@@ -116,7 +116,7 @@ fn fail_fixture_yields_two_errors_one_warning_with_locations() {
                 .detail
                 .as_deref()
                 .is_some_and(|d| d.contains(FRAME_SHAPE))
-            && warnings[0].severity == gmeow_diagnostics::Severity::Warning,
+            && warnings[0].severity == gmeow_errors::Severity::Warning,
         "warning is not the frame-relativity one (EventFrameRequirementShape)"
     );
 
@@ -191,11 +191,11 @@ const DEEP_INCONSISTENT_TTL: &str = r#"@prefix gmeow: <https://blackcatinformati
 ex:rover a gmeow:PhysicalObject, gmeow:Agent .
 "#;
 
-fn has_code(report: &gmeow_diagnostics::Report, code: &str) -> bool {
+fn has_code(report: &gmeow_errors::Report, code: &str) -> bool {
     report.findings.iter().any(|f| f.code == code)
 }
 
-fn any_deep_code(report: &gmeow_diagnostics::Report) -> bool {
+fn any_deep_code(report: &gmeow_errors::Report) -> bool {
     report
         .findings
         .iter()

@@ -28,7 +28,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use gmeow_diagnostics::{Finding, Severity};
+use gmeow_errors::{Finding, Severity};
 use purrdf::{
     RdfDatasetBuilder, RdfQuad, RdfTerm, RdfTriple, SerializeGraph, parse_dataset,
     serialize_dataset,

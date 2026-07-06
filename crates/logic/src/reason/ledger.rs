@@ -17,7 +17,7 @@
 //! There is no I/O and no TTL emission here — serialization is the job of a later
 //! task. This module produces only the in-memory structured ledger.
 
-use gmeow_diagnostics::{Finding, Severity};
+use gmeow_errors::{Finding, Severity};
 use purrdf::RdfLoss;
 use std::collections::BTreeSet;
 
@@ -518,7 +518,7 @@ fn divergence_code_suffix(kind: &DivergenceKind) -> Option<&'static str> {
     }
 }
 
-/// Project a [`DivergenceLedger`] into restricted [`gmeow_diagnostics::Finding`]s —
+/// Project a [`DivergenceLedger`] into restricted [`gmeow_errors::Finding`]s —
 /// one per NON-`Agree` row.
 ///
 /// The diagnostics doctrine declares the native↔oracle / native↔corpus

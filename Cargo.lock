@@ -1796,8 +1796,8 @@ dependencies = [
  "assert_cmd",
  "clap",
  "gmeow-cli-core",
- "gmeow-diagnostics",
  "gmeow-docs",
+ "gmeow-errors",
  "gmeow-logic",
  "gmeow-logic-compile",
  "gmeow-music",
@@ -1818,7 +1818,7 @@ dependencies = [
  "anstyle",
  "clap",
  "comfy-table",
- "gmeow-diagnostics",
+ "gmeow-errors",
  "indicatif",
  "serde",
  "serde_json",
@@ -1832,7 +1832,7 @@ name = "gmeow-conformance"
 version = "0.1.0"
 dependencies = [
  "datatest-stable",
- "gmeow-diagnostics",
+ "gmeow-errors",
  "gmeow-license",
  "gmeow-logic",
  "gmeow-logic-compile",
@@ -1848,8 +1848,8 @@ dependencies = [
  "ciborium",
  "clap",
  "gmeow-cli-core",
- "gmeow-diagnostics",
  "gmeow-docs",
+ "gmeow-errors",
  "gmeow-foundation-corpus",
  "gmeow-license",
  "gmeow-logic",
@@ -1866,21 +1866,11 @@ dependencies = [
 ]
 
 [[package]]
-name = "gmeow-diagnostics"
-version = "0.1.0"
-dependencies = [
- "insta",
- "pyo3",
- "serde",
- "serde_json",
-]
-
-[[package]]
 name = "gmeow-docs"
 version = "0.1.0"
 dependencies = [
  "blake3",
- "gmeow-diagnostics",
+ "gmeow-errors",
  "gmeow-logic-compile",
  "gmeow-validate",
  "insta",
@@ -1893,6 +1883,19 @@ dependencies = [
  "serde",
  "serde_json",
  "sha1",
+]
+
+[[package]]
+name = "gmeow-errors"
+version = "0.1.0"
+dependencies = [
+ "blake3",
+ "insta",
+ "purrdf",
+ "pyo3",
+ "serde",
+ "serde_json",
+ "static_assertions",
 ]
 
 [[package]]
@@ -1940,7 +1943,7 @@ dependencies = [
  "blake3",
  "chrono",
  "criterion",
- "gmeow-diagnostics",
+ "gmeow-errors",
  "gmeow-logic-compile",
  "insta",
  "nemo",
@@ -1972,7 +1975,7 @@ dependencies = [
 name = "gmeow-lsp"
 version = "0.1.0"
 dependencies = [
- "gmeow-diagnostics",
+ "gmeow-errors",
  "gmeow-logic",
  "gmeow-logic-compile",
  "insta",
@@ -1997,8 +2000,8 @@ dependencies = [
 name = "gmeow-native"
 version = "0.1.0"
 dependencies = [
- "gmeow-diagnostics",
  "gmeow-docs",
+ "gmeow-errors",
  "gmeow-foundation-corpus",
  "gmeow-logic",
  "gmeow-music",
@@ -2020,8 +2023,8 @@ dependencies = [
  "ed25519-dalek",
  "gmeow-cli-core",
  "gmeow-conformance",
- "gmeow-diagnostics",
  "gmeow-docs",
+ "gmeow-errors",
  "gmeow-lang-bridge",
  "gmeow-lang-form",
  "gmeow-logic",
@@ -2063,7 +2066,7 @@ dependencies = [
  "ciborium",
  "criterion",
  "ed25519-dalek",
- "gmeow-diagnostics",
+ "gmeow-errors",
  "gmeow-license",
  "gmeow-logic",
  "insta",
