@@ -2358,6 +2358,10 @@ fn write_shex(view: &FoldView) -> Vec<u8> {
         "# are not translated. The OWL source is canonical.".into(),
         format!("PREFIX gmeow: <{NAMESPACE}>"),
         "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>".into(),
+        // A datatype property whose rdfs:range is `rdfs:Literal` projects to a
+        // bare `rdfs:Literal` node constraint; declare the prefix so the emitted
+        // ShExC is well-formed (purrdf's parser rejects an undeclared CURIE).
+        format!("PREFIX rdfs: <{RDFS}>"),
         "PREFIX gufo: <http://purl.org/nemo/gufo#>".into(),
         String::new(),
     ];

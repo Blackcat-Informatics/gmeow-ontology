@@ -133,9 +133,9 @@ def project_graph(
 ) -> Graph:
     """Run a profile's CONSTRUCT over a source, returning the projection.
 
-    The CONSTRUCT runs on purrdf (~12x faster than rdflib's engine); the
-    :mod:`gmeow_tools.oracles.engine_crosscheck` gate proves the two engines
-    agree, so the output is identical to the former rdflib path.
+    The CONSTRUCT runs on purrdf, whose SPARQL engine is W3C-conformance tested;
+    the native ``crosscheck-queries`` gate proves every committed query answers
+    on it, so the projection output is trustworthy.
 
     Args:
         profile: A key of :data:`PROFILES`.

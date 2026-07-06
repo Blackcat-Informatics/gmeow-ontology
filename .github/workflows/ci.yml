@@ -34,8 +34,9 @@ env:
 # documented follow-up — `lint` and `rust` need the native `gmeow_diagnostics`
 # extension / a Python toolchain added to those jobs, and `ontology` a dedicated
 # feedback run; that work is coordinated with the effort that restructures the
-# reason/statements jobs into `native` + `classic-cross-check`. Per the owner's
-# rule, whichever lands second renames the categories in one place.
+# reason/statements jobs into a single native reason lane (the classic Java/Docker
+# oracle lane having been removed). Per the owner's rule, whichever lands second
+# renames the categories in one place.
 # Uploads are fork-safe: only push + same-repo PRs hit code scanning; fork PRs
 # fall back to a workflow artifact (their token lacks security-events: write).
 jobs:
@@ -485,6 +486,9 @@ jobs:
       - name: Vendored-entity coverage — hard class/predicate floors
         run: make coverage
 
+      - name: Native purrdf-entail cross-check — native ⊇ OWL-RL oracle (on-gate)
+        run: make reason-crosscheck
+
   ontology-misc:
     needs: [native-build]
     runs-on: ubuntu-latest
@@ -541,15 +545,18 @@ jobs:
       - name: Compliance report (per-principle gate evidence)
         run: make compliance-report
 
-  # === CLASSIC-CROSS-CHECK LANE (Principle 18; relocated) ===
+  # === REASONING CROSS-CHECK ORACLE (Principle 18; native, on-gate) ===
   # The Java+Docker classic oracle lane (ELK/HermiT/ROBOT/Jena/owlrl) has been
-  # relocated OUT of CI entirely into the standalone `validations/classic-cross-check/`
-  # validator-zoo suite — run on demand with `make -C validations/classic-cross-check`,
-  # never on a schedule, a PR label, or branch protection. The authoritative gate
-  # is the native, Docker-free reasoning lane in the required `quality` aggregator
-  # below; Principle 18 is proven natively by the divergence-ledger enforcer and
-  # the frozen oracle-gold conformance case (in `make conformance`). (The rdflib
-  # query cross-check lane stays in `gmeow-dev crosscheck-queries`.)
+  # REMOVED. Its replacement is a native, in-process, Docker-free reasoning oracle
+  # over `purrdf::entail` (an OWL-RL + OWL-Direct-tableau engine, 70/70
+  # W3C-entailment conformance-tested) — `gmeow-dev reason-crosscheck`, run ON-GATE
+  # inside the required `quality` aggregator's reason lane. The on-gate cross-check
+  # exercises SUBSUMPTION only (native ⊇ oracle); consistency is NOT on this gate —
+  # it is decided by the native reasoner and checked separately via `reason-verify`.
+  # The authoritative gate stays native and Docker-free; Principle 18 is proven
+  # natively by the divergence-ledger enforcer, the on-gate subsumption entail
+  # cross-check, and the frozen oracle-gold conformance case (in `make conformance`).
+  # (The rdflib query cross-check lane stays in `gmeow-dev crosscheck-queries`.)
 
   # purrdf wasm build + Node real-execution lane (P10). The in-memory RDF/JS
   # engine MUST compile to wasm32-unknown-unknown (`make wasm` hard-fails if the
@@ -613,13 +620,12 @@ jobs:
   # above. `if: always()` guarantees it reports a definite success/failure
   # (never a merge-blocking "skipped") and fails if any parallel job did not.
   #
-  # The classic-cross-check lane is DELIBERATELY outside CI — relocated to the
-  # standalone `validations/classic-cross-check/` suite, NOT in this
-  # aggregator's `needs:` (Principle 18): the Docker/Java oracle lane
-  # is a separately-observed, run-on-demand cross-check, never a requirement to
-  # merge or to use the repo. The required gate stays Docker-free and Java-free.
-  # Statements now run natively via the gmeow-rdf codec inside the `ontology`
-  # job's `check-generated` — there is no separate statements lane.
+  # The classic Java/Docker oracle lane has been REMOVED (Principle 18); its
+  # replacement is the native in-process `purrdf::entail` cross-check, which runs
+  # ON-GATE inside the required reason lane rather than as a separate job. The
+  # required gate stays Docker-free and Java-free. Statements now run natively via
+  # the gmeow-rdf codec inside the `ontology` job's `check-generated` — there is no
+  # separate statements lane.
   quality:
     needs: [native-build, lint, python, rust, wasm, ontology-validate, ontology-generated, ontology-reason, ontology-misc]
     if: always()
@@ -644,4 +650,4 @@ jobs:
               exit 1
             fi
           done
-          echo "all required quality jobs succeeded (classic-cross-check oracle lane is non-blocking by design)"
+          echo "all required quality jobs succeeded (the native on-gate purrdf-entail cross-check runs inside the reason lane)"

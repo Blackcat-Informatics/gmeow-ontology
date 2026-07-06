@@ -4,7 +4,7 @@
 
 Where real ``rdflib`` is installed, the facade is differential-tested against it
 so the term/equality/serialization behaviour matches. These run in the default
-lane (no ``classic_cross_check`` marker) — the facade IS default-path code.
+lane — the facade IS default-path code.
 """
 
 from __future__ import annotations
