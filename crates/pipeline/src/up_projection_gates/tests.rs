@@ -454,13 +454,14 @@ fn two_discharged_cells_claiming_the_same_ext_hard_fail_not_last_wins() {
 
     let err = gate_verified_lift_program(&[], &[ttl_a, ttl_b], &discharged)
         .expect_err("two discharged cells claiming the same ext must hard-fail, never last-wins");
+    let rendered = err.to_string();
     assert!(
-        err.contains(ext),
-        "the collision error must name the colliding external term, got: {err}"
+        rendered.contains(ext),
+        "the collision error must name the colliding external term, got: {rendered}"
     );
     assert!(
-        err.contains(cell_a) && err.contains(cell_b),
-        "the collision error must name BOTH offending discharged cells, got: {err}"
+        rendered.contains(cell_a) && rendered.contains(cell_b),
+        "the collision error must name BOTH offending discharged cells, got: {rendered}"
     );
 }
 

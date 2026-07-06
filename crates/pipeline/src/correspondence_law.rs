@@ -147,7 +147,10 @@ fn run_leg(
 ) -> Result<Vec<RdfQuad>, String> {
     let dataset = parse_dataset(source_nt.as_bytes(), "application/n-triples", None)
         .map_err(|e| format!("failed to parse round-trip source graph: {e}"))?;
-    run_construct(engine, &dataset, query)
+    // `run_construct`/`dump_nt` are on the Diag substrate; this self-contained round-trip module
+    // keeps its internal Results String-typed (they are swallowed into `violated(..)` verdict
+    // messages via Display, never surfaced as a pipeline error), so flatten the Diag at the edge.
+    run_construct(engine, &dataset, query).map_err(|e| e.to_string())
 }
 
 /// Serialise the typed constructed quads back to an N-Triples graph for the next leg, via the
@@ -156,7 +159,7 @@ fn run_leg(
 /// leg's parser accepts the carrier instead of choking on a hand-built `<literal>`. A
 /// serialization failure is surfaced as `Err` (hard-fail) — never a silent drop.
 fn quads_to_ntriples(quads: &[RdfQuad]) -> Result<String, String> {
-    dump_nt(quads)
+    dump_nt(quads).map_err(|e| e.to_string())
 }
 
 /// Discharge [`CorrespondenceLaw::SectionLaw`] (`put ∘ get = id_S`) by EXECUTION over `seeds`.

@@ -14,8 +14,6 @@
 
 use std::time::Duration;
 
-use crate::error::PipelineError;
-
 const OOPS_ENDPOINT: &str = "https://oops.linkeddata.es/rest";
 const FOOPS_ENDPOINT: &str = "https://w3id.org/foops/assessOntology";
 
@@ -28,11 +26,11 @@ const OOPS_REQUEST_TEMPLATE: &str = r#"<?xml version="1.0" encoding="UTF-8"?>
 </OOPSRequest>
 "#;
 
-fn stage_err(message: impl Into<String>) -> PipelineError {
-    PipelineError::Stage {
+fn stage_err(message: impl Into<String>) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(crate::error::StageFailed {
         stage: "quality".to_string(),
         message: message.into(),
-    }
+    })
 }
 
 /// A FOOPS! FAIR assessment summary.
@@ -57,7 +55,7 @@ pub struct FoopsResult {
 /// # Errors
 ///
 /// - The network request fails, or the service returns a non-success status.
-pub fn run_oops(ttl_content: &str, timeout: Duration) -> Result<String, PipelineError> {
+pub fn run_oops(ttl_content: &str, timeout: Duration) -> Result<String, gmeow_errors::Diag> {
     let body = OOPS_REQUEST_TEMPLATE.replace("{content}", ttl_content);
     let response = ureq::post(OOPS_ENDPOINT)
         .content_type("application/xml")
@@ -84,7 +82,7 @@ pub fn run_oops(ttl_content: &str, timeout: Duration) -> Result<String, Pipeline
 ///
 /// - The network request fails, the service returns a non-success status, or the
 ///   JSON payload cannot be parsed.
-pub fn run_foops(ontology_url: &str, timeout: Duration) -> Result<FoopsResult, PipelineError> {
+pub fn run_foops(ontology_url: &str, timeout: Duration) -> Result<FoopsResult, gmeow_errors::Diag> {
     let response = ureq::post(FOOPS_ENDPOINT)
         .config()
         .timeout_global(Some(timeout))
@@ -100,7 +98,7 @@ pub fn run_foops(ontology_url: &str, timeout: Duration) -> Result<FoopsResult, P
 
 /// Summarize a FOOPS! JSON payload into a [`FoopsResult`]. Factored out so the
 /// payload→summary reduction is unit-testable without a network call.
-fn parse_foops_payload(text: &str) -> Result<FoopsResult, PipelineError> {
+fn parse_foops_payload(text: &str) -> Result<FoopsResult, gmeow_errors::Diag> {
     let payload: serde_json::Value = serde_json::from_str(text)
         .map_err(|e| stage_err(format!("FOOPS! payload not JSON: {e}")))?;
     let checks = payload

@@ -16,7 +16,6 @@ use gmeow_docs::model::{DocsModel, ReasoningVerdict};
 use gmeow_docs::rdf::to_gmeow_rdf;
 use purrdf::RdfTerm;
 
-use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 
 /// Logical path of the documentation named graph (N-Quads, in-memory dataflow).
@@ -40,21 +39,25 @@ const OWL_NOTHING: &str = "http://www.w3.org/2002/07/owl#Nothing";
 /// silent "consistent" default.
 pub(crate) fn reasoning_verdict_from_reason(
     upstream: &BTreeMap<String, StageProduct>,
-) -> Result<ReasoningVerdict, PipelineError> {
+) -> Result<ReasoningVerdict, gmeow_errors::Diag> {
     let closure = upstream
         .get("stage-reason")
         .and_then(|p| p.artifact(crate::stages::reason::CLOSURE_PATH))
-        .ok_or_else(|| PipelineError::Stage {
-            stage: "stage-docs-render".to_string(),
-            message: format!(
-                "missing stage-reason artifact {} for the reasoning verdict",
-                crate::stages::reason::CLOSURE_PATH
-            ),
+        .ok_or_else(|| {
+            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                stage: "stage-docs-render".to_string(),
+                message: format!(
+                    "missing stage-reason artifact {} for the reasoning verdict",
+                    crate::stages::reason::CLOSURE_PATH
+                ),
+            })
         })?;
     let dataset = crate::stages::source_load::turtle_bytes_to_dataset(closure, "reason-closure")
-        .map_err(|e| PipelineError::Stage {
-            stage: "stage-docs-render".to_string(),
-            message: format!("parse reasoned closure for the reasoning verdict: {e}"),
+        .map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                stage: "stage-docs-render".to_string(),
+                message: format!("parse reasoned closure for the reasoning verdict: {e}"),
+            })
         })?;
     let mut unsatisfiable: BTreeSet<String> = BTreeSet::new();
     let mut is_consistent = true;
@@ -87,10 +90,15 @@ pub(crate) fn reasoning_verdict_from_reason(
 /// fabricated default). The per-term content-address provenance is read from the
 /// committed manifest (self-healing on a term-adding build; see
 /// `gmeow_docs::model::DocsModel::discover`).
-pub fn render_docs_graph(root: &Path, verdict: ReasoningVerdict) -> Result<String, PipelineError> {
-    let mut model = DocsModel::discover(root).map_err(|e| PipelineError::Stage {
-        stage: "stage-docs-render".to_string(),
-        message: format!("docs model discovery failed: {e}"),
+pub fn render_docs_graph(
+    root: &Path,
+    verdict: ReasoningVerdict,
+) -> Result<String, gmeow_errors::Diag> {
+    let mut model = DocsModel::discover(root).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            stage: "stage-docs-render".to_string(),
+            message: format!("docs model discovery failed: {e}"),
+        })
     })?;
     model.attach_reasoning(verdict);
     Ok(to_gmeow_rdf(&model))
@@ -98,7 +106,7 @@ pub fn render_docs_graph(root: &Path, verdict: ReasoningVerdict) -> Result<Strin
 
 /// Recursively collect every regular file under `dir` into `out` (fail-fast on a
 /// `read_dir` entry error; a missing directory yields nothing).
-fn walk_files(dir: &Path, out: &mut Vec<std::path::PathBuf>) -> Result<(), PipelineError> {
+fn walk_files(dir: &Path, out: &mut Vec<std::path::PathBuf>) -> Result<(), gmeow_errors::Diag> {
     if !dir.is_dir() {
         return Ok(());
     }
@@ -123,7 +131,9 @@ fn walk_files(dir: &Path, out: &mut Vec<std::path::PathBuf>) -> Result<(), Pipel
 /// artifact from the docs model must declare them as `input_files` for cache
 /// soundness. Shared by `DocsRenderStage` (the documentation graph) and
 /// `SnapshotStage` (the embedded rendered site).
-pub(crate) fn docs_source_files(root: &Path) -> Result<Vec<std::path::PathBuf>, PipelineError> {
+pub(crate) fn docs_source_files(
+    root: &Path,
+) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
     let mut files: Vec<std::path::PathBuf> = Vec::new();
     for module in crate::stages::source_load::module_files(root)? {
         let dir = module.parent().unwrap_or(root);
@@ -212,14 +222,14 @@ impl Stage for DocsRenderStage {
         // committed manifest. Bumped so the cache re-derives it.
         "docs_render.v3"
     }
-    fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, PipelineError> {
+    fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
         // The raw-source half of this DocsRender leaf — declared so a guide /
         // four-boxes / per-slice i18n catalog edit busts the cache (cache soundness).
         // The snapshot stage embeds the rendered SITE from these same sources,
         // so it shares this list via `docs_source_files`.
         docs_source_files(root)
     }
-    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
+    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         let verdict = reasoning_verdict_from_reason(input.upstream)?;
         let graph = render_docs_graph(input.root, verdict)?;
         let graph_bytes = graph.into_bytes();
@@ -233,9 +243,11 @@ impl Stage for DocsRenderStage {
         )?;
         let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
         artifacts.insert(DOCS_GRAPH_PATH.to_string(), graph_bytes);
-        Ok(StageOutput {
-            product: StageProduct::from_artifacts_over(self.id(), dataset, artifacts),
-        })
+        Ok(StageOutput::new(StageProduct::from_artifacts_over(
+            self.id(),
+            dataset,
+            artifacts,
+        )))
     }
 }
 

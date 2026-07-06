@@ -2,7 +2,13 @@
   "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
   "runs": [
     {
-      "artifacts": [],
+      "artifacts": [
+        {
+          "location": {
+            "uri": "slices/extensions/music/module.ttl"
+          }
+        }
+      ],
       "automationDetails": {
         "id": "shacl"
       },
@@ -21,12 +27,12 @@
               ],
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "ontology/gmeow.ttl"
+                  "uri": "slices/extensions/music/module.ttl"
+                },
+                "region": {
+                  "startColumn": 1,
+                  "startLine": 1837
                 }
-              },
-              "properties": {
-                "gmeow.syntheticPhysicalLocation": true,
-                "gmeow.syntheticPhysicalLocationReason": "logical-only diagnostic anchor"
               }
             }
           ],
@@ -34,7 +40,7 @@
             "text": "A Expression must carry at least one reference frame (gmeow:hasReferenceFrame) — a value asserted without its frame is ill-formed (CONSTITUTION P11)."
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "a90e28357639aac3"
+            "gmeowFindingHash/v2": "b058f0f2acc00526"
           },
           "properties": {
             "detail": "source shape: https://blackcatinformatics.ca/gmeow/ExpressionFrameRequirementShape"
@@ -55,12 +61,12 @@
               ],
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "ontology/gmeow.ttl"
+                  "uri": "slices/extensions/music/module.ttl"
+                },
+                "region": {
+                  "startColumn": 1,
+                  "startLine": 1890
                 }
-              },
-              "properties": {
-                "gmeow.syntheticPhysicalLocation": true,
-                "gmeow.syntheticPhysicalLocationReason": "logical-only diagnostic anchor"
               }
             }
           ],
@@ -68,7 +74,7 @@
             "text": "A Expression must carry at least one reference frame (gmeow:hasReferenceFrame) — a value asserted without its frame is ill-formed (CONSTITUTION P11)."
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "480813fe4f4a2abb"
+            "gmeowFindingHash/v2": "9bbfa0ab68c7a781"
           },
           "properties": {
             "detail": "source shape: https://blackcatinformatics.ca/gmeow/ExpressionFrameRequirementShape"
@@ -89,12 +95,12 @@
               ],
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "ontology/gmeow.ttl"
+                  "uri": "slices/extensions/music/module.ttl"
+                },
+                "region": {
+                  "startColumn": 1,
+                  "startLine": 1899
                 }
-              },
-              "properties": {
-                "gmeow.syntheticPhysicalLocation": true,
-                "gmeow.syntheticPhysicalLocationReason": "logical-only diagnostic anchor"
               }
             }
           ],
@@ -102,7 +108,7 @@
             "text": "A Expression must carry at least one reference frame (gmeow:hasReferenceFrame) — a value asserted without its frame is ill-formed (CONSTITUTION P11)."
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "b6d313c5d987363b"
+            "gmeowFindingHash/v2": "ea4c624b8f89d15e"
           },
           "properties": {
             "detail": "source shape: https://blackcatinformatics.ca/gmeow/ExpressionFrameRequirementShape"
@@ -123,12 +129,12 @@
               ],
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "ontology/gmeow.ttl"
+                  "uri": "slices/extensions/music/module.ttl"
+                },
+                "region": {
+                  "startColumn": 1,
+                  "startLine": 1909
                 }
-              },
-              "properties": {
-                "gmeow.syntheticPhysicalLocation": true,
-                "gmeow.syntheticPhysicalLocationReason": "logical-only diagnostic anchor"
               }
             }
           ],
@@ -136,7 +142,7 @@
             "text": "A Expression must carry at least one reference frame (gmeow:hasReferenceFrame) — a value asserted without its frame is ill-formed (CONSTITUTION P11)."
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "3ab975d8c442a435"
+            "gmeowFindingHash/v2": "2940860b60daaeb4"
           },
           "properties": {
             "detail": "source shape: https://blackcatinformatics.ca/gmeow/ExpressionFrameRequirementShape"
