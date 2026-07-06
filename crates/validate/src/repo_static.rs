@@ -22,11 +22,13 @@ use crate::model::rdf;
 
 const TOOL: &str = "repo-static";
 
-// engine_crosscheck.py is the sole remaining rdflib runtime keeper (the
-// rdflib query cross-check). The classic ELK/HermiT oracle lane that used the
-// rest of the rdflib surface has been DELETED along with its Docker/Java
-// tooling.
-const RDFLIB_KEEPERS: &[&str] = &["oracles/engine_crosscheck.py"];
+// No runtime rdflib keeper remains: the rdflib↔purrdf query cross-check
+// (`oracles/engine_crosscheck.py`) — the last first-party user of upstream
+// rdflib — has been DELETED (purrdf's own rdflib-parity + W3C SPARQL
+// conformance make it redundant), so first-party code is now rdflib-free and
+// must use `purrdf.compat.rdflib` exclusively. An empty keeper list means the
+// lint rejects ANY upstream-rdflib import in `src/gmeow_tools`.
+const RDFLIB_KEEPERS: &[&str] = &[];
 
 // The ELK/HermiT/Docker OWL-reasoner lane has been DELETED entirely — the
 // native `logic:` reasoner + in-process `purrdf::entail` oracle replaced it, so
@@ -1181,10 +1183,10 @@ mod tests {
     }
 
     fn write_minimal_repo(root: &Path) {
-        write(
-            &root.join("src/gmeow_tools/oracles/engine_crosscheck.py"),
-            "import rdflib\n",
-        );
+        // First-party code is rdflib-free (no keeper): a minimal valid repo has a
+        // real src/gmeow_tools package with NO upstream-rdflib import anywhere (it
+        // uses the purrdf.compat.rdflib facade instead).
+        write(&root.join("src/gmeow_tools/sparql.py"), "import purrdf\n");
         write(
             &root.join(".github/workflows/ci.yml"),
             "on:\n  push:\n  pull_request:\njobs:\n  lint:\n    steps:\n      - run: make lint\n  quality:\n    needs: [lint]\n    steps:\n      - run: echo all-good\n",

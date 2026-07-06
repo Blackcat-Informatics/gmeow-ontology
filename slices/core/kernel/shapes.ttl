@@ -1,0 +1,47 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix sh:    <http://www.w3.org/ns/shacl#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+
+# =========================================================================== #
+# Consumer-advisory range shapes
+#
+# gmeow:useForConsumer / gmeow:avoidForConsumer are term-level advisory
+# annotations whose value MUST be a declared gmeow:ProjectionContext individual
+# (the OWL rdfs:range says so; this is the enforceable data-shape twin). A pure
+# class-membership constraint over asserted triples — the cleanly-structural
+# subset of the native structural lint, authored declaratively so it folds into
+# gmeow.gts and is enforced by `make validate` (dogfooding). The equivalent
+# native gate in crates/validate/src/lint.rs is retained as defense-in-depth.
+# =========================================================================== #
+
+gmeow:UseForConsumerTargetShape
+    a sh:NodeShape ;
+    rdfs:label "useForConsumer range shape"@x-gmeow-english ;
+    skos:definition "Every gmeow:useForConsumer value must be a declared gmeow:ProjectionContext individual."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
+    sh:targetSubjectsOf gmeow:useForConsumer ;
+    sh:property [
+        sh:path gmeow:useForConsumer ;
+        sh:nodeKind sh:IRI ;
+        sh:class gmeow:ProjectionContext ;
+        sh:severity sh:Violation ;
+        sh:message "gmeow:useForConsumer must point at a declared gmeow:ProjectionContext individual." ;
+    ] .
+
+gmeow:AvoidForConsumerTargetShape
+    a sh:NodeShape ;
+    rdfs:label "avoidForConsumer range shape"@x-gmeow-english ;
+    skos:definition "Every gmeow:avoidForConsumer value must be a declared gmeow:ProjectionContext individual."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
+    sh:targetSubjectsOf gmeow:avoidForConsumer ;
+    sh:property [
+        sh:path gmeow:avoidForConsumer ;
+        sh:nodeKind sh:IRI ;
+        sh:class gmeow:ProjectionContext ;
+        sh:severity sh:Violation ;
+        sh:message "gmeow:avoidForConsumer must point at a declared gmeow:ProjectionContext individual." ;
+    ] .

@@ -456,9 +456,8 @@ RDF-1.2 codec is **done**: the statement lead artifact (`generated/statements/gm
 written natively by `gmeow-rdf` (`gmeow_rdf.project_statements_rdf12`), so the build / `make check`
 / `check-generated` / `regenerate` carry **zero Java and zero Docker** on the statement path.
 
-*Embodied in:* the native reason lane ([`src/gmeow_tools/reason.py`](./src/gmeow_tools/reason.py)),
-the `reason --mode native` CLI command, the `native-reasoning` registered generator
-([`src/gmeow_tools/native_reason_gen.py`](./src/gmeow_tools/native_reason_gen.py)), and the enforcing
+*Embodied in:* the native reason lane ([`crates/logic/src/reason/mod.rs`](./crates/logic/src/reason/mod.rs)),
+the `reason --mode native` CLI command, the `reason` registered pipeline generator, and the enforcing
 in-process entail cross-check oracle
 ([`crates/logic/src/entail_oracle.rs`](./crates/logic/src/entail_oracle.rs),
 [`crates/logic/src/entail_crosscheck.rs`](./crates/logic/src/entail_crosscheck.rs)). *Tested by:* the

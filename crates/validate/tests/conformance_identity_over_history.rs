@@ -19,14 +19,10 @@
 //!   [`suppressed_identity_passes_shacl`] (fixture-only `validate`, the
 //!   twin of Python `run_shacl`).
 //!
-//! NOT migrated (out of scope for this Rust-harness structural batch):
-//! - `test_mailmap_projection_emits_canonical_and_suppressed_lines` exercised
-//!   `project_graph("mailmap", ...)`, a projection-pipeline function with no
-//!   equivalent in the whole-ontology SHACL/graph-query conformance harness.
-//!   The `mailmap` profile registration itself is covered natively in
-//!   `crates/pipeline/src/projections.rs`; the end-to-end mailmap OUTPUT
-//!   assertion (canonical + suppressed line text) has no native twin yet — see
-//!   the report's refinement flag.
+//! - `test_mailmap_projection_emits_canonical_and_suppressed_lines` →
+//!   [`mailmap_projection_emits_canonical_and_suppressed_lines`] — runs the
+//!   committed `mailmap.rq` CONSTRUCT in-process over the fixture and asserts the
+//!   canonical + suppressed lines (the end-to-end projection OUTPUT, no Python).
 
 mod conformance_support;
 use conformance_support::*;
@@ -35,6 +31,9 @@ use purrdf::slice::rdf_query::Object;
 const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
 const EX: &str = "https://blackcatinformatics.ca/gmeow/examples/";
 const XSD_BOOLEAN: &str = "http://www.w3.org/2001/XMLSchema#boolean";
+const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
+/// The committed `.mailmap` projection query (a SPARQL CONSTRUCT).
+const MAILMAP_RQ_REL: &str = "generated/queries/mailmap.rq";
 
 const OWL_SAME_AS: &str = "http://www.w3.org/2002/07/owl#sameAs";
 
@@ -197,4 +196,43 @@ fn suppressed_identity_passes_shacl() {
         "false",
         XSD_BOOLEAN
     ));
+}
+
+/// Twin of `test_mailmap_projection_emits_canonical_and_suppressed_lines`.
+///
+/// Runs the committed `.mailmap` projection query (`generated/queries/mailmap.rq`,
+/// a SPARQL CONSTRUCT) in-process over the issue-234 fixture and asserts the
+/// projection OUTPUT: (a) the canonical mailmap line survives for the displayable
+/// identity, and (b) the suppressed historical `AuthorIdentity` yields a
+/// canonical→old-bytes mapping line (Principle 10 — the old bytes are preserved,
+/// not erased). This restores the end-to-end mailmap output assertion natively.
+#[test]
+fn mailmap_projection_emits_canonical_and_suppressed_lines() {
+    let src = GraphStore::parse_ttl_file(&repo_root().join(FIXTURE_REL));
+    let query = std::fs::read_to_string(repo_root().join(MAILMAP_RQ_REL))
+        .expect("committed mailmap.rq must exist");
+    let projected = src.construct(&query);
+
+    // (a) The canonical mailmap line for the displayable current identity.
+    assert!(
+        projected.has_literal(
+            &ex("eve"),
+            &gmeow("mailmapEntry"),
+            "Eve <eve@example.com>",
+            XSD_STRING
+        ),
+        "canonical mailmap line for the displayable identity must be projected"
+    );
+
+    // (b) The suppressed old identity maps its historical bytes to the canonical
+    // line: CONCAT(canonical, " ", oldBytes).
+    assert!(
+        projected.has_literal(
+            &ex("evanIdentity"),
+            &gmeow("projectedMailmapMapping"),
+            "Eve <eve@example.com> Evan <evan@example.com>",
+            XSD_STRING
+        ),
+        "suppressed old→canonical mailmap mapping line must be projected"
+    );
 }
