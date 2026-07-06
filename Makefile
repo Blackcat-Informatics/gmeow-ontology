@@ -136,11 +136,11 @@ reason-verify: native-py ## Run native reasoning + reasoned-graph verify with on
 reason-crosscheck: native-py ## Cross-check native subsumptions against the purrdf-entail OWL-RL oracle (native ⊇ oracle).
 	$(GMEOW_DEV) reason-crosscheck
 
-test: native-py ## Run the pytest suite, excluding maintainer lanes.
+test: native-py ## Run the full pytest suite (excl. maintainer lanes) with slowest-25 profiling.
 	uv run pytest -n auto --dist loadscope --durations=25 -m "not maintainer"
 
-test-fast: native-py ## Run the fast pytest suite, excluding maintainer lanes.
-	uv run pytest -n auto --dist loadscope --durations=25 -m "not maintainer"
+test-fast: native-py ## Fast gate lane: same suite, fail-fast (-x), no profiling — the lane `make check` runs.
+	uv run pytest -n auto --dist loadscope -x -m "not maintainer"
 
 rust-build: $(RUST_READY_STAMP) ## Compile Rust workspace test binaries without running them.
 
