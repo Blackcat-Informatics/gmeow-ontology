@@ -43,8 +43,9 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use gmeow_logic_compile::ir::{DischargeVerdict, LegPath};
+use gmeow_logic_compile::ir::{DischargeVerdict, LegPath, LogicProgram, PreservationKind};
 use gmeow_logic_compile::projections::correspondence::CorrespondenceProgram;
+use gmeow_logic_compile::projections::correspondence_gates::CorrespondenceVerdicts;
 use gmeow_logic_compile::projections::paths::leg_path_canonical;
 use purrdf::sparql::NativeSparqlEngine;
 use purrdf::{RdfTerm, SparqlEngine, SparqlRequest, SparqlResult, parse_dataset};
@@ -190,6 +191,34 @@ pub fn program_verdicts(program: &CorrespondenceProgram) -> BTreeMap<String, Dis
         out.insert(c.iri.clone(), verdict);
     }
     out
+}
+
+/// Compute the executed lens-law verdict map for every `logic:Correspondence` a compiled
+/// [`LogicProgram`] carries — the exact per-correspondence map
+/// [`gmeow_logic_compile::projections::compile_program`]'s five correspondence gates require.
+///
+/// This is the **single** production/harness discharge: it assembles the correspondence
+/// program the compiler builds internally (the same leg registry + derived put legs, keyed by
+/// the SAME correspondence IRIs), then runs [`program_verdicts`] over it. Because the assembly
+/// is byte-identical to `compile_program`'s and `program_verdicts` emits one entry per
+/// correspondence, EVERY correspondence the gates evaluate has a supplied verdict — so a caller
+/// that threads this map can never trip the gates' missing-verdict invariant.
+///
+/// A correspondence-free program yields an empty map (the gates never run). A malformed
+/// leg registry (a put leg that cannot be derived) surfaces as a clean `Err`, never a panic —
+/// the caller propagates it as a surfaced diagnostic.
+pub fn logic_program_verdicts(program: &LogicProgram) -> Result<CorrespondenceVerdicts, String> {
+    if program.correspondences.is_empty() {
+        return Ok(CorrespondenceVerdicts::new());
+    }
+    let assembled = CorrespondenceProgram::new(
+        program.correspondences.clone(),
+        Vec::new(),
+        PreservationKind::SoundUnder,
+    )
+    .with_leg_programs(program.transaction_programs.clone());
+    let (derived, _outcomes) = assembled.with_derived_puts()?;
+    Ok(program_verdicts(&derived))
 }
 
 #[cfg(test)]

@@ -843,8 +843,16 @@ fn compile_logic<'py>(py: Python<'py>, source_ttl: &str) -> PyResult<Bound<'py, 
 
     let (program, diagnostics) = parse_logic_str(source_ttl, None)
         .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.0))?;
-    let arts = compile_program(&program, &Default::default())
+    // Discharge every authored correspondence's lens law by EXECUTION so the five
+    // correspondence gates inside `compile_program` read a real per-correspondence verdict.
+    // A `logic:` source that declares `logic:Correspondence` cells would otherwise reach the
+    // gates' missing-verdict hard-fail (surfacing as a PanicException across this PyO3 boundary
+    // instead of a clean ValueError); computing the verdicts here keeps the boundary honest. A
+    // correspondence-free source yields an empty map (the gates never run).
+    let verdicts = crate::correspondence_exec::logic_program_verdicts(&program)
         .map_err(pyo3::exceptions::PyValueError::new_err)?;
+    let arts =
+        compile_program(&program, &verdicts).map_err(pyo3::exceptions::PyValueError::new_err)?;
 
     // Build the canonical diagnostics Report in Rust: the parse diagnostics
     // become `logic-compile.<code>` findings here, in the core, not via a Python

@@ -35,9 +35,18 @@ use super::correspondence_gate::assert_relation_no_overclaim;
 /// re-deriving an inversion. See `gmeow_logic::correspondence_exec` for the executor.
 pub type CorrespondenceVerdicts = BTreeMap<String, DischargeVerdict>;
 
-/// Read the supplied executed verdict for a correspondence — a HARD FAIL (panic, never a
-/// silent default/pass) when a present correspondence carries no verdict, so a wiring bug that
-/// forgot to discharge a cell can never slip through as a spurious pass.
+/// Read the supplied executed verdict for a correspondence.
+///
+/// This is an **internal invariant**, not a public entry point: it panics when a correspondence
+/// the gates evaluate carries no supplied verdict. The invariant holds by construction — every
+/// caller reaches [`evaluate_gates`] through [`crate::projections::compile_program`], which
+/// derives its correspondence program with the SAME assembly the executed-verdict producer
+/// uses (`gmeow_logic::correspondence_exec::logic_program_verdicts`), and that producer emits
+/// one entry per correspondence keyed by the identical IRI. So the map is total over the
+/// correspondences [`evaluate_gates`] iterates, and this lookup can never miss on any valid
+/// correspondence-bearing source. The panic remains as a HARD FAIL guarding an internal wiring
+/// regression (a future caller that hand-builds a partial map) — never reachable from public
+/// input, and never a silent default/pass.
 fn verdict_for(verdicts: &CorrespondenceVerdicts, iri: &str) -> DischargeVerdict {
     *verdicts.get(iri).unwrap_or_else(|| {
         panic!(
