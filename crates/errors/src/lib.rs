@@ -1,12 +1,18 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! `gmeow-errors` — first-class diagnostics for GMEOW tooling.
+//! `gmeow-errors` — the GMEOW diagnostic substrate.
 //!
 //! The data model and renderers are Rust-owned so every developer tool can
 //! project the same findings to terminal text, JSON, SARIF, and HTML without
 //! duplicating output logic. Python bindings are kept in [`py`]; the model and
 //! render modules are PyO3-free.
+//!
+//! [`grade`] holds the `Grade` bilattice and the single [`gate`](grade::gate)
+//! policy morphism that decides fatality — two independent orderings (truth and
+//! knowledge) over one carrier, so severity merges by lattice join (order-free)
+//! and contradictory evidence surfaces as a Belnap glut rather than an
+//! overwrite.
 
 /// Render-test snapshot helper (U5): a thin wrapper over
 /// [`insta::assert_snapshot!`] so every renderer golden goes through one
@@ -20,6 +26,7 @@ macro_rules! assert_diag_snapshot {
     };
 }
 
+pub mod grade;
 pub mod model;
 pub mod render;
 
@@ -27,6 +34,9 @@ pub mod render;
 #[cfg(feature = "python")]
 pub mod py;
 
+pub use grade::{
+    Belnap, Blocking, BoundedLattice, GateVerdict, Grade, GradeMerge, Standpoint, gate,
+};
 pub use model::{
     DiagnosticAttribution, Finding, FindingCategory, Location, Report, Rule, Severity,
 };
