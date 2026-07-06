@@ -234,3 +234,23 @@ ex:saNotationSystemKindIsSubproperty a gmeow:StructuralAssertion ;
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK { gmeow:notationSystemKind rdfs:subPropertyOf gmeow:symbolicSystemKind . }""" ;
     gmeow:saRationale "gmeow:notationSystemKind MUST be a subproperty of gmeow:symbolicSystemKind — it is the narrower, intent-revealing form for systems already typed NotationSystem, so the broad symbolicSystemKind query path picks it up transitively. Mirrors test_notation_system_kind_is_subproperty." .
+
+# --- 20. SymbolicSystem is grafted onto lang:SignSystem (MUST) ----------------
+ex:saSymbolicSystemGraftsSignSystem a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX lang: <https://blackcatinformatics.ca/lang/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:SymbolicSystem rdfs:subClassOf lang:SignSystem . }""" ;
+    gmeow:saRationale "gmeow:SymbolicSystem MUST be a subclass of lang:SignSystem — the notation graft (Principle 19): a symbolic system IS a sign system in the lang: grounding layer, distinguished by lang:signSystemKind and lang:modality rather than a local class ladder. Grounds the whole symbolic-system family in lang:." .
+
+# --- 21. NotationSystem is grafted onto lang:SignSystem (MUST) ----------------
+ex:saNotationSystemGraftsSignSystem a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX lang: <https://blackcatinformatics.ca/lang/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:NotationSystem rdfs:subClassOf lang:SignSystem . }""" ;
+    gmeow:saRationale "gmeow:NotationSystem MUST be a subclass of lang:SignSystem — the structured-notation subkind is grounded in lang: as a sign system of lang:notationalKind (the notation graft, Principle 19), so the former language-vs-notation boundary survives as a lang:signSystemKind distinction rather than a subclass overlap." .
