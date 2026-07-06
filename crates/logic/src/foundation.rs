@@ -3,41 +3,45 @@
 
 //! Native Rust evaluator for the OntoUML *foundation* disciplines.
 //!
-//! This module is the **canonical** native evaluator for the OntoUML *foundation*
+//! This module is the **canonical** provider of the OntoUML *foundation*
 //! disciplines.  (The Python foundation oracle that preceded it —
 //! `logic_foundation.py` plus the `enable_naf` chase path of
-//! `logic_materialize.py` — was retired.)  It lowers five OntoUML
-//! structural disciplines into a small stratified Datalog program with
-//! negation-as-failure and inequality guards, runs that program *per world* as a
-//! semi-naive chase, and then applies two cross-world post-passes (positive
-//! cross-world rigidity and the anti-rigidity witness policy).
+//! `logic_materialize.py` — was retired.)  It lowers five OntoUML structural
+//! disciplines into a small stratified Datalog program with negation-as-failure and
+//! inequality guards, runs that program on the crate's **single** native chase
+//! ([`crate::physical::materialize_native`]), and then applies the OntoUML
+//! post-passes (positive cross-world rigidity, the anti-rigidity witness policy, and
+//! the per-world characteristic / distinctness passes).  This module is now a *thin
+//! consumer* of the shared engine — it owns the rule program and the post-passes, not
+//! a chase of its own.
 //!
 //! # Canonical evaluation contract
 //!
 //! The materialized quad *set* alone is not enough: the explanation goldens are
 //! content-addressed by **derivation IRIs**, and a derivation IRI is
 //! `mint_derivation_id(rule_iri, sorted(source_reifiers))`.  For a quad derivable
-//! by more than one rule firing, this crate records the **first** firing under its
-//! evaluation order (first-wins dedup).  The following ordering constraints are
-//! this crate's normative contract:
+//! by more than one rule firing, the chase records the **first** firing under its
+//! evaluation order (first-wins dedup).  The shared chase reproduces byte-identical
+//! provenance because it honours the same ordering constraints:
 //!
-//! 1. **Stratum order** — the foundation rules are partitioned into the same five
-//!    strata the certifier's `stratify` produces (helpers/markers before the
-//!    NAF-dependent helpers before the violation rules), so a negated atom is only
+//! 1. **Stratum order** — the physical stratifier ([`crate::physical`]'s
+//!    Bellman-Ford longest-path `stratify`) assigns each predicate a stratum from the
+//!    predicate dependency graph, reproducing the partition (helpers/markers before
+//!    the NAF-dependent helpers before the violation rules) so a negated atom is only
 //!    checked once the predicate it negates is at fixpoint.
-//! 2. **Rule order within a stratum** — the canonical order
-//!    `LogicProgram.__post_init__` sorts rules into (by each rule's `_sort_key`:
-//!    head, then body, then distinct pairs).  The rule tables in [`STRATA`] are
-//!    written out in exactly that order.
+//! 2. **Rule order within a stratum** — rules fire in the order the lowering emits
+//!    them, which is the [`STRATA`] table order (the canonical `_sort_key` order:
+//!    head, then body, then distinct pairs).
 //! 3. **Body-binding enumeration order** — the join walks facts in *insertion
-//!    order* (the Python `fact_index` is insertion-ordered), so this evaluator
-//!    stores facts in a `Vec` and iterates it in order.
-//! 4. **First-wins dedup** — a quad whose `(s.n3(), p.n3(), o.n3())` key already
-//!    exists is dropped, keeping the first derivation's provenance.
+//!    order*, and the columnar store is filled in lockstep, so the matched
+//!    subsequence (and hence `source_quad_ids` order) is deterministic.
+//! 4. **First-wins dedup** — a quad whose `(s, p, o)` key already exists is dropped,
+//!    keeping the first derivation's provenance; ties on the quality-ordered
+//!    `(max_src_depth, sum_src_depth, sorted_sources, rule_iri)` tiebreak are
+//!    order-independent.
 //!
 //! The provenance recipe itself is reused verbatim from [`crate::provenance`]
-//! (`mint_reifier` / `mint_derivation_id`), which is already golden-pinned to the
-//! Python oracle.
+//! (`mint_reifier` / `mint_derivation_id`), which is already golden-pinned.
 //!
 //! # No-optionality
 //!
@@ -337,17 +341,19 @@ macro_rules! ancestor_marker {
     };
 }
 
-// ── The stratified foundation program (data) ────────────────────────────────────
+// ── The foundation program (data) ───────────────────────────────────────────────
 //
-// These five strata reproduce, exactly, the partition the certifier's `stratify`
-// produces for `foundation_rules()` (helpers before NAF-dependent helpers before
-// violations), and the rule order WITHIN each stratum is the canonical
-// `LogicProgram` sort order (by each rule's `_sort_key`).  The body of every rule
-// is likewise in canonical sorted order.  This was captured from the live Python
-// oracle and is the parity anchor: chasing these strata in order with
-// first-wins dedup yields the same derivation IRIs as the oracle.
+// The rules are authored as five ordered groups.  The physical stratifier
+// re-derives the strata from the predicate dependency graph (it is authoritative —
+// no foundation-specific stratum boundary is fed to the engine), and the groups here
+// are just a readable ordering that reproduces the certifier's `stratify` partition
+// (helpers before NAF-dependent helpers before violations).  The rule order WITHIN
+// each group is the canonical `_sort_key` order (head, then body, then distinct
+// pairs), and the body of every rule is likewise in canonical sorted order — the
+// parity anchor: lowering these rules in this order and chasing them with first-wins
+// dedup yields byte-identical derivation IRIs.
 
-// Stratum 0 is empty (no rule's head predicate lands in the lowest SCC layer, which
+// Group 0 is empty (no rule's head predicate lands in the lowest SCC layer, which
 // holds only the EDB predicates rdf:type/subClassOf/mediates).
 const STRATUM_0: &[Rule] = &[];
 
