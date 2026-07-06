@@ -60,23 +60,31 @@ impl CodeRegistry {
     /// Register a code string, returning its handle. Idempotent: registering an
     /// already-known string returns the existing handle. Overflow of the
     /// `NonZeroU32` handle space is a HARD FAIL (panic), never a wrap.
-    pub fn register(&mut self, code: &'static str) -> Code {
+    ///
+    /// A newly-seen code is interned to `&'static` by a one-time leak — the
+    /// standard string-interner pattern (codes are a bounded set that lives for
+    /// the whole process anyway), so [`as_str`](Self::as_str) can hand back a
+    /// lock-free `&'static str`. Both the compile-time catalog (`&'static`
+    /// literals) and runtime codes (e.g. ingested from RDF) go through this one
+    /// path.
+    pub fn register(&mut self, code: &str) -> Code {
         if let Some(&existing) = self.by_str.get(code) {
             return existing;
         }
+        let leaked: &'static str = Box::leak(code.to_owned().into_boxed_str());
         let next = u32::try_from(self.by_id.len())
             .ok()
             .and_then(|n| n.checked_add(1))
             .and_then(NonZeroU32::new)
             .expect("code registry handle space exhausted");
         let handle = Code(next);
-        self.by_id.push(code);
-        self.by_str.insert(code, handle);
+        self.by_id.push(leaked);
+        self.by_str.insert(leaked, handle);
         handle
     }
 
     /// Seed a batch of codes (e.g. a slice's `ValidationRule` catalog).
-    pub fn seed(&mut self, codes: &[&'static str]) {
+    pub fn seed(&mut self, codes: &[&str]) {
         for &code in codes {
             self.register(code);
         }
@@ -123,7 +131,7 @@ pub fn global_registry() -> &'static RwLock<CodeRegistry> {
 }
 
 /// Register a code in the process-wide registry (idempotent).
-pub fn register_code(code: &'static str) -> Code {
+pub fn register_code(code: &str) -> Code {
     global_registry()
         .write()
         .expect("code registry poisoned")
@@ -131,7 +139,7 @@ pub fn register_code(code: &'static str) -> Code {
 }
 
 /// Seed a batch of codes into the process-wide registry.
-pub fn seed_codes(codes: &[&'static str]) {
+pub fn seed_codes(codes: &[&str]) {
     global_registry()
         .write()
         .expect("code registry poisoned")

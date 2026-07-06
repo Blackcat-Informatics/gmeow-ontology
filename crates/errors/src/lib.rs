@@ -34,6 +34,7 @@ pub mod ledger;
 pub mod lower;
 pub mod model;
 pub mod project;
+pub mod rdf;
 pub mod render;
 
 /// The crate result alias: an error defaults to [`Diag`](diag::Diag).
@@ -58,6 +59,7 @@ pub use ledger::{
 pub use model::{
     DiagnosticAttribution, Finding, FindingCategory, Location, Report, Rule, Severity,
 };
+pub use rdf::severity_from_rdf;
 // Re-export the module-registration entrypoint so the unified `gmeow_native`
 // cdylib can populate the `gmeow_native.diagnostics` submodule.
 #[cfg(feature = "python")]
