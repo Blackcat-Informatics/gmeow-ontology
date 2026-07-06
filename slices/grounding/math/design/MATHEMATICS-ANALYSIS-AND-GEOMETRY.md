@@ -56,8 +56,13 @@ Core properties: `math:hasOpenSet`, `math:isContinuous`, `math:separationAxiom`,
 `math:isConnected`, and `math:homotopyEquivalentTo`.
 
 A `math:TopologicalSpace` is given by its open sets (or a basis); continuity is a declared property of
-a map (preimages of open sets are open), not an assumption; compactness, connectedness, and the
-separation axioms are first-class. Homotopy and homology give the algebraic-topology bridge (a
+a map (preimages of open sets are open), not an assumption; connectedness and the T0–T4 separation
+axioms are first-class and each backed by a real first-order `logic:Formula` defining law
+(`math:connectednessLaw`, `math:t0SeparationLaw` … `math:normalitySeparationLaw`), mirroring
+`math:continuityLaw`. Compactness is the lone second-order property — a finite subcover over an
+arbitrary family is not first-order axiomatizable — so rather than a faked formula it is carried as an
+honest loss-ledger boundary (`math:compactnessBoundary`, `logic:expressivenessBoundary logic:SecondOrder`).
+Homotopy and homology give the algebraic-topology bridge (a
 `math:HomologyGroup` is a `math:AbelianGroup`, [`MATHEMATICS-ALGEBRA.md`](MATHEMATICS-ALGEBRA.md)).
 Little external ontology exists — the content is in prover libraries (mathlib, Isabelle/AFP), so the
 depth is **authored** and **cited**.

@@ -163,6 +163,54 @@ fn self_attestation_direct_self_premise_rejected() {
     assert!(g.is_empty(), "no justification recorded on rejection");
 }
 
+/// Consumer audit: the disjunctive OR-of-AND is PRESERVED, not collapsed. A fact provable
+/// two INDEPENDENT ways (distinct rules AND distinct premise sets) must retain BOTH `Derived`
+/// alternatives in `justifications_of` — a single-winner collapse would lose the disjunction
+/// deletion-survival depends on. The companion assertion pins the self-attestation hard-fail.
+#[test]
+fn two_independent_derivations_preserve_the_or_of_and() {
+    let mut g = DerivationGraph::new();
+    // Two DISTINCT firings of F: rule r1 from {B, C}, and rule ext from {A}. Different rule
+    // AND different premises — not the same premises reordered (which would dedup to one).
+    let app1 = RuleApplication::new(RULE_R1, [fk(R_B), fk(R_C)]);
+    let app2 = RuleApplication::new(RULE_EXT, [fk(R_A)]);
+    assert_ne!(app1, app2, "the two derivations must be genuinely distinct");
+    g.add_derivation(fk(R_F), app1.clone())
+        .expect("r1 firing is not self-referential");
+    g.add_derivation(fk(R_F), app2.clone())
+        .expect("ext firing is not self-referential");
+
+    let alternatives = g
+        .justifications_of(&fk(R_F))
+        .expect("F must have recorded justifications");
+    assert!(
+        alternatives.contains(&Justification::Derived(app1)),
+        "the r1-from-{{B,C}} derivation must be retained"
+    );
+    assert!(
+        alternatives.contains(&Justification::Derived(app2)),
+        "the ext-from-{{A}} derivation must be retained"
+    );
+    let derived_count = alternatives
+        .iter()
+        .filter(|j| matches!(j, Justification::Derived(_)))
+        .count();
+    assert_eq!(
+        derived_count, 2,
+        "BOTH disjuncts survive — the OR-of-AND is not collapsed to a single winner"
+    );
+
+    // A premise list containing the fact itself is a hard self-attestation error.
+    let self_app = RuleApplication::new(RULE_R1, [fk(R_F), fk(R_B)]);
+    let err = g
+        .add_derivation(fk(R_F), self_app)
+        .expect_err("a fact listing itself as a premise must be rejected");
+    assert!(
+        err.contains("self-attestation"),
+        "the error must name the self-attestation guard: {err}"
+    );
+}
+
 #[test]
 fn self_attestation_independent_facts_allowed() {
     // F derived from B (not itself) is fine, even if B is also derivable from F:
