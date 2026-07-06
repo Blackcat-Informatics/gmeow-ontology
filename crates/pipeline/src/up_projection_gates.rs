@@ -637,6 +637,9 @@ pub fn gate_verified_lift_program(
 
 /// A lawful rename promoted from a mnemomorphic `=` cell whose executed SectionLaw is discharged.
 struct DischargedRename {
+    /// The `gmeow:ProjectionMapping` cell IRI that authorized this rename — retained so a
+    /// same-`ext` collision between two DISTINCT discharged cells names both offenders.
+    cell: String,
     /// The external-vocabulary term the source triple carries (a `toPredicate` / `toClass`).
     ext: String,
     /// The gmeow term it lifts to (the cell's `edoalSource`).
@@ -661,7 +664,10 @@ fn discharged_renames(
     projection_ttls: &[String],
     discharged: &BTreeSet<String>,
 ) -> Result<Vec<DischargedRename>, String> {
-    let mut out = Vec::new();
+    // Keyed by external target so two discharged cells cannot silently promote conflicting renames
+    // for the SAME `ext` (a later `rules.insert(ext, …)` would otherwise last-wins overwrite the
+    // earlier one — a nondeterministic, soundness-losing drop).
+    let mut out: BTreeMap<String, DischargedRename> = BTreeMap::new();
     for ttl in projection_ttls {
         let graph = Graph::parse(ttl.as_bytes(), "text/turtle")?;
         let q = &graph.quads;
@@ -696,16 +702,47 @@ fn discharged_renames(
                     continue;
                 };
                 if in_projection_ns(&ext) {
-                    out.push(DischargedRename {
-                        ext,
+                    let promo = DischargedRename {
+                        cell: cell_iri.to_string(),
+                        ext: ext.clone(),
                         gmeow: gmeow_src.clone(),
                         orientation,
-                    });
+                    };
+                    // Collision guard (no optional fallback, no last-wins overwrite): a second
+                    // discharged rename for an `ext` already claimed is only tolerated when it is a
+                    // byte-identical no-op (same gmeow target AND orientation — the resulting rule is
+                    // unchanged). Any collision that WOULD change the resulting rule — a different
+                    // gmeow target or orientation, i.e. two discharged cells disagreeing on where the
+                    // same external term lifts — is a genuine ambiguity and a HARD FAIL naming both
+                    // cells, never a silent pick-last.
+                    if let Some(existing) = out.get(&ext) {
+                        if existing.gmeow != promo.gmeow
+                            || existing.orientation != promo.orientation
+                        {
+                            return Err(format!(
+                                "up-projection lift program: external term <{ext}> is claimed by TWO \
+                                 discharged mnemomorphic `=` cells with conflicting lawful renames — \
+                                 <{first_cell}> lifts it to <{first_gmeow}> ({first_orient:?}) but \
+                                 <{second_cell}> lifts it to <{second_gmeow}> ({second_orient:?}); \
+                                 the promoted rename is ambiguous. Refusing to silently overwrite one \
+                                 lawful rename with the other (no optional fallback, no last-wins).",
+                                first_cell = existing.cell,
+                                first_gmeow = existing.gmeow,
+                                first_orient = existing.orientation,
+                                second_cell = promo.cell,
+                                second_gmeow = promo.gmeow,
+                                second_orient = promo.orientation,
+                            ));
+                        }
+                        // Identical resulting rule: an idempotent no-op, keep the first.
+                        continue;
+                    }
+                    out.insert(ext, promo);
                 }
             }
         }
     }
-    Ok(out)
+    Ok(out.into_values().collect())
 }
 
 /// Resolve one discharged cell's `(external target, orientation)`. A `toClass` binding is a type

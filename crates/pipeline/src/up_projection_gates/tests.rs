@@ -412,3 +412,78 @@ fn a_generalizing_winner_survives_a_self_ambiguous_closematch_layer() {
         "a self-ambiguous lower-priority layer is not a cross-layer conflict"
     );
 }
+
+// --------------------------------------------------------------------------- //
+// discharged rename collision — two discharged `=` cells claiming the same ext
+// --------------------------------------------------------------------------- //
+
+/// A mnemomorphic (`=`) `toClass` retype cell keyed on `edoalSource <source_gmeow>` and lifting the
+/// external class `<target>`. A `toClass` binding orients as `Direct` without needing an anchor/atom
+/// list, so this is the minimal shape that exercises the discharged-rename promotion path.
+fn mnemomorphic_class_cell(cell: &str, source_gmeow: &str, target: &str) -> String {
+    format!(
+        "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+         gmeow:{cell} a gmeow:ProjectionMapping ;\n\
+           gmeow:hasMappingPattern [\n\
+             gmeow:edoalSource <{source_gmeow}> ] ;\n\
+           gmeow:hasBinding [ gmeow:toClass <{target}> ; \
+                              gmeow:relation \"=\" ; \
+                              gmeow:mnemomorphic \"true\" ] .\n"
+    )
+}
+
+#[test]
+fn two_discharged_cells_claiming_the_same_ext_hard_fail_not_last_wins() {
+    // GUARD (CodeRabbit, Gap-5): the discharged-rename promotion streams into `rules.insert(ext, …)`
+    // in input order, so TWO discharged mnemomorphic `=` cells resolving to the SAME external `ext`
+    // but DIFFERENT gmeow targets would silently last-wins overwrite one lawful rename with the
+    // other — a nondeterministic soundness hole. It must be a HARD FAIL naming the colliding ext.
+    let ext = "http://rdfs.org/sioc/ns#Post"; // a real projection-namespace (sioc) external class
+    let cell_a = "https://blackcatinformatics.ca/gmeow/cellA";
+    let cell_b = "https://blackcatinformatics.ca/gmeow/cellB";
+    let ttl_a =
+        mnemomorphic_class_cell("cellA", "https://blackcatinformatics.ca/gmeow/Message", ext);
+    let ttl_b = mnemomorphic_class_cell(
+        "cellB",
+        "https://blackcatinformatics.ca/gmeow/Container",
+        ext,
+    );
+    // BOTH cells are discharged (Deliverable A authorized), so neither trips the missing-verdict
+    // hard fail — the ONLY thing that can stop the ambiguity is the collision guard.
+    let discharged: BTreeSet<String> = [cell_a.to_owned(), cell_b.to_owned()].into_iter().collect();
+
+    let err = gate_verified_lift_program(&[], &[ttl_a, ttl_b], &discharged)
+        .expect_err("two discharged cells claiming the same ext must hard-fail, never last-wins");
+    assert!(
+        err.contains(ext),
+        "the collision error must name the colliding external term, got: {err}"
+    );
+    assert!(
+        err.contains(cell_a) && err.contains(cell_b),
+        "the collision error must name BOTH offending discharged cells, got: {err}"
+    );
+}
+
+#[test]
+fn an_idempotent_duplicate_discharged_rename_is_not_a_collision() {
+    // The precise sound condition is "a collision that would CHANGE the resulting rule": a second
+    // discharged rename for the same `ext` that resolves to the SAME gmeow target AND orientation is
+    // a byte-identical no-op and must be tolerated (not spuriously hard-failed).
+    let ext = "http://rdfs.org/sioc/ns#Post";
+    let cell_a = "https://blackcatinformatics.ca/gmeow/dupA";
+    let cell_b = "https://blackcatinformatics.ca/gmeow/dupB";
+    let gmeow = "https://blackcatinformatics.ca/gmeow/Message";
+    let ttl_a = mnemomorphic_class_cell("dupA", gmeow, ext);
+    let ttl_b = mnemomorphic_class_cell("dupB", gmeow, ext);
+    let discharged: BTreeSet<String> = [cell_a.to_owned(), cell_b.to_owned()].into_iter().collect();
+
+    let program = gate_verified_lift_program(&[], &[ttl_a, ttl_b], &discharged)
+        .expect("an idempotent duplicate rename resolves without a false collision");
+    let rule = program
+        .rules
+        .get(ext)
+        .expect("the single lawful rename is promoted once");
+    assert_eq!(rule.gmeow, gmeow);
+    assert_eq!(rule.orientation, Orientation::Direct);
+    assert_eq!(rule.kind, LiftKind::Fact);
+}
