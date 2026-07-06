@@ -640,10 +640,14 @@ fn join_body(
 /// proofs (lower depth sum), uses lex-min sorted reifiers as a content-addressed
 /// tiebreaker, and finally uses `rule_iri` as a total-order backstop (since rule IRIs
 /// vary per rule, unlike `foundation.rs` where a single anonymous IRI is used).
+/// The per-derived-tuple provenance of a candidate: the rule that fired and the
+/// premise (source) reifiers, plus the derivation-depth scalars used for winner
+/// selection.  Recording this is the memory the closure-only lane must NOT pay, so it
+/// is an `Option` on [`RuleRoundCandidate`]: the forward (Record) leg carries `Some`,
+/// the backward (Skip) leg carries `None` — the absence is type-enforced, not a
+/// sentinel-filled struct that "is never read."
 #[derive(Clone)]
-pub(crate) struct RuleRoundCandidate {
-    pub(crate) head: Fact,
-    pub(crate) key: FactKey,
+pub(crate) struct Provenance {
     /// Reifiers of matched positive body facts, in body (scan) order — goes into
     /// `DerivedRow.source_quad_ids`.
     pub(crate) sources: Vec<String>,
@@ -657,6 +661,33 @@ pub(crate) struct RuleRoundCandidate {
     pub(crate) max_src_depth: u32,
     /// Sum of derivation depths across matched source facts.
     pub(crate) sum_src_depth: u64,
+}
+
+#[derive(Clone)]
+pub(crate) struct RuleRoundCandidate {
+    pub(crate) head: Fact,
+    pub(crate) key: FactKey,
+    /// The recorded provenance, or `None` on the facts-only (Skip) lane.
+    pub(crate) prov: Option<Provenance>,
+}
+
+impl RuleRoundCandidate {
+    /// The quality-ordered total-order tiebreak key —
+    /// `(max_src_depth, sum_src_depth, sorted_sources, rule_iri)`, smaller wins.
+    /// `None` (the facts-only lane, which never tiebreaks — it only `or_insert`s a
+    /// first-seen winner) sorts below any `Some` and never participates in a compare.
+    /// Because every provenance-recording construction site yields `Some`, this
+    /// reproduces the pre-`Option` tuple comparison byte for byte.
+    pub(crate) fn tiebreak_key(&self) -> Option<(u32, u64, &[String], &str)> {
+        self.prov.as_ref().map(|p| {
+            (
+                p.max_src_depth,
+                p.sum_src_depth,
+                p.sorted_sources.as_slice(),
+                p.rule_iri.as_str(),
+            )
+        })
+    }
 }
 
 /// The least model of the Gelfond-Lifschitz reduct of `rules` w.r.t. `reference`,
@@ -744,29 +775,19 @@ pub(crate) fn least_model_of_reduct(
                 let candidate = RuleRoundCandidate {
                     head,
                     key: key.clone(),
-                    sources,
-                    sorted_sources,
-                    deriv,
-                    rule_iri: rule.rule_iri.clone(),
-                    max_src_depth: max_sd,
-                    sum_src_depth: sum_sd,
+                    prov: Some(Provenance {
+                        sources,
+                        sorted_sources,
+                        deriv,
+                        rule_iri: rule.rule_iri.clone(),
+                        max_src_depth: max_sd,
+                        sum_src_depth: sum_sd,
+                    }),
                 };
                 round
                     .entry(key)
                     .and_modify(|existing| {
-                        let cand_key = (
-                            candidate.max_src_depth,
-                            candidate.sum_src_depth,
-                            &candidate.sorted_sources,
-                            &candidate.rule_iri,
-                        );
-                        let exist_key = (
-                            existing.max_src_depth,
-                            existing.sum_src_depth,
-                            &existing.sorted_sources,
-                            &existing.rule_iri,
-                        );
-                        if cand_key < exist_key {
+                        if candidate.tiebreak_key() < existing.tiebreak_key() {
                             *existing = candidate.clone();
                         }
                     })
@@ -784,22 +805,26 @@ pub(crate) fn least_model_of_reduct(
         let mut winners: Vec<_> = round.into_iter().collect();
         winners.sort_by(|(a, _), (b, _)| a.cmp(b));
         for (_key, winner) in winners {
-            let winner_depth = winner.max_src_depth.saturating_add(1);
-            depth.insert(winner.key.clone(), winner_depth);
-            store.insert(winner.head.clone());
-            new_delta.insert(winner.key.clone());
+            let RuleRoundCandidate { head, key, prov } = winner;
+            // The reduct evaluator always records provenance; a `None` here is an engine
+            // bug (a candidate committed without its derivation), not a data condition.
+            let prov = prov.expect("least_model_of_reduct always records provenance");
+            let winner_depth = prov.max_src_depth.saturating_add(1);
+            depth.insert(key.clone(), winner_depth);
+            store.insert(head.clone());
+            new_delta.insert(key.clone());
 
             // Record provenance only for genuinely-derived facts (a rule whose
             // head re-states an EDB fact is not a derivation row).
-            if !edb_keys.contains(&winner.key) {
+            if !edb_keys.contains(&key) {
                 derivations.push(DerivedRow {
                     graph: String::new(),
-                    subject: winner.head.subject,
-                    predicate: winner.head.predicate,
-                    object: winner.head.object,
-                    rule_iri: winner.rule_iri,
-                    source_quad_ids: winner.sources, // body-order, NEVER sorted copy
-                    derivation_id: winner.deriv,
+                    subject: head.subject,
+                    predicate: head.predicate,
+                    object: head.object,
+                    rule_iri: prov.rule_iri,
+                    source_quad_ids: prov.sources, // body-order, NEVER sorted copy
+                    derivation_id: prov.deriv,
                 });
             }
         }
