@@ -651,6 +651,11 @@ pub fn structural_lint_dataset(ds: &RdfDataset, cfg: &LintConfig) -> LintReport 
     // from the exact-rational (ℚ⁷) exponent vectors, not asserted data.
     check_math_dimension_invariants(ds, &mut report);
 
+    // math: ingestion-bridge gate — a bridge run (the mnemomorphic put leg of a
+    // logic:Correspondence) lifts fully or hard-fails; a run retaining a source but
+    // producing no structured math: codomain has silently dropped its content.
+    check_math_ingest_invariants(ds, &mut report);
+
     report
 }
 
@@ -1577,6 +1582,67 @@ fn check_math_dimension_invariants(ds: &RdfDataset, report: &mut LintReport) {
                 "math:DimensionalInhomogeneity: integral {integral} declares result dimension \
                  {result_dim} but its integrand ({idim}) and measure ({mdim}) compose to a \
                  different dimension"
+            ));
+        }
+    }
+}
+
+/// The `math:` ingestion-bridge invariants the BRIDGES charter designates as native
+/// Rust-validator primary gates. Runs over the merged dataset (`GraphMatch::Any`), so the
+/// invariants hold bundle-wide, not merely per fixture.
+fn check_math_ingest_invariants(ds: &RdfDataset, report: &mut LintReport) {
+    check_unliftable_ingest(ds, report);
+}
+
+/// `math:UnliftableIngest` — a bridge is the mnemomorphic `put` leg of a `logic:Correspondence`:
+/// GMEOW is the source, the external artifact the view, and the lift is the up-projection (`put`),
+/// never a `get` run backward (the calculus's named anti-pattern). A lawful `put` comes from a
+/// retained mnemomorphic witness (`math:parseSource`), so a `math:IngestRun` that retains a source
+/// but produces NO structured `math:` codomain — nothing is `gmeow:wasGeneratedBy` it — has silently
+/// dropped everything it was meant to lift. That is the `unsupported` / `logic:ObligationViolated`
+/// outcome the correspondence Overclaim and Mnemomorphism gates decide, projected to the process
+/// layer: a bridge lifts fully or hard-fails, never emitting a degraded or empty lift. (A run that
+/// retains no source at all is caught upstream by `math:UngroundedIngestRun`, the SHACL grounding
+/// shape; and the partial-drop case — a lift that produced some codomain but dropped part without
+/// enumerating the residue — is the correspondence Overclaim gate's job in the `logic:` layer. This
+/// native twin catches the produced-nothing case bundle-wide.)
+fn check_unliftable_ingest(ds: &RdfDataset, report: &mut LintReport) {
+    const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
+    let parse_source = math_iri("parseSource");
+    let was_generated_by = format!("{GMEOW_NS}wasGeneratedBy");
+    let wgb_pid = ds_iri_id(ds, &was_generated_by);
+
+    // The abstract `math:IngestRun` and its three concrete bridge subclasses. Subclass
+    // materialization is not assumed, so each concrete run type is scanned explicitly.
+    let mut runs: Vec<String> = Vec::new();
+    for ty in ["IngestRun", "RIngestRun", "ONNXIngestRun", "ProofIngestRun"] {
+        runs.extend(ds_subjects_of_type(ds, &math_iri(ty)));
+    }
+    runs.sort();
+    runs.dedup();
+
+    for run in runs {
+        // A run with no retained source is out of scope here — it is caught by the
+        // `math:UngroundedIngestRun` grounding shape, not this gate.
+        if !ds_has_predicate(ds, &run, &parse_source) {
+            continue;
+        }
+        // Did the run produce a structured `math:` codomain? The produced object points back at
+        // the run through `gmeow:wasGeneratedBy`, so an inverse lookup `(?, wasGeneratedBy, run)`
+        // decides it.
+        let produced = match (wgb_pid, ds_iri_id(ds, &run)) {
+            (Some(p), Some(r)) => ds
+                .quads_for_pattern(None, Some(p), Some(r), GraphMatch::Any)
+                .next()
+                .is_some(),
+            _ => false,
+        };
+        if !produced {
+            report.errors.push(format!(
+                "math:UnliftableIngest: ingest run {run} retains a math:parseSource but produced no \
+                 structured math: codomain (nothing is gmeow:wasGeneratedBy it) — the lift is \
+                 unsupported and silently dropped its content; a bridge lifts fully or hard-fails, \
+                 never emitting a degraded or empty lift"
             ));
         }
     }
@@ -3396,6 +3462,64 @@ mod tests {
             has_inhomogeneity(&report) && report.errors.iter().any(|e| e.contains("carries no")),
             "an integral with an undimensioned measure must raise math:DimensionalInhomogeneity; \
              errors: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn unliftable_ingest_fires_when_run_produces_no_codomain() {
+        // The slice-resident counter-example for the native math:UnliftableIngest gate: a bridge
+        // run that retains a source witness (math:parseSource) and its full grounding frame — so it
+        // is NOT math:UngroundedIngestRun — but lifts no structured math: codomain (nothing is
+        // gmeow:wasGeneratedBy it), silently dropping its content. Authored in the slice, not
+        // inline here, so the (fixture, native-lint) pair is load-bearing rather than a Rust demo.
+        let unliftable = include_str!(
+            "../../../slices/grounding/math/tests/counter-examples/ingest-run-unliftable.ttl"
+        );
+        let report = structural_lint_dataset(&dataset_from(unliftable), &cfg());
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("math:UnliftableIngest")
+                    && e.contains("http://example.org/math/run")),
+            "the slice-resident produced-nothing ingest run (parseSource, no gmeow:wasGeneratedBy) \
+             must raise math:UnliftableIngest; errors: {:?}",
+            report.errors
+        );
+        // It retains its source, so the SHACL grounding twin is out of scope: the native gate must
+        // not double-report the run as math:UngroundedIngestRun.
+        assert!(
+            !report
+                .errors
+                .iter()
+                .any(|e| e.contains("math:UngroundedIngestRun")),
+            "the produced-nothing fixture retains math:parseSource, so it must not fire \
+             math:UngroundedIngestRun: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn unliftable_ingest_clean_when_run_produces_a_codomain() {
+        // The same run, now lifting a structured math: object that points back through
+        // gmeow:wasGeneratedBy: a full lift, no violation.
+        let ds = dataset_from(&format!(
+            "{MATH_PREFIXES}\
+             ex:rRun a math:RIngestRun ;\n\
+               math:parseSource ex:srcWitness .\n\
+             ex:srcWitness a math:MathematicalObject .\n\
+             ex:fittedModel a math:FittedModel ;\n\
+               gmeow:wasGeneratedBy ex:rRun .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            !report
+                .errors
+                .iter()
+                .any(|e| e.contains("math:UnliftableIngest")),
+            "an ingest run that lifts a structured math: codomain must NOT raise \
+             math:UnliftableIngest; errors: {:?}",
             report.errors
         );
     }
