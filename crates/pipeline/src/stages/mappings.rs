@@ -424,6 +424,51 @@ fn discharge_correspondence_laws(
     Ok(project_correspondence(&program).into_bytes())
 }
 
+/// The A→B authorization set computed straight from `root`: the `gmeow:ProjectionMapping` cell
+/// IRIs whose EXECUTED lens-law discharge carried an `ObligationDischarged` `logic:SectionLaw`.
+///
+/// This drives the SAME [`discharge_correspondence_laws`] the mappings stage folds into
+/// `graph/correspondence-laws`, so the set the up-projection executor consumes agrees with the
+/// shipped bundle by construction (single source of truth). The consumer that reads the folded
+/// bundle graph ([`crate::projections::discharged_section_cells_from_bundle`]) yields the identical
+/// set; this root-recompute path is for the acceptance harness, which reads fresh `root` inputs.
+pub fn discharged_section_cells_from_root(
+    root: &Path,
+) -> Result<std::collections::BTreeSet<String>, PipelineError> {
+    let slices_dir = root.join("slices");
+    let catalog = if slices_dir.is_dir() {
+        Some(
+            purrdf::slice::SliceCatalog::discover(
+                &slices_dir,
+                crate::gmeow_ns::gmeow_slice_vocab(),
+            )
+            .map_err(|e| PipelineError::Stage {
+                stage: "stage-mappings".to_string(),
+                message: format!("slice catalog discovery: {e}"),
+            })?,
+        )
+    } else {
+        None
+    };
+    let aligned = correspondence_lower::lower_all(root, catalog.as_ref()).map_err(|e| {
+        PipelineError::Stage {
+            stage: "stage-mappings".to_string(),
+            message: format!("correspondence lowering failed: {e}"),
+        }
+    })?;
+    let corr_laws = discharge_correspondence_laws(&aligned)?;
+    let nt = String::from_utf8(corr_laws).map_err(|e| PipelineError::Stage {
+        stage: "stage-mappings".to_string(),
+        message: format!("correspondence-laws graph is not UTF-8: {e}"),
+    })?;
+    crate::up_projection_gates::discharged_section_cells_from_corpus(&nt).map_err(|e| {
+        PipelineError::Stage {
+            stage: "stage-mappings".to_string(),
+            message: format!("extract discharged section cells: {e}"),
+        }
+    })
+}
+
 /// Emit a Turtle RDF projection as EXACTLY the canonical fold (shared prefix
 /// authority, no banner) so it rides as an RDF-fanout named graph and the superset
 /// gate reconstructs it byte-for-byte.
