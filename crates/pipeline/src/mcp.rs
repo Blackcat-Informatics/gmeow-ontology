@@ -2029,9 +2029,9 @@ mod tests {
         }
         let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
         let fr = text_payload(
-            server.call_tool_result("lookup_term", &json!({"term": "gmeow:langFrench"})),
+            server.call_tool_result("lookup_term", &json!({"term": "gmeow:EntityExistence"})),
         );
-        assert_eq!(fr["label"], "fran\u{e7}ais");
+        assert_eq!(fr["label"], "Existence d'entit\u{e9}");
         unsafe {
             // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
             env::remove_var("GMEOW_LANG");

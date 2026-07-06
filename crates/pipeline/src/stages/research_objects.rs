@@ -1360,9 +1360,18 @@ fn build_datacite_xml(ds: &DatasetMeta) -> Vec<u8> {
 
 // ── source-Turtle → rdflib-Turtle (with x-gmeow language retag) ────────────────
 
-/// Load the internal→BCP-47 language-tag map from the ontology's language-tag table
-/// (`gmeow:languageTag` → `gmeow:bcp47Tag`).
+/// Load the internal→BCP-47 language-tag map from the carrier varieties in the
+/// module surfaces. The internal `x-gmeow-*` tag rides `lang:carrierTag` on a
+/// carrier variety since the lang: graft; its public BCP-47 code is DERIVED over
+/// the model (never authored per language) — the variety's `lang:varietyOf`
+/// parent sign system carries the ISO 639 primary subtag as `skos:notation`
+/// (script suppressed for the carriers), matching the tag the `bcp47` projection
+/// folds.
 fn load_tag_map(root: &Path) -> Result<BTreeMap<String, String>, PipelineError> {
+    const P_CARRIER: &str = "https://blackcatinformatics.ca/lang/carrierTag";
+    const P_VARIETY_OF: &str = "https://blackcatinformatics.ca/lang/varietyOf";
+    const P_NOTATION: &str = "http://www.w3.org/2004/02/skos/core#notation";
+
     let mut parsed: Vec<Arc<RdfDataset>> = Vec::new();
     for module in module_files(root)? {
         let bytes = std::fs::read(&module)?;
@@ -1374,11 +1383,9 @@ fn load_tag_map(root: &Path) -> Result<BTreeMap<String, String>, PipelineError> 
     let refs: Vec<&RdfDataset> = parsed.iter().map(AsRef::as_ref).collect();
     let store = Store::from_dataset(&RdfDataset::union(&refs));
 
-    let p_int = g("languageTag");
-    let p_ext = g("bcp47Tag");
     let mut map: BTreeMap<String, String> = BTreeMap::new();
     for q in store.triples() {
-        if q.predicate != p_int {
+        if q.predicate != P_CARRIER {
             continue;
         }
         let RdfTerm::Iri(subj) = &q.subject else {
@@ -1388,15 +1395,27 @@ fn load_tag_map(root: &Path) -> Result<BTreeMap<String, String>, PipelineError> 
             continue;
         };
         let internal = internal_lit.lexical_form.clone();
+        // The carrier variety's parent sign system (lang:varietyOf).
+        let Some(parent) = store.triples().find_map(|qq| {
+            (iri_is(&qq.subject, subj) && qq.predicate == P_VARIETY_OF)
+                .then(|| match &qq.object {
+                    RdfTerm::Iri(p) => Some(p.clone()),
+                    _ => None,
+                })
+                .flatten()
+        }) else {
+            continue;
+        };
+        // The parent's ISO 639 primary subtag (skos:notation) is the derived BCP-47 tag.
         if let Some(ext) = store.triples().find_map(|qq| {
-            (iri_is(&qq.subject, subj) && qq.predicate == p_ext)
+            (iri_is(&qq.subject, &parent) && qq.predicate == P_NOTATION)
                 .then(|| match &qq.object {
                     RdfTerm::Literal(l) => Some(l.lexical_form.clone()),
                     _ => None,
                 })
                 .flatten()
         }) {
-            map.insert(internal, ext);
+            map.insert(internal, ext.trim().to_ascii_lowercase());
         }
     }
     Ok(map)

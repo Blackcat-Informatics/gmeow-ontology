@@ -2,25 +2,68 @@
 # SPDX-License-Identifier: CC-BY-4.0
 #
 # Worked example: language as a first-class entity. A gmeow:Language is a
-# reified individual carrying its gmeow:bcp47Tag — not a bare string column — so a
+# reified individual with a self-minted IRI carrying its registry code as an
+# alignment through gmeow:languageCode — not a bare string column — so a
 # document can be gmeow:writtenInLanguage SEVERAL co-equal languages at once
 # (a bilingual manual), with no primary language privileged. The Language objects
 # are minted (there is no closed enum of languages); the document is an
 # InformationObject, the domain of gmeow:writtenInLanguage.
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix lang:   <https://blackcatinformatics.ca/lang/> .
+@prefix logic:  <https://blackcatinformatics.ca/logic/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/language/> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 
-# --- Languages: first-class, BCP-47-tagged. English already exists as the core
-#     seed lang:english — reused, not re-minted. Japanese has no seed, so it
-#     is minted;  literals use its BCP-47 tag.
+# --- Languages: first-class, registry-independent. English already exists as the
+#     core seed lang:english — reused, not re-minted. Japanese has no seed, so it
+#     is minted; its ISO 639-1 code is an alignment via gmeow:languageCode.
 ex:japanese a gmeow:Language ;
     rdfs:label        "Japanese"@x-gmeow-english ;
-    gmeow:bcp47Tag    "ja" .
+    gmeow:languageCode "ja" .
 
 # --- A bilingual document: two co-equal languages, neither primary. The title is
 #     carried as separate co-equal language-tagged literals, one per language.
 ex:manual a gmeow:InformationObject ;
     gmeow:title             "Installation Manual"@x-gmeow-english , "インストールマニュアル"@x-gmeow-japanese ;
     gmeow:writtenInLanguage lang:english , ex:japanese .
+
+# --- R3 graft: a lang:TransliterationMap grafting a RETAINED
+#     gmeow:TransliterationScheme individual (Hepburn romanization). The
+#     gmeow:TransliterationScheme class was retained by the lang: graft; a
+#     transliteration is a rendering-layer map that changes the script surface,
+#     not form identity. Authored here in the language slice (a language → lang
+#     dependency edge, allowed) rather than in lang:'s own examples (which would
+#     create a lang → language cycle). The map names its scheme, its source and
+#     target orthographies over Japanese's scripts, and — through the lang:Rendering
+#     that holds the crossing — a preservation judgment on the carried
+#     logic:Correspondence: romanization drops vowel-length and pitch, so it is a
+#     logic:SoundUnderApproximation, never logic:ExactPreservation.
+ex:hiraganaScript a lang:Script ; rdfs:label "Hiragana"@x-gmeow-english .
+ex:latinScript a lang:Script ; rdfs:label "Latin"@x-gmeow-english .
+ex:japaneseKana a lang:Orthography ;
+    lang:orthographyFor ex:japanese ; lang:usesScript ex:hiraganaScript .
+ex:japaneseRomaji a lang:Orthography ;
+    lang:orthographyFor ex:japanese ; lang:usesScript ex:latinScript .
+
+ex:schemeHepburn a gmeow:TransliterationScheme ;
+    rdfs:label "Hepburn romanization"@x-gmeow-english .
+
+ex:mapHepburn a lang:TransliterationMap ;
+    lang:transliterationScheme ex:schemeHepburn ;
+    lang:transliterationSourceOrthography ex:japaneseKana ;
+    lang:transliterationTargetOrthography ex:japaneseRomaji .
+
+# The crossing, held as a lang:Rendering of the map, carries the honest preservation
+# judgment (logic:SoundUnderApproximation, not Exact) on its logic:Correspondence.
+ex:wordKana a lang:UnanalyzedProse ; lang:inSignSystem ex:japanese ;
+    lang:surfaceText "とうきょう" ; lang:inScript ex:hiraganaScript ;
+    lang:unicodeNormalization "NFC" ; lang:collationLocale "ja" ; lang:analysisLevel lang:rawLevel .
+ex:wordRomaji a lang:UnanalyzedProse ; lang:inSignSystem ex:japanese ;
+    lang:surfaceText "Tōkyō" ; lang:inScript ex:latinScript ;
+    lang:unicodeNormalization "NFC" ; lang:collationLocale "ja" ; lang:analysisLevel lang:rawLevel .
+ex:renderHepburn a lang:Rendering ;
+    lang:renderedContent ex:wordKana ;
+    lang:renderingForm ex:wordRomaji ;
+    lang:renderingKind lang:renderingTransliteration ;
+    lang:renderingConvention ex:mapHepburn ;
+    lang:renderingPreservation logic:SoundUnderApproximation .

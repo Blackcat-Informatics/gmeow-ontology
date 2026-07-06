@@ -125,3 +125,13 @@ gmeow:eqLangGraft009 a gmeow:TermEquivalence ;
     gmeow:comment "SECTION-RETRACTION: the removed gmeow:languageTag (the internal x-gmeow-* private-use tag on every language individual) is retracted onto lang:carrierTag, which survives ONLY on the three framework-authoring carrier varieties (lang:gmeowEnglish/gmeowFrench/gmeowMandarin) that tag GMEOW's own source literals. relatedMatch: the property survives for the carriers, not as a per-language attribute." ;
     gmeow:lossyDrop "gmeow:languageTag (x-gmeow-* private-use tags on the data-tier reference-catalog languages) is DROPPED — the self-minted IRI is the identity, so a per-language internal tag is redundant; framework-literal tagging flows through lang:carrierTag on the three carrier varieties only" ;
     gmeow:sssomFile "gmeow-language.sssom.tsv" .
+
+gmeow:eqLangGraft010 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:transliterationScheme ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject lang:transliterationScheme ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "transliteration scheme (map graft)" ;
+    gmeow:comment "GRAFT (retention + regrounding): gmeow:TransliterationScheme is RETAINED as the named romanization/transcription value vocabulary (Hepburn, Pinyin, ISO 233, …). The lang: layer regrounds transliteration as a rendering-layer map: a lang:TransliterationMap grafts a retained gmeow:TransliterationScheme individual through lang:transliterationScheme and names its lang:transliterationSourceOrthography and lang:transliterationTargetOrthography over the language's lang:Script orthographies. The core-slice property gmeow:transliterationScheme (Appellation → scheme) and the grounding property lang:transliterationScheme (TransliterationMap → scheme) name the SAME scheme vocabulary from the two sides of the graft. relatedMatch: the scheme individual is shared; the map-side property is the lang: regrounding, not the core property. See slices/core/language/examples/multilingual-document.ttl for a worked ex:mapHepburn TransliterationMap whose crossing carries a logic:SoundUnderApproximation preservation judgment." ;
+    gmeow:sssomFile "gmeow-language.sssom.tsv" .
