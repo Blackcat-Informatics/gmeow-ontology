@@ -87,15 +87,6 @@ ASK {
 }""" ;
     gmeow:saRationale "No owl:Restriction onProperty gmeow:languageCode may carry an owl:minCardinality, owl:cardinality, owl:minQualifiedCardinality, or owl:qualifiedCardinality — registry independence means a code-less conlang or AI-generated language is fully first-class, so nothing forces a Language to carry a code." .
 
-# --- 10. bcp47Tag is NOT functional (MUST-NOT) -------------------------------
-ex:saBcp47TagNotFunctional a gmeow:StructuralAssertion ;
-    gmeow:saPolarity gmeow:mustNot ;
-    gmeow:saScope gmeow:scopeModule ;
-    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:bcp47Tag a owl:FunctionalProperty . }""" ;
-    gmeow:saRationale "gmeow:bcp47Tag MUST NOT be owl:FunctionalProperty — a language legitimately exposes several valid BCP-47 tags across script, region, or variant contexts (zh, zh-Hans, …)." .
-
 # --- 13. Language is a sibling of SymbolicSystem, not a subclass (MUST-NOT) ---
 ex:saLanguageNotSubclassSymbolicSystem a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;

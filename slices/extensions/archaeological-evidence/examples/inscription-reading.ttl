@@ -41,7 +41,7 @@ ex:transcriptJones a gmeow:InformationObject ; rdfs:label "…šarru danну…"
 
 # --- Script + language attribution: also a reified, vantage-scoped claim.
 ex:cuneiform a lang:Script ; rdfs:label "Cuneiform"@x-gmeow-english .
-ex:akkadian  a gmeow:Language ; rdfs:label "Akkadian"@x-gmeow-english ; gmeow:bcp47Tag "akk" .
+ex:akkadian  a gmeow:Language ; rdfs:label "Akkadian"@x-gmeow-english ; gmeow:languageCode "akk" .
 
 ex:attribution a gmeow:ScriptLanguageAttribution ;
     gmeow:attributionTarget  ex:inscription ;

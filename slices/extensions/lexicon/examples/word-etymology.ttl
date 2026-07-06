@@ -24,7 +24,7 @@ ex:ontologyForm a gmeow:LexicalForm ;
     gmeow:formType           gmeow:formWritten .
 
 # --- The Greek source lexeme it derives from.
-ex:greek a gmeow:Language ; rdfs:label "Ancient Greek"@x-gmeow-english ; gmeow:bcp47Tag "grc" .
+ex:greek a gmeow:Language ; rdfs:label "Ancient Greek"@x-gmeow-english ; gmeow:languageCode "grc" .
 
 ex:greekOntos a gmeow:LexicalItem ;
     gmeow:lexicalItemLanguage ex:greek ;
