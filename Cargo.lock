@@ -1802,6 +1802,7 @@ version = "0.1.0"
 dependencies = [
  "assert_cmd",
  "clap",
+ "gmeow-affect",
  "gmeow-cli-core",
  "gmeow-docs",
  "gmeow-errors",
