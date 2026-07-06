@@ -63,6 +63,18 @@ pub struct CorrespondenceArtifacts {
     /// the materialized set is the single source of truth. The four rendered artifacts'
     /// bytes are unchanged (the renderers emit the authored predicate/relation token).
     pub correspondences: CorrespondenceProgram,
+    /// Per-binding get/put CONSTRUCT fragments, keyed by `(cell IRI, profile)` — the
+    /// single-cell slice of each per-profile query (get fragment) plus its inverse (`Some`
+    /// only when the binding emits a put leg). The mappings stage joins this against
+    /// [`correspondence_profiles`](Self::correspondence_profiles) + each correspondence's
+    /// `get_leg` (= its cell IRI) to discharge that ONE correspondence's lens law in
+    /// isolation. Pure strings (no engine ran in logic-compile — F2).
+    pub sparql_fragments: BTreeMap<(String, String), (String, Option<String>)>,
+    /// Correspondence IRI → profile for every `gmeow:ProjectionMapping` binding
+    /// correspondence (absent for `gmeow:TermEquivalence` cells, which are not
+    /// profile-scoped). The join key the mappings stage uses to find a correspondence's own
+    /// `(cell IRI, profile)` fragment pair in [`sparql_fragments`](Self::sparql_fragments).
+    pub correspondence_profiles: BTreeMap<String, String>,
 }
 
 /// Lower every alignment dialect from the sources under `root`, reading slice artifacts
@@ -122,7 +134,71 @@ pub fn lower_all(
         emotionml: emotionml.document,
         ledger,
         correspondences,
+        // The per-binding get/put fragments + the corr→profile join key: the mappings stage
+        // discharges each correspondence's OWN lens law from these (never the per-profile
+        // UNION, which is the wrong unit).
+        sparql_fragments: sparql.fragments,
+        correspondence_profiles: lookup.binding_profiles().clone(),
     })
+}
+
+/// The discharged-`logic:SectionLaw` cell IRIs computed directly from in-memory cell TTLs + the
+/// ontology N-Triples — the string-fed twin of the mappings stage's [`discharge_correspondence_laws`]
+/// (crate::stages::mappings). It reuses the SAME `transpile_correspondences_indexed` +
+/// [`sparql::lower_sparql`] + [`crate::correspondence_law::discharge_laws`] pipeline, so it yields
+/// the identical authorization set the bundle folds into `graph/correspondence-laws` — never a
+/// second copy of the discharge algorithm.
+///
+/// This exists for the PyO3 `execute_put_legs` binding: its Python caller supplies the projection
+/// cells and the ontology, but not the folded verdict graph, so the binding recomputes the SAME
+/// verdicts here rather than hard-failing for want of the folded set. The native `gmeow` /
+/// `gmeow-dev` up-projection path consumes the FOLDED verdict from the bundle
+/// ([`crate::projections::discharged_section_cells_from_bundle`]) instead.
+pub fn discharged_section_cells_from_cells(
+    projection_ttls: &[String],
+    ontology_nt: &str,
+) -> Result<std::collections::BTreeSet<String>, String> {
+    use gmeow_logic_compile::ir::{CorrespondenceLaw, DischargeVerdict};
+
+    let mut dsl_b = RdfDatasetBuilder::new();
+    for ttl in projection_ttls {
+        let ds = parse_dataset(ttl.as_bytes(), NativeRdfFormat::Turtle.media_type(), None)
+            .map_err(|e| format!("parse projection cell: {e}"))?;
+        dsl_b.push_dataset(&ds);
+    }
+    let dsl = dsl_b.freeze().map_err(|e| e.to_string())?;
+    let onto = parse_dataset(ontology_nt.as_bytes(), "application/n-triples", None)
+        .map_err(|e| format!("parse ontology: {e}"))?;
+    let dsl_view = DslView::new(&dsl);
+    let onto_view = DslView::new(&onto);
+    let (correspondences, lookup) =
+        transpile_correspondences_indexed(&dsl_view, &onto_view).map_err(|e| e.to_string())?;
+    let sparql = sparql::lower_sparql(&dsl_view, &onto_view, &lookup).map_err(|e| e.to_string())?;
+    let profiles = lookup.binding_profiles();
+
+    let mut cells = std::collections::BTreeSet::new();
+    for corr in &correspondences.correspondences {
+        let (Some(profile), Some(cell_iri)) = (profiles.get(&corr.iri), corr.get_leg.as_deref())
+        else {
+            continue;
+        };
+        let Some((get_rq, Some(put_rq))) = sparql
+            .fragments
+            .get(&(cell_iri.to_owned(), profile.clone()))
+            .map(|(g, p)| (g, p.as_ref()))
+        else {
+            continue;
+        };
+        for claim in crate::correspondence_law::discharge_laws(get_rq, put_rq, corr.morphism_class)
+        {
+            if claim.law == CorrespondenceLaw::SectionLaw
+                && claim.verdict == DischargeVerdict::ObligationDischarged
+            {
+                cells.insert(cell_iri.to_owned());
+            }
+        }
+    }
+    Ok(cells)
 }
 
 fn parse_turtle(bytes: &[u8], context: &str) -> Result<Arc<RdfDataset>, SliceError> {
