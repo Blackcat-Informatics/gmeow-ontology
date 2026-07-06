@@ -47,7 +47,8 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use crate::projections::correspondence_frontend::CorrespondenceLookup;
 use crate::projections::get_leg::{ProfileBinding, ProjectionCell, curie};
-use crate::projections::put_derivation::{PutClass, classify_put};
+use crate::projections::put_derivation::classify_put;
+use crate::projections::reified_claim::AssertionPolarity;
 use crate::projections::sparql::{
     EmittedQuery, GENERATED_BANNER, SuppressionVocab, atom_triple, local_cell, prefix_block,
     suppression_anchors, templates_of,
@@ -107,11 +108,15 @@ pub(crate) fn emit_put(
             // injective-enough rung → CompleteOver; a co-authored ingest claim without a
             // witness → ValidationOnly; neither → Unsupported (contributes nothing).
             let class = classify_put(b.mnemomorphic, b.lattice().1, b.ingest_claim.as_slice());
-            match class {
+            // The SECOND leg of the classify_put morphism: how the up-lift lands in RDF. The
+            // single-authority AssertionPolarity map turns the three put-classes into the three
+            // renderings — assert-as-fact, reify-as-claim, or withhold — so C1/C2/C3 are one
+            // mechanism, not three hand-branches.
+            match AssertionPolarity::of(class) {
                 // Neither witness nor claim: the honest floor — carry nothing to the put leg.
-                PutClass::Unsupported => continue,
+                AssertionPolarity::Withhold => continue,
                 // A lawful recovery: CONSTRUCT the gmeow source, no provenance envelope.
-                PutClass::CompleteOver => {
+                AssertionPolarity::AssertBase => {
                     for atom in source_atoms(cell, b)? {
                         if !construct.contains(&atom) {
                             construct.push(atom);
@@ -122,7 +127,7 @@ pub(crate) fn emit_put(
                 // provenance envelope per lifted anchor, marking the claim import-derived (a
                 // deterministic `_:imp` blank node — no NOW()/ingestedAt) rather than an
                 // extracted fact.
-                PutClass::ValidationOnly => {
+                AssertionPolarity::ReifyClaim => {
                     any_validation_only = true;
                     for atom in source_atoms(cell, b)? {
                         if !construct.contains(&atom) {
@@ -252,6 +257,7 @@ mod tests {
     };
     use crate::projections::correspondence_frontend::CorrespondenceLookup;
     use crate::projections::get_leg::{Atom, Item, MappingPattern, ProfileBinding, ProjectionCell};
+    use crate::projections::put_derivation::PutClass;
     use crate::projections::sparql::SuppressionVocab;
 
     const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
