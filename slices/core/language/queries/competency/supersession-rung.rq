@@ -1,10 +1,10 @@
 # The lang: graft supersession ledger is queryable per migrated term: for a removed
-# gmeow: term, its logic:Correspondence carries the machine-checked rung
-# (logic:morphismClass) and recoverability witness (logic:mnemomorphic) the
-# logic-compile stage enforces through assert_gates. This asks the load-bearing
-# claim — the gmeow:FormalLanguage → lang:formalLanguageKind collapse is a genuine
-# Section-Retraction — and reads it as data, not prose. Every variable joins through
-# ?corr, so no decoupled BGP inflates the result.
+# gmeow: term, its logic:Correspondence carries the rung (logic:morphismClass) and
+# recoverability witness (logic:mnemomorphic), gate-checked in the logic-compile stage
+# through assert_gates for rung↔mnemomorphic consistency and against an Isomorphism/
+# Equivalence overclaim. This asks the load-bearing claim — the gmeow:FormalLanguage →
+# lang:formalLanguageKind collapse is a genuine Section-Retraction — and reads it as
+# data, not prose. Every variable joins through ?corr, so no decoupled BGP inflates the result.
 PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 

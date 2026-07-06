@@ -1,20 +1,23 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# The lang:-graft supersession ledger, authored as machine-checked logic:Correspondence
-# nodes — the canonical rung carrier (Principle 17: SSSOM/EDOAL are its lossy projections).
-# Each removed / deepened / grafted gmeow: term is recorded as a correspondence FROM the
-# old term TO its lang:/logic: replacement, at its TRUE rung on the logic: law-spine. The
-# rung is NOT prose: it is logic:morphismClass + logic:mnemomorphic + (for an injective rung)
-# a logic:getLeg whose LegPath the correspondence gates structurally invert (put ∘ get = id).
-# These correspondences are extracted from the authored surface and run through assert_gates
-# in the logic-compile stage, so a false Section-Retraction (a claimed recovery the leg cannot
-# invert) reds the build.
+# The lang:-graft supersession ledger, authored as logic:Correspondence nodes — the canonical
+# rung carrier (Principle 17: SSSOM/EDOAL are its lossy projections). Each removed / deepened /
+# grafted gmeow: term is recorded as a correspondence FROM the old term TO its lang:/logic:
+# replacement, at its TRUE rung on the logic: law-spine. The rung is data, not prose: it is
+# logic:morphismClass + logic:mnemomorphic + (for an injective rung) a logic:getLeg. These
+# correspondences are extracted from the authored surface and run through assert_gates in the
+# logic-compile stage, which enforces rung↔mnemomorphic consistency and the OVERCLAIM law — a
+# lossy mapping that claimed logic:Isomorphism or logic:Equivalence reds the build. The
+# Section-Retraction recoverability rung is an authored, structurally-checked witness (its getLeg
+# is carried and structurally invertible); the genuine over-data Mnemomorphism discharge that
+# executes the recovery and reds a false section is not yet run on this pure-LegPath path.
 #
 # Honesty note: two claims the earlier prose called "SECTION-RETRACTION" are in truth LOSSY —
 # gmeow:WritingSystem drops writingSystemType/textDirection and gmeow:languageTag drops the
-# data-tier tags, so neither recovers its source; both are recorded here as LossyLens, which the
-# gate would demand rather than a section they cannot discharge.
+# data-tier tags, so neither recovers its source; both are recorded here as LossyLens as an
+# honest authoring — a lossy mapping that instead claimed logic:Isomorphism or logic:Equivalence
+# would red on the overclaim law.
 
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
@@ -28,7 +31,7 @@
 <https://blackcatinformatics.ca/gmeow/imports/supersession-correspondences>
     a owl:Ontology ;
     rdfs:label "GMEOW lang: graft supersession ledger"@x-gmeow-english ;
-    skos:definition "The machine-checked supersession ledger of the lang: grafting migration: every removed / deepened / grafted gmeow: term recorded as a logic:Correspondence FROM the old term (logic:supersededTerm) TO its lang:/logic: replacement (logic:supersedingTerm), at its true rung (logic:morphismClass) with its recoverability witness (logic:mnemomorphic). The rung is gate-enforced through assert_gates in the logic-compile stage — a false Section-Retraction reds the build — so the migration's preservation claims are law, not prose."@x-gmeow-english ;
+    skos:definition "The supersession ledger of the lang: grafting migration: every removed / deepened / grafted gmeow: term recorded as a logic:Correspondence FROM the old term (logic:supersededTerm) TO its lang:/logic: replacement (logic:supersedingTerm), at its true rung (logic:morphismClass) with its recoverability witness (logic:mnemomorphic). The rung is gate-enforced through assert_gates in the logic-compile stage, which reds an overclaim (a lossy mapping cannot claim logic:Isomorphism or logic:Equivalence) and enforces rung↔mnemomorphic consistency; the Section-Retraction recoverability is an authored, structurally-checked witness (the genuine over-data recovery discharge is not yet run on this path). The ledger is queryable per migrated term, so the preservation rung is reasoned data, not prose."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/supersession-correspondences> ;
     gmeow:graphBoxRole gmeow:boxConfigBox .
 
