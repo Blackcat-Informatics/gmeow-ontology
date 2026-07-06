@@ -2404,8 +2404,8 @@ impl LogicProgram {
 
 mod validation;
 pub use validation::{
-    ConstraintComponent, ConstraintProvenance, PropertyConstraintIr, ShaclNodeKind, ShapeTarget,
-    ShapeValue, ValidationShapeIr,
+    ConstraintComponent, ConstraintProvenance, PropertyConstraintIr, ShaclNodeKind, ShaclSeverity,
+    ShapeTarget, ShapeValue, ValidationShapeIr,
 };
 
 #[cfg(test)]

@@ -294,6 +294,13 @@ pub fn recover_opt_from_shape(shape: &ValidationShapeIr) -> Result<OptConstraint
                 "recover_opt_from_shape: a value-keyed target is not an OPT constraint".into(),
             );
         }
+        ShapeTarget::SubjectsOf(_) | ShapeTarget::ObjectsOf(_) => {
+            return Err(
+                "recover_opt_from_shape: a subjects-of/objects-of (domain/range) target is not an \
+                 OPT constraint"
+                    .into(),
+            );
+        }
     };
     // Collect EVERY family's discriminating component — never return on the first match. A
     // well-formed lifted OPT constraint carries exactly one discriminating family (Quantity's
