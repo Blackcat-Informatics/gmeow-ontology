@@ -2889,3 +2889,107 @@ gmeow:gmnMembershipLatest
     gmeow:versionMember gmeow:gmnVersionOne ;
     gmeow:versionSet gmeow:gmnDialectVersions ;
     gmeow:versionRole gmeow:roleLatest .
+
+# --- GMN conformance-failure vocabulary (typed, queryable violation objects) -- #
+# The twelve hard rules of the GMN dialect, each a typed lang: failure class
+# under lang:LangConformanceFailure. The first seven are enforced by the SHACL
+# gates in shapes.ttl (each shape naming its class through
+# lang:enforcesFailureClass); the last five are the GMN parser/writer's own
+# validator tier — the rules a table-driven reader/writer checks against the
+# codebook, grammar, and dictionary state that SHACL cannot see.
+
+lang:GmnNonCanonicalCodepoint
+    a owl:Class ;
+    rdfs:subClassOf lang:LangConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN Non-Canonical Codepoint"@x-gmeow-english ;
+    skos:definition "The failure raised when a glyph of the GMN script does not carry a canonical codepoint-explicit spelling: a lang:Grapheme in gmeow:gmnScript whose gmeow:gmnCodepoints is absent, or any gmeow:gmnCodepoints value that does not match the canonical \"U+XXXX\"-style form (uppercase hexadecimal, four to six digits, space-separated for multi-codepoint glyphs). The GMN glyph table is codepoint-explicit by rule — a glyph named only by its rendered shape is unauditable for confusables and collisions."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+lang:GmnConfusableGlyph
+    a owl:Class ;
+    rdfs:subClassOf lang:LangConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN Confusable Glyph"@x-gmeow-english ;
+    skos:definition "The failure raised when two distinct graphemes of gmeow:gmnScript are related by gmeow:gmnConfusableWith — a visually-confusable pair admitted into one glyph inventory. The GMN orthography's confusables blocklist forbids co-resident confusables: the normative rule is the Unicode UTS #39 skeleton (two glyphs are confusable iff they share a skeleton), the seeded gmeow:gmnConfusableWith pairs are its data-level anchors, and the full skeleton computation is the GMN validator's, never hand-curated completeness."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+lang:GmnGlyphCollision
+    a owl:Class ;
+    rdfs:subClassOf lang:LangConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN Glyph Collision"@x-gmeow-english ;
+    skos:definition "The failure raised when two distinct graphemes of one lang:Script share an identical gmeow:gmnCodepoints value without both being sigil-scoped: one codepoint sequence, two glyph identities, no gmeow:gmnSigilScope disambiguation on each. The single lawful reuse is the record-initial sigil discipline — the same glyph may read differently across GMN planes exactly when each reading pins its record scope through gmeow:gmnSigilScope (μ the math sigil versus μ the in-record measure symbol); an unscoped collision is ambiguity in the glyph table itself."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+lang:GmnMissingEnvelopeField
+    a owl:Class ;
+    rdfs:subClassOf lang:LangConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN Missing Envelope Field"@x-gmeow-english ;
+    skos:definition "The failure raised when a gmeow:GmnEnvelope omits any field of its eight-field contract: the three dialect coordinates (gmeow:gmnSchemaVersion, gmeow:gmnDictionaryVersion, gmeow:gmnGlyphTableVersion), its boundary ring (gmeow:gmnSecurityRing), its asserting standpoint (gmeow:accordingTo), its generating activity (gmeow:wasGeneratedBy), its byte-exact identity (gmeow:contentDigest), and its losslessness judgment (gmeow:gmnEnvelopeCorrespondence). An envelope is the attested carrier of a payload across a serialization boundary; a carrier missing any contract field cannot be admitted, migrated, or audited."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+lang:GmnVersionOverclaim
+    a owl:Class ;
+    rdfs:subClassOf lang:LangConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN Version Overclaim"@x-gmeow-english ;
+    skos:definition "The failure raised when the GMN version machinery claims more than its lineage discharges: a migration crossing (gmeow:gmnMigratesFrom / gmeow:gmnMigratesTo) whose correspondence claims logic:mnemomorphic true while the destination version's membership carries a change scale stronger than additive (anything other than gmeow:scaleMinor or gmeow:scaleTrivial — a major or breaking bump has, by its own classification, changed what a round-trip could recover), or a gmeow:gmnAcceptWindow greater than 1 (acceptance beyond current-plus-one-prior is silent tolerance, not judged migration)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+lang:GmnCompactionWithoutProvenance
+    a owl:Class ;
+    rdfs:subClassOf lang:LangConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN Compaction Without Provenance"@x-gmeow-english ;
+    skos:definition "The failure raised when a gmeow:GmnCompaction is not fully provenance-linked: it names no source through gmeow:gmnCompacts, or it carries no attributing gmeow:vantage. A compaction is a reified NEW claim about older claims — a gmeow:StandpointClaim — so it is auditable exactly when every compacted source is reachable through its gmeow:gmnCompacts edges and the standpoint holding the condensation is named; a compaction with a partial source list or no vantage is a hidden loss wearing a claim's clothes."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+lang:GmnCompactionOverclaim
+    a owl:Class ;
+    rdfs:subClassOf lang:LangConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN Compaction Overclaim"@x-gmeow-english ;
+    skos:definition "The failure raised when a gmeow:GmnCompaction's correspondence claims a preservation stronger than the compaction discipline licenses: logic:mnemomorphic true, logic:ExactPreservation, or logic:SoundUnderApproximation — anything stronger than logic:ValidationOnly. Compaction is lossy by nature and get-leg-only (the GMN-1 → GMN-2 crossing gmeow:gmnCorrGmnToCompacted is a validation-only bridge view with no round-trip obligation), so a compaction claiming exactness, soundness, or recoverability has asserted a witness the crossing's own law-spine denies."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+lang:GmnUncoveredTerm
+    a owl:Class ;
+    rdfs:subClassOf lang:LangConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN Uncovered Term"@x-gmeow-english ;
+    skos:definition "The failure raised when a GMN document uses an alias that the pinned dictionary version does not mint, or names a term the codebook's alias table does not cover. Alias resolution is version-pinned — an alias is meaningless without the gmeow:gmnDictionaryVersion that minted it — so an uncovered term is undecodable, never guessable. Its enforcing validator is the GMN parser/writer: coverage is a join between document tokens and the alias table, state that lives in the codebook rather than in the graph a SHACL shape can see."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+lang:GmnNonCanonicalOrder
+    a owl:Class ;
+    rdfs:subClassOf lang:LangConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN Non-Canonical Order"@x-gmeow-english ;
+    skos:definition "The failure raised when a GMN document's records are not in the canonical order the writer emits — the content-sorted order inherited from the GMN-0 narrow-waist normal form. Canonical order is what makes two conforming serializations of one model byte-comparable; a permuted document decodes to the same model but forfeits the digest discipline. Its enforcing validator is the GMN parser/writer, which checks the emitted sequence against the sort the normal form defines."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+lang:GmnMalformedNumber
+    a owl:Class ;
+    rdfs:subClassOf lang:LangConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN Malformed Number"@x-gmeow-english ;
+    skos:definition "The failure raised when a numeric token in a GMN document does not conform to the grammar's number production — a confidence outside its two-fractional-digit rounding, a magnitude written in a non-canonical form, or a numeral the LL(1) grammar cannot accept. Numbers in GMN are canonical-form data, not free text, because the token channel's compression depends on one spelling per value. Its enforcing validator is the GMN parser/writer, whose table-driven number production is the rule."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+lang:GmnUndeclaredDialectVersion
+    a owl:Class ;
+    rdfs:subClassOf lang:LangConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN Undeclared Dialect Version"@x-gmeow-english ;
+    skos:definition "The failure raised when a GMN document reaches a reader without its dialect coordinates — a payload whose envelope header does not pin the gmeow:gmnSchemaVersion, gmeow:gmnDictionaryVersion, and gmeow:gmnGlyphTableVersion it was serialized under. An undeclared version is not defaultable: aliases and glyphs are meaningful only against their pinned tables, so the reader must refuse rather than guess. Its enforcing validator is the GMN parser/writer, which reads the header before any record; the graph-side counterpart on an envelope individual is lang:GmnMissingEnvelopeField."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+lang:GmnNonDecodableGrammar
+    a owl:Class ;
+    rdfs:subClassOf lang:LangConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN Non-Decodable Grammar"@x-gmeow-english ;
+    skos:definition "The failure raised when the GMN grammar's declared determinism contract does not hold — a grammar carrying gmeow:gmnDeterminismClass \"LL(1)\" whose rules are not deterministically decidable with one-token lookahead, so a reader cannot know from the next token which production applies and the stream is not prefix-decodable. The determinism class is a declared contract, never taken on faith: its enforcing validator is the GMN parser/writer, whose parse-table construction over the grammar's rules is the machine check the literal must survive."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
