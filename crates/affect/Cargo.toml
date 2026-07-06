@@ -1,0 +1,19 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+
+[package]
+name = "gmeow-affect"
+description = "GMEOW affect-intensity geometry: exact-rational inner-product-space over a metric Gram matrix, read from an RDF graph"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+readme = "README.md"
+keywords = ["gmeow", "affect", "geometry", "gram-matrix", "norm"]
+
+[lib]
+crate-type = ["rlib"]
+path = "src/lib.rs"
+
+[dependencies]
+purrdf = "0.3"
