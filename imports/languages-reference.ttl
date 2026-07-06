@@ -232,6 +232,7 @@ gmeow:wsYiii a lang:Script ;
 
 lang:english a gmeow:Language ;
     gmeow:bcp47Tag "en"^^xsd:language ;
+    lang:carrierTag "x-gmeow-english" ;
     gmeow:languageCode "en" ;
     gmeow:languageCode "eng" ;
     gmeow:languageOrigin gmeow:originNatural ;
@@ -332,6 +333,7 @@ gmeow:appJapaneseExonym a gmeow:Appellation ;
 
 lang:mandarin a gmeow:Language ;
     gmeow:bcp47Tag "zh"^^xsd:language ;
+    lang:carrierTag "x-gmeow-mandarin" ;
     gmeow:languageCode "zh" ;
     gmeow:languageCode "cmn" ;
     gmeow:languageOrigin gmeow:originNatural ;
@@ -357,6 +359,7 @@ gmeow:appMandarinExonym a gmeow:Appellation ;
 
 lang:french a gmeow:Language ;
     gmeow:bcp47Tag "fr"^^xsd:language ;
+    lang:carrierTag "x-gmeow-french" ;
     gmeow:languageCode "fr" ;
     gmeow:languageCode "fra" ;
     gmeow:languageOrigin gmeow:originNatural ;

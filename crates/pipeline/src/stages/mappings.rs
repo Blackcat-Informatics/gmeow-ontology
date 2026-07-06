@@ -900,6 +900,63 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
         );
     }
 
+    /// Post-lang-graft: the BCP-47 projection consumers reach a language's tag THROUGH
+    /// its carrier variety (the folded `gmeow:bcp47Tag` rides the variety IRI, joined via
+    /// `lang:varietyOf`), the `@x-gmeow-*` retag reads `lang:carrierTag` on the variety,
+    /// and the schema.org cells are re-expressed against the migrated shape
+    /// (`gmeow:Language` + `lang:signSystemKind`; `lang:Orthography` binding). Computed
+    /// FRESH from the DSL, so it verifies the rewiring independently of the committed
+    /// (Task-6-re-blessed) `.rq` bytes.
+    #[test]
+    fn bcp47_projection_queries_join_through_variety() {
+        let root = repo_root();
+        let artifacts = compile_mappings(&root).expect("compile").artifacts;
+        let query = |name: &str| -> String {
+            let path = format!("{QUERIES_DIR}/{name}");
+            let (_, bytes) = artifacts
+                .iter()
+                .find(|(p, _)| p.as_str() == path.as_str())
+                .unwrap_or_else(|| panic!("missing generated query {path}"));
+            String::from_utf8_lossy(bytes).into_owned()
+        };
+
+        // ontolex: the name/lexical-item language tag is reached THROUGH the variety.
+        let ontolex = query("ontolex.rq");
+        assert!(
+            ontolex.contains("lang:varietyOf ?lang") && ontolex.contains("gmeow:bcp47Tag ?langTag"),
+            "ontolex must join the language tag through its variety:\n{ontolex}"
+        );
+
+        let schema = query("schema-org.rq");
+        // inLanguage joins through the content language's variety.
+        assert!(
+            schema.contains("lang:varietyOf ?ilLang") && schema.contains("gmeow:bcp47Tag ?ilTag"),
+            "schema inLanguage must join through the variety"
+        );
+        // The @x-gmeow-* retag reads lang:carrierTag on the variety, not the removed
+        // gmeow:languageTag on the language.
+        assert!(
+            schema.contains("?_variety lang:varietyOf ?_lang")
+                && schema.contains("?_variety lang:carrierTag ?_intTag")
+                && schema.contains("?_variety gmeow:bcp47Tag ?_extTag"),
+            "schema retag must reach carrierTag + bcp47Tag through the variety"
+        );
+        // The removed authored properties/classes are gone from the emitted queries.
+        assert!(
+            !schema.contains("gmeow:languageTag") && !schema.contains("gmeow:usesWritingSystem"),
+            "no removed authored language properties survive in the schema query"
+        );
+        assert!(
+            !schema.contains("a gmeow:ProgrammingLanguage"),
+            "the removed gmeow:ProgrammingLanguage class must not survive"
+        );
+        // The migrated programming-language shape: gmeow:Language of programmingLanguageKind.
+        assert!(
+            schema.contains("lang:programmingLanguageKind"),
+            "programming languages are gmeow:Language of lang:programmingLanguageKind"
+        );
+    }
+
     #[test]
     fn edoal_and_sparql_emit_byte_identically_with_committed() {
         // The stage drives the oxigraph-free EDOAL + SPARQL correspondence lowerings.

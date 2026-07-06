@@ -53,8 +53,11 @@ const RDF_NIL: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil";
 /// `gmeow_docs::model::LOGIC_NS`.
 const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
 
-const LANGUAGE_CLASS: &str = "https://blackcatinformatics.ca/gmeow/Language";
-const LANGUAGE_TAG: &str = "https://blackcatinformatics.ca/gmeow/languageTag";
+/// The carrier variety class: the internal `x-gmeow-*` tag rides `lang:carrierTag`
+/// on a `lang:LanguageVariety` since the lang: graft, and the generated
+/// `gmeow:bcp47Tag` is folded onto the SAME variety by the `bcp47` projection.
+const LANGUAGE_VARIETY_CLASS: &str = "https://blackcatinformatics.ca/lang/LanguageVariety";
+const CARRIER_TAG: &str = "https://blackcatinformatics.ca/lang/carrierTag";
 const BCP47_TAG: &str = "https://blackcatinformatics.ca/gmeow/bcp47Tag";
 
 // ── curie ──────────────────────────────────────────────────────────────────────
@@ -341,9 +344,12 @@ impl<'a> FoldView<'a> {
 
     fn build_tag_map(&self) -> BTreeMap<String, String> {
         let mut out: BTreeMap<String, String> = BTreeMap::new();
-        for lang_tid in self.subjects_by_type(LANGUAGE_CLASS, ALL_SCOPE) {
-            let internal = self.value(lang_tid, LANGUAGE_TAG, ALL_SCOPE);
-            let bcp = self.value(lang_tid, BCP47_TAG, ALL_SCOPE);
+        // The internal→BCP-47 pair rides the carrier VARIETY: lang:carrierTag (the
+        // x-gmeow-* tag) and the folded gmeow:bcp47Tag both sit on the same
+        // lang:LanguageVariety, so scan the variety subjects.
+        for variety_tid in self.subjects_by_type(LANGUAGE_VARIETY_CLASS, ALL_SCOPE) {
+            let internal = self.value(variety_tid, CARRIER_TAG, ALL_SCOPE);
+            let bcp = self.value(variety_tid, BCP47_TAG, ALL_SCOPE);
             if let (Some(i), Some(b)) = (internal, bcp) {
                 out.insert(self.lex(i).to_string(), self.lex(b).to_string());
             }
@@ -2682,7 +2688,8 @@ mod tests {
     /// default keeps the carrier label, a `fr` request selects the French
     /// translation, and an absent translation falls back to English (flagged).
     /// Pins the multilingual generalization of `FoldView` and guards the English
-    /// path from regression (the default view is unchanged for `gmeow:langFrench`).
+    /// path from regression (the default view is unchanged for
+    /// `gmeow:EntityExistence`, a documented term carrying a French translation).
     #[test]
     fn selector_threads_requested_language() {
         let root = repo_root();
@@ -2697,8 +2704,8 @@ mod tests {
         };
 
         // English default: the carrier label, not a fallback.
-        let en = label_of(vec!["en".to_string()], "gmeow:langFrench");
-        assert_eq!(en.label, "French");
+        let en = label_of(vec!["en".to_string()], "gmeow:EntityExistence");
+        assert_eq!(en.label, "Entity Existence");
         assert!(!en.label_fallback);
 
         // `new()` (the export generator's view) agrees with `["en"]` — the
@@ -2706,14 +2713,14 @@ mod tests {
         let default_view = FoldView::new(&graph);
         let default_fr = collect_terms(&default_view)
             .into_iter()
-            .find(|t| t.curie == "gmeow:langFrench")
+            .find(|t| t.curie == "gmeow:EntityExistence")
             .expect("term present");
         assert_eq!(default_fr.label, en.label);
         assert_eq!(default_fr.label_fallback, en.label_fallback);
 
-        // `fr` request: the French translation, non-fallback.
-        let fr = label_of(vec!["fr".to_string()], "gmeow:langFrench");
-        assert_eq!(fr.label, "français");
+        // `fr` request: the French translation (from the lifecycle fr.po), non-fallback.
+        let fr = label_of(vec!["fr".to_string()], "gmeow:EntityExistence");
+        assert_eq!(fr.label, "Existence d'entité");
         assert!(!fr.label_fallback);
     }
 
@@ -2732,16 +2739,19 @@ mod tests {
         let (terms, _t, _v) = english_terms();
 
         let hit: serde_json::Value =
-            serde_json::from_str(&lookup_envelope(&terms, "gmeow:langFrench")).unwrap();
+            serde_json::from_str(&lookup_envelope(&terms, "gmeow:EntityExistence")).unwrap();
         assert_eq!(hit["ok"], serde_json::json!(true));
-        assert_eq!(hit["curie"], serde_json::json!("gmeow:langFrench"));
-        assert_eq!(hit["label"], serde_json::json!("French"));
-        assert_eq!(hit["category"], serde_json::json!("individual"));
+        assert_eq!(hit["curie"], serde_json::json!("gmeow:EntityExistence"));
+        assert_eq!(hit["label"], serde_json::json!("Entity Existence"));
+        assert_eq!(hit["category"], serde_json::json!("class"));
 
         // Local-name resolution (IRI minus the gmeow namespace) is accepted.
         let by_local: serde_json::Value =
-            serde_json::from_str(&lookup_envelope(&terms, "langFrench")).unwrap();
-        assert_eq!(by_local["curie"], serde_json::json!("gmeow:langFrench"));
+            serde_json::from_str(&lookup_envelope(&terms, "EntityExistence")).unwrap();
+        assert_eq!(
+            by_local["curie"],
+            serde_json::json!("gmeow:EntityExistence")
+        );
 
         let miss: serde_json::Value =
             serde_json::from_str(&lookup_envelope(&terms, "gmeow:NoSuchTerm")).unwrap();
@@ -2752,21 +2762,21 @@ mod tests {
         );
 
         // Per-language record: `fr` selects the French label, and the envelope is
-        // ASCII-escaped (`json.dumps` default) — `ç` is emitted as `ç`.
+        // ASCII-escaped (`json.dumps` default) — `é` is emitted as `é`.
         let root = repo_root();
         let graph = read_fold(&root).expect("read fold");
         let fr_terms = collect_terms(&FoldView::with_requested(&graph, vec!["fr".to_string()]));
-        let fr_raw = lookup_envelope(&fr_terms, "gmeow:langFrench");
+        let fr_raw = lookup_envelope(&fr_terms, "gmeow:EntityExistence");
         assert!(
-            fr_raw.contains("\\u00e7"),
+            fr_raw.contains("\\u00e9"),
             "lookup envelope must be ASCII-escaped (ensure_ascii)"
         );
         assert!(
-            !fr_raw.contains('ç'),
+            !fr_raw.contains('é'),
             "raw non-ASCII leaked into lookup envelope"
         );
         let fr: serde_json::Value = serde_json::from_str(&fr_raw).unwrap();
-        assert_eq!(fr["label"], serde_json::json!("français"));
+        assert_eq!(fr["label"], serde_json::json!("Existence d'entité"));
     }
 
     /// `llms_txt`: the STANDARD llmstxt.org format — H1 + canonical
@@ -2838,14 +2848,17 @@ mod tests {
     #[test]
     fn doc_card_md_renders_card_and_not_found() {
         let (terms, _t, _v) = english_terms();
-        let card = doc_card_md(&terms, "gmeow:langFrench");
-        assert!(card.starts_with("# gmeow:langFrench"), "card head:\n{card}");
+        let card = doc_card_md(&terms, "gmeow:EntityExistence");
+        assert!(
+            card.starts_with("# gmeow:EntityExistence"),
+            "card head:\n{card}"
+        );
         // Canonical card convention (the shared `gmeow_docs::card` renderer):
         // human-cased category, and term→slice provenance recovered from the
         // documentation graph (the docs generator dogfoods `gmeow:docOwnerSlice`
         // into the bundle; the fold reads it back).
-        assert!(card.contains("- category: Individual"));
-        assert!(card.contains("- iri: https://blackcatinformatics.ca/gmeow/langFrench"));
+        assert!(card.contains("- category: Class"));
+        assert!(card.contains("- iri: https://blackcatinformatics.ca/gmeow/EntityExistence"));
         let slice_line = card
             .lines()
             .find(|l| l.starts_with("- slice: "))
@@ -3039,19 +3052,19 @@ mod tests {
         let docs = env["documents"].as_array().unwrap();
         assert_eq!(docs.len(), terms.len());
         // A known class document path/type/resource.
-        let langfrench = terms
+        let entity_existence = terms
             .iter()
-            .find(|t| t.curie == "gmeow:langFrench")
+            .find(|t| t.curie == "gmeow:EntityExistence")
             .expect("term present");
         let doc = docs
             .iter()
-            .find(|d| d["resource"] == serde_json::json!(langfrench.iri))
+            .find(|d| d["resource"] == serde_json::json!(entity_existence.iri))
             .expect("okf doc present");
         assert_eq!(
             doc["path"],
-            serde_json::json!("gmeow-okf/individuals/langFrench.md")
+            serde_json::json!("gmeow-okf/classes/EntityExistence.md")
         );
-        assert_eq!(doc["type"], serde_json::json!("Individual"));
-        assert_eq!(doc["title"], serde_json::json!("French"));
+        assert_eq!(doc["type"], serde_json::json!("Class"));
+        assert_eq!(doc["title"], serde_json::json!("Entity Existence"));
     }
 }

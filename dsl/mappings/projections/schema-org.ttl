@@ -1,4 +1,5 @@
 @prefix gmeow:  <https://blackcatinformatics.ca/gmeow/> .
+@prefix lang:   <https://blackcatinformatics.ca/lang/> .
 @prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos:   <http://www.w3.org/2004/02/skos/core#> .
@@ -338,11 +339,13 @@ gmeow:mapSchemaLanguage a gmeow:ProjectionMapping ;
     gmeow:hasBinding [ gmeow:profile "schema-org" ; gmeow:toClass schema:Language ; gmeow:relation "=" ] .
 
 gmeow:mapSchemaProgrammingLanguage a gmeow:ProjectionMapping ;
-    rdfs:label "gmeow:ProgrammingLanguage → schema:ComputerLanguage"@x-gmeow-english ;
+    rdfs:label "gmeow:Language of programmingLanguageKind → schema:ComputerLanguage"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "prog" ;
-        gmeow:atom ( [ gmeow:subjectVar "prog" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:ProgrammingLanguage ] ) ;
-        gmeow:edoalSource gmeow:ProgrammingLanguage ; gmeow:edoalSourceKind "class" ] ;
+        gmeow:atom (
+            [ gmeow:subjectVar "prog" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Language ]
+            [ gmeow:subjectVar "prog" ; gmeow:predicate lang:signSystemKind ; gmeow:objectValue lang:programmingLanguageKind ] ) ;
+        gmeow:edoalSource gmeow:Language ; gmeow:edoalSourceKind "class" ] ;
     gmeow:hasBinding [ gmeow:profile "schema-org" ; gmeow:toClass schema:ComputerLanguage ; gmeow:relation "=" ] .
 
 gmeow:mapSchemaBcp47 a gmeow:ProjectionMapping ;
@@ -356,12 +359,13 @@ gmeow:mapSchemaBcp47 a gmeow:ProjectionMapping ;
               gmeow:objectValue gmeow:Language ]
             [ gmeow:subjectVar "lang" ; gmeow:predicate gmeow:languageCode ; gmeow:objectVar "code" ]
             [ gmeow:optionalGroup (
-                [ gmeow:subjectVar "lang" ; gmeow:predicate gmeow:usesWritingSystem ; gmeow:objectVar "ws" ]
-                [ gmeow:subjectVar "ws" ; gmeow:predicate gmeow:scriptCode ; gmeow:objectVar "sc" ] ) ] ) ;
+                [ gmeow:subjectVar "orth" ; gmeow:predicate lang:orthographyFor ; gmeow:objectVar "lang" ]
+                [ gmeow:subjectVar "orth" ; gmeow:predicate lang:usesScript ; gmeow:objectVar "ws" ]
+                [ gmeow:subjectVar "ws" ; gmeow:predicate skos:notation ; gmeow:objectVar "sc" ] ) ] ) ;
         gmeow:excludeWhen [ gmeow:subjectVar "lang" ;
             gmeow:path [ a gmeow:SeqPath ; gmeow:pathSteps
-                ( rdf:type [ a gmeow:ZeroOrMorePath ; gmeow:pathStep rdfs:subClassOf ] ) ] ;
-            gmeow:objectValue gmeow:FormalLanguage ] ;
+                ( lang:signSystemKind [ a gmeow:ZeroOrMorePath ; gmeow:pathStep skos:broader ] ) ] ;
+            gmeow:objectValue lang:formalLanguageKind ] ;
         gmeow:filter [ gmeow:exprOp gmeow:opRegex ; gmeow:exprArgs (
             [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "code" ] ) ]
             "^[a-zA-Z]{2,3}$" ) ] ;
@@ -1286,7 +1290,8 @@ gmeow:mapSchemaInLanguage a gmeow:ProjectionMapping ;
         gmeow:anchor "ilWork" ;
         gmeow:atom (
             [ gmeow:subjectVar "ilWork" ; gmeow:predicate gmeow:contentLanguage ; gmeow:objectVar "ilLang" ]
-            [ gmeow:subjectVar "ilLang" ; gmeow:predicate gmeow:bcp47Tag ; gmeow:objectVar "ilTag" ] ) ;
+            [ gmeow:subjectVar "ilVariety" ; gmeow:predicate lang:varietyOf ; gmeow:objectVar "ilLang" ]
+            [ gmeow:subjectVar "ilVariety" ; gmeow:predicate gmeow:bcp47Tag ; gmeow:objectVar "ilTag" ] ) ;
         gmeow:edoalSource gmeow:contentLanguage ] ;
     gmeow:hasBinding [
         gmeow:profile "schema-org" ; gmeow:relation "<=" ; gmeow:confidence 0.9 ;

@@ -360,7 +360,10 @@ fn reference_catalog_glottolog_alignments() {
 
 /// Mirror of `test_language_tag_map_is_deterministic_and_covers_catalog`:
 /// `load_tag_map` over the catalog is deterministic across two parses and covers
-/// the core + catalog internal tags.
+/// the three framework carrier tags. Since the lang: graft, the internal
+/// `x-gmeow-*` tag rides `lang:carrierTag` on the three carriers
+/// (english/french/mandarin) ONLY — the former per-language `gmeow:languageTag`
+/// (japanese/arabic/hindi/python/…) is dropped, so only the carriers map.
 #[test]
 fn language_tag_map_is_deterministic_and_covers_catalog() {
     let bytes = catalog_bytes();
@@ -370,20 +373,21 @@ fn language_tag_map_is_deterministic_and_covers_catalog() {
         load_tag_map(&bytes, "turtle").expect("second load_tag_map must succeed");
     assert_eq!(map_a, map_b, "load_tag_map output must be deterministic");
 
-    for internal_tag in [
-        "x-gmeow-english",
-        "x-gmeow-french",
-        "x-gmeow-mandarin",
-        "x-gmeow-japanese",
-        "x-gmeow-arabic",
-        "x-gmeow-hindi",
-        "x-gmeow-python",
+    for (internal_tag, expected_bcp) in [
+        ("x-gmeow-english", "en"),
+        ("x-gmeow-french", "fr"),
+        ("x-gmeow-mandarin", "zh"),
     ] {
         let bcp = map_a
             .get(internal_tag)
             .unwrap_or_else(|| panic!("missing tag mapping for {internal_tag}"));
-        assert!(!bcp.is_empty(), "empty BCP-47 mapping for {internal_tag}");
+        assert_eq!(bcp, expected_bcp, "wrong BCP-47 mapping for {internal_tag}");
     }
+    // The dropped per-language internal tags no longer appear.
+    assert!(
+        !map_a.contains_key("x-gmeow-japanese"),
+        "per-language internal tags are dropped by the lang: graft"
+    );
 }
 
 /// Catalog-data coverage: `load_inverse_tag_map` over the REAL catalog recovers the
