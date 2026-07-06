@@ -5,11 +5,11 @@
 //!
 //! This module wraps [`purrdf::gts::verify::verify_file_with_options`] and maps the
 //! cryptographic and policy-layer outcomes into canonical
-//! [`gmeow_diagnostics::Finding`] values. When the returned hard-failure flag is
+//! [`gmeow_errors::Finding`] values. When the returned hard-failure flag is
 //! true, [`ValidationRun::run`](crate::validate_all::ValidationRun::run) aborts
 //! before the ontology validation phases.
 
-use gmeow_diagnostics::{Finding, FindingCategory, Severity};
+use gmeow_errors::{Finding, FindingCategory, Severity};
 use purrdf::gts::policy::TrustPolicy;
 use purrdf::gts::verify::{VerifyOptions, verify_file_with_options};
 
@@ -560,7 +560,7 @@ mod tests {
     /// policy, orthogonal to ontology content correctness.
     #[test]
     fn every_signature_finding_carries_policy_warning_category() {
-        use gmeow_diagnostics::FindingCategory;
+        use gmeow_errors::FindingCategory;
 
         // An unsigned bundle with required signatures: produces at least one finding.
         let config = SignatureConfig {

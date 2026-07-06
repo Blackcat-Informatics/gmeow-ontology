@@ -12,7 +12,7 @@
 use std::collections::BTreeMap;
 use std::path::Path;
 
-use gmeow_diagnostics::{Finding, Report, Severity};
+use gmeow_errors::{Finding, Report, Severity};
 use serde_json::json;
 
 use crate::error::PipelineError;

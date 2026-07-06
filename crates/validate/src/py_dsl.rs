@@ -8,7 +8,7 @@
 
 use std::path::PathBuf;
 
-use gmeow_diagnostics::Finding;
+use gmeow_errors::Finding;
 use pyo3::prelude::*;
 
 fn format_dsl_finding(finding: &Finding) -> String {
