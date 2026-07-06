@@ -1,0 +1,19 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Counter-example: a lossy lang:ProjectionEmission (logic:SoundUnderApproximation) over a
+# bare lang:Grammar that enumerates NO lang:unsupportedConstruct — a lossy projection
+# declaring nothing dropped (fires lang:UndeclaredUnsupportedConstruct, the overclaim floor;
+# the source carries no epistemic stratum, so nothing else fires).
+
+@prefix lang:  <https://blackcatinformatics.ca/lang/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <http://example.org/lang/> .
+
+ex:grammarSrc a lang:Grammar .
+
+ex:emUndeclared a lang:ProjectionEmission ;
+    lang:projectionTargetName "EBNF" ;
+    lang:projectsSource ex:grammarSrc ;
+    logic:preservationKind logic:SoundUnderApproximation .
