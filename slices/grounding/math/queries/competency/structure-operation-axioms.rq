@@ -1,4 +1,4 @@
-# Competency question (native gmeow:reasoningLogic lane, #1294): "Does the associativity
+# Competency question (native gmeow:reasoningLogic lane): "Does the associativity
 # axiom, evaluated as a real first-order logic:Formula over a concrete operation table,
 # ENTAIL that both bracketings of (a·b)·c reach the same element?"  The op(x,y,z) atoms are
 # fixed-arity n-ary predications the native reasoner reifies and joins; firing the law over

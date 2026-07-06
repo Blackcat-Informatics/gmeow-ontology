@@ -141,7 +141,7 @@ exa:e8Lattice a math:Lattice ;
     rdfs:label "the E8 lattice (densest packing in 8 dimensions)"@x-gmeow-english .
 
 # ===========================================================================
-# LIVE-ENTAILMENT WITNESS EDB (#1294) — the E8 group-action law as an evaluable
+# LIVE-ENTAILMENT WITNESS EDB — the E8 group-action law as an evaluable
 # consumer in the native competency lane (gmeow:reasoningLogic).
 # ===========================================================================
 # Concrete group elements g,h acting on a point x, where (g·h)·x and g·(h·x) both

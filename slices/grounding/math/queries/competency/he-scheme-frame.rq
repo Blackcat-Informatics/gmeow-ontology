@@ -1,4 +1,4 @@
-# Competency question (native gmeow:reasoningLogic lane, #1294): "Does the homomorphic-
+# Competency question (native gmeow:reasoningLogic lane): "Does the homomorphic-
 # encryption law Dec(E(a) ⊗ E(b)) = a ⊕ b, evaluated as a real logic:Formula over concrete
 # ciphertexts, ENTAIL that the decrypted product equals the plaintext sum?"  ctMul/ptAdd are
 # fixed-arity n-ary body atoms (reified) joined with the binary enc/dec atoms; firing the law
