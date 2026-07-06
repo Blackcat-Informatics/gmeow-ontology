@@ -58,6 +58,8 @@
 use std::borrow::Cow;
 use std::collections::{BTreeSet, HashMap, HashSet};
 
+use rayon::prelude::*;
+
 use crate::physical::builtin_eval::{BuiltinOutcome, emit_integer_surface, eval as eval_builtin};
 use crate::physical::store::{Bound, RelationStore};
 use crate::provenance::mint_derivation_id;
@@ -575,12 +577,89 @@ pub(crate) fn materialize_native(
     let mut worlds = store.worlds();
     worlds.sort();
 
-    // `max_steps` is a SINGLE GLOBAL budget across the sorted worlds (not reset per
-    // world): the correct bundle-guard semantics and deterministic because world order
-    // is fixed.  Worlds run until the shared counter is spent; later worlds then never
-    // run (their strata stay unsaturated).
-    let mut governor = StepGovernor::new(max_steps);
     let total = rules_by_stratum.len();
+
+    // UNBOUNDED path (foundation's `materialize_native(store, &rules, None)`): with no
+    // step budget the `StepGovernor` never cuts, so every world runs to full fixpoint,
+    // `status` is always `Ok`, no world is left untouched, and the worlds are fully
+    // independent (each reads only the shared `store` + `rules_by_stratum`, both `&`-
+    // shared/read-only).  That independence is what makes per-world rayon parallelism
+    // deterministic and byte-identical to the sequential fold.  A SHARED step budget,
+    // by contrast, is inherently order-serial and cannot be parallelized deterministically
+    // — so the budgeted arm keeps the sequential loop below, untouched.
+    if max_steps.is_none() {
+        // `WorldStore` holds a `RefCell` and is therefore NOT `Sync`, so the store read
+        // (`world_edb_facts`) is hoisted out of the parallel region and run sequentially
+        // per sorted world FIRST.  The read is pure and order-independent, so this seed
+        // pass changes no observable output; only the OWNED `(world, edb)` pairs cross
+        // into the thread pool.  The per-world chase below reads only these owned facts
+        // and the `&`-shared read-only `rules_by_stratum` (a `Sync` slice of `&EvalRule`).
+        let edb_by_world: Vec<(String, Vec<Fact>)> = worlds
+            .iter()
+            .map(|world| Ok((world.clone(), world_edb_facts(store, world)?)))
+            .collect::<Result<Vec<_>, String>>()?;
+
+        // Per-world independent chase.  `into_par_iter().map(..).collect::<Result<Vec<_>>>()`
+        // preserves the sorted-world INPUT order in the output Vec, so folding the results
+        // in that order reproduces the sequential push order exactly.
+        let per_world: Vec<(Vec<DerivedRow>, BTreeSet<String>, u64)> = edb_by_world
+            .into_par_iter()
+            .map(
+                |(world, edb_facts)| -> Result<(Vec<DerivedRow>, BTreeSet<String>, u64), String> {
+                    // Echo the asserted EDB FIRST (identical order to the sequential body).
+                    let mut rows = echo_asserted(&world, &edb_facts)?;
+                    // A PER-WORLD unbounded governor: it never cuts, so its final
+                    // `.consumed` counts exactly this world's derivations.
+                    let mut governor = StepGovernor::new(None);
+                    let budgeted =
+                        eval_world_stratified(&edb_facts, &rules_by_stratum, &mut governor)?;
+                    // Derived rows AFTER the echo rows (same order as the sequential body).
+                    for mut row in budgeted.rows {
+                        row.graph = world.clone();
+                        rows.push(row);
+                    }
+                    Ok((rows, budgeted.progress.saturated_preds, governor.consumed))
+                },
+            )
+            .collect::<Result<Vec<_>, String>>()?;
+
+        let mut out: Vec<DerivedRow> = Vec::new();
+        let mut frontier: Option<BTreeSet<String>> = None;
+        let mut consumed: u64 = 0;
+        for (rows, saturated, world_consumed) in per_world {
+            // Concatenate rows in sorted-world order — reproduces the sequential
+            // `out.extend`/`out.push` interleaving exactly.
+            out.extend(rows);
+            // Set-intersection is order-independent — the same cross-world frontier the
+            // sequential running intersection computes.
+            frontier = Some(match frontier {
+                None => saturated,
+                Some(f) => f.intersection(&saturated).cloned().collect(),
+            });
+            // The sequential path threads ONE governor whose final `.consumed` equals the
+            // SUM of per-world derivations, so summing here is byte-identical.
+            consumed += world_consumed;
+        }
+
+        let progress = StrataProgress {
+            completed: total,
+            total,
+            saturated_preds: frontier.unwrap_or_default(),
+        };
+        sort_rows(&mut out);
+        return Ok(NativeOutcome::Decided(Budgeted {
+            rows: out,
+            status: BudgetStatus::Ok,
+            progress,
+            consumed_steps: consumed,
+        }));
+    }
+
+    // BUDGETED path: `max_steps` is a SINGLE GLOBAL budget across the sorted worlds (not
+    // reset per world): the correct bundle-guard semantics and deterministic because
+    // world order is fixed.  Worlds run until the shared counter is spent; later worlds
+    // then never run (their strata stay unsaturated).
+    let mut governor = StepGovernor::new(max_steps);
     let world_count = worlds.len();
     let mut out: Vec<DerivedRow> = Vec::new();
     let mut status = BudgetStatus::Ok;
@@ -1604,6 +1683,112 @@ mod tests {
                 .iter()
                 .all(|r| r.predicate.as_str() != unreach),
             "no unreachable row may be derived after the budget cut"
+        );
+    }
+
+    /// PER-WORLD PARALLELISM DETERMINISM GATE.
+    ///
+    /// The unbounded (`max_steps == None`) path chases every world in parallel with
+    /// rayon.  This test proves the two properties the parallel fold must hold:
+    ///
+    /// 1. **Correctness** — over a THREE-world store whose worlds have distinct
+    ///    reach topologies, the derived `reachable`/`unreachable` facts equal an
+    ///    explicit expected set (falsifiable: a fold that dropped, duplicated, or
+    ///    mis-stamped a world's rows would move this set).
+    /// 2. **Determinism under parallel scheduling** — two independent unbounded runs
+    ///    return byte-identical rows (full provenance, in canonical sort order),
+    ///    regardless of the order rayon happens to complete the per-world chases.
+    #[test]
+    fn physical_multi_world_parallel_deterministic() {
+        let (rules, _) = reach_program();
+
+        // Three worlds, sorted w1 < w2 < w3, each with nodes {a,b,c} and a distinct
+        // reach topology so the per-world results differ (falsifiable correctness):
+        //   w1: seed a, edge a→b        ⇒ reachable {a,b}, unreachable {c}
+        //   w2: seed a, edges a→b, b→c  ⇒ reachable {a,b,c}, unreachable {}
+        //   w3: seed a, no edges        ⇒ reachable {a}, unreachable {b,c}
+        let w1 = format!("{NS}w1");
+        let w2 = format!("{NS}w2");
+        let w3 = format!("{NS}w3");
+        let store = WorldStore::new();
+        for w in [&w1, &w2, &w3] {
+            for x in ["a", "b", "c"] {
+                store.insert_quad(w, &nn(x), &nn("node"), &nn(x));
+            }
+            store.insert_quad(w, &nn("a"), &nn("reachableSeed"), &nn("a"));
+        }
+        store.insert_quad(&w1, &nn("a"), &nn("edge"), &nn("b"));
+        store.insert_quad(&w2, &nn("a"), &nn("edge"), &nn("b"));
+        store.insert_quad(&w2, &nn("b"), &nn("edge"), &nn("c"));
+        // w3 deliberately has no edges.
+
+        let run = || {
+            let outcome = materialize_native(&store, &rules, None).expect("materialize_native");
+            let NativeOutcome::Decided(Budgeted { rows, .. }) = outcome else {
+                panic!("expected Decided for a stratifiable multi-world program");
+            };
+            rows
+        };
+
+        let rows1 = run();
+
+        // (1) Correctness: (world, predicate, subject) triples for the derived facts.
+        let reach_pred = nn("reachable");
+        let unreach_pred = nn("unreachable");
+        let mut got: BTreeSet<(String, &'static str, String)> = BTreeSet::new();
+        for r in derived_only(&rows1) {
+            let kind = if r.predicate.as_str() == reach_pred {
+                "reachable"
+            } else if r.predicate.as_str() == unreach_pred {
+                "unreachable"
+            } else {
+                panic!("unexpected derived predicate {}", r.predicate.as_str());
+            };
+            got.insert((r.graph.clone(), kind, term_display(&r.subject)));
+        }
+        let mut want: BTreeSet<(String, &'static str, String)> = BTreeSet::new();
+        let subj = |x: &str| format!("<{NS}{x}>");
+        for (w, kind, x) in [
+            (&w1, "reachable", "a"),
+            (&w1, "reachable", "b"),
+            (&w1, "unreachable", "c"),
+            (&w2, "reachable", "a"),
+            (&w2, "reachable", "b"),
+            (&w2, "reachable", "c"),
+            (&w3, "reachable", "a"),
+            (&w3, "unreachable", "b"),
+            (&w3, "unreachable", "c"),
+        ] {
+            want.insert((w.clone(), kind, subj(x)));
+        }
+        assert_eq!(
+            got, want,
+            "derived reachable/unreachable facts must match the expected per-world set"
+        );
+
+        // (2) Determinism: a second unbounded run is byte-identical (full provenance,
+        // in canonical sort order — not just as a set).
+        let rows2 = run();
+        let full_key = |rows: &[DerivedRow]| -> Vec<String> {
+            rows.iter()
+                .map(|r| {
+                    format!(
+                        "{}\u{1f}{}\u{1f}{}\u{1f}{}\u{1f}{}\u{1f}{}\u{1f}{}",
+                        r.graph,
+                        term_display(&r.subject),
+                        r.predicate.as_str(),
+                        term_display(&r.object),
+                        r.rule_iri,
+                        r.source_quad_ids.join(","),
+                        r.derivation_id,
+                    )
+                })
+                .collect()
+        };
+        assert_eq!(
+            full_key(&rows1),
+            full_key(&rows2),
+            "two unbounded parallel runs must be byte-identical, in identical order"
         );
     }
 
