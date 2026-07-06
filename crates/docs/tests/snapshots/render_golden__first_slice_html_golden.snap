@@ -41,7 +41,7 @@ expression: "to_html(&model, &Page::Slice(slug))"
 <h2>Artifacts</h2>
 <h3>Documentation</h3>
 <table><thead><tr><th>Path</th><th>Media type</th><th>Digest</th></tr></thead><tbody>
-<tr><td><code>docs.md</code></td><td><code>text/markdown</code></td><td><code>f656971f578a</code></td></tr>
+<tr><td><code>docs.md</code></td><td><code>text/markdown</code></td><td><code>e346485e9e93</code></td></tr>
 </tbody></table>
 <h3>Examples</h3>
 <table><thead><tr><th>Path</th><th>Media type</th><th>Digest</th></tr></thead><tbody>

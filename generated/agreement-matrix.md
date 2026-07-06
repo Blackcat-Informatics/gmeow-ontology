@@ -14,10 +14,6 @@ re-asserts) is compared to the corpus's published expected verdict.
   intended for a `divergence`-lane corpus, see below).
 * **dl-gap** — the native path could not decide the case (an honest coverage gap).
 
-The live cross-engine (ELK/HermiT) agreement axis is a separate surface: the
-Docker-optional classic-cross-check report at
-`dist/gmeow-classic-cross-check.sarif`.
-
 ## Agreement (agreement-expected corpora)
 
 | corpus | lane | cases | agree | corpus-only | dl-gap | agree rate |

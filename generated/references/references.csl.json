@@ -264,12 +264,6 @@
     "type": "webpage"
   },
   {
-    "URL": "http://liveontologies.github.io/elk-reasoner/",
-    "id": "elk-reasoner-439468c4",
-    "title": "liveontologies.github.io/elk-reasoner",
-    "type": "webpage"
-  },
-  {
     "URL": "http://loinc.org/rdf#",
     "id": "loinc-org-d314c662",
     "title": "loinc.org/rdf",

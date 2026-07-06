@@ -1,0 +1,20 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Well-formed: a compact space that declares its compactness (not assumed) and
+# references the honest recorded second-order boundary math:compactnessBoundary
+# through math:preservesStructure in lieu of a first-order law (compactness is
+# genuinely second-order). Conforms to math:CompactSpaceShape (math:isCompact,
+# minCount/maxCount 1, xsd:boolean). Bound by ex:ecCompactSpaceDeclared.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+ex:closedInterval a math:CompactSpace ;
+    rdfs:label "the closed real interval [0, 1] (a compact space)"@x-gmeow-english ;
+    math:isCompact true ;
+    math:preservesStructure math:compactnessBoundary ;
+    math:hasOpenSet ex:closedIntervalWhole .
+
+ex:closedIntervalWhole a math:OpenSet ;
+    rdfs:label "the whole closed interval as an open set of its topology"@x-gmeow-english .

@@ -1866,13 +1866,6 @@
     gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/tests/fixtures/coverage/genealogy.ttl> ;
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/42b6b586bc246160> .
 
-<https://blackcatinformatics.ca/gmeow/references/citation/439468c436849a6c> a gmeow:CitationAct ;
-    rdfs:label "docs/reasoning.md"@en ;
-    gmeow:citationIntent gmeow:intentBridgedByReference ;
-    gmeow:citedEntity <http://liveontologies.github.io/elk-reasoner/> ;
-    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/docs/reasoning.md> ;
-    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/439468c436849a6c> .
-
 <https://blackcatinformatics.ca/gmeow/references/citation/4439bda004a32291> a gmeow:CitationAct ;
     rdfs:label "GitHub PR review comment #unknown by coderabbitai[bot]"@en ;
     gmeow:citationIntent gmeow:intentBridgedByReference ;
@@ -7050,10 +7043,6 @@
     rdfs:label "linkedgeodata.org/ontology"@en ;
     gmeow:sourceLocation "http://linkedgeodata.org/ontology/" .
 
-<http://liveontologies.github.io/elk-reasoner/> a gmeow:CreativeWork ;
-    rdfs:label "liveontologies.github.io/elk-reasoner"@en ;
-    gmeow:sourceLocation "http://liveontologies.github.io/elk-reasoner/" .
-
 <http://loinc.org/rdf#> a gmeow:CreativeWork ;
     rdfs:label "loinc.org/rdf"@en ;
     gmeow:sourceLocation "http://loinc.org/rdf#" .
@@ -9095,9 +9084,6 @@ foaf:homepage a gmeow:CreativeWork ;
 
 <https://blackcatinformatics.ca/gmeow/references/selector/42b6b586bc246160> a gmeow:Selector ;
     gmeow:selectorLocator "tests/fixtures/coverage/genealogy.ttl:21" .
-
-<https://blackcatinformatics.ca/gmeow/references/selector/439468c436849a6c> a gmeow:Selector ;
-    gmeow:selectorLocator "docs/reasoning.md:141" .
 
 <https://blackcatinformatics.ca/gmeow/references/selector/4439bda004a32291> a gmeow:Selector ;
     gmeow:selectorLocator "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/235#discussion_r3377108577:12" .

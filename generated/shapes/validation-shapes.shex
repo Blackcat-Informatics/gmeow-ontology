@@ -888,7 +888,7 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
 # targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-at0002> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-at0002Shape> {
-  <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/text> . /.*/ ;
+  <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/text> /.*/ ;
 }
 
 # targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-at0003-2> (associate via ShapeMap)
@@ -938,36 +938,36 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
 # targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-at1025> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-at1025Shape> {
-  <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/text> . /openEHR-EHR-CLUSTER\.device(-[a-zA-Z0-9_]+)*\.v1/ ;
+  <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/text> /openEHR-EHR-CLUSTER\.device(-[a-zA-Z0-9_]+)*\.v1/ ;
 }
 
 # targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-at1030> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-at1030Shape> {
-  <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/text> . /openEHR-EHR-CLUSTER\.level_of_exertion(-[a-zA-Z0-9_]+)*\.v1/ ;
+  <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/text> /openEHR-EHR-CLUSTER\.level_of_exertion(-[a-zA-Z0-9_]+)*\.v1/ ;
 }
 
 # targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-at1057> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-at1057Shape> {
-  <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/text> . /openEHR-EHR-CLUSTER\.anatomical_location(-[a-zA-Z0-9_]+)*\.v1/ ;
+  <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/text> /openEHR-EHR-CLUSTER\.anatomical_location(-[a-zA-Z0-9_]+)*\.v1/ ;
 }
 
 # targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-at1058> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-at1058Shape> {
-  <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/text> . /.*/ ;
+  <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/text> /.*/ ;
 }
 
 # targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Diastolic> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/DiastolicShape> {
   <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/units> ["mm[Hg]"^^<http://www.w3.org/2001/XMLSchema#string>] ;
   <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/magnitude> <http://www.w3.org/2001/XMLSchema#decimal> MININCLUSIVE 0 MAXEXCLUSIVE 1000 ;
-  <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/precision> . MININCLUSIVE 0 MAXINCLUSIVE 0 ;
+  <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/precision> MININCLUSIVE 0 MAXINCLUSIVE 0 ;
 }
 
 # targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Systolic> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/SystolicShape> {
   <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/units> ["mm[Hg]"^^<http://www.w3.org/2001/XMLSchema#string>] ;
   <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/magnitude> <http://www.w3.org/2001/XMLSchema#decimal> MININCLUSIVE 0 MAXEXCLUSIVE 1000 ;
-  <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/precision> . MININCLUSIVE 0 MAXINCLUSIVE 0 ;
+  <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/precision> MININCLUSIVE 0 MAXINCLUSIVE 0 ;
 }
 
 # targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0000-2> (associate via ShapeMap)
@@ -1270,7 +1270,7 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0020-5Shape> {
   <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/units> ["mg"^^<http://www.w3.org/2001/XMLSchema#string>] ;
   <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/magnitude> <http://www.w3.org/2001/XMLSchema#decimal> MININCLUSIVE 1 MAXINCLUSIVE 1000 ;
-  <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/precision> . MININCLUSIVE 1 MAXINCLUSIVE 1 ;
+  <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/precision> MININCLUSIVE 1 MAXINCLUSIVE 1 ;
 }
 
 # targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0020-6> (associate via ShapeMap)
@@ -1282,7 +1282,7 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0020-7Shape> {
   <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/units> ["mg"^^<http://www.w3.org/2001/XMLSchema#string>] ;
   <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/magnitude> <http://www.w3.org/2001/XMLSchema#decimal> MININCLUSIVE 1 MAXINCLUSIVE 1000 ;
-  <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/precision> . MININCLUSIVE 1 MAXINCLUSIVE 1 ;
+  <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/precision> MININCLUSIVE 1 MAXINCLUSIVE 1 ;
 }
 
 # targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0020> (associate via ShapeMap)
@@ -1427,7 +1427,7 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
 # targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0025-5> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0025-5Shape> {
-  <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/text> . /issuerA/ ;
+  <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/text> /issuerA/ ;
 }
 
 # targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0025-6> (associate via ShapeMap)
@@ -1437,7 +1437,7 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
 # targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0025-7> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0025-7Shape> {
-  <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/text> . /typeB/ ;
+  <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/text> /typeB/ ;
 }
 
 # targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0025-8> (associate via ShapeMap)
@@ -1447,7 +1447,7 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
 # targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0025-9> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0025-9Shape> {
-  <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/text> . /assignerC/ ;
+  <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/text> /assignerC/ ;
 }
 
 # targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0025> (associate via ShapeMap)
