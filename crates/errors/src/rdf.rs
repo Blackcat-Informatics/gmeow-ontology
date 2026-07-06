@@ -177,19 +177,29 @@ mod tests {
 
     #[test]
     fn double_lowering_across_two_stages_is_idempotent() {
-        // R4: the same RDF diagnostic ingested at two stages produces identical
-        // frames — lowering does not double the source chain.
+        // R4: the same RDF diagnostic ingested at two DIFFERENT stages hash-conses
+        // to one node (content address is identity, stage is not in the
+        // fingerprint), its stage resolves deterministically to the lexicographic
+        // minimum, and its frames are not doubled.
         let d = diagnostic_with_dropped_lang_tag();
         let mut ledger = DiagLedger::new();
         let p_a = Diag::from_rdf(&d, &mut ledger, StageId::new("stage-a"));
         ledger.attach(p_a, StageId::new("stage-a"));
         let before = ledger.emit_sorted().len();
-        let p_b = Diag::from_rdf(&d, &mut ledger, StageId::new("stage-a"));
-        ledger.attach(p_b, StageId::new("stage-a"));
+        let p_b = Diag::from_rdf(&d, &mut ledger, StageId::new("stage-b"));
+        ledger.attach(p_b, StageId::new("stage-b"));
         let after = ledger.emit_sorted().len();
-        // Identical content (same stage/fingerprint) hash-conses — no growth, no
-        // doubled frames.
+        // Identical content across stages hash-conses — no growth, no doubled frames.
         assert_eq!(before, after);
+        // Cross-stage attribution is resolved deterministically to the min stage,
+        // not dropped-by-first-writer.
+        for node in ledger.emit_sorted() {
+            assert_eq!(
+                node.stage.as_str(),
+                "stage-a",
+                "merged stage must be the lexicographic minimum, not the first writer"
+            );
+        }
         for node in ledger.emit_sorted() {
             // Frames never accumulate duplicates across re-ingestion.
             let mut seen = std::collections::HashSet::new();
