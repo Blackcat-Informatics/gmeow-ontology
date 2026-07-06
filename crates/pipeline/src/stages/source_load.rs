@@ -161,6 +161,37 @@ fn rescope_quad_blanks_keyless(quad: &RdfQuad, prefix: &str) -> RdfQuad {
 /// Logical path of the published base graph (N-Quads, in-memory dataflow).
 pub const BASE_GRAPH_PATH: &str = "pipeline/base-graph.nq";
 
+/// Build the authored subject→source-position [`SpanIndex`](crate::ingest::SpanIndex)
+/// under the FIXED span policy: emit spans for the [`OriginKind::RootOntology`] and
+/// [`OriginKind::Source`] files (the root ontology + slice modules) and SUPPRESS the
+/// [`OriginKind::Import`] files (`imports/*.ttl`). This is a pure function of the path —
+/// the same [`authored_origin_kind`] classification the provenance sidecar uses, with no
+/// knob. Each file is ingested THROUGH the swappable [`SourceAdapter`](crate::ingest::SourceAdapter)
+/// (today `purrdf`), so source position comes from ingestion, never a re-scan; the
+/// per-file contributions merge into one index, each file's path interned once.
+pub fn build_source_span_index(
+    root: &Path,
+) -> Result<crate::ingest::SpanIndex, gmeow_errors::Diag> {
+    use crate::ingest::SourceAdapter;
+    let adapter = crate::ingest::PurrdfAdapter;
+    let mut index = crate::ingest::SpanIndex::new();
+    for path in authored_files(root)? {
+        // Fixed policy: RootOntology + Source contribute spans; Import is suppressed.
+        if matches!(authored_origin_kind(root, &path), OriginKind::Import) {
+            continue;
+        }
+        let bytes = std::fs::read(&path)?;
+        let rel = path
+            .strip_prefix(root)
+            .unwrap_or(&path)
+            .to_string_lossy()
+            .replace('\\', "/");
+        let ingested = adapter.ingest(&rel, "text/turtle", &bytes)?;
+        index.merge(ingested.spans.into_index());
+    }
+    Ok(index)
+}
+
 /// Load `ontology/gmeow.ttl` + all slice modules + all imports into one frozen dataset.
 ///
 /// Each authored file is parsed standalone (its anonymous blanks `_:gts_<counter>`
@@ -393,7 +424,10 @@ impl Stage for SourceLoadStage {
         // reads them instead of re-loading + re-canonicalizing the sources on the serial
         // snapshot node (PIPELINE_SPINE §3.2/§4). The BASE_GRAPH_PATH byte lane and the
         // default-graph fold `gts_compose` takes are unchanged.
-        "source_load.v2-self-description"
+        // v3: attach the authored subject→source-position SpanIndex as the digest-pinned
+        // REP_SPAN_TABLE blob (the fixed span policy — RootOntology+Source, Import
+        // suppressed) so the diagnostics consumers lift source coordinates onto findings.
+        "source_load.v3-source-span-table"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
         // The self-description graphs read authored sources beyond the base authored
@@ -422,10 +456,29 @@ impl Stage for SourceLoadStage {
         let dataset = Arc::new(RdfDataset::union(&[base.as_ref(), self_desc.as_ref()]));
         let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
         artifacts.insert(BASE_GRAPH_PATH.to_string(), nq);
-        Ok(StageOutput::new(StageProduct::from_artifacts_over(
-            self.id(),
+        // Build the authored subject→source-position span index (fixed policy: RootOntology
+        // + Source, Import suppressed) and attach it as the digest-pinned REP_SPAN_TABLE
+        // raw-JSON blob — the SINGLE source of the source spans the diagnostics consumers
+        // lift onto their findings. It rides the by-reference blob lane (cache-replayable),
+        // and the scheduler strips it once the last consumer has run.
+        let span_index = build_source_span_index(input.root)?;
+        let span_blob = serde_json::to_vec(&span_index).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                stage: self.id().to_owned(),
+                message: format!("encode source-span table blob: {e}"),
+            })
+        })?;
+        let bundle = crate::bundle::bundle_from_artifacts_over_with_rep_blob(
             dataset,
             artifacts,
+            purrdf::provenance::DatasetProvenance::new(),
+            crate::stages::carrier::REP_SPAN_TABLE,
+            "application/json",
+            span_blob,
+        );
+        Ok(StageOutput::new(StageProduct::from_bundle(
+            self.id(),
+            Arc::new(bundle),
         )))
     }
 }
@@ -472,6 +525,72 @@ mod tests {
             files.len() > 50,
             "expected 50+ authored files, got {}",
             files.len()
+        );
+    }
+
+    /// Fixed span policy, asserted against the span table read back from the FOLDED
+    /// product bundle (not just the live index): a RootOntology + Source file contribute
+    /// their subjects; the imports/ (Import) file is SUPPRESSED. Mirrors
+    /// `bundle_carries_the_consumer_archives` in reading through the fold accessor.
+    #[test]
+    fn fixed_policy_emits_source_and_root_suppresses_imports_through_the_fold() {
+        use std::sync::Arc;
+        let repo = tempfile::tempdir().unwrap();
+        let root = repo.path();
+        // RootOntology: ontology/gmeow.ttl.
+        std::fs::create_dir_all(root.join("ontology")).unwrap();
+        std::fs::write(
+            root.join("ontology/gmeow.ttl"),
+            "@prefix ex: <https://example.test/> .\nex:rootSubject a ex:Root .\n",
+        )
+        .unwrap();
+        // Source: a slice module.ttl.
+        std::fs::create_dir_all(root.join("slices/g/n")).unwrap();
+        std::fs::write(
+            root.join("slices/g/n/module.ttl"),
+            "@prefix ex: <https://example.test/> .\nex:sourceSubject a ex:Thing .\n",
+        )
+        .unwrap();
+        // Import: imports/foo.ttl — must be SUPPRESSED.
+        std::fs::create_dir_all(root.join("imports")).unwrap();
+        std::fs::write(
+            root.join("imports/foo.ttl"),
+            "@prefix ex: <https://example.test/> .\nex:importSubject a ex:Imported .\n",
+        )
+        .unwrap();
+
+        // Fold the built index into a product bundle exactly as `run` does, then read it
+        // back through the `span_index()` accessor (the folded product, not the live index).
+        let index = build_source_span_index(root).expect("build span index");
+        let blob = serde_json::to_vec(&index).expect("encode");
+        let bundle = crate::bundle::bundle_from_artifacts_over_with_rep_blob(
+            Arc::new(RdfDataset::union(&[])),
+            BTreeMap::new(),
+            purrdf::provenance::DatasetProvenance::new(),
+            crate::stages::carrier::REP_SPAN_TABLE,
+            "application/json",
+            blob,
+        );
+        let product = StageProduct::from_bundle("stage-source-load", Arc::new(bundle));
+        let folded = product
+            .span_index()
+            .expect("read span table back from the fold");
+
+        assert!(
+            folded.lookup("https://example.test/rootSubject").is_some(),
+            "RootOntology subject must be tracked"
+        );
+        assert!(
+            folded
+                .lookup("https://example.test/sourceSubject")
+                .is_some(),
+            "Source subject must be tracked"
+        );
+        assert!(
+            folded
+                .lookup("https://example.test/importSubject")
+                .is_none(),
+            "Import subject must be SUPPRESSED by the fixed policy"
         );
     }
 

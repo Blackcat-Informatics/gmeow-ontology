@@ -64,6 +64,13 @@ pub const REP_DENIED: &str = "transform:denied";
 /// empty set — the wheel-only contract. This constant MUST equal the producer-side
 /// [`crate::stages::carrier::REP_DIAG_NODES`] (a drifted label silently reads empty).
 pub const REP_DIAG_NODES: &str = "diagnostics:nodes";
+/// JSON (NOT a tar) of `stage-source-load`'s authored subject→source-position
+/// [`SpanIndex`](crate::ingest::SpanIndex): the source spans the diagnostics consumers
+/// lift onto their findings. It rides ONLY the source-load product's blob lane and is
+/// dropped before the carrier assembles, so it never folds into a shipped `gmeow.gts`
+/// surface. This constant MUST equal the producer-side
+/// [`crate::stages::carrier::REP_SPAN_TABLE`] (a drifted label silently reads empty).
+pub const REP_SPAN_TABLE: &str = "spans:source-table";
 
 /// The saturation refusal set: one `(subject, predicate, object)` ERROR row per
 /// denied alignment cell, as recovered from the [`REP_DENIED`] JSON payload.
@@ -529,6 +536,20 @@ mod tests {
         assert!(
             !bundle.reasoning().unwrap().is_empty(),
             "reasoning-archive blob missing from gmeow.gts"
+        );
+    }
+
+    /// Drift pin: the source-span blob `rep` label the source-load PRODUCER writes
+    /// ([`crate::stages::carrier::REP_SPAN_TABLE`]) must equal the reader-side label
+    /// here. A drifted label would make `StageProduct::span_index()` read back an empty
+    /// blob (silently shipping no spans), so this mirrors the intent of
+    /// `bundle_carries_the_consumer_archives` for a rep that is dropped before the sink.
+    #[test]
+    fn span_table_rep_labels_agree() {
+        assert_eq!(
+            crate::bundle_blobs::REP_SPAN_TABLE,
+            crate::stages::carrier::REP_SPAN_TABLE,
+            "source-span blob rep label drift between producer and reader"
         );
     }
 

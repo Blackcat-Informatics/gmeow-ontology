@@ -228,6 +228,25 @@ pub fn run(
     // regardless of level order or fresh/cache interleaving.
     let mut run_ledger = gmeow_errors::DiagLedger::new();
 
+    // Drop-after-last-consumer point for stage-source-load's source-span table: the MAX
+    // topological level holding a stage that declares `consumes_span_table()`. The real
+    // consumers (stage-validate / stage-compile-logic) all run at or before this level, so
+    // stripping the span blob AFTER this level commits keeps the drop reachable but never
+    // spurious — every legitimate reader has already run, and any later reader HARD-fails.
+    let span_drop_level: Option<usize> = graph
+        .levels
+        .iter()
+        .enumerate()
+        .rev()
+        .find(|(_, level)| {
+            level.iter().any(|id| {
+                by_id
+                    .get(id.as_str())
+                    .is_some_and(|s| s.consumes_span_table())
+            })
+        })
+        .map(|(idx, _)| idx);
+
     for (level_idx, level) in graph.levels.iter().enumerate() {
         // Parallel phase: every stage in the level runs concurrently; stages that
         // declare a shared resource serialize internally on that resource's permit.
@@ -293,6 +312,27 @@ pub fn run(
             elapsed_ms: level_max,
             critical_stage: level_max_id,
         });
+
+        // Once the last span-table consumer's level has committed, STRIP the source-span
+        // blob from the stage-source-load product: every later stage that calls
+        // `span_index()` now HARD-fails, and the shippable bundle the sink assembles from
+        // this product never carries the span table. Deterministic and idempotent — the
+        // stripped digest is a pure function of the source-load product, so a warm-cache
+        // run reproduces it. (source-load is at level 0, so it is committed well before any
+        // consumer level; the guard is defensive.)
+        if Some(level_idx) == span_drop_level
+            && let Some(product) = products.get("stage-source-load")
+        {
+            let stripped = crate::bundle::strip_rep_blob(
+                product.bundle(),
+                crate::stages::carrier::REP_SPAN_TABLE,
+            )?;
+            let stage_id = product.stage_id.clone();
+            products.insert(
+                stage_id.clone(),
+                StageProduct::from_bundle(stage_id, Arc::new(stripped)),
+            );
+        }
     }
 
     if profile {

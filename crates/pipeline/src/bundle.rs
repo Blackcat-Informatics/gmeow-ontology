@@ -265,6 +265,64 @@ pub fn bundle_rep_blob<'b>(
     bundle.blobs().get(&digest).map(Vec::as_slice)
 }
 
+/// Rebuild `bundle` WITHOUT its `representation`-keyed raw blob — the inverse of
+/// [`attach_rep_blob`]. The matching lookaside blob record is dropped and its backing
+/// bytes are evicted from the content store (kept only if still referenced by an
+/// artifact resource or a surviving blob record), so the rebuilt bundle's `digest()`
+/// reflects the removal and [`bundle_rep_blob`] resolves the rep to `None`. Every pinned
+/// typed handle is re-attached to its unchanged backing graph (the pins are
+/// dataset-scoped, so they survive verbatim).
+///
+/// The scheduler calls this to strip `stage-source-load`'s source-span blob at the
+/// drop-after-last-consumer point — a no-op-safe operation when the rep is already absent
+/// (idempotent). Deterministic: the content store is rebuilt in the source store's
+/// iteration order over the surviving digests.
+pub fn strip_rep_blob(
+    bundle: &PipelineBundle<PipelineHandle>,
+    representation: &str,
+) -> Result<PipelineBundle<PipelineHandle>, gmeow_errors::Diag> {
+    let mut lookaside = bundle.lookaside().clone();
+    lookaside
+        .blobs
+        .retain(|r| r.representation.as_deref() != Some(representation));
+    // Every hex digest still referenced by an artifact resource or a surviving blob.
+    let mut referenced: std::collections::HashSet<String> = std::collections::HashSet::new();
+    for resource in &lookaside.resources {
+        if let Some(hex) = resource.content_digest.as_deref() {
+            referenced.insert(hex.to_owned());
+        }
+    }
+    for blob in &lookaside.blobs {
+        referenced.insert(blob.digest.clone());
+    }
+    let mut blobs = ContentStore::new();
+    for (digest, bytes) in bundle.blobs().iter() {
+        if referenced.contains(&digest.to_hex()) {
+            blobs.insert_checked(*digest, bytes.clone()).map_err(|e| {
+                gmeow_errors::Diag::of_kind(crate::error::Decode {
+                    message: format!("strip_rep_blob: re-insert content-store blob: {e}"),
+                })
+            })?;
+        }
+    }
+    let mut rebuilt = PipelineBundle::new(
+        bundle.dataset_arc(),
+        lookaside,
+        Arc::new(blobs),
+        bundle.provenance().clone(),
+    );
+    for (graph, entry) in bundle.handles() {
+        rebuilt
+            .pin_handle(graph.clone(), entry.payload.clone(), entry.content_digest)
+            .map_err(|e| {
+                gmeow_errors::Diag::of_kind(crate::error::Decode {
+                    message: format!("strip_rep_blob: re-pin handle <{graph}>: {e}"),
+                })
+            })?;
+    }
+    Ok(rebuilt)
+}
+
 /// Reconstruct the exact bytes of the byte-artifact lane entry at `logical_path`,
 /// or `None` if no such artifact rides the bundle.
 ///

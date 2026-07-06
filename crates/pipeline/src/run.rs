@@ -1170,20 +1170,143 @@ ex:RequiredShape a sh:NodeShape ;
         repo
     }
 
+    /// The repo-relative source path the fixture span index attributes `ex:thing` to.
+    const FIXTURE_SPAN_PATH: &str = "slices/x/module.ttl";
+
+    /// A `stage-source-load` product carrying the empty base graph AND a source-span
+    /// table mapping the SHACL focus subject `ex:thing` to a source position — the same
+    /// blob lane the real source-load stage attaches, so the validate stage's
+    /// `span_index()` read (and its finding enrichment) is exercised end-to-end.
+    fn source_load_product_with_spans() -> StageProduct {
+        use std::sync::Arc;
+        let mut source_artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+        source_artifacts.insert(BASE_GRAPH_PATH.to_owned(), Vec::new());
+        let mut spans = crate::ingest::SpanIndex::new();
+        spans.insert(
+            "https://example.test/thing",
+            crate::ingest::SourceSpan::new(Arc::from(FIXTURE_SPAN_PATH), 12, 3, 200),
+        );
+        let span_blob = serde_json::to_vec(&spans).expect("encode span index");
+        let bundle = crate::bundle::bundle_from_artifacts_over_with_rep_blob(
+            Arc::new(purrdf::RdfDataset::union(&[])),
+            source_artifacts,
+            purrdf::provenance::DatasetProvenance::new(),
+            crate::stages::carrier::REP_SPAN_TABLE,
+            "application/json",
+            span_blob,
+        );
+        StageProduct::from_bundle("stage-source-load", Arc::new(bundle))
+    }
+
     /// Run the real `stage-validate` stage over the violating fixture, returning its
     /// full output (product + forward diags).
     fn run_validate(repo: &Path) -> crate::node::StageOutput {
-        let mut source_artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
-        source_artifacts.insert(BASE_GRAPH_PATH.to_owned(), Vec::new());
-        let source_load = StageProduct::from_artifacts("stage-source-load", source_artifacts);
         let mut upstream: BTreeMap<String, StageProduct> = BTreeMap::new();
-        upstream.insert("stage-source-load".to_owned(), source_load);
+        upstream.insert(
+            "stage-source-load".to_owned(),
+            source_load_product_with_spans(),
+        );
         ValidateStage::new()
             .run(StageInput {
                 root: repo,
                 upstream: &upstream,
             })
             .expect("validate stage")
+    }
+
+    /// The source span attached by `source_load_product_with_spans` is LIFTED onto the
+    /// real SHACL finding's focus-node location (path + line) and rides into the forward
+    /// DiagNode — the proof the span table is genuinely consumed (non-dark).
+    #[test]
+    fn source_span_is_lifted_onto_the_real_shacl_finding_and_diag_node() {
+        let repo = violating_repo();
+        let out = run_validate(repo.path());
+
+        // The shipped SHACL JSON projection carries the enriched focus location.
+        let json = out
+            .product
+            .artifact(crate::stages::validate::SHACL_JSON_PATH)
+            .expect("shacl.json artifact");
+        let report: serde_json::Value = serde_json::from_slice(json).expect("shacl json");
+        let location = report["findings"]
+            .as_array()
+            .and_then(|fs| {
+                fs.iter()
+                    .find(|f| f["code"].as_str().unwrap_or("").starts_with("shacl."))
+            })
+            .and_then(|f| f["locations"].as_array())
+            .and_then(|ls| ls.first())
+            .expect("a SHACL finding with a location");
+        assert_eq!(
+            location["path"].as_str(),
+            Some(FIXTURE_SPAN_PATH),
+            "the finding's focus location carries the lifted source path"
+        );
+        assert_eq!(
+            location["line"].as_u64(),
+            Some(12),
+            "the finding's focus location carries the lifted 1-based line"
+        );
+        assert_eq!(
+            location["logical"].as_str(),
+            Some("https://example.test/thing"),
+            "the bare-IRI focus join key is preserved"
+        );
+
+        // The forward DiagNode carries the same source path (the RDF projection is path +
+        // GTS coords only, so line is intentionally lossy on the node — the path is what
+        // travels into the run ledger).
+        let node = out
+            .diags
+            .iter()
+            .find(|n| n.code.starts_with("shacl."))
+            .expect("a forward SHACL DiagNode");
+        assert_eq!(
+            node.source_ctx.location.path.as_deref(),
+            Some(FIXTURE_SPAN_PATH),
+            "the lifted source path travels into the forward DiagNode"
+        );
+    }
+
+    /// Drop-after-last-consumer HARD FAIL: once the span blob is stripped from the
+    /// source-load product (as the scheduler does after the last consumer level), any
+    /// later `span_index()` read is a typed `SpanTableConsumedAfterDrop` error — and the
+    /// stripped product no longer carries the span blob (so it cannot ship).
+    #[test]
+    fn span_index_hard_fails_after_the_drop_and_is_not_shipped() {
+        use std::sync::Arc;
+        let product = source_load_product_with_spans();
+        // Before the drop the accessor resolves the table.
+        assert!(
+            product.span_index().is_ok(),
+            "span table present before drop"
+        );
+
+        // Strip exactly as the scheduler does at the drop point.
+        let stripped =
+            crate::bundle::strip_rep_blob(product.bundle(), crate::stages::carrier::REP_SPAN_TABLE)
+                .expect("strip span blob");
+        let dropped = StageProduct::from_bundle("stage-source-load", Arc::new(stripped));
+
+        // Not shipped: the stripped product carries no span blob for the sink to fold.
+        assert!(
+            crate::bundle::bundle_rep_blob(
+                dropped.bundle(),
+                crate::stages::carrier::REP_SPAN_TABLE
+            )
+            .is_none(),
+            "the stripped product must not carry the span blob"
+        );
+
+        // Reachable HARD FAIL: a later read is the typed SpanTableConsumedAfterDrop.
+        let err = dropped
+            .span_index()
+            .expect_err("span_index must hard-fail after drop");
+        assert!(
+            err.downcast_ref::<crate::error::SpanTableConsumedAfterDrop>()
+                .is_some(),
+            "the drop hard-fail must be a typed SpanTableConsumedAfterDrop, got: {err}"
+        );
     }
 
     #[test]

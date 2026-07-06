@@ -126,8 +126,13 @@ impl Stage for ValidateStage {
     fn consumes(&self) -> &[String] {
         &self.consumes
     }
+    fn consumes_span_table(&self) -> bool {
+        true
+    }
     fn impl_version(&self) -> &str {
-        "validate.v1-shacl-diagnostics"
+        // v2: lift stage-source-load's source spans onto each SHACL finding's focus-node
+        // location (path + line/column) before rendering + the forward diagnostics fold.
+        "validate.v2-shacl-diagnostics-source-spans"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
         purrdf::shapes::shape_union::shape_files(root)
@@ -144,7 +149,25 @@ impl Stage for ValidateStage {
                     message: format!("missing stage-source-load {BASE_GRAPH_PATH} artifact"),
                 })
             })?;
-        let report = validate_source_graph(input.root, source_graph)?;
+        let mut report = validate_source_graph(input.root, source_graph)?;
+        // Lift the authored source spans onto each SHACL finding whose focus node (a bare
+        // IRI in the finding's logical location) matches a span-index entry — the path +
+        // 1-based line/column travel onto the SHIPPED finding locations (and, via the
+        // forward fold below, into the run-ledger DiagNodes). The span table is read off
+        // the consumed stage-source-load product (its SINGLE source; a swappable ingestion
+        // adapter produced it), never re-derived here.
+        let spans = input
+            .upstream
+            .get("stage-source-load")
+            .ok_or_else(|| {
+                gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                    stage: self.id().to_owned(),
+                    message: "missing stage-source-load product for the source-span table"
+                        .to_owned(),
+                })
+            })?
+            .span_index()?;
+        crate::ingest::enrich_findings_with_spans(&mut report, &spans);
         let artifacts = render_artifacts(&report)?;
         // Attach the SHACL diagnostics RDF as the carrier's `graph/diagnostics` named
         // graph so the presenter reads it as a pure keyed fold (PIPELINE_SPINE §4) and

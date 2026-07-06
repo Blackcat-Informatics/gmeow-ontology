@@ -208,6 +208,20 @@ define_diag_kind! {
     message = "{}", message;
 }
 
+define_diag_kind! {
+    /// A stage reached for `stage-source-load`'s source-span table AFTER the
+    /// drop-after-last-consumer point stripped it — i.e. a stage later than the last
+    /// declared span-table consumer tried to read spans that no longer exist. The blob
+    /// being ABSENT means it was dropped, so any later reader is a HARD FAIL: the drop
+    /// level is COMPUTED as the max consumer level, so the real consumers
+    /// (`stage-validate` / `stage-compile-logic`) always run before the drop and this can
+    /// never fire spuriously — it fires only on a genuine after-drop read.
+    pub struct SpanTableConsumedAfterDrop { detail: String }
+    code = "pipeline.spans.consumed-after-drop";
+    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
+    message = "source-span table read after drop-after-last-consumer: {}", detail;
+}
+
 /// The complete pipeline diagnostic-code catalog, in registration order. Every
 /// [`DiagKind`](gmeow_errors::DiagKind) minted anywhere in the crate appears here
 /// exactly once — [`register_all`] seeds them and the collision test proves the
@@ -234,6 +248,7 @@ pub const PIPELINE_DIAG_CODES: &[&str] = &[
     Generator::CODE,
     Release::CODE,
     EvalSchema::CODE,
+    SpanTableConsumedAfterDrop::CODE,
     crate::transcode::UnknownCodec::CODE,
     crate::transcode::NonInvertibleSource::CODE,
     crate::transcode::UndecodableInput::CODE,
@@ -273,6 +288,7 @@ pub fn register_all() -> Vec<Code> {
         Generator::register(),
         Release::register(),
         EvalSchema::register(),
+        SpanTableConsumedAfterDrop::register(),
         crate::transcode::UnknownCodec::register(),
         crate::transcode::NonInvertibleSource::register(),
         crate::transcode::UndecodableInput::register(),
