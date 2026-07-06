@@ -1,0 +1,15 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Counter-example: a lang:ProjectionEmission that names its target but declares no
+# logic:preservationKind (fires lang:MissingPreservationKind / shacl.MinCountConstraintComponent
+# on lang:ProjectionEmissionDeclaredShape).
+
+@prefix lang:  <https://blackcatinformatics.ca/lang/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <http://example.org/lang/> .
+
+ex:emMissingKind a lang:ProjectionEmission ;
+    lang:projectionTargetName "OntoLex-Lemon" ;
+    lang:projectsSource ex:lexeme .

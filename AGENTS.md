@@ -328,7 +328,18 @@ injected disjoint-class clash is caught). This exclusion is **budget-exempt,
 not gate-exempt**: the test still runs on every `make check` via the dedicated
 `make coherence-gate-teeth` target, which selects it with
 `--ignore-default-filter` plus an explicit `-E` filter and does not feed the
-JUnit budget gate. Former off-gate groups such as
+JUnit budget gate. The `lang:` projection surface (OntoLex-Lemon / CoNLL-U /
+SemAF forward projections) plus the native-chase logic growth nudged three
+whole-bundle CLI tests past budget —
+`gmeow-dev-cli::cli_parity::build_writes_serializations`,
+`gmeow-cli::cli::export_respects_language_selector`, and
+`gmeow-cli::cli::project_schema_org_view_filter` (6–8 s standalone but
+25.5–27.5 s under full-parallelism CI contention; each drives the CLI to
+serialize / export / project-a-view over the WHOLE bundle, irreducibly
+O(bundle size), the same whole-committed-bundle class as `fanout_parity` /
+`end_to_end`; the written serializations stay drift-gated on every `make check`
+via `make check-generated`, and all three stay on-gate on `maint-heavy`).
+Former off-gate groups such as
 ontology entailments, SPARQL path parity, RDF/RDFC parity outliers,
 correspondence parity, mapping parity, carrier/docs archive tests, scoreboards
 acceptance, JSON-LD round-trips, product routing, slice/slicetest parity, and
