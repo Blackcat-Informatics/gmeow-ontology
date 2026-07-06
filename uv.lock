@@ -697,7 +697,7 @@ requires-dist = [
     { name = "jsonschema", specifier = ">=4.23" },
     { name = "linkml", specifier = ">=1.11" },
     { name = "markdown", specifier = ">=3.10" },
-    { name = "purrdf", specifier = ">=0.3,<0.4" },
+    { name = "purrdf", specifier = ">=0.2,<0.3" },
     { name = "pyyaml", specifier = ">=6.0" },
     { name = "rich", specifier = ">=13.9" },
     { name = "typer", specifier = ">=0.15" },
@@ -1488,11 +1488,11 @@ wheels = [
 
 [[package]]
 name = "purrdf"
-version = "0.3.3"
+version = "0.2.1"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/e8/38/4106998c5338529988184b7ec7260efe72421e51ff926650b036675aec34/purrdf-0.3.3.tar.gz", hash = "sha256:9524f57720ba51a248b1f3fe38b76301bc5a775fd0339378c3bc6c8926d8eef9", size = 1732011, upload-time = "2026-07-05T22:15:54.678Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/0b/c3/c5146ec4ba904d6ea716dad63b904b50920ca3527568f01b4e73987bf9a5/purrdf-0.2.1.tar.gz", hash = "sha256:779d10503fd7be14eb5e32501afea81f69e8f3ddc8d784f1a25abd878b424b21", size = 1393031, upload-time = "2026-07-02T15:45:33.294Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/8f/39/4a68f21235cd6656b3de730bd1b62272f4bdc631ec8646e5dccbd1bd0489/purrdf-0.3.3-cp313-abi3-manylinux_2_34_x86_64.whl", hash = "sha256:6fd2208fcc003333878414bc72d6a17b71345e0b45ce29c2639a7c4a9f2e3275", size = 3856889, upload-time = "2026-07-05T22:15:52.799Z" },
+    { url = "https://files.pythonhosted.org/packages/ea/64/69d6145652ccaef8feddcdd4a160b9882461ae3d54ddcc80d9dbb87f07f1/purrdf-0.2.1-cp313-abi3-manylinux_2_34_x86_64.whl", hash = "sha256:75e4c0deb1fa5a9bff10c4e86b35bc55b4bba753c47748326614400ccfc8f304", size = 3508844, upload-time = "2026-07-02T15:45:31.429Z" },
 ]
 
 [[package]]
