@@ -69,7 +69,7 @@ overwhelmingly at the **Python compatibility boundary**, not in Rust. Ranked by 
 - **Python surface** `crates/rdf/src/py_store.rs` + stub `crates/native/python/gmeow_rdf/__init__.pyi`:
   pyoxigraph-shaped `NamedNode/BlankNode/Literal/Triple/Quad/Variable`, `Store`, `Dataset`,
   `QuerySolutions/QueryTriples/QueryBoolean`, `parse()`/`serialize()`, `canonicalize_turtle`.
-- **Existing rdflib drop-ins:** `src/gmeow_tools/rdf_canonical.py`, `sparql.py` (the `owlrl` replacement
+- **Existing rdflib drop-ins:** `src/gmeow_tools/sparql.py` (the `owlrl` replacement
   lives in the Rust RL engine `gmeow_logic.rl_closure_nt`; its former rdflib-graph adapter
   `native_rl_rdflib.py` has been retired — its last reasoning consumer moved to the native
   `crates/logic/tests/ontology_entailments.rs` harness).
