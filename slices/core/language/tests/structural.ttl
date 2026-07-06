@@ -35,11 +35,10 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX logic: <https://blackcatinformatics.ca/logic/>
 ASK {
     gmeow:TransliterationScheme a owl:Class , logic:AbstractIndividualType ; rdfs:subClassOf logic:QualityValue .
-    gmeow:bcp47Tag a owl:DatatypeProperty ; rdfs:domain gmeow:Language ; rdfs:range xsd:language .
     gmeow:writtenInLanguage a owl:ObjectProperty ; rdfs:domain gmeow:InformationObject ; rdfs:range gmeow:Language .
     gmeow:transliterationScheme a owl:ObjectProperty ; rdfs:domain gmeow:Appellation ; rdfs:range gmeow:TransliterationScheme .
 }""" ;
-    gmeow:saRationale "gmeow:TransliterationScheme MUST be a QualityValue vocabulary; gmeow:bcp47Tag is a Language→xsd:language datatype property; gmeow:writtenInLanguage links any InformationObject to a Language; gmeow:transliterationScheme links an Appellation to its scheme." .
+    gmeow:saRationale "gmeow:TransliterationScheme MUST be a QualityValue vocabulary; gmeow:writtenInLanguage links any InformationObject to a Language; gmeow:transliterationScheme links an Appellation to its scheme. (gmeow:bcp47Tag is no longer an authored property — it is a generated projection derived from lang:LanguageVariety structure.)" .
 
 # --- 4. Language refinements use SubKind, not bare subclassing (MUST-NOT) -----
 ex:saLanguageSubKindsTyped a gmeow:StructuralAssertion ;
