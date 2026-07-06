@@ -14,7 +14,7 @@ keywords = ["cli", "clap", "diagnostics", "reporter", "gmeow"]
 path = "src/lib.rs"
 
 [dependencies]
-gmeow-diagnostics = { path = "../diagnostics" }
+gmeow-errors = { path = "../errors" }
 clap = { version = "4", features = ["derive"] }
 anstyle = "1"
 anstream = "0.6"

@@ -2,10 +2,10 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 //! Projection of logic-compile parse diagnostics into the canonical
-//! `gmeow-diagnostics` `Report`.
+//! `gmeow-errors` `Report`.
 //!
 //! This is the RUNTIME-SIDE seam: the [`diagnostics_report`] projection
-//! returns a `gmeow_diagnostics::Report`, and `gmeow-diagnostics` carries an
+//! returns a `gmeow_errors::Report`, and `gmeow-errors` carries an
 //! unconditional PyO3 dependency, so this function CANNOT live in the wasm-able
 //! `gmeow-logic-compile` crate. It stays here in the runtime crate, consuming the
 //! pure `Diagnostic` / `Severity` values the compiler front-end emits. The PyO3
@@ -13,7 +13,7 @@
 
 use gmeow_logic_compile::frontend::{Diagnostic, Severity};
 
-/// Projects logic-compile [`Diagnostic`]s into the canonical `gmeow-diagnostics`
+/// Projects logic-compile [`Diagnostic`]s into the canonical `gmeow-errors`
 /// `Report`.
 ///
 /// This is the RUST-FIRST seam: the `Finding`/`Report` construction the `logic:`
@@ -26,8 +26,8 @@ use gmeow_logic_compile::frontend::{Diagnostic, Severity};
 /// `logic-compile.<code>`. The diagnostic `subject` (an IRI / blank-node id) becomes
 /// the finding's logical location; an absent **or empty** subject yields no location
 /// (mirroring the prior `(subject or None)` Python behavior).
-pub fn diagnostics_report(diagnostics: &[Diagnostic]) -> gmeow_diagnostics::Report {
-    use gmeow_diagnostics::{Finding, Location, Report, Severity as DSeverity};
+pub fn diagnostics_report(diagnostics: &[Diagnostic]) -> gmeow_errors::Report {
+    use gmeow_errors::{Finding, Location, Report, Severity as DSeverity};
 
     let mut report = Report::new("logic-compile");
     for diag in diagnostics {
@@ -87,7 +87,7 @@ mod tests {
         // Severity is mapped enum→enum (no string round-trip); the code carries the
         // `logic-compile.` prefix; tool is set; subject → logical location.
         let warning = &report.findings[0];
-        assert_eq!(warning.severity, gmeow_diagnostics::Severity::Warning);
+        assert_eq!(warning.severity, gmeow_errors::Severity::Warning);
         assert_eq!(warning.code, "logic-compile.unknown-stereotype");
         assert_eq!(warning.message, "term has no recognised stereotype");
         assert_eq!(warning.tool.as_deref(), Some("logic-compile"));
@@ -100,13 +100,13 @@ mod tests {
 
         // No subject ⇒ no location.
         let info = &report.findings[1];
-        assert_eq!(info.severity, gmeow_diagnostics::Severity::Info);
+        assert_eq!(info.severity, gmeow_errors::Severity::Info);
         assert_eq!(info.code, "logic-compile.redundant-axiom");
         assert!(info.locations.is_empty());
 
         // Empty subject string ⇒ no location either.
         let error = &report.findings[2];
-        assert_eq!(error.severity, gmeow_diagnostics::Severity::Error);
+        assert_eq!(error.severity, gmeow_errors::Severity::Error);
         assert_eq!(error.code, "logic-compile.malformed-axiom");
         assert!(error.locations.is_empty());
     }

@@ -301,6 +301,159 @@ gmeow:severityWarning
     skos:definition "The warning grade — a non-gate-failing diagnostic worth surfacing. Maps to SARIF level \"warning\"."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
+# ════════════════════════════════════════════════════════════════════════════
+# The grading substrate — the truth-axis bilattice and the single gate morphism.
+#
+# A finding's GRADE is not a scalar severity: it is a point in the truth ordering
+# ⊑_t, the product of three chains — gmeow:DiagnosticSeverity (Info ⊑ … ⊑ Error),
+# gmeow:DiagnosticStandpoint (Advisory ⊑ Perspectival ⊑ Binding), and the
+# gmeow:BlockingDisposition projection of the finding's logic:FindingCategory
+# (Coherent ⊑ Blocking). Gate fatality is the principal up-set of ⊑_t. The single
+# derivation rule logic:ruleGateFatalVerdict (in the logic slice) materializes
+# gmeow:findingGateVerdict gmeow:gateFatal on exactly the up-set ↑(Error, Blocking,
+# Binding), the RDF projection of the one Rust gmeow_errors::grade::gate() policy
+# morphism; the diagnostics conformance lane proves the two agree over every grade.
+# ════════════════════════════════════════════════════════════════════════════
+
+gmeow:BlockingDisposition
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "Blocking Disposition"@x-gmeow-english ;
+    rdfs:subClassOf logic:QualityValue ;
+    skos:definition "The gating PROJECTION of a finding's logic:FindingCategory — the two-element value space Coherent ⊑ Blocking (individuals gmeow:blockingCoherent, gmeow:blockingBlocking) that says whether a KIND of finding is a real failure or is surfaced but never gate-failing. Exactly the three failure kinds (logic:FindingDataShapeViolation, logic:FindingModelingDisciplineViolation, logic:FindingContradictionWitness) project to gmeow:blockingBlocking; the other five — including the load-bearing logic:FindingPermittedEpistemicConflict — project to gmeow:blockingCoherent. Each category's projection is wired by gmeow:categoryBlocking, so the gate never inspects the category directly, only its Blocking image. Members are individuals, never subclasses (Principle 9). Mirrors the Rust gmeow_errors::grade::Blocking lattice and FindingCategory::blocking()."@x-gmeow-english ;
+    skos:example "logic:FindingContradictionWitness gmeow:categoryBlocking gmeow:blockingBlocking ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid conflating it with gmeow:findingSeverity (a Blocking category can still be a warning) or with the gate verdict (that is gmeow:GateVerdict, the meet of all three axes); the Blocking disposition is only the category's gating contribution, one of three axes."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Wire each logic:FindingCategory to exactly one gmeow:BlockingDisposition through gmeow:categoryBlocking, matching FindingCategory::blocking(); the gate rule reads only this image, so a new category gates the moment its projection is wired."@x-gmeow-english ;
+    gmeow:useWhen "Use as the value vocabulary for the gating projection of a finding kind — whether the category is a Blocking failure or a Coherent, non-gating disclosure."@x-gmeow-english .
+
+gmeow:DiagnosticStandpoint
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "Diagnostic Standpoint"@x-gmeow-english ;
+    rdfs:subClassOf logic:QualityValue ;
+    skos:definition "The gating STRENGTH a finding is asserted from — the chain gmeow:standpointAdvisory ⊑ gmeow:standpointPerspectival ⊑ gmeow:standpointBinding, the third axis of the truth-ordering triple the gate reads. Only a gmeow:standpointBinding finding can contribute to gate fatality; an advisory finding never gates, whatever its severity — the never-gate guarantee falls out of the up-set construction, not a special case. An open value space, individuals never subclasses (Principle 9); it grounds the standpoint axis of logic:StandpointContextAxis. Mirrors the Rust gmeow_errors::grade::Standpoint chain."@x-gmeow-english ;
+    skos:example "ex:f1 gmeow:findingStandpoint gmeow:standpointBinding ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid subclassing it to add a tier (the members are individuals) and avoid conflating the standpoint with the severity (how loud) or the category (what kind); the standpoint is the gating strength — the only axis that lets a finding bind the gate."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Reference the seeded DiagnosticStandpoint individuals from a gmeow:Finding via gmeow:findingStandpoint; a producer asserting a hard failure uses gmeow:standpointBinding, a perspectival observation gmeow:standpointPerspectival, and pure advice gmeow:standpointAdvisory."@x-gmeow-english ;
+    gmeow:useWhen "Use as the value vocabulary for a finding's gating strength — the standpoint axis of the truth ordering that decides whether the finding can reach the gate at all."@x-gmeow-english .
+
+gmeow:GateVerdict
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "Gate Verdict"@x-gmeow-english ;
+    rdfs:subClassOf logic:QualityValue ;
+    skos:definition "The verdict of the single gate morphism — the two-element chain gmeow:gateCollected ⊑ gmeow:gateFatal. A finding is gmeow:gateFatal iff its severity is gmeow:severityError AND its category projects to gmeow:blockingBlocking AND its standpoint is gmeow:standpointBinding: the principal up-set ↑(Error, Blocking, Binding), a meet of three monotone axis-maps, so any advisory-standpoint or Coherent-category finding is structurally unable to reach Fatal. The verdict is DERIVED, never asserted: gmeow:findingGateVerdict is materialized by logic:ruleGateFatalVerdict, the reasoner-side image of the one Rust gmeow_errors::grade::gate() policy morphism. Members are individuals, never subclasses (Principle 9). Mirrors gmeow_errors::grade::GateVerdict."@x-gmeow-english ;
+    skos:example "ex:f1 gmeow:findingGateVerdict gmeow:gateFatal ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting a gmeow:GateVerdict by hand (it is derived by logic:ruleGateFatalVerdict) and avoid reading it as a severity; the verdict is the meet of all three truth axes, not a fourth grade."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Read gmeow:findingGateVerdict off the reasoned graph — gmeow:gateFatal names a gate-failing finding, gmeow:gateCollected a surfaced-but-non-fatal one; never mint it, let the derivation compute it from the three axes."@x-gmeow-english ;
+    gmeow:useWhen "Use as the value vocabulary for the outcome of the gate — the single fatality decision every finding's grade folds to."@x-gmeow-english .
+
+gmeow:categoryBlocking
+    a owl:ObjectProperty ;
+    rdfs:domain logic:FindingCategory ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "category blocking"@x-gmeow-english ;
+    rdfs:range gmeow:BlockingDisposition ;
+    skos:definition "Wires a logic:FindingCategory to its gmeow:BlockingDisposition — the standing, asserted gating projection of the KIND. The three failure kinds map to gmeow:blockingBlocking, the other five to gmeow:blockingCoherent, matching Rust FindingCategory::blocking(). The gate reads only this image, never the category directly, so the projection is the single point where 'which kinds are failures' is stated once and consumed by both the reasoner and every projection."@x-gmeow-english ;
+    skos:example "logic:FindingPermittedEpistemicConflict gmeow:categoryBlocking gmeow:blockingCoherent ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting more than one gmeow:BlockingDisposition per category (the projection is functional) and avoid using it for the finding's severity or standpoint; categoryBlocking projects only the KIND's gating contribution."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Assert exactly one gmeow:categoryBlocking per logic:FindingCategory individual, mirroring FindingCategory::blocking(); the gate derivation joins a finding's gmeow:findingCategory to this projection to read the Blocking axis."@x-gmeow-english ;
+    gmeow:useWhen "Use to state a finding kind's gating projection — whether a category is a Blocking failure or a Coherent, non-gating disclosure — as the single asserted source the gate consumes."@x-gmeow-english .
+
+gmeow:findingGateVerdict
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Finding ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "finding gate verdict"@x-gmeow-english ;
+    rdfs:range gmeow:GateVerdict ;
+    skos:definition "The gate verdict of a finding — a gmeow:GateVerdict individual, DERIVED by logic:ruleGateFatalVerdict, never asserted by hand. gmeow:gateFatal is materialized exactly for the principal up-set ↑(gmeow:severityError, gmeow:blockingBlocking, gmeow:standpointBinding) read off the finding's gmeow:findingSeverity, its gmeow:findingCategory's gmeow:categoryBlocking projection, and its gmeow:findingStandpoint; every other grade stays gmeow:gateCollected. It is the reasoner-derived RDF image of the single Rust gmeow_errors::grade::gate() policy morphism, and the diagnostics conformance lane proves the derived Fatal set equals gate()'s over every grade."@x-gmeow-english ;
+    skos:example "ex:f1 gmeow:findingGateVerdict gmeow:gateFatal ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting it by hand — it is derived; asserting gmeow:gateFatal directly would bypass the single gate morphism and could disagree with gate(). Avoid conflating it with gmeow:findingSeverity; the verdict is the meet of all three axes, not the severity."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Read it off the reasoned graph after logic:ruleGateFatalVerdict has fired; a gate consumer treats gmeow:gateFatal as the report-not-OK condition and gmeow:gateCollected as surfaced-but-non-fatal."@x-gmeow-english ;
+    gmeow:useWhen "Use to carry the derived fatality verdict of a finding so a gate or SPARQL consumer can select the fatal findings without re-implementing the gate policy."@x-gmeow-english .
+
+gmeow:findingStandpoint
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Finding ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "finding standpoint"@x-gmeow-english ;
+    rdfs:range gmeow:DiagnosticStandpoint ;
+    skos:definition "The gating STRENGTH of a finding — a gmeow:DiagnosticStandpoint individual, the third axis of the truth-ordering triple (severity, blocking-projected category, standpoint) the gate reads. An advisory finding (gmeow:standpointAdvisory) never gates, whatever its severity or category; only a gmeow:standpointBinding finding can reach gmeow:gateFatal. Mirrors the standpoint field of the Rust gmeow_errors::grade::Grade."@x-gmeow-english ;
+    skos:example "ex:f1 gmeow:findingStandpoint gmeow:standpointBinding ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid pointing it outside the gmeow:DiagnosticStandpoint vocabulary and avoid conflating it with gmeow:findingSeverity (loudness) or gmeow:findingCategory (kind); the standpoint is the gating strength, the axis that decides whether a finding can bind the gate at all."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Bind one gmeow:DiagnosticStandpoint individual per Finding; the gate derivation reads it as the standpoint axis of the truth triple, requiring gmeow:standpointBinding for a fatal verdict."@x-gmeow-english ;
+    gmeow:useWhen "Use to record a finding's gating strength — the standpoint from which its verdict is asserted — completing the truth-axis triple the gate morphism folds."@x-gmeow-english .
+
+gmeow:blockingBlocking
+    a gmeow:BlockingDisposition ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "blocking"@x-gmeow-english ;
+    skos:definition "The Blocking projection value — the TOP of the gmeow:BlockingDisposition chain: a finding KIND that is a real failure and can contribute to gate fatality. The image of exactly the three failure categories logic:FindingDataShapeViolation, logic:FindingModelingDisciplineViolation, and logic:FindingContradictionWitness."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:blockingCoherent
+    a gmeow:BlockingDisposition ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "coherent"@x-gmeow-english ;
+    skos:definition "The Blocking projection value — the BOTTOM of the gmeow:BlockingDisposition chain: a finding KIND that is surfaced but never a failure, structurally unable to reach gmeow:gateFatal. The image of the five non-failure categories, chiefly the load-bearing logic:FindingPermittedEpistemicConflict (a disclosed, coherent contradiction a glut-admitting contract permits)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gateCollected
+    a gmeow:GateVerdict ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "collected"@x-gmeow-english ;
+    skos:definition "The gate verdict — the BOTTOM of the gmeow:GateVerdict chain: a finding that is surfaced and collected but does NOT fail the gate. Every grade outside the principal up-set ↑(Error, Blocking, Binding) folds here; it is the default, non-derived-Fatal outcome."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gateFatal
+    a gmeow:GateVerdict ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "fatal"@x-gmeow-english ;
+    skos:definition "The gate verdict — the TOP of the gmeow:GateVerdict chain: a gate-failing finding, the report is not OK while any finding carries it. DERIVED by logic:ruleGateFatalVerdict on exactly the principal up-set ↑(gmeow:severityError, gmeow:blockingBlocking, gmeow:standpointBinding); never asserted by hand."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:standpointAdvisory
+    a gmeow:DiagnosticStandpoint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "advisory"@x-gmeow-english ;
+    skos:definition "The gating strength — the BOTTOM of the gmeow:DiagnosticStandpoint chain: a finding offered as advice, from which the gate can never derive a fatal verdict whatever the finding's severity. The soft-tier recommendation standpoint."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:standpointBinding
+    a gmeow:DiagnosticStandpoint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "binding"@x-gmeow-english ;
+    skos:definition "The gating strength — the TOP of the gmeow:DiagnosticStandpoint chain: a finding asserted with binding authority, the only standpoint that can contribute to gmeow:gateFatal (alongside gmeow:severityError and a gmeow:blockingBlocking category)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:standpointPerspectival
+    a gmeow:DiagnosticStandpoint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "perspectival"@x-gmeow-english ;
+    skos:definition "The gating strength — the MIDDLE of the gmeow:DiagnosticStandpoint chain: a finding asserted as one perspective's claim, above advisory but below binding, so it too cannot reach gmeow:gateFatal (only gmeow:standpointBinding can)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+# ── The gating projection of each logic:FindingCategory (FindingCategory::blocking()).
+# The three failure kinds project to gmeow:blockingBlocking; the other five to
+# gmeow:blockingCoherent. This is the single asserted source the gate rule reads.
+logic:FindingDataShapeViolation gmeow:categoryBlocking gmeow:blockingBlocking .
+logic:FindingModelingDisciplineViolation gmeow:categoryBlocking gmeow:blockingBlocking .
+logic:FindingContradictionWitness gmeow:categoryBlocking gmeow:blockingBlocking .
+logic:FindingPermittedEpistemicConflict gmeow:categoryBlocking gmeow:blockingCoherent .
+logic:FindingUnsupportedSemanticFeature gmeow:categoryBlocking gmeow:blockingCoherent .
+logic:FindingIncompleteCheck gmeow:categoryBlocking gmeow:blockingCoherent .
+logic:FindingProjectionLoss gmeow:categoryBlocking gmeow:blockingCoherent .
+logic:FindingPolicyWarning gmeow:categoryBlocking gmeow:blockingCoherent .
+
 <https://blackcatinformatics.ca/gmeow/slices/diagnostics>
     a owl:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
