@@ -21,8 +21,6 @@ use std::sync::Arc;
 use purrdf::sparql::NativeSparqlEngine;
 use purrdf::{RdfDataset, SparqlEngine, SparqlRequest, SparqlResult, TermValue, parse_dataset};
 
-use crate::error::PipelineError;
-
 /// One SELECT result: the projected variable names (no leading `?`) and the rows of
 /// optional terms — the dataset-independent egress shape the native engine materializes.
 #[derive(Debug)]
@@ -39,18 +37,30 @@ impl Solutions {
 }
 
 /// Parse one Turtle byte buffer into a frozen dataset (the native codec).
-pub fn dataset_from_turtle(bytes: &[u8], context: &str) -> Result<Arc<RdfDataset>, PipelineError> {
-    parse_dataset(bytes, "text/turtle", None)
-        .map_err(|e| PipelineError::Parse(format!("syntax error in {context}: {e}")))
+pub fn dataset_from_turtle(
+    bytes: &[u8],
+    context: &str,
+) -> Result<Arc<RdfDataset>, gmeow_errors::Diag> {
+    parse_dataset(bytes, "text/turtle", None).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            message: format!("syntax error in {context}: {e}"),
+        })
+    })
 }
 
 /// Read + parse a set of Turtle files and union them into ONE frozen dataset
 /// (each source's blanks standardized apart by [`RdfDataset::union`], the
 /// IR-native twin of accumulating scope-keyed sources into one store).
-pub fn dataset_from_files(paths: &[std::path::PathBuf]) -> Result<Arc<RdfDataset>, PipelineError> {
+pub fn dataset_from_files(
+    paths: &[std::path::PathBuf],
+) -> Result<Arc<RdfDataset>, gmeow_errors::Diag> {
     let mut parsed: Vec<Arc<RdfDataset>> = Vec::with_capacity(paths.len());
     for path in paths {
-        let bytes = std::fs::read(path).map_err(PipelineError::Io)?;
+        let bytes = std::fs::read(path).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Io {
+                message: e.to_string(),
+            })
+        })?;
         parsed.push(dataset_from_turtle(&bytes, &path.display().to_string())?);
     }
     let refs: Vec<&RdfDataset> = parsed.iter().map(AsRef::as_ref).collect();
@@ -58,7 +68,7 @@ pub fn dataset_from_files(paths: &[std::path::PathBuf]) -> Result<Arc<RdfDataset
 }
 
 /// Run a SPARQL query over `dataset`, returning the native result.
-pub fn query(dataset: &Arc<RdfDataset>, sparql: &str) -> Result<SparqlResult, PipelineError> {
+pub fn query(dataset: &Arc<RdfDataset>, sparql: &str) -> Result<SparqlResult, gmeow_errors::Diag> {
     let engine = NativeSparqlEngine::new();
     engine
         .query(
@@ -69,18 +79,24 @@ pub fn query(dataset: &Arc<RdfDataset>, sparql: &str) -> Result<SparqlResult, Pi
                 substitutions: &[],
             },
         )
-        .map_err(|e| PipelineError::Parse(e.to_string()))
+        .map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Parse {
+                message: e.to_string(),
+            })
+        })
 }
 
 /// Run a SELECT query, hard-failing if it is not a SELECT.
-pub fn select(dataset: &Arc<RdfDataset>, sparql: &str) -> Result<Solutions, PipelineError> {
+pub fn select(dataset: &Arc<RdfDataset>, sparql: &str) -> Result<Solutions, gmeow_errors::Diag> {
     match query(dataset, sparql)? {
         SparqlResult::Solutions {
             variables, rows, ..
         } => Ok(Solutions { variables, rows }),
-        SparqlResult::Boolean(_) | SparqlResult::Graph(_) => Err(PipelineError::Parse(
-            "introspection query must be a SELECT".to_owned(),
-        )),
+        SparqlResult::Boolean(_) | SparqlResult::Graph(_) => {
+            Err(gmeow_errors::Diag::of_kind(crate::error::Parse {
+                message: "introspection query must be a SELECT".to_owned(),
+            }))
+        }
     }
 }
 

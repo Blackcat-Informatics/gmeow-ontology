@@ -19,7 +19,6 @@
 
 use std::collections::BTreeMap;
 
-use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 use crate::stages::export::{Term, collect_term_surface, read_fold_upstream};
 
@@ -494,7 +493,7 @@ fn body(term: &Term, by_curie: &BTreeMap<String, Term>) -> String {
     lines.join("\n").trim_end_matches('\n').to_string() + "\n"
 }
 
-fn render_doc(frontmatter: &[(String, Yaml)], body: &str) -> Result<String, PipelineError> {
+fn render_doc(frontmatter: &[(String, Yaml)], body: &str) -> Result<String, gmeow_errors::Diag> {
     let fm = yaml_dump(frontmatter);
     Ok(format!("---\n{fm}---\n{body}"))
 }
@@ -503,7 +502,7 @@ fn index_doc(
     title: &str,
     entries: &[(String, String)],
     lossy_note: &str,
-) -> Result<String, PipelineError> {
+) -> Result<String, gmeow_errors::Diag> {
     let fm = vec![
         ("type".to_string(), Yaml::Str("Index".into())),
         ("title".to_string(), Yaml::Str(title.to_string())),
@@ -527,7 +526,7 @@ pub(crate) fn render_okf(
     title: &str,
     version: &str,
     terms: &[Term],
-) -> Result<BTreeMap<String, Vec<u8>>, PipelineError> {
+) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
     let by_curie: BTreeMap<String, Term> =
         terms.iter().map(|t| (t.curie.clone(), t.clone())).collect();
 
@@ -620,13 +619,14 @@ impl Stage for OkfStage {
     fn impl_version(&self) -> &str {
         "okf.v1"
     }
-    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
+    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         let graph = read_fold_upstream(input.upstream)?;
         let (title, version, terms) = collect_term_surface(graph.as_ref())?;
         let artifacts = render_okf(&title, &version, &terms)?;
-        Ok(StageOutput {
-            product: StageProduct::from_artifacts(self.id(), artifacts),
-        })
+        Ok(StageOutput::new(StageProduct::from_artifacts(
+            self.id(),
+            artifacts,
+        )))
     }
 }
 

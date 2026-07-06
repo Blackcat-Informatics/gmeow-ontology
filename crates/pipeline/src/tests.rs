@@ -10,7 +10,6 @@ use std::sync::Arc;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
 use crate::cache::{PipelineCache, stage_key};
-use crate::error::PipelineError;
 use crate::loader::{PipelineSpec, StageSpec, bind};
 use crate::node::{
     ENGINE_RESOURCE, SINK_CAPABILITY, SOURCE_ORIGIN, Stage, StageInput, StageOutput, StageProduct,
@@ -79,8 +78,11 @@ fn cycle_is_rejected() {
     // Make `source` consume `sink`: source → a/b → sink → source.
     s.stages[0].consumes = vec!["sink".to_string()];
     match s.validate() {
-        Err(PipelineError::InvalidDag(msg)) => assert!(msg.contains("cycle"), "{msg}"),
-        other => panic!("expected cycle rejection, got {other:?}"),
+        Ok(_) => panic!("expected cycle rejection"),
+        Err(d) => {
+            assert_eq!(d.code(), crate::error::InvalidDag::register(), "{d}");
+            assert!(d.to_string().contains("cycle"), "{d}");
+        }
     }
 }
 
@@ -89,8 +91,11 @@ fn dangling_dependency_is_rejected() {
     let mut s = diamond();
     s.stages[1].consumes = vec!["ghost".to_string()];
     match s.validate() {
-        Err(PipelineError::InvalidDag(msg)) => assert!(msg.contains("ghost"), "{msg}"),
-        other => panic!("expected dangling-dependency rejection, got {other:?}"),
+        Ok(_) => panic!("expected dangling-dependency rejection"),
+        Err(d) => {
+            assert_eq!(d.code(), crate::error::InvalidDag::register(), "{d}");
+            assert!(d.to_string().contains("ghost"), "{d}");
+        }
     }
 }
 
@@ -112,10 +117,11 @@ fn unknown_consumes_edge_errors_instead_of_panicking() {
         ["source".to_string()].into_iter().collect(),
     );
     match StageGraph::build(&nodes, &consumes) {
-        Err(PipelineError::InvalidDag(msg)) => {
-            assert!(msg.contains("ghost"), "{msg}");
+        Ok(_) => panic!("expected InvalidDag for an unknown consumer key"),
+        Err(d) => {
+            assert_eq!(d.code(), crate::error::InvalidDag::register(), "{d}");
+            assert!(d.to_string().contains("ghost"), "{d}");
         }
-        other => panic!("expected InvalidDag for an unknown consumer key, got {other:?}"),
     }
 }
 
@@ -124,8 +130,11 @@ fn missing_sink_is_rejected() {
     let mut s = diamond();
     s.stages[3].capabilities.clear(); // strip SINK_CAPABILITY from the only sink
     match s.validate() {
-        Err(PipelineError::InvalidDag(msg)) => assert!(msg.contains("no Sink"), "{msg}"),
-        other => panic!("expected missing-sink rejection, got {other:?}"),
+        Ok(_) => panic!("expected missing-sink rejection"),
+        Err(d) => {
+            assert_eq!(d.code(), crate::error::InvalidDag::register(), "{d}");
+            assert!(d.to_string().contains("no Sink"), "{d}");
+        }
     }
 }
 
@@ -135,8 +144,11 @@ fn multiple_sinks_are_rejected() {
     // Give `a` SINK_CAPABILITY too: now `a` and `sink` are both sinks.
     s.stages[1].capabilities = vec![SINK_CAPABILITY.to_string()];
     match s.validate() {
-        Err(PipelineError::InvalidDag(msg)) => assert!(msg.contains("Sink stages"), "{msg}"),
-        other => panic!("expected multiple-sink rejection, got {other:?}"),
+        Ok(_) => panic!("expected multiple-sink rejection"),
+        Err(d) => {
+            assert_eq!(d.code(), crate::error::InvalidDag::register(), "{d}");
+            assert!(d.to_string().contains("Sink stages"), "{d}");
+        }
     }
 }
 
@@ -149,10 +161,14 @@ fn typed_dataflow_from_non_consumed_producer_is_rejected() {
     let a = s.stages.iter_mut().find(|st| st.id == "a").unwrap();
     a.dataflow_entities = vec![("b".to_string(), vec!["https://example.org/g".to_string()])];
     match s.validate() {
-        Err(PipelineError::InvalidDag(msg)) => {
-            assert!(msg.contains("does not gmeow:dataflowConsumes"), "{msg}");
+        Ok(_) => panic!("expected typed-dataflow rejection"),
+        Err(d) => {
+            assert_eq!(d.code(), crate::error::InvalidDag::register(), "{d}");
+            assert!(
+                d.to_string().contains("does not gmeow:dataflowConsumes"),
+                "{d}"
+            );
         }
-        other => panic!("expected typed-dataflow rejection, got {other:?}"),
     }
 }
 
@@ -181,10 +197,11 @@ impl Stage for FakeStage {
     fn impl_version(&self) -> &str {
         "v1"
     }
-    fn run(&self, _input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
-        Ok(StageOutput {
-            product: StageProduct::new(self.id.clone(), "deadbeef"),
-        })
+    fn run(&self, _input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
+        Ok(StageOutput::new(StageProduct::new(
+            self.id.clone(),
+            "deadbeef",
+        )))
     }
 }
 
@@ -239,8 +256,13 @@ fn bind_rejects_consumes_disagreement() {
         ],
     );
     match bind(&s, &g, &reg).map(|v| v.len()) {
-        Err(PipelineError::ConsumesMismatch { stage, .. }) => assert_eq!(stage, "a"),
-        other => panic!("expected consumes mismatch, got {other:?}"),
+        Ok(_) => panic!("expected consumes mismatch"),
+        Err(d) => {
+            let k = d
+                .downcast_ref::<crate::error::ConsumesMismatch>()
+                .unwrap_or_else(|| panic!("expected consumes mismatch, got {d}"));
+            assert_eq!(k.stage, "a");
+        }
     }
 }
 
@@ -272,12 +294,15 @@ fn bind_rejects_resource_disagreement() {
     );
     reg.register("impl:sink".to_string(), fake("sink", &["r"]));
     match bind(&s, &g, &reg).map(|v| v.len()) {
-        Err(PipelineError::ResourceMismatch { stage, rdf, rust }) => {
-            assert_eq!(stage, "r");
-            assert_eq!(rdf, vec![ENGINE_RESOURCE.to_string()]);
-            assert!(rust.is_empty());
+        Ok(_) => panic!("expected resource mismatch"),
+        Err(d) => {
+            let k = d
+                .downcast_ref::<crate::error::ResourceMismatch>()
+                .unwrap_or_else(|| panic!("expected resource mismatch, got {d}"));
+            assert_eq!(k.stage, "r");
+            assert_eq!(k.rdf, vec![ENGINE_RESOURCE.to_string()]);
+            assert!(k.rust.is_empty());
         }
-        other => panic!("expected resource mismatch, got {other:?}"),
     }
 }
 
@@ -286,10 +311,12 @@ fn bind_rejects_unknown_impl() {
     let s = diamond();
     let g = s.validate().unwrap();
     let reg = StageRegistry::new(); // empty
-    assert!(matches!(
-        bind(&s, &g, &reg).map(|v| v.len()),
-        Err(PipelineError::UnknownStageImpl { .. })
-    ));
+    assert!(
+        bind(&s, &g, &reg)
+            .map(|v| v.len())
+            .unwrap_err()
+            .is::<crate::error::UnknownStageImpl>()
+    );
 }
 
 // ── Dogfooded-DAG Turtle round-trip ──────────────────────────────────────────
@@ -399,10 +426,11 @@ fn cache_hard_fails_on_corruption() {
         std::fs::write(&path, bytes).unwrap();
     }
     // No silent repair — a corrupt entry is a hard failure.
-    assert!(matches!(
-        c.get("key1"),
-        Err(PipelineError::CacheMismatch { .. })
-    ));
+    assert!(
+        c.get("key1")
+            .unwrap_err()
+            .is::<crate::error::CacheMismatch>()
+    );
 }
 
 // ── P2: provenance stamping ──────────────────────────────────────────────────
@@ -450,7 +478,7 @@ impl Stage for ComputeStage {
     fn impl_version(&self) -> &str {
         "v1"
     }
-    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
+    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         self.runs.fetch_add(1, Ordering::SeqCst);
         let mut ups: Vec<String> = input.upstream.values().map(|p| p.digest.clone()).collect();
         ups.sort();
@@ -459,9 +487,7 @@ impl Stage for ComputeStage {
             fields.push(u.as_bytes());
         }
         let digest = crate::cache::content_digest(&fields);
-        Ok(StageOutput {
-            product: StageProduct::new(self.id.clone(), digest),
-        })
+        Ok(StageOutput::new(StageProduct::new(self.id.clone(), digest)))
     }
 }
 
@@ -549,15 +575,16 @@ impl Stage for FileReadingStage {
     fn input_files(
         &self,
         _root: &std::path::Path,
-    ) -> Result<Vec<std::path::PathBuf>, PipelineError> {
+    ) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
         Ok(vec![self.file.clone()])
     }
-    fn run(&self, _input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
+    fn run(&self, _input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         self.runs.fetch_add(1, Ordering::SeqCst);
         let bytes = std::fs::read(&self.file)?;
-        Ok(StageOutput {
-            product: StageProduct::new("file-leaf", crate::cache::content_digest(&[&bytes])),
-        })
+        Ok(StageOutput::new(StageProduct::new(
+            "file-leaf",
+            crate::cache::content_digest(&[&bytes]),
+        )))
     }
 }
 
@@ -658,10 +685,10 @@ impl Stage for TwoGraphProducer {
     fn input_files(
         &self,
         _root: &std::path::Path,
-    ) -> Result<Vec<std::path::PathBuf>, PipelineError> {
+    ) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
         Ok(vec![self.file.clone()])
     }
-    fn run(&self, _input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
+    fn run(&self, _input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         self.runs.fetch_add(1, Ordering::SeqCst);
         let content = std::fs::read_to_string(&self.file)?;
         // g1's object tracks the file; g2 is constant. So an edit moves g1's digest
@@ -670,15 +697,17 @@ impl Stage for TwoGraphProducer {
             "<https://example.org/s> <https://example.org/p> \"{content}\" <{G1}> .\n\
              <https://example.org/s> <https://example.org/p> \"const\" <{G2}> .\n"
         );
-        let dataset = purrdf::parse_dataset(nq.as_bytes(), "application/n-quads", None)
-            .map_err(|e| PipelineError::Parse(format!("producer dataset: {e}")))?;
-        Ok(StageOutput {
-            product: StageProduct::from_artifacts_over(
-                "producer",
-                dataset,
-                std::collections::BTreeMap::new(),
-            ),
-        })
+        let dataset =
+            purrdf::parse_dataset(nq.as_bytes(), "application/n-quads", None).map_err(|e| {
+                gmeow_errors::Diag::of_kind(crate::error::Parse {
+                    message: format!("producer dataset: {e}"),
+                })
+            })?;
+        Ok(StageOutput::new(StageProduct::from_artifacts_over(
+            "producer",
+            dataset,
+            std::collections::BTreeMap::new(),
+        )))
     }
 }
 
@@ -703,11 +732,12 @@ impl Stage for EntityConsumer {
     fn impl_version(&self) -> &str {
         "v1"
     }
-    fn run(&self, _input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
+    fn run(&self, _input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         self.runs.fetch_add(1, Ordering::SeqCst);
-        Ok(StageOutput {
-            product: StageProduct::new(self.id.clone(), "deadbeef"),
-        })
+        Ok(StageOutput::new(StageProduct::new(
+            self.id.clone(),
+            "deadbeef",
+        )))
     }
 }
 
