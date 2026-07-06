@@ -41,6 +41,10 @@ members = [
     "crates/logic-compile",
     # Synchronous LSP server for .ttl and .logic files + sarif CLI (#671).
     "crates/lsp",
+    # Affect-intensity geometry: exact-rational inner-product-space over a metric
+    # Gram matrix, read from an RDF graph, the √(xᵀGx) norm computed OUTSIDE the
+    # reasoned core (Principle 12) for the CLI and the EmotionML emitter.
+    "crates/affect",
     # Music-package toolchain: piece model, GTS package I/O, notation renderers,
     # MusicXML import, and loss manifests.
     "crates/music",
