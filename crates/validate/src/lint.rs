@@ -497,41 +497,7 @@ pub fn structural_lint_dataset(ds: &RdfDataset, cfg: &LintConfig) -> LintReport 
         }
     }
 
-    // 3. use/avoidForConsumer must point at a gmeow:ProjectionContext.
-    //
-    // This cleanly-structural range constraint also has a declarative SHACL twin
-    // (`slices/core/kernel/shapes.ttl`, the `sh:targetSubjectsOf` consumer-advisory
-    // shapes) that folds into gmeow.gts and is enforced by `make validate`. This
-    // native gate is retained as defense-in-depth (it runs over the same merged
-    // ontology dataset in the same pass, at negligible cost).
-    let projection_context = format!("{}ProjectionContext", cfg.namespace);
-    for local in ["useForConsumer", "avoidForConsumer"] {
-        let predicate = format!("{}{local}", cfg.namespace);
-        let Some(p_id) = ds_iri_id(ds, &predicate) else {
-            continue;
-        };
-        for q in ds.quads_for_pattern(None, Some(p_id), None, GraphMatch::Any) {
-            let subject = ds_subject_display(ds.resolve(q.s));
-            let object = ds.resolve(q.o);
-            let is_projection_context = match object {
-                TermRef::Iri(c) => ds_has_type(ds, c, &projection_context),
-                _ => false,
-            };
-            if !is_projection_context {
-                let consumer_text = match object {
-                    TermRef::Iri(n) => n.to_owned(),
-                    TermRef::Blank { label, .. } => format!("_:{label}"),
-                    TermRef::Literal { lexical, .. } => lexical.to_owned(),
-                    TermRef::Triple { .. } => ds_object_display(object),
-                };
-                report.errors.push(format!(
-                    "{predicate} on {subject} points to non-ProjectionContext value {consumer_text}",
-                ));
-            }
-        }
-    }
-
-    // 4. Dangling GMEOW subclass/subproperty targets.
+    // 3. Dangling GMEOW subclass/subproperty targets.
     for predicate in [rdfs::SUB_CLASS_OF, rdfs::SUB_PROPERTY_OF] {
         let Some(p_id) = ds_iri_id(ds, predicate) else {
             continue;
@@ -549,7 +515,7 @@ pub fn structural_lint_dataset(ds: &RdfDataset, cfg: &LintConfig) -> LintReport 
         }
     }
 
-    // 5. Comprehensiveness heuristic.
+    // 4. Comprehensiveness heuristic.
     let mut parent_to_children: BTreeMap<String, Vec<String>> = BTreeMap::new();
     if let Some(p_id) = ds_iri_id(ds, rdfs::SUB_CLASS_OF) {
         for q in ds.quads_for_pattern(None, Some(p_id), None, GraphMatch::Any) {
@@ -584,7 +550,7 @@ pub fn structural_lint_dataset(ds: &RdfDataset, cfg: &LintConfig) -> LintReport 
         }
     }
 
-    // 6. Language-tag discipline over ALL triples.
+    // 5. Language-tag discipline over ALL triples.
     let x_gmeow = Regex::new(r"(?i)^x-gmeow-[a-z0-9\-]+$").expect("static regex");
     for q in ds.quads_for_pattern(None, None, None, GraphMatch::Any) {
         let TermRef::Iri(predicate_iri) = ds.resolve(q.p) else {
