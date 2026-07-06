@@ -314,6 +314,108 @@ fn gts_shim_hard_fails_when_binary_missing() {
     );
 }
 
+// ── affect intensity (Q10 production surface) ────────────────────────────────
+
+/// Absolute path of a committed slice file, relative to this crate.
+fn slice_path(relative: &str) -> PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../../slices")
+        .join(relative)
+}
+
+/// Build a fixture `.gts` at test time from the REAL committed affect slice
+/// files: the canonical `module.ttl` (carries `gmeow:coreAffectGram` +
+/// `gmeow:coreAxisIndex`) merged with the two worked examples. This exercises the
+/// shipped examples end to end, proving intensity is COMPUTED from the Gram matrix
+/// and appraisal vectors — not read from a hand-authored magnitude.
+fn affect_fixture_gts() -> PathBuf {
+    use purrdf::gts_compose::{DEFAULT_RSYNCABLE_THRESHOLD, SnapshotBuilder, emit_gts};
+    use purrdf::{NativeRdfFormat, parse_dataset};
+
+    let mut builder = SnapshotBuilder::default();
+    for relative in [
+        "core/affect/module.ttl",
+        "core/affect/examples/schadenfreude.ttl",
+        "core/affect/examples/intensity-discriminating.ttl",
+    ] {
+        let text = std::fs::read(slice_path(relative)).expect("read slice file");
+        let dataset = parse_dataset(&text, NativeRdfFormat::Turtle.media_type(), None)
+            .unwrap_or_else(|e| panic!("parse {relative}: {e}"));
+        builder.add_dataset(&dataset).expect("add dataset");
+    }
+    let bytes = emit_gts(
+        &builder,
+        "dist",
+        None,
+        Vec::new(),
+        Vec::new(),
+        None,
+        None,
+        None,
+        DEFAULT_RSYNCABLE_THRESHOLD,
+    )
+    .expect("emit gts");
+
+    let dir = scratch("affect-fixture");
+    let path = dir.join("affect.gts");
+    std::fs::write(&path, bytes).expect("write fixture gts");
+    path
+}
+
+#[test]
+fn affect_intensity_schadenfreude_is_computed_from_the_metric() {
+    // Q10: the CLI computes √(xᵀGx) over the canonical coreAffectGram
+    // (diagonal 1, valence–arousal coupling 1/4) for the schadenfreude vector
+    // (valence 0.7, arousal 0.4): Q = 79/100, intensity 0.888819, dominant
+    // valence. The metric-tensor norm is the load-bearing computation.
+    let fixture = affect_fixture_gts();
+    gmeow()
+        .args(["affect", "intensity"])
+        .arg(&fixture)
+        .args([
+            "--observation",
+            "https://blackcatinformatics.ca/gmeow/examples/affect/tests/sfIntensity",
+        ])
+        .assert()
+        .success()
+        .stdout(
+            predicate::str::contains("intensity 0.888819").and(predicate::str::contains(
+                "dominant-axis https://blackcatinformatics.ca/gmeow/dimensionValence",
+            )),
+        );
+}
+
+#[test]
+fn affect_intensity_discriminating_dominant_axis_is_metric_aware() {
+    // The discriminating case: raw-max axis is arousal (0.6 > 0.5), but the
+    // computed G-weighted dominant is valence (diag(2,1): 2·0.5² = 0.5 >
+    // 1·0.6² = 0.36) — the compute is load-bearing, not a raw-max read.
+    let fixture = affect_fixture_gts();
+    gmeow()
+        .args(["affect", "intensity"])
+        .arg(&fixture)
+        .args([
+            "--observation",
+            "https://blackcatinformatics.ca/gmeow/examples/affect/tests/vdIntensity",
+        ])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains(
+            "dominant-axis https://blackcatinformatics.ca/gmeow/dimensionValence",
+        ));
+}
+
+#[test]
+fn affect_intensity_missing_source_is_a_runtime_error() {
+    // Mirror the music runtime-error path: an unreadable source → exit 1 with an
+    // `Error:` prefix on stderr.
+    gmeow()
+        .args(["affect", "intensity", "/nonexistent-affect-fixture.gts"])
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("Error:"));
+}
+
 #[test]
 fn music_render_missing_source_is_a_runtime_error() {
     // The music passthrough maps a runtime failure (unreadable source) to exit 1
