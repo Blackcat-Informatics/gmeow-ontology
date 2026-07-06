@@ -28,6 +28,8 @@ use std::fmt;
 use std::num::NonZeroU32;
 use std::panic::Location;
 
+use serde::{Deserialize, Serialize};
+
 use crate::code::{self, Code};
 use crate::grade::{GateVerdict, Grade, Severity, Standpoint, gate};
 use crate::model::{DiagnosticAttribution, FindingCategory, Location as SourceLocation};
@@ -39,9 +41,7 @@ use crate::model::{DiagnosticAttribution, FindingCategory, Location as SourceLoc
 pub struct DiagRef(pub(crate) NonZeroU32);
 
 // The arena constructor/accessor are consumed by the ledger's hash-consed arena;
-// they live with the handle type they mint. The `allow` bridges the non-test lib
-// build until the ledger's arena calls them.
-#[allow(dead_code)]
+// they live with the handle type they mint.
 impl DiagRef {
     /// Construct from a 1-based arena position. Panics (HARD FAIL) on overflow.
     pub(crate) fn from_index(index: usize) -> Self {
@@ -61,7 +61,7 @@ impl DiagRef {
 
 /// A pipeline stage identifier. Diagnostics attached on the carrier path are
 /// stamped with the stage that produced them (pin-on-attach).
-#[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
 pub struct StageId(pub String);
 
 impl StageId {
@@ -80,7 +80,8 @@ impl fmt::Display for StageId {
 }
 
 /// The sub-statement role a diagnostic anchors to inside a quad.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
 pub enum TermRole {
     Subject,
     Predicate,
@@ -89,12 +90,12 @@ pub enum TermRole {
 }
 
 /// The offending focus node (an IRI / blank-node label / lexical key).
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Focus(pub String);
 
 /// A structured `observed`/`expected` value carried beside the message, so a
 /// consumer can compare values without parsing prose.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Slot {
     pub lexical: String,
     pub datatype: Option<String>,
@@ -118,14 +119,14 @@ impl Slot {
 /// A secondary, labelled span — Rust-compiler-style multi-label diagnostics
 /// ("defined here", "first use there"). LSP `publishDiagnostics` and
 /// `gmeow explain` render these alongside the primary source context.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Label {
     pub location: SourceLocation,
     pub text: String,
 }
 
 /// A standpoint-bearing piece of advice attached to a diagnostic.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Advice {
     pub standpoint: Standpoint,
     pub text: String,
@@ -135,7 +136,7 @@ pub struct Advice {
 /// The fingerprint *anchor* of a diagnostic — the stable identity coordinates.
 /// Fingerprints key on `(code, category, this anchor, focus)`, never on the
 /// message or context frames.
-#[derive(Debug, Clone, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
 pub struct SourceContext {
     pub location: SourceLocation,
     pub focus: Option<Focus>,

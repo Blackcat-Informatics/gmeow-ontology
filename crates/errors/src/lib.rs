@@ -30,7 +30,10 @@ pub mod code;
 pub mod dag;
 pub mod diag;
 pub mod grade;
+pub mod ledger;
+pub mod lower;
 pub mod model;
+pub mod project;
 pub mod render;
 
 /// The crate result alias: an error defaults to [`Diag`](diag::Diag).
@@ -48,6 +51,9 @@ pub use diag::{
 };
 pub use grade::{
     Belnap, Blocking, BoundedLattice, GateVerdict, Grade, GradeMerge, Standpoint, gate,
+};
+pub use ledger::{
+    DiagFingerprint, DiagLedger, DiagNode, Observation, SerFrame, SerLocation, fingerprint_iri,
 };
 pub use model::{
     DiagnosticAttribution, Finding, FindingCategory, Location, Report, Rule, Severity,
