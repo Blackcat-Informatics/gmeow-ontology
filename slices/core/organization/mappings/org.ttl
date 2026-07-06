@@ -61,7 +61,7 @@ gmeow:mapOrgMemberOf a gmeow:ProjectionMapping ;
         gmeow:anchor "omember" ; gmeow:value "ozTarget" ;
         gmeow:atom ( [ gmeow:subjectVar "omember" ; gmeow:predicate gmeow:memberOf ; gmeow:objectVar "ozTarget" ] ) ;
         gmeow:edoalSource gmeow:memberOf ] ;
-    gmeow:hasBinding [ gmeow:profile "org" ; gmeow:toPredicate org:memberOf ; gmeow:relation "=" ; gmeow:confidence 0.95 ] .
+    gmeow:hasBinding [ gmeow:profile "org" ; gmeow:toPredicate org:memberOf ; gmeow:relation "=" ; gmeow:confidence 0.95 ; gmeow:mnemomorphic true ] .
 
 gmeow:mapOrgRole a gmeow:ProjectionMapping ;
     rdfs:label "Role → org:Role"@x-gmeow-english ;
@@ -69,7 +69,7 @@ gmeow:mapOrgRole a gmeow:ProjectionMapping ;
         gmeow:anchor "orole" ;
         gmeow:atom ( [ gmeow:subjectVar "orole" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Role ] ) ;
         gmeow:edoalSource gmeow:Role ; gmeow:edoalSourceKind "class" ] ;
-    gmeow:hasBinding [ gmeow:profile "org" ; gmeow:toClass org:Role ; gmeow:relation "=" ; gmeow:confidence 0.95 ] .
+    gmeow:hasBinding [ gmeow:profile "org" ; gmeow:toClass org:Role ; gmeow:relation "=" ; gmeow:confidence 0.95 ; gmeow:mnemomorphic true ] .
 
 gmeow:mapOrgSubOrganizationOf a gmeow:ProjectionMapping ;
     rdfs:label "subOrganizationOf → org:subOrganizationOf"@x-gmeow-english ;
@@ -77,7 +77,7 @@ gmeow:mapOrgSubOrganizationOf a gmeow:ProjectionMapping ;
         gmeow:anchor "osub" ; gmeow:value "oparent" ;
         gmeow:atom ( [ gmeow:subjectVar "osub" ; gmeow:predicate gmeow:subOrganizationOf ; gmeow:objectVar "oparent" ] ) ;
         gmeow:edoalSource gmeow:subOrganizationOf ] ;
-    gmeow:hasBinding [ gmeow:profile "org" ; gmeow:toPredicate org:subOrganizationOf ; gmeow:relation "=" ; gmeow:confidence 0.95 ] .
+    gmeow:hasBinding [ gmeow:profile "org" ; gmeow:toPredicate org:subOrganizationOf ; gmeow:relation "=" ; gmeow:confidence 0.95 ; gmeow:mnemomorphic true ] .
 
 gmeow:mapOrgMember a gmeow:ProjectionMapping ;
     rdfs:label "hasMember → org:member"@x-gmeow-english ;
@@ -85,4 +85,4 @@ gmeow:mapOrgMember a gmeow:ProjectionMapping ;
         gmeow:anchor "omOrg" ; gmeow:value "omAgent" ;
         gmeow:atom ( [ gmeow:subjectVar "omOrg" ; gmeow:predicate gmeow:hasMember ; gmeow:objectVar "omAgent" ] ) ;
         gmeow:edoalSource gmeow:hasMember ] ;
-    gmeow:hasBinding [ gmeow:profile "org" ; gmeow:toPredicate org:member ; gmeow:relation "=" ; gmeow:confidence 0.95 ] .
+    gmeow:hasBinding [ gmeow:profile "org" ; gmeow:toPredicate org:member ; gmeow:relation "=" ; gmeow:confidence 0.95 ; gmeow:mnemomorphic true ] .
