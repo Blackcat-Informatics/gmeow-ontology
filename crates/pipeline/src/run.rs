@@ -27,7 +27,9 @@ use std::io::ErrorKind;
 use std::path::Path;
 use std::time::Instant;
 
-use gmeow_errors::{Finding, Severity};
+use gmeow_errors::{
+    Diag, DiagLedger, Finding, FindingCategory, Grade, Severity, StageId, Standpoint, register_code,
+};
 use gmeow_logic::dag_profile::certify_acyclic;
 use gmeow_logic::result::ReasoningResult;
 
@@ -36,6 +38,36 @@ use crate::loader::{PipelineSpec, StageSpec, bind};
 use crate::node::{ENGINE_RESOURCE, SINK_CAPABILITY, SOURCE_ORIGIN, StageProduct};
 use crate::registry::default_registry;
 use crate::scheduler::{RunContext, run};
+
+/// The stage id every drift/superset diagnostic is attributed to on the carrier
+/// ledger (pin-on-attach).
+const PIPELINE_STAGE_ID: &str = "stage-pipeline-reconcile";
+
+// The registered finding codes the reconcile phase emits. Declared here as the
+// enumeration authority (the same discipline as `validate::codes`).
+const CODE_SUPERSET_MISSING: &str = "pipeline.superset.missing";
+const CODE_SUPERSET_MISMATCH: &str = "pipeline.superset.mismatch";
+const CODE_SUPERSET_ORPHAN: &str = "pipeline.superset.orphan";
+const CODE_MISSING: &str = "pipeline.missing";
+const CODE_DRIFT: &str = "pipeline.drift";
+
+/// Intern a reconcile-phase drift/superset finding into the carrier ledger. The
+/// drifting path is the finding's focus, so each path is a distinct content-addressed
+/// witness (a shared code alone would hash-cons every drift into one node). All are
+/// gate-failing modelling defects (Error / ModelingDisciplineViolation / Binding).
+fn attach_pipeline_finding(ledger: &mut DiagLedger, code: &str, focus: &str, message: String) {
+    let diag = Diag::new(
+        register_code(code),
+        Grade::new(
+            Severity::Error,
+            FindingCategory::ModelingDisciplineViolation,
+            Standpoint::Binding,
+        ),
+        message,
+    )
+    .with_focus(focus);
+    ledger.attach(diag, StageId::new(PIPELINE_STAGE_ID));
+}
 
 /// The id of the stage that projects the exact sink GTS bytes into schema files.
 const SCHEMAS_STAGE: &str = "stage-export-schemas";
@@ -73,8 +105,17 @@ pub struct RunReport {
     pub written: usize,
     /// Artifacts left untouched in regenerate mode because committed bytes already matched.
     pub skipped_writes: usize,
-    /// Drift / write findings (empty ⇒ full parity).
+    /// Drift / write findings (empty ⇒ full parity). These are a *projection* of
+    /// [`ledger`](RunReport::ledger) — the drift/superset producers intern their
+    /// diagnostics into the carrier ledger, and this field is
+    /// `ledger.project_report(...).findings`, so the ledger is the single source
+    /// of truth (not a parallel path).
     pub findings: Vec<Finding>,
+    /// The carrier-borne diagnostic ledger: the hash-consed witness DAG every
+    /// drift/superset finding is interned into (pin-on-attach, stage-attributed,
+    /// deterministically ordered). A first-class member of the run's carrier
+    /// output — [`findings`](RunReport::findings) is its lossy projection.
+    pub ledger: DiagLedger,
     /// The drifted logical paths (check mode), sorted.
     pub drifted: Vec<String>,
     /// Per-phase timing records for profiling the gate without parsing stderr.
@@ -419,7 +460,9 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, Pi
     let declared_sink = declared_sink_stage(&spec)?;
     assert_single_gts_writer(&products, declared_sink)?;
 
-    let mut findings: Vec<Finding> = Vec::new();
+    // The carrier ledger every drift/superset producer interns into. RunReport's
+    // `findings` is its projection at the end (load-bearing: not a parallel path).
+    let mut ledger = DiagLedger::new();
     let mut drifted: Vec<String> = Vec::new();
     let mut produced = 0usize;
     let mut reproduced = 0usize;
@@ -467,35 +510,31 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, Pi
                     });
                     for path in report.missing {
                         drifted.push(path.clone());
-                        findings.push(
-                            Finding::new(
-                                Severity::Error,
-                                "pipeline.superset.missing",
-                                format!("{path} has no carrier representative in gmeow.gts"),
-                            )
-                            .with_tool("gmeow-pipeline"),
+                        attach_pipeline_finding(
+                            &mut ledger,
+                            CODE_SUPERSET_MISSING,
+                            &path,
+                            format!("{path} has no carrier representative in gmeow.gts"),
                         );
                     }
                     for path in report.mismatch {
                         drifted.push(path.clone());
-                        findings.push(
-                            Finding::new(
-                                Severity::Error,
-                                "pipeline.superset.mismatch",
-                                format!("{path} differs from its gmeow.gts reconstruction"),
-                            )
-                            .with_tool("gmeow-pipeline"),
+                        attach_pipeline_finding(
+                            &mut ledger,
+                            CODE_SUPERSET_MISMATCH,
+                            &path,
+                            format!("{path} differs from its gmeow.gts reconstruction"),
                         );
                     }
                     for rep in report.orphan {
                         drifted.push(rep.clone());
-                        findings.push(
-                            Finding::new(
-                                Severity::Error,
-                                "pipeline.superset.orphan",
-                                format!("{rep} is carried in gmeow.gts but maps to no committed generated/ path"),
-                            )
-                            .with_tool("gmeow-pipeline"),
+                        attach_pipeline_finding(
+                            &mut ledger,
+                            CODE_SUPERSET_ORPHAN,
+                            &rep,
+                            format!(
+                                "{rep} is carried in gmeow.gts but maps to no committed generated/ path"
+                            ),
                         );
                     }
                 }
@@ -545,13 +584,11 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, Pi
                 Ok(c) => c,
                 Err(e) => {
                     drifted.push(path.clone());
-                    findings.push(
-                        Finding::new(
-                            Severity::Error,
-                            "pipeline.missing",
-                            format!("{path} could not be read for comparison: {e}"),
-                        )
-                        .with_tool("gmeow-pipeline"),
+                    attach_pipeline_finding(
+                        &mut ledger,
+                        CODE_MISSING,
+                        path,
+                        format!("{path} could not be read for comparison: {e}"),
                     );
                     continue;
                 }
@@ -574,13 +611,11 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, Pi
 
             // A genuine drift.
             drifted.push(path.clone());
-            findings.push(
-                Finding::new(
-                    Severity::Error,
-                    "pipeline.drift",
-                    format!("{path} differs from the committed artifact"),
-                )
-                .with_tool("gmeow-pipeline"),
+            attach_pipeline_finding(
+                &mut ledger,
+                CODE_DRIFT,
+                path,
+                format!("{path} differs from the committed artifact"),
             );
         }
     }
@@ -631,6 +666,10 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, Pi
         )),
     });
 
+    // Project the carrier ledger to the wire findings — the ledger is the single
+    // source of truth, `findings` is its lossy projection (F3: not a parallel path).
+    let findings = ledger.project_report("gmeow-pipeline").findings;
+
     Ok(RunReport {
         mode,
         produced,
@@ -638,6 +677,7 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, Pi
         written,
         skipped_writes,
         findings,
+        ledger,
         drifted,
         timings,
         certification,
@@ -839,6 +879,50 @@ pub(crate) fn write_artifact(root: &Path, path: &str, bytes: &[u8]) -> Result<bo
         return Err(e.into());
     }
     Ok(true)
+}
+
+#[cfg(test)]
+mod ledger_integration_tests {
+    use super::{CODE_DRIFT, CODE_SUPERSET_MISSING, DiagLedger, attach_pipeline_finding};
+
+    /// F3: the drift/superset producers intern their diagnostics into the carrier
+    /// ledger, and the wire findings are the ledger's projection — the ledger is
+    /// load-bearing, not a dark parallel path. This exercises the exact helper and
+    /// projection `run_full` uses.
+    #[test]
+    fn drift_findings_flow_through_the_carrier_ledger() {
+        let mut ledger = DiagLedger::new();
+        attach_pipeline_finding(
+            &mut ledger,
+            CODE_DRIFT,
+            "generated/a.ttl",
+            "generated/a.ttl differs from the committed artifact".to_owned(),
+        );
+        attach_pipeline_finding(
+            &mut ledger,
+            CODE_SUPERSET_MISSING,
+            "generated/b.ttl",
+            "generated/b.ttl has no carrier representative in gmeow.gts".to_owned(),
+        );
+
+        // Two distinct drifting paths → two distinct content-addressed witnesses
+        // (the path is the focus, so a shared code never collapses them).
+        assert_eq!(ledger.len(), 2, "each drifting path is a distinct witness");
+
+        // The wire findings `run_full` returns ARE the ledger projection.
+        let findings = ledger.project_report("gmeow-pipeline").findings;
+        assert_eq!(findings.len(), 2);
+        assert!(findings.iter().any(|f| f.code == CODE_DRIFT));
+        assert!(findings.iter().any(|f| f.code == CODE_SUPERSET_MISSING));
+        // Deleting the fold (an empty ledger) yields zero findings — proving the
+        // findings are sourced from the ledger, not a bypass path.
+        assert!(
+            DiagLedger::new()
+                .project_report("gmeow-pipeline")
+                .findings
+                .is_empty()
+        );
+    }
 }
 
 #[cfg(test)]
