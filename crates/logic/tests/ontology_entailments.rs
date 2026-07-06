@@ -208,13 +208,12 @@ fn smoke_property_chain_entailment_and_negative() {
     );
 }
 
-// ── Migrated from the reasoning-entailments pytest cluster (now at
-//    validations/classic-cross-check/tests/test_reasoning_entailments.py) ─────────────
+// ── Native twins of the retired reasoning-entailments pytest cluster ─────────────
 // The native twins of the `_materialize(module, *abox)` positive-entailment tests. The
-// three `reasoning_cases` monkeypatch tests (two-axis / two-kind / run_all order) are NOT migrated
-// — they exercise the Python Docker-orchestration layer (the `reasoning_cases` oracle, relocated to
-// `validations/classic-cross-check/oracles/`), an independent live Python impl with no Rust
-// twin (retain-with-reason, see MIGRATION-LEDGER.md).
+// three `reasoning_cases` monkeypatch tests (two-axis / two-kind / run_all order) have no
+// native twin — they exercised the Python Docker-orchestration oracle layer, which was
+// retired together with the Docker ELK/HermiT cross-check lane (superseded by the native
+// purrdf-entail crosscheck).
 
 #[test]
 fn ancestry_is_derived_not_asserted() {
