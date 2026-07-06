@@ -18,7 +18,7 @@ expression: "to_markdown(&model, &Page::Slice(slug))"
 
 | Path | Media type | Digest |
 | --- | --- | --- |
-| `docs.md` | `text/markdown` | `f656971f578a` |
+| `docs.md` | `text/markdown` | `e346485e9e93` |
 
 ### Examples
 

@@ -70,8 +70,9 @@ overwhelmingly at the **Python compatibility boundary**, not in Rust. Ranked by 
   pyoxigraph-shaped `NamedNode/BlankNode/Literal/Triple/Quad/Variable`, `Store`, `Dataset`,
   `QuerySolutions/QueryTriples/QueryBoolean`, `parse()`/`serialize()`, `canonicalize_turtle`.
 - **Existing rdflib drop-ins:** `src/gmeow_tools/rdf_canonical.py`, `sparql.py` (the `owlrl` replacement
-  now lives in the Rust RL engine `gmeow_logic.rl_closure_nt`, surfaced for rdflib graphs via
-  `native_rl_rdflib.py`).
+  lives in the Rust RL engine `gmeow_logic.rl_closure_nt`; its former rdflib-graph adapter
+  `native_rl_rdflib.py` has been retired — its last reasoning consumer moved to the native
+  `crates/logic/tests/ontology_entailments.rs` harness).
 - **gmeow-gts (separate Apache/MIT repo, crates.io 0.9.4):** six conformance-gated engines (Rust,
   Python, Go, TypeScript, Smalltalk/Pharo, Kotlin/JVM), a Rust-backed C-ABI `libgts` with C/C++/.NET/
   PHP/Lua/Swift/Ruby/R/Julia wrappers, full RDF-1.2 losslessness, and formats
@@ -380,8 +381,9 @@ durations — order is dependency, not calendar. Every parcel: conformance corpu
 a criterion baseline before/after.
 
 - **P0 — Self-host: kill the internal rdflib dep [∥].** Port `src/gmeow_tools/**` (~15 modules) off
-  rdflib onto the native surface + the native drop-ins. Drop `rdflib>=7.6` (retain only in the
-  `classic_cross_check` lane while owlrl needs it). Gate: `rg "import rdflib" src/` empty; `make check`+
+  rdflib onto the native surface + the native drop-ins. Drop `rdflib>=7.6` (the former
+  `owlrl`-backed reasoning-oracle lane that once retained it is gone — the reasoning oracle is now
+  the native in-process `purrdf::entail` cross-check). Gate: `rg "import rdflib" src/` empty; `make check`+
   `make test` green without rdflib. The honest proving gate.
 - **P1 — SRP-decompose `py_store.rs` [no deps].** Split the 1,239-line god-module into
   `term`/`store`/`query`/`io`/`canon`. Behavior-identical; corpus green.

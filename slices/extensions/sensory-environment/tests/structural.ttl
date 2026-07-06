@@ -16,19 +16,18 @@
 #     cross-slice dynamic SSSOM check, not a module-scoped TBox assertion.
 #   test_psychological_mappings_loaded -- load_mappings() / MF+MFOEM mapping
 #     reads; cross-slice dynamic SSSOM check.
-#   test_mental_reference_frame_requires_host (consistency arm) -- calls
-#     native_rl_closure() + ABox instance construction + OWL-RL reasoning;
-#     the OWL 2 RL consistency check is a reasoning test, not structural.
 #   test_new_axes_exist -- axisTristimulusX etc. are subjects in
 #     slices/core/places/module.ttl, not in this module; cross-slice.
 #   test_perceptual_frame_realm_exists -- gmeow:frameRealmPerceptual is a
 #     subject in slices/core/places/module.ttl; cross-slice.
 #
-# PARTIALLY migrated:
+# FULLY migrated (split across two harnesses):
 #   test_mental_reference_frame_requires_host -- the structural blank-node
 #     restriction-existence check (MentalReferenceFrame subClassOf
 #     [ owl:onProperty isHostedBy ; owl:someValuesFrom Entity ]) is cell 9
-#     below; the consistency arm is retained in pytest.
+#     below; the OWL 2 RL consistency + ReferenceFrame-classification arm is
+#     the native reasoning test
+#     crates/logic/tests/ontology_entailments.rs::mental_reference_frame_hosted_instance_is_consistent.
 #
 # See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest->DSL mapping.
 
