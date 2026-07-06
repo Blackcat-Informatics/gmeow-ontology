@@ -58,7 +58,7 @@ use rstest::rstest;
     Case::file("shapes", "suppression-warning-only")
         .warnings(&["should set gmeow:displayable false"])
 )]
-// Closed-world dual of HermiT's two-axis inconsistency check (no reasoner).
+// Closed-world dual of the OWL 2 DL oracle's two-axis inconsistency check (no reasoner).
 #[case::orthogonality_data_check_rejects_two_axes(
     Case::inline(
         "\

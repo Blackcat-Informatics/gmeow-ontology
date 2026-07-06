@@ -168,5 +168,5 @@ moderating. Co-equal and open: no motivation is primary or default.
 
 - `gmeow compile-mappings --check` — no drift between `mapping-dsl/` and generated artifacts.
 - `tests/test_notes.py` — structural, SHACL, projection-parse, and orthogonality guards.
-- ELK / HermiT (`make reason`) — the backlink graph (inverse + symmetric, no cardinality)
+- the native reasoner (`make reason`) — the backlink graph (inverse + symmetric, no cardinality)
   stays OWL 2 DL regular.

@@ -107,7 +107,7 @@ SHACL, and the flat upper-projections are **generated, lossy exports** for consu
 `logic:` (Principles 4, 17) — and they drop *exactly* the capabilities in the table above: a gUFO
 export of an `IdentityContinuityAssessment` keeps a bare assertion and loses the paraconsistent
 multi-world verdict; an OWL export of co-tenancy loses the concurrency theory; no floor export carries
-the counterfactual or the reflective self-reference at all. ELK / HermiT and the Datalog/SHACL engines
+the counterfactual or the reflective self-reference at all. External OWL reasoners and the Datalog/SHACL engines
 are **secondary validators of their projected fragments** (Principle 18), never the level the slice
 operates at. The loss ledger ([`INHABITED-ALIGNMENT.md`](INHABITED-ALIGNMENT.md)) records each drop, so
 the floor is honest about being a floor.
