@@ -194,7 +194,7 @@ impl DiagNode {
 
 /// The hash-consed, append-only arena DAG. No `Arc`: the ledger is single-owner
 /// and folded single-threaded at each stage join.
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct DiagLedger {
     arena: Vec<DiagNode>,
     intern: HashMap<DiagFingerprint, DiagRef>,
