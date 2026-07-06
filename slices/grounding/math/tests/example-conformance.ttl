@@ -568,3 +568,9 @@ ex:ecFlagshipUnwired a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
     gmeow:conformanceRationale "The counter-example is a math:FlagshipScenario that binds its example, competency, and counter-example but omits math:enforcesFailureClass (sh:minCount 1 on math:FlagshipScenarioShape); the other three links are present so only the missing-enforcing-class violation fires, and validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UnwiredFlagshipScenario)." .
+
+ex:ecFlagshipNonFailureClass a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/flagship-scenario-nonfailure-class.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is a math:FlagshipScenario binding all four links (math:demonstratedByExample, math:demonstratedByCompetency, math:guardedByCounterExample, and math:enforcesFailureClass), so every sh:minCount branch is satisfied, but math:enforcesFailureClass names math:Set — a real class that is NOT a math:MathConformanceFailure subclass (the sh:sparql subclass check of math:FlagshipScenarioShape). Only the sh:sparql constraint fires, so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (math:UnwiredFlagshipScenario) — the enforcing failure class is checked by value." .
