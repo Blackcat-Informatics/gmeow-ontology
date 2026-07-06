@@ -9,8 +9,11 @@
 //! IS identity: two diagnostics with the same fingerprint are the same witness,
 //! so attaching the second **merges** into the first rather than appending a
 //! duplicate. The merge is order-independent — severity and standpoint take the
-//! `⊑_t` lattice join and the [`Belnap`] knowledge values `⊑_k`-join — so the
-//! ledger is byte-stable under any parallel fold order. DAG edges are stored as
+//! `⊑_t` lattice join, the [`Belnap`] knowledge values `⊑_k`-join, and the
+//! producing `stage` collapses to the lexicographic minimum by id — so the
+//! ledger, and the `(stage, fingerprint)` total order
+//! [`emit_sorted`](DiagLedger::emit_sorted) keys on, is byte-stable under any
+//! parallel fold order. DAG edges are stored as
 //! content-addressed fingerprints, never in-process [`DiagRef`] handles, so the
 //! serialized form encodes no arena index.
 //!
@@ -281,6 +284,12 @@ impl DiagLedger {
         // contradiction surfaces as a glut instead of an overwrite.
         slot.grade = slot.grade.merge(incoming.grade).grade;
         slot.knowledge = slot.knowledge.join(incoming.knowledge);
+        // Collapse the producing stage to the lexicographic minimum by id — a
+        // total, attach-order-independent choice — so the `(stage, fingerprint)`
+        // key emit_sorted orders on cannot depend on which stage attached first.
+        if incoming.stage.as_str() < slot.stage.as_str() {
+            slot.stage = incoming.stage;
+        }
         // Multiset-merge observations — never silently drop a distinct observation.
         for obs in incoming.observations {
             if !slot.observations.contains(&obs) {
@@ -606,6 +615,58 @@ mod tests {
         assert_eq!(a.severity, Severity::Error);
         assert_eq!(a.standpoint, Standpoint::Binding);
         assert_eq!(gate(a), GateVerdict::Fatal);
+    }
+
+    #[test]
+    fn cross_stage_merge_keeps_emit_sorted_attach_order_independent() {
+        // The stated Hard Invariant: the same witness (same code/category/anchor =>
+        // same fingerprint) attached at two DIFFERENT stages must yield a
+        // byte-identical `(stage, fingerprint)` order regardless of which stage
+        // attached first — stage is merged to the lexicographic minimum, not
+        // pinned by the first writer.
+        let build = |b_first: bool| {
+            let mut l = DiagLedger::new();
+            let first = diag_at(
+                "test.ledger.stage-merge",
+                FindingCategory::DataShapeViolation,
+                "s.ttl",
+                "first",
+            );
+            let second = diag_at(
+                "test.ledger.stage-merge",
+                FindingCategory::DataShapeViolation,
+                "s.ttl",
+                "second",
+            );
+            if b_first {
+                l.attach(first, StageId::new("stage-b"));
+                l.attach(second, StageId::new("stage-a"));
+            } else {
+                l.attach(first, StageId::new("stage-a"));
+                l.attach(second, StageId::new("stage-b"));
+            }
+            l
+        };
+        let ledger_b_first = build(true);
+        let ledger_a_first = build(false);
+        // One node either way (content address is identity).
+        assert_eq!(ledger_b_first.len(), 1);
+        assert_eq!(ledger_a_first.len(), 1);
+        // The emitted `(stage, fingerprint)` sequence is byte-identical.
+        let key = |l: &DiagLedger| -> Vec<(String, DiagFingerprint)> {
+            l.emit_sorted()
+                .into_iter()
+                .map(|n| (n.stage.as_str().to_owned(), n.fingerprint))
+                .collect()
+        };
+        assert_eq!(
+            key(&ledger_b_first),
+            key(&ledger_a_first),
+            "emit_sorted must be attach-order independent"
+        );
+        // And the surviving stage is the lexicographic minimum in both.
+        assert_eq!(ledger_b_first.emit_sorted()[0].stage.as_str(), "stage-a");
+        assert_eq!(ledger_a_first.emit_sorted()[0].stage.as_str(), "stage-a");
     }
 
     #[test]
