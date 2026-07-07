@@ -325,24 +325,53 @@ fn sqrt_rational_decimal(q: Rational) -> Result<String, String> {
 /// formatter (mirrors `music::format_decimal`).
 fn format_decimal(value: Rational) -> Result<String, String> {
     let k = SQRT_DECIMALS;
-    let unit = pow10_i128(k)?;
     let sign = if value.numerator < 0 { "-" } else { "" };
     let num = value.numerator.unsigned_abs();
     let den = value.denominator.unsigned_abs();
-    let unit_u = unit as u128;
-    // round(|num|/den * 10^k) = (|num|*10^k + den/2) / den
-    let scaled_num = num
-        .checked_mul(unit_u)
-        .ok_or_else(|| "u128 overflow formatting decimal".to_string())?;
-    let rounded = (scaled_num + den / 2) / den;
-    let int_part = rounded / unit_u;
-    let frac_part = rounded % unit_u;
-    if frac_part == 0 {
+    // Integer-part-first long division. `rem` stays strictly below `den`
+    // throughout, so the value's magnitude never scales the numerator up front —
+    // a small-VALUED rational with an enormous numerator/denominator formats
+    // without the spurious overflow of a `num * 10^k` prescaling.
+    let mut int_part = num / den;
+    let mut rem = num % den; // rem < den, never overflows.
+    // Produce k fractional digits plus one guard digit for round-half-up.
+    let mut digits: Vec<u8> = Vec::with_capacity((k + 1) as usize);
+    for _ in 0..=k {
+        rem = rem
+            .checked_mul(10)
+            .ok_or_else(|| "u128 overflow formatting decimal".to_string())?;
+        digits.push((rem / den) as u8);
+        rem %= den;
+    }
+    let round_digit = digits.pop().expect("k + 1 >= 1 digits produced");
+    if round_digit >= 5 {
+        // Increment the k-digit fractional integer, carrying into int_part.
+        let mut carry = 1u8;
+        for d in digits.iter_mut().rev() {
+            let sum = *d + carry;
+            *d = sum % 10;
+            carry = sum / 10;
+            if carry == 0 {
+                break;
+            }
+        }
+        if carry != 0 {
+            // Carried past 10^k: the fractional part becomes zero and one unit
+            // rolls into the integer part.
+            int_part += 1;
+            digits.iter_mut().for_each(|d| *d = 0);
+        }
+    }
+    // Strip trailing-zero fractional digits.
+    while digits.last() == Some(&0) {
+        digits.pop();
+    }
+    if digits.is_empty() {
         return Ok(format!("{sign}{int_part}"));
     }
-    let mut frac = format!("{frac_part:0width$}", width = k as usize);
-    while frac.ends_with('0') {
-        frac.pop();
+    let mut frac = String::with_capacity(digits.len());
+    for d in &digits {
+        frac.push((b'0' + d) as char);
     }
     Ok(format!("{sign}{int_part}.{frac}"))
 }
@@ -1218,6 +1247,38 @@ mod tests {
         let max = r(1, 1);
         assert_eq!(normalize_to_unit(&r(7, 10), &min, &max).unwrap(), "0.85");
         assert_eq!(normalize_to_unit(&r(2, 5), &min, &max).unwrap(), "0.7");
+    }
+
+    /// Integer-part-first long division does not prematurely scale the numerator,
+    /// so a small-VALUED rational carried by an enormous numerator/denominator
+    /// (`num * 10^k` would blow past `u128::MAX`) still formats exactly. These
+    /// unreduced pairs are built directly to bypass gcd normalization; the old
+    /// prescaling formatter hard-failed on them. Exact AC decimals are unchanged.
+    #[test]
+    fn format_decimal_no_premature_overflow_on_small_valued_giant_ratios() {
+        let big = 10i128.pow(33);
+        // 10^33 / 10^33 = 1: old `num * 10^6 = 10^39` overflowed u128.
+        let one = Rational {
+            numerator: big,
+            denominator: big,
+        };
+        assert_eq!(format_decimal(one).unwrap(), "1");
+        // 10^33 / (2·10^33) = 0.5: same overflow, representable value.
+        let half = Rational {
+            numerator: big,
+            denominator: 2 * big,
+        };
+        assert_eq!(format_decimal(half).unwrap(), "0.5");
+        // Negative sign is preserved through the long-division path.
+        let neg_half = Rational {
+            numerator: -big,
+            denominator: 2 * big,
+        };
+        assert_eq!(format_decimal(neg_half).unwrap(), "-0.5");
+        // Existing exact AC values still format byte-identically.
+        assert_eq!(format_decimal(r(17, 20)).unwrap(), "0.85");
+        assert_eq!(format_decimal(r(2, 5)).unwrap(), "0.4");
+        assert_eq!(format_decimal(r(12, 5)).unwrap(), "2.4");
     }
 
     /// A complete `gmeow:DerivedAffectIntensityObservation` over the correlated
