@@ -220,9 +220,19 @@ impl Rational {
 
 impl Ord for Rational {
     fn cmp(&self, other: &Self) -> Ordering {
-        // Cross-multiply in i128; both denominators are positive. Callers stay in
-        // the small affect domain, so the products do not overflow in practice.
-        (self.numerator * other.denominator).cmp(&(other.numerator * self.denominator))
+        // Cross-multiply in i128; both denominators are positive, so the sign of
+        // the comparison is unchanged. The products are checked and a wrap is a
+        // loud, deterministic hard fail — never a silent overflow (matches the
+        // crate's checked-arithmetic invariant; `cmp` cannot return `Result`).
+        let left = self
+            .numerator
+            .checked_mul(other.denominator)
+            .expect("Rational::cmp: cross-multiplication overflow");
+        let right = other
+            .numerator
+            .checked_mul(self.denominator)
+            .expect("Rational::cmp: cross-multiplication overflow");
+        left.cmp(&right)
     }
 }
 
@@ -1106,6 +1116,33 @@ mod tests {
         )
         .unwrap();
         assert_eq!(&one, geom);
+    }
+
+    // The Ord cross-multiply stays exact for the canonical correlated-metric
+    // dominant-axis case (valence 0.7 / arousal 0.4 over G = [[1,1/4],[1/4,1]]):
+    // axis0 = 0.7·(0.7 + 0.25·0.4) = 0.56 > axis1 = 0.4·(0.25·0.7 + 0.4) = 0.23.
+    #[test]
+    fn dominant_axis_ord_correct_for_correlated_metric() {
+        let space = correlated_gram();
+        let x = [r(7, 10), r(2, 5)];
+        assert_eq!(space.dominant_axis(&x).unwrap(), 0);
+        // Direct Ord check of the two exact G-weighted contributions.
+        assert!(r(56, 100) > r(23, 100));
+        assert_eq!(r(56, 100).cmp(&r(23, 100)), Ordering::Greater);
+        assert_eq!(r(23, 100).cmp(&r(56, 100)), Ordering::Less);
+        assert_eq!(r(56, 100).cmp(&r(56, 100)), Ordering::Equal);
+    }
+
+    // Overflow in the Ord cross-multiply is a loud, deterministic hard fail
+    // (checked_mul + expect), never a silent i128 wrap.
+    #[test]
+    #[should_panic(expected = "cross-multiplication overflow")]
+    fn cmp_overflow_hard_fails() {
+        // With a huge denominator, self.numerator · other.denominator overflows.
+        let a = r(i128::MAX / 2, 1);
+        let b = r(1, i128::MAX / 2 + 2);
+        // a.numerator (≈ MAX/2) · b.denominator (≈ MAX/2) overflows i128.
+        let _ = a.cmp(&b);
     }
 
     #[test]
