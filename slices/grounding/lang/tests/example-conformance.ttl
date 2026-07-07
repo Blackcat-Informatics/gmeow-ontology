@@ -482,3 +482,42 @@ ex:ecGmnCompactionOverclaim a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
     gmeow:conformanceRationale "The gmeow:GmnCompaction's linked correspondence claims logic:ExactPreservation with a mnemomorphic witness — stronger than the logic:ValidationOnly the compaction discipline licenses (the sh:sparql of lang:GmnCompactionOverclaimShape) — so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (lang:GmnCompactionOverclaim); the compaction is fully provenance-linked, so the provenance gate stays quiet." .
+
+# === Rule: every emitted feature value is dispositioned in the plane ========= #
+
+ex:ecGmnFeatureValueDispositioned a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/gmn-feature-value-dispositioned.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A lang:FeatureValue bound by a full named-key lang:Denotation (form situated in the Leipzig plane, kind, target, context) is dispositioned, so lang:GmnLangCoverageShape stays quiet and the fixture validates with no findings." .
+
+ex:ecGmnUndispositionedFeatureValue a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/gmn-undispositioned-feature-value.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example adds a lang:FeatureValue that no lang:Denotation targets (the sh:sparql of lang:GmnLangCoverageShape), so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (lang:GmnUndispositionedTerm); it is a well-formed inventory member, so no other shape fires." .
+
+# === Rule: every imported plane carries its citation and version ============= #
+
+ex:ecGmnImportedPlaneAttributed a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/gmn-imported-plane-attributed.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A lang:GmnImportedPlane carrying both gmeow:cites and dcterms:hasVersion satisfies lang:GmnImportedPlaneAttributionShape and validates with no findings." .
+
+ex:ecGmnPlaneMissingVersion a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/gmn-plane-missing-version.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example gives a lang:GmnImportedPlane a gmeow:cites edge but omits dcterms:hasVersion (sh:minCount 1 on lang:GmnImportedPlaneAttributionShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (lang:GmnUnattributedPlane); the citation is present, so the cites minCount stays quiet." .
+
+# === Rule: every GMN-script glyph carries its measured token-cost feed ======== #
+
+ex:ecGmnCostedScriptGlyph a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/gmn-costed-script-glyph.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A lang:Grapheme in the GMN script carrying a gmeow:gmnGlyphTokenCost pointing at a dimensionless math:Quantity is cost-dispositioned, so lang:GmnScriptGlyphCoverageShape stays quiet and the fixture validates with no findings." .
+
+ex:ecGmnUncostedScriptGlyph a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/gmn-uncosted-script-glyph.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example admits a lang:Grapheme to gmeow:gmnScript with a canonical codepoint but no gmeow:gmnGlyphTokenCost (the sh:sparql of lang:GmnScriptGlyphCoverageShape), so validation MUST emit shacl.SPARQLConstraintComponent (lang:GmnUncostedScriptGlyph); the glyph is grounded and canonically spelled, so no other shape fires." .
