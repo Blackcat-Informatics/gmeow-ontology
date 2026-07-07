@@ -145,128 +145,218 @@ const fn twin(
 /// The full reconciliation manifest — 113 rows across the 35 in-scope files.
 pub const MANIFEST: &[ManifestRow] = &[
     // ── slices/core/temporal/tests/test_temporal_frame.py (7) ──────────────────
-    t(
+    twin(
         "slices/core/temporal/tests/test_temporal_frame.py",
         "test_temporal_frame_subclasses_reference_frame",
+        1,
+        TBoxStructural,
+        "slices/core/temporal/tests/structural.ttl#saTemporalFrameSubclassesReferenceFrame",
     ),
-    t(
+    twin(
         "slices/core/temporal/tests/test_temporal_frame.py",
         "test_temporal_frame_component_classes_exist",
+        1,
+        QueryBehavioral,
+        "conformance_temporal.rs::temporal_frame_component_classes_exist",
     ),
-    t(
+    twin(
         "slices/core/temporal/tests/test_temporal_frame.py",
         "test_temporal_frame_seed_individuals",
+        1,
+        QueryBehavioral,
+        "conformance_temporal.rs::temporal_frame_seed_individuals",
     ),
-    t(
+    twin(
         "slices/core/temporal/tests/test_temporal_frame.py",
         "test_temporal_frame_utc_gregorian_exists_with_components",
+        1,
+        TBoxStructural,
+        "slices/core/temporal/tests/structural.ttl#saTemporalFrameUTCGregorianComponents",
     ),
-    t(
+    twin(
         "slices/core/temporal/tests/test_temporal_frame.py",
         "test_frame_time_scale_is_functional",
+        1,
+        TBoxStructural,
+        "slices/core/temporal/tests/structural.ttl#saFrameTimeScaleIsFunctional",
     ),
-    t(
+    twin(
         "slices/core/temporal/tests/test_temporal_frame.py",
         "test_has_temporal_frame_is_subproperty_of_has_reference_frame",
+        1,
+        TBoxStructural,
+        "slices/core/temporal/tests/structural.ttl#saHasTemporalFrameSubpropertyOfReferenceFrame",
     ),
-    t(
+    twin(
         "slices/core/temporal/tests/test_temporal_frame.py",
         "test_in_temporal_frame_is_subproperty_of_has_reference_frame",
+        1,
+        TBoxStructural,
+        "slices/core/temporal/tests/structural.ttl#saInTemporalFrameSubpropertyOfReferenceFrame",
     ),
     // ── slices/core/temporal/tests/test_temporal_measurement.py (13) ────────────
-    t(
+    twin(
         "slices/core/temporal/tests/test_temporal_measurement.py",
         "test_temporal_measurement_and_dating_method_exist",
+        1,
+        TBoxStructural,
+        "slices/core/temporal/tests/structural.ttl#saTemporalMeasurementAndDatingMethodExist",
     ),
-    t(
+    twin(
         "slices/core/temporal/tests/test_temporal_measurement.py",
         "test_seed_dating_methods_exist",
+        1,
+        TBoxStructural,
+        "slices/core/temporal/tests/structural.ttl#saSeedDatingMethodsExist",
     ),
-    t(
+    twin(
         "slices/core/temporal/tests/test_temporal_measurement.py",
         "test_measurement_method_is_functional",
+        1,
+        TBoxStructural,
+        "slices/core/temporal/tests/structural.ttl#saMeasurementMethodIsFunctional",
     ),
-    t(
+    twin(
         "slices/core/temporal/tests/test_temporal_measurement.py",
         "test_measured_age_range_is_decimal",
+        1,
+        TBoxStructural,
+        "slices/core/temporal/tests/structural.ttl#saMeasuredAgeRangeIsDecimal",
     ),
-    t(
+    twin(
         "slices/core/temporal/tests/test_temporal_measurement.py",
         "test_measurement_determinacy_links_to_determinacy",
+        1,
+        TBoxStructural,
+        "slices/core/temporal/tests/structural.ttl#saMeasurementDeterminacyRangeIsDeterminacy",
     ),
-    t(
+    twin(
         "slices/core/temporal/tests/test_temporal_measurement.py",
         "test_temporal_measurement_is_subclass_of_measurement",
+        1,
+        QueryBehavioral,
+        "conformance_temporal.rs::temporal_measurement_is_subclass_of_measurement",
     ),
-    t(
+    twin(
         "slices/core/temporal/tests/test_temporal_measurement.py",
         "test_temporal_measurement_is_logic_relator",
+        1,
+        TBoxStructural,
+        "slices/core/temporal/tests/structural.ttl#saTemporalMeasurementIsLogicRelator",
     ),
-    t(
+    twin(
         "slices/core/temporal/tests/test_temporal_measurement.py",
         "test_dating_method_is_subclass_of_observation_method",
+        1,
+        TBoxStructural,
+        "slices/core/temporal/tests/structural.ttl#saDatingMethodSubclassesObservationMethod",
     ),
-    t(
+    twin(
         "slices/core/temporal/tests/test_temporal_measurement.py",
         "test_measured_date_is_not_bridged_to_observation_result",
+        1,
+        TBoxStructural,
+        "slices/core/temporal/tests/structural.ttl#saMeasuredDateNotBridgedToObservationResult",
     ),
-    t(
+    twin(
         "slices/core/temporal/tests/test_temporal_measurement.py",
         "test_measurement_method_bridges_to_observation_method",
+        1,
+        TBoxStructural,
+        "slices/core/temporal/tests/structural.ttl#saMeasurementMethodBridgesToObservationMethod",
     ),
-    t(
+    twin(
         "slices/core/temporal/tests/test_temporal_measurement.py",
         "test_measurement_determinacy_bridges_to_has_determinacy",
+        1,
+        TBoxStructural,
+        "slices/core/temporal/tests/structural.ttl#saMeasurementDeterminacyBridgesToHasDeterminacy",
     ),
-    t(
+    twin(
         "slices/core/temporal/tests/test_temporal_measurement.py",
         "test_property_chain_period_start_from_measurement",
+        1,
+        TBoxStructural,
+        "slices/core/temporal/tests/structural.ttl#saPeriodStartPropertyChainFromMeasurement",
     ),
-    t(
+    twin(
         "slices/core/temporal/tests/test_temporal_measurement.py",
         "test_seed_measurements_carry_vantage_and_observed_feature",
+        1,
+        TBoxStructural,
+        "slices/core/temporal/tests/structural.ttl#saSeedMeasurementsCarryVantageAndObservedFeature",
     ),
     // ── slices/core/temporal/tests/test_temporal.py (1) ─────────────────────────
-    t(
+    twin(
         "slices/core/temporal/tests/test_temporal.py",
         "test_reified_residence_and_tenure_are_time_scoped",
+        1,
+        QueryBehavioral,
+        "conformance_temporal.rs::reified_residence_and_tenure_are_time_scoped",
     ),
     // ── slices/core/temporal/tests/test_temporal_query.py (9) ───────────────────
-    q(
+    twin(
         "slices/core/temporal/tests/test_temporal_query.py",
         "test_registry_covers_every_query_file",
+        1,
+        QueryBehavioral,
+        "temporal.rs::registry_matches_the_python_surface",
     ),
-    q(
+    twin(
         "slices/core/temporal/tests/test_temporal_query.py",
         "test_allen_closure_is_transitive",
+        1,
+        QueryBehavioral,
+        "temporal.rs::allen_closure_is_transitive",
     ),
-    q(
+    twin(
         "slices/core/temporal/tests/test_temporal_query.py",
         "test_before_event_reaches_lifeevents_and_orders_by_time",
+        1,
+        QueryBehavioral,
+        "temporal.rs::before_event_reaches_lifeevents_and_orders_by_time",
     ),
-    q(
+    twin(
         "slices/core/temporal/tests/test_temporal_query.py",
         "test_during_event_follows_relation_and_inverse",
+        1,
+        QueryBehavioral,
+        "temporal.rs::during_event_follows_relation_and_inverse",
     ),
-    q(
+    twin(
         "slices/core/temporal/tests/test_temporal_query.py",
         "test_timeline_orders_all_events_by_effective_start",
+        1,
+        QueryBehavioral,
+        "temporal.rs::timeline_orders_all_events_by_effective_start",
     ),
-    q(
+    twin(
         "slices/core/temporal/tests/test_temporal_query.py",
         "test_overlapping_window_matches_crisp_point_and_fuzzy",
+        1,
+        QueryBehavioral,
+        "temporal.rs::overlapping_window_matches_crisp_point_and_fuzzy",
     ),
-    q(
+    twin(
         "slices/core/temporal/tests/test_temporal_query.py",
         "test_bitemporal_four_clocks_returns_standpoint_indexed_claims",
+        1,
+        QueryBehavioral,
+        "temporal.rs::bitemporal_four_clocks_returns_standpoint_indexed_claims",
     ),
-    q(
+    twin(
         "slices/core/temporal/tests/test_temporal_query.py",
         "test_missing_parameter_is_rejected",
+        1,
+        QueryBehavioral,
+        "temporal.rs::missing_parameter_is_a_hard_fail",
     ),
-    q(
+    twin(
         "slices/core/temporal/tests/test_temporal_query.py",
         "test_unknown_query_is_rejected",
+        1,
+        QueryBehavioral,
+        "temporal.rs::unknown_query_name_is_rejected",
     ),
     // ── slices/extensions/music/tests/test_music_timbre.py (5) ──────────────────
     t(
