@@ -326,3 +326,138 @@ fn reasoner_gate_verdict_equals_rust_gate_over_every_grade() {
         }
     }
 }
+
+/// Extract every `(finding, severity, category, standpoint)` grade tuple SPARQL sees in
+/// a projected diagnostics graph — driving the SAME query surface a reasoner would.
+fn grade_tuples(nq: &str) -> Vec<(String, String, String, String)> {
+    let dataset = dataset_from_bytes(nq.as_bytes(), NativeRdfFormat::NQuads)
+        .expect("to_gmeow_rdf output must parse as N-Quads");
+    let engine = NativeSparqlEngine::new();
+    let q = format!(
+        "SELECT ?f ?sev ?cat ?sp WHERE {{ GRAPH ?g {{ \
+           ?f <{GMEOW_NS}findingSeverity> ?sev ; \
+              <{GMEOW_NS}findingCategory> ?cat ; \
+              <{GMEOW_NS}findingStandpoint> ?sp . }} }}"
+    );
+    let SparqlResult::Solutions {
+        variables, rows, ..
+    } = engine
+        .query(
+            &dataset,
+            SparqlRequest {
+                query: &q,
+                base_iri: None,
+                substitutions: &[],
+            },
+        )
+        .expect("grade-tuple query must evaluate")
+    else {
+        panic!("grade-tuple query must be a SELECT");
+    };
+    let col = |n: &str| variables.iter().position(|v| v == n).expect("column");
+    let (fi, si, ci, pi) = (col("f"), col("sev"), col("cat"), col("sp"));
+    let iri = |t: &TermValue| match t {
+        TermValue::Iri(i) => i.clone(),
+        other => panic!("grade term must be an IRI, got {other:?}"),
+    };
+    rows.iter()
+        .map(|s| {
+            (
+                iri(s[fi].as_ref().expect("?f")),
+                iri(s[si].as_ref().expect("?sev")),
+                iri(s[ci].as_ref().expect("?cat")),
+                iri(s[pi].as_ref().expect("?sp")),
+            )
+        })
+        .collect()
+}
+
+/// Reason the AUTHORED gate rule over the grade tuples a `to_gmeow_rdf` projection emits
+/// (co-worlded with the authored `categoryBlocking` map) and return the finding IRIs the
+/// reasoner DERIVES `gmeow:findingGateVerdict gmeow:gateFatal` for.
+fn derived_fatal_over_projection(nq: &str) -> BTreeSet<String> {
+    let authored = authored_category_blocking();
+    let program = LogicProgram::new(Vec::new(), vec![authored_gate_rule()], Vec::new(), None);
+
+    let mut builder = RdfDatasetBuilder::new();
+    for (cat, b) in &authored {
+        push_triple(&mut builder, cat, CATEGORY_BLOCKING, b);
+    }
+    for (f, sev, cat, sp) in grade_tuples(nq) {
+        push_triple(
+            &mut builder,
+            &f,
+            &format!("{GMEOW_NS}findingSeverity"),
+            &sev,
+        );
+        push_triple(
+            &mut builder,
+            &f,
+            &format!("{GMEOW_NS}findingCategory"),
+            &cat,
+        );
+        push_triple(
+            &mut builder,
+            &f,
+            &format!("{GMEOW_NS}findingStandpoint"),
+            &sp,
+        );
+    }
+    let edb = builder.freeze().expect("projection EDB must freeze");
+    let result = reason_program(&program, edb.as_ref())
+        .expect("native reason_program over the projected finding graph must succeed");
+    let gate_fatal_display = format!("<{GATE_FATAL}>");
+    result
+        .inferred()
+        .iter()
+        .filter(|a| a.predicate == FINDING_GATE_VERDICT && a.object == gate_fatal_display)
+        .map(|a| a.subject.clone())
+        .collect()
+}
+
+/// The production-surface demonstration (closes the TEST-ONLY gap): the gate verdict is a
+/// genuine ENTAILMENT of the authored `logic:ruleGateFatalVerdict` over the ACTUAL
+/// `gmeow_errors::render::to_gmeow_rdf` projection — not a Rust `gate()` hand-assertion the
+/// projection pre-materializes. An up-set finding (Error / blocking category / Binding) is
+/// derived `gateFatal`; a never-gate finding (Advisory standpoint) is derived NOTHING; and
+/// the projection itself carries no pre-computed verdict.
+#[test]
+fn projected_finding_gate_verdict_is_reasoner_derived_not_hand_asserted() {
+    use gmeow_errors::render::to_gmeow_rdf;
+    use gmeow_errors::{Finding, Report};
+
+    // (1) An up-set finding → the reasoner derives gateFatal over the real projection.
+    let mut fatal = Report::new("validate");
+    fatal.add_finding(
+        Finding::new(Severity::Error, "x.upset", "up-set finding")
+            .with_category(FindingCategory::DataShapeViolation)
+            .with_standpoint(Standpoint::Binding),
+    );
+    let fatal_nq = to_gmeow_rdf(&fatal);
+    // The projection emits the grade coordinates but NEVER pre-materializes the verdict.
+    assert!(
+        !fatal_nq.contains("findingGateVerdict"),
+        "to_gmeow_rdf must not hand-assert the reasoner-derived verdict:\n{fatal_nq}"
+    );
+    let derived = derived_fatal_over_projection(&fatal_nq);
+    assert_eq!(
+        derived.len(),
+        1,
+        "the authored gate rule must derive exactly one gateFatal over the projected up-set finding, got {derived:?}"
+    );
+
+    // (2) A never-gate finding (Advisory) → the reasoner derives NOTHING (the up-set
+    // construction structurally excludes it — the first never-gate theorem, over the real
+    // projection this time).
+    let mut advisory = Report::new("validate");
+    advisory.add_finding(
+        Finding::new(Severity::Error, "x.adv", "advisory never gates")
+            .with_category(FindingCategory::DataShapeViolation)
+            .with_standpoint(Standpoint::Advisory),
+    );
+    let advisory_nq = to_gmeow_rdf(&advisory);
+    assert!(
+        derived_fatal_over_projection(&advisory_nq).is_empty(),
+        "an Advisory-standpoint finding must never be derived gateFatal, even over the real projection"
+    );
+}

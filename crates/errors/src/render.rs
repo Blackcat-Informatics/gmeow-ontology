@@ -389,30 +389,15 @@ pub fn to_gmeow_rdf_in_graph(report: &Report, graph_iri: &str) -> String {
                 &mut lines,
             );
         }
-        // The DERIVED gate verdict, materialized by the single gate() morphism (the
-        // Rust twin of logic:ruleGateFatalVerdict, proven equal over every grade). A
-        // finding whose full truth triple (severity, category, standpoint) is known
-        // carries its verdict here, so the projected up-set findings are consistent
-        // with the SHACL up-set shape (which reads gmeow:findingGateVerdict) instead
-        // of appearing to omit a required derivation. Guarded by the full grade so an
-        // incompletely-graded legacy finding leaves the projection unchanged.
-        if let (Some(category), Some(standpoint)) = (finding.category, finding.standpoint) {
-            let verdict = crate::grade::gate(crate::grade::Grade::new(
-                finding.severity,
-                category,
-                standpoint,
-            ));
-            let verdict_local = match verdict {
-                crate::grade::GateVerdict::Fatal => "gateFatal",
-                crate::grade::GateVerdict::Collected => "gateCollected",
-            };
-            triple(
-                &subject,
-                &format!("{GMEOW}findingGateVerdict"),
-                &format!("<{GMEOW}{verdict_local}>"),
-                &mut lines,
-            );
-        }
+        // The gate verdict is NOT asserted here. It is a DERIVED predicate: the native
+        // reasoner runs logic:ruleGateFatalVerdict (the authored up-set derivation
+        // ↑(severityError, blockingBlocking, standpointBinding), reading the three
+        // grade-axis triples emitted above) over this finding graph and materializes
+        // gmeow:findingGateVerdict gmeow:gateFatal for exactly the up-set findings, into
+        // the reasoned closure. This projection emits only the grade coordinates the rule
+        // reads; it does not pre-compute the entailment (that would hand-assert a property
+        // the ontology defines as reasoner-derived, and would invent a gateCollected value
+        // no rule derives — "collected" is the honest ABSENCE of a fatal verdict).
         // Advisory: one triple per suggestion (already sorted+deduped by normalize).
         for suggestion in &finding.suggestions {
             triple(
@@ -1297,12 +1282,13 @@ mod tests {
     }
 
     #[test]
-    fn gmeow_rdf_emits_derived_gate_verdict_for_a_fully_graded_finding() {
-        // A finding whose full truth triple is known carries its DERIVED gate
-        // verdict (via the gate() morphism), so the projected up-set findings are
-        // consistent with the SHACL up-set shape. An up-set finding → gateFatal; a
-        // finding off the up-set → gateCollected; an incompletely-graded finding
-        // emits no verdict (leaving legacy projections unchanged).
+    fn gmeow_rdf_emits_grade_axes_but_never_the_derived_gate_verdict() {
+        // The projection emits the three grade-axis coordinates (severity, category,
+        // standpoint) the up-set rule reads, but NEVER the derived verdict itself:
+        // gmeow:findingGateVerdict is materialized by the native reasoner running
+        // logic:ruleGateFatalVerdict over this graph, not hand-asserted here. This keeps
+        // the trust boundary honest — the shipped verdict is an entailment, and no
+        // gateCollected value (which no rule derives) is invented.
         use crate::grade::Standpoint;
         use crate::model::FindingCategory;
         let mut fatal = Report::new("validate");
@@ -1311,31 +1297,19 @@ mod tests {
                 .with_category(FindingCategory::DataShapeViolation)
                 .with_standpoint(Standpoint::Binding),
         );
+        let nq = to_gmeow_rdf(&fatal);
+        // The grade coordinates the rule reads ARE projected...
         assert!(
-            to_gmeow_rdf(&fatal).contains(
-                "<https://blackcatinformatics.ca/gmeow/findingGateVerdict> \
-                 <https://blackcatinformatics.ca/gmeow/gateFatal>"
-            ),
-            "an Error/blocking/Binding up-set finding must carry gateFatal: {}",
-            to_gmeow_rdf(&fatal)
+            nq.contains("<https://blackcatinformatics.ca/gmeow/findingSeverity>")
+                && nq.contains("<https://blackcatinformatics.ca/gmeow/findingStandpoint>")
+                && nq.contains("<https://blackcatinformatics.ca/gmeow/findingCategory>"),
+            "the three grade-axis coordinates must be projected for the reasoner: {nq}"
         );
-        let mut collected = Report::new("validate");
-        collected.add_finding(
-            Finding::new(Severity::Warning, "x.coll", "off the up-set")
-                .with_category(FindingCategory::PolicyWarning)
-                .with_standpoint(Standpoint::Advisory),
-        );
+        // ...but the DERIVED verdict is NOT hand-asserted (reasoner-derived, not projected).
         assert!(
-            to_gmeow_rdf(&collected).contains(
-                "<https://blackcatinformatics.ca/gmeow/findingGateVerdict> \
-                 <https://blackcatinformatics.ca/gmeow/gateCollected>"
-            ),
-            "a non-up-set finding must carry gateCollected"
+            !nq.contains("findingGateVerdict"),
+            "the projection must NOT pre-materialize the reasoner-derived gate verdict: {nq}"
         );
-        // No verdict without the full grade (category+standpoint both required).
-        let mut bare = Report::new("validate");
-        bare.add_finding(Finding::new(Severity::Error, "x.bare", "no grade"));
-        assert!(!to_gmeow_rdf(&bare).contains("findingGateVerdict"));
     }
 
     #[test]
