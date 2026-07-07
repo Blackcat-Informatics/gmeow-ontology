@@ -57,8 +57,9 @@ const MUSIC_MODULE: &str = "slices/extensions/music/module.ttl";
 fn g(local: &str) -> String {
     format!("{G}{local}")
 }
-fn module() -> GraphStore {
-    GraphStore::parse_ttl_file(&repo_root().join(MUSIC_MODULE))
+fn module() -> &'static GraphStore {
+    static STORE: std::sync::OnceLock<GraphStore> = std::sync::OnceLock::new();
+    STORE.get_or_init(|| GraphStore::parse_ttl_file(&repo_root().join(MUSIC_MODULE)))
 }
 
 // ── Asserted-TBox / ABox guards (slice module) ────────────────────────────────
