@@ -92,9 +92,9 @@ const RDF_NIL: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil";
 ///
 /// * value constraints — `someValuesFrom`, `allValuesFrom`, `hasValue`;
 /// * unqualified cardinality — `minCardinality`, `maxCardinality`, `cardinality`;
-/// * qualified cardinality — `qualifiedCardinality`, `qualifiedMinCardinality`,
-///   `qualifiedMaxCardinality`, each paired with `onClass` (a class filler) or
-///   `onDataRange` (a datatype filler).
+/// * qualified cardinality — `qualifiedCardinality`, `minQualifiedCardinality`,
+///   `maxQualifiedCardinality` (the OWL 2 standard local names), each paired with
+///   `onClass` (a class filler) or `onDataRange` (a datatype filler).
 ///
 /// Each is a single object (IRI filler or literal count), so the generic
 /// [`collect_constraints`] walk lifts them uniformly.  `owl:oneOf` is a multi-valued
@@ -107,8 +107,8 @@ pub(crate) const CONSTRAINT_LOCALS: &[&str] = &[
     "maxCardinality",
     "cardinality",
     "qualifiedCardinality",
-    "qualifiedMinCardinality",
-    "qualifiedMaxCardinality",
+    "minQualifiedCardinality",
+    "maxQualifiedCardinality",
     "onClass",
     "onDataRange",
 ];
@@ -120,8 +120,8 @@ pub(crate) const CARDINALITY_LOCALS: &[&str] = &[
     "maxCardinality",
     "cardinality",
     "qualifiedCardinality",
-    "qualifiedMinCardinality",
-    "qualifiedMaxCardinality",
+    "minQualifiedCardinality",
+    "maxQualifiedCardinality",
 ];
 
 /// The source vocabulary a [`skolemize_restrictions`] pass reads.  The constraint /
