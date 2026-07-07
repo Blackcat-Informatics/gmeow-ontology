@@ -108,6 +108,18 @@ of the CL-dialect round-trip bar. **Declared loss.** Rule provenance, licensing 
 and versioning drop into the file's comments at best; non-context-free side conditions are
 enumerated unsupported per emission.
 
+### GMN — the model-notation surface
+
+The token-compact model surface of [`LANG-GMN.md`](LANG-GMN.md): the GMN writer emits the GMN-1
+notation (`gmeow:gmnModelNotation`) from the GMN-0 narrow-waist normal form — the forward/put leg,
+registered through this charter's registry like every other target, with its preservation
+**derived** from the executed dialect crossings (`gmeow:gmnCorrNormalToGmn` and kin), never
+declared. **Declared loss.** The GMN-0 → GMN-1 drop list is categorical: full IRIs collapse to
+dictionary aliases, annotation baggage drops, and confidences round to two fractional digits —
+`SoundUnderApproximation`, a lossy lens with no recoverability witness. GMN's declared rate
+(`gmeow:gmnDeclaredRate`) is the loss ledger's first rate–fidelity instance: a target whose ledger
+row carries not only what the emission drops but the token rate the encoding is contracted to.
+
 ### Wikidata lexemes — the authority surface
 
 Lexemes, senses, and sign systems align to Wikidata L-ids, sense ids, and QIDs as
