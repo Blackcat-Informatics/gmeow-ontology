@@ -10,31 +10,19 @@
 # Deception is migrated: class stereotypes are logic:
 # (logic:AbstractIndividualType, logic:QualityValue), not gufo:.
 #
-# RETAINED in pytest (not migratable here):
-#   test_blame_deflection_example_uses_doxastic_standpoint_claims --
-#     loads slices/core/deception/examples/blame-deflection.ttl and checks
-#     that every held/projected standpoint is typed DoxasticStandpointClaim;
-#     dynamic ABox file-load check, not a module-scoped TBox assertion.
-#   test_bullshit_modality_exists --
-#     gmeow:bullshit is a SUBJECT of slices/core/standpoint/module.ttl, not
-#     the deception module; a scopeModule cell would silently miss it.
-#   test_standpoint_divergence_coexists -- run_shacl(); ExampleConformance.
-#   test_deception_event_shacl_passes -- run_shacl(); ExampleConformance.
-#   test_deception_cue_shacl_passes -- run_shacl(); ExampleConformance.
-#   test_paltering_implicates_structure -- run_shacl(); ExampleConformance.
-#   test_self_deception_same_agent -- run_shacl(); ExampleConformance.
-#   test_distortion_shacl_passes -- run_shacl(); ExampleConformance.
-#   test_licensed_falsehood_not_a_lie -- run_shacl() + NarrativeReferenceFrame
-#     check (cross-slice subject); ExampleConformance + cross-slice guard.
-#   test_fabrication_refuted_provenance -- run_shacl(); ExampleConformance.
-#   test_forgery_failed_signature_structure -- run_shacl(); ExampleConformance.
-#   test_impersonation_facet_subject_mismatch -- run_shacl(); ExampleConformance.
-#   test_disinformation_propagation_chain -- run_shacl(); ExampleConformance.
-#   test_disinformation_boundary_query -- reads competency .rq file and
-#     asserts result labels; generated-artifact / SPARQL-result check, not
-#     expressible as a module-scoped ASK.
-#
-# See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest->DSL mapping.
+# The SHACL / example-conformance and dynamic ABox checks live natively in
+# crates/validate/tests/conformance_deception.rs (fixture cases + GraphStore
+# example-membership and cross-slice vocabulary twins):
+#   standpoint_divergence_coexists, deception_event_shacl_passes,
+#   deception_cue_shacl_passes, paltering_implicates_structure,
+#   self_deception_same_agent, distortion_shacl_passes,
+#   fabrication_refuted_provenance, forgery_failed_signature_structure,
+#   impersonation_facet_subject_mismatch, disinformation_propagation_chain,
+#   licensed_falsehood_conforms + licensed_falsehood_vocab,
+#   blame_deflection_example_doxastic_claims.
+# gmeow:bullshit (a SUBJECT of slices/core/standpoint/module.ttl) is covered by
+# slices/core/standpoint/tests/structural.ttl; the disinformation-boundary
+# competency query is covered by slices/core/deception/tests/competency.ttl.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/deception/tests/> .

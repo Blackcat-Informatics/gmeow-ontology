@@ -82,6 +82,11 @@ gmeow-license = { path = "../license" }
 # is built once for the workspace, so this edge is link-only marginal cost; no cycle
 # (logic does not depend on validate).
 gmeow-logic = { path = "../logic" }
+# The reusable exact-rational geometry engine: the native math: dimension gate
+# reuses its exact `Rational` (the single source of truth, no duplicate rational
+# type), and the math:Norm conformance gate computes a norm/distance THROUGH its
+# `InnerProductSpace`. Native-only: the lint module is `cfg(not(wasm32))`.
+gmeow-math = { path = "../math" }
 # pyo3 native-only: it physically cannot link into wasm. The engine core stays
 # PyO3-free; only the py modules import it, so the rlib links into a future Rust
 # compiler (and the wasm target) without Python.

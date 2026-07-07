@@ -84,6 +84,34 @@ Removed because a Rust artifact already asserts the same behavior:
   is covered by `crates/validate/tests/data_validate.rs`. `src/gmeow_tools/validate.py`
   is retained as the Python orchestration wrapper until its remaining consumers
   are migrated.
+- SHACL/TBox black-box cluster → native `crates/validate/tests/conformance_*.rs`
+  (SHACL fixture cases via `Case`, TBox axioms via the bnode-aware `GraphStore`),
+  each Python file deleted in the same commit as its Rust twin. The whole cluster
+  is migrated, and with it the `gmeow_tools.validate.run_shacl` test surface and
+  the `tests/_graph_nt.py` rdflib→N-Triples adapter are **deleted**; the deletion
+  is sealed permanently by `check_no_run_shacl_seam` in
+  `crates/validate/src/repo_static.rs`. Migrated:
+  `test_deception` → `conformance_deception.rs`;
+  `test_employment` → `conformance_employment.rs`;
+  `test_evidence` → `conformance_evidence.rs` (+ constitution artifact cite redirected);
+  `test_genealogy` → `conformance_genealogy.rs`;
+  `test_lifecycle` → `conformance_lifecycle.rs`;
+  `test_registers` → `conformance_registers.rs`;
+  `test_inference` → `conformance_inference.rs`;
+  `test_music_time` → `conformance_music_time.rs`;
+  `test_music_instruments` → `conformance_music_instruments.rs`;
+  `test_music_performance_events` → `conformance_music_performance_events.rs`;
+  `test_music_performance` → `conformance_music_performance.rs`;
+  `test_music_structure` → `conformance_music_structure.rs`;
+  `test_label_completeness` → `crates/validate/tests/label_completeness.rs` (native structural_lint sweeps).
+- Orphaned dossiers (5): `test_shacl_engine`, `test_events`, `test_names`,
+  `test_organization`, `test_standpoint` — their subject pytests were already
+  retired in prior migration batches, so the dossiers named a mechanism that no
+  longer exists (one still asserted a live `run_shacl` helper that has since been
+  deleted). Removed as deletion orders. The
+  `gmeow_tools.validate.run_shacl` test surface and the `tests/_graph_nt.py`
+  rdflib→N-Triples adapter are now permanently sealed by
+  `check_no_run_shacl_seam` in `crates/validate/src/repo_static.rs`.
 
 Relocated out of the mainline test tree (dossier removed with the test):
 

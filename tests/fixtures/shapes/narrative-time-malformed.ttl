@@ -5,7 +5,7 @@
 #      (the cross-anchor SPARQL constraint).
 #   3. ex:bareInteger — a NarrativePosition with no positionFrame and neither
 #      ordinal nor label (the bare-integer anti-pattern, both shapes fire).
-# run_shacl over this graph MUST NOT conform.
+# SHACL validation over this graph MUST NOT conform.
 
 @prefix ex:    <https://example.org/shapes/> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .

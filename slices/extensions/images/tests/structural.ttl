@@ -29,25 +29,25 @@
 #     slices/core/documents/module.ttl (cross-slice subject).
 #   test_image_event_types_exist -- gmeow:eventTypeImageCapture etc. are
 #     defined in slices/core/events/module.ttl (cross-slice subjects).
-#   test_depiction_usage_shacl_passes -- run_shacl() call; ExampleConformance,
+#   test_depiction_usage_shacl_passes -- SHACL validation call; ExampleConformance,
 #     not a structural TBox assertion.
-#   test_depiction_usage_missing_image_fails_shacl -- run_shacl() call;
+#   test_depiction_usage_missing_image_fails_shacl -- SHACL validation call;
 #     ExampleConformance with error-text assertions.
-#   test_image_region_shacl_passes -- run_shacl() call; ExampleConformance.
-#   test_image_region_missing_selector_fails_shacl -- run_shacl() call;
+#   test_image_region_shacl_passes -- SHACL validation call; ExampleConformance.
+#   test_image_region_missing_selector_fails_shacl -- SHACL validation call;
 #     ExampleConformance with error-text assertions.
-#   test_scene_graph_edge_shacl_passes -- run_shacl() call; ExampleConformance.
-#   test_scene_graph_edge_missing_relation_fails_shacl -- run_shacl() call;
+#   test_scene_graph_edge_shacl_passes -- SHACL validation call; ExampleConformance.
+#   test_scene_graph_edge_missing_relation_fails_shacl -- SHACL validation call;
 #     ExampleConformance with error-text assertions.
-#   test_region_selector_missing_value_fails_shacl -- run_shacl() call;
+#   test_region_selector_missing_value_fails_shacl -- SHACL validation call;
 #     ExampleConformance with error-text assertions.
-#   test_scene_graph_edge_confidence_out_of_range_fails_shacl -- run_shacl();
+#   test_scene_graph_edge_confidence_out_of_range_fails_shacl -- SHACL validation;
 #     ExampleConformance with numeric range assertion.
-#   test_depiction_usage_multiple_subjects_fails_shacl -- run_shacl() call;
+#   test_depiction_usage_multiple_subjects_fails_shacl -- SHACL validation call;
 #     ExampleConformance with error-text assertions.
-#   test_media_object_colourspace_shacl_passes -- run_shacl() call;
+#   test_media_object_colourspace_shacl_passes -- SHACL validation call;
 #     ExampleConformance.
-#   test_media_object_missing_colourspace_warns_shacl -- run_shacl() call;
+#   test_media_object_missing_colourspace_warns_shacl -- SHACL validation call;
 #     warning-text assertion, not a structural TBox invariant.
 #
 # See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest->DSL mapping.

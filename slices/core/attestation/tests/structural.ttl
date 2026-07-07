@@ -16,11 +16,11 @@
 #     defined in slices/core/attestation/module.ttl; it lives in another slice,
 #     making this a cross-slice check that scopeModule cannot cover.
 #   test_contested_attestation_coexists -- loads a coverage fixture file
-#     (attestation-vc.ttl), calls run_shacl(), and asserts ABox individuals
+#     (attestation-vc.ttl), calls SHACL validation, and asserts ABox individuals
 #     (EX_ATTEST.vcAttestation, claimAffirmed, claimRefuted); this is a
 #     multi-file ABox check, not a module-scoped TBox assertion.
 #   test_all_fixture_files_load -- iterates over 6 fixture files and calls
-#     run_shacl() on each; ExampleConformance, not a structural TBox assertion.
+#     SHACL validation on each; ExampleConformance, not a structural TBox assertion.
 #
 # See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest->DSL mapping.
 

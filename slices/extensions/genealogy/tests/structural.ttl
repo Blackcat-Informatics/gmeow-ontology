@@ -15,21 +15,12 @@
 # 4-6 below; the observations structural.ttl cell 7 deferred them here
 # explicitly (see dsl/tests/MIGRATION-LEDGER.md).
 #
-# RETAINED in pytest (not migratable here):
-#   test_former_event_subclasses_are_not_reintroduced -- load_merged_graph()
-#     whole-ontology sweep; a module-scoped cell cannot see Birth/Death/Marriage
-#     etc. absent from every module; dynamic set over merged graph.
-#   test_contested_parentage_coexists -- run_shacl() + fixture ABox load
-#     (coverage/genealogy-contested.ttl); ExampleConformance + ABox dynamic
-#     check, not a TBox invariant.
-#   test_contested_birth_date_coexists -- run_shacl() + fixture ABox load;
-#     same reason as above.
-#   test_withdrawn_parentage_suppressed_not_deleted -- run_shacl() + fixture
-#     ABox load; ExampleConformance + ABox assertion, not TBox.
-#   test_no_preferred_or_primary_genealogy_term -- load_merged_graph() sweep
-#     over banned term IRIs across the full merged graph; dynamic set.
-#
-# See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest->DSL mapping.
+# The whole-ontology negative sweeps and the SHACL fixture-conformance + ABox
+# checks now live natively in crates/validate/tests/conformance_genealogy.rs
+# (former_event_subclasses_are_not_reintroduced and
+# no_preferred_or_primary_genealogy_term via GraphStore::ontology(); the
+# contested/withdrawn conform cases + GraphStore ABox twins over
+# coverage/genealogy-contested.ttl).
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/genealogy/tests/> .
