@@ -769,4 +769,117 @@ mod tests {
             "RL_RULES carry the arity-4 `triple` relation → NOT binary-eligible"
         );
     }
+
+    // ── Antecedent threading on BOTH native dispatch branches (gap G3) ─────────
+    //
+    // The production `NativeForwardOracle` reports `provides_provenance() == true`;
+    // the escaped bug had it emit EMPTY `antecedents` on derived rows (masked
+    // because the native↔Nemo parity ledger compares only fact keys, never
+    // provenance). The fix threads matched body facts as antecedents through BOTH
+    // dispatch branches. These two guards drive `forward_oracle()` end-to-end
+    // through each branch — proving WHICH branch via the `rules_are_pure_ternary`
+    // dispatch signal — and assert a DERIVED row (`is_edb == false`) carries a
+    // NON-EMPTY `antecedents` list. Falsifiable: revert either branch's
+    // antecedent threading to `Vec::new()` and the matching guard goes red.
+
+    /// BINARY seminaive branch: the fixed DL calculus is pure arity-3, so the
+    /// production oracle routes A⊑B, B⊑C through the binary `seminaive` core and
+    /// derives the transitive A⊑C. The derived edge must cite its two body facts —
+    /// i.e. carry NON-EMPTY `antecedents` — which the empty-antecedents bug broke.
+    #[test]
+    fn native_oracle_threads_antecedents_on_binary_seminaive_path() {
+        let oracle = forward_oracle();
+        assert_eq!(oracle.name(), "native");
+
+        let subclass = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
+        let world = "http://gmeow.example/w";
+        let a = TermValue::Iri("http://gmeow.example/A".into());
+        let b = TermValue::Iri("http://gmeow.example/B".into());
+        let c = TermValue::Iri("http://gmeow.example/C".into());
+        let mut edb = TypedFactSet::new();
+        edb.push_quad(&a, subclass, &b, world);
+        edb.push_quad(&b, subclass, &c, world);
+
+        let rules = crate::reason::dl::dl_rules();
+        // Prove dispatch took the BINARY branch: EDB + rule set are all arity-3.
+        assert!(
+            rules_are_pure_ternary(&rules).expect("dl_rules parse for arity inspection"),
+            "dl_rules() must be pure arity-3 so this drives the binary seminaive branch"
+        );
+
+        let result = oracle
+            .materialize(&edb, &rules, &ForwardBudget::UNBOUNDED)
+            .expect("unbudgeted native chase must succeed");
+
+        // The transitive subClassOf(A, C) is DERIVED (not an EDB echo); assert it
+        // cites its matched body facts through the `TypedProvenance::antecedents`
+        // field — the exact provenance the escaped bug left empty.
+        let derived_transitive = result.rows.iter().find(|(row, prov)| {
+            !prov.is_edb
+                && row.predicate == subclass
+                && row.args.len() == 3
+                && row.args[0] == a
+                && row.args[1] == c
+        });
+        let (_, prov) = derived_transitive.unwrap_or_else(|| {
+            panic!(
+                "transitive subClassOf(A, C) must be derived on the binary path; got {:?}",
+                result.rows
+            )
+        });
+        assert!(
+            !prov.antecedents.is_empty(),
+            "derived subClassOf(A, C) must cite NON-EMPTY antecedents (the empty-antecedents \
+             bug fails here); got {prov:?}"
+        );
+    }
+
+    /// GENERIC n-ary branch: the OWL 2 RL/RDF rules carry the arity-4
+    /// `triple(?s,?p,?o,?w)` relation, so they are NOT pure-ternary and the
+    /// production oracle routes to the arity-generic evaluator. A 4-ary EDB
+    /// (A⊑B, B⊑C) makes `rl:scm-sco` derive A⊑C; the derived row must carry
+    /// NON-EMPTY `antecedents` on this branch too.
+    #[test]
+    fn native_oracle_threads_antecedents_on_generic_nary_path() {
+        let oracle = forward_oracle();
+        assert_eq!(oracle.name(), "native");
+
+        let subclass = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
+        let world = "http://gmeow.example/w";
+
+        // Build the arity-4 `triple(?s, ?p, ?o, ?w)` EDB directly (predicate as a
+        // DATA term), the shape the generic evaluator consumes.
+        let mut edb = TypedFactSet::new();
+        let a = edb.intern(&TermValue::iri("http://gmeow.example/A"));
+        let b = edb.intern(&TermValue::iri("http://gmeow.example/B"));
+        let c = edb.intern(&TermValue::iri("http://gmeow.example/C"));
+        let sc = edb.intern(&TermValue::iri(subclass));
+        let w = edb.intern(&TermValue::simple_literal(world));
+        edb.push_fact("triple", vec![a, sc, b, w]);
+        edb.push_fact("triple", vec![b, sc, c, w]);
+
+        // Prove dispatch took the GENERIC branch: the rule set is NOT pure arity-3.
+        assert!(
+            !rules_are_pure_ternary(crate::reason::rl::RL_RULES)
+                .expect("RL rules parse for arity inspection"),
+            "RL_RULES carry the arity-4 `triple` relation, so this drives the generic branch"
+        );
+
+        let result = oracle
+            .materialize(&edb, crate::reason::rl::RL_RULES, &ForwardBudget::UNBOUNDED)
+            .expect("unbudgeted native chase must succeed");
+
+        // At least one DERIVED row (e.g. the transitive A⊑C from `rl:scm-sco`) must
+        // cite its matched body facts through `TypedProvenance::antecedents`.
+        let derived_with_antecedents = result
+            .rows
+            .iter()
+            .any(|(_row, prov)| !prov.is_edb && !prov.antecedents.is_empty());
+        assert!(
+            derived_with_antecedents,
+            "at least one derived row on the generic path must cite NON-EMPTY antecedents \
+             (the empty-antecedents bug fails here); got {:?}",
+            result.rows
+        );
+    }
 }
