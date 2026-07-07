@@ -138,13 +138,21 @@ fn validate_fail_file_json_is_well_formed() {
     let text = String::from_utf8(output).expect("utf-8 json");
     let parsed: serde_json::Value = serde_json::from_str(&text).expect("valid JSON report");
     let findings = parsed["findings"].as_array().expect("findings array");
-    assert_eq!(findings.len(), 3, "two errors + one warning: {findings:?}");
+    // The closed-world validation-shape derivation adds disjointness shapes, so
+    // fail.nq trips 4 errors + 1 warning: the original P9 disjointness
+    // (IdentityAxisDisjointnessConstraintShape), the P17 sh:not pair
+    // (Honorific-shape / PronounSet-shape), the under-mediated Commitment
+    // (CommitmentShape), and the frame-relativity warning
+    // (EventFrameRequirementShape). rdfs:domain/range are open-world by default
+    // (inference axioms, no ClosedWorldClosure opt-in), so no domain/range shape
+    // fires.
+    assert_eq!(findings.len(), 5, "four errors + one warning: {findings:?}");
     let errors = findings.iter().filter(|f| f["severity"] == "error").count();
     let warnings = findings
         .iter()
         .filter(|f| f["severity"] == "warning")
         .count();
-    assert_eq!(errors, 2, "{findings:?}");
+    assert_eq!(errors, 4, "{findings:?}");
     assert_eq!(warnings, 1, "{findings:?}");
 }
 
@@ -165,7 +173,7 @@ fn validate_fail_file_sarif_is_well_formed() {
     let results = sarif["runs"][0]["results"]
         .as_array()
         .expect("sarif results array");
-    assert_eq!(results.len(), 3, "two errors + one warning");
+    assert_eq!(results.len(), 5, "four errors + one warning");
 }
 
 #[test]
@@ -403,6 +411,64 @@ fn affect_intensity_discriminating_dominant_axis_is_metric_aware() {
         .stdout(predicate::str::contains(
             "dominant-axis https://blackcatinformatics.ca/gmeow/dimensionValence",
         ));
+}
+
+// ── affect goemotions ingestion (the production surface) ─────────────────────
+
+/// Absolute path of a committed crate fixture, relative to this crate.
+fn crate_fixture(relative: &str) -> PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("..")
+        .join(relative)
+}
+
+#[test]
+fn affect_goemotions_ingest_recover_round_trips_through_the_cli() {
+    let capture = crate_fixture("affect-ingest/fixtures/goemotions-sample.json");
+
+    // Put leg: the captured GoEmotions JSON becomes attributed evidence Turtle,
+    // resolving the label set + reviewed closeMatch from the EMBEDDED bundle. The
+    // adapter is dispatched from the capture's declared label set — one generic
+    // `ingest` subcommand, no per-model variant.
+    let put = gmeow()
+        .args(["affect", "ingest"])
+        .arg(&capture)
+        .assert()
+        .success();
+    let ttl = String::from_utf8(put.get_output().stdout.clone()).expect("utf-8 turtle");
+    assert!(ttl.contains("ModelInferenceRun"), "run emitted");
+    // lossless: an output for every one of the 28 GoEmotions labels, on every
+    // captured target (the real fixture carries three).
+    let outputs = ttl.matches("AffectClassifierOutput").count();
+    assert!(
+        outputs >= 28 && outputs.is_multiple_of(28),
+        "28 labels per target: {outputs}"
+    );
+    // claim routing via the bundle's SSSOM correspondence: the joyful target's
+    // `joy` crosses threshold AND closeMatches gmeow:emotionJoy.
+    assert!(ttl.contains("the text expresses joy"));
+
+    // Get leg: pipe the evidence back in; the label set is auto-detected from the
+    // emitted labels and the reconstructed capture round-trips through the real CLI
+    // (pinned model revision + real model identity).
+    gmeow()
+        .args(["affect", "recover", "-"])
+        .write_stdin(ttl)
+        .assert()
+        .success()
+        .stdout(
+            predicate::str::contains("d75048347613a25d77de8cf6412eaae9fa7b26be")
+                .and(predicate::str::contains("SamLowe/roberta-base-go_emotions")),
+        );
+}
+
+#[test]
+fn affect_goemotions_ingest_missing_source_is_a_runtime_error() {
+    gmeow()
+        .args(["affect", "ingest", "/nonexistent-capture.json"])
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("Error:"));
 }
 
 #[test]
