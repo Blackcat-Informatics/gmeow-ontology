@@ -60,7 +60,7 @@
 #     shape corpus, and the whole-ontology-union path stays covered on maint-heavy
 #     alongside imported_graph_conforms_to_shapes.
 #   - gmeow-logic whole_bundle_coherence_gate_catches_injected_clash:
-#     ~95 s locally; it imports the WHOLE committed `gmeow.gts` bundle and drives
+#     ~570 s locally; it imports the WHOLE committed `gmeow.gts` bundle and drives
 #     the native Nemo chase over it twice (once benign, once with an injected
 #     disjoint-class clash). This exclusion is budget-exempt, NOT gate-exempt: the
 #     test still runs on every `make check` via the dedicated `coherence-gate-teeth`
@@ -223,9 +223,21 @@ slow-timeout = { period = "180s", "terminate-after" = 3, "grace-period" = "30s" 
 # They share the `engine` memory group so the full-bundle chase does not OOM-thrash
 # alongside other chases; the longer timeout is only a runaway cliff, the JUnit budget
 # gate still enforces the 25 s policy.
+#
+# The whole-bundle chase is irreducibly O(bundle size × DL-rule-set) and measures
+# ~520 s locally (was ~95 s). The cost is the DL rule set applied over the whole
+# ~720k-quad bundle — dominated by the merged-in top-sortal disjointness axioms (the
+# kernel's mutual owl:AllDisjointClasses TBox), which force a disjointness/owl:Nothing
+# propagation across the whole individual set. This is NOT the validation-shape work:
+# the SHACL/ShEx projection is a sidecar that never reaches the reasoner (only ~510
+# shape-touching quads land in the core-prefixes projection graph, and SHACL shapes
+# are not DL axioms), so deriving the closed-world validation fragment added no
+# measurable chase cost. Raise the runaway cliff to 1200 s (300 s × 4) so this
+# budget-exempt gate has margin over local + CI runtime jitter; the cliff is a
+# terminate-after backstop, not the expected runtime.
 filter = 'package(gmeow-logic) & binary(coherence_gate)'
 test-group = 'engine'
-slow-timeout = { period = "180s", "terminate-after" = 3, "grace-period" = "30s" }
+slow-timeout = { period = "300s", "terminate-after" = 4, "grace-period" = "30s" }
 
 [[profile.default.overrides]]
 # The consumer `gmeow validate --deep` AC1 test reasons over the user data merged

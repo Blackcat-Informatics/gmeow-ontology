@@ -49,6 +49,19 @@ gmeow:FinancialAccount
             a owl:Restriction ;
             owl:onProperty gmeow:accountHolder ;
             owl:someValuesFrom gmeow:Agent ;
+        ] ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:bic ;
+            owl:allValuesFrom [
+                a rdfs:Datatype ;
+                owl:onDatatype xsd:string ;
+                owl:withRestrictions (
+                    [ xsd:minLength "8"^^xsd:nonNegativeInteger ]
+                    [ xsd:maxLength "11"^^xsd:nonNegativeInteger ]
+                    [ xsd:pattern "^[A-Z]{6}[A-Z0-9]{2}([A-Z0-9]{3})?$" ]
+                ) ;
+            ] ;
         ] ;
     owl:disjointWith gmeow:OnlineAccount ;
     skos:definition "A financial account held by an agent with a financial institution — a bank account, credit card, investment account, or wallet. Distinct from OnlineAccount (social profiles, decentralized identity): this is the financial-existence layer. The account's legal terms are modelled as an Agreement between the holder and the institution."@x-gmeow-english ;
@@ -139,10 +152,11 @@ gmeow:JournalEntry
     rdfs:subClassOf gmeow:Event ,
         [
             a owl:Restriction ;
+            owl:minQualifiedCardinality "2"^^xsd:nonNegativeInteger ;
             owl:onProperty gmeow:journalEntryPostings ;
-            owl:someValuesFrom gmeow:Posting ;
+            owl:onClass gmeow:Posting ;
         ] ;
-    skos:definition "A balanced double-entry bookkeeping event: a temporal occurrence in which debits equal credits (per currency bucket). Composed of two or more Posting relators."@x-gmeow-english ;
+    skos:definition "A balanced double-entry bookkeeping event: a temporal occurrence in which debits equal credits (per currency bucket). Composed of two or more Posting relators — a single-posting entry cannot balance, so at least two postings of class gmeow:Posting are required."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:LedgerAccount
