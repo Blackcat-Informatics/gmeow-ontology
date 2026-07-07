@@ -1761,6 +1761,50 @@ pub fn derive_validation_shapes(store: &RdfDataset) -> Result<Vec<ValidationShap
         }
     }
 
+    // ── FAMILY 5 — statement-layer reifier obligations ────────────────────────────────────
+    // The one closed-world condition with NO ordinary-OWL antecedent: "every K→P→value assertion
+    // must be reified, and its reifier must conform to shape C." A slice declares it with the
+    // classic RDF reification form (`rdf:Statement` + `rdf:subject`/`rdf:predicate`/`rdf:object`),
+    // which the frontend already reads (see `extract_scoped_axioms`). The classic form is used
+    // rather than the native `rdf:reifies <<( K P O )>>` term deliberately: a quoted-triple object
+    // cannot ride the base-quad fold to the `gmeow.gts` terminal (the statement layer travels the
+    // reifier/annotation tables), so the schema-level obligation is authored as plain base triples.
+    // No parallel shape vocabulary is minted; `C` must be a constrained GMEOW class so FAMILY 1
+    // derives the `{C}-shape` node the `sh:reifierShape` reference resolves to. Lowered to a
+    // property shape on path `P` carrying `sh:reifierShape {C}-shape` + `sh:reificationRequired true`.
+    let p_rdf_subject = nn(RDF_SUBJECT);
+    let p_rdf_predicate = nn(RDF_PREDICATE);
+    for r in subjects_with(store, &nn(RDF_TYPE), &Node::iri(RDF_STATEMENT)) {
+        // The reified predicate `P` and subject class `K` must both be GMEOW-owned (the dogfooding
+        // guard every family applies).
+        let Some(Node::Iri(p)) = value(store, &r, &p_rdf_predicate) else {
+            continue;
+        };
+        let Some(Node::Iri(k)) = value(store, &r, &p_rdf_subject) else {
+            continue;
+        };
+        if !k.starts_with(GMEOW_NS) || !p.starts_with(GMEOW_NS) {
+            continue;
+        }
+        // The reifier's GMEOW type `C` names the shape the reifier must conform to. An untyped
+        // reifier carries no shape reference (a `sh:reifierShape` with no resolvable target would
+        // dangle), so the typed-reifier form is required — an untyped one is not an obligation.
+        let Some(c) = objects(store, &r, &nn(RDF_TYPE))
+            .into_iter()
+            .find_map(|t| match t {
+                Node::Iri(i) if i.starts_with(GMEOW_NS) => Some(i),
+                _ => None,
+            })
+        else {
+            continue;
+        };
+        let property = PropertyConstraintIr::new(p.clone(), None, None, None, vec![])?
+            .with_reifier(Some(format!("{c}-shape")), true)?;
+        entry_for(&mut acc, ShapeTarget::Class(k.clone()))
+            .2
+            .push(property);
+    }
+
     // ── Build one shape per target ────────────────────────────────────────────────────────
     // Dedup by structural (`PartialEq`) identity so a duplicate axiom never double-counts; the IR
     // constructors then sort node_components + properties into canonical content-key order, so
@@ -1783,7 +1827,7 @@ pub fn derive_validation_shapes(store: &RdfDataset) -> Result<Vec<ValidationShap
         if node_components.is_empty() && properties.is_empty() {
             continue;
         }
-        let shape = ValidationShapeIr::new(iri, target, properties, None, None, false)?
+        let shape = ValidationShapeIr::new(iri, target, properties, None)?
             .with_node_components(node_components)?;
         shapes.push(shape);
     }

@@ -1687,8 +1687,6 @@ fn vshape(iri: &str, target_class: &str, props: Vec<PropertyConstraintIr>) -> Va
         ShapeTarget::Class(target_class.to_owned()),
         props,
         None,
-        None,
-        false,
     )
     .unwrap()
 }
@@ -1702,23 +1700,14 @@ fn validation_shape_constructor_hard_pins_node_kind() {
 
 #[test]
 fn validation_shape_rejects_empty_iri_and_target() {
-    let e1 = ValidationShapeIr::new(
-        "",
-        ShapeTarget::Class("ex:C".into()),
-        vec![],
-        None,
-        None,
-        false,
-    )
-    .unwrap_err();
+    let e1 =
+        ValidationShapeIr::new("", ShapeTarget::Class("ex:C".into()), vec![], None).unwrap_err();
     assert!(e1.contains("non-empty IRI"), "got: {e1}");
     let e2 = ValidationShapeIr::new(
         format!("{LOGIC}s"),
         ShapeTarget::Class("  ".into()),
         vec![],
         None,
-        None,
-        false,
     )
     .unwrap_err();
     assert!(e2.contains("non-empty IRI"), "got: {e2}");

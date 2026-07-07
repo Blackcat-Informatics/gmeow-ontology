@@ -394,8 +394,6 @@ fn column_contract(shape_iri: &str, col: &Column) -> Result<ValidationShapeIr, S
         },
         vec![property],
         None,
-        None,
-        false,
     )
 }
 
