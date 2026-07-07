@@ -132,6 +132,105 @@ fn violation_partitions_to_errors_with_stable_line() {
     assert_eq!(violations, vec![format!("{NS}alice: name required")]);
 }
 
+// The RDF-1.2 reifier obligation the validation-shape projector now emits (a property-level
+// `sh:reifierShape` + `sh:reificationRequired` block — the exact form
+// generated/shapes/validation-shapes.ttl carries for gmeow:StandpointTenure → gmeow:tenurePosition)
+// is genuinely ENFORCED by the native engine on the production surface: a held position asserted as
+// a bare, unreified triple is a finding; a properly reified one whose reifier conforms passes.
+const REIFIER_SHAPES_TTL: &str = r#"@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix ex: <http://example.org/ns#> .
+ex:TenureShape a sh:NodeShape ;
+    sh:targetClass ex:Tenure ;
+    sh:property [
+        sh:path ex:tenurePosition ;
+        sh:reifierShape ex:ReifierShape ;
+        sh:reificationRequired true ;
+        sh:severity sh:Violation ;
+        sh:message "a tenure position must be a reified statement" ;
+    ] .
+ex:ReifierShape a sh:NodeShape ;
+    sh:property [
+        sh:path ex:vantage ;
+        sh:minCount 1 ;
+    ] .
+"#;
+
+const REIFIER_COMPONENT: &str = "http://www.w3.org/ns/shacl#ReifierShapeConstraintComponent";
+
+fn turtle_to_dataset(ttl: &str) -> Arc<purrdf::RdfDataset> {
+    let dataset = parse_dataset(ttl.as_bytes(), "text/turtle", None)
+        .unwrap_or_else(|e| panic!("Turtle parse failed: {e}"));
+    let mut quads = flat_rdf_quads_from_dataset(&dataset);
+    for quad in &mut quads {
+        quad.graph_name = None;
+    }
+    flat_dataset_from_quads(&quads).expect("flattened dataset must freeze")
+}
+
+fn validate_ttl(data_ttl: &str, shapes_ttl: &str) -> ValidationReport {
+    let shapes = parse_shapes(shapes_ttl).expect("SHACL shapes must parse");
+    let dataset = turtle_to_dataset(data_ttl);
+    validate_dataset(&dataset, &shapes).expect("native SHACL validation must succeed")
+}
+
+#[test]
+fn reification_required_flags_a_bare_held_position() {
+    // A Tenure that records its position as a bare, unreified triple is a finding.
+    let data = "@prefix ex: <http://example.org/ns#> .\n\
+                ex:t1 a ex:Tenure ; ex:tenurePosition ex:claim1 .\n";
+    let report = validate_ttl(data, REIFIER_SHAPES_TTL);
+    assert!(
+        !report.conforms,
+        "a bare (unreified) held position must be a finding"
+    );
+    assert!(
+        report
+            .results
+            .iter()
+            .any(|r| r.source_constraint_component.as_str() == REIFIER_COMPONENT),
+        "the finding must be a ReifierShapeConstraintComponent: {:?}",
+        report.results
+    );
+}
+
+#[test]
+fn a_reified_position_with_a_conforming_reifier_passes() {
+    // The position is reified, and the reifier conforms to the reifier shape (it has a vantage).
+    let data = "@prefix ex: <http://example.org/ns#> .\n\
+                @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n\
+                ex:t2 a ex:Tenure ; ex:tenurePosition ex:claim2 .\n\
+                ex:r2 rdf:reifies <<( ex:t2 ex:tenurePosition ex:claim2 )>> ; ex:vantage ex:sp .\n";
+    let report = validate_ttl(data, REIFIER_SHAPES_TTL);
+    assert!(
+        report.conforms,
+        "a reified position with a conforming reifier must pass: {:?}",
+        report.results
+    );
+}
+
+#[test]
+fn a_reifier_that_violates_its_shape_is_flagged() {
+    // The position IS reified, but the reifier violates the reifier shape (it has no vantage).
+    let data = "@prefix ex: <http://example.org/ns#> .\n\
+                @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n\
+                ex:t3 a ex:Tenure ; ex:tenurePosition ex:claim3 .\n\
+                ex:r3 rdf:reifies <<( ex:t3 ex:tenurePosition ex:claim3 )>> .\n";
+    let report = validate_ttl(data, REIFIER_SHAPES_TTL);
+    assert!(
+        !report.conforms,
+        "a reifier that violates the reifier shape must be a finding: {:?}",
+        report.results
+    );
+    assert!(
+        report
+            .results
+            .iter()
+            .any(|r| r.source_constraint_component.as_str() == REIFIER_COMPONENT),
+        "the finding must be a ReifierShapeConstraintComponent: {:?}",
+        report.results
+    );
+}
+
 #[test]
 fn warning_severity_buckets_to_warnings() {
     let shapes = SHAPES_TTL.replace("sh:Violation", "sh:Warning");

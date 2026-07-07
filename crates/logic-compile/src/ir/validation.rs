@@ -472,6 +472,14 @@ pub struct PropertyConstraintIr {
     /// Whether the path is inverted (`sh:path [ sh:inversePath P ]`): the closed-world reading
     /// of `owl:InverseFunctionalProperty` (each object has ≤1 subject via `P`). Default `false`.
     pub inverse: bool,
+    /// The IRI of a node shape validating the RDF-1.2 reifier of each `focus`→`path`→`value`
+    /// statement (`sh:reifierShape`); `None` ⇒ no reifier condition. Lives on the property shape
+    /// (not the node shape) because the SHACL 1.2 reifier component is keyed to the path's
+    /// statement — the native engine reads it only from a single-predicate property shape.
+    pub reifier_shape: Option<String>,
+    /// Whether each matching `focus`→`path`→`value` statement must carry ≥1 RDF-1.2 reifier
+    /// (`sh:reificationRequired`). Default `false`.
+    pub reification_required: bool,
     /// The `sh:severity` of a violation (`None` ⇒ the SHACL default `sh:Violation`, emitted
     /// implicitly). Carried so a projected surface reproduces a bespoke renderer's severity.
     pub severity: Option<ShaclSeverity>,
@@ -524,9 +532,52 @@ impl PropertyConstraintIr {
             cardinality_provenance,
             components,
             inverse: false,
+            reifier_shape: None,
+            reification_required: false,
             severity: None,
             message: None,
         })
+    }
+
+    /// Attach the RDF-1.2 reifier condition (`sh:reifierShape` / `sh:reificationRequired`) to this
+    /// property shape. `reifier_shape` names the node shape each statement's reifier must conform to
+    /// (`None` ⇒ no shape constraint); `reification_required` demands ≥1 reifier per statement.
+    /// Chainable; leaves the content key byte-identical when both are default. Hard-fails on a
+    /// no-op (neither set), a blank shape IRI, or an inverse path — the SHACL 1.2 reifier component
+    /// is defined only on a single forward-predicate path, so an inverse path would emit a surface
+    /// the native engine rejects.
+    pub fn with_reifier(
+        mut self,
+        reifier_shape: Option<String>,
+        reification_required: bool,
+    ) -> Result<Self, String> {
+        if reifier_shape.is_none() && !reification_required {
+            return Err(
+                "PropertyConstraintIr.with_reifier: at least one of reifier_shape / \
+                 reification_required must be set (a no-op reifier condition is a determinism \
+                 hazard)"
+                    .to_owned(),
+            );
+        }
+        if let Some(rs) = &reifier_shape
+            && rs.trim().is_empty()
+        {
+            return Err(
+                "PropertyConstraintIr.with_reifier: reifier_shape must be a non-empty IRI when \
+                 present; pass None to leave it unset"
+                    .to_owned(),
+            );
+        }
+        if self.inverse {
+            return Err(
+                "PropertyConstraintIr.with_reifier: the SHACL 1.2 reifier component is defined only \
+                 on a single forward-predicate path, not an inverse path"
+                    .to_owned(),
+            );
+        }
+        self.reifier_shape = reifier_shape;
+        self.reification_required = reification_required;
+        Ok(self)
     }
 
     /// Mark the path inverted (`sh:path [ sh:inversePath P ]`) — the `owl:InverseFunctionalProperty`
@@ -573,6 +624,12 @@ impl PropertyConstraintIr {
         if self.inverse {
             key.push_str(&format!("{SEP}inverse=true"));
         }
+        if let Some(rs) = &self.reifier_shape {
+            key.push_str(&format!("{SEP}reifier={}", key_field(rs)));
+        }
+        if self.reification_required {
+            key.push_str(&format!("{SEP}reifreq=true"));
+        }
         if let Some(sev) = self.severity {
             key.push_str(&format!("{SEP}sev={}", sev.as_str()));
         }
@@ -600,11 +657,6 @@ pub struct ValidationShapeIr {
     pub node_kind: NodeKind,
     /// The standpoint IRI a shape holds under, when standpoint-indexed (`None` ⇒ universal).
     pub standpoint: Option<String>,
-    /// The IRI of a nested shape validating the reifier of a reified statement
-    /// (`sh:reifierShape`); `None` ⇒ no reifier condition.
-    pub reifier_shape: Option<String>,
-    /// Whether a matching statement must be reified (`sh:reificationRequired`).
-    pub reification_required: bool,
     /// Focus-NODE-level constraints (not on a property path): the `sh:class` / `sh:datatype` /
     /// `sh:nodeKind` / `sh:not` a focus node itself must satisfy. Populated by the domain /
     /// range / disjointness readings (`sh:targetSubjectsOf`/`ObjectsOf` + a node-level class).
@@ -619,14 +671,12 @@ pub struct ValidationShapeIr {
 impl ValidationShapeIr {
     /// Construct a validation shape, hard-pinning `node_kind` to
     /// [`NodeKind::ValidationShape`] and sorting `properties` into canonical order so supply
-    /// order never affects identity. Validates the IRI, target, and reifier fields.
+    /// order never affects identity. Validates the IRI, target, and standpoint fields.
     pub fn new(
         iri: impl Into<String>,
         target: ShapeTarget,
         properties: Vec<PropertyConstraintIr>,
         standpoint: Option<String>,
-        reifier_shape: Option<String>,
-        reification_required: bool,
     ) -> Result<Self, String> {
         let iri = iri.into();
         if iri.trim().is_empty() {
@@ -658,15 +708,6 @@ impl ValidationShapeIr {
             }
             _ => {}
         }
-        if let Some(rs) = &reifier_shape
-            && rs.trim().is_empty()
-        {
-            return Err(
-                "ValidationShapeIr.reifier_shape must be a non-empty IRI when present; pass \
-                     None to leave it unset"
-                    .to_owned(),
-            );
-        }
         if let Some(sp) = &standpoint
             && sp.trim().is_empty()
         {
@@ -684,8 +725,6 @@ impl ValidationShapeIr {
             properties,
             node_kind: NodeKind::ValidationShape,
             standpoint,
-            reifier_shape,
-            reification_required,
             node_components: Vec::new(),
             label: None,
         })
@@ -749,13 +788,11 @@ impl ValidationShapeIr {
                 .map(PropertyConstraintIr::content_key),
         );
         let mut key = format!(
-            "{}{SEP}kind={}{SEP}{}{SEP}sp={}{SEP}reifier={}{SEP}reifreq={}{SEP}PROPS={props}",
+            "{}{SEP}kind={}{SEP}{}{SEP}sp={}{SEP}PROPS={props}",
             key_field(&self.iri),
             self.node_kind.as_str(),
             self.target.content_key(),
             key_field(self.standpoint.as_deref().unwrap_or("")),
-            key_field(self.reifier_shape.as_deref().unwrap_or("")),
-            self.reification_required,
         );
         if !self.node_components.is_empty() {
             key.push_str(&format!(
@@ -894,8 +931,6 @@ mod tests {
                 .unwrap(),
             ],
             None,
-            None,
-            false,
         )
         .unwrap();
         let key = shape.content_key();
@@ -1017,8 +1052,6 @@ mod tests {
                 ShapeTarget::SubjectsOf("  ".into()),
                 vec![],
                 None,
-                None,
-                false,
             )
             .is_err()
         );
