@@ -1,0 +1,16 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Conforming fixture: a lang:GmnImportedPlane carrying BOTH its citation (gmeow:cites) and
+# its version (dcterms:hasVersion), so lang:GmnImportedPlaneAttributionShape stays quiet —
+# an import that is both attributed and edition-pinned.
+
+@prefix lang:    <https://blackcatinformatics.ca/lang/> .
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix ex:      <http://example.org/lang/> .
+
+ex:planeAttributed a lang:SignSystem , lang:GmnImportedPlane ;
+    gmeow:cites ex:someImportedWork ;
+    dcterms:hasVersion "1" .
+
+ex:someImportedWork a gmeow:CreativeWork .

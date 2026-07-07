@@ -1,0 +1,13 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Counter-example: a lang:FeatureValue with NO lang:Denotation dispositioning it in the
+# GMN symbology plane — no glyph, no named key, no imported alias binds it. The GMN
+# linguistic coverage gate is total, so an undispositioned emitted term is a silent gap
+# (fires lang:GmnUndispositionedTerm via the sh:sparql of lang:GmnLangCoverageShape). It is
+# otherwise well-formed — a member of the feature inventory — so no other shape fires.
+
+@prefix lang:  <https://blackcatinformatics.ca/lang/> .
+@prefix ex:    <http://example.org/lang/> .
+
+ex:valUndispositioned a lang:FeatureValue ;
+    lang:inFeatureInventory lang:udUniversalFeatures .
