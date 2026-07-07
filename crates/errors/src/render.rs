@@ -1089,7 +1089,18 @@ fn sarif_result(finding: &Finding) -> Value {
 /// repo-relative hygiene GitHub code-scanning requires — an honest absence
 /// otherwise.
 fn sarif_fix(remediation: &crate::diag::Remediation) -> Value {
-    let mut fix = json!({ "description": { "text": remediation.text } });
+    // The remediation's STANDPOINT rides as a fix-level property so the gating
+    // strength of the "how to fix" guidance (advisory ⊑ perspectival ⊑ binding — the
+    // leg the gate morphism reads) survives into the SARIF byte artifact, not just
+    // the RDF/CLI surfaces. This is the property the annotate-by-fingerprint pass's
+    // output is greppable on in the regenerated `shacl.sarif`.
+    let mut fix = json!({
+        "description": { "text": remediation.text },
+        "properties": { "gmeow.standpoint": remediation.standpoint.as_str() },
+    });
+    if let Some(uri) = &remediation.help_uri {
+        fix["properties"]["gmeow.helpUri"] = json!(uri);
+    }
     if let Some(change) = &remediation.artifact_change {
         // Route the artifact URI through the same repo-relative validation as a
         // result location: only a bare, scheme-less, repo-relative reference is a

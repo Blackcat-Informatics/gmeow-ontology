@@ -68,6 +68,7 @@ fn diagnostics_report(report: &purrdf::shapes::report::ValidationReport) -> Repo
 fn render_artifacts(
     report: &Report,
     gate: Option<&crate::stages::gate_verdict::GateProgram>,
+    meta: Option<&crate::stages::meta_findings::MetaProgram>,
 ) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
     crate::stages::diag_render::render_diagnostics_artifacts(
         "stage-validate",
@@ -79,6 +80,7 @@ fn render_artifacts(
             rdf: SHACL_RDF_PATH,
         },
         gate,
+        meta,
     )
 }
 
@@ -172,6 +174,12 @@ impl Stage for ValidateStage {
             })?
             .span_index()?;
         crate::ingest::enrich_findings_with_spans(&mut report, &spans);
+        // Attach the DSL-authored remediation prose onto each finding through the
+        // annotate-by-fingerprint seam (D1): resolve each finding's code to the rule
+        // catalogue's remediation guidance and hang it on the finding via
+        // `DiagLedger::annotate`, so the RENDERED SARIF `fixes` (and CLI/HTML "how to
+        // fix" lines) are the genuine product of the annotate API, not a bypass.
+        gmeow_validate::remediation::attach_remediations(&mut report);
         // Build the reasoner-derived gate-verdict program ONCE from the authored source
         // graph (the base-graph bytes carry the logic + diagnostics slices, hence the
         // authored logic:ruleGateFatalVerdict rule + the gmeow:categoryBlocking wiring).
@@ -180,7 +188,12 @@ impl Stage for ValidateStage {
         // fires under validate-gts. A source without the authored rule yields None and the
         // projection stays byte-unchanged (never a faked verdict).
         let gate = crate::stages::gate_verdict::GateProgram::from_source(source_graph);
-        let artifacts = render_artifacts(&report, gate.as_ref())?;
+        // Build the reasoner-derived diagnostic meta-fold from the SAME authored source
+        // graph (the base-graph carries the gmeow:DiagnosticMetaRule rules + the
+        // gmeow:categoryPolarity wiring). A source without meta-rules yields None and
+        // the projection stays byte-unchanged.
+        let meta = crate::stages::meta_findings::MetaProgram::from_source(source_graph);
+        let artifacts = render_artifacts(&report, gate.as_ref(), meta.as_ref())?;
         // Attach the SHACL diagnostics RDF as the carrier's `graph/diagnostics` named
         // graph so the presenter reads it as a pure keyed fold (PIPELINE_SPINE §4) and
         // unions it with the logic-compile diagnostics, never re-parsing the byte
@@ -266,7 +279,7 @@ ex:RequiredShape a sh:NodeShape ;
             serde_json::Value::Bool(false)
         );
 
-        let artifacts = render_artifacts(&report, None).expect("render");
+        let artifacts = render_artifacts(&report, None, None).expect("render");
         let sarif: serde_json::Value =
             serde_json::from_slice(&artifacts[SHACL_SARIF_PATH]).expect("SARIF artifact is JSON");
         assert_eq!(sarif["version"], "2.1.0");
