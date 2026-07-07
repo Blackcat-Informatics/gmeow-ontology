@@ -335,26 +335,38 @@ pub const MANIFEST: &[ManifestRow] = &[
         "conformance_email.rs::collision_flags_and_fingerprints",
     ),
     // ── tests/test_gender.py (2 fns; dossier test_gender.md) ───────────────────
-    pending(
+    twin(
         "tests/test_gender.py",
         "test_displayable_generalised_to_cover_identity",
+        "conformance_gender.rs::displayable_generalised_to_cover_identity",
     ),
-    pending(
+    twin(
         "tests/test_gender.py",
         "test_competency_gender_values_query",
+        "conformance_gender.rs::competency_gender_values_query",
     ),
     // ── tests/test_sexuality.py (1 fn; dossier test_sexuality.md) ──────────────
-    pending(
+    twin(
         "tests/test_sexuality.py",
         "test_competency_orientation_values_query",
+        "conformance_sexuality.rs::competency_orientation_values_query",
     ),
     // ── tests/test_risk.py (2 fns; dossier test_risk.md) ───────────────────────
-    pending("tests/test_risk.py", "test_no_occurrence_gate"),
-    pending("tests/test_risk.py", "test_competency_severity_order_query"),
+    twin(
+        "tests/test_risk.py",
+        "test_no_occurrence_gate",
+        "conformance_risk.rs::no_occurrence_gate",
+    ),
+    twin(
+        "tests/test_risk.py",
+        "test_competency_severity_order_query",
+        "conformance_risk.rs::competency_severity_order_query",
+    ),
     // ── tests/test_competency.py (1 fn; dossier test_competency.md) ────────────
-    pending(
+    twin(
         "tests/test_competency.py",
         "test_competency_expertise_expiring_credentials_query",
+        "conformance_competency.rs::competency_expertise_expiring_credentials_query",
     ),
     // ── slices/core/gts/tests/test_gts_slice.py (2 fns; no dossier, from source)
     pending(
