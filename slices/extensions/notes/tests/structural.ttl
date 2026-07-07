@@ -27,15 +27,15 @@
 #     a module-scoped ASK. The 10 seed individuals and the banned-class guards
 #     are captured in cells sa10MotivationSeeds and sa11MotivationNotClasses
 #     below; the function is retained only for the count gate.
-#   test_note_with_content_passes_shacl -- run_shacl() call; ExampleConformance,
+#   test_note_with_content_passes_shacl -- SHACL validation call; ExampleConformance,
 #     not a structural TBox assertion.
-#   test_note_with_label_passes_shacl -- run_shacl() call; ExampleConformance.
-#   test_note_without_content_or_label_fails_shacl -- run_shacl() call.
-#   test_annotation_without_target_fails_shacl -- run_shacl() call.
-#   test_annotation_with_target_passes_shacl -- run_shacl() call.
-#   test_highlight_without_selector_fails_shacl -- run_shacl() call.
-#   test_highlight_with_selector_passes_shacl -- run_shacl() call.
-#   test_retracted_note_displayable_false -- run_shacl() call.
+#   test_note_with_label_passes_shacl -- SHACL validation call; ExampleConformance.
+#   test_note_without_content_or_label_fails_shacl -- SHACL validation call.
+#   test_annotation_without_target_fails_shacl -- SHACL validation call.
+#   test_annotation_with_target_passes_shacl -- SHACL validation call.
+#   test_highlight_without_selector_fails_shacl -- SHACL validation call.
+#   test_highlight_with_selector_passes_shacl -- SHACL validation call.
+#   test_retracted_note_displayable_false -- SHACL validation call.
 #   test_notes_oa_projection_executable -- reads external .rq file and parses
 #     SPARQL; generated-artifact parse check, not a TBox assertion.
 #   test_notes_schema_projection_executable -- same reason.

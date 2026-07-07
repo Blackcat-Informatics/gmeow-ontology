@@ -5,7 +5,7 @@
 #   3. ex:aimlessGuide — a style guide voicing nothing.
 #   4. ex:driftingGuide — a style guide whose exemplar document carries no
 #      content digest.
-# run_shacl over this graph MUST NOT conform.
+# SHACL validation over this graph MUST NOT conform.
 
 @prefix ex:    <https://example.org/shapes/> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .

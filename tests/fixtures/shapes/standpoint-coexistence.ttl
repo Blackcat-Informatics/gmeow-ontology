@@ -4,7 +4,7 @@
 # form (owl:Axiom + annotatedSource/Property/Target + gmeow:accordingTo). Both base
 # triples are asserted and both are RETAINED; NEITHER is privileged (no
 # preferredRank/primary* selector). A third, uncontested claim has no accordingTo
-# (it is held by the universal standpoint). run_shacl must report NO violation —
+# (it is held by the universal standpoint). SHACL validation must report NO violation —
 # coexistence is explicitly permitted (Principle 9).
 
 @prefix ex:    <https://example.org/shapes/> .

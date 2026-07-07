@@ -112,11 +112,13 @@ classes:
     title: Affect Scale Profile
     is_a: InformationObject
     slots:
+    - metricGram
     - profileMidpoint
     - profilePolarity
     - profileRangeMax
     - profileRangeMin
     - profileTransform
+    - sparseAxisCompletion
   AffectTelemetryStream:
     class_uri: https://blackcatinformatics.ca/gmeow/AffectTelemetryStream
     title: Affect Telemetry Stream
@@ -941,6 +943,8 @@ classes:
     class_uri: https://blackcatinformatics.ca/gmeow/CoreAffectDimension
     title: Core-Affect Dimension
     is_a: AppraisalDimension
+    slots:
+    - coreAxisIndex
   Corpus:
     class_uri: https://blackcatinformatics.ca/gmeow/Corpus
     title: Corpus
@@ -4554,6 +4558,9 @@ classes:
     class_uri: https://blackcatinformatics.ca/gmeow/WebSite
     title: Web Site
     is_a: Manifestation
+  WeightingPolicy:
+    class_uri: https://blackcatinformatics.ca/gmeow/WeightingPolicy
+    title: Weighting Policy
   Work:
     class_uri: https://blackcatinformatics.ca/gmeow/Work
     title: Work
@@ -6458,6 +6465,13 @@ slots:
     title: copyright year
     range: string
     domain: Copyright
+    multivalued: false
+  coreAxisIndex:
+    slot_uri: https://blackcatinformatics.ca/gmeow/coreAxisIndex
+    title: core axis index
+    range: integer
+    domain: CoreAffectDimension
+    minimum_value: 0
     multivalued: false
   corefDenotation:
     slot_uri: https://blackcatinformatics.ca/gmeow/corefDenotation
@@ -10573,6 +10587,12 @@ slots:
     range: Entity
     domain: MeterAssignment
     multivalued: false
+  metricGram:
+    slot_uri: https://blackcatinformatics.ca/gmeow/metricGram
+    title: metric Gram matrix
+    range: uriorcurie
+    domain: AffectScaleProfile
+    multivalued: false
   metricGroupOrder:
     slot_uri: https://blackcatinformatics.ca/gmeow/metricGroupOrder
     title: metric group order
@@ -10893,7 +10913,7 @@ slots:
   normFunction:
     slot_uri: https://blackcatinformatics.ca/gmeow/normFunction
     title: norm function
-    range: string
+    range: uriorcurie
     domain: DerivedAffectIntensityObservation
     multivalued: false
   normIssuer:
@@ -13082,6 +13102,12 @@ slots:
     range: integer
     minimum_value: 0
     multivalued: true
+  sparseAxisCompletion:
+    slot_uri: https://blackcatinformatics.ca/gmeow/sparseAxisCompletion
+    title: sparse-axis completion
+    range: boolean
+    domain: AffectScaleProfile
+    multivalued: false
   spatialCoverage:
     slot_uri: https://blackcatinformatics.ca/gmeow/spatialCoverage
     title: spatial coverage
@@ -14499,7 +14525,7 @@ slots:
   weightingPolicy:
     slot_uri: https://blackcatinformatics.ca/gmeow/weightingPolicy
     title: weighting policy
-    range: string
+    range: WeightingPolicy
     domain: DerivedAffectIntensityObservation
     multivalued: false
   what3words:
@@ -14631,12 +14657,30 @@ enums:
       qualitySublimity:
         meaning: https://blackcatinformatics.ca/gmeow/qualitySublimity
         title: sublimity
+  AffectCompositeEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/AffectComposite
+    permissible_values:
+      schadenfreudeComposite:
+        meaning: https://blackcatinformatics.ca/gmeow/schadenfreudeComposite
+        title: the observer's schadenfreude
   AffectFunctionEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/AffectFunction
     permissible_values:
       fnAffectiveIntensity:
         meaning: https://blackcatinformatics.ca/gmeow/fnAffectiveIntensity
         title: affective intensity
+  AffectScaleProfileEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/AffectScaleProfile
+    permissible_values:
+      coreAffectMetricPAD:
+        meaning: https://blackcatinformatics.ca/gmeow/coreAffectMetricPAD
+        title: core-affect PAD metric profile
+  AffectVectorObservationEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/AffectVectorObservation
+    permissible_values:
+      schadenfreudeCoreVector:
+        meaning: https://blackcatinformatics.ca/gmeow/schadenfreudeCoreVector
+        title: the schadenfreude core-affect vector
   AgentEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/Agent
     permissible_values:
@@ -14784,6 +14828,21 @@ enums:
       dimensionTemporalOrientation:
         meaning: https://blackcatinformatics.ca/gmeow/dimensionTemporalOrientation
         title: temporal orientation
+  AppraisalEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/Appraisal
+    permissible_values:
+      schadenfreudeAgencyCell:
+        meaning: https://blackcatinformatics.ca/gmeow/schadenfreudeAgencyCell
+        title: the schadenfreude agency reading
+      schadenfreudeArousalCell:
+        meaning: https://blackcatinformatics.ca/gmeow/schadenfreudeArousalCell
+        title: the schadenfreude arousal reading
+      schadenfreudeNormCell:
+        meaning: https://blackcatinformatics.ca/gmeow/schadenfreudeNormCell
+        title: the schadenfreude deservingness reading
+      schadenfreudeValenceCell:
+        meaning: https://blackcatinformatics.ca/gmeow/schadenfreudeValenceCell
+        title: the schadenfreude valence reading
   ArcTypeEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/ArcType
     permissible_values:
@@ -16341,6 +16400,12 @@ enums:
       derivationTypeVariation:
         meaning: https://blackcatinformatics.ca/gmeow/derivationTypeVariation
         title: variation
+  DerivedAffectIntensityObservationEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/DerivedAffectIntensityObservation
+    permissible_values:
+      schadenfreudeIntensity:
+        meaning: https://blackcatinformatics.ca/gmeow/schadenfreudeIntensity
+        title: the schadenfreude derived intensity
   DeterminacyEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/Determinacy
     permissible_values:
@@ -19680,6 +19745,12 @@ enums:
       periodTypeHistoricalEra:
         meaning: https://blackcatinformatics.ca/gmeow/periodTypeHistoricalEra
         title: historical era
+  PersonEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/Person
+    permissible_values:
+      schadenfreudeObserver:
+        meaning: https://blackcatinformatics.ca/gmeow/schadenfreudeObserver
+        title: the schadenfreude observer
   PhysicalCarrierTypeEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/PhysicalCarrierType
     permissible_values:
@@ -22497,3 +22568,12 @@ enums:
       walletSchemeXMR:
         meaning: https://blackcatinformatics.ca/gmeow/walletSchemeXMR
         title: Monero
+  WeightingPolicyEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/WeightingPolicy
+    permissible_values:
+      weightingEqualCoreAffect:
+        meaning: https://blackcatinformatics.ca/gmeow/weightingEqualCoreAffect
+        title: equal-weight core-affect axes
+      weightingValenceDominant:
+        meaning: https://blackcatinformatics.ca/gmeow/weightingValenceDominant
+        title: valence-dominant

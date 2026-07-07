@@ -3,7 +3,7 @@
 # committed), and a commitment (socially committed, toward a distinct
 # beneficiary), all aiming at goals; one goal pair in constitutive opposition;
 # one tenure recording adoption of the intention over an interval.
-# run_shacl over this graph MUST conform.
+# SHACL validation over this graph MUST conform.
 
 @prefix ex:    <https://example.org/shapes/> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
