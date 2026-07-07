@@ -3190,6 +3190,15 @@ gmeow:gmnTokenCostOne
     math:hasDimension math:dimensionless ;
     math:quantityValue 1 .
 
+gmeow:gmnTokenCostTwo
+    a math:Quantity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "two tokens"@x-gmeow-english ;
+    skos:definition "A measured token cost of two: the dimensionless math:Quantity carried by a GMN glyph the pinned codebook vocabulary fragments into two tokens rather than one. A two-token glyph still earns a slot in the shared inventory when no cheaper rendering of its distinction exists — the IPA primary-stress mark is the worked case — but its measured cost is recorded honestly as two, not flattened to the one-token band."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    math:hasDimension math:dimensionless ;
+    math:quantityValue 2 .
+
 # --- Shared denotation context ---------------------------------------------- #
 
 gmeow:gmnLangGlyphContext
@@ -3281,22 +3290,25 @@ gmeow:leipzigCitation
     gmeow:citedEntity gmeow:leipzigWork ;
     gmeow:citationIntent gmeow:intentConformsTo .
 
-# --- IPA phonological glyphs (the worked /kæt/ phone set) -------------------- #
-# Each segmental IPA symbol joins the shared GMN script codepoint-explicitly,
-# realizes an IPA-plane form, and denotes its lang:Phone. Its measured token
-# cost is one, so it earns a glyph slot.
+# --- IPA phonological glyphs (the worked /ˈkæt/ phone set) ------------------- #
+# Each IPA symbol joins the shared GMN script codepoint-explicitly, realizes an
+# IPA-plane form, and denotes its lang:Phone (or, for the primary-stress mark,
+# the prosodic suprasegmental it notates). The three segmental glyphs each
+# measure one token; the primary-stress mark `ˈ` measures two, and both costs
+# are recorded honestly off the crate-side measurement.
 
 gmeow:gmnScript lang:hasGrapheme
     gmeow:gmnGlyphIpaK ,
     gmeow:gmnGlyphIpaAe ,
     gmeow:gmnGlyphIpaT ,
+    gmeow:gmnGlyphIpaStress ,
     gmeow:gmnGlyphAsterisk .
 
 gmeow:phoneVoicelessVelarPlosive
     a lang:Phone ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "voiceless velar plosive [k]"@x-gmeow-english ;
-    skos:definition "The voiceless velar plosive phone, notated [k] in the IPA — the onset segment of the worked phonological form /kæt/."@x-gmeow-english ;
+    skos:definition "The voiceless velar plosive phone, notated [k] in the IPA — the onset segment of the worked phonological form /ˈkæt/."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:gmnGlyphIpaK
@@ -3332,7 +3344,7 @@ gmeow:phoneNearOpenFrontUnrounded
     a lang:Phone ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "near-open front unrounded vowel [æ]"@x-gmeow-english ;
-    skos:definition "The near-open front unrounded vowel phone, notated [æ] in the IPA — the nucleus segment of the worked phonological form /kæt/."@x-gmeow-english ;
+    skos:definition "The near-open front unrounded vowel phone, notated [æ] in the IPA — the nucleus segment of the worked phonological form /ˈkæt/."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:gmnGlyphIpaAe
@@ -3368,7 +3380,7 @@ gmeow:phoneVoicelessAlveolarPlosive
     a lang:Phone ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "voiceless alveolar plosive [t]"@x-gmeow-english ;
-    skos:definition "The voiceless alveolar plosive phone, notated [t] in the IPA — the coda segment of the worked phonological form /kæt/."@x-gmeow-english ;
+    skos:definition "The voiceless alveolar plosive phone, notated [t] in the IPA — the coda segment of the worked phonological form /ˈkæt/."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:gmnGlyphIpaT
@@ -3398,6 +3410,50 @@ gmeow:gmnDenIpaT
     lang:denotedForm gmeow:gmnFormIpaT ;
     lang:denotationKind lang:denotesEntity ;
     lang:denotationTarget gmeow:phoneVoicelessAlveolarPlosive ;
+    lang:denotationContext gmeow:gmnLangGlyphContext .
+
+# --- The IPA primary-stress mark (the prosodic head of /ˈkæt/) --------------- #
+# `ˈ` (U+02C8) is a suprasegmental: it marks the primary-stressed syllable of
+# the worked form /ˈkæt/, notated inline in the IPA phone stream ahead of the
+# stressed segment. It is NOT a segmental phone, so it denotes the prosodic
+# feature rather than a sound segment. The pinned codebook fragments it into
+# two tokens, so it carries the two-token cost — recorded honestly, not
+# flattened into the one-token band the segmental glyphs sit in.
+
+gmeow:suprasegmentalPrimaryStress
+    a lang:Phone ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "primary stress (suprasegmental)"@x-gmeow-english ;
+    skos:definition "The primary-stress suprasegmental: the prosodic prominence borne by the head syllable of a phonological word, notated by the IPA primary-stress mark placed before the stressed syllable — the prosodic feature marked in the worked form /ˈkæt/. Unlike a segmental phone it spans a syllable rather than a single sound segment, but IPA notates it inline in the phone stream, so it is carried here as a phone-stream constituent."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnGlyphIpaStress
+    a lang:Grapheme ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "IPA primary-stress mark"@x-gmeow-english ;
+    skos:definition "The IPA primary-stress mark `ˈ` (U+02C8) as a member of the shared GMN script repertoire: the codepoint-explicit rendering of the primary-stress suprasegmental, drawn from the IPA notation plane. The pinned codebook fragments it into two tokens, so its measured cost is two — dearer than the one-token segmental glyphs, but it earns its slot as the prosodic head marker of the worked form with no cheaper rendering of the distinction."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    lang:inScript gmeow:gmnScript ;
+    gmeow:gmnCodepoints "U+02C8" ;
+    gmeow:gmnGlyphTokenCost gmeow:gmnTokenCostTwo .
+
+gmeow:gmnFormIpaStress
+    a lang:WordForm ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the IPA primary-stress symbol form"@x-gmeow-english ;
+    skos:definition "The IPA-plane notational form the primary-stress mark `ˈ` realizes — the sign whose denotation binds it to the primary-stress suprasegmental."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    lang:inSignSystem gmeow:ipaChart .
+
+gmeow:gmnDenIpaStress
+    a lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of the IPA primary-stress mark"@x-gmeow-english ;
+    skos:definition "The reified meaning assignment binding the IPA `ˈ` form to the primary-stress suprasegmental it denotes — the canonical fact the writer-projected glyph flattens."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    lang:denotedForm gmeow:gmnFormIpaStress ;
+    lang:denotationKind lang:denotesEntity ;
+    lang:denotationTarget gmeow:suprasegmentalPrimaryStress ;
     lang:denotationContext gmeow:gmnLangGlyphContext .
 
 # --- The ungrammaticality operator glyph ------------------------------------ #
