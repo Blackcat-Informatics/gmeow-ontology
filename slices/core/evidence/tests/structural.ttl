@@ -10,27 +10,11 @@
 # Evidence is migrated: class stereotypes are logic:
 # (logic:AbstractIndividualType, logic:Category), not gufo:.
 #
-# RETAINED in pytest (not migratable here):
-#   test_self_private_evidence_triggers_warning -- run_shacl() call with
-#     warning-text assertions; ExampleConformance, not a TBox assertion.
-#   test_mixed_evidence_does_not_trigger_self_private_warning -- run_shacl()
-#     call; ExampleConformance, not a structural TBox assertion.
-#   test_notability_without_triad_triggers_violation -- run_shacl() call with
-#     error-text assertions; ExampleConformance, not a TBox assertion.
-#   test_notability_with_full_triad_passes -- run_shacl() call;
-#     ExampleConformance, not a structural TBox assertion.
-#   test_notability_false_does_not_require_triad -- run_shacl() call;
-#     ExampleConformance, not a structural TBox assertion.
-#   test_infoworld_citation_passes -- loads fixture + run_shacl(); multi-file
-#     dynamic ABox check, not a module-scoped TBox assertion.
-#   test_orgbook_citation_passes -- loads fixture + run_shacl(); multi-file
-#     dynamic ABox check, not a module-scoped TBox assertion.
-#   test_private_contract_triggers_self_private_warning -- loads fixture +
-#     run_shacl(); multi-file dynamic ABox check, not a TBox assertion.
-#   test_orgbook_notability_mutation_triggers_violation -- loads fixture,
-#     mutates graph, run_shacl(); dynamic ABox mutation, not a TBox assertion.
-#
-# See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest->DSL mapping.
+# The inline SHACL example-conformance cases and the fixture-based per-node
+# warning/violation + mutation checks now live natively in
+# crates/validate/tests/conformance_evidence.rs (Case rows for the five inline
+# graphs; GraphStore/report twins for the cogneto-cases.ttl InfoWorld/OrgBook/
+# Private citations and the OrgBook supportsNotability mutation).
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/evidence/tests/> .
