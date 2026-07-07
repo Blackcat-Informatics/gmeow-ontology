@@ -749,6 +749,90 @@ gmeow:glutWitnessOf
     gmeow:howToUse "Read the two gmeow:glutWitnessOf edges of a gmeow:CrossNodeGlutWitness off the reasoned graph to recover the conflicting findings; each points at a gmeow:Finding sharing the witness's anchor."@x-gmeow-english ;
     gmeow:useWhen "Use to link a cross-node glut witness to the two opposing-polarity findings it records, so a consumer can resolve the glut to its conflicting sides."@x-gmeow-english .
 
+# ════════════════════════════════════════════════════════════════════════════
+# The meta-reasoning helper vocabulary — the intermediate derived predicates and
+# marker classes the gmeow:DiagnosticMetaRule fold produces and consumes.
+#
+# Like the reasoner-derived meta-findings above, these are asserted ONLY by the
+# meta-reasoning fold (or, for gmeow:NonTrivialAnchor, by the diagnostics
+# projection), never authored by hand. gmeow:findingTraces is the transitive
+# closure of gmeow:findingAntecedent; gmeow:findingHasAntecedent (a self-edge on
+# its own relation, not rdf:type) marks the non-root findings the root-cause NAF
+# rule negates over; gmeow:NonTrivialAnchor
+# is the projection-set guard that keeps the cross-node-glut join off the shared
+# empty anchor of locationless findings; gmeow:crossNodeGlutWith is the derived
+# edge form of a cross-node glut (a fresh witness node is not expressible in the
+# reified-Horn chase, so the glut is carried as a directed edge from the
+# Supported-polarity finding to the Opposed-polarity one); gmeow:RootFinding
+# marks a finding that is some finding's derived root cause.
+# ════════════════════════════════════════════════════════════════════════════
+
+gmeow:findingTraces
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Finding ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "finding traces"@x-gmeow-english ;
+    rdfs:range gmeow:Finding ;
+    skos:definition "The transitive closure of gmeow:findingAntecedent — the reachability edge from a finding to every antecedent it derives from, directly or through a chain of intermediate witnesses up the provenance DAG. DERIVED by the diagnostic meta-reasoning fold (gmeow:DiagnosticMetaRule) as two positive-Horn rules (a base case over gmeow:findingAntecedent and a recursive step), never authored by hand; it is the intermediate predicate the root-cause rule reads to reach a finding's childless root antecedent. Distinct from gmeow:findingAntecedent (the single-step edge): findingTraces is its reflexive-free transitive closure."@x-gmeow-english ;
+    skos:example "ex:witnessF4 gmeow:findingTraces ex:rootF1 ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting it by hand (it is derived as the transitive closure of gmeow:findingAntecedent) and avoid conflating it with the single-step gmeow:findingAntecedent or with the terminal gmeow:findingRootCause; findingTraces reaches EVERY antecedent up the chain, not just the immediate one or the root."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Read it off the reasoned graph as 'every antecedent this finding derives from, transitively'; the root-cause meta-rule filters it to the antecedents that themselves have no antecedent."@x-gmeow-english ;
+    gmeow:useWhen "Use to carry the derived transitive reachability of a finding over the witness DAG — the intermediate the root-cause rule narrows to a childless root."@x-gmeow-english .
+
+gmeow:findingHasAntecedent
+    a owl:ObjectProperty ,
+        owl:ReflexiveProperty ;
+    rdfs:domain gmeow:Finding ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "finding has antecedent"@x-gmeow-english ;
+    rdfs:range gmeow:Finding ;
+    skos:definition "The derived positive marker that a finding carries at least one gmeow:findingAntecedent — a non-root finding up the witness DAG. DERIVED by a positive-Horn diagnostic meta-rule (gmeow:DiagnosticMetaRule) from the presence of any gmeow:findingAntecedent edge, carried as a self-edge (finding → itself) so it is a one-place membership marker on a dedicated relation, never authored by hand. It exists solely as the marker the stratified-negation root-cause rule negates over: a root antecedent is exactly a finding that is NOT a gmeow:findingHasAntecedent of itself, so 'has no antecedent of its own' becomes one closed-world negated body atom. It lives on its OWN relation (not rdf:type) precisely so the negation over it introduces no negative cycle through the type predicate the downstream marker rules derive."@x-gmeow-english ;
+    skos:example "ex:witnessF2 gmeow:findingHasAntecedent ex:witnessF2 ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting it by hand (it is derived from the presence of a gmeow:findingAntecedent edge) and avoid reading the self-edge as a real antecedent (that is gmeow:findingAntecedent); findingHasAntecedent is the internal one-place marker the root-cause rule negates to find childless roots."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Let the meta-rule derive the self-edge from any gmeow:findingAntecedent edge; the root-cause rule uses its ABSENCE (negation as failure) to identify a childless root antecedent, on a dedicated relation that keeps the program stratified."@x-gmeow-english ;
+    gmeow:useWhen "Use as the derived positive marker of a non-root finding, on its own relation, so 'is a root' can be expressed as its stratified negation without a type-predicate cycle."@x-gmeow-english .
+
+gmeow:NonTrivialAnchor
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "Non-Trivial Anchor"@x-gmeow-english ;
+    skos:definition "The marker class of a gmeow:findingAnchor that carries a genuine source position — a path or focus — as opposed to the shared default anchor that locationless findings collapse onto. Set by the diagnostics PROJECTION on exactly the anchors computed from a real (location, term role, focus), never on the empty/default anchor. It is the guard the cross-node-glut meta-rule joins on: without it, every locationless finding would share one constant anchor and the glut rule would false-join unrelated opposing-polarity findings. The projection asserts it, the rule requires it, so the glut join fires only at anchors that name a real place."@x-gmeow-english ;
+    skos:example "<https://blackcatinformatics.ca/gmeow/anchor/9f2c> a gmeow:NonTrivialAnchor ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting it on the empty/default anchor (that would re-open the false-join the guard exists to close) and avoid reading it as a property of the finding; it types the ANCHOR node, marking that the anchor names a real source position."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Have the projection type each gmeow:findingAnchor computed from a real path or focus as a gmeow:NonTrivialAnchor, and leave the default anchor untyped; the cross-node-glut rule requires the type so it never fires on the shared empty anchor."@x-gmeow-english ;
+    gmeow:useWhen "Use to mark a finding anchor that names a real source position, gating the cross-node-glut join off the shared default anchor of locationless findings."@x-gmeow-english .
+
+gmeow:crossNodeGlutWith
+    a owl:ObjectProperty ,
+        owl:SymmetricProperty ;
+    rdfs:domain gmeow:Finding ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "cross-node glut with"@x-gmeow-english ;
+    rdfs:range gmeow:Finding ;
+    skos:definition "The derived edge form of a cross-node glut — links two findings at ONE non-trivial gmeow:findingAnchor whose logic:FindingCategory polarities (gmeow:categoryPolarity) OPPOSE (a Supported/Opposed Belnap clash), the coherence conflict the same-fingerprint merge cannot detect because it keys on the code and the two findings carry different codes. DERIVED by a positive-Horn diagnostic meta-rule (gmeow:DiagnosticMetaRule) from the shared anchor and opposing polarities, never authored by hand. It is the chase-expressible projection of the gmeow:CrossNodeGlutWitness meta-finding: because the reified-Horn chase cannot mint a fresh witness node, the glut is carried as this directed edge from the Supported-polarity finding toward the Opposed-polarity one; a consumer that needs a reified witness materializes a gmeow:CrossNodeGlutWitness from the edge downstream. The glut it records is an informational cross-code coherence conflict, never a gate failure."@x-gmeow-english ;
+    skos:example "ex:f1 gmeow:crossNodeGlutWith ex:f2 ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting it by hand (it is derived from opposing gmeow:categoryPolarity at one gmeow:NonTrivialAnchor) and avoid reading it as a gate failure; it is the edge form of an informational cross-code glut the same-fingerprint merge structurally misses."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Read it off the reasoned graph as 'these two findings at one anchor disagree in coherence polarity'; it is symmetric, and a projection may reify it into a gmeow:CrossNodeGlutWitness with two gmeow:glutWitnessOf edges for consumers that want a witness node."@x-gmeow-english ;
+    gmeow:useWhen "Use as the reasoner-derived, chase-expressible record of a cross-node glut — two opposing-polarity findings at one non-trivial anchor the same-fingerprint merge cannot see across codes."@x-gmeow-english .
+
+gmeow:RootFinding
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "Root Finding"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:Finding ;
+    skos:definition "The derived class of a finding that is the gmeow:findingRootCause of at least one other finding — a childless root antecedent that some downstream witness derives from. DERIVED by a positive-Horn diagnostic meta-rule (gmeow:DiagnosticMetaRule) from the range of gmeow:findingRootCause, never authored by hand. It surfaces 'this finding is the root of a witness chain' as a queryable one-place marker so a consumer can list the root causes directly rather than collecting the range of gmeow:findingRootCause; it is stratified above the root-cause derivation and fires through the same class-based meta-rule discovery, demonstrating that a new meta-finding is added by authoring a tagged rule with no engine change."@x-gmeow-english ;
+    skos:example "ex:rootF1 a gmeow:RootFinding ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid authoring it by hand (it is derived from being some finding's gmeow:findingRootCause) and avoid reading it as a severity or a defect kind; it marks a finding's structural position as a witnessed root, nothing more."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Read it off the reasoned graph to list the root causes directly; the meta-rule derives it from the object position of gmeow:findingRootCause."@x-gmeow-english ;
+    gmeow:useWhen "Use as the derived one-place marker of a witnessed root antecedent, the queryable head of the root-cause grouping."@x-gmeow-english .
+
 <https://blackcatinformatics.ca/gmeow/slices/diagnostics>
     a owl:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;

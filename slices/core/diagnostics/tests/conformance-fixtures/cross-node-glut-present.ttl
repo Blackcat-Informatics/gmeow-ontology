@@ -1,0 +1,29 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Firing fixture for the cross-node-glut meta-rule. Two DIFFERENT-code findings at
+# ONE non-trivial gmeow:findingAnchor whose logic:FindingCategory polarities OPPOSE:
+# ex:glutSupported carries logic:FindingContradictionWitness (gmeow:categoryPolarity
+# logic:InfoSupported) and ex:glutOpposed carries logic:FindingPermittedEpistemicConflict
+# (gmeow:categoryPolarity logic:InfoOpposed). The anchor is typed gmeow:NonTrivialAnchor
+# (the projection's guard for a real source position), so the rule must derive
+# gmeow:crossNodeGlutWith between them — the Supported/Opposed coherence clash the
+# same-fingerprint merge cannot see across codes. The gmeow:categoryPolarity wiring
+# is read from diagnostics/module.ttl by the harness. Consumed ONLY by
+# crates/conformance/tests/diagnostics_meta_findings.rs; lives under tests/ so the
+# global make validate gate never loads it as data.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/diagnostics/tests/> .
+
+ex:glutAnchor a gmeow:NonTrivialAnchor .
+
+ex:glutSupported
+    a gmeow:Finding ;
+    gmeow:findingAnchor ex:glutAnchor ;
+    gmeow:findingCategory logic:FindingContradictionWitness .
+
+ex:glutOpposed
+    a gmeow:Finding ;
+    gmeow:findingAnchor ex:glutAnchor ;
+    gmeow:findingCategory logic:FindingPermittedEpistemicConflict .
