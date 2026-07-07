@@ -487,12 +487,18 @@ pub fn describe(query: &str, gts_bytes: &[u8], lang: Option<&str>) -> (String, i
         );
     };
 
-    // The tag map + available-language set drive language resolution. The tag map
-    // is read from the default-graph N-Triples projection of the bundle (the
-    // canonical `load_tag_map` path); the available set is the tags that actually
-    // carry literals in the snapshot.
+    // The tag map + available-language set drive language resolution. The carrier
+    // internal→BCP-47 map is a BUNDLE-WIDE fact: the generated `gmeow:bcp47Tag`
+    // projection rides the named `lang-projection-corpus` graph, so the map is read
+    // from a FLATTENED (all-graphs-unioned) projection of the bundle — the
+    // default-graph alone omits the corpus, leaving the fr/zh carriers invisible.
+    // This mirrors the consumer bin's `bundle_tag_map`.
+    let flat = match purrdf::gts::flattened_dataset_from_bytes(gts_bytes) {
+        Ok(ds) => ds,
+        Err(e) => return (format!("cannot fold bundle for language map: {e}"), 1),
+    };
     let nt = match purrdf::serialize_dataset(
-        &graph.ds,
+        &flat,
         "application/n-triples",
         purrdf::SerializeGraph::DefaultGraph,
     ) {
@@ -503,7 +509,17 @@ pub fn describe(query: &str, gts_bytes: &[u8], lang: Option<&str>) -> (String, i
         Ok(map) => map,
         Err(e) => return (format!("cannot build language tag map: {e}"), 1),
     };
-    let available = available_languages(&graph.ds, &tag_map);
+    // The requestable set is the UNION of (a) the known carrier public tags — the
+    // framework's shippable translation targets (en/fr/zh), always requestable so a
+    // carrier with no direct content still resolves and falls back to the English
+    // carrier — and (b) the public tags that actually carry a literal in this
+    // snapshot. Validating against the has-content set alone wrongly rejects a known
+    // carrier (fr/zh) whose content is English-only.
+    let mut available: BTreeSet<String> = available_languages(&graph.ds, &tag_map)
+        .into_iter()
+        .collect();
+    available.extend(tag_map.values().map(|v| v.to_ascii_lowercase()));
+    let available: Vec<String> = available.into_iter().collect();
 
     let selector = match resolve_lang_input(lang, &tag_map, Some(&available)) {
         Ok(selector) => selector,
@@ -566,27 +582,29 @@ mod tests {
             "<{term}> <{RDFS_IS_DEFINED_BY}> <{NAMESPACE}slices/lifecycle> .\n"
         ));
 
-        // Language individuals seed the tag map. All three are always present; the
-        // English + French individuals always carry a language-tagged label (so en
+        // Carrier varieties seed the tag map. All three are always present; the
+        // English + French carriers always carry a language-tagged label (so en
         // and fr are "available" — carry literals — regardless of whether the TERM
-        // has that content), while the Mandarin individual's tagged label is gated
+        // has that content), while the Mandarin carrier's tagged label is gated
         // on `include_zh` (so zh is available only when Mandarin content exists).
-        // This mirrors the Python `_multilingual_gts` fixture exactly.
+        // Each internal x-gmeow-* tag rides lang:carrierTag and its generated
+        // (folded) external tag rides gmeow:bcp47Tag on a lang:LanguageVariety —
+        // the post-graft shape the tag map is built from.
+        const LANG_VARIETY: &str = "https://blackcatinformatics.ca/lang/LanguageVariety";
+        const CARRIER_TAG: &str = "https://blackcatinformatics.ca/lang/carrierTag";
         for (local, internal, bcp, label) in [
-            ("langEnglish", "x-gmeow-english", "en", Some("English")),
-            ("langFrench", "x-gmeow-french", "fr", Some("français")),
+            ("gmeowEnglish", "x-gmeow-english", "en", Some("English")),
+            ("gmeowFrench", "x-gmeow-french", "fr", Some("français")),
             (
-                "langMandarin",
+                "gmeowMandarin",
                 "x-gmeow-mandarin",
                 "zh",
                 if include_zh { Some("中文") } else { None },
             ),
         ] {
-            let s = format!("{NAMESPACE}{local}");
-            nt.push_str(&format!("<{s}> <{RDF_TYPE}> <{NAMESPACE}Language> .\n"));
-            nt.push_str(&format!(
-                "<{s}> <{NAMESPACE}languageTag> \"{internal}\" .\n"
-            ));
+            let s = format!("https://blackcatinformatics.ca/lang/{local}");
+            nt.push_str(&format!("<{s}> <{RDF_TYPE}> <{LANG_VARIETY}> .\n"));
+            nt.push_str(&format!("<{s}> <{CARRIER_TAG}> \"{internal}\" .\n"));
             nt.push_str(&format!("<{s}> <{NAMESPACE}bcp47Tag> \"{bcp}\" .\n"));
             if let Some(label) = label {
                 nt.push_str(&format!("<{s}> <{RDFS_LABEL}> \"{label}\"@{internal} .\n"));
@@ -639,8 +657,11 @@ mod tests {
     }
 
     #[test]
-    fn describe_unknown_language_is_content_aware_and_nonzero() {
-        // French present, Mandarin literals absent → available is only en, fr.
+    fn describe_unknown_language_nonzero_and_lists_carriers() {
+        // Mandarin literals absent, but zh is a framework CARRIER (a shippable
+        // translation target), so it stays requestable — a request falls back to
+        // English rather than hard-failing, and every carrier is listed. A
+        // truly-unknown tag still hard-fails.
         let gts = multilingual_gts(true, false);
         let (text, code) = describe("SampleTerm", &gts, Some("notatag"));
         assert_ne!(code, 0, "{text}");
@@ -648,8 +669,17 @@ mod tests {
             text.to_lowercase().contains("unknown language tag"),
             "{text}"
         );
-        assert!(text.contains("Available languages: en, fr"), "{text}");
-        assert!(!text.contains("zh"), "{text}");
+        // All three carriers are always requestable (en first, then lexicographic).
+        assert!(text.contains("Available languages: en, fr, zh"), "{text}");
+
+        // The contentless zh carrier resolves with the English fallback marker,
+        // never an "unknown language" hard-fail.
+        let (zh_text, zh_code) = describe("SampleTerm", &gts, Some("zh"));
+        assert_eq!(
+            zh_code, 0,
+            "a contentless carrier must fall back: {zh_text}"
+        );
+        assert!(zh_text.contains("fallback: en"), "{zh_text}");
     }
 
     #[test]

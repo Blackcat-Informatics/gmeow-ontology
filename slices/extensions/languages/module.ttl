@@ -120,44 +120,6 @@ gmeow:LanguageVersion
     skos:definition "A concrete, dated revision of a language that is itself a fully usable language (Ithkuil 1993 / 2011 / New Ithkuil; an AI language v1 / v2). Subclass of gmeow:Language so a version bears its own scripts, names and status; gmeow:versionOf links it to the lineage language, gmeow:supersedes orders versions, and gmeow:wasDerivedFrom records derivation. Forward-looking for rapidly-versioned AI languages."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
-gmeow:ScriptRole
-    a logic:AbstractIndividualType ,
-        owl:Class ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
-    rdfs:label "Script Role"@x-gmeow-english ;
-    rdfs:subClassOf logic:QualityValue ;
-    skos:definition "The role a writing system plays within a language's mixed orthography (primary, logographic content, syllabic grammar, loanword, transliteration, liturgical, historical, decorative). A value carried by gmeow:scriptRole."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox .
-
-gmeow:TextDirection
-    a logic:AbstractIndividualType ,
-        owl:Class ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
-    rdfs:label "Text Direction"@x-gmeow-english ;
-    rdfs:subClassOf logic:QualityValue ;
-    skos:definition "The writing direction of a writing system (ltr, rtl, vertical, boustrophedon, non-linear, contextual). A value carried by gmeow:textDirection."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox .
-
-gmeow:WritingSystemType
-    a logic:AbstractIndividualType ,
-        owl:Class ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
-    rdfs:label "Writing System Type"@x-gmeow-english ;
-    rdfs:subClassOf logic:QualityValue ;
-    skos:definition "The structural kind of a writing system (alphabet, abjad, abugida, syllabary, logographic, featural, ideographic, pictographic, non-linear, mixed). A value carried by gmeow:writingSystemType."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox .
-
-gmeow:WritingSystemUsage
-    a logic:Kind ,
-        owl:Class ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
-    rdfs:label "Writing System Usage"@x-gmeow-english ;
-    logic:mediates gmeow:usageLanguage ,
-        gmeow:usageWritingSystem ;
-    rdfs:subClassOf logic:Relator ;
-    skos:definition "A reified, role- and period-scoped use of a writing system by a language — the gufo:Relator binding {language} × {writing system} × {role} × {period}, mirroring names' gmeow:NameUsage. Lets Japanese co-mingle Han (logographic content), Hiragana (syllabic grammar), Katakana (loanwords) and Latin (transliteration) co-equally, and models script changes over time (Turkish Arabic→Latin, 1928) via the usage's validity. Mint one usage per (language, writing system, role) tuple."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox .
-
 gmeow:affectedLanguage
     a owl:ObjectProperty ;
     rdfs:domain gmeow:LanguageChangeEvent ;
@@ -347,56 +309,6 @@ gmeow:designGoal
     rdfs:range rdfs:Literal ;
     skos:definition "The stated design goal/purpose of an engineered or constructed language (Lojban's syntactic unambiguity, Ithkuil's cognitive precision, an IAL's ease of learning). A literal; non-functional."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
-
-gmeow:directionBoustrophedon
-    a gmeow:TextDirection ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
-    rdfs:label "boustrophedon"@x-gmeow-english ;
-    skos:definition "The boustrophedon text direction — a convention for ordering glyphs when rendering a writing system."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxABox .
-
-gmeow:directionContextual
-    a gmeow:TextDirection ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
-    rdfs:label "contextual / bidirectional"@x-gmeow-english ;
-    skos:definition "The contextual text direction — a convention for ordering glyphs when rendering a writing system."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxABox ,
-        gmeow:boxCBox .
-
-gmeow:directionLtr
-    a gmeow:TextDirection ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
-    rdfs:label "left-to-right"@x-gmeow-english ;
-    skos:definition "The ltr text direction — a convention for ordering glyphs when rendering a writing system."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxABox .
-
-gmeow:directionNonLinear
-    a gmeow:TextDirection ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
-    rdfs:label "non-linear"@x-gmeow-english ;
-    skos:definition "The non linear text direction — a convention for ordering glyphs when rendering a writing system."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxABox .
-
-gmeow:directionRtl
-    a gmeow:TextDirection ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
-    rdfs:label "right-to-left"@x-gmeow-english ;
-    skos:definition "The rtl text direction — a convention for ordering glyphs when rendering a writing system."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxABox .
-
-gmeow:directionVerticalLtr
-    a gmeow:TextDirection ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
-    rdfs:label "vertical, columns left-to-right"@x-gmeow-english ;
-    skos:definition "The vertical ltr text direction — a convention for ordering glyphs when rendering a writing system."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxABox .
-
-gmeow:directionVerticalRtl
-    a gmeow:TextDirection ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
-    rdfs:label "vertical, columns right-to-left"@x-gmeow-english ;
-    skos:definition "The vertical rtl text direction — a convention for ordering glyphs when rendering a writing system."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:kindCreole
     a gmeow:LanguageVarietyKind ;
@@ -973,91 +885,6 @@ gmeow:schemeWadeGiles
     skos:definition "The wade giles transliteration scheme — a rule set for converting text from one writing system into another while preserving phonemic or orthographic structure."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
-gmeow:scriptCode
-    a owl:DatatypeProperty ;
-    rdfs:domain gmeow:WritingSystem ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
-    rdfs:label "script code"@x-gmeow-english ;
-    rdfs:range rdfs:Literal ;
-    skos:definition "The ISO 15924 script code of a writing system (\"Latn\", \"Hani\", \"Hira\", \"Kana\", \"Arab\", \"Brai\") when one exists, else a bespoke identifier for a conlang/AI script with no registered code. The bridge for names' gmeow:nameScript literals to resolve to a first-class WritingSystem. Non-functional."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
-
-gmeow:scriptRole
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
-    rdfs:domain gmeow:WritingSystemUsage ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
-    rdfs:label "script role"@x-gmeow-english ;
-    rdfs:range gmeow:ScriptRole ;
-    skos:definition "The functional role a writing system plays for a language in a usage (a gmeow:ScriptRole value). Functional: one role per usage — a script playing two roles is two usages."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
-
-gmeow:scriptRoleDecorative
-    a gmeow:ScriptRole ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
-    rdfs:label "decorative"@x-gmeow-english ;
-    skos:definition "The decorative script role — a function a writing system performs for a particular lexical item or passage."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxABox .
-
-gmeow:scriptRoleHistorical
-    a gmeow:ScriptRole ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
-    rdfs:label "historical / superseded"@x-gmeow-english ;
-    skos:definition "The historical script role — a function a writing system performs for a particular lexical item or passage."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxABox .
-
-gmeow:scriptRoleLiturgical
-    a gmeow:ScriptRole ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
-    rdfs:label "liturgical"@x-gmeow-english ;
-    skos:definition "The liturgical script role — a function a writing system performs for a particular lexical item or passage."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxABox .
-
-gmeow:scriptRoleLoanword
-    a gmeow:ScriptRole ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
-    rdfs:label "loanword / foreign term"@x-gmeow-english ;
-    skos:definition "The loanword script role — a function a writing system performs for a particular lexical item or passage."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxABox .
-
-gmeow:scriptRoleLogographicContent
-    a gmeow:ScriptRole ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
-    rdfs:label "logographic content"@x-gmeow-english ;
-    skos:definition "The logographic content script role — a function a writing system performs for a particular lexical item or passage."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxABox .
-
-gmeow:scriptRolePrimary
-    a gmeow:ScriptRole ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
-    rdfs:label "primary"@x-gmeow-english ;
-    skos:definition "The primary script role — a function a writing system performs for a particular lexical item or passage."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxABox ;
-    gmeow:namingNote "Names a linguistic reality — the script carrying a passage's main text, one co-equal value among seven script roles — not a selector privileging one co-equal claim." .
-
-gmeow:scriptRoleSyllabicGrammar
-    a gmeow:ScriptRole ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
-    rdfs:label "syllabic grammar / inflection"@x-gmeow-english ;
-    skos:definition "The syllabic grammar script role — a function a writing system performs for a particular lexical item or passage."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxABox .
-
-gmeow:scriptRoleTransliteration
-    a gmeow:ScriptRole ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
-    rdfs:label "transliteration / romanization"@x-gmeow-english ;
-    skos:definition "The transliteration script role — a function a writing system performs for a particular lexical item or passage."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxABox .
-
-gmeow:scriptUsageInterval
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:WritingSystemUsage ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
-    rdfs:label "script usage interval"@x-gmeow-english ;
-    rdfs:range gmeow:TimeInterval ;
-    skos:definition "The interval over which a writing-system-usage held — e.g. Turkish-in-Arabic-script until 1928. A relator carries its period this way (matching names' NameUsage); lighter cases use gmeow:validFrom/validUntil on the statement. (Distinct from the names module's gmeow:usageInterval, which scopes a NameUsage.)"@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
-
 gmeow:stateAuthority
     a owl:ObjectProperty ;
     rdfs:domain gmeow:LanguageState ;
@@ -1153,44 +980,6 @@ gmeow:statusRevived
     skos:definition "The revived language status — a vitality or registration stage of a language or constructed language project."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
-gmeow:textDirection
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:WritingSystem ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
-    rdfs:label "text direction"@x-gmeow-english ;
-    rdfs:range gmeow:TextDirection ;
-    skos:definition "The writing direction(s) of a writing system (gmeow:TextDirection values). Non-functional — Japanese is both vertical-rtl and ltr."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
-
-gmeow:usageLanguage
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
-    rdfs:domain gmeow:WritingSystemUsage ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
-    rdfs:label "usage language"@x-gmeow-english ;
-    rdfs:range gmeow:Language ;
-    skos:definition "The language that uses the writing system in a writing-system-usage. Functional — constitutive of the usage (a usage binds exactly one language)."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
-
-gmeow:usageWritingSystem
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
-    rdfs:domain gmeow:WritingSystemUsage ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
-    rdfs:label "usage writing system"@x-gmeow-english ;
-    rdfs:range gmeow:WritingSystem ;
-    skos:definition "The writing system used by the language in a writing-system-usage. Functional — constitutive of the usage."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
-
-gmeow:usesWritingSystem
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:Language ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
-    rdfs:label "uses writing system"@x-gmeow-english ;
-    rdfs:range gmeow:WritingSystem ;
-    skos:definition "Relates a language to a writing system it is written in — the direct relation. Non-functional and CO-EQUAL: Japanese uses Han, Hiragana, Katakana and Latin simultaneously, none primary. When role or period matter, reify the binding as gmeow:WritingSystemUsage."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
-
 gmeow:varietyKind
     a owl:ObjectProperty ;
     rdfs:domain gmeow:LanguageVariety ;
@@ -1218,89 +1007,10 @@ gmeow:versionLabel
     skos:definition "The version designation of an entity as a literal (\"1993\", \"2011\", \"v2.1.0-beta\", \"3rd Edition\"). Domain is gmeow:Entity so any versioned artifact — a language, a software release, a book edition, a dataset, an email variant — may carry its designation. Non-functional."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
-gmeow:writingSystemType
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:WritingSystem ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
-    rdfs:label "writing system type"@x-gmeow-english ;
-    rdfs:range gmeow:WritingSystemType ;
-    skos:definition "The structural kind(s) of a writing system (gmeow:WritingSystemType values). Non-functional — a script may be classified plurally."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
-
-gmeow:wsTypeAbjad
-    a gmeow:WritingSystemType ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
-    rdfs:label "abjad"@x-gmeow-english ;
-    skos:definition "The abjad writing system type — a classification of a script by how its symbols encode language units."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxABox .
-
-gmeow:wsTypeAbugida
-    a gmeow:WritingSystemType ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
-    rdfs:label "abugida"@x-gmeow-english ;
-    skos:definition "The abugida writing system type — a classification of a script by how its symbols encode language units."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxABox .
-
-gmeow:wsTypeAlphabet
-    a gmeow:WritingSystemType ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
-    rdfs:label "alphabet"@x-gmeow-english ;
-    skos:definition "The alphabet writing system type — a classification of a script by how its symbols encode language units."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxABox .
-
-gmeow:wsTypeFeatural
-    a gmeow:WritingSystemType ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
-    rdfs:label "featural"@x-gmeow-english ;
-    skos:definition "The featural writing system type — a classification of a script by how its symbols encode language units."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxABox .
-
-gmeow:wsTypeIdeographic
-    a gmeow:WritingSystemType ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
-    rdfs:label "ideographic"@x-gmeow-english ;
-    skos:definition "The ideographic writing system type — a classification of a script by how its symbols encode language units."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxABox .
-
-gmeow:wsTypeLogographic
-    a gmeow:WritingSystemType ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
-    rdfs:label "logographic"@x-gmeow-english ;
-    skos:definition "The logographic writing system type — a classification of a script by how its symbols encode language units."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxABox .
-
-gmeow:wsTypeMixed
-    a gmeow:WritingSystemType ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
-    rdfs:label "mixed"@x-gmeow-english ;
-    skos:definition "The mixed writing system type — a classification of a script by how its symbols encode language units."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxABox .
-
-gmeow:wsTypeNonLinear
-    a gmeow:WritingSystemType ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
-    rdfs:label "non-linear (e.g. Ithkuil)"@x-gmeow-english ;
-    skos:definition "The non linear writing system type — a classification of a script by how its symbols encode language units."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxABox .
-
-gmeow:wsTypePictographic
-    a gmeow:WritingSystemType ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
-    rdfs:label "pictographic"@x-gmeow-english ;
-    skos:definition "The pictographic writing system type — a classification of a script by how its symbols encode language units."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxABox .
-
-gmeow:wsTypeSyllabary
-    a gmeow:WritingSystemType ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
-    rdfs:label "syllabary"@x-gmeow-english ;
-    skos:definition "The syllabary writing system type — a classification of a script by how its symbols encode language units."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxABox .
-
 <https://blackcatinformatics.ca/gmeow/slices/languages>
     a owl:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
-    rdfs:comment "Languages and writing systems as first-class, registry-INDEPENDENT information objects (the BCP-47 / ISO 639 / Glottolog / Wikidata / schema.org superset layer). A gmeow:Language has a self-minted IRI; codes (gmeow:languageCode, gmeow:authorityLink, skos:exactMatch) are OPTIONAL alignments, never identity — so a code-less conlang (Ithkuil), a fast-versioning AI-minted interlingua, an under-coded sign/minority language, and a programming language are all co-equal first-class languages. Covers natural, constructed (auxiliary/engineered/artistic/ritual), AI-generated, historical/reconstructed, sign/whistled/tactile, and formal/programming/markup languages. Writing systems are first-class and a language CO-MINGLES many co-equal scripts (Japanese = kanji/Hani + hiragana/Hira + katakana/Kana + rōmaji/Latn), bound by the reified gmeow:WritingSystemUsage relator (mirroring names' gmeow:NameUsage), which also models script changes over time (Turkish Arabic→Latin, 1928). Versions form a first-class lineage (gmeow:versionOf / supersedes). Endonym/exonym names reuse the names module's gmeow:Appellation; transliteration schemes that produce a gmeow:romanization are named by gmeow:transliterationScheme and catalogued as FnO functions in the projection layer."@x-gmeow-english ;
+    rdfs:comment "Languages and writing systems as first-class, registry-INDEPENDENT information objects (the BCP-47 / ISO 639 / Glottolog / Wikidata / schema.org superset layer). A gmeow:Language has a self-minted IRI; codes (gmeow:languageCode, gmeow:authorityLink, skos:exactMatch) are OPTIONAL alignments, never identity — so a code-less conlang (Ithkuil), a fast-versioning AI-minted interlingua, an under-coded sign/minority language, and a programming language are all co-equal first-class languages. Covers natural, constructed (auxiliary/engineered/artistic/ritual), AI-generated, historical/reconstructed, sign/whistled/tactile, and formal/programming/markup languages. Writing systems are grounded in the lang: layer: a script is a lang:Script (character repertoire) and the convention binding a language to a script is a lang:Orthography (lang:orthographyFor + lang:usesScript), so a language CO-MINGLES many co-equal scripts (Japanese = kanji/Hani + hiragana/Hira + katakana/Kana + rōmaji/Latn) as several co-equal orthographies. Versions form a first-class lineage (gmeow:versionOf / supersedes). Endonym/exonym names reuse the names module's gmeow:Appellation; transliteration schemes that produce a gmeow:romanization are named by gmeow:transliterationScheme and catalogued as FnO functions in the projection layer."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
     rdfs:label "GMEOW Languages Module"@x-gmeow-english ;
     skos:definition "The GMEOW Languages Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;

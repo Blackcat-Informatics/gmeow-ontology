@@ -186,3 +186,31 @@ exa:distA5 a logic:Formula ; logic:relation exa:addRel ;
 
 exa:distCons a logic:Formula ; logic:relation exa:eqRel ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "l" ] , [ logic:termIndex 1 ; logic:termVariable "r" ] .
+
+# ===========================================================================
+# LIVE-ENTAILMENT WITNESS EDB — the associativity law as an evaluable
+# consumer in the native competency lane (gmeow:reasoningLogic).
+# ===========================================================================
+# A concrete associative operation table where (a·b)·c and a·(b·c) both reach the
+# SAME element `assocV`. The ternary op(x,y,z) atoms are authored PRE-REIFIED
+# (logic:instanceOf exa:opRel + logic:naryArg0/1/2), the exact fixed-arity n-ary
+# encoding the native logic: reasoner evaluates. Firing associativity over this
+# table DERIVES the binary consequent eq(assocV, assocV) — a triple present in the
+# reasoned closure ONLY because the law fired (nothing asserts it). The
+# structure-operation-axioms competency question queries exactly that derived tuple.
+
+exa:assocWa   rdfs:label "associativity witness element a"@x-gmeow-english .
+exa:assocWb   rdfs:label "associativity witness element b"@x-gmeow-english .
+exa:assocWc   rdfs:label "associativity witness element c"@x-gmeow-english .
+exa:assocWab  rdfs:label "a·b"@x-gmeow-english .
+exa:assocWbc  rdfs:label "b·c"@x-gmeow-english .
+exa:assocWv   rdfs:label "(a·b)·c = a·(b·c) = v"@x-gmeow-english .
+
+exa:assocOp1 logic:instanceOf exa:opRel ;
+    logic:naryArg0 exa:assocWa ; logic:naryArg1 exa:assocWb ; logic:naryArg2 exa:assocWab .   # a·b = ab
+exa:assocOp2 logic:instanceOf exa:opRel ;
+    logic:naryArg0 exa:assocWab ; logic:naryArg1 exa:assocWc ; logic:naryArg2 exa:assocWv .   # (a·b)·c = v
+exa:assocOp3 logic:instanceOf exa:opRel ;
+    logic:naryArg0 exa:assocWb ; logic:naryArg1 exa:assocWc ; logic:naryArg2 exa:assocWbc .   # b·c = bc
+exa:assocOp4 logic:instanceOf exa:opRel ;
+    logic:naryArg0 exa:assocWa ; logic:naryArg1 exa:assocWbc ; logic:naryArg2 exa:assocWv .   # a·(b·c) = v

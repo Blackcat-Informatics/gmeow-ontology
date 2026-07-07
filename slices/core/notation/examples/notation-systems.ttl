@@ -5,30 +5,89 @@
 # gmeow:NotationSystem is classified by an open gmeow:notationSystemKind
 # (musical / mathematical / transcription / encoding / stenographic …), so staff
 # notation, IPA, Morse and a math syntax are the SAME kind of object — a symbolic
-# system for representing something. A transcription notation declares which
+# system for representing something. Under the lang: graft (Principle 19) every
+# notation system is a lang:SignSystem of lang:notationalKind, so each carries
+# lang:signSystemKind lang:notationalKind and a lang:modality alongside its
+# domain gmeow:notationSystemKind. A transcription notation declares which
 # language it transcribes (gmeow:notationSystemFor); a script is itself a notation
-# system, reached from the writing system via gmeow:writingSystemAsNotation.
+# system, reached from the script (lang:Script) via gmeow:writingSystemAsNotation.
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix lang:   <https://blackcatinformatics.ca/lang/> .
+@prefix logic:  <https://blackcatinformatics.ca/logic/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/notation/> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 
 # --- Western staff notation: a musical symbolic system, not tied to a language.
+#     A lang:SignSystem of notational kind in the written modality; its domain
+#     axis (musical) rides the orthogonal gmeow:notationSystemKind.
 ex:staffNotation a gmeow:NotationSystem ;
     rdfs:label              "Western staff notation"@x-gmeow-english ;
+    lang:signSystemKind     lang:notationalKind ;
+    lang:modality           lang:writtenModality ;
     gmeow:notationSystemKind gmeow:symbolicKindMusical .
 
 # --- The IPA: a transcription system FOR a language (here English).
 ex:ipa a gmeow:NotationSystem ;
     rdfs:label               "International Phonetic Alphabet"@x-gmeow-english ;
-    gmeow:notationSystemFor  gmeow:langEnglish ;
+    lang:signSystemKind      lang:notationalKind ;
+    lang:modality            lang:writtenModality ;
+    gmeow:notationSystemFor  lang:english ;
     gmeow:notationSystemKind gmeow:symbolicKindTranscription .
 
 # --- A script IS a notation system: the Latin writing system, viewed as the
 #     encoding notation it provides.
-ex:latin a gmeow:WritingSystem ;
+ex:latin a lang:Script ;
     rdfs:label                  "Latin script"@x-gmeow-english ;
     gmeow:writingSystemAsNotation ex:latinNotation .
 
 ex:latinNotation a gmeow:NotationSystem ;
     rdfs:label               "Latin-script encoding"@x-gmeow-english ;
+    lang:signSystemKind      lang:notationalKind ;
+    lang:modality            lang:writtenModality ;
     gmeow:notationSystemKind gmeow:symbolicKindEncoding .
+
+# --- A projection profile realized as a lang:Rendering ------------------------
+#     The rendering graft (Principle 19): a gmeow:NotationProjectionProfile is
+#     the rendering CONVENTION and the fine-grained loss ledger; a concrete
+#     render of canonical content through it is a lang:Rendering of
+#     lang:renderingKind lang:renderingNotation, pointing at the profile through
+#     lang:renderingConvention and carrying a logic:PreservationKind judgment
+#     through lang:renderingPreservation. lang:Rendering is reused, never forked,
+#     and no notation-local preservation grade is minted.
+
+# The profile: the per-notation-system ledger. It declares the pitch parameter
+# it carries losslessly and the microtiming it drops, and binds the FnO render.
+ex:staffProfile a gmeow:NotationProjectionProfile ;
+    rdfs:label                  "Western-staff projection profile"@x-gmeow-english ;
+    gmeow:notationSystemOf      ex:staffNotation ;
+    gmeow:representableParameter ex:pitch ;
+    gmeow:declaredLoss          ex:lossMicrotiming ;
+    gmeow:projectionFunction    ex:renderStaff ;
+    gmeow:projectableExpression ex:melodyContent .
+
+ex:lossMicrotiming a gmeow:ProjectionLoss ;
+    rdfs:label              "microtiming loss"@x-gmeow-english ;
+    gmeow:accountsForParameter ex:microtiming .
+
+ex:renderStaff a gmeow:ProjectionFunction ;
+    rdfs:label "render canonical melody as staff notation"@x-gmeow-english .
+
+# The canonical content and the produced surface — distinct nodes, so the
+# crossing is real (never a self-identical rendering).
+ex:melodyContent a lang:Form ;
+    rdfs:label "canonical melodic content"@x-gmeow-english .
+
+ex:staffSurface a lang:SurfaceForm ;
+    rdfs:label "staff-notation surface"@x-gmeow-english .
+
+# The reified rendering: content is the melody, kind is notation, the convention
+# is the projection profile, and the crossing carries a sound-under-approximation
+# preservation judgment — faithful to what the staff shows, but missing the
+# dropped microtiming, exactly the loss the profile's ledger accounts for.
+ex:staffRendering a lang:Rendering ;
+    rdfs:label "rendering of the melody as staff notation"@x-gmeow-english ;
+    lang:renderedContent      ex:melodyContent ;
+    lang:renderingForm        ex:staffSurface ;
+    lang:renderingKind        lang:renderingNotation ;
+    lang:renderingConvention  ex:staffProfile ;
+    lang:renderingPreservation logic:SoundUnderApproximation .
