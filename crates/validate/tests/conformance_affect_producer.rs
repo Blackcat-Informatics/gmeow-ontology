@@ -10,7 +10,8 @@
 //! tampering the emitted graph fires the exact Stage-4 shape, and that the producer
 //! hard-fails in Rust on the rule-2 registration the fixture-only SHACL (which only
 //! sees the output graph, not the typed label registrations) cannot itself catch.
-//! (The run-scoped zero-shot adapter is exercised in `conformance_affect_zeroshot`.)
+//! The run-scoped zero-shot adapter (NLI entailment, an in-graph candidate set) is
+//! exercised by the `zeroshot_*` cases below.
 
 mod conformance_support;
 use conformance_support::*;
@@ -204,6 +205,69 @@ fn every_adapter_hard_fails_in_rust_on_rule2_and_rule7() {
             adapter.label_set_id
         );
     }
+}
+
+#[test]
+fn zeroshot_run_scoped_output_conforms_and_round_trips() {
+    let root = repo_root();
+    let json = fs::read_to_string(root.join("crates/affect-ingest/fixtures/zeroshot-sample.json"))
+        .expect("read zeroshot fixture");
+    let cap: ClassifierRunCapture = serde_json::from_str(&json).expect("deserialize zeroshot");
+    // The candidate set is declared per run, not read from a static AffectLabelSet.
+    let cfg = IngestConfig::run_scoped_from_capture(&cap).expect("run-scoped config");
+    let ttl = produce(&cap, &cfg).expect("produce zeroshot");
+
+    // Validates clean against the UNMODIFIED whole-ontology shapes — the minted
+    // run-scoped candidate set + labels are honestly registered in-graph.
+    Case::inline(ttl.clone()).run();
+
+    // The new NLI entailment score semantics + run-scoped provenance are emitted.
+    assert!(ttl.contains("scoreEntailment"), "entailment semantics");
+    assert!(
+        ttl.contains("hypothesisTemplate"),
+        "run-scoped hypothesis template"
+    );
+    assert!(ttl.contains("AffectLabelSet"), "in-graph candidate set");
+
+    // Evidence only: a run-scoped prompt candidate has no pre-reviewed closeMatch,
+    // so the claim/evidence boundary holds — NO auto-claim.
+    assert!(
+        !ttl.contains("the text expresses"),
+        "no auto-claim for zero-shot"
+    );
+
+    // Lossless: one output per (target, candidate).
+    let expected: usize = cap.targets.iter().map(|t| t.scores.len()).sum();
+    assert_eq!(
+        ttl.matches("AffectClassifierOutput").count(),
+        expected,
+        "an output per candidate per target"
+    );
+
+    // Blind round-trip on the run-scoped path: recover reads the candidate set +
+    // hypothesis template back from the evidence graph.
+    assert_eq!(
+        recover(&ttl, &cfg).expect("recover"),
+        canonicalize(&cap, &cfg),
+        "zero-shot blind round-trip"
+    );
+}
+
+#[test]
+fn zeroshot_hard_fails_without_run_scoped_provenance() {
+    let root = repo_root();
+    let json = fs::read_to_string(root.join("crates/affect-ingest/fixtures/zeroshot-sample.json"))
+        .expect("read zeroshot fixture");
+    let cap: ClassifierRunCapture = serde_json::from_str(&json).expect("deserialize zeroshot");
+    let cfg = IngestConfig::run_scoped_from_capture(&cap).expect("run-scoped config");
+
+    // Strip the hypothesis template: an entailment run without it is a hard fail.
+    let mut broken = cap.clone();
+    broken.hypothesis_template = None;
+    assert!(matches!(
+        produce(&broken, &cfg),
+        Err(IngestError::MissingHypothesisTemplate)
+    ));
 }
 
 #[test]

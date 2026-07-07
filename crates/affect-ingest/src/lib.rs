@@ -84,6 +84,9 @@ pub enum ScoreSemantics {
     Softmax,
     /// `gmeow:scoreCalibratedProbability` — REQUIRES a `score_calibration` profile.
     CalibratedProbability,
+    /// `gmeow:scoreEntailment` — an NLI entailment probability from a zero-shot run
+    /// (per run-scoped candidate + hypothesis template). Bounded to `[0, 1]`.
+    Entailment,
     /// `gmeow:scoreLogit` — the raw pre-activation value (unbounded).
     Logit,
     /// `gmeow:scoreMargin` — a decision margin (unbounded).
@@ -97,6 +100,7 @@ impl ScoreSemantics {
             ScoreSemantics::Sigmoid => "scoreSigmoid",
             ScoreSemantics::Softmax => "scoreSoftmax",
             ScoreSemantics::CalibratedProbability => "scoreCalibratedProbability",
+            ScoreSemantics::Entailment => "scoreEntailment",
             ScoreSemantics::Logit => "scoreLogit",
             ScoreSemantics::Margin => "scoreMargin",
         })
@@ -104,7 +108,8 @@ impl ScoreSemantics {
 
     /// The activation / `functionToApply` a run with this semantics must have
     /// declared, when it is pinned by a bounded activation. `None` for the
-    /// unbounded/derived semantics, where no single activation is implied.
+    /// unbounded/derived semantics (entailment/logit/margin), where no single
+    /// activation is implied.
     fn required_function(self) -> Option<&'static str> {
         match self {
             ScoreSemantics::Sigmoid => Some("sigmoid"),
@@ -120,6 +125,7 @@ impl ScoreSemantics {
             ScoreSemantics::Sigmoid
                 | ScoreSemantics::Softmax
                 | ScoreSemantics::CalibratedProbability
+                | ScoreSemantics::Entailment
         )
     }
 }
@@ -200,6 +206,16 @@ pub struct ClassifierRunCapture {
     /// part of run identity). Genuinely-absent source data ⇒ optional.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub label_set_revision: Option<String>,
+    /// The NLI hypothesis template a zero-shot run instantiated per candidate
+    /// (`This text expresses {}.`). Present iff this is a run-scoped (zero-shot)
+    /// capture; absent for a fixed-label classifier.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub hypothesis_template: Option<String>,
+    /// The run-scoped candidate label surfaces a zero-shot run classified against —
+    /// part of the run identity, NOT a static `gmeow:AffectLabelSet`. Present iff
+    /// this is a zero-shot capture; the labels in `targets` must be exactly this set.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub candidate_labels: Option<Vec<String>>,
 }
 
 // ───────────────────────────── errors ──────────────────────────────────────
@@ -261,6 +277,11 @@ pub enum IngestError {
     MissingThreshold {
         label: String,
     },
+    /// A zero-shot (entailment) run without its NLI hypothesis template — the
+    /// template is part of the run's identity, so its absence is a hard fail.
+    MissingHypothesisTemplate,
+    /// A zero-shot (entailment) run without a declared run-scoped candidate set.
+    MissingCandidateLabels,
     /// The get leg could not reconstruct a required triple from the graph.
     MalformedGraph {
         detail: String,
@@ -323,6 +344,14 @@ impl fmt::Display for IngestError {
                     "per-label threshold policy has no threshold for {label:?}"
                 )
             }
+            IngestError::MissingHypothesisTemplate => write!(
+                f,
+                "a zero-shot (gmeow:scoreEntailment) run must declare its gmeow:hypothesisTemplate (part of run identity)"
+            ),
+            IngestError::MissingCandidateLabels => write!(
+                f,
+                "a zero-shot (gmeow:scoreEntailment) run must declare its run-scoped candidate label set"
+            ),
             IngestError::MalformedGraph { detail } => {
                 write!(f, "cannot recover capture from graph: {detail}")
             }
@@ -406,6 +435,51 @@ impl IngestConfig {
     ) -> Result<Self, IngestError> {
         let label_set_iri = format!("{LABELSET}{label_set_id}");
         Self::from_label_set(index, label_set_id, &label_set_iri)
+    }
+
+    /// Build a RUN-SCOPED config for a zero-shot capture. The candidate set is not
+    /// a static `gmeow:AffectLabelSet` — it is part of the run's identity — so the
+    /// registered members and the candidate registry namespace are DERIVED from the
+    /// capture's `candidate_labels`, keyed by the candidate set itself (so a
+    /// different candidate set is a different registry, but the same set is
+    /// deterministic/idempotent). Routes NO auto-claim: a run-scoped prompt
+    /// candidate has no pre-reviewed closeMatch, so the claim/evidence boundary holds.
+    pub fn run_scoped_from_capture(capture: &ClassifierRunCapture) -> Result<Self, IngestError> {
+        let candidates = capture
+            .candidate_labels
+            .as_deref()
+            .ok_or(IngestError::MissingCandidateLabels)?;
+        Self::run_scoped(capture.label_set_id.clone(), candidates)
+    }
+
+    /// The run-scoped constructor shared by the put leg (from a capture) and the
+    /// get leg (from the evidence graph's declared candidate set).
+    fn run_scoped(label_set_id: String, candidates: &[String]) -> Result<Self, IngestError> {
+        if candidates.is_empty() {
+            return Err(IngestError::MissingCandidateLabels);
+        }
+        let mint_base = format!("{GMEOW}ingest/{}/", label_set_id.to_lowercase());
+        let mut sorted: Vec<&str> = candidates.iter().map(String::as_str).collect();
+        sorted.sort_unstable();
+        sorted.dedup();
+        let registry_prefix = format!("{mint_base}candidate-{}/", fnv1a_hex(&sorted.join("\n")));
+        let registered: BTreeSet<String> = sorted
+            .iter()
+            .map(|c| format!("{registry_prefix}{c}"))
+            .collect();
+        Ok(IngestConfig {
+            label_set_id,
+            registry_prefix,
+            mint_base,
+            registered,
+            emotion_close_match: BTreeMap::new(),
+        })
+    }
+
+    /// The run-scoped candidate-set node this config mints (an in-graph
+    /// `gmeow:AffectLabelSet`, since the set is not registered in the bundle).
+    fn candidate_set_iri(&self) -> String {
+        format!("{}#set", self.registry_prefix)
     }
 
     /// Fold an SSSOM correspondence surface into the emotion-claim routing map:
@@ -552,23 +626,30 @@ impl IngestConfig {
 // ─────────────────────── generic adapter dispatch ──────────────────────────
 
 /// Build the producer config a capture calls for, off the compiled bundle — the
-/// put-leg entry point. Dispatches on the capture's declared `label_set_id`
-/// (`GoEmotions` / `SST2` / `CardiffTweetEval` / `Ekman7`), so a single CLI/API
-/// surface serves every registered adapter with no per-model code.
+/// put-leg entry point. A zero-shot capture (`candidate_labels` present) yields a
+/// run-scoped config; otherwise it dispatches on the capture's declared
+/// `label_set_id` (`GoEmotions` / `SST2` / `CardiffTweetEval` / `Ekman7`), so a
+/// single CLI/API surface serves every adapter with no per-model code.
 pub fn config_for_capture(
     bundle: &[u8],
     sssom_texts: &[String],
     capture: &ClassifierRunCapture,
 ) -> Result<IngestConfig, IngestError> {
-    IngestConfig::from_gts_with_sssom(bundle, sssom_texts, &capture.label_set_id)
+    if capture.candidate_labels.is_some() {
+        IngestConfig::run_scoped_from_capture(capture)
+    } else {
+        IngestConfig::from_gts_with_sssom(bundle, sssom_texts, &capture.label_set_id)
+    }
 }
 
 /// Select the producer config an evidence graph was minted under — the get-leg
-/// entry point. The capture's `label_set_id` is GMEOW's interpretation and is not
-/// re-emitted, so recovery instead enumerates every `gmeow:AffectLabelSet` in the
-/// bundle and picks the one whose registered members cover the graph's
-/// `gmeow:emittedLabel`s (membership, not namespace — so it disambiguates sibling
-/// sets sharing a registry prefix). Hard-fails if no single set matches.
+/// entry point. A run-scoped (zero-shot) graph carries its own candidate
+/// `gmeow:AffectLabelSet` in-graph (the run declares a `gmeow:hypothesisTemplate`),
+/// so its config is rebuilt from the graph itself. Otherwise recovery enumerates
+/// every `gmeow:AffectLabelSet` in the bundle and picks the one whose registered
+/// members cover the graph's `gmeow:emittedLabel`s (membership, not namespace — so
+/// it disambiguates sibling sets sharing a registry prefix). Hard-fails if no
+/// single set matches.
 pub fn config_for_evidence(
     bundle: &[u8],
     sssom_texts: &[String],
@@ -584,6 +665,23 @@ pub fn config_for_evidence(
         .collect();
     if emitted.is_empty() {
         return Err(malformed("evidence graph carries no gmeow:emittedLabel"));
+    }
+
+    // Run-scoped (zero-shot): the run declares a hypothesis template, and the
+    // candidate set is the in-graph gmeow:AffectLabelSet (labelled with its
+    // label_set_id) whose members' rdfs:labels are the candidate surfaces.
+    let run = sole_subject_of_type(&ev, &g("ModelInferenceRun"))?;
+    if first_literal(&ev, &run, &g("hypothesisTemplate")).is_some() {
+        let set_iri = sole_subject_of_type(&ev, &g("AffectLabelSet"))?;
+        let label_set_id = first_literal(&ev, &set_iri, RDFS_LABEL).ok_or_else(|| {
+            malformed("run-scoped candidate set has no rdfs:label (its label_set_id)")
+        })?;
+        let member_of = g("memberOfLabelSet");
+        let candidates: Vec<String> = subjects(&ev)
+            .filter(|s| first_iri(&ev, s, &member_of).as_deref() == Some(set_iri.as_str()))
+            .filter_map(|label_iri| first_literal(&ev, label_iri, RDFS_LABEL))
+            .collect();
+        return IngestConfig::run_scoped(label_set_id, &candidates);
     }
 
     let graph = purrdf::gts::reader::read(bundle, false, None);
@@ -637,6 +735,26 @@ pub fn produce(
     }
     if let Some(ls) = &capture.label_set_revision {
         sink.string(&run_iri, &g("labelSetRevision"), ls);
+    }
+    if let Some(template) = &capture.hypothesis_template {
+        sink.string(&run_iri, &g("hypothesisTemplate"), template);
+    }
+
+    // Run-scoped (zero-shot): the candidate set is part of the run identity, not a
+    // static registry — so mint it IN the evidence graph as a gmeow:AffectLabelSet
+    // (labelled with its label_set_id) whose members are the candidate labels
+    // (registered via memberOfLabelSet, so the emitted labels are honestly
+    // registered exactly as the fixed-label adapters' labels are in the base graph).
+    if capture.candidate_labels.is_some() {
+        let set_iri = config.candidate_set_iri();
+        sink.iri(&set_iri, RDF_TYPE, &g("AffectLabelSet"));
+        sink.lang(&set_iri, RDFS_LABEL, &config.label_set_id);
+        for surface in config.registered_labels() {
+            let label_iri = config.label_iri(surface);
+            sink.iri(&label_iri, RDF_TYPE, &g("AffectClassifierLabel"));
+            sink.iri(&label_iri, &g("memberOfLabelSet"), &set_iri);
+            sink.lang(&label_iri, RDFS_LABEL, surface);
+        }
     }
 
     let semantics_iri = capture.score_semantics.iri();
@@ -731,6 +849,26 @@ fn validate(capture: &ClassifierRunCapture, config: &IngestConfig) -> Result<(),
             expected: expected.to_owned(),
             found: capture.function_to_apply.clone(),
         });
+    }
+    // A zero-shot (entailment) run carries its candidate set + hypothesis template
+    // as run identity — neither is optional, both are hard-fails when absent.
+    if capture.score_semantics == ScoreSemantics::Entailment {
+        if capture
+            .hypothesis_template
+            .as_deref()
+            .map(str::trim)
+            .unwrap_or("")
+            .is_empty()
+        {
+            return Err(IngestError::MissingHypothesisTemplate);
+        }
+        if capture
+            .candidate_labels
+            .as_ref()
+            .is_none_or(|c| c.is_empty())
+        {
+            return Err(IngestError::MissingCandidateLabels);
+        }
     }
     if capture.targets.is_empty() {
         return Err(IngestError::NoTargets);
@@ -1001,6 +1139,7 @@ impl ScoreSemantics {
             "scoreSigmoid" => ScoreSemantics::Sigmoid,
             "scoreSoftmax" => ScoreSemantics::Softmax,
             "scoreCalibratedProbability" => ScoreSemantics::CalibratedProbability,
+            "scoreEntailment" => ScoreSemantics::Entailment,
             "scoreLogit" => ScoreSemantics::Logit,
             "scoreMargin" => ScoreSemantics::Margin,
             _ => return None,
@@ -1087,6 +1226,18 @@ pub fn recover(turtle: &str, config: &IngestConfig) -> Result<ClassifierRunCaptu
         .collect();
     targets.sort_by(|a, b| a.target_iri.cmp(&b.target_iri));
 
+    // Run-scoped (zero-shot) provenance: the hypothesis template pins the run as
+    // NLI, and the candidate set is exactly the labels it scored — read back from
+    // the emitted evidence, never a static label set.
+    let hypothesis_template = first_literal(&index, &run, &g("hypothesisTemplate"));
+    let candidate_labels = hypothesis_template.as_ref().map(|_| {
+        let set: BTreeSet<String> = targets
+            .iter()
+            .flat_map(|t| t.scores.iter().map(|s| s.label.clone()))
+            .collect();
+        set.into_iter().collect()
+    });
+
     Ok(ClassifierRunCapture {
         model_identifier,
         model_revision,
@@ -1101,6 +1252,8 @@ pub fn recover(turtle: &str, config: &IngestConfig) -> Result<ClassifierRunCaptu
         score_calibration,
         tokenizer_revision,
         label_set_revision,
+        hypothesis_template,
+        candidate_labels,
     })
 }
 
@@ -1141,6 +1294,16 @@ pub fn canonicalize(capture: &ClassifierRunCapture, config: &IngestConfig) -> Cl
         }
     }
 
+    // The candidate set is normalized the same way `recover` reads it back: the
+    // sorted, de-duplicated set of scored surfaces (present iff run-scoped).
+    let candidate_labels = capture.candidate_labels.as_ref().map(|_| {
+        let set: BTreeSet<String> = targets
+            .iter()
+            .flat_map(|t| t.scores.iter().map(|s| s.label.clone()))
+            .collect();
+        set.into_iter().collect()
+    });
+
     ClassifierRunCapture {
         model_identifier: capture.model_identifier.clone(),
         model_revision: capture.model_revision.clone(),
@@ -1155,13 +1318,20 @@ pub fn canonicalize(capture: &ClassifierRunCapture, config: &IngestConfig) -> Cl
         score_calibration: capture.score_calibration.clone(),
         tokenizer_revision: capture.tokenizer_revision.clone(),
         label_set_revision: capture.label_set_revision.clone(),
+        hypothesis_template: capture.hypothesis_template.clone(),
+        candidate_labels,
     }
 }
 
-/// `function_to_apply` implied by a bounded activation semantics, `""` otherwise
-/// (the unbounded/derived semantics pin no single activation).
+/// `function_to_apply` implied by the score semantics — the reconstructable form
+/// of the pipeline's activation. Sigmoid/softmax pin their activation (and are
+/// validated against it); entailment names itself; the remaining unbounded
+/// semantics (logit/margin/calibrated) pin no single activation → `""`.
 fn derived_function(sem: ScoreSemantics) -> String {
-    sem.required_function().unwrap_or("").to_owned()
+    match sem {
+        ScoreSemantics::Entailment => "entailment".to_owned(),
+        other => other.required_function().unwrap_or("").to_owned(),
+    }
 }
 
 /// `true` iff every target carries the full registered label set — the emitted
@@ -1276,6 +1446,8 @@ mod tests {
             score_calibration: None,
             tokenizer_revision: Some("tok-9".to_owned()),
             label_set_revision: None,
+            hypothesis_template: None,
+            candidate_labels: None,
         }
     }
 
@@ -1557,6 +1729,67 @@ mod tests {
             produce(&cap, &config()),
             Err(IngestError::ActivationMismatch { .. })
         ));
+    }
+
+    /// A minimal zero-shot (run-scoped) capture: NLI entailment over a candidate set
+    /// declared per run, not read from a static label set.
+    fn zeroshot_capture() -> ClassifierRunCapture {
+        ClassifierRunCapture {
+            model_identifier: "facebook/bart-large-mnli".to_owned(),
+            model_revision: "deadbeef".to_owned(),
+            model_framework: "transformers".to_owned(),
+            model_task: "zero-shot-classification".to_owned(),
+            function_to_apply: "entailment".to_owned(),
+            return_all_scores: true,
+            label_set_id: "ZeroShotEmotion2".to_owned(),
+            score_semantics: ScoreSemantics::Entailment,
+            threshold_policy: ThresholdPolicy::Global { value: 0.5 },
+            targets: vec![TargetInput {
+                target_iri: "https://example.org/affect/passage-1".to_owned(),
+                scores: vec![
+                    LabelScore {
+                        label: "joy".to_owned(),
+                        score: 0.97,
+                    },
+                    LabelScore {
+                        label: "fear".to_owned(),
+                        score: 0.02,
+                    },
+                ],
+            }],
+            score_calibration: None,
+            tokenizer_revision: None,
+            label_set_revision: Some("candidates:fear,joy".to_owned()),
+            hypothesis_template: Some("This text expresses {}.".to_owned()),
+            candidate_labels: Some(vec!["joy".to_owned(), "fear".to_owned()]),
+        }
+    }
+
+    #[test]
+    fn zeroshot_run_scoped_round_trips_and_routes_no_claim() {
+        let cap = zeroshot_capture();
+        let cfg = IngestConfig::run_scoped_from_capture(&cap).expect("run-scoped config");
+        let ttl = produce(&cap, &cfg).expect("produce zeroshot");
+        // Entailment semantics + run-scoped provenance are emitted; the candidate
+        // set is minted in-graph (not a static registry).
+        assert!(ttl.contains("scoreEntailment"));
+        assert!(ttl.contains("hypothesisTemplate"));
+        assert!(ttl.contains("AffectLabelSet"));
+        // Evidence only — a run-scoped prompt candidate routes NO expresses-claim.
+        assert!(!ttl.contains("the text expresses"));
+        // recover reads the candidate set + template back from the graph.
+        assert_eq!(recover(&ttl, &cfg).unwrap(), canonicalize(&cap, &cfg));
+    }
+
+    #[test]
+    fn zeroshot_hard_fails_without_template_or_candidates() {
+        let cfg = IngestConfig::run_scoped_from_capture(&zeroshot_capture()).unwrap();
+        let mut no_template = zeroshot_capture();
+        no_template.hypothesis_template = None;
+        assert_eq!(
+            produce(&no_template, &cfg),
+            Err(IngestError::MissingHypothesisTemplate)
+        );
     }
 
     #[test]
