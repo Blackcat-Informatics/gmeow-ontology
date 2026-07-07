@@ -1255,6 +1255,12 @@ pub const MIGRATION_FEATURE_REGISTRY: &[(&str, &[Feature])] = &[
         "disclosure/schema-org-projection",
         &[Feature::ConstructGraph, Feature::FilterNotExists],
     ),
+    // Migrated email cluster cases (conformance_email.rs).
+    ("email/dsn-kinds", &[Feature::InitBindings]),
+    (
+        "email/version-memberships",
+        &[Feature::Optional, Feature::InitBindings],
+    ),
 ];
 
 /// The de-duplicated union of every feature tag in [`MIGRATION_FEATURE_REGISTRY`].

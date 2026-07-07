@@ -287,43 +287,52 @@ pub const MANIFEST: &[ManifestRow] = &[
         "conformance_disclosure.rs::privacy_leaks_query_runnable",
     ),
     // ── tests/test_email_behavioral.py (3 fns; dossier) ────────────────────────
-    pending(
+    twin(
         "tests/test_email_behavioral.py",
         "test_fixture_dsn_has_overlapping_kinds",
+        "conformance_email.rs::dsn_has_overlapping_kinds",
     ),
-    pending(
+    twin(
         "tests/test_email_behavioral.py",
         "test_fixture_auto_generated_message",
+        "conformance_email.rs::auto_generated_message",
     ),
-    pending(
+    twin(
         "tests/test_email_behavioral.py",
         "test_fixture_read_receipt_request",
+        "conformance_email.rs::read_receipt_request",
     ),
     // ── tests/test_email_participant.py (3 fns; dossier) ───────────────────────
-    pending(
+    twin(
         "tests/test_email_participant.py",
         "test_resent_properties_are_multivalued_in_linkml_schema",
+        "conformance_email.rs::resent_properties_are_multivalued_in_linkml_schema",
     ),
-    pending(
+    twin(
         "tests/test_email_participant.py",
         "test_fixture_binds_occurrence_correctly",
+        "conformance_email.rs::binds_occurrence_correctly",
     ),
-    pending(
+    twin(
         "tests/test_email_participant.py",
         "test_fixture_address_decomposition",
+        "conformance_email.rs::address_decomposition",
     ),
     // ── tests/test_email_versions.py (3 fns; dossier) ──────────────────────────
-    pending(
+    twin(
         "tests/test_email_versions.py",
         "test_fixture_version_memberships_use_roles_not_subclasses",
+        "conformance_email.rs::version_memberships_use_roles_not_subclasses",
     ),
-    pending(
+    twin(
         "tests/test_email_versions.py",
         "test_fixture_patch_diff_links_and_digest",
+        "conformance_email.rs::patch_diff_links_and_digest",
     ),
-    pending(
+    twin(
         "tests/test_email_versions.py",
         "test_fixture_collision_flags_and_fingerprints",
+        "conformance_email.rs::collision_flags_and_fingerprints",
     ),
     // ── tests/test_gender.py (2 fns; dossier test_gender.md) ───────────────────
     pending(
