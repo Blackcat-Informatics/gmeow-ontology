@@ -59,23 +59,7 @@ fn attested_on_carrier_exists() {
 #[test]
 fn no_primary_or_preferred_archaeological_terms() {
     let g = GraphStore::ontology();
-    let (_, rows) = g.select(&[], "SELECT DISTINCT ?s WHERE { ?s ?p ?o }");
-    let mut offenders: Vec<String> = Vec::new();
-    for row in rows {
-        let Some(Some(purrdf::TermValue::Iri(iri))) = row.into_iter().next() else {
-            continue;
-        };
-        let Some(local) = iri.strip_prefix(GMEOW) else {
-            continue;
-        };
-        if local.contains('/') {
-            continue;
-        }
-        let lower = local.to_lowercase();
-        if lower.starts_with("primary") || lower.starts_with("preferred") {
-            offenders.push(iri);
-        }
-    }
+    let offenders = g.primary_or_preferred_terms();
     assert!(
         offenders.is_empty(),
         "preferred/primary terms must not exist: {offenders:?}"

@@ -10,32 +10,13 @@
 mod conformance_support;
 use conformance_support::*;
 
-const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
-
 /// Twin of `test_no_preferred_or_primary_term_is_declared` (Principle 9): no gmeow:
 /// term in the merged ontology whose local name (containing no `/`) case-insensitively
 /// starts with `primary`/`preferred`.
 #[test]
 fn no_preferred_or_primary_term_is_declared() {
     let g = GraphStore::ontology();
-    let (_vars, rows) = g.select(&[], "SELECT DISTINCT ?s WHERE { ?s ?p ?o }");
-    let mut offenders = Vec::new();
-    for row in &rows {
-        let Some(Some(term)) = row.first() else {
-            continue;
-        };
-        let Some(iri) = term.as_iri() else {
-            continue;
-        };
-        if let Some(local) = iri.strip_prefix(GMEOW) {
-            let lower = local.to_lowercase();
-            if !local.contains('/')
-                && (lower.starts_with("primary") || lower.starts_with("preferred"))
-            {
-                offenders.push(iri.to_owned());
-            }
-        }
-    }
+    let offenders = g.primary_or_preferred_terms();
     assert!(
         offenders.is_empty(),
         "preferred/primary determinacy term leaked: {offenders:?}"
