@@ -28,11 +28,16 @@ fn bundle_bytes() -> Vec<u8> {
     std::fs::read(&path).unwrap_or_else(|e| panic!("read bundle {}: {e}", path.display()))
 }
 
-/// A data graph with exactly three Tier-1 problems: a disjoint identity-axis
-/// overtyping (error), an under-mediated Commitment missing its beneficiary
-/// (error), and a frame-less Event (warning). The Event carries an `eventType`
-/// so only the frame-relativity warning — not the temporal-placement advisory —
-/// fires. This is the epic's pinned 2-errors-1-warning acceptance shape.
+/// A data graph that trips the Tier-1 shape surface. Its problems are a
+/// disjoint identity-axis overtyping (error), an under-mediated Commitment
+/// missing its beneficiary (error), and a frame-less Event carrying an
+/// `eventType` so only the frame-relativity warning fires (warning). Under the
+/// closed-world validation-shape derivation it additionally trips the sh:not
+/// disjointness pair (Honorific-shape / PronounSet-shape), for a pinned
+/// 4-errors-1-warning shape. rdfs:domain/range are open-world INFERENCE axioms
+/// (open-world by default, no ClosedWorldClosure opt-in on these properties), so
+/// they derive NO domain/range validation shape and the fixture's committedAgent
+/// / intentionGoal / eventType edges no longer trip a range/domain error.
 const FAIL_TTL: &str = r#"@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex: <https://example.org/> .
 
@@ -47,7 +52,7 @@ ex:e1 a gmeow:Event ;
 "#;
 
 #[test]
-fn fail_fixture_yields_two_errors_one_warning_with_locations() {
+fn fail_fixture_yields_four_errors_one_warning_with_locations() {
     let gts = bundle_bytes();
     let report = data_validate::run(
         FAIL_TTL.as_bytes(),
@@ -72,8 +77,8 @@ fn fail_fixture_yields_two_errors_one_warning_with_locations() {
 
     assert_eq!(
         errors.len(),
-        2,
-        "expected exactly two errors, got: {errors:#?}"
+        4,
+        "expected exactly four errors, got: {errors:#?}"
     );
     assert_eq!(
         warnings.len(),
@@ -146,7 +151,8 @@ fn clean_fixture_passes() {
 fn nquads_named_graph_is_flattened_and_validated() {
     let gts = bundle_bytes();
     // The two type quads sit in a named graph; flattening must surface them so
-    // the disjointness check fires.
+    // the disjointness checks fire (the P9 IdentityAxisDisjointnessConstraintShape
+    // plus the closed-world sh:not pair Honorific-shape / PronounSet-shape).
     let nq = concat!(
         "<https://example.org/p> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ",
         "<https://blackcatinformatics.ca/gmeow/PronounSet> <https://example.org/g> .\n",
@@ -157,7 +163,7 @@ fn nquads_named_graph_is_flattened_and_validated() {
         data_validate::run(nq.as_bytes(), "nquads", &gts, NS, "g.nq", false).expect("run nq");
     assert_eq!(
         report.error_count(),
-        1,
+        3,
         "named-graph quads were not flattened"
     );
 }
@@ -170,7 +176,7 @@ fn json_ld_is_parsed_as_rdf() {
         "@type":["gmeow:PronounSet","gmeow:Honorific"]}"#;
     let report = data_validate::run(jsonld.as_bytes(), "json-ld", &gts, NS, "p.jsonld", false)
         .expect("run jsonld");
-    assert_eq!(report.error_count(), 1, "JSON-LD was not validated as RDF");
+    assert_eq!(report.error_count(), 3, "JSON-LD was not validated as RDF");
 }
 
 #[test]
@@ -258,14 +264,14 @@ fn deep_surfaces_entailed_inconsistency_tier1_misses_heavy_offgate() {
 #[test]
 fn deep_false_is_the_reasoner_free_default() {
     // AC3: the pinned Tier-1 fixture under the default (deep=false) keeps its exact
-    // 2-errors-1-warning shape AND carries no validate.deep.* findings — the deep
+    // 4-errors-1-warning shape AND carries no validate.deep.* findings — the deep
     // reasoner does not run without the flag.
     let gts = bundle_bytes();
     let report = data_validate::run(FAIL_TTL.as_bytes(), "turtle", &gts, NS, "fail.ttl", false)
         .expect("tier-1 run");
     assert_eq!(
         report.error_count(),
-        2,
+        4,
         "Tier-1 default error shape changed"
     );
     assert_eq!(

@@ -211,12 +211,43 @@ fn component_lines(c: &ConstraintComponent) -> Vec<String> {
         // Nothing faithful survives in SHACL Core, so it is carried in the loss ledger by
         // `shacl_residue`, never emitted as a broken constraint (cf. `TerminologyBinding` above).
         ConstraintComponent::DateTimePattern(_) => Vec::new(),
+        // A fixed required value (closed-world `owl:hasValue`).
+        ConstraintComponent::HasValue(v) => vec![format!("sh:hasValue {}", shape_value_term(v))],
+        // A qualified value-shape count (`owl:someValuesFrom` → min 1; `owl:onClass` +
+        // `owl:qualifiedCardinality` → the count) — the values satisfying the inner shape are
+        // counted, NOT all values. The inner shape's own component lines nest in the `[ … ]`.
+        ConstraintComponent::QualifiedValueShape { shape, min, max } => {
+            let inner: Vec<String> = shape.iter().flat_map(component_lines).collect();
+            let mut v = vec![format!("sh:qualifiedValueShape [ {} ]", inner.join(" ; "))];
+            if let Some(n) = min {
+                v.push(format!("sh:qualifiedMinCount {n}"));
+            }
+            if let Some(n) = max {
+                v.push(format!("sh:qualifiedMaxCount {n}"));
+            }
+            v
+        }
+        // A negated constraint (`owl:disjointWith`/`owl:complementOf`/`owl:AllDisjointClasses`
+        // pair → `sh:not [ sh:class D ]`).
+        ConstraintComponent::Not(inner) => {
+            vec![format!("sh:not [ {} ]", component_lines(inner).join(" ; "))]
+        }
+    }
+}
+
+/// The `sh:path` term for a property shape — a bare predicate, or an `sh:inversePath` blank
+/// node when the path is inverted (the `owl:InverseFunctionalProperty` reading).
+fn path_term(p: &PropertyConstraintIr) -> String {
+    if p.inverse {
+        format!("sh:path [ sh:inversePath {} ]", iri_term(&p.path))
+    } else {
+        format!("sh:path {}", iri_term(&p.path))
     }
 }
 
 /// The `[ … ]` blank-node property-shape block for one constrained path.
 fn property_shape_block(p: &PropertyConstraintIr) -> String {
-    let mut lines = vec![format!("sh:path {}", iri_term(&p.path))];
+    let mut lines = vec![path_term(p)];
     if let Some(n) = p.min_count {
         lines.push(format!("sh:minCount {n}"));
     }
@@ -226,14 +257,30 @@ fn property_shape_block(p: &PropertyConstraintIr) -> String {
     for c in &p.components {
         lines.extend(component_lines(c));
     }
+    if let Some(sev) = p.severity {
+        lines.push(format!("sh:severity sh:{}", sev.as_str()));
+    }
+    if let Some(msg) = &p.message {
+        lines.push(format!("sh:message \"{}\"", esc_str(msg)));
+    }
     format!("[ {} ]", lines.join(" ; "))
 }
 
-/// Project one [`ValidationShapeIr`] to a SHACL Core `sh:NodeShape` (Turtle, no prefixes).
+/// Project one [`ValidationShapeIr`] to a SHACL Core `sh:NodeShape` (Turtle, no prefixes). An
+/// `rdfs:label` (when present) is emitted with the fully-qualified predicate so the surface
+/// stays valid without an `rdfs:` prefix declaration in the default (prefix-free) header.
 pub fn project_validation_shape_shacl(shape: &ValidationShapeIr) -> String {
     let mut pos: Vec<String> = vec!["a sh:NodeShape".to_owned()];
+    if let Some(label) = &shape.label {
+        pos.push(format!(
+            "<http://www.w3.org/2000/01/rdf-schema#label> \"{}\"",
+            esc_str(label)
+        ));
+    }
     match &shape.target {
         ShapeTarget::Class(c) => pos.push(format!("sh:targetClass {}", iri_term(c))),
+        ShapeTarget::SubjectsOf(p) => pos.push(format!("sh:targetSubjectsOf {}", iri_term(p))),
+        ShapeTarget::ObjectsOf(p) => pos.push(format!("sh:targetObjectsOf {}", iri_term(p))),
         ShapeTarget::ValueKeyed { predicate, value } => pos.push(format!(
             "sh:target [ a sh:SPARQLTarget ; sh:select \"\"\"SELECT ?this WHERE {{ ?this {} {} }}\"\"\" ]",
             iri_term(predicate),
@@ -245,6 +292,11 @@ pub fn project_validation_shape_shacl(shape: &ValidationShapeIr) -> String {
     }
     if shape.reification_required {
         pos.push("sh:reificationRequired true".to_owned());
+    }
+    // Focus-node-level constraints (domain/range/disjointness) — emitted directly on the node
+    // shape, not inside a property block.
+    for c in &shape.node_components {
+        pos.extend(component_lines(c));
     }
     for p in &shape.properties {
         pos.push(format!("sh:property {}", property_shape_block(p)));
@@ -350,7 +402,7 @@ fn shex_cardinality(min: Option<u32>, max: Option<u32>) -> String {
 /// terminology bindings) fall through to a permissive base and are declared in
 /// [`shex_residue`].
 fn shex_value_expr(p: &PropertyConstraintIr) -> String {
-    // A value set is itself the node constraint.
+    // A value set (or a fixed single value) is itself the node constraint.
     for c in &p.components {
         if let ConstraintComponent::In(vs) = c {
             let items = vs
@@ -367,6 +419,10 @@ fn shex_value_expr(p: &PropertyConstraintIr) -> String {
                 .collect::<Vec<_>>()
                 .join(" ");
             return format!("[{items}]");
+        }
+        // A fixed required value (`sh:hasValue`) is a one-element ShEx value set.
+        if let ConstraintComponent::HasValue(v) = c {
+            return format!("[{}]", shape_value_term(v));
         }
     }
     let mut datatype = String::new();
@@ -441,15 +497,39 @@ fn shex_value_expr(p: &PropertyConstraintIr) -> String {
             // A class-membership constraint: ShEx has no `sh:class` facet, so the values are
             // only constrained to IRIs here; the class itself is declared in shex_residue.
             ConstraintComponent::Class(_) => nodekind = Some("IRI"),
+            // A qualified value shape whose inner is a class/datatype constrains the counted
+            // value's kind; ShEx expresses the value's node kind (IRI for a class, the datatype
+            // for a datatype) but not the qualified COUNT independently of the triple-constraint
+            // cardinality — the count is declared in shex_residue.
+            ConstraintComponent::QualifiedValueShape { shape, .. } => {
+                for inner in shape {
+                    match inner {
+                        ConstraintComponent::Datatype(d) => datatype = iri_term(d),
+                        ConstraintComponent::Class(_) => nodekind = Some("IRI"),
+                        ConstraintComponent::NodeKindShacl(k) => {
+                            nodekind = Some(match k {
+                                ShaclNodeKind::Iri => "IRI",
+                                ShaclNodeKind::Literal => "LITERAL",
+                                ShaclNodeKind::BlankNode => "BNODE",
+                                _ => "NONLITERAL",
+                            })
+                        }
+                        _ => {}
+                    }
+                }
+            }
             // Not faithfully expressible in ShEx — declared in shex_residue. A DateTimePattern is a
             // format template, not a regex, so emitting it as a `/…/` facet would reject every
-            // valid datetime; its meaning is carried in the canonical logic: layer.
+            // valid datetime; its meaning is carried in the canonical logic: layer. ShEx Core has
+            // no negation, so `Not` is carried in the ledger; `HasValue` was handled above.
             ConstraintComponent::DateTimeRange { .. }
             | ConstraintComponent::DateTimePattern(_)
             | ConstraintComponent::LanguageIn(_)
             | ConstraintComponent::TerminologyBinding { .. }
             | ConstraintComponent::In(_)
-            | ConstraintComponent::OrdinalSet { .. } => {}
+            | ConstraintComponent::OrdinalSet { .. }
+            | ConstraintComponent::HasValue(_)
+            | ConstraintComponent::Not(_) => {}
         }
     }
     let base = if !datatype.is_empty() {
@@ -476,11 +556,21 @@ fn shex_value_expr(p: &PropertyConstraintIr) -> String {
 /// target-class association is external in ShEx (a ShapeMap), so it is emitted as a comment.
 pub fn project_validation_shape_shex(shape: &ValidationShapeIr) -> String {
     let mut out = String::new();
-    if let ShapeTarget::Class(c) = &shape.target {
-        out.push_str(&format!(
+    match &shape.target {
+        ShapeTarget::Class(c) => out.push_str(&format!(
             "# targetClass {} (associate via ShapeMap)\n",
             iri_term(c)
-        ));
+        )),
+        ShapeTarget::SubjectsOf(p) => out.push_str(&format!(
+            "# targetSubjectsOf {} (associate via ShapeMap)\n",
+            iri_term(p)
+        )),
+        ShapeTarget::ObjectsOf(p) => out.push_str(&format!(
+            "# targetObjectsOf {} (associate via ShapeMap)\n",
+            iri_term(p)
+        )),
+        // A value-keyed (SPARQL) target has no ShEx form; shex_residue records it.
+        ShapeTarget::ValueKeyed { .. } => {}
     }
     out.push_str(&format!("{} {{\n", iri_term(&shape.iri)));
     for p in &shape.properties {
@@ -531,6 +621,16 @@ pub fn shex_residue(shape: &ValidationShapeIr) -> Vec<String> {
                 .to_owned(),
         );
     }
+    // A focus-node-level constraint (domain/range/disjointness) has no ShEx shape-level form —
+    // ShEx associates a shape via an external ShapeMap, so a `sh:targetSubjectsOf`/`ObjectsOf`
+    // selector and any node-level `sh:class`/`sh:not` are carried in the canonical logic: layer.
+    if !shape.node_components.is_empty() {
+        residue.push(format!(
+            "{} focus-node-level constraint(s) (domain/range/disjointness) have no ShEx \
+             shape-level form; carried in the canonical logic: layer",
+            shape.node_components.len()
+        ));
+    }
     for p in &shape.properties {
         for c in &p.components {
             match c {
@@ -548,6 +648,17 @@ pub fn shex_residue(shape: &ValidationShapeIr) -> Vec<String> {
                      only, the class membership is carried in the canonical logic: layer",
                     p.path
                 )),
+                ConstraintComponent::QualifiedValueShape { min, max, .. } => residue.push(format!(
+                    "qualified value-shape count (min={min:?}, max={max:?}) on {} has no \
+                     independent ShEx form (ShEx cardinality is on the triple constraint); the \
+                     qualified count is carried in the canonical logic: layer",
+                    p.path
+                )),
+                ConstraintComponent::Not(_) => residue.push(format!(
+                    "negated constraint (sh:not) on {} has no ShEx Core form (ShEx Core has no \
+                     negation); carried in the canonical logic: layer",
+                    p.path
+                )),
                 _ => {}
             }
         }
@@ -557,7 +668,7 @@ pub fn shex_residue(shape: &ValidationShapeIr) -> Vec<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::ir::{ConstraintProvenance, ShaclNodeKind};
+    use crate::ir::{ConstraintProvenance, ShaclNodeKind, ShaclSeverity};
 
     fn prop(path: &str, comps: Vec<ConstraintComponent>) -> PropertyConstraintIr {
         PropertyConstraintIr::new(path, None, None, None, comps).unwrap()
@@ -836,6 +947,103 @@ mod tests {
     }
 
     #[test]
+    fn has_value_qualified_and_not_emit_shacl() {
+        let s = shape(
+            "https://ex/S",
+            "https://ex/C",
+            vec![prop(
+                "https://ex/p",
+                vec![
+                    ConstraintComponent::HasValue(ShapeValue::Iri("https://ex/fixed".into())),
+                    ConstraintComponent::QualifiedValueShape {
+                        shape: vec![ConstraintComponent::Class("https://ex/Q".into())],
+                        min: Some(1),
+                        max: None,
+                    },
+                    ConstraintComponent::Not(Box::new(ConstraintComponent::Class(
+                        "https://ex/D".into(),
+                    ))),
+                ],
+            )],
+        );
+        let ttl = project_validation_shape_shacl(&s);
+        assert!(ttl.contains("sh:hasValue <https://ex/fixed>"), "{ttl}");
+        assert!(
+            ttl.contains("sh:qualifiedValueShape [ sh:class <https://ex/Q> ]"),
+            "{ttl}"
+        );
+        assert!(ttl.contains("sh:qualifiedMinCount 1"), "{ttl}");
+        assert!(ttl.contains("sh:not [ sh:class <https://ex/D> ]"), "{ttl}");
+    }
+
+    #[test]
+    fn domain_range_targets_and_node_components_emit_shacl() {
+        // rdfs:domain P C → targetSubjectsOf P + node-level sh:class C.
+        let domain_shape = ValidationShapeIr::new(
+            "https://ex/p-domain-shape",
+            ShapeTarget::SubjectsOf("https://ex/p".into()),
+            vec![],
+            None,
+            None,
+            false,
+        )
+        .unwrap()
+        .with_node_components(vec![ConstraintComponent::Class("https://ex/C".into())])
+        .unwrap();
+        let ttl = project_validation_shape_shacl(&domain_shape);
+        assert!(ttl.contains("sh:targetSubjectsOf <https://ex/p>"), "{ttl}");
+        assert!(ttl.contains("sh:class <https://ex/C>"), "{ttl}");
+        // rdfs:range P C → targetObjectsOf P.
+        let range_shape = ValidationShapeIr::new(
+            "https://ex/p-range-shape",
+            ShapeTarget::ObjectsOf("https://ex/p".into()),
+            vec![],
+            None,
+            None,
+            false,
+        )
+        .unwrap()
+        .with_node_components(vec![ConstraintComponent::NodeKindShacl(ShaclNodeKind::Iri)])
+        .unwrap();
+        let ttl = project_validation_shape_shacl(&range_shape);
+        assert!(ttl.contains("sh:targetObjectsOf <https://ex/p>"), "{ttl}");
+        assert!(ttl.contains("sh:nodeKind sh:IRI"), "{ttl}");
+    }
+
+    #[test]
+    fn inverse_path_severity_message_and_label_emit_shacl() {
+        let p = PropertyConstraintIr::new(
+            "https://ex/p",
+            None,
+            Some(1),
+            Some(ConstraintProvenance::OwlRestriction),
+            vec![],
+        )
+        .unwrap()
+        .inverted()
+        .with_severity(ShaclSeverity::Warning)
+        .with_message("each object has at most one subject via p")
+        .unwrap();
+        let s = shape("https://ex/S", "https://ex/C", vec![p])
+            .with_label("inverse-functional shape")
+            .unwrap();
+        let ttl = project_validation_shape_shacl(&s);
+        assert!(
+            ttl.contains("sh:path [ sh:inversePath <https://ex/p> ]"),
+            "{ttl}"
+        );
+        assert!(ttl.contains("sh:severity sh:Warning"), "{ttl}");
+        assert!(
+            ttl.contains("sh:message \"each object has at most one subject via p\""),
+            "{ttl}"
+        );
+        assert!(
+            ttl.contains("rdf-schema#label> \"inverse-functional shape\""),
+            "{ttl}"
+        );
+    }
+
+    #[test]
     fn empty_program_yields_empty_document() {
         let prog = LogicProgram::new(vec![], vec![], vec![], None);
         assert_eq!(project_validation_shapes_shacl(&prog), "");
@@ -1031,6 +1239,73 @@ mod shex_tests {
         let r = shex_residue(&s);
         assert!(r.iter().any(|x| x.contains("value-keyed target")), "{r:?}");
         assert!(r.iter().any(|x| x.contains("reifier")), "{r:?}");
+    }
+
+    #[test]
+    fn has_value_projects_shex_singleton_value_set() {
+        let s = shape(
+            "https://ex/S",
+            "https://ex/C",
+            vec![prop(
+                "https://ex/p",
+                vec![ConstraintComponent::HasValue(ShapeValue::Iri(
+                    "https://ex/v".into(),
+                ))],
+            )],
+        );
+        let shex = project_validation_shape_shex(&s);
+        assert!(shex.contains("[<https://ex/v>]"), "{shex}");
+    }
+
+    #[test]
+    fn qualified_count_and_negation_are_shex_residue() {
+        let s = shape(
+            "https://ex/S",
+            "https://ex/C",
+            vec![prop(
+                "https://ex/p",
+                vec![
+                    ConstraintComponent::QualifiedValueShape {
+                        shape: vec![ConstraintComponent::Class("https://ex/Q".into())],
+                        min: Some(1),
+                        max: None,
+                    },
+                    ConstraintComponent::Not(Box::new(ConstraintComponent::Class(
+                        "https://ex/D".into(),
+                    ))),
+                ],
+            )],
+        );
+        let r = shex_residue(&s);
+        assert!(
+            r.iter().any(|x| x.contains("qualified value-shape count")),
+            "{r:?}"
+        );
+        assert!(r.iter().any(|x| x.contains("negated constraint")), "{r:?}");
+    }
+
+    #[test]
+    fn domain_target_node_component_is_shex_residue() {
+        let s = ValidationShapeIr::new(
+            "https://ex/p-domain-shape",
+            ShapeTarget::SubjectsOf("https://ex/p".into()),
+            vec![],
+            None,
+            None,
+            false,
+        )
+        .unwrap()
+        .with_node_components(vec![ConstraintComponent::Class("https://ex/C".into())])
+        .unwrap();
+        let shex = project_validation_shape_shex(&s);
+        assert!(shex.contains("# targetSubjectsOf <https://ex/p>"), "{shex}");
+        assert!(
+            shex_residue(&s)
+                .iter()
+                .any(|x| x.contains("focus-node-level")),
+            "{:?}",
+            shex_residue(&s)
+        );
     }
 
     #[test]
