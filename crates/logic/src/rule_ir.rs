@@ -366,9 +366,23 @@ pub(crate) fn lower_nemo_atom(
 /// subject slot).
 pub(crate) fn parse_eval_rules(rules: &str) -> Result<Vec<EvalRule>, String> {
     use crate::nemo_engine::NemoParsedRules;
-    use nemo::rule_model::programs::ProgramRead;
 
     let program = NemoParsedRules::parse_unvalidated(rules)?.into_program();
+    lower_program_eval_rules(&program)
+}
+
+/// Lower an already-parsed Nemo [`Program`] into the evaluable IR.
+///
+/// The arity-generic dispatch in [`crate::oracle::NativeForwardOracle::materialize`]
+/// parses the rule text ONCE and threads the resulting `Program` into both its
+/// eligibility inspection and this lowering, so the binary path never re-parses the
+/// same text; [`parse_eval_rules`] is the string-front convenience over this.
+///
+/// [`Program`]: nemo::rule_model::programs::program::Program
+pub(crate) fn lower_program_eval_rules(
+    program: &nemo::rule_model::programs::program::Program,
+) -> Result<Vec<EvalRule>, String> {
+    use nemo::rule_model::programs::ProgramRead;
 
     let mut out: Vec<EvalRule> = Vec::new();
     for rule in program.rules() {

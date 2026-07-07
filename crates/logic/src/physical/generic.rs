@@ -110,9 +110,24 @@ fn lower_generic_atom(
 /// (RL/RDF has none; a negated atom would be a rule-text bug, never approximated).
 pub(crate) fn parse_generic_rules(rules: &str) -> Result<Vec<GenericRule>, String> {
     use crate::nemo_engine::NemoParsedRules;
-    use nemo::rule_model::programs::ProgramRead;
 
     let program = NemoParsedRules::parse_unvalidated(rules)?.into_program();
+    lower_program_generic_rules(&program)
+}
+
+/// Lower an already-parsed Nemo [`Program`] into the arity-generic IR.
+///
+/// The [`crate::oracle::NativeForwardOracle::materialize`] dispatch parses the rule
+/// text ONCE and threads the `Program` into both the arity-eligibility inspection
+/// and this lowering, so the generic path never re-parses the text;
+/// [`parse_generic_rules`] is the string-front convenience over this. The same hard
+/// error on a negated body atom applies.
+///
+/// [`Program`]: nemo::rule_model::programs::program::Program
+pub(crate) fn lower_program_generic_rules(
+    program: &nemo::rule_model::programs::program::Program,
+) -> Result<Vec<GenericRule>, String> {
+    use nemo::rule_model::programs::ProgramRead;
 
     let mut out: Vec<GenericRule> = Vec::new();
     for rule in program.rules() {
@@ -196,8 +211,12 @@ struct GenericStore {
     entries: Vec<GenericEntry>,
     keys: HashSet<(String, RowSurface)>,
     by_relation: HashMap<String, Vec<usize>>,
-    /// `relation → (column-position, term N3-surface) → ascending entry indices`.
-    by_pos_value: HashMap<String, HashMap<(usize, String), Vec<usize>>>,
+    /// `relation → column-position → term N3-surface → ascending entry indices`.
+    ///
+    /// Nested (not a `(usize, String)` tuple key) so the hot-loop lookup in
+    /// [`extend`] borrows `&pos` and `&surface` directly — no per-lookup `String`
+    /// clone of the bound surface.
+    by_pos_value: HashMap<String, HashMap<usize, HashMap<String, Vec<usize>>>>,
 }
 
 impl GenericStore {
@@ -227,7 +246,12 @@ impl GenericStore {
         // bucket staying ascending (idx grows monotonically).
         let rel_index = self.by_pos_value.entry(relation.clone()).or_default();
         for (pos, s) in surface.iter().enumerate() {
-            rel_index.entry((pos, s.clone())).or_default().push(idx);
+            rel_index
+                .entry(pos)
+                .or_default()
+                .entry(s.clone())
+                .or_default()
+                .push(idx);
         }
         self.entries.push(GenericEntry {
             relation,
@@ -248,8 +272,13 @@ impl GenericStore {
 
 // ── Join engine (arity-generic, positional unification) ────────────────────────
 
-/// A partial solution: variable name → bound native term.
-type Binding = Vec<(String, TermValue)>;
+/// A partial solution: variable name → `(bound native term, its cached N3 surface)`.
+///
+/// The surface is carried alongside the term so an already-bound variable never has
+/// to be re-formatted via `term_display` when it recurs in a later body atom's match
+/// plan — it is copied straight from the matched entry's cached surface, so the value
+/// stored here is byte-identical to formatting the term.
+type Binding = Vec<(String, TermValue, String)>;
 
 /// A partial solution paired with the antecedent rows it has matched so far, in
 /// body order.  The join accumulates both in lockstep so a committed head can
@@ -282,8 +311,8 @@ fn build_match_plan(atom: &GenericAtom, base: &Binding) -> Vec<PosMatch> {
         .map(|pat| match pat {
             EvalTerm::ConstNamed(iri) => PosMatch::Expect(format!("<{iri}>")),
             EvalTerm::ConstLit(lit) => PosMatch::Expect(term_display(lit)),
-            EvalTerm::Var(name) => match base.iter().find(|(k, _)| k == name) {
-                Some((_, existing)) => PosMatch::Expect(term_display(existing)),
+            EvalTerm::Var(name) => match base.iter().find(|(k, _, _)| k == name) {
+                Some((_, _, existing_surface)) => PosMatch::Expect(existing_surface.clone()),
                 None => PosMatch::Fresh(name.clone()),
             },
         })
@@ -322,7 +351,11 @@ fn match_plan(plan: &[PosMatch], entry: &GenericEntry, base: &Binding) -> Option
     }
     let mut binding = base.clone();
     for (name, pos) in fresh {
-        binding.push((name.to_owned(), entry.row[pos].clone()));
+        binding.push((
+            name.to_owned(),
+            entry.row[pos].clone(),
+            entry.surface[pos].clone(),
+        ));
     }
     Some(binding)
 }
@@ -365,7 +398,7 @@ fn extend(
         for (pos, pm) in plan.iter().enumerate() {
             if let PosMatch::Expect(surface) = pm {
                 any_bound = true;
-                match rel_index.and_then(|m| m.get(&(pos, surface.clone()))) {
+                match rel_index.and_then(|m| m.get(&pos).and_then(|m2| m2.get(surface))) {
                     None => {
                         empty = true;
                         break;
@@ -460,8 +493,8 @@ fn ground_head(head: &GenericAtom, sol: &Binding) -> Result<Vec<TermValue>, Stri
             EvalTerm::Var(name) => {
                 let value = sol
                     .iter()
-                    .find(|(k, _)| k == name)
-                    .map(|(_, v)| v.clone())
+                    .find(|(k, _, _)| k == name)
+                    .map(|(_, v, _)| v.clone())
                     .ok_or_else(|| {
                         format!("generic: head variable {name:?} unbound after body matching")
                     })?;
