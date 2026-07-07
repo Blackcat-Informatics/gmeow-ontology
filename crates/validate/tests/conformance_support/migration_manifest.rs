@@ -499,6 +499,98 @@ fn twin_paths_are_well_formed() {
 }
 
 #[test]
+fn migration_is_reconciled_and_complete() {
+    // Finalization gate: the migration is done. Every source fn is accounted for
+    // — no `Pending` remains, so each row is either a native `Twin` or an
+    // intentionally-retired `Drop`. Per-file fn counts are pinned to the inventory
+    // that was verified against each file's dossier "Retained dynamic tests" list
+    // (12 dossiered files) or its `grep -c 'def test_'` source count (4 slice
+    // files) at migration time; the source files are deleted, so the counts live
+    // here as the frozen reconciliation record. A future edit that drops or
+    // double-counts a twin trips this.
+    //
+    // `(file, total_fns, dropped)` — twins = total - dropped. Only `compat_rdflib`
+    // drops fns (24 external-purrdf PyO3-seam behaviours with no in-repo twin).
+    const EXPECTED: &[(&str, usize, usize)] = &[
+        ("tests/test_compat_rdflib.py", 26, 24),
+        ("tests/test_interior.py", 8, 0),
+        ("tests/test_narration.py", 6, 0),
+        ("tests/test_narrative_time.py", 4, 0),
+        ("tests/test_disclosure.py", 4, 0),
+        ("tests/test_email_behavioral.py", 3, 0),
+        ("tests/test_email_participant.py", 3, 0),
+        ("tests/test_email_versions.py", 3, 0),
+        ("tests/test_gender.py", 2, 0),
+        ("tests/test_sexuality.py", 1, 0),
+        ("tests/test_risk.py", 2, 0),
+        ("tests/test_competency.py", 1, 0),
+        ("slices/core/gts/tests/test_gts_slice.py", 2, 0),
+        ("slices/extensions/dreaming/tests/test_dreaming.py", 5, 0),
+        (
+            "slices/extensions/music/tests/test_music_competency.py",
+            1,
+            0,
+        ),
+        (
+            "slices/extensions/music/tests/test_music_oral_tradition.py",
+            10,
+            0,
+        ),
+    ];
+
+    // No `Pending` may survive anywhere in the manifest.
+    for row in MANIFEST {
+        assert!(
+            row.state != TwinState::Pending,
+            "unreconciled Pending row {}::{} — every source fn must be a Twin or a Drop",
+            row.python_file,
+            row.python_fn
+        );
+    }
+
+    // Every in-scope file is present with the exact twin/drop split.
+    for (file, total, dropped) in EXPECTED {
+        let rows = rows_for(file);
+        assert_eq!(
+            rows.len(),
+            *total,
+            "manifest has {} rows for {file}, expected {total} (the verified source fn count)",
+            rows.len()
+        );
+        let twins = rows
+            .iter()
+            .filter(|r| matches!(r.state, TwinState::Twin(_)))
+            .count();
+        let drops = rows
+            .iter()
+            .filter(|r| r.state == TwinState::Dropped)
+            .count();
+        assert_eq!(
+            drops, *dropped,
+            "{file}: {drops} Dropped rows, expected {dropped}"
+        );
+        assert_eq!(
+            twins,
+            *total - *dropped,
+            "{file}: {twins} Twin rows, expected {}",
+            *total - *dropped
+        );
+    }
+
+    // The manifest covers exactly the 16 in-scope files (no stray/missing file).
+    let mut files: Vec<&str> = MANIFEST.iter().map(|r| r.python_file).collect();
+    files.sort_unstable();
+    files.dedup();
+    assert_eq!(
+        files.len(),
+        EXPECTED.len(),
+        "manifest covers {} files, expected {}",
+        files.len(),
+        EXPECTED.len()
+    );
+}
+
+#[test]
 fn manifest_rows_are_nonempty_and_deduped() {
     // The LEFT-side inventory is load-bearing: no blank cells, no duplicate
     // (file, fn) pairs.

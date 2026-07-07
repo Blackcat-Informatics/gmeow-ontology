@@ -47,7 +47,7 @@ GMEOW runs four complementary verification lanes. Each owns a distinct class of 
 |---|---|---|---|---|
 | **Native EL/DL gate** | `gmeow_logic` | open | Docker-free profile, consistency, and entailment authority | `make reason` |
 | **Entailment cross-check oracle** | `purrdf::entail` (in-process OWL-RL + OWL-Direct tableau) | open | on-gate cross-check of the native lane's **subsumption** closure (native ⊇ oracle); consistency is decided by the native lane, off this gate | `gmeow-dev reason-crosscheck`, `make reason-crosscheck` |
-| **Entailment tests** | `owlrl` (pure-Python OWL 2 RL) | open | positive derivations — property chains, transitivity, sub-property closure | `tests/test_reasoning_entailments.py`, `tests/test_competency.py` |
+| **Entailment tests** | `owlrl` (pure-Python OWL 2 RL) | open | positive derivations — property chains, transitivity, sub-property closure | `tests/test_reasoning_entailments.py`, `crates/logic/tests/ontology_entailments.rs` |
 | **Closed-world validation** | SHACL (`gmeow_shacl`) + native `verify` | closed | cardinality, required shapes, display contract, orthogonality data-checks | `make validate`, `make verify`, `tests/test_shapes.py` |
 
 Reasoning order is **reason first to enrich, then validate the enriched graph**. The native
@@ -76,12 +76,13 @@ triple the reasoner *derives*:
 - `locatedAt ∘ containedInPlace ⊑ locatedAt` — location through containment;
 - `subOrganizationOf` transitivity.
 
-`tests/test_competency.py` runs the competency questions over an `owlrl`-materialized graph, so
-they test what GMEOW **entails**, not merely what is asserted (entailment is monotonic, so every
-asserted answer survives). `test_competency_ancestry_is_answered_only_by_reasoning` makes the
-gain explicit: it shows the `gmeow:hasAncestor` answer triple is **absent** from the asserted
-graph and **present** after materialization — it is entailed by the property chain, authored
-nowhere in the A-Box.
+The entailment-dependent competency questions test what GMEOW **entails**, not merely what is
+asserted (entailment is monotonic, so every asserted answer survives). The ancestry-by-reasoning
+check in `crates/logic/tests/ontology_entailments.rs` makes the gain explicit: the
+`gmeow:hasAncestor` answer triple is **absent** from the asserted graph and **present** after
+materialization — it is entailed by the property chain, authored nowhere in the A-Box. Competency
+questions whose expected answer is entailed rather than asserted opt into the native RDFS-closed
+lane (`gmeow:cqReasoning gmeow:reasoningRdfs`, see `crates/slicetest/src/stores.rs`).
 
 ### Lane 4 — closed-world validation (SHACL + native `verify`)
 
