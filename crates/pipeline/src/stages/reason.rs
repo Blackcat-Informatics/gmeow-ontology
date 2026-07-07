@@ -20,10 +20,10 @@ use std::collections::BTreeMap;
 use std::sync::Arc;
 
 use gmeow_logic::reason::artifacts::{
+    DL_CERTIFIED_AGREE, EL_CERTIFIED_AGREE, RL_CERTIFIED_AGREE,
     build_all_subsumption_correspondences_ttl, build_dl_el_ledger_ttl, build_explanations_ttl,
     build_inferred_closure_ttl,
 };
-use gmeow_logic::reason::ledger::DivergenceLedger;
 use gmeow_logic::reason::perf_ledger::perf_ledger;
 use gmeow_logic::reason::reason_all;
 use gmeow_logic::result::ReasoningResult;
@@ -146,26 +146,19 @@ pub fn reason_over_dataset(edb: &RdfDataset) -> Result<ReasonArtifacts, gmeow_er
     let perf = perf_ledger().to_turtle();
     // The native ⊒ oracle subsumption correspondence bundle (Part B of the
     // native-chase promotion): three reified `logic:Correspondence` individuals, one
-    // per EL ⊂ RL ⊂ DL lattice edge. The committed bundle is a HEALTHY, gap-zero run,
-    // so the divergence ledger fed to the builders carries NO OracleOnly/DlGap/
-    // CorpusOnly rows (empty ledger) — exactly as `build_dl_el_ledger_ttl` is empty on a
-    // healthy run. It binds to the native contract hash carried on this run's result
-    // provenance (identical to `native_contract_hash()`); `view_engine` names the
-    // demoted oracle Nemo (native ⊒ nemo). Nemo is NOT run on-gate — native is the
-    // production engine and the native↔Nemo proof lives in the Task-7 cross-check lane.
-    let gap_zero_ledger = DivergenceLedger {
-        rows: Vec::new(),
-        agree: 0,
-        native_only: 0,
-        oracle_only: 0,
-        dl_gap: 0,
-        corpus_only: 0,
-    };
-    let subsumption_correspondence = build_all_subsumption_correspondences_ttl(
-        &gap_zero_ledger,
-        &result.provenance.contract_hash,
-        "nemo",
-    );
+    // per EL ⊂ RL ⊂ DL lattice edge. The builder sources each edge's gap-zero
+    // divergence counts from the committed per-fragment constants
+    // (`EL/RL/DL_CERTIFIED_AGREE` / `_NATIVE_ONLY` in `gmeow_logic::reason::artifacts`) —
+    // the REAL, non-zero native↔Nemo agreement measured on-gate by the parity gates
+    // (`el/rl/dl_native_oracle_ledger_gap_zero`), which pin those constants to the live
+    // measurement with an `assert_eq!`. The build itself does NOT run Nemo (native is the
+    // production engine); carrying the measured counts as committed constants keeps the
+    // shipped certificate's `agreeCount` real and drift-gated without a build-time oracle
+    // run. It binds to the native contract hash carried on this run's result provenance
+    // (identical to `native_contract_hash()`); `view_engine` names the demoted oracle
+    // Nemo (native ⊒ nemo).
+    let subsumption_correspondence =
+        build_all_subsumption_correspondences_ttl(&result.provenance.contract_hash, "nemo");
     Ok(ReasonArtifacts {
         closure,
         explanations,
@@ -282,6 +275,16 @@ pub fn check_subsumption_correspondence_drift(
         }
     };
     let logic = |local: &str| format!("{DRIFT_LOGIC_NS}{local}");
+    let gmeow = |local: &str| format!("{DRIFT_GMEOW_NS}{local}");
+    // Resolve a `gmeow:` count literal on the correspondence subject and parse it to
+    // usize; Err naming the miss or the un-parseable lexical form.
+    let count_object = |subject: &str, local: &str| -> Result<usize, String> {
+        let predicate = gmeow(local);
+        let lexical = literal_object(subject, &predicate)?;
+        lexical
+            .parse::<usize>()
+            .map_err(|e| format!("<{subject}> <{predicate}> = \"{lexical}\" is not a count: {e}"))
+    };
     let assert_iri = |subject: &str, predicate: &str, want: &str| -> Result<(), String> {
         let got = iri_object(subject, predicate)?;
         if got == want {
@@ -349,6 +352,49 @@ pub fn check_subsumption_correspondence_drift(
             return Err(format!(
                 "{slug}: contractHash \"{hash}\" != current native contract \
                  \"{expected_contract_hash}\" — engine changed, subsumption claim not re-minted"
+            ));
+        }
+
+        // 4) NON-VACUITY: the certificate must carry the REAL, measured native↔oracle
+        // agreement — an all-zero (fabricated / hollow) certificate is refused. The
+        // shipped `agreeCount` must equal the committed per-fragment constant (which the
+        // on-gate parity gates pin to the live native↔Nemo measurement) AND be > 0. A
+        // hand-zeroed or drifted count fails this gate: CI cannot ship a vacuous proof.
+        let certified_agree = match slug {
+            "el" => EL_CERTIFIED_AGREE,
+            "rl" => RL_CERTIFIED_AGREE,
+            "dl" => DL_CERTIFIED_AGREE,
+            other => return Err(format!("unknown fragment slug <{other}>")),
+        };
+        let agree = count_object(&correspondence, "agreeCount")?;
+        if agree == 0 {
+            return Err(format!(
+                "{slug}: agreeCount is 0 — the certificate carries ZERO measured evidence \
+                 (a hollow / fabricated all-zero proof), refused"
+            ));
+        }
+        if agree != certified_agree {
+            return Err(format!(
+                "{slug}: agreeCount {agree} != certified native↔oracle agreement \
+                 {certified_agree} — the measured parity count drifted; re-mint the committed \
+                 constant from the live parity gate and regenerate the certificate"
+            ));
+        }
+
+        // 5) GAP-ZERO invariant: the certified over-approximation must miss no answers —
+        // zero oracle-only and zero dl-gap rows (native ⊇ oracle, complete over the
+        // fragment). A non-zero either count means the claim is not gap-zero.
+        let oracle_only = count_object(&correspondence, "oracleOnlyCount")?;
+        if oracle_only != 0 {
+            return Err(format!(
+                "{slug}: oracleOnlyCount {oracle_only} != 0 — the oracle derived answers the \
+                 native closure missed; native ⊉ oracle, not gap-zero"
+            ));
+        }
+        let dl_gap = count_object(&correspondence, "dlGapCount")?;
+        if dl_gap != 0 {
+            return Err(format!(
+                "{slug}: dlGapCount {dl_gap} != 0 — a native DL coverage defect; not gap-zero"
             ));
         }
     }
@@ -533,19 +579,6 @@ mod tests {
         );
     }
 
-    /// A gap-zero (healthy) divergence ledger — the same empty ledger the reason stage
-    /// feeds the correspondence builders on a healthy committed run.
-    fn gap_zero_ledger() -> DivergenceLedger {
-        DivergenceLedger {
-            rows: Vec::new(),
-            agree: 0,
-            native_only: 0,
-            oracle_only: 0,
-            dl_gap: 0,
-            corpus_only: 0,
-        }
-    }
-
     #[test]
     fn committed_subsumption_correspondence_is_current_and_discharged() {
         // The on-gate CONSUMER (adversary F4): load the COMMITTED bundle from disk and
@@ -568,20 +601,48 @@ mod tests {
     #[test]
     fn drift_gate_accepts_a_freshly_minted_bundle() {
         let hash = gmeow_logic::reason::native_contract_hash();
-        let ttl = build_all_subsumption_correspondences_ttl(&gap_zero_ledger(), &hash, "nemo");
+        let ttl = build_all_subsumption_correspondences_ttl(&hash, "nemo");
         check_subsumption_correspondence_drift(&ttl, &hash)
             .expect("a freshly minted bundle at the current hash passes");
     }
 
     #[test]
+    fn drift_gate_refuses_a_hand_zeroed_agree_count() {
+        // The NON-VACUITY guard (the falsifiable teeth): take a VALID committed bundle
+        // and hand-zero one edge's measured agreeCount. A hollow all-zero certificate —
+        // indistinguishable from a fabricated proof carrying no measured evidence — MUST
+        // be refused even though every claim-shape / discharge / hash assertion still holds.
+        let hash = gmeow_logic::reason::native_contract_hash();
+        let ttl = build_all_subsumption_correspondences_ttl(&hash, "nemo");
+        check_subsumption_correspondence_drift(&ttl, &hash)
+            .expect("the real bundle carries non-zero measured agreement");
+        // Rewrite the EL edge's real count to 0 (the certified EL agree is 13).
+        let zeroed = ttl.replace(
+            &format!(
+                "<{DRIFT_GMEOW_NS}agreeCount> {}",
+                gmeow_logic::reason::artifacts::EL_CERTIFIED_AGREE
+            ),
+            &format!("<{DRIFT_GMEOW_NS}agreeCount> 0"),
+        );
+        assert_ne!(
+            zeroed, ttl,
+            "the string replace must have hit the EL agreeCount"
+        );
+        let err = check_subsumption_correspondence_drift(&zeroed, &hash)
+            .expect_err("a hand-zeroed agreeCount must be refused");
+        assert!(
+            err.contains("agreeCount") && (err.contains("ZERO") || err.contains("drifted")),
+            "the refusal names the vacuous / drifted count: {err}"
+        );
+    }
+
+    #[test]
     fn drift_gate_refuses_a_stale_contract_hash() {
         // Mint under one contract, verify against a DIFFERENT (current) one: the engine
-        // changed but the claim was not re-minted — the drift-gate MUST refuse it.
-        let ttl = build_all_subsumption_correspondences_ttl(
-            &gap_zero_ledger(),
-            "0000-old-native-contract",
-            "nemo",
-        );
+        // changed but the claim was not re-minted — the drift-gate MUST refuse it. The
+        // committed counts still bind (they are a property of the corpus, not the hash),
+        // so the refusal isolates the stale-hash cause.
+        let ttl = build_all_subsumption_correspondences_ttl("0000-old-native-contract", "nemo");
         check_subsumption_correspondence_drift(&ttl, "0000-old-native-contract")
             .expect("matching hash passes");
         let err = check_subsumption_correspondence_drift(&ttl, "ffff-current-native-contract")
@@ -596,7 +657,7 @@ mod tests {
     fn drift_gate_refuses_a_weakened_section_law() {
         // Downgrade the discharged status: the drift-gate must refuse a weakened claim.
         let hash = gmeow_logic::reason::native_contract_hash();
-        let ttl = build_all_subsumption_correspondences_ttl(&gap_zero_ledger(), &hash, "nemo");
+        let ttl = build_all_subsumption_correspondences_ttl(&hash, "nemo");
         let weakened = ttl.replace("ObligationDischarged", "ObligationPending");
         let err = check_subsumption_correspondence_drift(&weakened, &hash)
             .expect_err("a weakened section-law discharge must be refused");
@@ -610,7 +671,7 @@ mod tests {
     fn drift_gate_refuses_a_missing_fragment() {
         // Drop the DL edge entirely: the drift-gate must refuse an incomplete bundle.
         let hash = gmeow_logic::reason::native_contract_hash();
-        let el = build_all_subsumption_correspondences_ttl(&gap_zero_ledger(), &hash, "nemo");
+        let el = build_all_subsumption_correspondences_ttl(&hash, "nemo");
         // Cut at the DL section banner so EL+RL stay a VALID (parseable) Turtle doc but the
         // whole DL edge (subject + law claim) is gone — a silently incomplete bundle.
         let cut = el

@@ -557,6 +557,39 @@ pub fn build_reasoning_result_ttl(result: &ReasoningResult) -> String {
     out
 }
 
+// ── committed native↔oracle parity counts (the certified, non-vacuous numbers) ───
+
+// The build MUST NOT run Nemo, yet the shipped `subsumption-correspondence.ttl`
+// certificate must carry the REAL, non-zero native↔oracle agreement — not an
+// all-zero placeholder. So the measured per-fragment `agree` / `native_only`
+// counts from the live native↔Nemo divergence ledgers are carried here as
+// committed constants. The on-gate parity gates (`el/rl/dl_native_oracle_ledger_gap_zero`
+// in `crate::physical::parity`) PIN these constants to the live measurement with an
+// `assert_eq!`, so if the engine or fixtures shift the count the parity gate goes red
+// until the constant is re-minted; the production builder
+// (`build_all_subsumption_correspondences_ttl`) sources the certificate's counts from
+// them, and the pipeline drift-gate refuses any committed bundle whose `agreeCount`
+// disagrees. This keeps the number real and drift-gated WITHOUT running Nemo on-build.
+
+/// The measured native↔Nemo agreeing-subsumption count over the certified EL
+/// fragment corpus (pinned by `el_native_oracle_ledger_gap_zero`).
+pub const EL_CERTIFIED_AGREE: usize = 13;
+/// The measured native-only subsumption count over the EL fragment (gap-zero
+/// certified: native ⊇ Nemo, pinned by `el_native_oracle_ledger_gap_zero`).
+pub const EL_CERTIFIED_NATIVE_ONLY: usize = 0;
+/// The measured native↔Nemo agreeing-fact count over the certified RL fragment
+/// corpus (pinned by `rl_native_oracle_ledger_gap_zero`).
+pub const RL_CERTIFIED_AGREE: usize = 25;
+/// The measured native-only fact count over the RL fragment (pinned by
+/// `rl_native_oracle_ledger_gap_zero`).
+pub const RL_CERTIFIED_NATIVE_ONLY: usize = 0;
+/// The measured native↔Nemo agreeing-fact count over the certified DL-Horn
+/// fragment corpus (pinned by `dl_horn_closure_native_oracle_ledger_gap_zero`).
+pub const DL_CERTIFIED_AGREE: usize = 17;
+/// The measured native-only fact count over the DL-Horn fragment (pinned by
+/// `dl_horn_closure_native_oracle_ledger_gap_zero`).
+pub const DL_CERTIFIED_NATIVE_ONLY: usize = 0;
+
 // ── fragment-subsumption correspondence (EL, RL, … lattice edges) ─────────────────
 
 /// A certified fragment on the native-chase promotion lattice (EL ⊂ RL ⊂ DL …).
@@ -731,23 +764,46 @@ fn build_subsumption_correspondence_ttl(
     out
 }
 
+/// The committed gap-zero divergence ledger for a fragment, built from the pinned
+/// certified counts (`*_CERTIFIED_AGREE` / `*_CERTIFIED_NATIVE_ONLY`). The build must
+/// NOT run Nemo, so the real, non-zero native↔Nemo agreement measured on-gate by the
+/// parity gates is carried through these committed constants instead. A gap-zero run
+/// carries NO oracle-only / dl-gap / corpus-only rows (empty `rows` ⇒ zero findings),
+/// so the certificate emits its counts but no divergence findings.
+fn certified_gap_zero_ledger(agree: usize, native_only: usize) -> DivergenceLedger {
+    DivergenceLedger {
+        rows: Vec::new(),
+        agree,
+        native_only,
+        oracle_only: 0,
+        dl_gap: 0,
+        corpus_only: 0,
+    }
+}
+
 /// Emit ALL THREE certified lattice edges (EL ⊂ RL ⊂ DL) as one committed
 /// `logic:Correspondence` bundle under a single prefix block — the body of the
 /// `generated/logic/subsumption-correspondence.ttl` projection the reason stage
-/// commits. Each edge reuses the identical claim shape ([`subsumption_correspondence_body`]);
-/// the shared `ledger` / `contract_hash` / `view_engine` bind every edge to the same
-/// gap-zero verdict and native contract digest. This is the single production consumer
-/// of the per-fragment builders (the on-gate drift-gate reads what this mints).
-pub fn build_all_subsumption_correspondences_ttl(
-    ledger: &DivergenceLedger,
-    contract_hash: &str,
-    view_engine: &str,
-) -> String {
+/// commits. Each edge reuses the identical claim shape ([`subsumption_correspondence_body`])
+/// but carries ITS OWN certified counts: the per-fragment ledger is built from the
+/// committed `*_CERTIFIED_AGREE` / `*_CERTIFIED_NATIVE_ONLY` constants (the real,
+/// non-zero native↔Nemo agreement the on-gate parity gates pin to the live measurement),
+/// so the shipped certificate carries measured evidence — never an all-zero placeholder.
+/// The build stays Nemo-free: the numbers come from the committed constants, not a
+/// build-time oracle run. `contract_hash` binds every edge to the native contract digest
+/// and `view_engine` names the demoted oracle. This is the single production consumer of
+/// the per-fragment claim shape (the on-gate drift-gate refuses what disagrees).
+pub fn build_all_subsumption_correspondences_ttl(contract_hash: &str, view_engine: &str) -> String {
     let mut out = combined_correspondence_header();
-    for fragment in [&EL_FRAGMENT, &RL_FRAGMENT, &DL_FRAGMENT] {
+    for (fragment, agree, native_only) in [
+        (&EL_FRAGMENT, EL_CERTIFIED_AGREE, EL_CERTIFIED_NATIVE_ONLY),
+        (&RL_FRAGMENT, RL_CERTIFIED_AGREE, RL_CERTIFIED_NATIVE_ONLY),
+        (&DL_FRAGMENT, DL_CERTIFIED_AGREE, DL_CERTIFIED_NATIVE_ONLY),
+    ] {
+        let ledger = certified_gap_zero_ledger(agree, native_only);
         out.push_str(&subsumption_correspondence_body(
             fragment,
-            ledger,
+            &ledger,
             contract_hash,
             view_engine,
         ));

@@ -2131,6 +2131,20 @@ mod tests {
             ledger.agree > 0,
             "the EL parity ledger must have at least one agreeing subsumption"
         );
+        // Pin the committed certificate constants to the live measurement: the shipped
+        // `subsumption-correspondence.ttl` sources its `agreeCount` from these, and the
+        // pipeline drift-gate refuses a bundle that disagrees. If the engine or fixtures
+        // shift the count, this gate goes red until the constant is re-minted.
+        assert_eq!(
+            ledger.agree,
+            crate::reason::artifacts::EL_CERTIFIED_AGREE,
+            "EL_CERTIFIED_AGREE is stale — re-mint it to the measured native↔Nemo agree count"
+        );
+        assert_eq!(
+            ledger.native_only,
+            crate::reason::artifacts::EL_CERTIFIED_NATIVE_ONLY,
+            "EL_CERTIFIED_NATIVE_ONLY is stale — re-mint it to the measured native-only count"
+        );
         // The corpus is genuinely non-trivial: the transitive edge A ⊑ D and both
         // equivalence directions must be among the agreed subsumptions, proving the
         // chase ran (not a bare EDB echo).
@@ -2345,6 +2359,17 @@ mod tests {
         assert!(
             ledger.agree > 0,
             "the RL parity ledger must have at least one agreeing fact"
+        );
+        // Pin the committed certificate constants to the live RL measurement.
+        assert_eq!(
+            ledger.agree,
+            crate::reason::artifacts::RL_CERTIFIED_AGREE,
+            "RL_CERTIFIED_AGREE is stale — re-mint it to the measured native↔Nemo agree count"
+        );
+        assert_eq!(
+            ledger.native_only,
+            crate::reason::artifacts::RL_CERTIFIED_NATIVE_ONLY,
+            "RL_CERTIFIED_NATIVE_ONLY is stale — re-mint it to the measured native-only count"
         );
         // Non-trivial closure: the variable-predicate meta-rules, class-subsumption
         // transitivity, the literal-surrogate carry, and the finite-list surface must
@@ -2590,6 +2615,17 @@ mod tests {
         assert!(
             ledger.agree > 0,
             "the DL Horn parity ledger must have at least one agreeing fact"
+        );
+        // Pin the committed certificate constants to the live DL-Horn measurement.
+        assert_eq!(
+            ledger.agree,
+            crate::reason::artifacts::DL_CERTIFIED_AGREE,
+            "DL_CERTIFIED_AGREE is stale — re-mint it to the measured native↔Nemo agree count"
+        );
+        assert_eq!(
+            ledger.native_only,
+            crate::reason::artifacts::DL_CERTIFIED_NATIVE_ONLY,
+            "DL_CERTIFIED_NATIVE_ONLY is stale — re-mint it to the measured native-only count"
         );
         // Non-trivial closure: each DL_EXTRA_RULES clause AND the EL rules must be among
         // the AGREED facts (proving the DL Horn chase ran, not a bare EDB echo).
