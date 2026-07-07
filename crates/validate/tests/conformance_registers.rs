@@ -47,7 +47,7 @@ fn registers(#[case] case: Case) {
 #[test]
 fn no_primary_persona_machinery() {
     let store = GraphStore::ontology();
-    let (_, rows) = store.select("SELECT DISTINCT ?s WHERE { ?s ?p ?o }");
+    let (_, rows) = store.select(&[], "SELECT DISTINCT ?s WHERE { ?s ?p ?o }");
     let banned = [
         "primarypersona",
         "preferredpersona",
@@ -105,7 +105,7 @@ fn divergence_query_surfaces_legal_divergence() {
     // The competency query reports the private persona's extra norm.
     let store = GraphStore::parse_ttl(&combined);
     let query = fs::read_to_string(repo_root().join(DIVERGENCE_QUERY)).expect("divergence query");
-    let (vars, rows) = store.select(&query);
+    let (vars, rows) = store.select(&[], &query);
     let p_idx = vars
         .iter()
         .position(|v| v == "persona")
