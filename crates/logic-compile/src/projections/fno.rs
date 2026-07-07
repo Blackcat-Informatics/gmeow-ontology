@@ -23,6 +23,7 @@ use purrdf::fno::{
 use purrdf::{RdfQuad, RdfTerm, turtle};
 
 use crate::ingest::{DslTerm, DslView};
+use crate::loss_ledger::LossLedger;
 use crate::projections::{ProjectionResult, correspondence_result};
 
 const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
@@ -120,6 +121,10 @@ pub struct FnoLowering {
     /// `ValidationOnly`: signatures are exact, but the relation, caveats, and standpoint
     /// scope are dropped, so every function contributes a preservation row.
     pub ledger: Vec<ProjectionResult>,
+    /// The per-correspondence loss store this lowering interned every drop into (keyed by
+    /// target focus). The mappings stage unions it into the single report loss store so the
+    /// FnO rows' `gmeow:lossyDrop` records read back from the SAME substrate ledger.
+    pub loss: LossLedger,
 }
 
 pub fn lower_fno(dsl: &DslView, onto: &DslView) -> Result<FnoLowering, String> {
@@ -137,6 +142,7 @@ pub fn lower_fno(dsl: &DslView, onto: &DslView) -> Result<FnoLowering, String> {
     // is not an entailment surface, so the relation, caveats, and standpoint scope are
     // dropped (the dialect structural drops, attributed to the get leg).
     let mut ledger: Vec<ProjectionResult> = Vec::new();
+    let mut loss = LossLedger::new();
     for func in &functions {
         let residue = vec![
             "get-leg: FnO is not an entailment surface — parameter/output signatures are \
@@ -145,9 +151,13 @@ pub fn lower_fno(dsl: &DslView, onto: &DslView) -> Result<FnoLowering, String> {
             "get-leg: the correspondence relation, caveats, and standpoint scope are dropped"
                 .to_owned(),
         ];
-        ledger.push(correspondence_result("fno", &func.iri, residue));
+        ledger.push(correspondence_result(&mut loss, "fno", &func.iri, residue));
     }
-    Ok(FnoLowering { catalog, ledger })
+    Ok(FnoLowering {
+        catalog,
+        ledger,
+        loss,
+    })
 }
 
 /// The single shared `rdfs:range` lookup (the FnO `fno:type` derivation + the lint's

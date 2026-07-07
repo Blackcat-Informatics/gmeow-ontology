@@ -172,6 +172,7 @@ pub(crate) fn emit_put(
     profile: &str,
     vocab: &SuppressionVocab,
     lookup: &CorrespondenceLookup,
+    loss: &mut crate::loss_ledger::LossLedger,
 ) -> Result<Option<EmittedQuery>, String> {
     let _ = (vocab, lookup);
     let empty: BTreeMap<String, String> = BTreeMap::new();
@@ -273,6 +274,7 @@ pub(crate) fn emit_put(
                     if !b.ingest_residue.is_empty() {
                         let key = format!("{}::{}", local_cell(&cell.iri), b.profile);
                         ledger.push(correspondence_result(
+                            loss,
                             "sparql-put",
                             &key,
                             b.ingest_residue.clone(),
@@ -427,9 +429,21 @@ mod tests {
     }
 
     fn emit(cells: &[ProjectionCell]) -> Option<EmittedQuery> {
+        // The residue rows are interned into the shared loss store; a caller that only
+        // inspects the query text uses a throwaway store. Tests that assert on the interned
+        // residue use `emit_with_loss` and read it back through `projection_drops_for`.
+        emit_with_loss(cells).0
+    }
+
+    fn emit_with_loss(
+        cells: &[ProjectionCell],
+    ) -> (Option<EmittedQuery>, crate::loss_ledger::LossLedger) {
         let vocab = SuppressionVocab::empty();
         let lookup = CorrespondenceLookup::default();
-        emit_put(cells, "ml-schema", &vocab, &lookup).expect("emit_put must not hard-fail")
+        let mut loss = crate::loss_ledger::LossLedger::new();
+        let emitted = emit_put(cells, "ml-schema", &vocab, &lookup, &mut loss)
+            .expect("emit_put must not hard-fail");
+        (emitted, loss)
     }
 
     /// The CONSTRUCT-head text of a query (between the first `CONSTRUCT {` and its closing `}`).
@@ -721,7 +735,8 @@ mod tests {
             .to_owned();
         let mut cell = class_cell("<=", false, Some(put_get_claim()));
         cell.bindings[0].ingest_residue = vec![residue.clone()];
-        let emitted = emit(&[cell]).expect("ValidationOnly contributes a put query");
+        let (emitted, loss) = emit_with_loss(&[cell]);
+        let emitted = emitted.expect("ValidationOnly contributes a put query");
 
         assert_eq!(
             emitted.ledger.len(),
@@ -739,17 +754,18 @@ mod tests {
             PreservationKind::ValidationOnly,
             "the inverse-ingest up-lift is validation-only"
         );
+        // The drops are read back from the ONE loss store, keyed by the row's target focus;
+        // the per-run actual notes come back `actual: `-prefixed (the report's exact form).
+        let drops = loss.projection_drops_for(&row.target);
         assert!(
-            row.actual_drops.contains(&residue),
-            "the authored disclosure must survive verbatim into actual_drops:\n{:?}",
-            row.actual_drops
+            drops.contains(&format!("actual: {residue}")),
+            "the authored disclosure must survive verbatim into the loss store:\n{drops:?}"
         );
         assert!(
-            row.actual_drops
+            drops
                 .iter()
-                .any(|d| d.starts_with("correspondence: ") && d.ends_with("::ml-schema")),
-            "the row must carry its per-correspondence key note:\n{:?}",
-            row.actual_drops
+                .any(|d| d.starts_with("actual: correspondence: ") && d.ends_with("::ml-schema")),
+            "the row must carry its per-correspondence key note:\n{drops:?}"
         );
     }
 

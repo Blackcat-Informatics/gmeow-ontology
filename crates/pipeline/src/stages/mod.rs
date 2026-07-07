@@ -39,6 +39,7 @@ pub mod evals;
 pub mod export;
 pub mod fold_arena;
 pub mod frame_shapes;
+pub mod gate_verdict;
 pub mod gts_compose;
 pub mod gts_sink;
 pub mod json_schema;

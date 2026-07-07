@@ -18,7 +18,6 @@
 //! selector cannot be minted from it), never a silent skip.
 
 use gmeow_logic_compile::ir::PreservationKind;
-use gmeow_logic_compile::projections::ProjectionResult;
 use purrdf::{RdfDataset, TermId};
 
 use crate::bridge::IngestDiagnostic;
@@ -304,6 +303,7 @@ fn emit_anchor(source: &NamedSource, a: &Anchor) -> LangEmission {
         Some(NIF_PUT_LEG),
     );
 
+    let mut loss = crate::registry::LossLedger::new();
     LangEmission {
         artifacts: vec![
             EmittedArtifact {
@@ -318,15 +318,17 @@ fn emit_anchor(source: &NamedSource, a: &Anchor) -> LangEmission {
             },
         ],
         correspondence: corr,
-        ledger: vec![ProjectionResult {
-            target: format!("nif:{}#{}", source.name, local),
-            content: String::new(),
-            is_rdf: true,
-            preservation: PreservationKind::SoundUnder,
-            complexity: "n/a".to_owned(),
-            lossy_drops: Vec::new(),
-            actual_drops: residue.clone(),
-        }],
+        ledger: vec![crate::registry::emit_ledger_row(
+            &mut loss,
+            format!("nif:{}#{}", source.name, local),
+            String::new(),
+            true,
+            PreservationKind::SoundUnder,
+            "n/a".to_owned(),
+            Vec::new(),
+            residue.clone(),
+        )],
+        loss,
         leg_pair: None,
         emitted_reading_count: None,
         source_iri: a.iri.clone(),
@@ -577,8 +579,9 @@ ex:anc a lang:SurfaceAnchor ;
         };
         let e = &NifBridge.emit(&input).expect("emit")[0];
 
-        // The ledger row DISCLOSES the fragility (residue mentions re-encoding invalidation).
-        let residue = e.ledger[0].actual_drops.join("\n");
+        // The ledger row DISCLOSES the fragility (residue mentions re-encoding invalidation),
+        // read back from the emission's loss store by the row target.
+        let residue = e.loss.projection_drops_for(&e.ledger[0].target).join("\n");
         assert!(residue.contains("offset fragility"), "{residue}");
         assert!(
             residue.contains("re-encoding") || residue.contains("re-normalizing"),

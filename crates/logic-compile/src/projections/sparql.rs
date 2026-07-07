@@ -16,6 +16,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use crate::ingest::prefixes::PREFIX_REGISTRY;
 use crate::ingest::{DslTerm, DslView};
+use crate::loss_ledger::LossLedger;
 use crate::projections::correspondence_frontend::CorrespondenceLookup;
 use crate::projections::correspondence_gate::assert_relation_no_overclaim;
 use crate::projections::get_leg::{
@@ -70,6 +71,13 @@ pub struct SparqlLowering {
     /// mappings stage discharges each correspondence's OWN branch against its OWN put fragment.
     /// Pure strings — no SPARQL engine runs in logic-compile (F2).
     pub fragments: BTreeMap<(String, String), (String, Option<String>)>,
+    /// The per-correspondence loss store this lowering interned every drop into (keyed by
+    /// target focus) — both the `sparql-construct` get-leg rows and the `sparql-put` inverse
+    /// rows. The mappings stage unions it into the single report loss store so both dialect
+    /// families read back from the SAME substrate ledger. Only the per-profile emission interns
+    /// here; the isolated per-cell fragment re-render (below) uses a throwaway store so no drop
+    /// is double-counted.
+    pub loss: LossLedger,
 }
 
 /// Lower every profile's SPARQL projection query, keyed `<profile>.rq`, plus the
@@ -85,8 +93,9 @@ pub fn lower_sparql(
     let mut queries = BTreeMap::new();
     let mut put_queries = BTreeMap::new();
     let mut ledger: Vec<ProjectionResult> = Vec::new();
+    let mut loss = LossLedger::new();
     for profile in PROFILES {
-        let emitted = emit_sparql(&cells, profile, &vocab, lookup)?;
+        let emitted = emit_sparql(&cells, profile, &vocab, lookup, &mut loss)?;
         queries.insert(format!("{profile}.rq"), emitted.query);
         ledger.extend(emitted.ledger);
         // The inverse-ingest (put) leg: the role-swap of get. A profile with no
@@ -96,7 +105,7 @@ pub fn lower_sparql(
         // the shared loss ledger, so the honesty note ships in the bundle rather than
         // being dropped at the put leg.
         if let Some(put) =
-            crate::projections::sparql_put::emit_put(&cells, profile, &vocab, lookup)?
+            crate::projections::sparql_put::emit_put(&cells, profile, &vocab, lookup, &mut loss)?
         {
             put_queries.insert(format!("{profile}.put.rq"), put.query);
             ledger.extend(put.ledger);
@@ -117,9 +126,20 @@ pub fn lower_sparql(
         }
         for profile in profiles {
             let slice = std::slice::from_ref(cell);
-            let get = emit_sparql(slice, profile, &vocab, lookup)?.query;
-            let put = crate::projections::sparql_put::emit_put(slice, profile, &vocab, lookup)?
-                .map(|p| p.query);
+            // The isolated per-cell fragment re-render is a SEPARATE pure render whose only
+            // product is the query text (its ledger rows are discarded); intern its drops into a
+            // throwaway store so the per-profile emission above stays the sole contributor to
+            // `loss` — otherwise every drop would be double-counted.
+            let mut scratch = LossLedger::new();
+            let get = emit_sparql(slice, profile, &vocab, lookup, &mut scratch)?.query;
+            let put = crate::projections::sparql_put::emit_put(
+                slice,
+                profile,
+                &vocab,
+                lookup,
+                &mut scratch,
+            )?
+            .map(|p| p.query);
             fragments.insert((cell.iri.clone(), profile.to_owned()), (get, put));
         }
     }
@@ -129,6 +149,7 @@ pub fn lower_sparql(
         put_queries,
         ledger,
         fragments,
+        loss,
     })
 }
 
@@ -228,6 +249,7 @@ fn emit_sparql(
     profile: &str,
     vocab: &SuppressionVocab,
     lookup: &CorrespondenceLookup,
+    loss: &mut LossLedger,
 ) -> Result<EmittedQuery, String> {
     let mut templates: Vec<String> = Vec::new();
     let mut branches: Vec<String> = Vec::new();
@@ -303,7 +325,7 @@ fn emit_sparql(
                     .to_owned(),
             );
             let key = format!("{}::{}", local_cell(&cell.iri), b.profile);
-            ledger.push(correspondence_result("sparql", &key, residue));
+            ledger.push(correspondence_result(loss, "sparql", &key, residue));
         }
     }
     if branches.is_empty() {

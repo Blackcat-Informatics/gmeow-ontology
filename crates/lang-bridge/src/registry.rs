@@ -23,6 +23,7 @@ use gmeow_logic_compile::ir::{
     Correspondence, CorrespondenceLaw, CorrespondenceRelation, Determinacy, DischargeVerdict,
     LawClaimIr, LegPath, MorphismClass, MorphismKind, PreservationKind,
 };
+pub(crate) use gmeow_logic_compile::loss_ledger::LossLedger;
 use gmeow_logic_compile::projections::ProjectionResult;
 
 use crate::bcp47::Bcp47Target;
@@ -98,7 +99,12 @@ pub struct LangEmission {
     /// round-trip judgments are decided over.
     pub correspondence: Correspondence,
     /// The per-emission loss-ledger rows (the bridge's own honest preservation record).
+    /// The rows carry only identity/judgment; their drops live in [`loss`](Self::loss).
     pub ledger: Vec<ProjectionResult>,
+    /// The loss store this emission interned every row's drops into (keyed by target focus).
+    /// The pipeline `lang_projection` stage unions it into the single report loss store and
+    /// reads each row's residue back through `projection_drops_for`.
+    pub loss: LossLedger,
     /// The get/put leg pair whose structural round-trip the driver cross-checks with
     /// [`exact_round_trip_holds`]; `None` for a lossy target with no exact inverse leg.
     pub leg_pair: Option<(LegPath, LegPath)>,
@@ -216,6 +222,7 @@ impl LangProjectionTarget for EbnfTarget {
             let grammar_iri = grammar_iri_for(&text);
             let round_trip_holds = grammar_round_trips(&canon);
             let source_rdf = grammar_to_ntriples(&canon, &grammar_iri);
+            let mut loss = LossLedger::new();
             emissions.push(LangEmission {
                 artifacts: vec![EmittedArtifact {
                     path_suffix: format!("ebnf/{}.ebnf", source.name),
@@ -224,11 +231,13 @@ impl LangProjectionTarget for EbnfTarget {
                 }],
                 correspondence: grammar_correspondence(&text),
                 ledger: vec![grammar_ledger_row(
+                    &mut loss,
                     "ebnf",
                     &source.name,
                     PreservationKind::Exact,
                     Vec::new(),
                 )],
+                loss,
                 leg_pair: Some(grammar_leg_pair()),
                 emitted_reading_count: None,
                 source_iri: grammar_iri,
@@ -279,6 +288,7 @@ impl LangProjectionTarget for AbnfTarget {
                 };
                 let text = serialize_grammar(&abnf_view);
                 let round_trip_holds = grammar_round_trips(&abnf_view);
+                let mut loss = LossLedger::new();
                 emissions.push(LangEmission {
                     artifacts: vec![EmittedArtifact {
                         path_suffix: format!("abnf/{}.abnf", source.name),
@@ -287,11 +297,13 @@ impl LangProjectionTarget for AbnfTarget {
                     }],
                     correspondence: grammar_correspondence(&text),
                     ledger: vec![grammar_ledger_row(
+                        &mut loss,
                         "abnf",
                         &source.name,
                         PreservationKind::Exact,
                         Vec::new(),
                     )],
+                    loss,
                     leg_pair: Some(grammar_leg_pair()),
                     emitted_reading_count: None,
                     source_iri,
@@ -309,15 +321,18 @@ impl LangProjectionTarget for AbnfTarget {
                 // construct — the loss is carried and flagged, never a silent skip.
                 let mut unsupported = blocking;
                 unsupported.extend(NON_CF_SIDE_CONDITIONS.iter().map(|s| (*s).to_owned()));
+                let mut loss = LossLedger::new();
                 emissions.push(LangEmission {
                     artifacts: Vec::new(),
                     correspondence: lossy_grammar_correspondence(&ebnf_text),
                     ledger: vec![grammar_ledger_row(
+                        &mut loss,
                         "abnf",
                         &source.name,
                         PreservationKind::SoundUnder,
                         unsupported.clone(),
                     )],
+                    loss,
                     leg_pair: None,
                     emitted_reading_count: None,
                     source_iri,
@@ -405,19 +420,47 @@ fn collect_abnf_blockers(rule: &str, e: &RuleExpr, out: &mut Vec<String>) {
 /// `<target>:<name>`, carrying its residue as `actual_drops` so the overclaim gate can
 /// police it (Exact ⇒ empty residue; SoundUnder ⇒ the enumerated drops).
 fn grammar_ledger_row(
+    loss: &mut LossLedger,
     target: &str,
     name: &str,
     preservation: PreservationKind,
     residue: Vec<String>,
 ) -> ProjectionResult {
-    ProjectionResult {
-        target: format!("{target}:{name}"),
-        content: String::new(),
-        is_rdf: false,
+    emit_ledger_row(
+        loss,
+        format!("{target}:{name}"),
+        String::new(),
+        false,
         preservation,
-        complexity: "n/a".to_owned(),
-        lossy_drops: Vec::new(),
-        actual_drops: residue,
+        "n/a".to_owned(),
+        Vec::new(),
+        residue,
+    )
+}
+
+/// The shared loss-ledger-row constructor every `LangTarget::emit` emitter routes through:
+/// intern the row's structural + per-run drops into `loss` (keyed by the target focus,
+/// **R1**), then return a drop-less [`ProjectionResult`] carrying only identity + judgment.
+/// The residue reads back through `loss.projection_drops_for(&row.target)` — the single
+/// source of truth the overclaim gate and the projection report both consume.
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn emit_ledger_row(
+    loss: &mut LossLedger,
+    target: String,
+    content: String,
+    is_rdf: bool,
+    preservation: PreservationKind,
+    complexity: String,
+    lossy_drops: Vec<String>,
+    actual_drops: Vec<String>,
+) -> ProjectionResult {
+    loss.record_projection_drops(&target, preservation, &lossy_drops, &actual_drops);
+    ProjectionResult {
+        target,
+        content,
+        is_rdf,
+        preservation,
+        complexity,
     }
 }
 

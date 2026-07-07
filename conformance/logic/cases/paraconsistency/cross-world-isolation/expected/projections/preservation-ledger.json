@@ -46,7 +46,6 @@
       "actual: logic:provenance on <https://example.org/paraconsistency/cross-world-isolation/ruleLowSeverity> has no gUFO bridge equivalent",
       "actual: rdf:type logic:Rule on <https://example.org/paraconsistency/cross-world-isolation/ruleHighSeverity> has no gUFO equivalent",
       "actual: rdf:type logic:Rule on <https://example.org/paraconsistency/cross-world-isolation/ruleLowSeverity> has no gUFO equivalent",
-      "actual: rule head <?P> dropped (gUFO bridge has no rule surface)",
       "actual: rule head <?P> dropped (gUFO bridge has no rule surface)"
     ],
     "preservation": "ValidationOnly"
@@ -79,7 +78,6 @@
       "actual: logic:head on <https://example.org/paraconsistency/cross-world-isolation/ruleLowSeverity> has no OWL DL equivalent",
       "actual: logic:provenance on <https://example.org/paraconsistency/cross-world-isolation/ruleHighSeverity> has no OWL DL equivalent",
       "actual: logic:provenance on <https://example.org/paraconsistency/cross-world-isolation/ruleLowSeverity> has no OWL DL equivalent",
-      "actual: rule head <?P> 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type' not expressible in OWL DL (body complexity)",
       "actual: rule head <?P> 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type' not expressible in OWL DL (body complexity)"
     ],
     "preservation": "SoundUnderApproximation"
@@ -98,7 +96,6 @@
       "actual: logic:head on <https://example.org/paraconsistency/cross-world-isolation/ruleLowSeverity> has no EL equivalent",
       "actual: logic:provenance on <https://example.org/paraconsistency/cross-world-isolation/ruleHighSeverity> has no EL equivalent",
       "actual: logic:provenance on <https://example.org/paraconsistency/cross-world-isolation/ruleLowSeverity> has no EL equivalent",
-      "actual: rule head <?P> dropped (EL has no rule surface)",
       "actual: rule head <?P> dropped (EL has no rule surface)"
     ],
     "preservation": "SoundUnderApproximation"

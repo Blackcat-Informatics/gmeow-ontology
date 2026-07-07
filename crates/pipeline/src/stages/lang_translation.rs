@@ -42,6 +42,7 @@ use sha2::{Digest, Sha256};
 
 use gmeow_docs::i18n::parse_po;
 use gmeow_logic_compile::ir::PreservationKind;
+use gmeow_logic_compile::loss_ledger::LossLedger;
 use gmeow_logic_compile::projections::ProjectionResult;
 use purrdf::slice::{ArtifactRole, SliceCatalog};
 
@@ -59,8 +60,12 @@ pub struct LangTranslationCorpus {
     /// The deterministic, sorted, byte-stable N-Triples graph
     /// (`graph/lang-translation-corpus`).
     pub ntriples: Vec<u8>,
-    /// One `ProjectionResult` per translation unit plus one per document roll-up.
+    /// One `ProjectionResult` per translation unit plus one per document roll-up. The rows
+    /// carry only identity/judgment; their drops live in [`loss`](Self::loss).
     pub ledger: Vec<ProjectionResult>,
+    /// The loss store every row's drops are interned into (keyed by target focus). The mappings
+    /// stage unions it into the single report loss store.
+    pub loss: LossLedger,
 }
 
 /// One typed translation crossing derived from a single `.po` entry.
@@ -151,10 +156,18 @@ pub fn build_corpus(root: &Path) -> Result<LangTranslationCorpus, gmeow_errors::
     units.sort_by(|a, b| a.unit_iri.cmp(&b.unit_iri));
 
     let ntriples = emit_ntriples(&units);
-    let mut ledger: Vec<ProjectionResult> = units.iter().map(unit_ledger_row).collect();
-    ledger.extend(document_ledger_rows(&units));
+    let mut loss = LossLedger::new();
+    let mut ledger: Vec<ProjectionResult> = units
+        .iter()
+        .map(|u| unit_ledger_row(u, &mut loss))
+        .collect();
+    ledger.extend(document_ledger_rows(&units, &mut loss));
 
-    Ok(LangTranslationCorpus { ntriples, ledger })
+    Ok(LangTranslationCorpus {
+        ntriples,
+        ledger,
+        loss,
+    })
 }
 
 /// Derive one typed crossing from a `.po` entry: content-addressed IRIs for the unit,
@@ -408,7 +421,7 @@ fn emit_ntriples(units: &[Unit]) -> Vec<u8> {
 /// The per-unit loss-ledger row. Its preservation is the SAME kind the carried
 /// correspondence declares; the residue is non-empty so an `Unsupported` gap row is
 /// carried and flagged (the overclaim gate rejects a silent floor).
-fn unit_ledger_row(unit: &Unit) -> ProjectionResult {
+fn unit_ledger_row(unit: &Unit, loss: &mut LossLedger) -> ProjectionResult {
     let kind = preservation_of(unit.present);
     let short = digest16("unit", &format!("{}\u{1f}{}", unit.key, unit.lang));
     let actual_drops = if unit.present {
@@ -429,21 +442,21 @@ fn unit_ledger_row(unit: &Unit) -> ProjectionResult {
             format!("english carrier: {}", unit.msgid),
         ]
     };
+    let target = format!("lang-translation:{short}");
+    loss.record_projection_drops(&target, kind, &[], &actual_drops);
     ProjectionResult {
-        target: format!("lang-translation:{short}"),
+        target,
         content: String::new(),
         is_rdf: false,
         preservation: kind,
         complexity: "n/a".to_string(),
-        lossy_drops: Vec::new(),
-        actual_drops,
     }
 }
 
 /// One roll-up ledger row per language document. Its preservation is the DERIVED
 /// weakest-dominates join of the document's units (any `Unsupported` gap dominates), so
 /// the ledger records the computed roll-up rather than a fabricated document-level flag.
-fn document_ledger_rows(units: &[Unit]) -> Vec<ProjectionResult> {
+fn document_ledger_rows(units: &[Unit], loss: &mut LossLedger) -> Vec<ProjectionResult> {
     let mut by_lang: BTreeMap<String, Vec<&Unit>> = BTreeMap::new();
     for unit in units {
         by_lang.entry(unit.lang.clone()).or_default().push(unit);
@@ -452,19 +465,20 @@ fn document_ledger_rows(units: &[Unit]) -> Vec<ProjectionResult> {
         .into_iter()
         .map(|(lang, members)| {
             let kind = weakest_dominates(members.iter().map(|u| preservation_of(u.present)));
+            let target = format!("lang-translation-doc:{lang}");
+            let actual_drops = vec![format!(
+                "document roll-up over {n} translation unit(s); weakest-dominates join = \
+                 logic:{kind}",
+                n = members.len(),
+                kind = kind.as_str(),
+            )];
+            loss.record_projection_drops(&target, kind, &[], &actual_drops);
             ProjectionResult {
-                target: format!("lang-translation-doc:{lang}"),
+                target,
                 content: String::new(),
                 is_rdf: false,
                 preservation: kind,
                 complexity: "n/a".to_string(),
-                actual_drops: vec![format!(
-                    "document roll-up over {n} translation unit(s); weakest-dominates join = \
-                     logic:{kind}",
-                    n = members.len(),
-                    kind = kind.as_str(),
-                )],
-                lossy_drops: Vec::new(),
             }
         })
         .collect()
@@ -612,7 +626,7 @@ mod tests {
             assert_ne!(row.preservation, PreservationKind::Exact);
             if row.preservation == PreservationKind::Unsupported {
                 assert!(
-                    !row.actual_drops.is_empty(),
+                    !corpus.loss.projection_drops_for(&row.target).is_empty(),
                     "an Unsupported row must carry a non-empty residue"
                 );
             }
@@ -631,9 +645,14 @@ mod tests {
             "latinScript",
         );
         assert!(!unit.present);
-        let row = unit_ledger_row(&unit);
+        let mut loss = LossLedger::new();
+        let row = unit_ledger_row(&unit, &mut loss);
         assert_eq!(row.preservation, PreservationKind::Unsupported);
-        assert!(row.actual_drops.iter().any(|d| d.contains("Foo")));
+        assert!(
+            loss.projection_drops_for(&row.target)
+                .iter()
+                .any(|d| d.contains("Foo"))
+        );
     }
 
     #[test]

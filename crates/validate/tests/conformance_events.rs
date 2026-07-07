@@ -271,7 +271,7 @@ fn events_projected(query_rel: &str) -> GraphStore {
     let g =
         GraphStore::ontology_plus_ttl_file(&repo_root().join("tests/fixtures/coverage/events.ttl"));
     let q = std::fs::read_to_string(repo_root().join(query_rel)).expect("projection query");
-    g.construct(&q)
+    g.construct(&[], &q)
 }
 
 /// Twin of `test_schema_role_projection_keys_by_role`.
@@ -287,27 +287,31 @@ fn schema_role_projection_keys_by_role() {
     let band = ex_events("band");
     let dana = ex_events("dana");
     assert!(
-        out.ask(&format!(
-            "ASK {{ <{reception}> <{SCHEMA}organizer> <{casey}> }}"
-        )),
+        out.ask(
+            &[],
+            &format!("ASK {{ <{reception}> <{SCHEMA}organizer> <{casey}> }}")
+        ),
         "reception must have schema:organizer casey"
     );
     assert!(
-        out.ask(&format!(
-            "ASK {{ <{reception}> <{SCHEMA}performer> <{band}> }}"
-        )),
+        out.ask(
+            &[],
+            &format!("ASK {{ <{reception}> <{SCHEMA}performer> <{band}> }}")
+        ),
         "reception must have schema:performer band"
     );
     assert!(
-        out.ask(&format!(
-            "ASK {{ <{reception}> <{SCHEMA}attendee> <{dana}> }}"
-        )),
+        out.ask(
+            &[],
+            &format!("ASK {{ <{reception}> <{SCHEMA}attendee> <{dana}> }}")
+        ),
         "reception must have schema:attendee dana"
     );
     assert!(
-        !out.ask(&format!(
-            "ASK {{ <{reception}> <{SCHEMA}attendee> <{casey}> }}"
-        )),
+        !out.ask(
+            &[],
+            &format!("ASK {{ <{reception}> <{SCHEMA}attendee> <{casey}> }}")
+        ),
         "roles must not bleed: organizer casey is not also an attendee"
     );
 }
@@ -323,9 +327,10 @@ fn schema_role_projection_suppresses_withdrawn_participation() {
     let reception = ex_events("reception");
     let erin = ex_events("erin");
     assert!(
-        !out.ask(&format!(
-            "ASK {{ <{reception}> <{SCHEMA}attendee> <{erin}> }}"
-        )),
+        !out.ask(
+            &[],
+            &format!("ASK {{ <{reception}> <{SCHEMA}attendee> <{erin}> }}")
+        ),
         "erin's withdrawn (displayable false) participation must be suppressed"
     );
 }
@@ -339,7 +344,7 @@ fn schema_fuzzy_time_projects_earliest_bound() {
     let out = events_projected(SCHEMA_ORG_RQ_REL);
     let siege = ex_events("siege");
     assert!(
-        out.ask(&format!(
+        out.ask(&[], &format!(
             "ASK {{ <{siege}> <{SCHEMA}startDate> ?s FILTER(STRSTARTS(STR(?s), \"1453-04-01\")) }}"
         )),
         "siege schema:startDate must project the earliest bound (1453-04-01)"
@@ -356,21 +361,22 @@ fn ical_vevent_interval_has_start_end_and_location() {
     let wedding = ex_events("wedding");
     let chapel = ex_events("chapel");
     assert!(
-        out.ask(&format!("ASK {{ <{wedding}> a <{ICAL}Vevent> }}")),
+        out.ask(&[], &format!("ASK {{ <{wedding}> a <{ICAL}Vevent> }}")),
         "wedding must be a ical:Vevent"
     );
     assert!(
-        out.ask(&format!("ASK {{ <{wedding}> <{ICAL}dtstart> ?o }}")),
+        out.ask(&[], &format!("ASK {{ <{wedding}> <{ICAL}dtstart> ?o }}")),
         "wedding VEVENT must have ical:dtstart"
     );
     assert!(
-        out.ask(&format!("ASK {{ <{wedding}> <{ICAL}dtend> ?o }}")),
+        out.ask(&[], &format!("ASK {{ <{wedding}> <{ICAL}dtend> ?o }}")),
         "wedding VEVENT must have ical:dtend"
     );
     assert!(
-        out.ask(&format!(
-            "ASK {{ <{wedding}> <{ICAL}location> <{chapel}> }}"
-        )),
+        out.ask(
+            &[],
+            &format!("ASK {{ <{wedding}> <{ICAL}location> <{chapel}> }}")
+        ),
         "wedding VEVENT must have ical:location chapel"
     );
 }
@@ -384,15 +390,15 @@ fn ical_vevent_point_has_start_only() {
     let out = events_projected(ICAL_RQ_REL);
     let reception = ex_events("reception");
     assert!(
-        out.ask(&format!("ASK {{ <{reception}> a <{ICAL}Vevent> }}")),
+        out.ask(&[], &format!("ASK {{ <{reception}> a <{ICAL}Vevent> }}")),
         "reception must be a ical:Vevent"
     );
     assert!(
-        out.ask(&format!("ASK {{ <{reception}> <{ICAL}dtstart> ?o }}")),
+        out.ask(&[], &format!("ASK {{ <{reception}> <{ICAL}dtstart> ?o }}")),
         "reception VEVENT must have ical:dtstart"
     );
     assert!(
-        !out.ask(&format!("ASK {{ <{reception}> <{ICAL}dtend> ?o }}")),
+        !out.ask(&[], &format!("ASK {{ <{reception}> <{ICAL}dtend> ?o }}")),
         "a point event must have NO ical:dtend"
     );
 }
@@ -406,15 +412,21 @@ fn ical_vevent_fuzzy_spans_the_bounds() {
     let out = events_projected(ICAL_RQ_REL);
     let siege = ex_events("siege");
     assert!(
-        out.ask(&format!(
-            "ASK {{ <{siege}> <{ICAL}dtstart> ?o FILTER(STRSTARTS(STR(?o), \"1453-04-01\")) }}"
-        )),
+        out.ask(
+            &[],
+            &format!(
+                "ASK {{ <{siege}> <{ICAL}dtstart> ?o FILTER(STRSTARTS(STR(?o), \"1453-04-01\")) }}"
+            )
+        ),
         "siege ical:dtstart must span from the earliest bound (1453-04-01)"
     );
     assert!(
-        out.ask(&format!(
-            "ASK {{ <{siege}> <{ICAL}dtend> ?o FILTER(STRSTARTS(STR(?o), \"1453-05-31\")) }}"
-        )),
+        out.ask(
+            &[],
+            &format!(
+                "ASK {{ <{siege}> <{ICAL}dtend> ?o FILTER(STRSTARTS(STR(?o), \"1453-05-31\")) }}"
+            )
+        ),
         "siege ical:dtend must span to the latest bound (1453-05-31)"
     );
 }
@@ -430,9 +442,10 @@ fn ical_summary_is_the_event_type_label() {
     // The summary is language-tagged (STRLANG in the projection); the Python twin
     // compared `str(o)`, which drops the tag — mirror that with STR(?o).
     assert!(
-        out.ask(&format!(
-            "ASK {{ <{wedding}> <{ICAL}summary> ?o FILTER(STR(?o) = \"marriage\") }}"
-        )),
+        out.ask(
+            &[],
+            &format!("ASK {{ <{wedding}> <{ICAL}summary> ?o FILTER(STR(?o) = \"marriage\") }}")
+        ),
         "wedding ical:summary must be the eventType label \"marriage\""
     );
 }
@@ -451,19 +464,21 @@ fn owl_time_projection_emits_pure_interval_relations() {
     let conference = ex_events("conference");
     let keynote = ex_events("keynote");
     assert!(
-        out.ask(&format!(
-            "ASK {{ <{dawn}> <{TIME}intervalBefore> <{noon}> }}"
-        )),
+        out.ask(
+            &[],
+            &format!("ASK {{ <{dawn}> <{TIME}intervalBefore> <{noon}> }}")
+        ),
         "dawn must be time:intervalBefore noon"
     );
     assert!(
-        out.ask(&format!(
-            "ASK {{ <{conference}> <{TIME}intervalContains> <{keynote}> }}"
-        )),
+        out.ask(
+            &[],
+            &format!("ASK {{ <{conference}> <{TIME}intervalContains> <{keynote}> }}")
+        ),
         "conference must be time:intervalContains keynote"
     );
     // dawn→noon carries ONLY intervalBefore (no var aliasing across relations).
-    let (_, rows) = out.select(&format!("SELECT ?p WHERE {{ <{dawn}> ?p <{noon}> }}"));
+    let (_, rows) = out.select(&[], &format!("SELECT ?p WHERE {{ <{dawn}> ?p <{noon}> }}"));
     let preds: BTreeSet<String> = rows
         .into_iter()
         .filter_map(|row| match row.into_iter().next() {

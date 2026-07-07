@@ -1,0 +1,25 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for gmeow:GateFatalUpsetShape: a gmeow:Finding on the principal
+# gate-fatal up-set ↑(gmeow:severityError, gmeow:blockingBlocking,
+# gmeow:standpointBinding) that is MISSING the derived verdict
+# gmeow:findingGateVerdict gmeow:gateFatal. The shape's sh:sparql constraint fires
+# because the up-set antecedent holds but the fatal verdict is absent, so
+# validation MUST emit shacl.SPARQLConstraintComponent (and no other finding —
+# findingSeverity/findingCode/findingMessage satisfy gmeow:FindingShape, so the
+# up-set shape is the sole violator). This proves the shape discriminates the
+# up-set boundary (non-vacuous). Bound by tests/example-conformance.ttl
+# (ex:ecGateFatalMissing). Lives under tests/ (NOT examples/) so the global
+# make validate gate does not reject it.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/diagnostics/tests/> .
+
+ex:fFatalMissing
+    a gmeow:Finding ;
+    gmeow:findingSeverity gmeow:severityError ;
+    gmeow:findingStandpoint gmeow:standpointBinding ;
+    gmeow:findingCategory logic:FindingContradictionWitness ;
+    gmeow:findingCode "reason.contradiction" ;
+    gmeow:findingMessage "a forbidden contradiction witness on the gate-fatal up-set, missing its derived fatal verdict" .

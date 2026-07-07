@@ -75,11 +75,14 @@ fn contested_parentage_coexists() {
 #[test]
 fn contested_birth_date_coexists() {
     let store = GraphStore::parse_ttl_file(&repo_root().join(CONTESTED_FIXTURE));
-    let (_, rows) = store.select(&format!(
-        "SELECT ?d WHERE {{ <{}> <{}> ?d }}",
-        ex("childBirth"),
-        g("eventTime"),
-    ));
+    let (_, rows) = store.select(
+        &[],
+        &format!(
+            "SELECT ?d WHERE {{ <{}> <{}> ?d }}",
+            ex("childBirth"),
+            g("eventTime"),
+        ),
+    );
     assert_eq!(
         rows.len(),
         2,

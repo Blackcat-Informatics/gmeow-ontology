@@ -32,7 +32,6 @@ use gmeow_logic_compile::ir::{
     Correspondence, CorrespondenceLaw, CorrespondenceRelation, Determinacy, DischargeCondition,
     DischargeVerdict, LawClaimIr, LegPath, MorphismClass, MorphismKind, PreservationKind,
 };
-use gmeow_logic_compile::projections::ProjectionResult;
 
 use crate::bridge::{Bridge, IngestDiagnostic, LangFailure, Lifted};
 use crate::emit::{digest16, ntriples_sorted};
@@ -1026,20 +1025,23 @@ fn lift_grammar(grammar: &Grammar) -> Result<Lifted, IngestDiagnostic> {
             ),
         }
     })?;
-    let ledger = vec![ProjectionResult {
-        target: format!("lang-grammar:{}", digest16("lang-grammar", &text)),
-        content: rdf,
-        is_rdf: true,
-        preservation: PreservationKind::Exact,
-        complexity: "n/a".to_owned(),
-        lossy_drops: Vec::new(),
-        actual_drops: Vec::new(),
-    }];
+    let mut loss = crate::registry::LossLedger::new();
+    let ledger = vec![crate::registry::emit_ledger_row(
+        &mut loss,
+        format!("lang-grammar:{}", digest16("lang-grammar", &text)),
+        rdf,
+        true,
+        PreservationKind::Exact,
+        "n/a".to_owned(),
+        Vec::new(),
+        Vec::new(),
+    )];
     Ok(Lifted {
         forms: Vec::new(),
         surfaces: vec![surface],
         correspondence,
         ledger,
+        loss,
     })
 }
 

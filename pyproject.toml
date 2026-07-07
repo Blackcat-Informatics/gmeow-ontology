@@ -64,7 +64,10 @@ src = ["src", "tests"]
 # validations/ holds standalone external validator-zoo lanes, deliberately
 # outside the repo's normal workflow (their own Makefile/pytest, never make
 # check / CI); fenced off from mainline lint exactly like generated/.
-extend-exclude = ["generated", "validations"]
+# maintenance/ holds UNATTACHED, UNMAINTAINED off-gate maintainer artifacts
+# (e.g. the one-shot classifier-capture tool) — wired into nothing and not a lint
+# target, so they never become a maintenance burden.
+extend-exclude = ["generated", "validations", "maintenance"]
 
 [tool.ruff.lint]
 select = [

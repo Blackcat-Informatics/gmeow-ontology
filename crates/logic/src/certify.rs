@@ -993,7 +993,12 @@ pub fn certify_program(
     program: &gmeow_logic_compile::ir::LogicProgram,
     profile: &str,
 ) -> Result<CertificationVerdict, String> {
-    let nemo = gmeow_logic_compile::projections::text::project_nemo(program)?;
+    // Only the `.rls` rule text is consumed here; the nemo projection's drops are interned
+    // into a throwaway loss store.
+    let nemo = gmeow_logic_compile::projections::text::project_nemo(
+        program,
+        &mut gmeow_logic_compile::loss_ledger::LossLedger::new(),
+    )?;
     let rules_section =
         gmeow_logic_compile::projections::text::extract_nemo_rules_section(&nemo.content)?;
     let evolution = program_evolution(program)?;
