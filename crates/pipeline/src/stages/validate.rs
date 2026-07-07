@@ -192,7 +192,14 @@ impl Stage for ValidateStage {
         // graph (the base-graph carries the gmeow:DiagnosticMetaRule rules + the
         // gmeow:categoryPolarity wiring). A source without meta-rules yields None and
         // the projection stays byte-unchanged.
-        let meta = crate::stages::meta_findings::MetaProgram::from_source(source_graph);
+        let meta = crate::stages::meta_findings::MetaProgram::from_source(source_graph).map_err(
+            |message| {
+                gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                    stage: self.id().to_owned(),
+                    message: format!("diagnostic meta-fold: {message}"),
+                })
+            },
+        )?;
         let artifacts = render_artifacts(&report, gate.as_ref(), meta.as_ref())?;
         // Attach the SHACL diagnostics RDF as the carrier's `graph/diagnostics` named
         // graph so the presenter reads it as a pure keyed fold (PIPELINE_SPINE §4) and
