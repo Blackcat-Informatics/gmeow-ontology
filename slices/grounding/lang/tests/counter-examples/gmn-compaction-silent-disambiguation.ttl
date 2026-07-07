@@ -1,0 +1,52 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Counter-example: a GMN-2 compaction run that silently collapses co-resident readings.
+# The compaction's interpretation act produced TWO readings of the source claim's form yet
+# resolved to one with NO vantage-held gmeow:Observation grounding the choice — the
+# EXISTING bundle-wide lang:SilentDisambiguation discipline, reused verbatim: this fires
+# the native Rust gate (crates/validate structural_lint check_silent_disambiguation), not
+# a SHACL shape, so like projection-silent-disambiguation.ttl it is exercised by the
+# native lint tests (crates/validate/src/lint.rs) and has no example-conformance cell.
+# The compaction record itself is deliberately well-formed — sources named through
+# gmeow:gmnCompacts, vantage present, honest logic:ValidationOnly correspondence — so the
+# ONE violation isolated here is the silent collapse feeding it.
+
+@prefix lang:  <https://blackcatinformatics.ca/lang/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <http://example.org/lang/> .
+
+ex:sensorTeam a gmeow:Agent .
+ex:summarizerStandpoint a gmeow:Agent .
+
+# ── The source claim and its ambiguous form ──────────────────────────────────
+ex:claimDoorReport a gmeow:StandpointClaim ;
+    gmeow:vantage ex:sensorTeam .
+
+ex:english a lang:SignSystem .
+ex:formDoorReport a lang:ComposedForm ;
+    lang:inSignSystem ex:english .
+
+# Two co-resident readings of the report's form.
+ex:readingLeftOpen a lang:Reading ; lang:readingOf ex:formDoorReport .
+ex:readingPropped a lang:Reading ; lang:readingOf ex:formDoorReport .
+
+# The compaction run's interpretation act resolves to ONE reading with no
+# vantage-held observation grounding the choice — the silent collapse.
+ex:actCompactionRead a lang:InterpretationAct ;
+    lang:producedReading ex:readingLeftOpen , ex:readingPropped ;
+    lang:resolvedReading ex:readingLeftOpen .
+
+# ── The compaction the collapsed reading feeds — itself well-formed ──────────
+ex:corrCompaction a logic:Correspondence ;
+    logic:preservationKind logic:ValidationOnly ;
+    logic:correspondenceRelation logic:RelatedMatch ;
+    logic:morphismClass logic:BridgeView ;
+    logic:hasDeterminacy logic:Vague ;
+    logic:mnemomorphic false .
+
+ex:compactionCollapsed a gmeow:GmnCompaction ;
+    gmeow:gmnCompacts ex:claimDoorReport ;
+    gmeow:vantage ex:summarizerStandpoint ;
+    lang:translationCorrespondence ex:corrCompaction .
