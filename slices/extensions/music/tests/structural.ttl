@@ -77,3 +77,26 @@ ASK {
         rdfs:subClassOf logic:QualityValue .
 }""" ;
     gmeow:saRationale "gmeow:TimbreDescriptor MUST be an owl:Class typed logic:AbstractIndividualType and a subclass of logic:QualityValue. Replaces stale gufo:AbstractIndividualType/QualityValue pytest assertions." .
+
+ex:saTimbreDescriptorSeedsExist a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:timbreDescriptorBright  a gmeow:TimbreDescriptor .
+    gmeow:timbreDescriptorDark    a gmeow:TimbreDescriptor .
+    gmeow:timbreDescriptorBreathy a gmeow:TimbreDescriptor .
+    gmeow:timbreDescriptorGritty  a gmeow:TimbreDescriptor .
+    gmeow:timbreDescriptorHollow  a gmeow:TimbreDescriptor .
+}""" ;
+    gmeow:saRationale "The five seed timbre descriptors (bright, dark, breathy, gritty, hollow) MUST exist as gmeow:TimbreDescriptor individuals — the open value vocabulary needs its canonical starting set." .
+
+ex:saTimbreObservationResultProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    gmeow:timbreObservationResult a owl:ObjectProperty , owl:FunctionalProperty .
+}""" ;
+    gmeow:saRationale "gmeow:timbreObservationResult MUST be an owl:ObjectProperty and owl:FunctionalProperty — an Observation assigns exactly one timbre descriptor to the observed ToneEvent." .

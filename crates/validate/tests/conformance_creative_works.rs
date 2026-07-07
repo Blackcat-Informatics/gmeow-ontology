@@ -26,6 +26,32 @@
 mod conformance_support;
 use conformance_support::*;
 use rstest::rstest;
+use std::collections::BTreeSet;
+
+const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
+const RDFS_SUBCLASS_OF: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
+
+fn gm(local: &str) -> String {
+    format!("{GMEOW}{local}")
+}
+
+/// The transitive `rdfs:subClassOf` closure of `start` (inclusive of `start`),
+/// the native twin of rdflib `graph.transitive_objects(start, RDFS.subClassOf)`.
+fn subclass_closure(g: &GraphStore, start: &str) -> BTreeSet<String> {
+    let mut seen: BTreeSet<String> = BTreeSet::new();
+    let mut stack: Vec<String> = vec![start.to_owned()];
+    while let Some(node) = stack.pop() {
+        if !seen.insert(node.clone()) {
+            continue;
+        }
+        for parent in g.objects(&node, RDFS_SUBCLASS_OF) {
+            if !seen.contains(&parent) {
+                stack.push(parent);
+            }
+        }
+    }
+    seen
+}
 
 // ── Shared prefix block ───────────────────────────────────────────────────────
 
@@ -155,4 +181,19 @@ ex:chapter1 rdfs:label \"Orphan Chapter\" .
 )]
 fn creative_works(#[case] case: Case) {
     case.run();
+}
+
+/// Each WEMI tier class (Work, Expression, Manifestation, Item) has
+/// gmeow:InformationObject in its transitive rdfs:subClassOf closure — a live
+/// graph traversal over the merged ontology, not a single-module ASK.
+#[test]
+fn wemi_tiers_subclass_information_object() {
+    let g = GraphStore::ontology();
+    for cls in ["Work", "Expression", "Manifestation", "Item"] {
+        let closure = subclass_closure(&g, &gm(cls));
+        assert!(
+            closure.contains(&gm("InformationObject")),
+            "gmeow:{cls} must be a (transitive) subclass of gmeow:InformationObject; closure: {closure:?}"
+        );
+    }
 }
