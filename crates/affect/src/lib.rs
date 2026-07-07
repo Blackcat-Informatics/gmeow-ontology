@@ -331,7 +331,7 @@ fn format_decimal(value: Rational) -> Result<String, String> {
 /// A finite-dimensional real inner-product space presented by a symmetric,
 /// positive-definite Gram matrix `G`. The inner product is `⟨x,y⟩ = xᵀGy`; all
 /// operations are exact rational except the final square root at the output edge.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct InnerProductSpace {
     gram: Vec<Vec<Rational>>,
 }
@@ -898,6 +898,17 @@ pub fn distance_and_cosine(
     let index = index_graph(graph);
     let a = load_inputs(&index, obs_a_iri)?;
     let b = load_inputs(&index, obs_b_iri)?;
+    // The metric and the axis→dimension basis of `obs_b` are discarded below —
+    // both vectors are measured with `obs_a`'s `InnerProductSpace`. That is only
+    // meaningful when the two observations share the same metric basis; a
+    // mismatch would otherwise be silently zero-padded/truncated into a
+    // well-formed but meaningless number. Hard-fail instead.
+    if a.space != b.space || a.axis_to_dim != b.axis_to_dim {
+        return Err(format!(
+            "distance requires both observations to share the same metric basis; \
+             obs_a {obs_a_iri} and obs_b {obs_b_iri} differ in Gram matrix / axis map"
+        ));
+    }
     let distance = a.space.distance(&a.vector, &b.vector)?;
     let cosine = a.space.cosine(&a.vector, &b.vector)?;
     Ok((distance, cosine))
@@ -1199,5 +1210,113 @@ ex:arousalCell a gmeow:Appraisal ;
             "ex:intensity a gmeow:DerivedAffectIntensityObservation ;\n    gmeow:intensityBasis ex:vec ;\n    gmeow:metricProfile ex:padUnitScale ;\n    gmeow:weightingPolicy {policy} ;\n    gmeow:normFunction {norm_fn} ;\n    gmeow:derivedByFunction gmeow:fnAffectiveIntensity ."
         );
         out
+    }
+
+    /// A `gmeow:DerivedAffectIntensityObservation` named `suffix`, over a 2×2
+    /// metric with off-diagonal `off = off_num/off_den` and vector
+    /// `(v0, v1)` (each written as `n/10`). All resource IRIs are suffixed so two
+    /// such blocks compose into one graph with fully independent bases.
+    fn distinct_observation_turtle(
+        suffix: &str,
+        off_num: i128,
+        off_den: i128,
+        v0_tenths: i128,
+        v1_tenths: i128,
+    ) -> String {
+        let mut out = String::new();
+        let _ = writeln!(
+            out,
+            r#"ex:padUnitScale{suffix} a gmeow:AffectScaleProfile ;
+    gmeow:profileRangeMin "-1.0"^^xsd:decimal ;
+    gmeow:profileRangeMax "1.0"^^xsd:decimal ;
+    gmeow:metricGram ex:gram{suffix} .
+
+ex:gram{suffix} a math:GramMatrix ;
+    math:definiteness math:positiveDefinite ;
+    math:hasEntry ex:g00{suffix} , ex:g01{suffix} , ex:g11{suffix} .
+
+ex:g00{suffix} a math:MatrixEntry ; math:atRow "0"^^xsd:integer ; math:atColumn "0"^^xsd:integer ; math:entryValue ex:ratOne{suffix} .
+ex:g01{suffix} a math:MatrixEntry ; math:atRow "0"^^xsd:integer ; math:atColumn "1"^^xsd:integer ; math:entryValue ex:ratOff{suffix} .
+ex:g11{suffix} a math:MatrixEntry ; math:atRow "1"^^xsd:integer ; math:atColumn "1"^^xsd:integer ; math:entryValue ex:ratOne{suffix} .
+
+ex:ratOne{suffix} a math:RationalValue ; math:numerator "1"^^xsd:integer ; math:denominator "1"^^xsd:integer .
+ex:ratOff{suffix} a math:RationalValue ; math:numerator "{off_num}"^^xsd:integer ; math:denominator "{off_den}"^^xsd:integer .
+
+ex:vec{suffix} a gmeow:AffectVectorObservation ;
+    gmeow:vectorComponent ex:valenceCell{suffix} , ex:arousalCell{suffix} .
+
+ex:valenceCell{suffix} a gmeow:Appraisal ;
+    gmeow:appraisalDimension gmeow:dimensionValence ;
+    gmeow:appraisalValue "0.{v0_tenths}"^^xsd:decimal .
+
+ex:arousalCell{suffix} a gmeow:Appraisal ;
+    gmeow:appraisalDimension gmeow:dimensionArousal ;
+    gmeow:appraisalValue "0.{v1_tenths}"^^xsd:decimal .
+
+ex:intensity{suffix} a gmeow:DerivedAffectIntensityObservation ;
+    gmeow:intensityBasis ex:vec{suffix} ;
+    gmeow:metricProfile ex:padUnitScale{suffix} ;
+    gmeow:weightingPolicy gmeow:weightingValenceDominant ;
+    gmeow:normFunction gmeow:affectMetricTensorNorm ;
+    gmeow:derivedByFunction gmeow:fnAffectiveIntensity ."#
+        );
+        out
+    }
+
+    fn two_observation_graph(a: &str, b: &str) -> Graph {
+        let mut turtle = String::new();
+        let _ = writeln!(
+            turtle,
+            "@prefix gmeow: <{GM}> .\n@prefix math: <{MATH}> .\n@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .\n@prefix ex: <https://blackcatinformatics.ca/gmeow/examples/affect/> ."
+        );
+        turtle.push_str(
+            "gmeow:dimensionValence a gmeow:CoreAffectDimension ; gmeow:coreAxisIndex \"0\"^^xsd:nonNegativeInteger .\n",
+        );
+        turtle.push_str(
+            "gmeow:dimensionArousal a gmeow:CoreAffectDimension ; gmeow:coreAxisIndex \"1\"^^xsd:nonNegativeInteger .\n",
+        );
+        turtle.push_str(a);
+        turtle.push('\n');
+        turtle.push_str(b);
+        let bytes = turtle_to_gts(&turtle);
+        purrdf::gts::reader::read(&bytes, false, None)
+    }
+
+    fn obs_iri(suffix: &str) -> String {
+        format!("https://blackcatinformatics.ca/gmeow/examples/affect/intensity{suffix}")
+    }
+
+    // Matching metric basis (identical Gram + axis map) computes a real value —
+    // agreeing bit-for-bit with the direct InnerProductSpace geometry.
+    #[test]
+    fn distance_and_cosine_matching_basis_ok() {
+        let a = distinct_observation_turtle("A", 1, 4, 7, 4); // G off-diag 1/4, (0.7, 0.4)
+        let b = distinct_observation_turtle("B", 1, 4, 4, 7); // same G, (0.4, 0.7)
+        let graph = two_observation_graph(&a, &b);
+        let (distance, cosine) =
+            distance_and_cosine(&graph, &obs_iri("A"), &obs_iri("B")).expect("matching basis");
+        // Pin to the direct-space computation over the shared correlated metric.
+        let space = correlated_gram();
+        let x = [r(7, 10), r(2, 5)];
+        let y = [r(2, 5), r(7, 10)];
+        assert_eq!(distance, space.distance(&x, &y).unwrap());
+        assert_eq!(cosine, space.cosine(&x, &y).unwrap());
+        // Deterministic: same call twice → identical strings.
+        let again =
+            distance_and_cosine(&graph, &obs_iri("A"), &obs_iri("B")).expect("matching basis");
+        assert_eq!((distance, cosine), again);
+    }
+
+    // Different Gram matrices between the two observations is a hard fail — never
+    // a silently zero-padded/truncated meaningless number.
+    #[test]
+    fn distance_and_cosine_mismatched_gram_hard_fails() {
+        let a = distinct_observation_turtle("A", 1, 4, 7, 4); // G off-diag 1/4
+        let b = distinct_observation_turtle("B", 0, 1, 4, 7); // G off-diag 0 → different metric
+        let graph = two_observation_graph(&a, &b);
+        let err = distance_and_cosine(&graph, &obs_iri("A"), &obs_iri("B"))
+            .expect_err("mismatched Gram must hard fail");
+        assert!(err.contains("metric basis"), "{err}");
+        assert!(err.contains("Gram matrix / axis map"), "{err}");
     }
 }
