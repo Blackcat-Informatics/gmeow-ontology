@@ -23000,31 +23000,6 @@
                 "@type": {
                   "anyOf": [
                     {
-                      "const": "gmeow:WritingSystem"
-                    },
-                    {
-                      "contains": {
-                        "const": "gmeow:WritingSystem"
-                      },
-                      "type": "array"
-                    }
-                  ]
-                }
-              },
-              "required": [
-                "@type"
-              ]
-            },
-            "then": {
-              "$ref": "#/$defs/WritingSystem"
-            }
-          },
-          {
-            "if": {
-              "properties": {
-                "@type": {
-                  "anyOf": [
-                    {
                       "const": "lang:ComposedForm"
                     },
                     {
@@ -36586,54 +36561,6 @@
             ]
           },
           "gmeow:pagePrincipalSubject": {}
-        },
-        "type": "object"
-      },
-      "WritingSystem": {
-        "not": {
-          "properties": {
-            "@annotation": {
-              "$ref": "#/$defs/Annotation"
-            },
-            "@id": {
-              "type": "string"
-            },
-            "@type": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "items": {
-                    "type": "string"
-                  },
-                  "type": "array"
-                }
-              ]
-            }
-          },
-          "type": "object"
-        },
-        "properties": {
-          "@annotation": {
-            "$ref": "#/$defs/Annotation"
-          },
-          "@id": {
-            "type": "string"
-          },
-          "@type": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "items": {
-                  "type": "string"
-                },
-                "type": "array"
-              }
-            ]
-          }
         },
         "type": "object"
       },
