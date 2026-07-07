@@ -6,7 +6,7 @@
 > The **references appendix** of the GMEOW Language design set: the classified survey of the
 > external standards, ontologies, formalisms, classification schemes, and engines the language
 > grounding layer subsumes, projects to, links, or references — each tagged with its relation,
-> license posture, and kind, staged for the `metadata/references.ttl` ledger. Where no external
+> license posture, and kind. Where no external
 > ontology exists for something the design needs, this appendix says so and marks the surface as
 > GMEOW-authored — original authorship is recorded, never disguised as alignment.
 >
@@ -91,16 +91,15 @@ citations draw on.
 | ISO 80000 | quantity/unit symbol canon — symbol provenance for the math symbology plane | reference (citation source) | ISO — *reference by citation, not reproduction* |
 | Unicode UTS #39 | confusable-detection skeleton — the normative confusables rule | reference | Unicode License v3 |
 
-## Theory (cited, staged for `references.ttl`)
+## Theory (cited)
 
 Frege, *Über Sinn und Bedeutung* (the sense/reference discipline); Peirce, the triadic sign
 (interpretation as act); Montague, *Universal Grammar* / PTQ (compositional denotation into a
 typed logic; the natural-formal continuity license); Saussure (system-relative form identity);
 Austin & Searle (speech acts and force); Kaplan, *Demonstratives* (indexical anchoring); Ranta,
 *Grammatical Framework* (abstract syntax as canon); Melʹčuk (morph/lexeme stratification); Nida
-(translation loss as the object of study, not an embarrassment). Each entry lands in
-`metadata/references.ttl` with its claim-supporting role, per the repository's citation
-discipline.
+(translation loss as the object of study, not an embarrassment). Each is cited for its
+claim-supporting role, per the repository's citation discipline.
 
 ## Engines (oracles, never authorities)
 
@@ -129,8 +128,8 @@ Recorded as original, per the honesty rule:
 - the **co-resident reading model** for ambiguity — annotation formats pick winners; none holds
   the multiplicity as first-class data with vantages;
 - **translation as `logic:Correspondence`** with per-unit preservation judgments — translation
-  memory formats (TMX) carry pairs, not audited maps; TMX may later join the projection charter
-  if a consumer materializes;
+  memory formats (TMX) carry pairs, not audited maps; TMX is a projection target only where a
+  consumer materializes;
 - the **analyzed/unanalyzed discipline** as a recorded status over every surface form;
 - the **rendering relation** as a single grounded theory across notations, serializations, and
   documentation.
