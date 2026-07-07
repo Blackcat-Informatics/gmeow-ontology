@@ -519,22 +519,36 @@ meta:Principle18 a meta:Principle ;
         meta:tests-lane-purity, meta:gate-release-evidence ;
     meta:extends meta:Principle17, meta:Principle13 .
 
-# The grounding-layer triad. The logic: layer's share is gate-enforced today
-# (the Principle 17 conformance/round-trip gates, re-cited below); the math:
-# and lang: layers are design-stage, enforced by design-set review practice
-# until their slices land with the conformance charters their design sets
-# specify — at which point this principle's enforcement is amended to the
-# real gates (the CONSTITUTION.md § 19 "Tested by" clause states the same
-# hand-off, in prose).
-meta:practice-grounding-design a meta:Practice ;
-    rdfs:label "grounding-layer design-set review practice"@x-gmeow-english ;
-    meta:artifact "slices/grounding/logic/design/LOGIC.md",
-        "slices/grounding/math/design/MATHEMATICS.md",
-        "slices/grounding/lang/design/LANG.md" .
+# The grounding-layer triad, now fully gate-enforced. logic: carries the
+# Principle 17 conformance/round-trip gates (re-cited below); math: and lang:
+# each carry a landed native structural-conformance gate over their slice
+# competency and counter-example corpora. The honor-system design-review
+# practice this principle held while those slices were design-stage is retired
+# (CONSTITUTION.md § 19 "Tested by" states the completed hand-off in prose).
+meta:gate-lang-conformance a meta:Gate ;
+    rdfs:label "the lang: conformance surface — native form/meaning/translation/projection/ingestion invariants + slice competency & counter-example corpus"@x-gmeow-english ;
+    meta:artifact "crates/validate/src/lint.rs",
+        "slices/grounding/lang/tests/competency.ttl",
+        "slices/grounding/lang/tests/structural.ttl",
+        "slices/grounding/lang/design/LANG-CONFORMANCE.md" ;
+    meta:symbol "check_lang_form_invariants", "check_lang_meaning_invariants",
+        "check_lang_translation_invariants", "check_lang_projection_invariants",
+        "check_lang_ingestion_invariants" ;
+    meta:makeTarget "validate", "rust-test" .
+
+meta:gate-math-conformance a meta:Gate ;
+    rdfs:label "the math: conformance surface — native dimensional/ingest invariants + flagship-manifest capstone over the slice competency corpus"@x-gmeow-english ;
+    meta:artifact "crates/validate/src/lint.rs",
+        "crates/slicetest/tests/flagship_manifest.rs",
+        "slices/grounding/math/tests/competency.ttl",
+        "slices/grounding/math/design/MATHEMATICS-CONFORMANCE.md" ;
+    meta:symbol "check_math_dimension_invariants", "check_math_ingest_invariants",
+        "every_flagship_scenario_is_wired_to_a_green_competency_and_real_artifacts" ;
+    meta:makeTarget "validate", "rust-test" .
 
 meta:Principle19 a meta:Principle ;
     meta:number 19 ;
     meta:title "Three co-foundational grounding layers — reasoning, structure, and meaning" ;
     meta:enforcedBy meta:gate-logic-conformance, meta:gate-logic-round-trip,
-        meta:practice-grounding-design ;
+        meta:gate-math-conformance, meta:gate-lang-conformance ;
     meta:extends meta:Principle17 .
