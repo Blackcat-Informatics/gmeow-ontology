@@ -407,3 +407,224 @@ fn derived_axiom_blank_and_literal_terms_round_trip() {
         "literal-summary object must round-trip verbatim"
     );
 }
+
+// ── Conjecture verdict → attributed RDF projection ──────────────────────────────
+
+use crate::conjecture::{ConjectureAnswer, ConjectureDischarge, ConjectureLifecycleState};
+
+/// A REFUTED conjecture answer: information=Opposed, a concrete `ContradictionWitness`
+/// with an individual, a world, and two premises, lifecycle RefutedInStandpoint.
+fn refuted_answer(standpoint: &str) -> ConjectureAnswer {
+    let witness = ContradictionWitness {
+        individual: "http://ex/felix".to_owned(),
+        world: "http://ex/world1".to_owned(),
+        premises: vec![
+            (
+                "http://ex/felix".to_owned(),
+                "http://ex/type".to_owned(),
+                "http://ex/Cat".to_owned(),
+            ),
+            (
+                "http://ex/felix".to_owned(),
+                "http://ex/type".to_owned(),
+                "http://ex/Dog".to_owned(),
+            ),
+        ],
+    };
+    let mut prov = ResultProvenance::native("contract:conj-1".to_owned(), "http://ex/world1");
+    prov.context.standpoint = Some(standpoint.to_owned());
+    prov.contradiction_witnesses = vec![witness.clone()];
+    prov.projection_class = PreservationClaim::exact();
+    let verdict = ReasoningResult::new(
+        InputStatus::Valid,
+        EvaluationStatus::Completed,
+        CompletenessStatus::CompleteForFragment,
+        PreservationClaim::exact(),
+        InformationState::Opposed,
+        prov,
+        ResultPayload::Empty,
+    );
+    verdict.validate().expect("refuted verdict must validate");
+    ConjectureAnswer {
+        verdict,
+        witness: Some(witness),
+        lifecycle: ConjectureLifecycleState::RefutedInStandpoint,
+        discharge: ConjectureDischarge::Discharged,
+        scenario_world: "http://ex/world1".to_owned(),
+    }
+}
+
+#[test]
+fn conjecture_verdict_round_trips() {
+    let answer = refuted_answer("http://ex/standpointA");
+    let input = ConjectureVerdictInput {
+        content_key: "formula:phi-alpha-normalized",
+        standpoint: "http://ex/standpointA",
+        kb_world: "http://ex/kb-world-42",
+        answer: &answer,
+        math_conjecture: None,
+    };
+    let body = project_conjecture_verdict(&input);
+    let record = parse_conjecture_verdict(&body).expect("parse conjecture verdict");
+
+    assert_eq!(record.content_key, "formula:phi-alpha-normalized");
+    assert_eq!(record.standpoint, "http://ex/standpointA");
+    assert_eq!(record.kb_world_hash, sha256_hex("http://ex/kb-world-42"));
+    assert_eq!(
+        record.lifecycle,
+        ConjectureLifecycleState::RefutedInStandpoint
+    );
+    assert_eq!(record.discharge, ConjectureDischarge::Discharged);
+    // The embedded reasoning-result info state survives.
+    assert_eq!(record.verdict.information, InformationState::Opposed);
+    // The witness (individual/world/2 sorted premises) is recovered.
+    let w = record.witness.expect("refutation witness must round-trip");
+    assert_eq!(w.individual, "http://ex/felix");
+    assert_eq!(w.world, "http://ex/world1");
+    assert_eq!(w.premises.len(), 2, "both premises must round-trip");
+    assert!(w.premises.contains(&(
+        "http://ex/felix".to_owned(),
+        "http://ex/type".to_owned(),
+        "http://ex/Cat".to_owned()
+    )));
+    assert!(w.premises.contains(&(
+        "http://ex/felix".to_owned(),
+        "http://ex/type".to_owned(),
+        "http://ex/Dog".to_owned()
+    )));
+}
+
+/// Extract the subject IRI of the `rdf:type logic:Conjecture` triple from a body.
+fn conjecture_subject(body: &str) -> String {
+    let type_pred = format!("<{RDF_TYPE}>");
+    let type_obj = format!("<{}>", logic("Conjecture"));
+    for line in body.lines() {
+        if line.contains(&type_pred) && line.contains(&type_obj) {
+            let rest = line.strip_prefix('<').expect("iri subject");
+            let end = rest.find('>').expect("iri subject close");
+            return rest[..end].to_owned();
+        }
+    }
+    panic!("no logic:Conjecture subject in body");
+}
+
+#[test]
+fn two_standpoints_mint_two_distinct_nodes() {
+    let answer_a = refuted_answer("http://ex/standpointA");
+    let answer_b = refuted_answer("http://ex/standpointB");
+    let body_a = project_conjecture_verdict(&ConjectureVerdictInput {
+        content_key: "formula:same-phi",
+        standpoint: "http://ex/standpointA",
+        kb_world: "http://ex/kb-world-shared",
+        answer: &answer_a,
+        math_conjecture: None,
+    });
+    let body_b = project_conjecture_verdict(&ConjectureVerdictInput {
+        content_key: "formula:same-phi",
+        standpoint: "http://ex/standpointB",
+        kb_world: "http://ex/kb-world-shared",
+        answer: &answer_b,
+        math_conjecture: None,
+    });
+    let subj_a = conjecture_subject(&body_a);
+    let subj_b = conjecture_subject(&body_b);
+    assert_ne!(
+        subj_a, subj_b,
+        "the same formula in two standpoints must mint two distinct content-addressed nodes"
+    );
+    assert!(subj_a.starts_with(CONJECTURE_IRI_BASE));
+    assert!(subj_b.starts_with(CONJECTURE_IRI_BASE));
+}
+
+#[test]
+fn conjecture_projection_is_byte_deterministic() {
+    let answer = refuted_answer("http://ex/standpointA");
+    let input = ConjectureVerdictInput {
+        content_key: "formula:det-phi",
+        standpoint: "http://ex/standpointA",
+        kb_world: "http://ex/kb-world-42",
+        answer: &answer,
+        math_conjecture: None,
+    };
+    let one = project_conjecture_verdict(&input);
+    let two = project_conjecture_verdict(&input);
+    assert_eq!(
+        one, two,
+        "same (content_key, standpoint, kb_world) must be byte-identical"
+    );
+    // The output is sorted N-Triples: assert the lines are in sorted order.
+    let mut sorted = one.lines().collect::<Vec<_>>();
+    let original = sorted.clone();
+    sorted.sort();
+    assert_eq!(
+        sorted, original,
+        "conjecture body lines must already be sorted"
+    );
+}
+
+#[test]
+fn different_kb_world_mints_distinct_node() {
+    let answer = refuted_answer("http://ex/standpointA");
+    let body_1 = project_conjecture_verdict(&ConjectureVerdictInput {
+        content_key: "formula:same-phi",
+        standpoint: "http://ex/standpointA",
+        kb_world: "http://ex/kb-world-one",
+        answer: &answer,
+        math_conjecture: None,
+    });
+    let body_2 = project_conjecture_verdict(&ConjectureVerdictInput {
+        content_key: "formula:same-phi",
+        standpoint: "http://ex/standpointA",
+        kb_world: "http://ex/kb-world-two",
+        answer: &answer,
+        math_conjecture: None,
+    });
+    assert_ne!(
+        conjecture_subject(&body_1),
+        conjecture_subject(&body_2),
+        "the same formula in two KB worlds must mint two distinct nodes"
+    );
+}
+
+#[test]
+fn math_twin_edge_names_the_witness() {
+    let answer = refuted_answer("http://ex/standpointA");
+    let math_iri = "https://blackcatinformatics.ca/math/conjecture/goldbach";
+    let body = project_conjecture_verdict(&ConjectureVerdictInput {
+        content_key: "formula:phi",
+        standpoint: "http://ex/standpointA",
+        kb_world: "http://ex/kb-world-42",
+        answer: &answer,
+        math_conjecture: Some(math_iri),
+    });
+    // Find the witness blank node (object of conjectureRefutationWitness).
+    let refutation_pred = format!("<{}>", logic("conjectureRefutationWitness"));
+    let witness_node = body
+        .lines()
+        .find(|l| l.contains(&refutation_pred))
+        .and_then(|l| l.split_whitespace().nth(2))
+        .expect("a refutation-witness link must be present")
+        .to_owned();
+    assert!(
+        witness_node.starts_with("_:"),
+        "witness object must be a blank node, got {witness_node}"
+    );
+    let expected = format!(
+        "<{math_iri}> <{}> {witness_node} .",
+        math("hasCounterexample")
+    );
+    assert!(
+        body.contains(&expected),
+        "the math twin edge `{expected}` must be present; body:\n{body}"
+    );
+}
+
+#[test]
+fn parse_rejects_body_without_conjecture_subject() {
+    let err = parse_conjecture_verdict("<http://ex/s> <http://ex/p> <http://ex/o> .\n")
+        .expect_err("a body without a logic:Conjecture subject must fail closed");
+    assert!(
+        err.contains("no logic:Conjecture subject"),
+        "err was: {err}"
+    );
+}
