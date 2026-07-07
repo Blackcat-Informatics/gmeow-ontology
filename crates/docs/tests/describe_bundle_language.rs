@@ -36,17 +36,19 @@ fn describe_resolves_carrier_tags_against_shipped_bundle() {
     // the default-graph tag map omitted the corpus-graph bcp47 projection. They
     // must now resolve to a rendered card (exit 0) — falling back to the English
     // carrier where the term carries no content in that language, never a
-    // hard-fail (they are shippable translation targets). One public tag and one
-    // internal x-gmeow-* form suffice to exercise both resolution paths while
-    // keeping the whole-bundle fold count within the per-test time budget.
-    for lang in ["fr", "x-gmeow-mandarin"] {
-        let (text, code) = gmeow_docs::describe("gmeow:Language", &bytes, Some(lang));
-        assert_eq!(code, 0, "--lang {lang} must resolve, got: {text}");
-        assert!(
-            text.contains("gmeow:Language"),
-            "--lang {lang} must render the term card, got: {text}"
-        );
-    }
+    // hard-fail (they are shippable translation targets). One representative
+    // non-English carrier (`fr`) suffices to prove a carrier renders end-to-end
+    // over the shipped bundle; a single whole-bundle fold keeps the test within
+    // the per-test time budget. That en/fr/zh are all requestable is asserted by
+    // `describe_rejects_unknown_tag_but_lists_the_carriers` (which folds once and
+    // reads the available set), and the internal `x-gmeow-*` path by the
+    // describe.rs unit tests.
+    let (text, code) = gmeow_docs::describe("gmeow:Language", &bytes, Some("fr"));
+    assert_eq!(code, 0, "--lang fr must resolve, got: {text}");
+    assert!(
+        text.contains("gmeow:Language"),
+        "--lang fr must render the term card, got: {text}"
+    );
 }
 
 #[test]
