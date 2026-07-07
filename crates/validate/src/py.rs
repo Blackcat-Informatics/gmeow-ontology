@@ -53,7 +53,7 @@ fn report_dict(py: Python<'_>, errors: Vec<String>, warnings: Vec<String>) -> Py
 
 /// Convert a [`LintReport`] into the standard report dict.
 fn lint_report_dict(py: Python<'_>, report: LintReport) -> PyResult<Py<PyAny>> {
-    report_dict(py, report.errors, report.warnings)
+    report_dict(py, report.errors(), report.warnings())
 }
 
 /// Strongly-typed lint configuration crossing the FFI boundary.

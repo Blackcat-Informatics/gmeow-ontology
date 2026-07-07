@@ -140,17 +140,21 @@ fn carried_correspondence_is_an_honest_lossy_lens() {
     // The preservation is SoundUnder (not Exact) and the dropped glosses are recorded.
     assert_eq!(lifted.ledger.len(), 1);
     assert_eq!(lifted.ledger[0].preservation, PreservationKind::SoundUnder);
+    // The per-run ACTUAL drops are read back from the lift's loss store with the report's
+    // `actual: ` prefix stripped — exactly the old `ProjectionResult::actual_drops`.
+    let actual: Vec<String> = lifted
+        .loss
+        .projection_drops_for(&lifted.ledger[0].target)
+        .iter()
+        .filter_map(|d| d.strip_prefix("actual: ").map(str::to_owned))
+        .collect();
     assert_eq!(
-        lifted.ledger[0].actual_drops.len(),
+        actual.len(),
         2,
-        "both sense glosses are recorded as residue, never silently dropped: {:?}",
-        lifted.ledger[0].actual_drops,
+        "both sense glosses are recorded as residue, never silently dropped: {actual:?}",
     );
     assert!(
-        lifted.ledger[0]
-            .actual_drops
-            .iter()
-            .all(|d| d.contains("skos:definition")),
+        actual.iter().all(|d| d.contains("skos:definition")),
         "each drop names the gloss it shed",
     );
 }

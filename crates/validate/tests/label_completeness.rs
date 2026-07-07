@@ -56,7 +56,7 @@ fn lint_config() -> LintConfig {
 /// Run `structural_lint_dataset` over the given source files and return its errors.
 fn lint_errors(paths: &[PathBuf]) -> Vec<String> {
     let dataset = dataset_from_paths(paths).expect("sources must parse into a dataset");
-    structural_lint_dataset(&dataset, &lint_config()).errors
+    structural_lint_dataset(&dataset, &lint_config()).errors()
 }
 
 /// Write inline Turtle to a unique temp file and lint it. The `NamedTempFile`

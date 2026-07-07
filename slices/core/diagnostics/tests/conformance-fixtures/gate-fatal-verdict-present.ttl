@@ -1,0 +1,26 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Conforming fixture for gmeow:GateFatalUpsetShape — a gmeow:Finding on the
+# principal gate-fatal up-set ↑(gmeow:severityError, gmeow:blockingBlocking,
+# gmeow:standpointBinding) that DOES carry the derived verdict
+# gmeow:findingGateVerdict gmeow:gateFatal, so the SHACL projection agrees with
+# logic:ruleGateFatalVerdict and the finding validates with no findings.
+# Bound by tests/example-conformance.ttl (ex:ecGateFatalPresent, gmeow:conforms).
+# Self-contained apart from the categoryBlocking projection carried in
+# diagnostics/module.ttl (logic:FindingContradictionWitness → gmeow:blockingBlocking),
+# which the harness unions in. findingCode / findingMessage satisfy gmeow:FindingShape
+# so the ONLY shape in scope for this finding is the up-set shape, which passes.
+# Lives under tests/ (NOT examples/) so the global make validate gate never loads it.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/diagnostics/tests/> .
+
+ex:fFatalPresent
+    a gmeow:Finding ;
+    gmeow:findingSeverity gmeow:severityError ;
+    gmeow:findingStandpoint gmeow:standpointBinding ;
+    gmeow:findingCategory logic:FindingContradictionWitness ;
+    gmeow:findingGateVerdict gmeow:gateFatal ;
+    gmeow:findingCode "reason.contradiction" ;
+    gmeow:findingMessage "a forbidden contradiction witness on the gate-fatal up-set, carrying its derived fatal verdict" .

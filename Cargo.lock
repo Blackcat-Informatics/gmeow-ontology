@@ -2001,6 +2001,7 @@ dependencies = [
 name = "gmeow-logic-compile"
 version = "0.1.0"
 dependencies = [
+ "gmeow-errors",
  "insta",
  "purrdf",
  "roxmltree",
