@@ -832,6 +832,81 @@ fn math_twin_edge_names_the_witness() {
         body.contains(&expected),
         "the math twin edge `{expected}` must be present; body:\n{body}"
     );
+
+    // The always-present structural twin bridge `math:conjectureUnderTest` links the math
+    // statement (domain math:Conjecture) to THIS content-addressed logic:Conjecture node
+    // (range logic:Conjecture) — emitted even on this refuted verdict, alongside the
+    // refutation-only counterexample edge.
+    let subject = conjecture_subject(&body);
+    let under_test = format!(
+        "<{math_iri}> <{}> <{subject}> .",
+        math("conjectureUnderTest")
+    );
+    assert!(
+        body.contains(&under_test),
+        "the math:conjectureUnderTest twin bridge `{under_test}` must be present; body:\n{body}"
+    );
+    // And it round-trips.
+    let record = parse_conjecture_verdict(&body).expect("parse refuted verdict with math twin");
+    assert_eq!(
+        record.math_conjecture.as_deref(),
+        Some(math_iri),
+        "the math:conjectureUnderTest bridge must round-trip"
+    );
+}
+
+#[test]
+fn conjecture_under_test_bridge_emitted_on_corroboration_and_absent_without_math() {
+    // The structural twin is emitted for a CORROBORATED verdict too (not only refutations),
+    // in the declared direction: math:Conjecture --conjectureUnderTest--> logic:Conjecture.
+    let answer = corroborated_answer("http://ex/standpointA");
+    let math_iri = "https://blackcatinformatics.ca/math/conjecture/twin-primes";
+    let body = project_conjecture_verdict(&ConjectureVerdictInput {
+        content_key: "formula:corroborated-phi",
+        standpoint: "http://ex/standpointA",
+        kb_world: "http://ex/kb-world-42",
+        answer: &answer,
+        math_conjecture: Some(math_iri),
+        forbidden_predicate: None,
+    });
+    let subject = conjecture_subject(&body);
+    let under_test = format!(
+        "<{math_iri}> <{}> <{subject}> .",
+        math("conjectureUnderTest")
+    );
+    assert!(
+        body.contains(&under_test),
+        "a corroborated verdict must carry the math:conjectureUnderTest bridge; body:\n{body}"
+    );
+    // A corroboration has no witness, so NO counterexample edge is emitted.
+    assert!(
+        !body.contains(&math("hasCounterexample")),
+        "a corroborated verdict must NOT carry a math:hasCounterexample edge; body:\n{body}"
+    );
+    let record =
+        parse_conjecture_verdict(&body).expect("parse corroborated verdict with math twin");
+    assert_eq!(record.math_conjecture.as_deref(), Some(math_iri));
+
+    // When no math statement is named, NEITHER math edge is emitted and the record's
+    // math_conjecture is absent.
+    let bare = project_conjecture_verdict(&ConjectureVerdictInput {
+        content_key: "formula:corroborated-phi",
+        standpoint: "http://ex/standpointA",
+        kb_world: "http://ex/kb-world-42",
+        answer: &answer,
+        math_conjecture: None,
+        forbidden_predicate: None,
+    });
+    assert!(
+        !bare.contains(&math("conjectureUnderTest")) && !bare.contains(&math("hasCounterexample")),
+        "no math edges may be emitted when no math_conjecture is supplied; body:\n{bare}"
+    );
+    let bare_record =
+        parse_conjecture_verdict(&bare).expect("parse corroborated verdict without math twin");
+    assert!(
+        bare_record.math_conjecture.is_none(),
+        "math_conjecture must be None when no bridge edge is present"
+    );
 }
 
 #[test]
