@@ -38,7 +38,7 @@ exa:sentenceToFormula a lang:FlagshipScenario ;
     skos:definition "The declarative sentence \"cats chase mice\" denotes a full-FOL logic:Formula through a compositional lowering (form AST -> Montagovian composition -> logic: FOL), each step carrying a logic:preservationKind, pinned by the denotes-to-formula competency and produced by the native lang-bridge SVO lowering."@x-gmeow-english ;
     lang:demonstratedByExample "tests/conformance-fixtures/meaning-cats-chase-mice.ttl" ;
     lang:demonstratedByCompetency cq:cqDenotationsToFormula ;
-    lang:demonstratedByProducer "lang-bridge::lower::lower_svo" ;
+    lang:demonstratedByProducer "pipeline::stages::lang_lowering::build_corpus" ;
     lang:guardedByCounterExample "tests/counter-examples/meaning-underspecified-denotation.ttl" ;
     lang:enforcesFailureClass lang:UnderspecifiedDenotation .
 

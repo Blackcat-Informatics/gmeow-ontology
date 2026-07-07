@@ -13,6 +13,6 @@
 ex:wiredScenario a lang:FlagshipScenario ;
     lang:demonstratedByExample "tests/conformance-fixtures/meaning-cats-chase-mice.ttl" ;
     lang:demonstratedByCompetency <https://blackcatinformatics.ca/gmeow/examples/lang/tests/cqDenotationsToFormula> ;
-    lang:demonstratedByProducer "lang-bridge::lower::lower_svo" ;
+    lang:demonstratedByProducer "pipeline::stages::lang_lowering::build_corpus" ;
     lang:guardedByCounterExample "tests/counter-examples/meaning-underspecified-denotation.ttl" ;
     lang:enforcesFailureClass lang:UnderspecifiedDenotation .
