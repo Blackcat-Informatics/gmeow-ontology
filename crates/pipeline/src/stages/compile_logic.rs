@@ -558,6 +558,9 @@ impl Stage for CompileLogicStage {
                 html: DIAG_HTML_PATH,
                 rdf: DIAG_RDF_PATH,
             },
+            // The logic compiler's findings are Severity::Note lossy-drops (projection
+            // loss), never on the gate-fatal up-set, so no gate verdict is derivable.
+            None,
         )?);
 
         // The REAL typed Logic handle (C6): carry the compiled program itself

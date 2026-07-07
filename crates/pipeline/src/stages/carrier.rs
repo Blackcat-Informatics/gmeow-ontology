@@ -641,7 +641,38 @@ fn assemble_carrier(
         datasets.push(parse_into_graph(&bytes, media_type, &iri)?);
     }
     let refs: Vec<&purrdf::RdfDataset> = datasets.iter().map(|d| d.as_ref()).collect();
-    Ok(std::sync::Arc::new(purrdf::RdfDataset::union(&refs)))
+    let composed = std::sync::Arc::new(purrdf::RdfDataset::union(&refs));
+
+    // Reasoner-derived gate verdicts (logic:ruleGateFatalVerdict). The reason stage's
+    // object-level EDB EXCLUDES the report graphs by construction, so reason_all never
+    // materializes gmeow:findingGateVerdict for the shipped findings — an up-set finding
+    // (Error / blocking category / Binding) rides the bundle missing its verdict and
+    // gmeow:GateFatalUpsetShape fires under validate-gts. Run the AUTHORED rule (via the
+    // native chase, never the Rust gate() morphism) over the COMPLETE composed bundle —
+    // where every finding-bearing graph AND the rule + gmeow:categoryBlocking wiring are
+    // assembled — and fold the derived verdicts into graph/diagnostics, so the shipped
+    // gmeow.gts carries the ontology's entailment and the SHACL up-set shape agrees. The
+    // rule + wiring are read from the authored stage-source-load base graph, never re-typed.
+    if let Some(source_bytes) = upstream
+        .get("stage-source-load")
+        .and_then(|p| p.artifact(crate::stages::source_load::BASE_GRAPH_PATH))
+        && let Some(gate) = crate::stages::gate_verdict::GateProgram::from_source(source_bytes)
+    {
+        let composed_nq = purrdf::canonical_flat_nquads(composed.as_ref())
+            .map_err(|e| stage_err(&format!("serialize composed bundle for gate verdict: {e}")))?;
+        let verdict_nq = gate
+            .derived_verdict_nquads(&composed_nq, GRAPH_DIAGNOSTICS)
+            .map_err(|e| stage_err(&format!("derive gate verdicts over the bundle: {e}")))?;
+        if !verdict_nq.is_empty() {
+            let verdicts = parse_dataset(verdict_nq.as_bytes(), "application/n-quads", None)
+                .map_err(|e| stage_err(&format!("parse derived gate verdicts: {e}")))?;
+            return Ok(std::sync::Arc::new(purrdf::RdfDataset::union(&[
+                composed.as_ref(),
+                verdicts.as_ref(),
+            ])));
+        }
+    }
+    Ok(composed)
 }
 
 /// Every remaining RDF `generated/` file (committed-path → bytes) that rides as an
