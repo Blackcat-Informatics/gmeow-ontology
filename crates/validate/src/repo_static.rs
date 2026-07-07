@@ -264,7 +264,16 @@ fn check_no_run_shacl_seam(root: &Path, report: &mut RepoStaticReport) {
             return;
         }
     };
-    let graph_nt_import = match Regex::new(r"\btests\._graph_nt\b") {
+    // Match every import shape that pulls in the retired `_graph_nt` *module*, not the unrelated
+    // private `_graph_nt` *function* in `language_tags.py`. Two alternations:
+    //   1. the dotted form — `import tests._graph_nt` / `from tests._graph_nt import ...`;
+    //   2. a `from <pkg> import ... _graph_nt` form where `<pkg>` is `tests` or a relative-import
+    //      dot-run (`.` / `..` / `.tests` / ...) — catches `from tests import _graph_nt` and
+    //      `from . import _graph_nt`. The `from ... import` context is required, so a `def
+    //      _graph_nt(` definition or a `_graph_nt(graph)` call can never trip it.
+    let graph_nt_import = match Regex::new(
+        r"\btests\._graph_nt\b|\bfrom\s+(?:tests|\.+[\w.]*)\s+import\b[^\n]*\b_graph_nt\b",
+    ) {
         Ok(re) => re,
         Err(err) => {
             report.error(format!(
@@ -1507,12 +1516,48 @@ mod tests {
             imp.errors
         );
 
-        // `run_shacl` / `tests._graph_nt` mentioned only in a comment or string must NOT trip it,
-        // and the unrelated private `_graph_nt` helper in language_tags.py is fine.
+        // The `from tests import _graph_nt` shape (no dotted `tests._graph_nt`) must also be
+        // flagged — the narrow dotted-only matcher used to miss it.
         std::fs::remove_file(root.join("tests/test_thing.py")).unwrap();
         write(
+            &root.join("tests/test_from_pkg.py"),
+            "from tests import _graph_nt\n",
+        );
+        let mut from_pkg = RepoStaticReport::default();
+        check_no_run_shacl_seam(root, &mut from_pkg);
+        assert!(
+            from_pkg
+                .errors
+                .iter()
+                .any(|e| e.contains("tests._graph_nt") && e.contains("test_from_pkg.py")),
+            "`from tests import _graph_nt` must be flagged; got {:?}",
+            from_pkg.errors
+        );
+
+        // The relative-import shape `from . import _graph_nt` must also be flagged.
+        std::fs::remove_file(root.join("tests/test_from_pkg.py")).unwrap();
+        write(
+            &root.join("tests/test_relative.py"),
+            "from . import _graph_nt\n",
+        );
+        let mut relative = RepoStaticReport::default();
+        check_no_run_shacl_seam(root, &mut relative);
+        assert!(
+            relative
+                .errors
+                .iter()
+                .any(|e| e.contains("tests._graph_nt") && e.contains("test_relative.py")),
+            "`from . import _graph_nt` must be flagged; got {:?}",
+            relative.errors
+        );
+
+        // `run_shacl` / `tests._graph_nt` mentioned only in a comment or string must NOT trip it,
+        // and the unrelated private `_graph_nt` helper (both its `def` and its call sites) in
+        // language_tags.py is fine — the import matcher requires a `from ... import` context.
+        std::fs::remove_file(root.join("tests/test_relative.py")).unwrap();
+        write(
             &root.join("src/gmeow_tools/language_tags.py"),
-            "# run_shacl was retired; tests._graph_nt is gone\nDOC = \"def run_shacl\"\ndef _graph_nt(graph):\n    return graph\n",
+            "# run_shacl was retired; tests._graph_nt is gone\nDOC = \"def run_shacl\"\ndef _graph_nt(graph):\n    return _graph_nt(graph)\n",
         );
         let mut commented = RepoStaticReport::default();
         check_no_run_shacl_seam(root, &mut commented);
