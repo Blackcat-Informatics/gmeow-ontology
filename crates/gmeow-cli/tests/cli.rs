@@ -417,6 +417,19 @@ fn affect_intensity_missing_source_is_a_runtime_error() {
 }
 
 #[test]
+fn affect_intensity_to_without_observation_is_a_clap_usage_error() {
+    // `--to` declares `requires = "observation"` at the clap layer, so omitting
+    // `--observation` fails fast with a usage error (exit 2) before the source is
+    // ever read — no runtime `Error:` fallback.
+    gmeow()
+        .args(["affect", "intensity", "/dev/null", "--to", "urn:x"])
+        .assert()
+        .failure()
+        .code(2)
+        .stderr(predicate::str::contains("--observation").and(predicate::str::contains("Usage:")));
+}
+
+#[test]
 fn music_render_missing_source_is_a_runtime_error() {
     // The music passthrough maps a runtime failure (unreadable source) to exit 1
     // with an `Error:` prefix; the unsupported-format → exit 2 mapping is pinned by

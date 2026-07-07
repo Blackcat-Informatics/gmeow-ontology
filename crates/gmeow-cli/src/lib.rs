@@ -229,7 +229,7 @@ pub enum AffectCommands {
         observation: Option<String>,
         /// A second observation IRI: report the metric distance and cosine
         /// between it and `--observation` (requires `--observation`).
-        #[arg(long)]
+        #[arg(long, requires = "observation")]
         to: Option<String>,
     },
 }
