@@ -1,0 +1,26 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+
+[package]
+name = "gmeow-affect-ingest"
+description = "GMEOW classifier-ingestion producer: a captured HuggingFace text-classification output → attributed gmeow:ModelInferenceRun / AffectClassifierOutput / AffectiveClaim evidence (never inner-affect fact). GoEmotions is the reference instance of a label-set-parameterized put leg with a blind get-leg round-trip proof of losslessness."
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+keywords = ["gmeow", "affect", "classifier", "goemotions", "provenance"]
+
+[lib]
+crate-type = ["rlib"]
+path = "src/lib.rs"
+
+[dependencies]
+# Native RDF 1.2 graph building + deterministic Turtle serialization + GTS reader
+# (no rdflib, no oxigraph): the put leg emits through purrdf's RdfDatasetBuilder.
+purrdf = "0.3"
+# The pure graph-read primitives (index_graph/index_turtle/first_iri/all_iris/
+# first_literal/has_type/subjects) the get leg and the bundle-driven label-set +
+# closeMatch loader reuse — same reader the affect crate reads its geometry with.
+gmeow-math = { path = "../math" }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"

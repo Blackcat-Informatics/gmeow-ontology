@@ -1798,6 +1798,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "gmeow-affect-ingest"
+version = "0.1.0"
+dependencies = [
+ "gmeow-math",
+ "purrdf",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "gmeow-cli"
 version = "0.1.0"
 dependencies = [
