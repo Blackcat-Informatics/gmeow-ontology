@@ -20,7 +20,7 @@
    <https://blackcatinformatics.ca/logic/contractHash> "6e6620741365604791fea29ee34da483ba61ec72" ;
    <https://blackcatinformatics.ca/logic/engine> "native ⊒ nemo" ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "native subsumes nemo on the certified EL fragment, proved gap-zero"@en ;
-   <https://blackcatinformatics.ca/gmeow/agreeCount> 0 ;
+   <https://blackcatinformatics.ca/gmeow/agreeCount> 13 ;
    <https://blackcatinformatics.ca/gmeow/nativeOnlyCount> 0 ;
    <https://blackcatinformatics.ca/gmeow/oracleOnlyCount> 0 ;
    <https://blackcatinformatics.ca/gmeow/dlGapCount> 0 .
@@ -43,7 +43,7 @@
    <https://blackcatinformatics.ca/logic/contractHash> "6e6620741365604791fea29ee34da483ba61ec72" ;
    <https://blackcatinformatics.ca/logic/engine> "native ⊒ nemo" ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "native subsumes nemo on the certified RL fragment, proved gap-zero"@en ;
-   <https://blackcatinformatics.ca/gmeow/agreeCount> 0 ;
+   <https://blackcatinformatics.ca/gmeow/agreeCount> 25 ;
    <https://blackcatinformatics.ca/gmeow/nativeOnlyCount> 0 ;
    <https://blackcatinformatics.ca/gmeow/oracleOnlyCount> 0 ;
    <https://blackcatinformatics.ca/gmeow/dlGapCount> 0 .
@@ -66,7 +66,7 @@
    <https://blackcatinformatics.ca/logic/contractHash> "6e6620741365604791fea29ee34da483ba61ec72" ;
    <https://blackcatinformatics.ca/logic/engine> "native ⊒ nemo" ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "native subsumes nemo on the certified DL fragment, proved gap-zero"@en ;
-   <https://blackcatinformatics.ca/gmeow/agreeCount> 0 ;
+   <https://blackcatinformatics.ca/gmeow/agreeCount> 17 ;
    <https://blackcatinformatics.ca/gmeow/nativeOnlyCount> 0 ;
    <https://blackcatinformatics.ca/gmeow/oracleOnlyCount> 0 ;
    <https://blackcatinformatics.ca/gmeow/dlGapCount> 0 .
