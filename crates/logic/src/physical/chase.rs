@@ -405,6 +405,12 @@ fn chase_world_into(
                 rule_iri: CHASE_RULE_IRI.to_owned(),
                 source_quad_ids: sources,
                 derivation_id,
+                // The restricted existential chase is consumed by the reifier-based
+                // provenance path (`materialize_routed`'s existential leg / the n-ary
+                // head chase), never through the ternary `ForwardOracle` seam that
+                // re-exposes decoded antecedents, so the decoded-fact list is unused
+                // here and left empty rather than threaded through the round tuple.
+                antecedents: Vec::new(),
             });
             committed.insert(key);
             governor.charge();

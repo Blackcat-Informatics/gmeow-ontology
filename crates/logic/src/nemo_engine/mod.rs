@@ -142,6 +142,9 @@ impl fmt::Display for ChaseRow {
 ///   or unfilled contexts; populated at the validation boundary when slice
 ///   context is available.
 #[derive(Debug, Clone, PartialEq, Eq)]
+// Nemo trace/chase machinery: off the primary path after the native flip
+// (reached only by the cfg(test) parity gates + Task-7 cross-check lane).
+#[allow(dead_code)]
 pub(crate) struct ChaseProvenance {
     /// Whether this fact is an EDB (asserted input) fact.
     pub is_edb: bool,
@@ -155,6 +158,9 @@ pub(crate) struct ChaseProvenance {
 
 /// A single materialized row with its provenance metadata.
 #[derive(Debug, Clone, PartialEq, Eq)]
+// Nemo trace/chase machinery: off the primary path after the native flip
+// (reached only by the cfg(test) parity gates + Task-7 cross-check lane).
+#[allow(dead_code)]
 pub(crate) struct ChaseRowWithProvenance {
     /// The derived fact.
     pub row: ChaseRow,
@@ -184,6 +190,9 @@ fn render_predicate(name: &str) -> String {
 /// Decode one string-surface [`ChaseRow`] into a [`TypedRow`], hard-failing on
 /// any argument the codec cannot decode — silently skipping a row would drop
 /// derived facts on the floor.
+// Nemo trace/chase machinery: off the primary path after the native flip
+// (reached only by the cfg(test) parity gates + Task-7 cross-check lane).
+#[allow(dead_code)]
 fn typed_row_from_chase_row(row: &ChaseRow) -> Result<TypedRow, String> {
     let args = row
         .values
@@ -219,6 +228,9 @@ fn typed_row_from_chase_row(row: &ChaseRow) -> Result<TypedRow, String> {
 /// terms have no Nemo encoding), if the chase itself fails, or if any result
 /// or antecedent term cannot be decoded — undecodable rows are a hard failure,
 /// never skipped.
+// Nemo trace/chase machinery: off the primary path after the native flip
+// (reached only by the cfg(test) parity gates + Task-7 cross-check lane).
+#[allow(dead_code)]
 pub(crate) fn run_chase_typed(
     edb: &crate::facts::TypedFactSet,
     rules: &str,
@@ -332,6 +344,9 @@ async fn load_reason_collect(rls: String) -> Result<(nemo::api::Engine, Vec<Chas
 /// Format: `<predicate_iri>(val0, val1, val2).`
 ///
 /// This is used to pass derived facts back into `engine.trace()`.
+// Nemo trace/chase machinery: off the primary path after the native flip
+// (reached only by the cfg(test) parity gates + Task-7 cross-check lane).
+#[allow(dead_code)]
 fn chase_row_to_fact_string(row: &ChaseRow) -> String {
     let pred = render_predicate(&row.predicate);
     let args: Vec<String> = row
@@ -352,6 +367,9 @@ fn chase_row_to_fact_string(row: &ChaseRow) -> String {
 /// fact.  Restore the raw control characters so the reconstructed fact is
 /// byte-identical to the stored one.  All other escape pairs (`\\`, `\"`)
 /// pass through verbatim: the source form carries them escaped too.
+// Nemo trace/chase machinery: off the primary path after the native flip
+// (reached only by the cfg(test) parity gates + Task-7 cross-check lane).
+#[allow(dead_code)]
 fn display_value_to_source(value: &str) -> String {
     let mut out = String::with_capacity(value.len());
     let mut chars = value.chars();
@@ -382,6 +400,9 @@ fn display_value_to_source(value: &str) -> String {
 // ── Trace extraction ──────────────────────────────────────────────────────────
 
 /// Extract a flat [`ChaseRow`] from a Nemo [`ExecutionTraceTree::Fact`] leaf.
+// Nemo trace/chase machinery: off the primary path after the native flip
+// (reached only by the cfg(test) parity gates + Task-7 cross-check lane).
+#[allow(dead_code)]
 fn extract_row_from_fact_string(fact_str: &str) -> Option<ChaseRow> {
     // Nemo's GroundAtom::to_string() gives: `pred(val0, val1, val2)`
     // We need to parse out the predicate and values.
@@ -419,6 +440,9 @@ fn extract_row_from_fact_string(fact_str: &str) -> Option<ChaseRow> {
 /// - `<...>` IRI wrapping (no comma inside angle brackets counts as separator)
 /// - `"..."` string quoting (no comma inside quotes counts as separator)
 /// - `^^<...>` typed literal suffix (handled by staying inside `<>` after `^^`)
+// Nemo trace/chase machinery: off the primary path after the native flip
+// (reached only by the cfg(test) parity gates + Task-7 cross-check lane).
+#[allow(dead_code)]
 fn split_nemo_args(s: &str) -> Vec<String> {
     let mut args = Vec::new();
     let mut current = String::new();
@@ -469,6 +493,9 @@ fn split_nemo_args(s: &str) -> Vec<String> {
 /// We apply the rule's substitution to the head atom at `head_index`, then
 /// format the result as a string.  This replicates what the private
 /// `TraceTreeRuleApplication::to_derived_atom()` does without depending on it.
+// Nemo trace/chase machinery: off the primary path after the native flip
+// (reached only by the cfg(test) parity gates + Task-7 cross-check lane).
+#[allow(dead_code)]
 fn rule_conclusion_string(rule_application: &TraceTreeRuleApplication) -> String {
     let head_atoms = rule_application.rule.head();
     let hi = rule_application.head_index;
@@ -494,6 +521,9 @@ fn rule_conclusion_string(rule_application: &TraceTreeRuleApplication) -> String
 /// decoded by [`extract_row_from_fact_string`] — this is a hard failure per
 /// the no-optionality doctrine; silently dropping an undecodable antecedent
 /// would fabricate provenance metadata.
+// Nemo trace/chase machinery: off the primary path after the native flip
+// (reached only by the cfg(test) parity gates + Task-7 cross-check lane).
+#[allow(dead_code)]
 fn extract_provenance_from_tree(tree: &ExecutionTraceTree) -> Result<ChaseProvenance, String> {
     match tree {
         ExecutionTraceTree::Fact(_ground_atom) => {
@@ -576,6 +606,9 @@ fn extract_provenance_from_tree(tree: &ExecutionTraceTree) -> Result<ChaseProven
 /// so the GIL is released and the call runs outside the interpreter's async
 /// context.  Failing to do so will panic at runtime with "cannot start a
 /// runtime within a runtime" (or equivalent).
+// Nemo trace/chase machinery: off the primary path after the native flip
+// (reached only by the cfg(test) parity gates + Task-7 cross-check lane).
+#[allow(dead_code)]
 pub(crate) fn run_chase(rls: String) -> Result<Vec<ChaseRowWithProvenance>, String> {
     // Serialise access to Nemo's process-global TimedCode singleton.
     // A poisoned lock means a previous chase panicked; recover the guard so

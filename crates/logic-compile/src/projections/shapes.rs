@@ -257,6 +257,18 @@ fn property_shape_block(p: &PropertyConstraintIr) -> String {
     for c in &p.components {
         lines.extend(component_lines(c));
     }
+    // RDF-1.2 statement-layer extension: the reifier of each `focus`→`path`→`value` statement must
+    // conform to `sh:reifierShape`, and `sh:reificationRequired true` demands ≥1 reifier. The
+    // native engine reads these only from a single forward-predicate property shape, so they are
+    // suppressed on an inverse path (which `PropertyConstraintIr::with_reifier` already rejects).
+    if !p.inverse {
+        if let Some(rs) = &p.reifier_shape {
+            lines.push(format!("sh:reifierShape {}", iri_term(rs)));
+        }
+        if p.reification_required {
+            lines.push("sh:reificationRequired true".to_owned());
+        }
+    }
     if let Some(sev) = p.severity {
         lines.push(format!("sh:severity sh:{}", sev.as_str()));
     }
@@ -287,12 +299,6 @@ pub fn project_validation_shape_shacl(shape: &ValidationShapeIr) -> String {
             iri_term(value)
         )),
     }
-    if let Some(rs) = &shape.reifier_shape {
-        pos.push(format!("sh:reifierShape {}", iri_term(rs)));
-    }
-    if shape.reification_required {
-        pos.push("sh:reificationRequired true".to_owned());
-    }
     // Focus-node-level constraints (domain/range/disjointness) — emitted directly on the node
     // shape, not inside a property block.
     for c in &shape.node_components {
@@ -321,6 +327,68 @@ pub fn project_validation_shapes_shacl(program: &LogicProgram) -> String {
     out
 }
 
+/// The SHACL Core residue of ONE constraint component reachable at `path`, appended to `out`.
+///
+/// The `match` is deliberately **exhaustive** (no `_` catch-all): a new [`ConstraintComponent`]
+/// variant is a compile error until it is explicitly classified as faithful (`=> {}`) or as a
+/// carried-and-flagged drop, so the loss ledger's "never dropped in silence" contract cannot be
+/// defeated by a future variant. The two structural wrappers ([`ConstraintComponent::Not`],
+/// [`ConstraintComponent::QualifiedValueShape`]) recurse into their inner shape, so a lossy
+/// component nested inside a negation or a qualified value-shape is flagged at every depth (the
+/// depth-honest realization of [`ConstraintComponent::is_lossy`], which also recurses).
+fn shacl_component_residue(path: &str, c: &ConstraintComponent, out: &mut Vec<String>) {
+    match c {
+        ConstraintComponent::Pattern { regex, .. } => out.push(format!(
+            "sh:pattern on {path} carries regex-dialect residue (SHACL uses the XPath \
+             regular-expression flavour; the source dialect may differ): {regex}"
+        )),
+        ConstraintComponent::TerminologyBinding {
+            terminology_id,
+            codes,
+        } => out.push(format!(
+            "terminology binding on {path} to {terminology_id} ({} code(s)) has no faithful \
+             SHACL Core form; carried in the canonical logic: layer",
+            codes.len()
+        )),
+        ConstraintComponent::OrdinalSet { pairs } => out.push(format!(
+            "ordinal set on {path} projects only its coded symbols (sh:in); the ordinal \
+             integer values ({}) and their ordering have no SHACL/ShEx form and are \
+             carried in the canonical logic: layer",
+            pairs
+                .iter()
+                .map(|(v, _)| v.to_string())
+                .collect::<Vec<_>>()
+                .join(", ")
+        )),
+        ConstraintComponent::DateTimePattern(pat) => out.push(format!(
+            "datetime validity pattern ({pat}) on {path} is a format template, not an XPath \
+             regex; it has no faithful SHACL/ShEx form (emitting it as sh:pattern would \
+             reject every valid datetime), so its meaning is carried in the canonical \
+             logic: layer"
+        )),
+        // A structural wrapper's residue is exactly its inner shape's residue.
+        ConstraintComponent::Not(inner) => shacl_component_residue(path, inner, out),
+        ConstraintComponent::QualifiedValueShape { shape, .. } => {
+            for inner in shape {
+                shacl_component_residue(path, inner, out);
+            }
+        }
+        // Faithful in SHACL Core — no residue. Listed explicitly (not a `_` arm) so a NEW
+        // component variant forces a faithful-or-residue decision at compile time.
+        ConstraintComponent::NumericRange { .. }
+        | ConstraintComponent::PrecisionRange { .. }
+        | ConstraintComponent::Datatype(_)
+        | ConstraintComponent::Class(_)
+        | ConstraintComponent::NodeKindShacl(_)
+        | ConstraintComponent::In(_)
+        | ConstraintComponent::MinLength(_)
+        | ConstraintComponent::MaxLength(_)
+        | ConstraintComponent::LanguageIn(_)
+        | ConstraintComponent::DateTimeRange { .. }
+        | ConstraintComponent::HasValue(_) => {}
+    }
+}
+
 /// The per-shape loss-ledger residue for the SHACL Core target: the constructs SHACL Core
 /// cannot faithfully hold, carried and flagged (never dropped in silence). A shape with no
 /// lossy component yields an empty vector (the `ValidationOnly` polarity with no residue).
@@ -337,42 +405,13 @@ pub fn shacl_residue(shape: &ValidationShapeIr) -> Vec<String> {
     }
     for p in &shape.properties {
         for c in &p.components {
-            match c {
-                ConstraintComponent::Pattern { regex, .. } => residue.push(format!(
-                    "sh:pattern on {} carries regex-dialect residue (SHACL uses the XPath \
-                     regular-expression flavour; the source dialect may differ): {regex}",
-                    p.path
-                )),
-                ConstraintComponent::TerminologyBinding {
-                    terminology_id,
-                    codes,
-                } => residue.push(format!(
-                    "terminology binding on {} to {terminology_id} ({} code(s)) has no faithful \
-                     SHACL Core form; carried in the canonical logic: layer",
-                    p.path,
-                    codes.len()
-                )),
-                ConstraintComponent::OrdinalSet { pairs } => residue.push(format!(
-                    "ordinal set on {} projects only its coded symbols (sh:in); the ordinal \
-                     integer values ({}) and their ordering have no SHACL/ShEx form and are \
-                     carried in the canonical logic: layer",
-                    p.path,
-                    pairs
-                        .iter()
-                        .map(|(v, _)| v.to_string())
-                        .collect::<Vec<_>>()
-                        .join(", ")
-                )),
-                ConstraintComponent::DateTimePattern(pat) => residue.push(format!(
-                    "datetime validity pattern ({pat}) on {} is a format template, not an XPath \
-                     regex; it has no faithful SHACL/ShEx form (emitting it as sh:pattern would \
-                     reject every valid datetime), so its meaning is carried in the canonical \
-                     logic: layer",
-                    p.path
-                )),
-                _ => {}
-            }
+            shacl_component_residue(&p.path, c, &mut residue);
         }
+    }
+    // Focus-node-level components (domain/range/disjointness) are also lossy if they nest a lossy
+    // construct — scanned through the same exhaustive helper so a node-level drop is never silent.
+    for c in &shape.node_components {
+        shacl_component_residue("the focus node", c, &mut residue);
     }
     residue
 }
@@ -614,13 +653,6 @@ pub fn shex_residue(shape: &ValidationShapeIr) -> Vec<String> {
                 .to_owned(),
         );
     }
-    if shape.reifier_shape.is_some() || shape.reification_required {
-        residue.push(
-            "RDF-1.2 reifier/reification-required conditions have no ShEx form; carried in the \
-             canonical logic: layer"
-                .to_owned(),
-        );
-    }
     // A focus-node-level constraint (domain/range/disjointness) has no ShEx shape-level form —
     // ShEx associates a shape via an external ShapeMap, so a `sh:targetSubjectsOf`/`ObjectsOf`
     // selector and any node-level `sh:class`/`sh:not` are carried in the canonical logic: layer.
@@ -632,7 +664,18 @@ pub fn shex_residue(shape: &ValidationShapeIr) -> Vec<String> {
         ));
     }
     for p in &shape.properties {
+        if p.reifier_shape.is_some() || p.reification_required {
+            residue.push(format!(
+                "RDF-1.2 reifier/reification-required condition on {} has no ShEx form; carried in \
+                 the canonical logic: layer",
+                p.path
+            ));
+        }
         for c in &p.components {
+            // Exhaustive (no `_` catch-all): a new ConstraintComponent variant must be classified
+            // as a ShEx-only drop or as ShEx-faithful before it compiles. Constructs SHACL loses
+            // (Pattern/TerminologyBinding/OrdinalSet/DateTimePattern) are already carried by the
+            // `shacl_residue(shape)` base above, so they add no *further* ShEx drop here (`=> {}`).
             match c {
                 ConstraintComponent::DateTimeRange { .. } => residue.push(format!(
                     "datetime range on {} has no ShEx facet; only the value's presence is \
@@ -648,6 +691,11 @@ pub fn shex_residue(shape: &ValidationShapeIr) -> Vec<String> {
                      only, the class membership is carried in the canonical logic: layer",
                     p.path
                 )),
+                // The two structural wrappers flag at the WRAPPER level and do NOT recurse into
+                // their inner shape (unlike `shacl_component_residue`, which does): ShEx Core has
+                // no negation and no qualified-value-shape at all, so the whole wrapper is dropped
+                // — the wrapper-level residue subsumes any inner-component residue. Recursing here
+                // would double-flag the same lost construct; do not "fix" it into a recursion.
                 ConstraintComponent::QualifiedValueShape { min, max, .. } => residue.push(format!(
                     "qualified value-shape count (min={min:?}, max={max:?}) on {} has no \
                      independent ShEx form (ShEx cardinality is on the triple constraint); the \
@@ -659,7 +707,20 @@ pub fn shex_residue(shape: &ValidationShapeIr) -> Vec<String> {
                      negation); carried in the canonical logic: layer",
                     p.path
                 )),
-                _ => {}
+                // ShEx-faithful, or already carried by the shacl_residue base — no *additional*
+                // ShEx-only drop. Listed explicitly so a NEW variant forces a decision.
+                ConstraintComponent::NumericRange { .. }
+                | ConstraintComponent::PrecisionRange { .. }
+                | ConstraintComponent::Datatype(_)
+                | ConstraintComponent::NodeKindShacl(_)
+                | ConstraintComponent::In(_)
+                | ConstraintComponent::Pattern { .. }
+                | ConstraintComponent::MinLength(_)
+                | ConstraintComponent::MaxLength(_)
+                | ConstraintComponent::TerminologyBinding { .. }
+                | ConstraintComponent::OrdinalSet { .. }
+                | ConstraintComponent::DateTimePattern(_)
+                | ConstraintComponent::HasValue(_) => {}
             }
         }
     }
@@ -675,15 +736,7 @@ mod tests {
     }
 
     fn shape(iri: &str, class: &str, props: Vec<PropertyConstraintIr>) -> ValidationShapeIr {
-        ValidationShapeIr::new(
-            iri,
-            ShapeTarget::Class(class.to_owned()),
-            props,
-            None,
-            None,
-            false,
-        )
-        .unwrap()
+        ValidationShapeIr::new(iri, ShapeTarget::Class(class.to_owned()), props, None).unwrap()
     }
 
     #[test]
@@ -787,13 +840,18 @@ mod tests {
 
     #[test]
     fn reifier_shape_and_requirement_emit_the_rdf12_extension() {
+        // The reifier component is a PROPERTY-shape condition (keyed to a `sh:path`): the native
+        // SHACL 1.2 engine reads `sh:reifierShape`/`sh:reificationRequired` only from a
+        // single-predicate property shape, so they must emit INSIDE the `sh:property [ … ]` block.
+        let property = PropertyConstraintIr::new("https://ex/p", None, None, None, vec![])
+            .unwrap()
+            .with_reifier(Some("https://ex/ReifierShape".into()), true)
+            .unwrap();
         let s = ValidationShapeIr::new(
             "https://ex/S",
             ShapeTarget::Class("https://ex/C".into()),
-            vec![],
+            vec![property],
             None,
-            Some("https://ex/ReifierShape".into()),
-            true,
         )
         .unwrap();
         let ttl = project_validation_shape_shacl(&s);
@@ -802,6 +860,21 @@ mod tests {
             "{ttl}"
         );
         assert!(ttl.contains("sh:reificationRequired true"), "{ttl}");
+        assert!(ttl.contains("sh:path <https://ex/p>"), "{ttl}");
+    }
+
+    #[test]
+    fn reifier_condition_is_rejected_on_an_inverse_path() {
+        // The reifier component has no meaning on an inverse path (the engine hard-errors), so the
+        // IR refuses to attach it there rather than emit a surface the engine rejects.
+        let inverse = PropertyConstraintIr::new("https://ex/p", None, None, None, vec![])
+            .unwrap()
+            .inverted();
+        assert!(
+            inverse
+                .with_reifier(Some("https://ex/R".into()), true)
+                .is_err()
+        );
     }
 
     #[test]
@@ -810,13 +883,15 @@ mod tests {
         // together) has no faithful SHACL/ShEx form: its scope must be recorded in the loss
         // ledger, never silently flattened to a universal shape.
         let sp = "https://blackcatinformatics.ca/gmeow/clinicalStandpoint";
+        let property = PropertyConstraintIr::new("https://ex/p", None, None, None, vec![])
+            .unwrap()
+            .with_reifier(Some("https://ex/ReifierShape".into()), true)
+            .unwrap();
         let s = ValidationShapeIr::new(
             "https://ex/S",
             ShapeTarget::Class("https://ex/C".into()),
-            vec![],
+            vec![property],
             Some(sp.into()),
-            Some("https://ex/ReifierShape".into()),
-            true,
         )
         .unwrap();
         assert_eq!(s.standpoint.as_deref(), Some(sp));
@@ -845,8 +920,6 @@ mod tests {
             },
             vec![],
             None,
-            None,
-            false,
         )
         .unwrap();
         let ttl = project_validation_shape_shacl(&s);
@@ -984,8 +1057,6 @@ mod tests {
             ShapeTarget::SubjectsOf("https://ex/p".into()),
             vec![],
             None,
-            None,
-            false,
         )
         .unwrap()
         .with_node_components(vec![ConstraintComponent::Class("https://ex/C".into())])
@@ -999,8 +1070,6 @@ mod tests {
             ShapeTarget::ObjectsOf("https://ex/p".into()),
             vec![],
             None,
-            None,
-            false,
         )
         .unwrap()
         .with_node_components(vec![ConstraintComponent::NodeKindShacl(ShaclNodeKind::Iri)])
@@ -1072,15 +1141,7 @@ mod shex_tests {
     }
 
     fn shape(iri: &str, class: &str, props: Vec<PropertyConstraintIr>) -> ValidationShapeIr {
-        ValidationShapeIr::new(
-            iri,
-            ShapeTarget::Class(class.to_owned()),
-            props,
-            None,
-            None,
-            false,
-        )
-        .unwrap()
+        ValidationShapeIr::new(iri, ShapeTarget::Class(class.to_owned()), props, None).unwrap()
     }
 
     #[test]
@@ -1224,16 +1285,18 @@ mod shex_tests {
 
     #[test]
     fn reifier_and_value_keyed_target_are_shex_residue() {
+        let property = PropertyConstraintIr::new("https://ex/p", None, None, None, vec![])
+            .unwrap()
+            .with_reifier(Some("https://ex/R".into()), true)
+            .unwrap();
         let s = ValidationShapeIr::new(
             "https://ex/S",
             ShapeTarget::ValueKeyed {
                 predicate: "https://ex/kind".into(),
                 value: "https://ex/Bp".into(),
             },
-            vec![],
+            vec![property],
             None,
-            Some("https://ex/R".into()),
-            true,
         )
         .unwrap();
         let r = shex_residue(&s);
@@ -1285,14 +1348,77 @@ mod shex_tests {
     }
 
     #[test]
+    fn residue_classification_is_pinned_and_nested_lossy_is_never_silently_dropped() {
+        // Guards the exhaustive residue classifiers (shacl_component_residue / shex_residue): a
+        // lossy component is flagged, a faithful one is not, and — critically — a lossy component
+        // NESTED inside a `sh:not` is still flagged. Before the classifiers were made exhaustive
+        // and recursive, the trailing `_ => {}` catch-all dropped a `Not(Pattern)` in silence,
+        // defeating the loss ledger's "carried and flagged, never dropped" contract.
+        let faithful = shape(
+            "https://ex/faithful",
+            "https://ex/C",
+            vec![prop(
+                "https://ex/p",
+                vec![ConstraintComponent::Datatype(
+                    "http://www.w3.org/2001/XMLSchema#string".into(),
+                )],
+            )],
+        );
+        assert!(
+            shacl_residue(&faithful).is_empty(),
+            "a faithful sh:datatype must carry no SHACL residue: {:?}",
+            shacl_residue(&faithful)
+        );
+
+        let lossy = shape(
+            "https://ex/lossy",
+            "https://ex/C",
+            vec![prop(
+                "https://ex/p",
+                vec![ConstraintComponent::Pattern {
+                    regex: "^A".into(),
+                    flags: None,
+                }],
+            )],
+        );
+        assert!(
+            shacl_residue(&lossy)
+                .iter()
+                .any(|x| x.contains("sh:pattern")),
+            "a top-level sh:pattern must be flagged: {:?}",
+            shacl_residue(&lossy)
+        );
+
+        // The regression the exhaustiveness+recursion fix closes: a lossy component inside `sh:not`.
+        let nested = shape(
+            "https://ex/nested",
+            "https://ex/C",
+            vec![prop(
+                "https://ex/p",
+                vec![ConstraintComponent::Not(Box::new(
+                    ConstraintComponent::Pattern {
+                        regex: "^A".into(),
+                        flags: None,
+                    },
+                ))],
+            )],
+        );
+        assert!(
+            shacl_residue(&nested)
+                .iter()
+                .any(|x| x.contains("sh:pattern")),
+            "a Pattern nested inside sh:not must NOT be silently dropped: {:?}",
+            shacl_residue(&nested)
+        );
+    }
+
+    #[test]
     fn domain_target_node_component_is_shex_residue() {
         let s = ValidationShapeIr::new(
             "https://ex/p-domain-shape",
             ShapeTarget::SubjectsOf("https://ex/p".into()),
             vec![],
             None,
-            None,
-            false,
         )
         .unwrap()
         .with_node_components(vec![ConstraintComponent::Class("https://ex/C".into())])

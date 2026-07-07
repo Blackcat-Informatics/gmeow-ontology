@@ -544,8 +544,8 @@ mod tests {
 
     use super::*;
     use crate::oracle::{
-        ForwardBudget, ForwardOracle, NemoFactsOracle, NemoForwardOracle, ReferenceBackwardOracle,
-        TypedChaseResult, TypedProvenance, TypedRow,
+        ForwardBudget, ForwardOracle, NativeForwardOracle, NemoFactsOracle, NemoForwardOracle,
+        ReferenceBackwardOracle, TypedChaseResult, TypedProvenance, TypedRow,
     };
     use crate::physical::chase::{ChaseAdmission, ExistentialRule, chase_world, route_chase};
     use crate::physical::magic::resolve_native;
@@ -675,6 +675,7 @@ mod tests {
             rule_iri: "http://ex/rule/svf".to_owned(),
             source_quad_ids: vec![],
             derivation_id: format!("http://ex/deriv/{subject}/{predicate}/{object}"),
+            antecedents: vec![],
         }
     }
 
@@ -1919,5 +1920,1152 @@ mod tests {
         let verdict = ledger.enforce();
         assert!(!verdict.passed, "an oracle-only row must fail the gate");
         assert!(verdict.reasons.iter().any(|r| r.contains("oracle-only")));
+    }
+
+    // ── NativeForwardOracle ↔ NemoForwardOracle parity (Task 1 seam check) ────────────
+
+    /// Classify two forward oracles' materialized fact sets into a [`ParityLedger`]:
+    /// `native` (the engine under test) vs `oracle` (the parity reference). Only arity-3
+    /// [`TypedRow`]s are fact-level comparands ([`typed_row_fact_key`]); the world is the
+    /// single-world constant carried on each row.
+    fn ledger_between_oracles(
+        native: &TypedChaseResult,
+        oracle: &TypedChaseResult,
+        world: &str,
+    ) -> ParityLedger {
+        let native_keys: BTreeSet<FactKey> = native
+            .rows
+            .iter()
+            .filter_map(|(row, _prov)| typed_row_fact_key(row))
+            .collect();
+        let oracle_keys: BTreeSet<FactKey> = oracle
+            .rows
+            .iter()
+            .filter_map(|(row, _prov)| typed_row_fact_key(row))
+            .collect();
+
+        let row_of = |kind: DivergenceKind, key: &FactKey| {
+            let (subject, predicate, object) = key.clone();
+            LedgerRow {
+                kind,
+                category: "materialization".to_owned(),
+                detail: format!("native↔nemo {subject} {predicate} {object}"),
+                subject,
+                object,
+                world: world.to_owned(),
+            }
+        };
+
+        let mut rows: Vec<LedgerRow> = Vec::new();
+        for key in native_keys.intersection(&oracle_keys) {
+            rows.push(row_of(DivergenceKind::Agree, key));
+        }
+        for key in native_keys.difference(&oracle_keys) {
+            rows.push(row_of(DivergenceKind::NativeOnly, key));
+        }
+        for key in oracle_keys.difference(&native_keys) {
+            rows.push(row_of(DivergenceKind::OracleOnly, key));
+        }
+        ParityLedger::from_rows(rows)
+    }
+
+    /// The Task-1 seam check: [`NativeForwardOracle`] (gmeow's native semi-naive core,
+    /// behind the [`ForwardOracle`] seam) agrees EXACTLY with [`NemoForwardOracle`] on the
+    /// EL subsumption closure of a `subClassOf` chain — gap-zero, non-vacuously.
+    ///
+    /// A ⊑ B, B ⊑ C in one world under [`EL_RULES`](crate::reason::el::EL_RULES): both
+    /// engines must echo the two asserted edges AND derive the transitive A ⊑ C.
+    #[test]
+    fn native_forward_oracle_el_ledger_gap_zero() {
+        const SUBCLASS: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
+        const WORLD: &str = "urn:world:el";
+        let a = ex_iri("http://ex/A");
+        let b = ex_iri("http://ex/B");
+        let c = ex_iri("http://ex/C");
+
+        // EL EDB: A ⊑ B, B ⊑ C (ternary subClassOf facts in one world).
+        let mut facts = TypedFactSet::new();
+        facts.push_quad(&a, SUBCLASS, &b, WORLD);
+        facts.push_quad(&b, SUBCLASS, &c, WORLD);
+
+        let rules = crate::reason::el::EL_RULES;
+
+        // Drive BOTH oracles over the SAME typed EDB + rule text, unbudgeted.
+        let native = NativeForwardOracle
+            .materialize(&facts, rules, &ForwardBudget::UNBOUNDED)
+            .expect("native EL chase must decide the stratifiable EL rule set");
+        let nemo = NemoForwardOracle
+            .materialize(&facts, rules, &ForwardBudget::UNBOUNDED)
+            .expect("nemo EL chase must succeed");
+
+        let ledger = ledger_between_oracles(&native, &nemo, WORLD);
+        let verdict = ledger.enforce();
+        assert!(
+            verdict.passed,
+            "NativeForwardOracle↔Nemo DIVERGED on the EL closure ({} native-only, {} oracle-only): \
+             {:?}\ndivergent rows: {:?}",
+            ledger.native_only,
+            ledger.oracle_only,
+            verdict.reasons,
+            ledger
+                .rows
+                .iter()
+                .filter(|r| r.kind != DivergenceKind::Agree)
+                .collect::<Vec<_>>()
+        );
+        // Non-vacuity floor: they must actually AGREE on facts, not trivially both-empty.
+        assert!(
+            ledger.agree > 0,
+            "the parity ledger must have at least one agreeing fact"
+        );
+
+        // The native oracle must genuinely DERIVE the transitive edge A ⊑ C (not just echo
+        // the two asserted edges) — proving the native chase, not a pass-through, ran.
+        let derived_a_c = native.rows.iter().any(|(row, prov)| {
+            !prov.is_edb
+                && row.predicate == SUBCLASS
+                && typed_row_fact_key(row)
+                    == Some((term_display(&a), SUBCLASS.to_owned(), term_display(&c)))
+        });
+        assert!(
+            derived_a_c,
+            "native oracle must DERIVE A ⊑ C by subClassOf-transitivity; rows: {:#?}",
+            native.rows
+        );
+
+        // The native adapter advertises provenance (firing-rule identity per row).
+        assert!(NativeForwardOracle.provides_provenance());
+        assert_eq!(NativeForwardOracle.name(), "native");
+    }
+
+    // ── EL promotion corpus gate + reified correspondence (Task 2) ────────────────
+
+    const RDFS_SUBCLASS_OF: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
+    const OWL_EQUIVALENT_CLASS: &str = "http://www.w3.org/2002/07/owl#equivalentClass";
+    const EL_WORLD: &str = "urn:world:el-corpus";
+
+    /// Seed a real EL corpus into a ternary typed EDB: a four-link `subClassOf`
+    /// chain `A ⊑ B ⊑ C ⊑ D`, a `D ≡ E` equivalence, and a `p ⊑ q` sub-property
+    /// edge — enough that the EL closure is non-trivial (transitive `subClassOf`,
+    /// both equivalence directions) rather than one triple.
+    fn el_corpus_edb() -> TypedFactSet {
+        let cls = |n: &str| ex_iri(&format!("http://ex/el/{n}"));
+        let mut facts = TypedFactSet::new();
+        // A ⊑ B ⊑ C ⊑ D (transitive closure derives A⊑C, A⊑D, B⊑D).
+        facts.push_quad(&cls("A"), RDFS_SUBCLASS_OF, &cls("B"), EL_WORLD);
+        facts.push_quad(&cls("B"), RDFS_SUBCLASS_OF, &cls("C"), EL_WORLD);
+        facts.push_quad(&cls("C"), RDFS_SUBCLASS_OF, &cls("D"), EL_WORLD);
+        // D ≡ E (derives D⊑E and E⊑D, and by transitivity A⊑E, B⊑E, C⊑E).
+        facts.push_quad(&cls("D"), OWL_EQUIVALENT_CLASS, &cls("E"), EL_WORLD);
+        // p ⊑ q (sub-property transitivity is in EL_RULES; a lone edge just echoes).
+        facts.push_quad(&cls("p"), SUBCLASS_PROP, &cls("q"), EL_WORLD);
+        facts
+    }
+
+    const SUBCLASS_PROP: &str = "http://www.w3.org/2000/01/rdf-schema#subPropertyOf";
+
+    /// The `subClassOf` subsumption tuples `(subject, object, world)` of a typed
+    /// closure — the comparable key [`crate::reason::ledger::compare_subsumption`]
+    /// keys on. Restricted to the canonical `subClassOf` subsumption relation so
+    /// the (subject, object) key is unambiguous.
+    fn el_subclass_tuples(closure: &TypedChaseResult) -> Vec<(String, String, String)> {
+        closure
+            .rows
+            .iter()
+            .filter_map(|(row, _prov)| {
+                if row.predicate != RDFS_SUBCLASS_OF || row.args.len() != 3 {
+                    return None;
+                }
+                Some((
+                    term_display(&row.args[0]),
+                    term_display(&row.args[1]),
+                    EL_WORLD.to_owned(),
+                ))
+            })
+            .collect()
+    }
+
+    /// Build the native↔oracle EL divergence ledger over the shared corpus: run
+    /// BOTH forward oracles over the EL rule set, then classify the `subClassOf`
+    /// closures via [`crate::reason::ledger::compare_subsumption`].
+    fn el_divergence_ledger() -> crate::reason::ledger::DivergenceLedger {
+        let facts = el_corpus_edb();
+        let rules = crate::reason::el::EL_RULES;
+        let native = NativeForwardOracle
+            .materialize(&facts, rules, &ForwardBudget::UNBOUNDED)
+            .expect("native EL chase must decide the stratifiable EL rule set");
+        let nemo = NemoForwardOracle
+            .materialize(&facts, rules, &ForwardBudget::UNBOUNDED)
+            .expect("nemo EL chase must succeed");
+        let rows = crate::reason::ledger::compare_subsumption(
+            &el_subclass_tuples(&native),
+            &el_subclass_tuples(&nemo),
+        );
+        crate::reason::ledger::build_ledger(rows, Vec::new(), Vec::new(), Vec::new())
+    }
+
+    /// Part A — the EL promotion parity gate (gap-zero, non-vacuous): over the EL
+    /// fixture corpus the native forward engine SUBSUMES the Nemo oracle. The
+    /// strict verdict must pass (zero OracleOnly / DlGap / CorpusOnly) AND the
+    /// non-vacuity floor `agree > 0` must hold. Any OracleOnly divergence is a
+    /// native-coverage regression to be fixed in the native path — never by
+    /// relaxing this gate.
+    #[test]
+    fn el_native_oracle_ledger_gap_zero() {
+        let ledger = el_divergence_ledger();
+        let verdict = crate::reason::ledger::enforce(&ledger);
+        assert!(
+            verdict.passed,
+            "native ⊉ Nemo on the EL corpus ({} oracle-only, {} dl-gap): {:?}\nrows: {:#?}",
+            ledger.oracle_only,
+            ledger.dl_gap,
+            verdict.reasons,
+            ledger
+                .rows
+                .iter()
+                .filter(|r| r.kind != DivergenceKind::Agree)
+                .collect::<Vec<_>>()
+        );
+        // Non-vacuity floor: the two engines actually AGREE on a real closure.
+        assert!(
+            ledger.agree > 0,
+            "the EL parity ledger must have at least one agreeing subsumption"
+        );
+        // Pin the committed certificate constants to the live measurement: the shipped
+        // `subsumption-correspondence.ttl` sources its `agreeCount` from these, and the
+        // pipeline drift-gate refuses a bundle that disagrees. If the engine or fixtures
+        // shift the count, this gate goes red until the constant is re-minted.
+        assert_eq!(
+            ledger.agree,
+            crate::reason::artifacts::EL_CERTIFIED_AGREE,
+            "EL_CERTIFIED_AGREE is stale — re-mint it to the measured native↔Nemo agree count"
+        );
+        assert_eq!(
+            ledger.native_only,
+            crate::reason::artifacts::EL_CERTIFIED_NATIVE_ONLY,
+            "EL_CERTIFIED_NATIVE_ONLY is stale — re-mint it to the measured native-only count"
+        );
+        // The corpus is genuinely non-trivial: the transitive edge A ⊑ D and both
+        // equivalence directions must be among the agreed subsumptions, proving the
+        // chase ran (not a bare EDB echo).
+        let agreed = |s: &str, o: &str| {
+            let sub = format!("http://ex/el/{s}");
+            let obj = format!("http://ex/el/{o}");
+            ledger
+                .rows
+                .iter()
+                .any(|r| r.kind == DivergenceKind::Agree && r.subject == sub && r.object == obj)
+        };
+        assert!(agreed("A", "D"), "transitive A ⊑ D must be agreed");
+        assert!(agreed("D", "E"), "equivalence D ⊑ E must be agreed");
+        assert!(agreed("E", "D"), "equivalence E ⊑ D must be agreed");
+    }
+
+    /// Part B — the reified `logic:Correspondence`: the gap-zero EL parity verdict
+    /// is emitted as a bundle-borne correspondence recording "native ⊒ Nemo on the
+    /// certified EL fragment", carrying the divergence ledger as its loss cell and
+    /// the native contract hash as its proof-certificate binding.
+    #[test]
+    fn el_subsumption_correspondence_emitted() {
+        let ledger = el_divergence_ledger();
+        // Precondition: only reify a PASSING (gap-zero) verdict.
+        assert!(crate::reason::ledger::enforce(&ledger).passed);
+
+        let contract = crate::reason::native_contract_hash();
+        let ttl = crate::reason::artifacts::build_el_subsumption_correspondence_ttl(
+            &ledger, &contract, "nemo",
+        );
+
+        // The correspondence is a real logic:Correspondence with the declared
+        // relation / law-rung / preservation polarity (all reused vocabulary).
+        assert!(
+            ttl.contains("#type> <https://blackcatinformatics.ca/logic/Correspondence>"),
+            "must reify a logic:Correspondence: {ttl}"
+        );
+        assert!(
+            ttl.contains(
+                "logic/correspondenceRelation> <https://blackcatinformatics.ca/logic/Subsumes>"
+            ),
+            "relation must be logic:Subsumes: {ttl}"
+        );
+        assert!(
+            ttl.contains(
+                "logic/preservationKind> \
+                 <https://blackcatinformatics.ca/logic/CompleteOverApproximation>"
+            ),
+            "preservation must be logic:CompleteOverApproximation: {ttl}"
+        );
+        assert!(
+            ttl.contains(
+                "logic/morphismClass> <https://blackcatinformatics.ca/logic/SectionRetraction>"
+            ),
+            "law-rung must be logic:SectionRetraction: {ttl}"
+        );
+        // "proved in a certified fragment" — the discharged section-law claim.
+        assert!(
+            ttl.contains("logic/lawClaimed> <https://blackcatinformatics.ca/logic/SectionLaw>")
+                && ttl.contains(
+                    "logic/lawDischargeVerdict> \
+                     <https://blackcatinformatics.ca/logic/ObligationDischarged>"
+                )
+                && ttl.contains(
+                    "logic/lawDischargeCondition> \
+                     <https://blackcatinformatics.ca/logic/DischargeCertifiedFragment>"
+                ),
+            "the section law must be discharged within the certified fragment: {ttl}"
+        );
+        // The proof-certificate binding: the contract hash equals native_contract_hash().
+        assert!(
+            ttl.contains(&format!("logic/contractHash> \"{contract}\"")),
+            "contractHash must equal native_contract_hash(): {ttl}"
+        );
+        // A gap-zero ledger carries zero oracle-only findings in its loss cell.
+        assert!(
+            ttl.contains(&format!("gmeow/oracleOnlyCount> {}", ledger.oracle_only)),
+            "the loss cell records the oracle-only tally: {ttl}"
+        );
+    }
+
+    // ── RL promotion corpus gate + reified correspondence (Task 3) ────────────────
+    //
+    // The OWL 2 RL/RDF closure runs over the 4-ary generic-triple encoding
+    // `triple(?s, ?p, ?o, ?w)` (predicate-as-DATA), so `NativeForwardOracle`
+    // dispatches to the arity-generic evaluator `crate::physical::generic` while
+    // Nemo runs the same rule set over the same typed EDB. The gate compares the
+    // full `triple` closure fact set and demands gap-zero.
+
+    const RL_WORLD: &str = "urn:world:rl-corpus";
+    const RL_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+    const RL_SUBCLASS: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
+    const RL_SUBPROP: &str = "http://www.w3.org/2000/01/rdf-schema#subPropertyOf";
+    const RL_DOMAIN: &str = "http://www.w3.org/2000/01/rdf-schema#domain";
+    const RL_FIRST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#first";
+    const RL_REST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest";
+    const RL_NIL: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil";
+    const RL_TRANSITIVE: &str = "http://www.w3.org/2002/07/owl#TransitiveProperty";
+    const RL_ONE_OF: &str = "http://www.w3.org/2002/07/owl#oneOf";
+    /// A literal-surrogate object IRI — the shape `crate::reason::rl` interns a
+    /// literal object to before the chase (RL never inspects the literal value).
+    const RL_LIT_SURROGATE: &str = "urn:gmeow-rl-lit:0";
+
+    /// Push one generic-triple `triple(subject, predicate, object, world)` fact into
+    /// a typed EDB — the RL predicate-as-data encoding (arity 4, relation `triple`).
+    fn push_rl_triple(facts: &mut TypedFactSet, s: &str, p: &str, o: &TermValue) {
+        let s = facts.intern(&ex_iri(s));
+        let p = facts.intern(&ex_iri(p));
+        let o = facts.intern(o);
+        let w = facts.intern(&TermValue::simple_literal(RL_WORLD));
+        facts.push_fact("triple", vec![s, p, o, w]);
+    }
+
+    /// Seed a real OWL 2 RL/RDF corpus into the 4-ary generic-triple encoding,
+    /// exercising the variable-predicate meta-rules (`prp-spo1`, `prp-dom`,
+    /// `prp-trp`), class subsumption (`cax-sco`/`scm-sco`), the finite-list surface
+    /// (`cls-oneOf` over `list_member`), AND a literal-surrogate object round-trip
+    /// (a `prp-spo1` over a data property).
+    fn rl_corpus_edb() -> TypedFactSet {
+        let cls = |n: &str| format!("http://ex/rl/{n}");
+        let iri = |n: &str| ex_iri(&cls(n));
+        let mut facts = TypedFactSet::new();
+        // cax-sco + scm-sco: x a A, A ⊑ B ⊑ C ⇒ x a B, x a C, A ⊑ C.
+        push_rl_triple(&mut facts, &cls("x"), RL_TYPE, &iri("A"));
+        push_rl_triple(&mut facts, &cls("A"), RL_SUBCLASS, &iri("B"));
+        push_rl_triple(&mut facts, &cls("B"), RL_SUBCLASS, &iri("C"));
+        // prp-spo1 over an object property: p1 ⊑ p2, x p1 y ⇒ x p2 y.
+        push_rl_triple(&mut facts, &cls("p1"), RL_SUBPROP, &iri("p2"));
+        push_rl_triple(&mut facts, &cls("x"), &cls("p1"), &iri("y"));
+        // prp-spo1 carrying a literal object (surrogate IRI): d1 ⊑ d2, x d1 "lit".
+        push_rl_triple(&mut facts, &cls("d1"), RL_SUBPROP, &iri("d2"));
+        push_rl_triple(&mut facts, &cls("x"), &cls("d1"), &ex_iri(RL_LIT_SURROGATE));
+        // prp-dom: p1 domain A ⇒ x a A (from x p1 y).
+        push_rl_triple(&mut facts, &cls("p1"), RL_DOMAIN, &iri("Dom"));
+        // prp-trp: pt a TransitiveProperty, m pt n, n pt o ⇒ m pt o.
+        push_rl_triple(&mut facts, &cls("pt"), RL_TYPE, &ex_iri(RL_TRANSITIVE));
+        push_rl_triple(&mut facts, &cls("m"), &cls("pt"), &iri("n"));
+        push_rl_triple(&mut facts, &cls("n"), &cls("pt"), &iri("o"));
+        // cls-oneOf over an RDF list: E oneOf ( u v ) ⇒ u a E, v a E.
+        push_rl_triple(&mut facts, &cls("E"), RL_ONE_OF, &iri("l0"));
+        push_rl_triple(&mut facts, &cls("l0"), RL_FIRST, &iri("u"));
+        push_rl_triple(&mut facts, &cls("l0"), RL_REST, &iri("l1"));
+        push_rl_triple(&mut facts, &cls("l1"), RL_FIRST, &iri("v"));
+        push_rl_triple(&mut facts, &cls("l1"), RL_REST, &ex_iri(RL_NIL));
+        facts
+    }
+
+    /// The full `triple` closure fact set of a chase result, as comparable
+    /// `(subject, predicate, object)` N3-surface triples (the single-world corpus
+    /// carries a constant world, so it is not part of the discriminating key). The
+    /// `list_member/3` bookkeeping rows are internal, not closure facts, so they are
+    /// excluded — exactly what `crate::reason::rl::rl_closure` coerces back.
+    fn rl_triple_tuples(closure: &TypedChaseResult) -> Vec<(String, String, String)> {
+        closure
+            .rows
+            .iter()
+            .filter_map(|(row, _prov)| {
+                if row.predicate != "triple" || row.args.len() != 4 {
+                    return None;
+                }
+                Some((
+                    term_display(&row.args[0]),
+                    term_display(&row.args[1]),
+                    term_display(&row.args[2]),
+                ))
+            })
+            .collect()
+    }
+
+    /// Build the native↔oracle RL divergence ledger over the shared corpus: run BOTH
+    /// forward oracles over `RL_RULES`, then classify the full `triple` closures via
+    /// `crate::reason::ledger::compare_subsumption` (which compares the two fact sets
+    /// component-wise).
+    fn rl_divergence_ledger() -> crate::reason::ledger::DivergenceLedger {
+        let facts = rl_corpus_edb();
+        let rules = crate::reason::rl::RL_RULES;
+        let native = NativeForwardOracle
+            .materialize(&facts, rules, &ForwardBudget::UNBOUNDED)
+            .expect("native RL chase must decide the positive-Datalog RL rule set");
+        let nemo = NemoForwardOracle
+            .materialize(&facts, rules, &ForwardBudget::UNBOUNDED)
+            .expect("nemo RL chase must succeed");
+        let rows = crate::reason::ledger::compare_subsumption(
+            &rl_triple_tuples(&native),
+            &rl_triple_tuples(&nemo),
+        );
+        crate::reason::ledger::build_ledger(rows, Vec::new(), Vec::new(), Vec::new())
+    }
+
+    /// Part A — the RL promotion parity gate (gap-zero, non-vacuous): over the RL
+    /// fixture corpus the native arity-generic forward engine SUBSUMES the Nemo
+    /// oracle on the FULL `triple` closure. The strict verdict must pass (zero
+    /// OracleOnly / DlGap / CorpusOnly) AND `agree > 0`. Any OracleOnly divergence is
+    /// a native-coverage regression to fix in the generic evaluator — never by
+    /// relaxing this gate.
+    #[test]
+    fn rl_native_oracle_ledger_gap_zero() {
+        let ledger = rl_divergence_ledger();
+        let verdict = crate::reason::ledger::enforce(&ledger);
+        assert!(
+            verdict.passed,
+            "native ⊉ Nemo on the RL corpus ({} oracle-only, {} dl-gap): {:?}\nrows: {:#?}",
+            ledger.oracle_only,
+            ledger.dl_gap,
+            verdict.reasons,
+            ledger
+                .rows
+                .iter()
+                .filter(|r| r.kind != DivergenceKind::Agree)
+                .collect::<Vec<_>>()
+        );
+        assert!(
+            ledger.agree > 0,
+            "the RL parity ledger must have at least one agreeing fact"
+        );
+        // Pin the committed certificate constants to the live RL measurement.
+        assert_eq!(
+            ledger.agree,
+            crate::reason::artifacts::RL_CERTIFIED_AGREE,
+            "RL_CERTIFIED_AGREE is stale — re-mint it to the measured native↔Nemo agree count"
+        );
+        assert_eq!(
+            ledger.native_only,
+            crate::reason::artifacts::RL_CERTIFIED_NATIVE_ONLY,
+            "RL_CERTIFIED_NATIVE_ONLY is stale — re-mint it to the measured native-only count"
+        );
+        // Non-trivial closure: the variable-predicate meta-rules, class-subsumption
+        // transitivity, the literal-surrogate carry, and the finite-list surface must
+        // all be among the AGREED facts (proving the generic chase ran, not an echo).
+        //
+        // `compare_subsumption` maps each `(a, b, c)` comparand to `(subject, object,
+        // world)` and unbrackets every component, so an agreed `triple(s, p, o)`
+        // surfaces as `subject == bare(s)`, `object == bare(p)`, `world == bare(o)`.
+        let agreed = |s: &str, p: &str, o: &str| {
+            ledger.rows.iter().any(|r| {
+                r.kind == DivergenceKind::Agree && r.subject == s && r.object == p && r.world == o
+            })
+        };
+        let rl = |n: &str| format!("http://ex/rl/{n}");
+        // prp-spo1 (variable predicate) — x p2 y.
+        assert!(
+            agreed(&rl("x"), &rl("p2"), &rl("y")),
+            "x p2 y via prp-spo1 (variable predicate)"
+        );
+        // prp-spo1 carrying a literal surrogate — x d2 <lit-surrogate>.
+        assert!(
+            agreed(&rl("x"), &rl("d2"), RL_LIT_SURROGATE),
+            "x d2 <lit-surrogate> via prp-spo1"
+        );
+        // cax-sco + scm-sco — x a C (via A ⊑ B ⊑ C).
+        assert!(
+            agreed(&rl("x"), RL_TYPE, &rl("C")),
+            "x a C via cax-sco + scm-sco"
+        );
+        // prp-trp — m pt o.
+        assert!(agreed(&rl("m"), &rl("pt"), &rl("o")), "m pt o via prp-trp");
+        // cls-oneOf over list_member — u a E.
+        assert!(agreed(&rl("u"), RL_TYPE, &rl("E")), "u a E via cls-oneOf");
+    }
+
+    /// Part B — the reified RL `logic:Correspondence`: the gap-zero RL parity verdict
+    /// is emitted as a bundle-borne correspondence ("native ⊒ Nemo on the certified
+    /// RL fragment"), the next edge of the EL ⊂ RL promotion lattice, carrying the
+    /// divergence ledger as its loss cell and the native contract hash as its
+    /// proof-certificate binding. Same claim shape as EL (only the lattice-edge slug
+    /// differs).
+    #[test]
+    fn rl_subsumption_correspondence_emitted() {
+        let ledger = rl_divergence_ledger();
+        assert!(crate::reason::ledger::enforce(&ledger).passed);
+
+        let contract = crate::reason::native_contract_hash();
+        let ttl = crate::reason::artifacts::build_rl_subsumption_correspondence_ttl(
+            &ledger, &contract, "nemo",
+        );
+
+        assert!(
+            ttl.contains("#type> <https://blackcatinformatics.ca/logic/Correspondence>"),
+            "must reify a logic:Correspondence: {ttl}"
+        );
+        assert!(
+            ttl.contains(
+                "logic/correspondenceRelation> <https://blackcatinformatics.ca/logic/Subsumes>"
+            ),
+            "relation must be logic:Subsumes: {ttl}"
+        );
+        assert!(
+            ttl.contains(
+                "logic/preservationKind> \
+                 <https://blackcatinformatics.ca/logic/CompleteOverApproximation>"
+            ),
+            "preservation must be logic:CompleteOverApproximation: {ttl}"
+        );
+        assert!(
+            ttl.contains(
+                "logic/morphismClass> <https://blackcatinformatics.ca/logic/SectionRetraction>"
+            ),
+            "law-rung must be logic:SectionRetraction: {ttl}"
+        );
+        assert!(
+            ttl.contains("logic/lawClaimed> <https://blackcatinformatics.ca/logic/SectionLaw>")
+                && ttl.contains(
+                    "logic/lawDischargeVerdict> \
+                     <https://blackcatinformatics.ca/logic/ObligationDischarged>"
+                )
+                && ttl.contains(
+                    "logic/lawDischargeCondition> \
+                     <https://blackcatinformatics.ca/logic/DischargeCertifiedFragment>"
+                ),
+            "the section law must be discharged within the certified fragment: {ttl}"
+        );
+        assert!(
+            ttl.contains(&format!("logic/contractHash> \"{contract}\"")),
+            "contractHash must equal native_contract_hash(): {ttl}"
+        );
+        assert!(
+            ttl.contains(&format!("gmeow/oracleOnlyCount> {}", ledger.oracle_only)),
+            "the loss cell records the oracle-only tally: {ttl}"
+        );
+        // The RL lattice edge keys its reified subject on the `rl` slug (distinct from
+        // the EL edge's subjects), so both correspondences can coexist in the bundle.
+        assert!(
+            ttl.contains("gmeow/rl-native-subsumption-correspondence>"),
+            "the RL correspondence subject must be slugged `rl`: {ttl}"
+        );
+    }
+
+    // ── DL-Horn promotion corpus gate + engine-invariant witness pass + reified
+    //    correspondence (Task 4) ───────────────────────────────────────────────────
+    //
+    // `crate::reason::dl::dl_rules()` = `EL_RULES` + `DL_EXTRA_RULES`; BOTH bodies use
+    // NAMED-ternary relations (`<type>(?i,?c,?w)`, `<owl#disjointWith>(?c1,?c2,?w)` —
+    // the predicate is the relation NAME, variables live only in subject/object/world),
+    // so the DL Horn closure runs on the EXISTING binary native path (arity-3 dispatch
+    // in `NativeForwardOracle`), exactly like the EL fragment (Task 2). The DL
+    // VALUE-INVENTION (someValuesFrom / cardinality witnesses) is NOT rule text — it is
+    // the provenance-blind Rust post-pass `crate::reason::dl::augment_inferred_with_dl`,
+    // downstream of the oracle seam and INVARIANT across the engine flip; its
+    // unification into the chase is tracked separately and out of scope here.
+
+    const DL_WORLD: &str = "urn:world:dl-corpus";
+    const DL_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+    const DL_SUBCLASS: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
+    const DL_DISJOINT: &str = "http://www.w3.org/2002/07/owl#disjointWith";
+    const DL_NOTHING: &str = "http://www.w3.org/2002/07/owl#Nothing";
+
+    /// The shared DL Horn fixture as `(subject, predicate, object)` triples in
+    /// [`DL_WORLD`], exercising the EL rules AND every clause of `DL_EXTRA_RULES`:
+    ///
+    /// * `el:subClassOf-transitive` — `A ⊑ B ⊑ C` ⇒ `A ⊑ C`;
+    /// * `el:type-propagation` — `i a A`, `A ⊑ B` ⇒ `i a B`, `i a C`;
+    /// * `dl:individual-clash` — `x a D`, `x a E`, `D ⊥ E` ⇒ `x a owl:Nothing`;
+    /// * `dl:unsatisfiable-class` — `F ⊑ D`, `F ⊑ E`, `D ⊥ E` ⇒ `F ⊑ owl:Nothing`;
+    /// * `dl:nothing-membership` — `y a F`, `F ⊑ owl:Nothing` (derived above) ⇒
+    ///   `y a owl:Nothing` (a two-step chain off the unsatisfiable-class head).
+    fn dl_corpus_triples() -> Vec<(String, String, String)> {
+        let iri = |n: &str| format!("http://ex/dl/{n}");
+        let t = |s: &str, p: &str, o: &str| (iri(s), p.to_owned(), iri(o));
+        vec![
+            // EL class hierarchy + a typed individual.
+            t("A", DL_SUBCLASS, "B"),
+            t("B", DL_SUBCLASS, "C"),
+            t("i", DL_TYPE, "A"),
+            // Disjointness driving the clash rules.
+            t("D", DL_DISJOINT, "E"),
+            // dl:individual-clash — x is both D and E.
+            t("x", DL_TYPE, "D"),
+            t("x", DL_TYPE, "E"),
+            // dl:unsatisfiable-class — F ⊑ D and F ⊑ E.
+            t("F", DL_SUBCLASS, "D"),
+            t("F", DL_SUBCLASS, "E"),
+            // dl:nothing-membership — y a F, then F ⊑ Nothing (derived) ⇒ y a Nothing.
+            t("y", DL_TYPE, "F"),
+        ]
+    }
+
+    /// The shared DL fixture as a ternary typed EDB (the shape the forward oracles
+    /// chase over).
+    fn dl_corpus_edb() -> TypedFactSet {
+        let mut facts = TypedFactSet::new();
+        for (s, p, o) in dl_corpus_triples() {
+            facts.push_quad(&ex_iri(&s), &p, &ex_iri(&o), DL_WORLD);
+        }
+        facts
+    }
+
+    /// The SAME shared DL fixture as an `RdfDataset` (the shape the provenance-blind
+    /// DL witness/augment post-pass reads). Built from the identical triple list as
+    /// [`dl_corpus_edb`], so the two representations denote the same facts.
+    fn dl_corpus_dataset() -> std::sync::Arc<purrdf::RdfDataset> {
+        let mut builder = purrdf::RdfDatasetBuilder::new();
+        for (s, p, o) in dl_corpus_triples() {
+            let quad = purrdf::RdfQuad::new(purrdf::RdfTerm::iri(&s), &p, purrdf::RdfTerm::iri(&o))
+                .in_graph(purrdf::RdfTerm::iri(DL_WORLD));
+            builder.push_owned_quad(&quad);
+        }
+        builder.freeze().expect("valid DL corpus dataset")
+    }
+
+    /// The FULL DL Horn closure of a chase result as comparable
+    /// `(subject, predicate, object)` triples — every arity-3 row (the single-world
+    /// corpus carries a constant world, dropped from the discriminating key). Unlike
+    /// the EL helper this keeps the RELATION NAME (`predicate`) in the key so the
+    /// `type(i, owl:Nothing)` and `subClassOf(c, owl:Nothing)` clash facts are
+    /// distinguished, not just `subClassOf` subsumptions.
+    fn dl_fact_tuples(closure: &TypedChaseResult) -> Vec<(String, String, String)> {
+        closure
+            .rows
+            .iter()
+            .filter_map(|(row, _prov)| {
+                if row.args.len() != 3 {
+                    return None;
+                }
+                Some((
+                    term_display(&row.args[0]),
+                    row.predicate.clone(),
+                    term_display(&row.args[1]),
+                ))
+            })
+            .collect()
+    }
+
+    /// Build the native↔oracle DL-Horn divergence ledger over the shared corpus: run
+    /// BOTH forward oracles over `dl_rules()`, then classify the FULL Horn closure
+    /// fact set via [`crate::reason::ledger::compare_subsumption`] (the
+    /// `(subject, predicate, object)` comparand distinguishes the clash facts).
+    fn dl_horn_divergence_ledger() -> crate::reason::ledger::DivergenceLedger {
+        let facts = dl_corpus_edb();
+        let rules = crate::reason::dl::dl_rules();
+        let native = NativeForwardOracle
+            .materialize(&facts, &rules, &ForwardBudget::UNBOUNDED)
+            .expect("native DL Horn chase must decide the stratifiable dl_rules() set");
+        let nemo = NemoForwardOracle
+            .materialize(&facts, &rules, &ForwardBudget::UNBOUNDED)
+            .expect("nemo DL Horn chase must succeed");
+        let rows = crate::reason::ledger::compare_subsumption(
+            &dl_fact_tuples(&native),
+            &dl_fact_tuples(&nemo),
+        );
+        crate::reason::ledger::build_ledger(rows, Vec::new(), Vec::new(), Vec::new())
+    }
+
+    /// Part A — the DL-Horn promotion parity gate (gap-zero, non-vacuous): over the
+    /// DL fixture corpus the native forward engine agrees EXACTLY with the Nemo oracle
+    /// on the FULL `dl_rules()` Horn closure (`EL_RULES` + `DL_EXTRA_RULES`). The
+    /// strict verdict must pass (zero OracleOnly / NativeOnly / DlGap / CorpusOnly) AND
+    /// `agree > 0`. Any divergence is a native-coverage regression to fix in the native
+    /// path — never by relaxing this gate. This runs the BINARY (arity-3, named-ternary)
+    /// native path, confirming the same dispatch that carried EL handles `dl_rules()`.
+    #[test]
+    fn dl_horn_closure_native_oracle_ledger_gap_zero() {
+        let ledger = dl_horn_divergence_ledger();
+        let verdict = crate::reason::ledger::enforce(&ledger);
+        assert!(
+            verdict.passed,
+            "native ⊉ Nemo on the DL Horn corpus ({} native-only, {} oracle-only, {} dl-gap): \
+             {:?}\nrows: {:#?}",
+            ledger.native_only,
+            ledger.oracle_only,
+            ledger.dl_gap,
+            verdict.reasons,
+            ledger
+                .rows
+                .iter()
+                .filter(|r| r.kind != DivergenceKind::Agree)
+                .collect::<Vec<_>>()
+        );
+        assert!(
+            ledger.agree > 0,
+            "the DL Horn parity ledger must have at least one agreeing fact"
+        );
+        // Pin the committed certificate constants to the live DL-Horn measurement.
+        assert_eq!(
+            ledger.agree,
+            crate::reason::artifacts::DL_CERTIFIED_AGREE,
+            "DL_CERTIFIED_AGREE is stale — re-mint it to the measured native↔Nemo agree count"
+        );
+        assert_eq!(
+            ledger.native_only,
+            crate::reason::artifacts::DL_CERTIFIED_NATIVE_ONLY,
+            "DL_CERTIFIED_NATIVE_ONLY is stale — re-mint it to the measured native-only count"
+        );
+        // Non-trivial closure: each DL_EXTRA_RULES clause AND the EL rules must be among
+        // the AGREED facts (proving the DL Horn chase ran, not a bare EDB echo).
+        // `compare_subsumption` maps each `(a, b, c)` comparand to `(subject, object,
+        // world)` and unbrackets every component, so an agreed `type(s, o)` surfaces as
+        // `subject == bare(s)`, `object == bare(predicate)`, `world == bare(o)`.
+        let agreed = |s: &str, p: &str, o: &str| {
+            ledger.rows.iter().any(|r| {
+                r.kind == DivergenceKind::Agree && r.subject == s && r.object == p && r.world == o
+            })
+        };
+        let dl = |n: &str| format!("http://ex/dl/{n}");
+        // el:subClassOf-transitive — A ⊑ C.
+        assert!(
+            agreed(&dl("A"), DL_SUBCLASS, &dl("C")),
+            "A ⊑ C via el:subClassOf-transitive"
+        );
+        // el:type-propagation — i a C (via i a A, A ⊑ B ⊑ C).
+        assert!(
+            agreed(&dl("i"), DL_TYPE, &dl("C")),
+            "i a C via el:type-propagation"
+        );
+        // dl:individual-clash — x a owl:Nothing.
+        assert!(
+            agreed(&dl("x"), DL_TYPE, DL_NOTHING),
+            "x a owl:Nothing via dl:individual-clash"
+        );
+        // dl:unsatisfiable-class — F ⊑ owl:Nothing.
+        assert!(
+            agreed(&dl("F"), DL_SUBCLASS, DL_NOTHING),
+            "F ⊑ owl:Nothing via dl:unsatisfiable-class"
+        );
+        // dl:nothing-membership — y a owl:Nothing (chains off unsatisfiable-class).
+        assert!(
+            agreed(&dl("y"), DL_TYPE, DL_NOTHING),
+            "y a owl:Nothing via dl:nothing-membership"
+        );
+    }
+
+    /// Part B — the DL consistency VERDICT is engine-invariant under the flip.
+    ///
+    /// Approach (and why it is honest): `crate::reason::dl::dl_consistency` runs through
+    /// `run_reasoning`, which currently hard-wires `forward_oracle()` (Nemo); native
+    /// cannot be injected there without the Task-6 flip. So rather than fake an
+    /// injection, this test attacks the invariance claim DIRECTLY at the seam that the
+    /// flip changes: it produces the DL Horn closure of the SAME fixture TWICE — once
+    /// via `NativeForwardOracle`, once via `NemoForwardOracle` — coerces BOTH through
+    /// the shared, oracle-agnostic `crate::reason::chase_rows_to_inferred`, then feeds
+    /// each closure through the provenance-blind post-pass
+    /// `crate::reason::dl::augment_inferred_with_dl` and reads the verdict via
+    /// `crate::reason::dl::verdict_from_inferred`. Because the witness/augment pass and
+    /// the verdict reader are pure functions of the FACT set (never of derivation
+    /// provenance), and Part A proves the two Horn closures are fact-identical, the
+    /// resulting verdicts MUST coincide on their semantic content — demonstrating the
+    /// witness pass is invariant across the engine flip WITHOUT touching or retiring it
+    /// (its chase-unification is tracked as separate work). Premise provenance is expected to
+    /// differ between engines (Part A compares facts, not derivation ids), so the
+    /// comparison is on the semantic verdict — the consistency decision and the SETS of
+    /// clash witnesses / unsatisfiable classes — plus the augmented fact set itself.
+    #[test]
+    fn dl_consistency_verdict_unchanged_under_native() {
+        let facts = dl_corpus_edb();
+        let dataset = dl_corpus_dataset();
+        let rules = crate::reason::dl::dl_rules();
+
+        // Two engines, ONE fixture: produce and coerce both Horn closures identically.
+        let native_chase = NativeForwardOracle
+            .materialize(&facts, &rules, &ForwardBudget::UNBOUNDED)
+            .expect("native DL Horn chase must decide dl_rules()");
+        let nemo_chase = NemoForwardOracle
+            .materialize(&facts, &rules, &ForwardBudget::UNBOUNDED)
+            .expect("nemo DL Horn chase must succeed");
+        let mut native_inferred = crate::reason::chase_rows_to_inferred(&native_chase)
+            .expect("native closure coerces to InferredAxioms");
+        let mut nemo_inferred = crate::reason::chase_rows_to_inferred(&nemo_chase)
+            .expect("nemo closure coerces to InferredAxioms");
+
+        // The provenance-blind DL witness/augment post-pass over each closure + the
+        // SAME edb. This is the pass the flip must NOT perturb (its chase-unification
+        // is separate work, out of scope here — we only prove it is engine-invariant).
+        crate::reason::dl::augment_inferred_with_dl(&mut native_inferred, &dataset)
+            .expect("augment over the native closure");
+        crate::reason::dl::augment_inferred_with_dl(&mut nemo_inferred, &dataset)
+            .expect("augment over the nemo closure");
+
+        // (1) The augmented FACT sets are identical — the witness pass added the same
+        //     consequences regardless of which engine produced the Horn closure.
+        let fact_set = |axioms: &[crate::reason::el::InferredAxiom]| {
+            axioms
+                .iter()
+                .map(|a| {
+                    (
+                        a.subject.clone(),
+                        a.predicate.clone(),
+                        a.object.clone(),
+                        a.world.clone(),
+                    )
+                })
+                .collect::<BTreeSet<_>>()
+        };
+        assert_eq!(
+            fact_set(&native_inferred),
+            fact_set(&nemo_inferred),
+            "the DL witness/augment post-pass must be engine-invariant on the fact set"
+        );
+
+        // (2) The DL consistency VERDICT (semantic content — the consistency decision,
+        //     the clash-witness set, the unsatisfiable-class set) coincides.
+        let native_verdict = crate::reason::dl::verdict_from_inferred(&native_inferred, &dataset)
+            .expect("verdict from native closure");
+        let nemo_verdict = crate::reason::dl::verdict_from_inferred(&nemo_inferred, &dataset)
+            .expect("verdict from nemo closure");
+
+        assert_eq!(
+            native_verdict.consistent, nemo_verdict.consistent,
+            "the consistency decision must be engine-invariant"
+        );
+        let witness_set = |v: &crate::reason::dl::DlVerdict| {
+            v.inconsistencies
+                .iter()
+                .map(|w| (w.individual.clone(), w.world.clone()))
+                .collect::<BTreeSet<_>>()
+        };
+        let unsat_set = |v: &crate::reason::dl::DlVerdict| {
+            v.unsatisfiable_classes
+                .iter()
+                .map(|u| (u.class.clone(), u.world.clone()))
+                .collect::<BTreeSet<_>>()
+        };
+        assert_eq!(
+            witness_set(&native_verdict),
+            witness_set(&nemo_verdict),
+            "the inconsistency-witness set must be engine-invariant"
+        );
+        assert_eq!(
+            unsat_set(&native_verdict),
+            unsat_set(&nemo_verdict),
+            "the unsatisfiable-class set must be engine-invariant"
+        );
+        assert_eq!(
+            native_verdict.coverage, nemo_verdict.coverage,
+            "the construct-coverage inventory must be engine-invariant"
+        );
+
+        // Non-vacuity: the fixture genuinely triggers the DL clash pass, so the shared
+        // verdict is INCONSISTENT with the expected witnesses (`x`, `y` a owl:Nothing)
+        // and the expected unsatisfiable class (`F`) — not a trivially-empty agreement.
+        assert!(
+            !native_verdict.consistent,
+            "the DL fixture must drive the ontology inconsistent"
+        );
+        let dl = |n: &str| format!("http://ex/dl/{n}");
+        let ws = witness_set(&native_verdict);
+        assert!(
+            ws.contains(&(dl("x"), DL_WORLD.to_owned())),
+            "x must be a clash witness (dl:individual-clash); witnesses: {ws:?}"
+        );
+        assert!(
+            ws.contains(&(dl("y"), DL_WORLD.to_owned())),
+            "y must be a clash witness (dl:nothing-membership); witnesses: {ws:?}"
+        );
+        assert!(
+            unsat_set(&native_verdict).contains(&(dl("F"), DL_WORLD.to_owned())),
+            "F must be an unsatisfiable class (dl:unsatisfiable-class)"
+        );
+    }
+
+    /// Part C — the reified DL `logic:Correspondence`: the gap-zero DL-Horn parity
+    /// verdict is emitted as a bundle-borne correspondence ("native ⊒ Nemo on the
+    /// certified DL fragment"), the TERMINAL edge of the EL ⊂ RL ⊂ DL promotion
+    /// lattice, carrying the divergence ledger as its loss cell and the native contract
+    /// hash as its proof-certificate binding. Same claim shape as EL/RL (only the
+    /// lattice-edge slug differs).
+    #[test]
+    fn dl_subsumption_correspondence_bound_to_contract_hash() {
+        let ledger = dl_horn_divergence_ledger();
+        // Precondition: only reify a PASSING (gap-zero) verdict.
+        assert!(crate::reason::ledger::enforce(&ledger).passed);
+
+        let contract = crate::reason::native_contract_hash();
+        let ttl = crate::reason::artifacts::build_dl_subsumption_correspondence_ttl(
+            &ledger, &contract, "nemo",
+        );
+
+        assert!(
+            ttl.contains("#type> <https://blackcatinformatics.ca/logic/Correspondence>"),
+            "must reify a logic:Correspondence: {ttl}"
+        );
+        assert!(
+            ttl.contains(
+                "logic/correspondenceRelation> <https://blackcatinformatics.ca/logic/Subsumes>"
+            ),
+            "relation must be logic:Subsumes: {ttl}"
+        );
+        assert!(
+            ttl.contains(
+                "logic/preservationKind> \
+                 <https://blackcatinformatics.ca/logic/CompleteOverApproximation>"
+            ),
+            "preservation must be logic:CompleteOverApproximation: {ttl}"
+        );
+        assert!(
+            ttl.contains(
+                "logic/morphismClass> <https://blackcatinformatics.ca/logic/SectionRetraction>"
+            ),
+            "law-rung must be logic:SectionRetraction: {ttl}"
+        );
+        assert!(
+            ttl.contains("logic/lawClaimed> <https://blackcatinformatics.ca/logic/SectionLaw>")
+                && ttl.contains(
+                    "logic/lawDischargeVerdict> \
+                     <https://blackcatinformatics.ca/logic/ObligationDischarged>"
+                )
+                && ttl.contains(
+                    "logic/lawDischargeCondition> \
+                     <https://blackcatinformatics.ca/logic/DischargeCertifiedFragment>"
+                ),
+            "the section law must be discharged within the certified fragment: {ttl}"
+        );
+        // The proof-certificate binding: the contract hash equals native_contract_hash().
+        assert!(
+            ttl.contains(&format!("logic/contractHash> \"{contract}\"")),
+            "contractHash must equal native_contract_hash(): {ttl}"
+        );
+        assert!(
+            ttl.contains(&format!("gmeow/oracleOnlyCount> {}", ledger.oracle_only)),
+            "the loss cell records the oracle-only tally: {ttl}"
+        );
+        // The DL lattice edge keys its reified subject on the `dl` slug (distinct from
+        // the EL/RL edges), so all three correspondences can coexist in the bundle.
+        assert!(
+            ttl.contains("gmeow/dl-native-subsumption-correspondence>"),
+            "the DL correspondence subject must be slugged `dl`: {ttl}"
+        );
+    }
+
+    // ── USER MATERIALIZE / program-carrying path promotion gate (Task 5) ───────────
+    //
+    // Tasks 2–4 promoted the FIXED profile texts (EL/RL/DL).  This gate promotes the
+    // last surface the oracle boundary carries: a PROGRAM-CARRYING run — the shape
+    // `crate::reason::reason_program` builds (`dl_rules()` + the program's own Horn
+    // rules, combined into ONE chase text) and the shape `crate::materialize`
+    // accepts over the FFI (a user rule program that may declare a HELPER predicate
+    // of a non-ternary arity, per `materialize.rs`'s NonQuadRow contract).
+    //
+    // The representative program is faithful-synthetic (NOT a single real .rls file):
+    // it is BUILT from real, canonical parts to exercise the whole program surface in
+    // one fixture — the fixed `crate::reason::dl::dl_rules()` VERBATIM (the calculus
+    // every `reason_program` run combines in), a real arity-3 program Horn rule (a
+    // domain transitivity, the shape `project_nemo` emits for every user rule — every
+    // projected program rule is arity-3 named-ternary), AND the binary `helperEdge`
+    // helper that `crate::materialize`'s pinned `HELPER_RULES` test fixes as a
+    // legitimate user-program feature.  A single committed .rls program would exercise
+    // AT MOST one of these; the built fixture is the minimal witness that the combined
+    // program-carrying text — dl_rules() ⊕ program rules ⊕ a non-ternary helper — runs
+    // native and agrees with Nemo.  Because the helper atom is arity-2, the whole
+    // program is NOT binary-eligible, so `NativeForwardOracle` MUST route it to the
+    // arity-generic evaluator (`rules_are_pure_ternary == false`); the gate confirms
+    // that generic run is gap-zero against Nemo AND that the helper rows are present
+    // (the binary core could never produce them faithfully).
+
+    const PROG_WORLD: &str = "urn:world:program-corpus";
+    const PROG_RELATED: &str = "http://ex/prog/relatedTo";
+    const PROG_HELPER: &str = "helperEdge";
+
+    /// The representative program's EDB as `(subject, predicate, object)` triples in
+    /// [`PROG_WORLD`]: a DL clash + subclass chain (drives `dl_rules()`) plus a
+    /// `relatedTo` chain (drives the arity-3 program rule).
+    fn program_corpus_triples() -> Vec<(String, String, String)> {
+        let dl = |n: &str| format!("http://ex/dl/{n}");
+        let pr = |n: &str| format!("http://ex/prog/{n}");
+        vec![
+            // dl_rules() drivers: A ⊑ B ⊑ C, i a A; D ⊥ E, x a D, x a E (clash).
+            (dl("A"), DL_SUBCLASS.to_owned(), dl("B")),
+            (dl("B"), DL_SUBCLASS.to_owned(), dl("C")),
+            (dl("i"), DL_TYPE.to_owned(), dl("A")),
+            (dl("D"), DL_DISJOINT.to_owned(), dl("E")),
+            (dl("x"), DL_TYPE.to_owned(), dl("D")),
+            (dl("x"), DL_TYPE.to_owned(), dl("E")),
+            // Program-rule driver: relatedTo p→q→r (transitively closed by the rule).
+            (pr("p"), PROG_RELATED.to_owned(), pr("q")),
+            (pr("q"), PROG_RELATED.to_owned(), pr("r")),
+        ]
+    }
+
+    /// The representative program's EDB as a ternary typed EDB.
+    fn program_corpus_edb() -> TypedFactSet {
+        let mut facts = TypedFactSet::new();
+        for (s, p, o) in program_corpus_triples() {
+            facts.push_quad(&ex_iri(&s), &p, &ex_iri(&o), PROG_WORLD);
+        }
+        facts
+    }
+
+    /// The combined program-carrying rule text: the fixed DL calculus VERBATIM ⊕ an
+    /// arity-3 program Horn rule (relatedTo transitivity) ⊕ the binary `helperEdge`
+    /// helper — the way `reason_program` unions `dl_rules()` with the program's own
+    /// rules, extended with the non-ternary helper `crate::materialize` accepts.
+    fn program_corpus_rules() -> String {
+        let program_rule = format!(
+            "#[name(\"prog:relatedTo-transitive\")]\n\
+             <{PROG_RELATED}>(?a,?c,?w) :- <{PROG_RELATED}>(?a,?b,?w), <{PROG_RELATED}>(?b,?c,?w) .\n"
+        );
+        // A binary helper: legal Nemo, arity-2 head, so the whole program is NOT
+        // binary-eligible and must run on the generic evaluator.
+        let helper_rule = format!(
+            "#[name(\"prog:helper-edge\")]\n\
+             {PROG_HELPER}(?x,?y) :- <{DL_SUBCLASS}>(?x,?y,?w) .\n"
+        );
+        format!(
+            "{}\n{program_rule}\n{helper_rule}",
+            crate::reason::dl::dl_rules()
+        )
+    }
+
+    /// Every chase row as a `(subject, predicate, object)` comparand: the ternary
+    /// reasoning rows (world dropped — single-world corpus) AND the binary helper
+    /// rows (`helperEdge(x, y)` → `(x, helperEdge, y)`), so the helper facts the
+    /// generic evaluator produces are compared too, not silently exempted.
+    fn program_fact_tuples(closure: &TypedChaseResult) -> Vec<(String, String, String)> {
+        closure
+            .rows
+            .iter()
+            .filter_map(|(row, _prov)| match row.args.len() {
+                2 | 3 => Some((
+                    term_display(&row.args[0]),
+                    row.predicate.clone(),
+                    term_display(&row.args[1]),
+                )),
+                _ => None,
+            })
+            .collect()
+    }
+
+    /// Build the native↔oracle divergence ledger over the representative program.
+    fn program_divergence_ledger() -> crate::reason::ledger::DivergenceLedger {
+        let facts = program_corpus_edb();
+        let rules = program_corpus_rules();
+        let native = NativeForwardOracle
+            .materialize(&facts, &rules, &ForwardBudget::UNBOUNDED)
+            .expect("native chase must decide the program-carrying rule set (generic evaluator)");
+        let nemo = NemoForwardOracle
+            .materialize(&facts, &rules, &ForwardBudget::UNBOUNDED)
+            .expect("nemo chase must succeed");
+        let rows = crate::reason::ledger::compare_subsumption(
+            &program_fact_tuples(&native),
+            &program_fact_tuples(&nemo),
+        );
+        crate::reason::ledger::build_ledger(rows, Vec::new(), Vec::new(), Vec::new())
+    }
+
+    /// The program-path promotion parity gate (gap-zero, non-vacuous): over the
+    /// representative program — `dl_rules()` ⊕ an arity-3 program rule ⊕ a binary
+    /// helper — the native forward engine (routed to the GENERIC evaluator, since the
+    /// helper makes the program non-binary-eligible) agrees EXACTLY with the Nemo
+    /// oracle on the FULL closure, including the non-ternary helper rows. Zero
+    /// OracleOnly / NativeOnly / DlGap AND `agree > 0`. Any divergence is a native
+    /// coverage regression to fix in the native path — never by relaxing this gate.
+    #[test]
+    fn materialize_program_native_oracle_gap_zero() {
+        // Precondition: the combined program is genuinely NOT binary-eligible, so the
+        // dispatch routes it to the generic evaluator (the promotion this gate proves).
+        assert!(
+            !crate::oracle::rules_are_pure_ternary(&program_corpus_rules())
+                .expect("program rules parse for arity inspection"),
+            "the representative program carries a binary helper, so it must NOT be \
+             binary-eligible (it must run on the generic evaluator)"
+        );
+
+        let ledger = program_divergence_ledger();
+        let verdict = crate::reason::ledger::enforce(&ledger);
+        assert!(
+            verdict.passed,
+            "native ⊉ Nemo on the program-carrying corpus ({} native-only, {} oracle-only, \
+             {} dl-gap): {:?}\nrows: {:#?}",
+            ledger.native_only,
+            ledger.oracle_only,
+            ledger.dl_gap,
+            verdict.reasons,
+            ledger
+                .rows
+                .iter()
+                .filter(|r| r.kind != DivergenceKind::Agree)
+                .collect::<Vec<_>>()
+        );
+        assert!(
+            ledger.agree > 0,
+            "the program-path parity ledger must have at least one agreeing fact"
+        );
+
+        // Non-vacuity: each combined surface must contribute an AGREED fact — the DL
+        // calculus, the arity-3 program rule, AND the binary helper — proving the whole
+        // program-carrying text ran, not a bare EDB echo.
+        let agreed = |s: &str, p: &str, o: &str| {
+            ledger.rows.iter().any(|r| {
+                r.kind == DivergenceKind::Agree && r.subject == s && r.object == p && r.world == o
+            })
+        };
+        let dl = |n: &str| format!("http://ex/dl/{n}");
+        let pr = |n: &str| format!("http://ex/prog/{n}");
+        // dl_rules() — el:subClassOf-transitive (A ⊑ C) and dl:individual-clash
+        // (x a owl:Nothing).
+        assert!(
+            agreed(&dl("A"), DL_SUBCLASS, &dl("C")),
+            "A ⊑ C via el:subClassOf-transitive (dl_rules())"
+        );
+        assert!(
+            agreed(&dl("x"), DL_TYPE, DL_NOTHING),
+            "x a owl:Nothing via dl:individual-clash (dl_rules())"
+        );
+        // The arity-3 program rule — relatedTo transitivity (p → r).
+        assert!(
+            agreed(&pr("p"), PROG_RELATED, &pr("r")),
+            "p relatedTo r via the arity-3 program rule"
+        );
+        // The binary helper — helperEdge(A, B) mirrors the subClassOf EDB edge. This
+        // fact can ONLY come from the generic evaluator (the binary core cannot
+        // faithfully produce a non-ternary row), so its agreement witnesses the
+        // program-carrying path ran native on the generic evaluator.
+        assert!(
+            agreed(&dl("A"), PROG_HELPER, &dl("B")),
+            "helperEdge(A, B) via the binary helper (generic evaluator)"
+        );
+
+        // The native closure genuinely carries the arity-2 helper rows (the direct
+        // witness that the dispatch routed to the generic evaluator, not the binary
+        // core which drops terms past the object).
+        let native = NativeForwardOracle
+            .materialize(
+                &program_corpus_edb(),
+                &program_corpus_rules(),
+                &ForwardBudget::UNBOUNDED,
+            )
+            .expect("native program chase");
+        assert!(
+            native
+                .rows
+                .iter()
+                .any(|(row, _)| row.predicate == PROG_HELPER && row.args.len() == 2),
+            "the native closure must carry the binary helperEdge rows (generic evaluator)"
+        );
     }
 }

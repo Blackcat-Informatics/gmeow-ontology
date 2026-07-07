@@ -373,14 +373,21 @@ within-context inconsistency.
 
 ## The native physical engine — execution and optimization
 
-Routing every query to the bootstrap substrates (Nemo's chase, Scryer's SLD) is the starting point,
+Routing every query to the bootstrap substrates (Nemo's chase, Scryer's SLD) was the starting point,
 not the long-term architecture: two black-box whole-program engines cannot be planned across,
-specialized, parallelized, or made incremental, and each boundary pays re-serialization. The
-long-term engine extends the IR's progressive lowering ([LOGIC-IR.md § IR commitments](LOGIC-IR.md))
-*downward* to a single native physical core in Rust, with the bootstrap substrates demoted to
-conformance oracles, not-yet-native fallbacks, and capability stand-ins — subsumed
-fragment-by-fragment, **oracle-gated** by the divergence ledger ([LOGIC-CONFORMANCE.md](LOGIC-CONFORMANCE.md)),
-the same retirement discipline used for the Python oracle.
+specialized, parallelized, or made incremental, and each boundary pays re-serialization. On the
+forward path that starting point is now behind us: the Nemo-track promotion has **landed**, so the
+production reasoning engine is the single native physical core in Rust that the IR's progressive
+lowering ([LOGIC-IR.md § IR commitments](LOGIC-IR.md)) targets *downward*. `forward_oracle()` returns
+the native forward oracle; the fixed OWL-profile rule texts (EL, RL, and the DL Horn fragment) run on
+the native chase, and the RL `triple/4` fragment is evaluated by the native generic n-ary evaluator
+(predicate-as-data) rather than by a black-box substrate. The bootstrap substrates are correspondingly
+demoted to conformance oracles, not-yet-native fallbacks, and capability stand-ins — subsumed
+(Nemo-track) fragment-by-fragment, **oracle-gated** by the divergence ledger
+([LOGIC-CONFORMANCE.md](LOGIC-CONFORMANCE.md)), the same retirement discipline used for the Python
+oracle. Nemo has left the primary reasoning path entirely: it survives only as the scheduled
+differential cross-check lane (`make maint-nemo-crosscheck`) and the parity gates that keep the native
+core honest.
 
 The execution lowering stack:
 
@@ -404,7 +411,8 @@ world/standpoint and the quantitative axes in one pass, where the semiring *is* 
 — the `ReasoningContract` ([LOGIC-CONTRACT.md](LOGIC-CONTRACT.md)) as the physical-plan selector, i.e.
 decidability-as-projection applied to performance.
 
-Honest staging: native subsumption is fragment-by-fragment, oracle-gated. The hard parts —
+Honest staging: native subsumption is fragment-by-fragment, oracle-gated. The Nemo-track — the
+forward-chase profiles (EL, RL, DL Horn) — is now subsumed and in production; the hard parts —
 well-founded / stable-model semantics *incrementally*, existential-rule chase with termination *and*
 incrementality together, and the paraconsistent/modal facets — stay heavy-path fallbacks longest and
 are flagged non-incremental in the perf ledger. The full rationale and the MLIR/LLVM lineage
