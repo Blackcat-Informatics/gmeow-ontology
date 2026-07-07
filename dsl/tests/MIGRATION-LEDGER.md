@@ -58,11 +58,16 @@ questions (agent kinds + all 48 contribution roles), the structural assertions,
 and the example-conformance pair — under `cargo-nextest` in **0.32 s** (14 cases;
 ~3.2 s including the cargo build/link step). `make slicetest`.
 
-For contrast, the pytest lane these assertions were lifted out of is dominated by
-its OWL-2-RL reasoned-graph build: the retained `tests/test_competency.py` plus
-`slices/core/epistemics/tests/test_epistemics.py` together run in **~10 min 22 s**
+For contrast, the pytest lane these assertions were lifted out of was dominated by
+its OWL-2-RL reasoned-graph build: at the time this measurement was taken,
+`tests/test_competency.py` plus
+`slices/core/epistemics/tests/test_epistemics.py` together ran in **~10 min 22 s**
 (55 tests on this worktree) — almost entirely the reasoned-graph chase
-`tests/test_competency.py` pays. The native competency lane deliberately avoids
+`tests/test_competency.py` then paid. (`tests/test_competency.py` has since been
+deleted by the SPARQL→native conformance migration: its SPARQL competency query
+became the native twin `conformance_competency.rs::competency_expertise_expiring_credentials_query`
+and its RL-entailment assertions moved to
+`crates/logic/tests/ontology_entailments.rs`.) The native competency lane deliberately avoids
 that chase (asserted graph + SPARQL property paths, the `reasoningNone` default),
 which is why it is sub-second.
 
@@ -249,10 +254,10 @@ The gts pytest mixed merged-graph, module-only, and competency loads. Subjects o
 | `test_no_parallel_signature_or_digest_mechanism` | `tests/test_gts_slice.py` | `ex:saNoParallelSignatureOrDigest` | StructuralAssertion | converted | — | `make slicetest` |
 | `test_every_codec_carries_a_codec_class` | `tests/test_gts_slice.py` | `ex:saEveryCodecCarriesACodecClass` | StructuralAssertion | converted (DYNAMIC `FILTER NOT EXISTS`, scopeModule-narrowed vs the pytest's merged scan — faithful for slice-owned codecs) | — | `make slicetest` |
 | `test_slice_terms_are_class_or_property_typed` | `tests/test_gts_slice.py` | `ex:saSliceTermsAreClassOrPropertyTyped` | StructuralAssertion | converted (DYNAMIC typing sweep, `FILTER NOT EXISTS` over the allowed-type set + individual escape) | — | `make slicetest` |
-| `test_value_vocabularies_are_seeded` | `tests/test_gts_slice.py` | `ex:saValueVocabNamedIndividualsSeeded` + `ex:saOpacityReasonIndividualsSeeded` + `ex:saOpacityReasonExactClosedSet` | StructuralAssertion | **partial** | converted: the named individuals (gtsProfileDist/Evidence/AiPackage, codecZstd) + the OpacityReason EXACT closed set (`mustNot FILTER ?r NOT IN (the 3)`). RETAINED in `test_value_vocabulary_cardinality_floors`: the `>=7` GTSProfile, `>=7` TransformCodec, `==3` CodecClass numeric counts — a boolean ASK cannot assert a cardinality. | `make slicetest` + pytest |
-| `test_competency_queries_parse_and_run` | `tests/test_gts_slice.py` | — | — | **retained** | a parse+execute SMOKE over `queries/*.rq` with NO pinned expected result; a `gmeow:CompetencyQuestion` cell requires an expected outcome, so authoring one would fabricate an assertion the pytest never made. | pytest |
+| `test_value_vocabularies_are_seeded` | `tests/test_gts_slice.py` | `ex:saValueVocabNamedIndividualsSeeded` + `ex:saOpacityReasonIndividualsSeeded` + `ex:saOpacityReasonExactClosedSet` | StructuralAssertion | **partial** | converted: the named individuals (gtsProfileDist/Evidence/AiPackage, codecZstd) + the OpacityReason EXACT closed set (`mustNot FILTER ?r NOT IN (the 3)`). The `>=7` GTSProfile, `>=7` TransformCodec, `==3` CodecClass numeric counts — which a boolean ASK cell cannot assert — were retained in `test_value_vocabulary_cardinality_floors` THEN; the SPARQL→native conformance migration now hosts them as the native twin `conformance_gts_slice.rs::value_vocabulary_cardinality_floors`. | `make slicetest` + native conformance |
+| `test_competency_queries_parse_and_run` | `tests/test_gts_slice.py` | — | native twin | migrated to native | a parse+execute SMOKE over `queries/*.rq` with NO pinned expected result; a `gmeow:CompetencyQuestion` DSL cell requires an expected outcome, so a slicetest cell could not host it. The SPARQL→native conformance migration hosts it as `conformance_gts_slice.rs::competency_queries_parse_and_run`. | native conformance |
 
-**GTS tally:** 6 converted + 1 partial (value-vocab: named/exact-set converted, cardinality floors retained) + 1 retained (competency parse-smoke); 9 cells across 7 migrated fns. Source file `tests/test_gts_slice.py` trimmed to the 2 retained functions (not deleted).
+**GTS tally:** 6 converted + 1 partial (value-vocab: named/exact-set converted, cardinality floors then retained) + 1 then-retained (competency parse-smoke); 9 cells across 7 migrated fns. Source file `tests/test_gts_slice.py` was subsequently DELETED by the SPARQL→native conformance migration: its 2 non-DSL functions became the native twins `conformance_gts_slice.rs::{value_vocabulary_cardinality_floors,competency_queries_parse_and_run}`.
 
 ## `slices/core/concepts`
 
@@ -571,14 +576,14 @@ plus the 17 `#[test]` functions; all helper bodies deleted. All 17 tests still p
 | 8 reference-frame realm tests (measurement/currency/temporal/colourspace/linguistic/mathematical/narrative/biological) | test_reference_frames.py | converted | `*_reference_frame_passes` etc. (all 8, fixture-only) |
 | `test_wellformed_narration_fixture_conforms` | test_narration.py | converted | `wellformed_narration_fixture_conforms` |
 | `test_malformed_narration_fixture_is_flagged` | test_narration.py | converted | `malformed_narration_fixture_is_flagged` |
-| 7 narration tests | test_narration.py | **retained** | `_graph()` TBox/subject-iteration / efficiency-budget quad scan / SPARQL |
+| 7 narration tests | test_narration.py | migrated to native | previously retained (`_graph()` TBox/subject-iteration / efficiency-budget quad scan / SPARQL) as no DSL cell could host them; the SPARQL→native conformance migration ported them to `conformance_narration.rs` and deleted the file |
 | `test_wellformed_aboutness_fixture_conforms` | test_aboutness.py | converted | `wellformed_aboutness_fixture_conforms` |
 | `test_malformed_aboutness_fixture_is_flagged` | test_aboutness.py | converted | `malformed_aboutness_fixture_is_flagged` |
 | 7 aboutness tests | test_aboutness.py | **retained** | `_graph()` TBox / dynamic subject+combinations sweeps / SPARQL / labeled-defined sweep |
 | `test_leak_fixture_is_flagged` | test_disclosure.py | converted | `leak_fixture_is_flagged` |
 | `test_wellformed_disclosure_fixture_conforms` | test_disclosure.py | converted | `wellformed_disclosure_fixture_conforms` |
 | `test_conditional_disclosure_warns_but_does_not_fail` | test_disclosure.py | converted | `conditional_disclosure_warns_but_does_not_fail` (warning-tolerant) |
-| ~12 disclosure tests | test_disclosure.py | **retained** | `_graph()` TBox / dynamic sweeps / `.rq` SPARQL / disk-iterate |
+| ~12 disclosure tests | test_disclosure.py | migrated to native | previously retained (`_graph()` TBox / dynamic sweeps / `.rq` SPARQL / disk-iterate) as no DSL cell could host them; the SPARQL→native conformance migration ported the structural twins to `conformance_disclosure.rs` and deleted the file |
 
 **Conformance batch-3 (wave 1+2) tally:** citations 3 + cognition 2 + reference_frames 8 + narration 2 + aboutness 2 + disclosure 3 = **20 converted**. genealogy + employment had ZERO migratable tests (every run_shacl call is paired with a dynamic `g.objects()`/`(triple) in g`/post-SHACL membership assertion — retained whole, files unchanged). All **107** conformance tests (87 prior + 20) green; `uv run mypy` clean.
 
@@ -588,13 +593,13 @@ plus the 17 `#[test]` functions; all helper bodies deleted. All 17 tests still p
 |-----------|--------|------------|---------------------------|
 | `test_wellformed_risk_fixture_conforms` | test_risk.py | converted | `wellformed_risk_fixture_conforms` |
 | `test_malformed_risk_fixture_is_flagged` | test_risk.py | converted | `malformed_risk_fixture_is_flagged` |
-| 2 risk tests | test_risk.py | **retained** | dynamic `g.subjects()` occurrence-gate sweep / SPARQL `.rq` |
+| 2 risk tests | test_risk.py | migrated to native | previously retained (dynamic `g.subjects()` occurrence-gate sweep / SPARQL `.rq`) as no DSL cell could host them; the SPARQL→native conformance migration ported them to `conformance_risk.rs` and deleted the file |
 | `test_wellformed_interior_fixture_conforms` | test_interior.py | converted | `wellformed_interior_fixture_conforms` |
 | `test_malformed_interior_fixture_is_flagged` | test_interior.py | converted | `malformed_interior_fixture_is_flagged` |
-| 10 interior tests | test_interior.py | **retained** | `_graph()` TBox membership / dynamic sweeps / SPARQL |
+| 10 interior tests | test_interior.py | migrated to native | previously retained (`_graph()` TBox membership / dynamic sweeps / SPARQL) as no DSL cell could host them; the SPARQL→native conformance migration ported them to `conformance_interior.rs` and deleted the file |
 | `test_wellformed_narrative_time_fixture_conforms` | test_narrative_time.py | converted | `wellformed_narrative_time_fixture_conforms` |
 | `test_malformed_narrative_time_fixture_is_flagged` | test_narrative_time.py | converted | `malformed_narrative_time_fixture_is_flagged` |
-| 7 narrative_time tests | test_narrative_time.py | **retained** | `_graph()` TBox / dynamic sweep / disk graph-walk / SPARQL |
+| 7 narrative_time tests | test_narrative_time.py | migrated to native | previously retained (`_graph()` TBox / dynamic sweep / disk graph-walk / SPARQL) as no DSL cell could host them; the SPARQL→native conformance migration ported them to `conformance_narrative_time.rs` and deleted the file |
 | `test_facet_orthogonality_shacl_rejects_two_facets` | test_software.py | converted | `facet_orthogonality_shacl_rejects_two_facets` |
 | `test_fixture_parses_and_shacl_passes` | test_software.py | converted | `fixture_parses_and_shacl_passes` |
 | 13 software tests | test_software.py | **retained** | `(triple) in g` membership / `_graph()` + combinations / dynamic sweeps |
@@ -980,7 +985,7 @@ mustNot references a real `owl:ObjectProperty` in its module.
 | `test_carrier_and_ingestion_props` | — | **retained** | cross-slice: `sourceModifiedAt`/`contentDigest` defined in `core/sources` |
 | `test_four_clocks_are_distinct_dated_annotations` | — | **retained** | cross-slice (`validFrom`/`validUntil`/`assertedAt`/`recordedNoLaterThan` in temporal/sources) + dynamic set-distinctness loop |
 
-### `slices/core/sexuality` (gufo:) — 5 converted (14 cells), 1 retained
+### `slices/core/sexuality` (gufo:) — 5 converted (14 cells), 1 then-retained (since migrated to native)
 
 | Pytest fn | DSL cell IRI(s) | Status | Reason if retained |
 |---|---|---|---|
@@ -989,7 +994,7 @@ mustNot references a real `owl:ObjectProperty` in its module.
 | `test_orientation_values_are_individuals_not_subclasses` | `ex:saOrientationValueSubclassQualityValue` + `ex:saOrientAsexualTyped` + `ex:saRomanticAromanticTyped` + `ex:saNoPerOrientationSubclasses` | converted | — |
 | `test_orientation_value_properties_functional_facets_nonfunctional` | `ex:saValuePropertiesFunctional` + `ex:saHasSexualOrientationNotFunctional` + `ex:saHasRomanticOrientationNotFunctional` | converted | — |
 | `test_no_flat_orientation_shortcut` | `ex:saNoFlatOrientationShortcut` | converted | — |
-| `test_competency_orientation_values_query` | — | **retained** | reads a generated `.rq` competency file + numeric `>= 16` count guard |
+| `test_competency_orientation_values_query` | — | migrated to native | reads a generated `.rq` competency file + numeric `>= 16` count guard — no DSL cell could host it; the SPARQL→native conformance migration ported it to `conformance_sexuality.rs::competency_orientation_values_query` and deleted `tests/test_sexuality.py` |
 
 ### `slices/extensions/connectivity` (gufo:) — 4 converted (12 cells), 3 retained
 
@@ -1003,7 +1008,7 @@ mustNot references a real `owl:ObjectProperty` in its module.
 | `test_spatially_connects_to_is_symmetric_subproperty` | — | **retained** | `gmeow:spatiallyConnectsTo` cross-slice |
 | `test_genealogy_subproperties_of_connects_to` | — | **retained** | `hasSpouse`/`hasSibling`/`hasParent`/`hasChild` in the genealogy slice |
 
-### `slices/core/gender` (gufo:) — 5 converted (24 cells), 2 retained
+### `slices/core/gender` (gufo:) — 5 converted (24 cells), 2 then-retained (since migrated to native)
 
 | Pytest fn | DSL cell IRI(s) | Status | Reason if retained |
 |---|---|---|---|
@@ -1012,8 +1017,8 @@ mustNot references a real `owl:ObjectProperty` in its module.
 | `test_value_properties_are_functional_facets_nonfunctional` | `ex:saValuePropertiesFunctional` + `ex:saHasGenderIdentityShape` + `ex:saHasGenderExpressionShape` + `ex:saHasGenderIdentityNotFunctional` + `ex:saHasGenderExpressionNotFunctional` | converted | — |
 | `test_no_flat_gender_shortcut` | 4×`ex:saNo*Datatype` | converted | — |
 | `test_sex_assigned_at_birth_is_recorded_not_a_facet` | `ex:saSexAssignedAtBirthShape` + `ex:saSexAssignedAtBirthNotSubpropIdentity` + `ex:saNoFlatSexDatatypeProperty` + `ex:saNoFlatSexObjectProperty` | converted | — |
-| `test_displayable_generalised_to_cover_identity` | — | **retained** | `gmeow:displayable` cross-slice (names slice) |
-| `test_competency_gender_values_query` | — | **retained** | generated `.rq` read + numeric `>= 11` count |
+| `test_displayable_generalised_to_cover_identity` | — | migrated to native | `gmeow:displayable` cross-slice (names slice) — the merged-graph check had no DSL cell; the SPARQL→native conformance migration ported it to `conformance_gender.rs::displayable_generalised_to_cover_identity` and deleted `tests/test_gender.py` |
+| `test_competency_gender_values_query` | — | migrated to native | generated `.rq` read + numeric `>= 11` count — no DSL cell could host it; the SPARQL→native conformance migration ported it to `conformance_gender.rs::competency_gender_values_query` and deleted `tests/test_gender.py` |
 
 ### `slices/extensions/aggregation` (gufo:) — 7 converted (11 cells), 1 retained
 
@@ -1038,8 +1043,12 @@ mustNot references a real `owl:ObjectProperty` in its module.
 | `test_music_properties_functionality` | **retained** | all subjects cross-slice (`derivation*`/`hasGenre` in creative-works) |
 
 **Batch-2 tally:** 23 converted fns → 63 structural cells across 5 slices; 11
-retained-with-reason (7 cross-slice, 3 generated-artifact/competency, 1 dynamic-set) plus music's 4 retained. Pytest fn counts: provenance 4→2, sexuality 6→1, connectivity
-7→3, gender 7→2, aggregation 8→1, music 4→4 (untouched).
+retained-with-reason (7 cross-slice, 3 generated-artifact/competency, 1 dynamic-set) plus music's 4 retained. Pytest fn counts at that time: provenance 4→2, sexuality 6→1, connectivity
+7→3, gender 7→2, aggregation 8→1, music 4→4 (untouched). Since then the
+SPARQL→native conformance migration ported the sexuality (1) and gender (2)
+residual pytest functions to native twins (`conformance_sexuality.rs`,
+`conformance_gender.rs`) and DELETED `tests/test_sexuality.py` and
+`tests/test_gender.py`, so those two files are now at 0 pytest functions.
 
 ## logic stereotype retirement tail
 
@@ -1104,7 +1113,7 @@ pending the slicetest structural migration — they are not reasoning tests.
 | `test_no_winner_or_cardinality_terms_for_parts` | `tests/test_mereology.py` | — | — | **retained** | structural absence check over the asserted graph — | pytest |
 | `test_competency_ancestry_is_answered_only_by_reasoning` | `tests/test_competency.py` | `ancestry_is_derived_not_asserted` | RL-entailment | converted | — (same genealogy chain as the `_materialize` ancestry twin) | `make logic-test` |
 | `test_place_naming_is_entailed_not_asserted` | `tests/test_competency.py` | `place_naming_is_entailed_not_asserted` | RL-entailment | converted | — (the first `owl:equivalentClass` defined-class classification + its negative) | `make logic-test` |
-| the 47 `_query_terms` / `_query_terms_on_graph` competency QUERY tests | `tests/test_competency.py` | — | — | **retained (de-reasoned)** | answer on the ASSERTED merged graph via SPARQL property paths — they never needed the OWL-RL closure; `_query_terms` was repointed from `_reasoned_graph()` to the asserted `_merged_graph()`, killing the ~4-min materialization. Stay in pytest pending the slicetest competency migration | pytest (now ~1.7s) |
+| the 47 `_query_terms` / `_query_terms_on_graph` competency QUERY tests | `tests/test_competency.py` | `conformance_competency.rs` | native QueryCase | migrated to native | answer on the ASSERTED merged graph via SPARQL property paths — they never needed the OWL-RL closure; `_query_terms` was repointed from `_reasoned_graph()` to the asserted `_merged_graph()`, killing the ~4-min materialization. The DSL competency cell could not host a raw SPARQL query; the SPARQL→native conformance migration ported the competency-question surface to the native `QueryCase` harness in `conformance_competency.rs` and DELETED the file | native conformance |
 | `test_sensory_observation_specialises_observation` | `tests/test_sensory.py` | `sensory_observation_specialises_observation` | RL-entailment | converted | — (SensoryObservation ⊑ Observation) | `make logic-test` |
 | `test_sensor_specialises_agent` | `tests/test_sensory.py` | `sensor_specialises_agent` | RL-entailment | converted | — (Sensor ⊑ Agent) | `make logic-test` |
 | `test_sensory_quantity_inherits_scalar_quantity` | `tests/test_sensory.py` | `sensory_quantity_inherits_scalar_quantity` | RL-entailment | converted | — (SensoryQuantity ≡ ScalarQuantity) | `make logic-test` |
@@ -1215,18 +1224,23 @@ deliberately-empty queries pin `cqExpectRowCount 0`.
 
 **Instance-overlay reconciliation:** the source had 14 `_query_terms_on_graph`
 classifiers = 10 deception + 4 expertise. **13 are migrated** as `cqDataFile`
-overlay cells; **1 is a documented retain** (below).
+overlay cells; **1 was retained in pytest and has since been migrated to a native
+Rust twin** (below).
 
-**Retained (1):** `test_competency_expertise_expiring_credentials_query` stays in
-`tests/test_competency.py`. Its query selects credentials whose `gmeow:validUntil`
-is within one year of `NOW()` — a clock-RELATIVE window. No static fixture date
-satisfies "within a year of now" perpetually (a far-future literal falls outside
-the window; a fixed near date becomes a time-bomb that silently reds as wall-clock
-time passes it), so a faithful native cell would need clock-relative date
-templating the DSL deliberately lacks. Per the verification-honesty doctrine
-(never author a test that silently breaks later) it remains a pytest retain that
-builds its data relative to the run-time clock. `tests/test_competency.py` is
-trimmed to this one function + the `_query_terms_on_graph` helper (not deleted).
+**Then-retained (1), since migrated to native:**
+`test_competency_expertise_expiring_credentials_query`. Its query selects
+credentials whose `gmeow:validUntil` is within one year of `NOW()` — a
+clock-RELATIVE window. No static fixture date satisfies "within a year of now"
+perpetually (a far-future literal falls outside the window; a fixed near date
+becomes a time-bomb that silently reds as wall-clock time passes it), so a
+faithful *slicetest DSL* cell would need clock-relative date templating the DSL
+lacks. It was therefore retained in pytest THEN. The SPARQL→native conformance
+migration supplied exactly that clock-relative templating in Rust: the native
+harness (unlike the DSL) exposes the run-time clock, so the twin
+`conformance_competency.rs::competency_expertise_expiring_credentials_query`
+builds `gmeow:validUntil` from `SystemTime::now() + 180d` and keeps `NOW()` in the
+query — faithfully, without a time-bomb. `tests/test_competency.py` is now DELETED
+(this was its last function).
 
 **Gap-1:** none of the migrated cells is a finite-VALUES blacklist standing
 in for an open universal. The TBox cells enumerate fixed term sets the source
@@ -1268,7 +1282,7 @@ and the universal part/whole spine (`partOf` / `hasPart`).
 | `test_has_disclosure_policy_property_structure` | `tests/test_disclosure.py` | `ex:saHasDisclosurePolicyProperty` + `ex:saHasDisclosurePolicyNotFunctionalOrDomained` | StructuralAssertion | converted | — | `make slicetest` |
 | `test_projection_context_seeds_declared` | `tests/test_disclosure.py` | `ex:saProjectionContextSeedsDeclared` + `ex:saProjectionContextNoTenthMember` | StructuralAssertion | converted | — | `make slicetest` |
 | `test_disclosure_policy_seeds_declared` | `tests/test_disclosure.py` | `ex:saDisclosurePolicySeedsDeclared` + `ex:saDisclosurePolicyNoSeventhMember` | StructuralAssertion | converted | — | `make slicetest` |
-| `test_disclosure_orthogonal_to_other_axes` | `tests/test_disclosure.py` | `ex:saDisclosureOrthogonalToOtherAxes` | StructuralAssertion | converted | `gmeow:confidence` is cross-slice; the merged-graph guarantee stays in pytest. | `make slicetest` + pytest |
+| `test_disclosure_orthogonal_to_other_axes` | `tests/test_disclosure.py` | `ex:saDisclosureOrthogonalToOtherAxes` | StructuralAssertion | converted | `gmeow:confidence` is cross-slice; the merged-graph guarantee was carried by `tests/test_disclosure.py`, which the SPARQL→native conformance migration has since DELETED — its dynamic twins now live in `conformance_disclosure.rs`. | `make slicetest` + native conformance |
 | `test_disclosure_orthogonal_to_granularity` | `tests/test_disclosure.py` | `ex:saDisclosureOrthogonalToGranularity` | StructuralAssertion | converted | — | `make slicetest` |
 | `test_sensitivity_level_class_structure` | `tests/test_privacy.py` | `ex:saSensitivityLevelClass` | StructuralAssertion | converted | — | `make slicetest` |
 | `test_has_sensitivity_property_structure` | `tests/test_privacy.py` | `ex:saHasSensitivityProperty` + `ex:saHasSensitivityNotFunctionalOrDomained` | StructuralAssertion | converted | — | `make slicetest` |
@@ -1278,7 +1292,7 @@ and the universal part/whole spine (`partOf` / `hasPart`).
 | `test_universal_part_properties_are_broad_transitive_inverses` | `tests/test_mereology.py` | `ex:saUniversalPartPropertiesAreBroadTransitiveInverses` + `ex:saUniversalPartPropertiesNotFunctionalOrTyped` | StructuralAssertion | converted | — | `make slicetest` |
 | `test_no_preferred_or_primary_term_is_declared` | `tests/test_determinacy.py` | — | — | **retained** | scans the merged graph for any `gmeow:` term starting with `primary`/`preferred`; module-scoped ASK cannot express a cross-module vocabulary-wide absence. | pytest |
 
-**Kernel tally:** 20 converted (25 cells across 20 pytest functions), 1 retained-with-reason (cross-module no-preferred/primary sweep). Source files trimmed, not deleted: `tests/test_determinacy.py`, `tests/test_disclosure.py`, `tests/test_privacy.py`, `tests/test_mereology.py`.
+**Kernel tally:** 20 converted (25 cells across 20 pytest functions), 1 retained-with-reason (cross-module no-preferred/primary sweep). Source files trimmed, not deleted: `tests/test_determinacy.py`, `tests/test_privacy.py`, `tests/test_mereology.py`. `tests/test_disclosure.py` was subsequently DELETED by the SPARQL→native conformance migration (its structural twins are in `conformance_disclosure.rs`).
 
 ## `slices/core/rights`
 
@@ -1383,8 +1397,9 @@ remaining dynamic tests and was deleted, along with its retention dossier.
   merged graph under RDFS natively in oxigraph (iterated `CONSTRUCT` to a
   fixpoint, `crates/slicetest/src/stores.rs`) — seconds, built once per spec file
   and only when a question in that file requests it. The harness deliberately
-  does **not** run the ~4-minute OWL 2 RL chase `tests/test_competency.py` pays,
-  and carries no `gmeow-logic`/Nemo dependency. Reasoning is monotonic, so the
+  does **not** run the ~4-minute OWL 2 RL chase that `tests/test_competency.py`
+  used to pay (that file has since been deleted by the SPARQL→native conformance
+  migration), and carries no `gmeow-logic`/Nemo dependency. Reasoning is monotonic, so the
   asserted default can only ever *under*-answer — a loud set/count mismatch,
   never a silent wrong-green. See `docs/TESTING.md`.
 - **`gmeow:saShape` is not yet executed.** No T2 exemplar exercises shape-based
