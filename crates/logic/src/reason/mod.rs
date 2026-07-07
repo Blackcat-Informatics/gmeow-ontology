@@ -591,6 +591,59 @@ mod tests {
         assert!(!is_absolute_iri("1http://bad-scheme")); // scheme must start with a letter
     }
 
+    /// The flip observable (adversary F5): after promoting the native core,
+    /// `forward_oracle()` — the SOLE naming site the primary reasoning path funnels
+    /// through (`run_reasoning` line ~476) — resolves to the native engine, and the
+    /// retained Nemo oracle is reachable ONLY via its distinct off-path provider.
+    ///
+    /// This does not rest on the contract-hash bump: it verifies the ENGINE ON THE
+    /// PATH structurally (the seam name), then drives `reason_all` end-to-end over
+    /// the fixed DL calculus to prove the native path actually DECIDES the whole
+    /// closure (a native OracleOnly/DlGap regression would surface as an `Err` or a
+    /// missing entailment here, not a silent byte-diff).
+    #[test]
+    fn nemo_off_primary_reasoning_path() {
+        // 1. Structural observable: the production forward seam is native.
+        assert_eq!(
+            crate::oracle::forward_oracle().name(),
+            "native",
+            "the primary reasoning path's forward oracle must be the native engine"
+        );
+        // 2. Nemo is retained but OFF the primary path — reachable only via its own
+        //    distinct provider (the parity/cross-check seam), never `forward_oracle`.
+        assert_eq!(
+            crate::oracle::nemo_forward_oracle().name(),
+            "nemo",
+            "Nemo stays reachable only through its dedicated off-path provider"
+        );
+        assert_ne!(
+            crate::oracle::forward_oracle().name(),
+            crate::oracle::nemo_forward_oracle().name(),
+            "the production engine and the bootstrap oracle must be distinct engines"
+        );
+
+        // 3. End-to-end: `reason_all` (→ `reason_closure` → `run_reasoning` →
+        //    `forward_oracle().materialize`) decides the full fixed DL calculus on
+        //    native. A ⊑ B, A ⊑ C, B ⊓ C ⊑ ⊥, x : A must be found inconsistent —
+        //    exercising subsumption transitivity AND the disjointness clash the
+        //    native chase now materializes end-to-end.
+        let store = dataset(vec![
+            quad(A, SUBCLASS, B),
+            quad(A, SUBCLASS, C),
+            quad(B, DISJOINT, C),
+            quad(X, TYPE, A),
+        ]);
+        let result = reason_all(store.as_ref()).expect("native reason_all must decide the closure");
+        assert!(
+            !result.is_consistent(),
+            "native path must derive the disjointness inconsistency (no DlGap regression)"
+        );
+        assert!(
+            !result.inferred().is_empty(),
+            "native path must materialize a non-empty subsumption closure"
+        );
+    }
+
     #[test]
     fn reason_all_single_chase_yields_inconsistent_and_nonempty_closure() {
         // A ⊑ B, A ⊑ C, B disjointWith C, x : A — one chase must derive both the
