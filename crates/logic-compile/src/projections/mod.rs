@@ -319,16 +319,28 @@ pub fn compile_program(
     // `lossy_drops` carries the COMBINED drop list — structural drops (sorted) followed
     // by the runtime formula residue (sorted, `actual: `-prefixed) — matching exactly
     // what `build_projection_report_from` emits as `gmeow:lossyDrop` in the Turtle
-    // report (single-renderer razor: both outputs share `combined_lossy_drops`).
-    // `owned` already carries the path `property-path:<iri>` rows (appended above),
-    // so the ledger and the report are built from the SAME target list and cannot drift.
+    // report, because both read the drops back from a `LossLedger` (the single loss
+    // store). `owned` already carries the path `property-path:<iri>` rows (appended
+    // above), so the ledger and the report are built from the SAME target list.
+    // The same single loss store the Turtle report projects from — so the JSON
+    // preservation ledger and the `gmeow:lossyDrop` report cannot drift, and both
+    // flow through the one substrate ledger rather than a bespoke drop serialization.
+    let mut preservation_loss_ledger = crate::loss_ledger::LossLedger::new();
+    for p in &owned {
+        preservation_loss_ledger.record_projection_drops(
+            &p.target,
+            p.preservation,
+            &p.lossy_drops,
+            &p.actual_drops,
+        );
+    }
     let preservation_ledger: Vec<LedgerEntry> = owned
         .iter()
         .map(|p| LedgerEntry {
             target: p.target.clone(),
             preservation: p.preservation.as_str().to_owned(),
             complexity: p.complexity.clone(),
-            lossy_drops: combined_lossy_drops(p),
+            lossy_drops: preservation_loss_ledger.projection_drops_for(&p.target),
         })
         .collect();
 
@@ -891,29 +903,6 @@ pub const GOAL_EVAL_COLLAPSE_DROP: &str = concat!(
 /// targets and carry the full evaluation in their materialized output — they are NOT
 /// augmented.
 pub const GOAL_EVAL_COLLAPSE_TARGETS: &[&str] = &["owl-dl", "owl-el", "gufo", "datalog", "n3"];
-
-// --------------------------------------------------------------------------- //
-// Single-renderer helper: canonical combined lossy-drop list
-// --------------------------------------------------------------------------- //
-
-/// The canonical combined lossy-drop list for one projection: structural drops
-/// (sorted) followed by the runtime formula residue (sorted, `actual: `-prefixed).
-///
-/// This is the single source of truth for what ends up in BOTH the Turtle
-/// `gmeow:lossyDrop` triples (via [`report::build_projection_report_from`]) and the
-/// JSON `preservation-ledger.json` (via the `preservation_ledger` field of
-/// [`CompiledArtifacts`]).  The two output surfaces must agree — callers that need
-/// the drop list delegate here rather than re-implementing the sort+prefix logic.
-pub fn combined_lossy_drops(proj: &ProjectionResult) -> Vec<String> {
-    let mut structural = proj.lossy_drops.clone();
-    structural.sort();
-    let mut actual = proj.actual_drops.clone();
-    actual.sort();
-    structural
-        .into_iter()
-        .chain(actual.into_iter().map(|a| format!("actual: {a}")))
-        .collect()
-}
 
 // --------------------------------------------------------------------------- //
 // Shared helpers (used by both text and rdf back-ends)

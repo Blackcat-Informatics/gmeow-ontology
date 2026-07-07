@@ -584,15 +584,29 @@ fn realize_losses(
 
 /// Render a slice of [`RealizedLoss`] values as deterministic, pretty-printed
 /// JSON sorted by `(from, to, code)`.
+///
+/// The realized losses are first interned into the ONE substrate loss store
+/// ([`gmeow_logic_compile::loss_ledger::LossLedger`]) — the single ledger every
+/// loss serialization projects from — keyed per **R1** by the `from␟to` codec
+/// pair, then read back (already sorted) and serialized. The JSON is produced
+/// FROM the ledger, never straight off the `Vec<RealizedLoss>`.
 pub fn realized_loss_json(losses: &[RealizedLoss]) -> String {
-    let mut sorted: Vec<&RealizedLoss> = losses.iter().collect();
-    sorted.sort_by(|a, b| {
-        a.from
-            .cmp(&b.from)
-            .then(a.to.cmp(&b.to))
-            .then(a.code.cmp(&b.code))
-    });
-    serde_json::to_string_pretty(&sorted).unwrap_or_else(|_| "[]".to_owned())
+    let mut store = gmeow_logic_compile::loss_ledger::LossLedger::new();
+    for loss in losses {
+        store.record_transcode_loss(&loss.code, &loss.from, &loss.to, &loss.note, loss.count);
+    }
+    let rows: Vec<RealizedLoss> = store
+        .transcode_rows()
+        .into_iter()
+        .map(|row| RealizedLoss {
+            code: row.code,
+            from: row.from,
+            to: row.to,
+            note: row.note,
+            count: row.count,
+        })
+        .collect();
+    serde_json::to_string_pretty(&rows).unwrap_or_else(|_| "[]".to_owned())
 }
 
 /// One row of the supported-transcode matrix: a `from → to` pair the engine

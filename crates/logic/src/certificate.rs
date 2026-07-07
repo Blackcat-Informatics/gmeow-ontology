@@ -169,7 +169,17 @@ impl CoherenceOutcome {
             completeness: result.completeness,
             evaluation: result.evaluation,
             contradiction_policy,
-            projection_losses: projection_loss_codes,
+            // Source the projection-loss set from the ONE substrate loss store: the
+            // caller-supplied codes are interned into a
+            // `gmeow_logic_compile::loss_ledger::LossLedger` and read back as the
+            // sorted code set. The emitted N-Quads AND the folded content hash are
+            // byte-identical to sourcing the `BTreeSet` directly — the store is now
+            // the single origin every loss serialization projects from.
+            projection_losses:
+                gmeow_logic_compile::loss_ledger::LossLedger::from_certificate_codes(
+                    projection_loss_codes.iter().map(String::as_str),
+                )
+                .certificate_codes(),
             unsupported_constructs: result.preservation.unsupported_constructs.clone(),
             permitted_conflicts,
             forbidden_violations,

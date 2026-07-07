@@ -14,11 +14,13 @@
 
 use purrdf::RdfLiteral;
 
+use crate::loss_ledger::LossLedger;
+
 use super::super::ir::LogicProgram;
 use super::rdf::TripleSink;
 use super::{
     GMEOW_NS, LOGIC_NS, OverclaimError, ProjectionResult, RDF_TYPE, RDFS_NS, XSD_NS,
-    assert_no_overclaim, combined_lossy_drops,
+    assert_no_overclaim,
 };
 
 fn logic(local: &str) -> String {
@@ -198,6 +200,20 @@ pub fn build_projection_report_from(
         }
     }
 
+    // The single loss store: intern every projection's drops as ProjectionLoss
+    // witnesses, keyed by target focus (R1), and read the per-target `gmeow:lossyDrop`
+    // set back from it below — so this report's losses flow through the one
+    // substrate ledger, not a bespoke per-`ProjectionResult` serialization.
+    let mut loss_ledger = LossLedger::new();
+    for proj in projections {
+        loss_ledger.record_projection_drops(
+            &proj.target,
+            proj.preservation,
+            &proj.lossy_drops,
+            &proj.actual_drops,
+        );
+    }
+
     // Targets in sorted order (the Python `sorted(projections, key=target)`).
     let mut sorted: Vec<&ProjectionResult> = projections.iter().collect();
     sorted.sort_by(|a, b| a.target.cmp(&b.target));
@@ -241,7 +257,7 @@ pub fn build_projection_report_from(
         );
 
         let lossy_drop = format!("{GMEOW_NS}lossyDrop");
-        for note in &combined_lossy_drops(proj) {
+        for note in &loss_ledger.projection_drops_for(&proj.target) {
             g.add_lit(&target_iri, &lossy_drop, RdfLiteral::simple(note));
         }
     }
