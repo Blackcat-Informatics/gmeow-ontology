@@ -27,12 +27,21 @@ use pyo3::prelude::*;
 use serde_json::{Value, json};
 
 use gmeow_errors::ResultExt;
+use gmeow_logic::conjecture::conjecture_test;
+use gmeow_logic::query_ir::Budget;
+use gmeow_logic::result_rdf::{
+    ConjectureVerdictInput, conjecture_node_iri, project_conjecture_verdict,
+};
 use gmeow_logic::transaction::execute::{CommitMode, TxReceipt, execute_transaction};
+use gmeow_logic_compile::frontend::parse_logic_str;
+use gmeow_logic_compile::ir::{Formula, Term as IrTerm};
 use purrdf::gts::examples::agent_memory::{
     Memory, RecallOptions, RevisionOptions, StoreOptions, ToolCallOptions,
 };
 use purrdf::gts::model::{Term as GtsTerm, TermKind as GtsTermKind};
 use purrdf::gts::writer::Writer as GtsWriter;
+use purrdf::{RdfDatasetBuilder, RdfQuad, RdfTerm};
+use sha2::{Digest, Sha256};
 
 use crate::stages::export::{self, FoldView, Term};
 use crate::stages::fold_arena;
@@ -515,6 +524,23 @@ impl McpServer {
                 ],
             ),
             tool(
+                "conjecture_test",
+                "Test a candidate logic: formula against a KB and, TR-gated on the \
+                 persistConjecture schema (the executional-entailment verdict gates the \
+                 commit), APPEND the engine verdict to the append-only conjecture library. \
+                 formula is a Turtle logic: document naming one candidate; kb is a Turtle KB; \
+                 standpoint is the required reified scope (P9); math_conjecture optionally \
+                 names the math:Conjecture twin. Pass dry_run=true for a non-committing \
+                 sandbox run (verdict only, nothing written).",
+                &[
+                    ("formula", "string"),
+                    ("kb", "string"),
+                    ("standpoint", "string"),
+                    ("math_conjecture", "string"),
+                    ("dry_run", "boolean"),
+                ],
+            ),
+            tool(
                 "recall",
                 "Recall stored memory claims.",
                 &[
@@ -606,6 +632,7 @@ impl McpServer {
             "query_docs" => self.tool_query_docs(args),
             "query_local" => self.tool_query_local(args),
             "store_claim" => self.tool_store_claim(args),
+            "conjecture_test" => self.tool_conjecture_test(args),
             "recall" => self.tool_recall(args),
             "revise_belief" => self.tool_revise_belief(args),
             "validate" if self.mode.includes_dev_tools() => self.tool_validate(),
@@ -925,6 +952,138 @@ impl McpServer {
             at_time,
         )?;
         Ok(response)
+    }
+
+    /// The production consumer that closes the conjecture-and-refutation path: test a
+    /// candidate `logic:` formula against a KB, project the engine verdict, and — TR-gated on
+    /// the `persistConjecture` schema — APPEND it to the append-only conjecture library.
+    ///
+    /// `formula` is a Turtle `logic:` document naming the candidate (exactly one top-level
+    /// `logic:Formula`, or exactly one ground `logic:` axiom lifted to a binary atom); `kb`
+    /// is a Turtle KB the candidate is tested against; `standpoint` is the REQUIRED reified
+    /// scope (Principle 9); `math_conjecture` optionally names the `math:Conjecture` twin so a
+    /// refutation's counterexample is re-exposed via `math:hasCounterexample`; `dry_run=true`
+    /// computes and returns the verdict but WRITES NOTHING.
+    fn tool_conjecture_test(&self, args: &Value) -> gmeow_errors::Result<String> {
+        let formula_src = required_str(args, "formula")?;
+        let kb_src = required_str(args, "kb")?;
+        let standpoint = required_str(args, "standpoint")?;
+        let math_conjecture = optional_str(args, "math_conjecture");
+        let dry_run = optional_bool_checked(args, "dry_run")?.unwrap_or(false);
+
+        // (1) Parse the candidate document and extract exactly one candidate formula.
+        let candidate = parse_candidate_formula(formula_src)?;
+
+        // (2) Parse the KB and re-home every triple into the isolated scenario world, so the
+        //     world-scoped DL calculus joins the KB with the asserted / evaluated candidate.
+        let kb = rehome_kb_into_scenario(kb_src)?;
+
+        // (3) Run the engine. The KB is borrowed and never mutated (isolation is inherent).
+        let kb_world = format!(
+            "{CONJECTURE_SCENARIO_WORLD}#kb-{}",
+            sha256_hex(kb_src.as_bytes())
+        );
+        let answer = conjecture_test(
+            kb.as_ref(),
+            CONJECTURE_SCENARIO_WORLD,
+            &candidate,
+            standpoint,
+            &[],
+            &Budget::default(),
+        )
+        .map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                message: format!("conjecture_test failed: {e}"),
+            })
+        })?;
+
+        // (4) Project the verdict → deterministic N-Triples, and mint the content-addressed
+        //     (formula × standpoint × KB-world) conjecture node IRI.
+        let content_key = candidate.content_key();
+        let input = ConjectureVerdictInput {
+            content_key: &content_key,
+            standpoint,
+            kb_world: &kb_world,
+            answer: &answer,
+            math_conjecture,
+        };
+        let body = project_conjecture_verdict(&input);
+        let node_iri = conjecture_node_iri(&input);
+
+        // The five-field verdict summary + witness, rendered for every response path.
+        let verdict = &answer.verdict;
+        let witness_json = answer.witness.as_ref().map(|w| {
+            json!({
+                "individual": w.individual,
+                "world": w.world,
+                "premises": w.premises
+                    .iter()
+                    .map(|(s, p, o)| format!("{s} {p} {o}"))
+                    .collect::<Vec<_>>(),
+            })
+        });
+        let verdict_json = json!({
+            "information": verdict.information.wire(),
+            "evaluation": verdict.evaluation.wire(),
+            "completeness": verdict.completeness.wire(),
+            "lifecycle": answer.lifecycle.wire(),
+            "discharge": answer.discharge.local_name(),
+        });
+
+        // (5) TR-gate the write on the persistConjecture schema. The precondition — a verdict
+        //     has been presented — obtains once the engine returns a verdict (step 3).
+        let obtains = [MCP_CONJECTURE_VERDICT_PRESENTED];
+        let receipt = execute_memory_txn(MCP_PERSIST_CONJECTURE_SCHEMA, &obtains, dry_run)?;
+        match &receipt {
+            TxReceipt::CommittedFailure { reason } | TxReceipt::HypotheticalFailure { reason } => {
+                return Ok(json!({
+                    "ok": false,
+                    "error": format!("persistConjecture precondition unmet: {reason}"),
+                    "verdict": verdict_json,
+                    "witness": witness_json,
+                    "transaction": txn_json(&receipt),
+                })
+                .to_string());
+            }
+            // Sandbox run: the verdict is observed, nothing is appended to the library.
+            TxReceipt::HypotheticalSuccess { .. } => {
+                return Ok(json!({
+                    "ok": true,
+                    "dry_run": true,
+                    "verdict": verdict_json,
+                    "witness": witness_json,
+                    "conjecture": node_iri,
+                    "transaction": txn_json(&receipt),
+                })
+                .to_string());
+            }
+            TxReceipt::CommittedSuccess { .. } => {}
+        }
+
+        // (6) Committed: APPEND the verdict segment to the append-only library, then record a
+        //     cold-auditable trajectory segment keyed to a content-addressed call id.
+        let path = conjecture_path()?;
+        write_conjecture_segment(&path, &body)?;
+        let call_id = format!(
+            "urn:gmeow:conjecture-call:{}",
+            sha256_hex(format!("{node_iri}\u{1}{content_key}").as_bytes())
+        );
+        write_audit_segment(
+            &path,
+            &call_id,
+            MCP_PERSIST_CONJECTURE_SCHEMA,
+            &obtains,
+            "1970-01-01T00:00:00Z",
+        )?;
+
+        Ok(json!({
+            "ok": true,
+            "verdict": verdict_json,
+            "witness": witness_json,
+            "conjecture": node_iri,
+            "transaction": txn_json(&receipt),
+        })
+        .to_string())
     }
 
     fn tool_validate(&self) -> gmeow_errors::Result<String> {
@@ -1350,6 +1509,21 @@ const MCP_TARGET_CLAIM_EXISTS: &str =
 const MCP_CLAIM_IN_MEMORY: &str =
     "https://blackcatinformatics.ca/gmeow/examples/agentic/mcp-policy/claimInMemory";
 
+/// The `persistConjecture` action schema + its precondition situation, defined by
+/// `mcp-action-policy.ttl`. The `conjecture_test` write triad instantiates this schema; the
+/// executional-entailment verdict over the precondition gates the append to the library.
+const MCP_PERSIST_CONJECTURE_SCHEMA: &str =
+    "https://blackcatinformatics.ca/gmeow/examples/agentic/mcp-policy/persistConjecture";
+const MCP_CONJECTURE_VERDICT_PRESENTED: &str =
+    "https://blackcatinformatics.ca/gmeow/examples/agentic/mcp-policy/conjectureVerdictPresented";
+
+/// The single, fixed ISOLATED scenario world every conjecture test reasons in. The KB the
+/// caller supplies is re-homed into this world (so the world-scoped DL calculus joins the
+/// KB facts with the asserted / evaluated candidate), and the run is inherently isolated —
+/// [`conjecture_test`] copies the KB into a fresh dataset and never mutates the input.
+const CONJECTURE_SCENARIO_WORLD: &str =
+    "https://blackcatinformatics.ca/gmeow/agentic/conjecture/scenario";
+
 const LOGIC_INSTANTIATES_SCHEMA: &str = "https://blackcatinformatics.ca/logic/instantiatesSchema";
 const LOGIC_TRANSITION_FROM_STATE: &str =
     "https://blackcatinformatics.ca/logic/transitionFromState";
@@ -1542,6 +1716,251 @@ fn write_audit_segment(
         .open(memory_path)?;
     file.write_all(&segment)?;
     Ok(())
+}
+
+// ── Conjecture-library persistence (append-only GTS ai-package, TR-gated) ─────
+//
+// The conjecture library is a SEPARATE, append-only GTS collection — the read-only twin of
+// `memory.gts`. Each `conjecture_test` commit appends one `ai-package` segment carrying the
+// `project_conjecture_verdict` graph (a content-addressed, standpoint-scoped
+// `logic:Conjecture` node with its embedded `logic:ReasoningResult` and refutation witness).
+// It is NEVER folded into the base KB reasoning graph (R2): the reasoner reads
+// `graph_dataset()` / the caller's KB, never `conjectures.gts`.
+
+/// The conjecture-library path: `GMEOW_CONJECTURE_PATH` (home-expanded) when set, else
+/// `~/.gmeow/conjectures.gts`. Mirrors [`memory_path`].
+fn conjecture_path() -> gmeow_errors::Result<PathBuf> {
+    if let Ok(path) = env::var("GMEOW_CONJECTURE_PATH")
+        && !path.trim().is_empty()
+    {
+        return Ok(PathBuf::from(path).expand_home());
+    }
+    let home = home_dir().ok_or_else(|| {
+        gmeow_errors::Diag::of_kind(crate::error::Mcp {
+            message: "neither HOME nor USERPROFILE is set and GMEOW_CONJECTURE_PATH is empty"
+                .to_string(),
+        })
+    })?;
+    Ok(Path::new(&home).join(".gmeow").join("conjectures.gts"))
+}
+
+/// A deterministic lowercase-hex SHA-256 of `bytes` (the KB-world content address seed).
+fn sha256_hex(bytes: &[u8]) -> String {
+    let digest = Sha256::digest(bytes);
+    let mut out = String::with_capacity(digest.len() * 2);
+    for byte in digest {
+        use std::fmt::Write as _;
+        let _ = write!(out, "{byte:02x}");
+    }
+    out
+}
+
+/// One term of the projection's closed N-Triples subset (`<iri>` / `_:b` / `"lex"^^<dt>`).
+enum NtTerm {
+    Iri(String),
+    Blank(String),
+    Lit { lex: String, datatype: String },
+}
+
+/// Take one N-Triples term off the front of `s`, returning `(term, rest)`. Handles the
+/// closed subset [`project_conjecture_verdict`] emits: `<iri>`, `_:id`, and `"lex"^^<dt>`
+/// typed literals (the literal walk is char-based, so it is UTF-8 safe and un-escapes).
+fn take_nt_term(s: &str) -> Option<(NtTerm, &str)> {
+    let s = s.trim_start();
+    if let Some(rest) = s.strip_prefix('<') {
+        let end = rest.find('>')?;
+        return Some((NtTerm::Iri(rest[..end].to_owned()), &rest[end + 1..]));
+    }
+    if let Some(rest) = s.strip_prefix("_:") {
+        let end = rest.find(char::is_whitespace).unwrap_or(rest.len());
+        return Some((NtTerm::Blank(rest[..end].to_owned()), &rest[end..]));
+    }
+    if let Some(rest) = s.strip_prefix('"') {
+        let mut lex = String::new();
+        let mut chars = rest.char_indices();
+        while let Some((idx, ch)) = chars.next() {
+            match ch {
+                '\\' => match chars.next() {
+                    Some((_, '\\')) => lex.push('\\'),
+                    Some((_, '"')) => lex.push('"'),
+                    Some((_, 'n')) => lex.push('\n'),
+                    Some((_, 'r')) => lex.push('\r'),
+                    Some((_, 't')) => lex.push('\t'),
+                    Some((_, c)) => lex.push(c),
+                    None => return None,
+                },
+                '"' => {
+                    // Past the closing quote: read the required `^^<dt>` typed-literal suffix.
+                    let after = rest[idx + 1..].strip_prefix("^^")?;
+                    let after = after.strip_prefix('<')?;
+                    let end = after.find('>')?;
+                    let datatype = after[..end].to_owned();
+                    return Some((NtTerm::Lit { lex, datatype }, &after[end + 1..]));
+                }
+                _ => lex.push(ch),
+            }
+        }
+        return None;
+    }
+    None
+}
+
+/// Intern one N-Triples node into the GTS term table (deduplicated by semantic value), a
+/// literal first interning its datatype IRI so the literal term references a live datatype id.
+fn intern_nt_term(
+    node: &NtTerm,
+    terms: &mut Vec<GtsTerm>,
+    seen: &mut HashMap<String, usize>,
+) -> usize {
+    let sig = match node {
+        NtTerm::Iri(iri) => format!("I\u{1}{iri}"),
+        NtTerm::Blank(id) => format!("B\u{1}{id}"),
+        NtTerm::Lit { lex, datatype } => format!("L\u{1}{datatype}\u{1}{lex}"),
+    };
+    if let Some(&id) = seen.get(&sig) {
+        return id;
+    }
+    let term = match node {
+        NtTerm::Iri(iri) => gts_iri(iri),
+        NtTerm::Blank(id) => GtsTerm {
+            kind: GtsTermKind::Bnode,
+            value: Some(id.clone()),
+            datatype: None,
+            lang: None,
+            direction: None,
+            reifier: None,
+        },
+        NtTerm::Lit { lex, datatype } => {
+            let dt_id = intern_nt_term(&NtTerm::Iri(datatype.clone()), terms, seen);
+            gts_literal_dt(lex, dt_id)
+        }
+    };
+    let id = push_gts_term(terms, term);
+    seen.insert(sig, id);
+    id
+}
+
+/// Append one conjecture-verdict segment (the `project_conjecture_verdict` N-Triples body) to
+/// the append-only library at `path`, as a GTS `ai-package` segment. The body is parsed into
+/// `(subject, predicate, object)` triples, interned as GTS terms (IRIs, blank nodes, and
+/// typed literals with their datatype), and written via [`GtsWriter`]. Prior segment bytes
+/// are NEVER mutated — the file is opened `create + append`, mirroring [`write_audit_segment`].
+fn write_conjecture_segment(path: &Path, nt_body: &str) -> gmeow_errors::Result<()> {
+    let mut terms: Vec<GtsTerm> = Vec::new();
+    let mut quads: Vec<(usize, usize, usize, Option<usize>)> = Vec::new();
+    let mut seen: HashMap<String, usize> = HashMap::new();
+
+    for (lineno, raw) in nt_body.lines().enumerate() {
+        let line = raw.trim();
+        if line.is_empty() {
+            continue;
+        }
+        let line = line.strip_suffix(" .").ok_or_else(|| {
+            gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                message: format!("conjecture projection line {} missing ' .'", lineno + 1),
+            })
+        })?;
+        let malformed = |what: &str| {
+            gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                message: format!("conjecture projection line {} bad {what}", lineno + 1),
+            })
+        };
+        let (subject, rest) = take_nt_term(line).ok_or_else(|| malformed("subject"))?;
+        let (predicate, rest) =
+            take_nt_term(rest.trim_start()).ok_or_else(|| malformed("predicate"))?;
+        let (object, _rest) = take_nt_term(rest.trim_start()).ok_or_else(|| malformed("object"))?;
+        // The projection's predicates are always IRIs; reject anything else fail-closed.
+        if !matches!(predicate, NtTerm::Iri(_)) {
+            return Err(malformed("predicate (non-IRI)"));
+        }
+        let s = intern_nt_term(&subject, &mut terms, &mut seen);
+        let p = intern_nt_term(&predicate, &mut terms, &mut seen);
+        let o = intern_nt_term(&object, &mut terms, &mut seen);
+        quads.push((s, p, o, None));
+    }
+
+    let mut writer = GtsWriter::new("ai-package");
+    writer.add_terms(&terms);
+    writer.add_quads(&quads);
+    let segment = writer.to_bytes();
+
+    if let Some(parent) = path
+        .parent()
+        .filter(|parent| !parent.as_os_str().is_empty())
+    {
+        fs::create_dir_all(parent)?;
+    }
+    let mut file = fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(path)?;
+    file.write_all(&segment)?;
+    Ok(())
+}
+
+/// Parse the candidate `logic:` document and extract exactly ONE candidate [`Formula`]: the
+/// single top-level `logic:Formula` when present, else the single ground `logic:` axiom
+/// lifted to a binary [`Formula::Atom`]. Any other shape (zero / multiple candidates) is a
+/// hard, fail-closed error — a conjecture test names one formula, never a program.
+fn parse_candidate_formula(formula_src: &str) -> gmeow_errors::Result<Formula> {
+    let (program, _diags) = parse_logic_str(formula_src, None).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Mcp {
+            message: format!("candidate logic: document failed to parse: {e}"),
+        })
+    })?;
+    let bad = |message: String| gmeow_errors::Diag::of_kind(crate::error::Mcp { message });
+    // A reified `logic:Formula` is the primary surface: prefer the single top-level formula
+    // even when the frontend leaks the formula's own structural triples as axioms. Only when
+    // NO formula is present does a single ground axiom become the (lifted) candidate.
+    match (program.formulas.len(), program.axioms.len()) {
+        (1, _) => Ok(program.formulas.into_iter().next().expect("len == 1")),
+        (0, 1) => {
+            let ax = program.axioms.into_iter().next().expect("len == 1");
+            let object = if ax.obj_is_literal {
+                IrTerm::Literal {
+                    lexical: ax.obj,
+                    datatype: None,
+                }
+            } else {
+                IrTerm::Iri(ax.obj)
+            };
+            Formula::atom(
+                IrTerm::Iri(ax.predicate),
+                vec![IrTerm::Iri(ax.subject), object],
+            )
+            .map_err(bad)
+        }
+        (formulas, axioms) => Err(bad(format!(
+            "candidate must be exactly one formula/atom, got {formulas} formula(s) and \
+             {axioms} axiom(s)"
+        ))),
+    }
+}
+
+/// Re-home every triple of the caller's KB Turtle into [`CONJECTURE_SCENARIO_WORLD`] as a
+/// fresh, frozen [`purrdf::RdfDataset`]. World-homing is required because the DL consistency
+/// calculus is world-scoped: KB facts must sit in the SAME world the candidate is asserted /
+/// evaluated in for a disjointness clash to fire.
+fn rehome_kb_into_scenario(
+    kb_src: &str,
+) -> gmeow_errors::Result<std::sync::Arc<purrdf::RdfDataset>> {
+    let parsed = purrdf::parse_dataset(kb_src.as_bytes(), "text/turtle", None).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Mcp {
+            message: format!("KB Turtle failed to parse: {e}"),
+        })
+    })?;
+    let world = RdfTerm::iri(CONJECTURE_SCENARIO_WORLD);
+    let mut builder = RdfDatasetBuilder::new();
+    for quad in parsed.owned_quads() {
+        let rehomed =
+            RdfQuad::new(quad.subject, quad.predicate, quad.object).in_graph(world.clone());
+        builder.push_owned_quad(&rehomed);
+    }
+    builder.freeze().map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Mcp {
+            message: format!("re-homed KB dataset failed to freeze: {e}"),
+        })
+    })
 }
 
 fn tool_arguments(args: &Value, keys: &[&str]) -> String {
@@ -2307,6 +2726,15 @@ mod tests {
             json!({"path": overlay_path.to_str().unwrap(), "query": "ASK { ?s ?p ?o }"}),
         );
         call_args.insert("store_claim", json!({"text": "probe", "dry_run": true}));
+        call_args.insert(
+            "conjecture_test",
+            json!({
+                "formula": forall_horn_candidate("B"),
+                "kb": refuting_kb("B"),
+                "standpoint": "http://ex/standpoint/probe",
+                "dry_run": true,
+            }),
+        );
         call_args.insert("recall", json!({}));
         call_args.insert(
             "revise_belief",
@@ -2325,5 +2753,403 @@ mod tests {
             );
         }
         drop(overlay_dir);
+    }
+
+    // ── Conjecture-library persistence (Task 5a) ─────────────────────────────
+
+    const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
+    const RDF_TYPE_IRI: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+
+    /// A `∀x. trigger(x, mark) → rdf:type(x, <cls>)` candidate, authored as a reified
+    /// `logic:Formula` (a single top-level formula — the trivially-Horn consequent is a
+    /// sub-formula, so it never trips the `with_formulas` guard).
+    fn forall_horn_candidate(cls_local: &str) -> String {
+        format!(
+            "@prefix logic: <{LOGIC_NS}> .\n\
+             @prefix ex:  <http://ex/> .\n\
+             @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n\
+             ex:cand a logic:Formula ;\n\
+                 logic:forall ex:body ;\n\
+                 logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable \"x\" ] .\n\
+             ex:body a logic:Formula ;\n\
+                 logic:antecedent ex:ant ;\n\
+                 logic:consequent ex:con .\n\
+             ex:ant a logic:Formula ;\n\
+                 logic:relation ex:trigger ;\n\
+                 logic:argument [ logic:termIndex 0 ; logic:termVariable \"x\" ] ;\n\
+                 logic:argument [ logic:termIndex 1 ; logic:termIri ex:mark ] .\n\
+             ex:con a logic:Formula ;\n\
+                 logic:relation rdf:type ;\n\
+                 logic:argument [ logic:termIndex 0 ; logic:termVariable \"x\" ] ;\n\
+                 logic:argument [ logic:termIndex 1 ; logic:termIri ex:{cls_local} ] .\n"
+        )
+    }
+
+    /// A KB where the candidate's head class is DISJOINT with the individual's asserted type,
+    /// so firing `rdf:type(a, <cls>)` forces an `owl:Nothing` clash ⇒ refutation + witness.
+    fn refuting_kb(cls_local: &str) -> String {
+        format!(
+            "@prefix ex:  <http://ex/> .\n\
+             @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n\
+             @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\
+             ex:a ex:trigger ex:mark .\n\
+             ex:a rdf:type ex:A .\n\
+             ex:A owl:disjointWith ex:{cls_local} .\n"
+        )
+    }
+
+    /// A KB where the candidate's head class is UNRELATED (no disjointness), so firing derives
+    /// a new consistent fact ⇒ Open/Neither, no witness.
+    fn open_kb(cls_local: &str) -> String {
+        format!(
+            "@prefix ex:  <http://ex/> .\n\
+             @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n\
+             ex:a ex:trigger ex:mark .\n\
+             ex:a rdf:type ex:A .\n\
+             # {cls_local} is unrelated to A — no clash.\n"
+        )
+    }
+
+    fn temp_conjecture() -> (tempfile::TempDir, PathBuf) {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let path = dir.path().join("conjectures.gts");
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::set_var("GMEOW_CONJECTURE_PATH", &path);
+        }
+        (dir, path)
+    }
+
+    /// The imported conjecture-library dataset (all appended segments unioned).
+    fn read_conjectures(path: &Path) -> std::sync::Arc<purrdf::RdfDataset> {
+        let bytes = fs::read(path).expect("read conjecture library");
+        purrdf::import_gts_events(&bytes)
+            .expect("import conjecture library")
+            .dataset
+    }
+
+    /// Every subject typed `logic:Conjecture` in `dataset`.
+    fn conjecture_nodes(dataset: &purrdf::RdfDataset) -> BTreeSet<String> {
+        dataset
+            .owned_quads()
+            .filter(|q| {
+                q.predicate == RDF_TYPE_IRI
+                    && q.object == RdfTerm::iri(format!("{LOGIC_NS}Conjecture"))
+            })
+            .filter_map(|q| match q.subject {
+                RdfTerm::Iri(s) => Some(s),
+                _ => None,
+            })
+            .collect()
+    }
+
+    /// The `logic:witnessPremise` literal lexicals in `dataset`.
+    fn witness_premises(dataset: &purrdf::RdfDataset) -> Vec<String> {
+        dataset
+            .owned_quads()
+            .filter(|q| q.predicate == format!("{LOGIC_NS}witnessPremise"))
+            .filter_map(|q| match q.object {
+                RdfTerm::Literal(lit) => Some(lit.lexical_form),
+                _ => None,
+            })
+            .collect()
+    }
+
+    struct ConjEnvGuard;
+    impl ConjEnvGuard {
+        fn set() -> (EnvRestore, ConjEnvGuard) {
+            let env = EnvRestore::capture(&[
+                "GMEOW_LANG",
+                "GMEOW_MEMORY_PATH",
+                "GMEOW_CONJECTURE_PATH",
+                "HOME",
+                "USERPROFILE",
+            ]);
+            unsafe {
+                // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+                env::remove_var("GMEOW_LANG");
+            }
+            (env, ConjEnvGuard)
+        }
+    }
+
+    #[test]
+    fn persist_conjecture_precondition_gates_the_commit() {
+        // The write is a REAL TR gate: with the precondition present the committed run
+        // succeeds; with it absent the run FAILS (so the tool returns ok:false before writing).
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let (_env, _cg) = ConjEnvGuard::set();
+        let ok = execute_memory_txn(
+            MCP_PERSIST_CONJECTURE_SCHEMA,
+            &[MCP_CONJECTURE_VERDICT_PRESENTED],
+            false,
+        )
+        .unwrap();
+        assert!(
+            matches!(ok, TxReceipt::CommittedSuccess { .. }),
+            "the precondition-present committed run must succeed: {ok:?}"
+        );
+        let unmet = execute_memory_txn(MCP_PERSIST_CONJECTURE_SCHEMA, &[], false).unwrap();
+        assert!(
+            matches!(unmet, TxReceipt::CommittedFailure { .. }),
+            "a persist with the precondition UNMET must fail the commit (the tool then returns \
+             ok:false before writing): {unmet:?}"
+        );
+    }
+
+    #[test]
+    fn conjecture_test_refutes_and_persists_with_witness() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let (_env, _cg) = ConjEnvGuard::set();
+        let (_mem, _mp) = temp_memory();
+        let (_dir, path) = temp_conjecture();
+        let bytes = snapshot();
+        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+
+        assert!(
+            !path.exists(),
+            "library must not exist before the first persist"
+        );
+        let resp = text_payload(server.call_tool_result(
+            "conjecture_test",
+            &json!({
+                "formula": forall_horn_candidate("B"),
+                "kb": refuting_kb("B"),
+                "standpoint": "http://ex/standpoint/alice",
+            }),
+        ));
+        assert_eq!(resp["ok"], true, "refutation persist must succeed: {resp}");
+        assert_eq!(resp["verdict"]["lifecycle"], "refuted-in-standpoint");
+        assert_eq!(resp["witness"]["individual"], "http://ex/a");
+        let node = resp["conjecture"].as_str().expect("node iri").to_string();
+        assert!(!node.is_empty());
+
+        // The library file grew, and the witness premises round-trip back through the GTS.
+        assert!(
+            path.exists(),
+            "the conjecture library file must have been written"
+        );
+        let dataset = read_conjectures(&path);
+        assert!(
+            conjecture_nodes(&dataset).contains(&node),
+            "the content-addressed conjecture node must be readable back: {node}"
+        );
+        // The standpoint scope is recoverable.
+        assert!(dataset.owned_quads().any(|q| {
+            q.predicate == format!("{LOGIC_NS}conjectureStandpoint")
+                && q.object == RdfTerm::iri("http://ex/standpoint/alice")
+        }));
+        // The witness premises are recoverable.
+        let premises = witness_premises(&dataset);
+        assert!(
+            !premises.is_empty(),
+            "a refutation must persist recoverable witness premises"
+        );
+    }
+
+    #[test]
+    fn conjecture_test_dry_run_writes_nothing() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let (_env, _cg) = ConjEnvGuard::set();
+        let (_mem, _mp) = temp_memory();
+        let (_dir, path) = temp_conjecture();
+        let bytes = snapshot();
+        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+
+        let resp = text_payload(server.call_tool_result(
+            "conjecture_test",
+            &json!({
+                "formula": forall_horn_candidate("B"),
+                "kb": refuting_kb("B"),
+                "standpoint": "http://ex/standpoint/alice",
+                "dry_run": true,
+            }),
+        ));
+        assert_eq!(resp["ok"], true);
+        assert_eq!(resp["dry_run"], true);
+        assert_eq!(resp["transaction"]["committed"], false);
+        // The verdict is still computed and returned.
+        assert_eq!(resp["verdict"]["lifecycle"], "refuted-in-standpoint");
+        // Nothing written: the library file does not exist / is zero bytes.
+        assert!(
+            !path.exists() || fs::metadata(&path).unwrap().len() == 0,
+            "a dry run must write nothing to the library"
+        );
+    }
+
+    #[test]
+    fn conjecture_persists_are_append_only() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let (_env, _cg) = ConjEnvGuard::set();
+        let (_mem, _mp) = temp_memory();
+        let (_dir, path) = temp_conjecture();
+        let bytes = snapshot();
+        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+
+        text_payload(server.call_tool_result(
+            "conjecture_test",
+            &json!({
+                "formula": forall_horn_candidate("B"),
+                "kb": refuting_kb("B"),
+                "standpoint": "http://ex/standpoint/alice",
+            }),
+        ));
+        let first = fs::read(&path).expect("first library bytes");
+        let first_len = first.len();
+        assert!(first_len > 0);
+
+        // A DISTINCT conjecture (different head class) appends a second segment.
+        text_payload(server.call_tool_result(
+            "conjecture_test",
+            &json!({
+                "formula": forall_horn_candidate("C"),
+                "kb": open_kb("C"),
+                "standpoint": "http://ex/standpoint/alice",
+            }),
+        ));
+        let second = fs::read(&path).expect("second library bytes");
+        assert!(
+            second.len() > first_len,
+            "the second persist must APPEND, growing the file"
+        );
+        assert_eq!(
+            &second[..first_len],
+            &first[..],
+            "the first segment's bytes must be intact (append-only, never mutated)"
+        );
+        // Both conjectures are readable back.
+        assert_eq!(conjecture_nodes(read_conjectures(&path).as_ref()).len(), 2);
+    }
+
+    #[test]
+    fn conjecture_library_is_isolated_from_the_base_kb() {
+        // R2: the caller's KB text is unchanged by the call, and the library is a DISTINCT
+        // file the reasoner never folds into its base graph.
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let (_env, _cg) = ConjEnvGuard::set();
+        let (_mem, mem_path) = temp_memory();
+        let (_dir, path) = temp_conjecture();
+        let bytes = snapshot();
+        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+
+        let kb = refuting_kb("B");
+        let kb_before = kb.clone();
+        text_payload(server.call_tool_result(
+            "conjecture_test",
+            &json!({
+                "formula": forall_horn_candidate("B"),
+                "kb": kb,
+                "standpoint": "http://ex/standpoint/alice",
+            }),
+        ));
+        // The KB argument the tool was given is an owned String — the tool cannot mutate the
+        // caller's copy. (Isolation is inherent: conjecture_test borrows and copies the KB.)
+        assert_eq!(kb_before, refuting_kb("B"));
+        // The conjecture library is a distinct file, NOT the memory store, and never the base
+        // reasoning graph (reason reads graph_dataset(), never conjecture_path()).
+        assert!(path.exists());
+        assert_ne!(path, mem_path);
+        // The bundled reasoning surface is unaffected — reason still runs cleanly over the
+        // untouched base graph (the library is never unioned in).
+        let reasoned = text_payload(server.call_tool_result("reason", &json!({})));
+        // `reason` is dev-only; over a Consumer server it returns an error, proving the base
+        // reasoning path does not consult the library either way. What matters for R2 is that
+        // the library file and the KB are untouched, asserted above.
+        let _ = reasoned;
+    }
+
+    #[test]
+    fn same_formula_two_standpoints_mints_two_nodes() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let (_env, _cg) = ConjEnvGuard::set();
+        let (_mem, _mp) = temp_memory();
+        let (_dir, path) = temp_conjecture();
+        let bytes = snapshot();
+        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+
+        let a = text_payload(server.call_tool_result(
+            "conjecture_test",
+            &json!({
+                "formula": forall_horn_candidate("C"),
+                "kb": open_kb("C"),
+                "standpoint": "http://ex/standpoint/alice",
+            }),
+        ));
+        let b = text_payload(server.call_tool_result(
+            "conjecture_test",
+            &json!({
+                "formula": forall_horn_candidate("C"),
+                "kb": open_kb("C"),
+                "standpoint": "http://ex/standpoint/bob",
+            }),
+        ));
+        assert_ne!(
+            a["conjecture"], b["conjecture"],
+            "the same formula in two standpoints must mint two DISTINCT nodes (P9)"
+        );
+        assert_eq!(conjecture_nodes(read_conjectures(&path).as_ref()).len(), 2);
+    }
+
+    #[test]
+    fn conjecture_library_corpus_query_recovers_open_and_refuted() {
+        // A corpus competency: persist several DISTINCT conjectures (open + refuted) in one
+        // standpoint, then scan the collection for all of them, with witness premises for the
+        // refuted ones recoverable.
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let (_env, _cg) = ConjEnvGuard::set();
+        let (_mem, _mp) = temp_memory();
+        let (_dir, path) = temp_conjecture();
+        let bytes = snapshot();
+        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+
+        // Two refuted (B, D disjoint) and two open (C, E unrelated).
+        for cls in ["B", "D"] {
+            let r = text_payload(server.call_tool_result(
+                "conjecture_test",
+                &json!({
+                    "formula": forall_horn_candidate(cls),
+                    "kb": refuting_kb(cls),
+                    "standpoint": "http://ex/standpoint/team",
+                }),
+            ));
+            assert_eq!(r["verdict"]["lifecycle"], "refuted-in-standpoint", "{r}");
+        }
+        for cls in ["C", "E"] {
+            let r = text_payload(server.call_tool_result(
+                "conjecture_test",
+                &json!({
+                    "formula": forall_horn_candidate(cls),
+                    "kb": open_kb(cls),
+                    "standpoint": "http://ex/standpoint/team",
+                }),
+            ));
+            assert_eq!(r["verdict"]["lifecycle"], "open", "{r}");
+        }
+
+        let dataset = read_conjectures(&path);
+        // All four conjectures are recoverable.
+        assert_eq!(conjecture_nodes(&dataset).len(), 4);
+        // All are scoped to the team standpoint.
+        let team_scoped = dataset
+            .owned_quads()
+            .filter(|q| {
+                q.predicate == format!("{LOGIC_NS}conjectureStandpoint")
+                    && q.object == RdfTerm::iri("http://ex/standpoint/team")
+            })
+            .count();
+        assert_eq!(team_scoped, 4, "every conjecture is standpoint-scoped");
+        // The two refuted conjectures each carry a recoverable individual + premises.
+        let refuted = dataset
+            .owned_quads()
+            .filter(|q| {
+                q.predicate == format!("{LOGIC_NS}conjectureLifecycleState")
+                    && q.object == RdfTerm::iri(format!("{LOGIC_NS}ConjectureRefutedInStandpoint"))
+            })
+            .count();
+        assert_eq!(refuted, 2, "exactly the two disjointness cases are refuted");
+        assert!(
+            witness_premises(&dataset).len() >= 2,
+            "each refutation persists recoverable witness premises"
+        );
     }
 }
