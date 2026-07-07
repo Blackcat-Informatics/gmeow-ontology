@@ -561,6 +561,10 @@ impl Stage for CompileLogicStage {
             // The logic compiler's findings are Severity::Note lossy-drops (projection
             // loss), never on the gate-fatal up-set, so no gate verdict is derivable.
             None,
+            // The logic compiler's hand-built findings carry no ledger-witness
+            // identity (no finding_iri / structured antecedents / anchor), so the
+            // diagnostic meta-fold derives nothing; skip it (byte-unchanged).
+            None,
         )?);
 
         // The REAL typed Logic handle (C6): carry the compiled program itself
