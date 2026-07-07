@@ -213,6 +213,37 @@ pub enum Commands {
         #[command(subcommand)]
         command: AffectCommands,
     },
+    /// Conjecture-and-refutation tools over the `logic:` engine.
+    Conjecture {
+        #[command(subcommand)]
+        command: ConjectureCommands,
+    },
+}
+
+/// The `gmeow conjecture` nested subcommands (native `gmeow_pipeline` engine).
+#[derive(Debug, Subcommand)]
+pub enum ConjectureCommands {
+    /// Test a candidate `logic:` formula against a KB in an isolated, standpoint-scoped
+    /// scenario world, print the engine verdict, and — unless `--dry-run` — APPEND it to the
+    /// append-only conjecture library (`GMEOW_CONJECTURE_PATH`, else `~/.gmeow/conjectures.gts`).
+    Test {
+        /// A Turtle `logic:` document naming exactly one candidate formula.
+        #[arg(long = "formula")]
+        formula: PathBuf,
+        /// A Turtle KB the candidate is tested against.
+        #[arg(long = "kb")]
+        kb: PathBuf,
+        /// The REQUIRED reified standpoint scope IRI (Principle 9).
+        #[arg(long = "standpoint")]
+        standpoint: String,
+        /// Optionally, the `math:Conjecture` twin IRI so a refutation's counterexample is
+        /// re-exposed via `math:hasCounterexample`.
+        #[arg(long = "math-conjecture")]
+        math_conjecture: Option<String>,
+        /// Compute and print the verdict but WRITE NOTHING to the library.
+        #[arg(long = "dry-run")]
+        dry_run: bool,
+    },
 }
 
 /// The `gmeow affect` nested subcommands (native `gmeow_affect` engine).
@@ -330,5 +361,20 @@ pub fn run() -> i32 {
         Commands::Gts { args } => passthrough::gts(&args),
         Commands::Music { command } => passthrough::music(&command),
         Commands::Affect { command } => passthrough::affect(&command),
+        Commands::Conjecture { command } => match command {
+            ConjectureCommands::Test {
+                formula,
+                kb,
+                standpoint,
+                math_conjecture,
+                dry_run,
+            } => commands::conjecture_test(
+                &formula,
+                &kb,
+                &standpoint,
+                math_conjecture.as_deref(),
+                dry_run,
+            ),
+        },
     }
 }

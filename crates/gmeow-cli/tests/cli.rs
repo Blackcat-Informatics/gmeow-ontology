@@ -447,3 +447,113 @@ fn music_render_missing_source_is_a_runtime_error() {
         .failure()
         .stderr(predicate::str::contains("Error:"));
 }
+
+// ── conjecture test (Task 5b production surface) ─────────────────────────────
+
+const LOGIC_NS_TEST: &str = "https://blackcatinformatics.ca/logic/";
+
+/// A universally-quantified Horn candidate whose head fires `rdf:type(x, ex:B)` —
+/// the same shape the pipeline `conjecture_test` fixtures use.
+fn forall_horn_candidate_ttl() -> String {
+    format!(
+        "@prefix logic: <{LOGIC_NS_TEST}> .\n\
+         @prefix ex:  <http://ex/> .\n\
+         @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n\
+         ex:cand a logic:Formula ;\n\
+             logic:forall ex:body ;\n\
+             logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable \"x\" ] .\n\
+         ex:body a logic:Formula ;\n\
+             logic:antecedent ex:ant ;\n\
+             logic:consequent ex:con .\n\
+         ex:ant a logic:Formula ;\n\
+             logic:relation ex:trigger ;\n\
+             logic:argument [ logic:termIndex 0 ; logic:termVariable \"x\" ] ;\n\
+             logic:argument [ logic:termIndex 1 ; logic:termIri ex:mark ] .\n\
+         ex:con a logic:Formula ;\n\
+             logic:relation rdf:type ;\n\
+             logic:argument [ logic:termIndex 0 ; logic:termVariable \"x\" ] ;\n\
+             logic:argument [ logic:termIndex 1 ; logic:termIri ex:B ] .\n"
+    )
+}
+
+/// A KB where the head class `ex:B` is DISJOINT with `ex:a`'s asserted type, so
+/// firing the candidate forces an `owl:Nothing` clash ⇒ refutation + witness.
+fn refuting_kb_ttl() -> String {
+    "@prefix ex:  <http://ex/> .\n\
+     @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n\
+     @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\
+     ex:a ex:trigger ex:mark .\n\
+     ex:a rdf:type ex:A .\n\
+     ex:A owl:disjointWith ex:B .\n"
+        .to_owned()
+}
+
+/// A refuting KB persists a `refuted-in-standpoint` verdict + witness and GROWS
+/// the append-only library; the standard (non-dry) run commits.
+#[test]
+fn conjecture_test_refutes_persists_and_grows_the_library() {
+    let dir = scratch("conjecture-commit");
+    let formula = dir.join("candidate.ttl");
+    let kb = dir.join("kb.ttl");
+    let lib = dir.join("conjectures.gts");
+    std::fs::write(&formula, forall_horn_candidate_ttl()).expect("write formula");
+    std::fs::write(&kb, refuting_kb_ttl()).expect("write kb");
+
+    assert!(
+        !lib.exists(),
+        "library must not exist before the first persist"
+    );
+    gmeow()
+        .env("GMEOW_CONJECTURE_PATH", &lib)
+        .args(["conjecture", "test"])
+        .arg("--formula")
+        .arg(&formula)
+        .arg("--kb")
+        .arg(&kb)
+        .args(["--standpoint", "http://ex/standpoint/alice"])
+        .assert()
+        .success()
+        .stdout(
+            predicate::str::contains("lifecycle refuted-in-standpoint")
+                .and(predicate::str::contains("witness-individual http://ex/a"))
+                .and(predicate::str::contains("witness-premise"))
+                .and(predicate::str::contains("conjecture "))
+                .and(predicate::str::contains("persisted committed")),
+        );
+    // The append-only library was written and is non-empty.
+    let grown = std::fs::metadata(&lib).map(|m| m.len()).unwrap_or(0);
+    assert!(grown > 0, "the committed run must have grown the library");
+    std::fs::remove_dir_all(&dir).ok();
+}
+
+/// A `--dry-run` computes the SAME verdict but WRITES NOTHING to the library.
+#[test]
+fn conjecture_test_dry_run_writes_nothing() {
+    let dir = scratch("conjecture-dry");
+    let formula = dir.join("candidate.ttl");
+    let kb = dir.join("kb.ttl");
+    let lib = dir.join("conjectures.gts");
+    std::fs::write(&formula, forall_horn_candidate_ttl()).expect("write formula");
+    std::fs::write(&kb, refuting_kb_ttl()).expect("write kb");
+
+    gmeow()
+        .env("GMEOW_CONJECTURE_PATH", &lib)
+        .args(["conjecture", "test"])
+        .arg("--formula")
+        .arg(&formula)
+        .arg("--kb")
+        .arg(&kb)
+        .args(["--standpoint", "http://ex/standpoint/alice"])
+        .arg("--dry-run")
+        .assert()
+        .success()
+        .stdout(
+            predicate::str::contains("lifecycle refuted-in-standpoint").and(
+                predicate::str::contains("persisted dry-run (nothing written)"),
+            ),
+        );
+    // Nothing written: the library does not exist / is zero bytes.
+    let written = lib.exists() && std::fs::metadata(&lib).map(|m| m.len()).unwrap_or(0) > 0;
+    assert!(!written, "a dry run must write nothing to the library");
+    std::fs::remove_dir_all(&dir).ok();
+}
