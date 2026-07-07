@@ -2824,4 +2824,211 @@ mod tests {
             "the DL correspondence subject must be slugged `dl`: {ttl}"
         );
     }
+
+    // ── USER MATERIALIZE / program-carrying path promotion gate (Task 5) ───────────
+    //
+    // Tasks 2–4 promoted the FIXED profile texts (EL/RL/DL).  This gate promotes the
+    // last surface the oracle boundary carries: a PROGRAM-CARRYING run — the shape
+    // `crate::reason::reason_program` builds (`dl_rules()` + the program's own Horn
+    // rules, combined into ONE chase text) and the shape `crate::materialize`
+    // accepts over the FFI (a user rule program that may declare a HELPER predicate
+    // of a non-ternary arity, per `materialize.rs`'s NonQuadRow contract).
+    //
+    // The representative program is faithful-synthetic (NOT a single real .rls file):
+    // it is BUILT from real, canonical parts to exercise the whole program surface in
+    // one fixture — the fixed `crate::reason::dl::dl_rules()` VERBATIM (the calculus
+    // every `reason_program` run combines in), a real arity-3 program Horn rule (a
+    // domain transitivity, the shape `project_nemo` emits for every user rule — every
+    // projected program rule is arity-3 named-ternary), AND the binary `helperEdge`
+    // helper that `crate::materialize`'s pinned `HELPER_RULES` test fixes as a
+    // legitimate user-program feature.  A single committed .rls program would exercise
+    // AT MOST one of these; the built fixture is the minimal witness that the combined
+    // program-carrying text — dl_rules() ⊕ program rules ⊕ a non-ternary helper — runs
+    // native and agrees with Nemo.  Because the helper atom is arity-2, the whole
+    // program is NOT binary-eligible, so `NativeForwardOracle` MUST route it to the
+    // arity-generic evaluator (`rules_are_pure_ternary == false`); the gate confirms
+    // that generic run is gap-zero against Nemo AND that the helper rows are present
+    // (the binary core could never produce them faithfully).
+
+    const PROG_WORLD: &str = "urn:world:program-corpus";
+    const PROG_RELATED: &str = "http://ex/prog/relatedTo";
+    const PROG_HELPER: &str = "helperEdge";
+
+    /// The representative program's EDB as `(subject, predicate, object)` triples in
+    /// [`PROG_WORLD`]: a DL clash + subclass chain (drives `dl_rules()`) plus a
+    /// `relatedTo` chain (drives the arity-3 program rule).
+    fn program_corpus_triples() -> Vec<(String, String, String)> {
+        let dl = |n: &str| format!("http://ex/dl/{n}");
+        let pr = |n: &str| format!("http://ex/prog/{n}");
+        vec![
+            // dl_rules() drivers: A ⊑ B ⊑ C, i a A; D ⊥ E, x a D, x a E (clash).
+            (dl("A"), DL_SUBCLASS.to_owned(), dl("B")),
+            (dl("B"), DL_SUBCLASS.to_owned(), dl("C")),
+            (dl("i"), DL_TYPE.to_owned(), dl("A")),
+            (dl("D"), DL_DISJOINT.to_owned(), dl("E")),
+            (dl("x"), DL_TYPE.to_owned(), dl("D")),
+            (dl("x"), DL_TYPE.to_owned(), dl("E")),
+            // Program-rule driver: relatedTo p→q→r (transitively closed by the rule).
+            (pr("p"), PROG_RELATED.to_owned(), pr("q")),
+            (pr("q"), PROG_RELATED.to_owned(), pr("r")),
+        ]
+    }
+
+    /// The representative program's EDB as a ternary typed EDB.
+    fn program_corpus_edb() -> TypedFactSet {
+        let mut facts = TypedFactSet::new();
+        for (s, p, o) in program_corpus_triples() {
+            facts.push_quad(&ex_iri(&s), &p, &ex_iri(&o), PROG_WORLD);
+        }
+        facts
+    }
+
+    /// The combined program-carrying rule text: the fixed DL calculus VERBATIM ⊕ an
+    /// arity-3 program Horn rule (relatedTo transitivity) ⊕ the binary `helperEdge`
+    /// helper — the way `reason_program` unions `dl_rules()` with the program's own
+    /// rules, extended with the non-ternary helper `crate::materialize` accepts.
+    fn program_corpus_rules() -> String {
+        let program_rule = format!(
+            "#[name(\"prog:relatedTo-transitive\")]\n\
+             <{PROG_RELATED}>(?a,?c,?w) :- <{PROG_RELATED}>(?a,?b,?w), <{PROG_RELATED}>(?b,?c,?w) .\n"
+        );
+        // A binary helper: legal Nemo, arity-2 head, so the whole program is NOT
+        // binary-eligible and must run on the generic evaluator.
+        let helper_rule = format!(
+            "#[name(\"prog:helper-edge\")]\n\
+             {PROG_HELPER}(?x,?y) :- <{DL_SUBCLASS}>(?x,?y,?w) .\n"
+        );
+        format!(
+            "{}\n{program_rule}\n{helper_rule}",
+            crate::reason::dl::dl_rules()
+        )
+    }
+
+    /// Every chase row as a `(subject, predicate, object)` comparand: the ternary
+    /// reasoning rows (world dropped — single-world corpus) AND the binary helper
+    /// rows (`helperEdge(x, y)` → `(x, helperEdge, y)`), so the helper facts the
+    /// generic evaluator produces are compared too, not silently exempted.
+    fn program_fact_tuples(closure: &TypedChaseResult) -> Vec<(String, String, String)> {
+        closure
+            .rows
+            .iter()
+            .filter_map(|(row, _prov)| match row.args.len() {
+                2 | 3 => Some((
+                    term_display(&row.args[0]),
+                    row.predicate.clone(),
+                    term_display(&row.args[1]),
+                )),
+                _ => None,
+            })
+            .collect()
+    }
+
+    /// Build the native↔oracle divergence ledger over the representative program.
+    fn program_divergence_ledger() -> crate::reason::ledger::DivergenceLedger {
+        let facts = program_corpus_edb();
+        let rules = program_corpus_rules();
+        let native = NativeForwardOracle
+            .materialize(&facts, &rules, &ForwardBudget::UNBOUNDED)
+            .expect("native chase must decide the program-carrying rule set (generic evaluator)");
+        let nemo = NemoForwardOracle
+            .materialize(&facts, &rules, &ForwardBudget::UNBOUNDED)
+            .expect("nemo chase must succeed");
+        let rows = crate::reason::ledger::compare_subsumption(
+            &program_fact_tuples(&native),
+            &program_fact_tuples(&nemo),
+        );
+        crate::reason::ledger::build_ledger(rows, Vec::new(), Vec::new(), Vec::new())
+    }
+
+    /// The program-path promotion parity gate (gap-zero, non-vacuous): over the
+    /// representative program — `dl_rules()` ⊕ an arity-3 program rule ⊕ a binary
+    /// helper — the native forward engine (routed to the GENERIC evaluator, since the
+    /// helper makes the program non-binary-eligible) agrees EXACTLY with the Nemo
+    /// oracle on the FULL closure, including the non-ternary helper rows. Zero
+    /// OracleOnly / NativeOnly / DlGap AND `agree > 0`. Any divergence is a native
+    /// coverage regression to fix in the native path — never by relaxing this gate.
+    #[test]
+    fn materialize_program_native_oracle_gap_zero() {
+        // Precondition: the combined program is genuinely NOT binary-eligible, so the
+        // dispatch routes it to the generic evaluator (the promotion this gate proves).
+        assert!(
+            !crate::oracle::rules_are_pure_ternary(&program_corpus_rules())
+                .expect("program rules parse for arity inspection"),
+            "the representative program carries a binary helper, so it must NOT be \
+             binary-eligible (it must run on the generic evaluator)"
+        );
+
+        let ledger = program_divergence_ledger();
+        let verdict = crate::reason::ledger::enforce(&ledger);
+        assert!(
+            verdict.passed,
+            "native ⊉ Nemo on the program-carrying corpus ({} native-only, {} oracle-only, \
+             {} dl-gap): {:?}\nrows: {:#?}",
+            ledger.native_only,
+            ledger.oracle_only,
+            ledger.dl_gap,
+            verdict.reasons,
+            ledger
+                .rows
+                .iter()
+                .filter(|r| r.kind != DivergenceKind::Agree)
+                .collect::<Vec<_>>()
+        );
+        assert!(
+            ledger.agree > 0,
+            "the program-path parity ledger must have at least one agreeing fact"
+        );
+
+        // Non-vacuity: each combined surface must contribute an AGREED fact — the DL
+        // calculus, the arity-3 program rule, AND the binary helper — proving the whole
+        // program-carrying text ran, not a bare EDB echo.
+        let agreed = |s: &str, p: &str, o: &str| {
+            ledger.rows.iter().any(|r| {
+                r.kind == DivergenceKind::Agree && r.subject == s && r.object == p && r.world == o
+            })
+        };
+        let dl = |n: &str| format!("http://ex/dl/{n}");
+        let pr = |n: &str| format!("http://ex/prog/{n}");
+        // dl_rules() — el:subClassOf-transitive (A ⊑ C) and dl:individual-clash
+        // (x a owl:Nothing).
+        assert!(
+            agreed(&dl("A"), DL_SUBCLASS, &dl("C")),
+            "A ⊑ C via el:subClassOf-transitive (dl_rules())"
+        );
+        assert!(
+            agreed(&dl("x"), DL_TYPE, DL_NOTHING),
+            "x a owl:Nothing via dl:individual-clash (dl_rules())"
+        );
+        // The arity-3 program rule — relatedTo transitivity (p → r).
+        assert!(
+            agreed(&pr("p"), PROG_RELATED, &pr("r")),
+            "p relatedTo r via the arity-3 program rule"
+        );
+        // The binary helper — helperEdge(A, B) mirrors the subClassOf EDB edge. This
+        // fact can ONLY come from the generic evaluator (the binary core cannot
+        // faithfully produce a non-ternary row), so its agreement witnesses the
+        // program-carrying path ran native on the generic evaluator.
+        assert!(
+            agreed(&dl("A"), PROG_HELPER, &dl("B")),
+            "helperEdge(A, B) via the binary helper (generic evaluator)"
+        );
+
+        // The native closure genuinely carries the arity-2 helper rows (the direct
+        // witness that the dispatch routed to the generic evaluator, not the binary
+        // core which drops terms past the object).
+        let native = NativeForwardOracle
+            .materialize(
+                &program_corpus_edb(),
+                &program_corpus_rules(),
+                &ForwardBudget::UNBOUNDED,
+            )
+            .expect("native program chase");
+        assert!(
+            native
+                .rows
+                .iter()
+                .any(|(row, _)| row.predicate == PROG_HELPER && row.args.len() == 2),
+            "the native closure must carry the binary helperEdge rows (generic evaluator)"
+        );
+    }
 }
