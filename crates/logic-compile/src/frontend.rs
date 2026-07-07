@@ -1135,6 +1135,7 @@ pub fn derive_validation_shapes(store: &RdfDataset) -> Result<Vec<ValidationShap
     let owl_thing = format!("{owl}Thing");
     let rdfs_datatype = Node::iri(format!("{rdfs}Datatype"));
     let rdfs_literal = format!("{rdfs}Literal");
+    let rdfs_resource = format!("{rdfs}Resource");
     let p_on = nn(&format!("{owl}onProperty"));
     let p_some = nn(&format!("{owl}someValuesFrom"));
     let p_all = nn(&format!("{owl}allValuesFrom"));
@@ -1170,20 +1171,28 @@ pub fn derive_validation_shapes(store: &RdfDataset) -> Result<Vec<ValidationShap
             || objects(store, &Subject::Iri(iri.to_owned()), &nn(RDF_TYPE)).contains(&rdfs_datatype)
     };
 
-    // The single classification component for an IRI target: the two universal-tops project to
+    // The single classification component for an IRI target: `None` for `rdfs:Resource`, the
+    // UNIVERSAL TOP (the class of everything, literals included) — a range/domain of
+    // rdfs:Resource is VACUOUS, and `sh:class rdfs:Resource` would demand a never-materialized
+    // `rdf:type rdfs:Resource` edge on every object, false-positiving universally; a vacuous top
+    // must emit NO node/class constraint at all. The two BOUNDED universal-tops instead project to
     // an open node-kind constraint (`owl:Thing` → sh:BlankNodeOrIRI; `rdfs:Literal` →
     // sh:Literal) — the `owl:Thing` guard sits AHEAD of `is_datatype` so a quirk axiom
     // `owl:Thing a rdfs:Datatype` can never fall through to a vacuous `sh:datatype owl:Thing`.
     // A concrete datatype → sh:datatype; anything else → sh:class.
-    let classify = |iri: &str| -> ConstraintComponent {
-        if iri == owl_thing {
-            ConstraintComponent::NodeKindShacl(ShaclNodeKind::BlankNodeOrIri)
+    let classify = |iri: &str| -> Option<ConstraintComponent> {
+        if iri == rdfs_resource {
+            None
+        } else if iri == owl_thing {
+            Some(ConstraintComponent::NodeKindShacl(
+                ShaclNodeKind::BlankNodeOrIri,
+            ))
         } else if iri == rdfs_literal {
-            ConstraintComponent::NodeKindShacl(ShaclNodeKind::Literal)
+            Some(ConstraintComponent::NodeKindShacl(ShaclNodeKind::Literal))
         } else if is_datatype(iri) {
-            ConstraintComponent::Datatype(iri.to_owned())
+            Some(ConstraintComponent::Datatype(iri.to_owned()))
         } else {
-            ConstraintComponent::Class(iri.to_owned())
+            Some(ConstraintComponent::Class(iri.to_owned()))
         }
     };
 
@@ -1255,22 +1264,22 @@ pub fn derive_validation_shapes(store: &RdfDataset) -> Result<Vec<ValidationShap
                 continue;
             }
 
-            // owl:someValuesFrom is EXISTENTIAL: at least one value satisfies the inner shape →
-            // `sh:qualifiedValueShape [ <inner> ] ; sh:qualifiedMinCount 1`. A blank filler is an
-            // anonymous class expression (union/intersection), carried in the canon, never a bare
-            // blank shape — skip it.
-            if let Some(Node::Iri(cv)) = value(store, &restr_subj, &p_some) {
-                let pc = PropertyConstraintIr::new(
-                    &on,
-                    None,
-                    None,
-                    None,
-                    vec![ConstraintComponent::QualifiedValueShape {
-                        shape: vec![classify(&cv)],
-                        min: Some(1),
-                        max: None,
-                    }],
-                )?;
+            // owl:someValuesFrom is EXISTENTIAL ("K ⊑ ∃P.C"). Its FAITHFUL closed-world reading
+            // (`sh:qualifiedValueShape [ <inner> ] ; sh:qualifiedMinCount 1`) would demand the
+            // value EXIST — but a validation shape is a `logic:ValidationOnly` under-approximation
+            // that must never over-claim (LOGIC-VALIDATION.md, "Where the loss is"), and an
+            // existential over-claims: it false-positives on the ontology's own open-world
+            // value-vocabulary individuals / fixtures, which are instances of a restricted class
+            // yet legitimately do not populate the mediated relation. So the shape projects the
+            // class-membership under-approximation ("any value present on P must be a C" — vacuously
+            // true when absent, identical to the `allValuesFrom` projection); the existential
+            // EXISTENCE obligation is carried in the canonical logic: layer, not the shape. A blank
+            // filler is an anonymous class expression (union/intersection), carried in the canon,
+            // never a bare blank shape — skip it.
+            if let Some(Node::Iri(cv)) = value(store, &restr_subj, &p_some)
+                && let Some(cc) = classify(&cv)
+            {
+                let pc = PropertyConstraintIr::new(&on, None, None, None, vec![cc])?;
                 entry_for(&mut acc, ShapeTarget::Class(class_iri.clone()))
                     .2
                     .push(pc);
@@ -1278,8 +1287,10 @@ pub fn derive_validation_shapes(store: &RdfDataset) -> Result<Vec<ValidationShap
 
             // owl:allValuesFrom is UNIVERSAL: every value satisfies the inner shape → a bare
             // `sh:class` / `sh:datatype` / `sh:nodeKind` on the path. Blank filler → skip.
-            if let Some(Node::Iri(cv)) = value(store, &restr_subj, &p_all) {
-                let pc = PropertyConstraintIr::new(&on, None, None, None, vec![classify(&cv)])?;
+            if let Some(Node::Iri(cv)) = value(store, &restr_subj, &p_all)
+                && let Some(cc) = classify(&cv)
+            {
+                let pc = PropertyConstraintIr::new(&on, None, None, None, vec![cc])?;
                 entry_for(&mut acc, ShapeTarget::Class(class_iri.clone()))
                     .2
                     .push(pc);
@@ -1511,18 +1522,22 @@ pub fn derive_validation_shapes(store: &RdfDataset) -> Result<Vec<ValidationShap
         let p_subj = Subject::Iri(p.clone());
         // rdfs:domain C → a SubjectsOf(P) node condition (every subject of P satisfies it).
         for c in objects(store, &p_subj, &p_domain) {
-            if let Node::Iri(c) = c {
+            if let Node::Iri(c) = c
+                && let Some(cc) = classify(&c)
+            {
                 entry_for(&mut acc, ShapeTarget::SubjectsOf(p.clone()))
                     .1
-                    .push(classify(&c));
+                    .push(cc);
             }
         }
         // rdfs:range C → an ObjectsOf(P) node condition (every object of P satisfies it).
         for c in objects(store, &p_subj, &p_range) {
-            if let Node::Iri(c) = c {
+            if let Node::Iri(c) = c
+                && let Some(cc) = classify(&c)
+            {
                 entry_for(&mut acc, ShapeTarget::ObjectsOf(p.clone()))
                     .1
-                    .push(classify(&c));
+                    .push(cc);
             }
         }
         // owl:FunctionalProperty → each subject of P has ≤1 value (sh:maxCount 1 on P).

@@ -20,7 +20,9 @@
 //!   and this test goes green→red). It additionally asserts the shipped ontology is itself
 //!   coherent (a regression guard on the bundle). This is the literal whole-ontology proof
 //!   and it RUNS ON-GATE, via the dedicated `make
-//!   coherence-gate-teeth` target. The full-bundle chase takes ~95 s, well over the 25 s
+//!   coherence-gate-teeth` target. The full-bundle chase takes ~570 s (the full
+//!   closed-world OWL fragment expanded the DL rule set applied over the whole ~720k-quad
+//!   bundle; it was ~95 s before that), well over the 25 s
 //!   per-test budget, so it stays carved out of the budget-gated `ci`/`default` nextest
 //!   profile by `default-filter` — that exclusion is budget-exempt, not gate-exempt:
 //!   `coherence-gate-teeth` invokes it explicitly with `--ignore-default-filter` and an

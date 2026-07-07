@@ -60,7 +60,7 @@
 #     shape corpus, and the whole-ontology-union path stays covered on maint-heavy
 #     alongside imported_graph_conforms_to_shapes.
 #   - gmeow-logic whole_bundle_coherence_gate_catches_injected_clash:
-#     ~95 s locally; it imports the WHOLE committed `gmeow.gts` bundle and drives
+#     ~570 s locally; it imports the WHOLE committed `gmeow.gts` bundle and drives
 #     the native Nemo chase over it twice (once benign, once with an injected
 #     disjoint-class clash). This exclusion is budget-exempt, NOT gate-exempt: the
 #     test still runs on every `make check` via the dedicated `coherence-gate-teeth`
@@ -197,9 +197,19 @@ slow-timeout = { period = "180s", "terminate-after" = 3, "grace-period" = "30s" 
 # They share the `engine` memory group so the full-bundle chase does not OOM-thrash
 # alongside other chases; the longer timeout is only a runaway cliff, the JUnit budget
 # gate still enforces the 25 s policy.
+#
+# The whole-bundle chase is irreducibly O(bundle size × DL-rule-set). Deriving the
+# full closed-world OWL fragment (domain/range/functional/some+allValues/hasValue/
+# disjoint/oneOf/qualified) expanded the DL rule set, so the single benign+poisoned
+# pass over the whole committed bundle now measures ~570 s locally (was ~95 s). The
+# bundle itself barely grew (the SHACL/ShEx validation-shape projection is a sidecar,
+# not DL axioms — only ~510 shape-touching quads reach the reasoner, all in the
+# core-prefixes projection graph); the added cost is the richer rule set applied over
+# the whole 720k-quad EDB, not shape volume. Raise the runaway cliff to 1200 s
+# (300 s × 4) so this budget-exempt gate has margin over local + CI runtime jitter.
 filter = 'package(gmeow-logic) & binary(coherence_gate)'
 test-group = 'engine'
-slow-timeout = { period = "180s", "terminate-after" = 3, "grace-period" = "30s" }
+slow-timeout = { period = "300s", "terminate-after" = 4, "grace-period" = "30s" }
 
 [[profile.default.overrides]]
 # The consumer `gmeow validate --deep` AC1 test reasons over the user data merged
