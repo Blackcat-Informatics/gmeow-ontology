@@ -1261,6 +1261,17 @@ pub const MIGRATION_FEATURE_REGISTRY: &[(&str, &[Feature])] = &[
         "email/version-memberships",
         &[Feature::Optional, Feature::InitBindings],
     ),
+    // Migrated identity cluster cases (conformance_{gender,sexuality,risk,competency}.rs).
+    ("gender/gender-values", &[Feature::Optional]),
+    (
+        "sexuality/orientation-values",
+        &[Feature::Union, Feature::Bind],
+    ),
+    ("risk/severity-order", &[Feature::FilterNotExists]),
+    (
+        "competency/expertise-expiring-credentials",
+        &[Feature::Bind],
+    ),
 ];
 
 /// The de-duplicated union of every feature tag in [`MIGRATION_FEATURE_REGISTRY`].
