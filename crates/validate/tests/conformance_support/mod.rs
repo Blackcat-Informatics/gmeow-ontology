@@ -467,6 +467,36 @@ impl GraphStore {
         }
     }
 
+    /// Return a new store containing the merged ontology plus every `*.ttl` file in
+    /// `dir` (sorted by path), flattened to the default graph. The multi-file twin of
+    /// [`Self::ontology_plus_ttl_file`], mirroring the Python originals that closed the
+    /// merged graph with `for f in sorted(dir.glob("*.ttl")): graph.parse(f)` (the
+    /// dreaming `examples/` and music `fixtures/` corpora).
+    pub fn ontology_plus_ttl_dir(dir: &Path) -> Self {
+        let mut quads: Vec<purrdf::RdfQuad> = flat_rdf_quads_from_dataset(base_ontology_dataset());
+        let mut ttl_paths: Vec<PathBuf> = std::fs::read_dir(dir)
+            .unwrap_or_else(|e| panic!("cannot read {}: {e}", dir.display()))
+            .filter_map(|e| e.ok().map(|e| e.path()))
+            .filter(|p| p.extension().and_then(|s| s.to_str()) == Some("ttl"))
+            .collect();
+        ttl_paths.sort();
+        for path in &ttl_paths {
+            let ttl = std::fs::read_to_string(path)
+                .unwrap_or_else(|e| panic!("failed to read {}: {e}", path.display()));
+            let fixture = parse_dataset(ttl.as_bytes(), "text/turtle", None)
+                .unwrap_or_else(|e| panic!("fixture parse failed: {e}\n{ttl}"));
+            for mut quad in flat_rdf_quads_from_dataset(&fixture) {
+                quad.graph_name = None;
+                quads.push(quad);
+            }
+        }
+        let merged = flat_dataset_from_quads(&quads).expect("merged dataset must freeze");
+        Self {
+            ds: merged,
+            slice_ds: Arc::new(OnceLock::new()),
+        }
+    }
+
     fn term_id(&self, value: &TermValue) -> Option<purrdf::TermId> {
         self.ds.term_id_by_value(value)
     }
@@ -1272,6 +1302,16 @@ pub const MIGRATION_FEATURE_REGISTRY: &[(&str, &[Feature])] = &[
         "competency/expertise-expiring-credentials",
         &[Feature::Bind],
     ),
+    // Migrated slice cluster cases (conformance_{gts_slice,music_competency,
+    // music_oral_tradition}.rs). The `gts-slice`/`music-oral` rows document the
+    // SPARQL features of migrated `.rq` queries run as smoke/aggregate selects; the
+    // `music-competency` row is a live `QueryCase` (15-way UNION with per-branch BIND).
+    ("gts-slice/evidence-packages-signers", &[Feature::Optional]),
+    (
+        "music-competency/query-bundle",
+        &[Feature::Union, Feature::Bind],
+    ),
+    ("music-oral/oral-works", &[Feature::FilterNotExists]),
 ];
 
 /// The de-duplicated union of every feature tag in [`MIGRATION_FEATURE_REGISTRY`].
@@ -1297,6 +1337,9 @@ enum QuerySource {
     Ontology,
     /// The merged ontology plus a Turtle file (`GraphStore::ontology_plus_ttl_file`).
     OntologyPlus(PathBuf),
+    /// The merged ontology plus every `*.ttl` in a directory
+    /// (`GraphStore::ontology_plus_ttl_dir`).
+    OntologyPlusDir(PathBuf),
     /// A standalone Turtle file (`GraphStore::parse_ttl_file`).
     TtlFile(PathBuf),
     /// Inline Turtle text (`GraphStore::parse_ttl`).
@@ -1326,6 +1369,7 @@ pub struct QueryCase {
     ask_expect: Option<bool>,
     contains_rows: Vec<Vec<TermValue>>,
     row_set: Option<Vec<Vec<TermValue>>>,
+    distinct_row_set: Option<Vec<Vec<TermValue>>>,
     ordered_rows: Option<Vec<Vec<TermValue>>>,
     count_at_least: Option<usize>,
     column_supersets: Vec<(String, Vec<TermValue>)>,
@@ -1348,6 +1392,7 @@ impl QueryCase {
             ask_expect: None,
             contains_rows: Vec::new(),
             row_set: None,
+            distinct_row_set: None,
             ordered_rows: None,
             count_at_least: None,
             column_supersets: Vec::new(),
@@ -1377,6 +1422,13 @@ impl QueryCase {
     /// Query the merged ontology plus a Turtle fixture (repo-relative or absolute).
     pub fn over_ontology_plus(mut self, path: impl Into<PathBuf>) -> Self {
         self.source = QuerySource::OntologyPlus(path.into());
+        self
+    }
+
+    /// Query the merged ontology plus every `*.ttl` in a directory (repo-relative or
+    /// absolute). Mirrors the Python `glob("*.ttl")` fixture/example corpora.
+    pub fn over_ontology_plus_dir(mut self, path: impl Into<PathBuf>) -> Self {
+        self.source = QuerySource::OntologyPlusDir(path.into());
         self
     }
 
@@ -1442,6 +1494,17 @@ impl QueryCase {
         self
     }
 
+    /// Assert the SELECT result equals `rows` as a **distinct set** (order- AND
+    /// multiplicity-insensitive: the actual rows are de-duplicated first). The
+    /// native twin of rdflib originals that folded `graph.query(…)` into a Python
+    /// `set(...)` before comparing — the projection legitimately repeats a row when
+    /// an unprojected join variable multiplies (e.g. a DISTINCT-less competency
+    /// UNION branch with a `hasMetricGroup ?group` join).
+    pub fn select_distinct_set(mut self, rows: Vec<Vec<TermValue>>) -> Self {
+        self.distinct_row_set = Some(rows);
+        self
+    }
+
     /// Assert the SELECT result equals `rows` **in order** (for `ORDER BY`).
     pub fn select_ordered(mut self, rows: Vec<Vec<TermValue>>) -> Self {
         self.ordered_rows = Some(rows);
@@ -1489,6 +1552,7 @@ impl QueryCase {
         let store = match &self.source {
             QuerySource::Ontology => GraphStore::ontology(),
             QuerySource::OntologyPlus(p) => GraphStore::ontology_plus_ttl_file(&Self::resolve(p)),
+            QuerySource::OntologyPlusDir(p) => GraphStore::ontology_plus_ttl_dir(&Self::resolve(p)),
             QuerySource::TtlFile(p) => GraphStore::parse_ttl_file(&Self::resolve(p)),
             QuerySource::RawTtl(t) => GraphStore::parse_ttl(t),
         };
@@ -1501,6 +1565,7 @@ impl QueryCase {
 
         let has_select = !self.contains_rows.is_empty()
             || self.row_set.is_some()
+            || self.distinct_row_set.is_some()
             || self.ordered_rows.is_some()
             || self.count_at_least.is_some()
             || !self.column_supersets.is_empty();
@@ -1572,6 +1637,24 @@ impl QueryCase {
                 multiset_eq(&rows, &want),
                 "QueryCase {:?}: SELECT result set != expected set\n\
                  vars {vars:?}, rows {rows:?}, expected {want:?}\n{query}",
+                self.cq_id
+            );
+        }
+
+        if let Some(exp_rows) = &self.distinct_row_set {
+            // De-duplicate the actual rows (rdflib `set(...)` semantics) before the
+            // set comparison; the expected list is authored distinct.
+            let mut distinct: Vec<Vec<Option<TermValue>>> = Vec::new();
+            for r in &rows {
+                if !distinct.contains(r) {
+                    distinct.push(r.clone());
+                }
+            }
+            let want: Vec<Vec<Option<TermValue>>> = exp_rows.iter().map(|r| want_row(r)).collect();
+            assert!(
+                multiset_eq(&distinct, &want),
+                "QueryCase {:?}: SELECT distinct result set != expected set\n\
+                 vars {vars:?}, distinct rows {distinct:?}, expected {want:?}\n{query}",
                 self.cq_id
             );
         }
