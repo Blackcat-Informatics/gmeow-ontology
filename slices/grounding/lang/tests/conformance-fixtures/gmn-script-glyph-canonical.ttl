@@ -11,15 +11,23 @@
 
 @prefix lang:  <https://blackcatinformatics.ca/lang/> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 @prefix ex:    <http://example.org/lang/> .
 
 # ── The ⊑ glyph, codepoint-explicit, in the GMN script's repertoire ─────────
+# Every glyph also carries its measured token-cost feed (gmeow:gmnGlyphTokenCost),
+# so lang:GmnScriptGlyphCoverageShape's total glyph-cost coverage stays satisfied.
 gmeow:gmnScript lang:hasGrapheme ex:gSquareImage , ex:gMuSigil , ex:gMuMeasure .
 
 ex:gSquareImage a lang:Grapheme ;
     lang:inScript gmeow:gmnScript ;
-    gmeow:gmnCodepoints "U+2291" .
+    gmeow:gmnCodepoints "U+2291" ;
+    gmeow:gmnGlyphTokenCost ex:qCostOne .
+
+ex:qCostOne a math:Quantity ;
+    math:hasDimension math:dimensionless ;
+    math:quantityValue 1 .
 
 # ── Its operator form denotes the subsumption relation through a Denotation ──
 ex:squareImageForm a lang:WordForm ;
@@ -35,9 +43,11 @@ ex:denSquareImage a lang:Denotation ;
 ex:gMuSigil a lang:Grapheme ;
     lang:inScript gmeow:gmnScript ;
     gmeow:gmnCodepoints "U+03BC" ;
+    gmeow:gmnGlyphTokenCost ex:qCostOne ;
     gmeow:gmnSigilScope gmeow:gmnSigilMath .
 
 ex:gMuMeasure a lang:Grapheme ;
     lang:inScript gmeow:gmnScript ;
     gmeow:gmnCodepoints "U+03BC" ;
+    gmeow:gmnGlyphTokenCost ex:qCostOne ;
     gmeow:gmnSigilScope gmeow:gmnSigilLogic .

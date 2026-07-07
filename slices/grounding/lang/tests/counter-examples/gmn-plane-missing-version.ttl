@@ -1,0 +1,16 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Counter-example: a lang:GmnImportedPlane that cites its source work but omits its
+# dcterms:hasVersion edition pin — an unpinned import whose alias table is meaningless
+# without the edition it was drawn from (fires lang:GmnUnattributedPlane via the
+# dcterms:hasVersion sh:minCount of lang:GmnImportedPlaneAttributionShape). The citation
+# is present, so the gmeow:cites minCount stays quiet and exactly one finding fires.
+
+@prefix lang:  <https://blackcatinformatics.ca/lang/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <http://example.org/lang/> .
+
+ex:planeNoVersion a lang:SignSystem , lang:GmnImportedPlane ;
+    gmeow:cites ex:someImportedWork .
+
+ex:someImportedWork a gmeow:CreativeWork .
