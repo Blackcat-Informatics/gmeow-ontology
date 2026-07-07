@@ -138,12 +138,27 @@ impl LossLedger {
             .into_iter()
             .map(|node| {
                 let (from, to) = split_pair_focus(node);
-                let obs = node.observations.first();
-                let note = obs.map(|o| o.message.clone()).unwrap_or_default();
-                let count = obs
-                    .and_then(|o| o.observed.as_ref())
-                    .and_then(|s| s.lexical.parse::<u64>().ok())
-                    .unwrap_or(0);
+                // Aggregate across ALL observations of the node, not just the
+                // first: when two `record_transcode_loss` calls share a
+                // `(code, from, to)` they hash-cons-merge onto one node with
+                // multiple observations, and every observation past the first
+                // would otherwise be silently dropped. The loss note is the
+                // static per-code ledger explanation (invariant across a code's
+                // observations), so one note per row is correct — take the first
+                // non-empty. The count is the runtime item count, so SUM every
+                // observation's count so no dropped item goes unaccounted.
+                let note = node
+                    .observations
+                    .iter()
+                    .map(|o| o.message.clone())
+                    .find(|m| !m.is_empty())
+                    .unwrap_or_default();
+                let count = node
+                    .observations
+                    .iter()
+                    .filter_map(|o| o.observed.as_ref())
+                    .filter_map(|s| s.lexical.parse::<u64>().ok())
+                    .sum();
                 TranscodeLossRow {
                     code: strip_rung(&node.code),
                     from,
@@ -301,6 +316,27 @@ mod tests {
         assert_eq!(rows[2].from, "turtle");
         assert_eq!(rows[2].to, "owl-dl");
         assert_eq!(rows[2].count, 2);
+    }
+
+    #[test]
+    fn transcode_rows_aggregate_multiple_observations_of_one_node() {
+        // Two records sharing the SAME (code, from, to) hash-cons-merge into one
+        // DiagNode carrying two observations. The read-back must aggregate ALL of
+        // them — reading only the first would silently drop the second's count.
+        let mut store = LossLedger::new();
+        store.record_transcode_loss("named-graph-dropped", "trig", "turtle", "graphs go", 2);
+        store.record_transcode_loss("named-graph-dropped", "trig", "turtle", "graphs go", 3);
+
+        let rows = store.transcode_rows();
+        // Still ONE row per (from, to, code) — the observations merged, not the rows.
+        assert_eq!(rows.len(), 1);
+        assert_eq!(rows[0].from, "trig");
+        assert_eq!(rows[0].to, "turtle");
+        assert_eq!(rows[0].code, "named-graph-dropped");
+        // Count is the SUM of every observation (2 + 3), not just the first (2).
+        assert_eq!(rows[0].count, 5);
+        // The static per-code note is preserved, never dropped.
+        assert_eq!(rows[0].note, "graphs go");
     }
 
     #[test]
