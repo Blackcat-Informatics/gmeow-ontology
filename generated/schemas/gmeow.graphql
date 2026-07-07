@@ -51,6 +51,7 @@ enum AffectCompositeEnum {
 
 enum AffectFunctionEnum {
   fnAffectiveIntensity
+  fnArgmax
 }
 
 enum AffectScaleProfileEnum {
@@ -1424,6 +1425,11 @@ enum KnowledgeLevelEnum {
   knowledgeKnowsAbout
   knowledgeMastered
   knowledgeUnderstands
+}
+
+enum LabelSetDecisionRuleEnum {
+  decisionArgmax
+  decisionIndependentThreshold
 }
 
 enum LandTenureTypeEnum {
@@ -3413,6 +3419,14 @@ type AffectComposite {
   affectiveConstituent: [String!]
 }
 
+type AffectDecision {
+  id: String
+  iri: String
+  decidedLabel: AffectClassifierLabel
+  decisionCrossedThreshold: Boolean
+  decisionMargin: Float
+}
+
 type AffectEvaluationConcluded {
   id: String
   iri: String
@@ -3426,6 +3440,7 @@ type AffectFunction {
 type AffectLabelSet {
   id: String
   iri: String
+  labelSetDecision: LabelSetDecisionRule
 }
 
 type AffectScaleProfile {
@@ -4623,7 +4638,6 @@ type DerivationType {
 type DerivedAffectIntensityObservation {
   id: String
   iri: String
-  derivedByFunction: [AffectFunction!]
   intensityBasis: AffectVectorObservation
   metricProfile: AffectScaleProfile
   normFunction: String
@@ -5807,6 +5821,11 @@ type KnowledgeProficiency {
   knowledgeProficiencySubject: Entity
 }
 
+type LabelSetDecisionRule {
+  id: String
+  iri: String
+}
+
 type LandTenure {
   id: String
   iri: String
@@ -6648,6 +6667,7 @@ type Observation {
   id: String
   iri: String
   credibilityScore: [Float!]
+  derivedByFunction: [AffectFunction!]
   facetSubject: [Person!]
   facetVantage: [Agent!]
   observationEvent: [Event!]
@@ -7651,6 +7671,7 @@ type ScoreScale {
 type ScoreSemantics {
   id: String
   iri: String
+  impliesLabelSetDecision: [LabelSetDecisionRule!]
 }
 
 type ScriptLanguageAttribution {
