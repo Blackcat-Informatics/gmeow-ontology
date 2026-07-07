@@ -475,16 +475,37 @@ pub(crate) fn run_reasoning(edb: &RdfDataset, rules: &str) -> Result<Vec<Inferre
     //    fact lines internally).
     let chase = forward_oracle().materialize(&edb_facts, rules, &ForwardBudget::UNBOUNDED)?;
 
-    // 4. Coerce each ternary typed row into an InferredAxiom.
+    // 4. Coerce every ternary typed row into an InferredAxiom.
+    chase_rows_to_inferred(&chase)
+}
+
+/// Coerce a typed chase result into the `Vec<InferredAxiom>` closure the DL/EL
+/// post-passes and result folds consume.
+///
+/// Every reasoning fact is the ternary `predicate(subject, object, world)`. The
+/// rule texts the reasoning chase runs — `EL_RULES`, `dl_rules()`, and the
+/// ternary projections `reason_program` appends — are repo-owned and declare
+/// ONLY ternary relations, so a non-ternary row indicates a rule-text bug and is
+/// a hard error. (This differs from `materialize`'s explicit non-quad bucket:
+/// there the rule text is caller-supplied and may legitimately declare helper
+/// predicates of other arities.)
+///
+/// Factored out of [`run_reasoning`] so the coercion is INDEPENDENT of which
+/// [`ForwardOracle`] produced the closure: a caller holding a native-produced
+/// AND a Nemo-produced [`crate::oracle::TypedChaseResult`] of the same program
+/// can coerce BOTH identically and feed the resulting closures through the
+/// provenance-blind DL post-pass, demonstrating engine-invariance of the
+/// downstream verdict.
+///
+/// # Errors
+///
+/// Returns `Err(String)` if a materialized row is not the ternary reasoning
+/// shape or if a subject/world/premise term cannot be decoded.
+pub(crate) fn chase_rows_to_inferred(
+    chase: &crate::oracle::TypedChaseResult,
+) -> Result<Vec<InferredAxiom>, String> {
     let mut inferred: Vec<InferredAxiom> = Vec::new();
     for (row, prov) in &chase.rows {
-        // Every reasoning fact is the ternary `predicate(subject, object, world)`.
-        // The rule texts this chase runs — EL_RULES, dl_rules(), and the ternary
-        // projections reason_program appends — are repo-owned and declare ONLY
-        // ternary relations, so a non-ternary row indicates a rule-text bug and
-        // is a hard error. (This differs from materialize's explicit non-quad
-        // bucket: there the rule text is caller-supplied and may legitimately
-        // declare helper predicates of other arities.)
         if row.args.len() != 3 {
             return Err(format!(
                 "reasoning chase produced a non-ternary row for predicate \

@@ -587,6 +587,16 @@ const RL_FRAGMENT: SubsumptionFragment = SubsumptionFragment {
     label: "RL",
 };
 
+/// The DL fragment edge — the terminal edge of the EL ⊂ RL ⊂ DL fragment
+/// lattice — over the world-scoped ternary DL Horn closure (`dl_rules()`:
+/// `EL_RULES` + the clash-detection `DL_EXTRA_RULES`). The DL value-invention
+/// witness pass is provenance-blind and downstream of the oracle seam, so the
+/// promoted Horn closure is what this correspondence certifies.
+const DL_FRAGMENT: SubsumptionFragment = SubsumptionFragment {
+    slug: "dl",
+    label: "DL",
+};
+
 /// Banner for a native⊒oracle fragment-subsumption correspondence artifact.
 fn correspondence_header(fragment: &SubsumptionFragment) -> String {
     let label = fragment.label;
@@ -633,6 +643,23 @@ pub fn build_rl_subsumption_correspondence_ttl(
     view_engine: &str,
 ) -> String {
     build_subsumption_correspondence_ttl(&RL_FRAGMENT, ledger, contract_hash, view_engine)
+}
+
+/// Render the native⊒oracle DL-subsumption parity result as a bundle-borne
+/// `logic:Correspondence` individual (the terminal edge of the EL ⊂ RL ⊂ DL
+/// lattice).
+///
+/// Thin wrapper over [`build_subsumption_correspondence_ttl`] pinned to the DL
+/// lattice edge. The certified fragment is the DL Horn closure of `dl_rules()`
+/// (`EL_RULES` + the clash-detection `DL_EXTRA_RULES`); the reified claim shape
+/// is identical to EL's and RL's (native ⊒ oracle, section/retraction, complete
+/// over-approximation, section law discharged within the certified fragment).
+pub fn build_dl_subsumption_correspondence_ttl(
+    ledger: &DivergenceLedger,
+    contract_hash: &str,
+    view_engine: &str,
+) -> String {
+    build_subsumption_correspondence_ttl(&DL_FRAGMENT, ledger, contract_hash, view_engine)
 }
 
 /// Render a native⊒oracle fragment-subsumption parity result as a bundle-borne
