@@ -781,7 +781,7 @@ gmeow:programmingLanguage
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "programming language"@x-gmeow-english ;
     rdfs:range gmeow:Language ;
-    skos:definition "A programming language a software project is implemented in — a gmeow:Language (the language slice's ProgrammingLanguage). Non-functional: a project uses several. Projects to doap:programming-language / schema:programmingLanguage."@x-gmeow-english ;
+    skos:definition "A programming language a software project is implemented in — a gmeow:Language distinguished by lang:signSystemKind lang:programmingLanguageKind. Non-functional: a project uses several. Projects to doap:programming-language / schema:programmingLanguage."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:projectHomepage

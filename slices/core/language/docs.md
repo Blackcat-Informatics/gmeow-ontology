@@ -4,8 +4,9 @@
 # Language — first-class languages, registry-independent by design
 
 > **Slice:** `https://blackcatinformatics.ca/gmeow/slices/language` · **tier: core**
-> The slim language foundation every slice depends on: `Language`, `WritingSystem`,
-> the `x-gmeow-*` tag machinery, and the seed languages the framework itself speaks.
+> The slim language foundation every slice depends on: `Language` (now a
+> `lang:SignSystem`), the scripts it binds via `lang:Orthography`, and the seed
+> languages the framework itself speaks.
 
 The standard pattern — `inLanguage "ja"` — makes a registry code the *identity* of a
 language. GMEOW inverts this: a language is a **first-class information object with a
@@ -32,24 +33,38 @@ A system of signs and rules for communication or computation, under
 `gmeow:InformationObject`. Identity is the IRI; codes are data (`languageCode`), registry
 coreference is `skos:exactMatch` + `gmeow:authorityLink`. Its names are co-equal
 `gmeow:Appellation`s — endonym and exonym, never preferred-vs-alternate (the names
-doctrine); the scripts it is written in bind co-equally via the extension's
-`WritingSystemUsage`.
+doctrine); the scripts it is written in bind co-equally via the grounding layer's
+`lang:Orthography`.
 
-### gmeow:WritingSystem
+### lang:Script · lang:Orthography
 
-A script as a first-class object — Latin, Han, Hiragana, Arabic, Braille, or a bespoke
-conlang/AI script — with `scriptCode` (ISO 15924 *when one exists*), a type, and a text
-direction. Declared here (one-defining-slice rule) so names and documents can reference
-scripts; bound to languages co-equally and simultaneously through the extension — a
-language with three concurrent scripts (Japanese) is the normal case, not an edge case.
+A script is a first-class object — Latin, Han, Hiragana, Arabic, Braille, or a bespoke
+conlang/AI script — now a **`lang:Script`** in the `lang:` grounding layer (the former
+`gmeow:WritingSystem`). Its ISO 15924 code, when one exists, rides `skos:notation` (e.g.
+`skos:notation "Latn"^^xsd:string`); the old `gmeow:writingSystemType` (alphabet /
+syllabary / …) and `gmeow:textDirection` (ltr / rtl / …) facets are a **declared loss** in
+the graft — they have no `lang:` equivalent and are no longer modelled.
+
+A language binds to a script through a **`lang:Orthography`** individual —
+`lang:orthographyFor <language>` and `lang:usesScript <script>` — one orthography per
+(language, script) pair. A language co-mingling several scripts (Japanese = Han + Hiragana +
+Katakana + Latin) simply has several co-equal `lang:Orthography` individuals, so multiple
+concurrent scripts remain the normal case, not an edge case. The former reified
+`gmeow:WritingSystemUsage` relator with its script-role and usage-interval facets is
+retired in the graft (declared loss).
 
 ## The tag machinery
 
-### gmeow:languageTag
+### lang:carrierTag (internal tags retired)
 
-The internal **private-use BCP-47 tag** (`"x-gmeow-english"`) that anchors `@lang`
-annotations on the framework's literals to a first-class `Language` individual. Functional:
-one internal tag per language — this is the join key between literal-space and IRI-space.
+The per-language internal private-use tag (the former `gmeow:languageTag`, `"x-gmeow-english"`)
+is **retired in the graft**: a language's self-minted IRI is now its identity, so most
+languages carry no internal tag at all. The framework's own `@x-gmeow-*` authoring tags now
+ride **`lang:carrierTag`** on exactly three carrier-variety individuals —
+`lang:gmeowEnglish`, `lang:gmeowFrench`, and `lang:gmeowMandarin`, each a
+`lang:LanguageVariety` of the corresponding sign system. Those three are the join key
+between literal-space and IRI-space for GMEOW's own labels and definitions; no other
+language needs one.
 
 ### gmeow:bcp47Tag
 
@@ -66,28 +81,34 @@ registries at once, and a code-less language carries none and loses nothing.
 
 ## The seed languages
 
-### gmeow:langEnglish · gmeow:langMandarin · gmeow:langFrench
+### lang:english · lang:mandarin · lang:french
 
-The languages the framework itself speaks — the individuals anchoring `x-gmeow-english`,
-`x-gmeow-mandarin`, and `x-gmeow-french` on GMEOW's own labels and definitions. They are
-ordinary data, not schema: any slice or dataset mints further languages the same way (the
-exhaustive reference catalog is the design).
+The languages the framework itself speaks — unified with the `lang:` grounding sign systems
+(same identity). GMEOW's own labels and definitions are authored against these three via the
+`@x-gmeow-english` / `@x-gmeow-mandarin` / `@x-gmeow-french` carrier tags (which now ride
+`lang:carrierTag` on the carrier varieties, not the languages themselves). They are ordinary
+data, not schema: any slice or dataset mints further languages the same way (the exhaustive
+reference catalog is the design).
 
 ```turtle
 ex:langKlingon a gmeow:Language ;            # code-less, fully first-class
     rdfs:label "tlhIngan Hol"@x-gmeow-klingon ;
-    gmeow:languageTag "x-gmeow-klingon" ;
     gmeow:languageCode "tlh" .               # alignment, not identity
 ```
 
 ## Formal languages and transliteration
 
-### gmeow:FormalLanguage · gmeow:ProgrammingLanguage
+### lang:signSystemKind — formal and programming languages
 
 Grammar-defined languages with machine modality and no native speakers — programming,
-markup, query, logic, schema languages. A thin structural split (the sociolinguistic facets
-simply don't apply), with `ProgrammingLanguage` as the first-class target of
-`writtenInLanguage` for the software slice's source trees.
+markup, query, logic, schema languages. The old `gmeow:FormalLanguage` → `gmeow:ProgrammingLanguage`
+subclass ladder is retired: `gmeow:Language` (now `rdfs:subClassOf lang:SignSystem`) carries
+the distinction as data via **`lang:signSystemKind`** pointing at kind individuals —
+`lang:formalLanguageKind` for formal languages, and `lang:programmingLanguageKind` (which
+refines `formalLanguageKind` via `skos:broader`) for programming languages. A programming
+language is thus written `a gmeow:Language ; lang:signSystemKind lang:programmingLanguageKind ;
+lang:modality lang:writtenModality`, and remains the first-class target of `writtenInLanguage`
+for the software slice's source trees.
 
 ### gmeow:transliterationScheme · gmeow:TransliterationScheme
 

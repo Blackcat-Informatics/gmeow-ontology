@@ -9,12 +9,13 @@
 # (inheritance / borrowing / calque / sound-change …) — so "English 'ontology'
 # was BORROWED from Greek" is a first-class, typed claim, not a free-text note.
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix lang:   <https://blackcatinformatics.ca/lang/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/lexicon/> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 
 # --- The English lexeme and its written form.
 ex:ontology a gmeow:LexicalItem ;
-    gmeow:lexicalItemLanguage gmeow:langEnglish ;
+    gmeow:lexicalItemLanguage lang:english ;
     gmeow:hasLexicalForm      ex:ontologyForm .
 
 ex:ontologyForm a gmeow:LexicalForm ;
@@ -23,7 +24,7 @@ ex:ontologyForm a gmeow:LexicalForm ;
     gmeow:formType           gmeow:formWritten .
 
 # --- The Greek source lexeme it derives from.
-ex:greek a gmeow:Language ; rdfs:label "Ancient Greek"@x-gmeow-english ; gmeow:bcp47Tag "grc" .
+ex:greek a gmeow:Language ; rdfs:label "Ancient Greek"@x-gmeow-english ; gmeow:languageCode "grc" .
 
 ex:greekOntos a gmeow:LexicalItem ;
     gmeow:lexicalItemLanguage ex:greek ;

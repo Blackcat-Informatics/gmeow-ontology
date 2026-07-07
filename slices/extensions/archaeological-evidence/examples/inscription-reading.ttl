@@ -8,6 +8,7 @@
 # worn marks COEXIST, neither privileged. A gmeow:ScriptLanguageAttribution
 # (cuneiform / Akkadian) is likewise a vantage-scoped claim, not a settled label.
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix lang:   <https://blackcatinformatics.ca/lang/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/archaeological-evidence/> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 
@@ -39,8 +40,8 @@ ex:transcriptSmith a gmeow:InformationObject ; rdfs:label "…šarru rabû…"@x
 ex:transcriptJones a gmeow:InformationObject ; rdfs:label "…šarru danну…"@x-gmeow-english .
 
 # --- Script + language attribution: also a reified, vantage-scoped claim.
-ex:cuneiform a gmeow:WritingSystem ; rdfs:label "Cuneiform"@x-gmeow-english .
-ex:akkadian  a gmeow:Language ; rdfs:label "Akkadian"@x-gmeow-english ; gmeow:bcp47Tag "akk" .
+ex:cuneiform a lang:Script ; rdfs:label "Cuneiform"@x-gmeow-english .
+ex:akkadian  a gmeow:Language ; rdfs:label "Akkadian"@x-gmeow-english ; gmeow:languageCode "akk" .
 
 ex:attribution a gmeow:ScriptLanguageAttribution ;
     gmeow:attributionTarget  ex:inscription ;

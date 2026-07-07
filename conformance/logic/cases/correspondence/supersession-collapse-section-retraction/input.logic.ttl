@@ -1,0 +1,26 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Conformance case: correspondence/supersession-collapse-section-retraction
+# AC: the lang:-graft FormalLanguage → formalLanguageKind collapse reaches the
+#     section/retraction rung — the round-trip + mnemomorphism gates PASS on the
+#     canonical IR (the two lang:SignSystemKind individuals bijectively recover the
+#     two-way distinction, so put ∘ get = id). Mirrors the machine-checked
+#     correspondence the logic-compile stage enforces over imports/supersession-
+#     correspondences.ttl; a permanent regression fixture for the enforcement.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex: <https://gmeow.example/corr/> .
+
+ex:collapse a logic:Correspondence ;
+    logic:correspondenceRelation logic:Subsumes ;
+    logic:morphismClass logic:SectionRetraction ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:mnemomorphic "true"^^xsd:boolean ;
+    logic:getLeg ex:collapseGet .
+
+# The get leg reads the language's signSystemKind; the retraction (put) is its
+# structural inverse (recover the class from the kind value).
+ex:collapseGet gmeow:path ex:collapseStep .
