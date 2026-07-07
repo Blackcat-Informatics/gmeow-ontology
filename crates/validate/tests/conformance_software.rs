@@ -403,12 +403,15 @@ fn fixture_has_diff() {
 #[test]
 fn fixture_repository_has_materialization_depth() {
     let g = fixture_store();
-    let (vars, rows) = g.select(&format!(
-        "PREFIX ex: <{EX}>\n\
+    let (vars, rows) = g.select(
+        &[],
+        &format!(
+            "PREFIX ex: <{EX}>\n\
          PREFIX gmeow: <{GMEOW}>\n\
          PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\n\
          SELECT ?v WHERE {{ ex:repo gmeow:materializationDepth ?v }}"
-    ));
+        ),
+    );
     assert_eq!(
         rows.len(),
         1,

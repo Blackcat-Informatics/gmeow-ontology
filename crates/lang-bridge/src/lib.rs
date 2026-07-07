@@ -28,6 +28,7 @@ pub mod bridge;
 pub mod conllu;
 pub mod emit;
 pub mod engine;
+pub mod gmn_symbology;
 pub mod grammar;
 pub mod lower;
 pub mod nif;
@@ -51,6 +52,7 @@ pub use emit::{assert_no_digest_collision, digest16, ntriples_sorted};
 pub use engine::{
     EngineError, EngineRegistry, FixtureEngine, NlpEngine, Reading, interpretation_act_to_ntriples,
 };
+pub use gmn_symbology::{GMN_LANG_AST_COLUMNS, gmn_glyph_token_cost};
 pub use grammar::{
     AbnfBridge, EbnfBridge, Formalism, Grammar, GrammarRule, RuleExpr, canonicalize_expr,
     grammar_correspondence, grammar_leg_pair, grammar_to_ntriples, parse_grammar,
