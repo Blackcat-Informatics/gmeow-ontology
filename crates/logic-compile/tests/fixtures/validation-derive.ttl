@@ -1,0 +1,54 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# An authored OWL/RDFS constraint fragment in the GMEOW namespace, used by the
+# `derived_validation_shapes_project_golden` test to dogfood the derive→project
+# spine: `derive_validation_shapes` lowers these axioms to `ValidationShapeIr`,
+# which `compile_program` then projects to the SHACL Core + ShEx surfaces. The
+# fragment is chosen so the derived set spans several constraint families and
+# carries at least one lossy (residue-bearing) construct — the faceted-datatype
+# regex pattern on `g:bic`.
+
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix g:    <https://blackcatinformatics.ca/gmeow/> .
+
+# Cardinality restriction → sh:minCount / sh:maxCount (OwlRestriction provenance).
+g:JournalEntry a owl:Class ;
+    rdfs:subClassOf [ a owl:Restriction ;
+        owl:onProperty g:entryLine ;
+        owl:minCardinality "2"^^xsd:nonNegativeInteger ;
+        owl:maxCardinality "9"^^xsd:nonNegativeInteger ] .
+
+# Existential restriction → the class-membership under-approximation (bare sh:class).
+g:Doc a owl:Class .
+g:Article a owl:Class ;
+    rdfs:subClassOf [ a owl:Restriction ;
+        owl:onProperty g:cites ;
+        owl:someValuesFrom g:Doc ] .
+
+# Disjointness → sh:not [ sh:class D ].
+g:Animal a owl:Class .
+g:Plant a owl:Class ;
+    owl:disjointWith g:Animal .
+
+# Functional datatype property → sh:maxCount 1.
+g:primaryId a owl:FunctionalProperty .
+
+# Single-property key → an inverse-path uniqueness shape (sh:inversePath ; sh:maxCount 1).
+g:GTSSegment a owl:Class ;
+    owl:hasKey ( g:gtsHeadId ) .
+
+# Faceted-datatype allValuesFrom → sh:minLength / sh:maxLength / sh:pattern; the regex
+# carries XPath-dialect residue (lossy) so the derived set exercises the loss ledger.
+g:FinancialAccount a owl:Class ;
+    rdfs:subClassOf [ a owl:Restriction ;
+        owl:onProperty g:bic ;
+        owl:allValuesFrom [ a rdfs:Datatype ;
+            owl:onDatatype xsd:string ;
+            owl:withRestrictions (
+                [ xsd:minLength "8"^^xsd:nonNegativeInteger ]
+                [ xsd:maxLength "11"^^xsd:nonNegativeInteger ]
+                [ xsd:pattern "^[A-Z]{6}[A-Z0-9]{2}([A-Z0-9]{3})?$" ] ) ] ] .
