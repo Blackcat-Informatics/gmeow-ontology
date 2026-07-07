@@ -297,14 +297,22 @@ fn emit_tag_set(derivations: &[Bcp47Derivation]) -> LangEmission {
         digest16("lang-bcp47-tagset", &corr_key)
     );
 
-    let artifacts = if any_tag {
-        vec![EmittedArtifact {
-            path_suffix: "bcp47-tags.ttl".to_owned(),
-            bytes: ntriples_sorted(tag_lines),
-            is_rdf: true,
-        }]
+    // The generated `<variety> gmeow:bcp47Tag "tag"` triples land BOTH in the committed
+    // `bcp47-tags.ttl` artifact AND — via `source_rdf` — in the reasoned corpus graph
+    // (`graph/lang-projection-corpus`), so SPARQL projection consumers resolve a variety's tag
+    // from the bundle, joining through `lang:varietyOf`. Byte-identical, sorted N-Triples.
+    let (artifacts, source_rdf) = if any_tag {
+        let tags_nt = ntriples_sorted(tag_lines);
+        (
+            vec![EmittedArtifact {
+                path_suffix: "bcp47-tags.ttl".to_owned(),
+                bytes: tags_nt.clone(),
+                is_rdf: true,
+            }],
+            tags_nt,
+        )
     } else {
-        Vec::new()
+        (Vec::new(), Vec::new())
     };
 
     let correspondence =
@@ -328,7 +336,7 @@ fn emit_tag_set(derivations: &[Bcp47Derivation]) -> LangEmission {
         unsupported: residue,
         round_trip_holds: false,
         lossy_kind: PreservationKind::SoundUnder,
-        source_rdf: Vec::new(),
+        source_rdf,
     }
 }
 
@@ -459,6 +467,20 @@ ex:conlangVariety a lang:LanguageVariety ; lang:varietyOf ex:conlang .
         assert!(
             ttl.contains(&format!("<{GMEOW_BCP47_TAG}> \"fr-CA\"")),
             "{ttl}"
+        );
+
+        // The generated tag triples are ALSO folded into source_rdf, so they enter the reasoned
+        // corpus graph the SPARQL projection consumers query (byte-identical to the artifact).
+        assert_eq!(
+            e.source_rdf, e.artifacts[0].bytes,
+            "the generated tag triples must ride source_rdf into the bundle graph"
+        );
+        let src = String::from_utf8(e.source_rdf.clone()).unwrap();
+        assert!(
+            src.contains(&format!(
+                "<http://example.org/lang/quebecFrench> <{GMEOW_BCP47_TAG}> \"fr-CA\""
+            )),
+            "the folded source_rdf carries the <variety> gmeow:bcp47Tag triple: {src}"
         );
 
         // The projection is honestly lossy: SoundUnder, never exact, with the flattened strata

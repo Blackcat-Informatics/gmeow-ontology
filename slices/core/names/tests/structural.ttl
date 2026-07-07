@@ -619,3 +619,45 @@ ASK {
     gmeow:hasNamePart rdfs:subPropertyOf gmeow:hasPart .
 }""" ;
     gmeow:saRationale "gmeow:hasNamePart MUST be rdfs:subPropertyOf gmeow:hasPart -- name decomposition specializes the universal has-part spine. Mirrors test_existing_part_like_relations_specialize_the_spine (names hasPart side)." .
+
+# --- 52. appellationDenotation is the lang:Denotation graft seam (MUST) --------
+#     Task-4 floor: the naming→referent bridge is grounded in the lang: layer.
+ex:saAppellationDenotationGraft a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX lang: <https://blackcatinformatics.ca/lang/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:appellationDenotation a owl:ObjectProperty ;
+        rdfs:domain gmeow:Appellation ;
+        rdfs:range lang:Denotation .
+}""" ;
+    gmeow:saRationale "gmeow:appellationDenotation MUST be an owl:ObjectProperty with domain gmeow:Appellation and range lang:Denotation -- the Task-4 floor graft (Principle 19): an appellation's form denotes its bearer through a reified lang:Denotation, so the names slice reuses the lang: reference corner rather than minting a local meaning record." .
+
+# --- 53. nameScript is regrounded onto lang:Script (MUST) ---------------------
+#     Task-4 REGROUNDING: nameScript migrates from a bare ISO 15924 literal to a
+#     first-class lang:Script object property.
+ex:saNameScriptRegroundedToLangScript a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX lang: <https://blackcatinformatics.ca/lang/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:nameScript a owl:ObjectProperty ;
+        rdfs:domain gmeow:Appellation ;
+        rdfs:range lang:Script .
+}""" ;
+    gmeow:saRationale "gmeow:nameScript MUST be an owl:ObjectProperty with domain gmeow:Appellation and range lang:Script -- regrounded (Principle 19) from a bare ISO 15924 literal onto the first-class lang:Script individual, whose code rides skos:notation, so script identity is shared with the writing-system / notation graft." .
+
+# --- 54. nameScript is NOT a DatatypeProperty (MUST-NOT) ----------------------
+ex:saNameScriptNotDatatypeProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:nameScript a owl:DatatypeProperty . }""" ;
+    gmeow:saRationale "gmeow:nameScript MUST NOT be an owl:DatatypeProperty -- the bare ISO 15924 literal carrier is retired under the lang: graft; script is always a first-class lang:Script individual, never an opaque code string." .

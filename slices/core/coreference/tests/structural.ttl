@@ -177,3 +177,29 @@ ex:saVersionOfDomainEntity a gmeow:StructuralAssertion ;
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK { gmeow:versionOf rdfs:domain gmeow:Entity . }""" ;
     gmeow:saRationale "gmeow:versionOf MUST have rdfs:domain gmeow:Entity -- any GMEOW entity may be versioned, not only creative works. Mirrors test_universal_version_and_edition_lineage_terms (versionOf-domain part)." .
+
+# --- 17. corefDenotation is the lang:Denotation reference-resolution graft (MUST)
+#     Task-5 floor: the reference-resolution seam ("these forms denote the SAME
+#     referent") is grounded in the lang: layer, distinct from identity lineage.
+ex:saCorefDenotationGraft a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX lang: <https://blackcatinformatics.ca/lang/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:corefDenotation a owl:ObjectProperty ;
+        rdfs:domain gmeow:Entity ;
+        rdfs:range lang:Denotation .
+}""" ;
+    gmeow:saRationale "gmeow:corefDenotation MUST be an owl:ObjectProperty with domain gmeow:Entity and range lang:Denotation -- the Task-5 floor graft (Principle 19): the reference-resolution seam resolves a form to its referent through a reified lang:Denotation, and coreference is decided by a shared lang:denotationTarget, distinct from the identity-lineage links (authorityLink/counterpartOf/versionOf/editionOf/supersedes)." .
+
+# --- 18. corefDenotation is NOT owl:FunctionalProperty (MUST-NOT) -------------
+ex:saCorefDenotationNotFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:corefDenotation a owl:FunctionalProperty . }""" ;
+    gmeow:saRationale "gmeow:corefDenotation MUST NOT be owl:FunctionalProperty -- one entity may be resolved by several context-scoped lang:Denotations (many forms denote it), so the reference-resolution seam is non-functional by design." .

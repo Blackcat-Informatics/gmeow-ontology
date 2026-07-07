@@ -91,6 +91,17 @@
 #     these three past budget on bundle-size alone, not fixture cost. Coverage stays:
 #     the written serializations are drift-gated on every `make check` via
 #     `make check-generated`, and all three stay on-gate on `maint-heavy`.
+#   - gmeow-docs extract_roundtrip::rendered_tree_is_disk_faithful: 32.6 s. It
+#     drives the real `render::write_site` over the WHOLE (primed) documentation
+#     site — writing every page to disk and reading each back to prove the on-disk
+#     bytes equal the in-memory Site — so it is irreducibly O(site size), the same
+#     whole-bundle class as the parity/superset tests above. The site render itself
+#     is primed (not in the test's time); the cost is the per-file disk write+read
+#     round-trip over the whole tree, which the lang: graft + correspondence-laws
+#     surface grew past budget on page-count alone, not fixture cost. Coverage
+#     stays: the write contract runs on every `make check` (the docs fanout is
+#     drift-gated via `make check-generated`) and the test stays on-gate on
+#     `maint-heavy`.
 default-filter = '''
   not (
     (package(gmeow-validate) & test(/deep_surfaces_entailed_inconsistency.*heavy_offgate/))
@@ -105,6 +116,7 @@ default-filter = '''
     | (package(gmeow-validate) & (binary(conformance_finance) | binary(conformance_agentic) | binary(conformance_ai_claims) | binary(conformance_music_analysis)))
     | (package(gmeow-dev-cli) & binary(cli_parity) & test(build_writes_serializations))
     | (package(gmeow-cli) & binary(cli) & (test(export_respects_language_selector) | test(project_schema_org_view_filter)))
+    | (package(gmeow-docs) & binary(extract_roundtrip) & test(rendered_tree_is_disk_faithful))
   )
 '''
 slow-timeout = { period = "60s", "terminate-after" = 2, "grace-period" = "30s" }

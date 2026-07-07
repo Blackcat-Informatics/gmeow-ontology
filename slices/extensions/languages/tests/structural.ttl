@@ -12,10 +12,6 @@
 # logic:QualityValue), not gufo:.
 #
 # RETAINED in pytest (not migratable here):
-#   test_language_hierarchy — Language, FormalLanguage, ProgrammingLanguage,
-#     WritingSystem are defined in slices/core/language/module.ttl; only
-#     LanguageVersion is local, but the test checks all five together as one
-#     cross-slice structural invariant.
 #   test_registry_independence_no_required_code — gmeow:languageCode is
 #     defined in slices/core/language/module.ttl (cross-slice), and the test
 #     also performs a dynamic cardinality-restriction sweep over the graph.
@@ -24,88 +20,25 @@
 #   test_software_bridge_and_version_lineage — gmeow:writtenInLanguage is in
 #     slices/core/language/module.ttl and gmeow:versionOf is in
 #     slices/core/coreference/module.ttl (both cross-slice).
-#   test_internal_language_tags — gmeow:languageTag is defined in
-#     slices/core/language/module.ttl (cross-slice).
-#   test_projection_bcp47_tags_are_distinct_from_registry_codes — gmeow:bcp47Tag
-#     is defined in slices/core/language/module.ttl (cross-slice).
-#   test_core_seed_languages_use_reference_catalog_iris — langEnglish,
-#     langFrench, langMandarin are defined in slices/core/language/module.ttl
-#     (cross-slice).
 #   test_reference_catalog_languages_are_annotated_and_aligned — uses
-#     include_imports=True; dynamic sweep of 184 ISO 639-1 codes with numeric
+#     include_imports=True; dynamic sweep of ISO 639-1 codes with numeric
 #     count assertions against the reference catalog.
-#   test_reference_catalog_writing_systems_are_annotated — include_imports=True;
-#     dynamic sweep over all writing systems linked from catalog languages.
-#   test_reference_catalog_programming_languages_typed — include_imports=True;
-#     subjects (langPython, langRust, langJavaScript, langTypeScript, langJava)
-#     are in the reference catalog, not this module.
 #   test_reference_catalog_glottolog_alignments — include_imports=True; dynamic
 #     check on catalog-only language subjects.
-#   test_language_tag_map_is_deterministic_and_covers_catalog — tests the
-#     gmeow_tools.language_tags.load_tag_map Python function; not a TBox triple
-#     assertion.
-#   test_inverse_tag_map_recovers_natural_internal_tags — tests
-#     load_inverse_tag_map Python function; not a TBox triple assertion.
-#   test_retag_graph_to_internal_lifts_public_to_canonical — tests
-#     retag_graph_to_internal Python function on a synthetic graph; not a TBox
-#     triple assertion.
+#
+# SUPERSEDED by the lang: graft (Principle 6/19): the pre-graft spine —
+# gmeow:FormalLanguage / gmeow:ProgrammingLanguage / gmeow:WritingSystem, the
+# gmeow:WritingSystemUsage relator and its scriptRole/scriptCode/textDirection/
+# writingSystemType value vocabularies, the internal gmeow:languageTag, and the
+# core seed languages — is retired. Scripts are lang:Script, orthographies are
+# lang:Orthography, and the natural/formal/programming distinction is carried by
+# lang:signSystemKind (lang:formalLanguageKind / lang:programmingLanguageKind).
+# The pytest twins that asserted the retired spine are migrated with the graft.
 #
 # See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest→DSL mapping.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/languages/tests/> .
-
-# ---------------------------------------------------------------------------
-# GROUP 1: WritingSystemUsage reified relator and its functional roles (MUST)
-# Mirrors test_reified_relators_and_functional_roles (WritingSystemUsage arm).
-# ---------------------------------------------------------------------------
-
-# --- 1. WritingSystemUsage is a logic:Kind and subclass of logic:Relator (MUST)
-ex:saWritingSystemUsageIsRelator a gmeow:StructuralAssertion ;
-    gmeow:saPolarity gmeow:must ;
-    gmeow:saScope gmeow:scopeModule ;
-    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX logic: <https://blackcatinformatics.ca/logic/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-ASK {
-    gmeow:WritingSystemUsage a owl:Class , logic:Kind ;
-        rdfs:subClassOf logic:Relator .
-}""" ;
-    gmeow:saRationale "gmeow:WritingSystemUsage MUST be an owl:Class typed logic:Kind and a subclass of logic:Relator — it is the reified binding of {language} × {writing system} × {role} × {period}. Mirrors test_reified_relators_and_functional_roles (WritingSystemUsage relator arm)." .
-
-# --- 2. usageLanguage is a functional ObjectProperty (MUST)
-ex:saUsageLanguageFunctional a gmeow:StructuralAssertion ;
-    gmeow:saPolarity gmeow:must ;
-    gmeow:saScope gmeow:scopeModule ;
-    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK {
-    gmeow:usageLanguage a owl:ObjectProperty , owl:FunctionalProperty .
-}""" ;
-    gmeow:saRationale "gmeow:usageLanguage MUST be an owl:ObjectProperty and owl:FunctionalProperty — constitutive of WritingSystemUsage (exactly one language per usage). Mirrors test_reified_relators_and_functional_roles (usageLanguage role arm)." .
-
-# --- 3. usageWritingSystem is a functional ObjectProperty (MUST)
-ex:saUsageWritingSystemFunctional a gmeow:StructuralAssertion ;
-    gmeow:saPolarity gmeow:must ;
-    gmeow:saScope gmeow:scopeModule ;
-    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK {
-    gmeow:usageWritingSystem a owl:ObjectProperty , owl:FunctionalProperty .
-}""" ;
-    gmeow:saRationale "gmeow:usageWritingSystem MUST be an owl:ObjectProperty and owl:FunctionalProperty — constitutive of WritingSystemUsage (exactly one writing system per usage). Mirrors test_reified_relators_and_functional_roles (usageWritingSystem role arm)." .
-
-# --- 4. scriptRole is a functional ObjectProperty (MUST)
-ex:saScriptRoleFunctional a gmeow:StructuralAssertion ;
-    gmeow:saPolarity gmeow:must ;
-    gmeow:saScope gmeow:scopeModule ;
-    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK {
-    gmeow:scriptRole a owl:ObjectProperty , owl:FunctionalProperty .
-}""" ;
-    gmeow:saRationale "gmeow:scriptRole MUST be an owl:ObjectProperty and owl:FunctionalProperty — one role per usage (a script playing two roles is two usages). Mirrors test_reified_relators_and_functional_roles (scriptRole role arm)." .
 
 # ---------------------------------------------------------------------------
 # GROUP 2: LanguageProficiency reified relator and its functional roles (MUST)
@@ -296,81 +229,6 @@ ASK {
 }""" ;
     gmeow:saRationale "Sample LanguageStatus individuals (statusLiving, statusConstructedActive) MUST exist as typed individuals. Mirrors test_value_vocabularies_not_subclasses (LanguageStatus sample individuals arm)." .
 
-# --- 17. WritingSystemType is a logic:AbstractIndividualType subclassing logic:QualityValue (MUST)
-ex:saWritingSystemTypeIsValueVocab a gmeow:StructuralAssertion ;
-    gmeow:saPolarity gmeow:must ;
-    gmeow:saScope gmeow:scopeModule ;
-    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX logic: <https://blackcatinformatics.ca/logic/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-ASK {
-    gmeow:WritingSystemType a owl:Class , logic:AbstractIndividualType ;
-        rdfs:subClassOf logic:QualityValue .
-}""" ;
-    gmeow:saRationale "gmeow:WritingSystemType MUST be an owl:Class typed logic:AbstractIndividualType and a subclass of logic:QualityValue — writing system structural kinds are an individuals-based value vocabulary. Mirrors test_value_vocabularies_not_subclasses (WritingSystemType class arm)." .
-
-# --- 18. WritingSystemType seed individuals exist (MUST)
-ex:saWritingSystemTypeSeeds a gmeow:StructuralAssertion ;
-    gmeow:saPolarity gmeow:must ;
-    gmeow:saScope gmeow:scopeModule ;
-    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-ASK {
-    gmeow:wsTypeLogographic a gmeow:WritingSystemType .
-    gmeow:wsTypeNonLinear   a gmeow:WritingSystemType .
-}""" ;
-    gmeow:saRationale "Sample WritingSystemType individuals (wsTypeLogographic, wsTypeNonLinear) MUST exist as typed individuals. Mirrors test_value_vocabularies_not_subclasses (WritingSystemType sample individuals arm)." .
-
-# --- 19. TextDirection is a logic:AbstractIndividualType subclassing logic:QualityValue (MUST)
-ex:saTextDirectionIsValueVocab a gmeow:StructuralAssertion ;
-    gmeow:saPolarity gmeow:must ;
-    gmeow:saScope gmeow:scopeModule ;
-    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX logic: <https://blackcatinformatics.ca/logic/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-ASK {
-    gmeow:TextDirection a owl:Class , logic:AbstractIndividualType ;
-        rdfs:subClassOf logic:QualityValue .
-}""" ;
-    gmeow:saRationale "gmeow:TextDirection MUST be an owl:Class typed logic:AbstractIndividualType and a subclass of logic:QualityValue — writing directions are an individuals-based value vocabulary. Mirrors test_value_vocabularies_not_subclasses (TextDirection class arm)." .
-
-# --- 20. TextDirection seed individuals exist (MUST)
-ex:saTextDirectionSeeds a gmeow:StructuralAssertion ;
-    gmeow:saPolarity gmeow:must ;
-    gmeow:saScope gmeow:scopeModule ;
-    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-ASK {
-    gmeow:directionLtr           a gmeow:TextDirection .
-    gmeow:directionBoustrophedon a gmeow:TextDirection .
-}""" ;
-    gmeow:saRationale "Sample TextDirection individuals (directionLtr, directionBoustrophedon) MUST exist as typed individuals. Mirrors test_value_vocabularies_not_subclasses (TextDirection sample individuals arm)." .
-
-# --- 21. ScriptRole is a logic:AbstractIndividualType subclassing logic:QualityValue (MUST)
-ex:saScriptRoleIsValueVocab a gmeow:StructuralAssertion ;
-    gmeow:saPolarity gmeow:must ;
-    gmeow:saScope gmeow:scopeModule ;
-    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX logic: <https://blackcatinformatics.ca/logic/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-ASK {
-    gmeow:ScriptRole a owl:Class , logic:AbstractIndividualType ;
-        rdfs:subClassOf logic:QualityValue .
-}""" ;
-    gmeow:saRationale "gmeow:ScriptRole MUST be an owl:Class typed logic:AbstractIndividualType and a subclass of logic:QualityValue — script roles are an individuals-based value vocabulary. Mirrors test_value_vocabularies_not_subclasses (ScriptRole class arm)." .
-
-# --- 22. ScriptRole seed individuals exist (MUST)
-ex:saScriptRoleSeeds a gmeow:StructuralAssertion ;
-    gmeow:saPolarity gmeow:must ;
-    gmeow:saScope gmeow:scopeModule ;
-    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-ASK {
-    gmeow:scriptRoleLogographicContent a gmeow:ScriptRole .
-    gmeow:scriptRoleTransliteration    a gmeow:ScriptRole .
-}""" ;
-    gmeow:saRationale "Sample ScriptRole individuals (scriptRoleLogographicContent, scriptRoleTransliteration) MUST exist as typed individuals. Mirrors test_value_vocabularies_not_subclasses (ScriptRole sample individuals arm)." .
-
 # ---------------------------------------------------------------------------
 # GROUP 4: Value vocab individuals — logic:-typed classes (subjects local; class cross-slice)
 # ProficiencyModality, ProficiencyScale, ProficiencyLevel are defined in
@@ -444,33 +302,6 @@ ASK {
     gmeow:saRationale "gmeow:cefrB2 MUST carry gmeow:levelScale gmeow:scaleCEFR — every proficiency-level individual declares which scale it belongs to via the functional levelScale property. Mirrors test_cefr_levels_carry_their_scale." .
 
 # ---------------------------------------------------------------------------
-# GROUP 6: scriptUsageInterval is distinct from names' usageInterval (MUST/MUST-NOT)
-# Mirrors test_script_usage_interval_distinct_from_names_usage_interval.
-# ---------------------------------------------------------------------------
-
-# --- 28. scriptUsageInterval has domain WritingSystemUsage (MUST)
-ex:saScriptUsageIntervalDomain a gmeow:StructuralAssertion ;
-    gmeow:saPolarity gmeow:must ;
-    gmeow:saScope gmeow:scopeModule ;
-    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-ASK {
-    gmeow:scriptUsageInterval rdfs:domain gmeow:WritingSystemUsage .
-}""" ;
-    gmeow:saRationale "gmeow:scriptUsageInterval MUST have rdfs:domain gmeow:WritingSystemUsage — the languages relator carries its period via a DISTINCT property, not by reusing names' usageInterval. Mirrors test_script_usage_interval_distinct_from_names_usage_interval (positive domain arm)." .
-
-# --- 29. usageInterval does NOT have domain WritingSystemUsage (MUST-NOT)
-ex:saUsageIntervalNotDomainWritingSystemUsage a gmeow:StructuralAssertion ;
-    gmeow:saPolarity gmeow:mustNot ;
-    gmeow:saScope gmeow:scopeModule ;
-    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-ASK {
-    gmeow:usageInterval rdfs:domain gmeow:WritingSystemUsage .
-}""" ;
-    gmeow:saRationale "gmeow:usageInterval MUST NOT have rdfs:domain gmeow:WritingSystemUsage — usageInterval stays scoped to NameUsage in the names module; WritingSystemUsage uses the distinct scriptUsageInterval property. Mirrors test_script_usage_interval_distinct_from_names_usage_interval (negative mustNot arm)." .
-
-# ---------------------------------------------------------------------------
 # GROUP 7: knowsLanguage shortcut and nativeLanguage sub-property (MUST/MUST-NOT)
 # Mirrors test_knows_language_shortcut_and_native_subproperty.
 # ---------------------------------------------------------------------------
@@ -517,7 +348,7 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:LanguageVersion rdfs:subClassOf gmeow:Language .
 }""" ;
-    gmeow:saRationale "gmeow:LanguageVersion MUST be rdfs:subClassOf gmeow:Language — a dated language revision is itself a fully usable language bearing its own scripts, names and status. This is the languages-extension arm of the language hierarchy spine (the core arm — Language/FormalLanguage/ProgrammingLanguage/WritingSystem — is pinned in slices/core/language). Mirrors test_language_hierarchy (LanguageVersion arm)." .
+    gmeow:saRationale "gmeow:LanguageVersion MUST be rdfs:subClassOf gmeow:Language — a dated language revision is itself a fully usable language bearing its own scripts, names and status. This is the languages-extension arm of the language hierarchy spine (the core arm — gmeow:Language as a lang:SignSystem specialization — is pinned in slices/core/language, with the natural/formal/programming distinction carried by lang:signSystemKind rather than a subclass ladder)." .
 
 # --- 34. LanguageVersion carries logic:SubKind discipline (MUST)
 ex:saLanguageVersionIsSubKind a gmeow:StructuralAssertion ;

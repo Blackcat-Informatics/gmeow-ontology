@@ -1,4 +1,5 @@
 @prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix lang:    <https://blackcatinformatics.ca/lang/> .
 @prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix ontolex: <http://www.w3.org/ns/lemon/ontolex#> .
@@ -15,7 +16,8 @@ gmeow:mapOntolexName a gmeow:ProjectionMapping ;
             [ gmeow:subjectVar "app" ; gmeow:predicate gmeow:fullName ; gmeow:objectVar "fullName" ]
             [ gmeow:optionalGroup (
                 [ gmeow:subjectVar "app" ; gmeow:predicate gmeow:nameLanguage ; gmeow:objectVar "lang" ]
-                [ gmeow:subjectVar "lang" ; gmeow:predicate gmeow:bcp47Tag ; gmeow:objectVar "langTag" ] ) ] ) ;
+                [ gmeow:subjectVar "langVariety" ; gmeow:predicate lang:varietyOf ; gmeow:objectVar "lang" ]
+                [ gmeow:subjectVar "langVariety" ; gmeow:predicate gmeow:bcp47Tag ; gmeow:objectVar "langTag" ] ) ] ) ;
         gmeow:mint [ gmeow:bindVar "form" ; gmeow:bindExpr
             [ gmeow:exprOp gmeow:opIri ; gmeow:exprArgs (
                 [ gmeow:exprOp gmeow:opConcat ; gmeow:exprArgs (
@@ -43,7 +45,8 @@ gmeow:mapOntolexLexicalItem a gmeow:ProjectionMapping ;
             [ gmeow:subjectVar "item" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:LexicalItem ]
             [ gmeow:optionalGroup (
                 [ gmeow:subjectVar "item" ; gmeow:predicate gmeow:lexicalItemLanguage ; gmeow:objectVar "lang" ]
-                [ gmeow:subjectVar "lang" ; gmeow:predicate gmeow:bcp47Tag ; gmeow:objectVar "langTag" ] ) ] ) ;
+                [ gmeow:subjectVar "langVariety" ; gmeow:predicate lang:varietyOf ; gmeow:objectVar "lang" ]
+                [ gmeow:subjectVar "langVariety" ; gmeow:predicate gmeow:bcp47Tag ; gmeow:objectVar "langTag" ] ) ] ) ;
         gmeow:suppressWhen [ gmeow:subjectVar "item" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ;
         gmeow:edoalSource gmeow:LexicalItem ] ;
     gmeow:hasBinding [
