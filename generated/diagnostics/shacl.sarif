@@ -51,10 +51,11 @@
             "text": "A Expression must carry at least one reference frame (gmeow:hasReferenceFrame) — a value asserted without its frame is ill-formed (CONSTITUTION P11)."
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "49a1ff5355c4759f"
+            "gmeowFindingHash/v2": "210199028d456db3"
           },
           "properties": {
-            "detail": "source shape: https://blackcatinformatics.ca/gmeow/ExpressionFrameRequirementShape"
+            "detail": "source shape: https://blackcatinformatics.ca/gmeow/ExpressionFrameRequirementShape",
+            "gmeow.category": "data-shape-violation"
           },
           "ruleId": "shacl.MinCountConstraintComponent"
         },
@@ -96,10 +97,11 @@
             "text": "A Expression must carry at least one reference frame (gmeow:hasReferenceFrame) — a value asserted without its frame is ill-formed (CONSTITUTION P11)."
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "82212c993d4bb826"
+            "gmeowFindingHash/v2": "faaedcfe697c15ff"
           },
           "properties": {
-            "detail": "source shape: https://blackcatinformatics.ca/gmeow/ExpressionFrameRequirementShape"
+            "detail": "source shape: https://blackcatinformatics.ca/gmeow/ExpressionFrameRequirementShape",
+            "gmeow.category": "data-shape-violation"
           },
           "ruleId": "shacl.MinCountConstraintComponent"
         },
@@ -141,10 +143,11 @@
             "text": "A Expression must carry at least one reference frame (gmeow:hasReferenceFrame) — a value asserted without its frame is ill-formed (CONSTITUTION P11)."
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "1038bb834d08d217"
+            "gmeowFindingHash/v2": "1105b5f9714f9ce0"
           },
           "properties": {
-            "detail": "source shape: https://blackcatinformatics.ca/gmeow/ExpressionFrameRequirementShape"
+            "detail": "source shape: https://blackcatinformatics.ca/gmeow/ExpressionFrameRequirementShape",
+            "gmeow.category": "data-shape-violation"
           },
           "ruleId": "shacl.MinCountConstraintComponent"
         },
@@ -186,10 +189,11 @@
             "text": "A Expression must carry at least one reference frame (gmeow:hasReferenceFrame) — a value asserted without its frame is ill-formed (CONSTITUTION P11)."
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "0f2e9d5fcfc2946a"
+            "gmeowFindingHash/v2": "2b166a8bd95dc591"
           },
           "properties": {
-            "detail": "source shape: https://blackcatinformatics.ca/gmeow/ExpressionFrameRequirementShape"
+            "detail": "source shape: https://blackcatinformatics.ca/gmeow/ExpressionFrameRequirementShape",
+            "gmeow.category": "data-shape-violation"
           },
           "ruleId": "shacl.MinCountConstraintComponent"
         }

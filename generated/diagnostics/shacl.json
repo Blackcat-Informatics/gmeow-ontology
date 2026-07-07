@@ -26,7 +26,12 @@
           "help_uri": "https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#shacl-MinCountConstraintComponent"
         }
       ],
-      "detail": "source shape: https://blackcatinformatics.ca/gmeow/ExpressionFrameRequirementShape"
+      "finding_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/c51151e2941660e48294f4a401720063",
+      "anchor_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/anchor/82f4f6a54ea1b4275a30d6b4dbc350b4",
+      "anchor_non_trivial": true,
+      "detail": "source shape: https://blackcatinformatics.ca/gmeow/ExpressionFrameRequirementShape",
+      "category": "data-shape-violation",
+      "standpoint": "perspectival"
     },
     {
       "severity": "warning",
@@ -53,7 +58,12 @@
           "help_uri": "https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#shacl-MinCountConstraintComponent"
         }
       ],
-      "detail": "source shape: https://blackcatinformatics.ca/gmeow/ExpressionFrameRequirementShape"
+      "finding_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/f93108c9b4b2a305a50a44229e0a1183",
+      "anchor_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/anchor/e7a8f7da0e9df5291289b503b9d2fda0",
+      "anchor_non_trivial": true,
+      "detail": "source shape: https://blackcatinformatics.ca/gmeow/ExpressionFrameRequirementShape",
+      "category": "data-shape-violation",
+      "standpoint": "perspectival"
     },
     {
       "severity": "warning",
@@ -80,7 +90,12 @@
           "help_uri": "https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#shacl-MinCountConstraintComponent"
         }
       ],
-      "detail": "source shape: https://blackcatinformatics.ca/gmeow/ExpressionFrameRequirementShape"
+      "finding_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/69587ad82324f5d5fd865288c013ed4f",
+      "anchor_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/anchor/79d24245642450dc7b092a5d3f963caa",
+      "anchor_non_trivial": true,
+      "detail": "source shape: https://blackcatinformatics.ca/gmeow/ExpressionFrameRequirementShape",
+      "category": "data-shape-violation",
+      "standpoint": "perspectival"
     },
     {
       "severity": "warning",
@@ -107,7 +122,12 @@
           "help_uri": "https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#shacl-MinCountConstraintComponent"
         }
       ],
-      "detail": "source shape: https://blackcatinformatics.ca/gmeow/ExpressionFrameRequirementShape"
+      "finding_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/529d0277c55fbf448887f22641005300",
+      "anchor_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/anchor/ab507cc205d9f2f6036ff9835c2b3903",
+      "anchor_non_trivial": true,
+      "detail": "source shape: https://blackcatinformatics.ca/gmeow/ExpressionFrameRequirementShape",
+      "category": "data-shape-violation",
+      "standpoint": "perspectival"
     }
   ],
   "metadata": {
