@@ -451,3 +451,98 @@ ex:cqNativeArithmeticDecidedShape a logic:ResultShape ;
 
 ex:rowNativeArithmeticBuiltin a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "b" ; gmeow:cellValueIri logic:builtinArithmetic ] .
+
+# ── Conjecture library: the closed epistemic lifecycle state set ──────────────────
+# Is the EPISTEMIC conjecture lifecycle — open / corroborated / refuted-in-standpoint
+# / withdrawn — carried as a closed set of first-class declared individuals, ORTHOGONAL
+# to the governance lifecycle a conjecture inherits from the candidate spine (Principle
+# 9)? The query runs over the production ontology (the merged logic module, no synthetic
+# data file) and selects every member of logic:ConjectureLifecycleState. cqExactRows
+# pins that the set is EXACTLY the four states — a missing or misspelt member is a
+# coverage gap.
+ex:cqConjectureLifecycleStates a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/logic/queries/competency/conjecture-lifecycle-states.rq" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "The conjecture library carries a conjecture's EPISTEMIC state (open / corroborated / refuted-in-standpoint / withdrawn) as the closed value class logic:ConjectureLifecycleState, ORTHOGONAL to the GOVERNANCE lifecycle it inherits from logic:FormalizationCandidate (Principle 9 refuses to collapse the two axes). A SELECT DISTINCT over the declared members of that class must return exactly the four: logic:ConjectureOpen, logic:ConjectureCorroborated, logic:ConjectureRefutedInStandpoint and logic:ConjectureWithdrawn." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqConjectureLifecycleStatesShape ;
+    gmeow:cqExpectRow
+        ex:rowConjectureOpen, ex:rowConjectureCorroborated,
+        ex:rowConjectureRefutedInStandpoint, ex:rowConjectureWithdrawn .
+
+ex:cqConjectureLifecycleStatesShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "state" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowConjectureOpen a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "state" ; gmeow:cellValueIri logic:ConjectureOpen ] .
+
+ex:rowConjectureCorroborated a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "state" ; gmeow:cellValueIri logic:ConjectureCorroborated ] .
+
+ex:rowConjectureRefutedInStandpoint a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "state" ; gmeow:cellValueIri logic:ConjectureRefutedInStandpoint ] .
+
+ex:rowConjectureWithdrawn a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "state" ; gmeow:cellValueIri logic:ConjectureWithdrawn ] .
+
+# ── Conjecture library: every refutation is replayable ───────────────────────────
+# Does a refuted-in-standpoint conjecture expose a REPLAYABLE witness — the individual
+# forced to owl:Nothing, the world it was found in, and a jointly-inconsistent premise?
+# The query runs over the merged ontology UNIONED with the tests/fixtures/conjectures.ttl
+# overlay (reasoningNone), joining a refuted conjecture through logic:conjectureRefutationWitness
+# to its logic:ContradictionWitness and unpacking the witness carriers. The fixture
+# carries exactly one refuted conjecture with a one-premise witness, so exactly one row
+# (?conj ?ind ?world ?premise) is expected.
+ex:cqRefutedConjectureHasWitness a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/logic/queries/competency/refuted-conjecture-has-witness.rq" ;
+    gmeow:cqDataFile  "tests/fixtures/conjectures.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A conjecture in logic:ConjectureRefutedInStandpoint MUST name a concrete logic:ContradictionWitness (Principle 9: a refutation is standpoint-scoped and replayable, never a bare global-false claim). Over the fixture the single refuted conjecture ex:cxRefutedTotalParthood joins through logic:conjectureRefutationWitness to ex:cxWitnessIncomparablePair, whose logic:witnessIndividual, logic:witnessWorld and single logic:witnessPremise unpack to exactly one row — the replayable counterexample." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqRefutedConjectureHasWitnessShape ;
+    gmeow:cqExpectRow ex:rowRefutedConjectureWitness .
+
+ex:cqRefutedConjectureHasWitnessShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "conj" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "ind" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnDatatype <http://www.w3.org/2001/XMLSchema#string> ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "world" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnDatatype <http://www.w3.org/2001/XMLSchema#string> ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "premise" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnDatatype <http://www.w3.org/2001/XMLSchema#string> ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowRefutedConjectureWitness a gmeow:ExpectedRow ;
+    gmeow:rowCell
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "conj" ; gmeow:cellValueIri ex:cxRefutedTotalParthood ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "ind" ; gmeow:cellValueLiteral "ex:leftHand" ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "world" ; gmeow:cellValueLiteral "ex:worldActual" ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "premise" ; gmeow:cellValueLiteral "ex:leftHand logic:properPartOf ex:body" ] .
+
+# ── Conjecture library: contrapositive propagation frontier ──────────────────────
+# Does the corpus entailment pre-order support CONTRAPOSITIVE propagation of refutation
+# — if phi entails psi and psi is refuted, phi is on the re-test frontier? This is the
+# load-bearing consumer of logic:conjectureEntails. The query runs over the merged
+# ontology UNIONED with the tests/fixtures/conjectures.ttl overlay (reasoningNone),
+# selecting each ?phi that entails a refuted ?psi. The fixture supplies one such edge
+# (ex:cxGeneralParthood entails the refuted ex:cxRefutedTotalParthood), so exactly one
+# (?phi ?psi) row is expected.
+ex:cqConjectureEntailsPropagation a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/logic/queries/competency/conjecture-entails-propagation.rq" ;
+    gmeow:cqDataFile  "tests/fixtures/conjectures.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "logic:conjectureEntails carries the corpus pre-order phi models psi; its purpose is contrapositive propagation — a refutation of psi puts every phi that entails it on the re-test frontier. Over the fixture the edge ex:cxGeneralParthood conjectureEntails ex:cxRefutedTotalParthood, whose target is logic:ConjectureRefutedInStandpoint, yields exactly one propagation row (phi = ex:cxGeneralParthood, psi = ex:cxRefutedTotalParthood)." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqConjectureEntailsPropagationShape ;
+    gmeow:cqExpectRow ex:rowConjectureEntailsPropagation .
+
+ex:cqConjectureEntailsPropagationShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "phi" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "psi" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowConjectureEntailsPropagation a gmeow:ExpectedRow ;
+    gmeow:rowCell
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "phi" ; gmeow:cellValueIri ex:cxGeneralParthood ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "psi" ; gmeow:cellValueIri ex:cxRefutedTotalParthood ] .

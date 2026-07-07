@@ -4969,6 +4969,227 @@ logic:obligationDischargeVerdict
     skos:definition "Relates a logic:NonEntailmentObligation to the logic:DischargeVerdict the check returned — logic:ObligationDischarged, logic:ObligationUnknown or logic:ObligationViolated. Computed by the engine, not asserted by hand. Domain logic:NonEntailmentObligation, range logic:DischargeVerdict."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+# ── The conjecture / anti-conjecture library (CBox) ──────────────────────────────
+# The dynamic, testable specialization of the formalization-governance spine. A
+# logic:Conjecture is a logic:FormalizationCandidate (so it carries all eight
+# universal candidate carriers) whose positive/negative cases are ENGINE-PRODUCED
+# rather than reviewer-asserted: a named, standpoint-scoped candidate formula under
+# active epistemic test, phi tested symmetrically against not-phi. Its verdict is
+# scoped to a reified standpoint (Principle 9: never a global-false verdict), its
+# conclusiveness reuses the existing logic:DischargeVerdict value class, and its
+# EPISTEMIC lifecycle (open / corroborated / refuted-in-standpoint / withdrawn) is
+# ORTHOGONAL to the GOVERNANCE lifecycle it inherits from the candidate spine
+# (proposed / under-review / accepted / rejected). Two symmetric promotion legs feed
+# corroborated phi back as an axiom candidate and robustly-refuted phi forward as a
+# logic:NonEntailmentObligation candidate; Lakatos refinement edges relate a weakened
+# successor to the witness it now excludes; and a bounded corpus pre-order
+# (logic:conjectureEntails) carries phi-entails-psi propagation. Normative in
+# design/LOGIC-FOUNDATION.md, the conjecture-and-refutation section.
+
+logic:Conjecture
+    a owl:Class ;
+    rdfs:subClassOf logic:FormalizationCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Conjecture"@x-gmeow-english ;
+    skos:definition "A named, standpoint-scoped candidate formula under active epistemic test: the dynamic, testable specialization of the logic:FormalizationCandidate spine (rdfs:subClassOf logic:FormalizationCandidate). Because it subclasses the candidate, a conjecture carries all eight universal candidate carriers (logic:candidateSourceHash, logic:candidateExtractionProvenance, logic:candidateScope, logic:candidateContract, logic:candidateCategory, logic:candidateLifecycle, logic:candidateProjectionBehavior, logic:candidateSemanticRisk); what specializes it is that its positive/negative cases are ENGINE-PRODUCED (via a scoped reasoning run recorded through logic:verdictProvenance) rather than reviewer-asserted. Its verdict is always scoped to a single reified standpoint (logic:conjectureStandpoint, REQUIRED — Principle 9 refuses a global-false verdict), and it carries an EPISTEMIC lifecycle (logic:conjectureLifecycleState: open / corroborated / refuted-in-standpoint / withdrawn) ORTHOGONAL to the GOVERNANCE lifecycle it inherits from the candidate (logic:candidateLifecycle). Conclusiveness reuses the existing logic:DischargeVerdict value class (logic:conjectureDischargeVerdict), never a freshly minted notion: a conclusive independence carries logic:ObligationDischarged, a budget-exhausted or fragment-gap run carries logic:ObligationUnknown. The conjectured formula is tested symmetrically against its negation; a refutation names a concrete logic:ContradictionWitness, and the two symmetric promotion legs feed a corroborated formula back as a canonical-axiom candidate (logic:conjecturePromotionCandidate) and a robustly-refuted formula forward as a logic:NonEntailmentObligation candidate (logic:antiConjectureObligationCandidate) (design/LOGIC-FOUNDATION.md, the conjecture-and-refutation section)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox .
+
+logic:conjectureFormula
+    a owl:DatatypeProperty ;
+    rdfs:domain logic:Conjecture ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "conjecture formula"@x-gmeow-english ;
+    skos:definition "The canonical, alpha-normalized identity of the conjectured formula: the content_key string of the full first-order AST (the alpha-normalized content identity from the full-FOL formula AST), so two conjectures that name the same formula up to bound-variable renaming share one key and cannot be double-counted. Single-valued, xsd:string. Domain logic:Conjecture."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox .
+
+logic:conjectureStandpoint
+    a owl:ObjectProperty ;
+    rdfs:domain logic:Conjecture ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "conjecture standpoint"@x-gmeow-english ;
+    skos:definition "Relates a logic:Conjecture to the reified standpoint its verdict is scoped to — a REQUIRED, single-valued IRI (a gmeow:Standpoint, stated in prose). Standpoint scoping here is REIFICATION, never a named graph: the verdict is 'the formula is refuted FROM THIS standpoint', never a global-false claim (Principle 9). A conjecture with no standpoint has an ill-scoped verdict and is a hard governance error (verify.conjecture-standpoint-scoped). Single-valued. Domain logic:Conjecture."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox .
+
+logic:VerdictProvenanceKind
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Verdict Provenance Kind"@x-gmeow-english ;
+    skos:definition "The closed two-member value class of the logic:verdictProvenance facet: the one genuinely-new axis a logic:Conjecture adds over a plain logic:FormalizationCandidate — whether a candidate's positive/negative cases were ENGINE-PRODUCED by a scoped reasoning run or REVIEWER-ASSERTED by hand. Its individuals are logic:VerdictEngineProduced and logic:VerdictReviewerAsserted. The set is closed, so a misspelt provenance names no declared value and is rejected (design/LOGIC-FOUNDATION.md, the conjecture-and-refutation section)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:VerdictEngineProduced
+    a owl:NamedIndividual ,
+        logic:VerdictProvenanceKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Engine Produced"@x-gmeow-english ;
+    skos:definition "The verdict-provenance value for a conjecture whose positive/negative cases were produced by a scoped reasoning run over the standpoint, not asserted by a reviewer: the defining mark of a logic:Conjecture against a plain logic:FormalizationCandidate. Wire value `engine-produced`."@x-gmeow-english .
+
+logic:VerdictReviewerAsserted
+    a owl:NamedIndividual ,
+        logic:VerdictProvenanceKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Reviewer Asserted"@x-gmeow-english ;
+    skos:definition "The verdict-provenance value for cases a reviewer asserted by hand rather than an engine deriving — the plain-candidate default, retained on the closed set so a conjecture may honestly record a hand-adjudicated case (e.g. a withdrawal) without pretending it was engine-produced. Wire value `reviewer-asserted`."@x-gmeow-english .
+
+logic:verdictProvenance
+    a owl:ObjectProperty ;
+    rdfs:domain logic:Conjecture ;
+    rdfs:range logic:VerdictProvenanceKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "verdict provenance"@x-gmeow-english ;
+    skos:definition "Relates a logic:Conjecture to the logic:VerdictProvenanceKind recording whether its cases were engine-produced or reviewer-asserted — the one genuinely-new axis the conjecture library adds over the candidate spine. Single-valued and REQUIRED. Domain logic:Conjecture, range logic:VerdictProvenanceKind."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox .
+
+logic:ConjectureLifecycleState
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Conjecture Lifecycle State"@x-gmeow-english ;
+    skos:definition "The closed four-member value class of the logic:conjectureLifecycleState facet: the EPISTEMIC state a logic:Conjecture occupies, ORTHOGONAL to the GOVERNANCE lifecycle (logic:CandidateLifecycleState) it inherits from the candidate spine — Principle 9 refuses to collapse two distinct axes into one. Its individuals are logic:ConjectureOpen, logic:ConjectureCorroborated, logic:ConjectureRefutedInStandpoint and logic:ConjectureWithdrawn, each projected from a Belnap truth-value origin (Supported becomes Corroborated; Opposed or Both becomes RefutedInStandpoint; Neither-conclusive becomes Open carrying logic:ObligationDischarged; Undetermined or BudgetExhausted becomes Open carrying logic:ObligationUnknown; Withdrawn is an author action, never engine-produced). The set is closed, so a misspelt state names no declared value and is rejected (design/LOGIC-FOUNDATION.md, the conjecture-and-refutation section)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:ConjectureOpen
+    a owl:NamedIndividual ,
+        logic:ConjectureLifecycleState ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Open"@x-gmeow-english ;
+    skos:definition "The epistemic state of a conjecture whose symmetric formula / negation test was NOT conclusive in either direction: neither corroborated nor refuted. Two Belnap origins land here and are told apart by the carried logic:conjectureDischargeVerdict — a Neither-conclusive run (formula and negation both genuinely undecided within a complete fragment) carries logic:ObligationDischarged (conclusive independence), while an Undetermined or budget-exhausted run carries logic:ObligationUnknown (not proved absent, carried forward). A timeout NEVER reads as refuted. Wire value `open`."@x-gmeow-english .
+
+logic:ConjectureCorroborated
+    a owl:NamedIndividual ,
+        logic:ConjectureLifecycleState ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Corroborated"@x-gmeow-english ;
+    skos:definition "The epistemic state of a conjecture whose formula was Supported (Belnap true) from its standpoint: the symmetric test found for the formula and no counterexample. Corroboration is provisional support, never proof — a corroborated formula becomes eligible for the positive promotion leg (logic:conjecturePromotionCandidate to a canonical-axiom candidate), still gated through review. Wire value `corroborated`."@x-gmeow-english .
+
+logic:ConjectureRefutedInStandpoint
+    a owl:NamedIndividual ,
+        logic:ConjectureLifecycleState ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Refuted In Standpoint"@x-gmeow-english ;
+    skos:definition "The epistemic state of a conjecture whose formula was Opposed or Both (Belnap false or contradictory) from its standpoint: a concrete counterexample was found, forcing some individual to owl:Nothing. The refutation is scoped to the standpoint (Principle 9), never global-false, and MUST name a concrete logic:ContradictionWitness (logic:conjectureRefutationWitness, enforced by logic:ConjectureShape and verify.conjecture-refutation-witness-required). A robustly-refuted formula becomes eligible for the anti-conjecture promotion leg (logic:antiConjectureObligationCandidate to a logic:NonEntailmentObligation candidate forbidding the formula). Wire value `refuted-in-standpoint`."@x-gmeow-english .
+
+logic:ConjectureWithdrawn
+    a owl:NamedIndividual ,
+        logic:ConjectureLifecycleState ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Withdrawn"@x-gmeow-english ;
+    skos:definition "The terminal epistemic state of a conjecture its author retired — a deliberate authoring action, NEVER an engine-produced verdict (a withdrawn conjecture carries logic:verdictProvenance logic:VerdictReviewerAsserted). Recorded rather than deleted, so the retirement and any partial evidence stay auditable. Distinct from refuted: withdrawal is a human decision to stop testing, not a found counterexample. Wire value `withdrawn`."@x-gmeow-english .
+
+logic:conjectureLifecycleState
+    a owl:ObjectProperty ;
+    rdfs:domain logic:Conjecture ;
+    rdfs:range logic:ConjectureLifecycleState ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "conjecture lifecycle state"@x-gmeow-english ;
+    skos:definition "Relates a logic:Conjecture to its current EPISTEMIC logic:ConjectureLifecycleState (open / corroborated / refuted-in-standpoint / withdrawn). Single-valued and REQUIRED. Orthogonal to logic:candidateLifecycle (the GOVERNANCE state inherited from the candidate spine): a conjecture may be governance-accepted yet epistemically open, so the two are never collapsed (Principle 9). Domain logic:Conjecture, range logic:ConjectureLifecycleState."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox .
+
+logic:ContradictionWitness
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Contradiction Witness"@x-gmeow-english ;
+    skos:definition "The RDF shape of the runtime refutation witness a conjecture test emits when it refutes the formula: the concrete counterexample that forced an individual to owl:Nothing. It names the offending individual (logic:witnessIndividual), the world IRI the contradiction was found in (logic:witnessWorld), and the set of premises that jointly entailed the contradiction (logic:witnessPremise, one serialized triple each, multi-valued). It is an ABox artifact — a produced fact about a specific reasoning run, not a constraint — and is present exactly when its conjecture is logic:ConjectureRefutedInStandpoint (design/LOGIC-FOUNDATION.md, the conjecture-and-refutation section)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+logic:witnessIndividual
+    a owl:DatatypeProperty ;
+    rdfs:domain logic:ContradictionWitness ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "witness individual"@x-gmeow-english ;
+    skos:definition "The individual a logic:ContradictionWitness records as forced to owl:Nothing — the entity whose type became unsatisfiable under the conjectured formula, identifying exactly where the contradiction bit. Single-valued, xsd:string (the individual's IRI as a string). Domain logic:ContradictionWitness."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+logic:witnessWorld
+    a owl:DatatypeProperty ;
+    rdfs:domain logic:ContradictionWitness ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "witness world"@x-gmeow-english ;
+    skos:definition "The world IRI the logic:ContradictionWitness was found in — the modal/context world within the conjecture's standpoint where the contradiction was realized, so the refutation stays world-scoped rather than asserted across all worlds. Single-valued, xsd:string (the world IRI as a string). Domain logic:ContradictionWitness."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+logic:witnessPremise
+    a owl:DatatypeProperty ;
+    rdfs:domain logic:ContradictionWitness ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "witness premise"@x-gmeow-english ;
+    skos:definition "A premise that participated in the contradiction a logic:ContradictionWitness records — one serialized triple (subject predicate object) per value, MULTI-valued because a refutation typically rests on several jointly-inconsistent facts. Together the premises are the minimal derivation the reader can replay to see why the formula is refuted from the standpoint. Multi-valued, xsd:string. Domain logic:ContradictionWitness."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+logic:conjectureRefutationWitness
+    a owl:ObjectProperty ;
+    rdfs:domain logic:Conjecture ;
+    rdfs:range logic:ContradictionWitness ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "conjecture refutation witness"@x-gmeow-english ;
+    skos:definition "Relates a refuted logic:Conjecture to the logic:ContradictionWitness that refutes it — the concrete counterexample naming the individual forced to owl:Nothing, the world, and the premises. Present exactly when the conjecture is logic:ConjectureRefutedInStandpoint (a refuted conjecture with no witness is a hard error, logic:ConjectureShape and verify.conjecture-refutation-witness-required; a witness on a non-refuted conjecture is meaningless). Domain logic:Conjecture, range logic:ContradictionWitness."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox .
+
+logic:conjectureVerdict
+    a owl:ObjectProperty ;
+    rdfs:domain logic:Conjecture ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "conjecture verdict"@x-gmeow-english ;
+    skos:definition "Relates a logic:Conjecture to the content-addressed reasoning-result node its verdict was read from — a logic:ReasoningResult (stated in prose) produced by the scoped reasoning run over the standpoint. Where logic:conjectureLifecycleState and logic:conjectureDischargeVerdict carry the projected epistemic verdict and conclusiveness, this links back to the full result graph the projection was computed from, so the verdict is auditable against its source run. Single-valued. Domain logic:Conjecture."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox .
+
+logic:conjectureDischargeVerdict
+    a owl:ObjectProperty ;
+    rdfs:domain logic:Conjecture ;
+    rdfs:range logic:DischargeVerdict ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "conjecture discharge verdict"@x-gmeow-english ;
+    skos:definition "Relates a logic:Conjecture to the logic:DischargeVerdict carrying its CONCLUSIVENESS — reusing the existing three-value obligation class rather than minting a parallel notion. logic:ObligationDischarged marks a conclusive result (a corroboration or a refutation within a complete fragment, or a conclusive independence for an open conjecture); logic:ObligationUnknown marks a budget-exhausted or fragment-gap run that is carried forward, never 'proved'. An open conjecture carrying logic:ObligationUnknown that is NOT in logic:ConjectureOpen is a hard error (verify.conjecture-open-if-inconclusive): a timeout may never read as refuted. Single-valued. Domain logic:Conjecture, range logic:DischargeVerdict."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox .
+
+logic:conjecturePromotionCandidate
+    a owl:ObjectProperty ;
+    rdfs:domain logic:Conjecture ;
+    rdfs:range logic:FormalizationCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "conjecture promotion candidate"@x-gmeow-english ;
+    skos:definition "The POSITIVE promotion leg: relates a logic:ConjectureCorroborated conjecture to the logic:FormalizationCandidate proposing to promote its formula to a canonical axiom. The candidate still runs the ordinary reviewer gate (corroboration is provisional support, never proof), so a corroborated conjecture never becomes a canonical axiom by mere entailment. Present exactly when the conjecture is corroborated. Domain logic:Conjecture, range logic:FormalizationCandidate."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox .
+
+logic:antiConjectureObligationCandidate
+    a owl:ObjectProperty ;
+    rdfs:domain logic:Conjecture ;
+    rdfs:range logic:NonEntailmentObligation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "anti-conjecture obligation candidate"@x-gmeow-english ;
+    skos:definition "The symmetric anti-conjecture promotion leg: relates a robustly logic:ConjectureRefutedInStandpoint conjecture to a candidate logic:NonEntailmentObligation forbidding its formula — a refuted formula is not merely dropped, it becomes a first-class commitment that the foundation must NEVER draw it. Mirrors logic:conjecturePromotionCandidate (corroborated to axiom candidate) under negation (refuted to non-entailment candidate). Present exactly when the conjecture is refuted-in-standpoint. Domain logic:Conjecture, range logic:NonEntailmentObligation."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox .
+
+logic:conjectureRefinedFrom
+    a owl:ObjectProperty ;
+    rdfs:domain logic:Conjecture ;
+    rdfs:range logic:Conjecture ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "conjecture refined from"@x-gmeow-english ;
+    skos:definition "The Lakatos refinement edge: relates a successor conjecture to the refuted conjecture it weakens — the 'monster-barring' move where a refuted conjecture is not abandoned but replaced by a strictly weaker successor that excludes the counterexample. Read together with logic:survivesCounterexample (the witness the successor now excludes). Domain logic:Conjecture, range logic:Conjecture."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox .
+
+logic:survivesCounterexample
+    a owl:ObjectProperty ;
+    rdfs:domain logic:Conjecture ;
+    rdfs:range logic:ContradictionWitness ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "survives counterexample"@x-gmeow-english ;
+    skos:definition "The Lakatos survival edge: relates a refined successor conjecture to the logic:ContradictionWitness that refuted its predecessor and which the successor now EXCLUDES — the evidence that the refinement did real work, not just relabelled the claim. Paired with logic:conjectureRefinedFrom, it lets the corpus show a refinement chain where each successor demonstrably survives a witness that killed its parent. Domain logic:Conjecture, range logic:ContradictionWitness."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox .
+
+logic:conjectureEntails
+    a owl:ObjectProperty ;
+    rdfs:domain logic:Conjecture ;
+    rdfs:range logic:Conjecture ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "conjecture entails"@x-gmeow-english ;
+    skos:definition "The corpus entailment pre-order over conjectures: logic:conjectureEntails relates a formula phi to a formula psi it entails (phi models psi), so a refutation of psi propagates contrapositively to phi (if psi is refuted, phi cannot stand). The relation is a PRE-ORDER in intent (reflexive and transitive), but is NOT materialized to full transitive closure here — the vocabulary and the propagation competency query (conjecture-entails-propagation.rq) ship; corpus-wide closure materialization is deliberately left to a follow-on. Each edge is itself a conjecture test (that phi genuinely entails psi), not a bare assertion. Domain logic:Conjecture, range logic:Conjecture."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox .
+
 logic:ProjectionLoss
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
