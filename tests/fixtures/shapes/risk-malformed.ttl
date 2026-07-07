@@ -9,7 +9,7 @@
 #   4. ex:ungradedCascade — a cascade with no severity.
 #   5. ex:idleMitigation — a mitigation with no measure and a counter that
 #      is neither a CausalLink nor a Hazard.
-# run_shacl over this graph MUST NOT conform.
+# SHACL validation over this graph MUST NOT conform.
 
 @prefix ex:    <https://example.org/shapes/> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .

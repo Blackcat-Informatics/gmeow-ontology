@@ -31,16 +31,16 @@
 #   test_creation_event_types_exist -- gmeow:eventTypeWorkConception,
 #     gmeow:eventTypeExpressionCreation, gmeow:eventTypeManifestationProduction
 #     are defined in slices/core/events/module.ttl; cross-slice subjects.
-#   test_spine_shacl_passes -- run_shacl() call; ExampleConformance, not a
+#   test_spine_shacl_passes -- SHACL validation call; ExampleConformance, not a
 #     structural TBox assertion.
-#   test_expression_without_work_fails_shacl -- run_shacl() call with
+#   test_expression_without_work_fails_shacl -- SHACL validation call with
 #     error-text assertions; ExampleConformance.
-#   test_manifestation_without_expression_fails_shacl -- run_shacl() call;
+#   test_manifestation_without_expression_fails_shacl -- SHACL validation call;
 #     ExampleConformance.
-#   test_item_without_manifestation_fails_shacl -- run_shacl() call;
+#   test_item_without_manifestation_fails_shacl -- SHACL validation call;
 #     ExampleConformance.
-#   test_contribution_shacl_passes -- run_shacl() call; ExampleConformance.
-#   test_contribution_missing_role_fails_shacl -- run_shacl() call with
+#   test_contribution_shacl_passes -- SHACL validation call; ExampleConformance.
+#   test_contribution_missing_role_fails_shacl -- SHACL validation call with
 #     error-text assertions; ExampleConformance.
 #   test_literary_work_subclasses_work -- gmeow:LiteraryWork is defined in
 #     slices/core/documents/module.ttl; cross-slice subject.
@@ -58,8 +58,8 @@
 #     slices/core/documents/module.ttl; cross-slice subject.
 #   test_content_segment_type_value_vocab -- gmeow:ContentSegmentType and
 #     its seed individuals are in slices/core/documents/module.ttl; cross-slice.
-#   test_content_segment_shacl_passes -- run_shacl() call; ExampleConformance.
-#   test_content_segment_without_container_fails_shacl -- run_shacl() call;
+#   test_content_segment_shacl_passes -- SHACL validation call; ExampleConformance.
+#   test_content_segment_without_container_fails_shacl -- SHACL validation call;
 #     ExampleConformance.
 #
 # See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest->DSL mapping.
