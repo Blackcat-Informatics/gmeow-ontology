@@ -182,13 +182,22 @@ struct GenericEntry {
 }
 
 /// The arity-generic fact store: insertion-ordered entries, an O(1) dedup key set,
-/// and a per-relation index of entry positions (so a join scans only a relation's
-/// rows).
+/// a per-relation index of entry positions (so a join scans only a relation's rows),
+/// and — the join accelerator — a per-`(relation, column-position, N3-surface)` value
+/// index mapping a bound term to the entry indices bearing it there.
+///
+/// Every index bucket keeps its entry indices in INSERTION ORDER (ascending): a join
+/// that iterates a bucket instead of the full relation therefore visits exactly the
+/// rows the full scan would have MATCHED, in the SAME order, so the produced solution
+/// sequence — and hence every committed head, per-round winner, and antecedent list —
+/// is byte-identical to a full scan. This is a pure speed change.
 #[derive(Default)]
 struct GenericStore {
     entries: Vec<GenericEntry>,
     keys: HashSet<(String, RowSurface)>,
     by_relation: HashMap<String, Vec<usize>>,
+    /// `relation → (column-position, term N3-surface) → ascending entry indices`.
+    by_pos_value: HashMap<String, HashMap<(usize, String), Vec<usize>>>,
 }
 
 impl GenericStore {
@@ -214,6 +223,12 @@ impl GenericStore {
             .entry(relation.clone())
             .or_default()
             .push(idx);
+        // Value index: register this entry's surface at every column position, each
+        // bucket staying ascending (idx grows monotonically).
+        let rel_index = self.by_pos_value.entry(relation.clone()).or_default();
+        for (pos, s) in surface.iter().enumerate() {
+            rel_index.entry((pos, s.clone())).or_default().push(idx);
+        }
         self.entries.push(GenericEntry {
             relation,
             row,
@@ -245,35 +260,69 @@ struct GenSolution {
     antecedents: Vec<GenericAntecedent>,
 }
 
-/// Match `atom` against ground `row` under `base`, returning the extended binding or
-/// `None`. A repeated variable must agree (byte-equal N3 surface); a constant must
-/// equal the row term's surface exactly; arity must match.
-fn match_generic_atom(atom: &GenericAtom, row: &[TermValue], base: &Binding) -> Option<Binding> {
-    if atom.args.len() != row.len() {
+/// The per-position matching obligation for one atom under a fixed partial solution,
+/// precomputed ONCE per solution (not per scanned row) so the hot loop never
+/// re-formats a constant or re-resolves an already-bound variable.
+enum PosMatch {
+    /// A position pinned to an exact N3 surface — a constant, or a variable already
+    /// bound in the partial solution. The row must carry this surface here.
+    Expect(String),
+    /// A position holding a variable not yet bound — the row's term here binds it
+    /// (or, on a repeated occurrence within the atom, must agree with the first).
+    Fresh(String),
+}
+
+/// Precompute the per-position match plan of `atom` under `base`: constants and
+/// already-bound variables collapse to their fixed surface; still-free variables
+/// stay `Fresh`. This mirrors [`match_generic_atom`]'s per-term dispatch but hoists
+/// the constant-format / bound-var-resolve out of the row loop.
+fn build_match_plan(atom: &GenericAtom, base: &Binding) -> Vec<PosMatch> {
+    atom.args
+        .iter()
+        .map(|pat| match pat {
+            EvalTerm::ConstNamed(iri) => PosMatch::Expect(format!("<{iri}>")),
+            EvalTerm::ConstLit(lit) => PosMatch::Expect(term_display(lit)),
+            EvalTerm::Var(name) => match base.iter().find(|(k, _)| k == name) {
+                Some((_, existing)) => PosMatch::Expect(term_display(existing)),
+                None => PosMatch::Fresh(name.clone()),
+            },
+        })
+        .collect()
+}
+
+/// Match `entry` against a precomputed `plan` under `base`, returning the extended
+/// binding or `None`. Constants / bound vars compare against the entry's CACHED
+/// surface (no per-row `term_display`); a repeated free variable must agree
+/// (byte-equal surface); arity must match. Byte-identical to the old
+/// [`match_generic_atom`]: the merged binding is `base` followed by each newly-bound
+/// variable in first-occurrence position order.
+fn match_plan(plan: &[PosMatch], entry: &GenericEntry, base: &Binding) -> Option<Binding> {
+    if plan.len() != entry.row.len() {
         return None;
     }
-    let mut binding = base.clone();
-    for (pat, value) in atom.args.iter().zip(row.iter()) {
-        match pat {
-            EvalTerm::ConstNamed(iri) => {
-                if term_display(value) != format!("<{iri}>") {
+    // First position at which each fresh variable was bound in THIS row (so a
+    // repeated occurrence can compare surfaces without re-formatting).
+    let mut fresh: Vec<(&str, usize)> = Vec::new();
+    for (pos, pm) in plan.iter().enumerate() {
+        match pm {
+            PosMatch::Expect(surface) => {
+                if entry.surface[pos] != *surface {
                     return None;
                 }
             }
-            EvalTerm::ConstLit(lit) => {
-                if term_display(value) != term_display(lit) {
-                    return None;
-                }
-            }
-            EvalTerm::Var(name) => match binding.iter().find(|(k, _)| k == name) {
-                Some((_, existing)) => {
-                    if term_display(existing) != term_display(value) {
+            PosMatch::Fresh(name) => match fresh.iter().find(|(k, _)| *k == name.as_str()) {
+                Some(&(_, first)) => {
+                    if entry.surface[first] != entry.surface[pos] {
                         return None;
                     }
                 }
-                None => binding.push((name.clone(), value.clone())),
+                None => fresh.push((name.as_str(), pos)),
             },
         }
+    }
+    let mut binding = base.clone();
+    for (name, pos) in fresh {
+        binding.push((name.to_owned(), entry.row[pos].clone()));
     }
     Some(binding)
 }
@@ -298,10 +347,50 @@ fn extend(
     scan: &Scan,
     solutions: &[GenSolution],
 ) -> Vec<GenSolution> {
-    let indices = store.indices_for(&atom.relation);
+    // The relation's value index (positions → surface → ascending entry indices); the
+    // whole-relation scan is the fallback when no atom position is bound.
+    let rel_index = store.by_pos_value.get(&atom.relation);
     let mut next: Vec<GenSolution> = Vec::new();
     for sol in solutions {
-        for &i in indices {
+        let plan = build_match_plan(atom, &sol.binding);
+
+        // Index-selection: over the atom's BOUND positions (constants + already-bound
+        // vars) pick the smallest value bucket — that is the tightest candidate set,
+        // and iterating it in its ascending order visits exactly the rows a full scan
+        // would have matched, in the same order. A bound position with an EMPTY bucket
+        // means no row can match, so this solution contributes nothing.
+        let mut selected: Option<&[usize]> = None;
+        let mut any_bound = false;
+        let mut empty = false;
+        for (pos, pm) in plan.iter().enumerate() {
+            if let PosMatch::Expect(surface) = pm {
+                any_bound = true;
+                match rel_index.and_then(|m| m.get(&(pos, surface.clone()))) {
+                    None => {
+                        empty = true;
+                        break;
+                    }
+                    Some(bucket) => {
+                        if selected.is_none_or(|cur| bucket.len() < cur.len()) {
+                            selected = Some(bucket.as_slice());
+                        }
+                    }
+                }
+            }
+        }
+        if empty {
+            continue;
+        }
+        let candidates: &[usize] = if any_bound {
+            // `any_bound` with no `empty` guarantees a chosen bucket.
+            selected.unwrap_or(&[])
+        } else {
+            // No bound position (e.g. RL's leading `triple(?s,?p,?o,?w)` all-free
+            // atom): unavoidable full scan of the relation.
+            store.indices_for(&atom.relation)
+        };
+
+        for &i in candidates {
             let in_delta = delta.contains(&i);
             let keep = match scan {
                 Scan::Delta => in_delta,
@@ -312,9 +401,9 @@ fn extend(
                 continue;
             }
             let entry = &store.entries[i];
-            if let Some(merged) = match_generic_atom(atom, &entry.row, &sol.binding) {
+            if let Some(merged) = match_plan(&plan, entry, &sol.binding) {
                 // Record the matched body row (relation + terms) as an antecedent,
-                // appended in body order.
+                // appended in body order (only once a match commits).
                 let mut antecedents = sol.antecedents.clone();
                 antecedents.push((entry.relation.clone(), entry.row.clone()));
                 next.push(GenSolution {
