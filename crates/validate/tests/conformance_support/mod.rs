@@ -558,15 +558,27 @@ impl GraphStore {
         self.subjects(RDF_TYPE, type_iri)
     }
 
-    /// Run a SPARQL ASK query against the default-graph-only dataset.
-    pub fn ask(&self, sparql: &str) -> bool {
+    // ── SPARQL entry-points (single bindings path) ────────────────────────────
+    //
+    // `ask`/`select`/`construct` all thread `bindings` into
+    // `SparqlRequest.substitutions` — the native `initBindings` equivalent that
+    // pre-binds query variables (including a blank-node focus), the same field
+    // `crates/pipeline/src/cli_ops/temporal.rs` drives in production. There is ONE
+    // path, not a bound/unbound pair: a case with no pre-bindings passes `&[]`.
+    // `bindings` leads the query text so callers can extend the argument list
+    // uniformly, and so the "pre-bind, then ask" reading matches the substitution
+    // semantics. `QueryCase` (below) is the primary consumer.
+
+    /// Run a SPARQL ASK query against the default-graph-only dataset, pre-binding
+    /// `bindings` as substitutions (`&[]` for none).
+    pub fn ask(&self, bindings: &[(String, TermValue)], sparql: &str) -> bool {
         let result = NativeSparqlEngine::new()
             .query(
                 &self.ds,
                 SparqlRequest {
                     query: sparql,
                     base_iri: None,
-                    substitutions: &[],
+                    substitutions: bindings,
                 },
             )
             .unwrap_or_else(|e| panic!("SPARQL ASK failed: {e}\n{sparql}"));
@@ -576,15 +588,20 @@ impl GraphStore {
         }
     }
 
-    /// Run a SPARQL SELECT query and return the variable names and rows of term values.
-    pub fn select(&self, sparql: &str) -> (Vec<String>, Vec<Vec<Option<TermValue>>>) {
+    /// Run a SPARQL SELECT query and return the variable names and rows of term
+    /// values, pre-binding `bindings` as substitutions (`&[]` for none).
+    pub fn select(
+        &self,
+        bindings: &[(String, TermValue)],
+        sparql: &str,
+    ) -> (Vec<String>, Vec<Vec<Option<TermValue>>>) {
         let result = NativeSparqlEngine::new()
             .query(
                 &self.ds,
                 SparqlRequest {
                     query: sparql,
                     base_iri: None,
-                    substitutions: &[],
+                    substitutions: bindings,
                 },
             )
             .unwrap_or_else(|e| panic!("SPARQL SELECT failed: {e}\n{sparql}"));
@@ -600,17 +617,18 @@ impl GraphStore {
     }
 
     /// Run a SPARQL CONSTRUCT query and return a fresh store over the resulting
-    /// graph (flattened to the default graph). The native twin of Python
+    /// graph (flattened to the default graph), pre-binding `bindings` as
+    /// substitutions (`&[]` for none). The native twin of Python
     /// `data.query(construct_text).graph`: it materialises the projection triples
     /// so the caller can assert over them with `has`/`objects`/`ask`/`objects_h`.
-    pub fn construct(&self, sparql: &str) -> GraphStore {
+    pub fn construct(&self, bindings: &[(String, TermValue)], sparql: &str) -> GraphStore {
         let result = NativeSparqlEngine::new()
             .query(
                 &self.ds,
                 SparqlRequest {
                     query: sparql,
                     base_iri: None,
-                    substitutions: &[],
+                    substitutions: bindings,
                 },
             )
             .unwrap_or_else(|e| panic!("SPARQL CONSTRUCT failed: {e}\n{sparql}"));
@@ -621,6 +639,28 @@ impl GraphStore {
             },
             other => panic!("expected CONSTRUCT graph result, got {other:?}"),
         }
+    }
+
+    /// Number of triples in the (default-graph-only) store — the native twin of
+    /// `len(graph)`. Used by [`QueryCase::construct_len`].
+    pub fn triple_count(&self) -> usize {
+        self.ds.quad_count()
+    }
+
+    /// True iff the exact triple `s p o` (each a [`TermValue`]) is present in the
+    /// default graph. Unlike [`Self::has`], the object may be a literal or blank
+    /// term, so CONSTRUCT projections carrying literal objects can be asserted.
+    pub fn contains_triple(&self, s: &TermValue, p: &TermValue, o: &TermValue) -> bool {
+        let (Some(s_id), Some(p_id), Some(o_id)) =
+            (self.term_id(s), self.term_id(p), self.term_id(o))
+        else {
+            // A term that is not interned cannot participate in any quad.
+            return false;
+        };
+        self.ds
+            .quads_for_pattern(Some(s_id), Some(p_id), Some(o_id), GraphMatch::Default)
+            .next()
+            .is_some()
     }
 
     // ── Blank-node-aware traversal (purrdf 0.3 `slice::rdf_query`) ─────────────
@@ -1046,6 +1086,538 @@ impl Case {
         }
     }
 }
+
+// ── Shared query-text loader ──────────────────────────────────────────────────
+
+/// Query-source search roots, relative to the repo root, tried in order for a
+/// bare `.rq` name in [`read_query`]. The `slices/**/queries/` dirs are appended
+/// dynamically after these fixed roots.
+pub const QUERY_SEARCH_ROOTS: &[&str] = &["generated/queries", "queries/competency"];
+
+/// Load a `.rq` query **verbatim** — the query text is the single source of truth
+/// for a competency question, never paraphrased into Rust.
+///
+/// `name` resolves two ways:
+/// - A **repo-relative path** (contains `/`, e.g. `"queries/competency/foo.rq"`)
+///   is read directly from the repo root.
+/// - A **bare file name** (e.g. `"standpoint-owl2.rq"`) is searched, in order,
+///   under [`QUERY_SEARCH_ROOTS`] and then every `slices/**/queries/` directory,
+///   returning the first hit.
+///
+/// A name found nowhere is a HARD FAIL naming the roots searched (a missing
+/// required query is never papered over).
+pub fn read_query(name: &str) -> String {
+    let root = repo_root();
+    if name.contains('/') {
+        let path = root.join(name);
+        return std::fs::read_to_string(&path)
+            .unwrap_or_else(|e| panic!("read query {}: {e}", path.display()));
+    }
+    let mut roots: Vec<PathBuf> = QUERY_SEARCH_ROOTS.iter().map(|r| root.join(r)).collect();
+    collect_slice_query_dirs(&root.join("slices"), &mut roots);
+    for dir in &roots {
+        let candidate = dir.join(name);
+        if candidate.is_file() {
+            return std::fs::read_to_string(&candidate)
+                .unwrap_or_else(|e| panic!("read query {}: {e}", candidate.display()));
+        }
+    }
+    panic!(
+        "query {name:?} not found under any of {} search roots \
+         (generated/queries, queries/competency, slices/**/queries)",
+        roots.len()
+    );
+}
+
+/// Collect every `slices/**/queries/` directory (directories literally named
+/// `queries`) into `out`, recursively.
+fn collect_slice_query_dirs(dir: &Path, out: &mut Vec<PathBuf>) {
+    let read = match std::fs::read_dir(dir) {
+        Ok(r) => r,
+        Err(_) => return,
+    };
+    for entry in read.filter_map(|e| e.ok()) {
+        let path = entry.path();
+        if path.is_dir() && !path.is_symlink() {
+            if path.file_name().and_then(|n| n.to_str()) == Some("queries") {
+                out.push(path.clone());
+            }
+            collect_slice_query_dirs(&path, out);
+        }
+    }
+}
+
+// ── Ergonomic expected-term constructors ──────────────────────────────────────
+//
+// [`QueryCase`] expected rows/triples are [`TermValue`]s. These free helpers keep
+// case tables readable — `iri("…")`, `lit("…")`, `int_lit(3)` — instead of the
+// verbose `TermValue::…` constructors.
+
+/// `xsd:string` datatype IRI — the default plain-literal datatype.
+pub const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
+/// `xsd:integer` datatype IRI.
+pub const XSD_INTEGER: &str = "http://www.w3.org/2001/XMLSchema#integer";
+
+/// An IRI term.
+pub fn iri(s: &str) -> TermValue {
+    TermValue::iri(s)
+}
+
+/// A plain `xsd:string` literal term.
+pub fn lit(s: &str) -> TermValue {
+    TermValue::simple_literal(s)
+}
+
+/// A typed literal term with an explicit datatype IRI.
+pub fn typed_lit(lexical: &str, datatype: &str) -> TermValue {
+    TermValue::typed_literal(lexical, datatype)
+}
+
+/// An `xsd:integer` literal term.
+pub fn int_lit(n: i64) -> TermValue {
+    TermValue::typed_literal(n.to_string(), XSD_INTEGER)
+}
+
+/// A language-tagged literal term (`rdf:langString`).
+pub fn lang_lit(lexical: &str, language: &str) -> TermValue {
+    TermValue::lang_literal(lexical, language)
+}
+
+// ── SPARQL feature coverage ────────────────────────────────────────────────────
+
+/// A SPARQL language feature a migrated competency query exercises.
+///
+/// The [`MIGRATION_FEATURE_REGISTRY`] must, in union, cover every variant (see the
+/// `feature_registry_covers_all_features` invariant in
+/// `conformance_sparql_features.rs`) so the native migration never silently drops a
+/// feature the source `.rq` corpus relies on.
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub enum Feature {
+    /// `{ … } UNION { … }`.
+    Union,
+    /// `OPTIONAL { … }`.
+    Optional,
+    /// `FILTER NOT EXISTS { … }`.
+    FilterNotExists,
+    /// `BIND(expr AS ?v)`.
+    Bind,
+    /// `COALESCE(?a, ?b, …)`.
+    Coalesce,
+    /// `CONSTRUCT { … } WHERE { … }` graph projection.
+    ConstructGraph,
+    /// Pre-bound query variables (`SparqlRequest.substitutions`, the native
+    /// `initBindings` equivalent), driven by [`QueryCase::bind`].
+    InitBindings,
+}
+
+impl Feature {
+    /// Every `Feature` variant — the coverage bar the registry union must meet.
+    pub const ALL: &'static [Feature] = &[
+        Feature::Union,
+        Feature::Optional,
+        Feature::FilterNotExists,
+        Feature::Bind,
+        Feature::Coalesce,
+        Feature::ConstructGraph,
+        Feature::InitBindings,
+    ];
+}
+
+/// The registry of migration [`QueryCase`] identities and the SPARQL features each
+/// exercises. It is a **checked-in, append-only** list: every cluster task adds the
+/// `(cq_id, feature_tags)` of the cases it lands, and the tag-union must stay ⊇
+/// [`Feature::ALL`] (enforced by `feature_registry_covers_all_features`).
+///
+/// The rows below are the Task-1 seed: `conformance_sparql_features.rs` lands one
+/// small, self-contained [`QueryCase`] per feature so the invariant is green from
+/// the first commit; later migrations extend the union, never shrink it.
+pub const MIGRATION_FEATURE_REGISTRY: &[(&str, &[Feature])] = &[
+    ("sparql-features/union", &[Feature::Union]),
+    ("sparql-features/optional", &[Feature::Optional]),
+    (
+        "sparql-features/filter-not-exists",
+        &[Feature::FilterNotExists],
+    ),
+    ("sparql-features/bind", &[Feature::Bind]),
+    ("sparql-features/coalesce", &[Feature::Coalesce]),
+    (
+        "sparql-features/construct-graph",
+        &[Feature::ConstructGraph],
+    ),
+    ("sparql-features/init-bindings", &[Feature::InitBindings]),
+];
+
+/// The de-duplicated union of every feature tag in [`MIGRATION_FEATURE_REGISTRY`].
+pub fn registry_feature_union() -> Vec<Feature> {
+    let mut union: Vec<Feature> = Vec::new();
+    for (_, tags) in MIGRATION_FEATURE_REGISTRY {
+        for &tag in *tags {
+            if !union.contains(&tag) {
+                union.push(tag);
+            }
+        }
+    }
+    union
+}
+
+// ── Parameterized competency-query case harness ────────────────────────────────
+
+/// Where a [`QueryCase`]'s data graph comes from — the twin of [`Source`] for the
+/// SPARQL/CONSTRUCT surface. Non-ontology paths may be repo-relative (resolved
+/// against [`repo_root`]) or absolute.
+enum QuerySource {
+    /// The merged ontology (`GraphStore::ontology()`, OnceLock-cached).
+    Ontology,
+    /// The merged ontology plus a Turtle file (`GraphStore::ontology_plus_ttl_file`).
+    OntologyPlus(PathBuf),
+    /// A standalone Turtle file (`GraphStore::parse_ttl_file`).
+    TtlFile(PathBuf),
+    /// Inline Turtle text (`GraphStore::parse_ttl`).
+    RawTtl(String),
+}
+
+/// A declarative competency-query conformance case — the SPARQL/CONSTRUCT twin of
+/// the SHACL [`Case`] builder. It carries the competency-question id, the SPARQL
+/// features it exercises, its data source, the query text (loaded verbatim from a
+/// `.rq` via [`read_query`], or inline), optional pre-bindings, and one family of
+/// assertions.
+///
+/// The query verb (ASK / SELECT / CONSTRUCT) is inferred from which assertions are
+/// set; mixing families is a HARD FAIL. All comparisons are by [`TermValue`], and
+/// SELECT comparisons are **set-based by default** (native SELECT order differs
+/// from rdflib) — [`QueryCase::select_ordered`] is the explicit order-sensitive
+/// variant for `ORDER BY`. Every mismatch panics with the query text (matching the
+/// harness's hard-fail style).
+pub struct QueryCase {
+    cq_id: &'static str,
+    feature_tags: &'static [Feature],
+    source: QuerySource,
+    query: Option<String>,
+    bindings: Vec<(String, TermValue)>,
+
+    // Assertion families (exactly one family may be populated per case).
+    ask_expect: Option<bool>,
+    contains_rows: Vec<Vec<TermValue>>,
+    row_set: Option<Vec<Vec<TermValue>>>,
+    ordered_rows: Option<Vec<Vec<TermValue>>>,
+    count_at_least: Option<usize>,
+    column_supersets: Vec<(String, Vec<TermValue>)>,
+    construct_has: Vec<(TermValue, TermValue, TermValue)>,
+    construct_len: Option<usize>,
+}
+
+impl QueryCase {
+    /// A new case for competency question `cq_id`, exercising `feature_tags`. The
+    /// default source is the merged ontology; set a query with
+    /// [`Self::query_file`]/[`Self::query`] and at least one assertion before
+    /// [`Self::run`].
+    pub fn new(cq_id: &'static str, feature_tags: &'static [Feature]) -> Self {
+        Self {
+            cq_id,
+            feature_tags,
+            source: QuerySource::Ontology,
+            query: None,
+            bindings: Vec::new(),
+            ask_expect: None,
+            contains_rows: Vec::new(),
+            row_set: None,
+            ordered_rows: None,
+            count_at_least: None,
+            column_supersets: Vec::new(),
+            construct_has: Vec::new(),
+            construct_len: None,
+        }
+    }
+
+    /// The competency-question id (matches a [`MIGRATION_FEATURE_REGISTRY`] row).
+    pub fn cq_id(&self) -> &'static str {
+        self.cq_id
+    }
+
+    /// The SPARQL features this case exercises.
+    pub fn feature_tags(&self) -> &'static [Feature] {
+        self.feature_tags
+    }
+
+    // ── source ────────────────────────────────────────────────────────────────
+
+    /// Query the merged ontology (the default).
+    pub fn over_ontology(mut self) -> Self {
+        self.source = QuerySource::Ontology;
+        self
+    }
+
+    /// Query the merged ontology plus a Turtle fixture (repo-relative or absolute).
+    pub fn over_ontology_plus(mut self, path: impl Into<PathBuf>) -> Self {
+        self.source = QuerySource::OntologyPlus(path.into());
+        self
+    }
+
+    /// Query a standalone Turtle file (repo-relative or absolute).
+    pub fn over_ttl_file(mut self, path: impl Into<PathBuf>) -> Self {
+        self.source = QuerySource::TtlFile(path.into());
+        self
+    }
+
+    /// Query an inline Turtle string.
+    pub fn over_raw_ttl(mut self, ttl: impl Into<String>) -> Self {
+        self.source = QuerySource::RawTtl(ttl.into());
+        self
+    }
+
+    // ── query ─────────────────────────────────────────────────────────────────
+
+    /// Load the query verbatim from a `.rq` (bare name or repo-relative path; see
+    /// [`read_query`]).
+    pub fn query_file(mut self, name_or_path: &str) -> Self {
+        self.query = Some(read_query(name_or_path));
+        self
+    }
+
+    /// Set the query text inline.
+    pub fn query(mut self, text: impl Into<String>) -> Self {
+        self.query = Some(text.into());
+        self
+    }
+
+    /// Pre-bind query variable `var` to `value` (accumulates; the native
+    /// `initBindings` equivalent — threads into `SparqlRequest.substitutions`).
+    pub fn bind(mut self, var: &str, value: TermValue) -> Self {
+        self.bindings.push((var.to_owned(), value));
+        self
+    }
+
+    // ── assertions ──────────────────────────────────────────────────────────────
+
+    /// Assert the ASK query returns `true`.
+    pub fn ask_true(mut self) -> Self {
+        self.ask_expect = Some(true);
+        self
+    }
+
+    /// Assert the ASK query returns `false`.
+    pub fn ask_false(mut self) -> Self {
+        self.ask_expect = Some(false);
+        self
+    }
+
+    /// Assert each listed row is present in the SELECT result (subset; extra rows
+    /// allowed). Each row's terms align to the query's projection order.
+    pub fn select_contains_rows(mut self, rows: Vec<Vec<TermValue>>) -> Self {
+        self.contains_rows.extend(rows);
+        self
+    }
+
+    /// Assert the SELECT result equals `rows` as a **set** (order-insensitive,
+    /// multiplicity-preserving).
+    pub fn select_row_set(mut self, rows: Vec<Vec<TermValue>>) -> Self {
+        self.row_set = Some(rows);
+        self
+    }
+
+    /// Assert the SELECT result equals `rows` **in order** (for `ORDER BY`).
+    pub fn select_ordered(mut self, rows: Vec<Vec<TermValue>>) -> Self {
+        self.ordered_rows = Some(rows);
+        self
+    }
+
+    /// Assert the SELECT result has at least `n` rows.
+    pub fn select_count_at_least(mut self, n: usize) -> Self {
+        self.count_at_least = Some(n);
+        self
+    }
+
+    /// Assert the SELECT `var` column contains (as a superset) every listed value.
+    pub fn column_superset(mut self, var: &str, values: Vec<TermValue>) -> Self {
+        self.column_supersets.push((var.to_owned(), values));
+        self
+    }
+
+    /// Assert each listed triple is present in the CONSTRUCT result graph.
+    pub fn construct_has(mut self, triples: Vec<(TermValue, TermValue, TermValue)>) -> Self {
+        self.construct_has.extend(triples);
+        self
+    }
+
+    /// Assert the CONSTRUCT result graph has exactly `n` triples.
+    pub fn construct_len(mut self, n: usize) -> Self {
+        self.construct_len = Some(n);
+        self
+    }
+
+    // ── execute ───────────────────────────────────────────────────────────────
+
+    /// Resolve a case path against [`repo_root`] when relative.
+    fn resolve(path: &Path) -> PathBuf {
+        if path.is_absolute() {
+            path.to_path_buf()
+        } else {
+            repo_root().join(path)
+        }
+    }
+
+    /// Load the source, run the query, and assert the configured expectations.
+    /// Panics (with the query text) on any mismatch.
+    pub fn run(&self) {
+        let store = match &self.source {
+            QuerySource::Ontology => GraphStore::ontology(),
+            QuerySource::OntologyPlus(p) => GraphStore::ontology_plus_ttl_file(&Self::resolve(p)),
+            QuerySource::TtlFile(p) => GraphStore::parse_ttl_file(&Self::resolve(p)),
+            QuerySource::RawTtl(t) => GraphStore::parse_ttl(t),
+        };
+        let query = self.query.as_deref().unwrap_or_else(|| {
+            panic!(
+                "QueryCase {:?}: no query set (call .query_file or .query)",
+                self.cq_id
+            )
+        });
+
+        let has_select = !self.contains_rows.is_empty()
+            || self.row_set.is_some()
+            || self.ordered_rows.is_some()
+            || self.count_at_least.is_some()
+            || !self.column_supersets.is_empty();
+        let has_construct = !self.construct_has.is_empty() || self.construct_len.is_some();
+        let has_ask = self.ask_expect.is_some();
+
+        let families = u8::from(has_ask) + u8::from(has_select) + u8::from(has_construct);
+        assert!(
+            families > 0,
+            "QueryCase {:?}: no assertion configured\n{query}",
+            self.cq_id
+        );
+        assert!(
+            families == 1,
+            "QueryCase {:?}: mixes ASK/SELECT/CONSTRUCT assertions — split into \
+             separate cases\n{query}",
+            self.cq_id
+        );
+
+        if has_ask {
+            let got = store.ask(&self.bindings, query);
+            let want = self.ask_expect.unwrap();
+            assert!(
+                got == want,
+                "QueryCase {:?}: expected ASK {want}, got {got}\n{query}",
+                self.cq_id
+            );
+            return;
+        }
+
+        if has_construct {
+            let out = store.construct(&self.bindings, query);
+            for (s, p, o) in &self.construct_has {
+                assert!(
+                    out.contains_triple(s, p, o),
+                    "QueryCase {:?}: CONSTRUCT graph missing triple {s:?} {p:?} {o:?}\n{query}",
+                    self.cq_id
+                );
+            }
+            if let Some(n) = self.construct_len {
+                let got = out.triple_count();
+                assert!(
+                    got == n,
+                    "QueryCase {:?}: CONSTRUCT graph has {got} triples, expected {n}\n{query}",
+                    self.cq_id
+                );
+            }
+            return;
+        }
+
+        // SELECT.
+        let (vars, rows) = store.select(&self.bindings, query);
+        let want_row =
+            |r: &[TermValue]| -> Vec<Option<TermValue>> { r.iter().cloned().map(Some).collect() };
+
+        for exp in &self.contains_rows {
+            let w = want_row(exp);
+            assert!(
+                rows.contains(&w),
+                "QueryCase {:?}: SELECT result is missing expected row {exp:?}\n\
+                 vars {vars:?}, rows {rows:?}\n{query}",
+                self.cq_id
+            );
+        }
+
+        if let Some(exp_rows) = &self.row_set {
+            let want: Vec<Vec<Option<TermValue>>> = exp_rows.iter().map(|r| want_row(r)).collect();
+            assert!(
+                multiset_eq(&rows, &want),
+                "QueryCase {:?}: SELECT result set != expected set\n\
+                 vars {vars:?}, rows {rows:?}, expected {want:?}\n{query}",
+                self.cq_id
+            );
+        }
+
+        if let Some(exp_rows) = &self.ordered_rows {
+            let want: Vec<Vec<Option<TermValue>>> = exp_rows.iter().map(|r| want_row(r)).collect();
+            assert!(
+                rows == want,
+                "QueryCase {:?}: SELECT result order != expected\n\
+                 vars {vars:?}, rows {rows:?}, expected {want:?}\n{query}",
+                self.cq_id
+            );
+        }
+
+        if let Some(n) = self.count_at_least {
+            assert!(
+                rows.len() >= n,
+                "QueryCase {:?}: SELECT returned {} rows, expected at least {n}\n{query}",
+                self.cq_id,
+                rows.len()
+            );
+        }
+
+        for (var, values) in &self.column_supersets {
+            let idx = vars.iter().position(|v| v == var).unwrap_or_else(|| {
+                panic!(
+                    "QueryCase {:?}: column {var:?} not in projection {vars:?}\n{query}",
+                    self.cq_id
+                )
+            });
+            for want in values {
+                let target = Some(want.clone());
+                assert!(
+                    rows.iter().any(|r| r.get(idx) == Some(&target)),
+                    "QueryCase {:?}: column {var:?} is missing value {want:?}\n\
+                     vars {vars:?}, rows {rows:?}\n{query}",
+                    self.cq_id
+                );
+            }
+        }
+    }
+}
+
+/// Multiset equality over solution rows (order-insensitive, multiplicity-aware).
+/// `TermValue` is `Eq` but not `Ord`/`Hash`, so this is an O(n²) match-and-mark —
+/// fine for the small row sets a competency case asserts.
+fn multiset_eq(a: &[Vec<Option<TermValue>>], b: &[Vec<Option<TermValue>>]) -> bool {
+    if a.len() != b.len() {
+        return false;
+    }
+    let mut used = vec![false; b.len()];
+    for x in a {
+        let mut matched = false;
+        for (i, y) in b.iter().enumerate() {
+            if !used[i] && x == y {
+                used[i] = true;
+                matched = true;
+                break;
+            }
+        }
+        if !matched {
+            return false;
+        }
+    }
+    true
+}
+
+// ── fn -> twin reconciliation manifest ────────────────────────────────────────
+//
+// Accessed via the `conformance_support::migration_manifest::…` path (Task 7's
+// count gate reads `MANIFEST`); its own `#[test]`s run in every test binary.
+
+pub mod migration_manifest;
 
 // ── Unit tests for the blank-node-aware `GraphStore` helpers ──────────────────
 //
