@@ -325,9 +325,10 @@ fn slice_path(relative: &str) -> PathBuf {
 
 /// Build a fixture `.gts` at test time from the REAL committed affect slice
 /// files: the canonical `module.ttl` (carries `gmeow:coreAffectGram` +
-/// `gmeow:coreAxisIndex`) merged with the two worked examples. This exercises the
-/// shipped examples end to end, proving intensity is COMPUTED from the Gram matrix
-/// and appraisal vectors — not read from a hand-authored magnitude.
+/// `gmeow:coreAxisIndex` AND the shipped schadenfreude worked A-Box) merged with
+/// the intensity-discriminating worked example. This exercises the shipped instance
+/// end to end, proving intensity is COMPUTED from the Gram matrix and appraisal
+/// vectors — not read from a hand-authored magnitude.
 fn affect_fixture_gts() -> PathBuf {
     use purrdf::gts_compose::{DEFAULT_RSYNCABLE_THRESHOLD, SnapshotBuilder, emit_gts};
     use purrdf::{NativeRdfFormat, parse_dataset};
@@ -335,7 +336,6 @@ fn affect_fixture_gts() -> PathBuf {
     let mut builder = SnapshotBuilder::default();
     for relative in [
         "core/affect/module.ttl",
-        "core/affect/examples/schadenfreude.ttl",
         "core/affect/examples/intensity-discriminating.ttl",
     ] {
         let text = std::fs::read(slice_path(relative)).expect("read slice file");
@@ -374,7 +374,7 @@ fn affect_intensity_schadenfreude_is_computed_from_the_metric() {
         .arg(&fixture)
         .args([
             "--observation",
-            "https://blackcatinformatics.ca/gmeow/examples/affect/tests/sfIntensity",
+            "https://blackcatinformatics.ca/gmeow/schadenfreudeIntensity",
         ])
         .assert()
         .success()

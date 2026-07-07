@@ -35,7 +35,8 @@ const CATEGORY_SET_ID: &str = "gmeow-emotion-categories";
 const DIMENSION_SET_ID: &str = "gmeow-appraisal-dimensions";
 
 /// The COMPUTED worked-`<emotion>` values, projected from the canonical schadenfreude
-/// affect example (`slices/core/affect/examples/schadenfreude.ttl`). The overall
+/// worked instance shipped in the affect base graph (`slices/core/affect/module.ttl`,
+/// `gmeow:schadenfreudeIntensity`). The overall
 /// metric-tensor intensity `√(xᵀGx)` and every per-core-affect-dimension unit-clamp value
 /// are computed by `gmeow-affect` from the schadenfreude vector over the canonical
 /// `gmeow:coreAffectGram` — **nothing here is a hand-typed numeric literal**. A fabricated
