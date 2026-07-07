@@ -1814,6 +1814,7 @@ dependencies = [
  "assert_cmd",
  "clap",
  "gmeow-affect",
+ "gmeow-affect-ingest",
  "gmeow-cli-core",
  "gmeow-docs",
  "gmeow-errors",

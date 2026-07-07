@@ -232,6 +232,24 @@ pub enum AffectCommands {
         #[arg(long, requires = "observation")]
         to: Option<String>,
     },
+    /// Ingest a captured GoEmotions classifier output (JSON) into attributed
+    /// GMEOW evidence Turtle: a gmeow:ModelInferenceRun + one
+    /// gmeow:AffectClassifierOutput per label (+ supported gmeow:AffectiveClaim /
+    /// gmeow:AffectEvaluationConcluded). Evidence, never inner-affect fact.
+    IngestGoemotions {
+        /// Captured run JSON — a `ClassifierRunCapture` envelope.
+        source: PathBuf,
+        /// Output Turtle file (default: stdout).
+        #[arg(long = "out", short = 'o')]
+        out: Option<PathBuf>,
+    },
+    /// Recover the captured GoEmotions run from attributed GMEOW evidence Turtle
+    /// (the inverse of `ingest-goemotions`) — the blind get leg of the
+    /// losslessness round-trip. Prints the reconstructed capture as JSON.
+    RecoverGoemotions {
+        /// GMEOW evidence Turtle, as produced by `ingest-goemotions`.
+        source: PathBuf,
+    },
 }
 
 /// The `gmeow music` nested subcommands (native `gmeow_music` engine).
