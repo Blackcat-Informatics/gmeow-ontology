@@ -152,14 +152,16 @@ pub const MANIFEST: &[ManifestRow] = &[
         "tests/test_compat_rdflib.py",
         "test_collection_write_read_roundtrip",
     ),
-    // The 2 SPARQL fns that DO get twins (Task 6 fills these):
-    pending(
+    // The 2 SPARQL fns that DO get twins (native surface twins):
+    twin(
         "tests/test_compat_rdflib.py",
         "test_sparql_select_ask_construct_and_resultrow",
+        "conformance_sparql_surface.rs::select_ask_construct_surface",
     ),
-    pending(
+    twin(
         "tests/test_compat_rdflib.py",
         "test_query_initbindings_nonprojected_var",
+        "conformance_sparql_surface.rs::initbindings_binds_nonprojected_var",
     ),
     dropped(
         "tests/test_compat_rdflib.py",
