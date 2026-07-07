@@ -69,8 +69,20 @@ class AestheticQualityEnum(str, Enum):
     qualitySublimity = "qualitySublimity"
 
 
+class AffectCompositeEnum(str, Enum):
+    schadenfreudeComposite = "schadenfreudeComposite"
+
+
 class AffectFunctionEnum(str, Enum):
     fnAffectiveIntensity = "fnAffectiveIntensity"
+
+
+class AffectScaleProfileEnum(str, Enum):
+    coreAffectMetricPAD = "coreAffectMetricPAD"
+
+
+class AffectVectorObservationEnum(str, Enum):
+    schadenfreudeCoreVector = "schadenfreudeCoreVector"
 
 
 class AgentEnum(str, Enum):
@@ -130,6 +142,13 @@ class AppraisalDimensionEnum(str, Enum):
     dimensionNovelty = "dimensionNovelty"
     dimensionObjectFocus = "dimensionObjectFocus"
     dimensionTemporalOrientation = "dimensionTemporalOrientation"
+
+
+class AppraisalEnum(str, Enum):
+    schadenfreudeAgencyCell = "schadenfreudeAgencyCell"
+    schadenfreudeArousalCell = "schadenfreudeArousalCell"
+    schadenfreudeNormCell = "schadenfreudeNormCell"
+    schadenfreudeValenceCell = "schadenfreudeValenceCell"
 
 
 class ArcTypeEnum(str, Enum):
@@ -755,6 +774,10 @@ class DerivationTypeEnum(str, Enum):
     derivationTypeSample = "derivationTypeSample"
     derivationTypeTranscription = "derivationTypeTranscription"
     derivationTypeVariation = "derivationTypeVariation"
+
+
+class DerivedAffectIntensityObservationEnum(str, Enum):
+    schadenfreudeIntensity = "schadenfreudeIntensity"
 
 
 class DeterminacyEnum(str, Enum):
@@ -2100,6 +2123,10 @@ class PeriodTypeEnum(str, Enum):
     periodTypeHistoricalEra = "periodTypeHistoricalEra"
 
 
+class PersonEnum(str, Enum):
+    schadenfreudeObserver = "schadenfreudeObserver"
+
+
 class PhysicalCarrierTypeEnum(str, Enum):
     carrierBone = "carrierBone"
     carrierCoin = "carrierCoin"
@@ -3254,6 +3281,11 @@ class WalletSchemeEnum(str, Enum):
     walletSchemeXMR = "walletSchemeXMR"
 
 
+class WeightingPolicyEnum(str, Enum):
+    weightingEqualCoreAffect = "weightingEqualCoreAffect"
+    weightingValenceDominant = "weightingValenceDominant"
+
+
 class AboutnessMode(ConfiguredBaseModel):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/AboutnessMode"
     pass
@@ -3556,11 +3588,13 @@ class AffectLabelSet(InformationObject):
 class AffectScaleProfile(InformationObject):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/AffectScaleProfile"
     is_a: ClassVar[str] = "InformationObject"
+    metricGram: str | None = Field(default=None)
     profileMidpoint: float | None = Field(default=None)
     profilePolarity: ScalePolarity | None = Field(default=None)
     profileRangeMax: float | None = Field(default=None)
     profileRangeMin: float | None = Field(default=None)
     profileTransform: str | None = Field(default=None)
+    sparseAxisCompletion: bool | None = Field(default=None)
 
 
 class Stream(Entity):
@@ -4724,7 +4758,7 @@ class CopyrightStatus(ConfiguredBaseModel):
 class CoreAffectDimension(AppraisalDimension):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/CoreAffectDimension"
     is_a: ClassVar[str] = "AppraisalDimension"
-    pass
+    coreAxisIndex: int | None = Field(default=None)
 
 
 class Corpus(InformationObject):
@@ -4938,7 +4972,7 @@ class DerivedAffectIntensityObservation(Observation):
     intensityBasis: AffectVectorObservation | None = Field(default=None)
     metricProfile: AffectScaleProfile | None = Field(default=None)
     normFunction: str | None = Field(default=None)
-    weightingPolicy: str | None = Field(default=None)
+    weightingPolicy: WeightingPolicy | None = Field(default=None)
 
 
 class IntentionalMode(IntentionalMoment):
@@ -8468,4 +8502,9 @@ class WalletScheme(ConfiguredBaseModel):
 class WebSite(Manifestation):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/WebSite"
     is_a: ClassVar[str] = "Manifestation"
+    pass
+
+
+class WeightingPolicy(ConfiguredBaseModel):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/WeightingPolicy"
     pass

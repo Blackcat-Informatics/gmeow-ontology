@@ -1,12 +1,13 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The two passthrough surfaces: `gmeow gts` (a shim to the external `gts`
-//! binary) and `gmeow music` (the native `gmeow_music` engine).
+//! The native/shim command surfaces: `gmeow gts` (a shim to the external `gts`
+//! binary), `gmeow music` (the native `gmeow_music` engine), and `gmeow affect`
+//! (the native `gmeow_affect` intensity-geometry engine).
 
 use std::path::{Path, PathBuf};
 
-use crate::{BUNDLE_GTS, MusicCommands};
+use crate::{AffectCommands, BUNDLE_GTS, MusicCommands};
 
 /// The install hint printed when the external `gts` binary cannot be found.
 pub(crate) const GTS_INSTALL_HINT: &str = "gts binary not found. Install gmeow-gts: pip install gmeow-gts \
@@ -118,6 +119,69 @@ pub(crate) fn music(command: &MusicCommands) -> i32 {
             };
             eprintln!("Error: {message}");
             code
+        }
+    }
+}
+
+/// `gmeow affect …` — the native affect-intensity geometry engine.
+///
+/// Product results → stdout with stable, greppable key prefixes; any failure →
+/// `Error: <message>` on stderr with exit `1`. The geometry is COMPUTED from the
+/// snapshot's Gram matrix and appraisal vectors (the metric-tensor norm), never
+/// read from a stored magnitude.
+pub(crate) fn affect(command: &AffectCommands) -> i32 {
+    match command {
+        AffectCommands::Intensity {
+            source,
+            observation,
+            to,
+        } => {
+            let bytes = match std::fs::read(source) {
+                Ok(bytes) => bytes,
+                Err(e) => {
+                    eprintln!("Error: cannot read {}: {e}", source.display());
+                    return 1;
+                }
+            };
+            if let Some(to) = to {
+                // clap enforces `--to requires --observation`, so `observation`
+                // is always present here.
+                let observation = observation
+                    .as_ref()
+                    .expect("clap `requires` guarantees --observation when --to is set");
+                let graph = purrdf::gts::reader::read(&bytes, false, None);
+                match gmeow_affect::distance_and_cosine(&graph, observation, to) {
+                    Ok((distance, cosine)) => {
+                        println!("distance {distance}");
+                        println!("cosine {cosine}");
+                        0
+                    }
+                    Err(message) => {
+                        eprintln!("Error: {message}");
+                        1
+                    }
+                }
+            } else {
+                match gmeow_affect::geometry_from_gts_bytes(&bytes, observation.as_deref()) {
+                    Ok(geometries) => {
+                        for geom in geometries {
+                            println!("observation {}", geom.observation);
+                            println!("intensity {}", geom.intensity);
+                            println!("quadratic-form {}", geom.quadratic_form);
+                            println!("dominant-axis {}", geom.dominant_axis);
+                            println!("pd-pivots {}", geom.pivots.join(" "));
+                            for axis in &geom.normalized {
+                                println!("axis {} normalized {}", axis.dimension, axis.value);
+                            }
+                        }
+                        0
+                    }
+                    Err(message) => {
+                        eprintln!("Error: {message}");
+                        1
+                    }
+                }
+            }
         }
     }
 }

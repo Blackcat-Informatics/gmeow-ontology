@@ -12,11 +12,11 @@
 # membership; logic:Kind typing is NOT checked here as the original pytest did
 # not assert it.
 #
-# RETAINED in pytest (run_shacl / ExampleConformance — not migratable here):
+# RETAINED in pytest (SHACL validation / ExampleConformance — not migratable here):
 #   test_profile_shape_passes_for_wellformed_profile
 #   test_profile_shape_fails_for_invalid_profile_applies_to
 #   test_profile_open_value_guard_warns_on_orphan
-# All three build synthetic graphs and call run_shacl(); they cannot be
+# All three build synthetic graphs and call SHACL validation; they cannot be
 # expressed as scopeModule ASK cells.
 #
 # See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest→DSL mapping.

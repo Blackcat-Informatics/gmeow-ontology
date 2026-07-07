@@ -9,7 +9,7 @@
 #   5. ex:emptyAppraisal — an appraisal reading nothing.
 #   6. ex:halfReading — a dimensional appraisal with a value but no
 #      dimension.
-# run_shacl over this graph MUST NOT conform.
+# SHACL validation over this graph MUST NOT conform.
 
 @prefix ex:    <https://example.org/shapes/> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .

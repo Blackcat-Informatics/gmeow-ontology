@@ -1,0 +1,18 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:NormPositiveDefiniteShape: a math:Norm induced by a
+# math:SymmetricBilinearForm whose math:definiteness is math:indefinite. ‖x‖ = √⟨x, x⟩
+# is a norm only for a positive-definite form. The form is named (so the
+# math:inducedByForm minCount passes), so ONLY the sh:sparql positive-definiteness
+# constraint fires. Validation MUST emit shacl.SPARQLConstraintComponent and no other
+# finding (math:NonPositiveDefiniteNorm).
+# Bound by tests/example-conformance.ttl (ex:ecNormIndefiniteForm).
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:badNorm a math:Norm ;
+    math:inducedByForm ex:indefForm .
+
+ex:indefForm a math:SymmetricBilinearForm ;
+    math:definiteness math:indefinite .

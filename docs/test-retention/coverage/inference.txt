@@ -1,0 +1,11 @@
+Source: slices/core/inference/tests/test_inference.py
+run_shacl() call-sites (real): 2 (validated against the SLICE shapes.ttl, not the whole corpus)
+def test_ functions: 20 -> conformance_inference.rs
+  17 TBox guards -> GraphStore::ontology() (exactly-one logic master; slice definedness; endurant/occurrent
+    split; value vocabs; mode/attack/acceptance individuals; domains/ranges; functional/symmetric;
+    decimal ranges; DL-clean irreflexivity-not-an-axiom).
+  test_wellformed_commitment_conforms -> ::wellformed_commitment_conforms (slice-shapes validate)
+  test_malformed_commitment_is_flagged -> ::malformed_commitment_is_flagged (substrings: assume what it
+    proves / irreflexive / attack itself / own component)
+  test_all_examples_parse -> ::all_examples_parse
+Slice-shapes validation via parse_shapes + validate_dataset (module.ttl + inline instance).
