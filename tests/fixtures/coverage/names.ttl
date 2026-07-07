@@ -19,16 +19,16 @@
 # --- First-class languages (gmeow:nameLanguage is an object property → Language) #
 # Registry-INDEPENDENT: the IRI is identity, gmeow:languageCode is an OPTIONAL tag.
 
-ex:langEn  a gmeow:Language ; gmeow:languageTag "x-gmeow-english" ; gmeow:bcp47Tag "en"^^xsd:language ; gmeow:languageCode "en" .
-ex:langZh  a gmeow:Language ; gmeow:languageTag "x-gmeow-chinese" ; gmeow:bcp47Tag "zh"^^xsd:language ; gmeow:languageCode "zh" .
-ex:langFr  a gmeow:Language ; gmeow:languageTag "x-gmeow-french" ; gmeow:bcp47Tag "fr"^^xsd:language ; gmeow:languageCode "fr" .
-ex:langJa  a gmeow:Language ; gmeow:languageTag "x-gmeow-japanese" ; gmeow:bcp47Tag "ja"^^xsd:language ; gmeow:languageCode "ja" .
-ex:langEs  a gmeow:Language ; gmeow:languageTag "x-gmeow-spanish" ; gmeow:bcp47Tag "es"^^xsd:language ; gmeow:languageCode "es" .
-ex:langKo  a gmeow:Language ; gmeow:languageTag "x-gmeow-korean" ; gmeow:bcp47Tag "ko"^^xsd:language ; gmeow:languageCode "ko" .
-ex:langBan a gmeow:Language ; gmeow:languageTag "x-gmeow-balinese" ; gmeow:bcp47Tag "ban"^^xsd:language ; gmeow:languageCode "ban" .
-ex:langLa  a gmeow:Language ; gmeow:languageTag "x-gmeow-latin" ; gmeow:bcp47Tag "la"^^xsd:language ; gmeow:languageCode "la" .
-ex:langDe  a gmeow:Language ; gmeow:languageTag "x-gmeow-german" ; gmeow:bcp47Tag "de"^^xsd:language ; gmeow:languageCode "de" .
-ex:langId  a gmeow:Language ; gmeow:languageTag "x-gmeow-indonesian" ; gmeow:bcp47Tag "id"^^xsd:language ; gmeow:languageCode "id" .
+ex:langEn  a gmeow:Language ; gmeow:languageCode "en" .
+ex:langZh  a gmeow:Language ; gmeow:languageCode "zh" .
+ex:langFr  a gmeow:Language ; gmeow:languageCode "fr" .
+ex:langJa  a gmeow:Language ; gmeow:languageCode "ja" .
+ex:langEs  a gmeow:Language ; gmeow:languageCode "es" .
+ex:langKo  a gmeow:Language ; gmeow:languageCode "ko" .
+ex:langBan a gmeow:Language ; gmeow:languageCode "ban" .
+ex:langLa  a gmeow:Language ; gmeow:languageCode "la" .
+ex:langDe  a gmeow:Language ; gmeow:languageCode "de" .
+ex:langId  a gmeow:Language ; gmeow:languageCode "id" .
 
 # --- Co-equal multilingual names (anti-colonial centrepiece) ---------------- #
 

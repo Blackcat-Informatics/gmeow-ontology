@@ -7,16 +7,23 @@
 //! reference catalog (`imports/languages-reference.ttl`):
 //!
 //!   - every catalog natural language carries `rdfs:label`, `skos:definition`,
-//!     `gmeow:languageTag`, `gmeow:bcp47Tag`, `gmeow:languageCode`, and a
-//!     `skos:exactMatch` alignment to an external authority;
-//!   - the catalog's ISO 639-1 two-letter `languageCode` set equals the complete
+//!     `gmeow:languageCode`, and a `skos:exactMatch` alignment to an external
+//!     authority — and carries NO authored `gmeow:bcp47Tag` (the former internal
+//!     `gmeow:languageTag` is retired by the lang: graft — IRI identity supersedes
+//!     it — and `gmeow:bcp47Tag` is now a GENERATED projection derived from the
+//!     carrier `lang:LanguageVariety` structure, never authored on a language);
+//!   - the catalog's ISO 639-1 two-letter `languageCode` set (over NATURAL
+//!     languages, i.e. excluding programming languages) equals the complete
 //!     184-entry ISO 639-1 code set;
-//!   - writing systems referenced by the catalog carry `rdfs:label` +
-//!     `skos:definition` and are typed `gmeow:WritingSystem`;
-//!   - the named programming languages are typed `gmeow:ProgrammingLanguage`;
+//!   - scripts defined by the catalog carry `rdfs:label` + `skos:definition` and
+//!     are typed `lang:Script` (the former `gmeow:WritingSystem` is grounded as
+//!     `lang:Script`; the language↔script binding is now a `lang:Orthography`);
+//!   - the named programming languages are typed `gmeow:Language` and carry
+//!     `lang:signSystemKind lang:programmingLanguageKind`;
 //!   - catalog natural languages link to Glottolog via `skos:exactMatch`;
-//!   - `load_tag_map` is deterministic over the catalog and covers the core +
-//!     catalog internal tags.
+//!   - `load_tag_map` is deterministic over the carrier surface (the grounding
+//!     carrier `lang:LanguageVariety` individuals + the generated `bcp47Tag`
+//!     projection) and covers the three framework carrier tags.
 //!
 //! The pure `load_tag_map` / `load_inverse_tag_map` / `retag_graph_to_internal`
 //! *logic* is exercised by inline unit tests in
@@ -32,6 +39,8 @@ use purrdf::{TermRef, parse_dataset};
 
 /// The GMEOW namespace prefix.
 const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
+/// The lang: grounding namespace prefix.
+const LANG: &str = "https://blackcatinformatics.ca/lang/";
 /// The catalog ontology IRI used as the `rdfs:isDefinedBy` object.
 const CATALOG_IRI: &str = "https://blackcatinformatics.ca/gmeow/imports/languages-reference";
 /// Glottolog languoid IRI base for `skos:exactMatch` alignments.
@@ -71,12 +80,39 @@ fn repo_root() -> PathBuf {
 /// Read the reference-catalog Turtle bytes.
 ///
 /// The catalog is self-contained for every Category-B assertion: each catalog
-/// individual carries `rdfs:isDefinedBy <.../imports/languages-reference>`, and
-/// the internal tags the tag-map test checks (english/french/mandarin/japanese/
-/// arabic/hindi/python) are all defined here.
+/// individual carries `rdfs:isDefinedBy <.../imports/languages-reference>`.
 fn catalog_bytes() -> Vec<u8> {
     let path = repo_root().join("imports/languages-reference.ttl");
     std::fs::read(&path).unwrap_or_else(|e| panic!("cannot read {}: {e}", path.display()))
+}
+
+/// Read the carrier-surface Turtle bytes: the grounding-slice module (which
+/// defines the three carrier `lang:LanguageVariety` individuals with their
+/// `lang:carrierTag`) UNIONED with the generated `bcp47-tags.ttl` projection
+/// (which carries the derived `gmeow:bcp47Tag` on those same variety IRIs).
+///
+/// Since the lang: graft, the internal→BCP-47 carrier map is a BUNDLE fact, not a
+/// catalog fact: the `x-gmeow-*` tag rides `lang:carrierTag` on the carrier
+/// varieties, and their BCP-47 tag is GENERATED (never authored on a language).
+/// The N-Triples projection is a valid Turtle continuation of the module, so the
+/// concatenation parses as one dataset — exactly the surface the real consumers
+/// (`gmeow` CLI, docs, mcp) resolve the tag map from.
+fn carrier_surface_bytes() -> Vec<u8> {
+    let module = repo_root().join("slices/grounding/lang/module.ttl");
+    let projection = repo_root().join("generated/projections/lang/bcp47-tags.ttl");
+    // The grounding module is a pipeline FRAGMENT: the regeneration preamble
+    // supplies `ontolex:`, so prepend that one declaration to parse it standalone
+    // (duplicate `@prefix` is legal Turtle — the module redeclares the rest).
+    let mut bytes = b"@prefix ontolex: <http://www.w3.org/ns/lemon/ontolex#> .\n".to_vec();
+    bytes.extend(
+        std::fs::read(&module).unwrap_or_else(|e| panic!("cannot read {}: {e}", module.display())),
+    );
+    bytes.push(b'\n');
+    bytes.extend(
+        std::fs::read(&projection)
+            .unwrap_or_else(|e| panic!("cannot read {}: {e}", projection.display())),
+    );
+    bytes
 }
 
 /// Parse the catalog into a dataset (hard-fail on parse error).
@@ -154,17 +190,30 @@ impl Index {
 
 /// Mirror of `test_reference_catalog_languages_are_annotated_and_aligned`:
 /// the catalog ISO 639-1 code set equals the complete 184-entry set, and every
-/// catalog natural language carries label + definition + languageTag + bcp47Tag +
-/// languageCode + a `skos:exactMatch` alignment.
+/// catalog natural language carries label + definition + languageCode + a
+/// `skos:exactMatch` alignment — and authors NO `gmeow:bcp47Tag` (retired to a
+/// generated projection by the lang: graft).
 #[test]
 fn reference_catalog_languages_are_annotated_and_aligned() {
     let dataset = catalog_dataset();
     let index = Index::build(&dataset);
-    let languages = index.catalog_subjects_of_type(&format!("{GMEOW}Language"));
+    let all_languages = index.catalog_subjects_of_type(&format!("{GMEOW}Language"));
     assert!(
-        !languages.is_empty(),
+        !all_languages.is_empty(),
         "catalog must define gmeow:Language individuals"
     );
+
+    // Programming languages are gmeow:Language too (distinguished by
+    // lang:signSystemKind lang:programmingLanguageKind). The ISO 639-1 sweep and
+    // the registry-annotation checks below are about NATURAL languages, so filter
+    // the programming languages out.
+    let sign_kind = format!("{LANG}signSystemKind");
+    let prog_kind = format!("{LANG}programmingLanguageKind");
+    let languages: BTreeSet<String> = all_languages
+        .iter()
+        .filter(|l| !index.has_iri(l, &sign_kind, &prog_kind))
+        .cloned()
+        .collect();
 
     // ISO 639-1 two-letter languageCode set equals the complete code set
     // (Python: `catalog_iso1_codes == EXPECTED_ISO639_1_CODES`).
@@ -190,24 +239,32 @@ fn reference_catalog_languages_are_annotated_and_aligned() {
         "ISO 639-1 code set mismatch: missing={missing:?}; unexpected={unexpected:?}"
     );
 
-    let tag_prop = format!("{GMEOW}languageTag");
     let bcp_prop = format!("{GMEOW}bcp47Tag");
     for lang in &languages {
+        // The three project translation targets (English/French/Mandarin) are
+        // unified with the grounding lang: sign systems (lang:english/french/
+        // mandarin), which carry their rdfs:label + skos:definition in
+        // slices/grounding/lang/module.ttl; the catalog only ENRICHES them with
+        // codes, alignments and appellations. So label/definition are asserted
+        // for the catalog-owned (gmeow:-namespace) languages only.
+        if lang.starts_with(GMEOW) {
+            assert!(
+                index.has_any_lit(lang, RDFS_LABEL),
+                "<{lang}> missing rdfs:label"
+            );
+            assert!(
+                index.has_any_lit(lang, SKOS_DEFINITION),
+                "<{lang}> missing skos:definition"
+            );
+        }
+        // Regression gate: the lang: graft retired `gmeow:bcp47Tag` as an authored
+        // property — it is now a GENERATED projection derived from carrier variety
+        // structure. No catalog language may author it (an undefined-but-authored
+        // predicate would otherwise slip past the namespace-only coverage gate).
         assert!(
-            index.has_any_lit(lang, RDFS_LABEL),
-            "<{lang}> missing rdfs:label"
-        );
-        assert!(
-            index.has_any_lit(lang, SKOS_DEFINITION),
-            "<{lang}> missing skos:definition"
-        );
-        assert!(
-            index.has_any_lit(lang, &tag_prop),
-            "<{lang}> missing gmeow:languageTag"
-        );
-        assert!(
-            index.has_any_lit(lang, &bcp_prop),
-            "<{lang}> missing gmeow:bcp47Tag"
+            !index.has_any_lit(lang, &bcp_prop),
+            "<{lang}> authors gmeow:bcp47Tag, but it is retired as an authored property \
+             (generated projection only)"
         );
         assert!(
             index.has_any_lit(lang, &code_prop),
@@ -222,32 +279,27 @@ fn reference_catalog_languages_are_annotated_and_aligned() {
     }
 }
 
-/// Mirror of `test_reference_catalog_writing_systems_are_annotated`: every writing
-/// system referenced (via `gmeow:usesWritingSystem`) by a catalog language is typed
-/// `gmeow:WritingSystem` and carries `rdfs:label` + `skos:definition`.
+/// Post-graft twin of `test_reference_catalog_writing_systems_are_annotated`:
+/// scripts are grounded as `lang:Script` (ISO 15924 on `skos:notation`), and the
+/// language↔script binding is a `lang:Orthography` (`lang:orthographyFor` +
+/// `lang:usesScript`). Every `lang:Script` DEFINED IN THE CATALOG carries
+/// `rdfs:label` + `skos:definition` + `skos:notation`, and the catalog mints at
+/// least one `lang:Orthography` bound to a catalog language and a script.
 #[test]
 fn reference_catalog_writing_systems_are_annotated() {
     let dataset = catalog_dataset();
     let index = Index::build(&dataset);
-    let ws_type = format!("{GMEOW}WritingSystem");
-    let uses_ws = format!("{GMEOW}usesWritingSystem");
+    let script_type = format!("{LANG}Script");
+    let skos_notation = "http://www.w3.org/2004/02/skos/core#notation";
 
-    let languages = index.catalog_subjects_of_type(&format!("{GMEOW}Language"));
-    let mut writing_systems: BTreeSet<String> = BTreeSet::new();
-    for lang in &languages {
-        if let Some(systems) = index.iris(lang, &uses_ws) {
-            writing_systems.extend(systems.iter().cloned());
-        }
-    }
+    // Catalog-defined scripts (the reused lang:latinScript / lang:hanScript are
+    // defined in slices/grounding/lang/module.ttl, not here).
+    let scripts = index.catalog_subjects_of_type(&script_type);
     assert!(
-        !writing_systems.is_empty(),
-        "no writing systems found for reference-catalog languages"
+        !scripts.is_empty(),
+        "catalog must define lang:Script individuals"
     );
-    for ws in &writing_systems {
-        assert!(
-            index.has_iri(ws, RDF_TYPE, &ws_type),
-            "<{ws}> missing gmeow:WritingSystem type"
-        );
+    for ws in &scripts {
         assert!(
             index.has_any_lit(ws, RDFS_LABEL),
             "<{ws}> missing rdfs:label"
@@ -256,16 +308,47 @@ fn reference_catalog_writing_systems_are_annotated() {
             index.has_any_lit(ws, SKOS_DEFINITION),
             "<{ws}> missing skos:definition"
         );
+        assert!(
+            index.has_any_lit(ws, skos_notation),
+            "<{ws}> missing skos:notation (ISO 15924)"
+        );
+    }
+
+    // The language↔script binding is now a lang:Orthography.
+    let orthographies = index.catalog_subjects_of_type(&format!("{LANG}Orthography"));
+    assert!(
+        !orthographies.is_empty(),
+        "catalog must mint lang:Orthography bindings for its languages' scripts"
+    );
+    let orthography_for = format!("{LANG}orthographyFor");
+    let uses_script = format!("{LANG}usesScript");
+    for orth in &orthographies {
+        assert!(
+            index
+                .iris(orth, &orthography_for)
+                .is_some_and(|s| !s.is_empty()),
+            "<{orth}> missing lang:orthographyFor"
+        );
+        assert!(
+            index
+                .iris(orth, &uses_script)
+                .is_some_and(|s| !s.is_empty()),
+            "<{orth}> missing lang:usesScript"
+        );
     }
 }
 
-/// Mirror of `test_reference_catalog_programming_languages_typed`: the named
-/// programming languages are typed `gmeow:ProgrammingLanguage`.
+/// Post-graft twin of `test_reference_catalog_programming_languages_typed`: the
+/// removed `gmeow:ProgrammingLanguage` subclass is retired; a programming language
+/// is a `gmeow:Language` distinguished by
+/// `lang:signSystemKind lang:programmingLanguageKind`.
 #[test]
 fn reference_catalog_programming_languages_typed() {
     let dataset = catalog_dataset();
     let index = Index::build(&dataset);
-    let prog_type = format!("{GMEOW}ProgrammingLanguage");
+    let lang_type = format!("{GMEOW}Language");
+    let sign_kind = format!("{LANG}signSystemKind");
+    let prog_kind = format!("{LANG}programmingLanguageKind");
     // The exact IRI list checked by the Python case.
     for local in [
         "langPython",
@@ -276,8 +359,12 @@ fn reference_catalog_programming_languages_typed() {
     ] {
         let iri = format!("{GMEOW}{local}");
         assert!(
-            index.has_iri(&iri, RDF_TYPE, &prog_type),
-            "<{iri}> must be typed gmeow:ProgrammingLanguage"
+            index.has_iri(&iri, RDF_TYPE, &lang_type),
+            "<{iri}> must be typed gmeow:Language"
+        );
+        assert!(
+            index.has_iri(&iri, &sign_kind, &prog_kind),
+            "<{iri}> must carry lang:signSystemKind lang:programmingLanguageKind"
         );
     }
 }
@@ -308,47 +395,53 @@ fn reference_catalog_glottolog_alignments() {
 }
 
 /// Mirror of `test_language_tag_map_is_deterministic_and_covers_catalog`:
-/// `load_tag_map` over the catalog is deterministic across two parses and covers
-/// the core + catalog internal tags.
+/// `load_tag_map` over the carrier surface is deterministic across two parses and
+/// covers the three framework carrier tags. Since the lang: graft, the internal
+/// `x-gmeow-*` tag rides `lang:carrierTag` on the three carrier varieties
+/// (gmeowEnglish/gmeowFrench/gmeowMandarin) ONLY, and their BCP-47 tag is
+/// GENERATED — the former per-language `gmeow:languageTag`
+/// (japanese/arabic/hindi/python/…) is dropped, so only the carriers map.
 #[test]
 fn language_tag_map_is_deterministic_and_covers_catalog() {
-    let bytes = catalog_bytes();
+    let bytes = carrier_surface_bytes();
     let map_a: HashMap<String, String> =
         load_tag_map(&bytes, "turtle").expect("first load_tag_map must succeed");
     let map_b: HashMap<String, String> =
         load_tag_map(&bytes, "turtle").expect("second load_tag_map must succeed");
     assert_eq!(map_a, map_b, "load_tag_map output must be deterministic");
 
-    for internal_tag in [
-        "x-gmeow-english",
-        "x-gmeow-french",
-        "x-gmeow-mandarin",
-        "x-gmeow-japanese",
-        "x-gmeow-arabic",
-        "x-gmeow-hindi",
-        "x-gmeow-python",
+    for (internal_tag, expected_bcp) in [
+        ("x-gmeow-english", "en"),
+        ("x-gmeow-french", "fr"),
+        ("x-gmeow-mandarin", "zh"),
     ] {
         let bcp = map_a
             .get(internal_tag)
             .unwrap_or_else(|| panic!("missing tag mapping for {internal_tag}"));
-        assert!(!bcp.is_empty(), "empty BCP-47 mapping for {internal_tag}");
+        assert_eq!(bcp, expected_bcp, "wrong BCP-47 mapping for {internal_tag}");
     }
+    // The dropped per-language internal tags no longer appear.
+    assert!(
+        !map_a.contains_key("x-gmeow-japanese"),
+        "per-language internal tags are dropped by the lang: graft"
+    );
 }
 
-/// Catalog-data coverage: `load_inverse_tag_map` over the REAL catalog recovers the
+/// Carrier-surface coverage: `load_inverse_tag_map` over the REAL carrier surface
+/// (grounding carrier varieties + generated `bcp47Tag` projection) recovers the
 /// three project translation targets — English, French, and Mandarin.
 ///
 /// This is a DATA audit that the inline unit test in `language_tags.rs`
 /// (`load_inverse_tag_map_recovers_natural_tags`) cannot substitute for: that test
 /// uses a 2-language synthetic fixture and asserts the LOGIC is correct. This test
-/// asserts that the CATALOG actually carries the three required mappings. An
-/// authoring error (missing `bcp47Tag`, wrong tag, removed individual) would break
-/// this test but leave the unit test green.
+/// asserts that the real carrier surface actually carries the three required
+/// mappings. An authoring/generation error (missing generated `bcp47Tag`, wrong
+/// tag, removed carrier variety) would break this test but leave the unit test green.
 #[test]
 fn inverse_tag_map_recovers_natural_internal_tags() {
-    let bytes = catalog_bytes();
+    let bytes = carrier_surface_bytes();
     let inv = load_inverse_tag_map(&bytes, "turtle")
-        .expect("load_inverse_tag_map must succeed on the reference catalog");
+        .expect("load_inverse_tag_map must succeed on the carrier surface");
 
     assert_eq!(
         inv.get("en"),
@@ -367,19 +460,20 @@ fn inverse_tag_map_recovers_natural_internal_tags() {
     );
 }
 
-/// Catalog round-trip: `retag_graph_to_internal` using the catalog's inverse map
-/// converts `@en` and `@zh` literals to `@x-gmeow-english` and `@x-gmeow-mandarin`
-/// respectively; verifies the catalog DATA drives the real graph-rewrite path.
+/// Carrier-surface round-trip: `retag_graph_to_internal` using the carrier
+/// surface's inverse map converts `@en` and `@zh` literals to `@x-gmeow-english`
+/// and `@x-gmeow-mandarin` respectively; verifies the real carrier DATA drives the
+/// graph-rewrite path.
 ///
 /// This complements the unit-level `retag_graph_to_internal_lifts_public_tags` test
-/// (which uses a synthetic 2-entry map) by asserting that the catalog-derived
+/// (which uses a synthetic 2-entry map) by asserting that the carrier-surface-derived
 /// inverse map actually produces the correct internal tags on a concrete N-Triples
-/// graph — exercising the end-to-end catalog → inverse-map → retag path.
+/// graph — exercising the end-to-end carrier-surface → inverse-map → retag path.
 #[test]
 fn retag_graph_to_internal_catalog_round_trip() {
-    let bytes = catalog_bytes();
+    let bytes = carrier_surface_bytes();
     let inv = load_inverse_tag_map(&bytes, "turtle")
-        .expect("load_inverse_tag_map must succeed on the reference catalog");
+        .expect("load_inverse_tag_map must succeed on the carrier surface");
 
     // Build a small N-Triples graph with one @en and one @zh literal.
     let nt = "<https://e/s> <https://e/label> \"Hello\"@en .\n\

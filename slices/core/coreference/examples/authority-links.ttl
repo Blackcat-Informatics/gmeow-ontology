@@ -10,7 +10,9 @@
 # annotated edition show the intra-corpus coreference edges (editionOf,
 # supersedes) that relate distinct records of the "same" thing.
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix lang:  <https://blackcatinformatics.ca/lang/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/coreference/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
 
 # --- A locally-recorded person aligned to external authorities. The exact match
@@ -38,3 +40,39 @@ ex:fieldNotesAnnotated a gmeow:CreativeWork ;
     gmeow:title "Coastal Field Notes, annotated edition"@x-gmeow-english ;
     gmeow:editionOf ex:fieldNotes ;
     gmeow:supersedes ex:fieldNotes .
+
+# --- The reference-resolution seam (Task 5 floor, Principle 19). The
+#     identity-lineage links above relate one record to another; THIS is where
+#     coreference is decided from shared REFERENCE. Two distinct forms — "the
+#     morning star" and "the evening star" — each resolve, through their own
+#     reified lang:Denotation, to the SAME referent (Venus). Coreference is read
+#     off the shared lang:denotationTarget, never an owl:sameAs merge and never a
+#     same-string guess. gmeow:corefDenotation points the entity at each
+#     resolving denotation.
+ex:venus a gmeow:Entity ;
+    gmeow:corefDenotation ex:morningStarDenotation , ex:eveningStarDenotation .
+
+ex:morningStarForm a lang:WordForm ;
+    rdfs:label "the morning star"@x-gmeow-english ;
+    lang:inSignSystem lang:english .
+
+ex:eveningStarForm a lang:WordForm ;
+    rdfs:label "the evening star"@x-gmeow-english ;
+    lang:inSignSystem lang:english .
+
+# Two forms, two denotations, ONE shared target — that shared target IS the
+# coreference. Each denotation is a fully specified reified record.
+ex:morningStarDenotation a lang:Denotation ;
+    lang:denotedForm ex:morningStarForm ;
+    lang:denotationKind lang:denotesEntity ;
+    lang:denotationTarget ex:venus ;
+    lang:denotationContext ex:prescientificAstronomy .
+
+ex:eveningStarDenotation a lang:Denotation ;
+    lang:denotedForm ex:eveningStarForm ;
+    lang:denotationKind lang:denotesEntity ;
+    lang:denotationTarget ex:venus ;
+    lang:denotationContext ex:prescientificAstronomy .
+
+ex:prescientificAstronomy
+    rdfs:label "pre-scientific naked-eye astronomy"@x-gmeow-english .

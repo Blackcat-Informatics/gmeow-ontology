@@ -26,19 +26,24 @@ conlang or AI-language is therefore a **fully first-class, co-equal** language.
 The `ex:saLanguageCodeNoRequiredCardinality` structural-assertion cell (in
 `slices/core/language/tests/structural.ttl`) enforces that nothing requires a code.
 
-To isolate the GMEOW graph from registry changes and support code-less conlangs, **all internal literals must use private-use BCP-47 tags (e.g. `@x-gmeow-english`)** for any GMEOW-namespaced property. The language entity's `gmeow:languageTag` functional property links the entity to its internal tag.
+To isolate the GMEOW graph from registry changes and support code-less conlangs, GMEOW's
+own literals still use private-use BCP-47 tags (e.g. `@x-gmeow-english`) for any
+GMEOW-namespaced property. In the graft, the per-language internal tag (`gmeow:languageTag`)
+is **retired**: a language's self-minted IRI is its identity, so ordinary languages carry no
+internal tag. The framework's own `@x-gmeow-*` authoring tags now ride **`lang:carrierTag`**
+on exactly three carrier-variety individuals — `lang:gmeowEnglish`, `lang:gmeowFrench`, and
+`lang:gmeowMandarin` (each a `lang:LanguageVariety`) — never on the languages themselves.
 
 ```turtle
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix lang:  <https://blackcatinformatics.ca/lang/> .
 @prefix ex:    <https://example.org/lang/> .
 
-# First-class language individuals define their private-use tags:
+# First-class language individuals are identified by their IRI (no internal tag):
 ex:english a gmeow:Language ;
-    gmeow:languageTag "x-gmeow-english" ;
     gmeow:languageCode "en" .
 
 ex:ithkuil a gmeow:Language ;                          # NO languageCode — and that's fine
-    gmeow:languageTag "x-gmeow-ithkuil" ;
     gmeow:languageOrigin gmeow:originConstructedEngineered ;
     gmeow:designGoal "Maximal cognitive precision with minimal ambiguity." ;
     gmeow:wasAttributedTo ex:quijada ;                 # a human creator…
@@ -49,7 +54,6 @@ ex:ithkuil a gmeow:Language ;                          # NO languageCode — and
     ] .
 
 ex:aiLang a gmeow:Language ;
-    gmeow:languageTag "x-gmeow-ailang" ;
     gmeow:languageOrigin gmeow:originAiGenerated ;
     gmeow:wasAttributedTo ex:modelAgent .              # …or a gmeow:SoftwareAgent
 ```
@@ -61,41 +65,48 @@ projection layer (see below), so schema.org consumers still get `ja-Hani` etc.
 
 `gmeow:Language` covers natural, constructed (auxiliary / engineered / artistic /
 ritual), AI-generated, historical / reconstructed, sign / whistled / tactile, and
-formal languages. The single structural split is **`gmeow:FormalLanguage`** →
-**`gmeow:ProgrammingLanguage`** (grammar-defined, machine modality, no native
-speakers); a software project links to one via `gmeow:writtenInLanguage`.
+formal languages. Formal and programming languages are no longer a subclass ladder:
+the distinction rides **`lang:signSystemKind`** pointing at kind individuals —
+`lang:formalLanguageKind` and `lang:programmingLanguageKind` (which refines it via
+`skos:broader`). A programming language is thus `a gmeow:Language ; lang:signSystemKind
+lang:programmingLanguageKind ; lang:modality lang:writtenModality`, and a software project
+still links to one via `gmeow:writtenInLanguage`.
 Everything else is
 distinguished by **value vocabularies**: `languageOrigin`, `languageModality`
 (spoken / signed / written / whistled / tactile / machine / multimodal),
 `languageStatus`.
 
-## Writing systems are first-class — and co-mingled
+## Scripts are first-class — and co-mingled
 
-A language uses **many co-equal scripts at once**. Japanese interleaves four, each
-in a distinct *role* — so "a language has one script" is as wrong as "a person has
-one name", and the fix is the same reified-usage relator (`WritingSystemUsage`,
-mirroring names' `NameUsage`):
+A language uses **many co-equal scripts at once**. Japanese interleaves four — so
+"a language has one script" is as wrong as "a person has one name". In the graft each
+script is a **`lang:Script`** in the `lang:` grounding layer (the former
+`gmeow:WritingSystem`), and each (language, script) binding is a **`lang:Orthography`**
+individual (`lang:orthographyFor` + `lang:usesScript`):
 
-| Script | `scriptCode` | Role (`scriptRole`) | Example |
-|---|---|---|---|
-| Han (kanji) | `Hani` | `scriptRoleLogographicContent` | 山田 (content words) |
-| Hiragana | `Hira` | `scriptRoleSyllabicGrammar` | は、を (grammar/okurigana) |
-| Katakana | `Kana` | `scriptRoleLoanword` | コンピュータ (loanwords) |
-| Rōmaji | `Latn` | `scriptRoleTransliteration` | "Yamada" (transliteration) |
+| Script | `skos:notation` (ISO 15924) | Example |
+|---|---|---|
+| Han (kanji) | `Hani` | 山田 (content words) |
+| Hiragana | `Hira` | は、を (grammar/okurigana) |
+| Katakana | `Kana` | コンピュータ (loanwords) |
+| Rōmaji | `Latn` | "Yamada" (transliteration) |
 
 ```turtle
-ex:japanese gmeow:usesWritingSystem ex:wsHan , ex:wsHiragana , ex:wsKatakana , ex:wsRomaji .
-ex:wsuJaHan a gmeow:WritingSystemUsage ;
-    gmeow:usageLanguage ex:japanese ; gmeow:usageWritingSystem ex:wsHan ;
-    gmeow:scriptRole gmeow:scriptRoleLogographicContent .
-# …three more usages, one per script + role.
+ex:wsHan a lang:Script ; skos:notation "Hani"^^xsd:string .
+
+ex:orthoJaHan a lang:Orthography ;
+    lang:orthographyFor ex:japanese ; lang:usesScript ex:wsHan .
+# …three more orthographies, one co-equal individual per (language, script) binding.
 ```
 
-The usage also carries a **period** (`gmeow:scriptUsageInterval` /
-`validFrom`/`validUntil`), so a script change over time is just a closed usage —
-Turkish in Arabic script *until 1928*, then Latin. Bespoke and non-linear scripts
-(Ithkuil) are first-class: a `WritingSystem` may have **no** `scriptCode` and
-`writingSystemType gmeow:wsTypeNonLinear`.
+The ISO 15924 code, when one exists, rides `skos:notation`. Bespoke and non-linear
+scripts (Ithkuil) are first-class: a `lang:Script` may simply carry **no**
+`skos:notation`. The former per-usage script *role* (`scriptRole`) and *period*
+(`scriptUsageInterval`) facets are a **declared loss** in the graft — they have no
+`lang:` equivalent, so a script change over time (Turkish in Arabic until 1928, then
+Latin) is now recorded only as the presence or absence of the corresponding
+`lang:Orthography`, and the former `writingSystemType` / `textDirection` facets on the
+script are likewise dropped.
 
 ## Versions are a first-class lineage
 
@@ -156,7 +167,7 @@ Dialect, sociolect, register, idiolect, localized variant, generational slang, s
 
 ```turtle
 ex:scots a gmeow:LanguageVariety ;
-    gmeow:languageTag "sco" ;
+    gmeow:languageCode "sco" ;
     gmeow:varietyKind gmeow:kindLanguage , gmeow:kindDialect ;
     gmeow:varietyOf ex:english .
 
@@ -240,8 +251,11 @@ The schema.org projection (run `gmeow project`) emits `schema:Language` /
 `schema:ComputerLanguage`, **both** endonym and exonym as co-equal `schema:name`s,
 the flattened `schema:knowsLanguage`, and — via `fnComposeBcp47` — the BCP-47 tag
 as `schema:alternateName` (`de`+`Latn` → `de-Latn`; Japanese yields `ja-Hani`,
-`ja-Hira`, `ja-Kana`, `ja-Latn`). Lossy drops: `WritingSystemUsage`, origin /
-modality / status, version lineage, `LanguageCreation`, and the proficiency level.
+`ja-Hira`, `ja-Kana`, `ja-Latn`). Lossy drops: `lang:Orthography`, origin /
+modality / status, version lineage, `LanguageCreation`, and the proficiency level
+— plus, dropped in the graft itself, `writingSystemType` / `textDirection` (script
+facets) and `scriptRole` / `scriptUsageInterval` (former usage facets) along with the
+per-language internal `languageTag`.
 Language **instances** coreference Lexvo (`http://lexvo.org/id/iso639-3/…`),
 Glottolog and Wikidata in data via `skos:exactMatch` + `gmeow:authorityLink`.
 
@@ -250,7 +264,7 @@ Glottolog and Wikidata in data via `skos:exactMatch` + `gmeow:authorityLink`.
 | GMEOW choice | The "standard" alternative | Why we reject it |
 |---|---|---|
 | Self-minted IRI; codes optional | a language *is* its ISO/BCP-47 code | Excludes code-less conlangs, AI-languages, under-coded sign/minority languages |
-| First-class `WritingSystem` + co-mingling relator | one `script` subtag | Can't represent Japanese's four roles, script change over time, or bespoke/non-linear scripts |
+| First-class `lang:Script` + co-equal `lang:Orthography` bindings | one `script` subtag | Can't represent Japanese's four co-mingled scripts or bespoke/non-linear scripts |
 | Reified per-skill `LanguageProficiency` | proficiency stuffed in a label | Loses the scale, the skill, and the time |
 | Version lineage of first-class languages | a `version` string | An Ithkuil version is itself a usable language with its own scripts/names |
 | Transliteration/translation as FnO functions | a bare romanization literal | A romanization should record *how* it was derived (Hepburn vs Kunrei) |
@@ -259,7 +273,7 @@ Glottolog and Wikidata in data via `skos:exactMatch` + `gmeow:authorityLink`.
 ## Terms
 
 This section anchors the guide to the terms declared in this slice. The base
-`gmeow:Language` / `WritingSystem` / version-lineage spine and the
+`gmeow:Language` / `lang:Script` / `lang:Orthography` / version-lineage spine and the
 proficiency-level individuals live in adjacent slices and are not redeclared here.
 
 ### gmeow:LanguageVersion · gmeow:LanguageVariety · gmeow:versionLabel
@@ -285,22 +299,23 @@ slang, standard, creole, pidgin, koine, lingua franca, …) and `varietyOf` (the
 parent language) are both non-functional and standpoint-dependent, so a single
 variety can be a language to one standpoint and a dialect to another.
 
-### gmeow:WritingSystemUsage · gmeow:usageLanguage · gmeow:usageWritingSystem · gmeow:scriptRole · gmeow:ScriptRole · gmeow:scriptUsageInterval
+### lang:Orthography · lang:orthographyFor · lang:usesScript
 
-The reified co-mingling relator binding {language} × {writing system} × {role} ×
-{period}, mirroring names' `NameUsage`. `usageLanguage` and `usageWritingSystem`
-are its functional constituents; `scriptRole` is the functional `ScriptRole` value
-(primary, logographic content, syllabic grammar, loanword, transliteration,
-liturgical, historical, decorative); `scriptUsageInterval` carries its period
-(Turkish-in-Arabic until 1928).
+The (language, script) binding, in the `lang:` grounding layer — one `lang:Orthography`
+individual per binding, with `lang:orthographyFor` naming the language and `lang:usesScript`
+naming the `lang:Script`. A language co-mingling several scripts (Japanese) has several
+co-equal orthographies. This replaces the retired `gmeow:WritingSystemUsage` relator; its
+former `scriptRole` and `scriptUsageInterval` facets are a **declared loss** in the graft
+(no `lang:` equivalent).
 
-### gmeow:usesWritingSystem · gmeow:scriptCode · gmeow:writingSystemType · gmeow:WritingSystemType · gmeow:textDirection · gmeow:TextDirection
+### lang:Script · skos:notation
 
-The direct writing-system properties: `usesWritingSystem` is the non-functional,
-co-equal language→script relation; `scriptCode` is the optional ISO 15924 code;
-`writingSystemType` and `textDirection` draw open value vocabularies for structural
-kind (alphabet, abjad, abugida, syllabary, logographic, …) and direction (ltr, rtl,
-vertical, boustrophedon, non-linear, contextual).
+The script as a first-class object in the `lang:` grounding layer (the former
+`gmeow:WritingSystem`). Its ISO 15924 code, when one exists, rides `skos:notation` (e.g.
+`"Latn"^^xsd:string`) — the former `gmeow:scriptCode`. The old `gmeow:writingSystemType`
+(alphabet, abjad, abugida, syllabary, logographic, …) and `gmeow:textDirection` (ltr, rtl,
+vertical, boustrophedon, non-linear, contextual) facets are **dropped in the graft**
+(declared loss).
 
 ### gmeow:LanguageProficiency · gmeow:proficiencyAgent · gmeow:proficiencyLanguage · gmeow:proficiencyModality · gmeow:proficiencyLevel · gmeow:proficiencyScale · gmeow:proficiencyInterval · gmeow:levelScale
 

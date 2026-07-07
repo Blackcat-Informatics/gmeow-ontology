@@ -624,17 +624,29 @@ fn output_var(cell: &ProjectionCell) -> Option<String> {
 
 // ── Language-tag retag (internal @x-gmeow-* → public BCP-47) ──────────────────────
 
-const GM_LANGUAGE_TAG: &str = "https://blackcatinformatics.ca/gmeow/languageTag";
-const GM_BCP47_TAG: &str = "https://blackcatinformatics.ca/gmeow/bcp47Tag";
+/// The internal carrier tag (`x-gmeow-*`) rides `lang:carrierTag` on the three
+/// carrier varieties since the lang: graft.
+const LANG_CARRIER_TAG: &str = "https://blackcatinformatics.ca/lang/carrierTag";
+/// A carrier variety names its parent sign system through `lang:varietyOf`.
+const LANG_VARIETY_OF: &str = "https://blackcatinformatics.ca/lang/varietyOf";
+/// A sign system's ISO 639 primary subtag is its `skos:notation`.
+const SKOS_NOTATION: &str = "http://www.w3.org/2004/02/skos/core#notation";
 
 fn build_tag_map(onto: &DslView) -> BTreeMap<String, String> {
     let mut map = BTreeMap::new();
-    for (subject, object) in onto.quads_with_predicate(GM_LANGUAGE_TAG) {
+    // internal `lang:carrierTag` (on a carrier variety) → DERIVED public BCP-47 tag:
+    // the carrier's `lang:varietyOf` parent carries the ISO 639 primary subtag as
+    // `skos:notation` (script suppressed for the carriers), matching the tag the
+    // `bcp47` projection folds. The tag is never authored per language.
+    for (subject, object) in onto.quads_with_predicate(LANG_CARRIER_TAG) {
         let (Some(internal), Some(subj_iri)) = (object.as_literal(), subject.as_iri()) else {
             continue;
         };
-        if let Some(ext) = onto.object_literal(subj_iri, GM_BCP47_TAG) {
-            map.insert(internal.to_owned(), ext);
+        let Some(parent) = onto.object_iri(subj_iri, LANG_VARIETY_OF) else {
+            continue;
+        };
+        if let Some(ext) = onto.object_literal(&parent, SKOS_NOTATION) {
+            map.insert(internal.to_owned(), ext.trim().to_ascii_lowercase());
         }
     }
     map

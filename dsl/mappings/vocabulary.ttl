@@ -1,4 +1,5 @@
 @prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix lang:    <https://blackcatinformatics.ca/lang/> .
 @prefix owl:     <http://www.w3.org/2002/07/owl#> .
 @prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
@@ -507,8 +508,8 @@ gmeow:fnPronounSetToText a gmeow:ProjectionFunction ;
 
 gmeow:fnComposeBcp47 a gmeow:ProjectionFunction ;
     rdfs:label "compose BCP-47 language tag"@x-gmeow-english ;
-    skos:definition "Composes a BCP-47 language tag from a language's gmeow:languageCode and a co-mingled writing system's gmeow:scriptCode (\"ja\" + \"Hani\" → \"ja-Hani\"). The registry tag GMEOW refuses as identity, reconstructed on demand for schema.org consumers and emitted as schema:alternateName. A language with several scripts yields several tags."@x-gmeow-english ;
-    gmeow:fnInput gmeow:languageCode ; gmeow:fnInputOptional gmeow:scriptCode ;
+    skos:definition "Composes a BCP-47 language tag from a language's gmeow:languageCode and (optionally) the ISO 15924 script subtag of a co-mingled orthography's lang:Script — the script's skos:notation, reached through lang:orthographyFor + lang:usesScript (\"ja\" + \"Hani\" → \"ja-Hani\"). The registry tag GMEOW refuses as identity, reconstructed on demand for schema.org consumers and emitted as schema:alternateName. A language with several orthographies yields several tags."@x-gmeow-english ;
+    gmeow:fnInput gmeow:languageCode ;
     gmeow:fnOutput gmeow:projectedLanguageTag ; gmeow:fnOutputType xsd:string ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
 
