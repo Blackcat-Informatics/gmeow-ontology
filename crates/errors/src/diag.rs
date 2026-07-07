@@ -133,6 +133,89 @@ pub struct Advice {
     pub help_uri: Option<String>,
 }
 
+/// A source region a mechanical edit touches — the SARIF `region` /
+/// `deletedRegion` coordinates (1-based). Every coordinate is a genuine partial
+/// function: a whole-line replacement carries no column, an insertion carries a
+/// zero-width region. Absent coordinates are simply omitted from the projection.
+#[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
+pub struct Region {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub start_line: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub start_column: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub end_line: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub end_column: Option<u32>,
+}
+
+impl Region {
+    /// Whether the region carries at least one coordinate (an all-`None` region
+    /// projects to nothing).
+    pub fn is_empty(&self) -> bool {
+        self.start_line.is_none()
+            && self.start_column.is_none()
+            && self.end_line.is_none()
+            && self.end_column.is_none()
+    }
+}
+
+/// A concrete, mechanical edit a remediation can carry — enough to express one
+/// SARIF `artifactChanges` entry: the repo-relative artifact to edit, the region
+/// it touches, and the replacement text. This is the *mechanical* half of a
+/// [`Remediation`]; most rules carry prose guidance only and leave it `None`.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ArtifactChange {
+    /// The repo-relative artifact URI the edit applies to (SARIF
+    /// `artifactLocation.uri` — must be repo-relative, like every result
+    /// location).
+    pub artifact_uri: String,
+    /// The region the edit deletes/replaces.
+    pub region: Region,
+    /// The text inserted in place of the region.
+    pub replacement: String,
+}
+
+/// A standpoint-bearing *remediation*: the DSL-authored "how to fix this"
+/// guidance projected onto a finding (`gmeow:findingRemediation`). Unlike a plain
+/// [`Advice`] suggestion, a remediation can carry a concrete [`ArtifactChange`]
+/// that becomes a SARIF `fix` with `artifactChanges`. The `artifact_change` is a
+/// genuine partial function — most rules have prose guidance but no mechanical
+/// edit — not degraded optionality.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Remediation {
+    pub text: String,
+    pub standpoint: Standpoint,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub help_uri: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub artifact_change: Option<ArtifactChange>,
+}
+
+impl Remediation {
+    /// A prose-only remediation at the given standpoint (no help URI, no edit).
+    pub fn new(text: impl Into<String>, standpoint: Standpoint) -> Self {
+        Remediation {
+            text: text.into(),
+            standpoint,
+            help_uri: None,
+            artifact_change: None,
+        }
+    }
+
+    /// Attach a mechanical [`ArtifactChange`] (the SARIF-fix edit).
+    pub fn with_artifact_change(mut self, change: ArtifactChange) -> Self {
+        self.artifact_change = Some(change);
+        self
+    }
+
+    /// Attach an outward help URI.
+    pub fn with_help_uri(mut self, uri: impl Into<String>) -> Self {
+        self.help_uri = Some(uri.into());
+        self
+    }
+}
+
 /// The fingerprint *anchor* of a diagnostic — the stable identity coordinates.
 /// Fingerprints key on `(code, category, this anchor, focus)`, never on the
 /// message or context frames.
@@ -141,6 +224,19 @@ pub struct SourceContext {
     pub location: SourceLocation,
     pub focus: Option<Focus>,
     pub term_role: Option<TermRole>,
+}
+
+impl SourceContext {
+    /// Whether this context names a *genuine* source position — a non-empty path
+    /// OR a focus node — as opposed to the empty/default anchor every locationless
+    /// finding collapses onto. This is the guard the cross-node-glut meta-rule
+    /// joins on: only a non-trivial anchor is typed `gmeow:NonTrivialAnchor`, so
+    /// the glut join never fires on the shared default anchor of locationless
+    /// findings (`gmeow:NonTrivialAnchor` doctrine).
+    pub fn is_non_trivial(&self) -> bool {
+        self.location.path.as_deref().is_some_and(|p| !p.is_empty())
+            || self.focus.as_ref().is_some_and(|f| !f.0.is_empty())
+    }
 }
 
 /// One `.ctx`/`.with_ctx` frame, innermost first, each stamped with the Rust
@@ -202,6 +298,9 @@ pub struct DiagInner {
     pub source_ctx: SourceContext,
     pub attributions: Vec<DiagnosticAttribution>,
     pub advice: Vec<Advice>,
+    /// DSL-authored remediations (the "how to fix" payload projected as
+    /// `gmeow:findingRemediation` and rendered into SARIF `fixes`).
+    pub remediation: Vec<Remediation>,
     pub labels: Vec<Label>,
     pub tags: Vec<String>,
     pub observed: Option<Slot>,
@@ -230,6 +329,7 @@ impl Diag {
             source_ctx: SourceContext::default(),
             attributions: Vec::new(),
             advice: Vec::new(),
+            remediation: Vec::new(),
             labels: Vec::new(),
             tags: Vec::new(),
             observed: None,
@@ -315,6 +415,11 @@ impl Diag {
     }
     pub fn with_advice(mut self, advice: Advice) -> Self {
         self.0.advice.push(advice);
+        self
+    }
+    /// Attach a DSL-authored [`Remediation`] (the "how to fix" payload).
+    pub fn with_remediation(mut self, remediation: Remediation) -> Self {
+        self.0.remediation.push(remediation);
         self
     }
     pub fn with_label(mut self, label: Label) -> Self {
