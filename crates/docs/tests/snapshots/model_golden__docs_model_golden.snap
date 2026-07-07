@@ -6,12 +6,13 @@ expression: summary
   "title": "GMEOW Ontology Documentation",
   "version": "7",
   "slice_count": 80,
-  "term_count": 2394,
-  "dependency_edge_count": 965,
+  "term_count": 2441,
+  "dependency_edge_count": 984,
   "term_count_by_category": {
-    "Class": 725,
+    "Class": 731,
     "Datatype": 1,
-    "Property": 1668
+    "Individual": 22,
+    "Property": 1687
   },
   "slice_iris": [
     "https://blackcatinformatics.ca/gmeow/slices/accessibility",
@@ -257,11 +258,49 @@ expression: summary
         "music",
         "narrative"
       ]
+    },
+    {
+      "iri": "https://blackcatinformatics.ca/gmeow/gmnCodebookCurrent",
+      "curie": "gmeow:gmnCodebookCurrent",
+      "label": "GMN codebook (current)",
+      "definition": "The current GMN codebook: the coding-theoretic frame of the dialect, linking the GMN script and the ten record-initial sigil roles (through gmeow:references), pinning the alias-table and glyph-table versions, and declaring the expected rate of the code through gmeow:gmnDeclaredRate. A reader that holds this codebook holds everything needed to decode a conforming GMN document.",
+      "category": "Individual",
+      "owner_slice": "https://blackcatinformatics.ca/gmeow/slices/lang",
+      "parents": [],
+      "domain": [],
+      "range": [],
+      "scope_notes": [],
+      "examples": [],
+      "use_when": [],
+      "avoid_when": [],
+      "how_to_use": [],
+      "use_for_consumer": [],
+      "avoid_for_consumer": [],
+      "logic_stereotypes": [],
+      "frameworks": [],
+      "related_terms": [],
+      "box_role": "gmeow:boxABox",
+      "box_roles": [
+        "gmeow:boxABox"
+      ],
+      "formalized_by": [],
+      "stability": "stable",
+      "added_in_version": "0.1.0",
+      "changelog": [],
+      "content_digest": "blake3:777d4180d43e52ab103f2b20aa1775554b8b592f7fbbfecc516a0a9afaecf6de",
+      "profiles": [
+        "claims",
+        "dreaming",
+        "full",
+        "memory",
+        "music",
+        "narrative"
+      ]
     }
   ],
   "mapping_set_count": 80,
   "linkage_count": 1980,
-  "example_count": 138,
+  "example_count": 139,
   "concern_count": 7,
   "external_term_count": 1714,
   "sample_mapping_set": {
@@ -381,8 +420,8 @@ expression: summary
       "schema"
     ]
   },
-  "shape_count": 310,
-  "competency_count": 121,
+  "shape_count": 318,
+  "competency_count": 124,
   "sample_shape": {
     "shape_iri": "https://blackcatinformatics.ca/gmeow/RetractedAccessibilityAssertionShape",
     "target_term": "https://blackcatinformatics.ca/gmeow/AccessibilityAssertion",

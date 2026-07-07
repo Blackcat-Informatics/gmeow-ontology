@@ -10,11 +10,11 @@ Vocabulary 7. Namespace: https://blackcatinformatics.ca/gmeow/. The OWL source i
 
 ## Vocabulary
 
-- [Classes](classes/index.html): 725 terms
-- [Properties](properties/index.html): 1668 terms
+- [Classes](classes/index.html): 731 terms
+- [Properties](properties/index.html): 1687 terms
+- [Individuals](individuals/index.html): 22 terms
 - [Datatypes](datatypes/index.html): 1 terms
 
 ## Terms
 
 - [gmeow:AboutnessMode](terms/aboutnessmode/index.html) (⊑ QualityValue): The rhetorical relation between an information carrier and its subject matter — whether the carrier describes the subject (mention: reporting, quoting, depicting, analyzing) or enacts it (use: perform…
-- [gmeow:AcceptanceStatus](terms/acceptancestatus/index.html) (⊑ QualityValue): The Dung labelling status an gmeow:ArgumentEvaluation assigns an argument under a named acceptability semantics — a value vocabulary (individuals, never subclasses): gmeow:acceptanceIn (in the extensi…

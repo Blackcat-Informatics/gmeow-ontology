@@ -2,6 +2,18 @@
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 
+<https://blackcatinformatics.ca/logic/target/abnf:gmn>
+    a logic:ProjectionTarget ;
+    rdfs:label "abnf:gmn" ;
+    gmeow:lossyDrop "actual: grammar versioning is not carried into the emitted file" ,
+        "actual: licensing links from the source forms have no grammar-notation target" ,
+        "actual: rule 'digit': EBNF character class '[0-9]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'nameChar': EBNF character class '[A-Za-z0-9_.-]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule 'nameStart': EBNF character class '[A-Za-z_]' has no RFC-5234 ABNF form (ABNF has no verbatim/negated class)" ,
+        "actual: rule provenance is not carried into the grammar file (comments at best)" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
 <https://blackcatinformatics.ca/logic/target/abnf:gts>
     a logic:ProjectionTarget ;
     rdfs:label "abnf:gts" ;
@@ -70,7 +82,8 @@
     rdfs:label "bcp47:tag-set" ;
     gmeow:lossyDrop "actual: a BCP-47 tag carries no diachronic history of the variety (no lang: temporal-stage lineage)" ,
         "actual: a BCP-47 tag carries no orthography split (a sign system with several orthographies collapses to one script subtag)" ,
-        "actual: a BCP-47 tag carries no variety relations beyond the primary subtag (the lang:varietyOf structure is flattened to a single differentiating subtag)" ;
+        "actual: a BCP-47 tag carries no variety relations beyond the primary subtag (the lang:varietyOf structure is flattened to a single differentiating subtag)" ,
+        "actual: variety <https://blackcatinformatics.ca/gmeow/gmnCompacted> has no derivable BCP-47 primary subtag: its lang:varietyOf parent carries no ISO 639 skos:notation (GMEOW sign systems keep ISO codes as alignments, not asserted data), so gmeow:bcp47Tag is absent — a data row, not a failure" ;
     logic:complexityClass "n/a" ;
     logic:preservationKind logic:SoundUnderApproximation .
 
@@ -119,6 +132,12 @@
         "no existential rule heads (skolemisation not emitted)" ;
     logic:complexityClass "terminating/PTIME-data" ;
     logic:preservationKind logic:SoundUnderApproximation .
+
+<https://blackcatinformatics.ca/logic/target/ebnf:gmn>
+    a logic:ProjectionTarget ;
+    rdfs:label "ebnf:gmn" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ExactPreservation .
 
 <https://blackcatinformatics.ca/logic/target/ebnf:gts>
     a logic:ProjectionTarget ;
@@ -9031,6 +9050,17 @@
         "actual: SemAF role inventory is coarser than the full logic: predicate-argument structure" ;
     logic:complexityClass "n/a" ;
     logic:preservationKind logic:SoundUnderApproximation .
+
+<https://blackcatinformatics.ca/logic/target/semaf:gmn-dialect#denSubsumesOperator>
+    a logic:ProjectionTarget ;
+    rdfs:label "semaf:gmn-dialect#denSubsumesOperator" ;
+    gmeow:lossyDrop "actual: AMR / SemAF carry no vantage: perspectival / standpoint support is dropped" ,
+        "actual: AMR has no modality depth: modal operators in the denotation collapse" ,
+        "actual: AMR has no quantifier scope: quantifier scoping in the logic: formula is not carried" ,
+        "actual: SemAF role inventory is coarser than the full logic: predicate-argument structure" ,
+        "actual: lang:Denotation <https://blackcatinformatics.ca/gmeow/examples/lang/denSubsumesOperator> has lang:denotationKind lang:denotesEntity whose target has no AMR/SemAF meaning-graph form (only lang:denotesLogicFormula lowers)" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:Unsupported .
 
 <https://blackcatinformatics.ca/logic/target/semaf:person-names#chosenDenotation>
     a logic:ProjectionTarget ;
@@ -37601,7 +37631,8 @@ logic:projection-report
     logic:claimedUpliftCount 479 ;
     logic:correspondenceCount 592 ;
     logic:formulaCount 6 ;
-    logic:hasProjection <https://blackcatinformatics.ca/logic/target/abnf:gts> ,
+    logic:hasProjection <https://blackcatinformatics.ca/logic/target/abnf:gmn> ,
+        <https://blackcatinformatics.ca/logic/target/abnf:gts> ,
         <https://blackcatinformatics.ca/logic/target/abnf:turtle> ,
         <https://blackcatinformatics.ca/logic/target/bcp47:tag-set> ,
         <https://blackcatinformatics.ca/logic/target/canonical-rdf12> ,
@@ -37609,6 +37640,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/clif> ,
         <https://blackcatinformatics.ca/logic/target/conllu:forms-and-sign-systems#sentCatsChaseMice> ,
         <https://blackcatinformatics.ca/logic/target/datalog> ,
+        <https://blackcatinformatics.ca/logic/target/ebnf:gmn> ,
         <https://blackcatinformatics.ca/logic/target/ebnf:gts> ,
         <https://blackcatinformatics.ca/logic/target/ebnf:turtle> ,
         <https://blackcatinformatics.ca/logic/target/edoal:0051d4462bb2a37f> ,
@@ -38291,6 +38323,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/semaf:authority-links#eveningStarDenotation> ,
         <https://blackcatinformatics.ca/logic/target/semaf:authority-links#morningStarDenotation> ,
         <https://blackcatinformatics.ca/logic/target/semaf:forms-and-sign-systems#denCatsChaseMice> ,
+        <https://blackcatinformatics.ca/logic/target/semaf:gmn-dialect#denSubsumesOperator> ,
         <https://blackcatinformatics.ca/logic/target/semaf:person-names#chosenDenotation> ,
         <https://blackcatinformatics.ca/logic/target/shacl-af> ,
         <https://blackcatinformatics.ca/logic/target/shacl-core> ,

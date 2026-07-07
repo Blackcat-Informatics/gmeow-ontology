@@ -2873,8 +2873,16 @@ gmeow:gmnCorrNormalToGts
     logic:preservationKind logic:ExactPreservation ;
     logic:correspondenceRelation logic:Equiv ;
     logic:morphismClass logic:Isomorphism ;
+    logic:morphismKind logic:InstitutionMorphism ;
     logic:hasDeterminacy logic:Crisp ;
-    logic:mnemomorphic true .
+    logic:mnemomorphic true ;
+    logic:getLeg gmeow:gmnCorrNormalToGtsGet .
+
+# The crossing's authored get-leg witness (the supersession-ledger pattern): a
+# one-step forward relation whose derived put is discharged by execution in the
+# logic-compile stage's authored-correspondence gate, so the Isomorphism rung is
+# a structurally-checked witness rather than an unchecked prose claim.
+gmeow:gmnCorrNormalToGtsGet gmeow:path gmeow:gmnCorrNormalToGtsStep .
 
 gmeow:gmnUnitNormalToGts
     a lang:TranslationUnit ;
@@ -2896,8 +2904,13 @@ gmeow:gmnCorrNormalToNQuads
     logic:preservationKind logic:ExactPreservation ;
     logic:correspondenceRelation logic:Equiv ;
     logic:morphismClass logic:Isomorphism ;
+    logic:morphismKind logic:InstitutionMorphism ;
     logic:hasDeterminacy logic:Crisp ;
-    logic:mnemomorphic true .
+    logic:mnemomorphic true ;
+    logic:getLeg gmeow:gmnCorrNormalToNQuadsGet .
+
+# The crossing's authored get-leg witness (see gmeow:gmnCorrNormalToGtsGet).
+gmeow:gmnCorrNormalToNQuadsGet gmeow:path gmeow:gmnCorrNormalToNQuadsStep .
 
 gmeow:gmnUnitNormalToNQuads
     a lang:TranslationUnit ;
@@ -2919,6 +2932,7 @@ gmeow:gmnCorrNormalToGmn
     logic:preservationKind logic:SoundUnderApproximation ;
     logic:correspondenceRelation logic:Subsumes ;
     logic:morphismClass logic:LossyLens ;
+    logic:morphismKind logic:InstitutionMorphism ;
     logic:hasDeterminacy logic:Crisp ;
     logic:mnemomorphic false .
 
@@ -2942,6 +2956,7 @@ gmeow:gmnCorrGmnToCompacted
     logic:preservationKind logic:ValidationOnly ;
     logic:correspondenceRelation logic:RelatedMatch ;
     logic:morphismClass logic:BridgeView ;
+    logic:morphismKind logic:CommitmentShiftingBridge ;
     logic:hasDeterminacy logic:Vague ;
     logic:mnemomorphic false .
 
