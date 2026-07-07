@@ -19,37 +19,12 @@
 mod conformance_support;
 use conformance_support::*;
 
-/// The 27 projection profiles — mirrors `crates/pipeline/src/projections.rs`
-/// `profiles()`; each name has a `generated/queries/{name}.rq` CONSTRUCT.
-const PROJECTION_PROFILES: &[&str] = &[
-    "odrl",
-    "cc",
-    "dcterms",
-    "oai_dc",
-    "spdx",
-    "schema-org",
-    "foaf",
-    "vcard",
-    "ical",
-    "owl-time",
-    "ontolex",
-    "web-annotation",
-    "skos",
-    "bot",
-    "mailmap",
-    "exif",
-    "iiif",
-    "dcat",
-    "org",
-    "bibo",
-    "bibframe",
-    "gedcom",
-    "sioc",
-    "doap",
-    "codemeta",
-    "prov",
-    "geosparql",
-];
+/// The projection profiles swept for leaks. The single source of truth is
+/// `gmeow_validate::projection_profiles::PROJECTION_PROFILES`, pinned set-equal to
+/// the live `gmeow_pipeline::projections::profiles()` registry by an on-gate
+/// pipeline test — so a newly registered profile cannot escape this sweep. Each
+/// name has a `generated/queries/{name}.rq` CONSTRUCT.
+use gmeow_validate::projection_profiles::PROJECTION_PROFILES;
 
 /// The appellation profiles the CONTROL canary MUST surface in — mirrors the Python
 /// `_NAME_PROFILES`. The positive control proving the absence checks are non-vacuous.
