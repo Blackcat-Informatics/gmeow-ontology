@@ -1063,10 +1063,21 @@ fn parse_positive_int(lexical: &str) -> Option<u32> {
 /// absent annotation means "derive". Read directly off the merged authored store, consistent
 /// with the dataset-derive architecture.
 fn closure_validation_optouts(store: &RdfDataset) -> std::collections::BTreeSet<String> {
-    let open = Node::iri(logic_iri("OpenWorldClosure"));
+    closure_keys_with_value(store, "OpenWorldClosure")
+}
+
+/// The `logic:closureKey` set of every `logic:closureEntry` whose `logic:closureValue` is the
+/// closure-value individual named by `value_local`. The `closureKey` predicate node is built
+/// once and reused across entries (not re-minted per iteration).
+fn closure_keys_with_value(
+    store: &RdfDataset,
+    value_local: &str,
+) -> std::collections::BTreeSet<String> {
+    let target = Node::iri(logic_iri(value_local));
+    let key_pred = nn(&logic_iri("closureKey"));
     let mut set = std::collections::BTreeSet::new();
-    for entry in subjects_with(store, &nn(&logic_iri("closureValue")), &open) {
-        if let Some(key) = value(store, &entry, &nn(&logic_iri("closureKey"))) {
+    for entry in subjects_with(store, &nn(&logic_iri("closureValue")), &target) {
+        if let Some(key) = value(store, &entry, &key_pred) {
             set.insert(term_str(&key));
         }
     }
@@ -1084,14 +1095,7 @@ fn closure_validation_optouts(store: &RdfDataset) -> std::collections::BTreeSet<
 /// shape". Read directly off the merged authored store, consistent with the dataset-derive
 /// architecture.
 fn closure_validation_closed_optins(store: &RdfDataset) -> std::collections::BTreeSet<String> {
-    let closed = Node::iri(logic_iri("ClosedWorldClosure"));
-    let mut set = std::collections::BTreeSet::new();
-    for entry in subjects_with(store, &nn(&logic_iri("closureValue")), &closed) {
-        if let Some(key) = value(store, &entry, &nn(&logic_iri("closureKey"))) {
-            set.insert(term_str(&key));
-        }
-    }
-    set
+    closure_keys_with_value(store, "ClosedWorldClosure")
 }
 
 /// Walk an `rdf:first`/`rdf:rest`/`rdf:nil` list from `head`, collecting its IRI members in
@@ -1108,14 +1112,47 @@ fn read_iri_list(store: &RdfDataset, head: &Node) -> Vec<String> {
     let mut seen: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
     let mut cursor = head.clone();
     while let Some(node) = term_as_subject(&cursor) {
-        if subject_str(&node) == RDF_NIL {
+        // Compute the node's subject string once and reuse for the nil-check and cycle-guard.
+        let node_str = subject_str(&node);
+        if node_str == RDF_NIL {
             break;
         }
-        if !seen.insert(subject_str(&node)) {
+        if !seen.insert(node_str) {
             break;
         }
         if let Some(Node::Iri(iri)) = value(store, &node, &first) {
             out.push(iri);
+        }
+        match value(store, &node, &rest) {
+            Some(next) => cursor = next,
+            None => break,
+        }
+    }
+    out
+}
+
+/// Walk an `rdf:first`/`rdf:rest`/`rdf:nil` list from `head`, collecting each member as a
+/// [`Subject`] (blank OR IRI) in order — the peer of [`read_iri_list`] for lists whose members
+/// are themselves nodes to be read (e.g. the blank facet nodes of an `owl:withRestrictions`
+/// list). Terminates on `rdf:nil`, a missing `rdf:rest`, a non-resource cell, or a cycle.
+fn read_list_member_subjects(store: &RdfDataset, head: &Node) -> Vec<Subject> {
+    const RDF_FIRST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#first";
+    const RDF_REST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest";
+    const RDF_NIL: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil";
+    let first = nn(RDF_FIRST);
+    let rest = nn(RDF_REST);
+    let mut out: Vec<Subject> = Vec::new();
+    let mut seen: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
+    let mut cursor = head.clone();
+    while let Some(node) = term_as_subject(&cursor) {
+        let node_str = subject_str(&node);
+        if node_str == RDF_NIL || !seen.insert(node_str) {
+            break;
+        }
+        if let Some(member) = value(store, &node, &first)
+            && let Some(member_subj) = term_as_subject(&member)
+        {
+            out.push(member_subj);
         }
         match value(store, &node, &rest) {
             Some(next) => cursor = next,
@@ -1172,8 +1209,8 @@ pub fn derive_validation_shapes(store: &RdfDataset) -> Result<Vec<ValidationShap
     let p_mincard = nn(&format!("{owl}minCardinality"));
     let p_maxcard = nn(&format!("{owl}maxCardinality"));
     let p_card = nn(&format!("{owl}cardinality"));
-    let p_qmincard = nn(&format!("{owl}qualifiedMinCardinality"));
-    let p_qmaxcard = nn(&format!("{owl}qualifiedMaxCardinality"));
+    let p_qmincard = nn(&format!("{owl}minQualifiedCardinality"));
+    let p_qmaxcard = nn(&format!("{owl}maxQualifiedCardinality"));
     let p_qcard = nn(&format!("{owl}qualifiedCardinality"));
     let p_subclass = nn(&format!("{rdfs}subClassOf"));
     let p_disjoint = nn(&format!("{owl}disjointWith"));
@@ -1222,6 +1259,43 @@ pub fn derive_validation_shapes(store: &RdfDataset) -> Result<Vec<ValidationShap
         } else {
             Some(ConstraintComponent::Class(iri.to_owned()))
         }
+    };
+
+    // The closed-world reading of a faceted datatype filler
+    // (`[ a rdfs:Datatype ; owl:onDatatype xsd:string ; owl:withRestrictions ( [ xsd:pattern "…" ]
+    // [ xsd:minLength "…" ] … ) ]`): the base datatype plus each XSD length / pattern facet, as
+    // SHACL components (`sh:datatype` + `sh:pattern` / `sh:minLength` / `sh:maxLength`). Returns an
+    // empty vector for a blank node that carries no `owl:withRestrictions` (an anonymous class
+    // expression, not a datatype facet) — the caller then skips it, unchanged.
+    let p_ondatatype = nn(&format!("{owl}onDatatype"));
+    let p_withrestrictions = nn(&format!("{owl}withRestrictions"));
+    let xsd_pattern = nn(&format!("{xsd}pattern"));
+    let xsd_minlength = nn(&format!("{xsd}minLength"));
+    let xsd_maxlength = nn(&format!("{xsd}maxLength"));
+    let datatype_facets = |filler: &Subject| -> Vec<ConstraintComponent> {
+        let Some(list_head) = value(store, filler, &p_withrestrictions) else {
+            return Vec::new();
+        };
+        let mut comps = Vec::new();
+        if let Some(Node::Iri(dt)) = value(store, filler, &p_ondatatype) {
+            comps.push(ConstraintComponent::Datatype(dt));
+        }
+        for facet in read_list_member_subjects(store, &list_head) {
+            if let Some(Node::Lit(regex)) = value(store, &facet, &xsd_pattern) {
+                comps.push(ConstraintComponent::Pattern { regex, flags: None });
+            }
+            if let Some(Node::Lit(n)) = value(store, &facet, &xsd_minlength)
+                && let Ok(n) = n.trim().parse::<u32>()
+            {
+                comps.push(ConstraintComponent::MinLength(n));
+            }
+            if let Some(Node::Lit(n)) = value(store, &facet, &xsd_maxlength)
+                && let Ok(n) = n.trim().parse::<u32>()
+            {
+                comps.push(ConstraintComponent::MaxLength(n));
+            }
+        }
+        comps
     };
 
     // A non-negative-integer cardinality literal off a restriction blank node; `None` (never a
@@ -1304,24 +1378,57 @@ pub fn derive_validation_shapes(store: &RdfDataset) -> Result<Vec<ValidationShap
             // EXISTENCE obligation is carried in the canonical logic: layer, not the shape. A blank
             // filler is an anonymous class expression (union/intersection), carried in the canon,
             // never a bare blank shape — skip it.
-            if let Some(Node::Iri(cv)) = value(store, &restr_subj, &p_some)
-                && let Some(cc) = classify(&cv)
-            {
-                let pc = PropertyConstraintIr::new(&on, None, None, None, vec![cc])?;
-                entry_for(&mut acc, ShapeTarget::Class(class_iri.clone()))
-                    .2
-                    .push(pc);
+            match value(store, &restr_subj, &p_some) {
+                Some(Node::Iri(cv)) => {
+                    if let Some(cc) = classify(&cv) {
+                        let pc = PropertyConstraintIr::new(&on, None, None, None, vec![cc])?;
+                        entry_for(&mut acc, ShapeTarget::Class(class_iri.clone()))
+                            .2
+                            .push(pc);
+                    }
+                }
+                // A blank filler that is a faceted datatype (`owl:onDatatype` + `owl:withRestrictions`)
+                // reads as the length/pattern facets its values must satisfy — the same closed-world
+                // condition as `allValuesFrom` over that datatype. A blank filler with no facet is an
+                // anonymous class expression, carried in the canon, never a bare blank shape → skip.
+                Some(filler @ Node::Blank { .. }) => {
+                    if let Some(fs) = term_as_subject(&filler) {
+                        let facets = datatype_facets(&fs);
+                        if !facets.is_empty() {
+                            let pc = PropertyConstraintIr::new(&on, None, None, None, facets)?;
+                            entry_for(&mut acc, ShapeTarget::Class(class_iri.clone()))
+                                .2
+                                .push(pc);
+                        }
+                    }
+                }
+                _ => {}
             }
 
             // owl:allValuesFrom is UNIVERSAL: every value satisfies the inner shape → a bare
-            // `sh:class` / `sh:datatype` / `sh:nodeKind` on the path. Blank filler → skip.
-            if let Some(Node::Iri(cv)) = value(store, &restr_subj, &p_all)
-                && let Some(cc) = classify(&cv)
-            {
-                let pc = PropertyConstraintIr::new(&on, None, None, None, vec![cc])?;
-                entry_for(&mut acc, ShapeTarget::Class(class_iri.clone()))
-                    .2
-                    .push(pc);
+            // `sh:class` / `sh:datatype` / `sh:nodeKind` on the path, or the length/pattern facets
+            // of a faceted-datatype filler. A non-faceted blank filler → skip.
+            match value(store, &restr_subj, &p_all) {
+                Some(Node::Iri(cv)) => {
+                    if let Some(cc) = classify(&cv) {
+                        let pc = PropertyConstraintIr::new(&on, None, None, None, vec![cc])?;
+                        entry_for(&mut acc, ShapeTarget::Class(class_iri.clone()))
+                            .2
+                            .push(pc);
+                    }
+                }
+                Some(filler @ Node::Blank { .. }) => {
+                    if let Some(fs) = term_as_subject(&filler) {
+                        let facets = datatype_facets(&fs);
+                        if !facets.is_empty() {
+                            let pc = PropertyConstraintIr::new(&on, None, None, None, facets)?;
+                            entry_for(&mut acc, ShapeTarget::Class(class_iri.clone()))
+                                .2
+                                .push(pc);
+                        }
+                    }
+                }
+                _ => {}
             }
 
             // owl:hasValue → `sh:hasValue` (a fixed required value). A blank / quoted-triple
@@ -1530,10 +1637,10 @@ pub fn derive_validation_shapes(store: &RdfDataset) -> Result<Vec<ValidationShap
             }
         }
     }
-    let domain_iri = format!("{rdfs}domain");
-    let range_iri = format!("{rdfs}range");
+    const DOMAIN_IRI: &str = "http://www.w3.org/2000/01/rdf-schema#domain";
+    const RANGE_IRI: &str = "http://www.w3.org/2000/01/rdf-schema#range";
     for q in default_graph_quads(store) {
-        if (q.predicate.as_str() == domain_iri || q.predicate.as_str() == range_iri)
+        if (q.predicate.as_str() == DOMAIN_IRI || q.predicate.as_str() == RANGE_IRI)
             && let Subject::Iri(iri) = &q.subject
             && iri.starts_with(GMEOW_NS)
         {
@@ -1611,20 +1718,24 @@ pub fn derive_validation_shapes(store: &RdfDataset) -> Result<Vec<ValidationShap
     }
 
     // ── Build one shape per target ────────────────────────────────────────────────────────
-    // Dedup by structural (Debug) identity so a duplicate axiom never double-counts; the IR
+    // Dedup by structural (`PartialEq`) identity so a duplicate axiom never double-counts; the IR
     // constructors then sort node_components + properties into canonical content-key order, so
-    // supply order never affects the emitted bytes.
-    fn dedup_debug<T: std::fmt::Debug>(v: Vec<T>) -> Vec<T> {
-        let mut seen: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
-        v.into_iter()
-            .filter(|x| seen.insert(format!("{x:?}")))
-            .collect()
+    // supply order never affects the emitted bytes. Order-preserving and allocation-free (the
+    // per-target component/property lists are small), so no `format!("{:?}")` per element.
+    fn dedup_eq<T: PartialEq>(v: Vec<T>) -> Vec<T> {
+        let mut out: Vec<T> = Vec::with_capacity(v.len());
+        for x in v {
+            if !out.contains(&x) {
+                out.push(x);
+            }
+        }
+        out
     }
 
     let mut shapes = Vec::new();
     for (iri, (target, node_components, properties)) in acc {
-        let node_components = dedup_debug(node_components);
-        let properties = dedup_debug(properties);
+        let node_components = dedup_eq(node_components);
+        let properties = dedup_eq(properties);
         if node_components.is_empty() && properties.is_empty() {
             continue;
         }

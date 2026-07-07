@@ -224,13 +224,14 @@ gmeow:codecZstd
 
 gmeow:gtsHeadId
     a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+        owl:FunctionalProperty ,
+        owl:InverseFunctionalProperty ;
     rdfs:domain gmeow:GTSSegment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "GTS head id"@x-gmeow-english ;
     rdfs:range xsd:string ;
     rdfs:subPropertyOf gmeow:versionFingerprint ;
-    skos:definition "The chain head of a segment — the content-id of its last frame, written 'blake3:<hex>'. Transitively commits to the segment's entire history (spec §9.1), making it a version fingerprint of the segment rather than a digest of its bytes: hence a subproperty of gmeow:versionFingerprint, distinct from gmeow:contentDigest (which is byte-exact identity and applies to the file or a blob as a whole). Functional: a segment has exactly one head."@x-gmeow-english ;
+    skos:definition "The chain head of a segment — the content-id of its last frame, written 'blake3:<hex>'. Transitively commits to the segment's entire history (spec §9.1), making it a version fingerprint of the segment rather than a digest of its bytes: hence a subproperty of gmeow:versionFingerprint, distinct from gmeow:contentDigest (which is byte-exact identity and applies to the file or a blob as a whole). Functional: a segment has exactly one head. Inverse-functional: the head is a BLAKE3 content-id committing transitively to the segment's whole frame history, so two distinct segments sharing a head would be a full-history BLAKE3 collision — impossible by construction; the head therefore uniquely identifies its segment (content-addressing IS the identity)."@x-gmeow-english ;
     skos:example "ex:seg0 gmeow:gtsHeadId \"blake3:9f2c4e…\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid for byte-exact identity of the file or a blob (use gmeow:contentDigest) and avoid asserting more than one head per segment; the head is functional and commits transitively to the chain."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxConfigBox ,
