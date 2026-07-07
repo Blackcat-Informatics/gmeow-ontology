@@ -1134,8 +1134,12 @@ fn derive_all_values_from_emits_bare_class_not_wrapped() {
 
 #[test]
 fn derive_rdfs_domain_targets_subjects_of_with_node_class() {
-    let ds =
-        shape_dataset("g:Doc a owl:Class . g:cites a owl:ObjectProperty ; rdfs:domain g:Doc .");
+    // domain/range are open-world by default (inference axioms); a shape is derived only for a
+    // property opted IN via a `logic:ClosedWorldClosure` closure entry.
+    let ds = shape_dataset_with_logic(
+        "g:Doc a owl:Class . g:cites a owl:ObjectProperty ; rdfs:domain g:Doc .\n\
+         [] a logic:ClosureEntry ; logic:closureKey g:cites ; logic:closureValue logic:ClosedWorldClosure .",
+    );
     let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
     let shape = shapes
         .iter()
@@ -1152,10 +1156,32 @@ fn derive_rdfs_domain_targets_subjects_of_with_node_class() {
 }
 
 #[test]
+fn derive_rdfs_domain_range_is_open_world_by_default_without_optin() {
+    // rdfs:domain/range are inference axioms → OPEN-WORLD by default: with NO ClosedWorldClosure
+    // opt-in, neither a SubjectsOf(domain) nor an ObjectsOf(range) shape is derived. (Falsifiable
+    // proof of the open-world default; the opt-in tests above show the closed reading fires.)
+    let ds = shape_dataset(
+        "g:Doc a owl:Class . g:cites a owl:ObjectProperty ; rdfs:domain g:Doc ; rdfs:range g:Doc .",
+    );
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    assert!(
+        !shapes.iter().any(|s| matches!(
+            &s.target,
+            ShapeTarget::SubjectsOf(p) | ShapeTarget::ObjectsOf(p) if p.ends_with("cites")
+        )),
+        "domain/range must derive NO shape without a ClosedWorldClosure opt-in: {:?}",
+        shapes.iter().map(|s| &s.target).collect::<Vec<_>>()
+    );
+}
+
+#[test]
 fn derive_rdfs_range_targets_objects_of_class_and_datatype() {
-    // A class range → sh:class node component on an ObjectsOf shape.
-    let class_ds =
-        shape_dataset("g:Doc a owl:Class . g:cites a owl:ObjectProperty ; rdfs:range g:Doc .");
+    // A class range → sh:class node component on an ObjectsOf shape. domain/range are open-world
+    // by default; opt the property IN with a `logic:ClosedWorldClosure` closure entry.
+    let class_ds = shape_dataset_with_logic(
+        "g:Doc a owl:Class . g:cites a owl:ObjectProperty ; rdfs:range g:Doc .\n\
+         [] a logic:ClosureEntry ; logic:closureKey g:cites ; logic:closureValue logic:ClosedWorldClosure .",
+    );
     let class_shapes = derive_validation_shapes(class_ds.as_ref()).expect("derive ok");
     let class_shape = class_shapes
         .iter()
@@ -1170,7 +1196,10 @@ fn derive_rdfs_range_targets_objects_of_class_and_datatype() {
         class_shape.node_components
     );
     // An xsd:integer range → sh:datatype node component.
-    let dt_ds = shape_dataset("g:blockNumber a owl:DatatypeProperty ; rdfs:range xsd:integer .");
+    let dt_ds = shape_dataset_with_logic(
+        "g:blockNumber a owl:DatatypeProperty ; rdfs:range xsd:integer .\n\
+         [] a logic:ClosureEntry ; logic:closureKey g:blockNumber ; logic:closureValue logic:ClosedWorldClosure .",
+    );
     let dt_shapes = derive_validation_shapes(dt_ds.as_ref()).expect("derive ok");
     let dt_shape = dt_shapes
         .iter()
@@ -1192,7 +1221,12 @@ fn derive_rdfs_resource_range_domain_is_vacuous_no_class_component() {
     // range/domain of rdfs:Resource is VACUOUS: `sh:class rdfs:Resource` would demand a
     // never-materialized `rdf:type rdfs:Resource` edge and false-positive universally, so the
     // the derivation must emit NO node/class component for it.
-    let range_ds = shape_dataset("g:usesTerm a owl:ObjectProperty ; rdfs:range rdfs:Resource .");
+    // Opt the property IN to closed-world domain/range reading so a shape IS derived and the
+    // "no vacuous rdfs:Resource class component" assertion below stays falsifiable.
+    let range_ds = shape_dataset_with_logic(
+        "g:usesTerm a owl:ObjectProperty ; rdfs:range rdfs:Resource .\n\
+         [] a logic:ClosureEntry ; logic:closureKey g:usesTerm ; logic:closureValue logic:ClosedWorldClosure .",
+    );
     let range_shapes = derive_validation_shapes(range_ds.as_ref()).expect("derive ok");
     if let Some(shape) = range_shapes
         .iter()
@@ -1208,7 +1242,10 @@ fn derive_rdfs_resource_range_domain_is_vacuous_no_class_component() {
         );
     }
     // Same for a domain of rdfs:Resource.
-    let domain_ds = shape_dataset("g:usesTerm a owl:ObjectProperty ; rdfs:domain rdfs:Resource .");
+    let domain_ds = shape_dataset_with_logic(
+        "g:usesTerm a owl:ObjectProperty ; rdfs:domain rdfs:Resource .\n\
+         [] a logic:ClosureEntry ; logic:closureKey g:usesTerm ; logic:closureValue logic:ClosedWorldClosure .",
+    );
     let domain_shapes = derive_validation_shapes(domain_ds.as_ref()).expect("derive ok");
     if let Some(shape) = domain_shapes
         .iter()
@@ -1443,11 +1480,14 @@ fn derive_qualified_cardinality_without_on_class_hard_fails() {
 
 #[test]
 fn derive_domain_and_functional_merge_into_one_subjects_of_shape() {
-    // A domain axiom AND a functionality axiom on the SAME property must fold into ONE
-    // SubjectsOf(P) shape carrying both the node Class and the maxCount-1 property.
-    let ds = shape_dataset(
+    // A domain axiom (opted IN to closed-world reading) AND a functionality axiom on the SAME
+    // property must fold into ONE SubjectsOf(P) shape carrying both the node Class and the
+    // maxCount-1 property. (The functional maxCount derives regardless; the domain node-class
+    // needs the ClosedWorldClosure opt-in since domain is open-world by default.)
+    let ds = shape_dataset_with_logic(
         "g:Doc a owl:Class . \
-         g:isbn a owl:FunctionalProperty ; rdfs:domain g:Doc .",
+         g:isbn a owl:FunctionalProperty ; rdfs:domain g:Doc .\n\
+         [] a logic:ClosureEntry ; logic:closureKey g:isbn ; logic:closureValue logic:ClosedWorldClosure .",
     );
     let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
     let subjects_of: Vec<_> = shapes

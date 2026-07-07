@@ -28,14 +28,16 @@ fn bundle_bytes() -> Vec<u8> {
     std::fs::read(&path).unwrap_or_else(|e| panic!("read bundle {}: {e}", path.display()))
 }
 
-/// A data graph that trips the Tier-1 shape surface. Its original problems are a
+/// A data graph that trips the Tier-1 shape surface. Its problems are a
 /// disjoint identity-axis overtyping (error), an under-mediated Commitment
 /// missing its beneficiary (error), and a frame-less Event carrying an
 /// `eventType` so only the frame-relativity warning fires (warning). Under the
 /// closed-world validation-shape derivation it additionally trips the sh:not
-/// disjointness pair (Honorific-shape / PronounSet-shape) and the new
-/// domain/range shapes (committedAgent-range, intentionGoal-domain,
-/// intentionGoal-range, eventType-range), for a pinned 8-errors-1-warning shape.
+/// disjointness pair (Honorific-shape / PronounSet-shape), for a pinned
+/// 4-errors-1-warning shape. rdfs:domain/range are open-world INFERENCE axioms
+/// (open-world by default, no ClosedWorldClosure opt-in on these properties), so
+/// they derive NO domain/range validation shape and the fixture's committedAgent
+/// / intentionGoal / eventType edges no longer trip a range/domain error.
 const FAIL_TTL: &str = r#"@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex: <https://example.org/> .
 
@@ -50,7 +52,7 @@ ex:e1 a gmeow:Event ;
 "#;
 
 #[test]
-fn fail_fixture_yields_eight_errors_one_warning_with_locations() {
+fn fail_fixture_yields_four_errors_one_warning_with_locations() {
     let gts = bundle_bytes();
     let report = data_validate::run(
         FAIL_TTL.as_bytes(),
@@ -75,8 +77,8 @@ fn fail_fixture_yields_eight_errors_one_warning_with_locations() {
 
     assert_eq!(
         errors.len(),
-        8,
-        "expected exactly eight errors, got: {errors:#?}"
+        4,
+        "expected exactly four errors, got: {errors:#?}"
     );
     assert_eq!(
         warnings.len(),
@@ -262,14 +264,14 @@ fn deep_surfaces_entailed_inconsistency_tier1_misses_heavy_offgate() {
 #[test]
 fn deep_false_is_the_reasoner_free_default() {
     // AC3: the pinned Tier-1 fixture under the default (deep=false) keeps its exact
-    // 8-errors-1-warning shape AND carries no validate.deep.* findings — the deep
+    // 4-errors-1-warning shape AND carries no validate.deep.* findings — the deep
     // reasoner does not run without the flag.
     let gts = bundle_bytes();
     let report = data_validate::run(FAIL_TTL.as_bytes(), "turtle", &gts, NS, "fail.ttl", false)
         .expect("tier-1 run");
     assert_eq!(
         report.error_count(),
-        8,
+        4,
         "Tier-1 default error shape changed"
     );
     assert_eq!(

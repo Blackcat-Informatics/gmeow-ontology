@@ -130,59 +130,6 @@ const NON_CONFORMANT: &[&str] = &[
     "slices/core/learning/examples/skill-acquisition-trajectory.ttl", // TimeInterval missing gmeow:hasTemporalFrame (P11)
     "slices/core/affect/examples/two-critics.ttl", // Expression missing gmeow:hasReferenceFrame (P11)
     "slices/extensions/narrative/examples/flashback.ttl", // Event missing gmeow:eventTemporalFrame (P11)
-    // Bucket C — `sh:class` on the new closed-world domain/range validation
-    // shapes (the `<prop>-domain-shape` / `<prop>-range-shape` fragment derived
-    // from rdfs:domain/rdfs:range). Each of these examples uses a property whose
-    // subject or object is a shared or subclass-typed individual that is not
-    // explicitly retyped to the declared domain/range class in the standalone
-    // file. rdfs:domain/range are open-world INFERENCE axioms (they entail the
-    // type, they do not require it be asserted), so an illustrative example that
-    // omits the explicit type is not ill-formed — it simply does not close the
-    // world for the closed-world validation-shape projection. Illustrative
-    // alongside the full ontology, not standalone-valid instance data.
-    "slices/core/accounts/examples/online-presence.ttl", // domain/range: holdsAccount/name/accountStatus/serviceStatus subjects/objects untyped standalone
-    "slices/core/affect/examples/felt-anger.ttl", // domain/range: experiencer/emotionBearer/emotionType/feltAffect/mentalProcessType subjects/objects untyped standalone
-    "slices/core/affect/examples/goemotions-run.ttl", // domain/range: vantage/observedFeature/emittedLabel/scoreSemantics subjects/objects untyped standalone
-    "slices/core/affect/examples/saudade.ttl", // domain/range: emotionBearer/emotionType/vantage/affectiveTarget/appraisalDimension/profilePolarity/observedFeature subjects/objects untyped standalone
-    "slices/core/affect/examples/schadenfreude.ttl", // domain/range: emotionBearer/emotionType/vantage/affectiveElicitor/appraisalDimension/profilePolarity/observedFeature/derivedByFunction subjects/objects untyped standalone
-    "slices/core/agreements/examples/employment-contract.ttl", // domain/range: hasParty/foundedOn/membershipMember/fullName/name/hasAgreementName subjects/objects untyped standalone
-    "slices/core/awareness/examples/ai-inference-regime.ttl", // domain/range: awarenessMode/duringInterval/hasTemporalFrame subjects/objects untyped standalone
-    "slices/core/awareness/examples/sleep-episode.ttl", // domain/range: awarenessLevel/awarenessMode/duringInterval/hasTemporalFrame subjects/objects untyped standalone
-    "slices/core/cognition/examples/knowledge-spectrum.ttl", // domain/range: hasMastered/isAwareOf/knowsAbout/understands subjects/objects untyped standalone
-    "slices/core/concepts/examples/conceptual-change.ttl", // domain/range: claimModality/observationMethod/observationResult/observedFeature/vantage/duringInterval/hasTemporalFrame subjects/objects untyped standalone
-    "slices/core/contacts/examples/contact-points.ttl", // domain/range: hasContactPoint/contactPointProvider/contactPointType/email/telephone/name/postalAddressFrame subjects/objects untyped standalone
-    "slices/core/coreference/examples/authority-links.ttl", // domain/range: authorityLink/counterpartOf/supersedes/name subjects/objects untyped standalone
-    "slices/core/entities/examples/agent-sortals.ttl", // domain/range: name/description subjects untyped standalone
-    "slices/core/events/examples/causal-occurrent.ttl", // domain/range: eventTemporalFrame/eventType subjects/objects untyped standalone
-    "slices/core/imagination/examples/counterfactual-rehearsal.ttl", // domain/range: contentOrigin object untyped standalone
-    "slices/core/inhabitation/examples/contested-possession.ttl", // domain/range: claimModality/observationMethod/observedFeature/vantage/sharpens subjects/objects untyped standalone
-    "slices/core/kernel/examples/sensitivity-and-disclosure.ttl", // domain/range: hasSensitivity/hasDeterminacy/hasDisclosurePolicy/eligibleForConsumer objects untyped standalone
-    "slices/core/language/examples/multilingual-document.ttl", // domain/range: title/writtenInLanguage subjects/objects untyped standalone
-    "slices/core/learning/examples/teaching-and-being-taught.ttl", // domain/range: experiencer/eventTemporalFrame/eventTime/learningType/mentalProcessType subjects/objects untyped standalone
-    "slices/core/lifecycle/examples/dissolved-org.ttl", // domain/range: hasCreationEvent/hasDestructionEvent/existenceInterval/eventType/eventTemporalFrame/hasTemporalFrame/inTemporalFrame/supersededBy/name subjects/objects untyped standalone
-    "slices/core/mentation/examples/mental-timeline.ttl", // domain/range: experiencer/eventTemporalFrame/eventTime/mentalProcessType/name subjects/objects untyped standalone
-    "slices/core/metacognition/examples/known-unknown.ttl", // domain/range: questionType object untyped standalone
-    "slices/core/notation/examples/notation-systems.ttl", // domain/range: notationSystemFor/notationSystemKind objects untyped standalone
-    "slices/core/organization/examples/post-and-membership.ttl", // domain/range: membershipMember/organizationType/name subjects/objects untyped standalone
-    "slices/core/provenance/examples/import-lineage.ttl", // domain/range: wasAssociatedWith/wasAttributedTo/name subjects/objects untyped standalone
-    "slices/core/teleology/examples/goal-and-intention.ttl", // domain/range: hasGoal/intentBearer/intentionGoal/committedAgent/commitmentBeneficiary/motivates/eventType/eventTemporalFrame/name subjects/objects untyped standalone
-    "slices/core/temporal/examples/intervals-and-frames.ttl", // domain/range: hasTemporalFrame/inTemporalFrame objects untyped standalone
-    "slices/extensions/agentic/examples/agent-goal-holarchy.ttl", // domain/range: hasGoal/intentBearer/intentionGoal/experiencer/eventTemporalFrame/eventTime/mentalProcessType/wasAttributedTo subjects/objects untyped standalone
-    "slices/extensions/agentic/examples/agent-trajectory.ttl", // domain/range: eventTemporalFrame/wasAttributedTo subjects/objects untyped standalone
-    "slices/extensions/agentic/examples/memory-triad-execute.ttl", // domain/range: eventTemporalFrame/wasAttributedTo subjects/objects untyped standalone
-    "slices/extensions/agentic/examples/trajectory-audit.ttl", // domain/range: eventTemporalFrame/wasAttributedTo subjects/objects untyped standalone
-    "slices/extensions/connectivity/examples/transit-route.ttl", // domain/range: routeKind/name subjects/objects untyped standalone
-    "slices/extensions/dreaming/examples/human-dream.ttl", // domain/range: experiencer/awarenessMode/contentOrigin/eventInterval/hasTemporalFrame/mentalProcessType subjects/objects untyped standalone
-    "slices/extensions/email/examples/message-thread.ttl", // domain/range: inReplyTo/subject subjects/objects untyped standalone
-    "slices/extensions/genealogy/examples/biological-and-adoptive.ttl", // domain/range: relationshipChild/relationshipParent/name subjects untyped standalone
-    "slices/extensions/languages/examples/proficiency.ttl", // domain/range: knowsLanguage/nativeLanguage/proficiencyAgent/proficiencyLanguage/proficiencyModality/name subjects/objects untyped standalone
-    "slices/extensions/model-serving/examples/provenance-chain.ttl", // domain/range: subEventOf subjects/objects untyped standalone
-    "slices/extensions/model-serving/examples/serving.ttl", // domain/range: eventType/subEventOf/awarenessMode/awarenessSubject/duringInterval/hasTemporalFrame subjects/objects untyped standalone
-    "slices/extensions/model-serving/examples/two-sessions.ttl", // domain/range: subEventOf subjects/objects untyped standalone
-    "slices/extensions/norms/examples/food-safety-compliance.ttl", // domain/range: observationMethod/vantage/complianceVerdict/deonticModality/eventTemporalFrame/name subjects/objects untyped standalone
-    "slices/extensions/procedures/examples/data-pipeline.ttl", // domain/range: dataFlowEntity/executionParticipant/executionStatus/procedureStepType/procedureType/name/title subjects/objects untyped standalone
-    "slices/extensions/risk/examples/trust-collapse.ttl", // domain/range: hazardBearer/hazardSeverity/cascadeSeverity/causalModality/mitigationCounters/mitigationStatus objects untyped standalone
-    "slices/extensions/software/examples/commit-history.ttl", // domain/range: repositoryType/canonicalizedIdentity/name subjects/objects untyped standalone
     // Bucket A (lang: grounding graft) — the example references shared lang:/logic:
     // grounding individuals (rendering/denotation/preservation kinds, sign-system
     // kinds, scripts, the seed lang:english) that are typed in the grounding slices

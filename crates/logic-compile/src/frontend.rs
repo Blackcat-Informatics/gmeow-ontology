@@ -1073,6 +1073,27 @@ fn closure_validation_optouts(store: &RdfDataset) -> std::collections::BTreeSet<
     set
 }
 
+/// The per-property **closed-world-reading opt-IN** set (R3, inverse polarity of
+/// [`closure_validation_optouts`]): a `logic:closureEntry` whose `logic:closureValue` is
+/// `logic:ClosedWorldClosure` and whose `logic:closureKey` names a property marks that property's
+/// open-world `rdfs:domain`/`rdfs:range` axioms as ones that SHOULD take the closed-world
+/// validation reading. Domain/range are inference axioms and open-world by default (a closed
+/// reading over-claims on any graph relying on the entailment), so this is the single authored
+/// signal that closes one — the exact peer of the opt-out, reusing the existing closure vocabulary
+/// verbatim (no new shape DSL). An absent annotation means "open-world / derive no domain-range
+/// shape". Read directly off the merged authored store, consistent with the dataset-derive
+/// architecture.
+fn closure_validation_closed_optins(store: &RdfDataset) -> std::collections::BTreeSet<String> {
+    let closed = Node::iri(logic_iri("ClosedWorldClosure"));
+    let mut set = std::collections::BTreeSet::new();
+    for entry in subjects_with(store, &nn(&logic_iri("closureValue")), &closed) {
+        if let Some(key) = value(store, &entry, &nn(&logic_iri("closureKey"))) {
+            set.insert(term_str(&key));
+        }
+    }
+    set
+}
+
 /// Walk an `rdf:first`/`rdf:rest`/`rdf:nil` list from `head`, collecting its IRI members in
 /// order. Blank / literal members are skipped (a non-resource list element has no IRI form),
 /// and the walk terminates on `rdf:nil`, a cell missing `rdf:rest`, a non-resource cell, or a
@@ -1119,7 +1140,10 @@ fn read_iri_list(store: &RdfDataset, head: &Node) -> Vec<String> {
 /// namespace (only our own classes / properties own a shape; the target of an `sh:class` may
 /// live in any namespace). The per-property / per-class opt-out (R3, see
 /// [`closure_validation_optouts`]) suppresses any axiom whose subject a closure entry marks
-/// `OpenWorldClosure`.
+/// `OpenWorldClosure`. `rdfs:domain`/`rdfs:range` are the one exception to derive-all: they are
+/// open-world INFERENCE axioms, so they are OPEN-WORLD BY DEFAULT and derive a shape only for a
+/// property explicitly opted IN with a `ClosedWorldClosure` closure entry (see
+/// [`closure_validation_closed_optins`]).
 ///
 /// Hard-fails (`Err`) rather than silently dropping a malformed REQUIRED constraint: a
 /// cardinality with `min > max` (via [`PropertyConstraintIr::new`]), a qualified cardinality
@@ -1128,6 +1152,10 @@ pub fn derive_validation_shapes(store: &RdfDataset) -> Result<Vec<ValidationShap
     // The per-property/per-class closed-world-reading opt-out (R3). Default is derive-all; a
     // property/class named by an `OpenWorldClosure` closure entry is suppressed below.
     let optouts = closure_validation_optouts(store);
+    // The per-property closed-world-reading opt-IN (R3, inverse polarity): rdfs:domain/range are
+    // open-world by default (they are inference axioms), so a domain/range shape is derived only
+    // for a property a `ClosedWorldClosure` closure entry explicitly closes. See FAMILY 3.
+    let closed_optins = closure_validation_closed_optins(store);
     let owl = "http://www.w3.org/2002/07/owl#";
     let rdfs = "http://www.w3.org/2000/01/rdf-schema#";
     let xsd = "http://www.w3.org/2001/XMLSchema#";
@@ -1520,27 +1548,40 @@ pub fn derive_validation_shapes(store: &RdfDataset) -> Result<Vec<ValidationShap
             continue;
         }
         let p_subj = Subject::Iri(p.clone());
-        // rdfs:domain C → a SubjectsOf(P) node condition (every subject of P satisfies it).
-        for c in objects(store, &p_subj, &p_domain) {
-            if let Node::Iri(c) = c
-                && let Some(cc) = classify(&c)
-            {
-                entry_for(&mut acc, ShapeTarget::SubjectsOf(p.clone()))
-                    .1
-                    .push(cc);
+        // rdfs:domain / rdfs:range are open-world INFERENCE axioms — they ENTAIL the subject's /
+        // object's type, they do not REQUIRE it to be asserted. Their closed-world `sh:class`
+        // reading over-claims on any graph that (legitimately) relies on that entailment rather
+        // than asserting the type standalone, so — unlike the genuinely closed-world constraints
+        // (cardinality, value restrictions) which stay derive-all — domain/range are OPEN-WORLD BY
+        // DEFAULT: a domain/range validation shape is derived ONLY for a property explicitly opted
+        // IN via a `logic:ClosedWorldClosure` closure entry (the inverse polarity of the
+        // `OpenWorldClosure` opt-out, reusing the same closure vocabulary — no new shape DSL).
+        if closed_optins.contains(p) {
+            // rdfs:domain C → a SubjectsOf(P) node condition (every subject of P satisfies it).
+            for c in objects(store, &p_subj, &p_domain) {
+                if let Node::Iri(c) = c
+                    && let Some(cc) = classify(&c)
+                {
+                    entry_for(&mut acc, ShapeTarget::SubjectsOf(p.clone()))
+                        .1
+                        .push(cc);
+                }
+            }
+            // rdfs:range C → an ObjectsOf(P) node condition (every object of P satisfies it).
+            for c in objects(store, &p_subj, &p_range) {
+                if let Node::Iri(c) = c
+                    && let Some(cc) = classify(&c)
+                {
+                    entry_for(&mut acc, ShapeTarget::ObjectsOf(p.clone()))
+                        .1
+                        .push(cc);
+                }
             }
         }
-        // rdfs:range C → an ObjectsOf(P) node condition (every object of P satisfies it).
-        for c in objects(store, &p_subj, &p_range) {
-            if let Node::Iri(c) = c
-                && let Some(cc) = classify(&c)
-            {
-                entry_for(&mut acc, ShapeTarget::ObjectsOf(p.clone()))
-                    .1
-                    .push(cc);
-            }
-        }
-        // owl:FunctionalProperty → each subject of P has ≤1 value (sh:maxCount 1 on P).
+        // owl:FunctionalProperty → each subject of P has ≤1 value (sh:maxCount 1 on P). A
+        // functional/inverse-functional axiom is a genuine closed-world cardinality bound (it
+        // constrains, it does not merely infer), so it stays derive-all (+ the OpenWorldClosure
+        // opt-out), independent of the domain/range opt-in above.
         if contains(store, &p_subj, &nn(RDF_TYPE), &functional) {
             let pc = PropertyConstraintIr::new(
                 p,

@@ -24,7 +24,7 @@ python = ["dep:pyo3"]
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 pyo3 = { version = "0.29", features = ["abi3-py313"], optional = true }
-purrdf = "0.3"
+purrdf = "0.4"
 blake3 = "1"
 
 [dev-dependencies]
