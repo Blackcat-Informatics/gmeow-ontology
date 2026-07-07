@@ -39,6 +39,7 @@ use sha2::{Digest, Sha256};
 
 use gmeow_docs::i18n::parse_po;
 use gmeow_logic_compile::ir::PreservationKind;
+use gmeow_logic_compile::loss_ledger::LossLedger;
 use gmeow_logic_compile::projections::ProjectionResult;
 use purrdf::slice::{ArtifactRole, SliceCatalog};
 
@@ -65,8 +66,12 @@ pub struct LangDocsRenderingCorpus {
     /// (`graph/lang-docs-rendering-corpus`).
     pub ntriples: Vec<u8>,
     /// One `ProjectionResult` per page rendering + per page translation roll-up, plus one per
-    /// exec-docs English-only boundary gap.
+    /// exec-docs English-only boundary gap. The rows carry only identity/judgment; their drops
+    /// live in [`loss`](Self::loss).
     pub ledger: Vec<ProjectionResult>,
+    /// The loss store every row's drops are interned into (keyed by target focus). The mappings
+    /// stage unions it into the single report loss store.
+    pub loss: LossLedger,
 }
 
 /// One `.po` entry, reduced to what the docs re-typing needs (its `msgctxt` and target).
@@ -165,16 +170,21 @@ pub fn build_corpus(root: &std::path::Path) -> Result<LangDocsRenderingCorpus, g
     let langs: Vec<String> = langs.into_iter().collect();
     let ntriples = emit_ntriples(&groups, &langs)?;
 
+    let mut loss = LossLedger::new();
     let mut ledger: Vec<ProjectionResult> = Vec::new();
     for group in &groups {
-        ledger.push(rendering_ledger_row(group));
-        ledger.push(translation_ledger_row(group));
+        ledger.push(rendering_ledger_row(group, &mut loss));
+        ledger.push(translation_ledger_row(group, &mut loss));
     }
     for lang in &langs {
-        ledger.push(exec_gap_ledger_row(lang));
+        ledger.push(exec_gap_ledger_row(lang, &mut loss));
     }
 
-    Ok(LangDocsRenderingCorpus { ntriples, ledger })
+    Ok(LangDocsRenderingCorpus {
+        ntriples,
+        ledger,
+        loss,
+    })
 }
 
 /// The DERIVED weakest-dominates join over a page's unit judgments (any `Unsupported` gap
@@ -401,68 +411,71 @@ fn emit_exec_gap(lang: &str, script: &str, lines: &mut Vec<String>) {
 /// One roll-up ledger row per page translation: its preservation is the DERIVED join of the
 /// page's units, recorded so the ledger carries the computed roll-up rather than a fabricated
 /// document-level flag.
-fn translation_ledger_row(group: &PageGroup) -> ProjectionResult {
+fn translation_ledger_row(group: &PageGroup, loss: &mut LossLedger) -> ProjectionResult {
     let kind = derived_kind(group);
     let short = digest16("docs", &format!("{}\u{1f}{}", group.lang, group.term_iri));
+    let target = format!("lang-docs-translation:{short}");
+    let actual_drops = vec![format!(
+        "docs page translation roll-up ({lang}, {term}) over {n} unit(s); \
+         weakest-dominates join = logic:{kind}",
+        lang = group.lang,
+        term = group.term_iri,
+        n = group.entries.len(),
+        kind = kind.as_str(),
+    )];
+    loss.record_projection_drops(&target, kind, &[], &actual_drops);
     ProjectionResult {
-        target: format!("lang-docs-translation:{short}"),
+        target,
         content: String::new(),
         is_rdf: false,
         preservation: kind,
         complexity: "n/a".to_string(),
-        actual_drops: vec![format!(
-            "docs page translation roll-up ({lang}, {term}) over {n} unit(s); \
-             weakest-dominates join = logic:{kind}",
-            lang = group.lang,
-            term = group.term_iri,
-            n = group.entries.len(),
-            kind = kind.as_str(),
-        )],
-        lossy_drops: Vec::new(),
     }
 }
 
 /// One ledger row per page rendering: the DERIVED per-page preservation of realizing the
 /// English term as a non-English docs page.
-fn rendering_ledger_row(group: &PageGroup) -> ProjectionResult {
+fn rendering_ledger_row(group: &PageGroup, loss: &mut LossLedger) -> ProjectionResult {
     let kind = derived_kind(group);
     let short = digest16("docs", &format!("{}\u{1f}{}", group.lang, group.term_iri));
+    let target = format!("lang-docs-rendering:{short}");
+    let actual_drops = vec![format!(
+        "docs page rendering ({lang}, {term}): {n} target surface(s); \
+         derived preservation = logic:{kind}",
+        lang = group.lang,
+        term = group.term_iri,
+        n = group.entries.len(),
+        kind = kind.as_str(),
+    )];
+    loss.record_projection_drops(&target, kind, &[], &actual_drops);
     ProjectionResult {
-        target: format!("lang-docs-rendering:{short}"),
+        target,
         content: String::new(),
         is_rdf: false,
         preservation: kind,
         complexity: "n/a".to_string(),
-        actual_drops: vec![format!(
-            "docs page rendering ({lang}, {term}): {n} target surface(s); \
-             derived preservation = logic:{kind}",
-            lang = group.lang,
-            term = group.term_iri,
-            n = group.entries.len(),
-            kind = kind.as_str(),
-        )],
-        lossy_drops: Vec::new(),
     }
 }
 
 /// One ledger row per exec-docs English-only boundary: `Unsupported` with a non-empty residue
 /// (the untranslated boundary prose), so the floor row is carried and flagged — untranslata-
 /// bility-as-data satisfying the overclaim contract.
-fn exec_gap_ledger_row(lang: &str) -> ProjectionResult {
+fn exec_gap_ledger_row(lang: &str, loss: &mut LossLedger) -> ProjectionResult {
+    let target = format!("lang-docs-execgap:{lang}");
+    let actual_drops = vec![
+        format!(
+            "exec-docs boundary ({lang}): executable documentation surfaces are rendered \
+             only in the English tree; the {lang} tree carries no non-English rendering",
+        ),
+        format!("english carrier: {EXEC_DOCS_BOUNDARY}"),
+    ];
+    loss.record_projection_drops(&target, PreservationKind::Unsupported, &[], &actual_drops);
     ProjectionResult {
-        target: format!("lang-docs-execgap:{lang}"),
+        target,
         content: String::new(),
         is_rdf: false,
         preservation: PreservationKind::Unsupported,
         complexity: "n/a".to_string(),
-        actual_drops: vec![
-            format!(
-                "exec-docs boundary ({lang}): executable documentation surfaces are rendered \
-                 only in the English tree; the {lang} tree carries no non-English rendering",
-            ),
-            format!("english carrier: {EXEC_DOCS_BOUNDARY}"),
-        ],
-        lossy_drops: Vec::new(),
     }
 }
 
@@ -731,7 +744,7 @@ mod tests {
         for row in &gap_rows {
             assert_eq!(row.preservation, PreservationKind::Unsupported);
             assert!(
-                !row.actual_drops.is_empty(),
+                !corpus.loss.projection_drops_for(&row.target).is_empty(),
                 "an Unsupported floor row must carry a non-empty residue"
             );
         }

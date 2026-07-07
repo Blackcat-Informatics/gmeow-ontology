@@ -16,7 +16,6 @@
 //! those gaps are enumerated on every emission.
 
 use gmeow_logic_compile::ir::PreservationKind;
-use gmeow_logic_compile::projections::ProjectionResult;
 use purrdf::{RdfDataset, TermId};
 
 use crate::bridge::IngestDiagnostic;
@@ -205,6 +204,7 @@ fn emit_denotation(source: &NamedSource, d: &Denotation) -> LangEmission {
         }
         residue.sort();
         residue.dedup();
+        let mut loss = crate::registry::LossLedger::new();
         LangEmission {
             artifacts: vec![EmittedArtifact {
                 path_suffix: format!("semaf/{}.{}.amr", source.name, local),
@@ -212,15 +212,17 @@ fn emit_denotation(source: &NamedSource, d: &Denotation) -> LangEmission {
                 is_rdf: false,
             }],
             correspondence: corr,
-            ledger: vec![ProjectionResult {
-                target: format!("semaf:{}#{}", source.name, local),
-                content: String::new(),
-                is_rdf: false,
-                preservation: PreservationKind::SoundUnder,
-                complexity: "n/a".to_owned(),
-                lossy_drops: Vec::new(),
-                actual_drops: residue.clone(),
-            }],
+            ledger: vec![crate::registry::emit_ledger_row(
+                &mut loss,
+                format!("semaf:{}#{}", source.name, local),
+                String::new(),
+                false,
+                PreservationKind::SoundUnder,
+                "n/a".to_owned(),
+                Vec::new(),
+                residue.clone(),
+            )],
+            loss,
             leg_pair: None,
             emitted_reading_count: None,
             source_iri: d.iri.clone(),
@@ -254,18 +256,21 @@ fn emit_denotation(source: &NamedSource, d: &Denotation) -> LangEmission {
         let mut residue: Vec<String> = SEMAF_UNSUPPORTED.iter().map(|s| (*s).to_owned()).collect();
         residue.insert(0, reason);
         let corr = lossy_lens_correspondence(SEMAF_CORR_BASE, &d.iri, SEMAF_GET_LEG, None);
+        let mut loss = crate::registry::LossLedger::new();
         LangEmission {
             artifacts: Vec::new(),
             correspondence: corr,
-            ledger: vec![ProjectionResult {
-                target: format!("semaf:{}#{}", source.name, local),
-                content: String::new(),
-                is_rdf: false,
-                preservation: PreservationKind::Unsupported,
-                complexity: "n/a".to_owned(),
-                lossy_drops: Vec::new(),
-                actual_drops: residue.clone(),
-            }],
+            ledger: vec![crate::registry::emit_ledger_row(
+                &mut loss,
+                format!("semaf:{}#{}", source.name, local),
+                String::new(),
+                false,
+                PreservationKind::Unsupported,
+                "n/a".to_owned(),
+                Vec::new(),
+                residue.clone(),
+            )],
+            loss,
             leg_pair: None,
             emitted_reading_count: None,
             source_iri: d.iri.clone(),

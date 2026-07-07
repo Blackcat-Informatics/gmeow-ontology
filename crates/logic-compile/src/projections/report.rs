@@ -130,8 +130,9 @@ impl ReportHeader {
 pub fn build_projection_report(
     program: &LogicProgram,
     projections: &[ProjectionResult],
+    ledger: &LossLedger,
 ) -> Result<String, OverclaimError> {
-    build_projection_report_from(ReportHeader::of_program(program), projections)
+    build_projection_report_from(ReportHeader::of_program(program), projections, ledger)
 }
 
 /// The SINGLE projection-report serialization routine: header counts + the sorted
@@ -147,6 +148,7 @@ pub fn build_projection_report(
 pub fn build_projection_report_from(
     header: ReportHeader,
     projections: &[ProjectionResult],
+    ledger: &LossLedger,
 ) -> Result<String, OverclaimError> {
     let mut g = TripleSink::default();
 
@@ -200,35 +202,22 @@ pub fn build_projection_report_from(
         }
     }
 
-    // The single loss store: intern every projection's drops as ProjectionLoss
-    // witnesses, keyed by target focus (R1), and read the per-target `gmeow:lossyDrop`
-    // set back from it below — so this report's losses flow through the one
-    // substrate ledger, not a bespoke per-`ProjectionResult` serialization.
-    let mut loss_ledger = LossLedger::new();
-    for proj in projections {
-        loss_ledger.record_projection_drops(
-            &proj.target,
-            proj.preservation,
-            &proj.lossy_drops,
-            &proj.actual_drops,
-        );
-    }
-
     // Targets in sorted order (the Python `sorted(projections, key=target)`).
     let mut sorted: Vec<&ProjectionResult> = projections.iter().collect();
     sorted.sort_by(|a, b| a.target.cmp(&b.target));
 
     for proj in sorted {
+        // The per-target drop set read back from the ONE loss store the producers interned
+        // into — the single source of truth for both the legalization gate's residue and
+        // the `gmeow:lossyDrop` records serialized below (structural notes sorted, then the
+        // `actual: `-prefixed per-run notes sorted).
+        let drops = ledger.projection_drops_for(&proj.target);
+
         // Legalization gate: a lowering is a total function into ⟨legal ⊕ flagged
-        // residue⟩.  The residue is the full flagged set (structural lossy_drops +
-        // concrete actual_drops) — exactly what is serialized below as gmeow:lossyDrop.
-        // The gate fires on an Exact overclaim OR an Unsupported silent under-disclosure.
-        let residue: Vec<&str> = proj
-            .lossy_drops
-            .iter()
-            .chain(proj.actual_drops.iter())
-            .map(String::as_str)
-            .collect();
+        // residue⟩. The residue is the full flagged set — exactly what is serialized below
+        // as gmeow:lossyDrop. The gate fires on an Exact overclaim OR an Unsupported silent
+        // under-disclosure.
+        let residue: Vec<&str> = drops.iter().map(String::as_str).collect();
         assert_no_overclaim(&proj.target, proj.preservation, &residue)?;
 
         // The target name is the IRI's local segment AND the human label. Whole-program
@@ -257,7 +246,7 @@ pub fn build_projection_report_from(
         );
 
         let lossy_drop = format!("{GMEOW_NS}lossyDrop");
-        for note in &loss_ledger.projection_drops_for(&proj.target) {
+        for note in &drops {
             g.add_lit(&target_iri, &lossy_drop, RdfLiteral::simple(note));
         }
     }
@@ -286,7 +275,8 @@ mod tests {
     #[test]
     fn liftability_statistic_emitted_only_when_correspondences_present() {
         // The derived liftability statistic (3 of 4 lawful) appears in the ledger.
-        let ttl = build_projection_report_from(header(4, 3), &[]).expect("report");
+        let ttl =
+            build_projection_report_from(header(4, 3), &[], &LossLedger::new()).expect("report");
         assert!(
             ttl.contains("correspondenceCount"),
             "expected correspondenceCount in:\n{ttl}"
@@ -297,7 +287,8 @@ mod tests {
         );
 
         // A correspondence-free report is byte-unchanged (no statistic emitted).
-        let empty = build_projection_report_from(header(0, 0), &[]).expect("report");
+        let empty =
+            build_projection_report_from(header(0, 0), &[], &LossLedger::new()).expect("report");
         assert!(
             !empty.contains("correspondenceCount"),
             "a correspondence-free report must not emit the statistic:\n{empty}"

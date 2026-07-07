@@ -185,6 +185,12 @@ pub struct LogicProjectionsChannel {
     pub header: ReportHeader,
     /// The logic projection rows that fed the compiler's own (diagnostics-only) report.
     pub projections: Vec<ProjectionResult>,
+    /// The compile's single loss store as owned, serializable nodes (the channel is JSON, so the
+    /// live ledger cannot cross it). The mappings stage rebuilds the store via
+    /// `LossLedger::from_nodes`, unions the correspondence + lang losses in, and reads each row's
+    /// residue back through `projection_drops_for` — so the FINAL report's per-target drops flow
+    /// from the SAME substrate ledger the producers interned into.
+    pub loss_nodes: Vec<gmeow_errors::DiagNode>,
 }
 
 /// Committed JSON projection of the compile diagnostics report.
@@ -456,6 +462,7 @@ impl Stage for CompileLogicStage {
         let channel = LogicProjectionsChannel {
             header: arts.report_header,
             projections: arts.logic_projections.clone(),
+            loss_nodes: arts.loss.to_nodes(),
         };
         artifacts.insert(
             LOGIC_PROJECTIONS_CHANNEL.to_string(),

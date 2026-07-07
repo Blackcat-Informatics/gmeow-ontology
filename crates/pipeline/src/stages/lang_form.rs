@@ -54,6 +54,7 @@ use gmeow_lang_bridge::{
 use gmeow_lang_form::SurfaceForm;
 use gmeow_logic::obligations::candidate_source_hash;
 use gmeow_logic_compile::ir::{Correspondence, PreservationKind};
+use gmeow_logic_compile::loss_ledger::LossLedger;
 use gmeow_logic_compile::projections::ProjectionResult;
 
 const LANG_NS: &str = "https://blackcatinformatics.ca/lang/";
@@ -92,6 +93,9 @@ pub struct LangFormCorpus {
     pub ntriples: Vec<u8>,
     /// The one `ProjectionResult` row for the whole corpus (an exact surface round-trip).
     pub ledger: Vec<ProjectionResult>,
+    /// The loss store the row's drops are interned into (empty for this Exact corpus). The
+    /// mappings stage unions it into the single report loss store.
+    pub loss: LossLedger,
 }
 
 /// One distinct English source literal interned as a raw surface plus its carried
@@ -139,8 +143,13 @@ pub fn build_corpus(catalog: Option<&SliceCatalog>) -> Result<LangFormCorpus, gm
     proses.sort_by(|a, b| a.surface_iri.cmp(&b.surface_iri));
 
     let ntriples = emit_ntriples(&proses);
-    let ledger = vec![corpus_ledger_row(&proses)];
-    Ok(LangFormCorpus { ntriples, ledger })
+    let mut loss = LossLedger::new();
+    let ledger = vec![corpus_ledger_row(&proses, &mut loss)];
+    Ok(LangFormCorpus {
+        ntriples,
+        ledger,
+        loss,
+    })
 }
 
 /// The bundle blob rows backing every document-scale surface's `lang:surfaceBlob`
@@ -516,12 +525,13 @@ fn emit_ntriples(proses: &[Prose]) -> Vec<u8> {
 /// The single honest ledger row for the whole corpus: the surface stratum round-trips
 /// exactly, so nothing is dropped (`actual_drops`/`lossy_drops` empty). The unanalyzed
 /// status is recorded on each surface as a graded level, not charged as a loss.
-fn corpus_ledger_row(proses: &[Prose]) -> ProjectionResult {
+fn corpus_ledger_row(proses: &[Prose], loss: &mut LossLedger) -> ProjectionResult {
+    // The lift count is a descriptive summary, NOT a dropped item — a declared
+    // ExactPreservation projection interns NO drops (a non-empty drop set under an exact
+    // claim is the overclaim floor).
+    loss.record_projection_drops("lang-form", PreservationKind::Exact, &[], &[]);
     ProjectionResult {
         target: "lang-form".to_string(),
-        // The lift count is a descriptive summary, NOT a dropped item — a declared
-        // ExactPreservation projection carries empty `actual_drops`/`lossy_drops` (a
-        // non-empty drop set under an exact claim is the overclaim floor).
         content: format!(
             "total prose lift: {n} distinct @x-gmeow-english literal(s) interned as raw \
              lang:SurfaceForm; surface round-trip exact, nothing dropped",
@@ -530,8 +540,6 @@ fn corpus_ledger_row(proses: &[Prose]) -> ProjectionResult {
         is_rdf: false,
         preservation: PreservationKind::Exact,
         complexity: "n/a".to_string(),
-        lossy_drops: Vec::new(),
-        actual_drops: Vec::new(),
     }
 }
 
@@ -793,9 +801,8 @@ mod tests {
         let row = &corpus.ledger[0];
         assert_eq!(row.target, "lang-form");
         assert_eq!(row.preservation, PreservationKind::Exact);
-        assert!(row.lossy_drops.is_empty(), "nothing is dropped");
         assert!(
-            row.actual_drops.is_empty(),
+            corpus.loss.projection_drops_for(&row.target).is_empty(),
             "an exact projection declares no dropped items (else the overclaim gate fires)"
         );
         assert!(

@@ -125,6 +125,12 @@ pub struct CompiledArtifacts {
     /// The three header counts of [`report`](Self::report) — surfaced for the same
     /// reason as [`logic_projections`](Self::logic_projections).
     pub report_header: report::ReportHeader,
+    /// The single runtime loss store this compile interned every projection drop into —
+    /// the sole origin of the `gmeow:lossyDrop` report rows and the preservation ledger's
+    /// per-target drops. Handed to the pipeline mappings stage (as serialized nodes over
+    /// the projection channel) so the FINAL union report reads back from the SAME store
+    /// rather than a re-derived one.
+    pub loss: crate::loss_ledger::LossLedger,
     /// The five-gate verdict report over the program's correspondences (F4) — `None` when
     /// the program declares no correspondences (so a correspondence-free compile is
     /// byte-unchanged). The per-correspondence gates are evaluated with no compositions;
@@ -167,17 +173,24 @@ pub fn compile_program(
     program: &LogicProgram,
     verdicts: &correspondence_gates::CorrespondenceVerdicts,
 ) -> Result<CompiledArtifacts, String> {
-    let owl_dl = rdf::project_owl_dl(program).map_err(|e| e.to_string())?;
-    let owl_el = rdf::project_owl_el(program).map_err(|e| e.to_string())?;
-    let datalog = text::project_datalog(program);
-    let n3 = text::project_n3(program);
-    let gufo = rdf::project_gufo(program).map_err(|e| e.to_string())?;
+    // The ONE runtime loss store for this compile. Every lossy producer interns its
+    // structural + per-run drops here (keyed by target focus); the report and the
+    // preservation ledger below both READ this same instance, so the two loss surfaces
+    // cannot drift. The four Exact targets (canonical-rdf12/clif/cgif/xcl) drop nothing,
+    // so they never touch the store and keep their pure signatures.
+    let mut loss = crate::loss_ledger::LossLedger::new();
+
+    let owl_dl = rdf::project_owl_dl(program, &mut loss).map_err(|e| e.to_string())?;
+    let owl_el = rdf::project_owl_el(program, &mut loss).map_err(|e| e.to_string())?;
+    let datalog = text::project_datalog(program, &mut loss);
+    let n3 = text::project_n3(program, &mut loss);
+    let gufo = rdf::project_gufo(program, &mut loss).map_err(|e| e.to_string())?;
     let canonical_rdf12 = rdf::project_canonical_rdf12(program).map_err(|e| e.to_string())?;
-    let nemo = text::project_nemo(program)?;
+    let nemo = text::project_nemo(program, &mut loss)?;
     let clif = crate::clif::project_clif(program)?;
     let cgif = crate::cgif::project_cgif(program)?;
     let xcl = crate::xcl::project_xcl(program)?;
-    let shacl_af = shacl_af::project_shacl_af(program);
+    let shacl_af = shacl_af::project_shacl_af(program, &mut loss);
 
     let results = [
         &owl_dl,
@@ -211,14 +224,16 @@ pub fn compile_program(
     let (pp_kind, _, _) = target_meta("property-path");
     let path_results: Vec<ProjectionResult> = path_projections
         .iter()
-        .map(|pp| ProjectionResult {
-            target: format!("property-path:{}", pp.shape_iri),
-            content: pp.property_path.clone(),
-            is_rdf: false,
-            preservation: pp_kind,
-            complexity: pp.ledger.complexity.clone(),
-            lossy_drops: pp.ledger.lossy_drops.clone(),
-            actual_drops: Vec::new(),
+        .map(|pp| {
+            let target = format!("property-path:{}", pp.shape_iri);
+            loss.record_projection_drops(&target, pp_kind, &pp.ledger.lossy_drops, &[]);
+            ProjectionResult {
+                target,
+                content: pp.property_path.clone(),
+                is_rdf: false,
+                preservation: pp_kind,
+                complexity: pp.ledger.complexity.clone(),
+            }
         })
         .collect();
     owned.extend(path_results);
@@ -234,14 +249,14 @@ pub fn compile_program(
         .flat_map(shapes::shacl_residue)
         .collect();
     let (sc_kind, sc_compl, sc_struct) = target_meta("shacl-core");
+    let sc_struct: Vec<String> = sc_struct.into_iter().map(str::to_owned).collect();
+    loss.record_projection_drops("shacl-core", sc_kind, &sc_struct, &shacl_shape_residue);
     owned.push(ProjectionResult {
         target: "shacl-core".to_owned(),
         content: shapes::project_validation_shapes_shacl(program),
         is_rdf: false,
         preservation: sc_kind,
         complexity: sc_compl.to_owned(),
-        lossy_drops: sc_struct.into_iter().map(str::to_owned).collect(),
-        actual_drops: shacl_shape_residue,
     });
     let shex_shape_residue: Vec<String> = program
         .validation_shapes
@@ -249,14 +264,14 @@ pub fn compile_program(
         .flat_map(shapes::shex_residue)
         .collect();
     let (sx_kind, sx_compl, sx_struct) = target_meta("shex");
+    let sx_struct: Vec<String> = sx_struct.into_iter().map(str::to_owned).collect();
+    loss.record_projection_drops("shex", sx_kind, &sx_struct, &shex_shape_residue);
     owned.push(ProjectionResult {
         target: "shex".to_owned(),
         content: shapes::project_validation_shapes_shex(program),
         is_rdf: false,
         preservation: sx_kind,
         complexity: sx_compl.to_owned(),
-        lossy_drops: sx_struct.into_iter().map(str::to_owned).collect(),
-        actual_drops: shex_shape_residue,
     });
 
     // Teleology-specific lossy disclosure.  When the program carries the flat
@@ -274,9 +289,13 @@ pub fn compile_program(
         .iter()
         .any(|a| a.predicate == SATISFIED_BY_IRI)
     {
-        for result in &mut owned {
+        let collapse = [GOAL_EVAL_COLLAPSE_DROP.to_owned()];
+        for result in &owned {
             if GOAL_EVAL_COLLAPSE_TARGETS.contains(&result.target.as_str()) {
-                result.lossy_drops.push(GOAL_EVAL_COLLAPSE_DROP.to_owned());
+                // An additional STRUCTURAL drop on the lossy target, interned into the same
+                // store the producer used (structural notes read back sorted, so the extra
+                // note lands in the same place regardless of interning order).
+                loss.record_projection_drops(&result.target, result.preservation, &collapse, &[]);
             }
         }
     }
@@ -312,35 +331,21 @@ pub fn compile_program(
             None => base,
         }
     };
-    let report =
-        report::build_projection_report_from(report_header, &owned).map_err(|e| e.to_string())?;
+    let report = report::build_projection_report_from(report_header, &owned, &loss)
+        .map_err(|e| e.to_string())?;
 
-    // Preservation ledger: per-target (kind, complexity, combined lossy drops).
-    // `lossy_drops` carries the COMBINED drop list — structural drops (sorted) followed
-    // by the runtime formula residue (sorted, `actual: `-prefixed) — matching exactly
-    // what `build_projection_report_from` emits as `gmeow:lossyDrop` in the Turtle
-    // report, because both read the drops back from a `LossLedger` (the single loss
-    // store). `owned` already carries the path `property-path:<iri>` rows (appended
-    // above), so the ledger and the report are built from the SAME target list.
-    // The same single loss store the Turtle report projects from — so the JSON
-    // preservation ledger and the `gmeow:lossyDrop` report cannot drift, and both
-    // flow through the one substrate ledger rather than a bespoke drop serialization.
-    let mut preservation_loss_ledger = crate::loss_ledger::LossLedger::new();
-    for p in &owned {
-        preservation_loss_ledger.record_projection_drops(
-            &p.target,
-            p.preservation,
-            &p.lossy_drops,
-            &p.actual_drops,
-        );
-    }
+    // Preservation ledger: per-target (kind, complexity, combined lossy drops), each row's
+    // `lossy_drops` READ BACK from the ONE loss store `loss` — the same instance the Turtle
+    // report projects from just above, so the JSON preservation ledger and the
+    // `gmeow:lossyDrop` report demonstrably cannot drift. `owned` already carries the path
+    // `property-path:<iri>` rows (appended above), so both summaries span the SAME targets.
     let preservation_ledger: Vec<LedgerEntry> = owned
         .iter()
         .map(|p| LedgerEntry {
             target: p.target.clone(),
             preservation: p.preservation.as_str().to_owned(),
             complexity: p.complexity.clone(),
-            lossy_drops: preservation_loss_ledger.projection_drops_for(&p.target),
+            lossy_drops: loss.projection_drops_for(&p.target),
         })
         .collect();
 
@@ -365,6 +370,7 @@ pub fn compile_program(
         path_projections,
         logic_projections: owned,
         report_header,
+        loss,
         correspondence_gates,
         correspondence_outcomes,
         correspondence_program,
@@ -386,6 +392,11 @@ pub(crate) const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#ty
 
 /// The result of running a single projection back-end (the `ProjectionResult`
 /// value; RDF content is re-parsed from `content` for isomorphism checks).
+///
+/// The per-target loss drops no longer live here: every producer interns its structural
+/// and per-run drops directly into the single [`crate::loss_ledger::LossLedger`] (keyed by
+/// the target focus), and every serializer/consumer reads them back from that one store.
+/// This value now carries only the identity + serialized output + declared judgment.
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct ProjectionResult {
     /// Short target name (`"owl-dl"`, `"datalog"`, …).
@@ -398,10 +409,6 @@ pub struct ProjectionResult {
     pub preservation: PreservationKind,
     /// The declared complexity class string.
     pub complexity: String,
-    /// Structural lossy-drop notes (from the target metadata).
-    pub lossy_drops: Vec<String>,
-    /// Concrete items skipped during this run.
-    pub actual_drops: Vec<String>,
 }
 
 /// Build the **one preservation row per correspondence** the canonical doc requires
@@ -411,10 +418,12 @@ pub struct ProjectionResult {
 /// from [`target_meta`]); `key` is the stable per-correspondence target name
 /// (`<dialect>:<correspondence-iri-or-cell::profile>`); `residue` is the concrete,
 /// per-correspondence flagged set (profile losses + A1's rejected constructs),
-/// each note already attributed to its leg.  The static drops live in `lossy_drops`,
-/// the concrete per-correspondence drops in `actual_drops` — the report serializes
-/// both as `gmeow:lossyDrop`.
+/// each note already attributed to its leg.  The static (dialect-level) drops and the
+/// concrete per-correspondence drops are interned into `ledger` under the row's target
+/// focus; the report reads them back as `gmeow:lossyDrop`. The returned row carries only
+/// the identity/judgment — the drops live in the single loss store.
 pub(crate) fn correspondence_result(
+    ledger: &mut crate::loss_ledger::LossLedger,
     dialect: &str,
     key: &str,
     residue: Vec<String>,
@@ -429,19 +438,20 @@ pub(crate) fn correspondence_result(
     // is lost.
     let digest = Sha256::digest(format!("{dialect}\u{1f}{key}").as_bytes());
     let short: String = digest.iter().take(8).map(|b| format!("{b:02x}")).collect();
+    let target = format!("{dialect}:{short}");
+    let structural: Vec<String> = structural.into_iter().map(str::to_owned).collect();
     let mut actual_drops = Vec::with_capacity(residue.len() + 1);
     actual_drops.push(format!("correspondence: {key}"));
     actual_drops.extend(residue);
+    ledger.record_projection_drops(&target, kind, &structural, &actual_drops);
     ProjectionResult {
-        target: format!("{dialect}:{short}"),
+        target,
         // The legal output is the dialect artifact itself (written elsewhere); the row
         // is a preservation/residue record, not a serialization, so content is empty.
         content: String::new(),
         is_rdf: false,
         preservation: kind,
         complexity: complexity.to_owned(),
-        lossy_drops: structural.into_iter().map(str::to_owned).collect(),
-        actual_drops,
     }
 }
 
