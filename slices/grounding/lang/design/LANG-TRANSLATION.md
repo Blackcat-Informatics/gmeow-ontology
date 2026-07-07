@@ -118,6 +118,17 @@ becomes a competency query over translation preservation records instead of a di
 This is dogfooding with teeth — the docs pipeline already produces the pairs; the slice gives the
 pairs their honest type.
 
+### The GMN dialect crossings ride the same rail
+
+The GMN dialect ladder ([`LANG-GMN.md`](LANG-GMN.md)) is this layer's formal-language corpus: each
+level crossing — GMN-0 to its GTS and N-Quads encodings, GMN-0 to the GMN-1 model notation, GMN-1
+to the GMN-2 compacted variety — is a `lang:TranslationUnit` carrying its law-spine on exactly one
+`logic:Correspondence` through `lang:translationCorrespondence`, and each inter-version migration
+(`gmeow:gmnMigratesFrom` / `gmeow:gmnMigratesTo`) is a judged crossing on the identical rail. The
+verbalizer is a `lang:translationCorrespondence` between `gmeow:gmnModelNotation` and controlled
+natural language, carried on the same rail — authored by the GMN projection sibling under this
+charter's rules, no special case anywhere.
+
 ## Paraphrase — same system, declared sameness
 
 A `lang:Paraphrase` pairs forms within one sign system under a declared sameness claim: same
