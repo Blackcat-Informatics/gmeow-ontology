@@ -924,6 +924,33 @@ fn derived_validation_shapes_project_golden() {
     });
 }
 
+#[test]
+fn shacl_af_projection_golden() {
+    // The adjacent emit-only surface: the SHACL-AF (derivation `sh:SPARQLRule`) projection shares
+    // the identical structural gap as the validation-shape surfaces — `is_rdf:false`, byte-compared,
+    // previously pinned by no focused insta golden. The three `run_case` conformance cases carry no
+    // rules, so a rule-bearing fixture is required. Built via the `parse(...)` helper so the fixture
+    // is authored as declarative `logic:` Turtle, not hand-built IR.
+    let program = parse(
+        "ex:r a logic:Rule ;
+            logic:head [ rdf:subject \"?x\" ; rdf:predicate logic:rel ; rdf:object \"?y\" ] ;
+            logic:body [ rdf:subject \"?x\" ; rdf:predicate logic:rel ; rdf:object \"?y\" ] ;
+            logic:distinctBody [ rdf:subject \"?x\" ; rdf:object \"?y\" ] .",
+    );
+    let arts = compile_program(&program, &Default::default()).expect("compile");
+    assert!(
+        arts.shacl_af.contains("sh:SPARQLRule"),
+        "shacl-af must project the rule to a sh:SPARQLRule:\n{}",
+        arts.shacl_af
+    );
+
+    let mut settings = insta::Settings::clone_current();
+    settings.set_prepend_module_to_snapshot(false);
+    settings.bind(|| {
+        insta::assert_snapshot!("shacl-af", arts.shacl_af);
+    });
+}
+
 // ── G1: path-projection wiring ───────────────────────────────────────────────
 //
 // Verifies that `compile_program` genuinely populates `path_projections` (not
