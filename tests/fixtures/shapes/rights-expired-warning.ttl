@@ -2,7 +2,7 @@
 # is NOT suppressed (no gmeow:displayable false) trips
 # gmeow:ExpiredTrademarkSuppressionShape, which is sh:Warning severity (Principle 10:
 # suppression, never erasure; a source may lag the status change). The trademark is
-# otherwise well-formed (one mark, one holder), so NO Violation fires. run_shacl must
+# otherwise well-formed (one mark, one holder), so NO Violation fires. SHACL validation must
 # report a WARNING but still pass (result.ok is True).
 
 @prefix ex:    <https://example.org/shapes/> .

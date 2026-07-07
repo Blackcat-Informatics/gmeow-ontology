@@ -26,13 +26,13 @@
 #     -- gmeow:ReadingOrder is a subject in slices/core/documents/module.ttl
 #     (cross-slice), not the narrative module.
 #   test_narrative_reference_frame_shacl_passes
-#     -- run_shacl() call; ExampleConformance, not a structural TBox assertion.
+#     -- SHACL validation call; ExampleConformance, not a structural TBox assertion.
 #   test_narrative_frame_link_shacl_passes
-#     -- run_shacl() call; ExampleConformance, not a structural TBox assertion.
+#     -- SHACL validation call; ExampleConformance, not a structural TBox assertion.
 #   test_character_arc_shacl_passes
-#     -- run_shacl() call; ExampleConformance, not a structural TBox assertion.
+#     -- SHACL validation call; ExampleConformance, not a structural TBox assertion.
 #   test_character_arc_missing_subject_fails_shacl
-#     -- run_shacl() negative call with error-text assertions; ExampleConformance,
+#     -- SHACL validation negative call with error-text assertions; ExampleConformance,
 #     not a structural TBox assertion.
 #
 # See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest->DSL mapping.

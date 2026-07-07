@@ -4,7 +4,7 @@
 #      agent (a resolution to oneself is an Intention, not a Commitment).
 #   3. ex:narcissusGoal — a goal that is its own counter-goal.
 #   4. ex:emptyTenure — an IntentionTenure with neither agent nor intention.
-# run_shacl over this graph MUST NOT conform.
+# SHACL validation over this graph MUST NOT conform.
 
 @prefix ex:    <https://example.org/shapes/> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .

@@ -22,7 +22,7 @@
 #   test_pronoun_name_only_value_exists -- checks label presence via
 #     graph.value() and five-form absence on non-specifying stances
 #     (_NON_SPECIFYING_PRONOUNS tuple); ABox / numeric live-data checks.
-#   test_contested_name_usage_coexists -- run_shacl() on a fixture file;
+#   test_contested_name_usage_coexists -- SHACL validation on a fixture file;
 #     ExampleConformance, not a structural TBox assertion.
 #   test_no_preferred_or_primary_name_term_extended -- dynamic sweep over
 #     a banned-name list checking ObjectProperty / DatatypeProperty /

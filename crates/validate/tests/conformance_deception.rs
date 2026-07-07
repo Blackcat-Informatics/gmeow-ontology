@@ -21,18 +21,28 @@
 //!
 //! where `<claimState>` is `str(claim) + "State"`.
 //!
-//! Retained in Python (not migrated):
-//!   - `test_blame_deflection_example_uses_doxastic_standpoint_claims`: loads an
-//!     example file from disk and iterates subjects dynamically.
-//!   - `test_bullshit_modality_exists`: calls `_graph()` / `load_merged_graph`.
-//!   - `test_licensed_falsehood_not_a_lie`: calls both `run_shacl` AND `_graph()`
-//!     for cross-slice vocabulary assertions; the `_graph()` half is not portable.
-//!   - `test_disinformation_boundary_query`: uses `load_merged_graph` + a `.rq`
-//!     competency file and inspects SPARQL SELECT results.
+//! Source: tests/test_deception.py (whole file migrated here; the Python file is deleted).
+//!   - `test_licensed_falsehood_not_a_lie` → the `licensed_falsehood_conforms` SHACL case
+//!     (the `run_shacl` conform half) plus the `licensed_falsehood_vocab` GraphStore test
+//!     (the two cross-slice `_graph()` vocabulary assertions).
+//!   - `test_blame_deflection_example_uses_doxastic_standpoint_claims` →
+//!     the `blame_deflection_example_doxastic_claims` GraphStore test (loads the example
+//!     file and iterates held/projected standpoints).
+//!
+//! Migrated to declarative slicetest cells (already, before this PR), NOT re-migrated here:
+//!   - `test_bullshit_modality_exists` → slices/core/standpoint/tests/structural.ttl.
+//!   - `test_disinformation_boundary_query` → slices/core/deception/tests/competency.ttl.
 
 mod conformance_support;
 use conformance_support::*;
 use rstest::rstest;
+
+const OWL_CLASS: &str = "http://www.w3.org/2002/07/owl#Class";
+const G_CLAIM_VERIDICALITY: &str = "https://blackcatinformatics.ca/gmeow/ClaimVeridicality";
+const G_VERIDICALITY_LICENSED_FALSEHOOD: &str =
+    "https://blackcatinformatics.ca/gmeow/veridicalityLicensedFalsehood";
+const G_NARRATIVE_REFERENCE_FRAME: &str =
+    "https://blackcatinformatics.ca/gmeow/NarrativeReferenceFrame";
 
 // ── Helpers for the inline Turtle snippets ────────────────────────────────────
 
@@ -429,6 +439,75 @@ ex:method1 a gmeow:ObservationMethod .
         "ex:method1"
     ),
 )))]
+// test_licensed_falsehood_not_a_lie (run_shacl half): a fiction claim under a
+// NarrativeReferenceFrame conforms — the licensed-falsehood safety structure is well-formed.
+#[case::licensed_falsehood_conforms(Case::inline(format!(
+    "{PREFIXES}\
+ex:fictionClaim a gmeow:StandpointClaim .
+ex:fictionClaim gmeow:claimVeridicality gmeow:veridicalityLicensedFalsehood .
+ex:fictionClaim gmeow:accordingTo ex:narrativeFrame .
+ex:fictionClaim gmeow:observationMethod ex:method1 .
+ex:method1 a gmeow:ObservationMethod .
+ex:narrativeFrame a gmeow:NarrativeReferenceFrame .
+ex:narrativeFrame gmeow:frameRealm gmeow:frameRealmNarrative .
+ex:narrativeFrame gmeow:frameKind gmeow:frameKindNarrative .
+")))]
 fn deception(#[case] case: Case) {
     case.run();
+}
+
+// ── TBox / example-membership twins (GraphStore) ──────────────────────────────
+
+/// `test_blame_deflection_example_uses_doxastic_standpoint_claims`: every held or
+/// projected standpoint in the blame-deflection example is a `DoxasticStandpointClaim`.
+///
+/// Matches the Python test's subject-agnostic collection: it gathers the objects of
+/// `heldStandpoint`/`projectedStandpoint` regardless of subject type, asserts at least
+/// one exists, and asserts none fails to be a `DoxasticStandpointClaim`.
+#[test]
+fn blame_deflection_example_doxastic_claims() {
+    let example = repo_root().join("slices/core/deception/examples/blame-deflection.ttl");
+    let g = GraphStore::parse_ttl_file(&example);
+
+    let any_standpoint = "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+         ASK { { ?s gmeow:heldStandpoint ?o } UNION { ?s gmeow:projectedStandpoint ?o } }"
+        .to_string();
+    assert!(
+        g.ask(&any_standpoint),
+        "expected at least one held/projected standpoint in the example"
+    );
+
+    let non_doxastic = "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+         ASK {
+           { ?s gmeow:heldStandpoint ?o } UNION { ?s gmeow:projectedStandpoint ?o }
+           FILTER NOT EXISTS { ?o a gmeow:DoxasticStandpointClaim }
+         }"
+    .to_string();
+    assert!(
+        !g.ask(&non_doxastic),
+        "a held/projected standpoint is not a DoxasticStandpointClaim"
+    );
+}
+
+/// `test_licensed_falsehood_not_a_lie` (`_graph()` half): the licensed-falsehood
+/// vocabulary terms exist in the merged ontology with their expected metatypes.
+#[test]
+fn licensed_falsehood_vocab() {
+    let g = GraphStore::ontology();
+    assert!(
+        g.has(
+            Some(G_VERIDICALITY_LICENSED_FALSEHOOD),
+            Some(RDF_TYPE),
+            Some(G_CLAIM_VERIDICALITY)
+        ),
+        "veridicalityLicensedFalsehood is not a ClaimVeridicality"
+    );
+    assert!(
+        g.has(
+            Some(G_NARRATIVE_REFERENCE_FRAME),
+            Some(RDF_TYPE),
+            Some(OWL_CLASS)
+        ),
+        "NarrativeReferenceFrame is not an owl:Class"
+    );
 }

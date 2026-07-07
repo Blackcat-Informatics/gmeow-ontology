@@ -1,6 +1,6 @@
 # Malformed relator fixture (#39). Each subject carries exactly ONE deliberate
 # violation of the closed-world SHACL shapes in shapes/gmeow-shapes.ttl, so a
-# test can pin each shape by message. `run_shacl` over this graph MUST NOT
+# test can pin each shape by message. `SHACL validation` over this graph MUST NOT
 # conform. Keep out of tests/fixtures/coverage/ (it is intentionally broken).
 
 @prefix ex:    <https://example.org/shapes/> .
