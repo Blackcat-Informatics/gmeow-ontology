@@ -1,0 +1,56 @@
+{
+  "model_identifier": "distilbert-base-uncased-finetuned-sst-2-english",
+  "model_revision": "714eb0fa89d2f80546fda750413ed43d93601a13",
+  "model_framework": "transformers",
+  "model_task": "text-classification",
+  "function_to_apply": "softmax",
+  "return_all_scores": true,
+  "label_set_id": "SST2",
+  "score_semantics": "softmax",
+  "tokenizer_revision": "714eb0fa89d2f80546fda750413ed43d93601a13",
+  "threshold_policy": {
+    "kind": "global",
+    "value": 0.5
+  },
+  "targets": [
+    {
+      "target_iri": "https://blackcatinformatics.ca/gmeow/examples/affect/sst2/gratitude",
+      "scores": [
+        {
+          "label": "sst2Negative",
+          "score": 0.00012386850721668452
+        },
+        {
+          "label": "sst2Positive",
+          "score": 0.9998761415481567
+        }
+      ]
+    },
+    {
+      "target_iri": "https://blackcatinformatics.ca/gmeow/examples/affect/sst2/joy",
+      "scores": [
+        {
+          "label": "sst2Negative",
+          "score": 0.0004886879469268024
+        },
+        {
+          "label": "sst2Positive",
+          "score": 0.9995113611221313
+        }
+      ]
+    },
+    {
+      "target_iri": "https://blackcatinformatics.ca/gmeow/examples/affect/sst2/fear",
+      "scores": [
+        {
+          "label": "sst2Negative",
+          "score": 0.9971327781677246
+        },
+        {
+          "label": "sst2Positive",
+          "score": 0.002867251168936491
+        }
+      ]
+    }
+  ]
+}
