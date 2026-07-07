@@ -109,6 +109,10 @@ struct Prose {
     corr_iri: String,
     /// The `lang:Script` individual IRI the surface is written in.
     script_iri: String,
+    /// The `lang:SignSystem` individual IRI the surface is situated in (`lang:inSignSystem`)
+    /// — the carrier variety the source tag resolves to (e.g. `lang:gmeowEnglish`), read off
+    /// the SAME data-driven `lang:carrierTag` edge the script binding joins through.
+    sign_system_iri: String,
     /// The HONEST Unicode normalization-form label the bytes are actually in.
     normalization: String,
     /// The `sha256:`-prefixed `logic:candidateSourceHash`, byte-identical to the obligations
@@ -129,13 +133,14 @@ pub fn build_corpus(catalog: Option<&SliceCatalog>) -> Result<LangFormCorpus, gm
 
     let mut proses: Vec<Prose> = Vec::with_capacity(texts.len());
     if !texts.is_empty() {
-        // Resolve the carrier tag to its lang:Script ONCE from the parsed source
-        // ontology (never a hard-coded Rust match) — the whole corpus is authored under
-        // the single English carrier tag, so this is one lookup, not one per literal.
-        let bindings = build_script_bindings(catalog)?;
-        let script_local = script_for_tag(ENGLISH_TAG, &bindings)?.to_owned();
+        // Resolve the carrier tag to its lang:Script AND its sign-system individual ONCE
+        // from the parsed source ontology (never a hard-coded Rust match) — the whole
+        // corpus is authored under the single English carrier tag, so this is one lookup,
+        // not one per literal.
+        let bindings = build_carrier_bindings(catalog)?;
+        let binding = binding_for_tag(ENGLISH_TAG, &bindings)?.clone();
         for text in &texts {
-            proses.push(build_prose(text, &script_local)?);
+            proses.push(build_prose(text, &binding)?);
         }
     }
     // Deterministic ordering by the content-addressed surface IRI (the texts already arrive
@@ -233,7 +238,7 @@ fn collect_english_literals(
 /// correspondence. Degenerate (empty / whitespace-only / control-char) literals still lift;
 /// only non-UTF-8 is a hard fail (it cannot occur for a parsed RDF literal, but the guard
 /// stays honest).
-fn build_prose(text: &str, script_local: &str) -> Result<Prose, gmeow_errors::Diag> {
+fn build_prose(text: &str, binding: &CarrierBinding) -> Result<Prose, gmeow_errors::Diag> {
     // Drive the shared plain-text bridge: verify the surface round-trip re-emits the bytes
     // verbatim before minting anything (never a silent lossy repair).
     let lifted = PlainTextBridge.lift(text.as_bytes()).map_err(|d| {
@@ -253,11 +258,12 @@ fn build_prose(text: &str, script_local: &str) -> Result<Prose, gmeow_errors::Di
         }));
     }
 
-    // The script individual is resolved ONCE (data-driven, from the parsed ontology) by the
-    // caller and threaded in; frame the surface with the material identity a stable hash needs.
+    // The carrier binding (script individual + sign-system individual) is resolved ONCE
+    // (data-driven, from the parsed ontology) by the caller and threaded in; frame the
+    // surface with the material identity a stable hash needs.
     let surface = SurfaceForm {
         text: text.to_owned(),
-        script: script_local.to_owned(),
+        script: binding.script_local.clone(),
         encoding: "UTF-8".to_owned(),
         normalization: normalization_label(text).to_owned(),
         collation: "en".to_owned(),
@@ -281,7 +287,8 @@ fn build_prose(text: &str, script_local: &str) -> Result<Prose, gmeow_errors::Di
             "lang-form-correspondence",
             &digest16("lang-form-corr", &surface_key),
         ),
-        script_iri: iri(LANG_NS, script_local),
+        script_iri: iri(LANG_NS, &binding.script_local),
+        sign_system_iri: binding.language_iri.clone(),
         normalization: surface.normalization.clone(),
         // Hash the RAW literal text (no NFC transform) so the value coincides byte-for-byte
         // with the obligations gate's `candidate_source_hash`.
@@ -290,20 +297,34 @@ fn build_prose(text: &str, script_local: &str) -> Result<Prose, gmeow_errors::Di
     })
 }
 
-/// Build the carrier-tag → `lang:Script` (local name) resolution map from the PARSED source
+/// The data-driven resolution of one carrier tag: the `lang:Script` local name the surface
+/// hash frames with, plus the sign-system individual IRI (the carrier variety, e.g.
+/// `lang:gmeowEnglish` — a `lang:LanguageVariety ⊑ lang:SignSystem`) every lifted surface
+/// is situated in through `lang:inSignSystem`.
+#[derive(Clone, Debug)]
+struct CarrierBinding {
+    /// The `lang:Script` local name (the `lang:` IRI minus the namespace, e.g. `latinScript`).
+    script_local: String,
+    /// The full IRI of the carrier variety individual the tag is declared on.
+    language_iri: String,
+}
+
+/// Build the carrier-tag → [`CarrierBinding`] resolution map from the PARSED source
 /// ontology — never a hard-coded Rust match. A carrier tag is authored as machine-readable
 /// data in `slices/grounding/lang/module.ttl`: a language individual (a `lang:SignSystem` or
 /// `lang:LanguageVariety`) carries its tag through `lang:carrierTag`, and its script is bound
 /// through an orthography (`lang:orthographyFor` the language, `lang:usesScript` the script).
 /// This walks the SAME shared in-memory source [`SliceCatalog`] the corpus universe is drawn
-/// from, joins those three edges, and yields `tag → script-local-name` (the local name is the
-/// `lang:` IRI minus the namespace, e.g. `latinScript`). Adding a language is therefore a pure
-/// DATA add — a new variety + orthography in `module.ttl`, zero Rust change. `None` (no
-/// `slices/` tree) yields the empty map. Deterministic (a `BTreeMap`).
-fn build_script_bindings(
+/// from, joins those three edges, and yields `tag → (script-local-name, language IRI)` — the
+/// language individual is kept because every lifted surface is a `lang:Form` and MUST be
+/// situated in its sign system (`lang:inSignSystem`, the `lang:FormSituatedShape` bound).
+/// Adding a language is therefore a pure DATA add — a new variety + orthography in
+/// `module.ttl`, zero Rust change. `None` (no `slices/` tree) yields the empty map.
+/// Deterministic (a `BTreeMap`).
+fn build_carrier_bindings(
     catalog: Option<&SliceCatalog>,
-) -> Result<BTreeMap<String, String>, gmeow_errors::Diag> {
-    let mut bindings: BTreeMap<String, String> = BTreeMap::new();
+) -> Result<BTreeMap<String, CarrierBinding>, gmeow_errors::Diag> {
+    let mut bindings: BTreeMap<String, CarrierBinding> = BTreeMap::new();
     let Some(catalog) = catalog else {
         return Ok(bindings);
     };
@@ -367,9 +388,9 @@ fn build_script_bindings(
     }
 
     // Join the edges: for each orthography that writes a script AND serves a language whose
-    // carrier tag is declared, resolve tag → script-local-name. A script IRI outside the
-    // lang: namespace is not a resolvable local name and is skipped (an unresolvable tag then
-    // hard-fails at lookup, never a silent default).
+    // carrier tag is declared, resolve tag → (script-local-name, language IRI). A script IRI
+    // outside the lang: namespace is not a resolvable local name and is skipped (an
+    // unresolvable tag then hard-fails at lookup, never a silent default).
     for (orthography, script_iri) in &uses_script {
         let Some(language) = orthography_for.get(orthography) else {
             continue;
@@ -380,20 +401,26 @@ fn build_script_bindings(
         let Some(script_local) = script_iri.strip_prefix(LANG_NS) else {
             continue;
         };
-        bindings.insert(tag.clone(), script_local.to_owned());
+        bindings.insert(
+            tag.clone(),
+            CarrierBinding {
+                script_local: script_local.to_owned(),
+                language_iri: language.clone(),
+            },
+        );
     }
     Ok(bindings)
 }
 
-/// Resolve the `lang:Script` individual (local name) for a source carrier tag from the
-/// data-driven [`build_script_bindings`] map. An unknown / unresolvable tag is a HARD FAIL,
-/// never a silently-underspecified surface — adding a language is a DATA add in `module.ttl`,
-/// never a Rust change.
-fn script_for_tag<'a>(
+/// Resolve the [`CarrierBinding`] (script local name + sign-system individual IRI) for a
+/// source carrier tag from the data-driven [`build_carrier_bindings`] map. An unknown /
+/// unresolvable tag is a HARD FAIL, never a silently-underspecified surface — adding a
+/// language is a DATA add in `module.ttl`, never a Rust change.
+fn binding_for_tag<'a>(
     tag: &str,
-    bindings: &'a BTreeMap<String, String>,
-) -> Result<&'a str, gmeow_errors::Diag> {
-    bindings.get(tag).map(String::as_str).ok_or_else(|| {
+    bindings: &'a BTreeMap<String, CarrierBinding>,
+) -> Result<&'a CarrierBinding, gmeow_errors::Diag> {
+    bindings.get(tag).ok_or_else(|| {
         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
             stage: "stage-mappings".to_string(),
             message: format!(
@@ -441,6 +468,13 @@ fn emit_ntriples(proses: &[Prose]) -> Vec<u8> {
                 &prose.text,
             ));
         }
+        // Every lang:Form is situated in exactly one sign system (lang:FormSituatedShape):
+        // the lifted surface names the carrier variety its source tag resolves to.
+        lines.push(triple(
+            &prose.surface_iri,
+            &iri(LANG_NS, "inSignSystem"),
+            &prose.sign_system_iri,
+        ));
         lines.push(triple(
             &prose.surface_iri,
             &iri(LANG_NS, "inScript"),
@@ -591,6 +625,15 @@ mod tests {
     use super::*;
     use std::path::Path;
 
+    /// The English carrier binding the production path resolves from module.ttl data —
+    /// pinned here so unit tests exercise build_prose with the same shape of input.
+    fn english_binding() -> CarrierBinding {
+        CarrierBinding {
+            script_local: "latinScript".to_string(),
+            language_iri: iri(LANG_NS, "gmeowEnglish"),
+        }
+    }
+
     fn repo_root() -> std::path::PathBuf {
         Path::new(env!("CARGO_MANIFEST_DIR"))
             .join("..")
@@ -688,14 +731,16 @@ mod tests {
         // The emitted logic:candidateSourceHash equals the obligations gate's recomputation
         // over the SAME raw byte string — the coincidence the prose-hash discipline needs.
         for text in ["A definition prose field.", "café", "", "   "] {
-            let prose = build_prose(text, "latinScript").expect("build prose");
+            let prose = build_prose(text, &english_binding()).expect("build prose");
             assert_eq!(
                 prose.source_hash,
                 candidate_source_hash(text),
                 "emitted prose-hash must equal the gate's recomputation for {text:?}"
             );
-            let nt = String::from_utf8(emit_ntriples(&[build_prose(text, "latinScript").unwrap()]))
-                .unwrap();
+            let nt = String::from_utf8(emit_ntriples(&[
+                build_prose(text, &english_binding()).unwrap()
+            ]))
+            .unwrap();
             assert!(
                 nt.contains(&candidate_source_hash(text)),
                 "the corpus must emit the gate's candidate_source_hash for {text:?}"
@@ -712,8 +757,8 @@ mod tests {
         let nfd = "cafe\u{301}"; // "café" with e + combining acute (NFD)
         assert_ne!(nfc, nfd, "the two normalizations are distinct byte strings");
 
-        let p_nfc = build_prose(nfc, "latinScript").expect("nfc");
-        let p_nfd = build_prose(nfd, "latinScript").expect("nfd");
+        let p_nfc = build_prose(nfc, &english_binding()).expect("nfc");
+        let p_nfd = build_prose(nfd, &english_binding()).expect("nfd");
 
         // Distinct surface literals (distinct material identity → distinct content address).
         assert_ne!(p_nfc.surface_iri, p_nfd.surface_iri);
@@ -731,16 +776,18 @@ mod tests {
         // Small surfaces stay inline; a document-scale surface emits a content-addressed
         // lang:surfaceBlob reference and NEVER inlines its bytes.
         let short = "cats chase mice";
-        let nt_short =
-            String::from_utf8(emit_ntriples(&[build_prose(short, "latinScript").unwrap()]))
-                .unwrap();
+        let nt_short = String::from_utf8(emit_ntriples(&[
+            build_prose(short, &english_binding()).unwrap()
+        ]))
+        .unwrap();
         assert!(nt_short.contains(&iri(LANG_NS, "surfaceText")));
         assert!(!nt_short.contains(&iri(LANG_NS, "surfaceBlob")));
 
         let long = "x".repeat(DOCUMENT_SCALE_BYTES + 1);
-        let nt_long =
-            String::from_utf8(emit_ntriples(&[build_prose(&long, "latinScript").unwrap()]))
-                .unwrap();
+        let nt_long = String::from_utf8(emit_ntriples(&[
+            build_prose(&long, &english_binding()).unwrap()
+        ]))
+        .unwrap();
         assert!(
             nt_long.contains(&surface_blob_digest(&long)),
             "a document-scale surface must carry its content-addressed blob reference"
@@ -812,22 +859,53 @@ mod tests {
     }
 
     #[test]
-    fn script_for_tag_maps_english_and_hard_fails_unknown() {
+    fn binding_for_tag_maps_english_and_hard_fails_unknown() {
         // The binding is DATA-DRIVEN: resolved from the parsed source ontology (the same
         // in-memory catalog the corpus draws from), never a hard-coded Rust match. The
-        // English carrier tag resolves to lang:latinScript through its variety + orthography,
-        // and an unknown tag hard-fails (no silent default).
+        // English carrier tag resolves to lang:latinScript AND its carrier variety
+        // lang:gmeowEnglish through its variety + orthography, and an unknown tag
+        // hard-fails (no silent default).
         let catalog = repo_catalog();
-        let bindings = build_script_bindings(Some(&catalog)).expect("build script bindings");
+        let bindings = build_carrier_bindings(Some(&catalog)).expect("build carrier bindings");
+        let binding = binding_for_tag("x-gmeow-english", &bindings).unwrap();
         assert_eq!(
-            script_for_tag("x-gmeow-english", &bindings).unwrap(),
-            "latinScript",
+            binding.script_local, "latinScript",
             "the English carrier tag must resolve to latinScript from module.ttl data"
         );
-        let err = script_for_tag("qtz", &bindings).expect_err("unknown tag must hard-fail");
+        assert_eq!(
+            binding.language_iri,
+            iri(LANG_NS, "gmeowEnglish"),
+            "the English carrier tag must resolve to its carrier variety individual"
+        );
+        let err = binding_for_tag("qtz", &bindings).expect_err("unknown tag must hard-fail");
         assert!(format!("{err}").contains("no lang:Script binding"));
         // No catalog → empty bindings → the carrier tag still hard-fails (never a default).
-        let empty = build_script_bindings(None).expect("empty bindings");
-        assert!(script_for_tag("x-gmeow-english", &empty).is_err());
+        let empty = build_carrier_bindings(None).expect("empty bindings");
+        assert!(binding_for_tag("x-gmeow-english", &empty).is_err());
+    }
+
+    #[test]
+    fn every_surface_is_situated_in_its_sign_system() {
+        // lang:FormSituatedShape: every lang:Form names exactly one lang:SignSystem. The
+        // corpus emits exactly one lang:inSignSystem per surface, naming the carrier
+        // variety (lang:gmeowEnglish — a lang:LanguageVariety ⊑ lang:SignSystem).
+        let catalog = repo_catalog();
+        let nt = String::from_utf8(build_corpus(Some(&catalog)).expect("corpus").ntriples).unwrap();
+        let surface_forms = nt
+            .matches(&format!("<{}> .", iri(LANG_NS, "SurfaceForm")))
+            .count();
+        let situated = nt
+            .matches(&format!(
+                "<{}> <{}> .",
+                iri(LANG_NS, "inSignSystem"),
+                iri(LANG_NS, "gmeowEnglish")
+            ))
+            .count();
+        assert_eq!(
+            situated, surface_forms,
+            "every lifted lang:SurfaceForm must carry exactly one lang:inSignSystem naming \
+             the carrier variety"
+        );
+        assert!(surface_forms > 0, "the corpus must not be empty");
     }
 }

@@ -19,10 +19,10 @@ RETAINED here (not migratable to scopeModule cells):
     (cross-slice).
 
 Migrated to crates/validate/tests/conformance_narrative.rs (#867):
-  test_narrative_reference_frame_shacl_passes   -- run_shacl (ExampleConformance)
-  test_narrative_frame_link_shacl_passes        -- run_shacl (ExampleConformance)
-  test_character_arc_shacl_passes               -- run_shacl (ExampleConformance)
-  test_character_arc_missing_subject_fails_shacl -- run_shacl negative
+  test_narrative_reference_frame_shacl_passes   -- SHACL validation (ExampleConformance)
+  test_narrative_frame_link_shacl_passes        -- SHACL validation (ExampleConformance)
+  test_character_arc_shacl_passes               -- SHACL validation (ExampleConformance)
+  test_character_arc_missing_subject_fails_shacl -- SHACL validation negative
 """
 
 from __future__ import annotations

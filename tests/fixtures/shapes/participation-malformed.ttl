@@ -1,6 +1,6 @@
 # Malformed Participation fixture (#41). Each subject carries exactly ONE
 # deliberate violation of the events SHACL shapes in shapes/gmeow-shapes.ttl, so a
-# test can pin each shape. `run_shacl` over this graph MUST NOT conform (the first
+# test can pin each shape. `SHACL validation` over this graph MUST NOT conform (the first
 # two are sh:Violation). Keep OUT of tests/fixtures/coverage/ (intentionally broken).
 
 @prefix ex:    <https://example.org/shapes/> .

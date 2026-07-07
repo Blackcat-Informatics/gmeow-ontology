@@ -10,7 +10,7 @@
 # logic:QualityValue), not gufo:.
 #
 # RETAINED in pytest (not migratable here):
-#   test_contested_certification_coexists — calls run_shacl() over a fixture
+#   test_contested_certification_coexists — calls SHACL validation over a fixture
 #     graph; this is ExampleConformance (SHACL validation), not a TBox ASK.
 #   test_three_axes_are_orthogonal_in_trust — subjects gmeow:accordingTo,
 #     gmeow:wasAttributedTo, gmeow:confidence are cross-slice (standpoint

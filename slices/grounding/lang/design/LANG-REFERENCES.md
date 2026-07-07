@@ -74,6 +74,23 @@ set:
 | GTS grammar | the bundle format's own grammar — the self-hosting apex | subsume (GMEOW-authored individual) | project-internal |
 | Grammatical Framework (GF) | abstract/concrete syntax architecture; the buildability proof | reference (architecture), *not* a runtime dependency | GF runtime licensing mixed — no linkage planned |
 
+## Token-efficient notations and symbol provenance (the GMN dialect)
+
+The external surfaces the GMN dialect charter ([`LANG-GMN.md`](LANG-GMN.md)) surveys: the
+token-compact notation patterns GMN learns from without adopting any as a canon, the tokenizer
+practice its rate contract is measured against, and the symbol-provenance sources its glyph
+citations draw on.
+
+| Resource | Contributes | Relation | License / posture |
+|---|---|---|---|
+| TOON (token-oriented object notation) | schema-once tabular compaction pattern for LLM channels | reference (pattern) | open spec |
+| JTON / Zen Grid | token-lean JSON restylings; grid-shaped record batching | reference (pattern) | open specs |
+| ONTO (token-efficient ontology notation) | sigil-prefixed ontology records over the token channel | reference (pattern) | open spec |
+| KL3M domain tokenizers | domain-tuned tokenizer practice; evidence that rate is tokenizer-relative | reference | open (model artifacts *review*) |
+| Leipzig Glossing Rules | interlinear morpheme-gloss conventions — real notation for the lang symbology plane | project + reference | conventions freely usable |
+| ISO 80000 | quantity/unit symbol canon — symbol provenance for the math symbology plane | reference (citation source) | ISO — *reference by citation, not reproduction* |
+| Unicode UTS #39 | confusable-detection skeleton — the normative confusables rule | reference | Unicode License v3 |
+
 ## Theory (cited, staged for `references.ttl`)
 
 Frege, *Über Sinn und Bedeutung* (the sense/reference discipline); Peirce, the triadic sign

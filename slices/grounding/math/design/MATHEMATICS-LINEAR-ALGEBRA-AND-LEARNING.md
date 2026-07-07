@@ -43,6 +43,37 @@ Decompositions — `math:Eigendecomposition`, `math:SingularValueDecomposition` 
 objects with declared operands and outputs. External anchor: only OpenMath `linalg`/`linalgeig`
 names eigen symbols; SVD/PCA are authored.
 
+## The exact numeric layer — bilinear forms, matrices, norms, and rational carriers
+
+Core classes: `math:BilinearForm`, `math:SymmetricBilinearForm`, `math:Matrix`, `math:SymmetricMatrix`,
+`math:GramMatrix`, `math:Vector`, `math:Norm`, `math:Distance`, `math:DefinitenessKind`,
+`math:RationalValue`, `math:VectorComponent`, and `math:MatrixEntry`.
+
+Core properties: `math:inducedByForm`, `math:inducedByNorm`, `math:representsForm`, `math:inBasis`,
+`math:definiteness`, `math:hasComponent`, `math:componentValue`, `math:hasEntry`, `math:entryValue`,
+`math:numerator`, `math:denominator`, `math:atIndex`, `math:atRow`, and `math:atColumn`.
+
+This reusable layer turns the inner-product **frame** into carriers you can compute a length on. A
+`math:SymmetricBilinearForm` is the symmetric case of a `math:BilinearForm`; a `math:MetricTensor`
+**is** the tangent-space instance of that same idiom, so the geometry charter's metric and this layer
+share one notion of a symmetric form (no parallel tower). Represented in a `math:Basis` a symmetric
+form becomes a `math:GramMatrix` (`math:representsForm` + `math:inBasis`) — a `math:SymmetricMatrix`
+(⊑ `math:Matrix`) whose entries are indexed `math:MatrixEntry` cells (`math:atRow` / `math:atColumn` /
+`math:entryValue`). A `math:Vector` carries indexed `math:VectorComponent` coordinates in the same
+style. When a symmetric form is positive-definite (`math:definiteness math:positiveDefinite`) it
+induces a `math:Norm` (`math:inducedByForm`), ‖x‖ = √⟨x, x⟩ = √(xᵀGx), which in turn induces a metric
+`math:Distance` (`math:inducedByNorm`). `math:DefinitenessKind` is an open value vocabulary
+(`math:positiveDefinite`, `math:positiveSemidefinite`, `math:indefinite`, `math:negativeDefinite` —
+individuals, never `owl:oneOf`), the object-layer counterpart of a `math:MetricSignature`.
+
+> **Hard rule — exactness is explicit.** A `math:RationalValue` is an *exact* p/q carrier: a
+> `math:numerator` / `math:denominator` integer pair (denominator ≠ 0), and it carries **no** decimal
+> literal — 1/4 is the pair (1, 4), never 0.25 (the decimal belongs to a distinct
+> `math:ApproximateValue`). Matrix entries and vector components are `math:RationalValue`, so a Gram
+> matrix and the quadratic form xᵀGx — and hence the norm √(xᵀGx) an affect-intensity metric grounds
+> on — are exact by construction. The specialized `math:CartanMatrix` and `math:DatasetMatrix` keep
+> their own parents; they are not reparented onto `math:Matrix`.
+
 ## PCA and the KG-projection flagship
 
 Core classes: `math:PCAAnalysis`, `math:PrincipalComponent`, `math:LoadingVector`,
@@ -146,7 +177,10 @@ Catalogued in [`MATHEMATICS-CONFORMANCE.md`](MATHEMATICS-CONFORMANCE.md): an ort
 names its ambient space and inner product; a PCA names input/centering/scaling/covariance/eigensolver
 /components/loadings/scores/explained-variance/residuals; a residual-meaning claim is an observation,
 not a property; an embedding names source/target/function/model; a tensor computation graph is an AST
-over tensor operators with weights in a declared parameter space.
+over tensor operators with weights in a declared parameter space. The numeric layer
+adds three gates: a `math:RationalValue` has a non-zero `math:denominator`, a `math:Norm` rests on a
+positive-definite `math:SymmetricBilinearForm` (`math:inducedByForm`), and a `math:GramMatrix` is
+symmetric (every `math:MatrixEntry` has a transpose entry of equal value).
 
 ## Competency questions
 
@@ -158,3 +192,5 @@ over tensor operators with weights in a declared parameter space.
 4. What source, target space, function, and model define this embedding?
 5. What is this AI's tensor computation graph, its layers, and its parameter space — and where is its
    self-reflection carried?
+6. Which symmetric bilinear forms are positive-definite, what Gram matrix represents each, and what
+   norm do they induce (the exact numeric layer grounding √(xᵀGx))?

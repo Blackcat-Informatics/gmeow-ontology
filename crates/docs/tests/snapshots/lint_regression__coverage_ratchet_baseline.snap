@@ -3,10 +3,10 @@ source: crates/docs/tests/lint_regression.rs
 expression: coverage
 ---
 {
-  "docs/missing-alignment": 1719,
+  "docs/missing-alignment": 1767,
   "docs/missing-definition": 1,
-  "docs/missing-example": 998,
+  "docs/missing-example": 1043,
   "docs/missing-label": 1,
-  "docs/missing-scope-note": 2308,
-  "docs/missing-usage-advice": 1013
+  "docs/missing-scope-note": 2357,
+  "docs/missing-usage-advice": 1039
 }

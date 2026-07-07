@@ -22,6 +22,8 @@ use gmeow_errors::{
 };
 use purrdf::{DatasetView, GraphMatch, RdfDataset, TermRef};
 
+use gmeow_math::Rational;
+
 use crate::model::{owl, rdf, rdfs, skos};
 
 /// Strongly-typed configuration for the three lints, supplied by the Python
@@ -1485,57 +1487,18 @@ fn base_dimension_index(iri: &str) -> Option<usize> {
     BASE_DIMENSIONS.iter().position(|b| iri == math_iri(b))
 }
 
-/// An exact rational, always stored reduced with a positive denominator so that
-/// derived `PartialEq`/`Eq` is value equality — dimensions are equal exactly when
-/// their exponent vectors are equal (the derived `math:commensurableWith`), and
-/// exact rationals (not `xsd:decimal`) keep that equality precise for fractional
-/// dimensions such as T^(-1/2).
-#[derive(Clone, Copy, PartialEq, Eq)]
-struct Rat {
-    num: i128,
-    den: i128,
-}
-
-fn gcd_u128(a: u128, b: u128) -> u128 {
-    if b == 0 { a } else { gcd_u128(b, a % b) }
-}
-
-impl Rat {
-    fn zero() -> Self {
-        Rat { num: 0, den: 1 }
-    }
-
-    /// Reduce `num/den` to canonical form (positive denominator, gcd 1). `None` on a
-    /// zero denominator or on i128 overflow of the reduction.
-    fn new(num: i128, den: i128) -> Option<Self> {
-        if den == 0 {
-            return None;
-        }
-        let g = gcd_u128(num.unsigned_abs(), den.unsigned_abs()).max(1) as i128;
-        let mut n = num / g;
-        let mut d = den / g;
-        if d < 0 {
-            n = n.checked_neg()?;
-            d = d.checked_neg()?;
-        }
-        Some(Rat { num: n, den: d })
-    }
-
-    /// Exact rational addition, `None` on i128 overflow.
-    fn add(self, other: Rat) -> Option<Rat> {
-        let num = self
-            .num
-            .checked_mul(other.den)?
-            .checked_add(other.num.checked_mul(self.den)?)?;
-        let den = self.den.checked_mul(other.den)?;
-        Rat::new(num, den)
-    }
-}
-
-type DimVector = [Rat; 7];
+/// The exact-rational exponent scalar of the dimension vector space. This is the
+/// shared [`gmeow_math::Rational`] — an `i128`-backed, gcd-normalized rational with
+/// a positive denominator, so `PartialEq`/`Eq` is value equality: dimensions are
+/// equal exactly when their exponent vectors are equal (the derived
+/// `math:commensurableWith`), and exact rationals (not `xsd:decimal`) keep that
+/// equality precise for fractional dimensions such as T^(-1/2). There is no
+/// duplicate rational type here — the native math: gate computes THROUGH the same
+/// exact-rational carrier the affect-intensity and Gram-matrix loaders use.
+type DimVector = [Rational; 7];
 
 fn zero_vector() -> DimVector {
-    [Rat::zero(); 7]
+    [Rational::zero(); 7]
 }
 
 /// Componentwise exact-rational vector sum — the group operation of the dimension
@@ -1544,7 +1507,7 @@ fn zero_vector() -> DimVector {
 fn add_vectors(a: &DimVector, b: &DimVector) -> Option<DimVector> {
     let mut out = zero_vector();
     for i in 0..7 {
-        out[i] = a[i].add(b[i])?;
+        out[i] = a[i].checked_add(b[i]).ok()?;
     }
     Some(out)
 }
@@ -1586,15 +1549,16 @@ fn render_dimension_vector(v: &DimVector) -> String {
     let mut parts: Vec<String> = Vec::new();
     for i in 0..7 {
         let r = v[i];
-        if r.num == 0 {
+        let (num, den) = (r.numerator(), r.denominator());
+        if num == 0 {
             continue;
         }
         let mut s = BASE_SYMBOLS[i].to_string();
-        if !(r.num == 1 && r.den == 1) {
-            if r.den == 1 {
-                s.push_str(&r.num.to_string());
+        if !(num == 1 && den == 1) {
+            if den == 1 {
+                s.push_str(&num.to_string());
             } else {
-                s.push_str(&format!("{}/{}", r.num, r.den));
+                s.push_str(&format!("{num}/{den}"));
             }
         }
         parts.push(s);
@@ -1621,7 +1585,7 @@ fn render_dimension_vector(v: &DimVector) -> String {
 fn dimension_vector(ds: &RdfDataset, dim_iri: &str) -> Option<DimVector> {
     if let Some(i) = base_dimension_index(dim_iri) {
         let mut v = zero_vector();
-        v[i] = Rat::new(1, 1)?;
+        v[i] = Rational::new(1, 1).ok()?;
         return Some(v);
     }
     if dim_iri == math_iri("dimensionless") || ds_has_type(ds, dim_iri, &math_iri("Dimensionless"))
@@ -1643,7 +1607,7 @@ fn dimension_vector(ds: &RdfDataset, dim_iri: &str) -> Option<DimVector> {
         let den = ds_object_literals(ds, &cell, &math_iri("exponentDenominator"))
             .into_iter()
             .find_map(|l| l.parse::<i128>().ok())?;
-        v[bi] = v[bi].add(Rat::new(num, den)?)?;
+        v[bi] = v[bi].checked_add(Rational::new(num, den).ok()?).ok()?;
     }
     Some(v)
 }
@@ -1696,7 +1660,7 @@ fn check_math_dimension_invariants(ds: &RdfDataset, report: &mut LintReport) {
     }
 
     // Zero-denominator exponent: an exact-rational power needs a non-zero denominator.
-    // `dimension_vector` returns `None` on such a cell (Rat::new rejects a zero
+    // `dimension_vector` returns `None` on such a cell (Rational::new rejects a zero
     // denominator), which would let the cell be silently skipped by the homogeneity /
     // composition loops below; surface it here as math:MalformedDimension so a malformed
     // power hard-fails rather than fails open. The SHACL DimensionExponentShape forbids
@@ -2568,6 +2532,33 @@ mod tests {
                 .any(|e| e.contains("lang:SilentDisambiguation")),
             "errors: {:?}",
             report.errors()
+        );
+    }
+
+    #[test]
+    fn gmn_compaction_silent_disambiguation_fixture_fires_exactly_that_gate() {
+        // The GMN counter-example reuses the EXISTING bundle-wide
+        // lang:SilentDisambiguation discipline verbatim: a compaction run whose
+        // interpretation act collapses two co-resident readings to one with no
+        // vantage-held observation. Like projection-silent-disambiguation.ttl it is
+        // a native-gate fixture (no SHACL cell), so this test is its executable pin:
+        // it fires lang:SilentDisambiguation and NO other lang: failure class — the
+        // compaction record itself is deliberately well-formed.
+        let ds = dataset_from(include_str!(
+            "../../../slices/grounding/lang/tests/counter-examples/gmn-compaction-silent-disambiguation.ttl"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        let errors = report.errors();
+        assert!(
+            errors
+                .iter()
+                .any(|e| e.contains("lang:SilentDisambiguation")),
+            "fixture must fire lang:SilentDisambiguation: {errors:?}",
+        );
+        assert_eq!(
+            errors.iter().filter(|e| e.contains("lang:")).count(),
+            1,
+            "fixture must isolate exactly the silent collapse: {errors:?}",
         );
     }
 
