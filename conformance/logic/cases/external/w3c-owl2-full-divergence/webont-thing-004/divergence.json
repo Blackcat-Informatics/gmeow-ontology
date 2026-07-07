@@ -1,0 +1,7 @@
+{
+  "slug": "webont-thing-004",
+  "native_verdict": "incomplete",
+  "w3c_published_verdict": "consistent",
+  "lane": "divergence",
+  "reason": "owl:Thing enumerated to a singleton (owl:oneOf on owl:Thing) is consistent under OWL DL yet inconsistent under OWL Full; the native path cannot soundly decide the same syntactic shape both ways, so it withholds (non-empty DlVerdict.gaps)"
+}

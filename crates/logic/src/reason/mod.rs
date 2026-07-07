@@ -447,6 +447,34 @@ fn decode_premise(row: &TypedRow) -> Result<(String, String, String), String> {
 /// chase fails to parse/validate/evaluate/decode, or if a materialized row is
 /// not the ternary reasoning shape.
 pub(crate) fn run_reasoning(edb: &RdfDataset, rules: &str) -> Result<Vec<InferredAxiom>, String> {
+    // The primary reasoning path funnels through the single naming site
+    // `forward_oracle()` (the native core after the Task-6 flip).
+    let oracle = forward_oracle();
+    run_reasoning_with(edb, rules, &oracle)
+}
+
+/// Run the shared chase machinery over `rules` using a SPECIFIC [`ForwardOracle`],
+/// returning the coerced [`InferredAxiom`] closure.
+///
+/// [`run_reasoning`] delegates here with the production `forward_oracle()`. The
+/// native↔Nemo differential cross-check ([`crosscheck_native_vs_nemo`]) is the
+/// only other caller: it drives the SAME corpus and rule text through BOTH the
+/// native oracle and the retained Nemo oracle so the two closures can be compared
+/// row-for-row. Factoring the oracle out keeps the EDB construction and the
+/// [`chase_rows_to_inferred`] coercion byte-identical across engines, so any
+/// residual difference in the compared closures is a genuine engine divergence,
+/// never a harness artifact.
+///
+/// # Errors
+///
+/// Returns `Err(String)` if the source store cannot be loaded, if the chase fails
+/// to parse/validate/evaluate/decode, or if a materialized row is not the ternary
+/// reasoning shape.
+pub(crate) fn run_reasoning_with(
+    edb: &RdfDataset,
+    rules: &str,
+    oracle: &dyn ForwardOracle,
+) -> Result<Vec<InferredAxiom>, String> {
     // 1. Load the source into a fresh world-indexed store.
     let store = WorldStore::new();
     store.load_dataset(edb)?;
@@ -477,20 +505,112 @@ pub(crate) fn run_reasoning(edb: &RdfDataset, rules: &str) -> Result<Vec<Inferre
         }
     }
 
-    // 3. Run the typed chase through the forward oracle (the adapter renders the
-    //    fact lines internally).
-    let chase = forward_oracle().materialize(&edb_facts, rules, &ForwardBudget::UNBOUNDED)?;
+    // 3. Run the typed chase through the CHOSEN forward oracle (the adapter renders
+    //    the fact lines internally).
+    let chase = oracle.materialize(&edb_facts, rules, &ForwardBudget::UNBOUNDED)?;
 
-    // 4. Coerce each ternary typed row into an InferredAxiom.
+    // 4. Coerce every ternary typed row into an InferredAxiom.
+    chase_rows_to_inferred(&chase)
+}
+
+/// `rdfs:subClassOf` — the subsumption predicate the native↔Nemo differential compares.
+const RDFS_SUBCLASS_OF: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
+
+/// Extract the `(subclass, superclass, world)` subsumption tuples from a coerced
+/// closure — every `rdfs:subClassOf` axiom (asserted echo + derived), sorted and
+/// deduplicated.
+///
+/// Both sides of the native↔Nemo differential run through the identical
+/// [`chase_rows_to_inferred`] coercion, so the subject/object/world encodings line
+/// up exactly and [`ledger::compare_subsumption`] classifies any residual
+/// difference as a genuine engine divergence.
+fn subsumption_tuples(inferred: &[InferredAxiom]) -> Vec<(String, String, String)> {
+    let mut out: Vec<(String, String, String)> = inferred
+        .iter()
+        .filter(|ax| ax.predicate == RDFS_SUBCLASS_OF)
+        .map(|ax| (ax.subject.clone(), ax.object.clone(), ax.world.clone()))
+        .collect();
+    out.sort();
+    out.dedup();
+    out
+}
+
+/// Run the native ↔ Nemo differential subsumption cross-check over `edb`.
+///
+/// This is the scheduled cross-check lane's engine: it dual-runs the SAME committed
+/// reasoning corpus under the fixed DL calculus ([`dl::dl_rules`]) through BOTH the
+/// production native oracle ([`crate::oracle::forward_oracle`]) and the retained
+/// Nemo bootstrap oracle ([`crate::oracle::nemo_forward_oracle`]) — the last
+/// remaining Nemo entry point on any non-test path — then folds the two subsumption
+/// closures into a [`DivergenceLedger`] via [`ledger::compare_subsumption`].
+///
+/// The native closure is the `native` side and the Nemo closure the `oracle` side,
+/// so a `NemoOnly` subsumption surfaces as an `OracleOnly` row that
+/// [`ledger::enforce`] FAILS on (a native coverage regression: Nemo derived a
+/// subsumption the production native path did not). A native-only subsumption is
+/// expected superset richness and passes. The whole fixed DL calculus is gap-zero
+/// on the committed bundle, so a healthy run is pure agreement.
+///
+/// Both engines see byte-identical EDB and rule text and share the
+/// [`chase_rows_to_inferred`] coercion, so the ledger isolates the engine
+/// difference and nothing else. Nemo runs UNBUDGETED (`ForwardBudget::UNBOUNDED`),
+/// exactly as it did when it was the production chase, so this is a faithful
+/// dual-run, never a downgraded approximation.
+///
+/// # Errors
+///
+/// Returns `Err(String)` if either engine's chase fails to
+/// parse/validate/evaluate/decode over the committed corpus.
+pub fn crosscheck_native_vs_nemo(edb: &RdfDataset) -> Result<DivergenceLedger, String> {
+    let rules = dl::dl_rules();
+
+    // Native: the production forward oracle (the single-naming-site native core).
+    let native_oracle = forward_oracle();
+    let native = run_reasoning_with(edb, &rules, &native_oracle)?;
+
+    // Nemo: the retained bootstrap oracle, reached ONLY through its dedicated
+    // off-primary-path provider — the last production consumer keeping Nemo alive.
+    let nemo_oracle = crate::oracle::nemo_forward_oracle();
+    let nemo = run_reasoning_with(edb, &rules, &nemo_oracle)?;
+
+    let native_subs = subsumption_tuples(&native);
+    let nemo_subs = subsumption_tuples(&nemo);
+    let rows = ledger::compare_subsumption(&native_subs, &nemo_subs);
+    Ok(ledger::build_ledger(
+        rows,
+        Vec::new(),
+        Vec::new(),
+        Vec::new(),
+    ))
+}
+
+/// Coerce a typed chase result into the `Vec<InferredAxiom>` closure the DL/EL
+/// post-passes and result folds consume.
+///
+/// Every reasoning fact is the ternary `predicate(subject, object, world)`. The
+/// rule texts the reasoning chase runs — `EL_RULES`, `dl_rules()`, and the
+/// ternary projections `reason_program` appends — are repo-owned and declare
+/// ONLY ternary relations, so a non-ternary row indicates a rule-text bug and is
+/// a hard error. (This differs from `materialize`'s explicit non-quad bucket:
+/// there the rule text is caller-supplied and may legitimately declare helper
+/// predicates of other arities.)
+///
+/// Factored out of [`run_reasoning`] so the coercion is INDEPENDENT of which
+/// [`ForwardOracle`] produced the closure: a caller holding a native-produced
+/// AND a Nemo-produced [`crate::oracle::TypedChaseResult`] of the same program
+/// can coerce BOTH identically and feed the resulting closures through the
+/// provenance-blind DL post-pass, demonstrating engine-invariance of the
+/// downstream verdict.
+///
+/// # Errors
+///
+/// Returns `Err(String)` if a materialized row is not the ternary reasoning
+/// shape or if a subject/world/premise term cannot be decoded.
+pub(crate) fn chase_rows_to_inferred(
+    chase: &crate::oracle::TypedChaseResult,
+) -> Result<Vec<InferredAxiom>, String> {
     let mut inferred: Vec<InferredAxiom> = Vec::new();
     for (row, prov) in &chase.rows {
-        // Every reasoning fact is the ternary `predicate(subject, object, world)`.
-        // The rule texts this chase runs — EL_RULES, dl_rules(), and the ternary
-        // projections reason_program appends — are repo-owned and declare ONLY
-        // ternary relations, so a non-ternary row indicates a rule-text bug and
-        // is a hard error. (This differs from materialize's explicit non-quad
-        // bucket: there the rule text is caller-supplied and may legitimately
-        // declare helper predicates of other arities.)
         if row.args.len() != 3 {
             return Err(format!(
                 "reasoning chase produced a non-ternary row for predicate \
@@ -574,6 +694,163 @@ mod tests {
         assert!(!is_absolute_iri("world-1"));
         assert!(!is_absolute_iri(":no-scheme"));
         assert!(!is_absolute_iri("1http://bad-scheme")); // scheme must start with a letter
+    }
+
+    /// The flip observable (adversary F5): after promoting the native core,
+    /// `forward_oracle()` — the SOLE naming site the primary reasoning path funnels
+    /// through (`run_reasoning` line ~476) — resolves to the native engine, and the
+    /// retained Nemo oracle is reachable ONLY via its distinct off-path provider.
+    ///
+    /// This does not rest on the contract-hash bump: it verifies the ENGINE ON THE
+    /// PATH structurally (the seam name), then drives `reason_all` end-to-end over
+    /// the fixed DL calculus to prove the native path actually DECIDES the whole
+    /// closure (a native OracleOnly/DlGap regression would surface as an `Err` or a
+    /// missing entailment here, not a silent byte-diff).
+    #[test]
+    fn nemo_off_primary_reasoning_path() {
+        // 1. Structural observable: the production forward seam is native.
+        assert_eq!(
+            crate::oracle::forward_oracle().name(),
+            "native",
+            "the primary reasoning path's forward oracle must be the native engine"
+        );
+        // 2. Nemo is retained but OFF the primary path — reachable only via its own
+        //    distinct provider (the parity/cross-check seam), never `forward_oracle`.
+        assert_eq!(
+            crate::oracle::nemo_forward_oracle().name(),
+            "nemo",
+            "Nemo stays reachable only through its dedicated off-path provider"
+        );
+        assert_ne!(
+            crate::oracle::forward_oracle().name(),
+            crate::oracle::nemo_forward_oracle().name(),
+            "the production engine and the bootstrap oracle must be distinct engines"
+        );
+
+        // 3. End-to-end: `reason_all` (→ `reason_closure` → `run_reasoning` →
+        //    `forward_oracle().materialize`) decides the full fixed DL calculus on
+        //    native. A ⊑ B, A ⊑ C, B ⊓ C ⊑ ⊥, x : A must be found inconsistent —
+        //    exercising subsumption transitivity AND the disjointness clash the
+        //    native chase now materializes end-to-end.
+        let store = dataset(vec![
+            quad(A, SUBCLASS, B),
+            quad(A, SUBCLASS, C),
+            quad(B, DISJOINT, C),
+            quad(X, TYPE, A),
+        ]);
+        let result = reason_all(store.as_ref()).expect("native reason_all must decide the closure");
+        assert!(
+            !result.is_consistent(),
+            "native path must derive the disjointness inconsistency (no DlGap regression)"
+        );
+        assert!(
+            !result.inferred().is_empty(),
+            "native path must materialize a non-empty subsumption closure"
+        );
+    }
+
+    /// Production-surface antecedent guard (gap G3): the primary reasoning path
+    /// (`reason_all` → `reason_closure` → `run_reasoning` → `forward_oracle().materialize`
+    /// → `chase_rows_to_inferred`) must carry REAL native premises end-to-end, not
+    /// just non-empty inferred facts. `forward_oracle()` funnels the binary
+    /// seminaive branch here; A⊑B, B⊑C derives the transitive A⊑C, whose
+    /// `InferredAxiom::premises` must be NON-EMPTY (it cites its two body facts).
+    /// Falsifiable: the escaped empty-antecedents bug leaves EVERY derived
+    /// `premises` empty, tripping this at the production observable.
+    #[test]
+    fn reason_all_derived_axioms_carry_nonempty_premises() {
+        let store = dataset(vec![quad(A, SUBCLASS, B), quad(B, SUBCLASS, C)]);
+        let result = reason_all(store.as_ref()).expect("native reason_all must decide the closure");
+
+        // The transitive subClassOf(A, C) is derived (is_edb == false) and must
+        // cite its immediate antecedents through `InferredAxiom::premises`.
+        // `subject`/`predicate` are bare IRIs; `object` is `term_display`ed (an IRI
+        // renders angle-bracketed), so match the object against its display form.
+        let object_c = format!("<{C}>");
+        let derived_transitive = result.inferred().iter().find(|ax| {
+            !ax.is_edb && ax.predicate == SUBCLASS && ax.subject == A && ax.object == object_c
+        });
+        let axiom = derived_transitive.unwrap_or_else(|| {
+            panic!(
+                "transitive subClassOf(A, C) must be derived; got {:?}",
+                result.inferred()
+            )
+        });
+        assert!(
+            !axiom.premises.is_empty(),
+            "derived subClassOf(A, C) must carry NON-EMPTY premises on the production path \
+             (the empty-antecedents bug fails here); got {axiom:?}"
+        );
+    }
+
+    /// The Task-7 scheduled cross-check engine: dual-running the SAME corpus through
+    /// the native oracle and the retained Nemo oracle over the fixed DL calculus must
+    /// agree — pure agreement, no Nemo-only (OracleOnly) regression, and the verdict
+    /// passes. Non-vacuity is pinned too: the transitive `A ⊑ C` plus the two asserted
+    /// echoes give `agree > 0`, so the lane's `passed && agree > 0` gate is real.
+    #[test]
+    fn materialize_crosscheck_native_vs_nemo_agrees_on_subclass_chain() {
+        // A ⊑ B ⊑ C — both engines derive the transitive A ⊑ C, so the differential
+        // ledger is pure Agree.
+        let store = dataset(vec![quad(A, SUBCLASS, B), quad(B, SUBCLASS, C)]);
+        let ledger =
+            crosscheck_native_vs_nemo(store.as_ref()).expect("native↔Nemo dual-run must succeed");
+        let verdict = ledger::enforce(&ledger);
+        assert!(
+            verdict.passed,
+            "native and Nemo must agree over the fixed DL calculus: {:?}; rows {:#?}",
+            verdict.reasons, ledger.rows
+        );
+        assert_eq!(
+            ledger.oracle_only, 0,
+            "no Nemo-only subsumption (a native coverage regression): {:#?}",
+            ledger.rows
+        );
+        assert!(
+            ledger.agree > 0,
+            "non-vacuous: native and Nemo actually agree on ≥1 subsumption: {:#?}",
+            ledger.rows
+        );
+        // The transitive A ⊑ C is derived by BOTH engines and classified Agree.
+        let agrees: Vec<(&str, &str)> = ledger
+            .rows
+            .iter()
+            .filter(|r| r.kind == DivergenceKind::Agree)
+            .map(|r| (r.subject.as_str(), r.object.as_str()))
+            .collect();
+        assert!(
+            agrees.contains(&(A, C)),
+            "transitive A ⊑ C must be a shared Agree row: {agrees:?}"
+        );
+    }
+
+    /// A Nemo-only subsumption the native path missed is an `OracleOnly` row that the
+    /// scheduled lane's `enforce` verdict FAILS on — the differential's whole purpose.
+    /// A native-only subsumption is expected superset richness and passes. This pins
+    /// the failure semantics the real engines never trip on the gap-zero corpus.
+    #[test]
+    fn crosscheck_ledger_fails_on_nemo_only_and_passes_on_native_only() {
+        let native = vec![(A.to_owned(), B.to_owned(), W.to_owned())];
+        let nemo_extra = vec![
+            (A.to_owned(), B.to_owned(), W.to_owned()),
+            (B.to_owned(), C.to_owned(), W.to_owned()),
+        ];
+        // Nemo derived B ⊑ C that native did not → OracleOnly → the lane must fail.
+        let rows = ledger::compare_subsumption(&native, &nemo_extra);
+        let bad = ledger::build_ledger(rows, Vec::new(), Vec::new(), Vec::new());
+        assert_eq!(bad.oracle_only, 1, "the Nemo-only subsumption is counted");
+        assert!(
+            !ledger::enforce(&bad).passed,
+            "a Nemo-only subsumption must fail the differential"
+        );
+        // The converse — native richer than Nemo — is not a failure.
+        let rows = ledger::compare_subsumption(&nemo_extra, &native);
+        let rich = ledger::build_ledger(rows, Vec::new(), Vec::new(), Vec::new());
+        assert_eq!(rich.native_only, 1);
+        assert!(
+            ledger::enforce(&rich).passed,
+            "a native-only subsumption is expected richness, not a failure"
+        );
     }
 
     #[test]
