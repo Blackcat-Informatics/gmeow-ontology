@@ -366,6 +366,75 @@ fn no_shape_requires_notated_expression() {
     );
 }
 
+/// Positive control for the notated-shape walker. The real merged ontology carries
+/// NO `sh:NodeShape` whose `sh:targetClass` is `MusicalWork`/`Work`, so
+/// `no_shape_requires_notated_expression` above walks an empty target set and its
+/// `is_empty()` assertion is VACUOUSLY TRUE — it would pass even if the walker were
+/// broken. This synthetic fixture supplies exactly the shapes the walker is meant to
+/// catch, so `shapes_requiring_notated` firing here proves the walker discriminates,
+/// which is what makes the negative test's emptiness over the real ontology meaningful.
+///
+/// Three property shapes, one per detection arm of `shapes_requiring_notated`:
+///   1. `gmeow:shapeSimple` — `sh:path gmeow:realizationModeNotated` with `sh:minCount 1`
+///      (the simple-path arm, and `path_sequence_contains`'s `object_in` short-circuit).
+///   2. `gmeow:shapeSeq` — `sh:path ( gmeow:someStep gmeow:realizationModeNotated )` with
+///      `sh:minCount 1` (the RDF-list sequence arm, exercising `path_sequence_contains`).
+///   3. `gmeow:shapeHasValue` — `sh:hasValue gmeow:ScoreEdition` (the `sh:hasValue` arm).
+const NOTATED_VIOLATION_FIXTURE_TTL: &str = "\
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+gmeow:shapeMusicalWork a sh:NodeShape ;
+    sh:targetClass gmeow:MusicalWork ;
+    sh:property gmeow:shapeSimple ;
+    sh:property gmeow:shapeSeq ;
+    sh:property gmeow:shapeHasValue .
+
+gmeow:shapeSimple a sh:PropertyShape ;
+    sh:path gmeow:realizationModeNotated ;
+    sh:minCount 1 .
+
+gmeow:shapeSeq a sh:PropertyShape ;
+    sh:path ( gmeow:someStep gmeow:realizationModeNotated ) ;
+    sh:minCount 1 .
+
+gmeow:shapeHasValue a sh:PropertyShape ;
+    sh:path gmeow:notatedIn ;
+    sh:hasValue gmeow:ScoreEdition .
+";
+
+/// Positive control that closes the vacuous-truth gap in
+/// `no_shape_requires_notated_expression`: over a synthetic graph that DOES carry
+/// notated-requiring shapes targeting `gmeow:MusicalWork`, the walker must return a
+/// non-empty violation set covering all three of its detection arms.
+#[test]
+fn notated_shape_walker_fires_on_violations() {
+    let g = GraphStore::parse_ttl(NOTATED_VIOLATION_FIXTURE_TTL);
+    let violations = shapes_requiring_notated(&g);
+    assert!(
+        !violations.is_empty(),
+        "walker must fire on a genuine notated-requiring shape"
+    );
+
+    // Pin the count by the DISTINCT violating property shapes, not the raw tuple
+    // count (a single shape can trip two arms) and not blank-node ordering (the
+    // fixture uses named property shapes, so identity is stable).
+    let violating_shapes: HashSet<Subject> =
+        violations.iter().map(|(_, ps, _)| ps.clone()).collect();
+    assert_eq!(
+        violating_shapes.len(),
+        3,
+        "expected one violating property shape per detection arm, got {violating_shapes:?}"
+    );
+    for local in ["shapeSimple", "shapeSeq", "shapeHasValue"] {
+        assert!(
+            violating_shapes.contains(&Subject::Named(gm(local))),
+            "arm {local} did not fire: {violating_shapes:?}"
+        );
+    }
+}
+
 // ── competency-query twins ────────────────────────────────────────────────────
 
 /// The `xsd:string`/`xsd:integer` lexical form of a solution term, or `None`.
