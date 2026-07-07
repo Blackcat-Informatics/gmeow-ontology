@@ -38,6 +38,29 @@ pub const SQRT_DECIMALS: u32 = 6;
 /// The one recognized affect norm function IRI (the metric-tensor norm).
 const NORM_FUNCTION_IRI: &str = "https://blackcatinformatics.ca/gmeow/affectMetricTensorNorm";
 
+/// Maximum supported affect-basis dimension. The core-affect bases in use
+/// (valence–arousal = 2, PAD = 3, and richer appraisal bases) are tiny; this
+/// deliberately generous cap bounds every row/column/axis index parsed from a
+/// graph BEFORE it can size a Gram-matrix allocation. A malformed `.gts` index
+/// therefore becomes a hard-fail `Err` rather than a lossy `usize` truncation
+/// or an OOM-scale allocation.
+const MAX_BASIS_DIM: usize = 256;
+
+/// Convert a parsed `i128` matrix/axis index into a bounded `usize`.
+///
+/// `usize::try_from` rejects negative indices, and the explicit bound rejects
+/// any index at or above `MAX_BASIS_DIM`, so the dimension derived from these
+/// indices can never exceed the supported cap.
+fn bounded_index(value: i128, what: &str) -> Result<usize, String> {
+    let idx = usize::try_from(value).map_err(|_| format!("{what} index out of range: {value}"))?;
+    if idx >= MAX_BASIS_DIM {
+        return Err(format!(
+            "{what} index {idx} exceeds the maximum supported basis dimension {MAX_BASIS_DIM}"
+        ));
+    }
+    Ok(idx)
+}
+
 /// The known, seeded `gmeow:WeightingPolicy` individuals (an OPEN vocabulary,
 /// but an intensity record MUST name one of the grounded policies).
 const KNOWN_WEIGHTING_POLICIES: &[&str] = &[
@@ -701,16 +724,15 @@ fn load_gram(index: &TripleIndex, gram_iri: &str) -> Result<Vec<(usize, usize, R
             .ok_or_else(|| format!("matrix entry {entry} missing math:atRow"))?;
         let col = first_i128(index, &entry, &math("atColumn"))
             .ok_or_else(|| format!("matrix entry {entry} missing math:atColumn"))?;
-        if row < 0 || col < 0 {
-            return Err(format!("matrix entry {entry} has a negative index"));
-        }
+        let row = bounded_index(row, "matrix row")?;
+        let col = bounded_index(col, "matrix column")?;
         let value_iri = first_iri(index, &entry, &math("entryValue"))
             .ok_or_else(|| format!("matrix entry {entry} missing math:entryValue"))?;
         let num = first_i128(index, &value_iri, &math("numerator"))
             .ok_or_else(|| format!("rational value {value_iri} missing math:numerator"))?;
         let den = first_i128(index, &value_iri, &math("denominator"))
             .ok_or_else(|| format!("rational value {value_iri} missing math:denominator"))?;
-        cells.push((row as usize, col as usize, Rational::new(num, den)?));
+        cells.push((row, col, Rational::new(num, den)?));
     }
     Ok(cells)
 }
@@ -731,16 +753,12 @@ fn load_cells(
             .ok_or_else(|| format!("appraisal {cell} missing gmeow:appraisalDimension"))?;
         let axis = first_i128(index, &dimension, &gm("coreAxisIndex"))
             .ok_or_else(|| format!("appraisal dimension {dimension} has no gmeow:coreAxisIndex"))?;
-        if axis < 0 {
-            return Err(format!(
-                "dimension {dimension} has a negative coreAxisIndex"
-            ));
-        }
+        let axis = bounded_index(axis, "core axis")?;
         let value = Rational::parse_decimal(
             &first_literal(index, &cell, &gm("appraisalValue"))
                 .ok_or_else(|| format!("appraisal {cell} missing gmeow:appraisalValue"))?,
         )?;
-        cells.push((axis as usize, dimension, value));
+        cells.push((axis, dimension, value));
     }
     cells.sort_by_key(|(axis, _, _)| *axis);
     Ok(cells)
@@ -787,6 +805,9 @@ fn load_inputs(index: &TripleIndex, observation: &str) -> Result<Inputs, String>
     if dim == 0 {
         return Err("affect geometry has an empty basis".to_string());
     }
+    // Every contributing index was bounded below `MAX_BASIS_DIM`, so the
+    // derived dimension is bounded too; assert it before it sizes the matrix.
+    debug_assert!(dim <= MAX_BASIS_DIM, "derived dimension {dim} exceeds cap");
 
     let mut gram = vec![vec![Rational::zero(); dim]; dim];
     for (row, col, value) in gram_cells {
@@ -1082,6 +1103,41 @@ mod tests {
             .join("\n");
         let err = geometry_from_gts_bytes(&turtle_to_gts(&turtle), None).unwrap_err();
         assert!(err.contains("coreAxisIndex"), "{err}");
+    }
+
+    // An oversized Gram-matrix index is a hard fail, NOT a lossy `usize` cast or
+    // an OOM-scale allocation: a huge `math:atRow` must return `Err` before any
+    // matrix is sized.
+    #[test]
+    fn oversized_matrix_index_hard_fails() {
+        let turtle = observation_turtle(
+            "gmeow:affectMetricTensorNorm",
+            "gmeow:weightingValenceDominant",
+        )
+        .replace(
+            "math:atRow \"1\"^^xsd:integer ; math:atColumn \"1\"^^xsd:integer",
+            "math:atRow \"100000000000\"^^xsd:integer ; math:atColumn \"1\"^^xsd:integer",
+        );
+        let err = geometry_from_gts_bytes(&turtle_to_gts(&turtle), None).unwrap_err();
+        assert!(
+            err.contains("matrix row") && err.contains("100000000000"),
+            "{err}"
+        );
+    }
+
+    // An oversized core-axis index is a hard fail before it can size the vector.
+    #[test]
+    fn oversized_core_axis_index_hard_fails() {
+        let turtle = observation_turtle(
+            "gmeow:affectMetricTensorNorm",
+            "gmeow:weightingValenceDominant",
+        )
+        .replace(
+            "gmeow:coreAxisIndex \"1\"^^xsd:nonNegativeInteger",
+            "gmeow:coreAxisIndex \"9999999999\"^^xsd:nonNegativeInteger",
+        );
+        let err = geometry_from_gts_bytes(&turtle_to_gts(&turtle), None).unwrap_err();
+        assert!(err.contains("core axis"), "{err}");
     }
 
     // Graph-parse path is load-bearing: intensity + dominant axis from turtle.
