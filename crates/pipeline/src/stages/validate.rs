@@ -13,7 +13,7 @@ use std::collections::BTreeMap;
 use std::path::Path;
 use std::sync::Arc;
 
-use gmeow_errors::{Finding, Report, Severity};
+use gmeow_errors::{DiagLedger, Finding, Report, Severity, StageId};
 use purrdf::provenance::DatasetProvenance;
 use serde_json::json;
 
@@ -30,8 +30,24 @@ pub const SHACL_HTML_PATH: &str = "generated/diagnostics/shacl.html";
 pub const SHACL_RDF_PATH: &str = "generated/diagnostics/shacl.nq";
 
 /// Convert the native SHACL engine report into the canonical diagnostics report.
+///
+/// Each `ValidationResult` is routed through a [`DiagLedger`] (via
+/// [`diag_from_shacl`](gmeow_validate::findings::diag_from_shacl)) rather than
+/// hand-built into a `Finding`, so every projected SHACL finding carries the ledger's
+/// blake3 `finding_iri` + code-blind `anchor_iri` (`gmeow:findingAnchor`) with
+/// `anchor_non_trivial` — the identity the cross-node-glut meta-rule joins on. The
+/// findings are the ledger's `project_report` body; the metadata (and the
+/// non-conforming-with-no-results fallback) is folded on afterwards.
 fn diagnostics_report(report: &purrdf::shapes::report::ValidationReport) -> Report {
-    let mut out = Report::new("shacl");
+    let mut ledger = DiagLedger::new();
+    let stage = StageId::new("stage-validate");
+    for result in &report.results {
+        ledger.attach(
+            gmeow_validate::findings::diag_from_shacl(result),
+            stage.clone(),
+        );
+    }
+    let mut out = ledger.project_report("shacl");
     out.metadata.insert("category".to_owned(), json!("shacl"));
     out.metadata
         .insert("stage".to_owned(), json!("stage-validate"));
@@ -40,9 +56,6 @@ fn diagnostics_report(report: &purrdf::shapes::report::ValidationReport) -> Repo
     out.metadata
         .insert("shaclResultCount".to_owned(), json!(report.results.len()));
 
-    for result in &report.results {
-        out.add_finding(gmeow_validate::findings::finding_from_shacl(result));
-    }
     if out.findings.is_empty() && !report.conforms {
         out.add_finding(
             Finding::new(
@@ -297,6 +310,51 @@ ex:RequiredShape a sh:NodeShape ;
         assert_eq!(
             sarif["runs"][0]["results"][0]["ruleId"],
             serde_json::Value::String("shacl.MinCountConstraintComponent".to_string())
+        );
+    }
+
+    #[test]
+    fn diagnostics_report_finding_carries_ledger_identity_and_nontrivial_anchor() {
+        // The G1c production path: `validate_source_graph` → `diagnostics_report` routes
+        // the SHACL result through a `DiagLedger`, so the projected finding carries the
+        // blake3 `finding_iri` + code-blind `anchor_iri` (with `anchor_non_trivial`) the
+        // cross-node-glut meta-rule joins on — NOT the identity-less hand-built finding.
+        let repo = mock_repo(
+            r#"
+@prefix ex: <https://example.test/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+
+ex:RequiredShape a sh:NodeShape ;
+    sh:targetNode ex:thing ;
+    sh:property [
+        sh:path ex:required ;
+        sh:minCount 1 ;
+        sh:message "required value is missing" ;
+    ] .
+"#,
+        );
+        let report = validate_source_graph(repo.path(), b"").expect("validate");
+        assert_eq!(report.findings.len(), 1);
+        let finding = &report.findings[0];
+        assert!(
+            finding
+                .finding_iri
+                .as_deref()
+                .is_some_and(|iri| iri
+                    .starts_with("https://blackcatinformatics.ca/gmeow/diagnostics/finding/")),
+            "a routed SHACL finding must carry a blake3 finding IRI, not the FNV fallback"
+        );
+        assert!(
+            finding
+                .anchor_iri
+                .as_deref()
+                .is_some_and(|iri| iri
+                    .starts_with("https://blackcatinformatics.ca/gmeow/diagnostics/anchor/")),
+            "a routed SHACL finding must carry a code-blind anchor IRI"
+        );
+        assert!(
+            finding.anchor_non_trivial,
+            "the focus node is a NonTrivial anchor the glut join can fire on"
         );
     }
 }
