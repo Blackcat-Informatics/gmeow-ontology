@@ -227,14 +227,23 @@ pub struct SourceContext {
 }
 
 impl SourceContext {
-    /// Whether this context names a *genuine* source position — a non-empty path
-    /// OR a focus node — as opposed to the empty/default anchor every locationless
-    /// finding collapses onto. This is the guard the cross-node-glut meta-rule
-    /// joins on: only a non-trivial anchor is typed `gmeow:NonTrivialAnchor`, so
-    /// the glut join never fires on the shared default anchor of locationless
-    /// findings (`gmeow:NonTrivialAnchor` doctrine).
+    /// Whether this context names a *genuine* source position — a non-empty path,
+    /// a logical anchor (e.g. a SHACL finding's focus-node IRI, which rides in
+    /// `location.logical`), OR a focus node — as opposed to the empty/default anchor
+    /// every locationless finding collapses onto. This is the guard the
+    /// cross-node-glut meta-rule joins on: only a non-trivial anchor is typed
+    /// `gmeow:NonTrivialAnchor`, so the glut join never fires on the shared default
+    /// anchor of locationless findings (`gmeow:NonTrivialAnchor` doctrine). Because
+    /// the anchor fingerprint keys on `logical` (see `DiagFingerprint::anchor`), a
+    /// finding located solely by `logical` IS a genuine, joinable anchor and must
+    /// not be excluded here.
     pub fn is_non_trivial(&self) -> bool {
         self.location.path.as_deref().is_some_and(|p| !p.is_empty())
+            || self
+                .location
+                .logical
+                .as_deref()
+                .is_some_and(|l| !l.is_empty())
             || self.focus.as_ref().is_some_and(|f| !f.0.is_empty())
     }
 }
