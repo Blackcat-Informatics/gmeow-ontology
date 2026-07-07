@@ -87,7 +87,8 @@ Removed because a Rust artifact already asserts the same behavior:
 - SHACL/TBox black-box cluster → native `crates/validate/tests/conformance_*.rs`
   (SHACL fixture cases via `Case`, TBox axioms via the bnode-aware `GraphStore`),
   each Python file deleted in the same commit as its Rust twin. Migrated so far:
-  `test_deception` → `conformance_deception.rs`.
+  `test_deception` → `conformance_deception.rs`;
+  `test_employment` → `conformance_employment.rs`.
 
 Relocated out of the mainline test tree (dossier removed with the test):
 
