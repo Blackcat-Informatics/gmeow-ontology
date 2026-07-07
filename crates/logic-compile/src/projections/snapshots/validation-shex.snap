@@ -4,31 +4,31 @@ expression: shex.content
 ---
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
-# targetClass <https://example.org/test/1192/A> (associate via ShapeMap)
-<https://example.org/test/1192/A-shape> {
-  <https://example.org/test/1192/p-in> [<https://example.org/test/1192/v1> "bonjour"@fr "typed"^^<http://www.w3.org/2001/XMLSchema#token>] {0,3} ;
-  <https://example.org/test/1192/p-inv> IRI ? ;
-  <https://example.org/test/1192/p-opt> [<https://example.org/test/1192/low> <https://example.org/test/1192/high>] ;
-  <https://example.org/test/1192/p-mixed> /^[A-Z]/i ;
-  <https://example.org/test/1192/p-bignum> <http://www.w3.org/2001/XMLSchema#decimal> MININCLUSIVE 10000000000000000 ;
-  <https://example.org/test/1192/p-scalar> <http://www.w3.org/2001/XMLSchema#string> MAXLENGTH 64 MINLENGTH 2 ;
-  <https://example.org/test/1192/p-logical> [<https://example.org/test/1192/fixed>] ;
-  <https://example.org/test/1192/p-numeric> <http://www.w3.org/2001/XMLSchema#decimal> MININCLUSIVE 0 MAXEXCLUSIVE 10 ;
+# targetClass <https://example.org/test/validation-full-surface/A> (associate via ShapeMap)
+<https://example.org/test/validation-full-surface/A-shape> {
+  <https://example.org/test/validation-full-surface/p-in> [<https://example.org/test/validation-full-surface/v1> "bonjour"@fr "typed"^^<http://www.w3.org/2001/XMLSchema#token>] {0,3} ;
+  <https://example.org/test/validation-full-surface/p-inv> IRI ? ;
+  <https://example.org/test/validation-full-surface/p-opt> [<https://example.org/test/validation-full-surface/low> <https://example.org/test/validation-full-surface/high>] ;
+  <https://example.org/test/validation-full-surface/p-mixed> /^[A-Z]/i ;
+  <https://example.org/test/validation-full-surface/p-bignum> <http://www.w3.org/2001/XMLSchema#decimal> MININCLUSIVE 10000000000000000 ;
+  <https://example.org/test/validation-full-surface/p-scalar> <http://www.w3.org/2001/XMLSchema#string> MAXLENGTH 64 MINLENGTH 2 ;
+  <https://example.org/test/validation-full-surface/p-logical> [<https://example.org/test/validation-full-surface/fixed>] ;
+  <https://example.org/test/validation-full-surface/p-numeric> <http://www.w3.org/2001/XMLSchema#decimal> MININCLUSIVE 0 MAXEXCLUSIVE 10 ;
 }
 
-<https://example.org/test/1192/D-shape> {
-  <https://example.org/test/1192/p-d> IRI + ;
+<https://example.org/test/validation-full-surface/D-shape> {
+  <https://example.org/test/validation-full-surface/p-d> IRI + ;
 }
 
-# targetClass <https://example.org/test/1192/E> (associate via ShapeMap)
-<https://example.org/test/1192/E-shape> {
-  <https://example.org/test/1192/p-e> IRI ;
+# targetClass <https://example.org/test/validation-full-surface/E> (associate via ShapeMap)
+<https://example.org/test/validation-full-surface/E-shape> {
+  <https://example.org/test/validation-full-surface/p-e> IRI ;
 }
 
-# targetSubjectsOf <https://example.org/test/1192/p-domain> (associate via ShapeMap)
-<https://example.org/test/1192/p-domain-shape> {
+# targetSubjectsOf <https://example.org/test/validation-full-surface/p-domain> (associate via ShapeMap)
+<https://example.org/test/validation-full-surface/p-domain-shape> {
 }
 
-# targetObjectsOf <https://example.org/test/1192/p-range> (associate via ShapeMap)
-<https://example.org/test/1192/p-range-shape> {
+# targetObjectsOf <https://example.org/test/validation-full-surface/p-range> (associate via ShapeMap)
+<https://example.org/test/validation-full-surface/p-range-shape> {
 }

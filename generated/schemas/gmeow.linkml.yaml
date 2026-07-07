@@ -19466,6 +19466,9 @@ enums:
       fixtureMIRTimbreObservation:
         meaning: https://blackcatinformatics.ca/gmeow/fixtureMIRTimbreObservation
         title: MIR timbre observation fixture
+      tenurePositionReificationObligation:
+        meaning: https://blackcatinformatics.ca/gmeow/tenurePositionReificationObligation
+        title: tenure-position reification obligation
   ObservationMethodEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/ObservationMethod
     permissible_values:
