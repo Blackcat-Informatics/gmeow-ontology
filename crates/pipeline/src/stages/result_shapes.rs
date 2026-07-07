@@ -621,6 +621,15 @@ plant:badRow gmeow:rowCell [ gmeow:cellVar \"{iri_col_var}\" ; gmeow:cellValueLi
         );
     }
 
+    /// Drift-guard (CONTRACT level): the result-shape surface is the ONE emitter that cannot
+    /// route through the shared declarative projection — its value-keyed cell model needs a
+    /// `sh:sparql` procedural constraint the native engine supports, where the declarative
+    /// `sh:qualifiedValueShape` form it would otherwise use is not implemented (see the module
+    /// docs: the two constraint axes MUST NOT merge). So byte-parity with the shared projection is
+    /// impossible by construction; the honest ceiling is CONTENT subsumption, guarded here: over
+    /// the live corpus EVERY emitted column's `(kind, required, datatype)` contract must have a
+    /// faithful `ValidationShapeIr` encoding. A column whose procedural `sh:sparql` drifts from a
+    /// declarative-representable contract fails this test.
     #[test]
     fn result_column_contracts_are_subsumed_by_validation_shape_model() {
         use gmeow_logic_compile::ir::NodeKind;
