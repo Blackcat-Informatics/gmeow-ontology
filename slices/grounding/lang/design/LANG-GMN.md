@@ -265,7 +265,13 @@ vocabulary, cross-checked so an authored value can never drift from the measurem
   to a disposition — a glyph, a named key, or an imported alias — with the population derived by
   type over `lang:FeatureValue`, so a value added without a disposition is
   `lang:GmnUndispositionedTerm`. This graph-side completeness is distinct from the writer-tier
-  `lang:GmnUncoveredTerm`.
+  `lang:GmnUncoveredTerm`. **Glyph-cost coverage is total the same way:** every `lang:Grapheme`
+  admitted to the GMN script (`lang:inScript gmeow:gmnScript`) — the IPA phonological graphemes,
+  the `*` operator glyph — carries its measured per-glyph token-cost feed through
+  `gmeow:gmnGlyphTokenCost`, with the population derived by the `gmeow:gmnScript` repertoire rather
+  than a hand-listed set, so a script glyph admitted without its cost feed is
+  `lang:GmnUncostedScriptGlyph`. The two coverage rules close both the feature-value plane and the
+  glyph plane against silent gaps.
 
 ## Decodability is a property of the grammar object
 

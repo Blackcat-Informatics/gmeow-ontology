@@ -1025,3 +1025,23 @@ lang:GmnImportedPlaneAttributionShape
         sh:severity sh:Violation ;
         sh:message "A lang:GmnImportedPlane must pin its edition through dcterms:hasVersion." ;
     ] .
+
+lang:GmnScriptGlyphCoverageShape
+    a sh:NodeShape ;
+    rdfs:label "GMN script-glyph token-cost coverage shape"@x-gmeow-english ;
+    skos:definition "Every lang:Grapheme in the GMN script (lang:inScript gmeow:gmnScript) carries a measured token cost through gmeow:gmnGlyphTokenCost: the per-glyph feed the glyph-versus-named-key disposition is read off. The population is derived — the shape scopes to the gmeow:gmnScript repertoire by lang:inScript, not to a hand-listed set — so a glyph admitted to the shared inventory (an IPA grapheme, the `*` operator glyph) without its cost feed is a silent gap the gate catches, complementing the lang:FeatureValue coverage of lang:GmnLangCoverageShape. A GMN-script glyph with no gmeow:gmnGlyphTokenCost is lang:GmnUncostedScriptGlyph."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    lang:enforcesFailureClass lang:GmnUncostedScriptGlyph ;
+    sh:targetClass lang:Grapheme ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "A lang:Grapheme in the GMN script carries no gmeow:gmnGlyphTokenCost; the GMN glyph inventory is cost-covered by rule, so every admitted glyph carries its measured token-cost feed." ;
+        sh:select """
+            SELECT DISTINCT $this WHERE {
+                $this <https://blackcatinformatics.ca/lang/inScript> <https://blackcatinformatics.ca/gmeow/gmnScript> .
+                FILTER NOT EXISTS {
+                    $this <https://blackcatinformatics.ca/gmeow/gmnGlyphTokenCost> ?c .
+                }
+            }
+        """ ;
+    ] .

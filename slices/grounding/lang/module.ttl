@@ -3159,6 +3159,14 @@ lang:GmnUnattributedPlane
     skos:definition "The failure raised when a lang:GmnImportedPlane omits its citation or its version: an imported notation or gloss standard is imported verbatim by reference, so it is meaningless without both the gmeow:cites edge naming the source work and the dcterms:hasVersion literal pinning the edition the aliases were drawn from. An unattributed or unpinned plane is an import that cannot be audited or resolved."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+lang:GmnUncostedScriptGlyph
+    a owl:Class ;
+    rdfs:subClassOf lang:LangConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN Uncosted Script Glyph"@x-gmeow-english ;
+    skos:definition "The graph-side coverage failure of the glyph plane: a lang:Grapheme admitted to the GMN script (lang:inScript gmeow:gmnScript) — an IPA phonological grapheme, the `*` operator glyph — that carries no gmeow:gmnGlyphTokenCost, the measured per-glyph token-cost feed the glyph-versus-named-key disposition is read off. Cost coverage over the shared inventory is total by rule: a symbol earns a glyph slot only when its measured cost warrants one, so a script glyph with no cost feed is a silent gap in the disposition plane. It is the glyph-plane sibling of lang:GmnUndispositionedTerm, which is the feature-value-plane coverage failure; together they close the plane against silent gaps."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
 # --- The per-glyph token-cost feed ------------------------------------------ #
 
 gmeow:gmnGlyphTokenCost
