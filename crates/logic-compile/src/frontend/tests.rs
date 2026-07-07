@@ -1465,6 +1465,48 @@ fn derive_qualified_cardinality_emits_qualified_value_shape() {
 }
 
 #[test]
+fn derive_single_property_has_key_emits_inverse_functional_shape() {
+    // `K owl:hasKey ( P )` is the OWL 2 DL way to state a datatype/single-property key (an
+    // owl:InverseFunctionalProperty on a datatype property would be OWL 2 Full). Its closed-world
+    // reading is the same inverse sh:maxCount 1 the InverseFunctionalProperty arm emits.
+    let ds = shape_dataset(
+        "g:GTSSegment a owl:Class ; owl:hasKey ( g:gtsHeadId ) . \
+         g:gtsHeadId a owl:DatatypeProperty ; rdfs:domain g:GTSSegment ; rdfs:range xsd:string .",
+    );
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    let shape = shapes
+        .iter()
+        .find(|s| matches!(&s.target, ShapeTarget::ObjectsOf(p) if p.ends_with("gtsHeadId")))
+        .expect("an ObjectsOf(gtsHeadId) shape from owl:hasKey");
+    let prop = &shape.properties[0];
+    assert!(prop.inverse, "hasKey must derive an inverse-path shape");
+    assert_eq!(
+        prop.max_count,
+        Some(1),
+        "hasKey → each key value has ≤1 subject"
+    );
+}
+
+#[test]
+fn derive_composite_has_key_derives_no_single_path_shape() {
+    // A COMPOSITE key (owl:hasKey ( P1 P2 )) asserts the TUPLE is unique, not each part — it has
+    // no single-path SHACL form, so no per-part uniqueness shape may be derived.
+    let ds = shape_dataset(
+        "g:C a owl:Class ; owl:hasKey ( g:p1 g:p2 ) . \
+         g:p1 a owl:DatatypeProperty . g:p2 a owl:DatatypeProperty .",
+    );
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    assert!(
+        !shapes.iter().any(|s| matches!(
+            &s.target,
+            ShapeTarget::ObjectsOf(p) if p.ends_with("/p1") || p.ends_with("/p2")
+        )),
+        "a composite key must derive no single-path uniqueness shape: {:?}",
+        shapes.iter().map(|s| &s.target).collect::<Vec<_>>()
+    );
+}
+
+#[test]
 fn derive_min_qualified_cardinality_uses_the_owl2_standard_keyword() {
     // The OWL 2 RDF keyword is `owl:minQualifiedCardinality` (NOT `owl:qualifiedMinCardinality`).
     // Regression guard: the derivation must read the standard local name, else a real qualified

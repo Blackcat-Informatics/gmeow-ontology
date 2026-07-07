@@ -1717,6 +1717,50 @@ pub fn derive_validation_shapes(store: &RdfDataset) -> Result<Vec<ValidationShap
         }
     }
 
+    // ── FAMILY 4 — owl:hasKey (single-property keys → inverse-functional reading) ──────────
+    // `K owl:hasKey ( P )` says the value of P uniquely identifies the K instance — the DL 2
+    // way to state a datatype/single-property key (an `owl:InverseFunctionalProperty` on a
+    // datatype property would be OWL 2 Full). Its closed-world reading is the same inverse
+    // `sh:maxCount 1` (each P-value has ≤1 subject via P) the InverseFunctionalProperty arm
+    // emits. A COMPOSITE key (`owl:hasKey ( P1 P2 … )`) asserts the TUPLE is unique, not each
+    // part — it has no single-path SHACL form, so it is carried in the canon and no shape is
+    // derived (never a wrong per-part uniqueness claim).
+    let haskey_iri = format!("{owl}hasKey");
+    let p_haskey = nn(&haskey_iri);
+    let mut haskey_classes: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
+    for q in default_graph_quads(store) {
+        if q.predicate.as_str() == haskey_iri
+            && let Subject::Iri(iri) = &q.subject
+            && iri.starts_with(GMEOW_NS)
+        {
+            haskey_classes.insert(iri.clone());
+        }
+    }
+    for class_iri in &haskey_classes {
+        let k = Subject::Iri(class_iri.clone());
+        let Some(list_head) = value(store, &k, &p_haskey) else {
+            continue;
+        };
+        let keys = read_iri_list(store, &list_head);
+        // Single-property key only; a composite key has no single-path uniqueness shape.
+        if let [key_prop] = keys.as_slice() {
+            if optouts.contains(key_prop) {
+                continue;
+            }
+            let pc = PropertyConstraintIr::new(
+                key_prop,
+                None,
+                Some(1),
+                Some(ConstraintProvenance::OwlRestriction),
+                vec![],
+            )?
+            .inverted();
+            entry_for(&mut acc, ShapeTarget::ObjectsOf(key_prop.clone()))
+                .2
+                .push(pc);
+        }
+    }
+
     // ── Build one shape per target ────────────────────────────────────────────────────────
     // Dedup by structural (`PartialEq`) identity so a duplicate axiom never double-counts; the IR
     // constructors then sort node_components + properties into canonical content-key order, so
