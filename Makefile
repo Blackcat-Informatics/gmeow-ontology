@@ -86,7 +86,7 @@ CHECK_TARGETS := lint rust-gate validate check-generated constitution-check \
 	lsp-build lsp-release lsp-sarif diagnostics-rust-sarif \
 	slicetest conformance conformance-report insta-review \
 	fuzz-smoke bench bench-compare rust-coverage mutants compliance-report perf-gate \
-	maint-crosscheck \
+	maint-crosscheck maint-nemo-crosscheck \
 	maint-extract maint-refresh-target-axioms maint-wikidata-live \
 	maint-wikidata-coverage maint-wikidata-audit maint-test-heavy \
 	maint-test-network maint-quality maint-evals-score \
@@ -477,6 +477,9 @@ compliance-report: ## Emit dist/compliance-report.ttl from already-passing gates
 
 maint-crosscheck: native-py ## Prove every committed query answers on the native purrdf engine.
 	$(GMEOW_DEV) crosscheck-queries
+
+maint-nemo-crosscheck: native-py ## Scheduled native↔Nemo differential: dual-run both oracles over the committed corpus; hard-fail on any subsumption divergence.
+	$(GMEOW_DEV) reason-nemo-crosscheck
 
 maint-extract: native-py ## Run import/extract policy for TARGET.
 	$(GMEOW_DEV) extract --target $(TARGET)

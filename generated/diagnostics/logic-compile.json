@@ -32520,6 +32520,22 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection shex drops: actual: RDF-1.2 reifier/reification-required condition on https://blackcatinformatics.ca/gmeow/tenurePosition has no ShEx form; carried in the canonical logic: layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/086f1e1a031414d808b8a4d18d3479c6"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection shex drops: actual: datetime validity pattern (yyyy-mm-ddTHH:MM:SS) on https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/value is a format template, not an XPath regex; it has no faithful SHACL/ShEx form (emitting it as sh:pattern would reject every valid datetime), so its meaning is carried in the canonical logic: layer",
       "tool": "logic-compile",
       "locations": [
