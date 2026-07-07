@@ -467,6 +467,31 @@ impl GraphStore {
         }
     }
 
+    /// Return a new store containing the merged ontology plus each Turtle file in
+    /// `paths` (parsed in the given order), flattened to the default graph. The
+    /// explicit-path twin of [`Self::ontology_plus_ttl_dir`], mirroring the Python
+    /// originals that closed the merged graph with two successive `graph.parse(f)`
+    /// calls over a fixed pair of fixtures (e.g. the suppression canary + coarsen
+    /// corpora).
+    pub fn ontology_plus_ttl_files(paths: &[PathBuf]) -> Self {
+        let mut quads: Vec<purrdf::RdfQuad> = flat_rdf_quads_from_dataset(base_ontology_dataset());
+        for path in paths {
+            let ttl = std::fs::read_to_string(path)
+                .unwrap_or_else(|e| panic!("failed to read {}: {e}", path.display()));
+            let fixture = parse_dataset(ttl.as_bytes(), "text/turtle", None)
+                .unwrap_or_else(|e| panic!("fixture parse failed: {e}\n{ttl}"));
+            for mut quad in flat_rdf_quads_from_dataset(&fixture) {
+                quad.graph_name = None;
+                quads.push(quad);
+            }
+        }
+        let merged = flat_dataset_from_quads(&quads).expect("merged dataset must freeze");
+        Self {
+            ds: merged,
+            slice_ds: Arc::new(OnceLock::new()),
+        }
+    }
+
     /// Return a new store containing the merged ontology plus every `*.ttl` file in
     /// `dir` (sorted by path), flattened to the default graph. The multi-file twin of
     /// [`Self::ontology_plus_ttl_file`], mirroring the Python originals that closed the
@@ -564,6 +589,29 @@ impl GraphStore {
                 .ds
                 .quads_for_pattern(Some(s), Some(p), None, GraphMatch::Default)
                 .filter_map(|q| Self::object_iri(&q, &self.ds))
+                .collect(),
+            _ => BTreeSet::new(),
+        }
+    }
+
+    /// Return every object of `<s> <p> ?o` rendered as its string form — an IRI's
+    /// full string OR a literal's lexical form — sorted + deduped. The native twin of
+    /// Python's `{str(o) for o in graph.objects(s, p)}`, where `str(URIRef)` is the IRI
+    /// and `str(Literal)` is its lexical value. Unlike [`Self::objects`] (IRI-only),
+    /// this surfaces literal-valued objects so a projection's flattened string values
+    /// (`spdx:licenseId`, `cc:attributionName`, `dcterms:rights`, …) can be asserted.
+    pub fn objects_lex(&self, s: &str, p: &str) -> BTreeSet<String> {
+        let s_id = self.iri_id(s);
+        let p_id = self.iri_id(p);
+        match (s_id, p_id) {
+            (Some(s), Some(p)) => self
+                .ds
+                .quads_for_pattern(Some(s), Some(p), None, GraphMatch::Default)
+                .filter_map(|q| match self.ds.resolve(q.o) {
+                    purrdf::TermRef::Iri(iri) => Some(iri.to_owned()),
+                    purrdf::TermRef::Literal { lexical, .. } => Some(lexical.to_owned()),
+                    _ => None,
+                })
                 .collect(),
             _ => BTreeSet::new(),
         }
@@ -675,6 +723,14 @@ impl GraphStore {
     /// `len(graph)`. Used by [`QueryCase::construct_len`].
     pub fn triple_count(&self) -> usize {
         self.ds.quad_count()
+    }
+
+    /// Serialize the (default-graph-only) store to N-Triples text — the native twin
+    /// of rdflib `Graph.serialize(format=...)`. Used by the projection leak sweeps to
+    /// assert a canary substring never (or always) surfaces in a projection's output,
+    /// exactly as the Python originals scanned the serialized projection string.
+    pub fn to_nt(&self) -> String {
+        dataset_default_graph_to_nt(&self.ds)
     }
 
     /// True iff the exact triple `s p o` (each a [`TermValue`]) is present in the
