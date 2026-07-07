@@ -42753,6 +42753,25 @@
             }
           ],
           "message": {
+            "text": "projection shacl-core drops: actual: sh:pattern on https://blackcatinformatics.ca/gmeow/bic carries regex-dialect residue (SHACL uses the XPath regular-expression flavour; the source dialect may differ): ^[A-Z]{6}[A-Z0-9]{2}([A-Z0-9]{3})?$"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "f277066db1040c81"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
             "text": "projection shacl-core drops: actual: sh:pattern on https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/text carries regex-dialect residue (SHACL uses the XPath regular-expression flavour; the source dialect may differ): .*"
           },
           "partialFingerprints": {
@@ -43019,6 +43038,690 @@
             }
           ],
           "message": {
+            "text": "projection shex drops: actual: 1 focus-node-level constraint(s) (domain/range/disjointness) have no ShEx shape-level form; carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "b7861b978dbe9435"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: 1 focus-node-level constraint(s) (domain/range/disjointness) have no ShEx shape-level form; carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "b7861b978dbe9435"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: 1 focus-node-level constraint(s) (domain/range/disjointness) have no ShEx shape-level form; carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "b7861b978dbe9435"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: 1 focus-node-level constraint(s) (domain/range/disjointness) have no ShEx shape-level form; carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "b7861b978dbe9435"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: 1 focus-node-level constraint(s) (domain/range/disjointness) have no ShEx shape-level form; carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "b7861b978dbe9435"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: 1 focus-node-level constraint(s) (domain/range/disjointness) have no ShEx shape-level form; carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "b7861b978dbe9435"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: 10 focus-node-level constraint(s) (domain/range/disjointness) have no ShEx shape-level form; carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "4c5a5adf39fd6e03"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: 2 focus-node-level constraint(s) (domain/range/disjointness) have no ShEx shape-level form; carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "47f48cae86cfa39c"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: 2 focus-node-level constraint(s) (domain/range/disjointness) have no ShEx shape-level form; carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "47f48cae86cfa39c"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: 2 focus-node-level constraint(s) (domain/range/disjointness) have no ShEx shape-level form; carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "47f48cae86cfa39c"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: 2 focus-node-level constraint(s) (domain/range/disjointness) have no ShEx shape-level form; carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "47f48cae86cfa39c"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: 3 focus-node-level constraint(s) (domain/range/disjointness) have no ShEx shape-level form; carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "9af7a8056c0f356b"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: 4 focus-node-level constraint(s) (domain/range/disjointness) have no ShEx shape-level form; carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "204f6bdb9285ec22"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: 4 focus-node-level constraint(s) (domain/range/disjointness) have no ShEx shape-level form; carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "204f6bdb9285ec22"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: 4 focus-node-level constraint(s) (domain/range/disjointness) have no ShEx shape-level form; carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "204f6bdb9285ec22"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: 4 focus-node-level constraint(s) (domain/range/disjointness) have no ShEx shape-level form; carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "204f6bdb9285ec22"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: 5 focus-node-level constraint(s) (domain/range/disjointness) have no ShEx shape-level form; carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "db5e1975e3a3aa71"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: 5 focus-node-level constraint(s) (domain/range/disjointness) have no ShEx shape-level form; carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "db5e1975e3a3aa71"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: 5 focus-node-level constraint(s) (domain/range/disjointness) have no ShEx shape-level form; carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "db5e1975e3a3aa71"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: 5 focus-node-level constraint(s) (domain/range/disjointness) have no ShEx shape-level form; carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "db5e1975e3a3aa71"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: 5 focus-node-level constraint(s) (domain/range/disjointness) have no ShEx shape-level form; carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "db5e1975e3a3aa71"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: 5 focus-node-level constraint(s) (domain/range/disjointness) have no ShEx shape-level form; carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "db5e1975e3a3aa71"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: 6 focus-node-level constraint(s) (domain/range/disjointness) have no ShEx shape-level form; carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "b868f02775dc2dd8"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: 6 focus-node-level constraint(s) (domain/range/disjointness) have no ShEx shape-level form; carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "b868f02775dc2dd8"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: 6 focus-node-level constraint(s) (domain/range/disjointness) have no ShEx shape-level form; carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "b868f02775dc2dd8"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: 6 focus-node-level constraint(s) (domain/range/disjointness) have no ShEx shape-level form; carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "b868f02775dc2dd8"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: 6 focus-node-level constraint(s) (domain/range/disjointness) have no ShEx shape-level form; carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "b868f02775dc2dd8"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: 6 focus-node-level constraint(s) (domain/range/disjointness) have no ShEx shape-level form; carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "b868f02775dc2dd8"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: 7 focus-node-level constraint(s) (domain/range/disjointness) have no ShEx shape-level form; carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "dadd64cfead162b7"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: 7 focus-node-level constraint(s) (domain/range/disjointness) have no ShEx shape-level form; carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "dadd64cfead162b7"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: 7 focus-node-level constraint(s) (domain/range/disjointness) have no ShEx shape-level form; carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "dadd64cfead162b7"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: 7 focus-node-level constraint(s) (domain/range/disjointness) have no ShEx shape-level form; carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "dadd64cfead162b7"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: 7 focus-node-level constraint(s) (domain/range/disjointness) have no ShEx shape-level form; carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "dadd64cfead162b7"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: 7 focus-node-level constraint(s) (domain/range/disjointness) have no ShEx shape-level form; carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "dadd64cfead162b7"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: 7 focus-node-level constraint(s) (domain/range/disjointness) have no ShEx shape-level form; carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "dadd64cfead162b7"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: 7 focus-node-level constraint(s) (domain/range/disjointness) have no ShEx shape-level form; carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "dadd64cfead162b7"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
             "text": "projection shex drops: actual: datetime validity pattern (yyyy-mm-ddTHH:MM:SS) on https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/value is a format template, not an XPath regex; it has no faithful SHACL/ShEx form (emitting it as sh:pattern would reject every valid datetime), so its meaning is carried in the canonical logic: layer"
           },
           "partialFingerprints": {
@@ -43080,6 +43783,25 @@
           },
           "partialFingerprints": {
             "gmeowFindingHash/v2": "eda5d23ae74d7527"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: qualified value-shape count (min=Some(2), max=None) on https://blackcatinformatics.ca/gmeow/journalEntryPostings has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "bb94c3e3e9466ea7"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -43498,25 +44220,6 @@
           },
           "partialFingerprints": {
             "gmeowFindingHash/v2": "0042b0ad3cf99928"
-          },
-          "ruleId": "logic-compile.lossy-drop"
-        },
-        {
-          "level": "note",
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "slices/grounding/logic/module.ttl"
-                }
-              }
-            }
-          ],
-          "message": {
-            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Agent on https://blackcatinformatics.ca/gmeow/membershipMember has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
-          },
-          "partialFingerprints": {
-            "gmeowFindingHash/v2": "be165a6601585e73"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -46154,6 +46857,25 @@
             }
           ],
           "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Person on https://blackcatinformatics.ca/gmeow/membershipMember has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "8a6753fdaf0f0911"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
             "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Person on https://blackcatinformatics.ca/gmeow/relationshipChild has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
           },
           "partialFingerprints": {
@@ -46462,25 +47184,6 @@
           },
           "partialFingerprints": {
             "gmeowFindingHash/v2": "b7b58964c08b942f"
-          },
-          "ruleId": "logic-compile.lossy-drop"
-        },
-        {
-          "level": "note",
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "slices/grounding/logic/module.ttl"
-                }
-              }
-            }
-          ],
-          "message": {
-            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Posting on https://blackcatinformatics.ca/gmeow/journalEntryPostings has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
-          },
-          "partialFingerprints": {
-            "gmeowFindingHash/v2": "d14781cab3c3b860"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -47260,6 +47963,25 @@
           },
           "partialFingerprints": {
             "gmeowFindingHash/v2": "7a65a7d939fde28a"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:pattern on https://blackcatinformatics.ca/gmeow/bic carries regex-dialect residue (SHACL uses the XPath regular-expression flavour; the source dialect may differ): ^[A-Z]{6}[A-Z0-9]{2}([A-Z0-9]{3})?$"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "bc39e1fa66246c3c"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
