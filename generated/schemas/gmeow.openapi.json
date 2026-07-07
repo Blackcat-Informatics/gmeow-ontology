@@ -457,6 +457,31 @@
         ],
         "type": "object"
       },
+      "AffectDecision": {
+        "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          }
+        },
+        "type": "object"
+      },
       "AffectScaleProfile": {
         "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
         "properties": {
@@ -602,6 +627,31 @@
           "gmeow:vectorComponent",
           "gmeow:vectorProfile"
         ],
+        "type": "object"
+      },
+      "AffectiveClaim": {
+        "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          }
+        },
         "type": "object"
       },
       "AffectiveExperience": {
@@ -16558,6 +16608,31 @@
                 "@type": {
                   "anyOf": [
                     {
+                      "const": "gmeow:AffectDecision"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:AffectDecision"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/AffectDecision"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
                       "const": "gmeow:AffectScaleProfile"
                     },
                     {
@@ -16600,6 +16675,31 @@
             },
             "then": {
               "$ref": "#/$defs/AffectVectorObservation"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:AffectiveClaim"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:AffectiveClaim"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/AffectiveClaim"
             }
           },
           {

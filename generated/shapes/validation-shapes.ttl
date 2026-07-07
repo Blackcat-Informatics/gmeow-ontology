@@ -7,6 +7,14 @@
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/assertionSubject> ; sh:class <https://blackcatinformatics.ca/gmeow/Entity> ] ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/assertionPolarity> ; sh:class <https://blackcatinformatics.ca/gmeow/AccessibilityPolarity> ] .
 
+<https://blackcatinformatics.ca/gmeow/AffectDecision-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/AffectDecision> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/vantage> ; sh:minCount 1 ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/decidedLabel> ; sh:minCount 1 ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/observedFeature> ; sh:minCount 1 ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/derivedByFunction> ; sh:minCount 1 ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/decisionCrossedThreshold> ; sh:minCount 1 ] .
+
 <https://blackcatinformatics.ca/gmeow/AffectiveExperience-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/AffectiveExperience> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/mentalProcessType> ; sh:hasValue <https://blackcatinformatics.ca/gmeow/processAffectiveExperience> ] .
@@ -1413,9 +1421,21 @@
     sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/currencyCode> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/currencyCode> ; sh:maxCount 1 ] .
 
+<https://blackcatinformatics.ca/gmeow/decidedLabel-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/decidedLabel> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/decidedLabel> ; sh:maxCount 1 ] .
+
 <https://blackcatinformatics.ca/gmeow/decisionConstraint-domain-shape> a sh:NodeShape ;
     sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/decisionConstraint> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/decisionConstraint> ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/decisionCrossedThreshold-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/decisionCrossedThreshold> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/decisionCrossedThreshold> ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/decisionMargin-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/decisionMargin> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/decisionMargin> ; sh:maxCount 1 ] .
 
 <https://blackcatinformatics.ca/gmeow/decisionPerformance-domain-shape> a sh:NodeShape ;
     sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/decisionPerformance> ;
@@ -1956,6 +1976,10 @@
 <https://blackcatinformatics.ca/gmeow/knownProposition-domain-shape> a sh:NodeShape ;
     sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/knownProposition> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/knownProposition> ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/labelSetDecision-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/labelSetDecision> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/labelSetDecision> ; sh:maxCount 1 ] .
 
 <https://blackcatinformatics.ca/gmeow/ledgerAccountType-domain-shape> a sh:NodeShape ;
     sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/ledgerAccountType> ;

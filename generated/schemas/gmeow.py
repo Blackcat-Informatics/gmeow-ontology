@@ -75,6 +75,7 @@ class AffectCompositeEnum(str, Enum):
 
 class AffectFunctionEnum(str, Enum):
     fnAffectiveIntensity = "fnAffectiveIntensity"
+    fnArgmax = "fnArgmax"
 
 
 class AffectScaleProfileEnum(str, Enum):
@@ -1448,6 +1449,11 @@ class KnowledgeLevelEnum(str, Enum):
     knowledgeKnowsAbout = "knowledgeKnowsAbout"
     knowledgeMastered = "knowledgeMastered"
     knowledgeUnderstands = "knowledgeUnderstands"
+
+
+class LabelSetDecisionRuleEnum(str, Enum):
+    decisionArgmax = "decisionArgmax"
+    decisionIndependentThreshold = "decisionIndependentThreshold"
 
 
 class LandTenureTypeEnum(str, Enum):
@@ -3472,6 +3478,7 @@ class AdequacyVerdict(ConfiguredBaseModel):
 class Observation(ConfiguredBaseModel):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/Observation"
     credibilityScore: list[float] | None = Field(default=None)
+    derivedByFunction: list[AffectFunction] | None = Field(default=None)
     facetSubject: list[Person] | None = Field(default=None)
     facetVantage: list[Agent] | None = Field(default=None)
     observationEvent: list[Event] | None = Field(default=None)
@@ -3619,6 +3626,14 @@ class AffectComposite(Emotion):
     affectiveConstituent: list[str] | None = Field(default=None)
 
 
+class AffectDecision(Observation):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/AffectDecision"
+    is_a: ClassVar[str] = "Observation"
+    decidedLabel: AffectClassifierLabel | None = Field(default=None)
+    decisionCrossedThreshold: bool | None = Field(default=None)
+    decisionMargin: float | None = Field(default=None)
+
+
 class AffectEvaluationConcluded(Observation):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/AffectEvaluationConcluded"
     is_a: ClassVar[str] = "Observation"
@@ -3633,7 +3648,7 @@ class AffectFunction(ConfiguredBaseModel):
 class AffectLabelSet(InformationObject):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/AffectLabelSet"
     is_a: ClassVar[str] = "InformationObject"
-    pass
+    labelSetDecision: LabelSetDecisionRule | None = Field(default=None)
 
 
 class AffectScaleProfile(InformationObject):
@@ -5019,7 +5034,6 @@ class DerivationType(ConfiguredBaseModel):
 class DerivedAffectIntensityObservation(Observation):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/DerivedAffectIntensityObservation"
     is_a: ClassVar[str] = "Observation"
-    derivedByFunction: list[AffectFunction] | None = Field(default=None)
     intensityBasis: AffectVectorObservation | None = Field(default=None)
     metricProfile: AffectScaleProfile | None = Field(default=None)
     normFunction: str | None = Field(default=None)
@@ -6070,6 +6084,11 @@ class KnowledgeProficiency(ConfiguredBaseModel):
     knowledgeProficiencyLevel: KnowledgeLevel | None = Field(default=None)
     knowledgeProficiencyScale: ProficiencyScale | None = Field(default=None)
     knowledgeProficiencySubject: Entity | None = Field(default=None)
+
+
+class LabelSetDecisionRule(ConfiguredBaseModel):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/LabelSetDecisionRule"
+    pass
 
 
 class LandTenure(TimeScopedRelation):
@@ -7789,7 +7808,7 @@ class ScoreScale(InformationObject):
 
 class ScoreSemantics(ConfiguredBaseModel):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/ScoreSemantics"
-    pass
+    impliesLabelSetDecision: list[LabelSetDecisionRule] | None = Field(default=None)
 
 
 class ScriptLanguageAttribution(Observation):
