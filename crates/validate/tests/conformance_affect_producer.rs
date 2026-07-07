@@ -1,15 +1,16 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 //! Whole-ontology SHACL conformance for the `gmeow-affect-ingest` PRODUCER.
 //!
-//! The executable acceptance check on the production surface: the real captured
-//! GoEmotions output, run through [`produce`], validates clean against the SAME
-//! unmodified whole-ontology shapes corpus (`whole_shapes()`) the affect
-//! evidence-spine twin (`conformance_affect.rs`) uses — no parallel laxer path.
-//! It also proves the blind `recover ∘ produce = id` round-trip end-to-end on the
-//! real fixture, that tampering the emitted graph fires the exact Stage-4 shape,
-//! and that the producer hard-fails in Rust on the rule-2 registration the
-//! fixture-only SHACL (which only sees the output graph, not the typed label
-//! registrations) cannot itself catch.
+//! The executable acceptance check on the production surface: EVERY real captured
+//! classifier output (GoEmotions / SST-2 / CardiffNLP / j-hartmann), run through
+//! [`produce`], validates clean against the SAME unmodified whole-ontology shapes
+//! corpus (`whole_shapes()`) the affect evidence-spine twin
+//! (`conformance_affect.rs`) uses — no parallel laxer path. It also proves the
+//! blind `recover ∘ produce = id` round-trip end-to-end on each real fixture, that
+//! tampering the emitted graph fires the exact Stage-4 shape, and that the producer
+//! hard-fails in Rust on the rule-2 registration the fixture-only SHACL (which only
+//! sees the output graph, not the typed label registrations) cannot itself catch.
+//! (The run-scoped zero-shot adapter is exercised in `conformance_affect_zeroshot`.)
 
 mod conformance_support;
 use conformance_support::*;
@@ -21,11 +22,46 @@ use gmeow_affect_ingest::{
 };
 use gmeow_math::index_turtle;
 
-/// Build the GoEmotions producer config straight from the authored affect slice
-/// sources (`module.ttl` registers the 28 labels; `mappings/equivalences.ttl`
-/// authors the reviewed `closeMatch` cells) — the single source of truth, read
-/// the same way the CLI reads it from the compiled bundle.
-fn goemotions_config() -> IngestConfig {
+/// A statically-registered reference adapter: a `gmeow:AffectLabelSet` id, its real
+/// captured fixture, and whether its labels review onto emotion types (so the
+/// producer routes a supported claim) or are sentiment/social labels (evidence
+/// only, never an expresses-claim).
+struct Adapter {
+    label_set_id: &'static str,
+    fixture: &'static str,
+    /// A canonical emotion word a claim must gloss, or `None` for the
+    /// sentiment/social adapters that route NO expresses-claim.
+    expected_claim_word: Option<&'static str>,
+}
+
+const ADAPTERS: &[Adapter] = &[
+    Adapter {
+        label_set_id: "GoEmotions",
+        fixture: "goemotions-sample.json",
+        expected_claim_word: Some("joy"),
+    },
+    Adapter {
+        label_set_id: "Ekman7",
+        fixture: "ekman7-sample.json",
+        expected_claim_word: Some("joy"),
+    },
+    Adapter {
+        label_set_id: "SST2",
+        fixture: "sst2-sample.json",
+        expected_claim_word: None,
+    },
+    Adapter {
+        label_set_id: "CardiffTweetEval",
+        fixture: "cardiff-sample.json",
+        expected_claim_word: None,
+    },
+];
+
+/// Build a producer config straight from the authored affect slice sources
+/// (`module.ttl` registers the label sets; `mappings/equivalences.ttl` authors the
+/// reviewed `closeMatch` cells) — the single source of truth, read the same way the
+/// CLI reads it from the compiled bundle.
+fn affect_config(label_set_id: &str) -> IngestConfig {
     let root = repo_root();
     let module = fs::read_to_string(root.join("slices/core/affect/module.ttl"))
         .expect("read affect module.ttl");
@@ -34,68 +70,86 @@ fn goemotions_config() -> IngestConfig {
             .expect("read affect equivalences.ttl");
     let combined = format!("{module}\n{equivalences}");
     let index = index_turtle(combined.as_bytes()).expect("index affect ontology");
-    IngestConfig::goemotions_from_index(&index)
+    IngestConfig::config_for_label_set(&index, label_set_id).expect("config for label set")
 }
 
-/// The real captured GoEmotions run (`crates/affect-ingest/fixtures/...`).
-fn fixture() -> ClassifierRunCapture {
+/// A real captured classifier run (`crates/affect-ingest/fixtures/...`).
+fn fixture(name: &str) -> ClassifierRunCapture {
     let root = repo_root();
-    let json =
-        fs::read_to_string(root.join("crates/affect-ingest/fixtures/goemotions-sample.json"))
-            .expect("read goemotions fixture");
-    serde_json::from_str(&json).expect("deserialize goemotions fixture")
+    let json = fs::read_to_string(root.join("crates/affect-ingest/fixtures").join(name))
+        .unwrap_or_else(|e| panic!("read fixture {name}: {e}"));
+    serde_json::from_str(&json).unwrap_or_else(|e| panic!("deserialize fixture {name}: {e}"))
 }
 
 #[test]
-fn producer_output_conforms_and_is_lossless() {
-    let cfg = goemotions_config();
-    let cap = fixture();
-    let ttl = produce(&cap, &cfg).expect("produce over real fixture");
+fn every_adapter_output_conforms_and_is_lossless() {
+    for adapter in ADAPTERS {
+        let cfg = affect_config(adapter.label_set_id);
+        let cap = fixture(adapter.fixture);
+        let ttl =
+            produce(&cap, &cfg).unwrap_or_else(|e| panic!("produce {}: {e}", adapter.label_set_id));
 
-    // The real output validates clean against the UNMODIFIED whole-ontology shapes.
-    Case::inline(ttl.clone()).run();
+        // The real output validates clean against the UNMODIFIED whole-ontology
+        // shapes — the same corpus that guards the hand-authored fixtures.
+        Case::inline(ttl.clone()).run();
 
-    // Lossless: an AffectClassifierOutput for EVERY emitted label survives.
-    for score in &cap.targets[0].scores {
+        // Lossless: exactly one AffectClassifierOutput per (target, label) survives.
+        let expected_outputs: usize = cap.targets.iter().map(|t| t.scores.len()).sum();
+        assert_eq!(
+            ttl.matches("AffectClassifierOutput").count(),
+            expected_outputs,
+            "{}: an output per emitted label",
+            adapter.label_set_id
+        );
+
+        // Claim routing depends on the reviewed rung: emotion labels gloss a claim
+        // from the CANONICAL term; sentiment/social labels route NONE.
+        match adapter.expected_claim_word {
+            Some(word) => assert!(
+                ttl.contains(&format!("the text expresses {word}")),
+                "{}: expected an emotion claim for {word:?}",
+                adapter.label_set_id
+            ),
+            None => assert!(
+                !ttl.contains("the text expresses"),
+                "{}: sentiment labels must route NO expresses-claim",
+                adapter.label_set_id
+            ),
+        }
+        // Rule 5: the output never directly asserts inner affect.
         assert!(
-            ttl.contains(&format!("gmeow-registry/goemotions/{}", score.label)),
-            "lossless ingest dropped label {:?}",
-            score.label
+            !ttl.contains("gmeow:emotionType"),
+            "{}",
+            adapter.label_set_id
         );
     }
-    // External labels live under the per-registry prefix, never canonical gmeow:.
-    assert!(ttl.contains("gmeow-registry/goemotions/joy"));
-
-    // Claim routing: joy (0.82) and surprise (0.55) cross threshold AND carry an
-    // authored closeMatch to a gmeow:EmotionType → each supports a claim.
-    assert!(ttl.contains("the text expresses joy"));
-    assert!(ttl.contains("the text expresses surprise"));
-    // gratitude (0.90) crosses threshold but is a social label with no emotion
-    // closeMatch → evidence survives as an output, but NO expresses-claim.
-    assert!(!ttl.contains("the text expresses gratitude"));
-    // Rule 5: the output never directly asserts inner affect.
-    assert!(!ttl.contains("gmeow:emotionType"));
 }
 
 #[test]
-fn blind_round_trip_holds_on_real_fixture() {
-    let cfg = goemotions_config();
-    let cap = fixture();
-    let ttl = produce(&cap, &cfg).expect("produce");
-    // The losslessness acceptance criterion, exercised end-to-end on the real
-    // captured output: recover is authored independently, never produce.invert().
-    assert_eq!(
-        recover(&ttl, &cfg).expect("recover"),
-        canonicalize(&cap, &cfg)
-    );
+fn every_adapter_blind_round_trips() {
+    for adapter in ADAPTERS {
+        let cfg = affect_config(adapter.label_set_id);
+        let cap = fixture(adapter.fixture);
+        let ttl = produce(&cap, &cfg).expect("produce");
+        // The losslessness acceptance criterion, end-to-end on each real captured
+        // output: recover is authored independently, never produce.invert().
+        assert_eq!(
+            recover(&ttl, &cfg).expect("recover"),
+            canonicalize(&cap, &cfg),
+            "{}: blind round-trip",
+            adapter.label_set_id
+        );
+    }
 }
 
 #[test]
 fn all_sub_threshold_emits_conforming_evaluation_concluded() {
-    let cfg = goemotions_config();
-    let mut cap = fixture();
-    for score in &mut cap.targets[0].scores {
-        score.score = 0.10; // nothing crosses the 0.5 threshold
+    let cfg = affect_config("GoEmotions");
+    let mut cap = fixture("goemotions-sample.json");
+    for target in &mut cap.targets {
+        for score in &mut target.scores {
+            score.score = 0.10; // nothing crosses the 0.5 threshold
+        }
     }
     let ttl = produce(&cap, &cfg).expect("produce all-sub-threshold");
     // "Concluded and flat" is a positive, queryable fact — not "never checked".
@@ -107,8 +161,8 @@ fn all_sub_threshold_emits_conforming_evaluation_concluded() {
 
 #[test]
 fn tampered_output_missing_revision_fires_the_stage4_shape() {
-    let cfg = goemotions_config();
-    let ttl = produce(&fixture(), &cfg).expect("produce");
+    let cfg = affect_config("GoEmotions");
+    let ttl = produce(&fixture("goemotions-sample.json"), &cfg).expect("produce");
     // Drop the mandatory modelRevision from the PRODUCER's exact output: the same
     // ModelInferenceRunShape that guards the hand-written fixtures must bite here.
     let tampered: String = ttl
@@ -123,32 +177,39 @@ fn tampered_output_missing_revision_fires_the_stage4_shape() {
 }
 
 #[test]
-fn producer_hard_fails_in_rust_on_rule2_and_rule7() {
-    let cfg = goemotions_config();
+fn every_adapter_hard_fails_in_rust_on_rule2_and_rule7() {
+    for adapter in ADAPTERS {
+        let cfg = affect_config(adapter.label_set_id);
 
-    // Rule 7 (missing pinned revision) — caught in Rust before any emission.
-    let mut cap = fixture();
-    cap.model_revision = String::new();
-    assert!(matches!(
-        produce(&cap, &cfg),
-        Err(IngestError::MissingModelRevision)
-    ));
+        // Rule 7 (missing pinned revision) — caught in Rust before any emission.
+        let mut cap = fixture(adapter.fixture);
+        cap.model_revision = String::new();
+        assert!(
+            matches!(produce(&cap, &cfg), Err(IngestError::MissingModelRevision)),
+            "{}: rule 7",
+            adapter.label_set_id
+        );
 
-    // Rule 2 (unregistered label) — the fixture-only SHACL never sees the label's
-    // AffectClassifierLabel typing, so the no-optionality guard lives in Rust.
-    let mut cap = fixture();
-    cap.return_all_scores = false;
-    cap.targets[0].scores[0].label = "notARealGoEmotionsLabel".to_owned();
-    assert!(matches!(
-        produce(&cap, &cfg),
-        Err(IngestError::UnregisteredLabel { .. })
-    ));
+        // Rule 2 (unregistered label) — the fixture-only SHACL never sees the
+        // label's AffectClassifierLabel typing, so the guard lives in Rust.
+        let mut cap = fixture(adapter.fixture);
+        cap.return_all_scores = false;
+        cap.targets[0].scores[0].label = "notARegisteredLabel".to_owned();
+        assert!(
+            matches!(
+                produce(&cap, &cfg),
+                Err(IngestError::UnregisteredLabel { .. })
+            ),
+            "{}: rule 2",
+            adapter.label_set_id
+        );
+    }
 }
 
 #[test]
 fn hand_authored_example_still_conforms() {
-    // F2 reconciliation: the pre-existing curated docs example is a distinct,
-    // minimal illustration (not a competing producer). Pin it against the shapes
-    // so it cannot silently drift out of validity as the corpus evolves.
+    // The pre-existing curated docs example is a distinct, minimal illustration
+    // (not a competing producer). Pin it against the shapes so it cannot silently
+    // drift out of validity as the corpus evolves.
     Case::repo_path("slices/core/affect/examples/goemotions-run.ttl").run();
 }

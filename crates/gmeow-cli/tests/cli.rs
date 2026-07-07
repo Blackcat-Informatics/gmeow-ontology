@@ -419,37 +419,45 @@ fn affect_goemotions_ingest_recover_round_trips_through_the_cli() {
     let capture = crate_fixture("affect-ingest/fixtures/goemotions-sample.json");
 
     // Put leg: the captured GoEmotions JSON becomes attributed evidence Turtle,
-    // resolving the label set + reviewed closeMatch from the EMBEDDED bundle.
+    // resolving the label set + reviewed closeMatch from the EMBEDDED bundle. The
+    // adapter is dispatched from the capture's declared label set — one generic
+    // `ingest` subcommand, no per-model variant.
     let put = gmeow()
-        .args(["affect", "ingest-goemotions"])
+        .args(["affect", "ingest"])
         .arg(&capture)
         .assert()
         .success();
     let ttl = String::from_utf8(put.get_output().stdout.clone()).expect("utf-8 turtle");
     assert!(ttl.contains("ModelInferenceRun"), "run emitted");
-    // lossless: an output for every one of the 28 GoEmotions labels.
-    assert_eq!(ttl.matches("AffectClassifierOutput").count(), 28);
-    // claim routing via the bundle's SSSOM correspondence (joy/surprise cross
-    // threshold AND closeMatch a gmeow:EmotionType).
+    // lossless: an output for every one of the 28 GoEmotions labels, on every
+    // captured target (the real fixture carries three).
+    let outputs = ttl.matches("AffectClassifierOutput").count();
+    assert!(
+        outputs >= 28 && outputs.is_multiple_of(28),
+        "28 labels per target: {outputs}"
+    );
+    // claim routing via the bundle's SSSOM correspondence: the joyful target's
+    // `joy` crosses threshold AND closeMatches gmeow:emotionJoy.
     assert!(ttl.contains("the text expresses joy"));
 
-    // Get leg: pipe the evidence back in; the reconstructed capture round-trips
-    // through the real CLI (pinned model revision + the recovered joy score).
+    // Get leg: pipe the evidence back in; the label set is auto-detected from the
+    // emitted labels and the reconstructed capture round-trips through the real CLI
+    // (pinned model revision + real model identity).
     gmeow()
-        .args(["affect", "recover-goemotions", "-"])
+        .args(["affect", "recover", "-"])
         .write_stdin(ttl)
         .assert()
         .success()
         .stdout(
             predicate::str::contains("d75048347613a25d77de8cf6412eaae9fa7b26be")
-                .and(predicate::str::contains("\"score\": 0.82")),
+                .and(predicate::str::contains("SamLowe/roberta-base-go_emotions")),
         );
 }
 
 #[test]
 fn affect_goemotions_ingest_missing_source_is_a_runtime_error() {
     gmeow()
-        .args(["affect", "ingest-goemotions", "/nonexistent-capture.json"])
+        .args(["affect", "ingest", "/nonexistent-capture.json"])
         .assert()
         .failure()
         .stderr(predicate::str::contains("Error:"));

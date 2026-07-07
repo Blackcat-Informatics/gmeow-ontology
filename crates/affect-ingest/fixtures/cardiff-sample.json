@@ -1,0 +1,68 @@
+{
+  "model_identifier": "cardiffnlp/twitter-roberta-base-sentiment-latest",
+  "model_revision": "3216a57f2a0d9c45a2e6c20157c20c49fb4bf9c7",
+  "model_framework": "transformers",
+  "model_task": "text-classification",
+  "function_to_apply": "softmax",
+  "return_all_scores": true,
+  "label_set_id": "CardiffTweetEval",
+  "score_semantics": "softmax",
+  "tokenizer_revision": "3216a57f2a0d9c45a2e6c20157c20c49fb4bf9c7",
+  "threshold_policy": {
+    "kind": "global",
+    "value": 0.5
+  },
+  "targets": [
+    {
+      "target_iri": "https://blackcatinformatics.ca/gmeow/examples/affect/cardiff/gratitude",
+      "scores": [
+        {
+          "label": "cardiffNegative",
+          "score": 0.008989915251731873
+        },
+        {
+          "label": "cardiffNeutral",
+          "score": 0.010339723899960518
+        },
+        {
+          "label": "cardiffPositive",
+          "score": 0.9806703329086304
+        }
+      ]
+    },
+    {
+      "target_iri": "https://blackcatinformatics.ca/gmeow/examples/affect/cardiff/joy",
+      "scores": [
+        {
+          "label": "cardiffNegative",
+          "score": 0.007035653572529554
+        },
+        {
+          "label": "cardiffNeutral",
+          "score": 0.007416249252855778
+        },
+        {
+          "label": "cardiffPositive",
+          "score": 0.9855480790138245
+        }
+      ]
+    },
+    {
+      "target_iri": "https://blackcatinformatics.ca/gmeow/examples/affect/cardiff/fear",
+      "scores": [
+        {
+          "label": "cardiffNegative",
+          "score": 0.9220970273017883
+        },
+        {
+          "label": "cardiffNeutral",
+          "score": 0.06789230555295944
+        },
+        {
+          "label": "cardiffPositive",
+          "score": 0.010010681115090847
+        }
+      ]
+    }
+  ]
+}

@@ -3,48 +3,58 @@ SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinform
 SPDX-License-Identifier: CC-BY-4.0
 -->
 
-# GoEmotions capture fixtures
+# Classifier capture fixtures
 
-## `goemotions-sample.json`
+Each `*-sample.json` is a **genuine captured run** of a real Hugging Face
+classifier — the input to the `gmeow-affect-ingest` producer's put leg
+(`produce`) and the anchor of the whole-ontology SHACL conformance gate
+(`crates/validate/tests/conformance_affect_producer.rs`). Every fixture is a
+`ClassifierRunCapture` envelope over three shared target texts (a grateful, a
+joyful, and a fearful sentence), so each exercises the mapped-emotion claim path,
+the sentiment/social no-claim path, and the below-threshold "concluded" path.
 
-A captured `SamLowe/roberta-base-go_emotions` classifier run — the input to the
-`gmeow-affect-ingest` producer's put leg (`produce`) and the anchor of the
-whole-ontology SHACL conformance gate
-(`crates/validate/tests/conformance_affect_producer.rs`).
+**These are real inference outputs, not representative numbers.** The scores were
+produced by loading each model at the pinned revision below and running it over
+the three texts **off-gate** (the repository itself runs no on-gate inference —
+determinism / no-network). The one-time capture procedure is
+`gmeow affect ingest`'s upstream: an authenticated `transformers`
+`text-classification` (or `zero-shot-classification`) pipeline with
+`top_k=None` / `return_all_scores`, pinned to the model's commit; the resulting
+`scores` array is checked in verbatim. To refresh a fixture, re-run the pinned
+model and replace its `scores` (the `model_revision` must match the run).
 
-**Provenance — what is real:**
+| fixture | model | pinned revision | semantics |
+|---|---|---|---|
+| `goemotions-sample.json` | `SamLowe/roberta-base-go_emotions` | `d75048347613a25d77de8cf6412eaae9fa7b26be` | sigmoid, multi-label (28) |
+| `sst2-sample.json` | `distilbert-base-uncased-finetuned-sst-2-english` | `714eb0fa89d2f80546fda750413ed43d93601a13` | softmax (POSITIVE/NEGATIVE) |
+| `cardiff-sample.json` | `cardiffnlp/twitter-roberta-base-sentiment-latest` | `3216a57f2a0d9c45a2e6c20157c20c49fb4bf9c7` | softmax (Negative/Neutral/Positive) |
+| `ekman7-sample.json` | `j-hartmann/emotion-english-distilroberta-base` | `0e1cd914e3d46199ed785853e12b57304e04178b` | softmax, Ekman-7 |
+| `zeroshot-sample.json` | `facebook/bart-large-mnli` | `d7645e127eaf1aefc7862fd59a17a5aa8558b8ce` | NLI entailment, run-scoped candidates |
 
-- `model_identifier` — the real Hugging Face model repository id.
-- `model_revision` / `tokenizer_revision` —
-  `d75048347613a25d77de8cf6412eaae9fa7b26be`, the **real pinned commit** of the
-  model's `main` at capture time (fetched from
-  `https://huggingface.co/api/models/SamLowe/roberta-base-go_emotions`). A model
-  name without a pinned revision is a hard fail (rule 7); this SHA is genuine.
-- The **28-label set** — the real GoEmotions label vocabulary the model emits
-  over, each already registered as a `gmeow:AffectClassifierLabel` in
-  `slices/core/affect/module.ttl`.
-- `function_to_apply` / `score_semantics` / `threshold_policy` — the model card's
-  documented multi-label sigmoid + 0.5-default configuration.
+## What every fixture proves
 
-**Provenance — what is representative:** the per-label **score values** are a
-representative multi-label-sigmoid profile, not a captured live inference. The
-Hugging Face free inference API is now token-gated, and this repository runs **no
-on-gate model inference** (determinism / no-network), so a live capture is not
-reproduced here. The scores are chosen to be internally consistent for a warmly
-positive comment: `gratitude` (0.90), `joy` (0.82), and `surprise` (0.55) cross
-the 0.5 threshold, while everything else stays below it.
+- **Lossless ingest** — every emitted `(target, label)` becomes a
+  `gmeow:AffectClassifierOutput` carrying the raw score + score semantics +
+  applied threshold; the blind `recover ∘ produce = id` round-trip proves it.
+- **The external-label → registry-identity step** — each fixture's `label`
+  strings are the GMEOW registry locals (e.g. the model's `POSITIVE` is captured
+  as `sst2Positive`, registered under `gmeow-registry/hf/`); the raw model
+  surface string is preserved as that registered label's `rdfs:label`.
+- **Claim routing (evidence, never entailment)** — an above-threshold label
+  supports a `gmeow:AffectiveClaim` **only** where the ontology authors a reviewed
+  `skos:closeMatch` to a `gmeow:EmotionType`. GoEmotions and Ekman-7 emotion
+  labels route claims; SST-2 / CardiffNLP sentiment labels (a `relatedMatch` to
+  the valence axis, never an emotion) and every `neutral` label emit an
+  output+score but **no** expresses-claim.
 
-This exercises the full producer contract independent of the exact numbers:
+## The zero-shot fixture
 
-- **Lossless ingest** — all 28 labels become `gmeow:AffectClassifierOutput`
-  records (the `recover ∘ produce = id` round-trip proves it).
-- **Claim routing** — `joy` and `surprise` cross threshold **and** carry an
-  authored `skos:closeMatch` to a `gmeow:EmotionType`, so each supports an
-  `AffectiveClaim`; `gratitude` crosses threshold but is a social/evaluative
-  label with no emotion closeMatch, so it correctly supports **no** expresses-claim
-  (evidence survives as an output+score either way).
-
-To refresh with a genuine live capture, run the model once off-gate (an
-authenticated `transformers` `text-classification` pipeline with
-`function_to_apply="sigmoid"`, `top_k=None`) and replace the `scores` array;
-the pinned `model_revision` must match the run.
+`facebook/bart-large-mnli` is NLI-entailment, not a fixed-label classifier — its
+candidate set is prompt-supplied and is part of the run's identity (per the
+canonical affect design). The fixture therefore carries the run-scoped
+`candidate_labels`, the `hypothesis_template`, and a `label_set_revision`
+pinning the candidate set, rather than pointing at a static
+`gmeow:AffectLabelSet`. Its scores are per-candidate entailment probabilities
+(`multi_label` sigmoid over entailment-vs-contradiction). It emits attributed
+evidence (one output per candidate) but routes no auto-claim: a run-scoped prompt
+candidate has no pre-reviewed closeMatch, so the claim/evidence boundary holds.

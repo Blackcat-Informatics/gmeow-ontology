@@ -2,7 +2,15 @@
 # These fixtures replace live gpg-agent invocations and are not secrets.
 gts/tests/fixtures/test_key.sec.asc:private-key:1
 packages/gts/tests/fixtures/test_key.sec.asc:private-key:1
-# GoEmotions capture fixture: the flagged value is the real pinned HF model
+# Classifier capture fixtures: the flagged value is the real pinned HF model
 # commit revision (a 40-char git SHA), not an API key. See fixtures/README.md.
 affect-ingest/fixtures/goemotions-sample.json:generic-api-key:10
 crates/affect-ingest/fixtures/goemotions-sample.json:generic-api-key:10
+affect-ingest/fixtures/sst2-sample.json:generic-api-key:10
+crates/affect-ingest/fixtures/sst2-sample.json:generic-api-key:10
+affect-ingest/fixtures/cardiff-sample.json:generic-api-key:10
+crates/affect-ingest/fixtures/cardiff-sample.json:generic-api-key:10
+affect-ingest/fixtures/ekman7-sample.json:generic-api-key:10
+crates/affect-ingest/fixtures/ekman7-sample.json:generic-api-key:10
+affect-ingest/fixtures/zeroshot-sample.json:generic-api-key:10
+crates/affect-ingest/fixtures/zeroshot-sample.json:generic-api-key:10

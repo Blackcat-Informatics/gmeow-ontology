@@ -29,13 +29,17 @@
 //! semantics, `return_all_scores` from label-set completeness) so nothing is
 //! silently dropped to make the round-trip pass.
 //!
-//! ## GoEmotions is one instance of a general functor
+//! ## Every adapter is one instance of a general functor
 //! The transform is parameterized by an [`IngestConfig`] — the registered label
 //! set and the authored closeMatch cells, **loaded from the ontology bundle**
-//! (single source of truth; no hardcoded label list). GoEmotions
-//! (`SamLowe/roberta-base-go_emotions`) is the reference instance; SST-2 /
-//! CardiffNLP / j-hartmann / zero-shot are a capture + config, not new code
-//! (tracked in the follow-on issue).
+//! (single source of truth; no hardcoded label list). The registry namespace and
+//! the mint base are DERIVED from the label set's registered members, so a new
+//! adapter is a capture + a `label_set_id`, never new code. GoEmotions
+//! (`SamLowe/roberta-base-go_emotions`, sigmoid), SST-2 and CardiffNLP (softmax
+//! sentiment), and j-hartmann Ekman-7 (softmax emotion) are all statically
+//! registered instances dispatched by [`config_for_capture`]; the run-scoped
+//! zero-shot adapter (`facebook/bart-large-mnli`, NLI entailment) declares its
+//! candidate set per run instead of pointing at a static `gmeow:AffectLabelSet`.
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
@@ -50,13 +54,8 @@ use serde::{Deserialize, Serialize};
 
 /// Canonical GMEOW namespace.
 const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
-/// GoEmotions per-registry label prefix — external label identities live here,
-/// NEVER under `gmeow:`, so a model label can never be mistaken for an emotion.
-const GOEMOTIONS: &str = "https://blackcatinformatics.ca/gmeow-registry/goemotions/";
-/// Label-set registry prefix.
+/// Label-set registry prefix — each `gmeow:AffectLabelSet`'s IRI is `{LABELSET}{id}`.
 const LABELSET: &str = "https://blackcatinformatics.ca/gmeow-registry/labelset/";
-/// Base under which this producer mints run/output/claim/concluded nodes.
-const INGEST_BASE: &str = "https://blackcatinformatics.ca/gmeow/ingest/goemotions/";
 
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const RDFS_LABEL: &str = "http://www.w3.org/2000/01/rdf-schema#label";
@@ -349,11 +348,18 @@ struct EmotionMatch {
 
 /// The producer parameters: which label set, and the reviewed label→canonical
 /// closeMatch cells — both loaded FROM the ontology bundle (single source of
-/// truth). Never a hardcoded label list.
+/// truth). Never a hardcoded label list. Every adapter (GoEmotions, SST-2,
+/// CardiffNLP, j-hartmann, …) is one instance, distinguished only by which
+/// registered `gmeow:AffectLabelSet` it serves.
 #[derive(Clone, Debug)]
 pub struct IngestConfig {
     label_set_id: String,
+    /// The registry namespace every label in the set lives under (derived from the
+    /// registered members, never hardcoded) — e.g. `…/gmeow-registry/hf/`.
     registry_prefix: String,
+    /// Base under which this adapter mints run/output/claim/concluded nodes — a
+    /// per-label-set path (`…/gmeow/ingest/<id>/`), so two adapters never collide.
+    mint_base: String,
     /// Full IRIs of every registered label in the set.
     registered: BTreeSet<String>,
     /// Full label IRI → the `gmeow:EmotionType` it closeMatches (a subset — only
@@ -363,8 +369,8 @@ pub struct IngestConfig {
 }
 
 impl IngestConfig {
-    /// Build the GoEmotions config from a compiled ontology bundle plus its
-    /// bundled SSSOM correspondence surface.
+    /// Build the config for a named `gmeow:AffectLabelSet` from a compiled ontology
+    /// bundle plus its bundled SSSOM correspondence surface.
     ///
     /// The bundle's **base graph** carries the label registrations
     /// (`gmeow:memberOfLabelSet`) and the canonical `gmeow:EmotionType` typing +
@@ -374,36 +380,54 @@ impl IngestConfig {
     /// mapping is therefore read from `sssom_texts` (the caller reads the blob;
     /// this crate stays free of the pipeline dependency), while the EmotionType
     /// typing + label gloss come from the base graph.
-    pub fn goemotions_from_gts_with_sssom(bundle: &[u8], sssom_texts: &[String]) -> Self {
+    pub fn from_gts_with_sssom(
+        bundle: &[u8],
+        sssom_texts: &[String],
+        label_set_id: &str,
+    ) -> Result<Self, IngestError> {
         let graph = purrdf::gts::reader::read(bundle, false, None);
         let index = index_graph(&graph);
-        let mut config = Self::goemotions_from_index(&index);
+        let mut config = Self::config_for_label_set(&index, label_set_id)?;
         for tsv in sssom_texts {
-            config.add_sssom_correspondences(tsv, &index);
+            config.add_sssom_correspondences(tsv, &index)?;
         }
-        config
+        Ok(config)
     }
 
-    /// Build the GoEmotions config from an already-indexed graph. Reads the
-    /// registered labels, and any closeMatch cells present IN the graph (the
-    /// authored slice sources — `module.ttl` + `mappings/equivalences.ttl` —
-    /// carry them as reified `gmeow:TermEquivalence` / direct triples). For the
-    /// compiled bundle, supplement with [`add_sssom_correspondences`].
-    pub fn goemotions_from_index(index: &TripleIndex) -> Self {
-        let label_set_iri = format!("{LABELSET}GoEmotions");
-        Self::from_label_set(index, "GoEmotions", &label_set_iri, GOEMOTIONS)
+    /// Build the config for a named label set from an already-indexed graph. Reads
+    /// the registered labels, derives the registry namespace + mint base from them,
+    /// and folds in any closeMatch cells present IN the graph (the authored slice
+    /// sources — `module.ttl` + `mappings/equivalences.ttl` — carry them as reified
+    /// `gmeow:TermEquivalence` / direct triples). For the compiled bundle,
+    /// supplement with [`add_sssom_correspondences`].
+    pub fn config_for_label_set(
+        index: &TripleIndex,
+        label_set_id: &str,
+    ) -> Result<Self, IngestError> {
+        let label_set_iri = format!("{LABELSET}{label_set_id}");
+        Self::from_label_set(index, label_set_id, &label_set_iri)
     }
 
     /// Fold an SSSOM correspondence surface into the emotion-claim routing map:
-    /// each `<label> skos:closeMatch <emotion>` row whose object is a
-    /// `gmeow:EmotionType` (per `index`) becomes a routing target. `broadMatch`
-    /// rows (`grief`) and closeMatch rows to a non-EmotionType (`desire →
-    /// gmeow:Desire`) are correctly excluded — the SSSOM's own semantics carry the
-    /// distinction. CURIEs are expanded via the file's `# curie_map:` header, so
-    /// no prefix is hardcoded.
-    pub fn add_sssom_correspondences(&mut self, sssom_tsv: &str, index: &TripleIndex) {
+    /// each `<label> skos:closeMatch <emotion>` row whose subject is a registered
+    /// member of THIS label set and whose object is a `gmeow:EmotionType` (per
+    /// `index`) becomes a routing target. `broadMatch` rows (`grief`) and
+    /// closeMatch rows to a non-EmotionType (`desire → gmeow:Desire`) are correctly
+    /// excluded — the SSSOM's own semantics carry the distinction. CURIEs are
+    /// expanded via the file's `# curie_map:` header (absolute IRIs pass through),
+    /// so no prefix is hardcoded. No-optionality: an unparsable data row is a
+    /// HARD FAIL, never silently dropped.
+    pub fn add_sssom_correspondences(
+        &mut self,
+        sssom_tsv: &str,
+        index: &TripleIndex,
+    ) -> Result<(), IngestError> {
         let curie_map = parse_sssom_curie_map(sssom_tsv);
         let expand = |curie: &str| -> Option<String> {
+            // Absolute IRIs are standard in SSSOM and pass through unexpanded.
+            if curie.starts_with("http://") || curie.starts_with("https://") {
+                return Some(curie.to_owned());
+            }
             let (prefix, local) = curie.split_once(':')?;
             Some(format!("{}{}", curie_map.get(prefix)?, local))
         };
@@ -413,16 +437,23 @@ impl IngestConfig {
                 continue;
             }
             let cols: Vec<&str> = line.split('\t').collect();
-            if cols.len() < 3 || cols[0] == "subject_id" {
-                continue; // header row or malformed
+            if cols[0] == "subject_id" {
+                continue; // the column header row
             }
-            let (Some(subject), Some(predicate), Some(object)) =
-                (expand(cols[0]), expand(cols[1]), expand(cols[2]))
-            else {
-                continue;
+            // A data row that cannot be parsed into three expandable CURIEs/IRIs is
+            // a malformed correspondence surface — reject it, do not drop the claim
+            // it would have routed.
+            let (Some(subject), Some(predicate), Some(object)) = (
+                cols.first().copied().and_then(expand),
+                cols.get(1).copied().and_then(expand),
+                cols.get(2).copied().and_then(expand),
+            ) else {
+                return Err(IngestError::MalformedGraph {
+                    detail: format!("unparsable SSSOM correspondence row: {line:?}"),
+                });
             };
             if predicate == SKOS_CLOSE_MATCH
-                && subject.starts_with(self.registry_prefix.as_str())
+                && self.registered.contains(&subject)
                 && has_type(index, &object, &emotion_type)
             {
                 let word = first_literal(index, &object, RDFS_LABEL)
@@ -431,22 +462,26 @@ impl IngestConfig {
                     .insert(subject, EmotionMatch { iri: object, word });
             }
         }
+        Ok(())
     }
 
     /// The generic loader — the functor's parameterization point. Any registered
     /// `gmeow:AffectLabelSet` yields a config by reading its members + closeMatch
-    /// cells; new adapters differ only in these arguments + a capture.
+    /// cells; new adapters differ only in the `label_set_id` + a capture. The
+    /// registry namespace and the mint base are DERIVED from the registered members
+    /// (never hardcoded), so a mixed-namespace or empty set is a hard fail.
     fn from_label_set(
         index: &TripleIndex,
         label_set_id: &str,
         label_set_iri: &str,
-        registry_prefix: &str,
-    ) -> Self {
+    ) -> Result<Self, IngestError> {
         let member_of = g("memberOfLabelSet");
         let registered: BTreeSet<String> = subjects(index)
             .filter(|s| first_iri(index, s, &member_of).as_deref() == Some(label_set_iri))
             .cloned()
             .collect();
+        let registry_prefix = derive_registry_prefix(&registered, label_set_id)?;
+        let mint_base = format!("{GMEOW}ingest/{}/", label_set_id.to_lowercase());
 
         let term_equivalence = g("TermEquivalence");
         let align_subject = g("alignSubject");
@@ -457,13 +492,16 @@ impl IngestConfig {
         let mut emotion_close_match = BTreeMap::new();
         // A supported "expresses" claim is honest only when the reviewed rung is
         // closeMatch (not broadMatch) AND the target is an EmotionType (not, e.g.,
-        // teleology's gmeow:Desire). The mapping reaches the loader in one of two
-        // shapes: reified gmeow:TermEquivalence cells (the authored slice source,
-        // `mappings/equivalences.ttl`) OR the direct skos:closeMatch triple the
-        // pipeline lowers those cells into in the compiled bundle. Read BOTH so the
-        // producer works identically off the slice sources and off `gmeow.gts`.
+        // teleology's gmeow:Desire). Scope by set MEMBERSHIP, not by namespace, so
+        // sibling sets sharing a registry prefix (SST-2 / CardiffNLP / Ekman-7 all
+        // live under `gmeow-registry/hf/`) never cross-route. The mapping reaches
+        // the loader in one of two shapes: reified gmeow:TermEquivalence cells (the
+        // authored slice source, `mappings/equivalences.ttl`) OR the direct
+        // skos:closeMatch triple the pipeline lowers those cells into in the
+        // compiled bundle. Read BOTH so the producer works identically off the slice
+        // sources and off `gmeow.gts`.
         let mut record = |subject: &str, object: String| {
-            if subject.starts_with(registry_prefix) && has_type(index, &object, &emotion_type) {
+            if registered.contains(subject) && has_type(index, &object, &emotion_type) {
                 let word = first_literal(index, &object, RDFS_LABEL)
                     .unwrap_or_else(|| local_name(&object).to_owned());
                 emotion_close_match.insert(subject.to_owned(), EmotionMatch { iri: object, word });
@@ -483,18 +521,19 @@ impl IngestConfig {
             }
         }
         // Lowered form: a direct `<label> skos:closeMatch <emotion>` triple.
-        for subject in subjects(index).filter(|s| s.starts_with(registry_prefix)) {
+        for subject in &registered {
             for object in all_iris(index, subject, SKOS_CLOSE_MATCH) {
                 record(subject, object);
             }
         }
 
-        IngestConfig {
+        Ok(IngestConfig {
             label_set_id: label_set_id.to_owned(),
-            registry_prefix: registry_prefix.to_owned(),
+            registry_prefix,
+            mint_base,
             registered,
             emotion_close_match,
-        }
+        })
     }
 
     /// Full label IRI for a bare label local (`joy` → `gmeow-goemotions:joy`).
@@ -508,6 +547,63 @@ impl IngestConfig {
             .iter()
             .filter_map(|iri| iri.strip_prefix(self.registry_prefix.as_str()))
     }
+}
+
+// ─────────────────────── generic adapter dispatch ──────────────────────────
+
+/// Build the producer config a capture calls for, off the compiled bundle — the
+/// put-leg entry point. Dispatches on the capture's declared `label_set_id`
+/// (`GoEmotions` / `SST2` / `CardiffTweetEval` / `Ekman7`), so a single CLI/API
+/// surface serves every registered adapter with no per-model code.
+pub fn config_for_capture(
+    bundle: &[u8],
+    sssom_texts: &[String],
+    capture: &ClassifierRunCapture,
+) -> Result<IngestConfig, IngestError> {
+    IngestConfig::from_gts_with_sssom(bundle, sssom_texts, &capture.label_set_id)
+}
+
+/// Select the producer config an evidence graph was minted under — the get-leg
+/// entry point. The capture's `label_set_id` is GMEOW's interpretation and is not
+/// re-emitted, so recovery instead enumerates every `gmeow:AffectLabelSet` in the
+/// bundle and picks the one whose registered members cover the graph's
+/// `gmeow:emittedLabel`s (membership, not namespace — so it disambiguates sibling
+/// sets sharing a registry prefix). Hard-fails if no single set matches.
+pub fn config_for_evidence(
+    bundle: &[u8],
+    sssom_texts: &[String],
+    turtle: &str,
+) -> Result<IngestConfig, IngestError> {
+    let ev =
+        index_turtle(turtle.as_bytes()).map_err(|detail| IngestError::MalformedGraph { detail })?;
+    let output_type = g("AffectClassifierOutput");
+    let emitted_label = g("emittedLabel");
+    let emitted: BTreeSet<String> = subjects(&ev)
+        .filter(|s| has_type(&ev, s, &output_type))
+        .filter_map(|out| first_iri(&ev, out, &emitted_label))
+        .collect();
+    if emitted.is_empty() {
+        return Err(malformed("evidence graph carries no gmeow:emittedLabel"));
+    }
+
+    let graph = purrdf::gts::reader::read(bundle, false, None);
+    let index = index_graph(&graph);
+    let label_set_type = g("AffectLabelSet");
+    for set_iri in subjects(&index).filter(|s| has_type(&index, s, &label_set_type)) {
+        let Some(id) = set_iri.strip_prefix(LABELSET) else {
+            continue;
+        };
+        let mut config = IngestConfig::config_for_label_set(&index, id)?;
+        for tsv in sssom_texts {
+            config.add_sssom_correspondences(tsv, &index)?;
+        }
+        if emitted.iter().all(|l| config.registered.contains(l)) {
+            return Ok(config);
+        }
+    }
+    Err(malformed(
+        "no registered gmeow:AffectLabelSet covers the graph's emitted labels",
+    ))
 }
 
 // ───────────────────────────── put leg: produce ─────────────────────────────
@@ -527,7 +623,7 @@ pub fn produce(
 ) -> Result<String, IngestError> {
     validate(capture, config)?;
 
-    let run_iri = mint_run_iri(capture);
+    let run_iri = mint_run_iri(capture, &config.mint_base);
     let mut sink = Sink::default();
 
     // ── the run ──
@@ -715,7 +811,7 @@ fn validate(capture: &ClassifierRunCapture, config: &IngestConfig) -> Result<(),
 /// The run node — a pure function of the recoverable identity of the run
 /// (model + revision + the sorted set of classified targets). Same capture ⇒
 /// same IRI ⇒ byte-identical Turtle (idempotent); no `NOW()`, no randomness.
-fn mint_run_iri(capture: &ClassifierRunCapture) -> String {
+fn mint_run_iri(capture: &ClassifierRunCapture, mint_base: &str) -> String {
     let mut targets: Vec<&str> = capture
         .targets
         .iter()
@@ -728,7 +824,7 @@ fn mint_run_iri(capture: &ClassifierRunCapture) -> String {
         capture.model_revision,
         targets.join("\n")
     );
-    format!("{INGEST_BASE}run-{}", fnv1a_hex(&key))
+    format!("{mint_base}run-{}", fnv1a_hex(&key))
 }
 
 fn mint_output_iri(run_iri: &str, target_iri: &str, label: &str) -> String {
@@ -770,6 +866,37 @@ fn is_absolute_iri(iri: &str) -> bool {
 /// canonical term has no `rdfs:label`.
 fn local_name(iri: &str) -> &str {
     iri.rsplit(['/', '#']).next().unwrap_or(iri)
+}
+
+/// The registry namespace (up to and including the last `/` or `#`) of an IRI.
+fn namespace_of(iri: &str) -> &str {
+    match iri.rfind(['/', '#']) {
+        Some(i) => &iri[..=i],
+        None => iri,
+    }
+}
+
+/// Derive the single registry namespace every label in a set shares — the seam
+/// that lets a config strip/rebuild label locals without a hardcoded prefix. A
+/// label set that is empty (an unknown/unregistered id) or whose members span more
+/// than one namespace is malformed: a HARD FAIL, never a silent guess.
+fn derive_registry_prefix(
+    registered: &BTreeSet<String>,
+    label_set_id: &str,
+) -> Result<String, IngestError> {
+    let mut namespaces = registered.iter().map(|iri| namespace_of(iri));
+    let Some(first) = namespaces.next() else {
+        return Err(IngestError::LabelSetMismatch {
+            expected: format!("a registered gmeow:AffectLabelSet {label_set_id:?}"),
+            found: "no registered labels".to_owned(),
+        });
+    };
+    if namespaces.any(|ns| ns != first) {
+        return Err(IngestError::MalformedGraph {
+            detail: format!("label set {label_set_id:?} spans more than one registry namespace"),
+        });
+    }
+    Ok(first.to_owned())
 }
 
 /// Parse the `# curie_map:` block of an SSSOM TSV into prefix → namespace IRI.
@@ -1119,7 +1246,7 @@ mod tests {
 
     fn config() -> IngestConfig {
         let index = index_turtle(ONTO.as_bytes()).expect("index onto fixture");
-        IngestConfig::goemotions_from_index(&index)
+        IngestConfig::config_for_label_set(&index, "GoEmotions").expect("goemotions config")
     }
 
     fn capture() -> ClassifierRunCapture {
@@ -1162,12 +1289,10 @@ mod tests {
         );
         assert_eq!(cap.score_semantics, ScoreSemantics::Sigmoid);
         assert!(cap.return_all_scores);
-        assert_eq!(cap.targets.len(), 1);
-        assert_eq!(
-            cap.targets[0].scores.len(),
-            28,
-            "GoEmotions emits 28 labels"
-        );
+        assert!(!cap.targets.is_empty(), "at least one captured target");
+        for target in &cap.targets {
+            assert_eq!(target.scores.len(), 28, "GoEmotions emits 28 labels");
+        }
     }
 
     /// Labels + canonical EmotionType typing but NO in-graph closeMatch — the
@@ -1204,11 +1329,13 @@ mod tests {
     #[test]
     fn sssom_correspondences_route_only_closematch_emotiontypes() {
         let index = index_turtle(ONTO_NO_MAPPING.as_bytes()).expect("index onto");
-        let mut cfg = IngestConfig::goemotions_from_index(&index);
+        let mut cfg =
+            IngestConfig::config_for_label_set(&index, "GoEmotions").expect("goemotions config");
         // the bundle-shaped graph carries NO in-graph closeMatch.
         assert!(cfg.emotion_close_match.is_empty());
 
-        cfg.add_sssom_correspondences(SSSOM, &index);
+        cfg.add_sssom_correspondences(SSSOM, &index)
+            .expect("well-formed sssom");
         // joy: closeMatch → EmotionType → routed, glossed by the CANONICAL term.
         assert_eq!(cfg.emotion_close_match[&cfg.label_iri("joy")].word, "joy");
         // grief: broadMatch (not closeMatch) → excluded.
