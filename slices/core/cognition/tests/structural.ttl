@@ -28,9 +28,9 @@
 #     rdfs:isDefinedBy gmeow:slices/kernel; a scopeModule cell over the
 #     cognition graph would silently miss them (cross-slice subjects).
 #   test_wellformed_knowledge_proficiency_conforms --
-#     run_shacl() call; ExampleConformance, not a structural TBox assertion.
+#     SHACL validation call; ExampleConformance, not a structural TBox assertion.
 #   test_malformed_knowledge_proficiency_is_flagged --
-#     run_shacl() call with error-text assertions; ExampleConformance.
+#     SHACL validation call with error-text assertions; ExampleConformance.
 #   test_cognition_sssom_rows_include_expected_alignments --
 #     load_mappings() read of gmeow-cognition.sssom.tsv; MAP-flag ledger check,
 #     not a module-scoped TBox assertion.

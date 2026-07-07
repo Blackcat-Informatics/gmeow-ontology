@@ -13,7 +13,7 @@
 #   9. ex:methodlessScore — an assessment naming neither criterion nor rubric.
 #  10. ex:nakedAxis — a criterion with no poles at all (no poles is no axis).
 #  11. ex:twoScaleRubric — a rubric binding two scales at once.
-# run_shacl over this graph MUST NOT conform.
+# SHACL validation over this graph MUST NOT conform.
 
 @prefix ex:    <https://example.org/shapes/> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .

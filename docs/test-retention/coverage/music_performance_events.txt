@@ -1,0 +1,34 @@
+Source: slices/extensions/music/tests/test_music_performance_events.py
+run_shacl() call-sites (real): 3; def test_ functions: 12
+  9 TBox -> conformance_music_performance_events.rs:
+    performance/participation classes are owl:Class (module.ttl);
+    functional participation props (item/config/part/technique) + participationInstrument
+    is ObjectProperty-not-Functional + performanceOf is ObjectProperty-not-Functional
+    (module.ttl); EventType seeds, ParticipantRole seeds, and the dual-typed
+    Contribution+Participant roles (performer/conductor/producer) live in the core
+    events slice so run over GraphStore::ontology(); InstrumentType + PlayingTechnique
+    value seeds (module.ttl); session -> takes -> overdub -> composite fixture typing
+    (module.ttl); who-played-what-on-take-3 SPARQL SELECT over module.ttl (bassist +
+    drummer, double bass + pizzicato).
+  3 SHACL -> Case::inline (whole corpus, honest in-graph ABox completion: the referenced
+    concert/agent/roleSoloist targets restated so the generated sh:class shapes resolve)
+    with exact substrings:
+    "exactly one ParticipantRole", "At most one instrument";
+    1 conforming (valid participation), 1 warns-but-conforms (two instruments -> Warning),
+    1 violation (missing role).
+
+source -> dest map:
+  test_performance_events_classes_exist                     -> fn performance_events_classes_exist
+  test_performance_event_properties_exist                   -> fn performance_event_properties_exist
+  test_event_type_seeds_exist                               -> fn event_type_seeds_exist
+  test_participant_role_seeds_exist                         -> fn participant_role_seeds_exist
+  test_dual_typed_music_roles                               -> fn dual_typed_music_roles
+  test_instrument_type_seeds_exist                          -> fn instrument_type_seeds_exist
+  test_playing_technique_seeds_exist                        -> fn playing_technique_seeds_exist
+  test_session_fixture_exists                               -> fn session_fixture_exists
+  test_who_played_what_on_take_3                            -> fn who_played_what_on_take_3
+  test_performance_participation_valid_passes_shacl         -> case::performance_participation_valid_passes
+  test_performance_participation_missing_role_fails_shacl   -> case::performance_participation_missing_role_fails
+  test_performance_participation_two_instruments_warns_shacl-> case::performance_participation_two_instruments_warns
+</content>
+</invoke>

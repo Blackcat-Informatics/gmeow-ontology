@@ -4,7 +4,7 @@
 # register from the shared spine (one names-core seed, one persona-facing
 # seed), and a style guide whose voice exemplar is content-digested and
 # carries hasAboutness ENACTS (the byte-perfect voice doctrine).
-# run_shacl over this graph MUST conform.
+# SHACL validation over this graph MUST conform.
 
 @prefix ex:    <https://example.org/shapes/> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .

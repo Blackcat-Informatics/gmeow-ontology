@@ -1,0 +1,26 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Well-formed: a math:GramMatrix G = [[1, 1/4], [1/4, 1]] naming the
+# math:SymmetricBilinearForm it represents and the math:Basis it is taken in, with
+# symmetric entries — each off-diagonal entry shares the same exact math:RationalValue
+# with its transpose. Conforms to math:GramMatrixShape (and its rational entries to
+# math:RationalValueShape). Bound by ex:ecGramMatrixSymmetric.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:symGram a math:GramMatrix ;
+    math:representsForm ex:symForm ;
+    math:inBasis ex:symBasis ;
+    math:hasEntry ex:e00 , ex:e01 , ex:e10 , ex:e11 .
+
+ex:symForm a math:SymmetricBilinearForm .
+ex:symBasis a math:Basis .
+
+ex:e00 a math:MatrixEntry ; math:atRow 0 ; math:atColumn 0 ; math:entryValue ex:rOne .
+ex:e01 a math:MatrixEntry ; math:atRow 0 ; math:atColumn 1 ; math:entryValue ex:rQuarter .
+ex:e10 a math:MatrixEntry ; math:atRow 1 ; math:atColumn 0 ; math:entryValue ex:rQuarter .
+ex:e11 a math:MatrixEntry ; math:atRow 1 ; math:atColumn 1 ; math:entryValue ex:rOne .
+
+ex:rOne a math:RationalValue ; math:numerator 1 ; math:denominator 1 .
+ex:rQuarter a math:RationalValue ; math:numerator 1 ; math:denominator 4 .

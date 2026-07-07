@@ -4,7 +4,7 @@
 # (affect EmotionType states by soft reference), a scoped protagonist claim
 # beside a chapter-scoped foil claim, a motif occurring in both segments via
 # the seam, an emotion inhering in a reader, and one PAD + one aesthetic
-# appraisal from rival critics. run_shacl over this graph MUST conform.
+# appraisal from rival critics. SHACL validation over this graph MUST conform.
 
 @prefix ex:    <https://example.org/shapes/> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .

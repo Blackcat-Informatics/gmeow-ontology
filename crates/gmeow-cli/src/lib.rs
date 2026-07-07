@@ -208,6 +208,30 @@ pub enum Commands {
         #[command(subcommand)]
         command: MusicCommands,
     },
+    /// GMEOW affect-intensity geometry tools.
+    Affect {
+        #[command(subcommand)]
+        command: AffectCommands,
+    },
+}
+
+/// The `gmeow affect` nested subcommands (native `gmeow_affect` engine).
+#[derive(Debug, Subcommand)]
+pub enum AffectCommands {
+    /// Compute the affect-intensity geometry of derived-intensity observations
+    /// in a GTS snapshot (metric-tensor norm √(xᵀGx), never a raw L²).
+    Intensity {
+        /// Source `.gts` snapshot carrying the affect-intensity observation(s).
+        source: PathBuf,
+        /// A single `gmeow:DerivedAffectIntensityObservation` IRI to compute
+        /// (default: every derived-intensity observation in the snapshot).
+        #[arg(long)]
+        observation: Option<String>,
+        /// A second observation IRI: report the metric distance and cosine
+        /// between it and `--observation` (requires `--observation`).
+        #[arg(long, requires = "observation")]
+        to: Option<String>,
+    },
 }
 
 /// The `gmeow music` nested subcommands (native `gmeow_music` engine).
@@ -305,5 +329,6 @@ pub fn run() -> i32 {
         Commands::Mcp => commands::mcp(),
         Commands::Gts { args } => passthrough::gts(&args),
         Commands::Music { command } => passthrough::music(&command),
+        Commands::Affect { command } => passthrough::affect(&command),
     }
 }

@@ -12,11 +12,11 @@
 # logic:Relator), not gufo:.
 #
 # RETAINED in pytest (not migratable here):
-#   test_citation_act_shacl_passes — run_shacl() call; ExampleConformance,
+#   test_citation_act_shacl_passes — SHACL validation call; ExampleConformance,
 #     not a structural TBox assertion.
-#   test_citation_act_missing_intent_fails_shacl — run_shacl() call with
+#   test_citation_act_missing_intent_fails_shacl — SHACL validation call with
 #     error-text assertions; ExampleConformance, not a structural TBox assertion.
-#   test_contribution_with_degree_shacl_passes — run_shacl() call; references
+#   test_contribution_with_degree_shacl_passes — SHACL validation call; references
 #     gmeow:Contribution, gmeow:contributor, gmeow:contributionTarget,
 #     gmeow:contributionRole which are defined in other slices; ExampleConformance.
 #   test_self_description_loader — reads gmeow_tools.self_desc; whole-ontology

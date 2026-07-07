@@ -28,12 +28,12 @@
 #     owl:Restriction blank nodes via g.objects() + g.items() to verify
 #     someValuesFrom axioms; bnode list structure is not expressible as a
 #     simple module-scoped ASK.
-#   test_wellformed_participation_conforms -- run_shacl() call; ExampleConformance,
+#   test_wellformed_participation_conforms -- SHACL validation call; ExampleConformance,
 #     not a structural TBox assertion.
-#   test_malformed_participation_is_flagged -- run_shacl() call with error-text
+#   test_malformed_participation_is_flagged -- SHACL validation call with error-text
 #     assertions; ExampleConformance, not a structural TBox assertion.
 #   test_contested_event_claims_coexist_and_validate -- multi-file ABox fixture
-#     loaded dynamically + run_shacl() + object sweep.
+#     loaded dynamically + SHACL validation + object sweep.
 #   test_schema_role_projection_keys_by_role -- calls project_graph() on a
 #     coverage fixture; generated-artifact projection check, not a TBox assertion.
 #   test_schema_role_projection_suppresses_withdrawn_participation -- same as

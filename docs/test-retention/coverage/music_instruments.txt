@@ -1,0 +1,28 @@
+Source: slices/extensions/music/tests/test_music_instruments.py
+run_shacl() call-sites (real): 5; def test_ functions: 13
+  8 TBox -> conformance_music_instruments.rs GraphStore::parse_ttl_file(music module.ttl):
+    functional (4 configuration props) + not-functional (configurationModification),
+    participationInstrumentItem range Entity not Item, 12 InstrumentType seeds,
+    hsNumber literals (piano/electric-guitar), 5 MIMO skos:exactMatch,
+    6 InstrumentModification seeds, 11 PlayingTechnique seeds,
+    configuration fixtures (prepared-piano/drop-D/1959-Les-Paul) + their properties.
+  5 SHACL -> Case::inline (whole corpus, honest ABox completion, tuningSystem12EDO
+    descriptors verbatim from module.ttl) with exact substrings:
+    "exactly one of: a specific instrument item", "At most one interval";
+    3 conforming (valid-with-type, valid-with-item, compound-modification).
+
+source -> dest map:
+  test_configuration_properties_exist                              -> fn configuration_properties_functional
+  test_participation_instrument_item_ranges_over_entity           -> fn participation_instrument_item_ranges_over_entity
+  test_instrument_type_seeds_exist                                 -> fn instrument_type_seeds_exist
+  test_instrument_type_hs_numbers                                  -> fn instrument_type_hs_numbers
+  test_instrument_type_mimo_matches                                -> fn instrument_type_mimo_matches
+  test_instrument_modification_seeds_exist                         -> fn instrument_modification_seeds_exist
+  test_playing_technique_seeds_exist                               -> fn playing_technique_seeds_exist
+  test_configuration_fixtures_exist                                -> fn configuration_fixtures_exist
+  test_instrument_configuration_valid_with_type_passes_shacl       -> case::configuration_valid_with_type_passes
+  test_instrument_configuration_valid_with_item_passes_shacl       -> case::configuration_valid_with_item_passes
+  test_instrument_configuration_missing_target_fails_shacl         -> case::configuration_missing_target_fails
+  test_instrument_configuration_two_intervals_fails_shacl          -> case::configuration_two_intervals_fails
+  test_instrument_configuration_compound_modification_passes_shacl -> case::configuration_compound_modification_passes
+</content>

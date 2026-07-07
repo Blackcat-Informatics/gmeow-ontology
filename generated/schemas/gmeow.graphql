@@ -45,8 +45,20 @@ enum AestheticQualityEnum {
   qualitySublimity
 }
 
+enum AffectCompositeEnum {
+  schadenfreudeComposite
+}
+
 enum AffectFunctionEnum {
   fnAffectiveIntensity
+}
+
+enum AffectScaleProfileEnum {
+  coreAffectMetricPAD
+}
+
+enum AffectVectorObservationEnum {
+  schadenfreudeCoreVector
 }
 
 enum AgentEnum {
@@ -106,6 +118,13 @@ enum AppraisalDimensionEnum {
   dimensionNovelty
   dimensionObjectFocus
   dimensionTemporalOrientation
+}
+
+enum AppraisalEnum {
+  schadenfreudeAgencyCell
+  schadenfreudeArousalCell
+  schadenfreudeNormCell
+  schadenfreudeValenceCell
 }
 
 enum ArcTypeEnum {
@@ -731,6 +750,10 @@ enum DerivationTypeEnum {
   derivationTypeSample
   derivationTypeTranscription
   derivationTypeVariation
+}
+
+enum DerivedAffectIntensityObservationEnum {
+  schadenfreudeIntensity
 }
 
 enum DeterminacyEnum {
@@ -2076,6 +2099,10 @@ enum PeriodTypeEnum {
   periodTypeHistoricalEra
 }
 
+enum PersonEnum {
+  schadenfreudeObserver
+}
+
 enum PhysicalCarrierTypeEnum {
   carrierBone
   carrierCoin
@@ -3230,6 +3257,11 @@ enum WalletSchemeEnum {
   walletSchemeXMR
 }
 
+enum WeightingPolicyEnum {
+  weightingEqualCoreAffect
+  weightingValenceDominant
+}
+
 type AboutnessMode {
   id: String
   iri: String
@@ -3347,11 +3379,13 @@ type AffectLabelSet {
 type AffectScaleProfile {
   id: String
   iri: String
+  metricGram: String
   profileMidpoint: Float
   profilePolarity: ScalePolarity
   profileRangeMax: Float
   profileRangeMin: Float
   profileTransform: String
+  sparseAxisCompletion: Boolean
 }
 
 type AffectTelemetryStream {
@@ -4296,6 +4330,7 @@ type CopyrightStatus {
 type CoreAffectDimension {
   id: String
   iri: String
+  coreAxisIndex: Int
 }
 
 type Corpus {
@@ -4540,7 +4575,7 @@ type DerivedAffectIntensityObservation {
   intensityBasis: AffectVectorObservation
   metricProfile: AffectScaleProfile
   normFunction: String
-  weightingPolicy: String
+  weightingPolicy: WeightingPolicy
 }
 
 type Desire {
@@ -8396,6 +8431,11 @@ type WebPage {
 }
 
 type WebSite {
+  id: String
+  iri: String
+}
+
+type WeightingPolicy {
   id: String
   iri: String
 }

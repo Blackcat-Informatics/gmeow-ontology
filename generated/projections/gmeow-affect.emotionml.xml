@@ -33,9 +33,14 @@
   </vocabulary>
   <!-- A worked <emotion> envelope: gmeow:Emotion, gmeow:AffectiveExperience,
        gmeow:Appraisal, and gmeow:AffectClassifierOutput ALL project into one such
-       envelope — the projection is many-to-one and lossy by design. -->
+       envelope — the projection is many-to-one and lossy by design. It
+       projects the canonical schadenfreude example: the <intensity> and every
+       <dimension value> are COMPUTED by gmeow-affect from the schadenfreude
+       vector over gmeow:coreAffectGram — never a hand-typed constant. -->
   <emotion category-set="#gmeow-emotion-categories" dimension-set="#gmeow-appraisal-dimensions">
     <category name="anger"/>
-    <dimension name="valence" value="0.5"/>
+    <intensity value="0.888819"/>
+    <dimension name="valence" value="0.85"/>
+    <dimension name="arousal" value="0.7"/>
   </emotion>
 </emotionml>
