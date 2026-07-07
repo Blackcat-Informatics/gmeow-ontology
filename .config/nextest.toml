@@ -210,15 +210,17 @@ slow-timeout = { period = "180s", "terminate-after" = 3, "grace-period" = "30s" 
 # alongside other chases; the longer timeout is only a runaway cliff, the JUnit budget
 # gate still enforces the 25 s policy.
 #
-# The whole-bundle chase is irreducibly O(bundle size × DL-rule-set). Deriving the
-# full closed-world OWL fragment (domain/range/functional/some+allValues/hasValue/
-# disjoint/oneOf/qualified) expanded the DL rule set, so the single benign+poisoned
-# pass over the whole committed bundle now measures ~570 s locally (was ~95 s). The
-# bundle itself barely grew (the SHACL/ShEx validation-shape projection is a sidecar,
-# not DL axioms — only ~510 shape-touching quads reach the reasoner, all in the
-# core-prefixes projection graph); the added cost is the richer rule set applied over
-# the whole 720k-quad EDB, not shape volume. Raise the runaway cliff to 1200 s
-# (300 s × 4) so this budget-exempt gate has margin over local + CI runtime jitter.
+# The whole-bundle chase is irreducibly O(bundle size × DL-rule-set) and measures
+# ~520 s locally (was ~95 s). The cost is the DL rule set applied over the whole
+# ~720k-quad bundle — dominated by the merged-in top-sortal disjointness axioms (the
+# kernel's mutual owl:AllDisjointClasses TBox), which force a disjointness/owl:Nothing
+# propagation across the whole individual set. This is NOT the validation-shape work:
+# the SHACL/ShEx projection is a sidecar that never reaches the reasoner (only ~510
+# shape-touching quads land in the core-prefixes projection graph, and SHACL shapes
+# are not DL axioms), so deriving the closed-world validation fragment added no
+# measurable chase cost. Raise the runaway cliff to 1200 s (300 s × 4) so this
+# budget-exempt gate has margin over local + CI runtime jitter; the cliff is a
+# terminate-after backstop, not the expected runtime.
 filter = 'package(gmeow-logic) & binary(coherence_gate)'
 test-group = 'engine'
 slow-timeout = { period = "300s", "terminate-after" = 4, "grace-period" = "30s" }
