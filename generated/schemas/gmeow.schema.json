@@ -40252,30 +40252,8 @@
               "type": "array"
             }
           ]
-        },
-        "lang:inScript": {
-          "anyOf": [
-            {
-              "$comment": "external class https://blackcatinformatics.ca/lang/Script",
-              "type": "string"
-            },
-            {
-              "properties": {
-                "@id": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "@id"
-              ],
-              "type": "object"
-            }
-          ]
         }
       },
-      "required": [
-        "lang:inScript"
-      ],
       "type": "object"
     },
     "lang:InterpretationAct": {
