@@ -45,20 +45,8 @@ export enum AestheticQualityEnum {
     qualitySublimity = "qualitySublimity",
 }
 
-export enum AffectCompositeEnum {
-    schadenfreudeComposite = "schadenfreudeComposite",
-}
-
 export enum AffectFunctionEnum {
     fnAffectiveIntensity = "fnAffectiveIntensity",
-}
-
-export enum AffectScaleProfileEnum {
-    coreAffectMetricPAD = "coreAffectMetricPAD",
-}
-
-export enum AffectVectorObservationEnum {
-    schadenfreudeCoreVector = "schadenfreudeCoreVector",
 }
 
 export enum AgentEnum {
@@ -118,13 +106,6 @@ export enum AppraisalDimensionEnum {
     dimensionNovelty = "dimensionNovelty",
     dimensionObjectFocus = "dimensionObjectFocus",
     dimensionTemporalOrientation = "dimensionTemporalOrientation",
-}
-
-export enum AppraisalEnum {
-    schadenfreudeAgencyCell = "schadenfreudeAgencyCell",
-    schadenfreudeArousalCell = "schadenfreudeArousalCell",
-    schadenfreudeNormCell = "schadenfreudeNormCell",
-    schadenfreudeValenceCell = "schadenfreudeValenceCell",
 }
 
 export enum ArcTypeEnum {
@@ -750,10 +731,6 @@ export enum DerivationTypeEnum {
     derivationTypeSample = "derivationTypeSample",
     derivationTypeTranscription = "derivationTypeTranscription",
     derivationTypeVariation = "derivationTypeVariation",
-}
-
-export enum DerivedAffectIntensityObservationEnum {
-    schadenfreudeIntensity = "schadenfreudeIntensity",
 }
 
 export enum DeterminacyEnum {
@@ -1403,12 +1380,6 @@ export enum LanguageChangeTypeEnum {
     changeSpellingReform = "changeSpellingReform",
     changeSplit = "changeSplit",
     changeStandardization = "changeStandardization",
-}
-
-export enum LanguageEnum {
-    langEnglish = "langEnglish",
-    langFrench = "langFrench",
-    langMandarin = "langMandarin",
 }
 
 export enum LanguageModalityEnum {
@@ -2105,10 +2076,6 @@ export enum PeriodTypeEnum {
     periodTypeHistoricalEra = "periodTypeHistoricalEra",
 }
 
-export enum PersonEnum {
-    schadenfreudeObserver = "schadenfreudeObserver",
-}
-
 export enum PhysicalCarrierTypeEnum {
     carrierBone = "carrierBone",
     carrierCoin = "carrierCoin",
@@ -2794,17 +2761,6 @@ export enum ScoreSemanticsEnum {
     scoreSoftmax = "scoreSoftmax",
 }
 
-export enum ScriptRoleEnum {
-    scriptRoleDecorative = "scriptRoleDecorative",
-    scriptRoleHistorical = "scriptRoleHistorical",
-    scriptRoleLiturgical = "scriptRoleLiturgical",
-    scriptRoleLoanword = "scriptRoleLoanword",
-    scriptRoleLogographicContent = "scriptRoleLogographicContent",
-    scriptRolePrimary = "scriptRolePrimary",
-    scriptRoleSyllabicGrammar = "scriptRoleSyllabicGrammar",
-    scriptRoleTransliteration = "scriptRoleTransliteration",
-}
-
 export enum SegmentKindEnum {
     segmentKindCell = "segmentKindCell",
     segmentKindColor = "segmentKindColor",
@@ -3069,16 +3025,6 @@ export enum TermStabilityEnum {
     stabilityStable = "stabilityStable",
 }
 
-export enum TextDirectionEnum {
-    directionBoustrophedon = "directionBoustrophedon",
-    directionContextual = "directionContextual",
-    directionLtr = "directionLtr",
-    directionNonLinear = "directionNonLinear",
-    directionRtl = "directionRtl",
-    directionVerticalLtr = "directionVerticalLtr",
-    directionVerticalRtl = "directionVerticalRtl",
-}
-
 export enum TimbreDescriptorEnum {
     timbreDescriptorBreathy = "timbreDescriptorBreathy",
     timbreDescriptorBright = "timbreDescriptorBright",
@@ -3284,24 +3230,6 @@ export enum WalletSchemeEnum {
     walletSchemeXMR = "walletSchemeXMR",
 }
 
-export enum WeightingPolicyEnum {
-    weightingEqualCoreAffect = "weightingEqualCoreAffect",
-    weightingValenceDominant = "weightingValenceDominant",
-}
-
-export enum WritingSystemTypeEnum {
-    wsTypeAbjad = "wsTypeAbjad",
-    wsTypeAbugida = "wsTypeAbugida",
-    wsTypeAlphabet = "wsTypeAlphabet",
-    wsTypeFeatural = "wsTypeFeatural",
-    wsTypeIdeographic = "wsTypeIdeographic",
-    wsTypeLogographic = "wsTypeLogographic",
-    wsTypeMixed = "wsTypeMixed",
-    wsTypeNonLinear = "wsTypeNonLinear",
-    wsTypePictographic = "wsTypePictographic",
-    wsTypeSyllabary = "wsTypeSyllabary",
-}
-
 export interface AboutnessMode {
 }
 
@@ -3379,13 +3307,11 @@ export interface AffectLabelSet extends InformationObject {
 }
 
 export interface AffectScaleProfile extends InformationObject {
-    metricGram?: string,
     profileMidpoint?: number,
     profilePolarity?: ScalePolarity,
     profileRangeMax?: number,
     profileRangeMin?: number,
     profileTransform?: string,
-    sparseAxisCompletion?: boolean,
 }
 
 export interface AffectTelemetryStream extends Stream {
@@ -3496,6 +3422,7 @@ export interface AnnotationMotivation {
 }
 
 export interface Appellation {
+    appellationDenotation?: string[],
     conferredByEvent?: LifeEvent[],
     fullName?: string[],
     hasNamePart?: NamePart[],
@@ -4059,7 +3986,6 @@ export interface CopyrightStatus {
 }
 
 export interface CoreAffectDimension extends AppraisalDimension {
-    coreAxisIndex?: number,
 }
 
 export interface Corpus extends InformationObject {
@@ -4244,7 +4170,7 @@ export interface DerivedAffectIntensityObservation extends Observation {
     intensityBasis?: AffectVectorObservation,
     metricProfile?: AffectScaleProfile,
     normFunction?: string,
-    weightingPolicy?: WeightingPolicy,
+    weightingPolicy?: string,
 }
 
 export interface Desire extends IntentionalMode {
@@ -4421,6 +4347,7 @@ export interface Entity {
     authorityLink?: string[],
     cites?: CreativeWork[],
     conditionsOfAccess?: string[],
+    corefDenotation?: string[],
     counterpartOf?: Entity[],
     depictedIn?: MediaObject[],
     description?: string[],
@@ -4685,9 +4612,6 @@ export interface ForgePlatform extends Entity {
 }
 
 export interface FormFunction {
-}
-
-export interface FormalLanguage extends Language {
 }
 
 export interface FosterParentChild extends ParentChildRelationship {
@@ -5100,15 +5024,12 @@ export interface LandTenureType {
 }
 
 export interface Language extends InformationObject {
-    bcp47Tag?: string[],
     designGoal?: string[],
     hasNotationSystem?: NotationSystem[],
     languageCode?: string[],
     languageModality?: LanguageModality[],
     languageOrigin?: LanguageOrigin[],
     languageStatus?: LanguageStatus[],
-    languageTag?: string,
-    usesWritingSystem?: WritingSystem[],
 }
 
 export interface LanguageChangeEvent extends Activity {
@@ -6120,9 +6041,6 @@ export interface Profile extends InformationObject {
 export interface ProfilePage extends WebPage {
 }
 
-export interface ProgrammingLanguage extends FormalLanguage {
-}
-
 export interface Prohibition extends Rule {
 }
 
@@ -6436,11 +6354,8 @@ export interface ScoreSemantics {
 export interface ScriptLanguageAttribution extends Observation {
     attributedLanguage?: Language[],
     attributedNotation?: InformationObject[],
-    attributedScript?: WritingSystem[],
+    attributedScript?: string[],
     attributionTarget?: Inscription,
-}
-
-export interface ScriptRole {
 }
 
 export interface SegmentKind {
@@ -6806,9 +6721,6 @@ export interface TemporalPrecision {
 export interface TermStability {
 }
 
-export interface TextDirection {
-}
-
 export interface TextExtraction extends Document {
 }
 
@@ -7042,29 +6954,9 @@ export interface WebPage extends Manifestation {
 export interface WebSite extends Manifestation {
 }
 
-export interface WeightingPolicy {
-}
-
 export interface Work extends CreativeWork {
     contentLanguage?: Language[],
     quotedText?: string[],
     quotesContent?: Entity[],
     realizedThrough?: Expression[],
-}
-
-export interface WritingSystem extends InformationObject {
-    scriptCode?: string[],
-    textDirection?: TextDirection[],
-    writingSystemAsNotation?: NotationSystem[],
-    writingSystemType?: WritingSystemType[],
-}
-
-export interface WritingSystemType {
-}
-
-export interface WritingSystemUsage {
-    scriptRole?: ScriptRole,
-    scriptUsageInterval?: TimeInterval[],
-    usageLanguage?: Language,
-    usageWritingSystem?: WritingSystem,
 }

@@ -766,6 +766,44 @@ ex:c1 a lang:FormSlot ; lang:inAnalysis ex:aCrouch ; lang:slotIndex 1 ; lang:slo
         );
     }
 
+    /// The BCP-47 target GENERATES the bare tags `en`/`fr`/`zh` for the three carrier varieties
+    /// (`lang:gmeowEnglish`/`gmeowFrench`/`gmeowMandarin`) in the scanned lang module surface,
+    /// suppressing the redundant default-orthography script, and FOLDS those `<variety>
+    /// gmeow:bcp47Tag "tag"` triples into the reasoned corpus graph (via `source_rdf`) so the
+    /// SPARQL projection consumers resolve a language's tag by joining through `lang:varietyOf`.
+    #[test]
+    fn bcp47_forward_projects_the_carrier_variety_tags_into_the_corpus() {
+        let catalog = repo_catalog();
+        let corpus = build_corpus(Some(&catalog)).expect("build corpus");
+        let nt = String::from_utf8(corpus.ntriples.clone()).expect("utf8");
+
+        const BCP47_TAG: &str = "https://blackcatinformatics.ca/gmeow/bcp47Tag";
+        const LANG: &str = "https://blackcatinformatics.ca/lang/";
+        // The three carrier varieties derive their bare tags, folded into the bundle graph on the
+        // VARIETY IRI (not the language) — so a consumer joins `?v lang:varietyOf ?lang`.
+        for (variety, tag) in [
+            ("gmeowEnglish", "en"),
+            ("gmeowFrench", "fr"),
+            ("gmeowMandarin", "zh"),
+        ] {
+            let triple = format!("<{LANG}{variety}> <{BCP47_TAG}> \"{tag}\" .");
+            assert!(
+                nt.contains(&triple),
+                "the bcp47 tag triple must be folded into the corpus graph: {triple}\n{nt}"
+            );
+        }
+        // The committed artifact carries the same tags.
+        let ttl = corpus
+            .artifacts
+            .iter()
+            .find(|(p, _)| p == "generated/projections/lang/bcp47-tags.ttl")
+            .map(|(_, b)| String::from_utf8_lossy(b).into_owned())
+            .expect("the carrier varieties must drive a bcp47-tags.ttl artifact");
+        assert!(ttl.contains("\"en\""), "{ttl}");
+        assert!(ttl.contains("\"fr\""), "{ttl}");
+        assert!(ttl.contains("\"zh\""), "{ttl}");
+    }
+
     #[test]
     fn semaf_forward_projects_the_denotation() {
         let catalog = repo_catalog();

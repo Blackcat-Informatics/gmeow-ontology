@@ -772,6 +772,19 @@
             ] ;
             align:entity2 [
                 a edoal:Class ;
+                edoal:uri schema:ComputerLanguage ;
+            ] ;
+            align:relation "=" ;
+            rdfs:label "gmeow:Language of programmingLanguageKind → schema:ComputerLanguage"@en ;
+        ] ,
+        [
+            a align:Cell ;
+            align:entity1 [
+                a edoal:Class ;
+                edoal:uri gmeow:Language ;
+            ] ;
+            align:entity2 [
+                a edoal:Class ;
                 edoal:uri schema:Language ;
             ] ;
             align:relation "=" ;
@@ -872,19 +885,6 @@
             align:relation "<=" ;
             edoal:measure "0.9"^^xsd:double ;
             rdfs:label "WebPage about an Agent → schema:ProfilePage (defined-class logic)"@en ;
-        ] ,
-        [
-            a align:Cell ;
-            align:entity1 [
-                a edoal:Class ;
-                edoal:uri gmeow:ProgrammingLanguage ;
-            ] ;
-            align:entity2 [
-                a edoal:Class ;
-                edoal:uri schema:ComputerLanguage ;
-            ] ;
-            align:relation "=" ;
-            rdfs:label "gmeow:ProgrammingLanguage → schema:ComputerLanguage"@en ;
         ] ,
         [
             a align:Cell ;
