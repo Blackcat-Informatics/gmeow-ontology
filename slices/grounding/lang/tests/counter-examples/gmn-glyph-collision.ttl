@@ -1,0 +1,23 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Counter-example: two distinct graphemes of the GMN script sharing an IDENTICAL
+# gmeow:gmnCodepoints value ("U+03BC") with NO gmeow:gmnSigilScope on either — the
+# unscoped collision the sigil discipline forbids (fires lang:GmnGlyphCollision via the
+# sh:sparql of lang:GmnGlyphCollisionShape). Both graphemes are otherwise well-formed:
+# grounded in the repertoire, canonical codepoints (so the codepoint shapes stay quiet),
+# and no gmeow:gmnConfusableWith edge (so lang:GmnConfusableGlyphShape stays quiet).
+
+@prefix lang:  <https://blackcatinformatics.ca/lang/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <http://example.org/lang/> .
+
+gmeow:gmnScript lang:hasGrapheme ex:gMuOne , ex:gMuTwo .
+
+ex:gMuOne a lang:Grapheme ;
+    lang:inScript gmeow:gmnScript ;
+    gmeow:gmnCodepoints "U+03BC" .
+
+ex:gMuTwo a lang:Grapheme ;
+    lang:inScript gmeow:gmnScript ;
+    gmeow:gmnCodepoints "U+03BC" .

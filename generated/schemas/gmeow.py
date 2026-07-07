@@ -69,8 +69,20 @@ class AestheticQualityEnum(str, Enum):
     qualitySublimity = "qualitySublimity"
 
 
+class AffectCompositeEnum(str, Enum):
+    schadenfreudeComposite = "schadenfreudeComposite"
+
+
 class AffectFunctionEnum(str, Enum):
     fnAffectiveIntensity = "fnAffectiveIntensity"
+
+
+class AffectScaleProfileEnum(str, Enum):
+    coreAffectMetricPAD = "coreAffectMetricPAD"
+
+
+class AffectVectorObservationEnum(str, Enum):
+    schadenfreudeCoreVector = "schadenfreudeCoreVector"
 
 
 class AgentEnum(str, Enum):
@@ -130,6 +142,13 @@ class AppraisalDimensionEnum(str, Enum):
     dimensionNovelty = "dimensionNovelty"
     dimensionObjectFocus = "dimensionObjectFocus"
     dimensionTemporalOrientation = "dimensionTemporalOrientation"
+
+
+class AppraisalEnum(str, Enum):
+    schadenfreudeAgencyCell = "schadenfreudeAgencyCell"
+    schadenfreudeArousalCell = "schadenfreudeArousalCell"
+    schadenfreudeNormCell = "schadenfreudeNormCell"
+    schadenfreudeValenceCell = "schadenfreudeValenceCell"
 
 
 class ArcTypeEnum(str, Enum):
@@ -757,6 +776,10 @@ class DerivationTypeEnum(str, Enum):
     derivationTypeVariation = "derivationTypeVariation"
 
 
+class DerivedAffectIntensityObservationEnum(str, Enum):
+    schadenfreudeIntensity = "schadenfreudeIntensity"
+
+
 class DeterminacyEnum(str, Enum):
     determinacyCrisp = "determinacyCrisp"
     determinacyDisputed = "determinacyDisputed"
@@ -1186,6 +1209,36 @@ class GeometryTypeEnum(str, Enum):
     geometryTypePolygon = "geometryTypePolygon"
 
 
+class GmnCodebookEnum(str, Enum):
+    gmnCodebookCurrent = "gmnCodebookCurrent"
+
+
+class GmnFixityEnum(str, Enum):
+    gmnFixityBracketing = "gmnFixityBracketing"
+    gmnFixityInfix = "gmnFixityInfix"
+    gmnFixityPostfix = "gmnFixityPostfix"
+    gmnFixityPrefix = "gmnFixityPrefix"
+
+
+class GmnSecurityRingEnum(str, Enum):
+    gmnRingCore = "gmnRingCore"
+    gmnRingRestricted = "gmnRingRestricted"
+    gmnRingTrusted = "gmnRingTrusted"
+
+
+class GmnSigilRoleEnum(str, Enum):
+    gmnSigilClaim = "gmnSigilClaim"
+    gmnSigilDefeater = "gmnSigilDefeater"
+    gmnSigilEvidence = "gmnSigilEvidence"
+    gmnSigilLangAst = "gmnSigilLangAst"
+    gmnSigilLogic = "gmnSigilLogic"
+    gmnSigilMath = "gmnSigilMath"
+    gmnSigilModal = "gmnSigilModal"
+    gmnSigilProcess = "gmnSigilProcess"
+    gmnSigilProof = "gmnSigilProof"
+    gmnSigilStandpoint = "gmnSigilStandpoint"
+
+
 class GoalEnum(str, Enum):
     goalCanonicalIngestion = "goalCanonicalIngestion"
     goalShippableBundle = "goalShippableBundle"
@@ -1306,6 +1359,10 @@ class InferenceModeEnum(str, Enum):
     modeAnalogical = "modeAnalogical"
     modeDeduction = "modeDeduction"
     modeInduction = "modeInduction"
+
+
+class InformationObjectEnum(str, Enum):
+    gmnVersionOne = "gmnVersionOne"
 
 
 class InhabitationLocusKindEnum(str, Enum):
@@ -2098,6 +2155,10 @@ class PeriodTypeEnum(str, Enum):
     periodTypeGeologicPeriod = "periodTypeGeologicPeriod"
     periodTypeHistoricalDynasty = "periodTypeHistoricalDynasty"
     periodTypeHistoricalEra = "periodTypeHistoricalEra"
+
+
+class PersonEnum(str, Enum):
+    schadenfreudeObserver = "schadenfreudeObserver"
 
 
 class PhysicalCarrierTypeEnum(str, Enum):
@@ -3202,6 +3263,8 @@ class VersionMembershipEnum(str, Enum):
     fixtureRagaYamanKiranaMembership1960 = "fixtureRagaYamanKiranaMembership1960"
     fixtureRagaYamanKiranaMembership1975 = "fixtureRagaYamanKiranaMembership1975"
     fixtureRagaYamanKiranaMembership1980 = "fixtureRagaYamanKiranaMembership1980"
+    gmnMembershipCanonical = "gmnMembershipCanonical"
+    gmnMembershipLatest = "gmnMembershipLatest"
 
 
 class VersionRoleEnum(str, Enum):
@@ -3227,6 +3290,7 @@ class VersionScaleEnum(str, Enum):
 
 class VersionSetEnum(str, Enum):
     fixtureRagaYamanKiranaSet = "fixtureRagaYamanKiranaSet"
+    gmnDialectVersions = "gmnDialectVersions"
 
 
 class VirtualLocationTypeEnum(str, Enum):
@@ -3252,6 +3316,11 @@ class WalletSchemeEnum(str, Enum):
     walletSchemeETH = "walletSchemeETH"
     walletSchemeSOL = "walletSchemeSOL"
     walletSchemeXMR = "walletSchemeXMR"
+
+
+class WeightingPolicyEnum(str, Enum):
+    weightingEqualCoreAffect = "weightingEqualCoreAffect"
+    weightingValenceDominant = "weightingValenceDominant"
 
 
 class AboutnessMode(ConfiguredBaseModel):
@@ -3556,11 +3625,13 @@ class AffectLabelSet(InformationObject):
 class AffectScaleProfile(InformationObject):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/AffectScaleProfile"
     is_a: ClassVar[str] = "InformationObject"
+    metricGram: str | None = Field(default=None)
     profileMidpoint: float | None = Field(default=None)
     profilePolarity: ScalePolarity | None = Field(default=None)
     profileRangeMax: float | None = Field(default=None)
     profileRangeMin: float | None = Field(default=None)
     profileTransform: str | None = Field(default=None)
+    sparseAxisCompletion: bool | None = Field(default=None)
 
 
 class Stream(Entity):
@@ -4724,7 +4795,7 @@ class CopyrightStatus(ConfiguredBaseModel):
 class CoreAffectDimension(AppraisalDimension):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/CoreAffectDimension"
     is_a: ClassVar[str] = "AppraisalDimension"
-    pass
+    coreAxisIndex: int | None = Field(default=None)
 
 
 class Corpus(InformationObject):
@@ -4938,7 +5009,7 @@ class DerivedAffectIntensityObservation(Observation):
     intensityBasis: AffectVectorObservation | None = Field(default=None)
     metricProfile: AffectScaleProfile | None = Field(default=None)
     normFunction: str | None = Field(default=None)
-    weightingPolicy: str | None = Field(default=None)
+    weightingPolicy: WeightingPolicy | None = Field(default=None)
 
 
 class IntentionalMode(IntentionalMoment):
@@ -5572,6 +5643,39 @@ class Geometry(Entity):
 
 class GeometryType(ConfiguredBaseModel):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/GeometryType"
+    pass
+
+
+class GmnCodebook(InformationObject):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/GmnCodebook"
+    is_a: ClassVar[str] = "InformationObject"
+    pass
+
+
+class GmnCompaction(StandpointClaim):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/GmnCompaction"
+    is_a: ClassVar[str] = "StandpointClaim"
+    pass
+
+
+class GmnEnvelope(AttestationArtifact):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/GmnEnvelope"
+    is_a: ClassVar[str] = "AttestationArtifact"
+    pass
+
+
+class GmnFixity(ConfiguredBaseModel):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/GmnFixity"
+    pass
+
+
+class GmnSecurityRing(ConfiguredBaseModel):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/GmnSecurityRing"
+    pass
+
+
+class GmnSigilRole(ConfiguredBaseModel):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/GmnSigilRole"
     pass
 
 
@@ -8468,4 +8572,9 @@ class WalletScheme(ConfiguredBaseModel):
 class WebSite(Manifestation):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/WebSite"
     is_a: ClassVar[str] = "Manifestation"
+    pass
+
+
+class WeightingPolicy(ConfiguredBaseModel):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/WeightingPolicy"
     pass

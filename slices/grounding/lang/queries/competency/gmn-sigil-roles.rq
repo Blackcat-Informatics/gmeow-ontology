@@ -1,0 +1,13 @@
+# Competency question: "Which record-initial sigil opens each GMN record role?"
+# The GMN codebook's sigil inventory is queryable data, not parser folklore: each
+# of the ten gmeow:GmnSigilRole individuals names its concrete record-initial
+# sigil string through gmeow:gmnSigilGlyph. The complete answer is exactly the
+# ten seeded roles — claim @c, evidence @e, standpoint @s, process @p, proof @π,
+# defeater @d, modal @m, math @μ, lang-AST @λ, logic @ℒ — one glyph per role.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?role ?glyph WHERE {
+    ?role a gmeow:GmnSigilRole ;
+          gmeow:gmnSigilGlyph ?glyph .
+}
+ORDER BY ?role

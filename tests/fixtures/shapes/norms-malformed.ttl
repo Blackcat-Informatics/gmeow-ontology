@@ -8,7 +8,7 @@
 #   6. ex:confusedPerm — a grafted Permission claiming deonticObligation.
 #   7. ex:twoFacedNorm — a norm claiming two deontic forces at once.
 #   8. ex:blindEval — an evaluation with no verdict.
-# run_shacl over this graph MUST NOT conform.
+# SHACL validation over this graph MUST NOT conform.
 
 @prefix ex:    <https://example.org/shapes/> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .

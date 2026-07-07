@@ -35,6 +35,24 @@ const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
 const CATEGORY_SET_ID: &str = "gmeow-emotion-categories";
 const DIMENSION_SET_ID: &str = "gmeow-appraisal-dimensions";
 
+/// The COMPUTED worked-`<emotion>` values, projected from the canonical schadenfreude
+/// worked instance shipped in the affect base graph (`slices/core/affect/module.ttl`,
+/// `gmeow:schadenfreudeIntensity`). The overall
+/// metric-tensor intensity `√(xᵀGx)` and every per-core-affect-dimension unit-clamp value
+/// are computed by `gmeow-affect` from the schadenfreude vector over the canonical
+/// `gmeow:coreAffectGram` — **nothing here is a hand-typed numeric literal**. A fabricated
+/// constant in the worked envelope is an affect-honesty defect, so the emitter has no way to
+/// synthesize these values itself: the caller MUST compute and supply them.
+pub struct WorkedEnvelope {
+    /// The overall intensity `√Q` as a fixed-precision decimal string (e.g. `"0.888819"`).
+    pub intensity: String,
+    /// The computed per-dimension unit-clamp values as `(appraisal-dimension IRI, value)`
+    /// (e.g. `(".../dimensionValence", "0.85")`, `(".../dimensionArousal", "0.7")`),
+    /// ascending by core-affect axis. The IRI joins against the enumerated dimension
+    /// vocabulary to recover the EmotionML `name` attribute.
+    pub dimensions: Vec<(String, String)>,
+}
+
 /// The artifact + loss-ledger row of the EmotionML lowering.
 pub struct EmotionMlLowering {
     /// The `gmeow-affect.emotionml.xml` document (category + dimension vocabularies and a
@@ -79,8 +97,10 @@ fn labeled_individuals(view: &DslView, type_iri: &str) -> Vec<(String, String)> 
 }
 
 /// Lower the affect vocabulary to an EmotionML document. `view` is the merged-ontology
-/// view the correspondence lane builds (it contains the affect slice's individuals).
-pub fn lower_emotionml(view: &DslView) -> EmotionMlLowering {
+/// view the correspondence lane builds (it contains the affect slice's individuals);
+/// `worked` carries the COMPUTED schadenfreude worked-envelope values (intensity + per-axis
+/// unit-clamp), supplied by the caller because the emitter must not fabricate them.
+pub fn lower_emotionml(view: &DslView, worked: &WorkedEnvelope) -> EmotionMlLowering {
     let mut categories = labeled_individuals(view, GM_EMOTION_TYPE);
     categories.sort();
     categories.dedup();
@@ -92,7 +112,7 @@ pub fn lower_emotionml(view: &DslView) -> EmotionMlLowering {
     dimensions.sort();
     dimensions.dedup();
 
-    let document = render_document(&categories, &dimensions);
+    let document = render_document(&categories, &dimensions, worked);
     let mut loss = LossLedger::new();
     let row = ledger_row(&mut loss);
     // Enforcement by construction: the store records the many-to-one collapse. A broken
@@ -107,7 +127,11 @@ pub fn lower_emotionml(view: &DslView) -> EmotionMlLowering {
     }
 }
 
-fn render_document(categories: &[(String, String)], dimensions: &[(String, String)]) -> String {
+fn render_document(
+    categories: &[(String, String)],
+    dimensions: &[(String, String)],
+    worked: &WorkedEnvelope,
+) -> String {
     let mut out = String::new();
     out.push_str("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
     out.push_str(
@@ -132,21 +156,35 @@ fn render_document(categories: &[(String, String)], dimensions: &[(String, Strin
     out.push_str(
         "       gmeow:Appraisal, and gmeow:AffectClassifierOutput ALL project into one such\n",
     );
-    out.push_str("       envelope — the projection is many-to-one and lossy by design. -->\n");
+    out.push_str("       envelope — the projection is many-to-one and lossy by design. It\n");
+    out.push_str(
+        "       projects the canonical schadenfreude example: the <intensity> and every\n",
+    );
+    out.push_str("       <dimension value> are COMPUTED by gmeow-affect from the schadenfreude\n");
+    out.push_str("       vector over gmeow:coreAffectGram — never a hand-typed constant. -->\n");
     out.push_str(&format!(
         "  <emotion category-set=\"#{CATEGORY_SET_ID}\" dimension-set=\"#{DIMENSION_SET_ID}\">\n"
     ));
     if let Some((name, _)) = categories.first() {
         out.push_str(&format!("    <category name=\"{}\"/>\n", xml_escape(name)));
     }
-    if let Some((name, _)) = dimensions
-        .iter()
-        .find(|(n, _)| n == "valence")
-        .or_else(|| dimensions.first())
-    {
+    // The overall metric-tensor intensity √(xᵀGx), computed — NOT a literal.
+    out.push_str(&format!(
+        "    <intensity value=\"{}\"/>\n",
+        xml_escape(&worked.intensity)
+    ));
+    // The per-core-affect-dimension unit-clamp values, computed by gmeow-affect and joined
+    // to the enumerated dimension vocabulary (by IRI) to recover the EmotionML name.
+    for (dim_iri, value) in &worked.dimensions {
+        let name = dimensions
+            .iter()
+            .find(|(_, iri)| iri == dim_iri)
+            .map(|(n, _)| n.as_str())
+            .unwrap_or_else(|| local_name(dim_iri));
         out.push_str(&format!(
-            "    <dimension name=\"{}\" value=\"0.5\"/>\n",
-            xml_escape(name)
+            "    <dimension name=\"{}\" value=\"{}\"/>\n",
+            xml_escape(name),
+            xml_escape(value)
         ));
     }
     out.push_str("  </emotion>\n");
@@ -238,12 +276,29 @@ mod tests {
     #[test]
     fn render_emits_both_vocabularies_and_an_envelope() {
         let categories = vec![("anger".to_owned(), format!("{GMEOW_NS}emotionAnger"))];
-        let dimensions = vec![("valence".to_owned(), format!("{GMEOW_NS}dimensionValence"))];
-        let doc = render_document(&categories, &dimensions);
+        let dimensions = vec![
+            ("valence".to_owned(), format!("{GMEOW_NS}dimensionValence")),
+            ("arousal".to_owned(), format!("{GMEOW_NS}dimensionArousal")),
+        ];
+        // The COMPUTED schadenfreude worked values (valence 0.7 → 0.85, arousal 0.4 → 0.7,
+        // intensity √(79/100) = 0.888819). The real compute + example pin live in the
+        // pipeline's `correspondence_lower` test; here they are the fixed expected outputs.
+        let worked = WorkedEnvelope {
+            intensity: "0.888819".to_owned(),
+            dimensions: vec![
+                (format!("{GMEOW_NS}dimensionValence"), "0.85".to_owned()),
+                (format!("{GMEOW_NS}dimensionArousal"), "0.7".to_owned()),
+            ],
+        };
+        let doc = render_document(&categories, &dimensions, &worked);
         assert!(doc.contains("<vocabulary type=\"category\" id=\"gmeow-emotion-categories\">"));
         assert!(doc.contains("<vocabulary type=\"dimension\" id=\"gmeow-appraisal-dimensions\">"));
         assert!(doc.contains("<item name=\"anger\">"));
-        assert!(doc.contains("<dimension name=\"valence\" value=\"0.5\"/>"));
+        // No fabricated constant: the computed unit-clamp valence + intensity, not "0.5".
+        assert!(!doc.contains("value=\"0.5\""));
+        assert!(doc.contains("<intensity value=\"0.888819\"/>"));
+        assert!(doc.contains("<dimension name=\"valence\" value=\"0.85\"/>"));
+        assert!(doc.contains("<dimension name=\"arousal\" value=\"0.7\"/>"));
         assert!(doc.trim_end().ends_with("</emotionml>"));
     }
 }

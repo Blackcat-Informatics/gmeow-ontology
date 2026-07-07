@@ -1,0 +1,12 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Well-formed: an exact math:RationalValue carrying an integer numerator and a
+# non-zero integer denominator (the pair (1, 4) = 1/4, never a decimal). Conforms to
+# math:RationalValueShape. Bound by ex:ecRationalValueWellFormed.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:oneQuarter a math:RationalValue ;
+    math:numerator 1 ;
+    math:denominator 4 .

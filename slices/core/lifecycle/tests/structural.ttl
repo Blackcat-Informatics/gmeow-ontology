@@ -10,29 +10,14 @@
 # Lifecycle is migrated, so class stereotypes are logic:
 # (logic:Situation), not gufo:.
 #
-# RETAINED in pytest (cross-slice subjects or dynamic/non-TBox checks):
-#   test_supersession_properties_are_object_properties — asserts on
-#     gmeow:supersedes, which is defined in slices/core/coreference/module.ttl
-#     not here; a scopeModule cell would silently miss the supersedes side.
-#   test_lifecycle_event_types_are_individuals_not_classes — the four
-#     eventType individuals (eventTypeCreation, eventTypeDestruction,
-#     eventTypeSupersession, eventTypeDissolution) are defined in
-#     slices/core/events/module.ttl, not this module; cross-slice check.
-#   test_no_lifecycle_event_subclasses_exist — whole-merged-graph sweep
-#     for absence of banned class IRIs; cannot be narrowed to scopeModule
-#     without silently dropping coverage.
-#   test_no_preferred_or_primary_lifecycle_term — whole-merged-graph sweep
-#     over banned property IRIs; same narrowing hazard.
-#   test_entity_existence_mediation_axiom_present — MIGRATED; this note
-#     is retained for ledger reference only.
-#   test_wellformed_entity_existence_conforms — run_shacl() call;
-#     ExampleConformance, not a structural TBox assertion.
-#   test_malformed_entity_existence_is_flagged — run_shacl() call with
-#     error-text assertions; ExampleConformance, not a structural TBox assertion.
-#   test_contested_existence_claims_coexist_and_validate — loads a coverage
-#     fixture and calls run_shacl(); multi-file ABox check.
-#   test_coverage_fixture_loads_and_validates — loads a coverage fixture,
-#     calls run_shacl(), and asserts specific ABox triples; not a TBox invariant.
+# The cross-slice gUFO/EventType invariants, the whole-merged-graph negative
+# sweeps, and the SHACL fixture-conformance + ABox checks now live natively in
+# crates/validate/tests/conformance_lifecycle.rs
+# (supersession_properties_are_object_properties,
+# lifecycle_event_types_are_individuals_not_classes,
+# no_lifecycle_event_subclasses_exist, no_preferred_or_primary_lifecycle_term via
+# GraphStore::ontology(); the entity-existence + contested/coverage conform cases
+# with GraphStore ABox twins).
 #
 # See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest→DSL mapping.
 
