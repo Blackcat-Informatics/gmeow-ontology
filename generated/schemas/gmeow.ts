@@ -45,8 +45,20 @@ export enum AestheticQualityEnum {
     qualitySublimity = "qualitySublimity",
 }
 
+export enum AffectCompositeEnum {
+    schadenfreudeComposite = "schadenfreudeComposite",
+}
+
 export enum AffectFunctionEnum {
     fnAffectiveIntensity = "fnAffectiveIntensity",
+}
+
+export enum AffectScaleProfileEnum {
+    coreAffectMetricPAD = "coreAffectMetricPAD",
+}
+
+export enum AffectVectorObservationEnum {
+    schadenfreudeCoreVector = "schadenfreudeCoreVector",
 }
 
 export enum AgentEnum {
@@ -106,6 +118,13 @@ export enum AppraisalDimensionEnum {
     dimensionNovelty = "dimensionNovelty",
     dimensionObjectFocus = "dimensionObjectFocus",
     dimensionTemporalOrientation = "dimensionTemporalOrientation",
+}
+
+export enum AppraisalEnum {
+    schadenfreudeAgencyCell = "schadenfreudeAgencyCell",
+    schadenfreudeArousalCell = "schadenfreudeArousalCell",
+    schadenfreudeNormCell = "schadenfreudeNormCell",
+    schadenfreudeValenceCell = "schadenfreudeValenceCell",
 }
 
 export enum ArcTypeEnum {
@@ -731,6 +750,10 @@ export enum DerivationTypeEnum {
     derivationTypeSample = "derivationTypeSample",
     derivationTypeTranscription = "derivationTypeTranscription",
     derivationTypeVariation = "derivationTypeVariation",
+}
+
+export enum DerivedAffectIntensityObservationEnum {
+    schadenfreudeIntensity = "schadenfreudeIntensity",
 }
 
 export enum DeterminacyEnum {
@@ -2076,6 +2099,10 @@ export enum PeriodTypeEnum {
     periodTypeHistoricalEra = "periodTypeHistoricalEra",
 }
 
+export enum PersonEnum {
+    schadenfreudeObserver = "schadenfreudeObserver",
+}
+
 export enum PhysicalCarrierTypeEnum {
     carrierBone = "carrierBone",
     carrierCoin = "carrierCoin",
@@ -3230,6 +3257,11 @@ export enum WalletSchemeEnum {
     walletSchemeXMR = "walletSchemeXMR",
 }
 
+export enum WeightingPolicyEnum {
+    weightingEqualCoreAffect = "weightingEqualCoreAffect",
+    weightingValenceDominant = "weightingValenceDominant",
+}
+
 export interface AboutnessMode {
 }
 
@@ -3307,11 +3339,13 @@ export interface AffectLabelSet extends InformationObject {
 }
 
 export interface AffectScaleProfile extends InformationObject {
+    metricGram?: string,
     profileMidpoint?: number,
     profilePolarity?: ScalePolarity,
     profileRangeMax?: number,
     profileRangeMin?: number,
     profileTransform?: string,
+    sparseAxisCompletion?: boolean,
 }
 
 export interface AffectTelemetryStream extends Stream {
@@ -3986,6 +4020,7 @@ export interface CopyrightStatus {
 }
 
 export interface CoreAffectDimension extends AppraisalDimension {
+    coreAxisIndex?: number,
 }
 
 export interface Corpus extends InformationObject {
@@ -4170,7 +4205,7 @@ export interface DerivedAffectIntensityObservation extends Observation {
     intensityBasis?: AffectVectorObservation,
     metricProfile?: AffectScaleProfile,
     normFunction?: string,
-    weightingPolicy?: string,
+    weightingPolicy?: WeightingPolicy,
 }
 
 export interface Desire extends IntentionalMode {
@@ -6952,6 +6987,9 @@ export interface WebPage extends Manifestation {
 }
 
 export interface WebSite extends Manifestation {
+}
+
+export interface WeightingPolicy {
 }
 
 export interface Work extends CreativeWork {
