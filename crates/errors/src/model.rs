@@ -381,6 +381,15 @@ pub struct Finding {
     /// form so existing JSON/SARIF/RDF goldens are unchanged.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub category: Option<FindingCategory>,
+    /// The gating STANDPOINT this finding is asserted from (advisory ⊑ perspectival
+    /// ⊑ binding). It is the third truth-axis of the grade — the leg the gate
+    /// morphism reads alongside severity and category — carried onto the projected
+    /// finding so the RDF `gmeow:findingStandpoint` twin (and the SHACL up-set
+    /// shape that reads it) is not vacuous. `None` for hand-built findings that
+    /// predate the grading substrate; `skip_serializing_if` keeps it out of the
+    /// wire form when absent.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub standpoint: Option<crate::grade::Standpoint>,
     /// Structured slice attributions for this finding (§9 / S5).
     ///
     /// Records which slices (by public IRI, never numeric id) played which roles
@@ -402,6 +411,7 @@ impl Finding {
             tags: Vec::new(),
             detail: None,
             category: None,
+            standpoint: None,
             attributions: Vec::new(),
         }
     }
@@ -414,6 +424,13 @@ impl Finding {
     /// Tag this finding with its [`FindingCategory`] (the orthogonal KIND axis).
     pub fn with_category(mut self, category: FindingCategory) -> Self {
         self.category = Some(category);
+        self
+    }
+
+    /// Tag this finding with the [`Standpoint`](crate::grade::Standpoint) it is
+    /// asserted from (the gating-strength truth-axis).
+    pub fn with_standpoint(mut self, standpoint: crate::grade::Standpoint) -> Self {
+        self.standpoint = Some(standpoint);
         self
     }
 

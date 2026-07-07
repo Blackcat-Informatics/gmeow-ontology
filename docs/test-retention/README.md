@@ -112,6 +112,20 @@ Removed because a Rust artifact already asserts the same behavior:
   `gmeow_tools.validate.run_shacl` test surface and the `tests/_graph_nt.py`
   rdflib→N-Triples adapter are now permanently sealed by
   `check_no_run_shacl_seam` in `crates/validate/src/repo_static.rs`.
+- Native SPARQL conformance migration (16): the SPARQL competency + PyO3-seam
+  test cluster → `crates/validate/tests/conformance_*.rs` on the native purrdf
+  query engine via the `QueryCase` competency-question harness (with a
+  `MIGRATION_FEATURE_REGISTRY` that keeps the SPARQL feature-tag union ⊇ every
+  `Feature`, and a `MANIFEST` reconciling every source fn to its twin or a
+  drop). interior/narration/narrative_time/disclosure →
+  `conformance_{interior,narration,narrative_time,disclosure}.rs`;
+  email_behavioral/email_participant/email_versions → `conformance_email.rs`
+  (+ native LinkML-schema check); gender/sexuality/risk/competency →
+  `conformance_{gender,sexuality,risk,competency}.rs`;
+  gts_slice/dreaming/music_competency/music_oral_tradition →
+  `conformance_{gts_slice,dreaming,music_competency,music_oral_tradition}.rs`;
+  compat_rdflib → `conformance_sparql_surface.rs` (2 SPARQL fns ported; 24
+  external-purrdf PyO3-seam fns dropped as they have no in-repo Rust twin).
 
 Relocated out of the mainline test tree (dossier removed with the test):
 

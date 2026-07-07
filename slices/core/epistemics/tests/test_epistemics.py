@@ -9,7 +9,8 @@ and now run in the native Rust slice-test harness (crates/slicetest):
 
 * ``tests/structural.ttl`` — the MUST / MUST-NOT structural assertions,
 * ``tests/competency.ttl`` — the agent-kind and contribution-role competency
-  questions (also covers the global ``tests/test_competency.py`` versions), and
+  questions (the global competency-question corpus now runs natively in the
+  ``crates/validate`` conformance twins), and
 * ``tests/example-conformance.ttl`` — the flagship example and the
   missing-agent counter-example.
 

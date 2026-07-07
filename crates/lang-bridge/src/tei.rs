@@ -17,7 +17,6 @@
 //! [`crate::rdf_scan`] surface and never re-implements the scan.
 
 use gmeow_logic_compile::ir::PreservationKind;
-use gmeow_logic_compile::projections::ProjectionResult;
 use purrdf::{RdfDataset, TermId};
 
 use crate::bridge::IngestDiagnostic;
@@ -154,6 +153,7 @@ fn emit_composed_form(
         None,
     );
 
+    let mut loss = crate::registry::LossLedger::new();
     Ok(LangEmission {
         artifacts: vec![EmittedArtifact {
             path_suffix: format!("tei/{}.{}.tei.xml", source.name, local),
@@ -161,15 +161,17 @@ fn emit_composed_form(
             is_rdf: false,
         }],
         correspondence: corr,
-        ledger: vec![ProjectionResult {
-            target: format!("tei:{}#{}", source.name, local),
-            content: String::new(),
-            is_rdf: false,
-            preservation: PreservationKind::SoundUnder,
-            complexity: "n/a".to_owned(),
-            lossy_drops: Vec::new(),
-            actual_drops: residue.clone(),
-        }],
+        ledger: vec![crate::registry::emit_ledger_row(
+            &mut loss,
+            format!("tei:{}#{}", source.name, local),
+            String::new(),
+            false,
+            PreservationKind::SoundUnder,
+            "n/a".to_owned(),
+            Vec::new(),
+            residue.clone(),
+        )],
+        loss,
         leg_pair: None,
         emitted_reading_count: None,
         source_iri,

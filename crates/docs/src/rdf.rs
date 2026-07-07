@@ -187,6 +187,22 @@ pub fn to_gmeow_rdf(model: &DocsModel) -> String {
                 &format!("<{GMEOW_CHANGELOG_ENTRY}>"),
                 &mut lines,
             );
+            // A changelog entry is generated A-Box instance data like every other doc
+            // subject: annotate it (label / definition / provenance anchor / gmeow:boxABox
+            // role) so the folded bundle satisfies the assertional-tier validation contract
+            // — otherwise every minted changelog entry trips the four structural annotation
+            // lints. The note (when present) IS the entry's definition-equivalent.
+            annotate(
+                &entry_iri,
+                &format!("Changelog entry: {} {}", term.curie, entry.version),
+                &entry.note.clone().unwrap_or_else(|| {
+                    format!(
+                        "Changelog entry recording the {} release of {}.",
+                        entry.version, term.iri
+                    )
+                }),
+                &mut lines,
+            );
             triple(
                 &entry_iri,
                 GMEOW_ENTRY_VERSION,
