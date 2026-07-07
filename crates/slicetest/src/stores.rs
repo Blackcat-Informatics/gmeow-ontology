@@ -6,7 +6,7 @@
 //! Competency questions are ontology-wide ("what kinds of agent does GMEOW
 //! model?", "what contribution roles?"), so they run over the full merged
 //! ontology — `ontology/gmeow.ttl` plus every `slices/*/*/module.ttl` (imports
-//! excluded), the same source-set `tests/test_competency.py` merges.
+//! excluded), the full merged-ontology source-set.
 //!
 //! ## Two lanes (the D+C design — see `docs/TESTING.md`)
 //!
@@ -22,8 +22,8 @@
 //!   `gmeow:cqReasoning gmeow:reasoningRdfs` when its expected answer is entailed,
 //!   not asserted (e.g. a type inferred from a property's domain).
 //!
-//! Why not full OWL 2 RL: the native RL chase (`gmeow_logic::reason::rl_closure`,
-//! the same one `tests/test_competency.py` pays) is ~4 minutes over the merged
+//! Why not full OWL 2 RL: the native RL chase (`gmeow_logic::reason::rl_closure`)
+//! is ~4 minutes over the merged
 //! ontology — unacceptable for a test lane. RDFS covers the entailments
 //! competency questions actually need (subsumption + type inference) for a tiny
 //! fraction of the cost, and reasoning is monotonic so the asserted default can
