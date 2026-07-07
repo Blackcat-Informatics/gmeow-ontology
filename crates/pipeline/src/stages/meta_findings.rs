@@ -102,8 +102,10 @@ pub struct MetaDerivation {
     pub root_cause: BTreeSet<(String, String)>,
     /// `(finding, root)` — each finding's membership in the root-keyed cluster.
     pub cluster: BTreeSet<(String, String)>,
-    /// `(root, root)` — the shared root carried once on the cluster node.
-    pub cluster_root: BTreeSet<(String, String)>,
+    /// The shared root carried once on the cluster node (the `gmeow:clusterRoot`
+    /// self-edge subject; the rule head is `?root clusterRoot ?root`, so only the
+    /// single root IRI is retained).
+    pub cluster_root: BTreeSet<String>,
     /// Roots typed `gmeow:FindingCluster` (the grouping node).
     pub cluster_typed: BTreeSet<String>,
     /// Roots typed `gmeow:RootFinding` (the extensibility demonstrator).
@@ -136,7 +138,7 @@ impl MetaDerivation {
         for (finding, root) in &self.cluster {
             lines.push(format!("<{finding}> <{FINDING_CLUSTER}> <{root}> {g} ."));
         }
-        for (root, _) in &self.cluster_root {
+        for root in &self.cluster_root {
             lines.push(format!("<{root}> <{CLUSTER_ROOT}> <{root}> {g} ."));
         }
         for root in &self.cluster_typed {
@@ -216,27 +218,43 @@ impl MetaProgram {
     /// `gmeow:categoryPolarity` wiring out of the source graph N-Quads (the validate
     /// stage's base-graph bytes, which carry the logic + diagnostics slices).
     ///
-    /// Returns `None` when the source graph carries no meta-rules — a source without
-    /// them derives nothing, so the projection stays byte-unchanged. A malformed
-    /// source graph also yields `None`; the caller ships the projection unchanged
-    /// rather than fabricate a meta-finding.
-    pub fn from_source(source_nquads: &[u8]) -> Option<MetaProgram> {
-        let dataset = dataset_from_bytes(source_nquads, NativeRdfFormat::NQuads).ok()?;
+    /// Returns `Ok(None)` when the source graph carries no meta-rules — a source
+    /// without them derives nothing, so the projection stays byte-unchanged. A
+    /// malformed source graph, or one that types `gmeow:DiagnosticMetaRule` subjects
+    /// none of which parse into a logic rule, is a HARD FAIL (`Err`): a real defect
+    /// in a REQUIRED input must stop the pipeline, never silently collapse to the
+    /// no-rules path and ship a byte-unchanged projection.
+    pub fn from_source(source_nquads: &[u8]) -> Result<Option<MetaProgram>, String> {
+        let dataset = dataset_from_bytes(source_nquads, NativeRdfFormat::NQuads)
+            .map_err(|e| format!("parse diagnostic meta-fold source graph: {e}"))?;
         Self::from_source_dataset(&dataset)
     }
 
     /// The dataset-native entry [`from_source`](MetaProgram::from_source) wraps —
     /// the seam the unit test drives with a Turtle-parsed source graph.
-    pub fn from_source_dataset(dataset: &Arc<RdfDataset>) -> Option<MetaProgram> {
+    pub fn from_source_dataset(dataset: &Arc<RdfDataset>) -> Result<Option<MetaProgram>, String> {
         let meta_iris = select_iris(
             dataset,
             &format!("SELECT ?r WHERE {{ ?r <{RDF_TYPE}> <{DIAGNOSTIC_META_RULE}> . }}"),
             "r",
         );
         if meta_iris.is_empty() {
-            return None;
+            // The genuine "no meta-rules authored" case — nothing to derive.
+            return Ok(None);
         }
-        let (program, _diags) = parse_logic_dataset(dataset, None).ok()?;
+        // The source graph DOES carry `gmeow:DiagnosticMetaRule` subjects, so a parse
+        // failure past this point is a real defect, not an absence — surface it.
+        let (program, diags) = parse_logic_dataset(dataset, None)
+            .map_err(|e| format!("parse authored diagnostic meta-rules: {e}"))?;
+        let error_diags = diags
+            .iter()
+            .filter(|d| d.severity == gmeow_logic_compile::frontend::Severity::Error)
+            .count();
+        if error_diags > 0 {
+            return Err(format!(
+                "authored diagnostic meta-rules carry {error_diags} parse error(s); refusing to ship a partial fold"
+            ));
+        }
         // Select ALL and ONLY the meta rules, matched to their parsed LogicRule via
         // logic:provenance (each rule carries its own IRI there) — the class-based
         // fold, isolated from the rest of the logic slice.
@@ -251,7 +269,10 @@ impl MetaProgram {
             })
             .collect();
         if rules.is_empty() {
-            return None;
+            return Err(format!(
+                "source graph types {} gmeow:DiagnosticMetaRule subject(s) but none parsed into a logic rule",
+                meta_iris.len()
+            ));
         }
         let category_polarity = select_pairs(
             dataset,
@@ -259,10 +280,10 @@ impl MetaProgram {
             "c",
             "p",
         );
-        Some(MetaProgram {
+        Ok(Some(MetaProgram {
             program: LogicProgram::new(Vec::new(), rules, Vec::new(), None),
             category_polarity,
-        })
+        }))
     }
 
     /// Run the authored meta-rules over the projected diagnostics `finding_nq`
@@ -305,9 +326,9 @@ impl MetaProgram {
                     derivation.cluster.insert((atom.subject.clone(), object));
                 }
                 CLUSTER_ROOT => {
-                    derivation
-                        .cluster_root
-                        .insert((atom.subject.clone(), object));
+                    // The rule head is `?root gmeow:clusterRoot ?root` (a self-edge),
+                    // so subject == object — retain the single root IRI.
+                    derivation.cluster_root.insert(atom.subject.clone());
                 }
                 CROSS_NODE_GLUT_WITH => {
                     derivation.glut.insert((atom.subject.clone(), object));
@@ -371,30 +392,28 @@ pub fn enrich_report(report: &mut Report, derivation: &MetaDerivation) {
         glut_peers.entry(a).or_default().insert(b);
         glut_peers.entry(b).or_default().insert(a);
     }
+    // Pre-fold the (finding → smallest root) maps ONCE instead of re-scanning the
+    // full `root_cause`/`cluster` sets per finding (was O(findings × derivations)).
+    // Both sets iterate in sorted `(finding, root)` order, so the FIRST root seen for
+    // a finding is its lexicographically smallest — the same choice as the old `.min()`
+    // (the schema does not claim root uniqueness; the flat surface carries one).
+    let mut root_by_finding: BTreeMap<&str, &str> = BTreeMap::new();
+    for (f, r) in &derivation.root_cause {
+        root_by_finding.entry(f.as_str()).or_insert(r.as_str());
+    }
+    let mut cluster_by_finding: BTreeMap<&str, &str> = BTreeMap::new();
+    for (f, r) in &derivation.cluster {
+        cluster_by_finding.entry(f.as_str()).or_insert(r.as_str());
+    }
     for finding in &mut report.findings {
         let Some(iri) = finding.finding_iri.clone() else {
             continue;
         };
-        // The shared root cause / cluster: the lexicographically smallest root when
-        // a finding honestly traces to more than one childless root (the schema does
-        // not claim uniqueness, but the flat surface carries one).
-        if let Some(root) = derivation
-            .root_cause
-            .iter()
-            .filter(|(f, _)| *f == iri)
-            .map(|(_, r)| r)
-            .min()
-        {
-            finding.root_cause = Some(root.clone());
+        if let Some(root) = root_by_finding.get(iri.as_str()) {
+            finding.root_cause = Some((*root).to_owned());
         }
-        if let Some(cluster) = derivation
-            .cluster
-            .iter()
-            .filter(|(f, _)| *f == iri)
-            .map(|(_, r)| r)
-            .min()
-        {
-            finding.cluster = Some(cluster.clone());
+        if let Some(cluster) = cluster_by_finding.get(iri.as_str()) {
+            finding.cluster = Some((*cluster).to_owned());
         }
         if let Some(peers) = glut_peers.get(iri.as_str()) {
             finding.cross_node_glut_with = peers.iter().map(|p| (*p).to_owned()).collect();
@@ -570,6 +589,7 @@ mod tests {
         let dataset = dataset_from_bytes(&combined, NativeRdfFormat::Turtle)
             .expect("the combined slices parse as Turtle");
         MetaProgram::from_source_dataset(&dataset)
+            .expect("the combined slices parse for the diagnostic meta-fold")
             .expect("the authored slices carry gmeow:DiagnosticMetaRule rules + polarity wiring")
     }
 
@@ -767,7 +787,9 @@ mod tests {
         let dataset =
             dataset_from_bytes(ttl.as_bytes(), NativeRdfFormat::Turtle).expect("parse minimal");
         assert!(
-            MetaProgram::from_source_dataset(&dataset).is_none(),
+            MetaProgram::from_source_dataset(&dataset)
+                .expect("a well-formed source parses")
+                .is_none(),
             "a source without any gmeow:DiagnosticMetaRule must yield None"
         );
     }
