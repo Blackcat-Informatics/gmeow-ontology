@@ -34,7 +34,7 @@ use gmeow_logic::result_rdf::{
 };
 use gmeow_logic::transaction::execute::{CommitMode, TxReceipt, execute_transaction};
 use gmeow_logic_compile::frontend::parse_logic_str;
-use gmeow_logic_compile::ir::{Formula, Term as IrTerm};
+use gmeow_logic_compile::ir::{Formula, LOGIC_NAMESPACE, Term as IrTerm};
 use purrdf::gts::examples::agent_memory::{
     Memory, RecallOptions, RevisionOptions, StoreOptions, ToolCallOptions,
 };
@@ -2121,31 +2121,49 @@ fn parse_candidate_formula(formula_src: &str) -> gmeow_errors::Result<Formula> {
     })?;
     let bad = |message: String| gmeow_errors::Diag::of_kind(crate::error::Mcp { message });
     // A reified `logic:Formula` is the primary surface: prefer the single top-level formula
-    // even when the frontend leaks the formula's own structural triples as axioms. Only when
-    // NO formula is present does a single ground axiom become the (lifted) candidate.
-    match (program.formulas.len(), program.axioms.len()) {
-        (1, _) => Ok(program.formulas.into_iter().next().expect("len == 1")),
-        (0, 1) => {
-            let ax = program.axioms.into_iter().next().expect("len == 1");
-            let object = if ax.obj_is_literal {
-                IrTerm::Literal {
-                    lexical: ax.obj,
-                    datatype: None,
-                }
-            } else {
-                IrTerm::Iri(ax.obj)
-            };
-            Formula::atom(
-                IrTerm::Iri(ax.predicate),
-                vec![IrTerm::Iri(ax.subject), object],
-            )
-            .map_err(bad)
-        }
-        (formulas, axioms) => Err(bad(format!(
-            "candidate must be exactly one formula/atom, got {formulas} formula(s) and \
-             {axioms} axiom(s)"
-        ))),
+    // even when the frontend leaks the formula's own structural triples as axioms.
+    let formula_count = program.formulas.len();
+    if formula_count == 1 {
+        return Ok(program.formulas.into_iter().next().expect("len == 1"));
     }
+
+    // No single top-level formula. A REIFIED trivially-Horn `logic:Formula` (a ground binary
+    // atom — e.g. `relation=rdf:type, arg0=ex:a, arg1=ex:B`, the fact `ex:a rdf:type ex:B`) is
+    // routed by the front-end to `LogicProgram.axioms` (its Horn home — `with_formulas`
+    // hard-fails on a trivially-Horn leaf), so `formulas` is EMPTY and the candidate lives in
+    // the axiom set. That set also carries the formula node's own `rdf:type logic:Formula`
+    // self-typing, which leaks as a structural axiom — drop that noise, then a lone remaining
+    // axiom IS the candidate fact, lifted here to a binary `Formula::Atom`. `conjecture_test`'s
+    // `as_ground_fact` then asserts a ground lift as an EDB fact and decides it like any
+    // candidate, so a reified ground-atom conjecture is a first-class, evaluated candidate —
+    // never a panic (the previously dead `(0,1)` lift is now genuinely reachable).
+    let logic_formula_iri = format!("{LOGIC_NAMESPACE}Formula");
+    let mut candidate_axioms: Vec<_> = program
+        .axioms
+        .into_iter()
+        .filter(|ax| !(ax.predicate == RDF_TYPE && ax.obj == logic_formula_iri))
+        .collect();
+    if formula_count == 0 && candidate_axioms.len() == 1 {
+        let ax = candidate_axioms.pop().expect("len == 1");
+        let object = if ax.obj_is_literal {
+            IrTerm::Literal {
+                lexical: ax.obj,
+                datatype: None,
+            }
+        } else {
+            IrTerm::Iri(ax.obj)
+        };
+        return Formula::atom(
+            IrTerm::Iri(ax.predicate),
+            vec![IrTerm::Iri(ax.subject), object],
+        )
+        .map_err(bad);
+    }
+    Err(bad(format!(
+        "candidate must be exactly one formula/atom, got {formula_count} formula(s) and \
+         {} candidate axiom(s)",
+        candidate_axioms.len()
+    )))
 }
 
 /// Re-home every triple of the caller's KB Turtle into [`CONJECTURE_SCENARIO_WORLD`] as a
@@ -3226,6 +3244,78 @@ mod tests {
             !path.exists() || fs::metadata(&path).unwrap().len() == 0,
             "a dry run must write nothing to the library"
         );
+    }
+
+    /// A candidate authored as a REIFIED GROUND binary atom — the exact `logic:relation` /
+    /// `logic:argument` reification every authored formula uses, but VARIABLE-FREE: the ground
+    /// fact `ex:a rdf:type ex:<cls_local>`. The reconstructed `Formula::Atom` is trivially-Horn,
+    /// so it once panicked `LogicProgram::with_formulas` during the candidate parse.
+    fn reified_ground_atom_candidate(cls_local: &str) -> String {
+        format!(
+            "@prefix logic: <{LOGIC_NS}> .\n\
+             @prefix ex:  <http://ex/> .\n\
+             @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n\
+             ex:phi a logic:Formula ;\n\
+                 logic:relation rdf:type ;\n\
+                 logic:argument [ logic:termIndex 0 ; logic:termIri ex:a ] ;\n\
+                 logic:argument [ logic:termIndex 1 ; logic:termIri ex:{cls_local} ] .\n"
+        )
+    }
+
+    /// A KB that ASSERTS the ground fact the reified-ground-atom candidate names, so `KB ⊨ φ`.
+    fn ground_atom_entailing_kb(cls_local: &str) -> String {
+        format!(
+            "@prefix ex:  <http://ex/> .\n\
+             @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n\
+             ex:a rdf:type ex:{cls_local} .\n"
+        )
+    }
+
+    #[test]
+    fn parse_candidate_reified_ground_atom_lifts_not_panics() {
+        // F2 regression: a REIFIED GROUND binary atom is trivially-Horn, so the front-end must
+        // route it to `LogicProgram.axioms` (not `with_formulas`, which hard-asserts) and
+        // `parse_candidate_formula` must reconstruct it — cleanly, never a panic and never a
+        // false "0 formula(s) and 0 axiom(s)" rejection.
+        let candidate = parse_candidate_formula(&reified_ground_atom_candidate("B"))
+            .expect("reified ground atom must lift to a candidate formula");
+        match candidate {
+            Formula::Atom { relation, args } => {
+                assert_eq!(relation, IrTerm::Iri(RDF_TYPE_IRI.to_owned()));
+                assert_eq!(
+                    args,
+                    vec![
+                        IrTerm::Iri("http://ex/a".to_owned()),
+                        IrTerm::Iri("http://ex/B".to_owned()),
+                    ]
+                );
+            }
+            other => panic!("expected a ground binary atom, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn conjecture_test_reified_ground_atom_evaluates_via_shipped_core() {
+        // F2 regression on the SHIPPED surface: driving `run_conjecture_test` (the shared core
+        // behind the CLI + MCP tool) with a reified ground-atom candidate must EVALUATE it (a KB
+        // asserting the fact entails φ ⇒ corroborated) rather than panic (exit 101).
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let (_env, _cg) = ConjEnvGuard::set();
+        let (_dir, _path) = temp_conjecture();
+
+        let out = run_conjecture_test(&ConjectureRunInput {
+            formula_ttl: &reified_ground_atom_candidate("B"),
+            kb_ttl: &ground_atom_entailing_kb("B"),
+            standpoint: "http://ex/standpoint/alice",
+            math_conjecture: None,
+            dry_run: true,
+            max_steps: None,
+            max_answers: None,
+        })
+        .expect("a reified ground-atom conjecture must evaluate, not panic");
+        assert_eq!(out.lifecycle, "corroborated");
+        assert_eq!(out.information, "supported");
+        assert_eq!(out.evaluation, "completed");
     }
 
     /// A KB whose `ex:trigger` fires the `∀`-Horn candidate on SEVERAL individuals, so the
