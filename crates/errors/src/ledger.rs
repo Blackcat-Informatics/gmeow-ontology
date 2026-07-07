@@ -47,6 +47,46 @@ fn feed(hasher: &mut blake3::Hasher, tag: &[u8], bytes: &[u8]) {
     hasher.update(bytes);
 }
 
+/// Feed the **code-blind source-position identity** — `(path, line, column,
+/// logical, term_role, focus)` in this EXACT order — into `hasher`. The SINGLE
+/// definition of the anchor field-feed, shared by [`DiagFingerprint::compute`]
+/// (after its `code`+`category` prefix) and [`DiagFingerprint::anchor`], so the two
+/// paths are structurally identical and cannot silently drift apart — a drift would
+/// break the cross-node join key the glut meta-rule depends on.
+fn feed_source_ctx(hasher: &mut blake3::Hasher, ctx: &SourceContext) {
+    feed(
+        hasher,
+        b"path",
+        ctx.location.path.as_deref().unwrap_or("").as_bytes(),
+    );
+    feed(
+        hasher,
+        b"line",
+        &ctx.location.line.unwrap_or(0).to_le_bytes(),
+    );
+    feed(
+        hasher,
+        b"column",
+        &ctx.location.column.unwrap_or(0).to_le_bytes(),
+    );
+    feed(
+        hasher,
+        b"logical",
+        ctx.location.logical.as_deref().unwrap_or("").as_bytes(),
+    );
+    let role = ctx.term_role.map(|r| format!("{r:?}")).unwrap_or_default();
+    feed(hasher, b"role", role.as_bytes());
+    feed(
+        hasher,
+        b"focus",
+        ctx.focus
+            .as_ref()
+            .map(|f| f.0.as_str())
+            .unwrap_or("")
+            .as_bytes(),
+    );
+}
+
 impl DiagFingerprint {
     /// Compute the fingerprint from the identity fields — `(code, category,
     /// source-context anchor, focus)`. Never keys on message/frames/grade.
@@ -54,37 +94,7 @@ impl DiagFingerprint {
         let mut hasher = blake3::Hasher::new();
         feed(&mut hasher, b"code", code.as_bytes());
         feed(&mut hasher, b"category", category.as_str().as_bytes());
-        feed(
-            &mut hasher,
-            b"path",
-            ctx.location.path.as_deref().unwrap_or("").as_bytes(),
-        );
-        feed(
-            &mut hasher,
-            b"line",
-            &ctx.location.line.unwrap_or(0).to_le_bytes(),
-        );
-        feed(
-            &mut hasher,
-            b"column",
-            &ctx.location.column.unwrap_or(0).to_le_bytes(),
-        );
-        feed(
-            &mut hasher,
-            b"logical",
-            ctx.location.logical.as_deref().unwrap_or("").as_bytes(),
-        );
-        let role = ctx.term_role.map(|r| format!("{r:?}")).unwrap_or_default();
-        feed(&mut hasher, b"role", role.as_bytes());
-        feed(
-            &mut hasher,
-            b"focus",
-            ctx.focus
-                .as_ref()
-                .map(|f| f.0.as_str())
-                .unwrap_or("")
-                .as_bytes(),
-        );
+        feed_source_ctx(&mut hasher, ctx);
         let digest = hasher.finalize();
         let mut bytes = [0u8; 16];
         bytes.copy_from_slice(&digest.as_bytes()[..16]);
@@ -100,37 +110,7 @@ impl DiagFingerprint {
     /// joins on.
     pub fn anchor(ctx: &SourceContext) -> Self {
         let mut hasher = blake3::Hasher::new();
-        feed(
-            &mut hasher,
-            b"path",
-            ctx.location.path.as_deref().unwrap_or("").as_bytes(),
-        );
-        feed(
-            &mut hasher,
-            b"line",
-            &ctx.location.line.unwrap_or(0).to_le_bytes(),
-        );
-        feed(
-            &mut hasher,
-            b"column",
-            &ctx.location.column.unwrap_or(0).to_le_bytes(),
-        );
-        feed(
-            &mut hasher,
-            b"logical",
-            ctx.location.logical.as_deref().unwrap_or("").as_bytes(),
-        );
-        let role = ctx.term_role.map(|r| format!("{r:?}")).unwrap_or_default();
-        feed(&mut hasher, b"role", role.as_bytes());
-        feed(
-            &mut hasher,
-            b"focus",
-            ctx.focus
-                .as_ref()
-                .map(|f| f.0.as_str())
-                .unwrap_or("")
-                .as_bytes(),
-        );
+        feed_source_ctx(&mut hasher, ctx);
         let digest = hasher.finalize();
         let mut bytes = [0u8; 16];
         bytes.copy_from_slice(&digest.as_bytes()[..16]);
