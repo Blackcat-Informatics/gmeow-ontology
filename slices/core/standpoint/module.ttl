@@ -1,4 +1,5 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
@@ -78,6 +79,32 @@ gmeow:StandpointTenure
         gmeow:boxTBox ;
     gmeow:howToUse "Mint the tenure, bind its frame with gmeow:tenureStandpoint and the held claim with gmeow:tenurePosition, scope it in standpoint-time via gmeow:duringInterval (temporal module); it generates exactly one gmeow:standpointClaim observation whose vantage is the tenureStandpoint and whose observedFeature is the tenurePosition."@x-gmeow-english ;
     gmeow:useWhen "Use when the adoption or withdrawal of a standpoint's position over an interval is itself the fact of interest — recognition granted then revoked — so the change is an opened-then-closed tenure carrying its standpoint-time interval, retained never deleted (Principle 10)."@x-gmeow-english .
+
+# A gmeow:tenurePosition value IS, by definition, a reified statement — the standpoint-indexed
+# claim the tenure held (it surfaces as the gmeow:observedFeature of the generated
+# gmeow:StandpointClaim, and StandpointClaim is an gmeow:Observation). So a gmeow:StandpointTenure
+# that records its held position as a bare, unreified triple is ill-formed. This obligation is
+# authored in the classic RDF reification form the validation-shape derivation reads (rdf:Statement +
+# rdf:subject/rdf:predicate/rdf:object): a reifier typed with the shape the reifier must conform to
+# (gmeow:Observation), reifying the schema-level gmeow:tenurePosition triple. It lowers to a
+# property shape on gmeow:tenurePosition carrying sh:reifierShape gmeow:Observation-shape +
+# sh:reificationRequired true — the one closed-world obligation with no ordinary-OWL antecedent, so
+# it rides the statement layer rather than a shape vocabulary. The classic form (not the native
+# rdf:reifies <<( )>> term) is used because a quoted-triple object cannot ride the base-quad fold to
+# gmeow.gts. The reifier IS an observation (Principle 9: a statement promoted to a reified
+# gmeow:Observation), which is why typing it gmeow:Observation is faithful, not a stub.
+gmeow:tenurePositionReificationObligation
+    a rdf:Statement ,
+        gmeow:Observation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    rdfs:label "tenure-position reification obligation"@x-gmeow-english ;
+    skos:definition "The authoring vehicle for the closed-world requirement that every gmeow:StandpointTenure records its gmeow:tenurePosition as a reified statement whose reifier conforms to gmeow:Observation-shape. Authored in the classic RDF reification form the validation-shape derivation reads, it is itself a well-formed reified observation — held from the universal standpoint, observing the standpoint claim — so it satisfies the observation shape it also declares."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ;
+    gmeow:vantage gmeow:universalStandpoint ;
+    gmeow:observedFeature gmeow:StandpointClaim ;
+    rdf:subject gmeow:StandpointTenure ;
+    rdf:predicate gmeow:tenurePosition ;
+    rdf:object gmeow:StandpointClaim .
 
 gmeow:State
     a logic:Kind ,

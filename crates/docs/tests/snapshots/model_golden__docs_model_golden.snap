@@ -6,13 +6,13 @@ expression: summary
   "title": "GMEOW Ontology Documentation",
   "version": "7",
   "slice_count": 80,
-  "term_count": 2474,
+  "term_count": 2464,
   "dependency_edge_count": 993,
   "term_count_by_category": {
-    "Class": 737,
+    "Class": 734,
     "Datatype": 1,
     "Individual": 29,
-    "Property": 1707
+    "Property": 1700
   },
   "slice_iris": [
     "https://blackcatinformatics.ca/gmeow/slices/accessibility",
@@ -307,7 +307,7 @@ expression: summary
   "linkage_count": 1986,
   "example_count": 139,
   "concern_count": 7,
-  "external_term_count": 1726,
+  "external_term_count": 1724,
   "sample_mapping_set": {
     "iri": "https://blackcatinformatics.ca/gmeow/mapsetAccessibility",
     "curie": "gmeow:mapsetAccessibility",
@@ -425,7 +425,7 @@ expression: summary
       "schema"
     ]
   },
-  "shape_count": 319,
+  "shape_count": 321,
   "competency_count": 125,
   "sample_shape": {
     "shape_iri": "https://blackcatinformatics.ca/gmeow/RetractedAccessibilityAssertionShape",
