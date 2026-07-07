@@ -389,6 +389,30 @@ pub fn to_gmeow_rdf_in_graph(report: &Report, graph_iri: &str) -> String {
                 &mut lines,
             );
         }
+        // The DERIVED gate verdict, materialized by the single gate() morphism (the
+        // Rust twin of logic:ruleGateFatalVerdict, proven equal over every grade). A
+        // finding whose full truth triple (severity, category, standpoint) is known
+        // carries its verdict here, so the projected up-set findings are consistent
+        // with the SHACL up-set shape (which reads gmeow:findingGateVerdict) instead
+        // of appearing to omit a required derivation. Guarded by the full grade so an
+        // incompletely-graded legacy finding leaves the projection unchanged.
+        if let (Some(category), Some(standpoint)) = (finding.category, finding.standpoint) {
+            let verdict = crate::grade::gate(crate::grade::Grade::new(
+                finding.severity,
+                category,
+                standpoint,
+            ));
+            let verdict_local = match verdict {
+                crate::grade::GateVerdict::Fatal => "gateFatal",
+                crate::grade::GateVerdict::Collected => "gateCollected",
+            };
+            triple(
+                &subject,
+                &format!("{GMEOW}findingGateVerdict"),
+                &format!("<{GMEOW}{verdict_local}>"),
+                &mut lines,
+            );
+        }
         // Advisory: one triple per suggestion (already sorted+deduped by normalize).
         for suggestion in &finding.suggestions {
             triple(
@@ -1270,6 +1294,48 @@ mod tests {
             !to_gmeow_rdf(&bare).contains("findingStandpoint"),
             "standpoint-less finding must not project findingStandpoint"
         );
+    }
+
+    #[test]
+    fn gmeow_rdf_emits_derived_gate_verdict_for_a_fully_graded_finding() {
+        // A finding whose full truth triple is known carries its DERIVED gate
+        // verdict (via the gate() morphism), so the projected up-set findings are
+        // consistent with the SHACL up-set shape. An up-set finding → gateFatal; a
+        // finding off the up-set → gateCollected; an incompletely-graded finding
+        // emits no verdict (leaving legacy projections unchanged).
+        use crate::grade::Standpoint;
+        use crate::model::FindingCategory;
+        let mut fatal = Report::new("validate");
+        fatal.add_finding(
+            Finding::new(Severity::Error, "x.fatal", "up-set finding")
+                .with_category(FindingCategory::DataShapeViolation)
+                .with_standpoint(Standpoint::Binding),
+        );
+        assert!(
+            to_gmeow_rdf(&fatal).contains(
+                "<https://blackcatinformatics.ca/gmeow/findingGateVerdict> \
+                 <https://blackcatinformatics.ca/gmeow/gateFatal>"
+            ),
+            "an Error/blocking/Binding up-set finding must carry gateFatal: {}",
+            to_gmeow_rdf(&fatal)
+        );
+        let mut collected = Report::new("validate");
+        collected.add_finding(
+            Finding::new(Severity::Warning, "x.coll", "off the up-set")
+                .with_category(FindingCategory::PolicyWarning)
+                .with_standpoint(Standpoint::Advisory),
+        );
+        assert!(
+            to_gmeow_rdf(&collected).contains(
+                "<https://blackcatinformatics.ca/gmeow/findingGateVerdict> \
+                 <https://blackcatinformatics.ca/gmeow/gateCollected>"
+            ),
+            "a non-up-set finding must carry gateCollected"
+        );
+        // No verdict without the full grade (category+standpoint both required).
+        let mut bare = Report::new("validate");
+        bare.add_finding(Finding::new(Severity::Error, "x.bare", "no grade"));
+        assert!(!to_gmeow_rdf(&bare).contains("findingGateVerdict"));
     }
 
     #[test]
