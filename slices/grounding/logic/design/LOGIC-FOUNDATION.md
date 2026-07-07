@@ -564,6 +564,91 @@ conservative-extension, bounded-corpus) are named in the closed set but not yet 
 obligation that declares one of them is a hard error ("no executable discharge path"), so an unwired
 condition can never be mistaken for a silent pass.
 
+## Conjecture and refutation
+
+The typed-formalization surface above governs the *static* prose-to-axiom transition: a reviewer
+asserts a candidate's positive and negative cases and adjudicates its promotion. The conjecture
+library is that surface's **dynamic, testable specialization**. A `logic:Conjecture` is a
+`logic:FormalizationCandidate` (`rdfs:subClassOf`), so it inherits the whole governance spine — all
+eight universal carriers (source hash, extraction provenance, scope, reasoning contract, formalization
+category, candidate lifecycle, projection behaviour, semantic risk) still apply. What *specialises* it
+is one genuinely new axis: a conjecture's cases are **engine-produced**, not reviewer-asserted. That
+axis is carried explicitly by `logic:verdictProvenance` over the closed
+`logic:VerdictProvenanceKind` set (`VerdictEngineProduced` / `VerdictReviewerAsserted`), so an
+engine-derived verdict and a hand-adjudicated one are never confused.
+
+**Symmetric test.** A conjecture names a candidate formula (its `logic:conjectureFormula`, the
+alpha-normalised content identity of the full first-order AST) and tests it symmetrically against its
+negation: the engine looks both for support of the formula and for a counterexample to it. Because the
+canonical logic is standpoint-relative, the verdict is **always scoped to a reified standpoint**
+(`logic:conjectureStandpoint`, a required IRI). Standpoint scoping here is reification, never a named
+graph, and it is load-bearing: Principle 9 refuses a global-false verdict, so a refutation is always
+"the formula is refuted *from this standpoint*", never simpliciter.
+
+**Two orthogonal lifecycles.** A conjecture carries two lifecycle axes that Principle 9 forbids
+collapsing. The **governance** lifecycle it inherits (`logic:candidateLifecycle`:
+proposed / under-review / accepted / rejected) records *who has adjudicated its promotion*. The
+**epistemic** lifecycle (`logic:conjectureLifecycleState`: open / corroborated / refuted-in-standpoint /
+withdrawn) records *what the test found*. A conjecture may be governance-accepted yet epistemically
+open, or epistemically corroborated yet governance-proposed; the two never fuse into one status field.
+
+**The Belnap-to-lifecycle-and-discharge projection.** The engine returns a Belnap truth value for the
+formula from its standpoint; conclusiveness reuses the existing `logic:DischargeVerdict` value class
+(carried as `logic:conjectureDischargeVerdict`) rather than minting a parallel notion. The projection
+is total:
+
+| Belnap origin | Epistemic lifecycle | Discharge verdict | Witness |
+| --- | --- | --- | --- |
+| Supported (true) | `ConjectureCorroborated` | `ObligationDischarged` | — |
+| Opposed (false) | `ConjectureRefutedInStandpoint` | `ObligationDischarged` | **required** |
+| Both (contradictory) | `ConjectureRefutedInStandpoint` | `ObligationDischarged` | **required** |
+| Neither, conclusive | `ConjectureOpen` | `ObligationDischarged` | — |
+| Undetermined / budget-exhausted | `ConjectureOpen` | `ObligationUnknown` | — |
+| (author action) | `ConjectureWithdrawn` | — | — |
+
+Two facts about the table are enforced, not merely documented. First, **a timeout is never a
+refutation**: an undetermined or budget-exhausted run carries `ObligationUnknown` and *must* stay in
+`ConjectureOpen` — a conjecture carrying `ObligationUnknown` in any other state is a hard error. The
+"Neither, conclusive" row (a genuine independence proof inside a complete fragment) is distinguished
+from it purely by the discharge verdict: same open state, `ObligationDischarged` vs `ObligationUnknown`.
+Second, **a refutation must be replayable**: a `ConjectureRefutedInStandpoint` conjecture *must* name a
+concrete `logic:ContradictionWitness` — the individual forced to `owl:Nothing`, the world it was found
+in, and each jointly-inconsistent premise as a serialized triple. A refutation with no witness is an
+unfalsifiable claim, not a refutation, and fails both the SHACL shape and the verify query. Withdrawal
+is the one state that is never engine-produced: it is an author action, and a withdrawn conjecture
+carries `VerdictReviewerAsserted`.
+
+**Two symmetric promotion legs.** A conjecture that survives feeds forward, and so does one that dies.
+A corroborated formula becomes eligible for the **positive** leg: `logic:conjecturePromotionCandidate`
+points to a `logic:FormalizationCandidate` proposing to promote the formula to a canonical axiom —
+still gated through the ordinary reviewer decision, because corroboration is provisional support, never
+proof. A robustly refuted formula feeds the **symmetric anti-conjecture** leg:
+`logic:antiConjectureObligationCandidate` points to a candidate `logic:NonEntailmentObligation`
+forbidding the formula. A refuted formula is not merely discarded; it becomes a first-class commitment
+that the foundation must never draw. The two legs mirror each other exactly under negation —
+corroborated → axiom candidate, refuted → non-entailment candidate.
+
+**Lakatos refinement.** A refutation need not end the inquiry. A weakened successor conjecture can link
+back to its refuted predecessor through `logic:conjectureRefinedFrom` and forward to the witness it now
+excludes through `logic:survivesCounterexample` — the "monster-barring" move, made auditable: the
+corpus can show a refinement chain in which each successor demonstrably survives a counterexample that
+killed its parent, rather than silently relabelling the claim.
+
+**The bounded corpus pre-order.** Conjectures relate to one another through `logic:conjectureEntails`
+(the formula φ entails the formula ψ). Its purpose is contrapositive propagation: if ψ is refuted and
+φ entails ψ, then φ cannot stand and belongs on the re-test frontier. The relation is a pre-order *in
+intent* (reflexive and transitive), and each edge is itself a conjecture test — that φ genuinely
+entails ψ — not a bare assertion. This layer ships as **vocabulary plus the propagation competency
+query** only; full transitive-closure materialization over the corpus is deliberately ruled out of
+this increment, so the pre-order is carried and queryable without committing the engine to close it.
+
+Finally, one seam is left open on purpose. Corroboration rank is a natural feed into the AGM
+**entrenchment** ordering — the more a conjecture has survived, the more entrenched the belief it
+grounds should be, and the more costly it should be to give up under a counterfactual revision. Wiring
+corroboration-as-entrenchment is a *deliberate* deferral to a follow-on epic, not an oversight: it
+would change the resolution semantics of every existing counterfactual test at once, so it is held back
+behind its own governed increment rather than smuggled in with the vocabulary.
+
 ## The Ithkuil precision ethos
 
 The clearest proof that `gmeow:logic` already practises its own ethos is the precision it carries in

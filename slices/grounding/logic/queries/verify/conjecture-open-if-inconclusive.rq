@@ -1,0 +1,17 @@
+# Open-if-inconclusive: a timeout may NEVER read as a refutation. A conjecture whose
+# conclusiveness verdict is logic:ObligationUnknown (a budget-exhausted or
+# fragment-gap run, carried forward and never 'proved') MUST remain in the
+# logic:ConjectureOpen epistemic state. A conjecture carrying logic:ObligationUnknown
+# in any state OTHER than open (corroborated / refuted-in-standpoint / withdrawn)
+# has been given a conclusive reading its evidence does not support. This selects
+# such conjectures. Any returned row is a violation (LOGIC-FOUNDATION.md, the
+# conjecture-and-refutation section).
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+
+SELECT ?conj ?state WHERE {
+    ?conj a logic:Conjecture ;
+          logic:conjectureDischargeVerdict logic:ObligationUnknown ;
+          logic:conjectureLifecycleState ?state .
+    FILTER (?state != logic:ConjectureOpen)
+}
+ORDER BY ?conj
