@@ -9,7 +9,7 @@ from the module, documentation status from the guide. STUB guides are the Tier-2
 |---|---|---|---:|---:|---:|---:|---:|---:|---|
 | accessibility | extension | extensions | 2 | 3 | 6 | 0 | 1 | - | full |
 | accounts | core | core | 1 | 4 | 10 | 0 | 1 | 14/14 | full |
-| affect | core | core | 4 | 24 | 43 | 0 | 5 | 21/67 | full |
+| affect | core | core | 5 | 25 | 46 | 0 | 5 | 21/71 | full |
 | agentic | extension | extensions | 6 | 1 | 4 | 0 | 5 | - | full |
 | aggregation | extension | extensions | 2 | 3 | 3 | 0 | 1 | - | full |
 | agreements | core | core | 2 | 3 | 2 | 0 | 1 | 5/5 | full |
@@ -87,4 +87,4 @@ from the module, documentation status from the guide. STUB guides are the Tier-2
 | trust | core | core | 2 | 7 | 23 | 0 | 1 | 30/30 | full |
 | versions | core | core | 3 | 6 | 13 | 0 | 1 | 19/19 | full |
 
-**79 slices** · documentation: 79 full guides, 0 stubs remaining; advisory coverage: 1268/2003 core class/property terms.
+**79 slices** · documentation: 79 full guides, 0 stubs remaining; advisory coverage: 1268/2007 core class/property terms.
