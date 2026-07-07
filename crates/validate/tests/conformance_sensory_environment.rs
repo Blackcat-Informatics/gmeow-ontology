@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 //! Conformance twins migrated from tests/test_sensory_environment.py (the two
-//! TBox-membership functions; the SOSA / psychological mapping-load functions
-//! remain in Python for a later batch).
+//! TBox-membership functions plus the SOSA / psychological SSSOM mapping scans).
 //!
 //! Both twins run over the merged ontology (`GraphStore::ontology()`): the
 //! sensory-environment axes and perceptual frame realm are defined as subjects in
@@ -52,5 +51,67 @@ fn perceptual_frame_realm_exists() {
             Some(&gm("FrameRealm"))
         ),
         "gmeow:frameRealmPerceptual must be a gmeow:FrameRealm"
+    );
+}
+
+// ── SSSOM-scan twins migrated from tests/test_sensory_environment.py ──────────
+
+/// True iff `generated/mappings/gmeow-sensory-environment.sssom.tsv` has a row with
+/// the given `(subject_id, predicate_id, object_id)`, skipping `#`-prefixed metadata
+/// lines and the TSV header. Mirrors the `load_mappings()` filter narrowed to the
+/// sensory-environment source file.
+fn sensory_sssom_row(subject_id: &str, predicate_id: &str, object_id: &str) -> bool {
+    let path = repo_root()
+        .join("generated")
+        .join("mappings")
+        .join("gmeow-sensory-environment.sssom.tsv");
+    let text =
+        std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()));
+    text.lines().any(|line| {
+        if line.starts_with('#') || line.starts_with("subject_id") {
+            return false;
+        }
+        let cols: Vec<&str> = line.split('\t').collect();
+        cols.len() >= 3 && cols[0] == subject_id && cols[1] == predicate_id && cols[2] == object_id
+    })
+}
+
+/// Twin of `test_sosa_alignments_loaded`: the sensory-environment mapping set
+/// contains the SOSA closeMatch alignments.
+#[test]
+fn sosa_alignments_loaded() {
+    assert!(
+        sensory_sssom_row(
+            "gmeow:SensoryEnvironment",
+            "skos:closeMatch",
+            "sosa:FeatureOfInterest"
+        ),
+        "SensoryEnvironment must map to sosa:FeatureOfInterest"
+    );
+    assert!(
+        sensory_sssom_row("gmeow:CoordinateMatrix", "skos:closeMatch", "sosa:Result"),
+        "CoordinateMatrix must map to sosa:Result"
+    );
+}
+
+/// Twin of `test_psychological_mappings_loaded` (#87): the sensory-environment
+/// mapping set contains the MF and MFOEM relatedMatch alignments.
+#[test]
+fn psychological_mappings_loaded() {
+    assert!(
+        sensory_sssom_row(
+            "gmeow:MentalReferenceFrame",
+            "skos:relatedMatch",
+            "bfo:MF_0000020"
+        ),
+        "MentalReferenceFrame must map to bfo:MF_0000020 (mental process)"
+    );
+    assert!(
+        sensory_sssom_row(
+            "gmeow:referenceFrameAffectiveCircumplex",
+            "skos:relatedMatch",
+            "bfo:MFOEM_000195"
+        ),
+        "referenceFrameAffectiveCircumplex must map to bfo:MFOEM_000195 (affective process)"
     );
 }

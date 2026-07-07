@@ -73,6 +73,7 @@ pub struct ManifestRow {
 use ObligationKind::*;
 
 /// A `TBoxStructural` row a later task must supply (case_count = 1).
+#[allow(dead_code)]
 const fn t(python_file: &'static str, python_fn: &'static str) -> ManifestRow {
     ManifestRow {
         python_file,
@@ -83,6 +84,7 @@ const fn t(python_file: &'static str, python_fn: &'static str) -> ManifestRow {
     }
 }
 /// An `AboxWitness` row a later task must supply (case_count = 1).
+#[allow(dead_code)]
 const fn a(python_file: &'static str, python_fn: &'static str) -> ManifestRow {
     ManifestRow {
         python_file,
@@ -375,13 +377,19 @@ pub const MANIFEST: &[ManifestRow] = &[
         TBoxStructural,
         "slices/extensions/music/tests/structural.ttl#saTimbreObservationResultProperty",
     ),
-    a(
+    twin(
         "slices/extensions/music/tests/test_music_timbre.py",
         "test_timbre_fixture_observations_exist",
+        1,
+        QueryBehavioral,
+        "conformance_music.rs::fixture_observations_exist",
     ),
-    a(
+    twin(
         "slices/extensions/music/tests/test_music_timbre.py",
         "test_timbre_fixture_coequal_vantages",
+        1,
+        QueryBehavioral,
+        "conformance_music.rs::fixture_coequal_vantages",
     ),
     twin(
         "slices/extensions/music/tests/test_music_timbre.py",
@@ -391,11 +399,20 @@ pub const MANIFEST: &[ManifestRow] = &[
         "conformance_music.rs::afo_timbre_mapping_exists",
     ),
     // ── tests/test_aboutness.py (2) — no slice dir → R5 ─────────────────────────
-    q(
+    twin(
         "tests/test_aboutness.py",
         "test_aboutness_orthogonal_to_other_axes",
+        1,
+        QueryBehavioral,
+        "conformance_aboutness.rs::orthogonal_to_other_axes",
     ),
-    q("tests/test_aboutness.py", "test_no_aboutness_truth_bridge"),
+    twin(
+        "tests/test_aboutness.py",
+        "test_no_aboutness_truth_bridge",
+        1,
+        QueryBehavioral,
+        "conformance_aboutness.rs::no_aboutness_truth_bridge",
+    ),
     // ── tests/test_aggregation.py (1) ───────────────────────────────────────────
     twin(
         "tests/test_aggregation.py",
@@ -405,29 +422,47 @@ pub const MANIFEST: &[ManifestRow] = &[
         "conformance_aggregation.rs::contains_place_exists_and_is_inverse",
     ),
     // ── tests/test_ai_claims.py (6) ─────────────────────────────────────────────
-    q(
+    twin(
         "tests/test_ai_claims.py",
         "test_no_parallel_claim_construct_exists",
+        1,
+        QueryBehavioral,
+        "conformance_ai_claims.rs::no_parallel_claim_construct_exists",
     ),
-    q(
+    twin(
         "tests/test_ai_claims.py",
         "test_no_parallel_evaluation_construct_exists",
+        1,
+        QueryBehavioral,
+        "conformance_ai_claims.rs::no_parallel_evaluation_construct_exists",
     ),
-    q(
+    twin(
         "tests/test_ai_claims.py",
         "test_no_duplicate_provenance_properties",
+        1,
+        QueryBehavioral,
+        "conformance_ai_claims.rs::no_duplicate_provenance_properties",
     ),
-    q(
+    twin(
         "tests/test_ai_claims.py",
         "test_no_winner_machinery_anywhere",
+        1,
+        QueryBehavioral,
+        "conformance_ai_claims.rs::no_winner_machinery_anywhere",
     ),
-    q(
+    twin(
         "tests/test_ai_claims.py",
         "test_no_new_identity_axes_were_minted",
+        1,
+        QueryBehavioral,
+        "conformance_ai_claims.rs::no_new_identity_axes_were_minted",
     ),
-    q(
+    twin(
         "tests/test_ai_claims.py",
         "test_assessment_seam_is_the_norms_extensions",
+        1,
+        QueryBehavioral,
+        "conformance_ai_claims.rs::assessment_seam_is_the_norms_extensions",
     ),
     // ── tests/test_archaeological_evidence.py (2) ───────────────────────────────
     twin(
@@ -445,21 +480,33 @@ pub const MANIFEST: &[ManifestRow] = &[
         "conformance_archaeological_evidence.rs::no_primary_or_preferred_archaeological_terms",
     ),
     // ── tests/test_cognition.py (4) ─────────────────────────────────────────────
-    q(
+    twin(
         "tests/test_cognition.py",
         "test_mental_moment_has_exactly_one_gufo_metaclass",
+        1,
+        QueryBehavioral,
+        "conformance_cognition.rs::mental_moment_has_exactly_one_gufo_metaclass",
     ),
-    q(
+    twin(
         "tests/test_cognition.py",
         "test_cognition_sssom_rows_include_expected_alignments",
+        1,
+        QueryBehavioral,
+        "conformance_cognition.rs::cognition_sssom_rows_include_expected_alignments",
     ),
-    q(
+    twin(
         "tests/test_cognition.py",
         "test_cognition_sssom_includes_corrected_wikidata_qids",
+        1,
+        QueryBehavioral,
+        "conformance_cognition.rs::cognition_sssom_includes_corrected_wikidata_qids",
     ),
-    q(
+    twin(
         "tests/test_cognition.py",
         "test_cognition_sssom_includes_opencyc_knows_about",
+        1,
+        QueryBehavioral,
+        "conformance_cognition.rs::cognition_sssom_includes_opencyc_knows_about",
     ),
     // ── tests/test_contact_fields.py (3) ────────────────────────────────────────
     twin(
@@ -500,9 +547,12 @@ pub const MANIFEST: &[ManifestRow] = &[
         "conformance_creative_works.rs::wemi_tiers_subclass_information_object",
     ),
     // ── tests/test_determinacy.py (1) — no slice dir → R5 ───────────────────────
-    q(
+    twin(
         "tests/test_determinacy.py",
         "test_no_preferred_or_primary_term_is_declared",
+        1,
+        QueryBehavioral,
+        "conformance_determinacy.rs::no_preferred_or_primary_term_is_declared",
     ),
     // ── tests/test_email_calendar.py (1) ────────────────────────────────────────
     twin(
@@ -565,38 +615,63 @@ pub const MANIFEST: &[ManifestRow] = &[
         "conformance_email.rs::has_thread_subject_and_prefix",
     ),
     // ── tests/test_foundational_bridging.py (7) — no slice dir → R5 ─────────────
-    q(
+    twin(
         "tests/test_foundational_bridging.py",
         "test_expected_cells_present_in_alignment_graph",
+        1,
+        QueryBehavioral,
+        "conformance_foundational_bridging.rs::expected_cells_present_in_alignment_graph",
     ),
-    q(
+    twin(
         "tests/test_foundational_bridging.py",
         "test_bridge_uses_closematch_only",
+        1,
+        QueryBehavioral,
+        "conformance_foundational_bridging.rs::bridge_uses_closematch_only",
     ),
-    q(
+    twin(
         "tests/test_foundational_bridging.py",
         "test_every_bfo_iri_is_a_real_class_in_the_snapshot",
+        1,
+        QueryBehavioral,
+        "conformance_foundational_bridging.rs::every_bfo_iri_is_a_real_class_in_the_snapshot",
     ),
-    q(
+    twin(
         "tests/test_foundational_bridging.py",
         "test_bridge_is_link_only_no_import",
+        1,
+        QueryBehavioral,
+        "conformance_foundational_bridging.rs::bridge_is_link_only_no_import",
     ),
-    q(
+    twin(
         "tests/test_foundational_bridging.py",
         "test_bfo_is_import_ok_upper_ontology",
+        1,
+        QueryBehavioral,
+        "conformance_foundational_bridging.rs::bfo_is_import_ok_upper_ontology",
     ),
-    q(
+    twin(
         "tests/test_foundational_bridging.py",
         "test_coverage_reported",
+        1,
+        QueryBehavioral,
+        "conformance_foundational_bridging.rs::coverage_reported",
     ),
+    // BLOCKER (Pending): `network`-marked live BFO fetch; the only native fetch
+    // (`pipeline::stages::correspondence_soundness::fetch_target_axioms`) is a
+    // private fn in another crate and keeps only structural axioms (no owl:Class /
+    // rdfs:label), so it cannot reproduce this assertion.
     q(
         "tests/test_foundational_bridging.py",
         "test_vendored_snapshot_matches_live_bfo",
     ),
     // ── tests/test_mereology.py (1) — no slice dir → R5 ─────────────────────────
-    q(
+    twin(
         "tests/test_mereology.py",
         "test_no_winner_or_cardinality_terms_for_parts",
+        1,
+        QueryBehavioral,
+        "conformance_mereology.rs::no_winner_or_cardinality_terms_for_parts",
     ),
     // ── tests/test_narrative.py (4) ─────────────────────────────────────────────
     twin(
@@ -700,9 +775,12 @@ pub const MANIFEST: &[ManifestRow] = &[
         "conformance_notes.rs::notes_markdown_projection_executable",
     ),
     // ── tests/test_observations.py (1) ──────────────────────────────────────────
-    q(
+    twin(
         "tests/test_observations.py",
         "test_kin_relationship_bridges_fire",
+        1,
+        QueryBehavioral,
+        "conformance_observations.rs::kin_relationship_bridges_fire",
     ),
     // ── tests/test_privacy.py (2) — no slice dir; 1 mustNot + 1 projection ──────
     twin(
@@ -735,9 +813,12 @@ pub const MANIFEST: &[ManifestRow] = &[
         "conformance_provenance.rs::four_clocks_are_distinct_dated_annotations",
     ),
     // ── tests/test_quality.py (1) ───────────────────────────────────────────────
-    q(
+    twin(
         "tests/test_quality.py",
         "test_no_preferred_or_primary_term_is_declared",
+        1,
+        QueryBehavioral,
+        "conformance_quality.rs::no_preferred_or_primary_term_is_declared",
     ),
     // ── tests/test_rights.py (7) — 1 count + 6 projection ──────────────────────
     twin(
@@ -790,13 +871,19 @@ pub const MANIFEST: &[ManifestRow] = &[
         "conformance_rights.rs::schema_projection_emits_rights_cluster",
     ),
     // ── tests/test_rubrics.py (2) — no slice dir → R5 ──────────────────────────
-    q(
+    twin(
         "tests/test_rubrics.py",
         "test_no_preferred_assessment_machinery",
+        1,
+        QueryBehavioral,
+        "conformance_rubrics.rs::no_preferred_assessment_machinery",
     ),
-    a(
+    twin(
         "tests/test_rubrics.py",
         "test_two_judges_disagree_without_contradiction",
+        1,
+        QueryBehavioral,
+        "conformance_rubrics.rs::two_judges_disagree_without_contradiction",
     ),
     // ── tests/test_sensory_environment.py (4) ───────────────────────────────────
     twin(
@@ -813,13 +900,19 @@ pub const MANIFEST: &[ManifestRow] = &[
         QueryBehavioral,
         "conformance_sensory_environment.rs::perceptual_frame_realm_exists",
     ),
-    q(
+    twin(
         "tests/test_sensory_environment.py",
         "test_sosa_alignments_loaded",
+        1,
+        QueryBehavioral,
+        "conformance_sensory_environment.rs::sosa_alignments_loaded",
     ),
-    q(
+    twin(
         "tests/test_sensory_environment.py",
         "test_psychological_mappings_loaded",
+        1,
+        QueryBehavioral,
+        "conformance_sensory_environment.rs::psychological_mappings_loaded",
     ),
     // ── tests/test_suppression_conformance.py (3, parametrized) — R7 leak sweep ─
     twin(
