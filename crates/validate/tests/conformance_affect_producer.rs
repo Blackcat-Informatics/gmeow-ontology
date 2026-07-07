@@ -275,8 +275,9 @@ fn twin_softmax_over_multilabel_set_fires() {
 #[test]
 fn twin_two_exclusive_claims_over_one_target_fires() {
     // Two mutually-exclusive claims routed over one target from an EXCLUSIVE
-    // (Ekman7) run — the validation-surface guard for issue gap #1, independent of
-    // the producer (which would itself hard-fail before emitting this).
+    // (Ekman7) run — the validation-surface guard for the mutually-exclusive-claims
+    // invariant, independent of the producer (which would itself hard-fail before
+    // emitting this).
     let graph = format!(
         "{TWIN_PREFIXES}\
          ex:o1 a gmeow:AffectClassifierOutput ; gmeow:producedBy ex:run ; gmeow:vantage ex:run ; \
@@ -295,6 +296,28 @@ fn twin_two_exclusive_claims_over_one_target_fires() {
         .fails()
         .violations(&["At most one gmeow:AffectiveClaim"])
         .run();
+}
+
+#[test]
+fn twin_two_exclusive_claims_across_two_runs_does_not_fire() {
+    // Two INDEPENDENT argmax runs over the SAME target, each legitimately emitting
+    // exactly ONE claim over the exclusive (Ekman7) set. The exclusivity invariant
+    // is scoped to a single classifier run, so a shared-target/shared-set join alone
+    // must NOT trip it — only >1 claim WITHIN ONE run is a hard fail.
+    let graph = format!(
+        "{TWIN_PREFIXES}\
+         ex:o1 a gmeow:AffectClassifierOutput ; gmeow:producedBy ex:runA ; gmeow:vantage ex:runA ; \
+         gmeow:classifiedTarget ex:t ; gmeow:emittedLabel gmeow-hf:ekmanJoy ; \
+         gmeow:classifierScore 0.6 ; gmeow:scoreSemantics gmeow:scoreSoftmax ; \
+         gmeow:thresholdApplied 0.5 ; gmeow:supportsAffectiveClaim ex:c1 .\n\
+         ex:c1 a gmeow:AffectiveClaim ; gmeow:vantage ex:runA ; gmeow:observedFeature ex:t .\n\
+         ex:o2 a gmeow:AffectClassifierOutput ; gmeow:producedBy ex:runB ; gmeow:vantage ex:runB ; \
+         gmeow:classifiedTarget ex:t ; gmeow:emittedLabel gmeow-hf:ekmanAnger ; \
+         gmeow:classifierScore 0.55 ; gmeow:scoreSemantics gmeow:scoreSoftmax ; \
+         gmeow:thresholdApplied 0.5 ; gmeow:supportsAffectiveClaim ex:c2 .\n\
+         ex:c2 a gmeow:AffectiveClaim ; gmeow:vantage ex:runB ; gmeow:observedFeature ex:t .\n"
+    );
+    Case::inline(graph).with_ontology().run();
 }
 
 #[test]

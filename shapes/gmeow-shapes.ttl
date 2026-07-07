@@ -4359,6 +4359,7 @@ gmeow:ExclusiveClaimShape
             SELECT $this WHERE {
                 $this <https://blackcatinformatics.ca/gmeow/observedFeature> ?target .
                 ?out1 <https://blackcatinformatics.ca/gmeow/supportsAffectiveClaim> $this ;
+                      <https://blackcatinformatics.ca/gmeow/producedBy> ?run ;
                       <https://blackcatinformatics.ca/gmeow/emittedLabel> ?l1 .
                 ?l1 <https://blackcatinformatics.ca/gmeow/memberOfLabelSet> ?set .
                 ?set <https://blackcatinformatics.ca/gmeow/labelSetDecision> <https://blackcatinformatics.ca/gmeow/decisionArgmax> .
@@ -4366,6 +4367,7 @@ gmeow:ExclusiveClaimShape
                        <https://blackcatinformatics.ca/gmeow/observedFeature> ?target .
                 FILTER(?other != $this)
                 ?out2 <https://blackcatinformatics.ca/gmeow/supportsAffectiveClaim> ?other ;
+                      <https://blackcatinformatics.ca/gmeow/producedBy> ?run ;
                       <https://blackcatinformatics.ca/gmeow/emittedLabel> ?l2 .
                 ?l2 <https://blackcatinformatics.ca/gmeow/memberOfLabelSet> ?set .
             }
