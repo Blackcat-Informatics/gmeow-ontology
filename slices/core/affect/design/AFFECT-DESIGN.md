@@ -598,6 +598,34 @@ HF model output
   → optional supported affective claim (evidence link, never entailment)
 ```
 
+### Label-set exclusivity: the decision rule
+
+A label set is not just a bag of labels — it carries a **decision structure**, and
+that structure is the categorical-simplex/partition vs Bernoulli-product/hypercube
+duality. A **single-label** set (`gmeow:decisionArgmax`: SST-2, CardiffNLP TweetEval,
+Ekman-7) is a **partition** — its members are mutually exclusive and exhaustive, a
+softmax score is a point on the probability simplex, and the decision is that point's
+**argmax** (the categorical mode), exactly one label. A **multi-label** set
+(`gmeow:decisionIndependentThreshold`: GoEmotions) is a **product of independent
+Bernoullis** — a point on the `[0,1]` hypercube, per-label thresholds, zero-or-more
+labels. This decision rule is the formal dual of `gmeow:scoreSemantics` (softmax ↔
+argmax/exclusive, sigmoid ↔ independent-threshold), and `gmeow:impliesLabelSetDecision`
+machine-couples the two so a scoring function and its set's declared rule can never
+silently disagree.
+
+Exclusivity is enforced, never assumed. Over a single-label set the producer hard-fails
+a threshold policy that admits more than one crossing (mutually-exclusive claims), an
+off-simplex softmax distribution, an exact argmax tie, and a score-semantics that
+contradicts the set's rule. And the model's argmax is recorded **faithfully as
+evidence** — a `gmeow:AffectDecision` (`gmeow:decidedLabel` derived by `gmeow:fnArgmax`,
+with `gmeow:decisionCrossedThreshold` and, when a runner-up exists, `gmeow:decisionMargin`)
+minted **even when the argmax falls below the claim threshold**. The decision is a fact
+about the classifier's output over an external label, never a `gmeow:AffectiveClaim`
+about inner affect, so recording it below threshold preserves the model's decision
+(maximal information flow) without forcing a claim. It supersedes
+`gmeow:AffectEvaluationConcluded` for single-label sets: a decided winner, even a
+low-margin one, is the positive "checked" fact, never silence.
+
 ### GoEmotions — the reference adapter
 
 GoEmotions (58k Reddit comments, 27 emotion categories + Neutral, explicitly
@@ -802,6 +830,40 @@ not warnings:
    is a recomputable derived view, never a stored ground fact (Principle 12).
 9. A projection that collapses mode, experience, expression, and classifier output
    into one external "emotion" record without a loss annotation fails.
+10. A REGISTERED (static) `gmeow:AffectLabelSet` with no declared
+    `gmeow:labelSetDecision` fails: its exclusivity is then unknown and the producer
+    cannot judge whether more than one crossing is a violation. Enforced in the
+    producer (it cannot build a config for a rule-less registered set). A run-scoped
+    zero-shot candidate set is minted per run and is legitimately rule-less, so this
+    is a producer invariant on registered sets, never a universal cardinality that
+    would wrongly flag the minted candidate set.
+11. More than one label crossing its claim threshold in one observation over a
+    single-label (`gmeow:decisionArgmax`) label set fails: an exclusive set admits at
+    most one routed `gmeow:AffectiveClaim` per target. Enforced in the producer AND at
+    validation by the `gmeow:ExclusiveClaimShape` twin, so a hand-authored or tampered
+    graph is caught even without the producer.
+12. A softmax (`gmeow:scoreSoftmax`) score distribution over an exclusive set whose
+    scores do not sum to 1 (within a declared epsilon) fails: a categorical decision
+    lives on the probability simplex, and off-simplex scores are not a valid
+    distribution over a partition.
+13. A score-semantics that is inconsistent with its label set's decision rule fails:
+    `gmeow:impliesLabelSetDecision` couples softmax → `gmeow:decisionArgmax` and
+    sigmoid → `gmeow:decisionIndependentThreshold`, so a softmax score over a
+    multi-label set (or a sigmoid over an exclusive set) is a contradiction.
+14. An exact top-score tie over an exclusive set fails: `gmeow:fnArgmax` has no
+    faithful single winner, so the model decision is ambiguous (a near-tie, by
+    contrast, is recorded honestly via `gmeow:decisionMargin`, never silenced).
+
+Single-label vs multi-label exclusivity is the categorical-simplex/partition vs
+Bernoulli-product/hypercube duality (see "Where affect sits"): a `gmeow:decisionArgmax`
+set's members are a partition scored by a softmax on the simplex and decided by argmax
+(`gmeow:fnArgmax`), recorded as a `gmeow:AffectDecision` even below the claim threshold
+(faithful evidence, never a forced claim); a `gmeow:decisionIndependentThreshold` set is
+independent Bernoullis on the hypercube, mints no decision, and legitimately admits many
+crossings. Run-scoped / zero-shot NLI candidate sets carry no reviewed decision rule
+(their entailment scores are per-hypothesis, NOT normalized across candidates, so they
+are neither a clean simplex nor a clean product space): their decision rule is Unknown,
+they mint no `gmeow:AffectDecision`, and the exclusivity guards do not apply.
 
 These extend, not replace, the kernel hard-fails already noted above (missing
 bearer for an intrinsic mode, unframed scale on the advanced dimensional form,
