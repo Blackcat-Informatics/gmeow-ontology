@@ -144,10 +144,11 @@ pub(crate) fn affect(command: &AffectCommands) -> i32 {
                 }
             };
             if let Some(to) = to {
-                let Some(observation) = observation else {
-                    eprintln!("Error: --to requires --observation naming the first observation");
-                    return 1;
-                };
+                // clap enforces `--to requires --observation`, so `observation`
+                // is always present here.
+                let observation = observation
+                    .as_ref()
+                    .expect("clap `requires` guarantees --observation when --to is set");
                 let graph = purrdf::gts::reader::read(&bytes, false, None);
                 match gmeow_affect::distance_and_cosine(&graph, observation, to) {
                     Ok((distance, cosine)) => {
