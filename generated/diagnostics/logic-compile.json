@@ -257,73 +257,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection gufo drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> has no gUFO bridge equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection gufo drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> has no gUFO bridge equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection gufo drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> has no gUFO bridge equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
       "message": "projection gufo drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleIndirectContributor> has no gUFO bridge equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection gufo drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleIndirectContributor> has no gUFO bridge equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection gufo drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleInstantiatesWork> has no gUFO bridge equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection gufo drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleInstantiatesWork> has no gUFO bridge equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -356,204 +290,6 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection gufo drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleOrgMembershipPropagation> has no gUFO bridge equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection gufo drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> has no gUFO bridge equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection gufo drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> has no gUFO bridge equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection gufo drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> has no gUFO bridge equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection gufo drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> has no gUFO bridge equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection gufo drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> has no gUFO bridge equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection gufo drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> has no gUFO bridge equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection gufo drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> has no gUFO bridge equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection gufo drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> has no gUFO bridge equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection gufo drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> has no gUFO bridge equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection gufo drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> has no gUFO bridge equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection gufo drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> has no gUFO bridge equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection gufo drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> has no gUFO bridge equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection gufo drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> has no gUFO bridge equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection gufo drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> has no gUFO bridge equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection gufo drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> has no gUFO bridge equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection gufo drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> has no gUFO bridge equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection gufo drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> has no gUFO bridge equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
       "message": "projection gufo drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> has no gUFO bridge equivalent",
       "tool": "logic-compile",
       "locations": [
@@ -576,271 +312,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection gufo drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf> has no gUFO bridge equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection gufo drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf> has no gUFO bridge equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection gufo drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf> has no gUFO bridge equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection gufo drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf> has no gUFO bridge equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection gufo drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf> has no gUFO bridge equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection gufo drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf> has no gUFO bridge equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection gufo drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf> has no gUFO bridge equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection gufo drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf> has no gUFO bridge equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
       "message": "projection gufo drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> has no gUFO bridge equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection gufo drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> has no gUFO bridge equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection gufo drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> has no gUFO bridge equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection gufo drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> has no gUFO bridge equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection gufo drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> has no gUFO bridge equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection gufo drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> has no gUFO bridge equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection gufo drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> has no gUFO bridge equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection gufo drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> has no gUFO bridge equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection gufo drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> has no gUFO bridge equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection gufo drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> has no gUFO bridge equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection gufo drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> has no gUFO bridge equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection gufo drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> has no gUFO bridge equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection gufo drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> has no gUFO bridge equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection gufo drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> has no gUFO bridge equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection gufo drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> has no gUFO bridge equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection gufo drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> has no gUFO bridge equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection gufo drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> has no gUFO bridge equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -863,28 +335,6 @@
       "severity": "note",
       "code": "logic-compile.lossy-drop",
       "message": "projection gufo drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleTenureClaimObservedFeature> has no gUFO bridge equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection gufo drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleTenureClaimObservedFeature> has no gUFO bridge equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection gufo drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleTenureClaimVantage> has no gUFO bridge equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -2216,17 +1666,6 @@
       "severity": "note",
       "code": "logic-compile.lossy-drop",
       "message": "projection gufo drops: actual: logic:candidateNegativeCase on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no gUFO bridge equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection gufo drops: actual: logic:candidateNegativeCase on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no gUFO bridge equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -4096,28 +3535,6 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection gufo drops: actual: logic:distinctnessRole on <https://blackcatinformatics.ca/logic/causalLinkDistinctness> has no gUFO bridge equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection gufo drops: actual: logic:distinctnessRole on <https://blackcatinformatics.ca/logic/commitmentBeneficiaryDistinctness> has no gUFO bridge equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
       "message": "projection gufo drops: actual: logic:distinctnessRole on <https://blackcatinformatics.ca/logic/commitmentBeneficiaryDistinctness> has no gUFO bridge equivalent",
       "tool": "logic-compile",
       "locations": [
@@ -4130,28 +3547,6 @@
       "severity": "note",
       "code": "logic-compile.lossy-drop",
       "message": "projection gufo drops: actual: logic:distinctnessRole on <https://blackcatinformatics.ca/logic/criterionPoleDistinctness> has no gUFO bridge equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection gufo drops: actual: logic:distinctnessRole on <https://blackcatinformatics.ca/logic/criterionPoleDistinctness> has no gUFO bridge equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection gufo drops: actual: logic:distinctnessRole on <https://blackcatinformatics.ca/logic/precedenceTenureDistinctness> has no gUFO bridge equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -4229,28 +3624,6 @@
       "severity": "note",
       "code": "logic-compile.lossy-drop",
       "message": "projection gufo drops: actual: logic:evidenceProperty on <https://blackcatinformatics.ca/logic/skillEvidenceForKnowsAbout> has no gUFO bridge equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection gufo drops: actual: logic:formalizes on <https://blackcatinformatics.ca/logic/ArgumentationSemantics> has no gUFO bridge equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection gufo drops: actual: logic:formalizes on <https://blackcatinformatics.ca/logic/ArgumentationSemantics> has no gUFO bridge equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -4625,50 +3998,6 @@
       "severity": "note",
       "code": "logic-compile.lossy-drop",
       "message": "projection gufo drops: actual: logic:formalizes on <https://blackcatinformatics.ca/logic/versionOfFunctionality> has no gUFO bridge equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection gufo drops: actual: logic:hasThresholdRow on <https://blackcatinformatics.ca/logic/defaultLadderProfile> has no gUFO bridge equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection gufo drops: actual: logic:hasThresholdRow on <https://blackcatinformatics.ca/logic/defaultLadderProfile> has no gUFO bridge equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection gufo drops: actual: logic:hasThresholdRow on <https://blackcatinformatics.ca/logic/defaultLadderProfile> has no gUFO bridge equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection gufo drops: actual: logic:hasThresholdRow on <https://blackcatinformatics.ca/logic/defaultLadderProfile> has no gUFO bridge equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -5119,39 +4448,6 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection gufo drops: actual: logic:levelAtOrAbove on <https://blackcatinformatics.ca/logic/levelCompetent> has no gUFO bridge equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection gufo drops: actual: logic:levelAtOrAbove on <https://blackcatinformatics.ca/logic/levelCompetent> has no gUFO bridge equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection gufo drops: actual: logic:levelAtOrAbove on <https://blackcatinformatics.ca/logic/levelEmerging> has no gUFO bridge equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
       "message": "projection gufo drops: actual: logic:levelAtOrAbove on <https://blackcatinformatics.ca/logic/levelEmerging> has no gUFO bridge equivalent",
       "tool": "logic-compile",
       "locations": [
@@ -5185,62 +4481,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection gufo drops: actual: logic:levelAtOrAbove on <https://blackcatinformatics.ca/logic/levelStrong> has no gUFO bridge equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection gufo drops: actual: logic:levelAtOrAbove on <https://blackcatinformatics.ca/logic/levelStrong> has no gUFO bridge equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection gufo drops: actual: logic:levelAtOrAbove on <https://blackcatinformatics.ca/logic/levelStrong> has no gUFO bridge equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
       "message": "projection gufo drops: actual: logic:mediates on <https://blackcatinformatics.ca/logic/ControlFlowEdge> has no gUFO bridge equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection gufo drops: actual: logic:mediates on <https://blackcatinformatics.ca/logic/ControlFlowEdge> has no gUFO bridge equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection gufo drops: actual: logic:mediates on <https://blackcatinformatics.ca/logic/DataFlowEdge> has no gUFO bridge equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -5274,28 +4515,6 @@
       "severity": "note",
       "code": "logic-compile.lossy-drop",
       "message": "projection gufo drops: actual: logic:obligationDischargeCondition on <https://blackcatinformatics.ca/logic/IndirectContributorNotAttributionObligation> has no gUFO bridge equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection gufo drops: actual: logic:obligationDischargeCondition on <https://blackcatinformatics.ca/logic/IndirectContributorNotAttributionObligation> has no gUFO bridge equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection gufo drops: actual: logic:obligationDischargeCondition on <https://blackcatinformatics.ca/logic/IntentNotFromDeceptionObligation> has no gUFO bridge equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -6109,61 +5328,6 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection gufo drops: actual: rule head <?agent> dropped (gUFO bridge has no rule surface)",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection gufo drops: actual: rule head <?agent> dropped (gUFO bridge has no rule surface)",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection gufo drops: actual: rule head <?agent> dropped (gUFO bridge has no rule surface)",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection gufo drops: actual: rule head <?agent> dropped (gUFO bridge has no rule surface)",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection gufo drops: actual: rule head <?claim> dropped (gUFO bridge has no rule surface)",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
       "message": "projection gufo drops: actual: rule head <?claim> dropped (gUFO bridge has no rule surface)",
       "tool": "logic-compile",
       "locations": [
@@ -6637,73 +5801,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection owl-dl drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> has no OWL DL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-dl drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> has no OWL DL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-dl drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> has no OWL DL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
       "message": "projection owl-dl drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleIndirectContributor> has no OWL DL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-dl drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleIndirectContributor> has no OWL DL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-dl drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleInstantiatesWork> has no OWL DL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-dl drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleInstantiatesWork> has no OWL DL equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -6736,204 +5834,6 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection owl-dl drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleOrgMembershipPropagation> has no OWL DL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-dl drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> has no OWL DL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-dl drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> has no OWL DL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-dl drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> has no OWL DL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-dl drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> has no OWL DL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-dl drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> has no OWL DL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-dl drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> has no OWL DL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-dl drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> has no OWL DL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-dl drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> has no OWL DL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-dl drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> has no OWL DL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-dl drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> has no OWL DL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-dl drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> has no OWL DL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-dl drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> has no OWL DL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-dl drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> has no OWL DL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-dl drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> has no OWL DL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-dl drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> has no OWL DL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-dl drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> has no OWL DL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-dl drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> has no OWL DL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
       "message": "projection owl-dl drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> has no OWL DL equivalent",
       "tool": "logic-compile",
       "locations": [
@@ -6956,271 +5856,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection owl-dl drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf> has no OWL DL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-dl drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf> has no OWL DL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-dl drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf> has no OWL DL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-dl drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf> has no OWL DL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-dl drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf> has no OWL DL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-dl drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf> has no OWL DL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-dl drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf> has no OWL DL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-dl drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf> has no OWL DL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
       "message": "projection owl-dl drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> has no OWL DL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-dl drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> has no OWL DL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-dl drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> has no OWL DL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-dl drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> has no OWL DL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-dl drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> has no OWL DL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-dl drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> has no OWL DL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-dl drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> has no OWL DL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-dl drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> has no OWL DL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-dl drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> has no OWL DL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-dl drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> has no OWL DL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-dl drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> has no OWL DL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-dl drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> has no OWL DL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-dl drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> has no OWL DL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-dl drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> has no OWL DL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-dl drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> has no OWL DL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-dl drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> has no OWL DL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-dl drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> has no OWL DL equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -7243,28 +5879,6 @@
       "severity": "note",
       "code": "logic-compile.lossy-drop",
       "message": "projection owl-dl drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleTenureClaimObservedFeature> has no OWL DL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-dl drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleTenureClaimObservedFeature> has no OWL DL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-dl drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleTenureClaimVantage> has no OWL DL equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -8596,17 +7210,6 @@
       "severity": "note",
       "code": "logic-compile.lossy-drop",
       "message": "projection owl-dl drops: actual: logic:candidateNegativeCase on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no OWL DL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-dl drops: actual: logic:candidateNegativeCase on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no OWL DL equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -10476,28 +9079,6 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection owl-dl drops: actual: logic:distinctnessRole on <https://blackcatinformatics.ca/logic/causalLinkDistinctness> has no OWL DL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-dl drops: actual: logic:distinctnessRole on <https://blackcatinformatics.ca/logic/commitmentBeneficiaryDistinctness> has no OWL DL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
       "message": "projection owl-dl drops: actual: logic:distinctnessRole on <https://blackcatinformatics.ca/logic/commitmentBeneficiaryDistinctness> has no OWL DL equivalent",
       "tool": "logic-compile",
       "locations": [
@@ -10510,28 +9091,6 @@
       "severity": "note",
       "code": "logic-compile.lossy-drop",
       "message": "projection owl-dl drops: actual: logic:distinctnessRole on <https://blackcatinformatics.ca/logic/criterionPoleDistinctness> has no OWL DL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-dl drops: actual: logic:distinctnessRole on <https://blackcatinformatics.ca/logic/criterionPoleDistinctness> has no OWL DL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-dl drops: actual: logic:distinctnessRole on <https://blackcatinformatics.ca/logic/precedenceTenureDistinctness> has no OWL DL equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -10609,28 +9168,6 @@
       "severity": "note",
       "code": "logic-compile.lossy-drop",
       "message": "projection owl-dl drops: actual: logic:evidenceProperty on <https://blackcatinformatics.ca/logic/skillEvidenceForKnowsAbout> has no OWL DL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-dl drops: actual: logic:formalizes on <https://blackcatinformatics.ca/logic/ArgumentationSemantics> has no OWL DL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-dl drops: actual: logic:formalizes on <https://blackcatinformatics.ca/logic/ArgumentationSemantics> has no OWL DL equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -11005,50 +9542,6 @@
       "severity": "note",
       "code": "logic-compile.lossy-drop",
       "message": "projection owl-dl drops: actual: logic:formalizes on <https://blackcatinformatics.ca/logic/versionOfFunctionality> has no OWL DL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-dl drops: actual: logic:hasThresholdRow on <https://blackcatinformatics.ca/logic/defaultLadderProfile> has no OWL DL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-dl drops: actual: logic:hasThresholdRow on <https://blackcatinformatics.ca/logic/defaultLadderProfile> has no OWL DL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-dl drops: actual: logic:hasThresholdRow on <https://blackcatinformatics.ca/logic/defaultLadderProfile> has no OWL DL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-dl drops: actual: logic:hasThresholdRow on <https://blackcatinformatics.ca/logic/defaultLadderProfile> has no OWL DL equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -11499,39 +9992,6 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection owl-dl drops: actual: logic:levelAtOrAbove on <https://blackcatinformatics.ca/logic/levelCompetent> has no OWL DL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-dl drops: actual: logic:levelAtOrAbove on <https://blackcatinformatics.ca/logic/levelCompetent> has no OWL DL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-dl drops: actual: logic:levelAtOrAbove on <https://blackcatinformatics.ca/logic/levelEmerging> has no OWL DL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
       "message": "projection owl-dl drops: actual: logic:levelAtOrAbove on <https://blackcatinformatics.ca/logic/levelEmerging> has no OWL DL equivalent",
       "tool": "logic-compile",
       "locations": [
@@ -11565,62 +10025,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection owl-dl drops: actual: logic:levelAtOrAbove on <https://blackcatinformatics.ca/logic/levelStrong> has no OWL DL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-dl drops: actual: logic:levelAtOrAbove on <https://blackcatinformatics.ca/logic/levelStrong> has no OWL DL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-dl drops: actual: logic:levelAtOrAbove on <https://blackcatinformatics.ca/logic/levelStrong> has no OWL DL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
       "message": "projection owl-dl drops: actual: logic:mediates on <https://blackcatinformatics.ca/logic/ControlFlowEdge> has no OWL DL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-dl drops: actual: logic:mediates on <https://blackcatinformatics.ca/logic/ControlFlowEdge> has no OWL DL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-dl drops: actual: logic:mediates on <https://blackcatinformatics.ca/logic/DataFlowEdge> has no OWL DL equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -11654,28 +10059,6 @@
       "severity": "note",
       "code": "logic-compile.lossy-drop",
       "message": "projection owl-dl drops: actual: logic:obligationDischargeCondition on <https://blackcatinformatics.ca/logic/IndirectContributorNotAttributionObligation> has no OWL DL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-dl drops: actual: logic:obligationDischargeCondition on <https://blackcatinformatics.ca/logic/IndirectContributorNotAttributionObligation> has no OWL DL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-dl drops: actual: logic:obligationDischargeCondition on <https://blackcatinformatics.ca/logic/IntentNotFromDeceptionObligation> has no OWL DL equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -12720,73 +11103,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection owl-el drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> has no EL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-el drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> has no EL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-el drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> has no EL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
       "message": "projection owl-el drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleIndirectContributor> has no EL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-el drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleIndirectContributor> has no EL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-el drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleInstantiatesWork> has no EL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-el drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleInstantiatesWork> has no EL equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -12819,204 +11136,6 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection owl-el drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleOrgMembershipPropagation> has no EL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-el drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> has no EL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-el drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> has no EL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-el drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> has no EL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-el drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> has no EL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-el drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> has no EL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-el drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> has no EL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-el drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> has no EL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-el drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> has no EL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-el drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> has no EL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-el drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> has no EL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-el drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> has no EL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-el drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> has no EL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-el drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> has no EL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-el drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> has no EL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-el drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> has no EL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-el drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> has no EL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-el drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> has no EL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
       "message": "projection owl-el drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> has no EL equivalent",
       "tool": "logic-compile",
       "locations": [
@@ -13039,271 +11158,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection owl-el drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf> has no EL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-el drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf> has no EL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-el drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf> has no EL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-el drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf> has no EL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-el drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf> has no EL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-el drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf> has no EL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-el drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf> has no EL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-el drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf> has no EL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
       "message": "projection owl-el drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> has no EL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-el drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> has no EL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-el drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> has no EL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-el drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> has no EL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-el drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> has no EL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-el drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> has no EL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-el drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> has no EL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-el drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> has no EL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-el drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> has no EL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-el drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> has no EL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-el drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> has no EL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-el drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> has no EL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-el drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> has no EL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-el drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> has no EL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-el drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> has no EL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-el drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> has no EL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-el drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> has no EL equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -13326,28 +11181,6 @@
       "severity": "note",
       "code": "logic-compile.lossy-drop",
       "message": "projection owl-el drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleTenureClaimObservedFeature> has no EL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-el drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleTenureClaimObservedFeature> has no EL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-el drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleTenureClaimVantage> has no EL equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -14679,17 +12512,6 @@
       "severity": "note",
       "code": "logic-compile.lossy-drop",
       "message": "projection owl-el drops: actual: logic:candidateNegativeCase on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no EL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-el drops: actual: logic:candidateNegativeCase on <https://blackcatinformatics.ca/logic/candidateGateFatalVerdict> has no EL equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -16559,28 +14381,6 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection owl-el drops: actual: logic:distinctnessRole on <https://blackcatinformatics.ca/logic/causalLinkDistinctness> has no EL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-el drops: actual: logic:distinctnessRole on <https://blackcatinformatics.ca/logic/commitmentBeneficiaryDistinctness> has no EL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
       "message": "projection owl-el drops: actual: logic:distinctnessRole on <https://blackcatinformatics.ca/logic/commitmentBeneficiaryDistinctness> has no EL equivalent",
       "tool": "logic-compile",
       "locations": [
@@ -16593,28 +14393,6 @@
       "severity": "note",
       "code": "logic-compile.lossy-drop",
       "message": "projection owl-el drops: actual: logic:distinctnessRole on <https://blackcatinformatics.ca/logic/criterionPoleDistinctness> has no EL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-el drops: actual: logic:distinctnessRole on <https://blackcatinformatics.ca/logic/criterionPoleDistinctness> has no EL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-el drops: actual: logic:distinctnessRole on <https://blackcatinformatics.ca/logic/precedenceTenureDistinctness> has no EL equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -16692,28 +14470,6 @@
       "severity": "note",
       "code": "logic-compile.lossy-drop",
       "message": "projection owl-el drops: actual: logic:evidenceProperty on <https://blackcatinformatics.ca/logic/skillEvidenceForKnowsAbout> has no EL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-el drops: actual: logic:formalizes on <https://blackcatinformatics.ca/logic/ArgumentationSemantics> has no EL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-el drops: actual: logic:formalizes on <https://blackcatinformatics.ca/logic/ArgumentationSemantics> has no EL equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -17088,50 +14844,6 @@
       "severity": "note",
       "code": "logic-compile.lossy-drop",
       "message": "projection owl-el drops: actual: logic:formalizes on <https://blackcatinformatics.ca/logic/versionOfFunctionality> has no EL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-el drops: actual: logic:hasThresholdRow on <https://blackcatinformatics.ca/logic/defaultLadderProfile> has no EL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-el drops: actual: logic:hasThresholdRow on <https://blackcatinformatics.ca/logic/defaultLadderProfile> has no EL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-el drops: actual: logic:hasThresholdRow on <https://blackcatinformatics.ca/logic/defaultLadderProfile> has no EL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-el drops: actual: logic:hasThresholdRow on <https://blackcatinformatics.ca/logic/defaultLadderProfile> has no EL equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -17582,39 +15294,6 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection owl-el drops: actual: logic:levelAtOrAbove on <https://blackcatinformatics.ca/logic/levelCompetent> has no EL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-el drops: actual: logic:levelAtOrAbove on <https://blackcatinformatics.ca/logic/levelCompetent> has no EL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-el drops: actual: logic:levelAtOrAbove on <https://blackcatinformatics.ca/logic/levelEmerging> has no EL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
       "message": "projection owl-el drops: actual: logic:levelAtOrAbove on <https://blackcatinformatics.ca/logic/levelEmerging> has no EL equivalent",
       "tool": "logic-compile",
       "locations": [
@@ -17648,62 +15327,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection owl-el drops: actual: logic:levelAtOrAbove on <https://blackcatinformatics.ca/logic/levelStrong> has no EL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-el drops: actual: logic:levelAtOrAbove on <https://blackcatinformatics.ca/logic/levelStrong> has no EL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-el drops: actual: logic:levelAtOrAbove on <https://blackcatinformatics.ca/logic/levelStrong> has no EL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
       "message": "projection owl-el drops: actual: logic:mediates on <https://blackcatinformatics.ca/logic/ControlFlowEdge> has no EL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-el drops: actual: logic:mediates on <https://blackcatinformatics.ca/logic/ControlFlowEdge> has no EL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-el drops: actual: logic:mediates on <https://blackcatinformatics.ca/logic/DataFlowEdge> has no EL equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -17737,28 +15361,6 @@
       "severity": "note",
       "code": "logic-compile.lossy-drop",
       "message": "projection owl-el drops: actual: logic:obligationDischargeCondition on <https://blackcatinformatics.ca/logic/IndirectContributorNotAttributionObligation> has no EL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-el drops: actual: logic:obligationDischargeCondition on <https://blackcatinformatics.ca/logic/IndirectContributorNotAttributionObligation> has no EL equivalent",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-el drops: actual: logic:obligationDischargeCondition on <https://blackcatinformatics.ca/logic/IntentNotFromDeceptionObligation> has no EL equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -18562,61 +16164,6 @@
       "severity": "note",
       "code": "logic-compile.lossy-drop",
       "message": "projection owl-el drops: actual: rule head <?agent> dropped (EL has no rule surface)",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-el drops: actual: rule head <?agent> dropped (EL has no rule surface)",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-el drops: actual: rule head <?agent> dropped (EL has no rule surface)",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-el drops: actual: rule head <?agent> dropped (EL has no rule surface)",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-el drops: actual: rule head <?agent> dropped (EL has no rule surface)",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection owl-el drops: actual: rule head <?claim> dropped (EL has no rule surface)",
       "tool": "logic-compile",
       "locations": [
         {
@@ -24710,40 +22257,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection shacl-core drops: actual: datetime validity pattern (yyyy-mm-ddTHH:MM:SS) on https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/value is a format template, not an XPath regex; it has no faithful SHACL/ShEx form (emitting it as sh:pattern would reject every valid datetime), so its meaning is carried in the canonical logic: layer",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection shacl-core drops: actual: datetime validity pattern (yyyy-mm-ddTHH:MM:SS) on https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/value is a format template, not an XPath regex; it has no faithful SHACL/ShEx form (emitting it as sh:pattern would reject every valid datetime), so its meaning is carried in the canonical logic: layer",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
       "message": "projection shacl-core drops: actual: ordinal set on https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/value projects only its coded symbols (sh:in); the ordinal integer values (1, 2, 3) and their ordering have no SHACL/ShEx form and are carried in the canonical logic: layer",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection shacl-core drops: actual: sh:pattern on https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/text carries regex-dialect residue (SHACL uses the XPath regular-expression flavour; the source dialect may differ): .*",
       "tool": "logic-compile",
       "locations": [
         {
@@ -24887,28 +22401,6 @@
       "severity": "note",
       "code": "logic-compile.lossy-drop",
       "message": "projection shex drops: a shape surface validates but does not entail (ValidationOnly)",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection shex drops: actual: datetime validity pattern (yyyy-mm-ddTHH:MM:SS) on https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/value is a format template, not an XPath regex; it has no faithful SHACL/ShEx form (emitting it as sh:pattern would reject every valid datetime), so its meaning is carried in the canonical logic: layer",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection shex drops: actual: datetime validity pattern (yyyy-mm-ddTHH:MM:SS) on https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/value is a format template, not an XPath regex; it has no faithful SHACL/ShEx form (emitting it as sh:pattern would reject every valid datetime), so its meaning is carried in the canonical logic: layer",
       "tool": "logic-compile",
       "locations": [
         {
@@ -25327,39 +22819,6 @@
       "severity": "note",
       "code": "logic-compile.lossy-drop",
       "message": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Agent on https://blackcatinformatics.ca/gmeow/trustor has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Agent on https://blackcatinformatics.ca/gmeow/vantage has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Agent on https://blackcatinformatics.ca/gmeow/vantage has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Agent on https://blackcatinformatics.ca/gmeow/vantage has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer",
       "tool": "logic-compile",
       "locations": [
         {
@@ -25887,39 +23346,6 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Entity on https://blackcatinformatics.ca/gmeow/observedFeature has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Entity on https://blackcatinformatics.ca/gmeow/observedFeature has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Entity on https://blackcatinformatics.ca/gmeow/participationParticipant has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
       "message": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Entity on https://blackcatinformatics.ca/gmeow/participationParticipant has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer",
       "tool": "logic-compile",
       "locations": [
@@ -25997,72 +23423,6 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Entity on https://blackcatinformatics.ca/gmeow/vantage has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Entity on https://blackcatinformatics.ca/gmeow/vantage has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Entity on https://blackcatinformatics.ca/gmeow/vantage has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Entity on https://blackcatinformatics.ca/gmeow/vantage has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Entity on https://blackcatinformatics.ca/gmeow/vantage has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Entity on https://blackcatinformatics.ca/gmeow/vantage has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
       "message": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Entity on https://blackcatinformatics.ca/gmeow/versionMember has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer",
       "tool": "logic-compile",
       "locations": [
@@ -26086,17 +23446,6 @@
       "severity": "note",
       "code": "logic-compile.lossy-drop",
       "message": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Event on https://blackcatinformatics.ca/gmeow/invitationEvent has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Event on https://blackcatinformatics.ca/gmeow/participationEvent has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer",
       "tool": "logic-compile",
       "locations": [
         {
@@ -27251,17 +24600,6 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/TimeInterval on https://blackcatinformatics.ca/gmeow/duringInterval has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
       "message": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/TimeInterval on https://blackcatinformatics.ca/gmeow/notationUsageInterval has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer",
       "tool": "logic-compile",
       "locations": [
@@ -27351,17 +24689,6 @@
       "severity": "note",
       "code": "logic-compile.lossy-drop",
       "message": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/WalletScheme on https://blackcatinformatics.ca/gmeow/walletScheme has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection shex drops: actual: sh:pattern on https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/text carries regex-dialect residue (SHACL uses the XPath regular-expression flavour; the source dialect may differ): .*",
       "tool": "logic-compile",
       "locations": [
         {
