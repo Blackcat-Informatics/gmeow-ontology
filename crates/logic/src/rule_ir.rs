@@ -273,7 +273,13 @@ pub(crate) struct ReductResult {
 /// A variable renders as `?Name`; a ground IRI as `<iri>`; a literal as its N3.
 /// The `is_subject` flag enforces no-optionality: a literal in subject/predicate
 /// position is a hard error (the gmeow fragment never emits one).
-fn lower_nemo_term(
+///
+/// `pub(crate)` so the arity-generic n-ary lowering
+/// ([`crate::physical::generic::parse_generic_rules`]) reuses the SAME term codec
+/// — it lowers EVERY argument (including the predicate-as-data position) with
+/// `slot = "object"`, which is permissive by design: a generic n-ary relation may
+/// carry a literal in any position.
+pub(crate) fn lower_nemo_term(
     term: &nemo::rule_model::components::term::Term,
     slot: &str,
 ) -> Result<EvalTerm, String> {

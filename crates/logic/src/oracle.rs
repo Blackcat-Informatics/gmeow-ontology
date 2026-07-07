@@ -309,6 +309,43 @@ impl ForwardOracle for NativeForwardOracle {
             ));
         }
 
+        // ── Dispatch: binary (named-ternary EL/DL) vs generic (n-ary RL/RDF) ──
+        //
+        // The two native forward encodings are told apart by the EDB fact ARITY —
+        // a PRINCIPLED signal that reflects the encoding, not the rule text:
+        //
+        // * EL/DL encode every quad as the ternary `<predicate>(subject, object,
+        //   world)` fact keyed by the RDF predicate as the relation NAME, so every
+        //   EDB fact has arity 3 → the binary `seminaive` core (below).
+        // * OWL 2 RL/RDF (`crate::reason::rl`) encodes every quad as the 4-ary
+        //   generic-triple relation `triple(?s, ?p, ?o, ?w)` with the predicate as a
+        //   DATA term (so the RL meta-rules can bind the property position to a
+        //   variable), so every EDB fact has arity ≠ 3 → the arity-generic evaluator
+        //   `crate::physical::generic`.
+        //
+        // A MIXED-arity EDB (some ternary, some not) is genuinely ambiguous — the
+        // dispatch cannot tell the named-relation encoding from the generic
+        // predicate-as-data encoding — so it HARD-FAILS rather than guess. An empty
+        // EDB has no facts to close over, so it routes to the binary path where the
+        // ternary contract holds vacuously (the closure is empty either way).
+        let all_ternary = facts.facts().all(|f| f.args.len() == 3);
+        let none_ternary = facts.facts().all(|f| f.args.len() != 3);
+        if !all_ternary {
+            if !none_ternary {
+                return Err(
+                    "NativeForwardOracle: mixed-arity EDB (some ternary named-relation facts, \
+                     some generic n-ary): the dispatch cannot tell the binary reasoning encoding \
+                     from the generic predicate-as-data encoding — hard-fail rather than guess"
+                        .to_owned(),
+                );
+            }
+            // Generic (n-ary, predicate-as-data) path: parse the rule text KEEPING all
+            // terms and run the arity-generic positive-Datalog least-fixpoint. This is
+            // the OWL 2 RL/RDF path; the binary core below is left UNTOUCHED.
+            let generic_rules = crate::physical::parse_generic_rules(rules)?;
+            return crate::physical::materialize_generic(facts, &generic_rules);
+        }
+
         // Reconstruct the world-indexed store the native chase materializes over
         // from the ternary typed EDB.  Every reasoning fact is
         // `predicate(subject, object, world)`; a non-ternary fact is a rule-text /
