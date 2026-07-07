@@ -19,10 +19,15 @@
 //! Minted node IRIs are a pure function of the recoverable capture content, so
 //! `produce` is idempotent (same capture → byte-identical Turtle).
 //!
-//! ## The get leg — [`recover`] (see `recover.rs`, added alongside the put leg)
-//! `Turtle → ClassifierRunCapture`, authored **independently** of `produce` (never
-//! `produce.invert()`), so the round-trip `recover(produce(cap)) ==
-//! canonicalize(cap)` is a real proof of losslessness, not a tautology.
+//! ## The get leg — [`recover`]
+//! `Turtle → ClassifierRunCapture`, authored **independently** of `produce` (it
+//! walks the emitted graph shape; it is never `produce.invert()`), so the
+//! round-trip `recover(produce(cap)) == canonicalize(cap)` is a real proof of
+//! losslessness, not a tautology. [`canonicalize`] is the normal form the
+//! round-trip compares against — it derives the fields that are
+//! reconstructable-but-not-directly-stored (`function_to_apply` from the score
+//! semantics, `return_all_scores` from label-set completeness) so nothing is
+//! silently dropped to make the round-trip pass.
 //!
 //! ## GoEmotions is one instance of a general functor
 //! The transform is parameterized by an [`IngestConfig`] — the registered label
@@ -35,7 +40,9 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
 
-use gmeow_math::{TripleIndex, first_iri, first_literal, has_type, index_graph, subjects};
+use gmeow_math::{
+    TripleIndex, first_iri, first_literal, has_type, index_graph, index_turtle, subjects,
+};
 use purrdf::{RdfDatasetBuilder, RdfLiteral, SerializeGraph, serialize_dataset};
 use serde::{Deserialize, Serialize};
 
@@ -51,6 +58,7 @@ const LABELSET: &str = "https://blackcatinformatics.ca/gmeow-registry/labelset/"
 /// Base under which this producer mints run/output/claim/concluded nodes.
 const INGEST_BASE: &str = "https://blackcatinformatics.ca/gmeow/ingest/goemotions/";
 
+const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const RDFS_LABEL: &str = "http://www.w3.org/2000/01/rdf-schema#label";
 const SKOS_CLOSE_MATCH: &str = "http://www.w3.org/2004/02/skos/core#closeMatch";
 const XSD_DECIMAL: &str = "http://www.w3.org/2001/XMLSchema#decimal";
@@ -137,14 +145,15 @@ impl ThresholdPolicy {
     }
 }
 
-/// One emitted `(label, score)` cell over a target, plus the raw pre-activation
-/// `logit` when the capture recorded it.
+/// One emitted `(label, score)` cell over a target. The score's *meaning* is the
+/// run-level `score_semantics` (a logit-valued run sets `score_semantics = Logit`);
+/// there is no separate per-output raw-logit field, because the ontology authors
+/// no property to emit one — carrying an unpreservable logit would make the
+/// losslessness round-trip a lie.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct LabelScore {
     pub label: String,
     pub score: f64,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub logit: Option<f64>,
 }
 
 /// One classified target span and the model's per-label scores over it.
@@ -192,9 +201,6 @@ pub struct ClassifierRunCapture {
     /// part of run identity). Genuinely-absent source data ⇒ optional.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub label_set_revision: Option<String>,
-    /// `top_k` cutoff; `None` ⟺ all labels (the `return_all_scores` case).
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub top_k: Option<u32>,
 }
 
 // ───────────────────────────── errors ──────────────────────────────────────
@@ -246,11 +252,6 @@ pub enum IngestError {
         target: String,
         label: String,
         score: f64,
-    },
-    /// A non-finite logit.
-    NonFiniteLogit {
-        target: String,
-        label: String,
     },
     /// `return_all_scores == true` but a target omits a registered label.
     IncompleteScores {
@@ -313,9 +314,6 @@ impl fmt::Display for IngestError {
                 f,
                 "score {score} for {label:?} on {target:?} is NaN/±Inf or outside the [0,1] range its semantics requires"
             ),
-            IngestError::NonFiniteLogit { target, label } => {
-                write!(f, "non-finite logit for {label:?} on {target:?}")
-            }
             IngestError::IncompleteScores { target, missing } => write!(
                 f,
                 "return_all_scores is true but target {target:?} omits registered label {missing:?}"
@@ -464,7 +462,7 @@ pub fn produce(
     let mut sink = Sink::default();
 
     // ── the run ──
-    sink.iri(&run_iri, &g("type"), &g("ModelInferenceRun"));
+    sink.iri(&run_iri, RDF_TYPE, &g("ModelInferenceRun"));
     sink.string(&run_iri, &g("modelIdentifier"), &capture.model_identifier);
     sink.string(&run_iri, &g("modelRevision"), &capture.model_revision);
     sink.string(&run_iri, &g("modelFramework"), &capture.model_framework);
@@ -491,7 +489,7 @@ pub fn produce(
                 })?;
             let out_iri = mint_output_iri(&run_iri, &target.target_iri, &cell.label);
 
-            sink.iri(&out_iri, &g("type"), &g("AffectClassifierOutput"));
+            sink.iri(&out_iri, RDF_TYPE, &g("AffectClassifierOutput"));
             sink.iri(&out_iri, &g("producedBy"), &run_iri);
             sink.iri(&out_iri, &g("vantage"), &run_iri);
             sink.iri(&out_iri, &g("classifiedTarget"), &target.target_iri);
@@ -511,7 +509,7 @@ pub fn produce(
                 if let Some(m) = config.emotion_close_match.get(&label_iri) {
                     let claim_iri = format!("{out_iri}/claim");
                     sink.iri(&out_iri, &g("supportsAffectiveClaim"), &claim_iri);
-                    sink.iri(&claim_iri, &g("type"), &g("AffectiveClaim"));
+                    sink.iri(&claim_iri, RDF_TYPE, &g("AffectiveClaim"));
                     sink.iri(&claim_iri, &g("vantage"), &run_iri);
                     sink.iri(&claim_iri, &g("observedFeature"), &target.target_iri);
                     sink.lang(
@@ -526,7 +524,7 @@ pub fn produce(
         // "Concluded and flat" is not "never checked": record the positive fact.
         if !any_crossed {
             let concluded_iri = mint_concluded_iri(&run_iri, &target.target_iri);
-            sink.iri(&concluded_iri, &g("type"), &g("AffectEvaluationConcluded"));
+            sink.iri(&concluded_iri, RDF_TYPE, &g("AffectEvaluationConcluded"));
             sink.iri(&concluded_iri, &g("vantage"), &run_iri);
             sink.iri(&concluded_iri, &g("observedFeature"), &target.target_iri);
         }
@@ -613,14 +611,6 @@ fn validate(capture: &ClassifierRunCapture, config: &IngestConfig) -> Result<(),
                     target: target.target_iri.clone(),
                     label: cell.label.clone(),
                     score: cell.score,
-                });
-            }
-            if let Some(logit) = cell.logit
-                && !logit.is_finite()
-            {
-                return Err(IngestError::NonFiniteLogit {
-                    target: target.target_iri.clone(),
-                    label: cell.label.clone(),
                 });
             }
             // Rule: a per-label policy must cover every label the run emitted.
@@ -778,10 +768,243 @@ impl Sink {
     }
 }
 
+// ───────────────────────────── get leg: recover ─────────────────────────────
+
+impl ScoreSemantics {
+    /// Inverse of [`ScoreSemantics::iri`] — the get leg's independent reading of
+    /// the emitted `gmeow:scoreSemantics` object.
+    fn from_iri(iri: &str) -> Option<Self> {
+        Some(match iri.strip_prefix(GMEOW)? {
+            "scoreSigmoid" => ScoreSemantics::Sigmoid,
+            "scoreSoftmax" => ScoreSemantics::Softmax,
+            "scoreCalibratedProbability" => ScoreSemantics::CalibratedProbability,
+            "scoreLogit" => ScoreSemantics::Logit,
+            "scoreMargin" => ScoreSemantics::Margin,
+            _ => return None,
+        })
+    }
+}
+
+/// Reconstruct the capture from an emitted evidence graph — the get leg.
+///
+/// Authored **independently** of [`produce`]: it walks the graph shape (the one
+/// `gmeow:ModelInferenceRun`, its `gmeow:AffectClassifierOutput`s via
+/// `gmeow:producedBy`), never by inverting the put leg's control flow. Claims and
+/// `AffectEvaluationConcluded` are GMEOW's *derived* interpretation, not capture
+/// data, so `recover` reads only the run + outputs. The result equals
+/// [`canonicalize`] of the original capture — the losslessness proof.
+pub fn recover(turtle: &str, config: &IngestConfig) -> Result<ClassifierRunCapture, IngestError> {
+    let index =
+        index_turtle(turtle.as_bytes()).map_err(|detail| IngestError::MalformedGraph { detail })?;
+
+    let run = sole_subject_of_type(&index, &g("ModelInferenceRun"))?;
+    let model_identifier = required_literal(&index, &run, &g("modelIdentifier"))?;
+    let model_revision = required_literal(&index, &run, &g("modelRevision"))?;
+    let model_framework = required_literal(&index, &run, &g("modelFramework"))?;
+    let model_task = required_literal(&index, &run, &g("modelTask"))?;
+    let tokenizer_revision = first_literal(&index, &run, &g("tokenizerRevision"));
+    let label_set_revision = first_literal(&index, &run, &g("labelSetRevision"));
+
+    let output_type = g("AffectClassifierOutput");
+    let produced_by = g("producedBy");
+    let mut per_target: BTreeMap<String, Vec<LabelScore>> = BTreeMap::new();
+    let mut score_semantics: Option<ScoreSemantics> = None;
+    let mut score_calibration: Option<String> = None;
+    let mut thresholds: BTreeMap<String, f64> = BTreeMap::new();
+
+    for out in subjects(&index).filter(|s| has_type(&index, s, &output_type)) {
+        if first_iri(&index, out, &produced_by).as_deref() != Some(run.as_str()) {
+            continue;
+        }
+        let target = required_iri(&index, out, &g("classifiedTarget"))?;
+        let label_iri = required_iri(&index, out, &g("emittedLabel"))?;
+        let label = label_iri
+            .strip_prefix(config.registry_prefix.as_str())
+            .ok_or_else(|| {
+                malformed(format!(
+                    "emitted label {label_iri:?} outside the registry prefix"
+                ))
+            })?
+            .to_owned();
+        let score = required_decimal(&index, out, &g("classifierScore"))?;
+
+        let sem = ScoreSemantics::from_iri(&required_iri(&index, out, &g("scoreSemantics"))?)
+            .ok_or_else(|| malformed("unknown gmeow:scoreSemantics"))?;
+        match score_semantics {
+            Some(prev) if prev != sem => {
+                return Err(malformed("outputs disagree on score semantics"));
+            }
+            _ => score_semantics = Some(sem),
+        }
+
+        let threshold = required_decimal(&index, out, &g("thresholdApplied"))?;
+        if let Some(prev) = thresholds.insert(label.clone(), threshold)
+            && prev != threshold
+        {
+            return Err(malformed(format!("label {label:?} carries two thresholds")));
+        }
+        if let Some(cal) = first_literal(&index, out, &g("scoreCalibration")) {
+            score_calibration = Some(cal);
+        }
+
+        per_target
+            .entry(target)
+            .or_default()
+            .push(LabelScore { label, score });
+    }
+
+    let score_semantics = score_semantics.ok_or_else(|| malformed("run has no outputs"))?;
+
+    let mut targets: Vec<TargetInput> = per_target
+        .into_iter()
+        .map(|(target_iri, mut scores)| {
+            scores.sort_by(|a, b| a.label.cmp(&b.label));
+            TargetInput { target_iri, scores }
+        })
+        .collect();
+    targets.sort_by(|a, b| a.target_iri.cmp(&b.target_iri));
+
+    Ok(ClassifierRunCapture {
+        model_identifier,
+        model_revision,
+        model_framework,
+        model_task,
+        function_to_apply: derived_function(score_semantics),
+        return_all_scores: covers_full_set(&targets, config),
+        label_set_id: config.label_set_id.clone(),
+        score_semantics,
+        threshold_policy: policy_from_thresholds(thresholds),
+        targets,
+        score_calibration,
+        tokenizer_revision,
+        label_set_revision,
+    })
+}
+
+/// The normal form a capture takes on the round-trip — everything [`recover`]
+/// can reconstruct, normalized the same way. Fields not stored as their own
+/// triple are *derived from what is stored* (`function_to_apply` ⇐ score
+/// semantics; `return_all_scores` ⇐ label-set completeness), so equality with
+/// `recover(produce(cap))` is a real losslessness assertion, not the result of
+/// quietly discarding data.
+pub fn canonicalize(capture: &ClassifierRunCapture, config: &IngestConfig) -> ClassifierRunCapture {
+    let mut targets: Vec<TargetInput> = capture
+        .targets
+        .iter()
+        .map(|t| {
+            let mut scores: Vec<LabelScore> = t
+                .scores
+                .iter()
+                .map(|s| LabelScore {
+                    label: s.label.clone(),
+                    score: renormalize_decimal(s.score),
+                })
+                .collect();
+            scores.sort_by(|a, b| a.label.cmp(&b.label));
+            TargetInput {
+                target_iri: t.target_iri.clone(),
+                scores,
+            }
+        })
+        .collect();
+    targets.sort_by(|a, b| a.target_iri.cmp(&b.target_iri));
+
+    let mut thresholds: BTreeMap<String, f64> = BTreeMap::new();
+    for t in &targets {
+        for s in &t.scores {
+            if let Some(v) = capture.threshold_policy.threshold_for(&s.label) {
+                thresholds.insert(s.label.clone(), v);
+            }
+        }
+    }
+
+    ClassifierRunCapture {
+        model_identifier: capture.model_identifier.clone(),
+        model_revision: capture.model_revision.clone(),
+        model_framework: capture.model_framework.clone(),
+        model_task: capture.model_task.clone(),
+        function_to_apply: derived_function(capture.score_semantics),
+        return_all_scores: covers_full_set(&targets, config),
+        label_set_id: config.label_set_id.clone(),
+        score_semantics: capture.score_semantics,
+        threshold_policy: policy_from_thresholds(thresholds),
+        targets,
+        score_calibration: capture.score_calibration.clone(),
+        tokenizer_revision: capture.tokenizer_revision.clone(),
+        label_set_revision: capture.label_set_revision.clone(),
+    }
+}
+
+/// `function_to_apply` implied by a bounded activation semantics, `""` otherwise
+/// (the unbounded/derived semantics pin no single activation).
+fn derived_function(sem: ScoreSemantics) -> String {
+    sem.required_function().unwrap_or("").to_owned()
+}
+
+/// `true` iff every target carries the full registered label set — the emitted
+/// witness of `return_all_scores`.
+fn covers_full_set(targets: &[TargetInput], config: &IngestConfig) -> bool {
+    targets.iter().all(|t| {
+        let present: BTreeSet<&str> = t.scores.iter().map(|s| s.label.as_str()).collect();
+        config.registered_labels().all(|r| present.contains(r))
+    })
+}
+
+/// Collapse a per-label threshold map to `Global` when uniform, else `PerLabel`
+/// — the normal form both legs agree on.
+fn policy_from_thresholds(thresholds: BTreeMap<String, f64>) -> ThresholdPolicy {
+    let mut values = thresholds.values().copied();
+    match values.next() {
+        Some(first) if thresholds.values().all(|v| *v == first) => {
+            ThresholdPolicy::Global { value: first }
+        }
+        _ => ThresholdPolicy::PerLabel { thresholds },
+    }
+}
+
+/// Round a score through the emitted `xsd:decimal` lexical, so a capture value
+/// compares equal to the value the get leg parses back from the graph.
+fn renormalize_decimal(value: f64) -> f64 {
+    format_decimal(value).parse().unwrap_or(value)
+}
+
+fn malformed(detail: impl Into<String>) -> IngestError {
+    IngestError::MalformedGraph {
+        detail: detail.into(),
+    }
+}
+
+/// Exactly one subject of `class`, else a malformed-graph error.
+fn sole_subject_of_type(index: &TripleIndex, class: &str) -> Result<String, IngestError> {
+    let mut found = subjects(index).filter(|s| has_type(index, s, class));
+    let first = found
+        .next()
+        .ok_or_else(|| malformed(format!("no subject of type {class}")))?
+        .clone();
+    if found.next().is_some() {
+        return Err(malformed(format!("more than one subject of type {class}")));
+    }
+    Ok(first)
+}
+
+fn required_literal(index: &TripleIndex, s: &str, p: &str) -> Result<String, IngestError> {
+    first_literal(index, s, p).ok_or_else(|| malformed(format!("{s} missing literal {p}")))
+}
+
+fn required_iri(index: &TripleIndex, s: &str, p: &str) -> Result<String, IngestError> {
+    first_iri(index, s, p).ok_or_else(|| malformed(format!("{s} missing IRI {p}")))
+}
+
+fn required_decimal(index: &TripleIndex, s: &str, p: &str) -> Result<f64, IngestError> {
+    required_literal(index, s, p)?
+        .trim()
+        .parse()
+        .map_err(|_| malformed(format!("{s} {p} is not a decimal")))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
-    use gmeow_math::index_turtle;
 
     /// A minimal ontology fixture: a two-label GoEmotions set (`joy` mapped to an
     /// EmotionType, `neutral` unmapped) with the closeMatch cell authored the way
@@ -820,19 +1043,16 @@ mod tests {
                     LabelScore {
                         label: "joy".to_owned(),
                         score: 0.84,
-                        logit: Some(1.6),
                     },
                     LabelScore {
                         label: "neutral".to_owned(),
                         score: 0.10,
-                        logit: None,
                     },
                 ],
             }],
             score_calibration: None,
             tokenizer_revision: Some("tok-9".to_owned()),
             label_set_revision: None,
-            top_k: None,
         }
     }
 
@@ -870,6 +1090,56 @@ mod tests {
     }
 
     #[test]
+    fn round_trip_recover_produce_is_identity() {
+        let (cap, cfg) = (capture(), config());
+        let ttl = produce(&cap, &cfg).unwrap();
+        // recover is authored independently of produce; the round-trip is the
+        // losslessness proof, compared against the canonical normal form.
+        assert_eq!(recover(&ttl, &cfg).unwrap(), canonicalize(&cap, &cfg));
+    }
+
+    #[test]
+    fn round_trip_multi_target() {
+        let cfg = config();
+        let mut cap = capture();
+        cap.threshold_policy = ThresholdPolicy::PerLabel {
+            thresholds: BTreeMap::from([("joy".to_owned(), 0.4), ("neutral".to_owned(), 0.6)]),
+        };
+        cap.targets.push(TargetInput {
+            target_iri: "https://example.org/affect/chunk-2".to_owned(),
+            scores: vec![
+                LabelScore {
+                    label: "neutral".to_owned(),
+                    score: 0.72,
+                },
+                LabelScore {
+                    label: "joy".to_owned(),
+                    score: 0.20,
+                },
+            ],
+        });
+        let ttl = produce(&cap, &cfg).unwrap();
+        assert_eq!(recover(&ttl, &cfg).unwrap(), canonicalize(&cap, &cfg));
+    }
+
+    #[test]
+    fn recover_hard_fails_on_missing_required_triple() {
+        let (cap, cfg) = (capture(), config());
+        let ttl = produce(&cap, &cfg).unwrap();
+        // drop the mandatory modelRevision line: the graph is no longer a
+        // well-formed run and the get leg must refuse it.
+        let broken: String = ttl
+            .lines()
+            .filter(|l| !l.contains("modelRevision"))
+            .collect::<Vec<_>>()
+            .join("\n");
+        assert!(matches!(
+            recover(&broken, &cfg),
+            Err(IngestError::MalformedGraph { .. })
+        ));
+    }
+
+    #[test]
     fn concluded_when_nothing_crosses_threshold() {
         let mut cap = capture();
         for cell in &mut cap.targets[0].scores {
@@ -897,7 +1167,6 @@ mod tests {
         cap.targets[0].scores = vec![LabelScore {
             label: "notALabel".to_owned(),
             score: 0.9,
-            logit: None,
         }];
         assert_eq!(
             produce(&cap, &config()),
@@ -941,12 +1210,10 @@ mod tests {
             LabelScore {
                 label: "joy".to_owned(),
                 score: 0.8,
-                logit: None,
             },
             LabelScore {
                 label: "joy".to_owned(),
                 score: 0.7,
-                logit: None,
             },
         ];
         assert!(matches!(
@@ -980,7 +1247,6 @@ mod tests {
         cap.targets[0].scores = vec![LabelScore {
             label: "joy".to_owned(),
             score: 0.8,
-            logit: None,
         }];
         assert!(matches!(
             produce(&cap, &config()),
