@@ -1315,11 +1315,15 @@ math:GramMatrixShape
                 ?entry <https://blackcatinformatics.ca/math/atRow> ?row ;
                        <https://blackcatinformatics.ca/math/atColumn> ?col ;
                        <https://blackcatinformatics.ca/math/entryValue> ?val .
+                ?val <https://blackcatinformatics.ca/math/numerator> ?vnum ;
+                     <https://blackcatinformatics.ca/math/denominator> ?vden .
                 FILTER NOT EXISTS {
                     $this <https://blackcatinformatics.ca/math/hasEntry> ?mate .
                     ?mate <https://blackcatinformatics.ca/math/atRow> ?col ;
                           <https://blackcatinformatics.ca/math/atColumn> ?row ;
-                          <https://blackcatinformatics.ca/math/entryValue> ?val .
+                          <https://blackcatinformatics.ca/math/entryValue> ?mval .
+                    ?mval <https://blackcatinformatics.ca/math/numerator> ?vnum ;
+                          <https://blackcatinformatics.ca/math/denominator> ?vden .
                 }
             }
         """ ;
