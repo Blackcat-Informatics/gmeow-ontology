@@ -12,24 +12,24 @@
 # logic:Relator), not gufo:.
 #
 # RETAINED in pytest (not migratable here):
-#   test_contested_membership_coexists -- run_shacl() call over fixture;
+#   test_contested_membership_coexists -- SHACL validation call over fixture;
 #     ExampleConformance, not a structural TBox assertion.
-#   test_contested_succession_coexists -- run_shacl() call over fixture;
+#   test_contested_succession_coexists -- SHACL validation call over fixture;
 #     ExampleConformance, not a structural TBox assertion.
-#   test_withdrawn_recognition_suppressed_not_deleted -- run_shacl() + fixture
+#   test_withdrawn_recognition_suppressed_not_deleted -- SHACL validation + fixture
 #     ABox check; not a module-scoped TBox invariant.
 #   test_no_preferred_or_primary_org_term -- sweeps the entire merged graph
 #     subject set via _graph(); a scopeModule cell would silently narrow the
 #     sweep to the organization module only (missing cross-slice violations).
-#   test_post_seat_independent_of_holder -- run_shacl() + fixture ABox check.
-#   test_post_successive_holders -- run_shacl() + fixture ABox check.
-#   test_membership_fills_post_org_mismatch_warns -- run_shacl() + SHACL
+#   test_post_seat_independent_of_holder -- SHACL validation + fixture ABox check.
+#   test_post_successive_holders -- SHACL validation + fixture ABox check.
+#   test_membership_fills_post_org_mismatch_warns -- SHACL validation + SHACL
 #     Warning text check; not expressible as a module-scoped ASK.
-#   test_site_location -- run_shacl() + fixture ABox check.
-#   test_change_event_entailments -- run_shacl() + fixture ABox check.
-#   test_legal_identifier_requires_scheme -- run_shacl() + error-text
+#   test_site_location -- SHACL validation + fixture ABox check.
+#   test_change_event_entailments -- SHACL validation + fixture ABox check.
+#   test_legal_identifier_requires_scheme -- SHACL validation + error-text
 #     assertion; ExampleConformance / SHACL Violation check.
-#   test_wellformed_legal_identifier_passes -- run_shacl() + graph
+#   test_wellformed_legal_identifier_passes -- SHACL validation + graph
 #     manipulation; ExampleConformance.
 #   test_change_event_type_values_exist -- eventTypeMerger/Split/SpinOff/
 #     Acquisition/Rename are defined in slices/core/events/module.ttl, not

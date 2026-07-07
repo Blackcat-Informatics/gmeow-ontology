@@ -4,7 +4,7 @@
 # NarrationUsage carrying flashback+mentioned modes for a fourth event (the
 # reify-with-a-reason case), and one narratedIn in the projection-friendly
 # orientation.
-# run_shacl over this graph MUST conform.
+# SHACL validation over this graph MUST conform.
 
 @prefix ex:    <https://example.org/shapes/> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .

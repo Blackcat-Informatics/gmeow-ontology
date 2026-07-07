@@ -1,7 +1,7 @@
 # Well-formed Participation fixture (#41). Every subject satisfies the events SHACL
 # shapes: a Participation mediates exactly one event and at least one participant;
 # the event carries a type; a superseded participation is suppressed (displayable
-# false), so even the warning-level shape stays clean. `run_shacl` MUST conform.
+# false), so even the warning-level shape stays clean. `SHACL validation` MUST conform.
 
 @prefix ex:    <https://example.org/shapes/> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .

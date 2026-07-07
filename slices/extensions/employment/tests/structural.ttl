@@ -10,18 +10,11 @@
 # Employment is migrated, so class stereotypes are logic:
 # (logic:AbstractIndividualType, logic:SubKind, logic:QualityValue), not gufo:.
 #
-# RETAINED in pytest (not migratable here):
-#   test_employment_event_types_are_values — gmeow:eventTypeHiring etc. are defined
-#     in slices/core/events/module.ttl, not here; cross-slice subjects.
-#   test_contested_employment_coexists — uses run_shacl() against an external
-#     fixture file; a SHACL conformance check, not a TBox ASK.
-#   test_withdrawn_employment_suppressed_not_deleted — uses run_shacl() against
-#     an external fixture file; a SHACL conformance + ABox check.
-#   test_no_preferred_or_primary_employment_term — a whole-graph dynamic sweep
-#     across many candidate property names; scoping to the module would silently
-#     narrow the live-set check.
-#
-# See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest→DSL mapping.
+# The cross-slice EventType invariant, the SHACL fixture-conformance checks, and
+# the whole-graph negative sweep now live natively in
+# crates/validate/tests/conformance_employment.rs
+# (employment_event_types_are_values, contested/withdrawn conform cases +
+# GraphStore ABox twins, no_preferred_or_primary_employment_term).
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/employment/tests/> .
