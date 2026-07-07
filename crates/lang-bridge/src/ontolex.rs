@@ -32,7 +32,6 @@ use gmeow_logic_compile::ir::{
     Correspondence, CorrespondenceLaw, CorrespondenceRelation, Determinacy, DischargeVerdict,
     LawClaimIr, MorphismClass, MorphismKind, PreservationKind,
 };
-use gmeow_logic_compile::projections::ProjectionResult;
 use purrdf::{DatasetView, GraphMatch, RdfDataset, TermId, TermRef, TermValue, parse_dataset};
 
 use crate::bridge::{Bridge, IngestDiagnostic, LangFailure, Lifted};
@@ -612,23 +611,26 @@ impl Bridge for OntoLexBridge {
         // The honest loss ledger: the gloss complement the form view flattens is recorded as
         // residue, and the preservation is SoundUnder (never Exact — the lift drops glosses).
         let actual_drops = gloss_drops(&entries);
-        let ledger = vec![ProjectionResult {
-            target: ONTOLEX_TARGET.to_owned(),
+        let mut loss = crate::registry::LossLedger::new();
+        let ledger = vec![crate::registry::emit_ledger_row(
+            &mut loss,
+            ONTOLEX_TARGET.to_owned(),
             content,
-            is_rdf: true,
-            preservation: PreservationKind::SoundUnder,
-            complexity: "n/a".to_owned(),
-            lossy_drops: vec![
+            true,
+            PreservationKind::SoundUnder,
+            "n/a".to_owned(),
+            vec![
                 "sense glosses (skos:definition) are not representable in the form AST".to_owned(),
             ],
             actual_drops,
-        }];
+        )];
 
         Ok(Lifted {
             forms,
             surfaces,
             correspondence,
             ledger,
+            loss,
         })
     }
 
@@ -863,6 +865,7 @@ fn emit_lexicon(source: &NamedSource) -> Result<Option<LangEmission>, IngestDiag
         None,
     );
 
+    let mut loss = crate::registry::LossLedger::new();
     Ok(Some(LangEmission {
         artifacts: vec![EmittedArtifact {
             path_suffix: format!("ontolex-lemon/{}.ttl", source.name),
@@ -870,15 +873,17 @@ fn emit_lexicon(source: &NamedSource) -> Result<Option<LangEmission>, IngestDiag
             is_rdf: true,
         }],
         correspondence: corr,
-        ledger: vec![ProjectionResult {
-            target: format!("ontolex-lemon:{}", source.name),
-            content: String::new(),
-            is_rdf: true,
-            preservation: PreservationKind::SoundUnder,
-            complexity: "n/a".to_owned(),
-            lossy_drops: Vec::new(),
-            actual_drops: residue.clone(),
-        }],
+        ledger: vec![crate::registry::emit_ledger_row(
+            &mut loss,
+            format!("ontolex-lemon:{}", source.name),
+            String::new(),
+            true,
+            PreservationKind::SoundUnder,
+            "n/a".to_owned(),
+            Vec::new(),
+            residue.clone(),
+        )],
+        loss,
         leg_pair: None,
         emitted_reading_count: None,
         source_iri,

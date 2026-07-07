@@ -16,6 +16,7 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
 use gmeow_logic_compile::ingest::DslView;
+use gmeow_logic_compile::loss_ledger::LossLedger;
 use gmeow_logic_compile::projections::correspondence::CorrespondenceProgram;
 use gmeow_logic_compile::projections::correspondence_frontend::transpile_correspondences_indexed;
 use gmeow_logic_compile::projections::{ProjectionResult, edoal, emotionml, fno, sparql, sssom};
@@ -52,6 +53,11 @@ pub struct CorrespondenceArtifacts {
     /// final `generated/logic/projection-report.ttl` (the loss ledger is the residue
     /// set, per LOGIC-CORRESPONDENCE.md).
     pub ledger: Vec<ProjectionResult>,
+    /// The single loss store every dialect (SSSOM/FnO/EDOAL/SPARQL get+put) and the EmotionML
+    /// emitter interned their per-correspondence drops into, unioned across all five (keyed by
+    /// target focus). The mappings stage unions it with the compile-logic loss store so the
+    /// FINAL projection report reads every row's residue back from ONE substrate ledger.
+    pub loss: LossLedger,
     /// The typed `logic:Correspondence` set materialized from the SAME `dsl/mappings/`
     /// cells the four dialects lower: one node per `gmeow:TermEquivalence`
     /// cell and one per `gmeow:ProjectionMapping` per-profile binding. This is the carried
@@ -122,6 +128,16 @@ pub fn lower_all(
     ledger.extend(sparql.ledger);
     ledger.extend(emotionml.ledger);
 
+    // Union every dialect's + the EmotionML emitter's loss store into ONE (content-addressed,
+    // idempotent), so the mappings stage reads each correspondence row's residue back from a
+    // single substrate ledger, byte-identically to a single fold.
+    let mut loss = LossLedger::new();
+    loss.union(&sssom.loss);
+    loss.union(&fno.loss);
+    loss.union(&edoal.loss);
+    loss.union(&sparql.loss);
+    loss.union(&emotionml.loss);
+
     Ok(CorrespondenceArtifacts {
         sssom: sssom.sets,
         fno: fno.catalog,
@@ -133,6 +149,7 @@ pub fn lower_all(
         sparql_put: sparql.put_queries,
         emotionml: emotionml.document,
         ledger,
+        loss,
         correspondences,
         // The per-binding get/put fragments + the corr→profile join key: the mappings stage
         // discharges each correspondence's OWN lens law from these (never the per-profile

@@ -117,6 +117,10 @@ pub struct SssomLowering {
     /// always drops the caveat/law/leg structure and world/standpoint scope, so every
     /// cell contributes a preservation row.
     pub ledger: Vec<ProjectionResult>,
+    /// The per-correspondence loss store this lowering interned every drop into (keyed by
+    /// target focus). The mappings stage unions it into the single report loss store so the
+    /// SSSOM rows' `gmeow:lossyDrop` records read back from the SAME substrate ledger.
+    pub loss: crate::loss_ledger::LossLedger,
 }
 
 /// Lower every `gmeow:TermEquivalence` in `view` to its SSSOM TSV, keyed by bare file
@@ -136,9 +140,10 @@ pub fn lower_sssom(
     lookup: &CorrespondenceLookup,
 ) -> Result<SssomLowering, String> {
     let sources = collect_sources(view);
-    let ledger = build_ledger(&sources, lookup)?;
+    let mut loss = crate::loss_ledger::LossLedger::new();
+    let ledger = build_ledger(&sources, lookup, &mut loss)?;
     let sets = render_sets(&sources, version, release_date)?;
-    Ok(SssomLowering { sets, ledger })
+    Ok(SssomLowering { sets, ledger, loss })
 }
 
 /// Map an SSSOM mapping predicate to the typed `logic:` correspondence relation it
@@ -192,6 +197,7 @@ pub(crate) fn sssom_band(predicate: &str) -> (CorrespondenceRelation, MorphismCl
 fn build_ledger(
     sources: &SssomSources,
     lookup: &CorrespondenceLookup,
+    loss: &mut crate::loss_ledger::LossLedger,
 ) -> Result<Vec<ProjectionResult>, String> {
     let mut ledger: Vec<ProjectionResult> = Vec::new();
     for cell in &sources.equivalences {
@@ -227,7 +233,7 @@ fn build_ledger(
         // subject (one subject may align to several objects), so the per-correspondence
         // key folds all three for a stable, collision-free target name.
         let key = format!("{}|{}|{}", cell.subject, cell.predicate, cell.obj);
-        ledger.push(correspondence_result("sssom", &key, residue));
+        ledger.push(correspondence_result(loss, "sssom", &key, residue));
     }
     Ok(ledger)
 }

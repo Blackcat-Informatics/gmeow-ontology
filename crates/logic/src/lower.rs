@@ -126,7 +126,12 @@ mod tests {
                 logic:body [ rdf:subject \"?x\" ; rdf:predicate logic:parent ; rdf:object \"?y\" ] ;
                 logic:body [ rdf:subject \"?y\" ; rdf:predicate logic:ancestor ; rdf:object \"?z\" ] .",
         );
-        let rls = project_nemo(&program).unwrap().content;
+        let rls = project_nemo(
+            &program,
+            &mut gmeow_logic_compile::loss_ledger::LossLedger::new(),
+        )
+        .unwrap()
+        .content;
         let from_rls = parse_eval_rules(&rls).expect("reparse");
         let from_canonical = lower_eval_rules(&program).expect("lower");
         assert_eq!(
@@ -164,7 +169,12 @@ mod tests {
         );
         let via_canonical =
             crate::certify::certify_program(&program, "PositiveHornProfile").unwrap();
-        let rls = project_nemo(&program).unwrap().content;
+        let rls = project_nemo(
+            &program,
+            &mut gmeow_logic_compile::loss_ledger::LossLedger::new(),
+        )
+        .unwrap()
+        .content;
         let section =
             gmeow_logic_compile::projections::text::extract_nemo_rules_section(&rls).unwrap();
         let via_rls = crate::certify::certify(&section, "PositiveHornProfile", None).unwrap();

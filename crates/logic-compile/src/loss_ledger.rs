@@ -21,10 +21,9 @@
 //! EXACT ordering, so the committed goldens stay byte-identical while the loss
 //! serialization now flows through the ONE substrate ledger.
 
-use std::collections::BTreeSet;
-
 use gmeow_errors::{
-    Diag, DiagLedger, FindingCategory, Grade, Severity, Slot, StageId, Standpoint, register_code,
+    Diag, DiagLedger, DiagNode, FindingCategory, Grade, Severity, Slot, StageId, Standpoint,
+    register_code,
 };
 
 use crate::ir::PreservationKind;
@@ -65,7 +64,7 @@ pub struct TranscodeLossRow {
 /// serializer builds one, records its producer rows through the typed `record_*`
 /// methods, and reads them back through the matching typed method, so the three
 /// loss serializations are thin projections over one ledger.
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct LossLedger {
     ledger: DiagLedger,
 }
@@ -76,6 +75,53 @@ impl LossLedger {
         Self {
             ledger: DiagLedger::new(),
         }
+    }
+
+    /// Fold another loss store's witnesses into this one — the substrate ledger's
+    /// content-addressed CRDT union. Each producer that cannot reach the shared store at
+    /// its call site (a `LangTarget::emit` emitter, a correspondence dialect lowering)
+    /// builds its own [`LossLedger`] and the consumer merges it in here, so the merged
+    /// read-back is byte-identical to a single fold (union is commutative/associative/
+    /// idempotent, hash-consing shared `(code, focus)` witnesses).
+    pub fn union(&mut self, other: &LossLedger) {
+        self.ledger.union(&other.ledger);
+    }
+
+    /// The interned witnesses as owned, serializable nodes — the transport form that
+    /// carries the store across a stage boundary (the compile-logic → mappings channel is
+    /// JSON, so the live ledger cannot cross it). Round-trips through [`Self::from_nodes`].
+    pub fn to_nodes(&self) -> Vec<DiagNode> {
+        self.ledger.emit_sorted().into_iter().cloned().collect()
+    }
+
+    /// Reconstruct a loss store from the nodes emitted by [`Self::to_nodes`] — the inverse
+    /// transport leg. Replays each pre-lowered node, so the reconstructed store's read-back
+    /// is byte-identical to the original.
+    pub fn from_nodes(nodes: Vec<DiagNode>) -> Self {
+        let mut ledger = DiagLedger::new();
+        ledger.replay(nodes);
+        Self { ledger }
+    }
+
+    /// The number of per-run ACTUAL drops recorded for `target` — the realized-loss count
+    /// the transcode hub attaches to a `<code>-projection` ledger row (the old
+    /// `ProjectionResult::actual_drops.len()`). Sums the actual-note observations on the
+    /// target's actual-coded witness (0 when the target recorded none).
+    pub fn actual_drop_count(&self, target: &str) -> usize {
+        let actual_code = format!("{RUNG_PREFIX}{ACTUAL_CODE}");
+        self.ledger
+            .emit_sorted()
+            .into_iter()
+            .filter(|node| {
+                node.code == actual_code
+                    && node
+                        .source_ctx
+                        .focus
+                        .as_ref()
+                        .is_some_and(|f| f.0 == target)
+            })
+            .map(|node| node.observations.len())
+            .sum()
     }
 
     /// Intern one loss witness. The finding is a non-gating `ProjectionLoss` note
@@ -177,30 +223,7 @@ impl LossLedger {
         rows
     }
 
-    // ── Stage 2: coherence certificate projection-loss codes ────────────────
-
-    /// Build a loss store from the caller-supplied coherence loss codes. Each code
-    /// is its own focus (they are already distinct ledger codes), so read-back
-    /// reproduces the exact set the content hash folds over.
-    pub fn from_certificate_codes<'a>(codes: impl IntoIterator<Item = &'a str>) -> Self {
-        let mut store = Self::new();
-        for code in codes {
-            store.intern("certificate", code, code.to_owned(), &[], None, code);
-        }
-        store
-    }
-
-    /// The recorded coherence loss codes, read back as the sorted set the
-    /// `CoherencePayload.projection_losses` field carries (and hashes).
-    pub fn certificate_codes(&self) -> BTreeSet<String> {
-        self.ledger
-            .emit_sorted()
-            .into_iter()
-            .map(|node| strip_rung(&node.code))
-            .collect()
-    }
-
-    // ── Stage 3: F2 projection-report per-target drops ──────────────────────
+    // ── Stage 2: F2 projection-report per-target drops ──────────────────────
 
     /// Record one projection's drops: the structural (target-metadata) notes and
     /// the concrete per-run actual notes, both under the target focus (**R1**), the
@@ -337,16 +360,6 @@ mod tests {
         assert_eq!(rows[0].count, 5);
         // The static per-code note is preserved, never dropped.
         assert_eq!(rows[0].note, "graphs go");
-    }
-
-    #[test]
-    fn certificate_codes_round_trip_sorted_set() {
-        let input: BTreeSet<String> = ["named-graph-dropped", "rdf12-star-jsonld-rejected"]
-            .into_iter()
-            .map(str::to_owned)
-            .collect();
-        let store = LossLedger::from_certificate_codes(input.iter().map(String::as_str));
-        assert_eq!(store.certificate_codes(), input);
     }
 
     #[test]

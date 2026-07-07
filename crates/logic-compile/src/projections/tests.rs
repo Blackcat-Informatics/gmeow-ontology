@@ -13,6 +13,18 @@ use std::path::PathBuf;
 
 use super::*;
 use crate::frontend::parse_logic_str;
+use crate::loss_ledger::LossLedger;
+
+/// The per-run ACTUAL drop notes for `target`, recovered from the loss store with the
+/// report's `actual: ` read-back prefix stripped — exactly the old
+/// `ProjectionResult::actual_drops` (structural notes read back unprefixed are excluded, so a
+/// structural note that happens to share a substring never masks an actual-drop assertion).
+fn actual_drops(loss: &LossLedger, target: &str) -> Vec<String> {
+    loss.projection_drops_for(target)
+        .iter()
+        .filter_map(|d| d.strip_prefix("actual: ").map(str::to_owned))
+        .collect()
+}
 
 // ── Unit: helpers ────────────────────────────────────────────────────────────
 
@@ -67,16 +79,21 @@ fn report_emits_unsupported_target_and_flags_residue() {
     // A target that declares Unsupported and carries its residue serializes the floor
     // kind and flags the residue — the reserved-machinery path the correspondence
     // up-lift / OWL-alignment lowering is the first production producer of.
+    let mut loss = LossLedger::new();
+    loss.record_projection_drops(
+        "demo-unsupported",
+        PreservationKind::Unsupported,
+        &["the whole construct is inexpressible in demo".to_owned()],
+        &[],
+    );
     let unsupported = ProjectionResult {
         target: "demo-unsupported".to_owned(),
         content: String::new(),
         is_rdf: false,
         preservation: PreservationKind::Unsupported,
         complexity: "N/A".to_owned(),
-        lossy_drops: vec!["the whole construct is inexpressible in demo".to_owned()],
-        actual_drops: Vec::new(),
     };
-    let ttl = report::build_projection_report(&program, &[unsupported]).unwrap();
+    let ttl = report::build_projection_report(&program, &[unsupported], &loss).unwrap();
     assert!(
         ttl.contains("Unsupported"),
         "declares the Unsupported kind:\n{ttl}"
@@ -94,10 +111,10 @@ fn report_rejects_unsupported_with_no_residue() {
         is_rdf: false,
         preservation: PreservationKind::Unsupported,
         complexity: "N/A".to_owned(),
-        lossy_drops: Vec::new(),
-        actual_drops: Vec::new(),
     };
-    let err = report::build_projection_report(&program, &[silent]).unwrap_err();
+    // No drops interned for this target → the store returns an empty residue, which is the
+    // silent under-disclosure the gate must reject.
+    let err = report::build_projection_report(&program, &[silent], &LossLedger::new()).unwrap_err();
     assert!(err.0.contains("under-disclosure"), "got: {}", err.0);
 }
 
@@ -148,7 +165,11 @@ fn projection_ledger_rows_are_sorted_and_classified() {
 
 #[test]
 fn extract_nemo_rules_section_finds_marker() {
-    let nemo = text::project_nemo(&parse("ex:A logic:subClassOf ex:B .")).unwrap();
+    let nemo = text::project_nemo(
+        &parse("ex:A logic:subClassOf ex:B ."),
+        &mut LossLedger::new(),
+    )
+    .unwrap();
     let rules = text::extract_nemo_rules_section(&nemo.content).unwrap();
     assert!(rules.is_empty()); // no rules in this program
     assert!(text::extract_nemo_rules_section("no marker here").is_err());
@@ -164,7 +185,7 @@ fn nemo_rule_safety_violation_errors() {
             logic:head [ rdf:subject \"?x\" ; rdf:predicate logic:p ; rdf:object \"?z\" ] ;
             logic:body [ rdf:subject \"?x\" ; rdf:predicate logic:q ; rdf:object \"?y\" ] .",
     );
-    let err = text::project_nemo(&prog).unwrap_err();
+    let err = text::project_nemo(&prog, &mut LossLedger::new()).unwrap_err();
     assert!(err.contains("safety violation"), "got: {err}");
 }
 
@@ -176,7 +197,7 @@ fn datalog_rule_emits_world_var_and_guard() {
             logic:body [ rdf:subject \"?x\" ; rdf:predicate logic:rel ; rdf:object \"?y\" ] ;
             logic:distinctBody [ rdf:subject \"?x\" ; rdf:object \"?y\" ] .",
     );
-    let dl = text::project_datalog(&prog);
+    let dl = text::project_datalog(&prog, &mut LossLedger::new());
     assert!(dl.content.contains("rel(?x, ?y, ?C) :-"), "{}", dl.content);
     assert!(dl.content.contains("?x != ?y"), "{}", dl.content);
 }
@@ -479,19 +500,19 @@ fn contract_round_trip_is_exact_preservation_no_drops() {
     // program must not trip the overclaim gate (zero actual drops on that target).
     let program = LogicProgram::new(vec![], vec![], vec![loaded_preset_contract()], None);
     let proj = rdf::project_canonical_rdf12(&program).expect("project ok");
+    // canonical-rdf12 is Exact: it never touches a loss store, so its residue is empty.
+    let canon_loss = LossLedger::new();
     assert!(
-        proj.actual_drops.is_empty(),
-        "canonical-rdf12 must drop nothing: {:?}",
-        proj.actual_drops
+        canon_loss.projection_drops_for(&proj.target).is_empty(),
+        "canonical-rdf12 must drop nothing"
     );
     // The lossy targets, by contrast, RECORD the contract as a drop.
-    let owl = rdf::project_owl_dl(&program).expect("owl-dl ok");
+    let mut loss = LossLedger::new();
+    let _owl = rdf::project_owl_dl(&program, &mut loss).expect("owl-dl ok");
+    let owl_drops = actual_drops(&loss, "owl-dl");
     assert!(
-        owl.actual_drops
-            .iter()
-            .any(|d| d.contains("reasoning contract")),
-        "owl-dl must record the dropped contract: {:?}",
-        owl.actual_drops
+        owl_drops.iter().any(|d| d.contains("reasoning contract")),
+        "owl-dl must record the dropped contract: {owl_drops:?}"
     );
 }
 
@@ -769,10 +790,11 @@ fn canonical_rdf12_formula_projection_is_exact() {
     use crate::ir::PreservationKind;
     let program = LogicProgram::new(vec![], vec![], vec![], None).with_formulas(sample_formulas());
     let proj = rdf::project_canonical_rdf12(&program).expect("project ok");
+    // canonical-rdf12 is Exact: it never touches a loss store, so its residue is empty.
+    let loss = LossLedger::new();
     assert!(
-        proj.actual_drops.is_empty(),
-        "the canonical formula projection drops nothing (ExactPreservation): {:?}",
-        proj.actual_drops
+        loss.projection_drops_for(&proj.target).is_empty(),
+        "the canonical formula projection drops nothing (ExactPreservation)"
     );
     assert_eq!(proj.preservation, PreservationKind::Exact);
 }
@@ -783,17 +805,19 @@ fn down_projections_disclose_formula_residue_and_gate_passes() {
 
     // The Horn-fragment targets disclose the full-FOL formula layer as a per-instance
     // actual drop — carried+flagged, never silently dropped (take1 §10.1 legalization).
-    let owl = rdf::project_owl_dl(&program).expect("owl-dl ok");
+    let mut loss = LossLedger::new();
+    let owl = rdf::project_owl_dl(&program, &mut loss).expect("owl-dl ok");
+    let owl_drops = actual_drops(&loss, "owl-dl");
     assert!(
-        owl.actual_drops.iter().any(|d| d.contains("logic:Formula")),
-        "owl-dl must disclose the full-FOL formula residue when formulas are present: {:?}",
-        owl.actual_drops
+        owl_drops.iter().any(|d| d.contains("logic:Formula")),
+        "owl-dl must disclose the full-FOL formula residue when formulas are present: {owl_drops:?}"
     );
 
     // The whole report must still build (no overclaim): canonical-rdf12 is Exact and
-    // carries them; owl-dl is SoundUnder and discloses them.
+    // carries them; owl-dl is SoundUnder and discloses them. The report reads each row's
+    // residue from the same loss store the producers interned into.
     let canon = rdf::project_canonical_rdf12(&program).expect("canon ok");
-    report::build_projection_report(&program, &[owl, canon]).expect("report builds");
+    report::build_projection_report(&program, &[owl, canon], &loss).expect("report builds");
 }
 
 #[test]
@@ -803,9 +827,10 @@ fn project_nemo_preservation_is_program_dependent_on_formulas() {
     // Formula-free → nemo stays Exact (the `.rls` losslessly carries the Horn rule set), so
     // the shipped bundle's nemo projection is byte- and preservation-unchanged.
     let plain = LogicProgram::new(vec![], vec![], vec![], None);
-    let nemo_plain = text::project_nemo(&plain).unwrap();
+    let mut plain_loss = LossLedger::new();
+    let nemo_plain = text::project_nemo(&plain, &mut plain_loss).unwrap();
     assert_eq!(nemo_plain.preservation, PreservationKind::Exact);
-    assert!(nemo_plain.actual_drops.is_empty());
+    assert!(actual_drops(&plain_loss, "nemo").is_empty());
 
     // A program carrying a non-Horn full-FOL formula (a disjunctive head) → nemo drops to
     // SoundUnder and the loss ledger NAMES the dropped FOL construct (the Disjunctive tag),
@@ -817,12 +842,13 @@ fn project_nemo_preservation_is_program_dependent_on_formulas() {
         atom("q", vec![Term::Iri(iri("x")), Term::Iri(iri("b"))]),
     ]);
     let prog = LogicProgram::new(vec![], vec![], vec![], None).with_formulas(vec![disjunctive]);
-    let nemo = text::project_nemo(&prog).unwrap();
+    let mut loss = LossLedger::new();
+    let nemo = text::project_nemo(&prog, &mut loss).unwrap();
     assert_eq!(nemo.preservation, PreservationKind::SoundUnder);
+    let drops = actual_drops(&loss, "nemo");
     assert!(
-        nemo.actual_drops.iter().any(|d| d.contains("Disjunctive")),
-        "the nemo loss ledger names the dropped FOL construct: {:?}",
-        nemo.actual_drops
+        drops.iter().any(|d| d.contains("Disjunctive")),
+        "the nemo loss ledger names the dropped FOL construct: {drops:?}"
     );
 }
 
@@ -870,7 +896,8 @@ fn covering_lowers_to_owl_union_for_overlapping_cover() {
                 "SocialObject",
             ],
         )]);
-    let dl = rdf::project_owl_dl(&prog).unwrap();
+    let mut loss = LossLedger::new();
+    let dl = rdf::project_owl_dl(&prog, &mut loss).unwrap();
     assert!(
         dl.content.contains("unionOf"),
         "emits a union:\n{}",
@@ -887,10 +914,10 @@ fn covering_lowers_to_owl_union_for_overlapping_cover() {
         dl.content
     );
     // A faithfully-emitted covering is NOT a lossy drop.
+    let dl_drops = actual_drops(&loss, "owl-dl");
     assert!(
-        !dl.actual_drops.iter().any(|d| d.contains("logic:Formula")),
-        "a recognized covering is not disclosed as a drop: {:?}",
-        dl.actual_drops
+        !dl_drops.iter().any(|d| d.contains("logic:Formula")),
+        "a recognized covering is not disclosed as a drop: {dl_drops:?}"
     );
 }
 
@@ -908,7 +935,7 @@ fn covering_lowers_to_owl_disjoint_union_when_members_pairwise_disjoint() {
         None,
     )
     .with_formulas(vec![covering_formula("W", &["A", "B", "C"])]);
-    let dl = rdf::project_owl_dl(&prog).unwrap();
+    let dl = rdf::project_owl_dl(&prog, &mut LossLedger::new()).unwrap();
     assert!(
         dl.content.contains("disjointUnionOf"),
         "a fully-disjoint cover lowers to a partition:\n{}",
@@ -929,7 +956,7 @@ fn owl_restriction_round_trips_through_dl_projection() {
         owl:onProperty ex:hasBeak ; owl:someValuesFrom ex:Beak ] .";
     let (program, _) =
         crate::adapter::adapt_legacy_str(&format!("{prefixes}{ttl}"), None).expect("adapt ok");
-    let dl = rdf::project_owl_dl(&program).unwrap();
+    let dl = rdf::project_owl_dl(&program, &mut LossLedger::new()).unwrap();
     for needle in [
         "http://www.w3.org/2002/07/owl#Restriction",
         "http://www.w3.org/2002/07/owl#onProperty",
@@ -944,17 +971,18 @@ fn owl_restriction_round_trips_through_dl_projection() {
         );
     }
     // someValuesFrom is EL-safe, so the EL projection keeps it too (no drop).
-    let el = rdf::project_owl_el(&program).unwrap();
+    let mut el_loss = LossLedger::new();
+    let el = rdf::project_owl_el(&program, &mut el_loss).unwrap();
     assert!(
         el.content
             .contains("http://www.w3.org/2002/07/owl#someValuesFrom"),
         "someValuesFrom is EL-safe:\n{}",
         el.content
     );
+    let el_drops = actual_drops(&el_loss, "owl-el");
     assert!(
-        !el.actual_drops.iter().any(|d| d.contains("EL-safe")),
-        "an all-EL-safe restriction is not dropped: {:?}",
-        el.actual_drops
+        !el_drops.iter().any(|d| d.contains("EL-safe")),
+        "an all-EL-safe restriction is not dropped: {el_drops:?}"
     );
 }
 
@@ -973,7 +1001,7 @@ fn non_el_restriction_drops_whole_in_el_projection() {
     let (program, _) =
         crate::adapter::adapt_legacy_str(&format!("{prefixes}{ttl}"), None).expect("adapt ok");
 
-    let dl = rdf::project_owl_dl(&program).unwrap();
+    let dl = rdf::project_owl_dl(&program, &mut LossLedger::new()).unwrap();
     assert!(
         dl.content
             .contains("http://www.w3.org/2002/07/owl#allValuesFrom"),
@@ -981,7 +1009,8 @@ fn non_el_restriction_drops_whole_in_el_projection() {
         dl.content
     );
 
-    let el = rdf::project_owl_el(&program).unwrap();
+    let mut el_loss = LossLedger::new();
+    let el = rdf::project_owl_el(&program, &mut el_loss).unwrap();
     assert!(
         !el.content.contains("allValuesFrom"),
         "EL must not carry the non-EL restriction:\n{}",
@@ -999,10 +1028,10 @@ fn non_el_restriction_drops_whole_in_el_projection() {
         "no dangling subClassOf into the dropped skolem node:\n{}",
         el.content
     );
+    let el_drops = actual_drops(&el_loss, "owl-el");
     assert!(
-        el.actual_drops.iter().any(|d| d.contains("EL-safe")),
-        "the EL drop must be disclosed: {:?}",
-        el.actual_drops
+        el_drops.iter().any(|d| d.contains("EL-safe")),
+        "the EL drop must be disclosed: {el_drops:?}"
     );
 }
 
@@ -1017,7 +1046,7 @@ fn oneof_enumeration_round_trips_dl_and_drops_in_el() {
     let (program, _) =
         crate::adapter::adapt_legacy_str(&format!("{prefixes}{ttl}"), None).expect("adapt ok");
 
-    let dl = rdf::project_owl_dl(&program).unwrap();
+    let dl = rdf::project_owl_dl(&program, &mut LossLedger::new()).unwrap();
     for needle in [
         "http://www.w3.org/2002/07/owl#oneOf",
         "http://www.w3.org/1999/02/22-rdf-syntax-ns#first",
@@ -1032,16 +1061,17 @@ fn oneof_enumeration_round_trips_dl_and_drops_in_el() {
     }
 
     // owl:oneOf is a nominal — not EL. The whole enumeration + its anchor drop.
-    let el = rdf::project_owl_el(&program).unwrap();
+    let mut el_loss = LossLedger::new();
+    let el = rdf::project_owl_el(&program, &mut el_loss).unwrap();
     assert!(
         !el.content.contains("oneOf") && !el.content.contains("enumeration/"),
         "EL must not carry the nominal enumeration:\n{}",
         el.content
     );
+    let el_drops = actual_drops(&el_loss, "owl-el");
     assert!(
-        el.actual_drops.iter().any(|d| d.contains("oneOf")),
-        "the EL enumeration drop must be disclosed: {:?}",
-        el.actual_drops
+        el_drops.iter().any(|d| d.contains("oneOf")),
+        "the EL enumeration drop must be disclosed: {el_drops:?}"
     );
 }
 
@@ -1063,7 +1093,7 @@ fn withrestrictions_datarange_round_trips_dl_and_drops_in_el() {
     let (program, _) =
         crate::adapter::adapt_legacy_str(&format!("{prefixes}{ttl}"), None).expect("adapt ok");
 
-    let dl = rdf::project_owl_dl(&program).unwrap();
+    let dl = rdf::project_owl_dl(&program, &mut LossLedger::new()).unwrap();
     for needle in [
         "http://www.w3.org/2000/01/rdf-schema#Datatype",
         "http://www.w3.org/2002/07/owl#onDatatype",
@@ -1081,7 +1111,8 @@ fn withrestrictions_datarange_round_trips_dl_and_drops_in_el() {
     }
 
     // Datatype facets are not EL: the whole datarange + its anchor drop.
-    let el = rdf::project_owl_el(&program).unwrap();
+    let mut el_loss = LossLedger::new();
+    let el = rdf::project_owl_el(&program, &mut el_loss).unwrap();
     assert!(
         !el.content.contains("withRestrictions") && !el.content.contains("datarange/"),
         "EL must not carry the datarange:\n{}",
@@ -1093,12 +1124,10 @@ fn withrestrictions_datarange_round_trips_dl_and_drops_in_el() {
         "no orphan facet triple may remain in EL:\n{}",
         el.content
     );
+    let el_drops = actual_drops(&el_loss, "owl-el");
     assert!(
-        el.actual_drops
-            .iter()
-            .any(|d| d.contains("datatype facets")),
-        "the EL datarange drop must be disclosed: {:?}",
-        el.actual_drops
+        el_drops.iter().any(|d| d.contains("datatype facets")),
+        "the EL datarange drop must be disclosed: {el_drops:?}"
     );
 }
 
@@ -1113,7 +1142,7 @@ fn cardinality_restriction_projects_typed_integer_in_dl() {
         owl:onProperty ex:hasChild ; owl:minCardinality 1 ] .";
     let (program, _) =
         crate::adapter::adapt_legacy_str(&format!("{prefixes}{ttl}"), None).expect("adapt ok");
-    let dl = rdf::project_owl_dl(&program).unwrap();
+    let dl = rdf::project_owl_dl(&program, &mut LossLedger::new()).unwrap();
     assert!(
         dl.content
             .contains("http://www.w3.org/2002/07/owl#minCardinality"),
@@ -1135,8 +1164,12 @@ fn covering_owl_dl_is_deterministic() {
             "Entity",
             &["Agent", "SocialObject", "PhysicalObject"],
         )]);
-    let a = rdf::project_owl_dl(&prog).unwrap().content;
-    let b = rdf::project_owl_dl(&prog).unwrap().content;
+    let a = rdf::project_owl_dl(&prog, &mut LossLedger::new())
+        .unwrap()
+        .content;
+    let b = rdf::project_owl_dl(&prog, &mut LossLedger::new())
+        .unwrap()
+        .content;
     assert_eq!(a, b, "covering projection is byte-stable across runs");
 }
 
@@ -1144,14 +1177,14 @@ fn covering_owl_dl_is_deterministic() {
 fn covering_dropped_in_el_and_gufo_with_shape_tag() {
     let prog = LogicProgram::new(vec![], vec![], vec![], None)
         .with_formulas(vec![covering_formula("Entity", &["Agent", "SocialObject"])]);
-    for proj in [
-        rdf::project_owl_el(&prog).unwrap(),
-        rdf::project_gufo(&prog).unwrap(),
-    ] {
+    let mut loss = LossLedger::new();
+    rdf::project_owl_el(&prog, &mut loss).unwrap();
+    rdf::project_gufo(&prog, &mut loss).unwrap();
+    for target in ["owl-el", "gufo"] {
+        let drops = actual_drops(&loss, target);
         assert!(
-            proj.actual_drops.iter().any(|d| d.contains("Disjunctive")),
-            "EL/gUFO disclose the covering's disjunction as residue: {:?}",
-            proj.actual_drops
+            drops.iter().any(|d| d.contains("Disjunctive")),
+            "EL/gUFO disclose the covering's disjunction as residue: {drops:?}"
         );
     }
 }
@@ -1182,7 +1215,7 @@ ex:d1a logic:termIndex 0 ; logic:termVariable "x" .
         1,
         "one top-level covering formula parsed"
     );
-    let dl = rdf::project_owl_dl(&prog).unwrap();
+    let dl = rdf::project_owl_dl(&prog, &mut LossLedger::new()).unwrap();
     assert!(
         dl.content.contains("unionOf"),
         "authored covering lowers to a union:\n{}",

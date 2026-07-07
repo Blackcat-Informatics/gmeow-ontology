@@ -148,7 +148,12 @@ pub fn reason_program(
 
     // 2. The program's own Horn rules, via the canonical Nemo projection (rules section only;
     //    facts come from `edb`).
-    let program_nemo = project_nemo(program)?;
+    // The reasoning surface consumes only the `.rls` rule text, not the loss ledger, so the
+    // nemo projection's drops are interned into a throwaway store.
+    let program_nemo = project_nemo(
+        program,
+        &mut gmeow_logic_compile::loss_ledger::LossLedger::new(),
+    )?;
     let program_rules = extract_nemo_rules_section(&program_nemo.content)?;
 
     // 3. Run program rules + formula-derived rules ALONGSIDE the fixed DL calculus, so the
