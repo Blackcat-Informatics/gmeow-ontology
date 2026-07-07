@@ -3,7 +3,7 @@
 #
 # Declarative competency questions for the deception slice, executed by the native
 # Rust slice-test harness (crates/slicetest). Migrated from the deception
-# competency tests in tests/test_competency.py.
+# competency tests in crates/validate/tests/conformance_competency.rs.
 #
 # Two shapes:
 #   * TBox vocabulary questions (deception-types, deception-roles) run over the
@@ -26,7 +26,7 @@
 # ── A. TBox: deception-related event types + veridicality values ──────────────
 ex:cqDeceptionTypes a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "queries/competency/deception-types.rq" ;
-    gmeow:cqRationale "GMEOW must enumerate the deception-related event types and veridicality values it models. The asserted graph returns at least the deception event-type spine plus the ClaimVeridicality axis; these are the terms test_competency.py pinned." ;
+    gmeow:cqRationale "GMEOW must enumerate the deception-related event types and veridicality values it models. The asserted graph returns at least the deception event-type spine plus the ClaimVeridicality axis; these are the terms conformance_competency.rs pins." ;
     gmeow:cqResultShape ex:cqDeceptionTypesShape ;
     gmeow:cqExpectRow
         ex:dtDeception, ex:dtLie, ex:dtPaltering, ex:dtOmission, ex:dtDistortion,

@@ -8051,6 +8051,11 @@ slots:
     title: gmn glyph table version
     range: string
     multivalued: true
+  gmnGlyphTokenCost:
+    slot_uri: https://blackcatinformatics.ca/gmeow/gmnGlyphTokenCost
+    title: gmn glyph token cost
+    range: uriorcurie
+    multivalued: true
   gmnMigratesFrom:
     slot_uri: https://blackcatinformatics.ca/gmeow/gmnMigratesFrom
     title: gmn migrates from
@@ -15615,6 +15620,15 @@ enums:
       refOriginTopocentric:
         meaning: https://blackcatinformatics.ca/gmeow/refOriginTopocentric
         title: topocentric (observatory site)
+  CitationActEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/CitationAct
+    permissible_values:
+      ipaChartCitation:
+        meaning: https://blackcatinformatics.ca/gmeow/ipaChartCitation
+        title: IPA plane conformance citation
+      leipzigCitation:
+        meaning: https://blackcatinformatics.ca/gmeow/leipzigCitation
+        title: Leipzig plane conformance citation
   CitationIntentEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/CitationIntent
     permissible_values:
@@ -16131,6 +16145,15 @@ enums:
       coverageDepthSignificantCoverage:
         meaning: https://blackcatinformatics.ca/gmeow/coverageDepthSignificantCoverage
         title: significant coverage
+  CreativeWorkEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/CreativeWork
+    permissible_values:
+      ipaChartWork:
+        meaning: https://blackcatinformatics.ca/gmeow/ipaChartWork
+        title: the IPA Chart
+      leipzigWork:
+        meaning: https://blackcatinformatics.ca/gmeow/leipzigWork
+        title: the Leipzig Glossing Rules
   CreativeWorkTypeEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/CreativeWorkType
     permissible_values:
@@ -17838,9 +17861,18 @@ enums:
   InformationObjectEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/InformationObject
     permissible_values:
+      gmnLangGlyphContext:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnLangGlyphContext
+        title: the GMN linguistic glyph-table context
       gmnVersionOne:
         meaning: https://blackcatinformatics.ca/gmeow/gmnVersionOne
         title: GMN dialect version 1
+      ipaPlaneSourceRecord:
+        meaning: https://blackcatinformatics.ca/gmeow/ipaPlaneSourceRecord
+        title: IPA plane source record
+      leipzigPlaneSourceRecord:
+        meaning: https://blackcatinformatics.ca/gmeow/leipzigPlaneSourceRecord
+        title: Leipzig plane source record
   InhabitationLocusKindEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/InhabitationLocusKind
     permissible_values:
