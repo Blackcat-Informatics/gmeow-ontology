@@ -163,8 +163,6 @@ fn frame_shapes(dataset: &Dataset) -> Result<Vec<ValidationShapeIr>, gmeow_error
             ShapeTarget::Class(format!("{NS}{carrier}")),
             vec![property],
             None,
-            None,
-            false,
         )
         .map_err(invalid)?
         .with_label(format!("{carrier} frame-relativity shape (generated)"))
