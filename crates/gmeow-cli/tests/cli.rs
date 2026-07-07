@@ -623,3 +623,48 @@ fn conjecture_test_dry_run_writes_nothing() {
     assert!(!written, "a dry run must write nothing to the library");
     std::fs::remove_dir_all(&dir).ok();
 }
+
+/// A KB whose `ex:trigger` fires the candidate on SEVERAL individuals, so the
+/// candidate's derived (non-EDB) closure is strictly larger than a bound of 1.
+fn multi_trigger_kb_ttl() -> String {
+    "@prefix ex:  <http://ex/> .\n\
+     @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n\
+     ex:a ex:trigger ex:mark .\n\
+     ex:b ex:trigger ex:mark .\n\
+     ex:c ex:trigger ex:mark .\n\
+     ex:a rdf:type ex:A .\n"
+        .to_owned()
+}
+
+/// GAP G1: `--max-steps` is reachable from the SHIPPED CLI. A bound of 1 truncates
+/// the multi-fact derived closure ⇒ evaluation budget-exhausted → lifecycle open →
+/// discharge ObligationUnknown, and (being inconclusive) nothing is persisted-open
+/// beyond the Open verdict.
+#[test]
+fn conjecture_test_max_steps_bound_forces_open() {
+    let dir = scratch("conjecture-budget");
+    let formula = dir.join("candidate.ttl");
+    let kb = dir.join("kb.ttl");
+    let lib = dir.join("conjectures.gts");
+    std::fs::write(&formula, forall_horn_candidate_ttl()).expect("write formula");
+    std::fs::write(&kb, multi_trigger_kb_ttl()).expect("write kb");
+
+    gmeow()
+        .env("GMEOW_CONJECTURE_PATH", &lib)
+        .args(["conjecture", "test"])
+        .arg("--formula")
+        .arg(&formula)
+        .arg("--kb")
+        .arg(&kb)
+        .args(["--standpoint", "http://ex/standpoint/alice"])
+        .args(["--max-steps", "1"])
+        .arg("--dry-run")
+        .assert()
+        .success()
+        .stdout(
+            predicate::str::contains("lifecycle open")
+                .and(predicate::str::contains("evaluation budget-exhausted"))
+                .and(predicate::str::contains("discharge ObligationUnknown")),
+        );
+    std::fs::remove_dir_all(&dir).ok();
+}

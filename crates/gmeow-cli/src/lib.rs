@@ -243,6 +243,15 @@ pub enum ConjectureCommands {
         /// Compute and print the verdict but WRITE NOTHING to the library.
         #[arg(long = "dry-run")]
         dry_run: bool,
+        /// Optional derived-closure-size ceiling on the isolated scenario evaluation: when the
+        /// derived (non-EDB) closure exceeds this many steps the run is stamped BudgetExhausted
+        /// → lifecycle open → discharge Unknown. Omitted = unbounded.
+        #[arg(long = "max-steps")]
+        max_steps: Option<u64>,
+        /// Optional derived-closure-size ceiling in answer bindings (the binding-count twin of
+        /// `--max-steps`). Omitted = unbounded.
+        #[arg(long = "max-answers")]
+        max_answers: Option<usize>,
     },
 }
 
@@ -389,12 +398,16 @@ pub fn run() -> i32 {
                 standpoint,
                 math_conjecture,
                 dry_run,
+                max_steps,
+                max_answers,
             } => commands::conjecture_test(
                 &formula,
                 &kb,
                 &standpoint,
                 math_conjecture.as_deref(),
                 dry_run,
+                max_steps,
+                max_answers,
             ),
         },
     }

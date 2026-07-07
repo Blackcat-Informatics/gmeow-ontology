@@ -261,6 +261,8 @@ pub fn conjecture_test(
     standpoint: &str,
     math_conjecture: Option<&str>,
     dry_run: bool,
+    max_steps: Option<u64>,
+    max_answers: Option<usize>,
 ) -> i32 {
     let formula_ttl = match std::fs::read_to_string(formula) {
         Ok(text) => text,
@@ -278,6 +280,8 @@ pub fn conjecture_test(
             standpoint,
             math_conjecture,
             dry_run,
+            max_steps,
+            max_answers,
         }) {
             Ok(out) => out,
             Err(e) => return fail(format!("conjecture test failed: {e}")),
