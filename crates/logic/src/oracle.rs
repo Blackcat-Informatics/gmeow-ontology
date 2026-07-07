@@ -171,10 +171,8 @@ pub(crate) trait ForwardOracle {
 /// process-global `CHASE_LOCK` stays inside that call.
 ///
 /// Off the primary path after the native flip: constructed only via
-/// [`nemo_forward_oracle`] (the parity gates + Task-7 cross-check lane), so in a
-/// non-test build it has no live caller yet — `dead_code`-allowed until Task 7
-/// wires the production cross-check consumer.
-#[allow(dead_code)]
+/// [`nemo_forward_oracle`] (the parity gates + the scheduled cross-check lane
+/// `crate::reason::crosscheck_native_vs_nemo`), never from `reason_all`.
 pub(crate) struct NemoForwardOracle;
 
 impl ForwardOracle for NemoForwardOracle {
@@ -230,10 +228,10 @@ pub(crate) fn forward_oracle() -> impl ForwardOracle {
 /// [`NemoForwardOracle`] ad hoc) preserves the "single naming site" discipline
 /// for the bootstrap oracle too.
 ///
-/// `dead_code`-allowed: the only current callers are the `#[cfg(test)]` parity
-/// gates; Task 7 adds the production cross-check consumer, at which point this
-/// allow is removed.
-#[allow(dead_code)]
+/// Its production consumer is the scheduled differential cross-check
+/// [`crate::reason::crosscheck_native_vs_nemo`] (the `reason-nemo-crosscheck` /
+/// `make maint-nemo-crosscheck` lane); the `#[cfg(test)]` parity gates also reach
+/// Nemo through here.
 pub(crate) fn nemo_forward_oracle() -> NemoForwardOracle {
     NemoForwardOracle
 }
