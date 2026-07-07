@@ -1,0 +1,54 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Counter-example: a version migration claiming logic:mnemomorphic TRUE over a
+# stronger-than-additive bump — the destination version's membership classifies the change
+# as gmeow:scaleMajor, whose own classification says the change is not recoverable, so the
+# recoverability witness is an overclaim (fires lang:GmnVersionOverclaim via the sh:sparql
+# of lang:GmnVersionOverclaimShape). The migration unit is otherwise well-formed (source,
+# target, method, exactly one carried correspondence) so lang:TranslationUnitShape and
+# lang:TranslationAttributionShape stay quiet, and the set's gmeow:gmnAcceptWindow 1 keeps
+# the acceptance-window branch quiet.
+
+@prefix lang:  <https://blackcatinformatics.ca/lang/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <http://example.org/lang/> .
+
+ex:dialectLineage a gmeow:VersionSet ;
+    gmeow:gmnAcceptWindow 1 .
+
+ex:dialectV1 a gmeow:InformationObject ;
+    owl:versionInfo "1" .
+
+ex:dialectV2 a gmeow:InformationObject ;
+    owl:versionInfo "2" .
+
+ex:membershipV1 a gmeow:VersionMembership ;
+    gmeow:versionMember ex:dialectV1 ;
+    gmeow:versionSet ex:dialectLineage ;
+    gmeow:versionRole gmeow:roleCanonical .
+
+# The bump is MAJOR — a breaking change by its own scale classification.
+ex:membershipV2 a gmeow:VersionMembership ;
+    gmeow:versionMember ex:dialectV2 ;
+    gmeow:versionSet ex:dialectLineage ;
+    gmeow:versionRole gmeow:roleLatest ;
+    gmeow:versionScale gmeow:scaleMajor .
+
+# The overclaim: mnemomorphic true over the major bump.
+ex:corrMigration a logic:Correspondence ;
+    logic:preservationKind logic:ExactPreservation ;
+    logic:correspondenceRelation logic:Equiv ;
+    logic:morphismClass logic:Isomorphism ;
+    logic:hasDeterminacy logic:Crisp ;
+    logic:mnemomorphic true .
+
+ex:unitMigration a lang:TranslationUnit ;
+    lang:translationSource ex:dialectV1 ;
+    lang:translationTarget ex:dialectV2 ;
+    lang:translationMethod lang:methodCompositional ;
+    lang:translationCorrespondence ex:corrMigration ;
+    gmeow:gmnMigratesFrom ex:dialectV1 ;
+    gmeow:gmnMigratesTo ex:dialectV2 .

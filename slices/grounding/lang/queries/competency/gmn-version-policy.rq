@@ -1,0 +1,18 @@
+# Competency question: "What is the current GMN dialect version and what does a
+# conforming reader accept?"  The support-policy ruling is queryable DATA, not
+# prose: the GMN dialect lineage is a gmeow:VersionSet carrying the lineage-level
+# acceptance policy gmeow:gmnAcceptWindow 1 (current major plus one prior), and
+# each major's standing is a reified gmeow:VersionMembership relator. The answer
+# is exactly version 1 holding BOTH roles — the canonical and the latest member —
+# each row also reporting the acceptance window read off the lineage.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?version ?role ?window WHERE {
+    gmeow:gmnDialectVersions gmeow:gmnAcceptWindow ?windowRaw .
+    ?membership a gmeow:VersionMembership ;
+                gmeow:versionSet gmeow:gmnDialectVersions ;
+                gmeow:versionMember ?version ;
+                gmeow:versionRole ?role .
+    BIND(STR(?windowRaw) AS ?window)
+}
+ORDER BY ?version ?role
