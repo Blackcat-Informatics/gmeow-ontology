@@ -68,7 +68,7 @@ meta:gate-rdf12-codec a meta:Gate ;
 meta:gate-generator-registry a meta:Gate ;
     rdfs:label "pipeline DAG registry: single-pass regenerate / drift gates"@x-gmeow-english ;
     meta:artifact "crates/pipeline/src/py.rs", "crates/pipeline/src/run.rs", "slices/core/pipeline/module.ttl" ;
-    meta:symbol "run_pipeline" ;
+    meta:symbol "run_full" ;
     meta:cliCommand "regenerate", "check-generated", "compile-gts" ;
     meta:makeTarget "check-generated", "regenerate" ;
     meta:generator "source_load", "statements", "compile_logic", "mappings",
