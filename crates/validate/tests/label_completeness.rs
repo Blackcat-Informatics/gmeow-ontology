@@ -59,13 +59,20 @@ fn lint_errors(paths: &[PathBuf]) -> Vec<String> {
     structural_lint_dataset(&dataset, &lint_config()).errors
 }
 
-/// Write inline Turtle to a unique temp file and lint it.
+/// Write inline Turtle to a unique temp file and lint it. The `NamedTempFile`
+/// is RAII-cleaned on drop, so the file is removed even if the lint panics.
 fn lint_inline(name: &str, ttl: &str) -> Vec<String> {
-    let path = std::env::temp_dir().join(format!("{}_{}.ttl", name, std::process::id()));
-    std::fs::write(&path, ttl).unwrap();
-    let errors = lint_errors(std::slice::from_ref(&path));
-    std::fs::remove_file(&path).ok();
-    errors
+    use std::io::Write;
+
+    let mut file = tempfile::Builder::new()
+        .prefix(&format!("{name}_"))
+        .suffix(".ttl")
+        .tempfile()
+        .expect("create temp .ttl file");
+    file.write_all(ttl.as_bytes())
+        .expect("write inline Turtle to temp file");
+    file.flush().expect("flush inline Turtle to temp file");
+    lint_errors(std::slice::from_ref(&file.path().to_path_buf()))
 }
 
 /// Every slice's `module.ttl` (`slices/*/*/module.ttl`) — the native twin of the
