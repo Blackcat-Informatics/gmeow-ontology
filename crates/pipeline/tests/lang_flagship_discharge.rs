@@ -339,10 +339,12 @@ fn every_flagship_is_discharged_by_execution() {
 /// output carries the structure the flagship claims.
 fn run_producer(flagship: &Flagship, catalog: &purrdf::slice::SliceCatalog) {
     match flagship.producer.as_str() {
-        // FS1: the native lang-bridge SVO lowering. A sentence lowers, compositionally, to a
-        // full-FOL formula; every stage is declared and Exact, and the N-Triples emission
-        // records the compositional formula (the `chase` relation).
-        "lang-bridge::lower::lower_svo" => {
+        // FS1: the compositional-lowering corpus PRODUCER — the production wiring that folds the
+        // SVO lowering into gmeow.gts. A sentence lowers, compositionally, to a full-FOL formula;
+        // every stage is declared and Exact (asserted on the SAME `lower_svo` the producer runs),
+        // and the FOLDED corpus N-Triples carry the compositional formula (the `chase` relation).
+        "pipeline::stages::lang_lowering::build_corpus" => {
+            // The stage-structure asserts, on the same lowering the producer runs.
             let lowering =
                 lower_svo(&flagship_svo_sentence()).expect("FS1: the flagship SVO sentence lowers");
             lowering
@@ -356,13 +358,36 @@ fn run_producer(flagship: &Flagship, catalog: &purrdf::slice::SliceCatalog) {
                     stage.name
                 );
             }
-            let subject = format!("{LANG_NS}lowering/flagship");
-            let nt = String::from_utf8(lowering.to_ntriples(&subject))
-                .expect("FS1: N-Triples emission is UTF-8");
-            assert!(!nt.trim().is_empty(), "FS1: the lowering emits N-Triples");
+
+            // The FOLDED production corpus: the bundle projection the pipeline lands in gmeow.gts.
+            let corpus = gmeow_pipeline::stages::lang_lowering::build_corpus()
+                .expect("FS1: the compositional-lowering corpus builds");
+            let nt = String::from_utf8(corpus.ntriples)
+                .expect("FS1: corpus N-Triples emission is UTF-8");
             assert!(
-                nt.contains("chase"),
-                "FS1: the emitted lowering carries the `chase` relation"
+                !nt.trim().is_empty(),
+                "FS1: the folded lowering corpus is non-empty"
+            );
+            for needle in [
+                "CompositionalLowering", // the lowering typing
+                "LoweringStage",         // the per-stage preservation records
+                "chase",                 // the compositional formula's `chase` relation
+            ] {
+                assert!(
+                    nt.contains(needle),
+                    "FS1: the folded lowering corpus must carry {needle}"
+                );
+            }
+            // Every folded stage records an exact preservation (no lossy lowering shipped).
+            let exact = PreservationKind::Exact.iri();
+            let stage_exact = nt
+                .lines()
+                .filter(|l| l.contains("preservationKind") && l.contains(&exact))
+                .count();
+            assert_eq!(
+                stage_exact,
+                lowering.stages.len(),
+                "FS1: every folded lowering stage records an exact preservation"
             );
         }
 
