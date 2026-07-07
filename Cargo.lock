@@ -1798,12 +1798,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "gmeow-affect-ingest"
+version = "0.1.0"
+dependencies = [
+ "gmeow-math",
+ "purrdf",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "gmeow-cli"
 version = "0.1.0"
 dependencies = [
  "assert_cmd",
  "clap",
  "gmeow-affect",
+ "gmeow-affect-ingest",
  "gmeow-cli-core",
  "gmeow-docs",
  "gmeow-errors",
@@ -2084,6 +2095,7 @@ dependencies = [
  "ciborium",
  "criterion",
  "ed25519-dalek",
+ "gmeow-affect-ingest",
  "gmeow-errors",
  "gmeow-license",
  "gmeow-logic",

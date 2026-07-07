@@ -30,6 +30,9 @@ gmeow-music = { path = "../music" }
 # The affect-intensity geometry engine (exact-rational metric-tensor norm over a
 # Gram matrix). A pure-Rust runtime rlib the wheel ships — drives `gmeow affect`.
 gmeow-affect = { path = "../affect" }
+# The classifier-ingestion producer: captured GoEmotions output → attributed GMEOW
+# evidence, and its inverse. Drives `gmeow affect ingest-goemotions` / `recover-goemotions`.
+gmeow-affect-ingest = { path = "../affect-ingest" }
 gmeow-pipeline = { path = "../pipeline" }
 # The consumer `describe` / `extract-docs` term-card engine. A pure-Rust rlib (its
 # `python` feature stays OFF here) — a runtime library the wheel ships, not a
@@ -42,6 +45,9 @@ purrdf = "0.3"
 # TOCTOU/symlink-safe staging of the embedded bundle to a temp path for the
 # external `gts` passthrough (atomic create + remove-on-drop).
 tempfile = "3"
+# (De)serialize the GoEmotions capture envelope for `gmeow affect ingest-goemotions`
+# / `recover-goemotions`.
+serde_json = "1"
 
 [dev-dependencies]
 assert_cmd = "2"

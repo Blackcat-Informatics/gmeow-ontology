@@ -405,6 +405,64 @@ fn affect_intensity_discriminating_dominant_axis_is_metric_aware() {
         ));
 }
 
+// ── affect goemotions ingestion (the production surface) ─────────────────────
+
+/// Absolute path of a committed crate fixture, relative to this crate.
+fn crate_fixture(relative: &str) -> PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("..")
+        .join(relative)
+}
+
+#[test]
+fn affect_goemotions_ingest_recover_round_trips_through_the_cli() {
+    let capture = crate_fixture("affect-ingest/fixtures/goemotions-sample.json");
+
+    // Put leg: the captured GoEmotions JSON becomes attributed evidence Turtle,
+    // resolving the label set + reviewed closeMatch from the EMBEDDED bundle. The
+    // adapter is dispatched from the capture's declared label set — one generic
+    // `ingest` subcommand, no per-model variant.
+    let put = gmeow()
+        .args(["affect", "ingest"])
+        .arg(&capture)
+        .assert()
+        .success();
+    let ttl = String::from_utf8(put.get_output().stdout.clone()).expect("utf-8 turtle");
+    assert!(ttl.contains("ModelInferenceRun"), "run emitted");
+    // lossless: an output for every one of the 28 GoEmotions labels, on every
+    // captured target (the real fixture carries three).
+    let outputs = ttl.matches("AffectClassifierOutput").count();
+    assert!(
+        outputs >= 28 && outputs.is_multiple_of(28),
+        "28 labels per target: {outputs}"
+    );
+    // claim routing via the bundle's SSSOM correspondence: the joyful target's
+    // `joy` crosses threshold AND closeMatches gmeow:emotionJoy.
+    assert!(ttl.contains("the text expresses joy"));
+
+    // Get leg: pipe the evidence back in; the label set is auto-detected from the
+    // emitted labels and the reconstructed capture round-trips through the real CLI
+    // (pinned model revision + real model identity).
+    gmeow()
+        .args(["affect", "recover", "-"])
+        .write_stdin(ttl)
+        .assert()
+        .success()
+        .stdout(
+            predicate::str::contains("d75048347613a25d77de8cf6412eaae9fa7b26be")
+                .and(predicate::str::contains("SamLowe/roberta-base-go_emotions")),
+        );
+}
+
+#[test]
+fn affect_goemotions_ingest_missing_source_is_a_runtime_error() {
+    gmeow()
+        .args(["affect", "ingest", "/nonexistent-capture.json"])
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("Error:"));
+}
+
 #[test]
 fn affect_intensity_missing_source_is_a_runtime_error() {
     // Mirror the music runtime-error path: an unreadable source → exit 1 with an

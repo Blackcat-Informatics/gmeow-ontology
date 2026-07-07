@@ -1,0 +1,114 @@
+{
+  "model_identifier": "facebook/bart-large-mnli",
+  "model_revision": "d7645e127eaf1aefc7862fd59a17a5aa8558b8ce",
+  "model_framework": "transformers",
+  "model_task": "zero-shot-classification",
+  "function_to_apply": "entailment",
+  "return_all_scores": true,
+  "label_set_id": "ZeroShotEmotion6",
+  "score_semantics": "entailment",
+  "tokenizer_revision": "d7645e127eaf1aefc7862fd59a17a5aa8558b8ce",
+  "hypothesis_template": "This text expresses {}.",
+  "candidate_labels": [
+    "joy",
+    "anger",
+    "fear",
+    "sadness",
+    "surprise",
+    "disgust"
+  ],
+  "label_set_revision": "candidates:anger,disgust,fear,joy,sadness,surprise",
+  "threshold_policy": {
+    "kind": "global",
+    "value": 0.5
+  },
+  "targets": [
+    {
+      "target_iri": "https://blackcatinformatics.ca/gmeow/examples/affect/zeroshot/gratitude",
+      "scores": [
+        {
+          "label": "anger",
+          "score": 7.485112291760743e-05
+        },
+        {
+          "label": "disgust",
+          "score": 4.9263471737504005e-05
+        },
+        {
+          "label": "fear",
+          "score": 0.0007586216670460999
+        },
+        {
+          "label": "joy",
+          "score": 0.9985193610191345
+        },
+        {
+          "label": "sadness",
+          "score": 0.00013043578655924648
+        },
+        {
+          "label": "surprise",
+          "score": 0.9605169296264648
+        }
+      ]
+    },
+    {
+      "target_iri": "https://blackcatinformatics.ca/gmeow/examples/affect/zeroshot/joy",
+      "scores": [
+        {
+          "label": "anger",
+          "score": 9.182378562400118e-05
+        },
+        {
+          "label": "disgust",
+          "score": 6.739055243087932e-05
+        },
+        {
+          "label": "fear",
+          "score": 8.053474448388442e-05
+        },
+        {
+          "label": "joy",
+          "score": 0.9993876218795776
+        },
+        {
+          "label": "sadness",
+          "score": 7.550805457867682e-05
+        },
+        {
+          "label": "surprise",
+          "score": 0.9392647743225098
+        }
+      ]
+    },
+    {
+      "target_iri": "https://blackcatinformatics.ca/gmeow/examples/affect/zeroshot/fear",
+      "scores": [
+        {
+          "label": "anger",
+          "score": 0.9662867784500122
+        },
+        {
+          "label": "disgust",
+          "score": 0.9912317395210266
+        },
+        {
+          "label": "fear",
+          "score": 0.9995959401130676
+        },
+        {
+          "label": "joy",
+          "score": 7.432894199155271e-05
+        },
+        {
+          "label": "sadness",
+          "score": 0.25210899114608765
+        },
+        {
+          "label": "surprise",
+          "score": 0.939213216304779
+        }
+      ]
+    }
+  ]
+}
