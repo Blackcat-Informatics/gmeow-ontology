@@ -1416,12 +1416,6 @@ export enum LanguageChangeTypeEnum {
     changeStandardization = "changeStandardization",
 }
 
-export enum LanguageEnum {
-    langEnglish = "langEnglish",
-    langFrench = "langFrench",
-    langMandarin = "langMandarin",
-}
-
 export enum LanguageModalityEnum {
     modalityMachine = "modalityMachine",
     modalityMultimodal = "modalityMultimodal",
@@ -2801,17 +2795,6 @@ export enum ScoreSemanticsEnum {
     scoreSoftmax = "scoreSoftmax",
 }
 
-export enum ScriptRoleEnum {
-    scriptRoleDecorative = "scriptRoleDecorative",
-    scriptRoleHistorical = "scriptRoleHistorical",
-    scriptRoleLiturgical = "scriptRoleLiturgical",
-    scriptRoleLoanword = "scriptRoleLoanword",
-    scriptRoleLogographicContent = "scriptRoleLogographicContent",
-    scriptRolePrimary = "scriptRolePrimary",
-    scriptRoleSyllabicGrammar = "scriptRoleSyllabicGrammar",
-    scriptRoleTransliteration = "scriptRoleTransliteration",
-}
-
 export enum SegmentKindEnum {
     segmentKindCell = "segmentKindCell",
     segmentKindColor = "segmentKindColor",
@@ -3076,16 +3059,6 @@ export enum TermStabilityEnum {
     stabilityStable = "stabilityStable",
 }
 
-export enum TextDirectionEnum {
-    directionBoustrophedon = "directionBoustrophedon",
-    directionContextual = "directionContextual",
-    directionLtr = "directionLtr",
-    directionNonLinear = "directionNonLinear",
-    directionRtl = "directionRtl",
-    directionVerticalLtr = "directionVerticalLtr",
-    directionVerticalRtl = "directionVerticalRtl",
-}
-
 export enum TimbreDescriptorEnum {
     timbreDescriptorBreathy = "timbreDescriptorBreathy",
     timbreDescriptorBright = "timbreDescriptorBright",
@@ -3294,19 +3267,6 @@ export enum WalletSchemeEnum {
     walletSchemeXMR = "walletSchemeXMR",
 }
 
-export enum WritingSystemTypeEnum {
-    wsTypeAbjad = "wsTypeAbjad",
-    wsTypeAbugida = "wsTypeAbugida",
-    wsTypeAlphabet = "wsTypeAlphabet",
-    wsTypeFeatural = "wsTypeFeatural",
-    wsTypeIdeographic = "wsTypeIdeographic",
-    wsTypeLogographic = "wsTypeLogographic",
-    wsTypeMixed = "wsTypeMixed",
-    wsTypeNonLinear = "wsTypeNonLinear",
-    wsTypePictographic = "wsTypePictographic",
-    wsTypeSyllabary = "wsTypeSyllabary",
-}
-
 export interface AboutnessMode {
 }
 
@@ -3499,6 +3459,7 @@ export interface AnnotationMotivation {
 }
 
 export interface Appellation {
+    appellationDenotation?: string[],
     conferredByEvent?: LifeEvent[],
     fullName?: string[],
     hasNamePart?: NamePart[],
@@ -4423,6 +4384,7 @@ export interface Entity {
     authorityLink?: string[],
     cites?: CreativeWork[],
     conditionsOfAccess?: string[],
+    corefDenotation?: string[],
     counterpartOf?: Entity[],
     depictedIn?: MediaObject[],
     description?: string[],
@@ -4687,9 +4649,6 @@ export interface ForgePlatform extends Entity {
 }
 
 export interface FormFunction {
-}
-
-export interface FormalLanguage extends Language {
 }
 
 export interface FosterParentChild extends ParentChildRelationship {
@@ -5120,15 +5079,12 @@ export interface LandTenureType {
 }
 
 export interface Language extends InformationObject {
-    bcp47Tag?: string[],
     designGoal?: string[],
     hasNotationSystem?: NotationSystem[],
     languageCode?: string[],
     languageModality?: LanguageModality[],
     languageOrigin?: LanguageOrigin[],
     languageStatus?: LanguageStatus[],
-    languageTag?: string,
-    usesWritingSystem?: WritingSystem[],
 }
 
 export interface LanguageChangeEvent extends Activity {
@@ -6140,9 +6096,6 @@ export interface Profile extends InformationObject {
 export interface ProfilePage extends WebPage {
 }
 
-export interface ProgrammingLanguage extends FormalLanguage {
-}
-
 export interface Prohibition extends Rule {
 }
 
@@ -6456,11 +6409,8 @@ export interface ScoreSemantics {
 export interface ScriptLanguageAttribution extends Observation {
     attributedLanguage?: Language[],
     attributedNotation?: InformationObject[],
-    attributedScript?: WritingSystem[],
+    attributedScript?: string[],
     attributionTarget?: Inscription,
-}
-
-export interface ScriptRole {
 }
 
 export interface SegmentKind {
@@ -6826,9 +6776,6 @@ export interface TemporalPrecision {
 export interface TermStability {
 }
 
-export interface TextDirection {
-}
-
 export interface TextExtraction extends Document {
 }
 
@@ -7067,21 +7014,4 @@ export interface Work extends CreativeWork {
     quotedText?: string[],
     quotesContent?: Entity[],
     realizedThrough?: Expression[],
-}
-
-export interface WritingSystem extends InformationObject {
-    scriptCode?: string[],
-    textDirection?: TextDirection[],
-    writingSystemAsNotation?: NotationSystem[],
-    writingSystemType?: WritingSystemType[],
-}
-
-export interface WritingSystemType {
-}
-
-export interface WritingSystemUsage {
-    scriptRole?: ScriptRole,
-    scriptUsageInterval?: TimeInterval[],
-    usageLanguage?: Language,
-    usageWritingSystem?: WritingSystem,
 }

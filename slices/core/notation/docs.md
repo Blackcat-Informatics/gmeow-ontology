@@ -12,19 +12,31 @@ by default; it becomes one only through a **standpointed claim** (Principle 9).
 
 A **`gmeow:SymbolicSystem`** is a first-class `InformationObject` — a system of
 symbols, signs, or conventions used for communication, representation, or
-expression. It sits alongside `Language` and `WritingSystem` as a sibling under
-`InformationObject`, not as a subclass of either.
+expression.
 
 A **`gmeow:NotationSystem`** is a structured symbolic system with defined rules
 for representing information in a specific domain. It is a SubKind of
 `SymbolicSystem`.
 
-**Why the sibling approach?** Making `WritingSystem` a subclass of
-`NotationSystem` would force all writing systems to carry notation-specific
-properties (domain, encoding scheme) and all notation systems to carry
-writing-system properties (ISO 15924 code, text direction). The sibling
-approach keeps each class minimal and lets explicit bridging properties
-(`hasNotationSystem`, `writingSystemAsNotation`) do the linking.
+**The lang: graft (Principle 19).** Both classes are grafted onto the language
+grounding layer: `gmeow:SymbolicSystem` and `gmeow:NotationSystem` are
+`rdfs:subClassOf lang:SignSystem`. A symbolic system therefore *is* a sign
+system, distinguished not by a local class ladder but by a **`lang:SignSystemKind`**
+through `lang:signSystemKind` (a notation system carries `lang:notationalKind`)
+and a **`lang:Modality`** through `lang:modality` (written, spoken, signed,
+tactile). The former language-vs-notation boundary survives as a kind-individual
+distinction — `lang:notationalKind` versus `lang:naturalLanguageKind` /
+`lang:formalLanguageKind` — rather than a subclass overlap. A `Language` is
+likewise a `lang:SignSystem` (grafted in the language slice), so a language and
+a notation are co-equal sign systems separated by their `lang:signSystemKind`,
+and the domain axis of a symbol system (musical, mathematical, cryptographic)
+rides the orthogonal `gmeow:symbolicSystemKind` / `gmeow:notationSystemKind`.
+
+The explicit bridging properties (`hasNotationSystem`, `writingSystemAsNotation`)
+still do the cross-family linking that the grounding kinds keep out of the class
+hierarchy: a script is a `lang:Script`, and `writingSystemAsNotation` bridges it
+to the `NotationSystem` facet when a script doubles as a notation (Braille,
+featural scripts).
 
 ## The boundary: language vs notation vs symbolic system
 
@@ -46,12 +58,12 @@ approach keeps each class minimal and lets explicit bridging properties
 | **Cipher systems** | `NotationSystem` (cryptographic) | Transform scheme; not a language unless standpointed |
 | **Emoji conventions** | `SymbolicSystem` (communication) | Convention-based symbols without generative syntax |
 | **Mathematical notation** | `NotationSystem` (mathematical) | Domain-specific representational rules |
-| **TeX / LaTeX** | `FormalLanguage` | Grammar-defined with parseable syntax and semantics |
-| **MathML** | `FormalLanguage` | XML grammar with defined semantics |
-| **MusicXML / MEI** | `FormalLanguage` **or** `NotationSystem` | Grammar-defined encoding; also musical notation — **co-modelable via standpoint** |
-| **MIDI** | `FormalLanguage` **or** `NotationSystem` | Protocol with defined structure; also encoding — **co-modelable via standpoint** |
-| **ABC notation** | `FormalLanguage` **or** `NotationSystem` | Text-based music notation with grammar — **co-modelable via standpoint** |
-| **LilyPond** | `FormalLanguage` **or** `NotationSystem` | Programming language for music engraving; also music notation — **co-modelable via standpoint** |
+| **TeX / LaTeX** | `Language` (`lang:formalLanguageKind`) | Grammar-defined with parseable syntax and semantics |
+| **MathML** | `Language` (`lang:formalLanguageKind`) | XML grammar with defined semantics |
+| **MusicXML / MEI** | `Language` (`lang:formalLanguageKind`) **or** `NotationSystem` | Grammar-defined encoding; also musical notation — **co-modelable via standpoint** |
+| **MIDI** | `Language` (`lang:formalLanguageKind`) **or** `NotationSystem` | Protocol with defined structure; also encoding — **co-modelable via standpoint** |
+| **ABC notation** | `Language` (`lang:formalLanguageKind`) **or** `NotationSystem` | Text-based music notation with grammar — **co-modelable via standpoint** |
+| **LilyPond** | `Language` (`lang:programmingLanguageKind`) **or** `NotationSystem` | Programming language for music engraving; also music notation — **co-modelable via standpoint** |
 
 ### Boundary rules
 
@@ -68,7 +80,8 @@ approach keeps each class minimal and lets explicit bridging properties
    natural languages.** They lack independent syntax and semantics.
 
 4. **TeX, MathML, OpenMath, MusicXML, MEI, MIDI, LilyPond, and ABC notation may
-   be `FormalLanguage` instances when treated as grammar-defined encodings.**
+   be `Language` instances of `lang:formalLanguageKind` (or, for LilyPond,
+   `lang:programmingLanguageKind`) when treated as grammar-defined encodings.**
    They have parseable syntax and defined semantics. They may ALSO be modeled as
    `NotationSystem` via co-modeling — a single entity can carry both
    classifications from different standpoints (Principle 9).
@@ -115,9 +128,10 @@ ex:beethoven9UsesStaff a gmeow:NotationSystemUsage ;
 
 ## Co-modeling: when a system is both language and notation
 
-A system may be classified as both a `FormalLanguage` and a `NotationSystem`
-from different standpoints. GMEOW handles this through co-equal,
-standpoint-indexed claims (Principle 9), not subclass overlap:
+A system may be classified as both a formal-language sign system
+(`lang:formalLanguageKind`) and a `NotationSystem` from different standpoints.
+GMEOW handles this through co-equal, standpoint-indexed claims (Principle 9),
+not subclass overlap:
 
 ```turtle
 ex:musicxml a gmeow:InformationObject .
@@ -173,22 +187,54 @@ The core framework intentionally stays domain-agnostic. The music extension
 provides the concrete `MusicalParameter` vocabulary, music-domain
 `NotationSystem` individuals, and per-system projection profiles.
 
+### The rendering graft: a projection profile *is* a rendering convention
+
+Under the lang: graft (Principle 19), a concrete render of canonical content
+through a notation is a **`lang:Rendering`** — the shared reified crossing
+theory, reused rather than forked (mirroring `math:ExpressionRendering`). A
+projection profile is the **rendering convention**: a rendering points at it
+through `lang:renderingConvention`, fixes `lang:renderingKind lang:renderingNotation`,
+names the produced surface through `lang:renderingForm`, and carries a
+`logic:PreservationKind` judgment through `lang:renderingPreservation`. The
+profile's `declaredLoss` ledger is the fine-grained, per-parameter account
+underneath that single coarse preservation grade. No notation-local preservation
+enum or display-kind ladder is minted.
+
+The rendering-family terms are dispositioned against `lang:Rendering` /
+`lang:renderingPreservation` as follows — each is **retained** because none is
+*strictly* superseded, and each retention is recorded as a negative-supersession
+cell in `mappings/equivalences.ttl`:
+
+| Term | Disposition | Why not superseded |
+|---|---|---|
+| `NotationProjectionProfile` | **Retained** | The parameter/loss ledger and FnO binding a `lang:Rendering` has no term for; it *is* the rendering convention a rendering references. |
+| `ProjectionFunction` (`⊑ fno:Function`) | **Retained** | FnO executable-transform semantics; `lang:Rendering` is a declarative crossing, not a transform. |
+| `ProjectionLoss` | **Retained** | Fine-grained per-parameter loss; finer than the coarse `logic:PreservationKind` a `lang:renderingPreservation` records. |
+| `NotationSystemUsage` | **Retained** | The observation-spine usage relator (who/when/role) — orthogonal to a content→form crossing. |
+| `NotationUsageRole` | **Retained** | Usage-function value vocabulary — a different axis from `lang:RenderingKind`. |
+| `SymbolicSystemKind` | **Retained** | The domain axis of a symbol system — orthogonal to the `lang:SignSystemKind` axis. |
+
+See `examples/notation-systems.ttl` for a worked profile realized as a
+`lang:Rendering` with a `logic:SoundUnderApproximation` preservation judgment.
+
 ## Terms
 
 ### gmeow:SymbolicSystem · gmeow:NotationSystem · gmeow:SymbolicSystemKind · gmeow:symbolicSystemKind · gmeow:notationSystemKind
 
-A `SymbolicSystem` is a first-class `InformationObject` — a convention-based
-system of symbols — sitting alongside `Language` and `WritingSystem` as a
-sibling, never a subclass. A `NotationSystem` is a structured `SubKind` of it
-with defined representation rules in a specific domain. `SymbolicSystemKind`
-values classify each via `symbolicSystemKind` / `notationSystemKind`
-(transcription, encoding, musical, mathematical, …).
+A `SymbolicSystem` is a first-class `InformationObject` and a `lang:SignSystem`
+(the lang: graft) — a convention-based system of symbols, a sign system
+distinguished by its `lang:signSystemKind` and `lang:modality`. A
+`NotationSystem` is a structured `SubKind` of it (of `lang:notationalKind`) with
+defined representation rules in a specific domain. `SymbolicSystemKind` values
+classify the orthogonal domain axis via `symbolicSystemKind` /
+`notationSystemKind` (transcription, encoding, musical, mathematical, …).
 
 ### gmeow:hasNotationSystem · gmeow:notationSystemFor · gmeow:writingSystemAsNotation
 
-The explicit bridging properties that do the linking the sibling design keeps
-out of the class hierarchy: relating an entity to a notation system it uses, its
-inverse, and the bridge that views a `WritingSystem` as a `NotationSystem`.
+The explicit bridging properties that do the cross-family linking the grounding
+kinds keep out of the class hierarchy: relating an entity to a notation system it
+uses, its inverse, and the bridge that views a `lang:Script` as a
+`NotationSystem`.
 
 ### gmeow:NotationSystemUsage · gmeow:NotationUsageRole · gmeow:notationUsageTarget · gmeow:notationUsageNotationSystem · gmeow:notationUsageRole · gmeow:notationUsageInterval
 

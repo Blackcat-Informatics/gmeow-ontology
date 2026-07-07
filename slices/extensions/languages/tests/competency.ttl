@@ -34,27 +34,6 @@ ex:loProgramming a gmeow:ExpectedRow ;
 ex:loConstructedEngineered a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "origin" ; gmeow:cellValueIri gmeow:originConstructedEngineered ] .
 
-# ── Writing-system script roles ───────────────────────────────────────────────
-ex:cqWritingSystems a gmeow:CompetencyQuestion ;
-    gmeow:cqQueryFile "queries/competency/writing-systems.rq" ;
-    gmeow:cqRationale "GMEOW must model script roles in mixed writing systems: logographic content, syllabic grammar, loanword, and transliteration." ;
-    gmeow:cqResultShape ex:cqWritingSystemsShape ;
-    gmeow:cqExpectRow ex:wsLogographicContent, ex:wsSyllabicGrammar, ex:wsLoanword, ex:wsTransliteration .
-
-ex:cqWritingSystemsShape a logic:ResultShape ;
-    logic:declaresColumn
-        [ logic:columnVariable "role" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
-    logic:shapeCardinality logic:RowsContains .
-
-ex:wsLogographicContent a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "role" ; gmeow:cellValueIri gmeow:scriptRoleLogographicContent ] .
-ex:wsSyllabicGrammar a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "role" ; gmeow:cellValueIri gmeow:scriptRoleSyllabicGrammar ] .
-ex:wsLoanword a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "role" ; gmeow:cellValueIri gmeow:scriptRoleLoanword ] .
-ex:wsTransliteration a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "role" ; gmeow:cellValueIri gmeow:scriptRoleTransliteration ] .
-
 # ── Proficiency levels (CEFR + heritage/native) ───────────────────────────────
 ex:cqProficiencyLevels a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "queries/competency/proficiency-levels.rq" ;

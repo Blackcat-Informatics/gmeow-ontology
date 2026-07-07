@@ -1,54 +1,52 @@
 # Synthetic coverage fixture for the languages building block. Worked examples:
-# (a) Japanese — ONE language co-mingling FOUR writing systems by role (kanji
-#     logographic content, hiragana syllabic grammar, katakana loanwords, rōmaji
-#     transliteration); (b) Ithkuil — engineered conlang, NO code, human creator,
-#     designGoal, two versions, a bespoke NON-LINEAR script; (c) an AI-generated
-#     language created by a SoftwareAgent; (d) a sign language (signed, no script);
+# (a) Japanese — ONE language co-mingling FOUR scripts as four co-equal
+#     lang:Orthography bindings (Han, Hiragana, Katakana, rōmaji/Latin);
+#     (b) Ithkuil — engineered conlang, NO code, human creator, designGoal, two
+#     versions, a bespoke NON-LINEAR lang:Script; (c) an AI-generated language
+#     created by a SoftwareAgent; (d) a sign language (signed, no script);
 #     (e) Python bridging software.ttl; (f) German endonym/exonym + a person with
 #     leveled per-skill proficiency. Plus the names↔languages bridge: a romanized
 #     name naming its transliteration scheme (Hepburn). No RDF-star.
+#
+# Scripts are grounded lang:Script (skos:notation = ISO 15924); the language↔script
+# binding is a lang:Orthography (lang:orthographyFor + lang:usesScript). The former
+# gmeow:WritingSystemUsage role/period facets are a declared loss (see the language
+# slice loss ledger). Internal gmeow:languageTag is dropped (IRI identity supersedes).
 
 @prefix ex:     <https://example.org/lang/> .
 @prefix gmeow:  <https://blackcatinformatics.ca/gmeow/> .
+@prefix lang:   <https://blackcatinformatics.ca/lang/> .
 @prefix skos:   <http://www.w3.org/2004/02/skos/core#> .
 @prefix wd:     <http://www.wikidata.org/entity/> .
 @prefix xsd:    <http://www.w3.org/2001/XMLSchema#> .
 
-# --- (a) Japanese: four co-equal, co-mingled writing systems ---------------- #
+# --- (a) Japanese: four co-equal, co-mingled scripts as orthographies -------- #
 
 ex:japanese a gmeow:Language ;
-    gmeow:languageTag "x-gmeow-japanese" ;
     gmeow:languageOrigin gmeow:originNatural ;
     gmeow:languageModality gmeow:modalitySpoken , gmeow:modalityWritten ;
     gmeow:languageStatus gmeow:statusLiving ;
-    gmeow:bcp47Tag "ja"^^xsd:language ;
     gmeow:languageCode "ja" ;
     skos:exactMatch wd:Q5287 ;
-    gmeow:usesWritingSystem ex:wsHan , ex:wsHiragana , ex:wsKatakana , ex:wsRomaji ;
     gmeow:hasAppellation ex:jaEndonym , ex:jaExonym .
 
-ex:wsHan a gmeow:WritingSystem ;
-    gmeow:scriptCode "Hani" ; gmeow:writingSystemType gmeow:wsTypeLogographic ;
-    gmeow:textDirection gmeow:directionLtr , gmeow:directionVerticalRtl .
-ex:wsHiragana a gmeow:WritingSystem ;
-    gmeow:scriptCode "Hira" ; gmeow:writingSystemType gmeow:wsTypeSyllabary .
-ex:wsKatakana a gmeow:WritingSystem ;
-    gmeow:scriptCode "Kana" ; gmeow:writingSystemType gmeow:wsTypeSyllabary .
-ex:wsRomaji a gmeow:WritingSystem ;
-    gmeow:scriptCode "Latn" ; gmeow:writingSystemType gmeow:wsTypeAlphabet .
+ex:wsHan a lang:Script ;
+    skos:notation "Hani"^^xsd:string .
+ex:wsHiragana a lang:Script ;
+    skos:notation "Hira"^^xsd:string .
+ex:wsKatakana a lang:Script ;
+    skos:notation "Kana"^^xsd:string .
+ex:wsRomaji a lang:Script ;
+    skos:notation "Latn"^^xsd:string .
 
-ex:wsuJaHan a gmeow:WritingSystemUsage ;
-    gmeow:usageLanguage ex:japanese ; gmeow:usageWritingSystem ex:wsHan ;
-    gmeow:scriptRole gmeow:scriptRoleLogographicContent .
-ex:wsuJaHira a gmeow:WritingSystemUsage ;
-    gmeow:usageLanguage ex:japanese ; gmeow:usageWritingSystem ex:wsHiragana ;
-    gmeow:scriptRole gmeow:scriptRoleSyllabicGrammar .
-ex:wsuJaKana a gmeow:WritingSystemUsage ;
-    gmeow:usageLanguage ex:japanese ; gmeow:usageWritingSystem ex:wsKatakana ;
-    gmeow:scriptRole gmeow:scriptRoleLoanword .
-ex:wsuJaRomaji a gmeow:WritingSystemUsage ;
-    gmeow:usageLanguage ex:japanese ; gmeow:usageWritingSystem ex:wsRomaji ;
-    gmeow:scriptRole gmeow:scriptRoleTransliteration .
+ex:orthJaHan a lang:Orthography ;
+    lang:orthographyFor ex:japanese ; lang:usesScript ex:wsHan .
+ex:orthJaHira a lang:Orthography ;
+    lang:orthographyFor ex:japanese ; lang:usesScript ex:wsHiragana .
+ex:orthJaKana a lang:Orthography ;
+    lang:orthographyFor ex:japanese ; lang:usesScript ex:wsKatakana .
+ex:orthJaRomaji a lang:Orthography ;
+    lang:orthographyFor ex:japanese ; lang:usesScript ex:wsRomaji .
 
 ex:jaEndonym a gmeow:Appellation ;
     gmeow:fullName "日本語"@x-gmeow-japanese ; gmeow:nameLanguage ex:japanese ; gmeow:nameScript "Hani" ;
@@ -72,16 +70,16 @@ ex:ithkuil a gmeow:Language ;
     gmeow:languageStatus gmeow:statusConstructedActive ;
     gmeow:designGoal "Maximal cognitive precision and semantic exactitude with minimal ambiguity." ;
     gmeow:wasAttributedTo ex:quijada ;
-    gmeow:usesWritingSystem ex:wsIthkuil ;
     gmeow:hasAppellation ex:ithkuilName .
 # NB: NO gmeow:languageCode — a code-less conlang is fully first-class.
 ex:ithkuilName a gmeow:Appellation ;
     gmeow:fullName "Ithkuil"@x-gmeow-english ; gmeow:namePurpose gmeow:namePurposeGlossonym .
 ex:quijada a gmeow:Person ; gmeow:hasName ex:quijadaName.
 ex:quijadaName a gmeow:PersonName ; gmeow:fullName "John Quijada"@x-gmeow-english .
-# Bespoke, non-linear morpho-script — NO scriptCode (no ISO 15924 registration).
-ex:wsIthkuil a gmeow:WritingSystem ;
-    gmeow:writingSystemType gmeow:wsTypeNonLinear ; gmeow:textDirection gmeow:directionNonLinear .
+# Bespoke, non-linear morpho-script — NO skos:notation (no ISO 15924 registration).
+ex:wsIthkuil a lang:Script .
+ex:orthIthkuil a lang:Orthography ;
+    lang:orthographyFor ex:ithkuil ; lang:usesScript ex:wsIthkuil .
 
 ex:ithkuil1993 a gmeow:LanguageVersion ;
     gmeow:versionOf ex:ithkuil ; gmeow:versionLabel "1993" ; gmeow:wasAttributedTo ex:quijada .
@@ -107,7 +105,6 @@ ex:asl a gmeow:Language ;
     gmeow:languageOrigin gmeow:originNatural ;
     gmeow:languageModality gmeow:modalitySigned ;
     gmeow:languageStatus gmeow:statusLiving ;
-    gmeow:bcp47Tag "ase"^^xsd:language ;
     gmeow:languageCode "ase" ;
     gmeow:hasAppellation ex:aslName .
 ex:aslName a gmeow:Appellation ;
@@ -115,8 +112,9 @@ ex:aslName a gmeow:Appellation ;
 
 # --- (e) Python: programming language bridging software.ttl ------------------ #
 
-ex:python a gmeow:ProgrammingLanguage ;
-    gmeow:languageTag "x-gmeow-python" ;
+ex:python a gmeow:Language ;
+    lang:signSystemKind lang:programmingLanguageKind ;
+    lang:modality lang:writtenModality ;
     gmeow:languageOrigin gmeow:originProgramming ;
     gmeow:languageModality gmeow:modalityMachine ;
     gmeow:languageCode "py" ;
@@ -130,25 +128,22 @@ ex:someProjectTree a gmeow:SourceTree ;
 # --- (f) German + English: endonym/exonym + leveled per-skill proficiency ---- #
 
 ex:german a gmeow:Language ;
-    gmeow:languageTag "x-gmeow-german" ;
     gmeow:languageOrigin gmeow:originNatural ;
     gmeow:languageModality gmeow:modalitySpoken , gmeow:modalityWritten ;
     gmeow:languageStatus gmeow:statusLiving ;
-    gmeow:bcp47Tag "de"^^xsd:language ;
     gmeow:languageCode "de" ;
-    gmeow:usesWritingSystem ex:wsLatin ;
     gmeow:hasAppellation ex:deEndonym , ex:deExonym .
-ex:wsLatin a gmeow:WritingSystem ;
-    gmeow:scriptCode "Latn" ; gmeow:writingSystemType gmeow:wsTypeAlphabet ;
-    gmeow:textDirection gmeow:directionLtr .
+ex:wsLatin a lang:Script ;
+    skos:notation "Latn"^^xsd:string .
+ex:orthDeLatin a lang:Orthography ;
+    lang:orthographyFor ex:german ; lang:usesScript ex:wsLatin .
 ex:deEndonym a gmeow:Appellation ;
     gmeow:fullName "Deutsch"@x-gmeow-german ; gmeow:nameLanguage ex:german ; gmeow:namePurpose gmeow:namePurposeEndonym .
 ex:deExonym a gmeow:Appellation ;
     gmeow:fullName "German"@x-gmeow-english ; gmeow:nameLanguage ex:english ; gmeow:namePurpose gmeow:namePurposeExonym .
 
 ex:english a gmeow:Language ;
-    gmeow:languageTag "x-gmeow-english" ;
-    gmeow:languageOrigin gmeow:originNatural ; gmeow:bcp47Tag "en"^^xsd:language ; gmeow:languageCode "en" ;
+    gmeow:languageOrigin gmeow:originNatural ; gmeow:languageCode "en" ;
     gmeow:hasAppellation ex:enName .
 ex:enName a gmeow:Appellation ;
     gmeow:fullName "English"@x-gmeow-english ; gmeow:namePurpose gmeow:namePurposeExonym .

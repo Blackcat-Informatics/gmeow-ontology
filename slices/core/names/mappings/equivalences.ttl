@@ -1,4 +1,6 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix lang: <https://blackcatinformatics.ca/lang/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
@@ -513,3 +515,12 @@ gmeow:eqDcTerms007 a gmeow:TermEquivalence ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
     gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+
+# --------------------------------------------------------------------------- #
+# lang: graft supersession ledger — the machine-checked rung carrier lives in  #
+# imports/supersession-correspondences.ttl as logic:Correspondence nodes        #
+# (logic:morphismClass + logic:mnemomorphic + logic:getLeg), run through         #
+# assert_gates in the logic-compile stage. The prose-rung gmeow:TermEquivalence  #
+# graft rows are removed: the rung is a gate-enforced correspondence law, not a  #
+# comment (Principle 17 — SSSOM is its lossy projection).                        #
+# --------------------------------------------------------------------------- #

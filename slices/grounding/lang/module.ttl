@@ -107,6 +107,13 @@ lang:formalLanguageKind
     rdfs:label "formal language"@x-gmeow-english ;
     skos:definition "The kind of sign system that is a formal language with an explicit grammar — Turtle, the GTS grammar, a programming language."@x-gmeow-english .
 
+lang:programmingLanguageKind
+    a owl:NamedIndividual , lang:SignSystemKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "programming language"@x-gmeow-english ;
+    skos:definition "The kind of sign system that is a programming language — a formal language whose grammar expresses executable computation, such as Python, Rust, or SQL-as-implemented. A refinement of lang:formalLanguageKind (through skos:broader), so the programming-language ⊑ formal-language distinction survives as a kind-individual relation rather than an OWL subclass ladder: a sign system points at this kind through lang:signSystemKind, and its formal-language membership is recovered by the broader edge."@x-gmeow-english ;
+    skos:broader lang:formalLanguageKind .
+
 lang:notationalKind
     a owl:NamedIndividual , lang:SignSystemKind ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
@@ -218,7 +225,32 @@ lang:english
     a owl:NamedIndividual , lang:SignSystem ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "English"@x-gmeow-english ;
-    skos:definition "The English natural language as a first-class sign system: a lang:SignSystem of lang:naturalLanguageKind in the written modality. Its BCP-47 tag en, ISO 639-3 code eng, Glottolog languoid, and Wikidata QID are generated identifiers recorded as alignments, never its definition."@x-gmeow-english ;
+    skos:definition "The English natural language as a first-class sign system: a lang:SignSystem of lang:naturalLanguageKind in the written modality. Its ISO 639-1 primary subtag en is carried machine-readably as a skos:notation so a lang:LanguageVariety derives its BCP-47 tag over the model; its ISO 639-3 code eng, Glottolog languoid, and Wikidata QID are generated identifiers recorded as alignments, never its definition."@x-gmeow-english ;
+    skos:notation "en"^^xsd:string ;
+    skos:exactMatch <http://lexvo.org/id/iso639-3/eng> ,
+        <http://www.wikidata.org/entity/Q1860> ;
+    lang:signSystemKind lang:naturalLanguageKind ;
+    lang:modality lang:writtenModality .
+
+lang:french
+    a owl:NamedIndividual , lang:SignSystem ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "French"@x-gmeow-english ;
+    skos:definition "The French natural language as a first-class sign system: a lang:SignSystem of lang:naturalLanguageKind in the written modality. Its ISO 639-1 primary subtag fr is carried machine-readably as a skos:notation so a lang:LanguageVariety derives its BCP-47 tag over the model; its ISO 639-3 code fra, Glottolog languoid, and Wikidata QID are generated identifiers recorded as alignments, never its definition."@x-gmeow-english ;
+    skos:notation "fr"^^xsd:string ;
+    skos:exactMatch <http://lexvo.org/id/iso639-3/fra> ,
+        <http://www.wikidata.org/entity/Q150> ;
+    lang:signSystemKind lang:naturalLanguageKind ;
+    lang:modality lang:writtenModality .
+
+lang:mandarin
+    a owl:NamedIndividual , lang:SignSystem ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "Mandarin Chinese"@x-gmeow-english ;
+    skos:definition "The Mandarin Chinese natural language as a first-class sign system: a lang:SignSystem of lang:naturalLanguageKind in the written modality. Its ISO 639-1 primary subtag zh is carried machine-readably as a skos:notation so a lang:LanguageVariety derives its BCP-47 tag over the model; its ISO 639-3 code cmn, Glottolog languoid, and Wikidata QID are generated identifiers recorded as alignments, never its definition."@x-gmeow-english ;
+    skos:notation "zh"^^xsd:string ;
+    skos:exactMatch <http://lexvo.org/id/iso639-3/cmn> ,
+        <http://www.wikidata.org/entity/Q9192> ;
     lang:signSystemKind lang:naturalLanguageKind ;
     lang:modality lang:writtenModality .
 
@@ -260,6 +292,38 @@ lang:hanScript
     skos:notation "Hani"^^xsd:string ;
     skos:definition "The Han (CJK) script as a first-class character repertoire: a lang:Script. Its ISO 15924 code Hani (carried machine-readably as a skos:notation) and Wikidata QID are alignments, never its identity."@x-gmeow-english .
 
+# --- Default orthographies of the natural-language sign systems -------------- #
+# The default writing convention of each natural-language sign system, binding it
+# to its default script. These are the sign-system-level orthographies the BCP-47
+# derivation reads to suppress the redundant script subtag (a variety whose script
+# is the parent language's default-orthography script derives the bare tag), and
+# they make the language's default script a data lookup rather than a hard-coded
+# assumption. A language written in several scripts adds further orthographies here.
+
+lang:englishOrthography
+    a owl:NamedIndividual , lang:Orthography ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "English orthography"@x-gmeow-english ;
+    skos:definition "The default writing convention binding the English sign system (lang:english) to the Latin script: a lang:Orthography that serves that sign system through lang:orthographyFor and uses lang:latinScript through lang:usesScript. The default-orthography script the BCP-47 derivation suppresses for Latin-script varieties of English."@x-gmeow-english ;
+    lang:orthographyFor lang:english ;
+    lang:usesScript lang:latinScript .
+
+lang:frenchOrthography
+    a owl:NamedIndividual , lang:Orthography ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "French orthography"@x-gmeow-english ;
+    skos:definition "The default writing convention binding the French sign system (lang:french) to the Latin script: a lang:Orthography that serves that sign system through lang:orthographyFor and uses lang:latinScript through lang:usesScript. The default-orthography script the BCP-47 derivation suppresses for Latin-script varieties of French."@x-gmeow-english ;
+    lang:orthographyFor lang:french ;
+    lang:usesScript lang:latinScript .
+
+lang:mandarinOrthography
+    a owl:NamedIndividual , lang:Orthography ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "Mandarin orthography"@x-gmeow-english ;
+    skos:definition "The default writing convention binding the Mandarin Chinese sign system (lang:mandarin) to the Han script: a lang:Orthography that serves that sign system through lang:orthographyFor and uses lang:hanScript through lang:usesScript. The default-orthography script the BCP-47 derivation suppresses for Han-script varieties of Mandarin."@x-gmeow-english ;
+    lang:orthographyFor lang:mandarin ;
+    lang:usesScript lang:hanScript .
+
 # --- The internal GMEOW English carrier variety and its orthography ---------- #
 # The @x-gmeow-english carrier under which every source prose literal is authored
 # is a language individual, never a bare tag: a lang:LanguageVariety of English
@@ -288,6 +352,50 @@ lang:gmeowEnglishOrthography
     skos:definition "The writing convention binding the internal GMEOW English carrier (lang:gmeowEnglish) to the Latin script: a lang:Orthography that serves that variety through lang:orthographyFor and uses lang:latinScript through lang:usesScript. This is the data edge that makes carrier-tag-to-script resolution a lookup rather than a Rust match."@x-gmeow-english ;
     lang:orthographyFor lang:gmeowEnglish ;
     lang:usesScript lang:latinScript .
+
+# --- The internal GMEOW French and Mandarin carrier varieties ---------------- #
+# The @x-gmeow-french and @x-gmeow-mandarin carriers under which the framework's
+# own French and Mandarin translation-target prose is authored — each a
+# lang:LanguageVariety of its language, carrying its internal tag through
+# lang:carrierTag and its script through an orthography, mirroring lang:gmeowEnglish.
+# These are the varieties whose lang:varietyOf parent supplies the ISO 639 primary
+# subtag from which the BCP-47 projection derives the bare tags fr and zh.
+
+lang:gmeowFrench
+    a owl:NamedIndividual , lang:LanguageVariety ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMEOW French carrier"@x-gmeow-english ;
+    skos:definition "The internal GMEOW French carrier: the controlled variety of French under which every @x-gmeow-french source prose literal is authored — a lang:LanguageVariety of lang:french, a language individual rather than a bare tag. Its internal language tag x-gmeow-french is carried machine-readably through lang:carrierTag; its script is bound through lang:gmeowFrenchOrthography. Resolving the carrier tag to its lang:Script is a data lookup over this model, never a hard-coded mapping."@x-gmeow-english ;
+    lang:varietyOf lang:french ;
+    lang:signSystemKind lang:naturalLanguageKind ;
+    lang:modality lang:writtenModality ;
+    lang:carrierTag "x-gmeow-french" .
+
+lang:gmeowFrenchOrthography
+    a owl:NamedIndividual , lang:Orthography ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMEOW French orthography"@x-gmeow-english ;
+    skos:definition "The writing convention binding the internal GMEOW French carrier (lang:gmeowFrench) to the Latin script: a lang:Orthography that serves that variety through lang:orthographyFor and uses lang:latinScript through lang:usesScript. This is the data edge that makes carrier-tag-to-script resolution a lookup rather than a Rust match."@x-gmeow-english ;
+    lang:orthographyFor lang:gmeowFrench ;
+    lang:usesScript lang:latinScript .
+
+lang:gmeowMandarin
+    a owl:NamedIndividual , lang:LanguageVariety ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMEOW Mandarin carrier"@x-gmeow-english ;
+    skos:definition "The internal GMEOW Mandarin carrier: the controlled variety of Mandarin Chinese under which every @x-gmeow-mandarin source prose literal is authored — a lang:LanguageVariety of lang:mandarin, a language individual rather than a bare tag. Its internal language tag x-gmeow-mandarin is carried machine-readably through lang:carrierTag; its script is bound through lang:gmeowMandarinOrthography. Resolving the carrier tag to its lang:Script is a data lookup over this model, never a hard-coded mapping."@x-gmeow-english ;
+    lang:varietyOf lang:mandarin ;
+    lang:signSystemKind lang:naturalLanguageKind ;
+    lang:modality lang:writtenModality ;
+    lang:carrierTag "x-gmeow-mandarin" .
+
+lang:gmeowMandarinOrthography
+    a owl:NamedIndividual , lang:Orthography ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMEOW Mandarin orthography"@x-gmeow-english ;
+    skos:definition "The writing convention binding the internal GMEOW Mandarin carrier (lang:gmeowMandarin) to the Han script: a lang:Orthography that serves that variety through lang:orthographyFor and uses lang:hanScript through lang:usesScript. This is the data edge that makes carrier-tag-to-script resolution a lookup rather than a Rust match."@x-gmeow-english ;
+    lang:orthographyFor lang:gmeowMandarin ;
+    lang:usesScript lang:hanScript .
 
 # =========================================================================== #
 # Form AST — the stratified form calculus

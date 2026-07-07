@@ -245,6 +245,7 @@ classes:
     class_uri: https://blackcatinformatics.ca/gmeow/Appellation
     title: Appellation
     slots:
+    - appellationDenotation
     - conferredByEvent
     - fullName
     - hasNamePart
@@ -1370,6 +1371,7 @@ classes:
     - authorityLink
     - cites
     - conditionsOfAccess
+    - corefDenotation
     - counterpartOf
     - depictedIn
     - description
@@ -1672,10 +1674,6 @@ classes:
   FormFunction:
     class_uri: https://blackcatinformatics.ca/gmeow/FormFunction
     title: Form Function
-  FormalLanguage:
-    class_uri: https://blackcatinformatics.ca/gmeow/FormalLanguage
-    title: Formal Language
-    is_a: Language
   FosterParentChild:
     class_uri: https://blackcatinformatics.ca/gmeow/FosterParentChild
     title: Foster Parent-Child
@@ -2208,15 +2206,12 @@ classes:
     title: Language
     is_a: InformationObject
     slots:
-    - bcp47Tag
     - designGoal
     - hasNotationSystem
     - languageCode
     - languageModality
     - languageOrigin
     - languageStatus
-    - languageTag
-    - usesWritingSystem
   LanguageChangeEvent:
     class_uri: https://blackcatinformatics.ca/gmeow/LanguageChangeEvent
     title: Language Change Event
@@ -3439,10 +3434,6 @@ classes:
     class_uri: https://blackcatinformatics.ca/gmeow/ProfilePage
     title: Profile Page
     is_a: WebPage
-  ProgrammingLanguage:
-    class_uri: https://blackcatinformatics.ca/gmeow/ProgrammingLanguage
-    title: Programming Language
-    is_a: FormalLanguage
   Prohibition:
     class_uri: https://blackcatinformatics.ca/gmeow/Prohibition
     title: Prohibition
@@ -3833,9 +3824,6 @@ classes:
     - attributedNotation
     - attributedScript
     - attributionTarget
-  ScriptRole:
-    class_uri: https://blackcatinformatics.ca/gmeow/ScriptRole
-    title: Script Role
   SegmentKind:
     class_uri: https://blackcatinformatics.ca/gmeow/SegmentKind
     title: Segment Kind
@@ -4283,9 +4271,6 @@ classes:
   TermStability:
     class_uri: https://blackcatinformatics.ca/gmeow/TermStability
     title: Term Stability
-  TextDirection:
-    class_uri: https://blackcatinformatics.ca/gmeow/TextDirection
-    title: Text Direction
   TextExtraction:
     class_uri: https://blackcatinformatics.ca/gmeow/TextExtraction
     title: Text Extraction
@@ -4578,26 +4563,6 @@ classes:
     - quotedText
     - quotesContent
     - realizedThrough
-  WritingSystem:
-    class_uri: https://blackcatinformatics.ca/gmeow/WritingSystem
-    title: Writing System
-    is_a: InformationObject
-    slots:
-    - scriptCode
-    - textDirection
-    - writingSystemAsNotation
-    - writingSystemType
-  WritingSystemType:
-    class_uri: https://blackcatinformatics.ca/gmeow/WritingSystemType
-    title: Writing System Type
-  WritingSystemUsage:
-    class_uri: https://blackcatinformatics.ca/gmeow/WritingSystemUsage
-    title: Writing System Usage
-    slots:
-    - scriptRole
-    - scriptUsageInterval
-    - usageLanguage
-    - usageWritingSystem
 slots:
   abstract:
     slot_uri: https://blackcatinformatics.ca/gmeow/abstract
@@ -4947,6 +4912,12 @@ slots:
     slot_uri: https://blackcatinformatics.ca/gmeow/answers
     title: answers
     range: Question
+    multivalued: true
+  appellationDenotation:
+    slot_uri: https://blackcatinformatics.ca/gmeow/appellationDenotation
+    title: appellation denotation
+    range: uriorcurie
+    domain: Appellation
     multivalued: true
   appliedRule:
     slot_uri: https://blackcatinformatics.ca/gmeow/appliedRule
@@ -5353,7 +5324,7 @@ slots:
   attributedScript:
     slot_uri: https://blackcatinformatics.ca/gmeow/attributedScript
     title: attributed script
-    range: WritingSystem
+    range: uriorcurie
     domain: ScriptLanguageAttribution
     multivalued: true
   attributingAgent:
@@ -5498,12 +5469,6 @@ slots:
     title: bcc
     range: EmailAddress
     domain: EmailMessage
-    multivalued: true
-  bcp47Tag:
-    slot_uri: https://blackcatinformatics.ca/gmeow/bcp47Tag
-    title: BCP-47 tag
-    range: string
-    domain: Language
     multivalued: true
   bearer:
     slot_uri: https://blackcatinformatics.ca/gmeow/bearer
@@ -6494,6 +6459,12 @@ slots:
     range: string
     domain: Copyright
     multivalued: false
+  corefDenotation:
+    slot_uri: https://blackcatinformatics.ca/gmeow/corefDenotation
+    title: coreference denotation
+    range: uriorcurie
+    domain: Entity
+    multivalued: true
   corpusMember:
     slot_uri: https://blackcatinformatics.ca/gmeow/corpusMember
     title: corpus member
@@ -10028,12 +9999,6 @@ slots:
     range: LanguageStatus
     domain: Language
     multivalued: true
-  languageTag:
-    slot_uri: https://blackcatinformatics.ca/gmeow/languageTag
-    title: language tag
-    range: string
-    domain: Language
-    multivalued: false
   latestEnd:
     slot_uri: https://blackcatinformatics.ca/gmeow/latestEnd
     title: latest end
@@ -10788,7 +10753,7 @@ slots:
   nameScript:
     slot_uri: https://blackcatinformatics.ca/gmeow/nameScript
     title: name script
-    range: string
+    range: uriorcurie
     domain: Appellation
     multivalued: true
   namingNote:
@@ -12752,24 +12717,6 @@ slots:
     range: ScoreSemantics
     domain: AffectClassifierOutput
     multivalued: false
-  scriptCode:
-    slot_uri: https://blackcatinformatics.ca/gmeow/scriptCode
-    title: script code
-    range: string
-    domain: WritingSystem
-    multivalued: true
-  scriptRole:
-    slot_uri: https://blackcatinformatics.ca/gmeow/scriptRole
-    title: script role
-    range: ScriptRole
-    domain: WritingSystemUsage
-    multivalued: false
-  scriptUsageInterval:
-    slot_uri: https://blackcatinformatics.ca/gmeow/scriptUsageInterval
-    title: script usage interval
-    range: TimeInterval
-    domain: WritingSystemUsage
-    multivalued: true
   sealedRecipient:
     slot_uri: https://blackcatinformatics.ca/gmeow/sealedRecipient
     title: sealed recipient
@@ -13812,12 +13759,6 @@ slots:
     slot_uri: https://blackcatinformatics.ca/gmeow/termStability
     title: term stability
     range: string
-  textDirection:
-    slot_uri: https://blackcatinformatics.ca/gmeow/textDirection
-    title: text direction
-    range: TextDirection
-    domain: WritingSystem
-    multivalued: true
   threadSubject:
     slot_uri: https://blackcatinformatics.ca/gmeow/threadSubject
     title: thread subject
@@ -14243,12 +14184,6 @@ slots:
     range: TimeInterval
     domain: NameUsage
     multivalued: true
-  usageLanguage:
-    slot_uri: https://blackcatinformatics.ca/gmeow/usageLanguage
-    title: usage language
-    range: Language
-    domain: WritingSystemUsage
-    multivalued: false
   usageNamed:
     slot_uri: https://blackcatinformatics.ca/gmeow/usageNamed
     title: usage named
@@ -14272,12 +14207,6 @@ slots:
     title: usage relationship scope
     range: InterpersonalRelationship
     domain: NameUsage
-    multivalued: false
-  usageWritingSystem:
-    slot_uri: https://blackcatinformatics.ca/gmeow/usageWritingSystem
-    title: usage writing system
-    range: WritingSystem
-    domain: WritingSystemUsage
     multivalued: false
   useForConsumer:
     slot_uri: https://blackcatinformatics.ca/gmeow/useForConsumer
@@ -14337,12 +14266,6 @@ slots:
     title: uses transform codec
     range: TransformCodec
     domain: GTSSegment
-    multivalued: true
-  usesWritingSystem:
-    slot_uri: https://blackcatinformatics.ca/gmeow/usesWritingSystem
-    title: uses writing system
-    range: WritingSystem
-    domain: Language
     multivalued: true
   utilizationOf:
     slot_uri: https://blackcatinformatics.ca/gmeow/utilizationOf
@@ -14601,13 +14524,6 @@ slots:
     slot_uri: https://blackcatinformatics.ca/gmeow/writingSystemAsNotation
     title: writing system as notation
     range: NotationSystem
-    domain: WritingSystem
-    multivalued: true
-  writingSystemType:
-    slot_uri: https://blackcatinformatics.ca/gmeow/writingSystemType
-    title: writing system type
-    range: WritingSystemType
-    domain: WritingSystem
     multivalued: true
   writtenInLanguage:
     slot_uri: https://blackcatinformatics.ca/gmeow/writtenInLanguage
@@ -18066,18 +17982,6 @@ enums:
       changeStandardization:
         meaning: https://blackcatinformatics.ca/gmeow/changeStandardization
         title: standardization
-  LanguageEnum:
-    enum_uri: https://blackcatinformatics.ca/gmeow/Language
-    permissible_values:
-      langEnglish:
-        meaning: https://blackcatinformatics.ca/gmeow/langEnglish
-        title: English
-      langFrench:
-        meaning: https://blackcatinformatics.ca/gmeow/langFrench
-        title: French
-      langMandarin:
-        meaning: https://blackcatinformatics.ca/gmeow/langMandarin
-        title: Mandarin Chinese
   LanguageModalityEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/LanguageModality
     permissible_values:
@@ -21519,33 +21423,6 @@ enums:
       scoreSoftmax:
         meaning: https://blackcatinformatics.ca/gmeow/scoreSoftmax
         title: softmax probability
-  ScriptRoleEnum:
-    enum_uri: https://blackcatinformatics.ca/gmeow/ScriptRole
-    permissible_values:
-      scriptRoleDecorative:
-        meaning: https://blackcatinformatics.ca/gmeow/scriptRoleDecorative
-        title: decorative
-      scriptRoleHistorical:
-        meaning: https://blackcatinformatics.ca/gmeow/scriptRoleHistorical
-        title: historical / superseded
-      scriptRoleLiturgical:
-        meaning: https://blackcatinformatics.ca/gmeow/scriptRoleLiturgical
-        title: liturgical
-      scriptRoleLoanword:
-        meaning: https://blackcatinformatics.ca/gmeow/scriptRoleLoanword
-        title: loanword / foreign term
-      scriptRoleLogographicContent:
-        meaning: https://blackcatinformatics.ca/gmeow/scriptRoleLogographicContent
-        title: logographic content
-      scriptRolePrimary:
-        meaning: https://blackcatinformatics.ca/gmeow/scriptRolePrimary
-        title: primary
-      scriptRoleSyllabicGrammar:
-        meaning: https://blackcatinformatics.ca/gmeow/scriptRoleSyllabicGrammar
-        title: syllabic grammar / inflection
-      scriptRoleTransliteration:
-        meaning: https://blackcatinformatics.ca/gmeow/scriptRoleTransliteration
-        title: transliteration / romanization
   SegmentKindEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/SegmentKind
     permissible_values:
@@ -22134,30 +22011,6 @@ enums:
       stabilityStable:
         meaning: https://blackcatinformatics.ca/gmeow/stabilityStable
         title: stable
-  TextDirectionEnum:
-    enum_uri: https://blackcatinformatics.ca/gmeow/TextDirection
-    permissible_values:
-      directionBoustrophedon:
-        meaning: https://blackcatinformatics.ca/gmeow/directionBoustrophedon
-        title: boustrophedon
-      directionContextual:
-        meaning: https://blackcatinformatics.ca/gmeow/directionContextual
-        title: contextual / bidirectional
-      directionLtr:
-        meaning: https://blackcatinformatics.ca/gmeow/directionLtr
-        title: left-to-right
-      directionNonLinear:
-        meaning: https://blackcatinformatics.ca/gmeow/directionNonLinear
-        title: non-linear
-      directionRtl:
-        meaning: https://blackcatinformatics.ca/gmeow/directionRtl
-        title: right-to-left
-      directionVerticalLtr:
-        meaning: https://blackcatinformatics.ca/gmeow/directionVerticalLtr
-        title: vertical, columns left-to-right
-      directionVerticalRtl:
-        meaning: https://blackcatinformatics.ca/gmeow/directionVerticalRtl
-        title: vertical, columns right-to-left
   TimbreDescriptorEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/TimbreDescriptor
     permissible_values:
@@ -22644,36 +22497,3 @@ enums:
       walletSchemeXMR:
         meaning: https://blackcatinformatics.ca/gmeow/walletSchemeXMR
         title: Monero
-  WritingSystemTypeEnum:
-    enum_uri: https://blackcatinformatics.ca/gmeow/WritingSystemType
-    permissible_values:
-      wsTypeAbjad:
-        meaning: https://blackcatinformatics.ca/gmeow/wsTypeAbjad
-        title: abjad
-      wsTypeAbugida:
-        meaning: https://blackcatinformatics.ca/gmeow/wsTypeAbugida
-        title: abugida
-      wsTypeAlphabet:
-        meaning: https://blackcatinformatics.ca/gmeow/wsTypeAlphabet
-        title: alphabet
-      wsTypeFeatural:
-        meaning: https://blackcatinformatics.ca/gmeow/wsTypeFeatural
-        title: featural
-      wsTypeIdeographic:
-        meaning: https://blackcatinformatics.ca/gmeow/wsTypeIdeographic
-        title: ideographic
-      wsTypeLogographic:
-        meaning: https://blackcatinformatics.ca/gmeow/wsTypeLogographic
-        title: logographic
-      wsTypeMixed:
-        meaning: https://blackcatinformatics.ca/gmeow/wsTypeMixed
-        title: mixed
-      wsTypeNonLinear:
-        meaning: https://blackcatinformatics.ca/gmeow/wsTypeNonLinear
-        title: non-linear (e.g. Ithkuil)
-      wsTypePictographic:
-        meaning: https://blackcatinformatics.ca/gmeow/wsTypePictographic
-        title: pictographic
-      wsTypeSyllabary:
-        meaning: https://blackcatinformatics.ca/gmeow/wsTypeSyllabary
-        title: syllabary

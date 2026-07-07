@@ -1,4 +1,5 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix lang: <https://blackcatinformatics.ca/lang/> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix ontolex: <http://www.w3.org/ns/lemon/ontolex#> .
@@ -248,6 +249,19 @@ gmeow:Register
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:howToUse "Mint each register as an individual under gmeow:Register (or gmeow:NameRegister for name address), give it rdfs:label and skos:definition, and reference it from a usage; never declare one register primary."@x-gmeow-english ;
     gmeow:useWhen "Use as the open umbrella value vocabulary for social/expressive register when a register spans naming AND persona expression — extend it (or its gmeow:NameRegister specialization) with a new individual when a formality or audience-posture is not yet seeded."@x-gmeow-english .
+
+gmeow:appellationDenotation
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Appellation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
+    rdfs:label "appellation denotation"@x-gmeow-english ;
+    rdfs:range lang:Denotation ;
+    skos:definition "Relates an appellation to the reified lang:Denotation record in which the appellation's form denotes its bearer (Principle 19, the naming→referent bridge grounded in the lang: layer). The naming relation is not merely a bearing: a name's form MEANS the entity it names, and that meaning is the reference corner of the Frege triangle — a lang:Denotation whose lang:denotedForm is the appellation's (non-surface) lang:Form, whose lang:denotationKind is lang:denotesEntity, whose lang:denotationTarget is the named gmeow:Entity, and whose lang:denotationContext scopes the reading. Reified precisely so disagreement, revision, and ambiguity over who a name refers to are representable rather than collapsed into a bare edge; non-functional, since one appellation may carry several context-scoped denotations. The bearing itself (entity → name-object) stays with gmeow:hasAppellation / gmeow:hasName; this property adds the meaning reading on top and never replaces the bearer relation."@x-gmeow-english ;
+    skos:example "ex:istanbulName gmeow:appellationDenotation ex:istanbulDenotation ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it as a bearing property (that is gmeow:hasAppellation / gmeow:hasName — an entity bears a name-object; this names the meaning record) and avoid attaching a lang:Denotation to a lang:SurfaceForm — meaning attaches above the byte level, to the appellation's analyzed lang:Form; do not make it functional, since context-scoped denotations coexist."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Mint a lang:Denotation naming the appellation's lang:Form (lang:denotedForm), lang:denotesEntity (lang:denotationKind), the named gmeow:Entity (lang:denotationTarget), and a lang:denotationContext, then point gmeow:appellationDenotation at it from the appellation; two appellations are co-referential exactly when their denotations share a lang:denotationTarget."@x-gmeow-english ;
+    gmeow:useWhen "Use to record that an appellation's form denotes its bearer as a first-class, reified lang:Denotation — when reference must carry its own context, ambiguity, evidence, or standpoint, or when co-reference is established by a shared lang:denotationTarget rather than a bare same-name heuristic."@x-gmeow-english .
 
 gmeow:claimedMediaType
     a owl:DatatypeProperty ;
@@ -676,7 +690,7 @@ gmeow:nameLanguage
     rdfs:label "name language"@x-gmeow-english ;
     rdfs:range gmeow:Language ;
     skos:closeMatch lime:language ;
-    skos:definition "The first-class gmeow:Language an appellation's surface form is in. Language is ALWAYS a first-class gmeow:Language (registry-INDEPENDENT, self-minted IRI) — never a bare BCP-47 literal; codes (e.g. \"ja\", \"zh\") live on the Language via gmeow:languageCode, so a code-less conlang or AI-minted language names co-equally. FUNCTIONAL — exactly one language per appellation: co-equal multilingual names are modelled as SEPARATE co-equal gmeow:Appellation instances (one per language), never by multi-tagging a single name (that is what keeps naming anti-colonial and symmetric). Drives locale-relative, symmetric display selection — never a ranking of one name above another. The script the form is written in is gmeow:nameScript (bridging to a first-class gmeow:WritingSystem)."@x-gmeow-english ;
+    skos:definition "The first-class gmeow:Language an appellation's surface form is in. Language is ALWAYS a first-class gmeow:Language (registry-INDEPENDENT, self-minted IRI) — never a bare BCP-47 literal; codes (e.g. \"ja\", \"zh\") live on the Language via gmeow:languageCode, so a code-less conlang or AI-minted language names co-equally. FUNCTIONAL — exactly one language per appellation: co-equal multilingual names are modelled as SEPARATE co-equal gmeow:Appellation instances (one per language), never by multi-tagging a single name (that is what keeps naming anti-colonial and symmetric). Drives locale-relative, symmetric display selection — never a ranking of one name above another. The script the form is written in is gmeow:nameScript (bridging to a first-class lang:Script)."@x-gmeow-english ;
     skos:example "ex:yamadaName gmeow:nameLanguage ex:japanese ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid a bare BCP-47 literal (language is always a first-class gmeow:Language carrying its own code) and avoid multi-tagging one appellation with several languages — it is functional, so co-equal multilingual names are separate appellations."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -1054,17 +1068,17 @@ gmeow:namePurposeSuperseded
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:nameScript
-    a owl:DatatypeProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Appellation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "name script"@x-gmeow-english ;
-    rdfs:range rdfs:Literal ;
-    skos:definition "The ISO 15924 script code of an appellation (e.g. \"Hani\", \"Arab\", \"Latn\"). Available explicitly for indexing alongside a BCP-47 script subtag on the literal."@x-gmeow-english ;
-    skos:example "ex:yamadaName gmeow:nameScript \"Jpan\" ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid using it for the language (that is gmeow:nameLanguage, a first-class gmeow:Language) and avoid an invented script code — use the ISO 15924 value."@x-gmeow-english ;
+    rdfs:range lang:Script ;
+    skos:definition "The first-class lang:Script an appellation's surface form is written in — the character-repertoire individual of the lang: grounding layer (Principle 19), never a bare ISO 15924 literal. Regrounded from the old code-string form onto lang:Script: the ISO 15924 code (\"Hani\", \"Arab\", \"Latn\", \"Jpan\") now lives on the lang:Script as its skos:notation, so a code-less or newly-minted script names co-equally and script identity is shared with the writing-system / notation graft rather than duplicated as an opaque tag. The language the form is IN is gmeow:nameLanguage (a first-class gmeow:Language); the script it is WRITTEN IN is this lang:Script."@x-gmeow-english ;
+    skos:example "ex:yamadaName gmeow:nameScript lang:hanScript ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid a bare ISO 15924 literal (script is always a first-class lang:Script carrying its code as skos:notation) and avoid using it for the language (that is gmeow:nameLanguage, a first-class gmeow:Language); do not invent a script — reference or mint the lang:Script individual."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:howToUse "Set gmeow:nameScript to the ISO 15924 code on an appellation when the script must be queried directly rather than parsed from the literal's BCP-47 subtag."@x-gmeow-english ;
-    gmeow:useWhen "Use to record the ISO 15924 script of an appellation explicitly for indexing — alongside any BCP-47 script subtag already on the gmeow:fullName literal."@x-gmeow-english .
+    gmeow:howToUse "Set gmeow:nameScript on an appellation to the lang:Script individual its surface form is written in; the ISO 15924 code is read from the script's skos:notation, and script identity is shared with the lang: writing-system graft rather than re-tagged per name."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the first-class lang:Script an appellation's surface form is written in — for indexing and script-aware display selection — grounded in the shared lang: script layer rather than a per-name ISO 15924 tag."@x-gmeow-english .
 
 gmeow:partExpansion
     a owl:DatatypeProperty ;

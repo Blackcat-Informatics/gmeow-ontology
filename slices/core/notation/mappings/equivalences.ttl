@@ -1,4 +1,6 @@
 @prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix lang:    <https://blackcatinformatics.ca/lang/> .
+@prefix logic:   <https://blackcatinformatics.ca/logic/> .
 @prefix owl:     <http://www.w3.org/2002/07/owl#> .
 @prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
@@ -56,16 +58,6 @@ gmeow:eqNotation003 a gmeow:TermEquivalence ;
     gmeow:comment "Wikidata 'notation' (Q2001982) — a system of symbols to represent facts or quantities; a close related match." ;
     gmeow:sssomFile "gmeow-notation.sssom.tsv" .
 
-# WritingSystem — already mapped in languages.ttl; bridge here for completeness
-gmeow:eqNotation004 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:WritingSystem ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q8192 ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.85 ;
-    gmeow:comment "Duplicate of languages mapping for boundary clarity: WritingSystem ↔ Wikidata 'writing system' (Q8192)." ;
-    gmeow:sssomFile "gmeow-notation.sssom.tsv" .
-
 # Mathematical notation
 gmeow:eqNotation005 a gmeow:TermEquivalence ;
     gmeow:alignSubject gmeow:symbolicKindMathematical ;
@@ -105,3 +97,12 @@ gmeow:eqNotation008 a gmeow:TermEquivalence ;
     gmeow:confidence 0.7 ;
     gmeow:comment "Cryptography (Wikidata Q8789) — broader than notation, but the closest match." ;
     gmeow:sssomFile "gmeow-notation.sssom.tsv" .
+
+# --------------------------------------------------------------------------- #
+# lang: graft supersession ledger — the machine-checked rung carrier lives in  #
+# imports/supersession-correspondences.ttl as logic:Correspondence nodes        #
+# (logic:morphismClass + logic:mnemomorphic + logic:getLeg), run through         #
+# assert_gates in the logic-compile stage. The prose-rung gmeow:TermEquivalence  #
+# graft rows are removed: the rung is a gate-enforced correspondence law, not a  #
+# comment (Principle 17 — SSSOM is its lossy projection).                        #
+# --------------------------------------------------------------------------- #

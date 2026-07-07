@@ -1,0 +1,43 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# An illustrative, well-formed scene over the expression-rendering seam: a concrete
+# mathematical expression (the application a + b) realized as a LaTeX notation form
+# under a named mathematical notation convention, with an exact-preservation judgment
+# borrowed from the logic: loss ledger. The rendering is a lang:Rendering — the math
+# slice grafts onto the general rendering theory rather than forking it — and the
+# convenience shortcut math:rendersAs points from the expression to the produced form.
+# It validates cleanly under the global gate.
+
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix lang:  <https://blackcatinformatics.ca/lang/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/math/> .
+
+# A concrete mathematical expression: the application of addition to two operands.
+ex:sumExpression a math:ApplicationExpression ;
+    rdfs:label "a + b"@x-gmeow-english ;
+    math:operator math:Addition .
+
+# The notation convention the surface is written under — a mathematical notation system.
+ex:latexNotation a lang:Grammar ;
+    rdfs:label "LaTeX mathematical notation"@x-gmeow-english .
+
+# The produced notation form.
+ex:sumLatexForm a lang:Form ;
+    rdfs:label "a + b (LaTeX surface)"@x-gmeow-english .
+
+# The reified rendering: content is the expression, kind is notation, convention names
+# the notation system, and the crossing carries a logic:PreservationKind judgment.
+ex:sumRendering a math:ExpressionRendering ;
+    rdfs:label "rendering of a + b as LaTeX"@x-gmeow-english ;
+    lang:renderedContent ex:sumExpression ;
+    lang:renderingForm ex:sumLatexForm ;
+    lang:renderingKind lang:renderingNotation ;
+    lang:renderingConvention ex:latexNotation ;
+    lang:renderingPreservation logic:ExactPreservation .
+
+# The convenience shortcut from the expression to the notation form it renders as; its
+# reified record is ex:sumRendering above.
+ex:sumExpression math:rendersAs ex:sumLatexForm .

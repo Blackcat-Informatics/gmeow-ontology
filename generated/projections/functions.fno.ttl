@@ -68,8 +68,8 @@ gmeow:fnComposeBcp47
         fno:Function ;
     rdfs:label "compose BCP-47 language tag"@en ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> ;
-    skos:definition "Composes a BCP-47 language tag from a language's gmeow:languageCode and a co-mingled writing system's gmeow:scriptCode (\"ja\" + \"Hani\" → \"ja-Hani\"). The registry tag GMEOW refuses as identity, reconstructed on demand for schema.org consumers and emitted as schema:alternateName. A language with several scripts yields several tags."@en ;
-    fno:expects ( gmeow:paramLanguageCode gmeow:paramScriptCode ) ;
+    skos:definition "Composes a BCP-47 language tag from a language's gmeow:languageCode and (optionally) the ISO 15924 script subtag of a co-mingled orthography's lang:Script — the script's skos:notation, reached through lang:orthographyFor + lang:usesScript (\"ja\" + \"Hani\" → \"ja-Hani\"). The registry tag GMEOW refuses as identity, reconstructed on demand for schema.org consumers and emitted as schema:alternateName. A language with several orthographies yields several tags."@en ;
+    fno:expects ( gmeow:paramLanguageCode ) ;
     fno:returns ( gmeow:outComposeBcp47 ) .
 
 gmeow:fnComposeMailmapMapping
@@ -1144,12 +1144,6 @@ gmeow:paramPropagationMutationDistance
     fno:required true ;
     fno:type xsd:integer .
 
-gmeow:paramScriptCode
-    a fno:Parameter ;
-    fno:predicate gmeow:scriptCode ;
-    fno:required false ;
-    fno:type rdfs:Literal .
-
 gmeow:paramSpelledName
     a fno:Parameter ;
     fno:predicate gmeow:spelledName ;
@@ -1686,30 +1680,6 @@ _:b26
 
 _:b27
     a fno:Mapping ;
-    rdfs:label "fnComposeBcp47 → schema-org (FnO mapping)"@en ;
-    fno:function gmeow:fnComposeBcp47 ;
-    fno:implementation gmeow:implSchemaOrg ;
-    fno:parameterMapping [
-        a fnom:PropertyParameterMapping ;
-        rdfs:label "paramLanguageCode ↦ ?code"@en ;
-        fnom:functionParameter gmeow:paramLanguageCode ;
-        fnom:implementationProperty "code" ;
-    ] ,
-        [
-            a fnom:PropertyParameterMapping ;
-            rdfs:label "paramScriptCode ↦ ?sc"@en ;
-            fnom:functionParameter gmeow:paramScriptCode ;
-            fnom:implementationProperty "sc" ;
-        ] ;
-    fno:returnMapping [
-        a fnom:DefaultReturnMapping ;
-        rdfs:label "fnComposeBcp47 output ↦ ?bcp47"@en ;
-        fnom:functionOutput gmeow:outComposeBcp47 ;
-        fnom:implementationProperty "bcp47" ;
-    ] .
-
-_:b28
-    a fno:Mapping ;
     rdfs:label "fnCoarsenToGranularity → geosparql (FnO mapping)"@en ;
     fno:function gmeow:fnCoarsenToGranularity ;
     fno:implementation gmeow:implGeosparql ;
@@ -1744,7 +1714,7 @@ _:b28
             fnom:implementationProperty "wktTagged" ;
         ] .
 
-_:b29
+_:b28
     a fno:Mapping ;
     rdfs:label "fnBirthEventToDate → vcard (FnO mapping)"@en ;
     fno:function gmeow:fnBirthEventToDate ;
@@ -1760,6 +1730,24 @@ _:b29
         rdfs:label "fnBirthEventToDate output ↦ ?bdate"@en ;
         fnom:functionOutput gmeow:outBirthEventToDate ;
         fnom:implementationProperty "bdate" ;
+    ] .
+
+_:b29
+    a fno:Mapping ;
+    rdfs:label "fnMembershipToJobTitle → vcard (FnO mapping)"@en ;
+    fno:function gmeow:fnMembershipToJobTitle ;
+    fno:implementation gmeow:implVcard ;
+    fno:parameterMapping [
+        a fnom:PropertyParameterMapping ;
+        rdfs:label "paramHasRole ↦ ?r"@en ;
+        fnom:functionParameter gmeow:paramHasRole ;
+        fnom:implementationProperty "r" ;
+    ] ;
+    fno:returnMapping [
+        a fnom:DefaultReturnMapping ;
+        rdfs:label "fnMembershipToJobTitle output ↦ ?title"@en ;
+        fnom:functionOutput gmeow:outMembershipToJobTitle ;
+        fnom:implementationProperty "title" ;
     ] .
 
 _:b3
@@ -1788,24 +1776,6 @@ _:b3
 
 _:b30
     a fno:Mapping ;
-    rdfs:label "fnMembershipToJobTitle → vcard (FnO mapping)"@en ;
-    fno:function gmeow:fnMembershipToJobTitle ;
-    fno:implementation gmeow:implVcard ;
-    fno:parameterMapping [
-        a fnom:PropertyParameterMapping ;
-        rdfs:label "paramHasRole ↦ ?r"@en ;
-        fnom:functionParameter gmeow:paramHasRole ;
-        fnom:implementationProperty "r" ;
-    ] ;
-    fno:returnMapping [
-        a fnom:DefaultReturnMapping ;
-        rdfs:label "fnMembershipToJobTitle output ↦ ?title"@en ;
-        fnom:functionOutput gmeow:outMembershipToJobTitle ;
-        fnom:implementationProperty "title" ;
-    ] .
-
-_:b31
-    a fno:Mapping ;
     rdfs:label "fnLatLongToGeoUri → vcard (FnO mapping)"@en ;
     fno:function gmeow:fnLatLongToGeoUri ;
     fno:implementation gmeow:implVcard ;
@@ -1828,7 +1798,7 @@ _:b31
         fnom:implementationProperty "lonDec" ;
     ] .
 
-_:b32
+_:b31
     a fno:Mapping ;
     rdfs:label "fnSelectDisplayableGender → foaf (FnO mapping)"@en ;
     fno:function gmeow:fnSelectDisplayableGender ;
@@ -1846,7 +1816,7 @@ _:b32
         fnom:implementationProperty "genderLabel" ;
     ] .
 
-_:b33
+_:b32
     a fno:Mapping ;
     rdfs:label "fnMembershipToJobTitle → schema-org (FnO mapping)"@en ;
     fno:function gmeow:fnMembershipToJobTitle ;
@@ -1864,7 +1834,7 @@ _:b33
         fnom:implementationProperty "title" ;
     ] .
 
-_:b34
+_:b33
     a fno:Mapping ;
     rdfs:label "fnHonorificToAffix → schema-org (FnO mapping)"@en ;
     fno:function gmeow:fnHonorificToAffix ;
@@ -1888,7 +1858,7 @@ _:b34
             fnom:implementationProperty "honSuffix" ;
         ] .
 
-_:b35
+_:b34
     a fno:Mapping ;
     rdfs:label "fnParticipantToAttendee → ical (FnO mapping)"@en ;
     fno:function gmeow:fnParticipantToAttendee ;
@@ -1906,7 +1876,7 @@ _:b35
         fnom:implementationProperty "att" ;
     ] .
 
-_:b36
+_:b35
     a fno:Mapping ;
     rdfs:label "fnOrganizationTypeToClass → schema-org (FnO mapping)"@en ;
     fno:function gmeow:fnOrganizationTypeToClass ;
@@ -1924,7 +1894,7 @@ _:b36
         fnom:implementationProperty "otype" ;
     ] .
 
-_:b37
+_:b36
     a fno:Mapping ;
     rdfs:label "fnTagToKeyword → schema-org (FnO mapping)"@en ;
     fno:function gmeow:fnTagToKeyword ;
@@ -1942,7 +1912,7 @@ _:b37
         fnom:implementationProperty "kw" ;
     ] .
 
-_:b38
+_:b37
     a fno:Mapping ;
     rdfs:label "fnSelectDisplayName → foaf (FnO mapping)"@en ;
     fno:function gmeow:fnSelectDisplayName ;
@@ -1960,7 +1930,7 @@ _:b38
         fnom:implementationProperty "dispName" ;
     ] .
 
-_:b39
+_:b38
     a fno:Mapping ;
     rdfs:label "fnSelectDisplayName → vcard (FnO mapping)"@en ;
     fno:function gmeow:fnSelectDisplayName ;
@@ -1978,25 +1948,7 @@ _:b39
         fnom:implementationProperty "dispName" ;
     ] .
 
-_:b4
-    a fno:Mapping ;
-    rdfs:label "fnWebPageToUrl → foaf (FnO mapping)"@en ;
-    fno:function gmeow:fnWebPageToUrl ;
-    fno:implementation gmeow:implFoaf ;
-    fno:parameterMapping [
-        a fnom:PropertyParameterMapping ;
-        rdfs:label "paramHasWebPage ↦ ?wp"@en ;
-        fnom:functionParameter gmeow:paramHasWebPage ;
-        fnom:implementationProperty "wp" ;
-    ] ;
-    fno:returnMapping [
-        a fnom:DefaultReturnMapping ;
-        rdfs:label "fnWebPageToUrl output ↦ ?wp"@en ;
-        fnom:functionOutput gmeow:outWebPageToUrl ;
-        fnom:implementationProperty "wp" ;
-    ] .
-
-_:b40
+_:b39
     a fno:Mapping ;
     rdfs:label "fnComposeAddress → vcard (FnO mapping)"@en ;
     fno:function gmeow:fnComposeAddress ;
@@ -2036,6 +1988,42 @@ _:b40
         rdfs:label "fnComposeAddress output ↦ ?label"@en ;
         fnom:functionOutput gmeow:outComposeAddress ;
         fnom:implementationProperty "label" ;
+    ] .
+
+_:b4
+    a fno:Mapping ;
+    rdfs:label "fnWebPageToUrl → foaf (FnO mapping)"@en ;
+    fno:function gmeow:fnWebPageToUrl ;
+    fno:implementation gmeow:implFoaf ;
+    fno:parameterMapping [
+        a fnom:PropertyParameterMapping ;
+        rdfs:label "paramHasWebPage ↦ ?wp"@en ;
+        fnom:functionParameter gmeow:paramHasWebPage ;
+        fnom:implementationProperty "wp" ;
+    ] ;
+    fno:returnMapping [
+        a fnom:DefaultReturnMapping ;
+        rdfs:label "fnWebPageToUrl output ↦ ?wp"@en ;
+        fnom:functionOutput gmeow:outWebPageToUrl ;
+        fnom:implementationProperty "wp" ;
+    ] .
+
+_:b40
+    a fno:Mapping ;
+    rdfs:label "fnComposeBcp47 → schema-org (FnO mapping)"@en ;
+    fno:function gmeow:fnComposeBcp47 ;
+    fno:implementation gmeow:implSchemaOrg ;
+    fno:parameterMapping [
+        a fnom:PropertyParameterMapping ;
+        rdfs:label "paramLanguageCode ↦ ?code"@en ;
+        fnom:functionParameter gmeow:paramLanguageCode ;
+        fnom:implementationProperty "code" ;
+    ] ;
+    fno:returnMapping [
+        a fnom:DefaultReturnMapping ;
+        rdfs:label "fnComposeBcp47 output ↦ ?bcp47"@en ;
+        fnom:functionOutput gmeow:outComposeBcp47 ;
+        fnom:implementationProperty "bcp47" ;
     ] .
 
 _:b41

@@ -116,9 +116,9 @@ gmeow:ConformanceOutcome a owl:Class ;
 
 gmeow:ReasoningProfile a owl:Class ;
     rdfs:label "reasoning profile"@x-gmeow-english ;
-    skos:definition "The entailment lane a competency question is evaluated under: the asserted merged graph alone (gmeow:reasoningNone, the default) or the merged graph closed under RDFS (gmeow:reasoningRdfs). The value vocabulary for gmeow:cqReasoning. Deliberately NOT full OWL 2 RL — that closure is a multi-minute chase; RDFS covers the type/subsumption entailments competency questions need at a fraction of the cost."@x-gmeow-english ;
-    gmeow:useWhen "Use as the value type for gmeow:cqReasoning to declare whether a competency question runs over the asserted graph or its RDFS closure."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid minting further profile individuals casually; the axis is the ordered pair gmeow:reasoningNone / gmeow:reasoningRdfs (a heavier OWL profile would be a deliberate future extension, not an ad-hoc value)."@x-gmeow-english ;
+    skos:definition "The entailment lane a competency question is evaluated under: the asserted merged graph alone (gmeow:reasoningNone, the default), the merged graph closed under RDFS (gmeow:reasoningRdfs), or the full native logic: reasoner (gmeow:reasoningLogic — the canonical entailment engine, over which a question whose answer is DERIVED by a first-order logic:Formula, not asserted, is checked). The value vocabulary for gmeow:cqReasoning. RDFS is deliberately the middle rung — it covers type/subsumption entailments at a fraction of the OWL-2-RL cost — while gmeow:reasoningLogic is the deliberate, opt-in heavy lane for law-entailment questions."@x-gmeow-english ;
+    gmeow:useWhen "Use as the value type for gmeow:cqReasoning to declare whether a competency question runs over the asserted graph, its RDFS closure, or the native logic: entailment closure."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid minting further profile individuals casually; the axis is the ordered triple gmeow:reasoningNone / gmeow:reasoningRdfs / gmeow:reasoningLogic (a further OWL profile would be a deliberate future extension, not an ad-hoc value)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
 
 # --------------------------------------------------------------------------- #
@@ -163,6 +163,13 @@ gmeow:reasoningNone a gmeow:ReasoningProfile ;
 gmeow:reasoningRdfs a gmeow:ReasoningProfile ;
     rdfs:label "reasoning: RDFS"@x-gmeow-english ;
     skos:definition "Evaluate the competency question over the merged ontology closed under RDFS — the rdfs2/rdfs3 (domain/range typing), rdfs9 (rdf:type propagation up the class hierarchy), and rdfs5/rdfs7/rdfs11 (subproperty/subclass transitivity and property propagation) rules. Opt into this only when the answer depends on entailment a SPARQL property path cannot express. Computed natively in oxigraph via CONSTRUCT rules iterated to fixpoint — not the OWL 2 RL chase."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
+
+gmeow:reasoningLogic a gmeow:ReasoningProfile ;
+    rdfs:label "reasoning: native logic:"@x-gmeow-english ;
+    skos:definition "Evaluate the competency question over the FULL native logic: entailment closure — the canonical reasoner (gmeow_logic::reason::reason_program) run over the LogicProgram compiled from the merged sources, including its first-order logic:Formula ASTs. Opt into this when the expected answer is a consequent a law DERIVES, not an asserted fact — in particular a consequent reached through fixed-arity n-ary predication (a reified op/act/mul tuple), which neither the asserted lane nor RDFS can produce. This is the deliberate, opt-in heavy lane (it runs the native chase); the four math: algebra laws (associativity, the determinant homomorphism, the E8 group action, and homomorphic encryption) are its charter consumers."@x-gmeow-english ;
+    gmeow:useWhen "Use when a competency question's answer is entailed by a logic:Formula (e.g. an equational law over reified n-ary operations) and is absent from the asserted graph and its RDFS closure."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for questions the asserted graph or its RDFS closure already answer — the native chase is the heaviest lane and pulls the full reasoner into the run; reach for it only for genuine law-entailment questions."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
 
 # --------------------------------------------------------------------------- #

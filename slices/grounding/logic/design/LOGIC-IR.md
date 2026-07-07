@@ -212,13 +212,22 @@ the substrate does not.
   are semiring-annotatable first-class structure ([`LOGIC-CORRESPONDENCE.md`](LOGIC-CORRESPONDENCE.md)
   § axes). The realized evaluable path is `Formula → NNF → Skolemize → Horn-clause extraction →
   logic:RelationalCore → Nemo rule text → chase`: the Horn-expressible fragment lowers exactly and runs
-  alongside the program's own rules, while everything outside it (a disjunctive head, an existential
-  needing a Skolem *function*, a sequence-marker or non-binary predication) is partial-converted —
-  carried as flagged residue, never silently evaluated as one disjunct. The residue is disclosed by a
-  **closed shape-tag set** (`logic:FormulaShape`: `Disjunctive`, `Nested`, `Quantified`,
-  `StrongNegation`, `Variadic`), so the loss ledger names *which* construct exceeded the fragment rather
-  than emitting one opaque note, and the resulting answer carries a `sound-under` preservation polarity
-  rather than a false `exact`.
+  alongside the program's own rules. Fixed-arity **n-ary predication** (`op(x,y,z)`, or a unary atom)
+  is *also* evaluable: at the lowering boundary each fixed-arity atom is **reified** into a conjunction
+  of ordinary binary atoms over a single content-addressed reifier node —
+  `logic:instanceOf(R, Rel) ∧ logic:naryArg0(R, a₀) ∧ … ∧ logic:naryArgN(R, aₙ)` (the standard
+  n-ary-relations encoding under the HiLog reflection). A body atom binds a fresh reifier variable; a
+  head atom *derives* a new tuple whose reifier node the restricted chase mints by tuple identity
+  (`mint_nary_reifier`, content-addressed on the relation + ordered arguments), so a fixed-arity n-ary
+  program lowers `exact` — no longer residue. Only what genuinely exceeds the fragment (a disjunctive
+  head, an existential needing a Skolem *function*, a **genuinely unbounded** sequence-marker atom, or
+  an n-ary head argument the body does not bind — a non-range-restricted existential) is
+  partial-converted — carried as flagged residue, never silently evaluated as one disjunct. The residue
+  is disclosed by a **closed shape-tag set** (`logic:FormulaShape`: `Disjunctive`, `Nested`,
+  `Quantified`, `StrongNegation`, `Variadic` — the last now denoting *only* an unbounded sequence
+  marker, not a fixed-arity arity mismatch), so the loss ledger names *which* construct exceeded the
+  fragment rather than emitting one opaque note, and the resulting answer carries a `sound-under`
+  preservation polarity rather than a false `exact`.
 
 **Validation, not trust.** Transforms are validated, not trusted: a round-trip/witness-preservation
 check (the analogue of compiler `debugify`) and a refinement check against the declared preservation

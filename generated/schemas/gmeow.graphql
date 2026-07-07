@@ -1416,12 +1416,6 @@ enum LanguageChangeTypeEnum {
   changeStandardization
 }
 
-enum LanguageEnum {
-  langEnglish
-  langFrench
-  langMandarin
-}
-
 enum LanguageModalityEnum {
   modalityMachine
   modalityMultimodal
@@ -2801,17 +2795,6 @@ enum ScoreSemanticsEnum {
   scoreSoftmax
 }
 
-enum ScriptRoleEnum {
-  scriptRoleDecorative
-  scriptRoleHistorical
-  scriptRoleLiturgical
-  scriptRoleLoanword
-  scriptRoleLogographicContent
-  scriptRolePrimary
-  scriptRoleSyllabicGrammar
-  scriptRoleTransliteration
-}
-
 enum SegmentKindEnum {
   segmentKindCell
   segmentKindColor
@@ -3076,16 +3059,6 @@ enum TermStabilityEnum {
   stabilityStable
 }
 
-enum TextDirectionEnum {
-  directionBoustrophedon
-  directionContextual
-  directionLtr
-  directionNonLinear
-  directionRtl
-  directionVerticalLtr
-  directionVerticalRtl
-}
-
 enum TimbreDescriptorEnum {
   timbreDescriptorBreathy
   timbreDescriptorBright
@@ -3292,19 +3265,6 @@ enum WalletSchemeEnum {
   walletSchemeETH
   walletSchemeSOL
   walletSchemeXMR
-}
-
-enum WritingSystemTypeEnum {
-  wsTypeAbjad
-  wsTypeAbugida
-  wsTypeAlphabet
-  wsTypeFeatural
-  wsTypeIdeographic
-  wsTypeLogographic
-  wsTypeMixed
-  wsTypeNonLinear
-  wsTypePictographic
-  wsTypeSyllabary
 }
 
 type AboutnessMode {
@@ -3571,6 +3531,7 @@ type AnnotationMotivation {
 type Appellation {
   id: String
   iri: String
+  appellationDenotation: [String!]
   conferredByEvent: [LifeEvent!]
   fullName: [String!]
   hasNamePart: [NamePart!]
@@ -4859,6 +4820,7 @@ type Entity {
   authorityLink: [String!]
   cites: [CreativeWork!]
   conditionsOfAccess: [String!]
+  corefDenotation: [String!]
   counterpartOf: [Entity!]
   depictedIn: [MediaObject!]
   description: [String!]
@@ -5187,11 +5149,6 @@ type ForgePlatform {
 }
 
 type FormFunction {
-  id: String
-  iri: String
-}
-
-type FormalLanguage {
   id: String
   iri: String
 }
@@ -5818,15 +5775,12 @@ type LandTenureType {
 type Language {
   id: String
   iri: String
-  bcp47Tag: [String!]
   designGoal: [String!]
   hasNotationSystem: [NotationSystem!]
   languageCode: [String!]
   languageModality: [LanguageModality!]
   languageOrigin: [LanguageOrigin!]
   languageStatus: [LanguageStatus!]
-  languageTag: String
-  usesWritingSystem: [WritingSystem!]
 }
 
 type LanguageChangeEvent {
@@ -7206,11 +7160,6 @@ type ProfilePage {
   iri: String
 }
 
-type ProgrammingLanguage {
-  id: String
-  iri: String
-}
-
 type Prohibition {
   id: String
   iri: String
@@ -7658,13 +7607,8 @@ type ScriptLanguageAttribution {
   iri: String
   attributedLanguage: [Language!]
   attributedNotation: [InformationObject!]
-  attributedScript: [WritingSystem!]
+  attributedScript: [String!]
   attributionTarget: Inscription
-}
-
-type ScriptRole {
-  id: String
-  iri: String
 }
 
 type SegmentKind {
@@ -8202,11 +8146,6 @@ type TermStability {
   iri: String
 }
 
-type TextDirection {
-  id: String
-  iri: String
-}
-
 type TextExtraction {
   id: String
   iri: String
@@ -8535,27 +8474,4 @@ type Work {
   quotedText: [String!]
   quotesContent: [Entity!]
   realizedThrough: [Expression!]
-}
-
-type WritingSystem {
-  id: String
-  iri: String
-  scriptCode: [String!]
-  textDirection: [TextDirection!]
-  writingSystemAsNotation: [NotationSystem!]
-  writingSystemType: [WritingSystemType!]
-}
-
-type WritingSystemType {
-  id: String
-  iri: String
-}
-
-type WritingSystemUsage {
-  id: String
-  iri: String
-  scriptRole: ScriptRole
-  scriptUsageInterval: [TimeInterval!]
-  usageLanguage: Language
-  usageWritingSystem: WritingSystem
 }

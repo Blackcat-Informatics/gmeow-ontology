@@ -269,6 +269,51 @@ pub(crate) fn reifier_from_strings(subject: &str, predicate: &str, obj_n3: &str)
     format!("{}{}", REIFIER_PREFIX, digest)
 }
 
+// ── mint_nary_reifier ──────────────────────────────────────────────────────────
+
+/// Prefix for n-ary reifier IRIs — the content-addressed node a fixed-arity n-ary
+/// tuple reifies onto. Distinct from [`REIFIER_PREFIX`] so an n-ary reifier IRI is
+/// never confused with a binary statement reifier.
+pub const NARY_REIFIER_PREFIX: &str = "https://blackcatinformatics.ca/gmeow/reifier/nary/";
+
+/// Compute the reifier IRI for a fixed-arity n-ary tuple `Rel(a₀,…,aₙ)`.
+///
+/// The reifier node is the single content-addressed IRI over which the flat-binary
+/// reification (`logic:instanceOf(R, Rel) ∧ logic:naryArg0(R, a₀) ∧ …`) hangs. It
+/// is keyed on the relation and the *ordered* arguments, so the same tuple — as a
+/// ground fact or as any derivation of it — yields the same `R`, giving identity
+/// and provenance parity with the binary [`mint_reifier`].
+///
+/// The recipe is deliberately additive and cannot collide with a binary
+/// [`mint_reifier`] payload: it is domain-tagged with a leading `nary\n` (a binary
+/// payload starts with `<`, never `n`) and every component is length-prefixed
+/// (netstring `len:bytes,`), so the payload is injective in the relation and the
+/// ordered argument list — no spacing or arity ambiguity can conflate two tuples.
+///
+/// ```text
+/// payload = "nary\n"
+///         + f"{len(<Rel>)}:{<Rel>},"
+///         + Σᵢ f"{len(argᵢ.n3())}:{argᵢ.n3()},"
+/// digest  = sha1(payload.encode("utf-8")).hexdigest()
+/// iri     = f"{NARY_REIFIER_PREFIX}{digest}"
+/// ```
+///
+/// # Errors
+///
+/// Returns an error string if any argument is a `TermValue::Triple` (RDF-star
+/// quoted triples are out of scope for gmeow-logic v1, per [`term_n3`]).
+pub fn mint_nary_reifier(relation: &str, args: &[TermValue]) -> Result<String, String> {
+    let mut payload = String::from("nary\n");
+    let rel = named_node_n3(relation);
+    payload.push_str(&format!("{}:{},", rel.len(), rel));
+    for a in args {
+        let a_n3 = term_n3(a)?;
+        payload.push_str(&format!("{}:{},", a_n3.len(), a_n3));
+    }
+    let digest = sha1_hex(&payload);
+    Ok(format!("{}{}", NARY_REIFIER_PREFIX, digest))
+}
+
 // ── mint_derivation_id ───────────────────────────────────────────────────────
 
 /// Compute the derivation IRI for a rule firing.
@@ -446,6 +491,114 @@ mod tests {
             "https://blackcatinformatics.ca/gmeow/reifier/784c486d79b869539405a3f90f21126477b07f26",
             "mint_reifier golden-4 mismatch"
         );
+    }
+
+    // ── mint_nary_reifier goldens ─────────────────────────────────────────────
+
+    /// Nary golden A: ternary all-IRI tuple mul(a, b, c).
+    /// payload = "nary\n" + "24:<http://example.org/mul>," + "22:<http://example.org/a>,"
+    ///                    + "22:<http://example.org/b>," + "22:<http://example.org/c>,"
+    #[test]
+    fn mint_nary_reifier_golden_a_ternary_iri() {
+        let got = mint_nary_reifier(
+            "http://example.org/mul",
+            &[
+                TermValue::iri("http://example.org/a"),
+                TermValue::iri("http://example.org/b"),
+                TermValue::iri("http://example.org/c"),
+            ],
+        )
+        .expect("IRI args must not fail");
+        assert_eq!(
+            got,
+            "https://blackcatinformatics.ca/gmeow/reifier/nary/5fae1c051af0f9e8d679a7b7b0b97fdc5261cec2",
+            "mint_nary_reifier golden-A mismatch"
+        );
+    }
+
+    /// Nary golden B: unary tuple T(x) — the arity-1 reifier recipe.
+    #[test]
+    fn mint_nary_reifier_golden_b_unary() {
+        let got = mint_nary_reifier(
+            "http://example.org/T",
+            &[TermValue::iri("http://example.org/x")],
+        )
+        .expect("unary IRI arg must not fail");
+        assert_eq!(
+            got,
+            "https://blackcatinformatics.ca/gmeow/reifier/nary/18606f3f26d824d2930b42f058b999d930a6d081",
+            "mint_nary_reifier golden-B mismatch"
+        );
+    }
+
+    /// Nary golden C: ternary tuple with a typed-literal argument (xsd:integer).
+    #[test]
+    fn mint_nary_reifier_golden_c_typed_literal() {
+        let got = mint_nary_reifier(
+            "http://example.org/mul",
+            &[
+                TermValue::iri("http://example.org/a"),
+                TermValue::iri("http://example.org/b"),
+                TermValue::typed_literal("6", "http://www.w3.org/2001/XMLSchema#integer"),
+            ],
+        )
+        .expect("typed-literal arg must not fail");
+        assert_eq!(
+            got,
+            "https://blackcatinformatics.ca/gmeow/reifier/nary/f504fca5fb1c626e2719dbbb3d79bcb851718d9f",
+            "mint_nary_reifier golden-C mismatch"
+        );
+    }
+
+    /// Argument order is significant: swapping two args yields a different reifier.
+    #[test]
+    fn mint_nary_reifier_is_order_sensitive() {
+        let abc = mint_nary_reifier(
+            "http://example.org/mul",
+            &[
+                TermValue::iri("http://example.org/a"),
+                TermValue::iri("http://example.org/b"),
+                TermValue::iri("http://example.org/c"),
+            ],
+        )
+        .unwrap();
+        let acb = mint_nary_reifier(
+            "http://example.org/mul",
+            &[
+                TermValue::iri("http://example.org/a"),
+                TermValue::iri("http://example.org/c"),
+                TermValue::iri("http://example.org/b"),
+            ],
+        )
+        .unwrap();
+        assert_ne!(
+            abc, acb,
+            "distinct argument orders must mint distinct reifiers"
+        );
+    }
+
+    /// The n-ary recipe is domain-separated from the binary [`mint_reifier`]: a
+    /// binary payload starts with `<`, the n-ary payload with `nary\n`, so their
+    /// digests live in different prefixes and can never collide.
+    #[test]
+    fn mint_nary_reifier_never_collides_with_binary() {
+        let binary = mint_reifier(
+            &TermValue::iri("http://example.org/a"),
+            "http://example.org/mul",
+            &TermValue::iri("http://example.org/b"),
+        )
+        .unwrap();
+        let nary = mint_nary_reifier(
+            "http://example.org/mul",
+            &[
+                TermValue::iri("http://example.org/a"),
+                TermValue::iri("http://example.org/b"),
+            ],
+        )
+        .unwrap();
+        assert!(binary.starts_with(REIFIER_PREFIX) && !binary.starts_with(NARY_REIFIER_PREFIX));
+        assert!(nary.starts_with(NARY_REIFIER_PREFIX));
+        assert_ne!(binary, nary);
     }
 
     // ── mint_derivation_id goldens ────────────────────────────────────────────
