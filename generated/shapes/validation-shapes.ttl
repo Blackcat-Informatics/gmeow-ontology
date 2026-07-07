@@ -1389,6 +1389,10 @@
     sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/copyrightYear> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/copyrightYear> ; sh:maxCount 1 ] .
 
+<https://blackcatinformatics.ca/gmeow/coreAxisIndex-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/coreAxisIndex> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/coreAxisIndex> ; sh:maxCount 1 ] .
+
 <https://blackcatinformatics.ca/gmeow/correspondingSource-domain-shape> a sh:NodeShape ;
     sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/correspondingSource> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/correspondingSource> ; sh:maxCount 1 ] .
@@ -2088,6 +2092,10 @@
 <https://blackcatinformatics.ca/gmeow/meterCarrier-domain-shape> a sh:NodeShape ;
     sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/meterCarrier> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/meterCarrier> ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/metricGram-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/metricGram> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/metricGram> ; sh:maxCount 1 ] .
 
 <https://blackcatinformatics.ca/gmeow/metricGroupOrder-domain-shape> a sh:NodeShape ;
     sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/metricGroupOrder> ;
@@ -3405,6 +3413,10 @@
 <https://blackcatinformatics.ca/gmeow/spanOfChunk-domain-shape> a sh:NodeShape ;
     sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/spanOfChunk> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/spanOfChunk> ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/sparseAxisCompletion-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/sparseAxisCompletion> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/sparseAxisCompletion> ; sh:maxCount 1 ] .
 
 <https://blackcatinformatics.ca/gmeow/spdxLicenseId-domain-shape> a sh:NodeShape ;
     sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/spdxLicenseId> ;

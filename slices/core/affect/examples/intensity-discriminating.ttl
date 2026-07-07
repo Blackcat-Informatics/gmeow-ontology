@@ -1,0 +1,86 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Worked example: the metric DISCRIMINATES. A second metric whose Gram matrix is
+# diag(2, 1) over (valence, arousal) weights valence twice as heavily as arousal.
+# The raw-max appraisalValue is arousal (0.6), but the G-weighted-max axis is
+# VALENCE: under G, 2·0.5² = 0.5 > 1·0.6² = 0.36. So "which axis dominates the
+# intensity?" is a metric-relative question, and the norm is √(xᵀGx), never bare L².
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/affect/tests/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+ex:analyst a gmeow:Person ; rdfs:label "the analyst"@en .
+ex:episode rdfs:label "the appraised affective episode"@en .
+
+# The declared unit scale the per-axis readings are framed against.
+ex:padUnitScale a gmeow:AffectScaleProfile ;
+    rdfs:label "PAD unit scale"@en ;
+    gmeow:profileRangeMin -1.0 ;
+    gmeow:profileRangeMax 1.0 ;
+    gmeow:profileMidpoint 0.0 ;
+    gmeow:profilePolarity gmeow:polarityBipolar .
+
+# A valence-dominant metric profile whose Gram matrix is diag(2, 1).
+ex:valenceDominantMetric a gmeow:AffectScaleProfile ;
+    rdfs:label "valence-dominant PAD metric profile"@en ;
+    gmeow:profileRangeMin -1.0 ;
+    gmeow:profileRangeMax 1.0 ;
+    gmeow:profileMidpoint 0.0 ;
+    gmeow:profilePolarity gmeow:polarityBipolar ;
+    gmeow:sparseAxisCompletion true ;
+    gmeow:metricGram ex:valenceDominantGram .
+
+ex:valenceDominantForm a math:SymmetricBilinearForm ;
+    rdfs:label "the positive-definite valence-dominant form (diagonal 2, 1)"@en ;
+    math:definiteness math:positiveDefinite .
+
+ex:valenceDominantBasis a math:Basis ;
+    rdfs:label "the (valence, arousal) coordinate basis"@en .
+
+# G = diag(2, 1): valence weight 2, arousal weight 1. Positive-definite (both
+# diagonal entries > 0, no off-diagonal). Exact rational entries, never decimals.
+ex:valenceDominantGram a math:GramMatrix ;
+    rdfs:label "the Gram matrix G = diag(2, 1)"@en ;
+    math:definiteness math:positiveDefinite ;
+    math:representsForm ex:valenceDominantForm ;
+    math:inBasis ex:valenceDominantBasis ;
+    math:hasEntry ex:vdG00 , ex:vdG11 .
+
+ex:vdG00 a math:MatrixEntry ; math:atRow 0 ; math:atColumn 0 ; math:entryValue ex:ratTwo .
+ex:vdG11 a math:MatrixEntry ; math:atRow 1 ; math:atColumn 1 ; math:entryValue ex:ratOne .
+
+ex:ratTwo a math:RationalValue ; math:numerator 2 ; math:denominator 1 .
+ex:ratOne a math:RationalValue ; math:numerator 1 ; math:denominator 1 .
+
+# The vector reading: valence 0.5, arousal 0.6 (raw-max is arousal).
+ex:vdVector a gmeow:AffectVectorObservation ;
+    gmeow:vantage ex:analyst ;
+    gmeow:observedFeature ex:episode ;
+    gmeow:vectorProfile ex:valenceDominantMetric ;
+    gmeow:vectorComponent ex:vdValenceCell , ex:vdArousalCell .
+
+ex:vdValenceCell a gmeow:Appraisal ;
+    gmeow:vantage ex:analyst ;
+    gmeow:appraisalOf ex:episode ;
+    gmeow:appraisalDimension gmeow:dimensionValence ;
+    gmeow:appraisalValue 0.5 ;
+    gmeow:appraisalScaleProfile ex:padUnitScale .
+
+ex:vdArousalCell a gmeow:Appraisal ;
+    gmeow:vantage ex:analyst ;
+    gmeow:appraisalOf ex:episode ;
+    gmeow:appraisalDimension gmeow:dimensionArousal ;
+    gmeow:appraisalValue 0.6 ;
+    gmeow:appraisalScaleProfile ex:padUnitScale .
+
+# The derived intensity under the valence-dominant metric — a view, never stored.
+ex:vdIntensity a gmeow:DerivedAffectIntensityObservation ;
+    gmeow:vantage ex:analyst ;
+    gmeow:observedFeature ex:episode ;
+    gmeow:intensityBasis ex:vdVector ;
+    gmeow:metricProfile ex:valenceDominantMetric ;
+    gmeow:weightingPolicy gmeow:weightingValenceDominant ;
+    gmeow:normFunction gmeow:affectMetricTensorNorm ;
+    gmeow:derivedByFunction gmeow:fnAffectiveIntensity .

@@ -35,6 +35,11 @@ fn ttl(body: &str) -> String {
 #[case::wellformed_calibrated_with_calibration(Case::inline(ttl(
     "ex:out a gmeow:AffectClassifierOutput ; gmeow:producedBy ex:run ; gmeow:classifiedTarget ex:chunk ; gmeow:emittedLabel gmeow-goemotions:joy ; gmeow:classifierScore 0.84 ; gmeow:scoreSemantics gmeow:scoreCalibratedProbability ; gmeow:scoreCalibration \"temperature-scaled T=1.4\" .\n"
 )))]
+// A derived intensity declaring all four machine-readable metric components as
+// IRIs (object ranges) and carrying NO stored magnitude conforms.
+#[case::wellformed_derived_intensity(Case::inline(ttl(
+    "ex:i a gmeow:DerivedAffectIntensityObservation ; gmeow:intensityBasis ex:v ; gmeow:metricProfile gmeow:coreAffectMetricPAD ; gmeow:weightingPolicy gmeow:weightingEqualCoreAffect ; gmeow:normFunction gmeow:affectMetricTensorNorm .\n"
+)))]
 fn conforms(#[case] case: Case) {
     case.run();
 }
@@ -104,9 +109,21 @@ fn conforms(#[case] case: Case) {
 )]
 // ── Hard-fail rule 8: derived intensity missing a declared metric component ────
 #[case::intensity_missing_norm(
-    Case::inline(ttl("ex:i a gmeow:DerivedAffectIntensityObservation ; gmeow:intensityBasis ex:v ; gmeow:metricProfile ex:p ; gmeow:weightingPolicy \"equal-weight\" .\n"))
+    Case::inline(ttl("ex:i a gmeow:DerivedAffectIntensityObservation ; gmeow:intensityBasis ex:v ; gmeow:metricProfile gmeow:coreAffectMetricPAD ; gmeow:weightingPolicy gmeow:weightingEqualCoreAffect .\n"))
         .fails()
         .violations(&["gmeow:normFunction"])
+)]
+// ── Greenfield reshape: the weighting policy must be a machine-readable IRI ────
+#[case::intensity_weighting_string(
+    Case::inline(ttl("ex:i a gmeow:DerivedAffectIntensityObservation ; gmeow:intensityBasis ex:v ; gmeow:metricProfile gmeow:coreAffectMetricPAD ; gmeow:weightingPolicy \"equal-weight\" ; gmeow:normFunction gmeow:affectMetricTensorNorm .\n"))
+        .fails()
+        .violations(&["machine-readable gmeow:WeightingPolicy IRI"])
+)]
+// ── Never-stored gate: a derived intensity must not carry a stored magnitude ───
+#[case::intensity_stores_magnitude(
+    Case::inline(ttl("ex:i a gmeow:DerivedAffectIntensityObservation ; gmeow:intensityBasis ex:v ; gmeow:metricProfile gmeow:coreAffectMetricPAD ; gmeow:weightingPolicy gmeow:weightingEqualCoreAffect ; gmeow:normFunction gmeow:affectMetricTensorNorm ; gmeow:appraisalValue 0.8 .\n"))
+        .fails()
+        .violations(&["must NOT carry a stored magnitude"])
 )]
 // ── Stage-3 reshape: a dimensional appraisal reading is unframed ───────────────
 #[case::appraisal_unframed(

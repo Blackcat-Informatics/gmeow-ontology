@@ -45,8 +45,20 @@ enum AestheticQualityEnum {
   qualitySublimity
 }
 
+enum AffectCompositeEnum {
+  schadenfreudeComposite
+}
+
 enum AffectFunctionEnum {
   fnAffectiveIntensity
+}
+
+enum AffectScaleProfileEnum {
+  coreAffectMetricPAD
+}
+
+enum AffectVectorObservationEnum {
+  schadenfreudeCoreVector
 }
 
 enum AgentEnum {
@@ -106,6 +118,13 @@ enum AppraisalDimensionEnum {
   dimensionNovelty
   dimensionObjectFocus
   dimensionTemporalOrientation
+}
+
+enum AppraisalEnum {
+  schadenfreudeAgencyCell
+  schadenfreudeArousalCell
+  schadenfreudeNormCell
+  schadenfreudeValenceCell
 }
 
 enum ArcTypeEnum {
@@ -733,6 +752,10 @@ enum DerivationTypeEnum {
   derivationTypeVariation
 }
 
+enum DerivedAffectIntensityObservationEnum {
+  schadenfreudeIntensity
+}
+
 enum DeterminacyEnum {
   determinacyCrisp
   determinacyDisputed
@@ -1162,6 +1185,36 @@ enum GeometryTypeEnum {
   geometryTypePolygon
 }
 
+enum GmnCodebookEnum {
+  gmnCodebookCurrent
+}
+
+enum GmnFixityEnum {
+  gmnFixityBracketing
+  gmnFixityInfix
+  gmnFixityPostfix
+  gmnFixityPrefix
+}
+
+enum GmnSecurityRingEnum {
+  gmnRingCore
+  gmnRingRestricted
+  gmnRingTrusted
+}
+
+enum GmnSigilRoleEnum {
+  gmnSigilClaim
+  gmnSigilDefeater
+  gmnSigilEvidence
+  gmnSigilLangAst
+  gmnSigilLogic
+  gmnSigilMath
+  gmnSigilModal
+  gmnSigilProcess
+  gmnSigilProof
+  gmnSigilStandpoint
+}
+
 enum GoalEnum {
   goalCanonicalIngestion
   goalShippableBundle
@@ -1282,6 +1335,10 @@ enum InferenceModeEnum {
   modeAnalogical
   modeDeduction
   modeInduction
+}
+
+enum InformationObjectEnum {
+  gmnVersionOne
 }
 
 enum InhabitationLocusKindEnum {
@@ -2074,6 +2131,10 @@ enum PeriodTypeEnum {
   periodTypeGeologicPeriod
   periodTypeHistoricalDynasty
   periodTypeHistoricalEra
+}
+
+enum PersonEnum {
+  schadenfreudeObserver
 }
 
 enum PhysicalCarrierTypeEnum {
@@ -3178,6 +3239,8 @@ enum VersionMembershipEnum {
   fixtureRagaYamanKiranaMembership1960
   fixtureRagaYamanKiranaMembership1975
   fixtureRagaYamanKiranaMembership1980
+  gmnMembershipCanonical
+  gmnMembershipLatest
 }
 
 enum VersionRoleEnum {
@@ -3203,6 +3266,7 @@ enum VersionScaleEnum {
 
 enum VersionSetEnum {
   fixtureRagaYamanKiranaSet
+  gmnDialectVersions
 }
 
 enum VirtualLocationTypeEnum {
@@ -3228,6 +3292,11 @@ enum WalletSchemeEnum {
   walletSchemeETH
   walletSchemeSOL
   walletSchemeXMR
+}
+
+enum WeightingPolicyEnum {
+  weightingEqualCoreAffect
+  weightingValenceDominant
 }
 
 type AboutnessMode {
@@ -3347,11 +3416,13 @@ type AffectLabelSet {
 type AffectScaleProfile {
   id: String
   iri: String
+  metricGram: String
   profileMidpoint: Float
   profilePolarity: ScalePolarity
   profileRangeMax: Float
   profileRangeMin: Float
   profileTransform: String
+  sparseAxisCompletion: Boolean
 }
 
 type AffectTelemetryStream {
@@ -4296,6 +4367,7 @@ type CopyrightStatus {
 type CoreAffectDimension {
   id: String
   iri: String
+  coreAxisIndex: Int
 }
 
 type Corpus {
@@ -4540,7 +4612,7 @@ type DerivedAffectIntensityObservation {
   intensityBasis: AffectVectorObservation
   metricProfile: AffectScaleProfile
   normFunction: String
-  weightingPolicy: String
+  weightingPolicy: WeightingPolicy
 }
 
 type Desire {
@@ -5239,6 +5311,36 @@ type Geometry {
 }
 
 type GeometryType {
+  id: String
+  iri: String
+}
+
+type GmnCodebook {
+  id: String
+  iri: String
+}
+
+type GmnCompaction {
+  id: String
+  iri: String
+}
+
+type GmnEnvelope {
+  id: String
+  iri: String
+}
+
+type GmnFixity {
+  id: String
+  iri: String
+}
+
+type GmnSecurityRing {
+  id: String
+  iri: String
+}
+
+type GmnSigilRole {
   id: String
   iri: String
 }
@@ -8396,6 +8498,11 @@ type WebPage {
 }
 
 type WebSite {
+  id: String
+  iri: String
+}
+
+type WeightingPolicy {
   id: String
   iri: String
 }

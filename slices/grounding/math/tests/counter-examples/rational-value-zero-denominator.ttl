@@ -1,0 +1,15 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:RationalValueShape: a math:RationalValue whose
+# math:denominator is 0. p/0 is not a rational value, so the exact carrier is
+# ill-formed. The numerator is present and both are integers, so ONLY the
+# sh:not [ sh:hasValue 0 ] constraint fires. Validation MUST emit
+# shacl.NotConstraintComponent and no other finding (math:ZeroDenominator).
+# Bound by tests/example-conformance.ttl (ex:ecRationalValueZeroDenominator).
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:zeroDenomRational a math:RationalValue ;
+    math:numerator 1 ;
+    math:denominator 0 .

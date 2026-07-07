@@ -1,0 +1,25 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Counter-example: a gmeow:GmnCompaction with sources but NO attributing gmeow:vantage —
+# a condensation nobody holds (fires lang:GmnCompactionWithoutProvenance via sh:minCount 1
+# on the gmeow:vantage constraint of lang:GmnCompactionProvenanceShape). The
+# gmeow:gmnCompacts edges are present (so that MinCount stays satisfied) and the
+# compaction links NO correspondence at all, so lang:GmnCompactionOverclaimShape stays
+# quiet: exactly the one missing-vantage finding is emitted.
+
+@prefix lang:  <https://blackcatinformatics.ca/lang/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <http://example.org/lang/> .
+
+ex:sensorTeam a gmeow:Agent .
+
+ex:claimDoorOpenMonday a gmeow:StandpointClaim ;
+    gmeow:vantage ex:sensorTeam .
+
+ex:claimDoorOpenTuesday a gmeow:StandpointClaim ;
+    gmeow:vantage ex:sensorTeam .
+
+# The unattributed compaction: sources named, holder absent.
+ex:compactionNoVantage a gmeow:GmnCompaction ;
+    gmeow:gmnCompacts ex:claimDoorOpenMonday , ex:claimDoorOpenTuesday .

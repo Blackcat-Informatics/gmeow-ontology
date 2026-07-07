@@ -1506,6 +1506,11 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
   <https://blackcatinformatics.ca/gmeow/copyrightYear> . {0,1} ;
 }
 
+# targetSubjectsOf <https://blackcatinformatics.ca/gmeow/coreAxisIndex> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/coreAxisIndex-domain-shape> {
+  <https://blackcatinformatics.ca/gmeow/coreAxisIndex> . {0,1} ;
+}
+
 # targetSubjectsOf <https://blackcatinformatics.ca/gmeow/correspondingSource> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/correspondingSource-domain-shape> {
   <https://blackcatinformatics.ca/gmeow/correspondingSource> . {0,1} ;
@@ -2379,6 +2384,11 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 # targetSubjectsOf <https://blackcatinformatics.ca/gmeow/meterCarrier> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/meterCarrier-domain-shape> {
   <https://blackcatinformatics.ca/gmeow/meterCarrier> . {0,1} ;
+}
+
+# targetSubjectsOf <https://blackcatinformatics.ca/gmeow/metricGram> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/metricGram-domain-shape> {
+  <https://blackcatinformatics.ca/gmeow/metricGram> . {0,1} ;
 }
 
 # targetSubjectsOf <https://blackcatinformatics.ca/gmeow/metricGroupOrder> (associate via ShapeMap)
@@ -4023,6 +4033,11 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 # targetSubjectsOf <https://blackcatinformatics.ca/gmeow/spanOfChunk> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/spanOfChunk-domain-shape> {
   <https://blackcatinformatics.ca/gmeow/spanOfChunk> . {0,1} ;
+}
+
+# targetSubjectsOf <https://blackcatinformatics.ca/gmeow/sparseAxisCompletion> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/sparseAxisCompletion-domain-shape> {
+  <https://blackcatinformatics.ca/gmeow/sparseAxisCompletion> . {0,1} ;
 }
 
 # targetSubjectsOf <https://blackcatinformatics.ca/gmeow/spdxLicenseId> (associate via ShapeMap)
