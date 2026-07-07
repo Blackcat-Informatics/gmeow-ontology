@@ -173,87 +173,118 @@ pub const MANIFEST: &[ManifestRow] = &[
         "test_namespace_attribute_and_item_access",
     ),
     // ── tests/test_interior.py (8 fns; dossier test_interior.md) ───────────────
-    pending(
+    twin(
         "tests/test_interior.py",
         "test_plutchik_seeds_are_present_and_open",
+        "conformance_interior.rs::plutchik_seeds_are_present_and_open",
     ),
-    pending(
+    twin(
         "tests/test_interior.py",
         "test_appraisal_is_a_vantage_indexed_observation",
+        "conformance_interior.rs::appraisal_is_a_vantage_indexed_observation",
     ),
-    pending(
+    twin(
         "tests/test_interior.py",
         "test_no_emotion_tenure_class_exists",
+        "conformance_interior.rs::no_emotion_tenure_class_exists",
     ),
-    pending("tests/test_interior.py", "test_arc_sample_constituents"),
-    pending(
+    twin(
+        "tests/test_interior.py",
+        "test_arc_sample_constituents",
+        "conformance_interior.rs::arc_sample_constituents",
+    ),
+    twin(
         "tests/test_interior.py",
         "test_character_arc_extension_is_additive",
+        "conformance_interior.rs::character_arc_extension_is_additive",
     ),
-    pending(
+    twin(
         "tests/test_interior.py",
         "test_no_primary_protagonist_machinery",
+        "conformance_interior.rs::no_primary_protagonist_machinery",
     ),
-    pending("tests/test_interior.py", "test_motif_rides_the_seam"),
-    pending(
+    twin(
+        "tests/test_interior.py",
+        "test_motif_rides_the_seam",
+        "conformance_interior.rs::motif_rides_the_seam",
+    ),
+    twin(
         "tests/test_interior.py",
         "test_trajectory_query_orders_and_surfaces_disagreement",
+        "conformance_interior.rs::trajectory_query_orders_and_surfaces_disagreement",
     ),
     // ── tests/test_narration.py (6 fns; dossier test_narration.md) ─────────────
-    pending(
+    twin(
         "tests/test_narration.py",
         "test_seam_links_specialize_one_ancestor",
+        "conformance_narration.rs::seam_links_specialize_one_ancestor",
     ),
-    pending(
+    twin(
         "tests/test_narration.py",
         "test_orientations_are_not_inverse_axioms",
+        "conformance_narration.rs::orientations_are_not_inverse_axioms",
     ),
-    pending("tests/test_narration.py", "test_narration_mode_vocab_seeds"),
-    pending(
+    twin(
+        "tests/test_narration.py",
+        "test_narration_mode_vocab_seeds",
+        "conformance_narration.rs::narration_mode_vocab_seeds",
+    ),
+    twin(
         "tests/test_narration.py",
         "test_no_truth_bridge_from_unreliable_mode",
+        "conformance_narration.rs::no_truth_bridge_from_unreliable_mode",
     ),
-    pending(
+    twin(
         "tests/test_narration.py",
         "test_fixture_obeys_the_efficiency_budget",
+        "conformance_narration.rs::fixture_obeys_the_efficiency_budget",
     ),
-    pending(
+    twin(
         "tests/test_narration.py",
         "test_competency_cooccurrence_query_over_fixture",
+        "conformance_narration.rs::competency_cooccurrence_query_over_fixture",
     ),
     // ── tests/test_narrative_time.py (4 fns; dossier test_narrative_time.md) ────
-    pending(
+    twin(
         "tests/test_narrative_time.py",
         "test_frame_properties_are_functional_with_correct_anchors",
+        "conformance_narrative_time.rs::frame_properties_are_functional_with_correct_anchors",
     ),
-    pending(
+    twin(
         "tests/test_narrative_time.py",
         "test_at_narrative_position_is_domain_free_and_not_functional",
+        "conformance_narrative_time.rs::at_narrative_position_is_domain_free_and_not_functional",
     ),
-    pending(
+    twin(
         "tests/test_narrative_time.py",
         "test_flashback_fixture_carries_coexisting_orders",
+        "conformance_narrative_time.rs::flashback_fixture_carries_coexisting_orders",
     ),
-    pending(
+    twin(
         "tests/test_narrative_time.py",
         "test_competency_narrative_time_axes_query",
+        "conformance_narrative_time.rs::competency_narrative_time_axes_query",
     ),
     // ── tests/test_disclosure.py (4 fns; dossier test_disclosure.md) ───────────
-    pending(
+    twin(
         "tests/test_disclosure.py",
         "test_no_preferred_or_primary_disclosure_term",
+        "conformance_disclosure.rs::no_preferred_or_primary_disclosure_term",
     ),
-    pending(
+    twin(
         "tests/test_disclosure.py",
         "test_project_when_in_sparql_query",
+        "conformance_disclosure.rs::project_when_gates_description_on_public_eligibility",
     ),
-    pending(
+    twin(
         "tests/test_disclosure.py",
         "test_public_candidates_query_runnable",
+        "conformance_disclosure.rs::public_candidates_query_runnable",
     ),
-    pending(
+    twin(
         "tests/test_disclosure.py",
         "test_privacy_leaks_query_runnable",
+        "conformance_disclosure.rs::privacy_leaks_query_runnable",
     ),
     // ── tests/test_email_behavioral.py (3 fns; dossier) ────────────────────────
     pending(
