@@ -22,8 +22,8 @@
 //! serialization now flows through the ONE substrate ledger.
 
 use gmeow_errors::{
-    Diag, DiagLedger, DiagNode, FindingCategory, Grade, Severity, Slot, StageId, Standpoint,
-    register_code,
+    Diag, DiagLedger, DiagNode, DiagRef, FindingCategory, Grade, Severity, Slot, StageId,
+    Standpoint, register_code,
 };
 
 use crate::ir::PreservationKind;
@@ -124,10 +124,13 @@ impl LossLedger {
             .sum()
     }
 
-    /// Intern one loss witness. The finding is a non-gating `ProjectionLoss` note
-    /// (matching the ingest-boundary loss lift in `gmeow_errors::rdf`); the
-    /// fingerprint keys on `(code, category, focus)`, so witnesses that share a
-    /// `(code, focus)` merge and accumulate their distinct notes as observations.
+    /// Intern one loss witness and return its arena handle. The finding is a
+    /// non-gating `ProjectionLoss` note (matching the ingest-boundary loss lift in
+    /// `gmeow_errors::rdf`); the fingerprint keys on `(code, category, focus)`, so
+    /// witnesses that share a `(code, focus)` merge and accumulate their distinct notes
+    /// as observations. `antecedents` are the causing witnesses this loss is derived
+    /// from — the content-addressed DAG edges `to_finding` projects as related locations.
+    #[allow(clippy::too_many_arguments)]
     fn intern(
         &mut self,
         producer: &str,
@@ -136,7 +139,8 @@ impl LossLedger {
         tags: &[String],
         observed: Option<u64>,
         note: &str,
-    ) {
+        antecedents: &[DiagRef],
+    ) -> DiagRef {
         let mut diag = Diag::new(
             register_code(&format!("{RUNG_PREFIX}{code}")),
             Grade::new(
@@ -153,8 +157,11 @@ impl LossLedger {
         for tag in tags {
             diag = diag.with_tag(tag.clone());
         }
+        if !antecedents.is_empty() {
+            diag = diag.with_antecedents(antecedents.iter().copied());
+        }
         self.ledger
-            .attach(diag, StageId::new(format!("loss.{producer}")));
+            .attach(diag, StageId::new(format!("loss.{producer}")))
     }
 
     // ── Stage 1: transcode realized losses ──────────────────────────────────
@@ -172,7 +179,7 @@ impl LossLedger {
     ) {
         let focus = format!("{from}{PAIR_SEP}{to}");
         let tags = [from.to_owned(), to.to_owned()];
-        self.intern("transcode", code, focus, &tags, Some(count), note);
+        self.intern("transcode", code, focus, &tags, Some(count), note, &[]);
     }
 
     /// The recorded transcode losses read back and sorted by `(from, to, code)` —
@@ -236,16 +243,28 @@ impl LossLedger {
         actual_drops: &[String],
     ) {
         let pres_tag = [format!("preservation:{}", preservation.as_str())];
+        // Intern the structural drops FIRST and capture the structural witness handle.
+        // All structural notes of a target share `(STRUCTURAL_CODE, target-focus)`, so they
+        // hash-cons into ONE witness — the target's declared structural limitation — and
+        // every `attach` returns that same handle.
+        let mut structural_ref: Option<DiagRef> = None;
         for note in lossy_drops {
-            self.intern(
+            let r = self.intern(
                 "projection",
                 STRUCTURAL_CODE,
                 target.to_owned(),
                 &pres_tag,
                 None,
                 note,
+                &[],
             );
+            structural_ref = Some(r);
         }
+        // Each concrete per-run drop is CAUSED BY the target's structural limitation: wire
+        // the structural witness as its antecedent so the `to_finding` projection surfaces
+        // the causing structural note as a related location (the U2 antecedent DAG). When a
+        // target declares no structural drop, there is no cause to assert.
+        let antecedents: &[DiagRef] = structural_ref.as_slice();
         for note in actual_drops {
             self.intern(
                 "projection",
@@ -254,6 +273,7 @@ impl LossLedger {
                 &pres_tag,
                 None,
                 note,
+                antecedents,
             );
         }
     }
@@ -274,6 +294,46 @@ impl LossLedger {
         structural
             .into_iter()
             .chain(actual.into_iter().map(|a| format!("actual: {a}")))
+            .collect()
+    }
+
+    /// The per-run actual-drop notes on `target` (sorted, as
+    /// [`projection_drops_for`](Self::projection_drops_for) emits them) each paired with
+    /// the stable finding IRI of the structural-limitation witness that CAUSED it, read
+    /// from the actual witness's own **antecedent DAG edge** — so a consumer projecting
+    /// the drop as a finding attaches the genuine cause as a related location. Empty when
+    /// the target declared no structural cause (the actual witness carries no antecedent).
+    pub fn actual_drop_causes(&self, target: &str) -> Vec<(String, String)> {
+        let actual_code = format!("{RUNG_PREFIX}{ACTUAL_CODE}");
+        let Some(node) = self.ledger.emit_sorted().into_iter().find(|node| {
+            node.code == actual_code
+                && node
+                    .source_ctx
+                    .focus
+                    .as_ref()
+                    .is_some_and(|f| f.0 == target)
+        }) else {
+            return Vec::new();
+        };
+        // The antecedent edges wired on the actual witness (never re-derived): the causing
+        // structural-limitation witnesses, content-addressed by fingerprint.
+        let causes: Vec<String> = node
+            .antecedents
+            .iter()
+            .map(gmeow_errors::fingerprint_iri)
+            .collect();
+        if causes.is_empty() {
+            return Vec::new();
+        }
+        let mut notes: Vec<String> = node
+            .observations
+            .iter()
+            .map(|o| o.message.clone())
+            .collect();
+        notes.sort();
+        notes
+            .into_iter()
+            .flat_map(|note| causes.iter().map(move |c| (note.clone(), c.clone())))
             .collect()
     }
 
@@ -360,6 +420,59 @@ mod tests {
         assert_eq!(rows[0].count, 5);
         // The static per-code note is preserved, never dropped.
         assert_eq!(rows[0].note, "graphs go");
+    }
+
+    #[test]
+    fn actual_drop_carries_structural_limitation_as_antecedent() {
+        // U2 producer-side antecedent DAG: a concrete per-run drop is CAUSED BY the
+        // target's declared structural limitation. `actual_drop_causes` reads that edge off
+        // the actual witness's own antecedents and pairs each drop note with the stable
+        // finding IRI of its cause — the provenance a consumer attaches as a related location.
+        let mut store = LossLedger::new();
+        store.record_projection_drops(
+            "owl-dl",
+            PreservationKind::SoundUnder,
+            &["OWL-DL cannot carry full first-order formulas".to_owned()],
+            &["logic:Formula #3 dropped as unsupported residue".to_owned()],
+        );
+        let causes = store.actual_drop_causes("owl-dl");
+        assert_eq!(causes.len(), 1, "one (drop, cause) pair: {causes:?}");
+        assert_eq!(
+            causes[0].0,
+            "logic:Formula #3 dropped as unsupported residue"
+        );
+        assert!(
+            causes[0].1.starts_with("https://"),
+            "the cause is the structural witness's stable finding IRI: {}",
+            causes[0].1
+        );
+
+        // No fabrication: a target with NO declared structural limitation has no antecedent
+        // edge, so no cause is asserted (epistemic-shape preservation).
+        let mut bare = LossLedger::new();
+        bare.record_projection_drops(
+            "canonical-rdf12",
+            PreservationKind::SoundUnder,
+            &[],
+            &["a per-run drop with no structural cause".to_owned()],
+        );
+        assert!(
+            bare.actual_drop_causes("canonical-rdf12").is_empty(),
+            "with no structural limitation there is no genuine cause — no fabricated antecedent"
+        );
+
+        // And the antecedent edge is genuinely ON the witness (not re-derived): the actual
+        // node's `to_finding` projection surfaces the cause as a related location too.
+        let finding = store
+            .ledger
+            .findings("logic-compile")
+            .into_iter()
+            .find(|f| f.code.contains("actual"))
+            .expect("an actual-drop finding");
+        assert!(
+            !finding.related_locations.is_empty(),
+            "to_finding must project the wired antecedent as a related location: {finding:?}"
+        );
     }
 
     #[test]
