@@ -2816,6 +2816,7 @@ export enum ScoreEditionEnum {
 
 export enum ScoreSemanticsEnum {
     scoreCalibratedProbability = "scoreCalibratedProbability",
+    scoreEntailment = "scoreEntailment",
     scoreLogit = "scoreLogit",
     scoreMargin = "scoreMargin",
     scoreSigmoid = "scoreSigmoid",
@@ -5496,6 +5497,7 @@ export interface ModelDeployment {
 }
 
 export interface ModelInferenceRun extends Entity {
+    hypothesisTemplate?: string[],
     labelSetRevision?: string[],
     modelFramework?: string[],
     modelIdentifier?: string,
