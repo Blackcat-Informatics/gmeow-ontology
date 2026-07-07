@@ -31,7 +31,7 @@ use crate::dsl::{
 };
 use crate::native_query::{self, render_term, union};
 use crate::paths;
-use crate::stores::{merged_store, rdfs_closed_store};
+use crate::stores::{merged_store, native_closed_store, rdfs_closed_store};
 
 /// A canonical (variable-name, term-N-Triples) binding set for one result row,
 /// sorted so row identity is independent of projection/iteration order.
@@ -52,6 +52,9 @@ pub fn run_competency_file(path: &Path) -> Result<(), String> {
     // via gmeow:cqReasoning gmeow:reasoningRdfs — and then reused across cells.
     let merged = merged_store()?;
     let mut rdfs: Option<Arc<RdfDataset>> = None;
+    // The native logic:-reasoned closure is built lazily — only if some question opts into
+    // gmeow:reasoningLogic — and then reused across cells (it pays the native chase once).
+    let mut native: Option<Arc<RdfDataset>> = None;
 
     // Build an IRI→question index so gmeow:cqConsumes can resolve its producer
     // within this spec file. Built once outside the loop (O(n log n)), reused
@@ -102,6 +105,12 @@ pub fn run_competency_file(path: &Path) -> Result<(), String> {
                     rdfs = Some(rdfs_closed_store()?);
                 }
                 rdfs.as_ref().expect("rdfs store just built")
+            }
+            ReasoningProfile::Native => {
+                if native.is_none() {
+                    native = Some(native_closed_store()?);
+                }
+                native.as_ref().expect("native store just built")
             }
         };
         results.push((cq.iri.as_str(), run_competency_cell(store, cq, &slice_dir)));
@@ -186,12 +195,12 @@ fn run_competency_cell(
         None => Arc::clone(store),
         Some(rel) => {
             if cq.reasoning != ReasoningProfile::None {
-                // The RDFS closure is computed BEFORE the overlay, so an overlaid
+                // The RDFS/native closure is computed BEFORE the overlay, so an overlaid
                 // fixture's entailments would be invisible. Refuse rather than silently
                 // under-answer.
                 return Err(format!(
                     "{}: gmeow:cqDataFile is only honoured in the asserted (reasoningNone) lane, \
-                     not gmeow:reasoningRdfs",
+                     not gmeow:reasoningRdfs / gmeow:reasoningLogic",
                     cq.iri
                 ));
             }
