@@ -38,8 +38,8 @@ meta:number     a rdfs:Property ; rdfs:comment "Heading number in CONSTITUTION.m
 meta:title      a rdfs:Property ; rdfs:comment "Heading title; checked verbatim against CONSTITUTION.md."@en .
 meta:enforcedBy a rdfs:Property .
 meta:artifact   a rdfs:Property ; rdfs:comment "Repo-relative path that must exist."@en .
-meta:symbol     a rdfs:Property ; rdfs:comment "Name that must be defined in (one of) the enforcement's .py artifacts, or appear verbatim in a non-Python artifact."@en .
-meta:makeTarget a rdfs:Property ; rdfs:comment "Target that must exist in the Makefile."@en .
+meta:symbol     a rdfs:Property ; rdfs:comment "Name that must resolve to a real definition in (one of) the enforcement's artifacts: a top-level name in a .py artifact, a Rust item (fn/method/struct/enum/trait/type/const/static/macro) in a .rs artifact, or a verbatim occurrence in any other artifact (ontology term, config key)."@en .
+meta:makeTarget a rdfs:Property ; rdfs:comment "Target that must exist in the Makefile, be reachable from a gate-aggregate lane, and — when the enforcement also cites symbols — have a static call-name path from the target's entrypoint to each cited symbol."@en .
 meta:cliCommand a rdfs:Property ; rdfs:comment "Command that must be registered on the public gmeow or repository-maintenance gmeow-dev CLI."@en .
 meta:generator  a rdfs:Property ; rdfs:comment "Registered generator name; the declared set must equal the live registry exactly."@en .
 meta:supersededInPartBy a rdfs:Property ;
@@ -59,7 +59,7 @@ meta:gate-statements a meta:Gate ;
     rdfs:label "RDF 1.2 statement compiler + losslessness gate"@x-gmeow-english ;
     meta:artifact "dsl/statements", "crates/pipeline/src/stages/statements.rs",
         "crates/validate/src/statement.rs" ;
-    meta:symbol "compile_statements", "check_statement_lossless" .
+    meta:symbol "compile_statements", "check_statement_lossless_dataset" .
 
 meta:gate-rdf12-codec a meta:Gate ;
     rdfs:label "OWL ↔ RDF 1.2 codec (generated↔generated downcast)"@x-gmeow-english ;
@@ -120,7 +120,7 @@ meta:gate-fair-metadata a meta:Gate ;
 meta:lint-no-preferred-rank a meta:Lint ;
     rdfs:label "no preferredRank / primary* selector annotations"@x-gmeow-english ;
     meta:artifact "crates/validate/src/statement.rs" ;
-    meta:symbol "no_preferred_rank" .
+    meta:symbol "ds_no_preferred_rank" .
 
 meta:tests-identity-orthogonality a meta:TestSuite ;
     rdfs:label "identity-axis orthogonality matrix (7 co-equal axes)"@x-gmeow-english ;
@@ -162,7 +162,7 @@ meta:gate-products a meta:Gate ;
     rdfs:label "the product surfaces: pip client, MCP memory triad, GTS engine"@x-gmeow-english ;
     meta:artifact "crates/pipeline/src/stages/gts_sink.rs",
         "crates/pipeline/src/mcp.rs", "docs/mcp-server.md" ;
-    meta:symbol "store_claim" ;
+    meta:symbol "tool_store_claim" ;
     meta:cliCommand "mcp" .
 
 meta:tests-products a meta:TestSuite ;
