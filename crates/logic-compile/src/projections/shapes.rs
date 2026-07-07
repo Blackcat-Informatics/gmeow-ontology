@@ -321,6 +321,68 @@ pub fn project_validation_shapes_shacl(program: &LogicProgram) -> String {
     out
 }
 
+/// The SHACL Core residue of ONE constraint component reachable at `path`, appended to `out`.
+///
+/// The `match` is deliberately **exhaustive** (no `_` catch-all): a new [`ConstraintComponent`]
+/// variant is a compile error until it is explicitly classified as faithful (`=> {}`) or as a
+/// carried-and-flagged drop, so the loss ledger's "never dropped in silence" contract cannot be
+/// defeated by a future variant. The two structural wrappers ([`ConstraintComponent::Not`],
+/// [`ConstraintComponent::QualifiedValueShape`]) recurse into their inner shape, so a lossy
+/// component nested inside a negation or a qualified value-shape is flagged at every depth (the
+/// depth-honest realization of [`ConstraintComponent::is_lossy`], which also recurses).
+fn shacl_component_residue(path: &str, c: &ConstraintComponent, out: &mut Vec<String>) {
+    match c {
+        ConstraintComponent::Pattern { regex, .. } => out.push(format!(
+            "sh:pattern on {path} carries regex-dialect residue (SHACL uses the XPath \
+             regular-expression flavour; the source dialect may differ): {regex}"
+        )),
+        ConstraintComponent::TerminologyBinding {
+            terminology_id,
+            codes,
+        } => out.push(format!(
+            "terminology binding on {path} to {terminology_id} ({} code(s)) has no faithful \
+             SHACL Core form; carried in the canonical logic: layer",
+            codes.len()
+        )),
+        ConstraintComponent::OrdinalSet { pairs } => out.push(format!(
+            "ordinal set on {path} projects only its coded symbols (sh:in); the ordinal \
+             integer values ({}) and their ordering have no SHACL/ShEx form and are \
+             carried in the canonical logic: layer",
+            pairs
+                .iter()
+                .map(|(v, _)| v.to_string())
+                .collect::<Vec<_>>()
+                .join(", ")
+        )),
+        ConstraintComponent::DateTimePattern(pat) => out.push(format!(
+            "datetime validity pattern ({pat}) on {path} is a format template, not an XPath \
+             regex; it has no faithful SHACL/ShEx form (emitting it as sh:pattern would \
+             reject every valid datetime), so its meaning is carried in the canonical \
+             logic: layer"
+        )),
+        // A structural wrapper's residue is exactly its inner shape's residue.
+        ConstraintComponent::Not(inner) => shacl_component_residue(path, inner, out),
+        ConstraintComponent::QualifiedValueShape { shape, .. } => {
+            for inner in shape {
+                shacl_component_residue(path, inner, out);
+            }
+        }
+        // Faithful in SHACL Core — no residue. Listed explicitly (not a `_` arm) so a NEW
+        // component variant forces a faithful-or-residue decision at compile time.
+        ConstraintComponent::NumericRange { .. }
+        | ConstraintComponent::PrecisionRange { .. }
+        | ConstraintComponent::Datatype(_)
+        | ConstraintComponent::Class(_)
+        | ConstraintComponent::NodeKindShacl(_)
+        | ConstraintComponent::In(_)
+        | ConstraintComponent::MinLength(_)
+        | ConstraintComponent::MaxLength(_)
+        | ConstraintComponent::LanguageIn(_)
+        | ConstraintComponent::DateTimeRange { .. }
+        | ConstraintComponent::HasValue(_) => {}
+    }
+}
+
 /// The per-shape loss-ledger residue for the SHACL Core target: the constructs SHACL Core
 /// cannot faithfully hold, carried and flagged (never dropped in silence). A shape with no
 /// lossy component yields an empty vector (the `ValidationOnly` polarity with no residue).
@@ -337,42 +399,13 @@ pub fn shacl_residue(shape: &ValidationShapeIr) -> Vec<String> {
     }
     for p in &shape.properties {
         for c in &p.components {
-            match c {
-                ConstraintComponent::Pattern { regex, .. } => residue.push(format!(
-                    "sh:pattern on {} carries regex-dialect residue (SHACL uses the XPath \
-                     regular-expression flavour; the source dialect may differ): {regex}",
-                    p.path
-                )),
-                ConstraintComponent::TerminologyBinding {
-                    terminology_id,
-                    codes,
-                } => residue.push(format!(
-                    "terminology binding on {} to {terminology_id} ({} code(s)) has no faithful \
-                     SHACL Core form; carried in the canonical logic: layer",
-                    p.path,
-                    codes.len()
-                )),
-                ConstraintComponent::OrdinalSet { pairs } => residue.push(format!(
-                    "ordinal set on {} projects only its coded symbols (sh:in); the ordinal \
-                     integer values ({}) and their ordering have no SHACL/ShEx form and are \
-                     carried in the canonical logic: layer",
-                    p.path,
-                    pairs
-                        .iter()
-                        .map(|(v, _)| v.to_string())
-                        .collect::<Vec<_>>()
-                        .join(", ")
-                )),
-                ConstraintComponent::DateTimePattern(pat) => residue.push(format!(
-                    "datetime validity pattern ({pat}) on {} is a format template, not an XPath \
-                     regex; it has no faithful SHACL/ShEx form (emitting it as sh:pattern would \
-                     reject every valid datetime), so its meaning is carried in the canonical \
-                     logic: layer",
-                    p.path
-                )),
-                _ => {}
-            }
+            shacl_component_residue(&p.path, c, &mut residue);
         }
+    }
+    // Focus-node-level components (domain/range/disjointness) are also lossy if they nest a lossy
+    // construct — scanned through the same exhaustive helper so a node-level drop is never silent.
+    for c in &shape.node_components {
+        shacl_component_residue("the focus node", c, &mut residue);
     }
     residue
 }
@@ -633,6 +666,10 @@ pub fn shex_residue(shape: &ValidationShapeIr) -> Vec<String> {
     }
     for p in &shape.properties {
         for c in &p.components {
+            // Exhaustive (no `_` catch-all): a new ConstraintComponent variant must be classified
+            // as a ShEx-only drop or as ShEx-faithful before it compiles. Constructs SHACL loses
+            // (Pattern/TerminologyBinding/OrdinalSet/DateTimePattern) are already carried by the
+            // `shacl_residue(shape)` base above, so they add no *further* ShEx drop here (`=> {}`).
             match c {
                 ConstraintComponent::DateTimeRange { .. } => residue.push(format!(
                     "datetime range on {} has no ShEx facet; only the value's presence is \
@@ -659,7 +696,20 @@ pub fn shex_residue(shape: &ValidationShapeIr) -> Vec<String> {
                      negation); carried in the canonical logic: layer",
                     p.path
                 )),
-                _ => {}
+                // ShEx-faithful, or already carried by the shacl_residue base — no *additional*
+                // ShEx-only drop. Listed explicitly so a NEW variant forces a decision.
+                ConstraintComponent::NumericRange { .. }
+                | ConstraintComponent::PrecisionRange { .. }
+                | ConstraintComponent::Datatype(_)
+                | ConstraintComponent::NodeKindShacl(_)
+                | ConstraintComponent::In(_)
+                | ConstraintComponent::Pattern { .. }
+                | ConstraintComponent::MinLength(_)
+                | ConstraintComponent::MaxLength(_)
+                | ConstraintComponent::TerminologyBinding { .. }
+                | ConstraintComponent::OrdinalSet { .. }
+                | ConstraintComponent::DateTimePattern(_)
+                | ConstraintComponent::HasValue(_) => {}
             }
         }
     }
@@ -1282,6 +1332,71 @@ mod shex_tests {
             "{r:?}"
         );
         assert!(r.iter().any(|x| x.contains("negated constraint")), "{r:?}");
+    }
+
+    #[test]
+    fn residue_classification_is_pinned_and_nested_lossy_is_never_silently_dropped() {
+        // Guards the exhaustive residue classifiers (shacl_component_residue / shex_residue): a
+        // lossy component is flagged, a faithful one is not, and — critically — a lossy component
+        // NESTED inside a `sh:not` is still flagged. Before the classifiers were made exhaustive
+        // and recursive, the trailing `_ => {}` catch-all dropped a `Not(Pattern)` in silence,
+        // defeating the loss ledger's "carried and flagged, never dropped" contract.
+        let faithful = shape(
+            "https://ex/faithful",
+            "https://ex/C",
+            vec![prop(
+                "https://ex/p",
+                vec![ConstraintComponent::Datatype(
+                    "http://www.w3.org/2001/XMLSchema#string".into(),
+                )],
+            )],
+        );
+        assert!(
+            shacl_residue(&faithful).is_empty(),
+            "a faithful sh:datatype must carry no SHACL residue: {:?}",
+            shacl_residue(&faithful)
+        );
+
+        let lossy = shape(
+            "https://ex/lossy",
+            "https://ex/C",
+            vec![prop(
+                "https://ex/p",
+                vec![ConstraintComponent::Pattern {
+                    regex: "^A".into(),
+                    flags: None,
+                }],
+            )],
+        );
+        assert!(
+            shacl_residue(&lossy)
+                .iter()
+                .any(|x| x.contains("sh:pattern")),
+            "a top-level sh:pattern must be flagged: {:?}",
+            shacl_residue(&lossy)
+        );
+
+        // The regression the exhaustiveness+recursion fix closes: a lossy component inside `sh:not`.
+        let nested = shape(
+            "https://ex/nested",
+            "https://ex/C",
+            vec![prop(
+                "https://ex/p",
+                vec![ConstraintComponent::Not(Box::new(
+                    ConstraintComponent::Pattern {
+                        regex: "^A".into(),
+                        flags: None,
+                    },
+                ))],
+            )],
+        );
+        assert!(
+            shacl_residue(&nested)
+                .iter()
+                .any(|x| x.contains("sh:pattern")),
+            "a Pattern nested inside sh:not must NOT be silently dropped: {:?}",
+            shacl_residue(&nested)
+        );
     }
 
     #[test]
