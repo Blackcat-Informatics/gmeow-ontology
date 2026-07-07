@@ -2094,6 +2094,7 @@ dependencies = [
  "ciborium",
  "criterion",
  "ed25519-dalek",
+ "gmeow-affect-ingest",
  "gmeow-errors",
  "gmeow-license",
  "gmeow-logic",
