@@ -3116,3 +3116,505 @@ lang:GmnNonDecodableGrammar
     rdfs:label "GMN Non-Decodable Grammar"@x-gmeow-english ;
     skos:definition "The failure raised when the GMN grammar's declared determinism contract does not hold — a grammar carrying gmeow:gmnDeterminismClass \"LL(1)\" whose rules are not deterministically decidable with one-token lookahead, so a reader cannot know from the next token which production applies and the stream is not prefix-decodable. The determinism class is a declared contract, never taken on faith: its enforcing validator is the GMN parser/writer, whose parse-table construction over the grammar's rules is the machine check the literal must survive."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
+
+# =========================================================================== #
+# The linguistic symbology plane of the GMN dialect                           #
+#                                                                             #
+# The lang: plane of the shared GMN glyph inventory: the IPA phonological     #
+# notation, the Leipzig Glossing Rules alias plane, and the GMN operator      #
+# glyphs the linguistic surface renders. Every glyph is authored as the       #
+# canonical lang:Denotation fact (the gmeow:gmnGlyph / gmeow:gmnCodepoints    #
+# projections flatten it for the writer), carries its codepoint-explicit      #
+# spelling on the lang:Grapheme, and carries its MEASURED token cost through  #
+# gmeow:gmnGlyphTokenCost. A symbol earns a glyph slot only when it costs a   #
+# single token; a dearer symbol stays a named key. Symbols measured out of    #
+# the glyph table (⟦·⟧ denotation brackets, the ⇝ translation leg) are        #
+# authored as named keys with no grapheme, their disposition read off the     #
+# crate-side token-cost measurement, never pre-committed.                     #
+# =========================================================================== #
+
+# --- The per-glyph token-cost feed ------------------------------------------ #
+
+gmeow:gmnGlyphTokenCost
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn glyph token cost"@x-gmeow-english ;
+    skos:definition "The measured token cost of a GMN glyph over the LLM token channel: relates a glyph-bearing GMN sign (a lang:Grapheme) to the math:Quantity counting the BPE tokens its rendering encodes to under the pinned codebook vocabulary. This is the per-glyph feed the machine-compression sibling folds into the token-cost matrix, and it is a MEASURED value — the crate-side glyph token-cost primitive is its source of truth, and an authored value that diverges from the measurement is a defect the cross-check catches. Domain a glyph-bearing sign, range math:Quantity (stated in prose)."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid hand-tuning the value away from the measured cost — the crate-side primitive is authoritative and the cross-check enforces equality — and avoid reading it as a rate declaration; the declared code rate is gmeow:gmnDeclaredRate, this is a per-glyph measurement."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Attach one gmeow:gmnGlyphTokenCost edge per authored glyph, pointing at a dimensionless math:Quantity whose math:quantityValue is the token count the crate-side primitive measures for the glyph's rendering."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to read a glyph's measured token cost when deriving the token-cost matrix or the glyph-versus-named-key disposition."@x-gmeow-english .
+
+gmeow:gmnTokenCostOne
+    a owl:NamedIndividual , math:Quantity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "one token"@x-gmeow-english ;
+    skos:definition "A measured token cost of one: the dimensionless math:Quantity carried by every GMN glyph the pinned codebook vocabulary encodes to a single token. A single-token glyph is exactly a glyph that earns a slot in the shared inventory rather than staying a named key."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    math:hasDimension math:dimensionless ;
+    math:quantityValue 1 .
+
+# --- Shared denotation context ---------------------------------------------- #
+
+gmeow:gmnLangGlyphContext
+    a owl:NamedIndividual , gmeow:InformationObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the GMN linguistic glyph-table context"@x-gmeow-english ;
+    skos:definition "The context object the linguistic-plane glyph and alias denotations name through lang:denotationContext: the GMN glyph-table under which the lang: plane's meaning assignments hold. A denotation is never context-free; this is the shared context of the linguistic symbology plane."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+# --- Imported alias planes (cited + versioned) ------------------------------ #
+# Each external standard the plane imports is a first-class lang:SignSystem
+# instance carrying its citation (gmeow:cites, typed by a gmeow:CitationAct)
+# and its version (dcterms:hasVersion) — imported verbatim by reference, never
+# re-minted. The codebook references them alongside the GMN script and sigils.
+
+gmeow:ipaChart
+    a owl:NamedIndividual , lang:SignSystem ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "International Phonetic Alphabet"@x-gmeow-english ;
+    skos:definition "The International Phonetic Alphabet as an imported notation plane: the lang:SignSystem the GMN linguistic surface draws its phonological glyphs from, imported by citation rather than re-minted. lang:Phone content is notated in IPA, and each IPA glyph the plane admits joins the shared GMN script by reference to this plane's cited, versioned repertoire."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    lang:signSystemKind lang:notationalKind ;
+    lang:modality lang:writtenModality ;
+    gmeow:cites gmeow:ipaChartWork ;
+    dcterms:hasVersion "2020" .
+
+gmeow:ipaChartWork
+    a owl:NamedIndividual , gmeow:CreativeWork ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the IPA Chart"@x-gmeow-english ;
+    skos:definition "The published International Phonetic Alphabet chart — the cited source work the IPA notation plane imports its phonological glyph repertoire from."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:title "The International Phonetic Alphabet"@x-gmeow-english .
+
+gmeow:ipaPlaneSourceRecord
+    a owl:NamedIndividual , gmeow:InformationObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "IPA plane source record"@x-gmeow-english ;
+    skos:definition "The source record of the IPA notation plane: the information object that references the plane and cites the IPA Chart, carrying the plane's provenance as the citing entity of the conformance citation."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:references gmeow:ipaChart ;
+    gmeow:cites gmeow:ipaChartWork .
+
+gmeow:ipaChartCitation
+    a owl:NamedIndividual , gmeow:CitationAct ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "IPA plane conformance citation"@x-gmeow-english ;
+    skos:definition "The typed citation act recording that the GMN linguistic plane's phonological glyphs conform to the International Phonetic Alphabet — the plane's provenance, carried by the citations vocabulary rather than a bespoke provenance property."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:citingEntity gmeow:ipaPlaneSourceRecord ;
+    gmeow:citedEntity gmeow:ipaChartWork ;
+    gmeow:citationIntent gmeow:intentConformsTo .
+
+gmeow:leipzigGlossingRules
+    a owl:NamedIndividual , lang:SignSystem ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "Leipzig Glossing Rules"@x-gmeow-english ;
+    skos:definition "The Leipzig Glossing Rules as an imported alias plane: the lang:SignSystem whose standard interlinear-gloss abbreviations (NOM, ACC, PL, SG, PST, PRS, the person values, the morpheme boundary) the GMN linguistic surface imports verbatim by citation. Each gloss is a named-key alias denoting a lang: grammatical-feature term, never a re-minted parallel code."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    lang:signSystemKind lang:notationalKind ;
+    lang:modality lang:writtenModality ;
+    gmeow:cites gmeow:leipzigWork ;
+    dcterms:hasVersion "2015" .
+
+gmeow:leipzigWork
+    a owl:NamedIndividual , gmeow:CreativeWork ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the Leipzig Glossing Rules"@x-gmeow-english ;
+    skos:definition "The published Leipzig Glossing Rules — the cited source work the Leipzig alias plane imports its interlinear-gloss abbreviations from."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:title "The Leipzig Glossing Rules: Conventions for Interlinear Morpheme-by-Morpheme Glosses"@x-gmeow-english .
+
+gmeow:leipzigPlaneSourceRecord
+    a owl:NamedIndividual , gmeow:InformationObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "Leipzig plane source record"@x-gmeow-english ;
+    skos:definition "The source record of the Leipzig alias plane: the information object that references the plane and cites the Leipzig Glossing Rules, carrying the plane's provenance as the citing entity of the conformance citation."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:references gmeow:leipzigGlossingRules ;
+    gmeow:cites gmeow:leipzigWork .
+
+gmeow:leipzigCitation
+    a owl:NamedIndividual , gmeow:CitationAct ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "Leipzig plane conformance citation"@x-gmeow-english ;
+    skos:definition "The typed citation act recording that the GMN linguistic plane's grammatical-gloss aliases conform to the Leipzig Glossing Rules — the plane's provenance, carried by the citations vocabulary rather than a bespoke provenance property."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:citingEntity gmeow:leipzigPlaneSourceRecord ;
+    gmeow:citedEntity gmeow:leipzigWork ;
+    gmeow:citationIntent gmeow:intentConformsTo .
+
+# --- IPA phonological glyphs (the worked /kæt/ phone set) -------------------- #
+# Each segmental IPA symbol joins the shared GMN script codepoint-explicitly,
+# realizes an IPA-plane form, and denotes its lang:Phone. Its measured token
+# cost is one, so it earns a glyph slot.
+
+gmeow:gmnScript lang:hasGrapheme
+    gmeow:gmnGlyphIpaK ,
+    gmeow:gmnGlyphIpaAe ,
+    gmeow:gmnGlyphIpaT ,
+    gmeow:gmnGlyphAsterisk .
+
+gmeow:phoneVoicelessVelarPlosive
+    a owl:NamedIndividual , lang:Phone ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "voiceless velar plosive [k]"@x-gmeow-english ;
+    skos:definition "The voiceless velar plosive phone, notated [k] in the IPA — the onset segment of the worked phonological form /kæt/."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnGlyphIpaK
+    a owl:NamedIndividual , lang:Grapheme ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "IPA k"@x-gmeow-english ;
+    skos:definition "The IPA glyph [k] as a member of the shared GMN script repertoire: the codepoint-explicit rendering of the voiceless velar plosive, drawn from the IPA notation plane and costing a single token."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    lang:inScript gmeow:gmnScript ;
+    gmeow:gmnCodepoints "U+006B" ;
+    gmeow:gmnGlyphTokenCost gmeow:gmnTokenCostOne .
+
+gmeow:gmnFormIpaK
+    a owl:NamedIndividual , lang:WordForm ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the IPA [k] symbol form"@x-gmeow-english ;
+    skos:definition "The IPA-plane notational form the glyph [k] realizes — the sign whose denotation binds it to the voiceless velar plosive phone."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    lang:inSignSystem gmeow:ipaChart .
+
+gmeow:gmnDenIpaK
+    a owl:NamedIndividual , lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of IPA [k]"@x-gmeow-english ;
+    skos:definition "The reified meaning assignment binding the IPA [k] form to the voiceless velar plosive phone it denotes — the canonical fact the writer-projected glyph flattens."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    lang:denotedForm gmeow:gmnFormIpaK ;
+    lang:denotationKind lang:denotesEntity ;
+    lang:denotationTarget gmeow:phoneVoicelessVelarPlosive ;
+    lang:denotationContext gmeow:gmnLangGlyphContext .
+
+gmeow:phoneNearOpenFrontUnrounded
+    a owl:NamedIndividual , lang:Phone ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "near-open front unrounded vowel [æ]"@x-gmeow-english ;
+    skos:definition "The near-open front unrounded vowel phone, notated [æ] in the IPA — the nucleus segment of the worked phonological form /kæt/."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnGlyphIpaAe
+    a owl:NamedIndividual , lang:Grapheme ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "IPA æ"@x-gmeow-english ;
+    skos:definition "The IPA glyph [æ] as a member of the shared GMN script repertoire: the codepoint-explicit rendering of the near-open front unrounded vowel, drawn from the IPA notation plane and costing a single token."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    lang:inScript gmeow:gmnScript ;
+    gmeow:gmnCodepoints "U+00E6" ;
+    gmeow:gmnGlyphTokenCost gmeow:gmnTokenCostOne .
+
+gmeow:gmnFormIpaAe
+    a owl:NamedIndividual , lang:WordForm ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the IPA [æ] symbol form"@x-gmeow-english ;
+    skos:definition "The IPA-plane notational form the glyph [æ] realizes — the sign whose denotation binds it to the near-open front unrounded vowel phone."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    lang:inSignSystem gmeow:ipaChart .
+
+gmeow:gmnDenIpaAe
+    a owl:NamedIndividual , lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of IPA [æ]"@x-gmeow-english ;
+    skos:definition "The reified meaning assignment binding the IPA [æ] form to the near-open front unrounded vowel phone it denotes."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    lang:denotedForm gmeow:gmnFormIpaAe ;
+    lang:denotationKind lang:denotesEntity ;
+    lang:denotationTarget gmeow:phoneNearOpenFrontUnrounded ;
+    lang:denotationContext gmeow:gmnLangGlyphContext .
+
+gmeow:phoneVoicelessAlveolarPlosive
+    a owl:NamedIndividual , lang:Phone ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "voiceless alveolar plosive [t]"@x-gmeow-english ;
+    skos:definition "The voiceless alveolar plosive phone, notated [t] in the IPA — the coda segment of the worked phonological form /kæt/."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnGlyphIpaT
+    a owl:NamedIndividual , lang:Grapheme ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "IPA t"@x-gmeow-english ;
+    skos:definition "The IPA glyph [t] as a member of the shared GMN script repertoire: the codepoint-explicit rendering of the voiceless alveolar plosive, drawn from the IPA notation plane and costing a single token."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    lang:inScript gmeow:gmnScript ;
+    gmeow:gmnCodepoints "U+0074" ;
+    gmeow:gmnGlyphTokenCost gmeow:gmnTokenCostOne .
+
+gmeow:gmnFormIpaT
+    a owl:NamedIndividual , lang:WordForm ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the IPA [t] symbol form"@x-gmeow-english ;
+    skos:definition "The IPA-plane notational form the glyph [t] realizes — the sign whose denotation binds it to the voiceless alveolar plosive phone."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    lang:inSignSystem gmeow:ipaChart .
+
+gmeow:gmnDenIpaT
+    a owl:NamedIndividual , lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of IPA [t]"@x-gmeow-english ;
+    skos:definition "The reified meaning assignment binding the IPA [t] form to the voiceless alveolar plosive phone it denotes."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    lang:denotedForm gmeow:gmnFormIpaT ;
+    lang:denotationKind lang:denotesEntity ;
+    lang:denotationTarget gmeow:phoneVoicelessAlveolarPlosive ;
+    lang:denotationContext gmeow:gmnLangGlyphContext .
+
+# --- The ungrammaticality operator glyph ------------------------------------ #
+# `*` (U+002A) marks an ill-formed form. It costs one token, so it earns a
+# glyph slot; it shares its codepoint with math multiplication, so its reading
+# is pinned to the lang-AST record scope through gmeow:gmnSigilScope.
+
+gmeow:gmnGlyphAsterisk
+    a owl:NamedIndividual , lang:Grapheme ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "ungrammaticality asterisk"@x-gmeow-english ;
+    skos:definition "The `*` glyph (U+002A) as a member of the shared GMN script repertoire: the established linguistics notation for an ungrammatical form, costing a single token. Because the codepoint is reused by mathematical multiplication in the shared inventory, its linguistic reading is scoped to the lang-AST record role through gmeow:gmnSigilScope."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    lang:inScript gmeow:gmnScript ;
+    gmeow:gmnCodepoints "U+002A" ;
+    gmeow:gmnGlyphTokenCost gmeow:gmnTokenCostOne ;
+    gmeow:gmnSigilScope gmeow:gmnSigilLangAst .
+
+gmeow:gmnFormUngrammatical
+    a owl:NamedIndividual , lang:WordForm ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the GMN ungrammaticality operator"@x-gmeow-english ;
+    skos:definition "The GMN operator form the `*` glyph realizes — the sign whose denotation binds it to the ill-formedness it marks."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    lang:inSignSystem gmeow:gmnModelNotation .
+
+gmeow:gmnDenUngrammatical
+    a owl:NamedIndividual , lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of the ungrammaticality operator"@x-gmeow-english ;
+    skos:definition "The reified meaning assignment binding the `*` operator form to lang:LangConformanceFailure, the ill-formedness the standard linguistics notation marks."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    lang:denotedForm gmeow:gmnFormUngrammatical ;
+    lang:denotationKind lang:denotesEntity ;
+    lang:denotationTarget lang:LangConformanceFailure ;
+    lang:denotationContext gmeow:gmnLangGlyphContext .
+
+# --- Named-key rulings (symbols measured out of the glyph table) ------------- #
+# The ⟦·⟧ denotation brackets and the ⇝ translation leg each cost more than one
+# token, so — read off the crate-side measurement, not pre-committed — the
+# terms stay ASCII named keys and no ⟦/⟧/⇝ grapheme enters the script.
+
+gmeow:gmnFormDenotation
+    a owl:NamedIndividual , lang:WordForm ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the GMN denotation named key `den`"@x-gmeow-english ;
+    skos:definition "The GMN operator form for the denotation relation, rendered as the ASCII named key `den`. The established formal-semantics notation is the ⟦·⟧ bracket pair, but it costs more than one token under the pinned codebook vocabulary, so — read off the measurement — the denotation term stays a named key and ⟦/⟧ never enter the glyph table."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    lang:inSignSystem gmeow:gmnModelNotation .
+
+gmeow:gmnDenDenotation
+    a owl:NamedIndividual , lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of the `den` named key"@x-gmeow-english ;
+    skos:definition "The reified meaning assignment binding the `den` named key to lang:Denotation, the meaning-assignment relation of formal semantics it names."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    lang:denotedForm gmeow:gmnFormDenotation ;
+    lang:denotationKind lang:denotesEntity ;
+    lang:denotationTarget lang:Denotation ;
+    lang:denotationContext gmeow:gmnLangGlyphContext .
+
+gmeow:gmnFormTranslationLeg
+    a owl:NamedIndividual , lang:WordForm ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the GMN translation-leg named key `xl`"@x-gmeow-english ;
+    skos:definition "The GMN operator form for a translation leg, rendered as the ASCII named key `xl`. The established notation is the ⇝ squiggle arrow, but it costs three tokens under the pinned codebook vocabulary, so — read off the measurement — the translation-leg term stays a named key and ⇝ never enters the glyph table."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    lang:inSignSystem gmeow:gmnModelNotation .
+
+gmeow:gmnDenTranslationLeg
+    a owl:NamedIndividual , lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of the `xl` named key"@x-gmeow-english ;
+    skos:definition "The reified meaning assignment binding the `xl` named key to lang:Translation, the translation leg it names."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    lang:denotedForm gmeow:gmnFormTranslationLeg ;
+    lang:denotationKind lang:denotesEntity ;
+    lang:denotationTarget lang:Translation ;
+    lang:denotationContext gmeow:gmnLangGlyphContext .
+
+# --- Leipzig grammatical-gloss aliases -------------------------------------- #
+# The person value the plane needs for the 3SG portmanteau (the inventory
+# ships no person values yet); then every feature value the inventory carries
+# is dispositioned by its standard Leipzig gloss, so the coverage gate over the
+# feature-value population is green by construction and reds on any new value.
+
+lang:valThirdPerson
+    a owl:NamedIndividual , lang:FeatureValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "3"@x-gmeow-english ;
+    skos:definition "The third-person value of the Person feature — the value the Leipzig gloss 3 abbreviates and the person half of the 3SG portmanteau."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    lang:inFeatureInventory lang:udUniversalFeatures .
+
+gmeow:gmnGlossNom
+    a owl:NamedIndividual , lang:WordForm ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "Leipzig gloss NOM"@x-gmeow-english ;
+    skos:definition "The Leipzig interlinear gloss NOM, a named-key alias of the Leipzig plane for the nominative case value."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    lang:inSignSystem gmeow:leipzigGlossingRules .
+
+gmeow:gmnGlossNomDenotation
+    a owl:NamedIndividual , lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of Leipzig NOM"@x-gmeow-english ;
+    skos:definition "The reified meaning assignment binding the Leipzig gloss NOM to the nominative case value lang:valNom."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    lang:denotedForm gmeow:gmnGlossNom ;
+    lang:denotationKind lang:denotesEntity ;
+    lang:denotationTarget lang:valNom ;
+    lang:denotationContext gmeow:gmnLangGlyphContext .
+
+gmeow:gmnGlossAcc
+    a owl:NamedIndividual , lang:WordForm ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "Leipzig gloss ACC"@x-gmeow-english ;
+    skos:definition "The Leipzig interlinear gloss ACC, a named-key alias of the Leipzig plane for the accusative case value."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    lang:inSignSystem gmeow:leipzigGlossingRules .
+
+gmeow:gmnGlossAccDenotation
+    a owl:NamedIndividual , lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of Leipzig ACC"@x-gmeow-english ;
+    skos:definition "The reified meaning assignment binding the Leipzig gloss ACC to the accusative case value lang:valAcc."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    lang:denotedForm gmeow:gmnGlossAcc ;
+    lang:denotationKind lang:denotesEntity ;
+    lang:denotationTarget lang:valAcc ;
+    lang:denotationContext gmeow:gmnLangGlyphContext .
+
+gmeow:gmnGlossPl
+    a owl:NamedIndividual , lang:WordForm ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "Leipzig gloss PL"@x-gmeow-english ;
+    skos:definition "The Leipzig interlinear gloss PL, a named-key alias of the Leipzig plane for the plural number value."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    lang:inSignSystem gmeow:leipzigGlossingRules .
+
+gmeow:gmnGlossPlDenotation
+    a owl:NamedIndividual , lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of Leipzig PL"@x-gmeow-english ;
+    skos:definition "The reified meaning assignment binding the Leipzig gloss PL to the plural number value lang:valPlur."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    lang:denotedForm gmeow:gmnGlossPl ;
+    lang:denotationKind lang:denotesEntity ;
+    lang:denotationTarget lang:valPlur ;
+    lang:denotationContext gmeow:gmnLangGlyphContext .
+
+gmeow:gmnGlossSg
+    a owl:NamedIndividual , lang:WordForm ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "Leipzig gloss SG"@x-gmeow-english ;
+    skos:definition "The Leipzig interlinear gloss SG, a named-key alias of the Leipzig plane for the singular number value."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    lang:inSignSystem gmeow:leipzigGlossingRules .
+
+gmeow:gmnGlossSgDenotation
+    a owl:NamedIndividual , lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of Leipzig SG"@x-gmeow-english ;
+    skos:definition "The reified meaning assignment binding the Leipzig gloss SG to the singular number value lang:valSing."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    lang:denotedForm gmeow:gmnGlossSg ;
+    lang:denotationKind lang:denotesEntity ;
+    lang:denotationTarget lang:valSing ;
+    lang:denotationContext gmeow:gmnLangGlyphContext .
+
+gmeow:gmnGlossPst
+    a owl:NamedIndividual , lang:WordForm ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "Leipzig gloss PST"@x-gmeow-english ;
+    skos:definition "The Leipzig interlinear gloss PST, a named-key alias of the Leipzig plane for the past tense value."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    lang:inSignSystem gmeow:leipzigGlossingRules .
+
+gmeow:gmnGlossPstDenotation
+    a owl:NamedIndividual , lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of Leipzig PST"@x-gmeow-english ;
+    skos:definition "The reified meaning assignment binding the Leipzig gloss PST to the past tense value lang:valPast."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    lang:denotedForm gmeow:gmnGlossPst ;
+    lang:denotationKind lang:denotesEntity ;
+    lang:denotationTarget lang:valPast ;
+    lang:denotationContext gmeow:gmnLangGlyphContext .
+
+gmeow:gmnGlossPrs
+    a owl:NamedIndividual , lang:WordForm ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "Leipzig gloss PRS"@x-gmeow-english ;
+    skos:definition "The Leipzig interlinear gloss PRS, a named-key alias of the Leipzig plane for the present tense value."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    lang:inSignSystem gmeow:leipzigGlossingRules .
+
+gmeow:gmnGlossPrsDenotation
+    a owl:NamedIndividual , lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of Leipzig PRS"@x-gmeow-english ;
+    skos:definition "The reified meaning assignment binding the Leipzig gloss PRS to the present tense value lang:valPres."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    lang:denotedForm gmeow:gmnGlossPrs ;
+    lang:denotationKind lang:denotesEntity ;
+    lang:denotationTarget lang:valPres ;
+    lang:denotationContext gmeow:gmnLangGlyphContext .
+
+gmeow:gmnGlossThird
+    a owl:NamedIndividual , lang:WordForm ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "Leipzig gloss 3"@x-gmeow-english ;
+    skos:definition "The Leipzig interlinear gloss 3, a named-key alias of the Leipzig plane for the third-person value."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    lang:inSignSystem gmeow:leipzigGlossingRules .
+
+gmeow:gmnGlossThirdDenotation
+    a owl:NamedIndividual , lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of Leipzig 3"@x-gmeow-english ;
+    skos:definition "The reified meaning assignment binding the Leipzig gloss 3 to the third-person value lang:valThirdPerson."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    lang:denotedForm gmeow:gmnGlossThird ;
+    lang:denotationKind lang:denotesEntity ;
+    lang:denotationTarget lang:valThirdPerson ;
+    lang:denotationContext gmeow:gmnLangGlyphContext .
+
+gmeow:gmnGloss3Sg
+    a owl:NamedIndividual , lang:WordForm ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "Leipzig gloss 3SG"@x-gmeow-english ;
+    skos:definition "The Leipzig portmanteau gloss 3SG, a named-key alias of the Leipzig plane condensing the third-person and singular values into one interlinear label."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    lang:inSignSystem gmeow:leipzigGlossingRules .
+
+gmeow:gmnGloss3SgDenotation
+    a owl:NamedIndividual , lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of Leipzig 3SG"@x-gmeow-english ;
+    skos:definition "The reified meaning assignment binding the Leipzig portmanteau gloss 3SG to both the third-person value lang:valThirdPerson and the singular number value lang:valSing it condenses."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    lang:denotedForm gmeow:gmnGloss3Sg ;
+    lang:denotationKind lang:denotesEntity ;
+    lang:denotationTarget lang:valThirdPerson , lang:valSing ;
+    lang:denotationContext gmeow:gmnLangGlyphContext .
+
+# --- Codebook wiring -------------------------------------------------------- #
+# The current codebook references the two imported alias planes alongside the
+# GMN script and sigils it already holds, so a reader that holds the codebook
+# holds the linguistic plane's cited, versioned repertoire.
+
+gmeow:gmnCodebookCurrent gmeow:references
+    gmeow:ipaChart ,
+    gmeow:leipzigGlossingRules .
