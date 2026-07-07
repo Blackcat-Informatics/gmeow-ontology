@@ -3133,6 +3133,32 @@ lang:GmnNonDecodableGrammar
 # crate-side token-cost measurement, never pre-committed.                     #
 # =========================================================================== #
 
+# --- Plane + coverage vocabulary -------------------------------------------- #
+
+lang:GmnImportedPlane
+    a owl:Class ;
+    rdfs:subClassOf lang:SignSystem ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN Imported Plane"@x-gmeow-english ;
+    skos:definition "An external notation or gloss standard imported verbatim into the GMN symbology inventory — the IPA chart, the Leipzig Glossing Rules — as a first-class lang:SignSystem the codebook references. An imported plane is imported by reference, never re-minted, so it must carry both its citation (gmeow:cites, typed by a gmeow:CitationAct) and its version (dcterms:hasVersion): a plane without a citation or a version is an unattributed or unpinned import, and the alias table it stands for is meaningless without the edition it was drawn from."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+lang:GmnUndispositionedTerm
+    a owl:Class ;
+    rdfs:subClassOf lang:LangConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN Undispositioned Term"@x-gmeow-english ;
+    skos:definition "The graph-side coverage failure: a lang: term the GMN linguistic surface emits — a morphological lang:FeatureValue of the feature inventory — that carries no disposition in the symbology plane, no lang:Denotation binding it to a glyph, a named key, or an imported alias. Coverage is total by rule: every emitted term is glyphed, alias-planed, or named-key-ruled, so an undispositioned term is a silent gap in the plane. It is distinct from lang:GmnUncoveredTerm, which is the writer-tier failure of a document token the pinned dictionary cannot resolve at emit time; this one is authoring-time completeness a SHACL shape sees in the graph."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+lang:GmnUnattributedPlane
+    a owl:Class ;
+    rdfs:subClassOf lang:LangConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN Unattributed Plane"@x-gmeow-english ;
+    skos:definition "The failure raised when a lang:GmnImportedPlane omits its citation or its version: an imported notation or gloss standard is imported verbatim by reference, so it is meaningless without both the gmeow:cites edge naming the source work and the dcterms:hasVersion literal pinning the edition the aliases were drawn from. An unattributed or unpinned plane is an import that cannot be audited or resolved."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
 # --- The per-glyph token-cost feed ------------------------------------------ #
 
 gmeow:gmnGlyphTokenCost
@@ -3172,7 +3198,7 @@ gmeow:gmnLangGlyphContext
 # re-minted. The codebook references them alongside the GMN script and sigils.
 
 gmeow:ipaChart
-    a owl:NamedIndividual , lang:SignSystem ;
+    a owl:NamedIndividual , lang:SignSystem , lang:GmnImportedPlane ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "International Phonetic Alphabet"@x-gmeow-english ;
     skos:definition "The International Phonetic Alphabet as an imported notation plane: the lang:SignSystem the GMN linguistic surface draws its phonological glyphs from, imported by citation rather than re-minted. lang:Phone content is notated in IPA, and each IPA glyph the plane admits joins the shared GMN script by reference to this plane's cited, versioned repertoire."@x-gmeow-english ;
@@ -3210,7 +3236,7 @@ gmeow:ipaChartCitation
     gmeow:citationIntent gmeow:intentConformsTo .
 
 gmeow:leipzigGlossingRules
-    a owl:NamedIndividual , lang:SignSystem ;
+    a owl:NamedIndividual , lang:SignSystem , lang:GmnImportedPlane ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "Leipzig Glossing Rules"@x-gmeow-english ;
     skos:definition "The Leipzig Glossing Rules as an imported alias plane: the lang:SignSystem whose standard interlinear-gloss abbreviations (NOM, ACC, PL, SG, PST, PRS, the person values, the morpheme boundary) the GMN linguistic surface imports verbatim by citation. Each gloss is a named-key alias denoting a lang: grammatical-feature term, never a re-minted parallel code."@x-gmeow-english ;

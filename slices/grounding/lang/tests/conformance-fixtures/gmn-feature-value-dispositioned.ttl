@@ -1,0 +1,24 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Conforming fixture: a lang:FeatureValue dispositioned by a named-key lang:Denotation
+# binding it into the Leipzig alias plane. The full denotation record (form situated in a
+# sign system, kind, target, context) keeps lang:DenotationRecordShape and
+# lang:FormSituatedShape quiet, and the target edge keeps lang:GmnLangCoverageShape quiet.
+
+@prefix lang:  <https://blackcatinformatics.ca/lang/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <http://example.org/lang/> .
+
+ex:valDispositioned a lang:FeatureValue ;
+    lang:inFeatureInventory lang:udUniversalFeatures .
+
+ex:glossDispositioned a lang:WordForm ;
+    lang:inSignSystem gmeow:leipzigGlossingRules .
+
+ex:denDispositioned a lang:Denotation ;
+    lang:denotedForm ex:glossDispositioned ;
+    lang:denotationKind lang:denotesEntity ;
+    lang:denotationTarget ex:valDispositioned ;
+    lang:denotationContext ex:ctxDispositioned .
+
+ex:ctxDispositioned a gmeow:InformationObject .
