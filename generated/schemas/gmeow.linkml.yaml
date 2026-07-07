@@ -96,6 +96,14 @@ classes:
     is_a: Emotion
     slots:
     - affectiveConstituent
+  AffectDecision:
+    class_uri: https://blackcatinformatics.ca/gmeow/AffectDecision
+    title: Affect Decision
+    is_a: Observation
+    slots:
+    - decidedLabel
+    - decisionCrossedThreshold
+    - decisionMargin
   AffectEvaluationConcluded:
     class_uri: https://blackcatinformatics.ca/gmeow/AffectEvaluationConcluded
     title: Affect Evaluation Concluded
@@ -107,6 +115,8 @@ classes:
     class_uri: https://blackcatinformatics.ca/gmeow/AffectLabelSet
     title: Affect Label Set
     is_a: InformationObject
+    slots:
+    - labelSetDecision
   AffectScaleProfile:
     class_uri: https://blackcatinformatics.ca/gmeow/AffectScaleProfile
     title: Affect Scale Profile
@@ -1162,7 +1172,6 @@ classes:
     title: Derived Affect Intensity Observation
     is_a: Observation
     slots:
-    - derivedByFunction
     - intensityBasis
     - metricProfile
     - normFunction
@@ -2214,6 +2223,9 @@ classes:
     - knowledgeProficiencyLevel
     - knowledgeProficiencyScale
     - knowledgeProficiencySubject
+  LabelSetDecisionRule:
+    class_uri: https://blackcatinformatics.ca/gmeow/LabelSetDecisionRule
+    title: Label Set Decision Rule
   LandTenure:
     class_uri: https://blackcatinformatics.ca/gmeow/LandTenure
     title: Land Tenure
@@ -2962,6 +2974,7 @@ classes:
     title: Observation
     slots:
     - credibilityScore
+    - derivedByFunction
     - facetSubject
     - facetVantage
     - observationEvent
@@ -3849,6 +3862,8 @@ classes:
   ScoreSemantics:
     class_uri: https://blackcatinformatics.ca/gmeow/ScoreSemantics
     title: Score Semantics
+    slots:
+    - impliesLabelSetDecision
   ScriptLanguageAttribution:
     class_uri: https://blackcatinformatics.ca/gmeow/ScriptLanguageAttribution
     title: Script Language Attribution
@@ -6701,11 +6716,29 @@ slots:
     range: StandpointClaim
     domain: Event
     multivalued: true
+  decidedLabel:
+    slot_uri: https://blackcatinformatics.ca/gmeow/decidedLabel
+    title: decided label
+    range: AffectClassifierLabel
+    domain: AffectDecision
+    multivalued: false
   decisionConstraint:
     slot_uri: https://blackcatinformatics.ca/gmeow/decisionConstraint
     title: decision constraint
     range: TraversalConstraint
     domain: PerformanceDecision
+    multivalued: false
+  decisionCrossedThreshold:
+    slot_uri: https://blackcatinformatics.ca/gmeow/decisionCrossedThreshold
+    title: decision crossed threshold
+    range: boolean
+    domain: AffectDecision
+    multivalued: false
+  decisionMargin:
+    slot_uri: https://blackcatinformatics.ca/gmeow/decisionMargin
+    title: decision margin
+    range: decimal
+    domain: AffectDecision
     multivalued: false
   decisionPerformance:
     slot_uri: https://blackcatinformatics.ca/gmeow/decisionPerformance
@@ -6882,7 +6915,7 @@ slots:
     slot_uri: https://blackcatinformatics.ca/gmeow/derivedByFunction
     title: derived by function
     range: AffectFunction
-    domain: DerivedAffectIntensityObservation
+    domain: Observation
     multivalued: true
   derivedFromSpectrum:
     slot_uri: https://blackcatinformatics.ca/gmeow/derivedFromSpectrum
@@ -9568,6 +9601,12 @@ slots:
     range: Entity
     domain: Event
     multivalued: true
+  impliesLabelSetDecision:
+    slot_uri: https://blackcatinformatics.ca/gmeow/impliesLabelSetDecision
+    title: implies label set decision
+    range: LabelSetDecisionRule
+    domain: ScoreSemantics
+    multivalued: true
   importance:
     slot_uri: https://blackcatinformatics.ca/gmeow/importance
     title: importance
@@ -10100,6 +10139,12 @@ slots:
     range: uriorcurie
     domain: Agent
     multivalued: true
+  labelSetDecision:
+    slot_uri: https://blackcatinformatics.ca/gmeow/labelSetDecision
+    title: label set decision
+    range: LabelSetDecisionRule
+    domain: AffectLabelSet
+    multivalued: false
   labelSetRevision:
     slot_uri: https://blackcatinformatics.ca/gmeow/labelSetRevision
     title: label-set revision
@@ -14797,6 +14842,9 @@ enums:
       fnAffectiveIntensity:
         meaning: https://blackcatinformatics.ca/gmeow/fnAffectiveIntensity
         title: affective intensity
+      fnArgmax:
+        meaning: https://blackcatinformatics.ca/gmeow/fnArgmax
+        title: argmax (categorical mode)
   AffectScaleProfileEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/AffectScaleProfile
     permissible_values:
@@ -18136,6 +18184,15 @@ enums:
       knowledgeUnderstands:
         meaning: https://blackcatinformatics.ca/gmeow/knowledgeUnderstands
         title: 'knowledge: understands'
+  LabelSetDecisionRuleEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/LabelSetDecisionRule
+    permissible_values:
+      decisionArgmax:
+        meaning: https://blackcatinformatics.ca/gmeow/decisionArgmax
+        title: argmax (single-label)
+      decisionIndependentThreshold:
+        meaning: https://blackcatinformatics.ca/gmeow/decisionIndependentThreshold
+        title: independent threshold (multi-label)
   LandTenureTypeEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/LandTenureType
     permissible_values:
@@ -19582,6 +19639,9 @@ enums:
       fixtureMIRTimbreObservation:
         meaning: https://blackcatinformatics.ca/gmeow/fixtureMIRTimbreObservation
         title: MIR timbre observation fixture
+      tenurePositionReificationObligation:
+        meaning: https://blackcatinformatics.ca/gmeow/tenurePositionReificationObligation
+        title: tenure-position reification obligation
   ObservationMethodEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/ObservationMethod
     permissible_values:

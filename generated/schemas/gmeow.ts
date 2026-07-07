@@ -51,6 +51,7 @@ export enum AffectCompositeEnum {
 
 export enum AffectFunctionEnum {
     fnAffectiveIntensity = "fnAffectiveIntensity",
+    fnArgmax = "fnArgmax",
 }
 
 export enum AffectScaleProfileEnum {
@@ -1426,6 +1427,11 @@ export enum KnowledgeLevelEnum {
     knowledgeUnderstands = "knowledgeUnderstands",
 }
 
+export enum LabelSetDecisionRuleEnum {
+    decisionArgmax = "decisionArgmax",
+    decisionIndependentThreshold = "decisionIndependentThreshold",
+}
+
 export enum LandTenureTypeEnum {
     tenureTypeCrownLease = "tenureTypeCrownLease",
     tenureTypeEasement = "tenureTypeEasement",
@@ -2010,6 +2016,7 @@ export enum ObservablePropertyEnum {
 export enum ObservationEnum {
     fixtureHumanTimbreObservation = "fixtureHumanTimbreObservation",
     fixtureMIRTimbreObservation = "fixtureMIRTimbreObservation",
+    tenurePositionReificationObligation = "tenurePositionReificationObligation",
 }
 
 export enum ObservationMethodEnum {
@@ -3380,6 +3387,12 @@ export interface AffectComposite extends Emotion {
     affectiveConstituent?: string[],
 }
 
+export interface AffectDecision extends Observation {
+    decidedLabel?: AffectClassifierLabel,
+    decisionCrossedThreshold?: boolean,
+    decisionMargin?: number,
+}
+
 export interface AffectEvaluationConcluded extends Observation {
 }
 
@@ -3387,6 +3400,7 @@ export interface AffectFunction {
 }
 
 export interface AffectLabelSet extends InformationObject {
+    labelSetDecision?: LabelSetDecisionRule,
 }
 
 export interface AffectScaleProfile extends InformationObject {
@@ -4256,7 +4270,6 @@ export interface DerivationType {
 }
 
 export interface DerivedAffectIntensityObservation extends Observation {
-    derivedByFunction?: AffectFunction[],
     intensityBasis?: AffectVectorObservation,
     metricProfile?: AffectScaleProfile,
     normFunction?: string,
@@ -5135,6 +5148,9 @@ export interface KnowledgeProficiency {
     knowledgeProficiencySubject?: Entity,
 }
 
+export interface LabelSetDecisionRule {
+}
+
 export interface LandTenure extends TimeScopedRelation {
     tenureDeterminacy?: Determinacy[],
     tenureParty?: Agent,
@@ -5751,6 +5767,7 @@ export interface ObservableProperty {
 
 export interface Observation {
     credibilityScore?: number[],
+    derivedByFunction?: AffectFunction[],
     facetSubject?: Person[],
     facetVantage?: Agent[],
     observationEvent?: Event[],
@@ -6479,6 +6496,7 @@ export interface ScoreScale extends InformationObject {
 }
 
 export interface ScoreSemantics {
+    impliesLabelSetDecision?: LabelSetDecisionRule[],
 }
 
 export interface ScriptLanguageAttribution extends Observation {
