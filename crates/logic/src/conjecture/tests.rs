@@ -168,6 +168,48 @@ fn kb_refutes_candidate_is_refuted_in_standpoint_with_witness() {
     assert_eq!(witness.premises, sorted, "premises must be sorted");
 }
 
+// ── Test 3b: KB supports BOTH φ and ¬φ ⇒ genuine Both glut ────────────────────
+
+#[test]
+fn kb_supporting_both_phi_and_not_phi_is_a_genuine_both_glut() {
+    // The promised Both-quadrant hard surface. The KB commits, from ONE standpoint, to BOTH
+    // the candidate φ = rdf:type(a, B) — it directly asserts a:B (told TRUE) — AND its
+    // negation ¬φ — a:A with A disjointWith B refutes a:B (told FALSE). Because the φ leg
+    // (redundant: a:B already entailed) and the ¬φ leg (asserting a:B clashes) are computed
+    // INDEPENDENTLY, both fire ⇒ classify → Both. This is a within-standpoint contradiction
+    // LOCALIZED to the candidate proposition, which is testable (a genuine glut about φ),
+    // NOT a foreign inconsistency (contrast already_inconsistent_kb_is_hard_error, candidate
+    // a:C, which the base neither entails nor genuinely refutes → hard error).
+    let store = kb(&[
+        (IND_A, TYPE, A_CLS),
+        (IND_A, TYPE, B_CLS),
+        (A_CLS, DISJOINT, B_CLS),
+    ]);
+    let candidate = binary_atom(TYPE, IND_A, B_CLS);
+    let ans = conjecture_test(&store, SCN, &candidate, STANDPOINT, &[], &Budget::default())
+        .expect("a glut localized to the candidate is testable, not a hard error");
+
+    assert_eq!(
+        ans.verdict.information,
+        InformationState::Both,
+        "the KB entails φ (a:B redundant) AND refutes φ (a:A ⊓ A⊓B disjoint) ⇒ Belnap glut"
+    );
+    assert_eq!(ans.lifecycle, ConjectureLifecycleState::RefutedInStandpoint);
+    assert_eq!(ans.discharge, ConjectureDischarge::Discharged);
+    let witness = ans
+        .witness
+        .expect("a Both glut MUST name its contradiction witness (validate() invariant)");
+    assert_eq!(witness.individual, IND_A);
+    assert!(
+        !witness.premises.is_empty(),
+        "the glut witness carries the premises that entailed the clash"
+    );
+    // The result invariants hold: a Both must carry a witness or a proof+counterproof pair.
+    ans.verdict
+        .validate()
+        .expect("a Both carrying its witness satisfies the ReasoningResult invariants");
+}
+
 // ── Test 4: conclusively independent ⇒ Neither, Open, Discharged ──────────────
 
 #[test]
@@ -277,8 +319,11 @@ fn disjunctive_head_is_unsupported_with_disclosed_residue() {
 
 #[test]
 fn already_inconsistent_kb_is_hard_error() {
-    // KB already forces a into owl:Nothing (a:A, a:B, A disjointWith B) BEFORE any candidate:
-    // a conjecture cannot be tested against a contradictory world ⇒ Err.
+    // KB already forces a into owl:Nothing (a:A, a:B, A disjointWith B), but the candidate
+    // a:C is UNRELATED to that glut: the base neither entails a:C (not redundant) nor
+    // genuinely refutes it. Testing against a world contradictory for foreign reasons is
+    // ex-falso-meaningless ⇒ hard Err. (Contrast candidate a:B, which the base both entails
+    // and refutes → a genuine Both glut; see kb_supporting_both_phi_and_not_phi_*.)
     let store = kb(&[
         (IND_A, TYPE, A_CLS),
         (IND_A, TYPE, B_CLS),
@@ -289,7 +334,7 @@ fn already_inconsistent_kb_is_hard_error() {
         conjecture_test(&store, SCN, &candidate, STANDPOINT, &[], &Budget::default()).unwrap_err();
     assert!(
         err.contains("ALREADY") && err.contains("inconsistent"),
-        "the hard inconsistent-KB surface must be reported: {err}"
+        "the hard foreign-inconsistency surface must be reported: {err}"
     );
 }
 
@@ -337,6 +382,23 @@ fn assume_context_facts_participate_in_the_scenario() {
     .expect("conjecture_test ok");
     assert_eq!(ans.lifecycle, ConjectureLifecycleState::RefutedInStandpoint);
     assert!(ans.witness.is_some());
+}
+
+// ── the ¬φ leg genuinely constructs the strong negation ──────────────────────
+
+#[test]
+fn negate_candidate_wraps_the_formula_in_strong_negation() {
+    // The second leg of the symmetric test constructs ¬φ as logic: strong negation, and its
+    // content identity is the alpha-normalized negation of φ's — never negation-as-failure.
+    let phi = binary_atom(KNOWS, ALICE, BOB);
+    let neg = negate_candidate(&phi);
+    match &neg {
+        Formula::Not(inner) => assert_eq!(
+            **inner, phi,
+            "¬φ must wrap the untouched candidate so its content_key negates φ's"
+        ),
+        other => panic!("negate_candidate must build a strong negation, got {other:?}"),
+    }
 }
 
 // ── lifecycle / discharge enum round-trips ───────────────────────────────────

@@ -186,5 +186,7 @@ skip = "uv.lock,Cargo.lock,*.svg,*.png,*.po,imports,imports/*,tests/fixtures/cov
 # object-term local in the CLIF writer triple codec, parallel to st/pt),
 # covert (the linguistics term for a covert form — a phonologically null but
 # syntactically present element, opp. of overt), pres (the Leipzig-glossing
-# abbreviation for the Present grammatical tense).
-ignore-words-list = "lod,derails,gmeow,nmo,gufo,nd,opne,ned,intoto,crate,ser,fpr,beng,fo,te,intensional,intensionally,intension,hendler,pease,vor,ans,notin,fof,ehr,sme,ore,lits,ot,covert,pres"
+# abbreviation for the Present grammatical tense), falso (the Latin term in
+# "ex falso quodlibet" — the principle of explosion — not a misspelling of
+# "false").
+ignore-words-list = "lod,derails,gmeow,nmo,gufo,nd,opne,ned,intoto,crate,ser,fpr,beng,fo,te,intensional,intensionally,intension,hendler,pease,vor,ans,notin,fof,ehr,sme,ore,lits,ot,covert,pres,falso"

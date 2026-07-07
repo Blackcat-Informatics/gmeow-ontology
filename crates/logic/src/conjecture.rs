@@ -9,7 +9,7 @@
 //! candidate [`Formula`] — crucially including a universally-quantified Horn implication
 //! `∀x. body → head`, which is lowered to an evaluable rule and RESOLVED, never refused.
 //!
-//! # The symmetric test
+//! # The symmetric test — two independent legs, `φ` and `¬φ`
 //!
 //! The candidate `φ` is tested inside a fresh, ISOLATED scenario world built as
 //! `KB ∪ assume_context` (the input KB is borrowed `&` and never mutated — isolation is
@@ -21,14 +21,30 @@
 //! * `with_phi` — the closure WITH `φ` asserted (a ground fact added to the EDB, or the
 //!   candidate program `P_phi` evaluated over the EDB).
 //!
-//! The Belnap verdict follows symmetrically:
+//! The verdict comes from two GENUINELY INDEPENDENT legs — support for `φ` and support for
+//! its constructed strong negation `¬φ` ([`negate_candidate`]) — so
+//! [`InformationState::classify`] can land in any Belnap quadrant, `Both` included:
 //!
-//! * **counterproof** — `with_phi` is DL-inconsistent (asserting `φ` forces an
-//!   `owl:Nothing` clash): the KB REFUTES `φ`. The first
+//! * **`φ` leg (proof)** — `with_phi` added NOTHING NEW versus `base` (the candidate is
+//!   redundant given the KB ⟹ the KB's canonical model already satisfies `φ` ⟹ `KB ⊨ φ`).
+//!   Redundancy compares the derived triple SETS. This leg does NOT depend on the
+//!   consistency of `with_phi`, so it stays true even when the `¬φ` leg also fires.
+//! * **`¬φ` leg (counterproof)** — `KB ⊨ ¬φ`, decided SOUNDLY AND COMPLETELY over the
+//!   supported fragment by the inconsistency of asserting `φ`: `KB ∪ {φ} ⊨ ⊥ ⟺ KB ⊨ ¬φ`
+//!   ([`kb_entails_negation`]). For a ground literal `¬φ` is the direct clash; for a
+//!   `∀x. body → head` the negation `∃x. body ∧ ¬head` is EXISTENTIAL and chase-inexpressible
+//!   to *lower*, yet is decided WITHOUT lowering it — the clash on the asserted rule
+//!   materializes the body-instance witness that forces the head false. The first
 //!   [`ContradictionWitness`](crate::result::ContradictionWitness) is surfaced.
-//! * **proof** — `with_phi` is consistent AND added NOTHING NEW versus `base` (the
-//!   candidate is redundant given the KB ⟹ the KB's canonical model already satisfies
-//!   `φ` ⟹ `KB ⊨ φ`). Redundancy compares the derived triple SETS.
+//!
+//! Because the two legs are independent, a KB that both entails `φ` (redundant) AND refutes
+//! it (asserting `φ` clashes) yields the Belnap glut `Both`. That co-support is exactly a
+//! within-standpoint contradiction ABOUT `φ`: the base is a glut LOCALIZED to the candidate
+//! proposition — it entails `φ` while its disjointness/negative-assertion axioms refute `φ`.
+//! A base whose inconsistency is UNRELATED to the candidate (it entails neither `φ` nor a
+//! genuine `φ`-refutation) is still a hard error: a conjecture cannot be tested against a
+//! world contradictory for foreign reasons (ex falso would make every candidate both
+//! entailed and refuted). See the base-consistency guard in [`conjecture_test`].
 //!
 //! A candidate whose lowering produced ZERO evaluable content (fully beyond the
 //! Horn-expressible fragment — a disjunctive head, an existential-as-goal, strong
@@ -288,17 +304,12 @@ pub fn conjecture_test(
     // (1) The scenario EDB = KB ∪ assume_context. The input KB is copied in, never mutated.
     let base_edb = build_scenario_edb(kb, scenario_world, assume_context, None)?;
 
-    // (3a) `base` — the closure with NO candidate, carrying the DL consistency verdict.
+    // (3a) `base` — the closure with NO candidate, carrying the DL consistency verdict. The
+    //      up-front consistency check is deferred until the two legs are computed: a base that
+    //      is inconsistent SPECIFICALLY about the candidate (it entails both `φ` and `¬φ`) is a
+    //      genuine, testable within-standpoint glut, whereas a base inconsistent for FOREIGN
+    //      reasons is a hard error (see the guard below).
     let base = reason_all(&base_edb)?;
-    if !base.is_consistent() {
-        return Err(format!(
-            "conjecture_test: the scenario KB in world <{scenario_world}> is ALREADY \
-             inconsistent before the candidate is asserted; a conjecture cannot be tested \
-             against a contradictory world (every proposition is both entailed and refuted). \
-             witnesses: {:?}",
-            base.provenance.contradiction_witnesses
-        ));
-    }
 
     // (2) Route the candidate: a trivially-Horn ground atom is a fact in the EDB; every
     //     other formula is a program `P_phi` reason_program lowers and evaluates.
@@ -328,14 +339,35 @@ pub fn conjecture_test(
         }
     };
 
-    // (4) The Belnap inputs.
-    // Asserting φ forces an inconsistency ⟹ the KB refutes φ.
-    let has_counterproof = !with_phi.is_consistent();
-    // φ is redundant (KB ⊨ φ) iff its closure added NO new derived triple versus `base` — a
-    // proof only when φ contributed evaluable content and the run stayed consistent.
+    // (4) The Belnap inputs — two INDEPENDENT legs (φ and ¬φ).
+    // ¬φ leg (counterproof): KB ⊨ ¬φ, decided soundly & completely by the inconsistency of
+    // asserting φ (KB ∪ {φ} ⊨ ⊥ ⟺ KB ⊨ ¬φ). `negate_candidate` names the leg being decided.
+    let neg_phi = negate_candidate(candidate);
+    let has_counterproof = kb_entails_negation(&neg_phi, &with_phi);
+    // φ leg (proof): φ is redundant (KB ⊨ φ) iff its closure added NO new derived triple
+    // versus `base` — a proof whenever φ contributed evaluable content. This leg is
+    // DELIBERATELY independent of `with_phi`'s consistency: over a consistent base a redundant
+    // φ can never clash (so proof and counterproof stay mutually exclusive there), but over a
+    // base that ALREADY entails φ while refuting it, both legs fire and the verdict is `Both`.
     let redundant = triple_set(with_phi.inferred()) == triple_set(base.inferred());
-    let has_proof = semantics_available && with_phi.is_consistent() && redundant;
+    let has_proof = semantics_available && redundant;
     let conclusive = with_phi.is_conclusive();
+
+    // (4a) The base-consistency guard, now leg-aware. A base inconsistent SPECIFICALLY about
+    //      the candidate (it entails φ AND refutes φ) is a genuine within-standpoint glut and
+    //      is testable → falls through to a `Both` verdict. A base inconsistent for reasons
+    //      UNRELATED to the candidate (it does not entail φ, or does not genuinely refute it)
+    //      cannot host a meaningful test — ex falso would make every proposition both entailed
+    //      and refuted — so it stays a hard error.
+    if !base.is_consistent() && !(has_proof && has_counterproof) {
+        return Err(format!(
+            "conjecture_test: the scenario KB in world <{scenario_world}> is ALREADY \
+             inconsistent for a reason UNRELATED to the candidate (it neither entails the \
+             candidate nor genuinely refutes it), so the candidate cannot be tested against it \
+             — ex falso would make every proposition both entailed and refuted. witnesses: {:?}",
+            base.provenance.contradiction_witnesses
+        ));
+    }
 
     // (6) Budget as a post-hoc closure-size ceiling ABOVE the oracle (never handed to Nemo).
     let derived_closure_size = with_phi.inferred().iter().filter(|a| !a.is_edb).count() as u64;
@@ -501,6 +533,31 @@ fn as_ground_fact(candidate: &Formula) -> Result<Option<(String, String, RdfTerm
         }
     };
     Ok(Some((subject, predicate.clone(), object)))
+}
+
+/// Construct the strong (explicit) negation `¬φ` of the candidate — the second leg of the
+/// symmetric test. This is `logic:` strong negation ([`Formula::Not`]), DISTINCT from
+/// negation-as-failure: it names the proposition the counterproof leg decides. The candidate
+/// AST is cloned untouched, so `¬φ`'s content identity is the alpha-normalized negation of
+/// `φ`'s.
+fn negate_candidate(candidate: &Formula) -> Formula {
+    Formula::Not(Box::new(candidate.clone()))
+}
+
+/// Decide the `¬φ` leg: does the KB entail `¬φ`? Over the supported fragment (ground literals
+/// and the `∀`-Horn implication) this is decided SOUNDLY AND COMPLETELY by the inconsistency
+/// of asserting `φ` — `KB ∪ {φ} ⊨ ⊥ ⟺ KB ⊨ ¬φ` — so the existential negation of a `∀`-Horn is
+/// witnessed by the clash on the asserted rule WITHOUT lowering the (chase-inexpressible)
+/// `∃x. body ∧ ¬head`. `neg_phi` is the constructed negation this leg tests; `with_phi` is its
+/// sound evaluator (the closure with `φ` asserted).
+fn kb_entails_negation(neg_phi: &Formula, with_phi: &ReasoningResult) -> bool {
+    debug_assert!(
+        matches!(neg_phi, Formula::Not(_)),
+        "the ¬φ leg must test a strong negation, got {neg_phi:?}"
+    );
+    // The clash on the asserted φ (already materialized in `with_phi`) IS the refutation
+    // witness for `neg_phi`; an inconsistent `with_phi` means the KB entails ¬φ.
+    !with_phi.is_consistent()
 }
 
 /// The closure's derived+asserted triple identities `(subject, predicate, object, world)` —

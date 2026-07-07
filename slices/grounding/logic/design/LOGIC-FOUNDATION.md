@@ -579,8 +579,20 @@ engine-derived verdict and a hand-adjudicated one are never confused.
 
 **Symmetric test.** A conjecture names a candidate formula (its `logic:conjectureFormula`, the
 alpha-normalised content identity of the full first-order AST) and tests it symmetrically against its
-negation: the engine looks both for support of the formula and for a counterexample to it. Because the
-canonical logic is standpoint-relative, the verdict is **always scoped to a reified standpoint**
+**constructed strong negation** `¬φ` as two *independent* legs: a **support-for-`φ`** leg (the standpoint's
+KB entails `φ` — the candidate is redundant given the KB) and a **support-for-`¬φ`** leg (the KB refutes
+`φ`). The negation is genuinely constructed, not merely gestured at; for the `∀`-Horn case `φ = ∀x. body → head`
+the negation `¬φ = ∃x. body ∧ ¬head` is existential and chase-inexpressible to *lower*, yet is decided
+soundly **and** completely without lowering it, because `KB ∪ {φ} ⊨ ⊥ ⟺ KB ⊨ ¬φ`: asserting the rule
+and detecting the `owl:Nothing` clash materialises the body-instance witness that forces the head false.
+Because the two legs are independent, the four Belnap quadrants are all reachable — in particular a KB
+that entails `φ` (the `φ` leg fires) *and* refutes it (the `¬φ` leg fires) yields the glut `Both`. That
+co-support is a within-standpoint contradiction **localised to the candidate proposition** (the base
+entails `φ` while its disjointness / negative-property axioms refute `φ`); it is a genuine, testable
+refutation carrying a `logic:ContradictionWitness`. A base contradictory for reasons *unrelated* to the
+candidate — one that neither entails `φ` nor genuinely refutes it — is a hard error instead: *ex falso*
+would make every proposition both entailed and refuted, so no meaningful test can run against it.
+Because the canonical logic is standpoint-relative, the verdict is **always scoped to a reified standpoint**
 (`logic:conjectureStandpoint`, a required IRI). Standpoint scoping here is reification, never a named
 graph, and it is load-bearing: Principle 9 refuses a global-false verdict, so a refutation is always
 "the formula is refuted *from this standpoint*", never simpliciter.
