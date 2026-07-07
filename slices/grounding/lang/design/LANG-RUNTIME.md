@@ -42,6 +42,12 @@ The inbound surfaces, ordered by how much structure they claim:
 - **Grammar files** (EBNF/ABNF) lift to `lang:Grammar`/`lang:GrammarRule` objects — the grammar
   projection run backwards, and the round-trip partner of its emission
   ([`LANG-PROJECTIONS.md`](LANG-PROJECTIONS.md)).
+- **GMN** ([`LANG-GMN.md`](LANG-GMN.md)) is the LLM-facing case of the same doctrine: LLM-emitted
+  GMN is lifted by the GMN parser — parse (the LL(1) table), alias-expand (against the pinned
+  `gmeow:gmnDictionaryVersion`), typecheck, prover, canonical store — the GMN projection run
+  backwards. A record the lift rejects is answered with an `@err` in-dialect failure record naming
+  its `lang:Gmn*` class, so the failure returns over the same channel as the claim; nothing is
+  repaired silently, and nothing enters the canon unproven.
 - **GMEOW's own serializations** are the self-hosting case: the Turtle and GTS grammars, lifted
   once as grammar objects, make every parse of the repository's own files an interpretation act
   over a formal sign system — flagship 4. This re-types the existing native parse/emit seams; it

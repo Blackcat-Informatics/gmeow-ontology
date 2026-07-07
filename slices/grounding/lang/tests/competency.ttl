@@ -165,3 +165,134 @@ ex:rowLossCat a gmeow:ExpectedRow ;
 ex:rowLossDog a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "unit" ; gmeow:cellValueIri exf:unitDog ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "preservation" ; gmeow:cellValueIri logic:ValidationOnly ] .
+
+# === Q8 (GMN) — the four judged dialect-level crossings ===================== #
+# Runs directly over the merged ontology (no cqDataFile): the GMN dialect
+# doctrine lives in the module itself, so the answer is measured off the
+# module's own four crossing individuals.
+
+ex:cqGmnLevelCorrespondences a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/lang/queries/competency/gmn-level-correspondences.rq" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "Which preservation judgment does each GMN level crossing carry? Every crossing between dialect levels is a lang:TranslationUnit carrying its law-spine on exactly one logic:Correspondence, never asserted flat; the answer is exactly the four module crossings — the two GMN-0 encodings (GTS, N-Quads) as ExactPreservation with a retained mnemomorphic witness, GMN-0 → GMN-1 as SoundUnderApproximation with none, and GMN-1 → GMN-2 as ValidationOnly with none." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqGmnLevelShape ;
+    gmeow:cqExpectRow ex:rowGmnCrossGmnToCompacted , ex:rowGmnCrossNormalToGmn ,
+        ex:rowGmnCrossNormalToGts , ex:rowGmnCrossNormalToNQuads .
+
+ex:cqGmnLevelShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "unit" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "corr" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "preservation" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "mnemomorphic" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ; logic:columnDatatype xsd:string ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowGmnCrossGmnToCompacted a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "unit" ; gmeow:cellValueIri gmeow:gmnUnitGmnToCompacted ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "corr" ; gmeow:cellValueIri gmeow:gmnCorrGmnToCompacted ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "preservation" ; gmeow:cellValueIri logic:ValidationOnly ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "mnemomorphic" ; gmeow:cellValueLiteral "false" ] .
+
+ex:rowGmnCrossNormalToGmn a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "unit" ; gmeow:cellValueIri gmeow:gmnUnitNormalToGmn ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "corr" ; gmeow:cellValueIri gmeow:gmnCorrNormalToGmn ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "preservation" ; gmeow:cellValueIri logic:SoundUnderApproximation ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "mnemomorphic" ; gmeow:cellValueLiteral "false" ] .
+
+ex:rowGmnCrossNormalToGts a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "unit" ; gmeow:cellValueIri gmeow:gmnUnitNormalToGts ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "corr" ; gmeow:cellValueIri gmeow:gmnCorrNormalToGts ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "preservation" ; gmeow:cellValueIri logic:ExactPreservation ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "mnemomorphic" ; gmeow:cellValueLiteral "true" ] .
+
+ex:rowGmnCrossNormalToNQuads a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "unit" ; gmeow:cellValueIri gmeow:gmnUnitNormalToNQuads ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "corr" ; gmeow:cellValueIri gmeow:gmnCorrNormalToNQuads ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "preservation" ; gmeow:cellValueIri logic:ExactPreservation ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "mnemomorphic" ; gmeow:cellValueLiteral "true" ] .
+
+# === Q9 (GMN) — the ten record-initial sigil roles and their glyphs ========= #
+
+ex:cqGmnSigilRoles a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/lang/queries/competency/gmn-sigil-roles.rq" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "Which record-initial sigil opens each GMN record role? The codebook's sigil inventory is queryable data: the complete answer is exactly the ten seeded gmeow:GmnSigilRole individuals, each naming its concrete glyph through gmeow:gmnSigilGlyph — claim @c, evidence @e, standpoint @s, process @p, proof @π, defeater @d, modal @m, math @μ, lang-AST @λ, logic @ℒ." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqGmnSigilShape ;
+    gmeow:cqExpectRow ex:rowGmnSigilClaim , ex:rowGmnSigilEvidence , ex:rowGmnSigilStandpoint ,
+        ex:rowGmnSigilProcess , ex:rowGmnSigilProof , ex:rowGmnSigilDefeater ,
+        ex:rowGmnSigilModal , ex:rowGmnSigilMath , ex:rowGmnSigilLangAst , ex:rowGmnSigilLogic .
+
+ex:cqGmnSigilShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "role" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "glyph" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ; logic:columnDatatype xsd:string ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowGmnSigilClaim a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "role" ; gmeow:cellValueIri gmeow:gmnSigilClaim ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "glyph" ; gmeow:cellValueLiteral "@c" ] .
+
+ex:rowGmnSigilEvidence a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "role" ; gmeow:cellValueIri gmeow:gmnSigilEvidence ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "glyph" ; gmeow:cellValueLiteral "@e" ] .
+
+ex:rowGmnSigilStandpoint a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "role" ; gmeow:cellValueIri gmeow:gmnSigilStandpoint ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "glyph" ; gmeow:cellValueLiteral "@s" ] .
+
+ex:rowGmnSigilProcess a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "role" ; gmeow:cellValueIri gmeow:gmnSigilProcess ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "glyph" ; gmeow:cellValueLiteral "@p" ] .
+
+ex:rowGmnSigilProof a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "role" ; gmeow:cellValueIri gmeow:gmnSigilProof ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "glyph" ; gmeow:cellValueLiteral "@π" ] .
+
+ex:rowGmnSigilDefeater a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "role" ; gmeow:cellValueIri gmeow:gmnSigilDefeater ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "glyph" ; gmeow:cellValueLiteral "@d" ] .
+
+ex:rowGmnSigilModal a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "role" ; gmeow:cellValueIri gmeow:gmnSigilModal ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "glyph" ; gmeow:cellValueLiteral "@m" ] .
+
+ex:rowGmnSigilMath a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "role" ; gmeow:cellValueIri gmeow:gmnSigilMath ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "glyph" ; gmeow:cellValueLiteral "@μ" ] .
+
+ex:rowGmnSigilLangAst a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "role" ; gmeow:cellValueIri gmeow:gmnSigilLangAst ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "glyph" ; gmeow:cellValueLiteral "@λ" ] .
+
+ex:rowGmnSigilLogic a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "role" ; gmeow:cellValueIri gmeow:gmnSigilLogic ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "glyph" ; gmeow:cellValueLiteral "@ℒ" ] .
+
+# === Q10 (GMN) — the version-policy ruling as queryable data ================ #
+
+ex:cqGmnVersionPolicy a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/lang/queries/competency/gmn-version-policy.rq" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "What is the current GMN dialect version and what does a conforming reader accept? The support-policy ruling is queryable data: the lineage gmeow:gmnDialectVersions carries gmeow:gmnAcceptWindow 1 (current major plus one prior), and version 1's standing is reified as two gmeow:VersionMembership relators — the answer is exactly gmeow:gmnVersionOne holding both the canonical and the latest role, each row carrying the window." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqGmnVersionShape ;
+    gmeow:cqExpectRow ex:rowGmnVersionCanonical , ex:rowGmnVersionLatest .
+
+ex:cqGmnVersionShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "version" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "role" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "window" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ; logic:columnDatatype xsd:string ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowGmnVersionCanonical a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "version" ; gmeow:cellValueIri gmeow:gmnVersionOne ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "role" ; gmeow:cellValueIri gmeow:roleCanonical ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "window" ; gmeow:cellValueLiteral "1" ] .
+
+ex:rowGmnVersionLatest a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "version" ; gmeow:cellValueIri gmeow:gmnVersionOne ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "role" ; gmeow:cellValueIri gmeow:roleLatest ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "window" ; gmeow:cellValueLiteral "1" ] .

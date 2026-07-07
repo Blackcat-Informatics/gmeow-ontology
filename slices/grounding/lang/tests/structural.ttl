@@ -171,3 +171,25 @@ ex:saOneWayBridge a gmeow:StructuralAssertion ;
     FILTER (STRSTARTS(STR(?p), "https://blackcatinformatics.ca/lang/"))
 }""" ;
     gmeow:saRationale "The bridge runs lang: -> logic: and never reverses (Principle 19, acyclic grounding order): no logic:-namespaced subject MUST carry a lang:-namespaced predicate. lang: IRIs reach logic: only as the object of lang:denotationTarget." .
+
+# --- 11. Each GMN failure class subclasses lang:LangConformanceFailure (MUST) - #
+ex:saGmnFailureHierarchy a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX lang: <https://blackcatinformatics.ca/lang/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    lang:GmnNonCanonicalCodepoint      rdfs:subClassOf lang:LangConformanceFailure .
+    lang:GmnConfusableGlyph            rdfs:subClassOf lang:LangConformanceFailure .
+    lang:GmnGlyphCollision             rdfs:subClassOf lang:LangConformanceFailure .
+    lang:GmnMissingEnvelopeField       rdfs:subClassOf lang:LangConformanceFailure .
+    lang:GmnVersionOverclaim           rdfs:subClassOf lang:LangConformanceFailure .
+    lang:GmnCompactionWithoutProvenance rdfs:subClassOf lang:LangConformanceFailure .
+    lang:GmnCompactionOverclaim        rdfs:subClassOf lang:LangConformanceFailure .
+    lang:GmnUncoveredTerm              rdfs:subClassOf lang:LangConformanceFailure .
+    lang:GmnNonCanonicalOrder          rdfs:subClassOf lang:LangConformanceFailure .
+    lang:GmnMalformedNumber            rdfs:subClassOf lang:LangConformanceFailure .
+    lang:GmnUndeclaredDialectVersion   rdfs:subClassOf lang:LangConformanceFailure .
+    lang:GmnNonDecodableGrammar        rdfs:subClassOf lang:LangConformanceFailure .
+}""" ;
+    gmeow:saRationale "Each of the twelve GMN dialect failures MUST be a subclass of lang:LangConformanceFailure — the seven SHACL-gated rules (codepoints, confusables, collisions, the envelope contract, version overclaims, compaction provenance, compaction overclaims) and the five GMN parser/writer-tier rules (uncovered terms, canonical order, malformed numbers, undeclared dialect versions, grammar decodability) — so a GMN violation is a typed, queryable object like every other lang: failure." .
