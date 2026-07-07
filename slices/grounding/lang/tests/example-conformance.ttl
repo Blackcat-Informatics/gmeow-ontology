@@ -508,3 +508,16 @@ ex:ecGmnPlaneMissingVersion a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
     gmeow:conformanceRationale "The counter-example gives a lang:GmnImportedPlane a gmeow:cites edge but omits dcterms:hasVersion (sh:minCount 1 on lang:GmnImportedPlaneAttributionShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (lang:GmnUnattributedPlane); the citation is present, so the cites minCount stays quiet." .
+
+# === Rule: every GMN-script glyph carries its measured token-cost feed ======== #
+
+ex:ecGmnCostedScriptGlyph a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/gmn-costed-script-glyph.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A lang:Grapheme in the GMN script carrying a gmeow:gmnGlyphTokenCost pointing at a dimensionless math:Quantity is cost-dispositioned, so lang:GmnScriptGlyphCoverageShape stays quiet and the fixture validates with no findings." .
+
+ex:ecGmnUncostedScriptGlyph a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/gmn-uncosted-script-glyph.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example admits a lang:Grapheme to gmeow:gmnScript with a canonical codepoint but no gmeow:gmnGlyphTokenCost (the sh:sparql of lang:GmnScriptGlyphCoverageShape), so validation MUST emit shacl.SPARQLConstraintComponent (lang:GmnUncostedScriptGlyph); the glyph is grounded and canonically spelled, so no other shape fires." .
