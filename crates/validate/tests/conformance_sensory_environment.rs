@@ -94,7 +94,7 @@ fn sosa_alignments_loaded() {
     );
 }
 
-/// Twin of `test_psychological_mappings_loaded` (#87): the sensory-environment
+/// Twin of `test_psychological_mappings_loaded`: the sensory-environment
 /// mapping set contains the MF and MFOEM relatedMatch alignments.
 #[test]
 fn psychological_mappings_loaded() {

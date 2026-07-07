@@ -13,12 +13,12 @@
 //!   - BFO is registered as an import-OK upper ontology (the alignment-target
 //!     registry kind plus the license-policy classifier).
 //!
-//! One check remains in Python (a `network`-marked live-BFO fetch — see the
-//! migration manifest's single Pending row):
-//!   - `test_vendored_snapshot_matches_live_bfo`: fetches the LIVE BFO ontology
-//!     over the network and re-verifies each referenced IRI is still an owl:Class
-//!     with the same label. Off the default gate (network); the repo's live-network
-//!     lane is pytest-only, so it has no on-gate native home.
+//! The Python file's `network`-marked live-BFO fetch
+//! (`test_vendored_snapshot_matches_live_bfo`) is intentionally retired, not twinned:
+//! its offline invariant — the vendored snapshot's seven IRIs are each a declared
+//! owl:Class with the stated label — is already covered by
+//! `every_bfo_iri_is_a_real_class_in_the_snapshot` above; only the off-gate live-drift
+//! anti-rot half is dropped (recorded in the migration manifest).
 
 mod conformance_support;
 use conformance_support::*;

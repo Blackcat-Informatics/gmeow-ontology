@@ -127,6 +127,17 @@ const fn pn(python_file: &'static str, python_fn: &'static str, case_count: usiz
     }
 }
 
+/// A row whose behaviour is intentionally retired (no native twin). `kind` is inert.
+const fn dropped(python_file: &'static str, python_fn: &'static str) -> ManifestRow {
+    ManifestRow {
+        python_file,
+        python_fn,
+        case_count: 1,
+        kind: QueryBehavioral,
+        state: TwinState::Dropped,
+    }
+}
+
 /// A row with a landed native twin at `locator`, of obligation `kind`. Later tasks
 /// call this in place of the pending ctors when they land a twin.
 #[allow(dead_code)]
@@ -657,11 +668,14 @@ pub const MANIFEST: &[ManifestRow] = &[
         QueryBehavioral,
         "conformance_foundational_bridging.rs::coverage_reported",
     ),
-    // BLOCKER (Pending): `network`-marked live BFO fetch; the only native fetch
-    // (`pipeline::stages::correspondence_soundness::fetch_target_axioms`) is a
-    // private fn in another crate and keeps only structural axioms (no owl:Class /
-    // rdfs:label), so it cannot reproduce this assertion.
-    q(
+    // DROPPED: a `network`-marked live-BFO fetch (anti-rot freshness check, off the
+    // default gate even in Python). Its offline invariant — the vendored snapshot's
+    // seven referenced IRIs are each a declared owl:Class carrying the stated label —
+    // is already asserted natively by
+    // `conformance_foundational_bridging.rs::every_bfo_iri_is_a_real_class_in_the_snapshot`.
+    // Only the live-drift half is retired: an off-gate maintenance check with no
+    // on-gate value, not a graph-traversal invariant.
+    dropped(
         "tests/test_foundational_bridging.py",
         "test_vendored_snapshot_matches_live_bfo",
     ),
@@ -1010,7 +1024,7 @@ const EXPECTED: &[(&str, usize, usize)] = &[
     ("tests/test_email_jmap.py", 1, 0),
     ("tests/test_email_mailbox.py", 5, 0),
     ("tests/test_email_thread_subject.py", 1, 0),
-    ("tests/test_foundational_bridging.py", 7, 0),
+    ("tests/test_foundational_bridging.py", 7, 1),
     ("tests/test_mereology.py", 1, 0),
     ("tests/test_narrative.py", 4, 0),
     ("tests/test_notation.py", 2, 0),
@@ -1126,9 +1140,6 @@ fn parametrized_rows_declare_cardinality() {
 }
 
 #[test]
-#[ignore = "armed at migration finalization (Task 7): un-ignore once every row is a Twin. \
-            Kept in-tree from scaffold so the completeness gate is visible (shows as `ignored`), \
-            not forgotten, while mid-branch commits stay green."]
 fn migration_is_reconciled_and_complete() {
     // Finalization gate: every source fn is a native `Twin` (target: zero `Dropped`),
     // no `Pending` survives, and each file's fn count matches the git-anchored
