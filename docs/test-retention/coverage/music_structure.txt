@@ -1,0 +1,45 @@
+Source: slices/extensions/music/tests/test_music_structure.py
+run_shacl() call-sites (real): 10; def test_ functions: 23
+  13 TBox -> conformance_music_structure.rs GraphStore::parse_ttl_file(music module.ttl):
+    subClassOf (MusicalSegment<:ContentSegment, ToneEvent<:MusicalSegment), value-individual
+    existence (11 SegmentKind, 13 TransformationType, 3 PitchTrajectoryInterpolationKind,
+    8 DynamicsValue, 7 ArticulationKind), fixture existence (riff transformation chain,
+    tone-event C4 incl toneEventPitchValue edge, glissando trajectory + control points,
+    bass voice incl voiceTimeFrame/voiceTuningFrame edges, retyped placeholder voices),
+    22 functional properties. Every referenced class/individual is module-local, so all
+    TBox guards run over module.ttl (no merged-ontology fallback needed).
+  10 SHACL -> Case::inline (whole corpus, honest ABox completion) with exact substrings:
+    "exactly one segmentKind", "exactly one pitch-content mode", "at least two control points",
+    "exactly one source MusicalSegment", "source and target must be distinct"; 5 conforming
+    (segment-valid, tone-event-pitch-value, pitch-trajectory-valid, segment-transformation-valid,
+    voice-valid). Passing pitch-trajectory case restates the canonical pitchValueC4Fixture /
+    pitchValueG4Fixture individuals in-graph (values verbatim from module.ttl) so the generated
+    sh:class range + PitchValueShape resolve; passing transformation case types
+    transformTransposition as gmeow:TransformationType in-graph.
+
+Source -> dest map (23):
+  TBox (module.ttl via GraphStore):
+    test_musical_segment_subclass_of_content_segment -> musical_segment_subclass_of_content_segment
+    test_tone_event_subclass_of_musical_segment      -> tone_event_subclass_of_musical_segment
+    test_segment_kind_values_exist                   -> segment_kind_values_exist
+    test_transformation_types_exist                  -> transformation_types_exist
+    test_interpolation_kinds_exist                   -> interpolation_kinds_exist
+    test_dynamics_values_exist                       -> dynamics_values_exist
+    test_articulation_kinds_exist                    -> articulation_kinds_exist
+    test_riff_transformation_chain_exists            -> riff_transformation_chain_exists
+    test_tone_event_fixture_exists                   -> tone_event_fixture_exists
+    test_pitch_trajectory_fixture_exists             -> pitch_trajectory_fixture_exists
+    test_voice_fixture_exists                        -> voice_fixture_exists
+    test_placeholder_voices_retyped                  -> placeholder_voices_retyped
+    test_structure_functional_properties             -> structure_functional_properties
+  SHACL (Case::inline via music_structure_shacl #[case]):
+    test_musical_segment_valid_passes_shacl              -> case::musical_segment_valid_passes
+    test_musical_segment_missing_kind_fails_shacl        -> case::musical_segment_missing_kind_fails
+    test_tone_event_pitch_value_passes_shacl             -> case::tone_event_pitch_value_passes
+    test_tone_event_multiple_pitch_modes_fails_shacl     -> case::tone_event_multiple_pitch_modes_fails
+    test_pitch_trajectory_valid_passes_shacl             -> case::pitch_trajectory_valid_passes
+    test_pitch_trajectory_single_control_point_fails_shacl -> case::pitch_trajectory_single_control_point_fails
+    test_segment_transformation_valid_passes_shacl       -> case::segment_transformation_valid_passes
+    test_segment_transformation_missing_source_fails_shacl -> case::segment_transformation_missing_source_fails
+    test_segment_transformation_source_equals_target_fails_shacl -> case::segment_transformation_source_equals_target_fails
+    test_voice_valid_passes_shacl                        -> case::voice_valid_passes

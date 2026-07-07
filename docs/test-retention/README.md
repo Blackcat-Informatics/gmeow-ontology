@@ -97,7 +97,8 @@ Removed because a Rust artifact already asserts the same behavior:
   `test_music_time` → `conformance_music_time.rs`;
   `test_music_instruments` → `conformance_music_instruments.rs`;
   `test_music_performance_events` → `conformance_music_performance_events.rs`;
-  `test_music_performance` → `conformance_music_performance.rs`.
+  `test_music_performance` → `conformance_music_performance.rs`;
+  `test_music_structure` → `conformance_music_structure.rs`.
 
 Relocated out of the mainline test tree (dossier removed with the test):
 
