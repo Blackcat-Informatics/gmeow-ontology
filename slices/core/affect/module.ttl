@@ -160,7 +160,7 @@ gmeow:AffectDecision
             owl:onProperty gmeow:observedFeature ;
             owl:minCardinality 1 ] ;
     skos:definition "A single-label classifier's categorical decision over one target — the argmax (gmeow:decidedLabel) recorded as model-vantage EVIDENCE (gmeow:vantage = the run, gmeow:observedFeature = the target), derived by gmeow:fnArgmax over a gmeow:decisionArgmax label set. A fact about the CLASSIFIER'S OUTPUT over external gmeow:AffectClassifierLabel identities, NEVER a gmeow:AffectiveClaim about inner affect and never a gmeow:EmotionType — so it needs no reviewed closeMatch and is recorded even when the argmax falls BELOW the claim threshold (gmeow:decisionCrossedThreshold false). This preserves the model's decision faithfully (maximal information flow) without forcing a claim (the evidence/claim boundary, Principle 9). Only a gmeow:decisionArgmax set carries one: a multi-label set has no single categorical winner. Supersedes gmeow:AffectEvaluationConcluded for single-label sets — a decided winner, even a low-margin one, is the positive 'checked' fact, never silence."@x-gmeow-english ;
-    skos:example "ex:decision a gmeow:AffectDecision ; gmeow:vantage ex:run ; gmeow:observedFeature ex:chunk ; gmeow:decidedLabel gmeow-hf:joy ; gmeow:decisionCrossedThreshold false ; gmeow:decisionMargin 0.07 ; gmeow:derivedByFunction gmeow:fnArgmax ."@x-gmeow-english ;
+    skos:example "ex:decision a gmeow:AffectDecision ; gmeow:vantage ex:run ; gmeow:observedFeature ex:chunk ; gmeow:decidedLabel gmeow-hf:ekmanJoy ; gmeow:decisionCrossedThreshold false ; gmeow:decisionMargin 0.07 ; gmeow:derivedByFunction gmeow:fnArgmax ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting it for a multi-label (gmeow:decisionIndependentThreshold) set (there is no single argmax winner), avoid treating it as a gmeow:AffectiveClaim about inner affect (it is classifier-output evidence over an external label), and avoid asserting a gmeow:decisionMargin when the run emitted a single top-1 score (no runner-up exists)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:howToUse "For a gmeow:decisionArgmax label set, mint one gmeow:AffectDecision per (run, target): gmeow:vantage the run, gmeow:observedFeature the target, gmeow:decidedLabel the argmax label, gmeow:decisionCrossedThreshold whether it crossed the claim threshold, gmeow:derivedByFunction gmeow:fnArgmax, and gmeow:decisionMargin (top1−top2) only when ≥2 scores are present."@x-gmeow-english ;
@@ -251,11 +251,8 @@ gmeow:AffectLabelSet
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "Affect Label Set"@x-gmeow-english ;
-    rdfs:subClassOf gmeow:InformationObject ,
-        [ a owl:Restriction ;
-            owl:onProperty gmeow:labelSetDecision ;
-            owl:minCardinality 1 ] ;
-    skos:definition "A named label vocabulary/registry that a classifier or dataset emits over (GoEmotions, Ekman-7, SST-2, CardiffNLP TweetEval). Its members are gmeow:AffectClassifierLabel individuals (gmeow:memberOfLabelSet). An information artifact: a label set is NOT an ontology of emotion and never defines canonical affect semantics. A Hugging Face label not registered in some gmeow:AffectLabelSet fails canonical projection (a hard fail). Every label set MUST declare its gmeow:labelSetDecision (single-label vs multi-label) — an undeclared decision rule is a hard fail (an owl:minCardinality restriction, projected to sh:minCount)."@x-gmeow-english ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    skos:definition "A named label vocabulary/registry that a classifier or dataset emits over (GoEmotions, Ekman-7, SST-2, CardiffNLP TweetEval). Its members are gmeow:AffectClassifierLabel individuals (gmeow:memberOfLabelSet). An information artifact: a label set is NOT an ontology of emotion and never defines canonical affect semantics. A Hugging Face label not registered in some gmeow:AffectLabelSet fails canonical projection (a hard fail). A REGISTERED (static) label set MUST declare its gmeow:labelSetDecision (single-label vs multi-label) — the producer hard-fails a registered set with no rule. A run-scoped zero-shot candidate set is minted per run and carries NO reviewed decision rule (it is legitimately rule-less), so the requirement is a producer-enforced invariant on registered sets, not a universal cardinality that would wrongly flag the minted candidate set."@x-gmeow-english ;
     skos:example "gmeow-labelset:GoEmotions a gmeow:AffectLabelSet ; rdfs:label \"GoEmotions\"@en ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid treating a label set as a canonical emotion taxonomy (it is evidence provenance, not ontology) and avoid emitting a label with no registered set (unregistered labels fail projection)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
@@ -547,7 +544,7 @@ gmeow:labelSetDecision
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "label set decision"@x-gmeow-english ;
     rdfs:range gmeow:LabelSetDecisionRule ;
-    skos:definition "The gmeow:LabelSetDecisionRule a gmeow:AffectLabelSet carries — gmeow:decisionArgmax (single-label / mutually-exclusive) or gmeow:decisionIndependentThreshold (multi-label). Mandatory (an owl:minCardinality restriction on gmeow:AffectLabelSet, projected to sh:minCount): a label set with no declared decision rule is a hard fail, because its exclusivity is then unknown and the producer cannot judge whether more than one crossing is a violation. Functional: one set, one rule."@x-gmeow-english ;
+    skos:definition "The gmeow:LabelSetDecisionRule a gmeow:AffectLabelSet carries — gmeow:decisionArgmax (single-label / mutually-exclusive) or gmeow:decisionIndependentThreshold (multi-label). Mandatory on a REGISTERED (static) set: the producer hard-fails a registered set with no declared rule, because its exclusivity is then unknown and it cannot judge whether more than one crossing is a violation. A run-scoped zero-shot candidate set is rule-less by design. Functional: one set, one rule."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:impliesLabelSetDecision
