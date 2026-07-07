@@ -123,6 +123,33 @@ pub(crate) fn music(command: &MusicCommands) -> i32 {
     }
 }
 
+/// Read a command source: standard input when the path is `-`, else the file.
+fn read_source(path: &std::path::Path) -> std::io::Result<String> {
+    if path.as_os_str() == "-" {
+        use std::io::Read;
+        let mut buf = String::new();
+        std::io::stdin().read_to_string(&mut buf)?;
+        Ok(buf)
+    } else {
+        std::fs::read_to_string(path)
+    }
+}
+
+/// Build the GoEmotions producer config from the embedded bundle: the label set
+/// and canonical EmotionType typing come from the base graph, and the reviewed
+/// label→emotion `skos:closeMatch` correspondence from the bundle's SSSOM blob
+/// (the pipeline keeps the correspondence lowering out of the base graph, so the
+/// claim-routing map is read from the SSSOM surface — the single source of truth).
+fn goemotions_config() -> Result<gmeow_affect_ingest::IngestConfig, String> {
+    let sssom = gmeow_pipeline::bundle_blobs::bundled_sssom(BUNDLE_GTS)
+        .map_err(|e| format!("cannot read bundled SSSOM: {e}"))?;
+    let sssom_texts: Vec<String> = sssom
+        .values()
+        .map(|bytes| String::from_utf8_lossy(bytes).into_owned())
+        .collect();
+    Ok(gmeow_affect_ingest::IngestConfig::goemotions_from_gts_with_sssom(BUNDLE_GTS, &sssom_texts))
+}
+
 /// `gmeow affect …` — the native affect-intensity geometry engine.
 ///
 /// Product results → stdout with stable, greppable key prefixes; any failure →
@@ -180,6 +207,81 @@ pub(crate) fn affect(command: &AffectCommands) -> i32 {
                         eprintln!("Error: {message}");
                         1
                     }
+                }
+            }
+        }
+        AffectCommands::IngestGoemotions { source, out } => {
+            let json = match read_source(source) {
+                Ok(json) => json,
+                Err(e) => {
+                    eprintln!("Error: cannot read {}: {e}", source.display());
+                    return 1;
+                }
+            };
+            let capture =
+                match serde_json::from_str::<gmeow_affect_ingest::ClassifierRunCapture>(&json) {
+                    Ok(capture) => capture,
+                    Err(e) => {
+                        eprintln!("Error: invalid GoEmotions capture JSON: {e}");
+                        return 1;
+                    }
+                };
+            let config = match goemotions_config() {
+                Ok(config) => config,
+                Err(e) => {
+                    eprintln!("Error: {e}");
+                    return 1;
+                }
+            };
+            match gmeow_affect_ingest::produce(&capture, &config) {
+                Ok(ttl) => match out {
+                    Some(out) => match std::fs::write(out, &ttl) {
+                        Ok(()) => 0,
+                        Err(e) => {
+                            eprintln!("Error: cannot write {}: {e}", out.display());
+                            1
+                        }
+                    },
+                    None => {
+                        print!("{ttl}");
+                        0
+                    }
+                },
+                Err(e) => {
+                    eprintln!("Error: {e}");
+                    1
+                }
+            }
+        }
+        AffectCommands::RecoverGoemotions { source } => {
+            let ttl = match read_source(source) {
+                Ok(ttl) => ttl,
+                Err(e) => {
+                    eprintln!("Error: cannot read {}: {e}", source.display());
+                    return 1;
+                }
+            };
+            let config = match goemotions_config() {
+                Ok(config) => config,
+                Err(e) => {
+                    eprintln!("Error: {e}");
+                    return 1;
+                }
+            };
+            match gmeow_affect_ingest::recover(&ttl, &config) {
+                Ok(capture) => match serde_json::to_string_pretty(&capture) {
+                    Ok(json) => {
+                        println!("{json}");
+                        0
+                    }
+                    Err(e) => {
+                        eprintln!("Error: {e}");
+                        1
+                    }
+                },
+                Err(e) => {
+                    eprintln!("Error: {e}");
+                    1
                 }
             }
         }

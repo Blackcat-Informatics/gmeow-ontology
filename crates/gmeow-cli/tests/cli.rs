@@ -405,6 +405,56 @@ fn affect_intensity_discriminating_dominant_axis_is_metric_aware() {
         ));
 }
 
+// ── affect goemotions ingestion (the production surface) ─────────────────────
+
+/// Absolute path of a committed crate fixture, relative to this crate.
+fn crate_fixture(relative: &str) -> PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("..")
+        .join(relative)
+}
+
+#[test]
+fn affect_goemotions_ingest_recover_round_trips_through_the_cli() {
+    let capture = crate_fixture("affect-ingest/fixtures/goemotions-sample.json");
+
+    // Put leg: the captured GoEmotions JSON becomes attributed evidence Turtle,
+    // resolving the label set + reviewed closeMatch from the EMBEDDED bundle.
+    let put = gmeow()
+        .args(["affect", "ingest-goemotions"])
+        .arg(&capture)
+        .assert()
+        .success();
+    let ttl = String::from_utf8(put.get_output().stdout.clone()).expect("utf-8 turtle");
+    assert!(ttl.contains("ModelInferenceRun"), "run emitted");
+    // lossless: an output for every one of the 28 GoEmotions labels.
+    assert_eq!(ttl.matches("AffectClassifierOutput").count(), 28);
+    // claim routing via the bundle's SSSOM correspondence (joy/surprise cross
+    // threshold AND closeMatch a gmeow:EmotionType).
+    assert!(ttl.contains("the text expresses joy"));
+
+    // Get leg: pipe the evidence back in; the reconstructed capture round-trips
+    // through the real CLI (pinned model revision + the recovered joy score).
+    gmeow()
+        .args(["affect", "recover-goemotions", "-"])
+        .write_stdin(ttl)
+        .assert()
+        .success()
+        .stdout(
+            predicate::str::contains("d75048347613a25d77de8cf6412eaae9fa7b26be")
+                .and(predicate::str::contains("\"score\": 0.82")),
+        );
+}
+
+#[test]
+fn affect_goemotions_ingest_missing_source_is_a_runtime_error() {
+    gmeow()
+        .args(["affect", "ingest-goemotions", "/nonexistent-capture.json"])
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("Error:"));
+}
+
 #[test]
 fn affect_intensity_missing_source_is_a_runtime_error() {
     // Mirror the music runtime-error path: an unreadable source → exit 1 with an

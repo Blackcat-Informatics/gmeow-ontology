@@ -41,7 +41,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
 
 use gmeow_math::{
-    TripleIndex, first_iri, first_literal, has_type, index_graph, index_turtle, subjects,
+    TripleIndex, all_iris, first_iri, first_literal, has_type, index_graph, index_turtle, subjects,
 };
 use purrdf::{RdfDatasetBuilder, RdfLiteral, SerializeGraph, serialize_dataset};
 use serde::{Deserialize, Serialize};
@@ -363,18 +363,74 @@ pub struct IngestConfig {
 }
 
 impl IngestConfig {
-    /// Build the GoEmotions config by reading the registered labels and authored
-    /// closeMatch cells straight from a compiled ontology bundle (`gmeow.gts`).
-    pub fn goemotions_from_gts(bundle: &[u8]) -> Self {
+    /// Build the GoEmotions config from a compiled ontology bundle plus its
+    /// bundled SSSOM correspondence surface.
+    ///
+    /// The bundle's **base graph** carries the label registrations
+    /// (`gmeow:memberOfLabelSet`) and the canonical `gmeow:EmotionType` typing +
+    /// `rdfs:label`, but NOT the reviewed label→emotion `skos:closeMatch` cells —
+    /// those are a correspondence lowering the pipeline keeps out of the base graph
+    /// (Principle 17) and materializes as an **SSSOM blob**. The claim-routing
+    /// mapping is therefore read from `sssom_texts` (the caller reads the blob;
+    /// this crate stays free of the pipeline dependency), while the EmotionType
+    /// typing + label gloss come from the base graph.
+    pub fn goemotions_from_gts_with_sssom(bundle: &[u8], sssom_texts: &[String]) -> Self {
         let graph = purrdf::gts::reader::read(bundle, false, None);
-        Self::goemotions_from_index(&index_graph(&graph))
+        let index = index_graph(&graph);
+        let mut config = Self::goemotions_from_index(&index);
+        for tsv in sssom_texts {
+            config.add_sssom_correspondences(tsv, &index);
+        }
+        config
     }
 
-    /// Build the GoEmotions config from an already-indexed graph (the shared
-    /// entry point for the bundle path and the unit-test turtle path).
+    /// Build the GoEmotions config from an already-indexed graph. Reads the
+    /// registered labels, and any closeMatch cells present IN the graph (the
+    /// authored slice sources — `module.ttl` + `mappings/equivalences.ttl` —
+    /// carry them as reified `gmeow:TermEquivalence` / direct triples). For the
+    /// compiled bundle, supplement with [`add_sssom_correspondences`].
     pub fn goemotions_from_index(index: &TripleIndex) -> Self {
         let label_set_iri = format!("{LABELSET}GoEmotions");
         Self::from_label_set(index, "GoEmotions", &label_set_iri, GOEMOTIONS)
+    }
+
+    /// Fold an SSSOM correspondence surface into the emotion-claim routing map:
+    /// each `<label> skos:closeMatch <emotion>` row whose object is a
+    /// `gmeow:EmotionType` (per `index`) becomes a routing target. `broadMatch`
+    /// rows (`grief`) and closeMatch rows to a non-EmotionType (`desire →
+    /// gmeow:Desire`) are correctly excluded — the SSSOM's own semantics carry the
+    /// distinction. CURIEs are expanded via the file's `# curie_map:` header, so
+    /// no prefix is hardcoded.
+    pub fn add_sssom_correspondences(&mut self, sssom_tsv: &str, index: &TripleIndex) {
+        let curie_map = parse_sssom_curie_map(sssom_tsv);
+        let expand = |curie: &str| -> Option<String> {
+            let (prefix, local) = curie.split_once(':')?;
+            Some(format!("{}{}", curie_map.get(prefix)?, local))
+        };
+        let emotion_type = g("EmotionType");
+        for line in sssom_tsv.lines() {
+            if line.starts_with('#') || line.trim().is_empty() {
+                continue;
+            }
+            let cols: Vec<&str> = line.split('\t').collect();
+            if cols.len() < 3 || cols[0] == "subject_id" {
+                continue; // header row or malformed
+            }
+            let (Some(subject), Some(predicate), Some(object)) =
+                (expand(cols[0]), expand(cols[1]), expand(cols[2]))
+            else {
+                continue;
+            };
+            if predicate == SKOS_CLOSE_MATCH
+                && subject.starts_with(self.registry_prefix.as_str())
+                && has_type(index, &object, &emotion_type)
+            {
+                let word = first_literal(index, &object, RDFS_LABEL)
+                    .unwrap_or_else(|| local_name(&object).to_owned());
+                self.emotion_close_match
+                    .insert(subject, EmotionMatch { iri: object, word });
+            }
+        }
     }
 
     /// The generic loader — the functor's parameterization point. Any registered
@@ -399,6 +455,21 @@ impl IngestConfig {
         let emotion_type = g("EmotionType");
 
         let mut emotion_close_match = BTreeMap::new();
+        // A supported "expresses" claim is honest only when the reviewed rung is
+        // closeMatch (not broadMatch) AND the target is an EmotionType (not, e.g.,
+        // teleology's gmeow:Desire). The mapping reaches the loader in one of two
+        // shapes: reified gmeow:TermEquivalence cells (the authored slice source,
+        // `mappings/equivalences.ttl`) OR the direct skos:closeMatch triple the
+        // pipeline lowers those cells into in the compiled bundle. Read BOTH so the
+        // producer works identically off the slice sources and off `gmeow.gts`.
+        let mut record = |subject: &str, object: String| {
+            if subject.starts_with(registry_prefix) && has_type(index, &object, &emotion_type) {
+                let word = first_literal(index, &object, RDFS_LABEL)
+                    .unwrap_or_else(|| local_name(&object).to_owned());
+                emotion_close_match.insert(subject.to_owned(), EmotionMatch { iri: object, word });
+            }
+        };
+        // Reified form: gmeow:TermEquivalence with alignSubject/Predicate/Object.
         for cell in subjects(index).filter(|s| has_type(index, s, &term_equivalence)) {
             let (Some(subject), Some(predicate), Some(object)) = (
                 first_iri(index, cell, &align_subject),
@@ -407,16 +478,14 @@ impl IngestConfig {
             ) else {
                 continue;
             };
-            // A supported "expresses" claim is honest only when the reviewed rung
-            // is closeMatch (not broadMatch) AND the target is an EmotionType (not,
-            // e.g., teleology's gmeow:Desire).
-            if predicate == SKOS_CLOSE_MATCH
-                && subject.starts_with(registry_prefix)
-                && has_type(index, &object, &emotion_type)
-            {
-                let word = first_literal(index, &object, RDFS_LABEL)
-                    .unwrap_or_else(|| local_name(&object).to_owned());
-                emotion_close_match.insert(subject, EmotionMatch { iri: object, word });
+            if predicate == SKOS_CLOSE_MATCH {
+                record(&subject, object);
+            }
+        }
+        // Lowered form: a direct `<label> skos:closeMatch <emotion>` triple.
+        for subject in subjects(index).filter(|s| s.starts_with(registry_prefix)) {
+            for object in all_iris(index, subject, SKOS_CLOSE_MATCH) {
+                record(subject, object);
             }
         }
 
@@ -701,6 +770,29 @@ fn is_absolute_iri(iri: &str) -> bool {
 /// canonical term has no `rdfs:label`.
 fn local_name(iri: &str) -> &str {
     iri.rsplit(['/', '#']).next().unwrap_or(iri)
+}
+
+/// Parse the `# curie_map:` block of an SSSOM TSV into prefix → namespace IRI.
+/// Only `#`-comment lines whose value is an absolute `http(s)` IRI are taken, so
+/// the metadata lines (`mapping_tool:`, `mapping_date:`) are naturally skipped.
+fn parse_sssom_curie_map(sssom_tsv: &str) -> BTreeMap<String, String> {
+    let mut map = BTreeMap::new();
+    for line in sssom_tsv.lines() {
+        let Some(rest) = line.strip_prefix('#') else {
+            continue;
+        };
+        let Some((prefix, iri)) = rest.trim().split_once(':') else {
+            continue;
+        };
+        let iri = iri.trim();
+        if !prefix.is_empty()
+            && !prefix.contains(char::is_whitespace)
+            && (iri.starts_with("http://") || iri.starts_with("https://"))
+        {
+            map.insert(prefix.to_owned(), iri.to_owned());
+        }
+    }
+    map
 }
 
 /// Format an f64 as an `xsd:decimal` lexical (`0.84`, `1.0`) — never exponent
@@ -1071,6 +1163,60 @@ mod tests {
             cap.targets[0].scores.len(),
             28,
             "GoEmotions emits 28 labels"
+        );
+    }
+
+    /// Labels + canonical EmotionType typing but NO in-graph closeMatch — the
+    /// shape of the compiled bundle, where the mapping arrives via SSSOM.
+    const ONTO_NO_MAPPING: &str = concat!(
+        "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n",
+        "@prefix gmeow-goemotions: <https://blackcatinformatics.ca/gmeow-registry/goemotions/> .\n",
+        "@prefix gmeow-labelset: <https://blackcatinformatics.ca/gmeow-registry/labelset/> .\n",
+        "@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n",
+        "gmeow-goemotions:joy a gmeow:AffectClassifierLabel ; gmeow:memberOfLabelSet gmeow-labelset:GoEmotions .\n",
+        "gmeow-goemotions:grief a gmeow:AffectClassifierLabel ; gmeow:memberOfLabelSet gmeow-labelset:GoEmotions .\n",
+        "gmeow-goemotions:desire a gmeow:AffectClassifierLabel ; gmeow:memberOfLabelSet gmeow-labelset:GoEmotions .\n",
+        "gmeow:emotionJoy a gmeow:EmotionType ; rdfs:label \"joy\"@x-gmeow-english .\n",
+        "gmeow:emotionSadness a gmeow:EmotionType ; rdfs:label \"sadness\"@x-gmeow-english .\n",
+        "gmeow:Desire a gmeow:Kind .\n",
+    );
+
+    /// An SSSOM surface shaped like `generated/mappings/gmeow-affect.sssom.tsv`:
+    /// a curie_map header, a column header, and rows — including the broadMatch
+    /// (grief) and closeMatch-to-non-EmotionType (desire) rows that must NOT route.
+    const SSSOM: &str = concat!(
+        "# mapping_tool: gmeow regenerate (mappings)\n",
+        "# curie_map:\n",
+        "#   gmeow: https://blackcatinformatics.ca/gmeow/\n",
+        "#   gmeow-goemotions: https://blackcatinformatics.ca/gmeow-registry/goemotions/\n",
+        "#   skos: http://www.w3.org/2004/02/skos/core#\n",
+        "#   semapv: https://w3id.org/semapv/vocab/\n",
+        "subject_id\tpredicate_id\tobject_id\tmapping_justification\tconfidence\tcomment\n",
+        "gmeow-goemotions:joy\tskos:closeMatch\tgmeow:emotionJoy\tsemapv:ManualMappingCuration\t0.9\t\n",
+        "gmeow-goemotions:grief\tskos:broadMatch\tgmeow:emotionSadness\tsemapv:ManualMappingCuration\t0.8\tnarrower\n",
+        "gmeow-goemotions:desire\tskos:closeMatch\tgmeow:Desire\tsemapv:ManualMappingCuration\t0.85\tconative\n",
+    );
+
+    #[test]
+    fn sssom_correspondences_route_only_closematch_emotiontypes() {
+        let index = index_turtle(ONTO_NO_MAPPING.as_bytes()).expect("index onto");
+        let mut cfg = IngestConfig::goemotions_from_index(&index);
+        // the bundle-shaped graph carries NO in-graph closeMatch.
+        assert!(cfg.emotion_close_match.is_empty());
+
+        cfg.add_sssom_correspondences(SSSOM, &index);
+        // joy: closeMatch → EmotionType → routed, glossed by the CANONICAL term.
+        assert_eq!(cfg.emotion_close_match[&cfg.label_iri("joy")].word, "joy");
+        // grief: broadMatch (not closeMatch) → excluded.
+        assert!(
+            !cfg.emotion_close_match
+                .contains_key(&cfg.label_iri("grief"))
+        );
+        // desire: closeMatch but object is teleology's gmeow:Desire, not an
+        // EmotionType → excluded.
+        assert!(
+            !cfg.emotion_close_match
+                .contains_key(&cfg.label_iri("desire"))
         );
     }
 
