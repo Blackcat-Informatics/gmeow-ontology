@@ -37,8 +37,11 @@ use purrdf::gts::writer::Writer as GtsWriter;
 use crate::stages::export::{self, FoldView, Term};
 use crate::stages::fold_arena;
 
-const LANGUAGE_CLASS: &str = "https://blackcatinformatics.ca/gmeow/Language";
-const LANGUAGE_TAG: &str = "https://blackcatinformatics.ca/gmeow/languageTag";
+// The internal→BCP-47 display-language map is carried on the lang: carrier
+// varieties: each lang:LanguageVariety bears its internal tag through
+// lang:carrierTag and its generated (folded) external tag through gmeow:bcp47Tag.
+const LANGUAGE_CLASS: &str = "https://blackcatinformatics.ca/lang/LanguageVariety";
+const LANGUAGE_TAG: &str = "https://blackcatinformatics.ca/lang/carrierTag";
 const BCP47_TAG: &str = "https://blackcatinformatics.ca/gmeow/bcp47Tag";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const TOOL_AGENT_NS: &str = "urn:gmeow:tool:";
@@ -2059,9 +2062,9 @@ mod tests {
         }
         let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
         let fr = text_payload(
-            server.call_tool_result("lookup_term", &json!({"term": "gmeow:langFrench"})),
+            server.call_tool_result("lookup_term", &json!({"term": "gmeow:EntityExistence"})),
         );
-        assert_eq!(fr["label"], "fran\u{e7}ais");
+        assert_eq!(fr["label"], "Existence d'entit\u{e9}");
         unsafe {
             // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
             env::remove_var("GMEOW_LANG");

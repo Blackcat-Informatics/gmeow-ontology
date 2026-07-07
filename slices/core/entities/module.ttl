@@ -126,4 +126,4 @@ gmeow:nationality
 
 _:b0
     a owl:AllDisjointClasses ;
-    owl:members ( gmeow:Person gmeow:Organization gmeow:SoftwareAgent gmeow:Location gmeow:ContactPoint gmeow:CryptographicKey gmeow:Appellation gmeow:Language gmeow:WritingSystem ) .
+    owl:members ( gmeow:Person gmeow:Organization gmeow:SoftwareAgent gmeow:Location gmeow:ContactPoint gmeow:CryptographicKey gmeow:Appellation gmeow:Language ) .

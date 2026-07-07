@@ -130,6 +130,14 @@ const NON_CONFORMANT: &[&str] = &[
     "slices/core/learning/examples/skill-acquisition-trajectory.ttl", // TimeInterval missing gmeow:hasTemporalFrame (P11)
     "slices/core/affect/examples/two-critics.ttl", // Expression missing gmeow:hasReferenceFrame (P11)
     "slices/extensions/narrative/examples/flashback.ttl", // Event missing gmeow:eventTemporalFrame (P11)
+    // Bucket A (lang: grounding graft) — the example references shared lang:/logic:
+    // grounding individuals (rendering/denotation/preservation kinds, sign-system
+    // kinds, scripts, the seed lang:english) that are typed in the grounding slices
+    // but not standalone in the example's closed-world scope.
+    "slices/core/coreference/examples/authority-links.ttl", // lang:denotationKind → lang:denotesEntity + lang:inSignSystem → lang:english (shared grounding individuals) untyped standalone
+    "slices/core/language/examples/multilingual-document.ttl", // lang:renderingKind/transliterationScheme → shared rendering/transliteration individuals + lang:renderingPreservation → logic:PreservationKind (logic:ExactPreservation/SoundUnderApproximation) untyped standalone
+    "slices/core/notation/examples/notation-systems.ttl", // lang:signSystemKind → lang:notationalKind + lang:modality → lang:writtenModality + lang:renderingPreservation → logic:PreservationKind untyped standalone
+    "slices/grounding/math/examples/expression-rendering.ttl", // lang:renderingKind → lang:renderingNotation + lang:renderingPreservation → logic:ExactPreservation (shared logic:PreservationKind) untyped standalone
 ];
 
 /// The repo root (two levels up from this crate's manifest dir).

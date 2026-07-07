@@ -46,8 +46,8 @@ ex:article a gmeow:Article ;
     rdfs:label "Bilingual post"@en ;
     gmeow:contentLanguage ex:english , ex:french .
 
-ex:english a gmeow:Language ; gmeow:bcp47Tag "en" .
-ex:french  a gmeow:Language ; gmeow:bcp47Tag "fr" .
+ex:english a gmeow:Language ; gmeow:languageCode "en" .
+ex:french  a gmeow:Language ; gmeow:languageCode "fr" .
 
 # A dataset with two download distributions (members), each with a url + type.
 ex:dataset a gmeow:Dataset ;

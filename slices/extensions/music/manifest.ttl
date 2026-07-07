@@ -32,6 +32,7 @@
         <https://blackcatinformatics.ca/gmeow/slices/observations> ,
         <https://blackcatinformatics.ca/gmeow/slices/standpoint> ,
         <https://blackcatinformatics.ca/gmeow/slices/versions> ,
+        <https://blackcatinformatics.ca/gmeow/slices/lang> ,
         <https://blackcatinformatics.ca/gmeow/slices/language> ,
         <https://blackcatinformatics.ca/gmeow/slices/documents> ,
         <https://blackcatinformatics.ca/gmeow/slices/notation> ;
