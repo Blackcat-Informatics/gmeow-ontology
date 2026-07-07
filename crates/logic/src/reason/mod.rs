@@ -743,6 +743,40 @@ mod tests {
         );
     }
 
+    /// Production-surface antecedent guard (gap G3): the primary reasoning path
+    /// (`reason_all` → `reason_closure` → `run_reasoning` → `forward_oracle().materialize`
+    /// → `chase_rows_to_inferred`) must carry REAL native premises end-to-end, not
+    /// just non-empty inferred facts. `forward_oracle()` funnels the binary
+    /// seminaive branch here; A⊑B, B⊑C derives the transitive A⊑C, whose
+    /// `InferredAxiom::premises` must be NON-EMPTY (it cites its two body facts).
+    /// Falsifiable: the escaped empty-antecedents bug leaves EVERY derived
+    /// `premises` empty, tripping this at the production observable.
+    #[test]
+    fn reason_all_derived_axioms_carry_nonempty_premises() {
+        let store = dataset(vec![quad(A, SUBCLASS, B), quad(B, SUBCLASS, C)]);
+        let result = reason_all(store.as_ref()).expect("native reason_all must decide the closure");
+
+        // The transitive subClassOf(A, C) is derived (is_edb == false) and must
+        // cite its immediate antecedents through `InferredAxiom::premises`.
+        // `subject`/`predicate` are bare IRIs; `object` is `term_display`ed (an IRI
+        // renders angle-bracketed), so match the object against its display form.
+        let object_c = format!("<{C}>");
+        let derived_transitive = result.inferred().iter().find(|ax| {
+            !ax.is_edb && ax.predicate == SUBCLASS && ax.subject == A && ax.object == object_c
+        });
+        let axiom = derived_transitive.unwrap_or_else(|| {
+            panic!(
+                "transitive subClassOf(A, C) must be derived; got {:?}",
+                result.inferred()
+            )
+        });
+        assert!(
+            !axiom.premises.is_empty(),
+            "derived subClassOf(A, C) must carry NON-EMPTY premises on the production path \
+             (the empty-antecedents bug fails here); got {axiom:?}"
+        );
+    }
+
     /// The Task-7 scheduled cross-check engine: dual-running the SAME corpus through
     /// the native oracle and the retained Nemo oracle over the fixed DL calculus must
     /// agree — pure agreement, no Nemo-only (OracleOnly) regression, and the verdict
