@@ -36,7 +36,12 @@ pub mod correspondence_law;
 pub mod error;
 pub mod fanout;
 pub mod generator_registry;
-pub mod gmeow_ns;
+pub(crate) mod gmeow_ns;
+/// Test-support only: the flagship discharge harness discovers the real slice catalog
+/// with the same vocab the mappings stage uses. Re-exported doc-hidden so it is reachable
+/// from the integration test without publishing the `gmeow_ns` module as stable API.
+#[doc(hidden)]
+pub use gmeow_ns::gmeow_slice_vocab;
 pub mod graph;
 pub mod ingest;
 pub mod loader;
