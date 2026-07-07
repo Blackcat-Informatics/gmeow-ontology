@@ -4,6 +4,7 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix math:  <https://blackcatinformatics.ca/math/> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix lang:  <https://blackcatinformatics.ca/lang/> .
 @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
@@ -260,6 +261,32 @@ math:Logarithm
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "logarithm"@x-gmeow-english ;
     skos:definition "The logarithm operator (log_b of a), an inverse of math:Exponentiation that recovers the exponent. OpenMath transc1 log."@x-gmeow-english .
+
+# =========================================================================== #
+# Rendering seam — a mathematical expression realized as a notation form.
+# math:ExpressionRendering grafts onto the general lang:Rendering theory rather
+# than forking it: it is the lang:Rendering whose content is a mathematical
+# expression and whose kind is lang:renderingNotation. A future projection
+# target (MathML, LaTeX) reads lang:renderedContent, lang:renderingConvention,
+# and lang:renderingPreservation off this class and emits a surface without
+# re-shaping it. Preservation is the shared logic:PreservationKind carried on
+# the rendering's logic:Correspondence, never a math: display grade.
+# =========================================================================== #
+
+math:ExpressionRendering
+    a owl:Class ;
+    rdfs:subClassOf lang:Rendering ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Expression Rendering"@x-gmeow-english ;
+    skos:definition "A reified record of realizing a mathematical expression as a notation form: the lang:Rendering whose lang:renderedContent is a math:MathematicalExpression, whose lang:renderingKind is lang:renderingNotation, whose lang:renderingConvention names a mathematical notation system (the LaTeX, MathML, or OpenMath convention that fixes how the expression AST becomes a surface), and whose lang:renderingPreservation carries a logic:PreservationKind judging the crossing. It grafts onto the general lang:Rendering theory rather than forking it — no math: display class ladder and no math: preservation enum are minted. A projection target reads renderedContent, renderingConvention, and renderingPreservation directly off this record to emit MathML or LaTeX, which attaches later without re-shaping this class; the convenience shortcut math:rendersAs points at the expression whose reified rendering this is."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:rendersAs
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "renders as"@x-gmeow-english ;
+    skos:definition "The convenience shortcut from a mathematical expression to the notation form it is rendered as. Domain math:MathematicalExpression, range lang:Form (stated in prose). The shortcut whose reified record is a math:ExpressionRendering: the rendering node carries the notation convention through lang:renderingConvention and the preservation judgment through lang:renderingPreservation, so math:rendersAs is a lossy read-off that names only the produced form, while the ExpressionRendering holds the full crossing."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
 
 # =========================================================================== #
 # Sets and their construction

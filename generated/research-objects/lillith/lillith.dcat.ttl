@@ -50,10 +50,10 @@ gmeow:fixtureSessionTake3Recording
 
 <https://blackcatinformatics.ca/gmeow/examples/graphrag/lillith-benchmark>
     a dcat:Dataset ;
-    dcterms:description "A worked GraphRAG benchmark dataset: a content-addressed corpus, its chunking, embeddings, vector index, retrieval events, and model-extracted entity/relationship descriptions — every artifact attributed and confidence-weighted, published as a research object."@en ;
+    dcterms:description "A worked GraphRAG benchmark dataset: a content-addressed corpus, its chunking, embeddings, vector index, retrieval events, and model-extracted entity/relationship descriptions — every artifact attributed and confidence-weighted, published as a research object."@x-gmeow-english ;
     dcterms:issued "2026-06-12T00:00:00Z"^^xsd:dateTime ;
     dcterms:license <https://blackcatinformatics.ca/gmeow/examples/graphrag/lillith-license> ;
-    dcterms:title "Lillith GraphRAG benchmark"@en ;
+    dcterms:title "Lillith GraphRAG benchmark"@x-gmeow-english ;
     dcat:distribution <https://blackcatinformatics.ca/gmeow/examples/graphrag/corpus-lillith> ;
     prov:wasAttributedTo <https://blackcatinformatics.ca/gmeow/examples/graphrag/blackcat> .
 

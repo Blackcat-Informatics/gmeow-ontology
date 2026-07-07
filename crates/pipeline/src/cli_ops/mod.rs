@@ -15,8 +15,8 @@
 //!      shell the external `gts from-okf` codec (HARD FAIL if absent), lift the
 //!      recognized `okf:` predicates to the `rdfs:`/`skos:`/`rdf:` surface, and drive
 //!      the native MAXIMAL(G) back-half.
-//!    * [`quality`] — the OOPS!/FOOPS! network scorers (the port of
-//!      `gmeow_tools.quality`): blocking HTTP over the already-vendored `ureq`.
+//!    * [`quality`] — the OOPS!/FOOPS! network scorers: blocking HTTP over the
+//!      already-vendored `ureq`.
 //!
 //! 2. **Thin confirmations** — surfaces whose logic is ALREADY native; these
 //!    [`confirmations`] wrappers only expose the confirmed native authority under

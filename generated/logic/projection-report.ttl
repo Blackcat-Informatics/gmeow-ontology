@@ -70,8 +70,7 @@
     rdfs:label "bcp47:tag-set" ;
     gmeow:lossyDrop "actual: a BCP-47 tag carries no diachronic history of the variety (no lang: temporal-stage lineage)" ,
         "actual: a BCP-47 tag carries no orthography split (a sign system with several orthographies collapses to one script subtag)" ,
-        "actual: a BCP-47 tag carries no variety relations beyond the primary subtag (the lang:varietyOf structure is flattened to a single differentiating subtag)" ,
-        "actual: variety <https://blackcatinformatics.ca/lang/gmeowEnglish> has no derivable BCP-47 primary subtag: its lang:varietyOf parent carries no ISO 639 skos:notation (GMEOW sign systems keep ISO codes as alignments, not asserted data), so gmeow:bcp47Tag is absent — a data row, not a failure" ;
+        "actual: a BCP-47 tag carries no variety relations beyond the primary subtag (the lang:varietyOf structure is flattened to a single differentiating subtag)" ;
     logic:complexityClass "n/a" ;
     logic:preservationKind logic:SoundUnderApproximation .
 
@@ -103,11 +102,11 @@
     a logic:ProjectionTarget ;
     rdfs:label "datalog" ;
     gmeow:lossyDrop "OWL class expressions not representable as Datalog atoms are dropped" ,
-        "actual: logic:Formula #0 [Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in Datalog; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
-        "actual: logic:Formula #1 [Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in Datalog; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
-        "actual: logic:Formula #2 [Disjunctive+Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in Datalog; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
-        "actual: logic:Formula #3 [Nested+Quantified+StrongNegation+Variadic] (full first-order quantifier / connective tree) is not representable in Datalog; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
-        "actual: logic:Formula #4 [Disjunctive+Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in Datalog; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
+        "actual: logic:Formula #0 [Nested+Quantified] (full first-order quantifier / connective tree) is not representable in Datalog; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
+        "actual: logic:Formula #1 [Nested+Quantified] (full first-order quantifier / connective tree) is not representable in Datalog; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
+        "actual: logic:Formula #2 [Disjunctive+Nested+Quantified] (full first-order quantifier / connective tree) is not representable in Datalog; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
+        "actual: logic:Formula #3 [Nested+Quantified+StrongNegation] (full first-order quantifier / connective tree) is not representable in Datalog; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
+        "actual: logic:Formula #4 [Disjunctive+Nested+Quantified] (full first-order quantifier / connective tree) is not representable in Datalog; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
         "actual: logic:Formula #5 [Nested+Quantified+StrongNegation] (full first-order quantifier / connective tree) is not representable in Datalog; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
         "actual: reasoning contract (an anonymous faceted contract) is not representable in Datalog; the full facet selection is dropped (preserved only in the canonical RDF 1.2 projection)" ,
         "actual: reasoning contract (preset logic:PositiveHornProfile) is not representable in Datalog; the full facet selection is dropped (preserved only in the canonical RDF 1.2 projection)" ,
@@ -6939,11 +6938,11 @@
 <https://blackcatinformatics.ca/logic/target/gufo>
     a logic:ProjectionTarget ;
     rdfs:label "gufo" ;
-    gmeow:lossyDrop "actual: logic:Formula #0 [Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in the gUFO bridge; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
-        "actual: logic:Formula #1 [Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in the gUFO bridge; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
-        "actual: logic:Formula #2 [Disjunctive+Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in the gUFO bridge; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
-        "actual: logic:Formula #3 [Nested+Quantified+StrongNegation+Variadic] (full first-order quantifier / connective tree) is not representable in the gUFO bridge; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
-        "actual: logic:Formula #4 [Disjunctive+Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in the gUFO bridge; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
+    gmeow:lossyDrop "actual: logic:Formula #0 [Nested+Quantified] (full first-order quantifier / connective tree) is not representable in the gUFO bridge; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
+        "actual: logic:Formula #1 [Nested+Quantified] (full first-order quantifier / connective tree) is not representable in the gUFO bridge; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
+        "actual: logic:Formula #2 [Disjunctive+Nested+Quantified] (full first-order quantifier / connective tree) is not representable in the gUFO bridge; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
+        "actual: logic:Formula #3 [Nested+Quantified+StrongNegation] (full first-order quantifier / connective tree) is not representable in the gUFO bridge; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
+        "actual: logic:Formula #4 [Disjunctive+Nested+Quantified] (full first-order quantifier / connective tree) is not representable in the gUFO bridge; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
         "actual: logic:Formula #5 [Nested+Quantified+StrongNegation] (full first-order quantifier / connective tree) is not representable in the gUFO bridge; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
         "actual: logic:body on <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> has no gUFO bridge equivalent" ,
         "actual: logic:body on <https://blackcatinformatics.ca/logic/ruleIndirectContributor> has no gUFO bridge equivalent" ,
@@ -7984,11 +7983,11 @@
     a logic:ProjectionTarget ;
     rdfs:label "n3" ;
     gmeow:lossyDrop "N3 builtins used for arithmetic/string predicates where available" ,
-        "actual: logic:Formula #0 [Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in N3; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
-        "actual: logic:Formula #1 [Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in N3; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
-        "actual: logic:Formula #2 [Disjunctive+Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in N3; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
-        "actual: logic:Formula #3 [Nested+Quantified+StrongNegation+Variadic] (full first-order quantifier / connective tree) is not representable in N3; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
-        "actual: logic:Formula #4 [Disjunctive+Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in N3; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
+        "actual: logic:Formula #0 [Nested+Quantified] (full first-order quantifier / connective tree) is not representable in N3; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
+        "actual: logic:Formula #1 [Nested+Quantified] (full first-order quantifier / connective tree) is not representable in N3; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
+        "actual: logic:Formula #2 [Disjunctive+Nested+Quantified] (full first-order quantifier / connective tree) is not representable in N3; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
+        "actual: logic:Formula #3 [Nested+Quantified+StrongNegation] (full first-order quantifier / connective tree) is not representable in N3; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
+        "actual: logic:Formula #4 [Disjunctive+Nested+Quantified] (full first-order quantifier / connective tree) is not representable in N3; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
         "actual: logic:Formula #5 [Nested+Quantified+StrongNegation] (full first-order quantifier / connective tree) is not representable in N3; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
         "actual: reasoning contract (an anonymous faceted contract) is not representable in N3; the full facet selection is dropped (preserved only in the canonical RDF 1.2 projection)" ,
         "actual: reasoning contract (preset logic:PositiveHornProfile) is not representable in N3; the full facet selection is dropped (preserved only in the canonical RDF 1.2 projection)" ,
@@ -8005,11 +8004,11 @@
 <https://blackcatinformatics.ca/logic/target/nemo>
     a logic:ProjectionTarget ;
     rdfs:label "nemo" ;
-    gmeow:lossyDrop "actual: logic:Formula #0 [Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in Nemo; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
-        "actual: logic:Formula #1 [Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in Nemo; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
-        "actual: logic:Formula #2 [Disjunctive+Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in Nemo; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
-        "actual: logic:Formula #3 [Nested+Quantified+StrongNegation+Variadic] (full first-order quantifier / connective tree) is not representable in Nemo; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
-        "actual: logic:Formula #4 [Disjunctive+Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in Nemo; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
+    gmeow:lossyDrop "actual: logic:Formula #0 [Nested+Quantified] (full first-order quantifier / connective tree) is not representable in Nemo; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
+        "actual: logic:Formula #1 [Nested+Quantified] (full first-order quantifier / connective tree) is not representable in Nemo; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
+        "actual: logic:Formula #2 [Disjunctive+Nested+Quantified] (full first-order quantifier / connective tree) is not representable in Nemo; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
+        "actual: logic:Formula #3 [Nested+Quantified+StrongNegation] (full first-order quantifier / connective tree) is not representable in Nemo; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
+        "actual: logic:Formula #4 [Disjunctive+Nested+Quantified] (full first-order quantifier / connective tree) is not representable in Nemo; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
         "actual: logic:Formula #5 [Nested+Quantified+StrongNegation] (full first-order quantifier / connective tree) is not representable in Nemo; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ;
     logic:complexityClass "PTIME/datalog" ;
     logic:preservationKind logic:SoundUnderApproximation .
@@ -8035,9 +8034,9 @@
 <https://blackcatinformatics.ca/logic/target/owl-dl>
     a logic:ProjectionTarget ;
     rdfs:label "owl-dl" ;
-    gmeow:lossyDrop "actual: logic:Formula #0 [Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in OWL 2 DL; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
-        "actual: logic:Formula #1 [Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in OWL 2 DL; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
-        "actual: logic:Formula #3 [Nested+Quantified+StrongNegation+Variadic] (full first-order quantifier / connective tree) is not representable in OWL 2 DL; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
+    gmeow:lossyDrop "actual: logic:Formula #0 [Nested+Quantified] (full first-order quantifier / connective tree) is not representable in OWL 2 DL; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
+        "actual: logic:Formula #1 [Nested+Quantified] (full first-order quantifier / connective tree) is not representable in OWL 2 DL; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
+        "actual: logic:Formula #3 [Nested+Quantified+StrongNegation] (full first-order quantifier / connective tree) is not representable in OWL 2 DL; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
         "actual: logic:Formula #5 [Nested+Quantified+StrongNegation] (full first-order quantifier / connective tree) is not representable in OWL 2 DL; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
         "actual: logic:body on <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> has no OWL DL equivalent" ,
         "actual: logic:body on <https://blackcatinformatics.ca/logic/ruleIndirectContributor> has no OWL DL equivalent" ,
@@ -8521,11 +8520,11 @@
 <https://blackcatinformatics.ca/logic/target/owl-el>
     a logic:ProjectionTarget ;
     rdfs:label "owl-el" ;
-    gmeow:lossyDrop "actual: logic:Formula #0 [Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in OWL 2 EL; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
-        "actual: logic:Formula #1 [Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in OWL 2 EL; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
-        "actual: logic:Formula #2 [Disjunctive+Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in OWL 2 EL; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
-        "actual: logic:Formula #3 [Nested+Quantified+StrongNegation+Variadic] (full first-order quantifier / connective tree) is not representable in OWL 2 EL; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
-        "actual: logic:Formula #4 [Disjunctive+Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in OWL 2 EL; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
+    gmeow:lossyDrop "actual: logic:Formula #0 [Nested+Quantified] (full first-order quantifier / connective tree) is not representable in OWL 2 EL; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
+        "actual: logic:Formula #1 [Nested+Quantified] (full first-order quantifier / connective tree) is not representable in OWL 2 EL; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
+        "actual: logic:Formula #2 [Disjunctive+Nested+Quantified] (full first-order quantifier / connective tree) is not representable in OWL 2 EL; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
+        "actual: logic:Formula #3 [Nested+Quantified+StrongNegation] (full first-order quantifier / connective tree) is not representable in OWL 2 EL; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
+        "actual: logic:Formula #4 [Disjunctive+Nested+Quantified] (full first-order quantifier / connective tree) is not representable in OWL 2 EL; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
         "actual: logic:Formula #5 [Nested+Quantified+StrongNegation] (full first-order quantifier / connective tree) is not representable in OWL 2 EL; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
         "actual: logic:body on <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> has no EL equivalent" ,
         "actual: logic:body on <https://blackcatinformatics.ca/logic/ruleIndirectContributor> has no EL equivalent" ,
@@ -9001,6 +9000,28 @@
     logic:complexityClass "PTIME" ;
     logic:preservationKind logic:SoundUnderApproximation .
 
+<https://blackcatinformatics.ca/logic/target/semaf:authority-links#eveningStarDenotation>
+    a logic:ProjectionTarget ;
+    rdfs:label "semaf:authority-links#eveningStarDenotation" ;
+    gmeow:lossyDrop "actual: AMR / SemAF carry no vantage: perspectival / standpoint support is dropped" ,
+        "actual: AMR has no modality depth: modal operators in the denotation collapse" ,
+        "actual: AMR has no quantifier scope: quantifier scoping in the logic: formula is not carried" ,
+        "actual: SemAF role inventory is coarser than the full logic: predicate-argument structure" ,
+        "actual: lang:Denotation <https://blackcatinformatics.ca/gmeow/examples/coreference/eveningStarDenotation> has lang:denotationKind lang:denotesEntity whose target has no AMR/SemAF meaning-graph form (only lang:denotesLogicFormula lowers)" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:Unsupported .
+
+<https://blackcatinformatics.ca/logic/target/semaf:authority-links#morningStarDenotation>
+    a logic:ProjectionTarget ;
+    rdfs:label "semaf:authority-links#morningStarDenotation" ;
+    gmeow:lossyDrop "actual: AMR / SemAF carry no vantage: perspectival / standpoint support is dropped" ,
+        "actual: AMR has no modality depth: modal operators in the denotation collapse" ,
+        "actual: AMR has no quantifier scope: quantifier scoping in the logic: formula is not carried" ,
+        "actual: SemAF role inventory is coarser than the full logic: predicate-argument structure" ,
+        "actual: lang:Denotation <https://blackcatinformatics.ca/gmeow/examples/coreference/morningStarDenotation> has lang:denotationKind lang:denotesEntity whose target has no AMR/SemAF meaning-graph form (only lang:denotesLogicFormula lowers)" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:Unsupported .
+
 <https://blackcatinformatics.ca/logic/target/semaf:forms-and-sign-systems#denCatsChaseMice>
     a logic:ProjectionTarget ;
     rdfs:label "semaf:forms-and-sign-systems#denCatsChaseMice" ;
@@ -9010,6 +9031,17 @@
         "actual: SemAF role inventory is coarser than the full logic: predicate-argument structure" ;
     logic:complexityClass "n/a" ;
     logic:preservationKind logic:SoundUnderApproximation .
+
+<https://blackcatinformatics.ca/logic/target/semaf:person-names#chosenDenotation>
+    a logic:ProjectionTarget ;
+    rdfs:label "semaf:person-names#chosenDenotation" ;
+    gmeow:lossyDrop "actual: AMR / SemAF carry no vantage: perspectival / standpoint support is dropped" ,
+        "actual: AMR has no modality depth: modal operators in the denotation collapse" ,
+        "actual: AMR has no quantifier scope: quantifier scoping in the logic: formula is not carried" ,
+        "actual: SemAF role inventory is coarser than the full logic: predicate-argument structure" ,
+        "actual: lang:Denotation <https://blackcatinformatics.ca/gmeow/examples/names/chosenDenotation> has lang:denotationKind lang:denotesEntity whose target has no AMR/SemAF meaning-graph form (only lang:denotesLogicFormula lowers)" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:Unsupported .
 
 <https://blackcatinformatics.ca/logic/target/shacl-af>
     a logic:ProjectionTarget ;
@@ -9539,11 +9571,11 @@
         "actual: ground axiom <https://blackcatinformatics.ca/logic/wfResolveLoop> <https://blackcatinformatics.ca/logic/iterationCondition> <https://blackcatinformatics.ca/logic/wfFixpointNotReached> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
         "actual: ground axiom <https://blackcatinformatics.ca/logic/wfResolveThenBuild> <https://blackcatinformatics.ca/logic/leftOperand> <https://blackcatinformatics.ca/logic/wfResolveLoop> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
         "actual: ground axiom <https://blackcatinformatics.ca/logic/wfResolveThenBuild> <https://blackcatinformatics.ca/logic/rightOperand> <https://blackcatinformatics.ca/logic/wfConstructModel> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
-        "actual: logic:Formula #0 [Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in SHACL-AF; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
-        "actual: logic:Formula #1 [Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in SHACL-AF; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
-        "actual: logic:Formula #2 [Disjunctive+Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in SHACL-AF; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
-        "actual: logic:Formula #3 [Nested+Quantified+StrongNegation+Variadic] (full first-order quantifier / connective tree) is not representable in SHACL-AF; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
-        "actual: logic:Formula #4 [Disjunctive+Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in SHACL-AF; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
+        "actual: logic:Formula #0 [Nested+Quantified] (full first-order quantifier / connective tree) is not representable in SHACL-AF; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
+        "actual: logic:Formula #1 [Nested+Quantified] (full first-order quantifier / connective tree) is not representable in SHACL-AF; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
+        "actual: logic:Formula #2 [Disjunctive+Nested+Quantified] (full first-order quantifier / connective tree) is not representable in SHACL-AF; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
+        "actual: logic:Formula #3 [Nested+Quantified+StrongNegation] (full first-order quantifier / connective tree) is not representable in SHACL-AF; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
+        "actual: logic:Formula #4 [Disjunctive+Nested+Quantified] (full first-order quantifier / connective tree) is not representable in SHACL-AF; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
         "actual: logic:Formula #5 [Nested+Quantified+StrongNegation] (full first-order quantifier / connective tree) is not representable in SHACL-AF; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
         "actual: reasoning contract (an anonymous faceted contract) is not representable in SHACL-AF; the full facet selection is dropped (preserved only in the canonical RDF 1.2 projection)" ,
         "actual: reasoning contract (preset logic:PositiveHornProfile) is not representable in SHACL-AF; the full facet selection is dropped (preserved only in the canonical RDF 1.2 projection)" ,
@@ -21148,6 +21180,17 @@
     logic:complexityClass "N/A (1:1 lattice band)" ;
     logic:preservationKind logic:SoundUnderApproximation .
 
+<https://blackcatinformatics.ca/logic/target/sssom:3c9ec10a82869cc7>
+    a logic:ProjectionTarget ;
+    rdfs:label "sssom:3c9ec10a82869cc7" ;
+    gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/lang/Orthography|http://www.w3.org/2004/02/skos/core#closeMatch|http://www.wikidata.org/entity/Q43091" ,
+        "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
+        "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
+        "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
+        "world/standpoint scope and the put leg are not carried" ;
+    logic:complexityClass "N/A (1:1 lattice band)" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
 <https://blackcatinformatics.ca/logic/target/sssom:3ca9bc3567fa1bde>
     a logic:ProjectionTarget ;
     rdfs:label "sssom:3ca9bc3567fa1bde" ;
@@ -22583,6 +22626,17 @@
     a logic:ProjectionTarget ;
     rdfs:label "sssom:4e4a4f54c84a16a5" ;
     gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/gmeow/calendarJulian|http://www.w3.org/2004/02/skos/core#exactMatch|http://www.wikidata.org/entity/Q1986" ,
+        "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
+        "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
+        "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
+        "world/standpoint scope and the put leg are not carried" ;
+    logic:complexityClass "N/A (1:1 lattice band)" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
+<https://blackcatinformatics.ca/logic/target/sssom:4e51f3cccff241f0>
+    a logic:ProjectionTarget ;
+    rdfs:label "sssom:4e51f3cccff241f0" ;
+    gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/lang/Script|http://www.w3.org/2004/02/skos/core#closeMatch|http://www.wikidata.org/entity/Q8192" ,
         "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
         "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
         "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
@@ -26574,17 +26628,6 @@
     logic:complexityClass "N/A (1:1 lattice band)" ;
     logic:preservationKind logic:SoundUnderApproximation .
 
-<https://blackcatinformatics.ca/logic/target/sssom:799ae0f0c6929773>
-    a logic:ProjectionTarget ;
-    rdfs:label "sssom:799ae0f0c6929773" ;
-    gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/gmeow/usesWritingSystem|http://www.w3.org/2004/02/skos/core#closeMatch|http://www.wikidata.org/prop/direct/P282" ,
-        "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
-        "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
-        "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
-        "world/standpoint scope and the put leg are not carried" ;
-    logic:complexityClass "N/A (1:1 lattice band)" ;
-    logic:preservationKind logic:SoundUnderApproximation .
-
 <https://blackcatinformatics.ca/logic/target/sssom:79a6a59a6a3fcb86>
     a logic:ProjectionTarget ;
     rdfs:label "sssom:79a6a59a6a3fcb86" ;
@@ -28070,17 +28113,6 @@
     logic:complexityClass "N/A (1:1 lattice band)" ;
     logic:preservationKind logic:SoundUnderApproximation .
 
-<https://blackcatinformatics.ca/logic/target/sssom:8ca88c1ae598b795>
-    a logic:ProjectionTarget ;
-    rdfs:label "sssom:8ca88c1ae598b795" ;
-    gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/gmeow/ProgrammingLanguage|http://www.w3.org/2004/02/skos/core#closeMatch|https://schema.org/ComputerLanguage" ,
-        "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
-        "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
-        "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
-        "world/standpoint scope and the put leg are not carried" ;
-    logic:complexityClass "N/A (1:1 lattice band)" ;
-    logic:preservationKind logic:SoundUnderApproximation .
-
 <https://blackcatinformatics.ca/logic/target/sssom:8cb56be2397ada80>
     a logic:ProjectionTarget ;
     rdfs:label "sssom:8cb56be2397ada80" ;
@@ -28801,17 +28833,6 @@
     a logic:ProjectionTarget ;
     rdfs:label "sssom:94bdff1dec5da547" ;
     gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/gmeow/Event|http://www.w3.org/2004/02/skos/core#closeMatch|http://semanticweb.cs.vu.nl/2009/11/sem/Event" ,
-        "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
-        "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
-        "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
-        "world/standpoint scope and the put leg are not carried" ;
-    logic:complexityClass "N/A (1:1 lattice band)" ;
-    logic:preservationKind logic:SoundUnderApproximation .
-
-<https://blackcatinformatics.ca/logic/target/sssom:94c2956bd86efacf>
-    a logic:ProjectionTarget ;
-    rdfs:label "sssom:94c2956bd86efacf" ;
-    gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/gmeow/FormalLanguage|http://www.w3.org/2004/02/skos/core#closeMatch|http://www.wikidata.org/entity/Q205892" ,
         "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
         "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
         "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
@@ -33404,17 +33425,6 @@
     logic:complexityClass "N/A (1:1 lattice band)" ;
     logic:preservationKind logic:SoundUnderApproximation .
 
-<https://blackcatinformatics.ca/logic/target/sssom:cf3a8533a10bfd4e>
-    a logic:ProjectionTarget ;
-    rdfs:label "sssom:cf3a8533a10bfd4e" ;
-    gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/gmeow/WritingSystem|http://www.w3.org/2004/02/skos/core#closeMatch|http://www.wikidata.org/entity/Q8192" ,
-        "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
-        "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
-        "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
-        "world/standpoint scope and the put leg are not carried" ;
-    logic:complexityClass "N/A (1:1 lattice band)" ;
-    logic:preservationKind logic:SoundUnderApproximation .
-
 <https://blackcatinformatics.ca/logic/target/sssom:cf4aaa762a5a9fc3>
     a logic:ProjectionTarget ;
     rdfs:label "sssom:cf4aaa762a5a9fc3" ;
@@ -34191,17 +34201,6 @@
     a logic:ProjectionTarget ;
     rdfs:label "sssom:d72f1b94e604f112" ;
     gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/gmeow/orientHeterosexual|http://www.w3.org/2004/02/skos/core#closeMatch|http://www.wikidata.org/entity/Q1035954" ,
-        "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
-        "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
-        "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
-        "world/standpoint scope and the put leg are not carried" ;
-    logic:complexityClass "N/A (1:1 lattice band)" ;
-    logic:preservationKind logic:SoundUnderApproximation .
-
-<https://blackcatinformatics.ca/logic/target/sssom:d773ed2bba0f0b74>
-    a logic:ProjectionTarget ;
-    rdfs:label "sssom:d773ed2bba0f0b74" ;
-    gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/gmeow/ProgrammingLanguage|http://www.w3.org/2004/02/skos/core#closeMatch|http://www.wikidata.org/entity/Q9143" ,
         "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
         "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
         "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
@@ -38289,7 +38288,10 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/ontolex-lemon:forms-and-sign-systems> ,
         <https://blackcatinformatics.ca/logic/target/owl-dl> ,
         <https://blackcatinformatics.ca/logic/target/owl-el> ,
+        <https://blackcatinformatics.ca/logic/target/semaf:authority-links#eveningStarDenotation> ,
+        <https://blackcatinformatics.ca/logic/target/semaf:authority-links#morningStarDenotation> ,
         <https://blackcatinformatics.ca/logic/target/semaf:forms-and-sign-systems#denCatsChaseMice> ,
+        <https://blackcatinformatics.ca/logic/target/semaf:person-names#chosenDenotation> ,
         <https://blackcatinformatics.ca/logic/target/shacl-af> ,
         <https://blackcatinformatics.ca/logic/target/shacl-core> ,
         <https://blackcatinformatics.ca/logic/target/shex> ,
@@ -39297,6 +39299,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sssom:3bef2c069842baa1> ,
         <https://blackcatinformatics.ca/logic/target/sssom:3c374db5d2b88eb9> ,
         <https://blackcatinformatics.ca/logic/target/sssom:3c540cca8867b5f8> ,
+        <https://blackcatinformatics.ca/logic/target/sssom:3c9ec10a82869cc7> ,
         <https://blackcatinformatics.ca/logic/target/sssom:3ca9bc3567fa1bde> ,
         <https://blackcatinformatics.ca/logic/target/sssom:3d32fd654ac29b64> ,
         <https://blackcatinformatics.ca/logic/target/sssom:3d33d084a1aedac0> ,
@@ -39428,6 +39431,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sssom:4dd9964e8101e932> ,
         <https://blackcatinformatics.ca/logic/target/sssom:4e392bca5a544ca4> ,
         <https://blackcatinformatics.ca/logic/target/sssom:4e4a4f54c84a16a5> ,
+        <https://blackcatinformatics.ca/logic/target/sssom:4e51f3cccff241f0> ,
         <https://blackcatinformatics.ca/logic/target/sssom:4e8d7a8f98eb85f8> ,
         <https://blackcatinformatics.ca/logic/target/sssom:4ebdeffb54513f5a> ,
         <https://blackcatinformatics.ca/logic/target/sssom:4ed134aeee80ed25> ,
@@ -39790,7 +39794,6 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sssom:7966e216cc63ddf9> ,
         <https://blackcatinformatics.ca/logic/target/sssom:797064276c398da0> ,
         <https://blackcatinformatics.ca/logic/target/sssom:797fc3836068739b> ,
-        <https://blackcatinformatics.ca/logic/target/sssom:799ae0f0c6929773> ,
         <https://blackcatinformatics.ca/logic/target/sssom:79a6a59a6a3fcb86> ,
         <https://blackcatinformatics.ca/logic/target/sssom:79b895674291464e> ,
         <https://blackcatinformatics.ca/logic/target/sssom:79c27dac9829ce29> ,
@@ -39926,7 +39929,6 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sssom:8c3232d7416ff065> ,
         <https://blackcatinformatics.ca/logic/target/sssom:8c4888b26d0a141b> ,
         <https://blackcatinformatics.ca/logic/target/sssom:8c67df44d1e8f37d> ,
-        <https://blackcatinformatics.ca/logic/target/sssom:8ca88c1ae598b795> ,
         <https://blackcatinformatics.ca/logic/target/sssom:8cb56be2397ada80> ,
         <https://blackcatinformatics.ca/logic/target/sssom:8cb7af650a90f66a> ,
         <https://blackcatinformatics.ca/logic/target/sssom:8cde0fc0c3df824a> ,
@@ -39993,7 +39995,6 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sssom:94877819c433330f> ,
         <https://blackcatinformatics.ca/logic/target/sssom:94a4c725d70686dd> ,
         <https://blackcatinformatics.ca/logic/target/sssom:94bdff1dec5da547> ,
-        <https://blackcatinformatics.ca/logic/target/sssom:94c2956bd86efacf> ,
         <https://blackcatinformatics.ca/logic/target/sssom:94ceac3f36796245> ,
         <https://blackcatinformatics.ca/logic/target/sssom:94d71a492b843855> ,
         <https://blackcatinformatics.ca/logic/target/sssom:94f581dab5a19d35> ,
@@ -40410,7 +40411,6 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sssom:ce8bcc3e3e17271d> ,
         <https://blackcatinformatics.ca/logic/target/sssom:cee3dde07fd9760e> ,
         <https://blackcatinformatics.ca/logic/target/sssom:cee90588c2a95d31> ,
-        <https://blackcatinformatics.ca/logic/target/sssom:cf3a8533a10bfd4e> ,
         <https://blackcatinformatics.ca/logic/target/sssom:cf4aaa762a5a9fc3> ,
         <https://blackcatinformatics.ca/logic/target/sssom:cf5c23af96095206> ,
         <https://blackcatinformatics.ca/logic/target/sssom:cf8a1dba52f1b1a4> ,
@@ -40482,7 +40482,6 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sssom:d71e59bb226db59a> ,
         <https://blackcatinformatics.ca/logic/target/sssom:d728a9da0011411c> ,
         <https://blackcatinformatics.ca/logic/target/sssom:d72f1b94e604f112> ,
-        <https://blackcatinformatics.ca/logic/target/sssom:d773ed2bba0f0b74> ,
         <https://blackcatinformatics.ca/logic/target/sssom:d83356e6ed6ba1d1> ,
         <https://blackcatinformatics.ca/logic/target/sssom:d8374914931e0df7> ,
         <https://blackcatinformatics.ca/logic/target/sssom:d85fd6a8719e9efd> ,

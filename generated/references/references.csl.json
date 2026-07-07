@@ -3410,12 +3410,6 @@
     "type": "webpage"
   },
   {
-    "URL": "https://iso639-3.sil.org/sites/iso639-3/files/downloads/iso-639-3.tab",
-    "id": "iso-639-3-tab-ec994ee8",
-    "title": "iso639-3.sil.org/sites/iso639-3/files/downloads/iso-639-3.tab",
-    "type": "webpage"
-  },
-  {
     "URL": "https://issues.omg.org/issues/FIBOFND11-12",
     "id": "fibofnd11-12-9e19d285",
     "title": "issues.omg.org/issues/FIBOFND11-12",
@@ -3863,12 +3857,6 @@
     "URL": "https://pypi.org/pypi/fastmcp/json",
     "id": "json-bf4a513c",
     "title": "pypi.org/pypi/fastmcp/json",
-    "type": "webpage"
-  },
-  {
-    "URL": "https://query.wikidata.org/sparql",
-    "id": "sparql-479c34c9",
-    "title": "query.wikidata.org/sparql",
     "type": "webpage"
   },
   {

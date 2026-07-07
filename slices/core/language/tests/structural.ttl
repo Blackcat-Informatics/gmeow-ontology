@@ -9,21 +9,20 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/language/tests/> .
 
-# --- 1. The Language Kind/SubKind spine (MUST hold) --------------------------
+# --- 1. gmeow:Language is a logic:Kind grafted onto lang:SignSystem (MUST hold) -
 ex:saLanguageKindSpine a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX lang: <https://blackcatinformatics.ca/lang/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX logic: <https://blackcatinformatics.ca/logic/>
 ASK {
-    gmeow:Language            a owl:Class , logic:Kind ;    rdfs:subClassOf gmeow:InformationObject .
-    gmeow:WritingSystem       a owl:Class , logic:Kind ;    rdfs:subClassOf gmeow:InformationObject .
-    gmeow:FormalLanguage      a owl:Class , logic:SubKind ; rdfs:subClassOf gmeow:Language .
-    gmeow:ProgrammingLanguage a owl:Class , logic:SubKind ; rdfs:subClassOf gmeow:FormalLanguage .
+    gmeow:Language a owl:Class , logic:Kind ;
+        rdfs:subClassOf gmeow:InformationObject , lang:SignSystem .
 }""" ;
-    gmeow:saRationale "gmeow:Language and gmeow:WritingSystem MUST be logic:Kind InformationObjects; gmeow:FormalLanguage is a logic:SubKind of gmeow:Language and gmeow:ProgrammingLanguage a logic:SubKind of gmeow:FormalLanguage — the natural/formal/programming language refinement spine." .
+    gmeow:saRationale "gmeow:Language MUST be an owl:Class typed logic:Kind that refines BOTH gmeow:InformationObject and lang:SignSystem — the grounding graft (Principle 19): a language is a sign system. The former natural/formal/programming subclass ladder (gmeow:FormalLanguage / gmeow:ProgrammingLanguage) is retired; the distinction is now carried by lang:signSystemKind individuals (lang:formalLanguageKind / lang:programmingLanguageKind)." .
 
 # --- 2. TransliterationScheme value vocab + key properties (MUST hold) --------
 ex:saLanguageVocabAndProps a gmeow:StructuralAssertion ;
@@ -36,23 +35,10 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX logic: <https://blackcatinformatics.ca/logic/>
 ASK {
     gmeow:TransliterationScheme a owl:Class , logic:AbstractIndividualType ; rdfs:subClassOf logic:QualityValue .
-    gmeow:bcp47Tag a owl:DatatypeProperty ; rdfs:domain gmeow:Language ; rdfs:range xsd:language .
     gmeow:writtenInLanguage a owl:ObjectProperty ; rdfs:domain gmeow:InformationObject ; rdfs:range gmeow:Language .
     gmeow:transliterationScheme a owl:ObjectProperty ; rdfs:domain gmeow:Appellation ; rdfs:range gmeow:TransliterationScheme .
 }""" ;
-    gmeow:saRationale "gmeow:TransliterationScheme MUST be a QualityValue vocabulary; gmeow:bcp47Tag is a Language→xsd:language datatype property; gmeow:writtenInLanguage links any InformationObject to a Language; gmeow:transliterationScheme links an Appellation to its scheme." .
-
-# --- 3. The seeded language individuals are present (MUST hold) ---------------
-ex:saLanguageSeeds a gmeow:StructuralAssertion ;
-    gmeow:saPolarity gmeow:must ;
-    gmeow:saScope gmeow:scopeModule ;
-    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-ASK {
-    gmeow:langEnglish  a gmeow:Language .
-    gmeow:langFrench   a gmeow:Language .
-    gmeow:langMandarin a gmeow:Language .
-}""" ;
-    gmeow:saRationale "The seeded language individuals (English, French, Mandarin — the project's own translation targets) MUST be present and typed gmeow:Language, the dogfooded core of an open language vocabulary." .
+    gmeow:saRationale "gmeow:TransliterationScheme MUST be a QualityValue vocabulary; gmeow:writtenInLanguage links any InformationObject to a Language; gmeow:transliterationScheme links an Appellation to its scheme. (gmeow:bcp47Tag is no longer an authored property — it is a generated projection derived from lang:LanguageVariety structure.)" .
 
 # --- 4. Language refinements use SubKind, not bare subclassing (MUST-NOT) -----
 ex:saLanguageSubKindsTyped a gmeow:StructuralAssertion ;
@@ -67,35 +53,6 @@ ASK {
     FILTER (?c != gmeow:Language)
 }""" ;
     gmeow:saRationale "Every named class refining gmeow:Language MUST carry the logic:SubKind stereotype (the gUFO Kind/SubKind discipline): the slice MUST NOT declare a subclass of gmeow:Language that is not stereotyped logic:SubKind, so language refinements stay specializations of the one identity-bearing Kind." .
-
-# --- 5. The plain rdfs:subClassOf hierarchy spine (MUST hold) ----------------
-ex:saLanguageHierarchyPlainSubclass a gmeow:StructuralAssertion ;
-    gmeow:saPolarity gmeow:must ;
-    gmeow:saScope gmeow:scopeModule ;
-    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-ASK {
-    gmeow:Language            rdfs:subClassOf gmeow:InformationObject .
-    gmeow:FormalLanguage      rdfs:subClassOf gmeow:Language .
-    gmeow:ProgrammingLanguage rdfs:subClassOf gmeow:FormalLanguage .
-    gmeow:WritingSystem       rdfs:subClassOf gmeow:InformationObject .
-}""" ;
-    gmeow:saRationale "The language hierarchy spine MUST hold as plain rdfs:subClassOf edges: gmeow:Language and gmeow:WritingSystem refine gmeow:InformationObject, gmeow:FormalLanguage refines gmeow:Language, and gmeow:ProgrammingLanguage refines gmeow:FormalLanguage. The gmeow:LanguageVersion arm of this hierarchy is pinned in the languages extension slice that defines it." .
-
-# --- 6. languageTag is a functional Language→xsd:string tag (MUST hold) -------
-ex:saLanguageTagCharacter a gmeow:StructuralAssertion ;
-    gmeow:saPolarity gmeow:must ;
-    gmeow:saScope gmeow:scopeModule ;
-    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-ASK {
-    gmeow:languageTag a owl:DatatypeProperty , owl:FunctionalProperty ;
-        rdfs:domain gmeow:Language ;
-        rdfs:range xsd:string .
-}""" ;
-    gmeow:saRationale "gmeow:languageTag MUST be an owl:DatatypeProperty AND owl:FunctionalProperty with rdfs:domain gmeow:Language and rdfs:range xsd:string — each anchoring Language individual carries exactly one internal x-gmeow-* private-use tag string." .
 
 # --- 7. languageCode is a (non-functional) DatatypeProperty (MUST hold) -------
 ex:saLanguageCodeIsDatatypeProperty a gmeow:StructuralAssertion ;
@@ -130,36 +87,6 @@ ASK {
 }""" ;
     gmeow:saRationale "No owl:Restriction onProperty gmeow:languageCode may carry an owl:minCardinality, owl:cardinality, owl:minQualifiedCardinality, or owl:qualifiedCardinality — registry independence means a code-less conlang or AI-generated language is fully first-class, so nothing forces a Language to carry a code." .
 
-# --- 10. bcp47Tag is NOT functional (MUST-NOT) -------------------------------
-ex:saBcp47TagNotFunctional a gmeow:StructuralAssertion ;
-    gmeow:saPolarity gmeow:mustNot ;
-    gmeow:saScope gmeow:scopeModule ;
-    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:bcp47Tag a owl:FunctionalProperty . }""" ;
-    gmeow:saRationale "gmeow:bcp47Tag MUST NOT be owl:FunctionalProperty — a language legitimately exposes several valid BCP-47 tags across script, region, or variant contexts (zh, zh-Hans, …), unlike the single functional internal gmeow:languageTag." .
-
-# --- 11. The seed languages carry both internal and BCP-47 tags (MUST hold) --
-ex:saSeedLanguagesCarryBothTags a gmeow:StructuralAssertion ;
-    gmeow:saPolarity gmeow:must ;
-    gmeow:saScope gmeow:scopeModule ;
-    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-ASK {
-    gmeow:langEnglish  a gmeow:Language ; gmeow:languageTag ?et ; gmeow:bcp47Tag ?eb .
-    gmeow:langFrench   a gmeow:Language ; gmeow:languageTag ?ft ; gmeow:bcp47Tag ?fb .
-    gmeow:langMandarin a gmeow:Language ; gmeow:languageTag ?mt ; gmeow:bcp47Tag ?mb .
-}""" ;
-    gmeow:saRationale "The three seed language individuals (English, French, Mandarin — the framework's own translation targets) MUST each be typed gmeow:Language and carry BOTH an internal gmeow:languageTag (x-gmeow-*) and a projected gmeow:bcp47Tag, so the private-use anchor and its standard projection are both present on every seed." .
-
-# --- 12. WritingSystem is a sibling of SymbolicSystem, not a subclass (MUST-NOT)
-ex:saWritingSystemNotSubclassSymbolicSystem a gmeow:StructuralAssertion ;
-    gmeow:saPolarity gmeow:mustNot ;
-    gmeow:saScope gmeow:scopeModule ;
-    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-ASK { gmeow:WritingSystem rdfs:subClassOf gmeow:SymbolicSystem . }""" ;
-    gmeow:saRationale "gmeow:WritingSystem MUST NOT be rdfs:subClassOf gmeow:SymbolicSystem -- it is a sibling InformationObject, not a symbolic/notation system. Mirrors test_writing_system_is_sibling_not_subclass (mustNot part)." .
-
 # --- 13. Language is a sibling of SymbolicSystem, not a subclass (MUST-NOT) ---
 ex:saLanguageNotSubclassSymbolicSystem a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
@@ -168,12 +95,3 @@ ex:saLanguageNotSubclassSymbolicSystem a gmeow:StructuralAssertion ;
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK { gmeow:Language rdfs:subClassOf gmeow:SymbolicSystem . }""" ;
     gmeow:saRationale "gmeow:Language MUST NOT be rdfs:subClassOf gmeow:SymbolicSystem -- languages are InformationObjects, not symbolic/notation systems. Mirrors test_language_is_sibling_not_subclass_of_symbolic (mustNot part)." .
-
-# --- 14. FormalLanguage is not a subclass of NotationSystem (MUST-NOT) --------
-ex:saFormalLanguageNotSubclassNotationSystem a gmeow:StructuralAssertion ;
-    gmeow:saPolarity gmeow:mustNot ;
-    gmeow:saScope gmeow:scopeModule ;
-    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-ASK { gmeow:FormalLanguage rdfs:subClassOf gmeow:NotationSystem . }""" ;
-    gmeow:saRationale "gmeow:FormalLanguage MUST NOT be rdfs:subClassOf gmeow:NotationSystem -- grammar-defined languages are structurally distinct from representational notations. Mirrors test_formal_language_not_subclass_of_notation." .
