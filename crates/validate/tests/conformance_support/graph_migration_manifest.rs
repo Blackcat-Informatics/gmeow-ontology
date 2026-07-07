@@ -103,6 +103,7 @@ const fn q(python_file: &'static str, python_fn: &'static str) -> ManifestRow {
     }
 }
 /// A `ProjectionPreservation` row a later task must supply (case_count = 1).
+#[allow(dead_code)]
 const fn p(python_file: &'static str, python_fn: &'static str) -> ManifestRow {
     ManifestRow {
         python_file,
@@ -113,6 +114,7 @@ const fn p(python_file: &'static str, python_fn: &'static str) -> ManifestRow {
     }
 }
 /// A `ProjectionPreservation` row with an explicit parametrize cardinality.
+#[allow(dead_code)]
 const fn pn(python_file: &'static str, python_fn: &'static str, case_count: usize) -> ManifestRow {
     ManifestRow {
         python_file,
@@ -613,13 +615,19 @@ pub const MANIFEST: &[ManifestRow] = &[
         "test_kin_relationship_bridges_fire",
     ),
     // ── tests/test_privacy.py (2) — no slice dir; 1 mustNot + 1 projection ──────
-    q(
+    twin(
         "tests/test_privacy.py",
         "test_no_preferred_or_primary_sensitivity_term",
+        1,
+        QueryBehavioral,
+        "conformance_privacy.rs::no_preferred_or_primary_sensitivity_term",
     ),
-    p(
+    twin(
         "tests/test_privacy.py",
         "test_odrl_projection_emits_privacy_policy",
+        1,
+        ProjectionPreservation,
+        "conformance_privacy.rs::odrl_projection_emits_privacy_policy",
     ),
     // ── tests/test_provenance.py (2) ────────────────────────────────────────────
     t(
@@ -636,33 +644,54 @@ pub const MANIFEST: &[ManifestRow] = &[
         "test_no_preferred_or_primary_term_is_declared",
     ),
     // ── tests/test_rights.py (7) — 1 count + 6 projection ──────────────────────
-    q(
+    twin(
         "tests/test_rights.py",
         "test_expanded_action_vocabulary_is_seeded",
+        1,
+        QueryBehavioral,
+        "conformance_rights.rs::expanded_action_vocabulary_is_seeded",
     ),
-    p(
+    twin(
         "tests/test_rights.py",
         "test_odrl_projection_emits_a_policy_with_rules",
+        1,
+        ProjectionPreservation,
+        "conformance_rights.rs::odrl_projection_emits_a_policy_with_rules",
     ),
-    p(
+    twin(
         "tests/test_rights.py",
         "test_odrl_projection_emits_constraint_and_conflict_logic",
+        1,
+        ProjectionPreservation,
+        "conformance_rights.rs::odrl_projection_emits_constraint_and_conflict_logic",
     ),
-    p(
+    twin(
         "tests/test_rights.py",
         "test_spdx_projection_emits_listed_license",
+        1,
+        ProjectionPreservation,
+        "conformance_rights.rs::spdx_projection_emits_listed_license",
     ),
-    p(
+    twin(
         "tests/test_rights.py",
         "test_cc_projection_emits_license_and_attribution",
+        1,
+        ProjectionPreservation,
+        "conformance_rights.rs::cc_projection_emits_license_and_attribution",
     ),
-    p(
+    twin(
         "tests/test_rights.py",
         "test_dcterms_projection_emits_flat_rights",
+        1,
+        ProjectionPreservation,
+        "conformance_rights.rs::dcterms_projection_emits_flat_rights",
     ),
-    p(
+    twin(
         "tests/test_rights.py",
         "test_schema_projection_emits_rights_cluster",
+        1,
+        ProjectionPreservation,
+        "conformance_rights.rs::schema_projection_emits_rights_cluster",
     ),
     // ── tests/test_rubrics.py (2) — no slice dir → R5 ──────────────────────────
     q(
@@ -688,20 +717,26 @@ pub const MANIFEST: &[ManifestRow] = &[
         "test_psychological_mappings_loaded",
     ),
     // ── tests/test_suppression_conformance.py (3, parametrized) — R7 leak sweep ─
-    pn(
+    twin(
         "tests/test_suppression_conformance.py",
         "test_suppressed_canary_never_leaks",
         27,
+        ProjectionPreservation,
+        "conformance_suppression.rs::suppressed_canary_never_leaks",
     ),
-    pn(
+    twin(
         "tests/test_suppression_conformance.py",
         "test_precise_coarsened_values_never_leak",
         27,
+        ProjectionPreservation,
+        "conformance_suppression.rs::precise_coarsened_values_never_leak",
     ),
-    pn(
+    twin(
         "tests/test_suppression_conformance.py",
         "test_control_canary_proves_coverage",
         3,
+        ProjectionPreservation,
+        "conformance_suppression.rs::control_canary_proves_coverage",
     ),
     // ── tests/test_tags.py (1) ──────────────────────────────────────────────────
     t(
