@@ -262,6 +262,10 @@ mod tests {
             crate::stages::reason::PERF_LEDGER_PATH.to_string(),
             b"# perf".to_vec(),
         );
+        reason_artifacts.insert(
+            crate::stages::reason::CORRESPONDENCE_PATH.to_string(),
+            b"# subsumption correspondence".to_vec(),
+        );
         let reason = StageProduct::from_artifacts("stage-reason", reason_artifacts);
 
         let mut statement_artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
