@@ -27,7 +27,7 @@ use pyo3::prelude::*;
 use serde_json::{Value, json};
 
 use gmeow_errors::ResultExt;
-use gmeow_logic::conjecture::conjecture_test;
+use gmeow_logic::conjecture::{ConjectureLifecycleState, conjecture_test};
 use gmeow_logic::query_ir::Budget;
 use gmeow_logic::result_rdf::{
     ConjectureVerdictInput, conjecture_node_iri, project_conjecture_verdict,
@@ -1273,12 +1273,33 @@ pub fn run_conjecture_test(
     // (4) Project the verdict → deterministic N-Triples, and mint the content-addressed
     //     (formula × standpoint × KB-world) conjecture node IRI.
     let content_key = candidate.content_key();
+    // The anti-conjecture leg's forbidden predicate: the refuted formula's PRINCIPAL
+    // predicate (the predicate the closure must never draw). A refuted formula that names no
+    // single predicate (a compound conjunction / disjunction / implication / biconditional)
+    // has no soundly-derivable forbidden predicate — its `logic:NonEntailmentObligation`
+    // forbidden predicate is a reviewer decision — so we HARD-FAIL rather than fabricate one
+    // or emit a shape-invalid obligation node (Constitution: no fabrication, no optionality).
+    let forbidden_predicate = candidate.principal_predicate();
+    if answer.lifecycle == ConjectureLifecycleState::RefutedInStandpoint
+        && forbidden_predicate.is_none()
+    {
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
+            message: format!(
+                "conjecture refuted in standpoint <{standpoint}>, but its candidate formula \
+                 is compound and names no single predicate: the anti-conjecture \
+                 logic:NonEntailmentObligation's forbidden predicate cannot be soundly \
+                 derived and must be a reviewer decision. Refute an atomic or universally \
+                 quantified single-predicate claim, or author the obligation directly."
+            ),
+        }));
+    }
     let verdict_input = ConjectureVerdictInput {
         content_key: &content_key,
         standpoint,
         kb_world: &kb_world,
         answer: &answer,
         math_conjecture,
+        forbidden_predicate: forbidden_predicate.as_deref(),
     };
     let verdict_nt = project_conjecture_verdict(&verdict_input);
     let node_iri = conjecture_node_iri(&verdict_input);

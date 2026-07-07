@@ -454,6 +454,62 @@ fn refuted_answer(standpoint: &str) -> ConjectureAnswer {
     }
 }
 
+/// The refuted conjecture's principal predicate — the anti-conjecture obligation's forbidden
+/// predicate the caller supplies for a refuted answer.
+const REFUTED_PREDICATE: &str = "http://ex/refutedRelation";
+
+/// A CORROBORATED conjecture answer: information=Supported, no witness, lifecycle
+/// Corroborated / discharge Discharged — the input that feeds the POSITIVE promotion leg.
+fn corroborated_answer(standpoint: &str) -> ConjectureAnswer {
+    let mut prov = ResultProvenance::native("contract:conj-1".to_owned(), "http://ex/world1");
+    prov.context.standpoint = Some(standpoint.to_owned());
+    prov.projection_class = PreservationClaim::exact();
+    let verdict = ReasoningResult::new(
+        InputStatus::Valid,
+        EvaluationStatus::Completed,
+        CompletenessStatus::CompleteForFragment,
+        PreservationClaim::exact(),
+        InformationState::Supported,
+        prov,
+        ResultPayload::Empty,
+    );
+    verdict
+        .validate()
+        .expect("corroborated verdict must validate");
+    ConjectureAnswer {
+        verdict,
+        witness: None,
+        lifecycle: ConjectureLifecycleState::Corroborated,
+        discharge: ConjectureDischarge::Discharged,
+        scenario_world: "http://ex/world1".to_owned(),
+    }
+}
+
+/// An OPEN conjecture answer: a conclusive independence (information=Neither, complete for
+/// the fragment), lifecycle Open / discharge Discharged — feeds NEITHER promotion leg.
+fn open_answer(standpoint: &str) -> ConjectureAnswer {
+    let mut prov = ResultProvenance::native("contract:conj-1".to_owned(), "http://ex/world1");
+    prov.context.standpoint = Some(standpoint.to_owned());
+    prov.projection_class = PreservationClaim::exact();
+    let verdict = ReasoningResult::new(
+        InputStatus::Valid,
+        EvaluationStatus::Completed,
+        CompletenessStatus::CompleteForFragment,
+        PreservationClaim::exact(),
+        InformationState::Neither,
+        prov,
+        ResultPayload::Empty,
+    );
+    verdict.validate().expect("open verdict must validate");
+    ConjectureAnswer {
+        verdict,
+        witness: None,
+        lifecycle: ConjectureLifecycleState::Open,
+        discharge: ConjectureDischarge::Discharged,
+        scenario_world: "http://ex/world1".to_owned(),
+    }
+}
+
 #[test]
 fn conjecture_verdict_round_trips() {
     let answer = refuted_answer("http://ex/standpointA");
@@ -463,6 +519,7 @@ fn conjecture_verdict_round_trips() {
         kb_world: "http://ex/kb-world-42",
         answer: &answer,
         math_conjecture: None,
+        forbidden_predicate: Some(REFUTED_PREDICATE),
     };
     let body = project_conjecture_verdict(&input);
     let record = parse_conjecture_verdict(&body).expect("parse conjecture verdict");
@@ -492,6 +549,158 @@ fn conjecture_verdict_round_trips() {
         "http://ex/type".to_owned(),
         "http://ex/Dog".to_owned()
     )));
+    // The anti-conjecture obligation leg round-trips; the promotion leg is absent.
+    assert!(
+        record.promotion_candidate.is_none(),
+        "a refuted verdict must NOT carry a promotion leg"
+    );
+    let obligation = record
+        .obligation_candidate
+        .expect("a refuted verdict must carry the anti-conjecture obligation leg");
+    assert!(obligation.node.starts_with(OBLIGATION_CANDIDATE_IRI_BASE));
+    assert_eq!(obligation.forbidden_predicate, REFUTED_PREDICATE);
+    assert_eq!(
+        obligation.discharge_conditions,
+        vec![logic("DischargeFiniteClosure")]
+    );
+}
+
+#[test]
+fn promotion_leg_emitted_exactly_on_corroboration() {
+    // Corroborated → the POSITIVE promotion leg to a well-typed FormalizationCandidate that
+    // carries all eight universal candidate carriers; and NO anti-conjecture obligation leg.
+    let answer = corroborated_answer("http://ex/standpointA");
+    let input = ConjectureVerdictInput {
+        content_key: "formula:corroborated-phi",
+        standpoint: "http://ex/standpointA",
+        kb_world: "http://ex/kb-world-42",
+        answer: &answer,
+        math_conjecture: None,
+        forbidden_predicate: None,
+    };
+    let body = project_conjecture_verdict(&input);
+    let record = parse_conjecture_verdict(&body).expect("parse corroborated verdict");
+    assert_eq!(record.lifecycle, ConjectureLifecycleState::Corroborated);
+
+    // No anti-conjecture obligation leg on a corroboration.
+    assert!(
+        record.obligation_candidate.is_none()
+            && !body.contains(&logic("antiConjectureObligationCandidate")),
+        "a corroborated verdict must NOT carry an anti-conjecture obligation leg"
+    );
+    // The promotion edge is present and points to the well-typed candidate node.
+    let subject = conjecture_subject(&body);
+    let promo = record
+        .promotion_candidate
+        .expect("a corroborated verdict must carry the promotion leg");
+    assert!(promo.node.starts_with(PROMOTION_CANDIDATE_IRI_BASE));
+    let edge = format!(
+        "<{subject}> <{}> <{}> .",
+        logic("conjecturePromotionCandidate"),
+        promo.node
+    );
+    assert!(
+        body.contains(&edge),
+        "the promotion edge must be present; body:\n{body}"
+    );
+    let type_triple = format!(
+        "<{}> <{RDF_TYPE}> <{}> .",
+        promo.node,
+        logic("FormalizationCandidate")
+    );
+    assert!(
+        body.contains(&type_triple),
+        "the promotion target must be typed logic:FormalizationCandidate"
+    );
+    // All eight universal candidate carriers are populated (SHACL-valid, not a bare stub).
+    assert_eq!(
+        promo.source_hash,
+        format!("sha256:{}", sha256_hex("formula:corroborated-phi"))
+    );
+    assert_eq!(promo.scope, "formula:corroborated-phi");
+    assert_eq!(promo.contract, logic("StratifiedNAFProfile"));
+    assert_eq!(promo.category, logic("CategoryDerivationRule"));
+    assert_eq!(promo.lifecycle, logic("CandidateProposed"));
+    assert_eq!(promo.projection_behavior, logic("SoundUnderApproximation"));
+    assert_eq!(promo.semantic_risk, logic("RiskCoreContaminating"));
+    assert!(
+        promo
+            .extraction_provenance
+            .contains("conjecture-test activity"),
+        "extraction provenance must record the engine run"
+    );
+}
+
+#[test]
+fn obligation_leg_emitted_exactly_on_refutation() {
+    // Refuted-in-standpoint → the anti-conjecture obligation leg to a well-typed
+    // NonEntailmentObligation; and NO promotion leg.
+    let answer = refuted_answer("http://ex/standpointA");
+    let input = ConjectureVerdictInput {
+        content_key: "formula:refuted-phi",
+        standpoint: "http://ex/standpointA",
+        kb_world: "http://ex/kb-world-42",
+        answer: &answer,
+        math_conjecture: None,
+        forbidden_predicate: Some(REFUTED_PREDICATE),
+    };
+    let body = project_conjecture_verdict(&input);
+    let record = parse_conjecture_verdict(&body).expect("parse refuted verdict");
+    assert!(
+        record.promotion_candidate.is_none()
+            && !body.contains(&logic("conjecturePromotionCandidate")),
+        "a refuted verdict must NOT carry a promotion leg"
+    );
+    let subject = conjecture_subject(&body);
+    let obl = record
+        .obligation_candidate
+        .expect("a refuted verdict must carry the anti-conjecture obligation leg");
+    let edge = format!(
+        "<{subject}> <{}> <{}> .",
+        logic("antiConjectureObligationCandidate"),
+        obl.node
+    );
+    assert!(
+        body.contains(&edge),
+        "the obligation edge must be present; body:\n{body}"
+    );
+    let type_triple = format!(
+        "<{}> <{RDF_TYPE}> <{}> .",
+        obl.node,
+        logic("NonEntailmentObligation")
+    );
+    assert!(
+        body.contains(&type_triple),
+        "the obligation target must be typed logic:NonEntailmentObligation"
+    );
+    assert_eq!(obl.forbidden_predicate, REFUTED_PREDICATE);
+    assert_eq!(
+        obl.discharge_conditions,
+        vec![logic("DischargeFiniteClosure")]
+    );
+}
+
+#[test]
+fn open_verdict_emits_neither_leg() {
+    // Open (conclusive independence) → NEITHER leg.
+    let answer = open_answer("http://ex/standpointA");
+    let input = ConjectureVerdictInput {
+        content_key: "formula:open-phi",
+        standpoint: "http://ex/standpointA",
+        kb_world: "http://ex/kb-world-42",
+        answer: &answer,
+        math_conjecture: None,
+        forbidden_predicate: None,
+    };
+    let body = project_conjecture_verdict(&input);
+    let record = parse_conjecture_verdict(&body).expect("parse open verdict");
+    assert_eq!(record.lifecycle, ConjectureLifecycleState::Open);
+    assert!(
+        record.promotion_candidate.is_none() && record.obligation_candidate.is_none(),
+        "an open verdict must carry neither promotion leg"
+    );
+    assert!(!body.contains(&logic("conjecturePromotionCandidate")));
+    assert!(!body.contains(&logic("antiConjectureObligationCandidate")));
 }
 
 /// Extract the subject IRI of the `rdf:type logic:Conjecture` triple from a body.
@@ -518,6 +727,7 @@ fn two_standpoints_mint_two_distinct_nodes() {
         kb_world: "http://ex/kb-world-shared",
         answer: &answer_a,
         math_conjecture: None,
+        forbidden_predicate: Some(REFUTED_PREDICATE),
     });
     let body_b = project_conjecture_verdict(&ConjectureVerdictInput {
         content_key: "formula:same-phi",
@@ -525,6 +735,7 @@ fn two_standpoints_mint_two_distinct_nodes() {
         kb_world: "http://ex/kb-world-shared",
         answer: &answer_b,
         math_conjecture: None,
+        forbidden_predicate: Some(REFUTED_PREDICATE),
     });
     let subj_a = conjecture_subject(&body_a);
     let subj_b = conjecture_subject(&body_b);
@@ -545,6 +756,7 @@ fn conjecture_projection_is_byte_deterministic() {
         kb_world: "http://ex/kb-world-42",
         answer: &answer,
         math_conjecture: None,
+        forbidden_predicate: Some(REFUTED_PREDICATE),
     };
     let one = project_conjecture_verdict(&input);
     let two = project_conjecture_verdict(&input);
@@ -571,6 +783,7 @@ fn different_kb_world_mints_distinct_node() {
         kb_world: "http://ex/kb-world-one",
         answer: &answer,
         math_conjecture: None,
+        forbidden_predicate: Some(REFUTED_PREDICATE),
     });
     let body_2 = project_conjecture_verdict(&ConjectureVerdictInput {
         content_key: "formula:same-phi",
@@ -578,6 +791,7 @@ fn different_kb_world_mints_distinct_node() {
         kb_world: "http://ex/kb-world-two",
         answer: &answer,
         math_conjecture: None,
+        forbidden_predicate: Some(REFUTED_PREDICATE),
     });
     assert_ne!(
         conjecture_subject(&body_1),
@@ -596,6 +810,7 @@ fn math_twin_edge_names_the_witness() {
         kb_world: "http://ex/kb-world-42",
         answer: &answer,
         math_conjecture: Some(math_iri),
+        forbidden_predicate: Some(REFUTED_PREDICATE),
     });
     // Find the witness blank node (object of conjectureRefutationWitness).
     let refutation_pred = format!("<{}>", logic("conjectureRefutationWitness"));

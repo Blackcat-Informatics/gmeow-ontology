@@ -2086,6 +2086,38 @@ impl Formula {
         self.content_key()
     }
 
+    /// The single predicate IRI this formula's CONCLUSION is *about*, when it has exactly one
+    /// — the relation of the atomic head reached by peeling strong negation ([`Self::Not`]),
+    /// quantifier prefixes ([`Self::Forall`] / [`Self::Exists`]), and the antecedent of an
+    /// implication ([`Self::Implies`], whose consequent is the drawn head) off a
+    /// [`Self::Atom`]. Returns `None` for a formula whose conclusion is genuinely compound (a
+    /// conjunction, disjunction, or biconditional), which names several head predicates and so
+    /// has no single principal one, and for the degenerate case of a non-IRI relation.
+    ///
+    /// This is the sound source for the `logic:obligationForbiddenPredicate` of an
+    /// anti-conjecture `logic:NonEntailmentObligation` (the predicate the closure must never
+    /// draw): a refuted universal/atomic claim about a predicate `p` forbids `p`; a refuted
+    /// rule `∀…. body → head` forbids the head's predicate — exactly the shape of the charter's
+    /// standing obligations (forbid the conclusion predicate a rule would draw). A refuted
+    /// claim whose conclusion is genuinely compound names no single predicate, so its forbidden
+    /// predicate is a reviewer decision, never engine-derivable — the caller hard-fails rather
+    /// than fabricating one.
+    pub fn principal_predicate(&self) -> Option<String> {
+        match self {
+            Self::Atom { relation, .. } => match relation {
+                Term::Iri(iri) => Some(iri.clone()),
+                _ => None,
+            },
+            Self::Not(body) | Self::Forall { body, .. } | Self::Exists { body, .. } => {
+                body.principal_predicate()
+            }
+            // The rule head (consequent) is the conclusion an anti-conjecture obligation
+            // forbids the closure from drawing; the antecedent is only the trigger.
+            Self::Implies(_antecedent, consequent) => consequent.principal_predicate(),
+            Self::And(_) | Self::Or(_) | Self::Iff(_, _) => None,
+        }
+    }
+
     /// The normalizing walk. `env` maps an authored bound name to its binder-relative
     /// token (innermost binder last); `depth` is the number of enclosing quantifier
     /// blocks (used to build de-Bruijn-style tokens `q{depth}_{i}`).
