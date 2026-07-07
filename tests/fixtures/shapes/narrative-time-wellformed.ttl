@@ -3,7 +3,7 @@
 # event carries coexisting positions in both frames whose orders disagree —
 # queryable, not contradictory. Every frame declares exactly one axis, the
 # narrative realm, and the standard ReferenceFrame boilerplate; every position
-# names its frame and carries an ordinal, a label, or both. run_shacl over this
+# names its frame and carries an ordinal, a label, or both. SHACL validation over this
 # graph MUST conform.
 
 @prefix ex:    <https://example.org/shapes/> .

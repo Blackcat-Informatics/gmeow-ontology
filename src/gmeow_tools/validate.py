@@ -5,8 +5,8 @@ cheaply before the heavier reasoning step. The orchestration in
 :func:`validate_all` is a thin Python wrapper around the Rust-native
 ``gmeow_validate.validate_all_native`` entrypoint (#634): the Rust engine builds
 the ontology store once, parses the SHACL shapes once, and runs every phase
-against the shared store. The legacy N-Triples SHACL seam survives only as a
-convenience for tests and focused helper callers.
+against the shared store. SHACL conformance is validated natively; there is no
+Python N-Triples SHACL seam.
 """
 
 from __future__ import annotations
@@ -16,11 +16,10 @@ import re
 from dataclasses import dataclass, field
 from functools import lru_cache
 from pathlib import Path
-from typing import Any, cast
+from typing import Any
 
 import gmeow_diagnostics
 import gmeow_validate
-from purrdf.purrdf_native import shacl as gmeow_shacl
 
 from gmeow_tools.config import (
     _SAMEAS_ALLOWLIST,
@@ -73,8 +72,8 @@ def _lint_config() -> gmeow_validate.LintConfig:
 def _shapes_turtle(shapes_path: Path) -> str:
     """Merge (and cache) the SHACL shapes into one Turtle document for the engine.
 
-    ``run_shacl`` runs ~150 times across the test suite; re-reading the shapes
-    each call wastes time, so one shared cached merge per path is kept. The
+    The whole-ontology validation path merges the shapes on every run; re-reading
+    the shapes each call wastes time, so one shared cached merge per path is kept. The
     shapes are concatenated as raw Turtle text (preserving every ``@prefix``
     header the SHACL-AF ``sh:select`` queries resolve against) rather than parsed
     into a graph — ``gmeow_shacl`` ingests Turtle directly (#578).
@@ -358,109 +357,6 @@ def reasoning_lint(source_paths: list[str]) -> ValidationResult:
         errors=list(report["errors"]),
         warnings=list(report["warnings"]),
     )
-
-
-def run_shacl(data_nt: str, *, shapes_path: Path = SHAPES_FILE) -> ValidationResult:
-    """Test/audit helper: validate an N-Triples data graph against the SHACL shapes.
-
-    The production ``make validate`` path no longer serializes the merged
-    ontology to N-Triples; it validates the shared oxigraph store directly in
-    Rust (#634). This function remains as a convenience for the test suite and
-    focused helper callers that build small graphs and serialize them to
-    N-Triples.
-
-    Args:
-        data_nt: The data graph to validate, serialized as N-Triples.
-        shapes_path: Path to the SHACL shapes Turtle file.
-
-    Returns:
-        The validation result, bucketed by SHACL severity: ``sh:Violation``
-        results become errors, while ``sh:Warning`` / ``sh:Info`` results become
-        warnings. A warning-only graph therefore still passes (``result.ok`` is
-        ``True``).
-
-    Raises:
-        FileNotFoundError: If the shapes file is missing.
-        ValueError: If ``gmeow_shacl`` cannot parse the data or shapes — a hard
-            failure that must surface, never a silent ``conforms`` (P11/§11).
-    """
-    if not shapes_path.exists():
-        raise FileNotFoundError(f"SHACL shapes not found: {shapes_path}")
-
-    shapes_ttl = _shapes_turtle(shapes_path)
-    report = gmeow_shacl.validate(shapes_ttl=shapes_ttl, data_nt=data_nt)
-    result = ValidationResult()
-    if report["conforms"]:
-        return result
-
-    violations, warnings = _partition_shacl_results(report["results"])
-    if violations:
-        result.errors.append("SHACL violations:\n" + "\n".join(violations))
-    if warnings:
-        result.warnings.append("SHACL warnings:\n" + "\n".join(warnings))
-    # Defensive: a non-conforming report with no parseable results must still
-    # surface (gmeow_shacl reports conforms == results-empty, so this is unreachable
-    # in practice, but a silent pass on non-conformance is the worst outcome).
-    if not violations and not warnings:
-        result.errors.append("SHACL validation failed: non-conforming with no results")
-    return result
-
-
-_SH = "http://www.w3.org/ns/shacl#"
-_SH_VIOLATION = _SH + "Violation"
-_SH_WARNING = _SH + "Warning"
-_SH_INFO = _SH + "Info"
-
-_GMEOW = "https://blackcatinformatics.ca/gmeow/"
-_BOX_LABELS = {
-    _GMEOW + "boxABox": "ABox",
-    _GMEOW + "boxTBox": "TBox",
-    _GMEOW + "boxRBox": "RBox",
-    _GMEOW + "boxCBox": "CBox",
-    _GMEOW + "boxConfigBox": "ConfigBox",
-}
-
-
-def _term_to_str(term: str | None) -> str:
-    """Render a gmeow_shacl N-Triples term as a bare ``str(term)`` would."""
-    if term is None:
-        return "None"
-    if term.startswith("<") and term.endswith(">"):
-        return term[1:-1]
-    if term.startswith("_:"):
-        return term[2:]
-    return term
-
-
-def _role_prefix(result: dict[str, object]) -> str:
-    roles = cast(list[str], result.get("result_box_roles") or [])
-    labels = sorted(
-        {
-            _BOX_LABELS.get(role, role.rsplit("/", 1)[-1].rsplit("#", 1)[-1])
-            for role in roles
-        }
-    )
-    return f"[{'/'.join(labels)}] " if labels else ""
-
-
-def _partition_shacl_results(
-    results: list[dict[str, object]],
-) -> tuple[list[str], list[str]]:
-    """Split structured ``gmeow_shacl`` results into (violations, warnings)."""
-    violations: list[str] = []
-    warnings: list[str] = []
-    for r in results:
-        focus = _term_to_str(cast(str | None, r.get("focus")))
-        message = cast(str | None, r.get("message"))
-        prefix = _role_prefix(r)
-        line = (
-            f"{prefix}{focus}: {message}" if message is not None else f"{prefix}{focus}"
-        )
-        if r.get("severity") in (_SH_WARNING, _SH_INFO):
-            warnings.append(line)
-        else:
-            violations.append(line)
-    return violations, warnings
 
 
 def native_ownership_report(root: Path | None = None) -> Any:

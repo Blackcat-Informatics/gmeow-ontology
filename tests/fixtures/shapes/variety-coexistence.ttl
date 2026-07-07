@@ -3,7 +3,7 @@
 # standpoint; as a dialect per the academic standpoint), in the OWL-downcast
 # reified form (owl:Axiom + annotatedSource/Property/Target + gmeow:accordingTo).
 # Both base triples are asserted and both are RETAINED; NEITHER is privileged.
-# run_shacl must report NO violation — coexistence is explicitly permitted
+# SHACL validation must report NO violation — coexistence is explicitly permitted
 # (Principle 9).
 
 @prefix ex:    <https://example.org/lang/> .

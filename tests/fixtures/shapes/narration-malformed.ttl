@@ -3,7 +3,7 @@
 #      flat shortcut; if you reified, you had a reason).
 #   2. ex:subjectlessUsage — no narrated subject.
 #   3. ex:floatingUsage — no carrying segment.
-# run_shacl over this graph MUST NOT conform.
+# SHACL validation over this graph MUST NOT conform.
 
 @prefix ex:    <https://example.org/shapes/> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .

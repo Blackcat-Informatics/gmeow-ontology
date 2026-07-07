@@ -15,18 +15,45 @@
 //!           gmeow:citationIntent gmeow:intentCitesAsDataSource .
 //! ```
 //!
-//! Retained in Python (not migrated):
-//!   - `test_infoworld_citation_passes`: loads cogneto-cases.ttl from disk and
-//!     inspects per-node SHACL results using `_has_message_for_node`.
-//!   - `test_orgbook_citation_passes`: same fixture file load.
-//!   - `test_private_contract_triggers_self_private_warning`: same fixture file
-//!     load with per-node warning check.
-//!   - `test_orgbook_notability_mutation_triggers_violation`: loads fixture then
-//!     dynamically mutates the graph (remove+add triples).
+//! Fixture-based twins (whole file migrated here; the Python file is deleted).
+//! These load `tests/fixtures/evidence/cogneto-cases.ttl` and inspect per-node
+//! SHACL results via the `focus_node`-scoped `has_message_for_node` helper — the
+//! native twin of the Python `_has_message_for_node`:
+//!   - `test_infoworld_citation_passes` → `infoworld_citation_passes`.
+//!   - `test_orgbook_citation_passes` → `orgbook_citation_passes`.
+//!   - `test_private_contract_triggers_self_private_warning` →
+//!     `private_contract_triggers_self_private_warning`.
+//!   - `test_orgbook_notability_mutation_triggers_violation` →
+//!     `orgbook_notability_mutation_triggers_violation` (mutates the fixture at the
+//!     N-Triples level: flips OrgBook's `supportsNotability` false→true).
 
 mod conformance_support;
 use conformance_support::*;
+use purrdf::shapes::report::{Severity, ValidationReport};
 use rstest::rstest;
+
+const EVIDENCE_FIXTURE: &str = "tests/fixtures/evidence/cogneto-cases.ttl";
+const EX_EVID: &str = "https://example.org/test/evidence/";
+
+/// Native twin of Python's `_has_message_for_node`: true when some result at the
+/// given severity targets `node_iri` and its message contains `substring`.
+fn has_message_for_node(
+    report: &ValidationReport,
+    node_iri: &str,
+    substring: &str,
+    severity: Severity,
+) -> bool {
+    report.results.iter().any(|r| {
+        r.severity == severity
+            && r.focus_node.to_string().contains(node_iri)
+            && r.message.as_deref().unwrap_or_default().contains(substring)
+    })
+}
+
+fn evidence_fixture_report() -> ValidationReport {
+    let nt = ttl_file_to_nt(&repo_root().join(EVIDENCE_FIXTURE));
+    validate(&nt)
+}
 
 /// Turtle prefix block shared by all evidence tests.
 const PREFIXES: &str = "\
@@ -111,4 +138,109 @@ ex:citation gmeow:supportsNotability  \"false\"^^xsd:boolean .
 )]
 fn evidence(#[case] case: Case) {
     case.run();
+}
+
+// ── Fixture-based twins (cogneto-cases.ttl) ───────────────────────────────────
+
+/// `test_infoworld_citation_passes`: InfoWorld = independent secondary significant
+/// coverage → supports notability; conforms and gets no self/private warning.
+#[test]
+fn infoworld_citation_passes() {
+    let report = evidence_fixture_report();
+    assert!(
+        ok(&report),
+        "fixture should conform; violations: {:?}",
+        violations(&report)
+    );
+    assert!(
+        !has_message_for_node(
+            &report,
+            &format!("{EX_EVID}InfoWorldCognetoCitation"),
+            "self-asserted or private evidence",
+            Severity::Warning,
+        ),
+        "InfoWorld should not trigger the self/private-only warning"
+    );
+}
+
+/// `test_orgbook_citation_passes`: OrgBook = official primary routine filing →
+/// factual verification only; conforms and gets no self/private warning.
+#[test]
+fn orgbook_citation_passes() {
+    let report = evidence_fixture_report();
+    assert!(
+        ok(&report),
+        "fixture should conform; violations: {:?}",
+        violations(&report)
+    );
+    assert!(
+        !has_message_for_node(
+            &report,
+            &format!("{EX_EVID}OrgBookCognetoCitation"),
+            "self-asserted or private evidence",
+            Severity::Warning,
+        ),
+        "OrgBook should not trigger the self/private-only warning"
+    );
+}
+
+/// `test_private_contract_triggers_self_private_warning`: a self-originated private
+/// scan → Warning (Principle 10). Warning-only graphs still conform.
+#[test]
+fn private_contract_triggers_self_private_warning() {
+    let report = evidence_fixture_report();
+    assert!(
+        ok(&report),
+        "warning-only fixture should conform; violations: {:?}",
+        violations(&report)
+    );
+    assert!(
+        has_message_for_node(
+            &report,
+            &format!("{EX_EVID}PrivateCognetoContractCitation"),
+            "self-asserted or private evidence",
+            Severity::Warning,
+        ),
+        "Private contract should trigger the self/private-only warning"
+    );
+}
+
+/// `test_orgbook_notability_mutation_triggers_violation`: flip OrgBook's
+/// `supportsNotability` false→true → a WP:GNG triad Violation (primary ≠ secondary).
+#[test]
+fn orgbook_notability_mutation_triggers_violation() {
+    let nt = ttl_file_to_nt(&repo_root().join(EVIDENCE_FIXTURE));
+    // Mutate only the OrgBook citation's supportsNotability literal at the NT level
+    // (the Private citation carries an identical `false` triple — leave it alone).
+    let mutated: String = nt
+        .lines()
+        .map(|line| {
+            if line.contains("OrgBookCognetoCitation") && line.contains("supportsNotability") {
+                line.replace("\"false\"", "\"true\"")
+            } else {
+                line.to_string()
+            }
+        })
+        .collect::<Vec<_>>()
+        .join("\n");
+    assert_ne!(
+        nt, mutated,
+        "the OrgBook supportsNotability mutation must change the graph"
+    );
+
+    let report = validate(&mutated);
+    assert!(
+        !ok(&report),
+        "OrgBook with supportsNotability true should fail SHACL"
+    );
+    assert!(
+        has_message_for_node(
+            &report,
+            &format!("{EX_EVID}OrgBookCognetoCitation"),
+            "WP:GNG triad",
+            Severity::Violation,
+        ),
+        "expected a WP:GNG triad violation for OrgBook; violations: {:?}",
+        violations(&report)
+    );
 }
