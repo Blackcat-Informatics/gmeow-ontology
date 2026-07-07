@@ -19,7 +19,8 @@ use conformance_support::*;
 use std::fs;
 
 use gmeow_affect_ingest::{
-    ClassifierRunCapture, IngestConfig, IngestError, canonicalize, produce, recover,
+    ClassifierRunCapture, IngestConfig, IngestError, LabelScore, ScoreSemantics, canonicalize,
+    produce, recover,
 };
 use gmeow_math::index_turtle;
 
@@ -33,6 +34,9 @@ struct Adapter {
     /// A canonical emotion word a claim must gloss, or `None` for the
     /// sentiment/social adapters that route NO expresses-claim.
     expected_claim_word: Option<&'static str>,
+    /// `true` for a single-label (`gmeow:decisionArgmax`) set, which mints a
+    /// `gmeow:AffectDecision` per target; `false` for the multi-label GoEmotions.
+    mints_decision: bool,
 }
 
 const ADAPTERS: &[Adapter] = &[
@@ -40,21 +44,25 @@ const ADAPTERS: &[Adapter] = &[
         label_set_id: "GoEmotions",
         fixture: "goemotions-sample.json",
         expected_claim_word: Some("joy"),
+        mints_decision: false,
     },
     Adapter {
         label_set_id: "Ekman7",
         fixture: "ekman7-sample.json",
         expected_claim_word: Some("joy"),
+        mints_decision: true,
     },
     Adapter {
         label_set_id: "SST2",
         fixture: "sst2-sample.json",
         expected_claim_word: None,
+        mints_decision: true,
     },
     Adapter {
         label_set_id: "CardiffTweetEval",
         fixture: "cardiff-sample.json",
         expected_claim_word: None,
+        mints_decision: true,
     },
 ];
 
@@ -123,7 +131,170 @@ fn every_adapter_output_conforms_and_is_lossless() {
             "{}",
             adapter.label_set_id
         );
+
+        // A single-label (argmax) set records the model's decision as evidence
+        // (gmeow:AffectDecision); a multi-label set mints none.
+        assert_eq!(
+            ttl.contains("AffectDecision"),
+            adapter.mints_decision,
+            "{}: AffectDecision presence must match the set's decision rule",
+            adapter.label_set_id
+        );
     }
+}
+
+/// A single-label (argmax) adapter with everything below threshold records the
+/// model's argmax as a conforming `gmeow:AffectDecision` (crossedThreshold false)
+/// — it does NOT fall back to `gmeow:AffectEvaluationConcluded` (that is the
+/// multi-label idiom). The faithful argmax-under-threshold representation.
+#[test]
+fn argmax_sub_threshold_emits_conforming_decision_not_concluded() {
+    let cfg = affect_config("Ekman7");
+    let mut cap = fixture("ekman7-sample.json");
+    // A non-uniform distribution summing to 1 with a UNIQUE max at 0.45 (< 0.5):
+    // every label sub-threshold, but the argmax is unambiguous.
+    let dist = [0.45, 0.20, 0.15, 0.08, 0.05, 0.04, 0.03];
+    for target in &mut cap.targets {
+        for (i, score) in target.scores.iter_mut().enumerate() {
+            score.score = dist[i];
+        }
+    }
+    let ttl = produce(&cap, &cfg).expect("produce sub-threshold argmax");
+    assert!(ttl.contains("AffectDecision"), "the model still decided");
+    assert!(
+        !ttl.contains("AffectEvaluationConcluded"),
+        "an argmax set is not 'concluded flat' — it decided a winner"
+    );
+    assert!(
+        !ttl.contains("the text expresses"),
+        "no claim below threshold"
+    );
+    // and the decision node validates against the unmodified shapes.
+    Case::inline(ttl).run();
+}
+
+/// The Rust-only exclusivity guards on the REAL Ekman7 producer config — the
+/// fixture-scoped SHACL cannot see the score/threshold arithmetic these enforce.
+#[test]
+fn producer_hard_fails_exclusivity_guards_on_real_config() {
+    let cfg = affect_config("Ekman7");
+
+    // >1 crossing over the single-label set: two Ekman labels both above threshold.
+    let mut cap = fixture("ekman7-sample.json");
+    cap.return_all_scores = false;
+    cap.targets[0].scores = vec![
+        LabelScore {
+            label: "ekmanAnger".to_owned(),
+            score: 0.60,
+        },
+        LabelScore {
+            label: "ekmanJoy".to_owned(),
+            score: 0.60,
+        },
+    ];
+    assert!(
+        matches!(
+            produce(&cap, &cfg),
+            Err(IngestError::ExclusivityViolation { .. })
+        ),
+        "two crossings over an exclusive set must hard-fail"
+    );
+
+    // A sigmoid (multi-label) semantics over the exclusive Ekman7 set.
+    let mut cap = fixture("ekman7-sample.json");
+    cap.score_semantics = ScoreSemantics::Sigmoid;
+    cap.function_to_apply = "sigmoid".to_owned();
+    assert!(
+        matches!(
+            produce(&cap, &cfg),
+            Err(IngestError::ScoreSemanticsDecisionMismatch { .. })
+        ),
+        "a sigmoid over an argmax set must hard-fail"
+    );
+
+    // An off-simplex softmax distribution (does not sum to 1).
+    let mut cap = fixture("ekman7-sample.json");
+    for score in &mut cap.targets[0].scores {
+        score.score = 0.10; // 7 × 0.10 = 0.70 ≠ 1
+    }
+    assert!(
+        matches!(
+            produce(&cap, &cfg),
+            Err(IngestError::NonNormalizedExclusiveScores { .. })
+        ),
+        "an off-simplex softmax over an exclusive set must hard-fail"
+    );
+}
+
+// ── SHACL validation-surface twins (the exclusivity invariants a hand-authored
+//    or tampered graph must still fail, independent of the producer) ───────────
+
+/// Prefix header shared by the hand-authored twin graphs.
+const TWIN_PREFIXES: &str = concat!(
+    "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n",
+    "@prefix gmeow-goemotions: <https://blackcatinformatics.ca/gmeow-registry/goemotions/> .\n",
+    "@prefix gmeow-hf: <https://blackcatinformatics.ca/gmeow-registry/hf/> .\n",
+    "@prefix ex: <https://example.org/affect/> .\n",
+);
+
+#[test]
+fn twin_affect_decision_over_multilabel_set_fires() {
+    // A decision whose decided label belongs to the MULTI-label GoEmotions set —
+    // an argmax decision over a non-argmax set is a hard fail.
+    let graph = format!(
+        "{TWIN_PREFIXES}\
+         ex:d a gmeow:AffectDecision ; gmeow:vantage ex:run ; gmeow:observedFeature ex:t ; \
+         gmeow:decidedLabel gmeow-goemotions:joy ; gmeow:decisionCrossedThreshold true ; \
+         gmeow:derivedByFunction gmeow:fnArgmax .\n"
+    );
+    Case::inline(graph)
+        .with_ontology()
+        .fails()
+        .violations(&["may only be recorded over a single-label"])
+        .run();
+}
+
+#[test]
+fn twin_softmax_over_multilabel_set_fires() {
+    // A softmax output over a GoEmotions (multi-label) label — the score semantics
+    // implies argmax but the set declares independent-threshold.
+    let graph = format!(
+        "{TWIN_PREFIXES}\
+         ex:o a gmeow:AffectClassifierOutput ; gmeow:producedBy ex:run ; gmeow:vantage ex:run ; \
+         gmeow:classifiedTarget ex:t ; gmeow:emittedLabel gmeow-goemotions:joy ; \
+         gmeow:classifierScore 0.8 ; gmeow:scoreSemantics gmeow:scoreSoftmax ; \
+         gmeow:thresholdApplied 0.5 .\n"
+    );
+    Case::inline(graph)
+        .with_ontology()
+        .fails()
+        .violations(&["implies a label-set decision rule"])
+        .run();
+}
+
+#[test]
+fn twin_two_exclusive_claims_over_one_target_fires() {
+    // Two mutually-exclusive claims routed over one target from an EXCLUSIVE
+    // (Ekman7) run — the validation-surface guard for issue gap #1, independent of
+    // the producer (which would itself hard-fail before emitting this).
+    let graph = format!(
+        "{TWIN_PREFIXES}\
+         ex:o1 a gmeow:AffectClassifierOutput ; gmeow:producedBy ex:run ; gmeow:vantage ex:run ; \
+         gmeow:classifiedTarget ex:t ; gmeow:emittedLabel gmeow-hf:ekmanJoy ; \
+         gmeow:classifierScore 0.6 ; gmeow:scoreSemantics gmeow:scoreSoftmax ; \
+         gmeow:thresholdApplied 0.5 ; gmeow:supportsAffectiveClaim ex:c1 .\n\
+         ex:c1 a gmeow:AffectiveClaim ; gmeow:vantage ex:run ; gmeow:observedFeature ex:t .\n\
+         ex:o2 a gmeow:AffectClassifierOutput ; gmeow:producedBy ex:run ; gmeow:vantage ex:run ; \
+         gmeow:classifiedTarget ex:t ; gmeow:emittedLabel gmeow-hf:ekmanAnger ; \
+         gmeow:classifierScore 0.55 ; gmeow:scoreSemantics gmeow:scoreSoftmax ; \
+         gmeow:thresholdApplied 0.5 ; gmeow:supportsAffectiveClaim ex:c2 .\n\
+         ex:c2 a gmeow:AffectiveClaim ; gmeow:vantage ex:run ; gmeow:observedFeature ex:t .\n"
+    );
+    Case::inline(graph)
+        .with_ontology()
+        .fails()
+        .violations(&["At most one gmeow:AffectiveClaim"])
+        .run();
 }
 
 #[test]
