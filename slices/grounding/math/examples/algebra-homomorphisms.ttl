@@ -125,3 +125,29 @@ exa:firstIsoWitness a math:Isomorphism ;
     math:codomain exa:RstarMult ;
     math:preservedOperation exa:cosetMultiplication ;
     math:preservationLaw exa:detProductLaw .
+
+# ===========================================================================
+# LIVE-ENTAILMENT WITNESS EDB — the determinant preservation law as an
+# evaluable consumer in the native competency lane (gmeow:reasoningLogic).
+# ===========================================================================
+# Concrete matrices A,B with product AB and their determinants dA,dB,dAB. The
+# ternary matMul(A,B,AB) atom is authored PRE-REIFIED (logic:instanceOf exa:matMulRel
+# + logic:naryArg0/1/2); the binary det(·,·) atoms are plain triples over exa:detRel.
+# Firing detProductLaw over this data DERIVES the ternary consequent
+# mul(dA,dB,dAB) as a content-addressed reified tuple (logic:instanceOf exa:mulRel +
+# logic:naryArg0/1/2 on a chase-minted reifier) — the head-derivation path.
+# The homomorphism competency question queries exactly that derived tuple.
+
+exa:detWmatA  rdfs:label "det witness matrix A"@x-gmeow-english .
+exa:detWmatB  rdfs:label "det witness matrix B"@x-gmeow-english .
+exa:detWmatAB rdfs:label "A·B"@x-gmeow-english .
+exa:detWdA    rdfs:label "det(A)"@x-gmeow-english .
+exa:detWdB    rdfs:label "det(B)"@x-gmeow-english .
+exa:detWdAB   rdfs:label "det(A·B) = det(A)·det(B)"@x-gmeow-english .
+
+exa:detWmatMul logic:instanceOf exa:matMulRel ;
+    logic:naryArg0 exa:detWmatA ; logic:naryArg1 exa:detWmatB ; logic:naryArg2 exa:detWmatAB .
+
+exa:detWmatA  exa:detRel exa:detWdA .    # det(A)  = dA
+exa:detWmatB  exa:detRel exa:detWdB .    # det(B)  = dB
+exa:detWmatAB exa:detRel exa:detWdAB .   # det(AB) = dAB

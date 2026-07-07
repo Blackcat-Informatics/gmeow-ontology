@@ -1239,6 +1239,65 @@ mod tests {
         assert!(cycle.contains(&format!("{RDF_TYPE} {cls}")), "{cycle}");
     }
 
+    // ── reified n-ary shape certifies soundly (logic:instanceOf reflection) ──────
+
+    #[test]
+    fn reified_nary_body_rule_certifies_soundly() {
+        // A rule with reified n-ary atoms in its BODY and a binary head (the
+        // associativity shape — no existential):
+        //   eq(?l, ?r, ?W) :- instanceOf(?M, op, ?W), naryArg0(?M, ?a, ?W),
+        //     naryArg1(?M, ?b, ?W), naryArg2(?M, ?l, ?W),  <second op tuple ?N …?r>
+        // The certifier treats `logic:instanceOf`/`logic:naryArg{i}` as ordinary binary
+        // predicates. Two distinct reifier variables `?M`/`?N` and two op tuples share
+        // the `instanceOf`/`naryArg{i}` predicate keys (a SOUND over-approximation of the
+        // reliance graph — it refuses more, never unsoundly accepts). The rule is
+        // function-free (no existential head), so it certifies clean: weak-acyclic,
+        // DL-safe. This is the soundness confirmation for the reified body encoding.
+        let io = "https://blackcatinformatics.ca/logic/instanceOf";
+        let a0 = "https://blackcatinformatics.ca/logic/naryArg0";
+        let a1 = "https://blackcatinformatics.ca/logic/naryArg1";
+        let a2 = "https://blackcatinformatics.ca/logic/naryArg2";
+        let op = "http://example.org/op";
+        let eq = "http://example.org/eq";
+        let rls = format!(
+            "<{eq}>(?l, ?r, ?W) :- \
+             <{io}>(?M, <{op}>, ?W), <{a0}>(?M, ?a, ?W), <{a1}>(?M, ?b, ?W), \
+             <{a2}>(?M, ?l, ?W), \
+             <{io}>(?N, <{op}>, ?W), <{a0}>(?N, ?a, ?W), <{a1}>(?N, ?b, ?W), \
+             <{a2}>(?N, ?r, ?W) .\n"
+        );
+        let verdict = certify(&rls, "PositiveHornProfile", None).expect("parse");
+        assert!(
+            verdict.certified,
+            "the reified n-ary body rule must certify soundly: {:?}",
+            verdict.violations
+        );
+
+        // The reified n-ary HEAD rule is a genuine EXISTENTIAL rule (`?R` invented), so
+        // weak-acyclicity CORRECTLY declines it (it is a sufficient-not-necessary
+        // termination test) — the restricted chase terminates it via head-satisfaction +
+        // the content-addressed (`mint_nary_reifier`) witness. Confirm the certifier
+        // SOUNDLY flags the existential rather than silently accepting an unbounded chase.
+        let mul = "http://example.org/mul";
+        let head_rls = format!(
+            "<{io}>(?R, <{mul}>, ?W), <{a0}>(?R, ?a, ?W), <{a1}>(?R, ?b, ?W), \
+             <{a2}>(?R, ?c, ?W) :- \
+             <{io}>(?M, <{op}>, ?W), <{a0}>(?M, ?a, ?W), <{a1}>(?M, ?b, ?W), \
+             <{a2}>(?M, ?c, ?W) .\n"
+        );
+        let head_verdict = certify(&head_rls, "PositiveHornProfile", None).expect("parse");
+        assert!(
+            !head_verdict.certified
+                && head_verdict
+                    .violations
+                    .iter()
+                    .any(|v| v.contains("not bound by any positive body atom")),
+            "the reified head existential must be SOUNDLY flagged (DL-unsafe / not \
+             weakly-acyclic), never silently accepted: {:?}",
+            head_verdict.violations
+        );
+    }
+
     // ── Unknown/operational profiles ─────────────────────────────────────────────
 
     #[test]

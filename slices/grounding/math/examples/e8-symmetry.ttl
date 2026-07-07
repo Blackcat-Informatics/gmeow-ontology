@@ -139,3 +139,30 @@ exa:e8Adjoint a math:GroupRepresentation ;
 
 exa:e8Lattice a math:Lattice ;
     rdfs:label "the E8 lattice (densest packing in 8 dimensions)"@x-gmeow-english .
+
+# ===========================================================================
+# LIVE-ENTAILMENT WITNESS EDB — the E8 group-action law as an evaluable
+# consumer in the native competency lane (gmeow:reasoningLogic).
+# ===========================================================================
+# Concrete group elements g,h acting on a point x, where (g·h)·x and g·(h·x) both
+# reach the SAME point `gaR`. The ternary comp(·,·,·)/act(·,·,·) atoms are authored
+# PRE-REIFIED (logic:instanceOf exa:compRel / exa:actRel + logic:naryArg0/1/2).
+# Firing groupActionLaw over this data DERIVES the binary consequent eq(gaR, gaR),
+# present in the reasoned closure only because the law fired. The structure-
+# preserving-maps competency question queries exactly that derived tuple.
+
+exa:gaWg   rdfs:label "group-action witness element g"@x-gmeow-english .
+exa:gaWh   rdfs:label "group-action witness element h"@x-gmeow-english .
+exa:gaWx   rdfs:label "group-action witness point x"@x-gmeow-english .
+exa:gaWgh  rdfs:label "g·h"@x-gmeow-english .
+exa:gaWhx  rdfs:label "h·x"@x-gmeow-english .
+exa:gaWr   rdfs:label "(g·h)·x = g·(h·x) = r"@x-gmeow-english .
+
+exa:gaComp logic:instanceOf exa:compRel ;
+    logic:naryArg0 exa:gaWg ; logic:naryArg1 exa:gaWh ; logic:naryArg2 exa:gaWgh .   # g·h = gh
+exa:gaAct1 logic:instanceOf exa:actRel ;
+    logic:naryArg0 exa:gaWgh ; logic:naryArg1 exa:gaWx ; logic:naryArg2 exa:gaWr .    # (g·h)·x = r
+exa:gaAct2 logic:instanceOf exa:actRel ;
+    logic:naryArg0 exa:gaWh ; logic:naryArg1 exa:gaWx ; logic:naryArg2 exa:gaWhx .    # h·x = hx
+exa:gaAct3 logic:instanceOf exa:actRel ;
+    logic:naryArg0 exa:gaWg ; logic:naryArg1 exa:gaWhx ; logic:naryArg2 exa:gaWr .    # g·(h·x) = r

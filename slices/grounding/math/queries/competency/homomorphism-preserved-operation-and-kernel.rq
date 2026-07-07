@@ -1,9 +1,16 @@
-# Competency question: "What operation does this homomorphism preserve, and what is its
-# kernel?"  Over the fixture the answer is exactly {detHom → matrixMultiplication / sl2}.
-PREFIX math: <https://blackcatinformatics.ca/math/>
+# Competency question (native gmeow:reasoningLogic lane): "Does the determinant
+# preservation law det(A·B) = det(A)·det(B), evaluated as a real logic:Formula, ENTAIL the
+# product tuple over concrete determinants?"  matMul(A,B,AB) is a fixed-arity n-ary body atom
+# (reified) and mul(dA,dB,dAB) is an n-ary HEAD atom: firing the law DERIVES a content-
+# addressed reified tuple logic:instanceOf(R, exa:mulRel) ∧ logic:naryArg{i}(R, ·) — the
+# head-derivation path. No fact asserts this tuple; only the law derives it. Over
+# the closure the answer is exactly {dA=detWdA, dB=detWdB, dAB=detWdAB}.
+PREFIX exa:   <https://blackcatinformatics.ca/gmeow/examples/math/algebra/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 
-SELECT ?hom ?operation ?kernel WHERE {
-    ?hom math:preservedOperation ?operation ;
-         math:kernel ?kernel .
+SELECT ?dA ?dB ?dAB WHERE {
+    ?r logic:instanceOf exa:mulRel ;
+       logic:naryArg0 ?dA ;
+       logic:naryArg1 ?dB ;
+       logic:naryArg2 ?dAB .
 }
-ORDER BY ?hom
