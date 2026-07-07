@@ -47,6 +47,9 @@ static PYTHON_ASSIGN_RE: OnceLock<Regex> = OnceLock::new();
 static RUST_ENUM_RE: OnceLock<Regex> = OnceLock::new();
 static RUST_COMMAND_NAME_RE: OnceLock<Regex> = OnceLock::new();
 static RUST_VARIANT_RE: OnceLock<Regex> = OnceLock::new();
+static RUST_ITEM_FN_RE: OnceLock<Regex> = OnceLock::new();
+static RUST_ITEM_DECL_RE: OnceLock<Regex> = OnceLock::new();
+static RUST_ITEM_MACRO_RE: OnceLock<Regex> = OnceLock::new();
 
 /// One principle reconstructed from the manifest graph.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -364,6 +367,236 @@ pub fn python_top_level_names(py_text: &str) -> BTreeSet<String> {
     names
 }
 
+/// Replace the content of every line comment, block comment (nestable),
+/// string literal, raw-string literal, and char literal with spaces, preserving
+/// the surrounding code and line structure. Delimiters are all ASCII, so a raw
+/// byte scan never splits a multi-byte UTF-8 code point. This is the strictness
+/// pillar of [`rust_item_names`]: a symbol that appears only in a doc-comment
+/// (`[`foo`]`), a string (`"foo"`), or a char/lifetime must not be mistaken for
+/// a real item definition.
+fn strip_rust_comments_and_strings(src: &str) -> String {
+    #[derive(Clone, Copy)]
+    enum State {
+        Code,
+        LineComment,
+        BlockComment(u32),
+        Str,
+        RawStr(usize),
+    }
+    let b = src.as_bytes();
+    let mut out: Vec<u8> = Vec::with_capacity(b.len());
+    let mut state = State::Code;
+    let mut i = 0;
+    while i < b.len() {
+        match state {
+            State::Code => {
+                if b[i] == b'/' && i + 1 < b.len() && b[i + 1] == b'/' {
+                    out.push(b' ');
+                    out.push(b' ');
+                    i += 2;
+                    state = State::LineComment;
+                } else if b[i] == b'/' && i + 1 < b.len() && b[i + 1] == b'*' {
+                    out.push(b' ');
+                    out.push(b' ');
+                    i += 2;
+                    state = State::BlockComment(1);
+                } else if b[i] == b'r' && {
+                    // r"…" or r#…#"…"#, but only when it is not part of a
+                    // longer identifier (e.g. `render`): the char before `r`
+                    // must not be an identifier char.
+                    let prev_ident =
+                        i > 0 && (b[i - 1].is_ascii_alphanumeric() || b[i - 1] == b'_');
+                    !prev_ident && {
+                        let mut j = i + 1;
+                        while j < b.len() && b[j] == b'#' {
+                            j += 1;
+                        }
+                        j < b.len() && b[j] == b'"'
+                    }
+                } {
+                    let mut j = i + 1;
+                    let mut hashes = 0usize;
+                    while j < b.len() && b[j] == b'#' {
+                        hashes += 1;
+                        j += 1;
+                    }
+                    // j is at the opening quote; blank r, hashes, and the quote.
+                    out.resize(out.len() + (j - i + 1), b' ');
+                    i = j + 1;
+                    state = State::RawStr(hashes);
+                } else if b[i] == b'"' {
+                    out.push(b' ');
+                    i += 1;
+                    state = State::Str;
+                } else if b[i] == b'\'' {
+                    // Distinguish a char literal (`'x'`, `'\n'`, `'\''`) from a
+                    // lifetime / label (`'a`, `'static`). A char literal has a
+                    // closing `'` within a few bytes; a lifetime is `'` followed
+                    // by an identifier and NO closing quote.
+                    if is_char_literal(&b[i..]) {
+                        let len = char_literal_len(&b[i..]);
+                        out.resize(out.len() + len, b' ');
+                        i += len;
+                    } else {
+                        out.push(b'\'');
+                        i += 1;
+                    }
+                } else {
+                    out.push(b[i]);
+                    i += 1;
+                }
+            }
+            State::LineComment => {
+                if b[i] == b'\n' {
+                    out.push(b'\n');
+                    state = State::Code;
+                } else {
+                    out.push(b' ');
+                }
+                i += 1;
+            }
+            State::BlockComment(depth) => {
+                if b[i] == b'/' && i + 1 < b.len() && b[i + 1] == b'*' {
+                    out.push(b' ');
+                    out.push(b' ');
+                    i += 2;
+                    state = State::BlockComment(depth + 1);
+                } else if b[i] == b'*' && i + 1 < b.len() && b[i + 1] == b'/' {
+                    out.push(b' ');
+                    out.push(b' ');
+                    i += 2;
+                    state = if depth == 1 {
+                        State::Code
+                    } else {
+                        State::BlockComment(depth - 1)
+                    };
+                } else {
+                    out.push(if b[i] == b'\n' { b'\n' } else { b' ' });
+                    i += 1;
+                }
+            }
+            State::Str => {
+                if b[i] == b'\\' && i + 1 < b.len() {
+                    out.push(b' ');
+                    out.push(b' ');
+                    i += 2;
+                } else if b[i] == b'"' {
+                    out.push(b' ');
+                    i += 1;
+                    state = State::Code;
+                } else {
+                    out.push(if b[i] == b'\n' { b'\n' } else { b' ' });
+                    i += 1;
+                }
+            }
+            State::RawStr(hashes) => {
+                if b[i] == b'"' {
+                    // Closing quote iff followed by exactly `hashes` `#`.
+                    let mut j = i + 1;
+                    let mut seen = 0usize;
+                    while seen < hashes && j < b.len() && b[j] == b'#' {
+                        seen += 1;
+                        j += 1;
+                    }
+                    if seen == hashes {
+                        out.resize(out.len() + (j - i), b' ');
+                        i = j;
+                        state = State::Code;
+                    } else {
+                        out.push(b' ');
+                        i += 1;
+                    }
+                } else {
+                    out.push(if b[i] == b'\n' { b'\n' } else { b' ' });
+                    i += 1;
+                }
+            }
+        }
+    }
+    String::from_utf8(out).unwrap_or_else(|_| src.to_string())
+}
+
+/// Whether `bytes` (starting at a `'`) opens a char literal rather than a
+/// lifetime/label. A char literal is `'\...'` (escape) or `'x'` (any single
+/// code unit then a closing `'`); a lifetime is `'ident` with no near close.
+fn is_char_literal(bytes: &[u8]) -> bool {
+    char_literal_len(bytes) > 0
+}
+
+/// Byte length of the char literal starting at `bytes[0] == '\''`, or 0 if this
+/// `'` begins a lifetime/label instead.
+fn char_literal_len(bytes: &[u8]) -> usize {
+    if bytes.first() != Some(&b'\'') {
+        return 0;
+    }
+    if bytes.len() >= 2 && bytes[1] == b'\\' {
+        // Escaped: '\n' '\'' '\\' '\x41' '\u{1F}' … — find the closing quote.
+        let mut j = 2;
+        while j < bytes.len() && bytes[j] != b'\'' && bytes[j] != b'\n' {
+            j += 1;
+        }
+        if j < bytes.len() && bytes[j] == b'\'' {
+            return j + 1;
+        }
+        return 0;
+    }
+    // Unescaped: a single code point then a closing quote. Accept one leading
+    // byte plus any UTF-8 continuation bytes, then require `'`.
+    let mut j = 1;
+    if j < bytes.len() && bytes[j] != b'\'' && bytes[j] != b'\n' {
+        j += 1;
+        while j < bytes.len() && (bytes[j] & 0xC0) == 0x80 {
+            j += 1;
+        }
+    }
+    if j < bytes.len() && bytes[j] == b'\'' {
+        j + 1
+    } else {
+        0
+    }
+}
+
+/// Names of all Rust item *definitions* in `rust_text`, at any nesting depth:
+/// free / associated / trait `fn`s (including `#[test]` fns nested in
+/// `mod tests`), `struct`/`enum`/`union`/`trait`/`type`/`const`/`static`, and
+/// `macro_rules!`. Occurrences in comments, string literals, or call sites do
+/// NOT count — the source is comment/string-stripped first (see
+/// [`strip_rust_comments_and_strings`]) and only the identifier immediately
+/// following an item-introducer keyword is collected. This is what makes a
+/// cited `meta:symbol` prove a real `.rs` definition rather than any textual
+/// mention (the previous `text.contains` accepted the latter).
+pub fn rust_item_names(rust_text: &str) -> BTreeSet<String> {
+    let fn_re = RUST_ITEM_FN_RE.get_or_init(|| {
+        Regex::new(r"\bfn\s+([A-Za-z_][A-Za-z0-9_]*)").expect("valid rust fn regex")
+    });
+    let decl_re = RUST_ITEM_DECL_RE.get_or_init(|| {
+        Regex::new(
+            r"\b(?:struct|enum|union|trait|type|const|static)\s+(?:mut\s+)?([A-Za-z_][A-Za-z0-9_]*)",
+        )
+        .expect("valid rust item regex")
+    });
+    let macro_re = RUST_ITEM_MACRO_RE.get_or_init(|| {
+        Regex::new(r"\bmacro_rules!\s+([A-Za-z_][A-Za-z0-9_]*)").expect("valid rust macro regex")
+    });
+
+    let stripped = strip_rust_comments_and_strings(rust_text);
+    let mut names = BTreeSet::new();
+    for cap in fn_re.captures_iter(&stripped) {
+        names.insert(cap[1].to_string());
+    }
+    for cap in decl_re.captures_iter(&stripped) {
+        // `const fn foo` / `static fn` — the decl regex captures the `fn`
+        // keyword; the real name is picked up by `fn_re`, so drop `fn` here.
+        if &cap[1] != "fn" {
+            names.insert(cap[1].to_string());
+        }
+    }
+    for cap in macro_re.captures_iter(&stripped) {
+        names.insert(cap[1].to_string());
+    }
+    names
+}
+
 /// Convert a clap `Subcommand` variant identifier to the subcommand name clap
 /// derives by default (`rename_all = "kebab-case"`, matching `heck`): word
 /// boundaries fall at lower/digit→upper transitions and at the tail of an
@@ -607,46 +840,71 @@ pub fn check_principle_sync(
     findings
 }
 
-/// Whether `symbol` is defined in any artifact (AST for `.py`, verbatim else).
+/// Whether `symbol` is a real definition in any cited artifact. A `.py`
+/// artifact resolves the symbol as a top-level name; a `.rs` artifact resolves
+/// it as a Rust *item* definition (fn/method/struct/enum/const/…, at any nesting
+/// depth), NOT a mere textual occurrence; any other artifact (`.ttl`, `.yaml`,
+/// `.md`, `.json`, …) keeps the verbatim substring match, since its "symbols"
+/// are ontology terms or config keys with no Rust/Python item structure.
 fn symbol_defined(
     symbol: &str,
     artifacts: &[String],
     root: &Path,
-    py_cache: &mut BTreeMap<String, BTreeSet<String>>,
-    text_cache: &mut BTreeMap<String, String>,
+    caches: &mut SymbolCaches,
 ) -> bool {
     for artifact in artifacts {
         let path = root.join(artifact);
         if !path.is_file() {
             continue;
         }
-        let is_python = path.extension().map(|e| e == "py").unwrap_or(false);
-        if is_python {
-            let names = py_cache.entry(artifact.clone()).or_insert_with(|| {
-                fs::read_to_string(&path)
-                    .map(|text| python_top_level_names(&text))
-                    .unwrap_or_default()
-            });
-            if names.contains(symbol) {
-                return true;
+        match path.extension().and_then(|e| e.to_str()).unwrap_or("") {
+            "py" => {
+                let names = caches.py.entry(artifact.clone()).or_insert_with(|| {
+                    fs::read_to_string(&path)
+                        .map(|text| python_top_level_names(&text))
+                        .unwrap_or_default()
+                });
+                if names.contains(symbol) {
+                    return true;
+                }
             }
-        } else {
-            let text = text_cache
-                .entry(artifact.clone())
-                .or_insert_with(|| fs::read_to_string(&path).unwrap_or_default());
-            if text.contains(symbol) {
-                return true;
+            "rs" => {
+                let names = caches.rust.entry(artifact.clone()).or_insert_with(|| {
+                    fs::read_to_string(&path)
+                        .map(|text| rust_item_names(&text))
+                        .unwrap_or_default()
+                });
+                if names.contains(symbol) {
+                    return true;
+                }
+            }
+            _ => {
+                let text = caches
+                    .text
+                    .entry(artifact.clone())
+                    .or_insert_with(|| fs::read_to_string(&path).unwrap_or_default());
+                if text.contains(symbol) {
+                    return true;
+                }
             }
         }
     }
     false
 }
 
+/// Per-artifact resolution caches shared across a single `check_references`
+/// pass so each cited file is read and parsed at most once.
+#[derive(Default)]
+struct SymbolCaches {
+    py: BTreeMap<String, BTreeSet<String>>,
+    rust: BTreeMap<String, BTreeSet<String>>,
+    text: BTreeMap<String, String>,
+}
+
 /// Every cited artifact / symbol / make target / CLI command must exist.
 pub fn check_references(enforcements: &BTreeMap<String, Enforcement>, root: &Path) -> Vec<Finding> {
     let mut findings = Vec::new();
-    let mut py_cache: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
-    let mut text_cache: BTreeMap<String, String> = BTreeMap::new();
+    let mut caches = SymbolCaches::default();
 
     let makefile_text = fs::read_to_string(root.join("Makefile")).unwrap_or_default();
     let make_targets = makefile_targets(&makefile_text);
@@ -667,13 +925,7 @@ pub fn check_references(enforcements: &BTreeMap<String, Enforcement>, root: &Pat
             }
         }
         for symbol in &enforcement.symbols {
-            if !symbol_defined(
-                symbol,
-                &enforcement.artifacts,
-                root,
-                &mut py_cache,
-                &mut text_cache,
-            ) {
+            if !symbol_defined(symbol, &enforcement.artifacts, root, &mut caches) {
                 findings.push(error(
                     "stale-symbol",
                     format!(
@@ -1028,6 +1280,66 @@ top_level = 42
     }
 
     #[test]
+    fn rust_item_names_finds_all_forms_and_excludes_noise() {
+        let rust = r###"
+/// Doc link to [`ghost_doc`] must not count as a definition.
+pub fn real_fn() {}
+const REAL_CONST: u32 = 1;
+static mut REAL_STATIC: u32 = 2;
+struct RealStruct;
+enum RealEnum { A }
+trait RealTrait { type RealAssoc; fn real_trait_method(&self); }
+macro_rules! real_macro { () => {}; }
+impl RealStruct {
+    pub fn real_method(&self) {
+        // a call site, not a definition:
+        ghost_call();
+        let _ghost_str = "ghost_string_name";
+        let _c = '"'; // a quote inside a char literal must not open a string
+    }
+}
+mod tests {
+    #[test]
+    fn real_nested_test() {}
+}
+"###;
+        let got = rust_item_names(rust);
+        for want in [
+            "real_fn",
+            "REAL_CONST",
+            "REAL_STATIC",
+            "RealStruct",
+            "RealEnum",
+            "RealTrait",
+            "RealAssoc",
+            "real_trait_method",
+            "real_macro",
+            "real_method",
+            "real_nested_test",
+        ] {
+            assert!(got.contains(want), "missing item {want}: {got:?}");
+        }
+        for ghost in ["ghost_doc", "ghost_call", "ghost_string_name", "fn"] {
+            assert!(!got.contains(ghost), "ghost {ghost} leaked: {got:?}");
+        }
+    }
+
+    #[test]
+    fn strip_rust_comments_and_strings_blanks_noise_keeps_code() {
+        let src = "fn a() {}\n// fn commented\nlet s = \"fn instr\";\n/* fn block */ fn b() {}\n";
+        let stripped = strip_rust_comments_and_strings(src);
+        // Real definitions survive; commented / in-string `fn NAME` are gone.
+        let names = rust_item_names(src);
+        assert!(names.contains("a") && names.contains("b"), "{names:?}");
+        assert!(
+            !names.contains("commented") && !names.contains("instr"),
+            "{names:?}"
+        );
+        // Line structure preserved (newline count unchanged).
+        assert_eq!(src.matches('\n').count(), stripped.matches('\n').count());
+    }
+
+    #[test]
     fn variant_to_kebab_matches_clap_default_rename() {
         assert_eq!(variant_to_kebab("Version"), "version");
         assert_eq!(variant_to_kebab("CheckGenerated"), "check-generated");
@@ -1233,6 +1545,42 @@ top_level = 42
         assert!(text.contains("'no_such_function' not found"), "{text}");
         assert!(text.contains("Makefile target 'no-such-target'"), "{text}");
         assert!(text.contains("CLI command 'no-such-command'"), "{text}");
+    }
+
+    #[test]
+    fn stale_rust_symbol_only_in_comment_or_string_is_an_error() {
+        let tmp = tempfile::tempdir().unwrap();
+        fs::write(tmp.path().join("Makefile"), "all:\n").unwrap();
+        let rs_dir = tmp.path().join("crates/x/src");
+        fs::create_dir_all(&rs_dir).unwrap();
+        // `ghost_symbol` appears only in a comment, a string, and a call site —
+        // never as an item definition. `real_item` is a genuine impl method.
+        fs::write(
+            rs_dir.join("lib.rs"),
+            "// ghost_symbol is only named here\n\
+             pub struct S;\n\
+             impl S { pub fn real_item(&self) { let _ = \"ghost_symbol\"; ghost_symbol(); } }\n",
+        )
+        .unwrap();
+
+        let (manifest, constitution) = write_pair(
+            &tmp,
+            "meta:gate-ghost a meta:Gate ;\n\
+             meta:artifact \"crates/x/src/lib.rs\" ;\n\
+             meta:symbol \"ghost_symbol\" .\n\
+             meta:gate-real a meta:Gate ;\n\
+             meta:artifact \"crates/x/src/lib.rs\" ;\n\
+             meta:symbol \"real_item\" .\n\
+             meta:Principle1 a meta:Principle ; meta:number 1 ; meta:title \"Be good\" ;\n\
+             meta:enforcedBy meta:gate-ghost, meta:gate-real .\n",
+            "## 1. Be good\n\nprose\n",
+        );
+        let findings = constitution_full_report(&manifest, &constitution, tmp.path());
+        let text: String = findings.iter().map(|f| f.message.clone() + "\n").collect();
+        // The comment/string/call-site-only symbol is now rejected …
+        assert!(text.contains("'ghost_symbol' not found"), "{text}");
+        // … while the genuine impl-method definition resolves (no finding).
+        assert!(!text.contains("'real_item' not found"), "{text}");
     }
 
     #[test]
