@@ -1,0 +1,27 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:GramMatrixShape: a math:GramMatrix whose entry at (0, 1)
+# carries 1/4 but whose transpose entry at (1, 0) carries 1/2 — no transpose entry of
+# equal value, so the matrix is not symmetric. It names its math:representsForm
+# (a math:SymmetricBilinearForm) and math:inBasis (a math:Basis), and every entry's
+# math:RationalValue is well-formed, so ONLY the sh:sparql symmetry constraint fires.
+# Validation MUST emit shacl.SPARQLConstraintComponent and no other finding
+# (math:AsymmetricGramMatrix).
+# Bound by tests/example-conformance.ttl (ex:ecGramMatrixAsymmetric).
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:asymGram a math:GramMatrix ;
+    math:representsForm ex:asymForm ;
+    math:inBasis ex:asymBasis ;
+    math:hasEntry ex:a01 , ex:a10 .
+
+ex:asymForm a math:SymmetricBilinearForm .
+ex:asymBasis a math:Basis .
+
+ex:a01 a math:MatrixEntry ; math:atRow 0 ; math:atColumn 1 ; math:entryValue ex:rQuarter .
+ex:a10 a math:MatrixEntry ; math:atRow 1 ; math:atColumn 0 ; math:entryValue ex:rHalf .
+
+ex:rQuarter a math:RationalValue ; math:numerator 1 ; math:denominator 4 .
+ex:rHalf a math:RationalValue ; math:numerator 1 ; math:denominator 2 .
