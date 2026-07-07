@@ -15,6 +15,8 @@ use purrdf::{TermRef, parse_dataset};
 
 /// The GMEOW namespace prefix for term IRIs.
 const NAMESPACE: &str = "https://blackcatinformatics.ca/gmeow/";
+/// The `lang:` grounding-layer namespace prefix.
+const LANG_NAMESPACE: &str = "https://blackcatinformatics.ca/lang/";
 /// RDF type predicate IRI.
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 
@@ -73,9 +75,14 @@ pub fn rank_language(lang: &str) -> (u8, String) {
 /// Parse `rdf_bytes` in `format` and build a mapping from GMEOW internal
 /// language tag to BCP-47 tag.
 ///
-/// Scans individuals typed ``gmeow:Language``, ``gmeow:FormalLanguage``, and
-/// ``gmeow:ProgrammingLanguage`` for ``gmeow:languageTag`` and
-/// ``gmeow:bcp47Tag`` property values.
+/// Scans the framework carrier sign systems / varieties (``gmeow:Language`` and
+/// ``lang:LanguageVariety``) for the internal ``lang:carrierTag`` and the
+/// generated ``gmeow:bcp47Tag`` property values. Since the lang: graft, the
+/// internal private-use tag rides ``lang:carrierTag`` on the three carriers
+/// (``x-gmeow-english``/``french``/``mandarin``), never a per-language attribute;
+/// the natural/formal/programming distinction moved to ``lang:signSystemKind``
+/// individuals, so there is no longer a ``FormalLanguage``/``ProgrammingLanguage``
+/// class to scan.
 ///
 /// Each property must have exactly one distinct lexical value per individual:
 /// - Missing either property → individual is silently skipped.
@@ -93,24 +100,24 @@ pub fn load_tag_map(rdf_bytes: &[u8], format: &str) -> Result<HashMap<String, St
     build_tag_map(&dataset)
 }
 
-/// Build the tag map from an already-frozen `RdfDataset`, scanning all three
-/// language classes (``Language``, ``FormalLanguage``, ``ProgrammingLanguage``).
+/// Build the tag map from an already-frozen `RdfDataset`, scanning the carrier
+/// sign systems (``gmeow:Language``) and carrier varieties
+/// (``lang:LanguageVariety``) — the only individuals that carry a
+/// ``lang:carrierTag``.
 ///
 /// Extracted for testability. Delegates to [`build_tag_map_for`].
 fn build_tag_map(dataset: &purrdf::RdfDataset) -> Result<HashMap<String, String>, String> {
     let lang_class = format!("{NAMESPACE}Language");
-    let formal_class = format!("{NAMESPACE}FormalLanguage");
-    let prog_class = format!("{NAMESPACE}ProgrammingLanguage");
-    build_tag_map_for(dataset, &[&lang_class, &formal_class, &prog_class])
+    let variety_class = format!("{LANG_NAMESPACE}LanguageVariety");
+    build_tag_map_for(dataset, &[&lang_class, &variety_class])
 }
 
-/// Build the internal→BCP-47 tag map, restricting the scan to the language
-/// `classes` (their IRI strings). The natural-`Language`-only restriction is the
-/// inverse-map path: a programming language's code is tagged ``en`` too, so
-/// including those classes would make the ``en`` reverse ambiguous.
+/// Build the internal→BCP-47 tag map, restricting the scan to the carrier
+/// `classes` (their IRI strings). Only the three framework carriers carry a
+/// ``lang:carrierTag`` at all, so the scan is naturally confined to them.
 ///
 /// Each individual typed as one of `classes` must carry exactly one distinct
-/// ``gmeow:languageTag`` and one distinct ``gmeow:bcp47Tag`` lexical value:
+/// ``lang:carrierTag`` and one distinct ``gmeow:bcp47Tag`` lexical value:
 /// - Missing either → individual is silently skipped (authoring SHACL enforces
 ///   completeness; we never fabricate).
 /// - More than one distinct value → returns `Err`.
@@ -119,7 +126,7 @@ fn build_tag_map_for(
     dataset: &purrdf::RdfDataset,
     classes: &[&str],
 ) -> Result<HashMap<String, String>, String> {
-    let tag_prop = format!("{NAMESPACE}languageTag");
+    let tag_prop = format!("{LANG_NAMESPACE}carrierTag");
     let bcp_prop = format!("{NAMESPACE}bcp47Tag");
 
     // Collect the string-form subjects that are typed as one of the language
@@ -175,7 +182,7 @@ fn build_tag_map_for(
         }
         if int_vals.len() > 1 {
             return Err(format!(
-                "individual <{subject}> has ambiguous languageTag values: {int_vals:?}; \
+                "individual <{subject}> has ambiguous carrierTag values: {int_vals:?}; \
                  tag-map projection requires a single canonical value"
             ));
         }
@@ -187,15 +194,15 @@ fn build_tag_map_for(
         }
         let int_val = int_vals.into_iter().next().unwrap();
         let bcp_val = bcp_vals.into_iter().next().unwrap();
-        // Two `gmeow:Language` individuals sharing one internal `languageTag` but
-        // mapping it to DIFFERENT `bcp47Tag`s is a nondeterministic conflict; per the
+        // Two carrier individuals sharing one internal `carrierTag` but mapping it
+        // to DIFFERENT `bcp47Tag`s is a nondeterministic conflict; per the
         // no-optionality/hard-fail doctrine, reject it rather than silently letting
         // the last writer win. (A repeated tag→SAME bcp47Tag is a harmless duplicate.)
         if let Some(existing) = tag_map.get(&int_val)
             && existing != &bcp_val
         {
             return Err(format!(
-                "conflicting bcp47Tag for internal languageTag {int_val:?}: \
+                "conflicting bcp47Tag for internal carrierTag {int_val:?}: \
                      {existing:?} vs {bcp_val:?}; the tag-map projection requires a \
                      single canonical bcp47Tag per internal tag"
             ));
@@ -208,11 +215,10 @@ fn build_tag_map_for(
 
 /// Build the BCP-47 → internal mapping — the inverse of [`load_tag_map`].
 ///
-/// Built from **natural** ``gmeow:Language`` individuals only (NOT formal or
-/// programming languages): a programming language's code carries an ``en`` BCP-47
-/// tag too, so including them would make the ``en`` reverse ambiguous. A BCP-47
-/// tag that several natural languages still share is dropped rather than guessed
-/// (the no-fabrication discipline). Keys are lowercased.
+/// Built from the carrier sign systems / varieties that carry a
+/// ``lang:carrierTag`` (only the three natural-language carriers do). A BCP-47
+/// tag that several carriers still share is dropped rather than guessed (the
+/// no-fabrication discipline). Keys are lowercased.
 pub fn load_inverse_tag_map(
     rdf_bytes: &[u8],
     format: &str,
@@ -222,7 +228,8 @@ pub fn load_inverse_tag_map(
         parse_dataset(rdf_bytes, media_type, None).map_err(|e| format!("RDF parse error: {e}"))?;
 
     let lang_class = format!("{NAMESPACE}Language");
-    let natural = build_tag_map_for(&dataset, &[&lang_class])?;
+    let variety_class = format!("{LANG_NAMESPACE}LanguageVariety");
+    let natural = build_tag_map_for(&dataset, &[&lang_class, &variety_class])?;
 
     // Group internal tags by their lowercased BCP-47 value, then keep only the
     // BCP-47 keys that map to EXACTLY ONE internal tag (drop ambiguous).
@@ -977,14 +984,15 @@ mod tests {
     fn load_tag_map_parses_turtle() {
         let ttl = r#"
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix lang: <https://blackcatinformatics.ca/lang/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 
 gmeow:English a gmeow:Language ;
-    gmeow:languageTag "x-gmeow-english" ;
+    lang:carrierTag "x-gmeow-english" ;
     gmeow:bcp47Tag "en" .
 
 gmeow:French a gmeow:Language ;
-    gmeow:languageTag "x-gmeow-french" ;
+    lang:carrierTag "x-gmeow-french" ;
     gmeow:bcp47Tag "fr" .
 "#;
         let map = load_tag_map(ttl.as_bytes(), "turtle").expect("parse");
@@ -996,11 +1004,12 @@ gmeow:French a gmeow:Language ;
     fn load_tag_map_ambiguous_err() {
         let ttl = r#"
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix lang: <https://blackcatinformatics.ca/lang/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 
 gmeow:English a gmeow:Language ;
-    gmeow:languageTag "x-gmeow-english" ;
-    gmeow:languageTag "x-gmeow-english-alt" ;
+    lang:carrierTag "x-gmeow-english" ;
+    lang:carrierTag "x-gmeow-english-alt" ;
     gmeow:bcp47Tag "en" .
 "#;
         assert!(load_tag_map(ttl.as_bytes(), "turtle").is_err());
@@ -1012,14 +1021,15 @@ gmeow:English a gmeow:Language ;
         // nondeterministic conflict and must hard-fail, not silently last-writer-win.
         let ttl = r#"
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix lang: <https://blackcatinformatics.ca/lang/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 
 gmeow:English a gmeow:Language ;
-    gmeow:languageTag "x-gmeow-english" ;
+    lang:carrierTag "x-gmeow-english" ;
     gmeow:bcp47Tag "en" .
 
 gmeow:EnglishAlt a gmeow:Language ;
-    gmeow:languageTag "x-gmeow-english" ;
+    lang:carrierTag "x-gmeow-english" ;
     gmeow:bcp47Tag "en-GB" .
 "#;
         let err = load_tag_map(ttl.as_bytes(), "turtle").expect_err("conflict must error");
@@ -1032,14 +1042,15 @@ gmeow:EnglishAlt a gmeow:Language ;
         // duplicate, not a conflict.
         let ttl = r#"
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix lang: <https://blackcatinformatics.ca/lang/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 
 gmeow:English a gmeow:Language ;
-    gmeow:languageTag "x-gmeow-english" ;
+    lang:carrierTag "x-gmeow-english" ;
     gmeow:bcp47Tag "en" .
 
 gmeow:EnglishCopy a gmeow:Language ;
-    gmeow:languageTag "x-gmeow-english" ;
+    lang:carrierTag "x-gmeow-english" ;
     gmeow:bcp47Tag "en" .
 "#;
         let map = load_tag_map(ttl.as_bytes(), "turtle").expect("identical duplicate ok");
@@ -1052,10 +1063,11 @@ gmeow:EnglishCopy a gmeow:Language ;
         // skipped (SHACL enforces completeness; we don't fabricate).
         let ttl = r#"
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix lang: <https://blackcatinformatics.ca/lang/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 
 gmeow:English a gmeow:Language ;
-    gmeow:languageTag "x-gmeow-english" .
+    lang:carrierTag "x-gmeow-english" .
 "#;
         let map = load_tag_map(ttl.as_bytes(), "turtle").expect("parse");
         assert!(map.is_empty(), "incomplete individual must be skipped");
@@ -1063,16 +1075,23 @@ gmeow:English a gmeow:Language ;
 
     #[test]
     fn load_tag_map_formal_and_prog_language() {
+        // The former gmeow:FormalLanguage / gmeow:ProgrammingLanguage subclasses are
+        // retired: a formal or programming language is now a gmeow:Language
+        // distinguished by lang:signSystemKind. Any gmeow:Language carrying a
+        // lang:carrierTag + gmeow:bcp47Tag pair is picked up regardless of its kind.
         let ttl = r#"
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix lang: <https://blackcatinformatics.ca/lang/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 
-gmeow:Rust a gmeow:ProgrammingLanguage ;
-    gmeow:languageTag "x-gmeow-rust" ;
+gmeow:Rust a gmeow:Language ;
+    lang:signSystemKind lang:programmingLanguageKind ;
+    lang:carrierTag "x-gmeow-rust" ;
     gmeow:bcp47Tag "en" .
 
-gmeow:Prolog a gmeow:FormalLanguage ;
-    gmeow:languageTag "x-gmeow-prolog" ;
+gmeow:Prolog a gmeow:Language ;
+    lang:signSystemKind lang:formalLanguageKind ;
+    lang:carrierTag "x-gmeow-prolog" ;
     gmeow:bcp47Tag "en" .
 "#;
         let map = load_tag_map(ttl.as_bytes(), "turtle").expect("parse");
@@ -1087,7 +1106,7 @@ gmeow:Prolog a gmeow:FormalLanguage ;
 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> \
 <https://blackcatinformatics.ca/gmeow/Language> .\n\
 <https://blackcatinformatics.ca/gmeow/English> \
-<https://blackcatinformatics.ca/gmeow/languageTag> \
+<https://blackcatinformatics.ca/lang/carrierTag> \
 \"x-gmeow-english\" .\n\
 <https://blackcatinformatics.ca/gmeow/English> \
 <https://blackcatinformatics.ca/gmeow/bcp47Tag> \
@@ -1324,14 +1343,15 @@ gmeow:Prolog a gmeow:FormalLanguage ;
     fn load_inverse_tag_map_recovers_natural_tags() {
         let ttl = r#"
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix lang: <https://blackcatinformatics.ca/lang/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 
 gmeow:English a gmeow:Language ;
-    gmeow:languageTag "x-gmeow-english" ;
+    lang:carrierTag "x-gmeow-english" ;
     gmeow:bcp47Tag "en" .
 
 gmeow:French a gmeow:Language ;
-    gmeow:languageTag "x-gmeow-french" ;
+    lang:carrierTag "x-gmeow-french" ;
     gmeow:bcp47Tag "fr" .
 "#;
         let inv = load_inverse_tag_map(ttl.as_bytes(), "turtle").expect("parse");
@@ -1345,18 +1365,19 @@ gmeow:French a gmeow:Language ;
         // (no fabrication), while the unambiguous `fr` survives.
         let ttl = r#"
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix lang: <https://blackcatinformatics.ca/lang/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 
 gmeow:English a gmeow:Language ;
-    gmeow:languageTag "x-gmeow-english" ;
+    lang:carrierTag "x-gmeow-english" ;
     gmeow:bcp47Tag "en" .
 
 gmeow:EnglishUk a gmeow:Language ;
-    gmeow:languageTag "x-gmeow-english-uk" ;
+    lang:carrierTag "x-gmeow-english-uk" ;
     gmeow:bcp47Tag "en" .
 
 gmeow:French a gmeow:Language ;
-    gmeow:languageTag "x-gmeow-french" ;
+    lang:carrierTag "x-gmeow-french" ;
     gmeow:bcp47Tag "fr" .
 "#;
         let inv = load_inverse_tag_map(ttl.as_bytes(), "turtle").expect("parse");

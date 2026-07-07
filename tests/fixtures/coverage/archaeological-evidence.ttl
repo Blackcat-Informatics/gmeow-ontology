@@ -4,6 +4,8 @@
 
 @prefix ex:     <https://example.org/arch/> .
 @prefix gmeow:  <https://blackcatinformatics.ca/gmeow/> .
+@prefix lang:   <https://blackcatinformatics.ca/lang/> .
+@prefix skos:   <http://www.w3.org/2004/02/skos/core#> .
 @prefix owl:    <http://www.w3.org/2002/07/owl#> .
 @prefix time:   <http://www.w3.org/2006/time#> .
 @prefix xsd:    <http://www.w3.org/2001/XMLSchema#> .
@@ -20,8 +22,8 @@ ex:sumerian a gmeow:Language ; gmeow:languageCode "sux" .
 ex:akkadian a gmeow:Language ; gmeow:languageCode "akk" .
 ex:mycenaeanGreek a gmeow:Language ; gmeow:languageCode "gmy" .
 
-ex:cuneiform a gmeow:WritingSystem ; gmeow:scriptCode "Xsux" .
-ex:linearB a gmeow:WritingSystem ; gmeow:scriptCode "Linb" .
+ex:cuneiform a lang:Script ; skos:notation "Xsux"^^xsd:string .
+ex:linearB a lang:Script ; skos:notation "Linb"^^xsd:string .
 
 # --- Example 1: Cuneiform tablet with layer separation ----------------------- #
 

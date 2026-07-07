@@ -861,10 +861,6 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
   <https://blackcatinformatics.ca/gmeow/membershipAuthority> IRI ;
 }
 
-# targetClass <https://blackcatinformatics.ca/gmeow/WritingSystem> (associate via ShapeMap)
-<https://blackcatinformatics.ca/gmeow/WritingSystem-shape> {
-}
-
 # targetSubjectsOf <https://blackcatinformatics.ca/gmeow/abstract> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/abstract-domain-shape> {
 }
@@ -1299,6 +1295,14 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
 # targetObjectsOf <https://blackcatinformatics.ca/gmeow/answers> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/answers-range-shape> {
+}
+
+# targetSubjectsOf <https://blackcatinformatics.ca/gmeow/appellationDenotation> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/appellationDenotation-domain-shape> {
+}
+
+# targetObjectsOf <https://blackcatinformatics.ca/gmeow/appellationDenotation> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/appellationDenotation-range-shape> {
 }
 
 # targetSubjectsOf <https://blackcatinformatics.ca/gmeow/appliedRule> (associate via ShapeMap)
@@ -3307,6 +3311,14 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
 # targetObjectsOf <https://blackcatinformatics.ca/gmeow/copyrightYear> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/copyrightYear-range-shape> {
+}
+
+# targetSubjectsOf <https://blackcatinformatics.ca/gmeow/corefDenotation> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/corefDenotation-domain-shape> {
+}
+
+# targetObjectsOf <https://blackcatinformatics.ca/gmeow/corefDenotation> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/corefDenotation-range-shape> {
 }
 
 # targetSubjectsOf <https://blackcatinformatics.ca/gmeow/corpusMember> (associate via ShapeMap)
@@ -7737,15 +7749,6 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 <https://blackcatinformatics.ca/gmeow/languageStatus-range-shape> {
 }
 
-# targetSubjectsOf <https://blackcatinformatics.ca/gmeow/languageTag> (associate via ShapeMap)
-<https://blackcatinformatics.ca/gmeow/languageTag-domain-shape> {
-  <https://blackcatinformatics.ca/gmeow/languageTag> . {0,1} ;
-}
-
-# targetObjectsOf <https://blackcatinformatics.ca/gmeow/languageTag> (associate via ShapeMap)
-<https://blackcatinformatics.ca/gmeow/languageTag-range-shape> {
-}
-
 # targetSubjectsOf <https://blackcatinformatics.ca/gmeow/latestEnd> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/latestEnd-domain-shape> {
 }
@@ -12135,31 +12138,6 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 <https://blackcatinformatics.ca/gmeow/scoreSemantics-range-shape> {
 }
 
-# targetSubjectsOf <https://blackcatinformatics.ca/gmeow/scriptCode> (associate via ShapeMap)
-<https://blackcatinformatics.ca/gmeow/scriptCode-domain-shape> {
-}
-
-# targetObjectsOf <https://blackcatinformatics.ca/gmeow/scriptCode> (associate via ShapeMap)
-<https://blackcatinformatics.ca/gmeow/scriptCode-range-shape> {
-}
-
-# targetSubjectsOf <https://blackcatinformatics.ca/gmeow/scriptRole> (associate via ShapeMap)
-<https://blackcatinformatics.ca/gmeow/scriptRole-domain-shape> {
-  <https://blackcatinformatics.ca/gmeow/scriptRole> . {0,1} ;
-}
-
-# targetObjectsOf <https://blackcatinformatics.ca/gmeow/scriptRole> (associate via ShapeMap)
-<https://blackcatinformatics.ca/gmeow/scriptRole-range-shape> {
-}
-
-# targetSubjectsOf <https://blackcatinformatics.ca/gmeow/scriptUsageInterval> (associate via ShapeMap)
-<https://blackcatinformatics.ca/gmeow/scriptUsageInterval-domain-shape> {
-}
-
-# targetObjectsOf <https://blackcatinformatics.ca/gmeow/scriptUsageInterval> (associate via ShapeMap)
-<https://blackcatinformatics.ca/gmeow/scriptUsageInterval-range-shape> {
-}
-
 # targetSubjectsOf <https://blackcatinformatics.ca/gmeow/sealedRecipient> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/sealedRecipient-domain-shape> {
 }
@@ -13530,14 +13508,6 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 <https://blackcatinformatics.ca/gmeow/tenuredContactPoint-range-shape> {
 }
 
-# targetSubjectsOf <https://blackcatinformatics.ca/gmeow/textDirection> (associate via ShapeMap)
-<https://blackcatinformatics.ca/gmeow/textDirection-domain-shape> {
-}
-
-# targetObjectsOf <https://blackcatinformatics.ca/gmeow/textDirection> (associate via ShapeMap)
-<https://blackcatinformatics.ca/gmeow/textDirection-range-shape> {
-}
-
 # targetSubjectsOf <https://blackcatinformatics.ca/gmeow/threadSubject> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/threadSubject-domain-shape> {
 }
@@ -14125,15 +14095,6 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 <https://blackcatinformatics.ca/gmeow/usageInterval-range-shape> {
 }
 
-# targetSubjectsOf <https://blackcatinformatics.ca/gmeow/usageLanguage> (associate via ShapeMap)
-<https://blackcatinformatics.ca/gmeow/usageLanguage-domain-shape> {
-  <https://blackcatinformatics.ca/gmeow/usageLanguage> . {0,1} ;
-}
-
-# targetObjectsOf <https://blackcatinformatics.ca/gmeow/usageLanguage> (associate via ShapeMap)
-<https://blackcatinformatics.ca/gmeow/usageLanguage-range-shape> {
-}
-
 # targetSubjectsOf <https://blackcatinformatics.ca/gmeow/usageNamed> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/usageNamed-domain-shape> {
   <https://blackcatinformatics.ca/gmeow/usageNamed> . {0,1} ;
@@ -14167,15 +14128,6 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
 # targetObjectsOf <https://blackcatinformatics.ca/gmeow/usageRelationshipScope> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/usageRelationshipScope-range-shape> {
-}
-
-# targetSubjectsOf <https://blackcatinformatics.ca/gmeow/usageWritingSystem> (associate via ShapeMap)
-<https://blackcatinformatics.ca/gmeow/usageWritingSystem-domain-shape> {
-  <https://blackcatinformatics.ca/gmeow/usageWritingSystem> . {0,1} ;
-}
-
-# targetObjectsOf <https://blackcatinformatics.ca/gmeow/usageWritingSystem> (associate via ShapeMap)
-<https://blackcatinformatics.ca/gmeow/usageWritingSystem-range-shape> {
 }
 
 # targetObjectsOf <https://blackcatinformatics.ca/gmeow/useForConsumer> (associate via ShapeMap)
@@ -14239,14 +14191,6 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
 # targetObjectsOf <https://blackcatinformatics.ca/gmeow/usesTransformCodec> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/usesTransformCodec-range-shape> {
-}
-
-# targetSubjectsOf <https://blackcatinformatics.ca/gmeow/usesWritingSystem> (associate via ShapeMap)
-<https://blackcatinformatics.ca/gmeow/usesWritingSystem-domain-shape> {
-}
-
-# targetObjectsOf <https://blackcatinformatics.ca/gmeow/usesWritingSystem> (associate via ShapeMap)
-<https://blackcatinformatics.ca/gmeow/usesWritingSystem-range-shape> {
 }
 
 # targetSubjectsOf <https://blackcatinformatics.ca/gmeow/utilizationOf> (associate via ShapeMap)
@@ -14579,14 +14523,6 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
 # targetObjectsOf <https://blackcatinformatics.ca/gmeow/writingSystemAsNotation> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/writingSystemAsNotation-range-shape> {
-}
-
-# targetSubjectsOf <https://blackcatinformatics.ca/gmeow/writingSystemType> (associate via ShapeMap)
-<https://blackcatinformatics.ca/gmeow/writingSystemType-domain-shape> {
-}
-
-# targetObjectsOf <https://blackcatinformatics.ca/gmeow/writingSystemType> (associate via ShapeMap)
-<https://blackcatinformatics.ca/gmeow/writingSystemType-range-shape> {
 }
 
 # targetSubjectsOf <https://blackcatinformatics.ca/gmeow/writtenInLanguage> (associate via ShapeMap)

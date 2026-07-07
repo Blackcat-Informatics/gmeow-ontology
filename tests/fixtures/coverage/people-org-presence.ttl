@@ -6,6 +6,7 @@
 
 @prefix ex:    <https://example.org/po/> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix lang:   <https://blackcatinformatics.ca/lang/> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 
@@ -87,7 +88,7 @@ ex:invContrib a gmeow:Contribution ;
 ex:gmeowProj a gmeow:SoftwareProject ; rdfs:label "GMEOW"@en ;
     gmeow:projectHomepage <https://blackcatinformatics.ca/gmeow> ;
     gmeow:programmingLanguage ex:python .
-ex:python a gmeow:ProgrammingLanguage ; rdfs:label "Python"@en .
+ex:python a gmeow:Language ; lang:signSystemKind lang:programmingLanguageKind ; lang:modality lang:writtenModality ; rdfs:label "Python"@en .
 
 # --- genealogy: couple + marriage event (#413) ----------------------------- #
 

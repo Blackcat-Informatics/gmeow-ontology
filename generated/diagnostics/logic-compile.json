@@ -15,7 +15,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection datalog drops: actual: logic:Formula #0 [Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in Datalog; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
+      "message": "projection datalog drops: actual: logic:Formula #0 [Nested+Quantified] (full first-order quantifier / connective tree) is not representable in Datalog; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
       "tool": "logic-compile",
       "locations": [
         {
@@ -26,7 +26,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection datalog drops: actual: logic:Formula #1 [Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in Datalog; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
+      "message": "projection datalog drops: actual: logic:Formula #1 [Nested+Quantified] (full first-order quantifier / connective tree) is not representable in Datalog; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
       "tool": "logic-compile",
       "locations": [
         {
@@ -37,7 +37,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection datalog drops: actual: logic:Formula #2 [Disjunctive+Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in Datalog; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
+      "message": "projection datalog drops: actual: logic:Formula #2 [Disjunctive+Nested+Quantified] (full first-order quantifier / connective tree) is not representable in Datalog; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
       "tool": "logic-compile",
       "locations": [
         {
@@ -48,7 +48,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection datalog drops: actual: logic:Formula #3 [Nested+Quantified+StrongNegation+Variadic] (full first-order quantifier / connective tree) is not representable in Datalog; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
+      "message": "projection datalog drops: actual: logic:Formula #3 [Nested+Quantified+StrongNegation] (full first-order quantifier / connective tree) is not representable in Datalog; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
       "tool": "logic-compile",
       "locations": [
         {
@@ -59,7 +59,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection datalog drops: actual: logic:Formula #4 [Disjunctive+Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in Datalog; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
+      "message": "projection datalog drops: actual: logic:Formula #4 [Disjunctive+Nested+Quantified] (full first-order quantifier / connective tree) is not representable in Datalog; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
       "tool": "logic-compile",
       "locations": [
         {
@@ -180,7 +180,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection gufo drops: actual: logic:Formula #0 [Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in the gUFO bridge; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
+      "message": "projection gufo drops: actual: logic:Formula #0 [Nested+Quantified] (full first-order quantifier / connective tree) is not representable in the gUFO bridge; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
       "tool": "logic-compile",
       "locations": [
         {
@@ -191,7 +191,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection gufo drops: actual: logic:Formula #1 [Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in the gUFO bridge; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
+      "message": "projection gufo drops: actual: logic:Formula #1 [Nested+Quantified] (full first-order quantifier / connective tree) is not representable in the gUFO bridge; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
       "tool": "logic-compile",
       "locations": [
         {
@@ -202,7 +202,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection gufo drops: actual: logic:Formula #2 [Disjunctive+Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in the gUFO bridge; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
+      "message": "projection gufo drops: actual: logic:Formula #2 [Disjunctive+Nested+Quantified] (full first-order quantifier / connective tree) is not representable in the gUFO bridge; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
       "tool": "logic-compile",
       "locations": [
         {
@@ -213,7 +213,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection gufo drops: actual: logic:Formula #3 [Nested+Quantified+StrongNegation+Variadic] (full first-order quantifier / connective tree) is not representable in the gUFO bridge; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
+      "message": "projection gufo drops: actual: logic:Formula #3 [Nested+Quantified+StrongNegation] (full first-order quantifier / connective tree) is not representable in the gUFO bridge; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
       "tool": "logic-compile",
       "locations": [
         {
@@ -224,7 +224,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection gufo drops: actual: logic:Formula #4 [Disjunctive+Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in the gUFO bridge; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
+      "message": "projection gufo drops: actual: logic:Formula #4 [Disjunctive+Nested+Quantified] (full first-order quantifier / connective tree) is not representable in the gUFO bridge; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
       "tool": "logic-compile",
       "locations": [
         {
@@ -6351,7 +6351,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection n3 drops: actual: logic:Formula #0 [Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in N3; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
+      "message": "projection n3 drops: actual: logic:Formula #0 [Nested+Quantified] (full first-order quantifier / connective tree) is not representable in N3; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
       "tool": "logic-compile",
       "locations": [
         {
@@ -6362,7 +6362,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection n3 drops: actual: logic:Formula #1 [Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in N3; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
+      "message": "projection n3 drops: actual: logic:Formula #1 [Nested+Quantified] (full first-order quantifier / connective tree) is not representable in N3; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
       "tool": "logic-compile",
       "locations": [
         {
@@ -6373,7 +6373,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection n3 drops: actual: logic:Formula #2 [Disjunctive+Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in N3; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
+      "message": "projection n3 drops: actual: logic:Formula #2 [Disjunctive+Nested+Quantified] (full first-order quantifier / connective tree) is not representable in N3; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
       "tool": "logic-compile",
       "locations": [
         {
@@ -6384,7 +6384,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection n3 drops: actual: logic:Formula #3 [Nested+Quantified+StrongNegation+Variadic] (full first-order quantifier / connective tree) is not representable in N3; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
+      "message": "projection n3 drops: actual: logic:Formula #3 [Nested+Quantified+StrongNegation] (full first-order quantifier / connective tree) is not representable in N3; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
       "tool": "logic-compile",
       "locations": [
         {
@@ -6395,7 +6395,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection n3 drops: actual: logic:Formula #4 [Disjunctive+Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in N3; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
+      "message": "projection n3 drops: actual: logic:Formula #4 [Disjunctive+Nested+Quantified] (full first-order quantifier / connective tree) is not representable in N3; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
       "tool": "logic-compile",
       "locations": [
         {
@@ -6516,7 +6516,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection nemo drops: actual: logic:Formula #0 [Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in Nemo; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
+      "message": "projection nemo drops: actual: logic:Formula #0 [Nested+Quantified] (full first-order quantifier / connective tree) is not representable in Nemo; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
       "tool": "logic-compile",
       "locations": [
         {
@@ -6527,7 +6527,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection nemo drops: actual: logic:Formula #1 [Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in Nemo; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
+      "message": "projection nemo drops: actual: logic:Formula #1 [Nested+Quantified] (full first-order quantifier / connective tree) is not representable in Nemo; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
       "tool": "logic-compile",
       "locations": [
         {
@@ -6538,7 +6538,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection nemo drops: actual: logic:Formula #2 [Disjunctive+Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in Nemo; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
+      "message": "projection nemo drops: actual: logic:Formula #2 [Disjunctive+Nested+Quantified] (full first-order quantifier / connective tree) is not representable in Nemo; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
       "tool": "logic-compile",
       "locations": [
         {
@@ -6549,7 +6549,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection nemo drops: actual: logic:Formula #3 [Nested+Quantified+StrongNegation+Variadic] (full first-order quantifier / connective tree) is not representable in Nemo; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
+      "message": "projection nemo drops: actual: logic:Formula #3 [Nested+Quantified+StrongNegation] (full first-order quantifier / connective tree) is not representable in Nemo; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
       "tool": "logic-compile",
       "locations": [
         {
@@ -6560,7 +6560,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection nemo drops: actual: logic:Formula #4 [Disjunctive+Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in Nemo; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
+      "message": "projection nemo drops: actual: logic:Formula #4 [Disjunctive+Nested+Quantified] (full first-order quantifier / connective tree) is not representable in Nemo; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
       "tool": "logic-compile",
       "locations": [
         {
@@ -6582,7 +6582,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection owl-dl drops: actual: logic:Formula #0 [Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in OWL 2 DL; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
+      "message": "projection owl-dl drops: actual: logic:Formula #0 [Nested+Quantified] (full first-order quantifier / connective tree) is not representable in OWL 2 DL; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
       "tool": "logic-compile",
       "locations": [
         {
@@ -6593,7 +6593,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection owl-dl drops: actual: logic:Formula #1 [Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in OWL 2 DL; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
+      "message": "projection owl-dl drops: actual: logic:Formula #1 [Nested+Quantified] (full first-order quantifier / connective tree) is not representable in OWL 2 DL; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
       "tool": "logic-compile",
       "locations": [
         {
@@ -6604,7 +6604,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection owl-dl drops: actual: logic:Formula #3 [Nested+Quantified+StrongNegation+Variadic] (full first-order quantifier / connective tree) is not representable in OWL 2 DL; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
+      "message": "projection owl-dl drops: actual: logic:Formula #3 [Nested+Quantified+StrongNegation] (full first-order quantifier / connective tree) is not representable in OWL 2 DL; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
       "tool": "logic-compile",
       "locations": [
         {
@@ -12643,7 +12643,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection owl-el drops: actual: logic:Formula #0 [Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in OWL 2 EL; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
+      "message": "projection owl-el drops: actual: logic:Formula #0 [Nested+Quantified] (full first-order quantifier / connective tree) is not representable in OWL 2 EL; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
       "tool": "logic-compile",
       "locations": [
         {
@@ -12654,7 +12654,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection owl-el drops: actual: logic:Formula #1 [Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in OWL 2 EL; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
+      "message": "projection owl-el drops: actual: logic:Formula #1 [Nested+Quantified] (full first-order quantifier / connective tree) is not representable in OWL 2 EL; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
       "tool": "logic-compile",
       "locations": [
         {
@@ -12665,7 +12665,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection owl-el drops: actual: logic:Formula #2 [Disjunctive+Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in OWL 2 EL; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
+      "message": "projection owl-el drops: actual: logic:Formula #2 [Disjunctive+Nested+Quantified] (full first-order quantifier / connective tree) is not representable in OWL 2 EL; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
       "tool": "logic-compile",
       "locations": [
         {
@@ -12676,7 +12676,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection owl-el drops: actual: logic:Formula #3 [Nested+Quantified+StrongNegation+Variadic] (full first-order quantifier / connective tree) is not representable in OWL 2 EL; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
+      "message": "projection owl-el drops: actual: logic:Formula #3 [Nested+Quantified+StrongNegation] (full first-order quantifier / connective tree) is not representable in OWL 2 EL; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
       "tool": "logic-compile",
       "locations": [
         {
@@ -12687,7 +12687,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection owl-el drops: actual: logic:Formula #4 [Disjunctive+Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in OWL 2 EL; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
+      "message": "projection owl-el drops: actual: logic:Formula #4 [Disjunctive+Nested+Quantified] (full first-order quantifier / connective tree) is not representable in OWL 2 EL; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
       "tool": "logic-compile",
       "locations": [
         {
@@ -24501,7 +24501,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection shacl-af drops: actual: logic:Formula #0 [Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in SHACL-AF; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
+      "message": "projection shacl-af drops: actual: logic:Formula #0 [Nested+Quantified] (full first-order quantifier / connective tree) is not representable in SHACL-AF; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
       "tool": "logic-compile",
       "locations": [
         {
@@ -24512,7 +24512,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection shacl-af drops: actual: logic:Formula #1 [Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in SHACL-AF; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
+      "message": "projection shacl-af drops: actual: logic:Formula #1 [Nested+Quantified] (full first-order quantifier / connective tree) is not representable in SHACL-AF; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
       "tool": "logic-compile",
       "locations": [
         {
@@ -24523,7 +24523,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection shacl-af drops: actual: logic:Formula #2 [Disjunctive+Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in SHACL-AF; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
+      "message": "projection shacl-af drops: actual: logic:Formula #2 [Disjunctive+Nested+Quantified] (full first-order quantifier / connective tree) is not representable in SHACL-AF; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
       "tool": "logic-compile",
       "locations": [
         {
@@ -24534,7 +24534,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection shacl-af drops: actual: logic:Formula #3 [Nested+Quantified+StrongNegation+Variadic] (full first-order quantifier / connective tree) is not representable in SHACL-AF; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
+      "message": "projection shacl-af drops: actual: logic:Formula #3 [Nested+Quantified+StrongNegation] (full first-order quantifier / connective tree) is not representable in SHACL-AF; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
       "tool": "logic-compile",
       "locations": [
         {
@@ -24545,7 +24545,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection shacl-af drops: actual: logic:Formula #4 [Disjunctive+Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in SHACL-AF; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
+      "message": "projection shacl-af drops: actual: logic:Formula #4 [Disjunctive+Nested+Quantified] (full first-order quantifier / connective tree) is not representable in SHACL-AF; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
       "tool": "logic-compile",
       "locations": [
         {
@@ -58854,160 +58854,6 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection shex drops: actual: 1 focus-node-level constraint(s) (domain/range/disjointness) have no ShEx shape-level form; carried in the canonical logic: layer",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection shex drops: actual: 1 focus-node-level constraint(s) (domain/range/disjointness) have no ShEx shape-level form; carried in the canonical logic: layer",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection shex drops: actual: 1 focus-node-level constraint(s) (domain/range/disjointness) have no ShEx shape-level form; carried in the canonical logic: layer",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection shex drops: actual: 1 focus-node-level constraint(s) (domain/range/disjointness) have no ShEx shape-level form; carried in the canonical logic: layer",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection shex drops: actual: 1 focus-node-level constraint(s) (domain/range/disjointness) have no ShEx shape-level form; carried in the canonical logic: layer",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection shex drops: actual: 1 focus-node-level constraint(s) (domain/range/disjointness) have no ShEx shape-level form; carried in the canonical logic: layer",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection shex drops: actual: 1 focus-node-level constraint(s) (domain/range/disjointness) have no ShEx shape-level form; carried in the canonical logic: layer",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection shex drops: actual: 1 focus-node-level constraint(s) (domain/range/disjointness) have no ShEx shape-level form; carried in the canonical logic: layer",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection shex drops: actual: 1 focus-node-level constraint(s) (domain/range/disjointness) have no ShEx shape-level form; carried in the canonical logic: layer",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection shex drops: actual: 1 focus-node-level constraint(s) (domain/range/disjointness) have no ShEx shape-level form; carried in the canonical logic: layer",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection shex drops: actual: 1 focus-node-level constraint(s) (domain/range/disjointness) have no ShEx shape-level form; carried in the canonical logic: layer",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection shex drops: actual: 1 focus-node-level constraint(s) (domain/range/disjointness) have no ShEx shape-level form; carried in the canonical logic: layer",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection shex drops: actual: 1 focus-node-level constraint(s) (domain/range/disjointness) have no ShEx shape-level form; carried in the canonical logic: layer",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection shex drops: actual: 1 focus-node-level constraint(s) (domain/range/disjointness) have no ShEx shape-level form; carried in the canonical logic: layer",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
       "message": "projection shex drops: actual: 10 focus-node-level constraint(s) (domain/range/disjointness) have no ShEx shape-level form; carried in the canonical logic: layer",
       "tool": "logic-compile",
       "locations": [
@@ -59239,7 +59085,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection shex drops: actual: 8 focus-node-level constraint(s) (domain/range/disjointness) have no ShEx shape-level form; carried in the canonical logic: layer",
+      "message": "projection shex drops: actual: 7 focus-node-level constraint(s) (domain/range/disjointness) have no ShEx shape-level form; carried in the canonical logic: layer",
       "tool": "logic-compile",
       "locations": [
         {
@@ -59250,7 +59096,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection shex drops: actual: 8 focus-node-level constraint(s) (domain/range/disjointness) have no ShEx shape-level form; carried in the canonical logic: layer",
+      "message": "projection shex drops: actual: 7 focus-node-level constraint(s) (domain/range/disjointness) have no ShEx shape-level form; carried in the canonical logic: layer",
       "tool": "logic-compile",
       "locations": [
         {
@@ -59261,7 +59107,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection shex drops: actual: 8 focus-node-level constraint(s) (domain/range/disjointness) have no ShEx shape-level form; carried in the canonical logic: layer",
+      "message": "projection shex drops: actual: 7 focus-node-level constraint(s) (domain/range/disjointness) have no ShEx shape-level form; carried in the canonical logic: layer",
       "tool": "logic-compile",
       "locations": [
         {
@@ -59272,7 +59118,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection shex drops: actual: 8 focus-node-level constraint(s) (domain/range/disjointness) have no ShEx shape-level form; carried in the canonical logic: layer",
+      "message": "projection shex drops: actual: 7 focus-node-level constraint(s) (domain/range/disjointness) have no ShEx shape-level form; carried in the canonical logic: layer",
       "tool": "logic-compile",
       "locations": [
         {
@@ -59283,7 +59129,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection shex drops: actual: 8 focus-node-level constraint(s) (domain/range/disjointness) have no ShEx shape-level form; carried in the canonical logic: layer",
+      "message": "projection shex drops: actual: 7 focus-node-level constraint(s) (domain/range/disjointness) have no ShEx shape-level form; carried in the canonical logic: layer",
       "tool": "logic-compile",
       "locations": [
         {
@@ -59294,7 +59140,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection shex drops: actual: 8 focus-node-level constraint(s) (domain/range/disjointness) have no ShEx shape-level form; carried in the canonical logic: layer",
+      "message": "projection shex drops: actual: 7 focus-node-level constraint(s) (domain/range/disjointness) have no ShEx shape-level form; carried in the canonical logic: layer",
       "tool": "logic-compile",
       "locations": [
         {
@@ -59305,7 +59151,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection shex drops: actual: 8 focus-node-level constraint(s) (domain/range/disjointness) have no ShEx shape-level form; carried in the canonical logic: layer",
+      "message": "projection shex drops: actual: 7 focus-node-level constraint(s) (domain/range/disjointness) have no ShEx shape-level form; carried in the canonical logic: layer",
       "tool": "logic-compile",
       "locations": [
         {
@@ -59316,18 +59162,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection shex drops: actual: 8 focus-node-level constraint(s) (domain/range/disjointness) have no ShEx shape-level form; carried in the canonical logic: layer",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection shex drops: actual: 8 focus-node-level constraint(s) (domain/range/disjointness) have no ShEx shape-level form; carried in the canonical logic: layer",
+      "message": "projection shex drops: actual: 7 focus-node-level constraint(s) (domain/range/disjointness) have no ShEx shape-level form; carried in the canonical logic: layer",
       "tool": "logic-compile",
       "locations": [
         {

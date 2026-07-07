@@ -568,7 +568,6 @@ This bibliography is generated from `metadata/references.ttl`.
 | iptc.org/std/NewsML-G2/guidelines | [link](https://iptc.org/std/NewsML-G2/guidelines/) | 1 |
 | ismir2008.ismir.net/papers/ISMIR2008_109.pdf | [link](https://ismir2008.ismir.net/papers/ISMIR2008_109.pdf) | 1 |
 | isni.org | [link](https://isni.org/) | 1 |
-| iso639-3.sil.org/sites/iso639-3/files/downloads/iso-639-3.tab | [link](https://iso639-3.sil.org/sites/iso639-3/files/downloads/iso-639-3.tab) | 1 |
 | issues.omg.org/issues/FIBOFND11-12 | [link](https://issues.omg.org/issues/FIBOFND11-12) | 1 |
 | ithkuil.net | [link](https://ithkuil.net/) | 1 |
 | jbiomedsem.biomedcentral.com/counter/pdf/10.1186/s13326-016-0067-z.pdf | [link](https://jbiomedsem.biomedcentral.com/counter/pdf/10.1186/s13326-016-0067-z.pdf) | 1 |
@@ -644,7 +643,6 @@ This bibliography is generated from `metadata/references.ttl`.
 | pyoxigraph.readthedocs.io | [link](https://pyoxigraph.readthedocs.io/) | 1 |
 | pypi.org/project/fastmcp | [link](https://pypi.org/project/fastmcp/) | 1 |
 | pypi.org/pypi/fastmcp/json | [link](https://pypi.org/pypi/fastmcp/json) | 1 |
-| query.wikidata.org/sparql | [link](https://query.wikidata.org/sparql) | 1 |
 | raw.githubusercontent.com/Blackcat-Informatics/gmeow-ontology/main/docs/gmeow-logo.svg | [link](https://raw.githubusercontent.com/Blackcat-Informatics/gmeow-ontology/main/docs/gmeow-logo.svg) | 1 |
 | rdflib.readthedocs.io/en/4.2.2/%5Fmodules/rdflib/exceptions.html | [link](https://rdflib.readthedocs.io/en/4.2.2/%5Fmodules/rdflib/exceptions.html) | 1 |
 | rdflib.readthedocs.io/en/6.1.1/_modules/rdflib/graph.html | [link](https://rdflib.readthedocs.io/en/6.1.1/_modules/rdflib/graph.html) | 1 |

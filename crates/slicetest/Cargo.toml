@@ -28,13 +28,13 @@ gmeow-validate = { path = "../validate" }
 # gmeow-logic-compile crate (re-exported by gmeow-logic), so the harness gets the
 # canonical authority WITHOUT pulling Nemo into its build graph — see the note below.
 gmeow-logic-compile = { path = "../logic-compile" }
-
-# NOTE: deliberately NO gmeow-logic / Nemo dependency. Competency reasoning is
-# RDFS-only (computed via native CONSTRUCT rules iterated to fixpoint over the
-# native SPARQL engine; see src/stores.rs and docs/TESTING.md), which is seconds,
-# not the ~4-minute OWL 2 RL chase — and keeps Nemo out of this crate's build graph
-# entirely. The ResultShape type is taken from the Nemo-free gmeow-logic-compile
-# crate above for exactly this reason.
+# The native `logic:` reasoner (`reason_program_closure_dataset`) for the
+# gmeow:reasoningLogic competency lane (#1294): the four math: algebra laws run as LIVE
+# entailment consumers, deriving their consequents through fixed-arity n-ary predication.
+# This DOES pull Nemo into the build graph — accepted deliberately for this one lane; the
+# default (reasoningNone) and reasoningRdfs lanes stay Nemo-free (native SPARQL / CONSTRUCT
+# fixpoint), so only questions that opt into gmeow:reasoningLogic pay the native chase.
+gmeow-logic = { path = "../logic" }
 
 [dev-dependencies]
 # File-driven test harness: one nextest case per discovered tests/*.ttl spec

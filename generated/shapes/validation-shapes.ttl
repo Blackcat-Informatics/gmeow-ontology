@@ -24,7 +24,6 @@
     sh:not [ sh:class <https://blackcatinformatics.ca/gmeow/ContactPoint> ] ;
     sh:not [ sh:class <https://blackcatinformatics.ca/gmeow/Organization> ] ;
     sh:not [ sh:class <https://blackcatinformatics.ca/gmeow/SoftwareAgent> ] ;
-    sh:not [ sh:class <https://blackcatinformatics.ca/gmeow/WritingSystem> ] ;
     sh:not [ sh:class <https://blackcatinformatics.ca/gmeow/CryptographicKey> ] .
 
 <https://blackcatinformatics.ca/gmeow/ArchaeologicalFindContext-shape> a sh:NodeShape ;
@@ -121,7 +120,6 @@
     sh:not [ sh:class <https://blackcatinformatics.ca/gmeow/Appellation> ] ;
     sh:not [ sh:class <https://blackcatinformatics.ca/gmeow/Organization> ] ;
     sh:not [ sh:class <https://blackcatinformatics.ca/gmeow/SoftwareAgent> ] ;
-    sh:not [ sh:class <https://blackcatinformatics.ca/gmeow/WritingSystem> ] ;
     sh:not [ sh:class <https://blackcatinformatics.ca/gmeow/CryptographicKey> ] .
 
 <https://blackcatinformatics.ca/gmeow/ContainmentTenure-shape> a sh:NodeShape ;
@@ -172,8 +170,7 @@
     sh:not [ sh:class <https://blackcatinformatics.ca/gmeow/Appellation> ] ;
     sh:not [ sh:class <https://blackcatinformatics.ca/gmeow/ContactPoint> ] ;
     sh:not [ sh:class <https://blackcatinformatics.ca/gmeow/Organization> ] ;
-    sh:not [ sh:class <https://blackcatinformatics.ca/gmeow/SoftwareAgent> ] ;
-    sh:not [ sh:class <https://blackcatinformatics.ca/gmeow/WritingSystem> ] .
+    sh:not [ sh:class <https://blackcatinformatics.ca/gmeow/SoftwareAgent> ] .
 
 <https://blackcatinformatics.ca/gmeow/DataFlow-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/DataFlow> ;
@@ -406,7 +403,6 @@
     sh:not [ sh:class <https://blackcatinformatics.ca/gmeow/ContactPoint> ] ;
     sh:not [ sh:class <https://blackcatinformatics.ca/gmeow/Organization> ] ;
     sh:not [ sh:class <https://blackcatinformatics.ca/gmeow/SoftwareAgent> ] ;
-    sh:not [ sh:class <https://blackcatinformatics.ca/gmeow/WritingSystem> ] ;
     sh:not [ sh:class <https://blackcatinformatics.ca/gmeow/CryptographicKey> ] .
 
 <https://blackcatinformatics.ca/gmeow/LanguageState-shape> a sh:NodeShape ;
@@ -440,7 +436,6 @@
     sh:not [ sh:class <https://blackcatinformatics.ca/gmeow/ContactPoint> ] ;
     sh:not [ sh:class <https://blackcatinformatics.ca/gmeow/Organization> ] ;
     sh:not [ sh:class <https://blackcatinformatics.ca/gmeow/SoftwareAgent> ] ;
-    sh:not [ sh:class <https://blackcatinformatics.ca/gmeow/WritingSystem> ] ;
     sh:not [ sh:class <https://blackcatinformatics.ca/gmeow/CryptographicKey> ] .
 
 <https://blackcatinformatics.ca/gmeow/LogicalConstraint-shape> a sh:NodeShape ;
@@ -538,7 +533,6 @@
     sh:not [ sh:class <https://blackcatinformatics.ca/gmeow/Appellation> ] ;
     sh:not [ sh:class <https://blackcatinformatics.ca/gmeow/ContactPoint> ] ;
     sh:not [ sh:class <https://blackcatinformatics.ca/gmeow/SoftwareAgent> ] ;
-    sh:not [ sh:class <https://blackcatinformatics.ca/gmeow/WritingSystem> ] ;
     sh:not [ sh:class <https://blackcatinformatics.ca/gmeow/CryptographicKey> ] .
 
 <https://blackcatinformatics.ca/gmeow/OrnamentProfile-shape> a sh:NodeShape ;
@@ -579,7 +573,6 @@
     sh:not [ sh:class <https://blackcatinformatics.ca/gmeow/ContactPoint> ] ;
     sh:not [ sh:class <https://blackcatinformatics.ca/gmeow/Organization> ] ;
     sh:not [ sh:class <https://blackcatinformatics.ca/gmeow/SoftwareAgent> ] ;
-    sh:not [ sh:class <https://blackcatinformatics.ca/gmeow/WritingSystem> ] ;
     sh:not [ sh:class <https://blackcatinformatics.ca/gmeow/CryptographicKey> ] .
 
 <https://blackcatinformatics.ca/gmeow/PhysicalObject-shape> a sh:NodeShape ;
@@ -790,7 +783,6 @@
     sh:not [ sh:class <https://blackcatinformatics.ca/gmeow/Appellation> ] ;
     sh:not [ sh:class <https://blackcatinformatics.ca/gmeow/ContactPoint> ] ;
     sh:not [ sh:class <https://blackcatinformatics.ca/gmeow/Organization> ] ;
-    sh:not [ sh:class <https://blackcatinformatics.ca/gmeow/WritingSystem> ] ;
     sh:not [ sh:class <https://blackcatinformatics.ca/gmeow/CryptographicKey> ] .
 
 <https://blackcatinformatics.ca/gmeow/SoftwareProduct-shape> a sh:NodeShape ;
@@ -878,17 +870,6 @@
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/versionSet> ; sh:class <https://blackcatinformatics.ca/gmeow/VersionSet> ] ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/versionMember> ; sh:class <https://blackcatinformatics.ca/gmeow/Entity> ] ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/membershipAuthority> ; sh:class <https://blackcatinformatics.ca/gmeow/Agent> ] .
-
-<https://blackcatinformatics.ca/gmeow/WritingSystem-shape> a sh:NodeShape ;
-    sh:targetClass <https://blackcatinformatics.ca/gmeow/WritingSystem> ;
-    sh:not [ sh:class <https://blackcatinformatics.ca/gmeow/Person> ] ;
-    sh:not [ sh:class <https://blackcatinformatics.ca/gmeow/Language> ] ;
-    sh:not [ sh:class <https://blackcatinformatics.ca/gmeow/Location> ] ;
-    sh:not [ sh:class <https://blackcatinformatics.ca/gmeow/Appellation> ] ;
-    sh:not [ sh:class <https://blackcatinformatics.ca/gmeow/ContactPoint> ] ;
-    sh:not [ sh:class <https://blackcatinformatics.ca/gmeow/Organization> ] ;
-    sh:not [ sh:class <https://blackcatinformatics.ca/gmeow/SoftwareAgent> ] ;
-    sh:not [ sh:class <https://blackcatinformatics.ca/gmeow/CryptographicKey> ] .
 
 <https://blackcatinformatics.ca/gmeow/abstract-domain-shape> a sh:NodeShape ;
     sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/abstract> ;
@@ -1325,6 +1306,14 @@
 <https://blackcatinformatics.ca/gmeow/answers-range-shape> a sh:NodeShape ;
     sh:targetObjectsOf <https://blackcatinformatics.ca/gmeow/answers> ;
     sh:class <https://blackcatinformatics.ca/gmeow/Question> .
+
+<https://blackcatinformatics.ca/gmeow/appellationDenotation-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/appellationDenotation> ;
+    sh:class <https://blackcatinformatics.ca/gmeow/Appellation> .
+
+<https://blackcatinformatics.ca/gmeow/appellationDenotation-range-shape> a sh:NodeShape ;
+    sh:targetObjectsOf <https://blackcatinformatics.ca/gmeow/appellationDenotation> ;
+    sh:class <https://blackcatinformatics.ca/lang/Denotation> .
 
 <https://blackcatinformatics.ca/gmeow/appliedRule-domain-shape> a sh:NodeShape ;
     sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/appliedRule> ;
@@ -1856,7 +1845,7 @@
 
 <https://blackcatinformatics.ca/gmeow/attributedScript-range-shape> a sh:NodeShape ;
     sh:targetObjectsOf <https://blackcatinformatics.ca/gmeow/attributedScript> ;
-    sh:class <https://blackcatinformatics.ca/gmeow/WritingSystem> .
+    sh:class <https://blackcatinformatics.ca/lang/Script> .
 
 <https://blackcatinformatics.ca/gmeow/attributingAgent-domain-shape> a sh:NodeShape ;
     sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/attributingAgent> ;
@@ -3333,6 +3322,14 @@
 <https://blackcatinformatics.ca/gmeow/copyrightYear-range-shape> a sh:NodeShape ;
     sh:targetObjectsOf <https://blackcatinformatics.ca/gmeow/copyrightYear> ;
     sh:nodeKind sh:Literal .
+
+<https://blackcatinformatics.ca/gmeow/corefDenotation-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/corefDenotation> ;
+    sh:class <https://blackcatinformatics.ca/gmeow/Entity> .
+
+<https://blackcatinformatics.ca/gmeow/corefDenotation-range-shape> a sh:NodeShape ;
+    sh:targetObjectsOf <https://blackcatinformatics.ca/gmeow/corefDenotation> ;
+    sh:class <https://blackcatinformatics.ca/lang/Denotation> .
 
 <https://blackcatinformatics.ca/gmeow/corpusMember-domain-shape> a sh:NodeShape ;
     sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/corpusMember> ;
@@ -7760,15 +7757,6 @@
     sh:targetObjectsOf <https://blackcatinformatics.ca/gmeow/languageStatus> ;
     sh:class <https://blackcatinformatics.ca/gmeow/LanguageStatus> .
 
-<https://blackcatinformatics.ca/gmeow/languageTag-domain-shape> a sh:NodeShape ;
-    sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/languageTag> ;
-    sh:class <https://blackcatinformatics.ca/gmeow/Language> ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/languageTag> ; sh:maxCount 1 ] .
-
-<https://blackcatinformatics.ca/gmeow/languageTag-range-shape> a sh:NodeShape ;
-    sh:targetObjectsOf <https://blackcatinformatics.ca/gmeow/languageTag> ;
-    sh:datatype <http://www.w3.org/2001/XMLSchema#string> .
-
 <https://blackcatinformatics.ca/gmeow/latestEnd-domain-shape> a sh:NodeShape ;
     sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/latestEnd> ;
     sh:class <https://blackcatinformatics.ca/gmeow/Event> .
@@ -8787,7 +8775,7 @@
 
 <https://blackcatinformatics.ca/gmeow/nameScript-range-shape> a sh:NodeShape ;
     sh:targetObjectsOf <https://blackcatinformatics.ca/gmeow/nameScript> ;
-    sh:nodeKind sh:Literal .
+    sh:class <https://blackcatinformatics.ca/lang/Script> .
 
 <https://blackcatinformatics.ca/gmeow/narratedIn-range-shape> a sh:NodeShape ;
     sh:targetObjectsOf <https://blackcatinformatics.ca/gmeow/narratedIn> ;
@@ -12006,31 +11994,6 @@
     sh:targetObjectsOf <https://blackcatinformatics.ca/gmeow/scoreSemantics> ;
     sh:class <https://blackcatinformatics.ca/gmeow/ScoreSemantics> .
 
-<https://blackcatinformatics.ca/gmeow/scriptCode-domain-shape> a sh:NodeShape ;
-    sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/scriptCode> ;
-    sh:class <https://blackcatinformatics.ca/gmeow/WritingSystem> .
-
-<https://blackcatinformatics.ca/gmeow/scriptCode-range-shape> a sh:NodeShape ;
-    sh:targetObjectsOf <https://blackcatinformatics.ca/gmeow/scriptCode> ;
-    sh:nodeKind sh:Literal .
-
-<https://blackcatinformatics.ca/gmeow/scriptRole-domain-shape> a sh:NodeShape ;
-    sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/scriptRole> ;
-    sh:class <https://blackcatinformatics.ca/gmeow/WritingSystemUsage> ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/scriptRole> ; sh:maxCount 1 ] .
-
-<https://blackcatinformatics.ca/gmeow/scriptRole-range-shape> a sh:NodeShape ;
-    sh:targetObjectsOf <https://blackcatinformatics.ca/gmeow/scriptRole> ;
-    sh:class <https://blackcatinformatics.ca/gmeow/ScriptRole> .
-
-<https://blackcatinformatics.ca/gmeow/scriptUsageInterval-domain-shape> a sh:NodeShape ;
-    sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/scriptUsageInterval> ;
-    sh:class <https://blackcatinformatics.ca/gmeow/WritingSystemUsage> .
-
-<https://blackcatinformatics.ca/gmeow/scriptUsageInterval-range-shape> a sh:NodeShape ;
-    sh:targetObjectsOf <https://blackcatinformatics.ca/gmeow/scriptUsageInterval> ;
-    sh:class <https://blackcatinformatics.ca/gmeow/TimeInterval> .
-
 <https://blackcatinformatics.ca/gmeow/sealedRecipient-domain-shape> a sh:NodeShape ;
     sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/sealedRecipient> ;
     sh:class <https://blackcatinformatics.ca/gmeow/OpaqueFrame> .
@@ -13400,14 +13363,6 @@
     sh:targetObjectsOf <https://blackcatinformatics.ca/gmeow/tenuredContactPoint> ;
     sh:class <https://blackcatinformatics.ca/gmeow/ContactPoint> .
 
-<https://blackcatinformatics.ca/gmeow/textDirection-domain-shape> a sh:NodeShape ;
-    sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/textDirection> ;
-    sh:class <https://blackcatinformatics.ca/gmeow/WritingSystem> .
-
-<https://blackcatinformatics.ca/gmeow/textDirection-range-shape> a sh:NodeShape ;
-    sh:targetObjectsOf <https://blackcatinformatics.ca/gmeow/textDirection> ;
-    sh:class <https://blackcatinformatics.ca/gmeow/TextDirection> .
-
 <https://blackcatinformatics.ca/gmeow/threadSubject-domain-shape> a sh:NodeShape ;
     sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/threadSubject> ;
     sh:class <https://blackcatinformatics.ca/gmeow/Thread> .
@@ -13995,15 +13950,6 @@
     sh:targetObjectsOf <https://blackcatinformatics.ca/gmeow/usageInterval> ;
     sh:class <https://blackcatinformatics.ca/gmeow/TimeInterval> .
 
-<https://blackcatinformatics.ca/gmeow/usageLanguage-domain-shape> a sh:NodeShape ;
-    sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/usageLanguage> ;
-    sh:class <https://blackcatinformatics.ca/gmeow/WritingSystemUsage> ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/usageLanguage> ; sh:maxCount 1 ] .
-
-<https://blackcatinformatics.ca/gmeow/usageLanguage-range-shape> a sh:NodeShape ;
-    sh:targetObjectsOf <https://blackcatinformatics.ca/gmeow/usageLanguage> ;
-    sh:class <https://blackcatinformatics.ca/gmeow/Language> .
-
 <https://blackcatinformatics.ca/gmeow/usageNamed-domain-shape> a sh:NodeShape ;
     sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/usageNamed> ;
     sh:class <https://blackcatinformatics.ca/gmeow/NameUsage> ;
@@ -14038,15 +13984,6 @@
 <https://blackcatinformatics.ca/gmeow/usageRelationshipScope-range-shape> a sh:NodeShape ;
     sh:targetObjectsOf <https://blackcatinformatics.ca/gmeow/usageRelationshipScope> ;
     sh:class <https://blackcatinformatics.ca/gmeow/InterpersonalRelationship> .
-
-<https://blackcatinformatics.ca/gmeow/usageWritingSystem-domain-shape> a sh:NodeShape ;
-    sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/usageWritingSystem> ;
-    sh:class <https://blackcatinformatics.ca/gmeow/WritingSystemUsage> ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/usageWritingSystem> ; sh:maxCount 1 ] .
-
-<https://blackcatinformatics.ca/gmeow/usageWritingSystem-range-shape> a sh:NodeShape ;
-    sh:targetObjectsOf <https://blackcatinformatics.ca/gmeow/usageWritingSystem> ;
-    sh:class <https://blackcatinformatics.ca/gmeow/WritingSystem> .
 
 <https://blackcatinformatics.ca/gmeow/useForConsumer-range-shape> a sh:NodeShape ;
     sh:targetObjectsOf <https://blackcatinformatics.ca/gmeow/useForConsumer> ;
@@ -14109,14 +14046,6 @@
 <https://blackcatinformatics.ca/gmeow/usesTransformCodec-range-shape> a sh:NodeShape ;
     sh:targetObjectsOf <https://blackcatinformatics.ca/gmeow/usesTransformCodec> ;
     sh:class <https://blackcatinformatics.ca/gmeow/TransformCodec> .
-
-<https://blackcatinformatics.ca/gmeow/usesWritingSystem-domain-shape> a sh:NodeShape ;
-    sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/usesWritingSystem> ;
-    sh:class <https://blackcatinformatics.ca/gmeow/Language> .
-
-<https://blackcatinformatics.ca/gmeow/usesWritingSystem-range-shape> a sh:NodeShape ;
-    sh:targetObjectsOf <https://blackcatinformatics.ca/gmeow/usesWritingSystem> ;
-    sh:class <https://blackcatinformatics.ca/gmeow/WritingSystem> .
 
 <https://blackcatinformatics.ca/gmeow/utilizationOf-domain-shape> a sh:NodeShape ;
     sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/utilizationOf> ;
@@ -14444,19 +14373,11 @@
 
 <https://blackcatinformatics.ca/gmeow/writingSystemAsNotation-domain-shape> a sh:NodeShape ;
     sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/writingSystemAsNotation> ;
-    sh:class <https://blackcatinformatics.ca/gmeow/WritingSystem> .
+    sh:class <https://blackcatinformatics.ca/lang/Script> .
 
 <https://blackcatinformatics.ca/gmeow/writingSystemAsNotation-range-shape> a sh:NodeShape ;
     sh:targetObjectsOf <https://blackcatinformatics.ca/gmeow/writingSystemAsNotation> ;
     sh:class <https://blackcatinformatics.ca/gmeow/NotationSystem> .
-
-<https://blackcatinformatics.ca/gmeow/writingSystemType-domain-shape> a sh:NodeShape ;
-    sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/writingSystemType> ;
-    sh:class <https://blackcatinformatics.ca/gmeow/WritingSystem> .
-
-<https://blackcatinformatics.ca/gmeow/writingSystemType-range-shape> a sh:NodeShape ;
-    sh:targetObjectsOf <https://blackcatinformatics.ca/gmeow/writingSystemType> ;
-    sh:class <https://blackcatinformatics.ca/gmeow/WritingSystemType> .
 
 <https://blackcatinformatics.ca/gmeow/writtenInLanguage-domain-shape> a sh:NodeShape ;
     sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/writtenInLanguage> ;

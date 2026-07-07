@@ -1,0 +1,36 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Competency questions for the language slice. The lang:-graft supersession ledger
+# (imports/supersession-correspondences.ttl) is a QUERYABLE surface: for each migrated
+# term, the ledger records its rung (logic:morphismClass) and recoverability witness
+# (logic:mnemomorphic) as reasoned data — the F2 consumer of the ledger whose rungs the
+# logic-compile stage gate-checks through assert_gates (rung↔mnemomorphic consistency and
+# the Isomorphism/Equivalence overclaim law). The ledger lives in imports/, which
+# the modules-only competency merge does not carry, so it is overlaid via gmeow:cqDataFile.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/language/tests/> .
+
+# --- The supersession ledger records the collapse's gate-checked rung -------- #
+ex:cqSupersessionRung a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/core/language/queries/competency/supersession-rung.rq" ;
+    gmeow:cqDataFile "../../../imports/supersession-correspondences.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "Trusting the graft: the gmeow:FormalLanguage → lang:formalLanguageKind collapse is a genuine Section-Retraction (the two kind individuals bijectively recover the two-way distinction), recorded as reasoned data rather than a bare prose claim. Its logic:Correspondence carries logic:morphismClass logic:SectionRetraction and logic:mnemomorphic true, gate-checked in the logic-compile stage for rung↔mnemomorphic consistency and against an Isomorphism/Equivalence overclaim; the supersession ledger is queryable per migrated term through logic:supersededTerm." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqSupersessionRungShape ;
+    gmeow:cqExpectRow ex:rowSupersessionRung .
+
+ex:cqSupersessionRungShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "superseded" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "rung" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "mnemomorphic" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowSupersessionRung a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "superseded" ; gmeow:cellValueIri gmeow:FormalLanguage ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "rung" ; gmeow:cellValueIri logic:SectionRetraction ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "mnemomorphic" ; gmeow:cellValueLiteral "true" ] .

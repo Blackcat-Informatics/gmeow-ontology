@@ -1,5 +1,6 @@
 @prefix mimo: <http://www.mimo-db.eu/InstrumentsKeywords/> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix lang: <https://blackcatinformatics.ca/lang/> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix fno: <https://w3id.org/function/ontology#> .
@@ -3940,6 +3941,7 @@ gmeow:neoRiemannianS
 
 gmeow:notationABC
     a gmeow:NotationSystem ;
+    lang:signSystemKind lang:notationalKind ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "ABC notation"@x-gmeow-english ;
     skos:definition "A text-based music notation format popular in folk music and LLM-native interchange. Monophonic-biased and nonstandard for microtones."@x-gmeow-english ;
@@ -3948,6 +3950,7 @@ gmeow:notationABC
 
 gmeow:notationByzantineNeume
     a gmeow:NotationSystem ;
+    lang:signSystemKind lang:notationalKind ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Byzantine neumatic notation"@x-gmeow-english ;
     skos:definition "The neumatic notation system of Byzantine chant, encoding melodic formulae and mode."@x-gmeow-english ;
@@ -3956,6 +3959,7 @@ gmeow:notationByzantineNeume
 
 gmeow:notationCMNStaff
     a gmeow:NotationSystem ;
+    lang:signSystemKind lang:notationalKind ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Common Music Notation (staff)"@x-gmeow-english ;
     skos:definition "The Western five-line staff notation of letter names, accidentals, and octave numbers. A symbolic music notation; 12-EDO by default, with ad-hoc microtonal extensions."@x-gmeow-english ;
@@ -3964,6 +3968,7 @@ gmeow:notationCMNStaff
 
 gmeow:notationGraphic
     a gmeow:NotationSystem ;
+    lang:signSystemKind lang:notationalKind ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Graphic notation"@x-gmeow-english ;
     skos:definition "A visual, non-symbolic notation system where the score image itself is the canonical instruction (e.g. Cardew Treatise, Stockhausen Klavierstück XI)."@x-gmeow-english ;
@@ -3972,6 +3977,7 @@ gmeow:notationGraphic
 
 gmeow:notationHEJI
     a gmeow:NotationSystem ;
+    lang:signSystemKind lang:notationalKind ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Helmholtz-Ellis JI Pitch Notation"@x-gmeow-english ;
     skos:definition "A just-intonation staff notation using symbols for prime-number comma alterations above or below a note."@x-gmeow-english ;
@@ -3981,6 +3987,7 @@ gmeow:notationHEJI
 
 gmeow:notationJianpu
     a gmeow:NotationSystem ;
+    lang:signSystemKind lang:notationalKind ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Jianpu"@x-gmeow-english ;
     skos:definition "A numbered musical notation system widely used in Chinese-language music practice."@x-gmeow-english ;
@@ -3989,6 +3996,7 @@ gmeow:notationJianpu
 
 gmeow:notationJohnstonJI
     a gmeow:NotationSystem ;
+    lang:signSystemKind lang:notationalKind ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Ben Johnston just-intonation notation"@x-gmeow-english ;
     skos:definition "A staff notation for just intonation using accidentals to indicate prime-limit comma alterations (e.g. +7, -5)."@x-gmeow-english ;
@@ -3997,6 +4005,7 @@ gmeow:notationJohnstonJI
 
 gmeow:notationKern
     a gmeow:NotationSystem ;
+    lang:signSystemKind lang:notationalKind ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Humdrum **kern"@x-gmeow-english ;
     skos:definition "The Humdrum **kern symbolic music representation. 12-TET letter-pitch bias; designed for musicology pipelines."@x-gmeow-english ;
@@ -4005,6 +4014,7 @@ gmeow:notationKern
 
 gmeow:notationKlavarskribo
     a gmeow:NotationSystem ;
+    lang:signSystemKind lang:notationalKind ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Klavarskribo"@x-gmeow-english ;
     skos:definition "A vertical-staff keyboard notation system that represents notes as black and white bars."@x-gmeow-english ;
@@ -4013,6 +4023,7 @@ gmeow:notationKlavarskribo
 
 gmeow:notationLilyPond
     a gmeow:NotationSystem ;
+    lang:signSystemKind lang:notationalKind ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "LilyPond"@x-gmeow-english ;
     skos:definition "The LilyPond text-based engraving format. Program-not-data: executable layout macros are lost when read as pure symbolic data."@x-gmeow-english ;
@@ -4021,6 +4032,7 @@ gmeow:notationLilyPond
 
 gmeow:notationMEI
     a gmeow:NotationSystem ;
+    lang:signSystemKind lang:notationalKind ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "MEI"@x-gmeow-english ;
     skos:definition "The Music Encoding Initiative XML format. Richer than MusicXML for CMN, mensural, neumes, and tablature; still lossy for tuning frames, JI lattices, and mobile forms."@x-gmeow-english ;
@@ -4029,6 +4041,7 @@ gmeow:notationMEI
 
 gmeow:notationMIDI
     a gmeow:NotationSystem ;
+    lang:signSystemKind lang:notationalKind ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "MIDI"@x-gmeow-english ;
     skos:definition "The Musical Instrument Digital Interface protocol and file format. A lossy encoding of symbolic musical content: no notation semantics, enharmonic distinction, rests, or tuplet structure."@x-gmeow-english ;
@@ -4037,6 +4050,7 @@ gmeow:notationMIDI
 
 gmeow:notationMensural
     a gmeow:NotationSystem ;
+    lang:signSystemKind lang:notationalKind ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Mensural notation"@x-gmeow-english ;
     skos:definition "Medieval and Renaissance mensural notation with its own time semantics (proportions, coloration, perfection)."@x-gmeow-english ;
@@ -4045,6 +4059,7 @@ gmeow:notationMensural
 
 gmeow:notationMusicXML
     a gmeow:NotationSystem ;
+    lang:signSystemKind lang:notationalKind ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "MusicXML"@x-gmeow-english ;
     skos:definition "The W3C MusicXML 4.0 symbolic music interchange format. Lossy: microtones via bare decimal alter, polymeter via implementation-dependent hacks, no mobile-form traversal semantics."@x-gmeow-english ;
@@ -4053,6 +4068,7 @@ gmeow:notationMusicXML
 
 gmeow:notationSCL
     a gmeow:NotationSystem ;
+    lang:signSystemKind lang:notationalKind ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Scala .scl"@x-gmeow-english ;
     skos:definition "The Scala tuning file format (.scl). Carries a pitch-class list but loses comma/prime-limit theory and keyboard mapping (.kbm) context."@x-gmeow-english ;
@@ -4061,6 +4077,7 @@ gmeow:notationSCL
 
 gmeow:notationSagittal
     a gmeow:NotationSystem ;
+    lang:signSystemKind lang:notationalKind ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Sagittal notation"@x-gmeow-english ;
     skos:definition "A microtonal notation system using arrow-like accidentals for arbitrary equal divisions and just intonation."@x-gmeow-english ;
@@ -4070,6 +4087,7 @@ gmeow:notationSagittal
 
 gmeow:notationSargam
     a gmeow:NotationSystem ;
+    lang:signSystemKind lang:notationalKind ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Sargam"@x-gmeow-english ;
     skos:definition "The solfege-based pitch notation used in Hindustani and Carnatic music (Sa, Re, Ga, Ma, Pa, Dha, Ni)."@x-gmeow-english ;
@@ -4078,6 +4096,7 @@ gmeow:notationSargam
 
 gmeow:notationTablature
     a gmeow:NotationSystem ;
+    lang:signSystemKind lang:notationalKind ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Tablature"@x-gmeow-english ;
     skos:definition "A notation system that represents finger/fret/string positions on a specific instrument rather than abstract pitch."@x-gmeow-english ;

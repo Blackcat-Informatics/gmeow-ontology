@@ -31,7 +31,7 @@
                 },
                 "region": {
                   "startColumn": 1,
-                  "startLine": 1846
+                  "startLine": 1847
                 }
               }
             }
@@ -40,7 +40,7 @@
             "text": "A Expression must carry at least one reference frame (gmeow:hasReferenceFrame) — a value asserted without its frame is ill-formed (CONSTITUTION P11)."
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "c36a8d485aae8e3a"
+            "gmeowFindingHash/v2": "9c8d9e1af9657155"
           },
           "properties": {
             "detail": "source shape: https://blackcatinformatics.ca/gmeow/ExpressionFrameRequirementShape"
@@ -65,7 +65,7 @@
                 },
                 "region": {
                   "startColumn": 1,
-                  "startLine": 1899
+                  "startLine": 1900
                 }
               }
             }
@@ -74,7 +74,7 @@
             "text": "A Expression must carry at least one reference frame (gmeow:hasReferenceFrame) — a value asserted without its frame is ill-formed (CONSTITUTION P11)."
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "ea4c624b8f89d15e"
+            "gmeowFindingHash/v2": "1038bb834d08d217"
           },
           "properties": {
             "detail": "source shape: https://blackcatinformatics.ca/gmeow/ExpressionFrameRequirementShape"
@@ -99,7 +99,7 @@
                 },
                 "region": {
                   "startColumn": 1,
-                  "startLine": 1908
+                  "startLine": 1909
                 }
               }
             }
@@ -108,7 +108,7 @@
             "text": "A Expression must carry at least one reference frame (gmeow:hasReferenceFrame) — a value asserted without its frame is ill-formed (CONSTITUTION P11)."
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "ee4b52696d847d6f"
+            "gmeowFindingHash/v2": "2940860b60daaeb4"
           },
           "properties": {
             "detail": "source shape: https://blackcatinformatics.ca/gmeow/ExpressionFrameRequirementShape"
@@ -133,7 +133,7 @@
                 },
                 "region": {
                   "startColumn": 1,
-                  "startLine": 1918
+                  "startLine": 1919
                 }
               }
             }
@@ -142,7 +142,7 @@
             "text": "A Expression must carry at least one reference frame (gmeow:hasReferenceFrame) — a value asserted without its frame is ill-formed (CONSTITUTION P11)."
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "8e8001097b125102"
+            "gmeowFindingHash/v2": "ffcf86204c09939d"
           },
           "properties": {
             "detail": "source shape: https://blackcatinformatics.ca/gmeow/ExpressionFrameRequirementShape"

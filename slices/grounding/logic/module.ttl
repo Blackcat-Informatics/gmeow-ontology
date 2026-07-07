@@ -5264,6 +5264,20 @@ logic:morphismKind
     skos:definition "Relates a logic:Correspondence to its logic:MorphismKind — the satisfaction-preserving / commitment-shifting split orthogonal to the rung. A logic:CommitmentShiftingBridge value makes the loss ledger refuse owl:equivalentClass. Range logic:MorphismKind (domain stated in prose)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+logic:supersededTerm
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "superseded term"@x-gmeow-english ;
+    skos:definition "Relates a supersession logic:Correspondence to the old term it records as superseded — the source endpoint of a greenfield migration crossing (e.g. a removed class or property the correspondence maps onto its replacement at a rung). Names the endpoint so the supersession ledger is queryable by the migrated-from term. Domain logic:Correspondence, range any term (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:supersedingTerm
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "superseding term"@x-gmeow-english ;
+    skos:definition "Relates a supersession logic:Correspondence to the replacement term it records as superseding the old one — the target endpoint of a greenfield migration crossing. Paired with logic:supersededTerm, it makes the correspondence's rung (logic:morphismClass) queryable per migrated term. Domain logic:Correspondence, range any term (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 logic:hasDeterminacy
     a owl:ObjectProperty ;
     rdfs:range logic:Determinacy ;
@@ -6867,6 +6881,40 @@ logic:termSequenceMarker
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "term sequence marker"@x-gmeow-english ;
     skos:definition "Carries a sequence-marker term value (the authored marker name) on an argument term-carrier: the argument is a logic:SequenceMarker binding a sequence of terms rather than a single one. One of the four mutually exclusive term-value properties."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# ── The evaluable n-ary reification vocabulary (flat-binary lowering) ─────────
+# A fixed-arity n-ary atom Rel(a₀,…,aₙ) is realized in the binary relational core
+# as a conjunction of ordinary binary atoms over a single content-addressed
+# reifier node R — the standard n-ary-relations encoding under the HiLog
+# reflection: logic:instanceOf(R, Rel) types the tuple by its reified relation
+# individual, and each argument sits in a flat positional predicate
+# logic:naryArg0 … logic:naryArgN. Unlike the two-level logic:argument /
+# logic:termIndex Formula-AST carriers, these are flat binary predicates so every
+# reified atom is directly evaluable by the binary chase. The reifier node R is a
+# content-addressed IRI (a lowering-boundary artifact, not an authored term); a
+# ground n-ary fact and every derivation of it share one R, giving identity and
+# provenance parity with a binary derivation.
+
+logic:naryArg0
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "n-ary argument 0"@x-gmeow-english ;
+    skos:definition "Relates a reifier node to the term in argument position 0 of the n-ary tuple it reifies. The flat-binary positional predicate the evaluable lowering emits for the first argument of a fixed-arity n-ary atom Rel(a₀,…): logic:naryArg0(R, a₀) beside logic:instanceOf(R, Rel). Directly evaluable in the binary relational core; the zero-based position is fixed in the predicate itself so no separate index carrier is needed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:naryArg1
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "n-ary argument 1"@x-gmeow-english ;
+    skos:definition "Relates a reifier node to the term in argument position 1 of the n-ary tuple it reifies. The flat-binary positional predicate the evaluable lowering emits for the second argument of a fixed-arity n-ary atom; companion to logic:naryArg0. Directly evaluable in the binary relational core."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:naryArg2
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "n-ary argument 2"@x-gmeow-english ;
+    skos:definition "Relates a reifier node to the term in argument position 2 of the n-ary tuple it reifies. The flat-binary positional predicate the evaluable lowering emits for the third argument of a fixed-arity n-ary atom; companion to logic:naryArg0 and logic:naryArg1. Directly evaluable in the binary relational core. The enumerated positional predicates run 0 … N for the maximum fixed arity in play (ternary here); a higher arity extends the closed set with the next positional predicate."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 # ── The full-FOL residue shape vocabulary (loss-ledger disclosure) ────────────

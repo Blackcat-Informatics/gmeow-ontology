@@ -1953,8 +1953,10 @@ pub enum FormulaShape {
     Quantified,
     /// Strong/explicit negation `¬` appears — distinct from negation-as-failure.
     StrongNegation,
-    /// A predication whose arity is not the binary Horn shape: it carries a sequence marker
-    /// or a non-binary (unary / n≥3) argument list — the generalization beyond fixed arity.
+    /// A genuinely unbounded predication: an atom carrying a sequence marker
+    /// (Common Logic `...x`), whose argument list has no fixed arity. A *fixed*-arity
+    /// n-ary atom (unary or n ≥ 3) is NOT this shape — it is evaluable via reification
+    /// into a conjunction of binary atoms over a reifier node.
     Variadic,
 }
 
@@ -2018,10 +2020,12 @@ impl Formula {
     }
 
     /// The closed [`FormulaShape`] tags this formula exhibits, ordered and deduped — the
-    /// residue classification a Horn-fragment target discloses, never free text. **Total**:
-    /// every formula admitted into [`LogicProgram::formulas`] is non-trivially-Horn, so the
-    /// result is non-empty (a bare predication there is variadic or non-binary → `Variadic`;
-    /// any connective/quantifier is at least `Nested`).
+    /// residue classification a Horn-fragment target discloses, never free text. A
+    /// connective/quantifier is at least `Nested`, and a genuinely unbounded atom is
+    /// `Variadic`. A bare *fixed-arity* predication (unary or n ≥ 3) is evaluable via
+    /// reification and carries no shape tag: when such an atom nonetheless reaches
+    /// residue (e.g. an ill-formed argument), the residue is named by its reason string,
+    /// not by a shape tag.
     pub fn shape_tags(&self) -> Vec<FormulaShape> {
         let mut set = std::collections::BTreeSet::new();
         self.collect_shapes(&mut set);
@@ -2031,9 +2035,11 @@ impl Formula {
     fn collect_shapes(&self, out: &mut std::collections::BTreeSet<FormulaShape>) {
         match self {
             Self::Atom { args, .. } => {
-                // A binary, marker-free atom is trivially-Horn and never reaches `formulas`;
-                // anything else is a variadic / non-binary predication.
-                if args.len() != 2 || args.iter().any(Term::is_sequence_marker) {
+                // `Variadic` now denotes only a *genuinely unbounded* atom — one carrying
+                // a sequence marker. A fixed-arity n-ary atom (unary or arity ≥ 3) is
+                // evaluable via reification (it lowers to a conjunction of binary atoms
+                // over a reifier node) and so is NOT a residue shape.
+                if args.iter().any(Term::is_sequence_marker) {
                     out.insert(FormulaShape::Variadic);
                 }
             }
