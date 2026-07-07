@@ -311,12 +311,23 @@ mod tests {
 
     /// Collect every `module.ttl` under `slices/`, recursively.
     fn collect_module_ttls(dir: &Path, out: &mut Vec<std::path::PathBuf>) {
-        let Ok(read) = std::fs::read_dir(dir) else {
-            return;
+        let read = match std::fs::read_dir(dir) {
+            Ok(read) => read,
+            // A missing directory is benign (nothing to collect); any other error
+            // (permissions, I/O) is a hard fail — never silently under-collect.
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => return,
+            Err(e) => panic!("read_dir {}: {e}", dir.display()),
         };
-        for entry in read.filter_map(|e| e.ok()) {
-            let path = entry.path();
-            if path.is_dir() && !path.is_symlink() {
+        for entry in read {
+            let entry = entry.unwrap_or_else(|e| panic!("dir entry under {}: {e}", dir.display()));
+            // `file_type()` reports the entry's own kind without following symlinks
+            // (one syscall), so a symlink to a directory reads as a symlink — not a
+            // dir — and recursion cannot loop through a circular link.
+            let ft = entry
+                .file_type()
+                .unwrap_or_else(|e| panic!("file_type {}: {e}", entry.path().display()));
+            if ft.is_dir() {
+                let path = entry.path();
                 let candidate = path.join("module.ttl");
                 if candidate.is_file() {
                     out.push(candidate);

@@ -69,24 +69,7 @@ fn ex(local: &str) -> String {
 #[test]
 fn no_preferred_or_primary_sensitivity_term() {
     let g = GraphStore::parse_ttl_file(&repo_root().join("slices/core/kernel/module.ttl"));
-    let (_vars, rows) = g.select(&[], "SELECT DISTINCT ?s WHERE { ?s ?p ?o }");
-    let mut offenders = Vec::new();
-    for row in &rows {
-        let Some(Some(term)) = row.first() else {
-            continue;
-        };
-        let Some(iri) = term.as_iri() else {
-            continue;
-        };
-        if let Some(local) = iri.strip_prefix(GMEOW) {
-            let lower = local.to_lowercase();
-            if !local.contains('/')
-                && (lower.starts_with("primary") || lower.starts_with("preferred"))
-            {
-                offenders.push(iri.to_owned());
-            }
-        }
-    }
+    let offenders = g.primary_or_preferred_terms();
     assert!(
         offenders.is_empty(),
         "primary/preferred sensitivity term leaked: {offenders:?}"

@@ -34,31 +34,12 @@
 mod conformance_support;
 use conformance_support::*;
 use rstest::rstest;
-use std::collections::BTreeSet;
 
 const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
 const RDFS_SUBCLASS_OF: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
 
 fn gm(local: &str) -> String {
     format!("{GMEOW}{local}")
-}
-
-/// The transitive `rdfs:subClassOf` closure of `start` (inclusive), the native
-/// twin of rdflib `graph.transitive_objects(start, RDFS.subClassOf)`.
-fn subclass_closure(g: &GraphStore, start: &str) -> BTreeSet<String> {
-    let mut seen: BTreeSet<String> = BTreeSet::new();
-    let mut stack: Vec<String> = vec![start.to_owned()];
-    while let Some(node) = stack.pop() {
-        if !seen.insert(node.clone()) {
-            continue;
-        }
-        for parent in g.objects(&node, RDFS_SUBCLASS_OF) {
-            if !seen.contains(&parent) {
-                stack.push(parent);
-            }
-        }
-    }
-    seen
 }
 
 // ── Shared Turtle prefix block ────────────────────────────────────────────────
@@ -170,7 +151,7 @@ fn narrative(#[case] case: Case) {
 #[test]
 fn narrative_reference_frame_is_not_standpoint_subclass() {
     let g = GraphStore::ontology();
-    let closure = subclass_closure(&g, &gm("NarrativeReferenceFrame"));
+    let closure = g.subclass_closure(&gm("NarrativeReferenceFrame"));
     assert!(
         !closure.contains(&gm("Standpoint")),
         "gmeow:NarrativeReferenceFrame must not be a subclass of gmeow:Standpoint; closure: {closure:?}"
@@ -184,7 +165,7 @@ fn narrative_reference_frame_is_not_standpoint_subclass() {
 fn book_release_and_serial_installment_are_creative_works() {
     let g = GraphStore::ontology();
     for cls in ["BookRelease", "SerialInstallment"] {
-        let closure = subclass_closure(&g, &gm(cls));
+        let closure = g.subclass_closure(&gm(cls));
         assert!(
             closure.contains(&gm("CreativeWork")),
             "gmeow:{cls} must be a (transitive) subclass of gmeow:CreativeWork; closure: {closure:?}"

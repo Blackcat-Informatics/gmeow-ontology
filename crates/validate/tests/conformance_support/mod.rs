@@ -636,6 +636,51 @@ impl GraphStore {
         self.subjects(RDF_TYPE, type_iri)
     }
 
+    /// The reflexive-transitive closure over `rdfs:subClassOf` edges from `start`
+    /// (`start` plus all its ancestor classes). One shared walk so the domain
+    /// conformance twins assert over the same closure instead of hand-rolled copies.
+    pub fn subclass_closure(&self, start: &str) -> BTreeSet<String> {
+        let mut seen: BTreeSet<String> = BTreeSet::new();
+        let mut stack: Vec<String> = vec![start.to_owned()];
+        while let Some(node) = stack.pop() {
+            if !seen.insert(node.clone()) {
+                continue;
+            }
+            for parent in self.objects(&node, RDFS_SUBCLASS_OF) {
+                if !seen.contains(&parent) {
+                    stack.push(parent);
+                }
+            }
+        }
+        seen
+    }
+
+    /// Every `gmeow:`-namespaced subject IRI whose local name starts with `primary`
+    /// or `preferred` (case-insensitive) — the Principle-9 selector-term offenders.
+    /// One shared whole-graph sweep so each domain twin asserts over the SAME dynamic
+    /// scan instead of a hand-rolled copy that could silently narrow it.
+    pub fn primary_or_preferred_terms(&self) -> Vec<String> {
+        let (_vars, rows) = self.select(&[], "SELECT DISTINCT ?s WHERE { ?s ?p ?o }");
+        let mut offenders: Vec<String> = Vec::new();
+        for row in &rows {
+            let Some(Some(term)) = row.first() else {
+                continue;
+            };
+            let Some(iri) = term.as_iri() else {
+                continue;
+            };
+            if let Some(local) = iri.strip_prefix(GMEOW_NS) {
+                let lower = local.to_lowercase();
+                if !local.contains('/')
+                    && (lower.starts_with("primary") || lower.starts_with("preferred"))
+                {
+                    offenders.push(iri.to_owned());
+                }
+            }
+        }
+        offenders
+    }
+
     // ── SPARQL entry-points (single bindings path) ────────────────────────────
     //
     // `ask`/`select`/`construct` all thread `bindings` into
@@ -897,6 +942,11 @@ impl GraphStore {
 }
 
 pub const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+/// `rdfs:subClassOf` — the closure edge for [`GraphStore::subclass_closure`].
+pub const RDFS_SUBCLASS_OF: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
+/// The `gmeow:` namespace base — for local-name sweeps like
+/// [`GraphStore::primary_or_preferred_terms`].
+const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
 
 /// `owl:onProperty` — the property a restriction constrains.
 pub const OWL_ON_PROPERTY: &str = "http://www.w3.org/2002/07/owl#onProperty";
