@@ -218,7 +218,7 @@ fn may_follow_is_not_dl_axiomatized() {
             }
         }
     ";
-    assert!(!s.ask(query), "mayFollow must not be DL-axiomatized");
+    assert!(!s.ask(&[], query), "mayFollow must not be DL-axiomatized");
 }
 
 #[test]
