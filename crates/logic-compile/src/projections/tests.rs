@@ -527,7 +527,7 @@ fn full_surface_validation_program() -> crate::ir::LogicProgram {
         ConstraintComponent as C, ConstraintProvenance, LogicProgram, PropertyConstraintIr as P,
         ShaclNodeKind, ShaclSeverity, ShapeTarget, ShapeValue, ValidationShapeIr as V,
     };
-    let base = "https://example.org/test/1192/";
+    let base = "https://example.org/test/validation-full-surface/";
     let x = |frag: &str| format!("{base}{frag}");
 
     // Shape A: a class target exercising the faithful + lossy component surface.
@@ -682,8 +682,6 @@ fn full_surface_validation_program() -> crate::ir::LogicProgram {
             .unwrap(),
         ],
         None,
-        None,
-        false,
     )
     .unwrap()
     .with_label("Full-surface validation shape A")
@@ -695,8 +693,6 @@ fn full_surface_validation_program() -> crate::ir::LogicProgram {
         ShapeTarget::SubjectsOf(x("p-domain")),
         vec![],
         None,
-        None,
-        false,
     )
     .unwrap()
     .with_node_components(vec![
@@ -711,8 +707,6 @@ fn full_surface_validation_program() -> crate::ir::LogicProgram {
         ShapeTarget::ObjectsOf(x("p-range")),
         vec![],
         None,
-        None,
-        false,
     )
     .unwrap()
     .with_node_components(vec![C::Datatype(
@@ -738,12 +732,12 @@ fn full_surface_validation_program() -> crate::ir::LogicProgram {
             .unwrap(),
         ],
         None,
-        None,
-        false,
     )
     .unwrap();
 
-    // Shape E: RDF-1.2 reifier + reification-required + standpoint-indexed (all ShEx residue).
+    // Shape E: RDF-1.2 reifier + reification-required (property-level) + standpoint-indexed (all
+    // ShEx residue). The reifier component is keyed to the path `p-e`, where the native SHACL 1.2
+    // engine reads it.
     let e = V::new(
         x("E-shape"),
         ShapeTarget::Class(x("E")),
@@ -755,11 +749,11 @@ fn full_surface_validation_program() -> crate::ir::LogicProgram {
                 None,
                 vec![C::NodeKindShacl(ShaclNodeKind::Iri)],
             )
+            .unwrap()
+            .with_reifier(Some(x("E-reifier-shape")), true)
             .unwrap(),
         ],
         Some(x("standpoint-clinical")),
-        Some(x("E-reifier-shape")),
-        true,
     )
     .unwrap();
 
@@ -894,9 +888,13 @@ fn derived_validation_shapes_project_golden() {
          so the dogfood exercises the loss ledger end-to-end"
     );
 
-    let program =
-        crate::ir::LogicProgram::new(vec![], vec![], vec![], Some("urn:test:1192-derive".into()))
-            .with_validation_shapes(shapes);
+    let program = crate::ir::LogicProgram::new(
+        vec![],
+        vec![],
+        vec![],
+        Some("urn:test:validation-derive".into()),
+    )
+    .with_validation_shapes(shapes);
     let arts = compile_program(&program, &Default::default()).expect("compile");
     let content = |t: &str| {
         arts.logic_projections

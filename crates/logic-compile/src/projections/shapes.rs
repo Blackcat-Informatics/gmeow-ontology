@@ -257,6 +257,18 @@ fn property_shape_block(p: &PropertyConstraintIr) -> String {
     for c in &p.components {
         lines.extend(component_lines(c));
     }
+    // RDF-1.2 statement-layer extension: the reifier of each `focus`→`path`→`value` statement must
+    // conform to `sh:reifierShape`, and `sh:reificationRequired true` demands ≥1 reifier. The
+    // native engine reads these only from a single forward-predicate property shape, so they are
+    // suppressed on an inverse path (which `PropertyConstraintIr::with_reifier` already rejects).
+    if !p.inverse {
+        if let Some(rs) = &p.reifier_shape {
+            lines.push(format!("sh:reifierShape {}", iri_term(rs)));
+        }
+        if p.reification_required {
+            lines.push("sh:reificationRequired true".to_owned());
+        }
+    }
     if let Some(sev) = p.severity {
         lines.push(format!("sh:severity sh:{}", sev.as_str()));
     }
@@ -286,12 +298,6 @@ pub fn project_validation_shape_shacl(shape: &ValidationShapeIr) -> String {
             iri_term(predicate),
             iri_term(value)
         )),
-    }
-    if let Some(rs) = &shape.reifier_shape {
-        pos.push(format!("sh:reifierShape {}", iri_term(rs)));
-    }
-    if shape.reification_required {
-        pos.push("sh:reificationRequired true".to_owned());
     }
     // Focus-node-level constraints (domain/range/disjointness) — emitted directly on the node
     // shape, not inside a property block.
@@ -647,13 +653,6 @@ pub fn shex_residue(shape: &ValidationShapeIr) -> Vec<String> {
                 .to_owned(),
         );
     }
-    if shape.reifier_shape.is_some() || shape.reification_required {
-        residue.push(
-            "RDF-1.2 reifier/reification-required conditions have no ShEx form; carried in the \
-             canonical logic: layer"
-                .to_owned(),
-        );
-    }
     // A focus-node-level constraint (domain/range/disjointness) has no ShEx shape-level form —
     // ShEx associates a shape via an external ShapeMap, so a `sh:targetSubjectsOf`/`ObjectsOf`
     // selector and any node-level `sh:class`/`sh:not` are carried in the canonical logic: layer.
@@ -665,6 +664,13 @@ pub fn shex_residue(shape: &ValidationShapeIr) -> Vec<String> {
         ));
     }
     for p in &shape.properties {
+        if p.reifier_shape.is_some() || p.reification_required {
+            residue.push(format!(
+                "RDF-1.2 reifier/reification-required condition on {} has no ShEx form; carried in \
+                 the canonical logic: layer",
+                p.path
+            ));
+        }
         for c in &p.components {
             // Exhaustive (no `_` catch-all): a new ConstraintComponent variant must be classified
             // as a ShEx-only drop or as ShEx-faithful before it compiles. Constructs SHACL loses
@@ -685,6 +691,11 @@ pub fn shex_residue(shape: &ValidationShapeIr) -> Vec<String> {
                      only, the class membership is carried in the canonical logic: layer",
                     p.path
                 )),
+                // The two structural wrappers flag at the WRAPPER level and do NOT recurse into
+                // their inner shape (unlike `shacl_component_residue`, which does): ShEx Core has
+                // no negation and no qualified-value-shape at all, so the whole wrapper is dropped
+                // — the wrapper-level residue subsumes any inner-component residue. Recursing here
+                // would double-flag the same lost construct; do not "fix" it into a recursion.
                 ConstraintComponent::QualifiedValueShape { min, max, .. } => residue.push(format!(
                     "qualified value-shape count (min={min:?}, max={max:?}) on {} has no \
                      independent ShEx form (ShEx cardinality is on the triple constraint); the \
@@ -725,15 +736,7 @@ mod tests {
     }
 
     fn shape(iri: &str, class: &str, props: Vec<PropertyConstraintIr>) -> ValidationShapeIr {
-        ValidationShapeIr::new(
-            iri,
-            ShapeTarget::Class(class.to_owned()),
-            props,
-            None,
-            None,
-            false,
-        )
-        .unwrap()
+        ValidationShapeIr::new(iri, ShapeTarget::Class(class.to_owned()), props, None).unwrap()
     }
 
     #[test]
@@ -837,13 +840,18 @@ mod tests {
 
     #[test]
     fn reifier_shape_and_requirement_emit_the_rdf12_extension() {
+        // The reifier component is a PROPERTY-shape condition (keyed to a `sh:path`): the native
+        // SHACL 1.2 engine reads `sh:reifierShape`/`sh:reificationRequired` only from a
+        // single-predicate property shape, so they must emit INSIDE the `sh:property [ … ]` block.
+        let property = PropertyConstraintIr::new("https://ex/p", None, None, None, vec![])
+            .unwrap()
+            .with_reifier(Some("https://ex/ReifierShape".into()), true)
+            .unwrap();
         let s = ValidationShapeIr::new(
             "https://ex/S",
             ShapeTarget::Class("https://ex/C".into()),
-            vec![],
+            vec![property],
             None,
-            Some("https://ex/ReifierShape".into()),
-            true,
         )
         .unwrap();
         let ttl = project_validation_shape_shacl(&s);
@@ -852,6 +860,21 @@ mod tests {
             "{ttl}"
         );
         assert!(ttl.contains("sh:reificationRequired true"), "{ttl}");
+        assert!(ttl.contains("sh:path <https://ex/p>"), "{ttl}");
+    }
+
+    #[test]
+    fn reifier_condition_is_rejected_on_an_inverse_path() {
+        // The reifier component has no meaning on an inverse path (the engine hard-errors), so the
+        // IR refuses to attach it there rather than emit a surface the engine rejects.
+        let inverse = PropertyConstraintIr::new("https://ex/p", None, None, None, vec![])
+            .unwrap()
+            .inverted();
+        assert!(
+            inverse
+                .with_reifier(Some("https://ex/R".into()), true)
+                .is_err()
+        );
     }
 
     #[test]
@@ -860,13 +883,15 @@ mod tests {
         // together) has no faithful SHACL/ShEx form: its scope must be recorded in the loss
         // ledger, never silently flattened to a universal shape.
         let sp = "https://blackcatinformatics.ca/gmeow/clinicalStandpoint";
+        let property = PropertyConstraintIr::new("https://ex/p", None, None, None, vec![])
+            .unwrap()
+            .with_reifier(Some("https://ex/ReifierShape".into()), true)
+            .unwrap();
         let s = ValidationShapeIr::new(
             "https://ex/S",
             ShapeTarget::Class("https://ex/C".into()),
-            vec![],
+            vec![property],
             Some(sp.into()),
-            Some("https://ex/ReifierShape".into()),
-            true,
         )
         .unwrap();
         assert_eq!(s.standpoint.as_deref(), Some(sp));
@@ -895,8 +920,6 @@ mod tests {
             },
             vec![],
             None,
-            None,
-            false,
         )
         .unwrap();
         let ttl = project_validation_shape_shacl(&s);
@@ -1034,8 +1057,6 @@ mod tests {
             ShapeTarget::SubjectsOf("https://ex/p".into()),
             vec![],
             None,
-            None,
-            false,
         )
         .unwrap()
         .with_node_components(vec![ConstraintComponent::Class("https://ex/C".into())])
@@ -1049,8 +1070,6 @@ mod tests {
             ShapeTarget::ObjectsOf("https://ex/p".into()),
             vec![],
             None,
-            None,
-            false,
         )
         .unwrap()
         .with_node_components(vec![ConstraintComponent::NodeKindShacl(ShaclNodeKind::Iri)])
@@ -1122,15 +1141,7 @@ mod shex_tests {
     }
 
     fn shape(iri: &str, class: &str, props: Vec<PropertyConstraintIr>) -> ValidationShapeIr {
-        ValidationShapeIr::new(
-            iri,
-            ShapeTarget::Class(class.to_owned()),
-            props,
-            None,
-            None,
-            false,
-        )
-        .unwrap()
+        ValidationShapeIr::new(iri, ShapeTarget::Class(class.to_owned()), props, None).unwrap()
     }
 
     #[test]
@@ -1274,16 +1285,18 @@ mod shex_tests {
 
     #[test]
     fn reifier_and_value_keyed_target_are_shex_residue() {
+        let property = PropertyConstraintIr::new("https://ex/p", None, None, None, vec![])
+            .unwrap()
+            .with_reifier(Some("https://ex/R".into()), true)
+            .unwrap();
         let s = ValidationShapeIr::new(
             "https://ex/S",
             ShapeTarget::ValueKeyed {
                 predicate: "https://ex/kind".into(),
                 value: "https://ex/Bp".into(),
             },
-            vec![],
+            vec![property],
             None,
-            Some("https://ex/R".into()),
-            true,
         )
         .unwrap();
         let r = shex_residue(&s);
@@ -1406,8 +1419,6 @@ mod shex_tests {
             ShapeTarget::SubjectsOf("https://ex/p".into()),
             vec![],
             None,
-            None,
-            false,
         )
         .unwrap()
         .with_node_components(vec![ConstraintComponent::Class("https://ex/C".into())])
