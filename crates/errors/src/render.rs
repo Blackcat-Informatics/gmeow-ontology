@@ -608,12 +608,25 @@ fn cluster_summary_lines(report: &Report) -> Vec<String> {
         .collect()
 }
 
+/// The `finding_iri → &Finding` index the witness-DAG walk resolves antecedents
+/// against. Built ONCE per report by a renderer and shared across every finding's
+/// [`derivation_lines`] call — rebuilding it per finding made `to_text`/`to_html`
+/// quadratic over the report.
+fn finding_index(report: &Report) -> BTreeMap<&str, &Finding> {
+    report
+        .findings
+        .iter()
+        .filter_map(|f| f.finding_iri.as_deref().map(|iri| (iri, f)))
+        .collect()
+}
+
 /// The witness-DAG derivation section for a finding, reconstructed via the ONE
 /// shared DAG walk engine ([`crate::dag::walk`]) over the report's finding graph
-/// (keyed on `finding_iri`, edges are `antecedents`). Returns one indented line
-/// per antecedent in pre-order (DFS), naming each cited antecedent IRI and its
-/// message. Empty when the finding has no antecedents or is not a ledger witness.
-fn derivation_lines(report: &Report, finding: &Finding) -> Vec<String> {
+/// (keyed on `finding_iri`, edges are `antecedents`), resolving antecedents through
+/// the caller-built [`finding_index`]. Returns one indented line per antecedent in
+/// pre-order (DFS), naming each cited antecedent IRI and its message. Empty when
+/// the finding has no antecedents or is not a ledger witness.
+fn derivation_lines(by_iri: &BTreeMap<&str, &Finding>, finding: &Finding) -> Vec<String> {
     use crate::dag::walk;
     let Some(root_iri) = finding.finding_iri.as_deref() else {
         return Vec::new();
@@ -621,11 +634,6 @@ fn derivation_lines(report: &Report, finding: &Finding) -> Vec<String> {
     if finding.antecedents.is_empty() {
         return Vec::new();
     }
-    let by_iri: BTreeMap<&str, &Finding> = report
-        .findings
-        .iter()
-        .filter_map(|f| f.finding_iri.as_deref().map(|iri| (iri, f)))
-        .collect();
     // resolve never yields None (an antecedent absent from the report resolves to a
     // placeholder message), so the walk never hard-fails on an unresolved node; a
     // structural cycle (which the acyclic ledger never produces) degrades to no
@@ -669,12 +677,13 @@ fn derivation_lines(report: &Report, finding: &Finding) -> Vec<String> {
 pub fn to_text(report: &Report) -> String {
     let normalized = report.normalized();
     let rules = rule_map(&normalized);
+    let by_iri = finding_index(&normalized);
     let mut lines = Vec::new();
     for finding in &normalized.findings {
         finding_text_lines(finding, &rules, &mut lines);
         // The witness-DAG derivation/explain section, walked via the one shared
-        // DAG engine over the report's finding graph.
-        lines.extend(derivation_lines(&normalized, finding));
+        // DAG engine over the report's finding graph (index built once above).
+        lines.extend(derivation_lines(&by_iri, finding));
     }
     // The report-level 'N findings share root R' cluster grouping (empty unless the
     // meta-reasoning fold has run and been read back onto the findings).
@@ -775,6 +784,7 @@ pub fn to_html(report: &Report) -> String {
     } else {
         ""
     };
+    let by_iri = finding_index(&normalized);
     let mut rows = String::new();
     for finding in &normalized.findings {
         let location = finding
@@ -839,8 +849,9 @@ pub fn to_html(report: &Report) -> String {
                 escape_html(peer)
             ));
         }
-        // The witness-DAG derivation section (walked via the one shared engine).
-        let derivation = derivation_lines(&normalized, finding);
+        // The witness-DAG derivation section (walked via the one shared engine,
+        // resolving against the index built once above).
+        let derivation = derivation_lines(&by_iri, finding);
         if !derivation.is_empty() {
             msg_cell.push_str("<ul class=\"derivation\">");
             // Skip the leading "derivation:" label line; each remaining line is a
