@@ -2016,6 +2016,7 @@ enum ObservablePropertyEnum {
 enum ObservationEnum {
   fixtureHumanTimbreObservation
   fixtureMIRTimbreObservation
+  tenurePositionReificationObligation
 }
 
 enum ObservationMethodEnum {

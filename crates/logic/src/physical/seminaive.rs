@@ -936,6 +936,7 @@ fn eval_stratum_fixpoint(
                             prov: Some(Provenance {
                                 sources,
                                 sorted_sources,
+                                source_facts: sol.source_facts.clone(),
                                 deriv,
                                 rule_iri: rule.rule_iri.clone(),
                                 max_src_depth: max_sd,
@@ -1022,6 +1023,7 @@ fn eval_stratum_fixpoint(
                     rule_iri: prov.rule_iri,
                     source_quad_ids: prov.sources, // body-order, NEVER the sorted copy
                     derivation_id: prov.deriv,
+                    antecedents: prov.source_facts,
                 });
             }
             governor.charge();

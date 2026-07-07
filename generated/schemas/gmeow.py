@@ -2040,6 +2040,7 @@ class ObservablePropertyEnum(str, Enum):
 class ObservationEnum(str, Enum):
     fixtureHumanTimbreObservation = "fixtureHumanTimbreObservation"
     fixtureMIRTimbreObservation = "fixtureMIRTimbreObservation"
+    tenurePositionReificationObligation = "tenurePositionReificationObligation"
 
 
 class ObservationMethodEnum(str, Enum):

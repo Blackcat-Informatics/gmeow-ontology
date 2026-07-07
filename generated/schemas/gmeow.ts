@@ -2016,6 +2016,7 @@ export enum ObservablePropertyEnum {
 export enum ObservationEnum {
     fixtureHumanTimbreObservation = "fixtureHumanTimbreObservation",
     fixtureMIRTimbreObservation = "fixtureMIRTimbreObservation",
+    tenurePositionReificationObligation = "tenurePositionReificationObligation",
 }
 
 export enum ObservationMethodEnum {
