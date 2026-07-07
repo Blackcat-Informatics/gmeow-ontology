@@ -381,13 +381,20 @@ impl ForwardOracle for NativeForwardOracle {
         // where `parse_generic_rules` HARD-FAILS on the negated atom — never a
         // guess, never a silent approximation.  An empty EDB with an all-ternary
         // rule set stays binary (the closure is vacuously empty either way).
+        //
+        // Parse the rule text into a Nemo `Program` ONCE here and thread it into
+        // BOTH the arity-eligibility inspection (`program_is_pure_ternary`) and the
+        // chosen lowering (`lower_program_generic_rules` / `lower_program_eval_rules`).
+        // The dispatch and the downstream IR lowering share a single parse, so a
+        // materialize call parses the rule program exactly once instead of twice.
+        let program = crate::nemo_engine::NemoParsedRules::parse_unvalidated(rules)?.into_program();
         let edb_all_ternary = facts.facts().all(|f| f.args.len() == 3);
-        let binary_eligible = edb_all_ternary && rules_are_pure_ternary(rules)?;
+        let binary_eligible = edb_all_ternary && program_is_pure_ternary(&program);
         if !binary_eligible {
-            // Generic (n-ary) path: parse the rule text KEEPING all terms and run
-            // the arity-generic positive-Datalog least-fixpoint.  The binary core
+            // Generic (n-ary) path: lower the parsed program KEEPING all terms and
+            // run the arity-generic positive-Datalog least-fixpoint.  The binary core
             // below is left UNTOUCHED — EL/DL never reach this branch.
-            let generic_rules = crate::physical::parse_generic_rules(rules)?;
+            let generic_rules = crate::physical::lower_program_generic_rules(&program)?;
             return crate::physical::materialize_generic(facts, &generic_rules);
         }
 
@@ -420,7 +427,7 @@ impl ForwardOracle for NativeForwardOracle {
         // Parse the rule text into the Horn/stratified IR and run the native
         // least-fixpoint closure UNBOUNDED (`None` max_steps — the governor never
         // cuts, so the full least model is produced).
-        let eval_rules = crate::rule_ir::parse_eval_rules(rules)?;
+        let eval_rules = crate::rule_ir::lower_program_eval_rules(&program)?;
         let rows = match crate::physical::materialize_native(&store, &eval_rules, None)? {
             crate::physical::NativeOutcome::Decided(budgeted) => budgeted.rows,
             // A non-stratifiable program is a DECLARED gap the native engine does
@@ -497,31 +504,47 @@ impl ForwardOracle for NativeForwardOracle {
     }
 }
 
-/// Whether EVERY atom of EVERY rule in `rules` is arity-3 — the binary
-/// [`crate::physical::seminaive`] core's admissibility test.
+/// Parse `rules` and report whether EVERY atom of EVERY rule is arity-3 — the
+/// string-front convenience over [`program_is_pure_ternary`].
+///
+/// The production dispatch ([`NativeForwardOracle::materialize`]) parses the program
+/// ONCE and calls [`program_is_pure_ternary`] directly to avoid a double parse, so
+/// this string-front wrapper is exercised only by the dispatch-predicate gate tests.
+/// A pure syntax error propagates.
+#[cfg(test)]
+pub(crate) fn rules_are_pure_ternary(rules: &str) -> Result<bool, String> {
+    use crate::nemo_engine::NemoParsedRules;
+
+    let program = NemoParsedRules::parse_unvalidated(rules)?.into_program();
+    Ok(program_is_pure_ternary(&program))
+}
+
+/// Whether EVERY atom of EVERY rule in an already-parsed [`Program`] is arity-3 —
+/// the binary [`crate::physical::seminaive`] core's admissibility test.
 ///
 /// The binary core keys a relation by its constant predicate name and models the
 /// ternary `predicate(subject, object, world)` shape only; `lower_nemo_atom`
 /// silently drops all terms past `terms[1]`, so an atom of any other arity (a
 /// 4-ary `triple(?s,?p,?o,?w)`, a 2-ary `helper(?x,?y)`) would be mis-slotted into
 /// a WRONG closure rather than rejected.  This inspection lets the dispatch route
-/// such a program to the arity-generic evaluator BEFORE that silent corruption.
+/// such a program to the arity-generic evaluator BEFORE that silent corruption. It
+/// inspects the head plus every positive AND negated body atom; unlike
+/// [`crate::physical::parse_generic_rules`] it does NOT reject a negated atom — a
+/// non-ternary negated rule set is left for the generic path to hard-fail on
+/// (positive-only), and a ternary negated rule set is a legal binary program
+/// (stratified NAF).
 ///
-/// It uses the SAME translation-only Nemo front-end (`parse_unvalidated`) the two
-/// rule lowerings use, so the atom surface it counts is byte-identical to what the
-/// engines see.  It inspects the head plus every positive AND negated body atom;
-/// unlike [`crate::physical::parse_generic_rules`] it does NOT reject a negated
-/// atom — a non-ternary negated rule set is left for the generic path to hard-fail
-/// on (positive-only), and a ternary negated rule set is a legal binary program
-/// (stratified NAF).  A pure syntax error propagates.
+/// Taking a pre-parsed program (rather than the raw text) lets
+/// [`NativeForwardOracle::materialize`] share ONE parse between the dispatch
+/// decision and the IR lowering (no double parse per materialize call);
+/// `rules_are_pure_ternary` is the string-front convenience the gate tests use.
 ///
-/// Called on the production dispatch path by [`NativeForwardOracle::materialize`]
-/// (now that [`forward_oracle`] returns the native adapter).
-pub(crate) fn rules_are_pure_ternary(rules: &str) -> Result<bool, String> {
-    use crate::nemo_engine::NemoParsedRules;
+/// [`Program`]: nemo::rule_model::programs::program::Program
+pub(crate) fn program_is_pure_ternary(
+    program: &nemo::rule_model::programs::program::Program,
+) -> bool {
     use nemo::rule_model::programs::ProgramRead;
 
-    let program = NemoParsedRules::parse_unvalidated(rules)?.into_program();
     for rule in program.rules() {
         let atom_is_ternary =
             |atom: &nemo::rule_model::components::atom::Atom| atom.terms().count() == 3;
@@ -531,10 +554,10 @@ pub(crate) fn rules_are_pure_ternary(rules: &str) -> Result<bool, String> {
             .chain(rule.body_negative())
             .all(atom_is_ternary);
         if !head_ok || !body_ok {
-            return Ok(false);
+            return false;
         }
     }
-    Ok(true)
+    true
 }
 
 /// The raw world string of a ternary EDB fact's world term.

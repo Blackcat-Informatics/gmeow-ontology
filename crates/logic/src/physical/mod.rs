@@ -29,7 +29,9 @@ mod store;
 // `crate::oracle::NativeForwardOracle` for the generic-triple encoding; the binary
 // EL/DL path stays on `seminaive`. `#[cfg(test)]`-gated coverage lives in the module.
 #[allow(unused_imports)]
-pub(crate) use generic::{GenericRule, materialize_generic, parse_generic_rules};
+pub(crate) use generic::{
+    GenericRule, lower_program_generic_rules, materialize_generic, parse_generic_rules,
+};
 
 // Phase-A: these are the engine's public-to-crate surface, consumed by the
 // forward/backward evaluators landing on the next rung. Until then the re-export is
