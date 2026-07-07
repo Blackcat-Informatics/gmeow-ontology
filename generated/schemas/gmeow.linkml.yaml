@@ -14625,6 +14625,12 @@ enums:
       qualitySublimity:
         meaning: https://blackcatinformatics.ca/gmeow/qualitySublimity
         title: sublimity
+  AffectCompositeEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/AffectComposite
+    permissible_values:
+      schadenfreudeComposite:
+        meaning: https://blackcatinformatics.ca/gmeow/schadenfreudeComposite
+        title: the observer's schadenfreude
   AffectFunctionEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/AffectFunction
     permissible_values:
@@ -14637,6 +14643,12 @@ enums:
       coreAffectMetricPAD:
         meaning: https://blackcatinformatics.ca/gmeow/coreAffectMetricPAD
         title: core-affect PAD metric profile
+  AffectVectorObservationEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/AffectVectorObservation
+    permissible_values:
+      schadenfreudeCoreVector:
+        meaning: https://blackcatinformatics.ca/gmeow/schadenfreudeCoreVector
+        title: the schadenfreude core-affect vector
   AgentEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/Agent
     permissible_values:
@@ -14784,6 +14796,21 @@ enums:
       dimensionTemporalOrientation:
         meaning: https://blackcatinformatics.ca/gmeow/dimensionTemporalOrientation
         title: temporal orientation
+  AppraisalEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/Appraisal
+    permissible_values:
+      schadenfreudeAgencyCell:
+        meaning: https://blackcatinformatics.ca/gmeow/schadenfreudeAgencyCell
+        title: the schadenfreude agency reading
+      schadenfreudeArousalCell:
+        meaning: https://blackcatinformatics.ca/gmeow/schadenfreudeArousalCell
+        title: the schadenfreude arousal reading
+      schadenfreudeNormCell:
+        meaning: https://blackcatinformatics.ca/gmeow/schadenfreudeNormCell
+        title: the schadenfreude deservingness reading
+      schadenfreudeValenceCell:
+        meaning: https://blackcatinformatics.ca/gmeow/schadenfreudeValenceCell
+        title: the schadenfreude valence reading
   ArcTypeEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/ArcType
     permissible_values:
@@ -16341,6 +16368,12 @@ enums:
       derivationTypeVariation:
         meaning: https://blackcatinformatics.ca/gmeow/derivationTypeVariation
         title: variation
+  DerivedAffectIntensityObservationEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/DerivedAffectIntensityObservation
+    permissible_values:
+      schadenfreudeIntensity:
+        meaning: https://blackcatinformatics.ca/gmeow/schadenfreudeIntensity
+        title: the schadenfreude derived intensity
   DeterminacyEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/Determinacy
     permissible_values:
@@ -19620,6 +19653,12 @@ enums:
       periodTypeHistoricalEra:
         meaning: https://blackcatinformatics.ca/gmeow/periodTypeHistoricalEra
         title: historical era
+  PersonEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/Person
+    permissible_values:
+      schadenfreudeObserver:
+        meaning: https://blackcatinformatics.ca/gmeow/schadenfreudeObserver
+        title: the schadenfreude observer
   PhysicalCarrierTypeEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/PhysicalCarrierType
     permissible_values:

@@ -68,14 +68,13 @@ ex:cqModeExperienceCut a gmeow:CompetencyQuestion ;
     gmeow:cqExpectAsk true .
 
 # Q9: model up, don't mint. "Which axis-vector and relations decompose a given named
-# emotion?" The schadenfreude composite (examples/schadenfreude.ttl overlay) declares
-# its decomposition: a positive-valence core-affect vector plus an other-directed
-# agency reading and a deservingness/norm reading. The SELECT projects every axis
-# reading that decomposes it; the answer set contains more than the two witnesses
-# pinned here (positive valence + other-directed agency), so RowsContains.
+# emotion?" The shipped schadenfreude composite (gmeow:schadenfreudeComposite, base
+# graph) declares its decomposition: a positive-valence core-affect vector plus an
+# other-directed agency reading and a deservingness/norm reading. The SELECT projects
+# every axis reading that decomposes it; the answer set contains more than the two
+# witnesses pinned here (positive valence + other-directed agency), so RowsContains.
 ex:cqCompositeDecomposition a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "slices/core/affect/queries/competency/composite-decomposition.rq" ;
-    gmeow:cqDataFile "examples/schadenfreude.ttl" ;
     gmeow:cqRationale "A named emotion is modeled UP, not minted: schadenfreude decomposes into a positive core-affect vector over another agent's misfortune with an other-directed agency structure. The query projects the per-axis readings that decompose the composite — answering 'is this schadenfreude a positive vector over another's misfortune?' directly from the data (positive valence AND other-directed negative agency)." ;
     gmeow:cqResultShape ex:cqCompositeDecompositionShape ;
     gmeow:cqExpectRow
@@ -100,7 +99,6 @@ ex:cqCDRowAgency a gmeow:ExpectedRow ;
 # valence axis (0.7) dominates schadenfreude's core vector; RowsContains witnesses it.
 ex:cqVectorIntensity a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "slices/core/affect/queries/competency/vector-intensity.rq" ;
-    gmeow:cqDataFile "examples/schadenfreude.ttl" ;
     gmeow:cqRationale "Overall intensity is exposed as a DERIVED observation (gmeow:DerivedAffectIntensityObservation) whose norm is computed outside the logic under a declared metric (Principle 12) — never a stored ground fact. The query anchors on that derived observation's vector basis and returns the per-axis magnitudes ordered by magnitude, so the dominant axis is retrievable; the norm itself the CLI computes under the declared weighting and metric." ;
     gmeow:cqResultShape ex:cqVectorIntensityShape ;
     gmeow:cqExpectRow ex:cqVIRowDominant .

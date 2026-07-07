@@ -204,7 +204,8 @@ relations to elicitor, target, agency, norm, and other emotions
 (`affectiveConstituent`, mandatory). *Schadenfreude* = positive core affect whose
 elicitor is another agent's goal-incongruent outcome + other-directed agency +
 deservingness; *saudade* = bittersweet mixed valence + a past/absent target +
-prospective longing (see `examples/schadenfreude.ttl`, `examples/saudade.ttl`). A
+prospective longing (schadenfreude ships as the `gmeow:schadenfreudeComposite`
+worked instance in `module.ttl`; saudade in `examples/saudade.ttl`). A
 compound that cannot be decomposed is evidence the axis basis is incomplete (add an
 axis), never a licence for an opaque primitive. Named EmotionType prototypes
 (`gmeow:emotionSchadenfreude`, `gmeow:emotionSaudade`) are minted for usability and

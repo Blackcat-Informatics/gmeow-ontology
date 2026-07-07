@@ -69,12 +69,20 @@ class AestheticQualityEnum(str, Enum):
     qualitySublimity = "qualitySublimity"
 
 
+class AffectCompositeEnum(str, Enum):
+    schadenfreudeComposite = "schadenfreudeComposite"
+
+
 class AffectFunctionEnum(str, Enum):
     fnAffectiveIntensity = "fnAffectiveIntensity"
 
 
 class AffectScaleProfileEnum(str, Enum):
     coreAffectMetricPAD = "coreAffectMetricPAD"
+
+
+class AffectVectorObservationEnum(str, Enum):
+    schadenfreudeCoreVector = "schadenfreudeCoreVector"
 
 
 class AgentEnum(str, Enum):
@@ -134,6 +142,13 @@ class AppraisalDimensionEnum(str, Enum):
     dimensionNovelty = "dimensionNovelty"
     dimensionObjectFocus = "dimensionObjectFocus"
     dimensionTemporalOrientation = "dimensionTemporalOrientation"
+
+
+class AppraisalEnum(str, Enum):
+    schadenfreudeAgencyCell = "schadenfreudeAgencyCell"
+    schadenfreudeArousalCell = "schadenfreudeArousalCell"
+    schadenfreudeNormCell = "schadenfreudeNormCell"
+    schadenfreudeValenceCell = "schadenfreudeValenceCell"
 
 
 class ArcTypeEnum(str, Enum):
@@ -759,6 +774,10 @@ class DerivationTypeEnum(str, Enum):
     derivationTypeSample = "derivationTypeSample"
     derivationTypeTranscription = "derivationTypeTranscription"
     derivationTypeVariation = "derivationTypeVariation"
+
+
+class DerivedAffectIntensityObservationEnum(str, Enum):
+    schadenfreudeIntensity = "schadenfreudeIntensity"
 
 
 class DeterminacyEnum(str, Enum):
@@ -2108,6 +2127,10 @@ class PeriodTypeEnum(str, Enum):
     periodTypeGeologicPeriod = "periodTypeGeologicPeriod"
     periodTypeHistoricalDynasty = "periodTypeHistoricalDynasty"
     periodTypeHistoricalEra = "periodTypeHistoricalEra"
+
+
+class PersonEnum(str, Enum):
+    schadenfreudeObserver = "schadenfreudeObserver"
 
 
 class PhysicalCarrierTypeEnum(str, Enum):

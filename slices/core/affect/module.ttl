@@ -1202,6 +1202,119 @@ gmeow-labelset:SST2
     skos:definition "The SST-2 binary sentiment label set (POSITIVE/NEGATIVE) — the default text-classification sentiment pipeline."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
+# ── Canonical schadenfreude worked instance (shipped A-Box) ───────────────────
+# Model up, don't mint. Schadenfreude is not an opaque primitive — it is positive
+# core affect whose ELICITOR is another agent's goal-incongruent outcome, with an
+# other-directed AGENCY structure and a deservingness/NORM flavour. The named
+# composite carries its declared decomposition plus a DERIVED intensity — a view
+# under a named metric-tensor norm, never a stored fact (Principle 12). This is the
+# canonical worked instance the `gmeow affect intensity` CLI computes and the
+# EmotionML worked `<emotion>` envelope PROJECTS: it lives in the base graph (module,
+# not examples/) so it ships in the reasoned bundle. Its geometry is COMPUTED over
+# gmeow:coreAffectGram (√(xᵀGx) = √(79/100) = 0.888819, dominant axis valence),
+# never a fabricated constant.
+
+gmeow:schadenfreudeObserver
+    a gmeow:Person ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "the schadenfreude observer"@x-gmeow-english ;
+    skos:definition "The agent bearing the worked schadenfreude composite and holding its appraisal vantage — the observer who feels positive affect at a rival's deserved, self-inflicted setback."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:schadenfreudeElicitor
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "the rival's self-inflicted, deserved setback"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:schadenfreudeComposite
+    a gmeow:AffectComposite ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "the observer's schadenfreude"@x-gmeow-english ;
+    skos:definition "The worked schadenfreude gmeow:AffectComposite — a named emotion whose meaning is its declared decomposition: a positive-valence core-affect vector over another agent's goal-incongruent outcome, bound by an other-directed agency reading and a deservingness/norm reading, plus a derived intensity view. Modeled up from axes and relations, never an opaque primitive (Principle 9)."@x-gmeow-english ;
+    gmeow:emotionBearer gmeow:schadenfreudeObserver ;
+    gmeow:emotionType gmeow:emotionSchadenfreude ;
+    gmeow:affectiveElicitor gmeow:schadenfreudeElicitor ;
+    gmeow:affectiveConstituent
+        gmeow:schadenfreudeCoreVector ,
+        gmeow:schadenfreudeAgencyCell ,
+        gmeow:schadenfreudeNormCell ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:schadenfreudeCoreVector
+    a gmeow:AffectVectorObservation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "the schadenfreude core-affect vector"@x-gmeow-english ;
+    skos:definition "The core-affect vector signature of the worked schadenfreude composite: positive valence with moderate arousal, framed against the bipolar PAD unit scale. The metric-tensor norm over gmeow:coreAffectGram of this vector is the composite's overall intensity."@x-gmeow-english ;
+    gmeow:vantage gmeow:schadenfreudeObserver ;
+    gmeow:observedFeature gmeow:schadenfreudeComposite ;
+    gmeow:vectorProfile gmeow:coreAffectMetricPAD ;
+    gmeow:vectorComponent
+        gmeow:schadenfreudeValenceCell ,
+        gmeow:schadenfreudeArousalCell ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:schadenfreudeValenceCell
+    a gmeow:Appraisal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "the schadenfreude valence reading"@x-gmeow-english ;
+    skos:definition "The positive-valence core-affect reading of the worked schadenfreude composite (valence 0.7 on the bipolar PAD unit scale) — the felt goodness of the rival's deserved setback."@x-gmeow-english ;
+    gmeow:vantage gmeow:schadenfreudeObserver ;
+    gmeow:appraisalOf gmeow:schadenfreudeElicitor ;
+    gmeow:appraisalDimension gmeow:dimensionValence ;
+    gmeow:appraisalValue 0.7 ;
+    gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:schadenfreudeArousalCell
+    a gmeow:Appraisal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "the schadenfreude arousal reading"@x-gmeow-english ;
+    skos:definition "The moderate-arousal core-affect reading of the worked schadenfreude composite (arousal 0.4 on the bipolar PAD unit scale) — the activation of the felt affect."@x-gmeow-english ;
+    gmeow:vantage gmeow:schadenfreudeObserver ;
+    gmeow:appraisalOf gmeow:schadenfreudeElicitor ;
+    gmeow:appraisalDimension gmeow:dimensionArousal ;
+    gmeow:appraisalValue 0.4 ;
+    gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:schadenfreudeAgencyCell
+    a gmeow:Appraisal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "the schadenfreude agency reading"@x-gmeow-english ;
+    skos:definition "The other-directed agency reading that differentiates schadenfreude from plain joy (agency -1.0 on the bipolar PAD unit scale) — the setback is attributed to the rival, not the observer."@x-gmeow-english ;
+    gmeow:vantage gmeow:schadenfreudeObserver ;
+    gmeow:appraisalOf gmeow:schadenfreudeElicitor ;
+    gmeow:appraisalDimension gmeow:dimensionAgency ;
+    gmeow:appraisalValue -1.0 ;
+    gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:schadenfreudeNormCell
+    a gmeow:Appraisal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "the schadenfreude deservingness reading"@x-gmeow-english ;
+    skos:definition "The deservingness/norm-compatibility reading that differentiates schadenfreude from cruelty (norm compatibility 0.8 on the bipolar PAD unit scale) — the setback is appraised as deserved, upholding a standard."@x-gmeow-english ;
+    gmeow:vantage gmeow:schadenfreudeObserver ;
+    gmeow:appraisalOf gmeow:schadenfreudeElicitor ;
+    gmeow:appraisalDimension gmeow:dimensionNormCompatibility ;
+    gmeow:appraisalValue 0.8 ;
+    gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:schadenfreudeIntensity
+    a gmeow:DerivedAffectIntensityObservation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "the schadenfreude derived intensity"@x-gmeow-english ;
+    skos:definition "The overall intensity of the worked schadenfreude composite as a DERIVED view under the canonical core-affect metric-tensor norm — never a stored raw magnitude (Principle 12). The CLI computes ‖x‖ = √(xᵀGx) over gmeow:coreAffectGram for the core-affect vector, yielding √(79/100) = 0.888819 with valence the metric-dominant axis."@x-gmeow-english ;
+    gmeow:vantage gmeow:schadenfreudeObserver ;
+    gmeow:observedFeature gmeow:schadenfreudeComposite ;
+    gmeow:intensityBasis gmeow:schadenfreudeCoreVector ;
+    gmeow:metricProfile gmeow:coreAffectMetricPAD ;
+    gmeow:weightingPolicy gmeow:weightingEqualCoreAffect ;
+    gmeow:normFunction gmeow:affectMetricTensorNorm ;
+    gmeow:derivedByFunction gmeow:fnAffectiveIntensity ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
 gmeow-goemotions:admiration a gmeow:AffectClassifierLabel ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "admiration"@x-gmeow-english ;

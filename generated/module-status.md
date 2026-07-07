@@ -9,7 +9,7 @@ from the module, documentation status from the guide. STUB guides are the Tier-2
 |---|---|---|---:|---:|---:|---:|---:|---:|---|
 | accessibility | extension | extensions | 2 | 3 | 6 | 0 | 1 | - | full |
 | accounts | core | core | 1 | 4 | 10 | 0 | 1 | 14/14 | full |
-| affect | core | core | 5 | 25 | 46 | 0 | 6 | 21/71 | full |
+| affect | core | core | 5 | 25 | 46 | 0 | 5 | 21/71 | full |
 | agentic | extension | extensions | 6 | 1 | 4 | 0 | 5 | - | full |
 | aggregation | extension | extensions | 2 | 3 | 3 | 0 | 1 | - | full |
 | agreements | core | core | 2 | 3 | 2 | 0 | 1 | 5/5 | full |

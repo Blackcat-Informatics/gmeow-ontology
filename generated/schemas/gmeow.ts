@@ -45,12 +45,20 @@ export enum AestheticQualityEnum {
     qualitySublimity = "qualitySublimity",
 }
 
+export enum AffectCompositeEnum {
+    schadenfreudeComposite = "schadenfreudeComposite",
+}
+
 export enum AffectFunctionEnum {
     fnAffectiveIntensity = "fnAffectiveIntensity",
 }
 
 export enum AffectScaleProfileEnum {
     coreAffectMetricPAD = "coreAffectMetricPAD",
+}
+
+export enum AffectVectorObservationEnum {
+    schadenfreudeCoreVector = "schadenfreudeCoreVector",
 }
 
 export enum AgentEnum {
@@ -110,6 +118,13 @@ export enum AppraisalDimensionEnum {
     dimensionNovelty = "dimensionNovelty",
     dimensionObjectFocus = "dimensionObjectFocus",
     dimensionTemporalOrientation = "dimensionTemporalOrientation",
+}
+
+export enum AppraisalEnum {
+    schadenfreudeAgencyCell = "schadenfreudeAgencyCell",
+    schadenfreudeArousalCell = "schadenfreudeArousalCell",
+    schadenfreudeNormCell = "schadenfreudeNormCell",
+    schadenfreudeValenceCell = "schadenfreudeValenceCell",
 }
 
 export enum ArcTypeEnum {
@@ -735,6 +750,10 @@ export enum DerivationTypeEnum {
     derivationTypeSample = "derivationTypeSample",
     derivationTypeTranscription = "derivationTypeTranscription",
     derivationTypeVariation = "derivationTypeVariation",
+}
+
+export enum DerivedAffectIntensityObservationEnum {
+    schadenfreudeIntensity = "schadenfreudeIntensity",
 }
 
 export enum DeterminacyEnum {
@@ -2084,6 +2103,10 @@ export enum PeriodTypeEnum {
     periodTypeGeologicPeriod = "periodTypeGeologicPeriod",
     periodTypeHistoricalDynasty = "periodTypeHistoricalDynasty",
     periodTypeHistoricalEra = "periodTypeHistoricalEra",
+}
+
+export enum PersonEnum {
+    schadenfreudeObserver = "schadenfreudeObserver",
 }
 
 export enum PhysicalCarrierTypeEnum {

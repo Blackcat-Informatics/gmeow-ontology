@@ -45,12 +45,20 @@ enum AestheticQualityEnum {
   qualitySublimity
 }
 
+enum AffectCompositeEnum {
+  schadenfreudeComposite
+}
+
 enum AffectFunctionEnum {
   fnAffectiveIntensity
 }
 
 enum AffectScaleProfileEnum {
   coreAffectMetricPAD
+}
+
+enum AffectVectorObservationEnum {
+  schadenfreudeCoreVector
 }
 
 enum AgentEnum {
@@ -110,6 +118,13 @@ enum AppraisalDimensionEnum {
   dimensionNovelty
   dimensionObjectFocus
   dimensionTemporalOrientation
+}
+
+enum AppraisalEnum {
+  schadenfreudeAgencyCell
+  schadenfreudeArousalCell
+  schadenfreudeNormCell
+  schadenfreudeValenceCell
 }
 
 enum ArcTypeEnum {
@@ -735,6 +750,10 @@ enum DerivationTypeEnum {
   derivationTypeSample
   derivationTypeTranscription
   derivationTypeVariation
+}
+
+enum DerivedAffectIntensityObservationEnum {
+  schadenfreudeIntensity
 }
 
 enum DeterminacyEnum {
@@ -2084,6 +2103,10 @@ enum PeriodTypeEnum {
   periodTypeGeologicPeriod
   periodTypeHistoricalDynasty
   periodTypeHistoricalEra
+}
+
+enum PersonEnum {
+  schadenfreudeObserver
 }
 
 enum PhysicalCarrierTypeEnum {

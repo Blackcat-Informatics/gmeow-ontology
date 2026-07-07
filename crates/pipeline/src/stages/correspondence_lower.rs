@@ -26,16 +26,14 @@ use purrdf::{NativeRdfFormat, RdfDataset, RdfDatasetBuilder, TermRef, TermValue,
 const GM_VERSION_FINGERPRINT: &str = "https://blackcatinformatics.ca/gmeow/versionFingerprint";
 const GM_DATE_PUBLISHED: &str = "https://blackcatinformatics.ca/gmeow/datePublished";
 
-/// The canonical affect module (carries `gmeow:coreAffectGram` + `gmeow:coreAxisIndex`),
-/// relative to the repo root, that grounds the EmotionML worked envelope's metric.
-const AFFECT_MODULE_REL: &str = "slices/core/affect/module.ttl";
-/// The canonical schadenfreude example the worked `<emotion>` envelope PROJECTS. Pinned:
-/// its computed geometry is asserted in `worked_envelope_projects_the_schadenfreude_example`,
-/// so any drift / move of this file (or a change to its appraisal vector) reds that test.
-const AFFECT_SCHADENFREUDE_REL: &str = "slices/core/affect/examples/schadenfreude.ttl";
-/// The schadenfreude derived-intensity observation whose geometry the worked envelope emits.
-const SF_INTENSITY_IRI: &str =
-    "https://blackcatinformatics.ca/gmeow/examples/affect/tests/sfIntensity";
+/// The canonical schadenfreude derived-intensity observation whose geometry the worked
+/// `<emotion>` envelope emits. This is a SHIPPED base-graph A-Box individual (it lives in
+/// `slices/core/affect/module.ttl`, not `examples/`), so it rides the in-memory ontology
+/// carrier the whole correspondence lane already folds — the projection reads it from the
+/// carrier, never from disk. Its computed geometry is pinned in
+/// `worked_envelope_projects_the_schadenfreude_example`, so any drift in its appraisal
+/// vector or the metric Gram reds that test.
+const SF_INTENSITY_IRI: &str = "https://blackcatinformatics.ca/gmeow/schadenfreudeIntensity";
 
 /// All four alignment dialects' outputs, keyed by bare file name within each
 /// generated directory.
@@ -122,11 +120,12 @@ pub fn lower_all(
     // dimension (gmeow:AppraisalDimension / gmeow:CoreAffectDimension) vocabularies straight
     // out of the merged ontology view — a many-to-one, lossy-by-construction emitter that
     // needs no external RDF namespace. Its collapse record joins the shared loss ledger.
-    // The worked <emotion> envelope PROJECTS the canonical schadenfreude example: its overall
-    // intensity + per-dimension values are COMPUTED by gmeow-affect from the committed affect
-    // slice files over gmeow:coreAffectGram — never a fabricated constant. A missing/unreadable
-    // example or a compute failure is a HARD FAIL here (no fallback literal).
-    let worked = compute_worked_envelope(root).map_err(SliceError::Parse)?;
+    // The worked <emotion> envelope PROJECTS the canonical schadenfreude worked instance: its
+    // overall intensity + per-dimension values are COMPUTED by gmeow-affect from the SHIPPED
+    // base-graph A-Box (the same in-memory `onto` carrier the lane already folds) over
+    // gmeow:coreAffectGram — never a fabricated constant and never a disk re-read. A missing
+    // observation or a compute failure is a HARD FAIL here (no fallback literal).
+    let worked = compute_worked_envelope(&onto).map_err(SliceError::Parse)?;
     let emotionml = emotionml::lower_emotionml(&onto_view, &worked);
 
     // Aggregate the per-correspondence ledger across all four dialects plus the EmotionML
@@ -218,16 +217,14 @@ pub fn discharged_section_cells_from_cells(
 }
 
 /// Compute the EmotionML worked-`<emotion>` envelope's values by projecting the canonical
-/// schadenfreude example. Reads the committed affect module (Gram + axis indices) and the
-/// schadenfreude example from `root`, computes the metric-tensor geometry via `gmeow-affect`,
-/// and maps its intensity + per-axis unit-clamp values to the emitter's plain data. Every
-/// emitted number is COMPUTED — the emitter is forbidden a hand-typed constant. A missing /
-/// unreadable file or a compute failure is a HARD FAIL (`Err`), never a fallback literal.
-fn compute_worked_envelope(root: &Path) -> Result<emotionml::WorkedEnvelope, String> {
-    let geometry = schadenfreude_geometry(
-        &root.join(AFFECT_MODULE_REL),
-        &root.join(AFFECT_SCHADENFREUDE_REL),
-    )?;
+/// schadenfreude worked instance carried on the in-memory `onto` dataset (which already folds
+/// the affect `module.ttl` — its metric Gram, axis indices, and the shipped schadenfreude
+/// A-Box). It computes the metric-tensor geometry via `gmeow-affect` and maps its intensity +
+/// per-axis unit-clamp values to the emitter's plain data. Every emitted number is COMPUTED —
+/// the emitter is forbidden a hand-typed constant. A missing observation or a compute failure
+/// is a HARD FAIL (`Err`), never a fallback literal.
+fn compute_worked_envelope(onto: &RdfDataset) -> Result<emotionml::WorkedEnvelope, String> {
+    let geometry = schadenfreude_geometry(onto)?;
     Ok(emotionml::WorkedEnvelope {
         intensity: geometry.intensity,
         dimensions: geometry
@@ -238,22 +235,19 @@ fn compute_worked_envelope(root: &Path) -> Result<emotionml::WorkedEnvelope, Str
     })
 }
 
-/// The schadenfreude affect-intensity geometry, computed over the UNION of the affect
-/// `module.ttl` (the metric Gram) and the `schadenfreude.ttl` example (the appraisal vector).
-/// The union is carried through the same GTS snapshot path the `gmeow affect` CLI uses, so
-/// this compute is byte-identical to the shipped CLI's.
-fn schadenfreude_geometry(module: &Path, example: &Path) -> Result<gmeow_affect::Geometry, String> {
+/// The schadenfreude affect-intensity geometry, computed over the in-memory ontology carrier
+/// `onto` (the folded `ontology/gmeow.ttl` + every slice `module.ttl`, so it carries both the
+/// metric Gram and the shipped schadenfreude appraisal vector). The carrier is snapshotted
+/// through the same GTS path the `gmeow affect` CLI uses, so this compute is byte-identical to
+/// the shipped CLI's — and it reads NOTHING from disk (the projection is a true projection of
+/// the carrier, per PIPELINE_SPINE).
+fn schadenfreude_geometry(onto: &RdfDataset) -> Result<gmeow_affect::Geometry, String> {
     use purrdf::gts_compose::{DEFAULT_RSYNCABLE_THRESHOLD, SnapshotBuilder, emit_gts};
 
     let mut builder = SnapshotBuilder::new();
-    for path in [module, example] {
-        let bytes = std::fs::read(path).map_err(|e| format!("read {}: {e}", path.display()))?;
-        let dataset = parse_dataset(&bytes, NativeRdfFormat::Turtle.media_type(), None)
-            .map_err(|e| format!("parse {}: {e}", path.display()))?;
-        builder
-            .add_dataset(&dataset)
-            .map_err(|e| format!("add {}: {e}", path.display()))?;
-    }
+    builder
+        .add_dataset(onto)
+        .map_err(|e| format!("add ontology carrier: {e}"))?;
     let gts = emit_gts(
         &builder,
         "dist",
@@ -404,21 +398,33 @@ mod tests {
             .expect("canonicalize repo root")
     }
 
-    /// The EmotionML worked-envelope pin: the emitter PROJECTS the committed schadenfreude
-    /// example, so its intensity + per-dimension values are COMPUTED — never fabricated. This
-    /// drives the REAL `compute_worked_envelope` over the REAL committed slice files and
-    /// asserts the metric-tensor outputs: intensity √(79/100) = 0.888819, valence 0.7 → 0.85,
-    /// arousal 0.4 → 0.7. Moving/renaming the example or perturbing its appraisal vector reds
-    /// this test — the drift gate the invariant demands.
+    /// The EmotionML worked-envelope pin: the emitter PROJECTS the SHIPPED schadenfreude worked
+    /// instance carried on the in-memory ontology dataset, so its intensity + per-dimension
+    /// values are COMPUTED — never fabricated and never re-read from disk. This drives the REAL
+    /// `compute_worked_envelope` over the REAL committed affect `module.ttl` (the carrier the
+    /// pipeline folds) and asserts the metric-tensor outputs: intensity √(79/100) = 0.888819,
+    /// valence 0.7 → 0.85, arousal 0.4 → 0.7. Retiring the shipped observation or perturbing its
+    /// appraisal vector reds this test — the drift gate the invariant demands.
     #[test]
     fn worked_envelope_projects_the_schadenfreude_example() {
         let root = repo_root();
-        // The example must exist at the pinned path (a move/rename is a hard fail).
+        // Build the ontology carrier from the committed affect module (the metric Gram, axis
+        // indices, and the shipped schadenfreude A-Box all live there), mirroring the dataset
+        // `lower_all` folds and hands to `compute_worked_envelope`.
+        let module_ttl = root.join("slices/core/affect/module.ttl");
+        let bytes = std::fs::read(&module_ttl).expect("read affect module.ttl");
+        let onto = parse_dataset(&bytes, NativeRdfFormat::Turtle.media_type(), None)
+            .expect("parse affect module.ttl");
+
+        // The shipped observation IRI must resolve as a base-graph subject (retirement is a
+        // hard fail): it is authored in module.ttl, never an excluded example overlay.
         assert!(
-            root.join(AFFECT_SCHADENFREUDE_REL).is_file(),
-            "pinned schadenfreude example missing: {AFFECT_SCHADENFREUDE_REL}"
+            onto.term_id_by_value(&TermValue::Iri(SF_INTENSITY_IRI.to_owned()))
+                .is_some(),
+            "shipped schadenfreude intensity observation missing from the carrier: {SF_INTENSITY_IRI}"
         );
-        let worked = compute_worked_envelope(&root).expect("compute worked envelope");
+
+        let worked = compute_worked_envelope(&onto).expect("compute worked envelope");
 
         assert_eq!(
             worked.intensity, "0.888819",
