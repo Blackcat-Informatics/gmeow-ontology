@@ -795,15 +795,19 @@ fn parse_sssom_curie_map(sssom_tsv: &str) -> BTreeMap<String, String> {
     map
 }
 
-/// Format an f64 as an `xsd:decimal` lexical (`0.84`, `1.0`) — never exponent
-/// form (out-of-range/NaN are rejected upstream, so inputs are tame).
+/// Format an f64 as an `xsd:decimal` lexical (`0.84`, `1.0`) — NEVER exponent
+/// form, which `xsd:decimal` forbids. Rust's `f64` `Display` already emits the
+/// shortest round-trip decimal WITHOUT scientific notation (only the `{:e}`
+/// formatter does that), even for tiny in-range scores like `1e-7` → `0.0000001`;
+/// we only normalize a whole number to carry a trailing `.0`. (NaN/±Inf are
+/// rejected upstream, so inputs are tame.)
 fn format_decimal(value: f64) -> String {
     let s = format!("{value}");
-    if s.contains('.') || s.contains(['e', 'E']) {
-        s
-    } else {
-        format!("{s}.0")
-    }
+    debug_assert!(
+        !s.contains(['e', 'E']),
+        "f64 Display must never emit scientific notation (invalid xsd:decimal): {s}"
+    );
+    if s.contains('.') { s } else { format!("{s}.0") }
 }
 
 /// A thin accumulator over `purrdf::RdfDatasetBuilder` that emits deterministic,
@@ -1426,5 +1430,23 @@ mod tests {
             produce(&cap, &config()),
             Err(IngestError::ActivationMismatch { .. })
         ));
+    }
+
+    #[test]
+    fn format_decimal_is_always_a_valid_xsd_decimal() {
+        // xsd:decimal forbids scientific notation. A tiny in-range score must
+        // still serialize as a plain decimal (and round-trip through the lexical).
+        for v in [0.0, 1.0, 0.84, 0.0000001, 1e-12, 0.5_f64] {
+            let s = format_decimal(v);
+            assert!(
+                !s.contains(['e', 'E']),
+                "format_decimal({v}) = {s:?} must not use scientific notation"
+            );
+            assert!(
+                s.contains('.'),
+                "format_decimal({v}) = {s:?} must carry a point"
+            );
+            assert_eq!(renormalize_decimal(v), s.parse::<f64>().unwrap());
+        }
     }
 }
