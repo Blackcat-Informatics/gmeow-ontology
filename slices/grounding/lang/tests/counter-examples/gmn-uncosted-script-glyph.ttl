@@ -1,0 +1,19 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Counter-example: a lang:Grapheme admitted to the GMN script (lang:inScript gmeow:gmnScript)
+# with a canonical codepoint-explicit spelling but NO gmeow:gmnGlyphTokenCost — no measured
+# per-glyph token-cost feed dispositioning it in the glyph plane. GMN glyph-cost coverage is
+# total, so a script glyph missing its cost feed is a silent gap (fires
+# lang:GmnUncostedScriptGlyph via the sh:sparql of lang:GmnScriptGlyphCoverageShape). It is
+# otherwise well-formed — grounded in the script's repertoire and canonically spelled — so no
+# other shape fires.
+
+@prefix lang:  <https://blackcatinformatics.ca/lang/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <http://example.org/lang/> .
+
+gmeow:gmnScript lang:hasGrapheme ex:gUncosted .
+
+ex:gUncosted a lang:Grapheme ;
+    lang:inScript gmeow:gmnScript ;
+    gmeow:gmnCodepoints "U+0294" .

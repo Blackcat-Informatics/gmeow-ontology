@@ -1,0 +1,25 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Conforming GMN fixture: a properly cost-covered script glyph. One grapheme (ʔ) in the GMN
+# script carries a canonical codepoint-explicit spelling (gmeow:gmnCodepoints "U+0294") AND a
+# measured per-glyph token-cost feed through gmeow:gmnGlyphTokenCost pointing at a
+# dimensionless math:Quantity. Cost coverage over the shared inventory is total, so a script
+# glyph carrying its cost feed satisfies lang:GmnScriptGlyphCoverageShape and the grapheme is
+# grounded in the script's repertoire (lang:GraphemeGroundedShape) with a canonical codepoint
+# (lang:GmnCodepointCanonicalShape), so the fixture validates with no findings.
+
+@prefix lang:  <https://blackcatinformatics.ca/lang/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix ex:    <http://example.org/lang/> .
+
+gmeow:gmnScript lang:hasGrapheme ex:gGlottalStop .
+
+ex:gGlottalStop a lang:Grapheme ;
+    lang:inScript gmeow:gmnScript ;
+    gmeow:gmnCodepoints "U+0294" ;
+    gmeow:gmnGlyphTokenCost ex:qCostOne .
+
+ex:qCostOne a math:Quantity ;
+    math:hasDimension math:dimensionless ;
+    math:quantityValue 1 .
