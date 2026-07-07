@@ -530,14 +530,18 @@ impl McpServer {
                  commit), APPEND the engine verdict to the append-only conjecture library. \
                  formula is a Turtle logic: document naming one candidate; kb is a Turtle KB; \
                  standpoint is the required reified scope (P9); math_conjecture optionally \
-                 names the math:Conjecture twin. Pass dry_run=true for a non-committing \
-                 sandbox run (verdict only, nothing written).",
+                 names the math:Conjecture twin. max_steps / max_answers optionally bound the \
+                 isolated scenario evaluation (a derived-closure-size ceiling: exceeding it \
+                 stamps BudgetExhausted → lifecycle open). Pass dry_run=true for a \
+                 non-committing sandbox run (verdict only, nothing written).",
                 &[
                     ("formula", "string"),
                     ("kb", "string"),
                     ("standpoint", "string"),
                     ("math_conjecture", "string"),
                     ("dry_run", "boolean"),
+                    ("max_steps", "integer"),
+                    ("max_answers", "integer"),
                 ],
             ),
             tool(
@@ -970,6 +974,8 @@ impl McpServer {
         let standpoint = required_str(args, "standpoint")?;
         let math_conjecture = optional_str(args, "math_conjecture");
         let dry_run = optional_bool_checked(args, "dry_run")?.unwrap_or(false);
+        let max_steps = optional_step_count(args, "max_steps")?;
+        let max_answers = optional_limit(args, "max_answers")?;
 
         // The parse → test → project → TR-gate → persist path is the SHARED core; the tool is a
         // thin wrapper rendering its outcome as the JSON response.
@@ -979,6 +985,8 @@ impl McpServer {
             standpoint,
             math_conjecture,
             dry_run,
+            max_steps,
+            max_answers,
         })?;
 
         // The five-field verdict summary + witness, rendered for every response path.
@@ -1151,6 +1159,13 @@ pub struct ConjectureRunInput<'a> {
     pub math_conjecture: Option<&'a str>,
     /// When true, compute and return the verdict but WRITE NOTHING to the library.
     pub dry_run: bool,
+    /// Optional post-hoc derived-closure-size ceiling on the isolated scenario evaluation: when
+    /// the derived (non-EDB) closure exceeds this many steps the run is stamped `BudgetExhausted`
+    /// → lifecycle Open → discharge Unknown. `None` = unbounded.
+    pub max_steps: Option<u64>,
+    /// Optional post-hoc derived-closure-size ceiling in answer bindings; see
+    /// [`max_steps`](Self::max_steps). `None` = unbounded.
+    pub max_answers: Option<usize>,
 }
 
 /// A refutation's contradiction witness, flattened for both response surfaces.
@@ -1219,6 +1234,8 @@ pub fn run_conjecture_test(
         standpoint,
         math_conjecture,
         dry_run,
+        max_steps,
+        max_answers,
     } = *input;
 
     // (1) Parse the candidate document and extract exactly one candidate formula.
@@ -1233,13 +1250,19 @@ pub fn run_conjecture_test(
         "{CONJECTURE_SCENARIO_WORLD}#kb-{}",
         sha256_hex(kb_ttl.as_bytes())
     );
+    // The optional post-hoc closure-size ceiling (criterion (2)): a bound the surfaces MAY pass
+    // and the oracle NEVER sees (it is applied above the run). Both `None` ⟹ unbounded.
+    let budget = Budget {
+        max_answers,
+        max_steps,
+    };
     let answer = conjecture_test(
         kb.as_ref(),
         CONJECTURE_SCENARIO_WORLD,
         &candidate,
         standpoint,
         &[],
-        &Budget::default(),
+        &budget,
     )
     .map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::Mcp {
@@ -1595,6 +1618,29 @@ fn optional_limit(args: &Value, key: &str) -> gmeow_errors::Result<Option<usize>
                 })
             })?;
             usize::try_from(value).map(Some).map_err(|_| {
+                gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                    message: format!("{key} must be non-negative"),
+                })
+            })
+        }
+        Some(_) => Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
+            message: format!("{key} must be an integer"),
+        })),
+    }
+}
+
+/// A strict non-negative `u64` argument (absent/null → `None`), used for the `max_steps`
+/// closure-size ceiling: present must be a non-negative integer, anything else is a HARD FAIL.
+fn optional_step_count(args: &Value, key: &str) -> gmeow_errors::Result<Option<u64>> {
+    match args.get(key) {
+        None | Some(Value::Null) => Ok(None),
+        Some(Value::Number(n)) => {
+            let value = n.as_i64().ok_or_else(|| {
+                gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                    message: format!("{key} must be an integer"),
+                })
+            })?;
+            u64::try_from(value).map(Some).map_err(|_| {
                 gmeow_errors::Diag::of_kind(crate::error::Mcp {
                     message: format!("{key} must be non-negative"),
                 })
@@ -3116,6 +3162,98 @@ mod tests {
         assert!(
             !path.exists() || fs::metadata(&path).unwrap().len() == 0,
             "a dry run must write nothing to the library"
+        );
+    }
+
+    /// A KB whose `ex:trigger` fires the `∀`-Horn candidate on SEVERAL individuals, so the
+    /// candidate's derived (non-EDB) closure is strictly larger than a `max_steps`/`max_answers`
+    /// bound of 1 — the isolated scenario evaluation exceeds the ceiling.
+    fn multi_trigger_kb(cls_local: &str) -> String {
+        format!(
+            "@prefix ex:  <http://ex/> .\n\
+             @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n\
+             ex:a ex:trigger ex:mark .\n\
+             ex:b ex:trigger ex:mark .\n\
+             ex:c ex:trigger ex:mark .\n\
+             ex:a rdf:type ex:A .\n\
+             # {cls_local} is unrelated to A — no clash, just several derived facts.\n"
+        )
+    }
+
+    #[test]
+    fn conjecture_test_budget_bound_forces_open_via_the_mcp_surface() {
+        // GAP G1: the `max_steps` / `max_answers` bound is reachable from the SHIPPED MCP
+        // surface (not just the logic-crate unit test). A run whose derived closure exceeds the
+        // ceiling is truncated → evaluation budget-exhausted → lifecycle open → discharge Unknown.
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let (_env, _cg) = ConjEnvGuard::set();
+        let (_mem, _mp) = temp_memory();
+        let (_dir, path) = temp_conjecture();
+        let bytes = snapshot();
+        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+
+        // Unbounded control: the same candidate/KB runs to Completed (a non-budget verdict).
+        let unbounded = text_payload(server.call_tool_result(
+            "conjecture_test",
+            &json!({
+                "formula": forall_horn_candidate("C"),
+                "kb": multi_trigger_kb("C"),
+                "standpoint": "http://ex/standpoint/alice",
+                "dry_run": true,
+            }),
+        ));
+        assert_eq!(unbounded["ok"], true);
+        assert_ne!(
+            unbounded["verdict"]["evaluation"], "budget-exhausted",
+            "the unbounded control must not trip the ceiling: {unbounded}"
+        );
+
+        // Bounded: a ceiling of 1 truncates the multi-fact derived closure.
+        let bounded = text_payload(server.call_tool_result(
+            "conjecture_test",
+            &json!({
+                "formula": forall_horn_candidate("C"),
+                "kb": multi_trigger_kb("C"),
+                "standpoint": "http://ex/standpoint/alice",
+                "dry_run": true,
+                "max_steps": 1,
+            }),
+        ));
+        assert_eq!(
+            bounded["ok"], true,
+            "bounded run must compute a verdict: {bounded}"
+        );
+        assert_eq!(
+            bounded["verdict"]["evaluation"], "budget-exhausted",
+            "exceeding the ceiling must stamp BudgetExhausted: {bounded}"
+        );
+        assert_eq!(
+            bounded["verdict"]["lifecycle"], "open",
+            "a budget-exhausted run is inconclusive → Open: {bounded}"
+        );
+        assert_eq!(
+            bounded["verdict"]["discharge"], "ObligationUnknown",
+            "a budget-exhausted run carries the obligation forward as Unknown: {bounded}"
+        );
+
+        // `max_answers` is the equivalent binding-count ceiling and trips the same way.
+        let bounded_answers = text_payload(server.call_tool_result(
+            "conjecture_test",
+            &json!({
+                "formula": forall_horn_candidate("C"),
+                "kb": multi_trigger_kb("C"),
+                "standpoint": "http://ex/standpoint/alice",
+                "dry_run": true,
+                "max_answers": 1,
+            }),
+        ));
+        assert_eq!(
+            bounded_answers["verdict"]["evaluation"], "budget-exhausted",
+            "max_answers must impose the same ceiling: {bounded_answers}"
+        );
+        assert!(
+            !path.exists() || fs::metadata(&path).unwrap().len() == 0,
+            "these dry runs must write nothing"
         );
     }
 
