@@ -36,6 +36,7 @@ use std::collections::HashSet;
 use std::sync::Arc;
 
 use gmeow_logic_compile::frontend::parse_logic_str;
+use gmeow_logic_compile::loss_ledger::LossLedger;
 use gmeow_logic_compile::projections::{
     rdf::{project_canonical_rdf12, project_gufo, project_owl_dl, project_owl_el},
     text::{project_datalog, project_n3, project_nemo},
@@ -480,62 +481,66 @@ fn transcode_to_projection(
         })
     })?;
 
-    // Run the appropriate projection back-end.
+    // Run the appropriate projection back-end. Each lossy back-end interns its per-run drops
+    // into this local loss store; the realized-loss count is read back from it via
+    // `actual_drop_count(target)` (the old `ProjectionResult::actual_drops.len()`). The Exact
+    // `canonical-rdf12` leg drops nothing and never touches the store.
+    let mut loss = LossLedger::new();
     let (content, actual_drop_count) = match to {
         Codec::OwlDl => {
-            let result = project_owl_dl(&program).map_err(|e| {
+            let result = project_owl_dl(&program, &mut loss).map_err(|e| {
                 gmeow_errors::Diag::of_kind(crate::transcode::CodecError {
                     message: format!("owl-dl projection: {e}"),
                 })
             })?;
-            let drops = result.actual_drops.len() as u64;
+            let drops = loss.actual_drop_count(&result.target) as u64;
             (result.content, drops)
         }
         Codec::OwlEl => {
-            let result = project_owl_el(&program).map_err(|e| {
+            let result = project_owl_el(&program, &mut loss).map_err(|e| {
                 gmeow_errors::Diag::of_kind(crate::transcode::CodecError {
                     message: format!("owl-el projection: {e}"),
                 })
             })?;
-            let drops = result.actual_drops.len() as u64;
+            let drops = loss.actual_drop_count(&result.target) as u64;
             (result.content, drops)
         }
         Codec::Datalog => {
-            let result = project_datalog(&program);
-            let drops = result.actual_drops.len() as u64;
+            let result = project_datalog(&program, &mut loss);
+            let drops = loss.actual_drop_count(&result.target) as u64;
             (result.content, drops)
         }
         Codec::N3 => {
-            let result = project_n3(&program);
-            let drops = result.actual_drops.len() as u64;
+            let result = project_n3(&program, &mut loss);
+            let drops = loss.actual_drop_count(&result.target) as u64;
             (result.content, drops)
         }
         Codec::Nemo => {
-            let result = project_nemo(&program).map_err(|e| {
+            let result = project_nemo(&program, &mut loss).map_err(|e| {
                 gmeow_errors::Diag::of_kind(crate::transcode::CodecError {
                     message: format!("nemo projection: {e}"),
                 })
             })?;
-            let drops = result.actual_drops.len() as u64;
+            let drops = loss.actual_drop_count(&result.target) as u64;
             (result.content, drops)
         }
         Codec::Gufo => {
-            let result = project_gufo(&program).map_err(|e| {
+            let result = project_gufo(&program, &mut loss).map_err(|e| {
                 gmeow_errors::Diag::of_kind(crate::transcode::CodecError {
                     message: format!("gufo projection: {e}"),
                 })
             })?;
-            let drops = result.actual_drops.len() as u64;
+            let drops = loss.actual_drop_count(&result.target) as u64;
             (result.content, drops)
         }
         Codec::CanonicalRdf12 => {
+            // Exact: interns nothing, so its realized-loss count is 0 by construction.
             let result = project_canonical_rdf12(&program).map_err(|e| {
                 gmeow_errors::Diag::of_kind(crate::transcode::CodecError {
                     message: format!("canonical-rdf12 projection: {e}"),
                 })
             })?;
-            let drops = result.actual_drops.len() as u64;
-            (result.content, drops)
+            (result.content, 0)
         }
         _ => unreachable!("transcode_to_projection called with non-projection target"),
     };
@@ -584,15 +589,29 @@ fn realize_losses(
 
 /// Render a slice of [`RealizedLoss`] values as deterministic, pretty-printed
 /// JSON sorted by `(from, to, code)`.
+///
+/// The realized losses are first interned into the ONE substrate loss store
+/// ([`gmeow_logic_compile::loss_ledger::LossLedger`]) — the single ledger every
+/// loss serialization projects from — keyed per **R1** by the `from␟to` codec
+/// pair, then read back (already sorted) and serialized. The JSON is produced
+/// FROM the ledger, never straight off the `Vec<RealizedLoss>`.
 pub fn realized_loss_json(losses: &[RealizedLoss]) -> String {
-    let mut sorted: Vec<&RealizedLoss> = losses.iter().collect();
-    sorted.sort_by(|a, b| {
-        a.from
-            .cmp(&b.from)
-            .then(a.to.cmp(&b.to))
-            .then(a.code.cmp(&b.code))
-    });
-    serde_json::to_string_pretty(&sorted).unwrap_or_else(|_| "[]".to_owned())
+    let mut store = gmeow_logic_compile::loss_ledger::LossLedger::new();
+    for loss in losses {
+        store.record_transcode_loss(&loss.code, &loss.from, &loss.to, &loss.note, loss.count);
+    }
+    let rows: Vec<RealizedLoss> = store
+        .transcode_rows()
+        .into_iter()
+        .map(|row| RealizedLoss {
+            code: row.code,
+            from: row.from,
+            to: row.to,
+            note: row.note,
+            count: row.count,
+        })
+        .collect();
+    serde_json::to_string_pretty(&rows).unwrap_or_else(|_| "[]".to_owned())
 }
 
 /// One row of the supported-transcode matrix: a `from → to` pair the engine

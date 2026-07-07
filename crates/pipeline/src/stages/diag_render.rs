@@ -113,6 +113,7 @@ pub fn render_diagnostics_artifacts(
     stage: &str,
     report: &Report,
     paths: &DiagnosticsPaths<'_>,
+    gate: Option<&crate::stages::gate_verdict::GateProgram>,
 ) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
     let stage_err = |what: &str, detail: String| {
         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
@@ -141,7 +142,21 @@ pub fn render_diagnostics_artifacts(
     // The `.nq` diagnostics graph rides as an RDF-fanout named graph: emit the RDFC-1.0
     // canonical N-Quads (keeping the `graph/diagnostics` 4th-column label) so the
     // superset gate reconstructs it byte-for-byte.
-    let nq = gmeow_errors::render::to_gmeow_rdf(report);
+    let mut nq = gmeow_errors::render::to_gmeow_rdf(report);
+    // Materialize the REASONER-DERIVED gate verdict: run the AUTHORED
+    // logic:ruleGateFatalVerdict up-set rule (via the native chase, NOT the Rust
+    // gate() morphism) over the projected finding grades and fold the derived
+    // gmeow:findingGateVerdict gmeow:gateFatal triples in BEFORE canonicalization, so
+    // both the byte artifact and the carrier graph carry the entailment and the
+    // gmeow:GateFatalUpsetShape passes under validate-gts. Producers whose findings can
+    // never join the up-set (e.g. the logic-compiler's Note-severity lossy drops) pass
+    // `None` and the projection is byte-unchanged.
+    if let Some(gate) = gate {
+        let derived = gate
+            .derived_verdict_nquads(&nq, crate::stages::carrier::GRAPH_DIAGNOSTICS)
+            .map_err(|e| stage_err("RDF", format!("derive gate verdict: {e}")))?;
+        nq.push_str(&derived);
+    }
     let nq_ds = purrdf::parse_dataset(nq.as_bytes(), "application/n-quads", None)
         .map_err(|e| stage_err("RDF", format!("parse N-Quads: {e}")))?;
     artifacts.insert(

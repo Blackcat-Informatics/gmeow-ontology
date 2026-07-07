@@ -8,9 +8,10 @@
 //! One [`Advisory`] value produces, via a single [`Advisory::project`] call,
 //! BOTH projections simultaneously:
 //!
-//! 1. A flat [`gmeow_errors::Finding`] at [`Severity::Note`] or
-//!    [`Severity::Info`] — the linter/SARIF/CLI surface consumed by every
-//!    existing diagnostics renderer.
+//! 1. A graded [`gmeow_errors::Diag`] at [`Severity::Note`] or
+//!    [`Severity::Info`], carried at [`Standpoint::Advisory`] — it interns onto
+//!    the run [`gmeow_errors::DiagLedger`] and projects to the linter/SARIF/CLI
+//!    surface every existing diagnostics renderer consumes.
 //! 2. An in-memory [`AdvisoryClaim`] hook carrying the vantage IRI, the advised
 //!    proposition, and the deontic-modality IRI.  (D4) will later
 //!    materialise this hook into a `gmeow:ComplianceAssessment` /
@@ -30,7 +31,9 @@
 //! D4 reconciles the string IRI with a real `gmeow:Standpoint` individual
 //! when it materialises the RDF claim.
 
-use gmeow_errors::{Finding, Location, Rule, Severity};
+use gmeow_errors::{
+    Advice, Diag, FindingCategory, Grade, Location, Rule, Severity, Standpoint, register_code,
+};
 
 // ── Standpoint & modality constants ─────────────────────────────────────────
 
@@ -49,7 +52,7 @@ pub const DEONTIC_RECOMMENDATION_IRI: &str =
 
 // ── Core types ───────────────────────────────────────────────────────────────
 
-/// A best-practice advisory ready to emit as a flat [`Finding`] and an
+/// A best-practice advisory ready to emit as a graded [`Diag`] and an
 /// in-memory [`AdvisoryClaim`] hook.
 ///
 /// # Contract
@@ -87,18 +90,28 @@ pub struct Advisory {
     pub tags: Vec<String>,
 }
 
-/// The dual projection of one advisory event (P4/P17): a flat [`Finding`] and
+/// The dual projection of one advisory event (P4/P17): a graded [`Diag`] and
 /// the in-memory claim hook D4 fills.  Produced together by
 /// [`Advisory::project`].
 ///
+/// The diagnostic wing is a first-class graded [`Diag`] at
+/// [`Standpoint::Advisory`] — the perspectival vantage is carried on the grade,
+/// not stringly as an IRI — so it interns onto the run [`gmeow_errors::DiagLedger`]
+/// like every other producer.  An Advisory-standpoint witness never gates,
+/// whatever its severity (that theorem lives in the gate morphism), so the
+/// advisory demonstrator stays a non-failing Note.
+///
 /// # Invariant
 ///
-/// `finding.code == claim.code` — the flat finding and the claim hook always
-/// refer to the same diagnostic rule.
-#[derive(Debug, Clone, PartialEq)]
+/// `diag.code() == claim.code` — the diagnostic and the claim hook always refer
+/// to the same advisory rule.
+///
+/// [`Diag`] is a move-only carrier (no `Clone`), so this projection is consumed
+/// once — destructured into its two wings — never cached and reused.
+#[derive(Debug)]
 pub struct AdvisoryProjection {
-    /// The flat linter/SARIF/CLI surface for this advisory event.
-    pub finding: Finding,
+    /// The graded advisory diagnostic, ready to intern onto the run ledger.
+    pub diag: Diag,
     /// The in-memory claim hook for D4 to materialise as RDF.
     pub claim: AdvisoryClaim,
 }
@@ -180,16 +193,19 @@ impl Advisory {
     /// Produce BOTH projections from one call.
     ///
     /// The dual-projection-always contract: no opt-in flag; every call to
-    /// `project` yields exactly one [`Finding`] AND one [`AdvisoryClaim`].
+    /// `project` yields exactly one graded [`Diag`] AND one [`AdvisoryClaim`].
     ///
-    /// # Finding construction
+    /// # Diagnostic construction
     ///
     /// * `severity` / `code` / `message` forwarded verbatim.
-    /// * Tool stamp set to `"validate"`.
-    /// * Each `suggestion` pushed into `finding.suggestions`.
-    /// * Each `location` pushed via [`Finding::add_location`] (empty locations
-    ///   are filtered by that method).
-    /// * `tags` cloned into `finding.tags`.
+    /// * Grade = (`self.severity`, [`FindingCategory::PolicyWarning`],
+    ///   [`Standpoint::Advisory`]) — advice is a non-gating, perspectival
+    ///   recommendation, so the vantage is first-class on the grade (never a
+    ///   Binding gate contribution).
+    /// * Each `suggestion` becomes an [`Advice`] at the Advisory standpoint,
+    ///   projected back onto `finding.suggestions` by the ledger.
+    /// * The first `location` (if any) becomes the diagnostic's source context.
+    /// * `tags` carried onto the diagnostic.
     ///
     /// # Claim construction
     ///
@@ -198,16 +214,32 @@ impl Advisory {
     /// * `modality_iri` = [`DEONTIC_RECOMMENDATION_IRI`].
     /// * `code` = `self.code`.
     pub fn project(&self) -> AdvisoryProjection {
-        let mut finding = Finding::new(self.severity, self.code.clone(), self.message.clone())
-            .with_tool("validate");
+        let mut diag = Diag::new(
+            register_code(&self.code),
+            Grade::new(
+                self.severity,
+                FindingCategory::PolicyWarning,
+                Standpoint::Advisory,
+            ),
+            self.message.clone(),
+        );
 
         for suggestion in &self.suggestions {
-            finding.suggestions.push(suggestion.clone());
+            diag = diag.with_advice(Advice {
+                standpoint: Standpoint::Advisory,
+                text: suggestion.clone(),
+                help_uri: self.help_uri.clone(),
+            });
         }
-        for location in &self.locations {
-            finding.add_location(location.clone());
+        // A `Diag` carries a single source context; the advisory demonstrator has
+        // none, and callers attach at most one relevant location. The first
+        // location is the source anchor.
+        if let Some(location) = self.locations.first() {
+            diag = diag.with_location(location.clone());
         }
-        finding.tags = self.tags.clone();
+        for tag in &self.tags {
+            diag = diag.with_tag(tag.clone());
+        }
 
         let claim = AdvisoryClaim {
             standpoint_iri: self.standpoint_iri.clone(),
@@ -216,7 +248,7 @@ impl Advisory {
             code: self.code.clone(),
         };
 
-        AdvisoryProjection { finding, claim }
+        AdvisoryProjection { diag, claim }
     }
 
     /// The soft [`Rule`] to register on the [`gmeow_errors::Report`] so
@@ -237,20 +269,40 @@ impl Advisory {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use gmeow_errors::{DiagLedger, StageId};
+
+    /// Project the advisory diagnostic wing through a ledger to the wire
+    /// [`gmeow_errors::Finding`] the renderers consume — the real intern path.
+    fn project_diag_finding(diag: Diag) -> gmeow_errors::Finding {
+        let mut ledger = DiagLedger::new();
+        ledger.attach(diag, StageId::new("validate.advisory"));
+        ledger
+            .findings("validate")
+            .pop()
+            .expect("exactly one advisory finding")
+    }
 
     /// Both projection wings are produced in one call and carry the expected
     /// field values — the core dual-projection-always contract.
     #[test]
-    fn project_yields_both_flat_finding_and_claim() {
+    fn project_yields_both_graded_diag_and_claim() {
         let advisory = Advisory::note("advice.sample", "consider a more specific sortal")
             .with_suggestion("use gmeow:Kind")
             .with_help_uri("https://example.org/docs/advice#sample");
 
-        let AdvisoryProjection { finding, claim } = advisory.project();
+        let AdvisoryProjection { diag, claim } = advisory.project();
 
-        // ── flat finding assertions ──────────────────────────────────────────
+        // ── graded diagnostic assertions ─────────────────────────────────────
+        assert_eq!(diag.grade().severity, Severity::Note);
+        assert_eq!(diag.grade().category, FindingCategory::PolicyWarning);
+        assert_eq!(diag.grade().standpoint, Standpoint::Advisory);
+        assert_eq!(diag.message(), "consider a more specific sortal");
+
+        let finding = project_diag_finding(diag);
         assert_eq!(finding.severity, Severity::Note);
         assert_eq!(finding.code, "advice.sample");
+        assert_eq!(finding.standpoint, Some(Standpoint::Advisory));
+        assert_eq!(finding.category, Some(FindingCategory::PolicyWarning));
         assert_eq!(finding.tool, Some("validate".to_owned()));
         assert_eq!(finding.suggestions, vec!["use gmeow:Kind".to_owned()]);
         assert_eq!(finding.message, "consider a more specific sortal");
@@ -278,7 +330,7 @@ mod tests {
         );
     }
 
-    /// `project()` always returns exactly ONE finding and ONE claim — the 1:1
+    /// `project()` always returns exactly ONE diagnostic and ONE claim — the 1:1
     /// structural invariant of the dual-projection-always contract.
     #[test]
     fn one_advisory_one_claim() {
@@ -286,9 +338,10 @@ mod tests {
         let projection = advisory.project();
 
         // Destructure to confirm both wings exist (would not compile otherwise).
-        let AdvisoryProjection { finding, claim } = projection;
+        let AdvisoryProjection { diag, claim } = projection;
 
-        // The codes must agree — the finding and claim refer to the same rule.
+        // The codes must agree — the diagnostic and claim refer to the same rule.
+        let finding = project_diag_finding(diag);
         assert_eq!(finding.code, claim.code);
     }
 }

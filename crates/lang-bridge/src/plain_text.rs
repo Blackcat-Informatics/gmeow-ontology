@@ -25,7 +25,6 @@ use gmeow_logic_compile::ir::{
     Correspondence, CorrespondenceLaw, CorrespondenceRelation, Determinacy, DischargeCondition,
     DischargeVerdict, LawClaimIr, MorphismClass, MorphismKind, PreservationKind,
 };
-use gmeow_logic_compile::projections::ProjectionResult;
 
 use crate::bridge::{Bridge, IngestDiagnostic, LangFailure, Lifted};
 use crate::emit::digest16;
@@ -137,23 +136,26 @@ impl Bridge for PlainTextBridge {
         // One honest ledger row: the surface stratum round-trips exactly (nothing is
         // dropped). The unanalyzed status is recorded via the raw analysis level, never
         // charged as a projection loss.
-        let ledger = vec![ProjectionResult {
-            target: format!(
+        let mut loss = crate::registry::LossLedger::new();
+        let ledger = vec![crate::registry::emit_ledger_row(
+            &mut loss,
+            format!(
                 "lang-plain-text:{}",
                 digest16("lang-plain-text", &surface.surface_key())
             ),
-            content: String::new(),
-            is_rdf: false,
-            preservation: PreservationKind::Exact,
-            complexity: "n/a".to_owned(),
-            lossy_drops: Vec::new(),
-            actual_drops: Vec::new(),
-        }];
+            String::new(),
+            false,
+            PreservationKind::Exact,
+            "n/a".to_owned(),
+            Vec::new(),
+            Vec::new(),
+        )];
         Ok(Lifted {
             forms: Vec::new(),
             surfaces: vec![surface],
             correspondence,
             ledger,
+            loss,
         })
     }
 

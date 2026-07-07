@@ -37,7 +37,6 @@ use gmeow_logic_compile::ir::{
     Correspondence, CorrespondenceLaw, CorrespondenceRelation, Determinacy, DischargeCondition,
     DischargeVerdict, LawClaimIr, LegPath, MorphismClass, MorphismKind, PreservationKind,
 };
-use gmeow_logic_compile::projections::ProjectionResult;
 
 use crate::bridge::{Bridge, IngestDiagnostic, LangFailure, Lifted};
 use crate::emit::digest16;
@@ -596,21 +595,24 @@ impl Bridge for ConlluBridge {
 
         // One honest ledger row: the full-fidelity model round-trips exactly, so nothing is
         // dropped. A future lossy path would record its residue in `actual_drops`.
-        let ledger = vec![ProjectionResult {
-            target: "conllu".to_owned(),
-            content: String::new(),
-            is_rdf: false,
-            preservation: PreservationKind::Exact,
-            complexity: "n/a".to_owned(),
-            lossy_drops: Vec::new(),
-            actual_drops: Vec::new(),
-        }];
+        let mut loss = crate::registry::LossLedger::new();
+        let ledger = vec![crate::registry::emit_ledger_row(
+            &mut loss,
+            "conllu".to_owned(),
+            String::new(),
+            false,
+            PreservationKind::Exact,
+            "n/a".to_owned(),
+            Vec::new(),
+            Vec::new(),
+        )];
 
         Ok(Lifted {
             forms,
             surfaces,
             correspondence,
             ledger,
+            loss,
         })
     }
 
@@ -771,18 +773,21 @@ fn emit_composed_form(
         });
     }
 
+    let mut loss = crate::registry::LossLedger::new();
     Ok(LangEmission {
         artifacts,
         correspondence: conllu_correspondence(&corr_key),
-        ledger: vec![ProjectionResult {
-            target: format!("conllu:{}#{form_local}", source.name),
-            content: String::new(),
-            is_rdf: false,
-            preservation: PreservationKind::Exact,
-            complexity: "n/a".to_owned(),
-            lossy_drops: Vec::new(),
-            actual_drops: Vec::new(),
-        }],
+        ledger: vec![crate::registry::emit_ledger_row(
+            &mut loss,
+            format!("conllu:{}#{form_local}", source.name),
+            String::new(),
+            false,
+            PreservationKind::Exact,
+            "n/a".to_owned(),
+            Vec::new(),
+            Vec::new(),
+        )],
+        loss,
         leg_pair: Some(conllu_leg_pair()),
         emitted_reading_count: Some(reading_keys.len() as u64),
         source_iri,

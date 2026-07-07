@@ -18,17 +18,6 @@
 
 use gmeow_errors::{Finding, Location, Severity};
 use purrdf::shapes::report::{Severity as ShaclSeverity, ValidationResult};
-use purrdf::{RdfDiagnostic, RdfLocation, RdfSeverity};
-
-/// Normalize an [`RdfSeverity`] to the canonical diagnostics [`Severity`].
-fn severity_from_rdf(severity: RdfSeverity) -> Severity {
-    match severity {
-        RdfSeverity::Error => Severity::Error,
-        RdfSeverity::Warning => Severity::Warning,
-        RdfSeverity::Note => Severity::Note,
-        RdfSeverity::Info => Severity::Info,
-    }
-}
 
 /// Normalize a SHACL [`ShaclSeverity`] to the canonical diagnostics [`Severity`].
 ///
@@ -63,63 +52,6 @@ fn strip_angle(term: &str) -> &str {
     term.strip_prefix('<')
         .and_then(|inner| inner.strip_suffix('>'))
         .unwrap_or(term)
-}
-
-/// Convert an [`RdfLocation`] into a diagnostics [`Location`], preserving every
-/// GTS wire coordinate (`usize` on the RDF side becomes the portable `u64` the
-/// diagnostics model serializes).
-pub fn location_from_rdf(location: &RdfLocation) -> Location {
-    let mut out = Location::new(
-        location.path.clone(),
-        location.line,
-        location.column,
-        location.logical.clone(),
-    );
-    if let Some(term_id) = location.gts_term_id {
-        out = out.with_gts_term(term_id as u64);
-    }
-    if let Some(quad_index) = location.gts_quad_index {
-        out = out.with_gts_quad(quad_index as u64);
-    }
-    if let Some(reifier_id) = location.gts_reifier_id {
-        out = out.with_gts_reifier(reifier_id as u64);
-    }
-    if let Some(frame_index) = location.gts_frame_index {
-        out = out.with_gts_frame(frame_index as u64);
-    }
-    if let Some(segment_index) = location.gts_segment_index {
-        out = out.with_gts_segment(segment_index as u64);
-    }
-    out
-}
-
-/// Convert an [`RdfDiagnostic`] into a canonical [`Finding`].
-///
-/// Conversion losses recorded on the diagnostic become related locations and
-/// human-readable suggestions, so nothing the adapter knew is dropped.
-pub fn finding_from_rdf(diagnostic: &RdfDiagnostic) -> Finding {
-    let mut finding = Finding::new(
-        severity_from_rdf(diagnostic.severity),
-        diagnostic.code.clone(),
-        diagnostic.message.clone(),
-    )
-    .with_tool("rdf");
-    finding.detail = diagnostic.detail.clone();
-    if let Some(location) = &diagnostic.location {
-        finding.add_location(location_from_rdf(location));
-    }
-    for loss in &diagnostic.losses {
-        finding
-            .suggestions
-            .push(format!("{}: {}", loss.code, loss.message));
-        if let Some(location) = &loss.location {
-            let related = location_from_rdf(location);
-            if !related.is_empty() {
-                finding.related_locations.push(related);
-            }
-        }
-    }
-    finding
 }
 
 /// Convert a SHACL [`ValidationResult`] into a canonical [`Finding`].
@@ -169,82 +101,6 @@ pub fn finding_from_shacl(result: &ValidationResult) -> Finding {
 mod tests {
     use super::*;
     use purrdf::shapes::term::{NamedNode, Term};
-
-    #[test]
-    fn ir_quad_location_threads_end_to_end_into_sarif() {
-        // The full Task 12 chain: a source location attached to a quad in the
-        // immutable IR survives (a) owned-boundary resolution of the frozen quad,
-        // (b) the RdfLocation -> diagnostics Location bridge here, and (c) the
-        // SARIF renderer — surfacing as a repo-relative physicalLocation. No
-        // single layer's test crosses all three.
-        use purrdf::ir::RdfDatasetBuilder;
-
-        let mut b = RdfDatasetBuilder::new();
-        let s = b.intern_iri("https://example.org/s");
-        let p = b.intern_iri("https://example.org/p");
-        let o = b.intern_iri("https://example.org/o");
-        let handle = b.next_quad_handle();
-        b.push_quad(s, p, o, None);
-        b.attach_location(
-            handle,
-            RdfLocation::file("slices/core/x/module.ttl").with_line(12),
-        );
-        let dataset = b.freeze().expect("valid");
-
-        // Read the quad back through the owned-boundary helper — it carries the IR location.
-        let quad = dataset.owned_quads().next().expect("a quad");
-        let rdf_location = quad
-            .location
-            .expect("the bridge threads the quad's IR location into the owned model");
-
-        // RdfLocation -> diagnostics Location -> Finding -> SARIF.
-        let mut finding = Finding::new(Severity::Error, "validate.x", "boom");
-        finding.add_location(location_from_rdf(&rdf_location));
-        let mut report = gmeow_errors::Report::new("validate");
-        report.add_finding(finding);
-        let sarif = gmeow_errors::render::to_sarif(&report).expect("sarif");
-
-        assert!(
-            sarif.contains("\"uri\": \"slices/core/x/module.ttl\""),
-            "IR file location must reach the SARIF physicalLocation:\n{sarif}"
-        );
-        assert!(
-            sarif.contains("\"startLine\": 12"),
-            "IR line must reach the SARIF region:\n{sarif}"
-        );
-    }
-
-    #[test]
-    fn rdf_diagnostic_carries_wire_coordinates_into_finding() {
-        let diagnostic = RdfDiagnostic::error("gts.fold", "unexpected reifier")
-            .with_location(RdfLocation::logical("gts:quad").with_gts_quad(42));
-
-        let finding = finding_from_rdf(&diagnostic);
-
-        assert_eq!(finding.severity, Severity::Error);
-        assert_eq!(finding.code, "gts.fold");
-        let location = finding.primary_location().expect("a location");
-        assert_eq!(location.gts_quad_index, Some(42));
-        assert_eq!(location.logical.as_deref(), Some("gts:quad"));
-    }
-
-    #[test]
-    fn rdf_losses_become_suggestions_and_related_locations() {
-        use purrdf::RdfLoss;
-        let mut diagnostic =
-            RdfDiagnostic::new(RdfSeverity::Warning, "gts.lossy", "language tag dropped");
-        diagnostic.add_loss(
-            RdfLoss::new("lang", "dropped @en")
-                .with_location(RdfLocation::logical("gts:term").with_gts_term(7)),
-        );
-
-        let finding = finding_from_rdf(&diagnostic);
-
-        assert_eq!(finding.severity, Severity::Warning);
-        assert_eq!(finding.suggestions, ["lang: dropped @en"]);
-        assert_eq!(finding.related_locations.len(), 1);
-        assert_eq!(finding.related_locations[0].gts_term_id, Some(7));
-    }
 
     #[test]
     fn shacl_result_carries_focus_node_and_component() {

@@ -211,13 +211,17 @@ impl TripleSink {
     }
 }
 
+/// Build the drop-less [`ProjectionResult`] for an RDF target, running the producer-side
+/// legalization gate over its per-run `actual_drops` first. The drops themselves are
+/// interned into the single loss store by the caller (via [`intern_rdf_drops`]) — an Exact
+/// target (canonical-rdf12) drops nothing and interns nothing.
 fn rdf_result(
     target: &str,
     sink: TripleSink,
     banner_label: &str,
-    actual_drops: Vec<String>,
+    actual_drops: &[String],
 ) -> Result<ProjectionResult, OverclaimError> {
-    let (kind, cx, drops) = target_meta(target);
+    let (kind, cx, _drops) = target_meta(target);
     let residue: Vec<&str> = actual_drops.iter().map(String::as_str).collect();
     assert_no_overclaim(target, kind, &residue)?;
     let content = sink.serialize(&generated_banner(banner_label));
@@ -227,9 +231,19 @@ fn rdf_result(
         is_rdf: true,
         preservation: kind,
         complexity: cx.to_owned(),
-        lossy_drops: drops.into_iter().map(str::to_owned).collect(),
-        actual_drops,
     })
+}
+
+/// Intern a lossy RDF target's structural (from [`target_meta`]) + per-run `actual_drops`
+/// into the single loss store, keyed by the target focus.
+fn intern_rdf_drops(
+    loss: &mut crate::loss_ledger::LossLedger,
+    target: &str,
+    actual_drops: &[String],
+) {
+    let (kind, _, structural) = target_meta(target);
+    let structural: Vec<String> = structural.into_iter().map(str::to_owned).collect();
+    loss.record_projection_drops(target, kind, &structural, actual_drops);
 }
 
 // --------------------------------------------------------------------------- //
@@ -475,7 +489,10 @@ fn emit_datarange(g: &mut TripleSink, node: &str, dr: &LiftedDatarange) {
 // --------------------------------------------------------------------------- //
 
 /// Project to OWL 2 DL Turtle (`generated/owl/gmeow-dl.ttl`).
-pub fn project_owl_dl(program: &LogicProgram) -> Result<ProjectionResult, OverclaimError> {
+pub fn project_owl_dl(
+    program: &LogicProgram,
+    loss: &mut crate::loss_ledger::LossLedger,
+) -> Result<ProjectionResult, OverclaimError> {
     let mut g = TripleSink::default();
     let mut actual_drops: Vec<String> = Vec::new();
 
@@ -598,7 +615,8 @@ pub fn project_owl_dl(program: &LogicProgram) -> Result<ProjectionResult, Overcl
     actual_drops.extend(contract_drop_notes(program, "OWL 2 DL", &|f| {
         recognize_covering(f).is_some()
     }));
-    rdf_result("owl-dl", g, "OWL 2 DL", actual_drops)
+    intern_rdf_drops(loss, "owl-dl", &actual_drops);
+    rdf_result("owl-dl", g, "OWL 2 DL", &actual_drops)
 }
 
 // --------------------------------------------------------------------------- //
@@ -606,7 +624,10 @@ pub fn project_owl_dl(program: &LogicProgram) -> Result<ProjectionResult, Overcl
 // --------------------------------------------------------------------------- //
 
 /// Project to OWL 2 EL Turtle (`generated/owl/gmeow-el.ttl`).
-pub fn project_owl_el(program: &LogicProgram) -> Result<ProjectionResult, OverclaimError> {
+pub fn project_owl_el(
+    program: &LogicProgram,
+    loss: &mut crate::loss_ledger::LossLedger,
+) -> Result<ProjectionResult, OverclaimError> {
     let mut g = TripleSink::default();
     let mut actual_drops: Vec<String> = Vec::new();
 
@@ -777,7 +798,8 @@ pub fn project_owl_el(program: &LogicProgram) -> Result<ProjectionResult, Overcl
     }
 
     actual_drops.extend(contract_drop_notes(program, "OWL 2 EL", &|_| false));
-    rdf_result("owl-el", g, "OWL 2 EL", actual_drops)
+    intern_rdf_drops(loss, "owl-el", &actual_drops);
+    rdf_result("owl-el", g, "OWL 2 EL", &actual_drops)
 }
 
 // --------------------------------------------------------------------------- //
@@ -785,7 +807,10 @@ pub fn project_owl_el(program: &LogicProgram) -> Result<ProjectionResult, Overcl
 // --------------------------------------------------------------------------- //
 
 /// Project to gUFO bridge Turtle (`generated/foundation/gufo.ttl`).
-pub fn project_gufo(program: &LogicProgram) -> Result<ProjectionResult, OverclaimError> {
+pub fn project_gufo(
+    program: &LogicProgram,
+    loss: &mut crate::loss_ledger::LossLedger,
+) -> Result<ProjectionResult, OverclaimError> {
     let mut g = TripleSink::default();
     let mut actual_drops: Vec<String> = Vec::new();
 
@@ -833,7 +858,8 @@ pub fn project_gufo(program: &LogicProgram) -> Result<ProjectionResult, Overclai
     }
 
     actual_drops.extend(contract_drop_notes(program, "the gUFO bridge", &|_| false));
-    rdf_result("gufo", g, "gUFO bridge", actual_drops)
+    intern_rdf_drops(loss, "gufo", &actual_drops);
+    rdf_result("gufo", g, "gUFO bridge", &actual_drops)
 }
 
 // --------------------------------------------------------------------------- //
@@ -1035,7 +1061,9 @@ pub fn project_canonical_rdf12(program: &LogicProgram) -> Result<ProjectionResul
         emit_formula(&mut g, &f_node, formula);
     }
 
-    rdf_result("canonical-rdf12", g, "Canonical RDF 1.2", Vec::new())
+    // Exact target: drops nothing, so it interns nothing into the loss store (its
+    // read-back is empty and its report/ledger rows carry no `gmeow:lossyDrop`).
+    rdf_result("canonical-rdf12", g, "Canonical RDF 1.2", &[])
 }
 
 /// Emit a [`Formula`] as a reified `logic:Formula` tree rooted at `node`. Deterministic

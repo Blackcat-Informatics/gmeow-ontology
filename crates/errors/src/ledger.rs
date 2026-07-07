@@ -29,7 +29,7 @@ use std::fmt;
 use serde::{Deserialize, Serialize};
 
 use crate::diag::{Advice, Diag, DiagRef, Label, Slot, SourceContext, StageId};
-use crate::grade::{Belnap, BoundedLattice, FindingCategory, Grade};
+use crate::grade::{Belnap, BoundedLattice, FindingCategory, GateVerdict, Grade, gate};
 use crate::lower::lower;
 use crate::model::DiagnosticAttribution;
 
@@ -246,6 +246,39 @@ impl DiagLedger {
             (a.stage.as_str(), &a.fingerprint).cmp(&(b.stage.as_str(), &b.fingerprint))
         });
         refs
+    }
+
+    /// **The** aggregate gate verdict of the whole ledger: the `⊔` join-fold of
+    /// the single [`gate`] policy morphism over every interned witness. This is
+    /// the one operation every verdict surface reduces to — the validate report's
+    /// `ok()`, a scoreboard's gate result, the conformance divergence verdict —
+    /// so a Fatal witness anywhere makes the ledger Fatal, and an empty ledger is
+    /// [`Collected`](GateVerdict::Collected) (the bottom). Being a fold of a
+    /// monotone map through the [`GateVerdict`] semilattice join, it is a
+    /// semilattice homomorphism: `verdict(a ∪ b) == verdict(a) ⊔ verdict(b)`, so
+    /// folding stage sub-ledgers in parallel and joining their verdicts equals the
+    /// verdict of the whole — the algebraic reason parallel stage scheduling is
+    /// sound (proved in the tests).
+    pub fn verdict(&self) -> GateVerdict {
+        self.arena
+            .iter()
+            .map(|n| gate(n.grade))
+            .fold(GateVerdict::Collected, GateVerdict::join)
+    }
+
+    /// Fold another ledger's witnesses into this one — the state-based CRDT union.
+    /// Every node of `other` is re-attached, hash-consing by content address, so a
+    /// shared anchor merges by the same order-independent `⊑_t`/`⊑_k` joins a fresh
+    /// fold would apply. The ledger state is therefore a join-semilattice: union is
+    /// commutative, associative, and idempotent (proved exhaustively in the tests),
+    /// which is what lets the parallel scheduler fold shards in any order and still
+    /// reach a byte-identical ledger.
+    pub fn union(&mut self, other: &DiagLedger) {
+        // `emit_sorted` gives a deterministic, arena-index-free order; each node is
+        // re-inserted through the same hash-consing merge path as `attach`.
+        for node in other.emit_sorted() {
+            self.insert(node.clone());
+        }
     }
 
     /// Attach a lowered node on the trust-checking path: verifies the F1 pin
@@ -693,5 +726,192 @@ mod tests {
         let iri = fingerprint_iri(&fp);
         assert!(iri.starts_with("https://blackcatinformatics.ca/gmeow/diagnostics/finding/"));
         assert!(iri.ends_with(&fp.hex()));
+    }
+
+    // --- verdict() fold + CRDT union laws (T2 / T4) ---------------------------
+
+    /// A small pool of witness specs. Anchors 0 and 4 SHARE a fingerprint (same
+    /// code/category/path) so a union across ledgers exercises the hash-cons merge,
+    /// not just set-union of disjoint nodes. Grades are chosen so the pool contains
+    /// both Fatal (`gate == Fatal`) and Collected witnesses, so the verdict fold and
+    /// its homomorphism are non-vacuous.
+    fn witness_pool() -> Vec<Diag> {
+        let g = |sev, cat, sp| Grade::new(sev, cat, sp);
+        let specs: [(&'static str, FindingCategory, &str, Grade); 5] = [
+            // Fatal: Error + Blocking + Binding.
+            (
+                "test.ledger.crdt.a",
+                FindingCategory::DataShapeViolation,
+                "a.ttl",
+                g(
+                    Severity::Error,
+                    FindingCategory::DataShapeViolation,
+                    Standpoint::Binding,
+                ),
+            ),
+            // Collected: advisory standpoint never gates.
+            (
+                "test.ledger.crdt.b",
+                FindingCategory::PolicyWarning,
+                "b.ttl",
+                g(
+                    Severity::Error,
+                    FindingCategory::PolicyWarning,
+                    Standpoint::Advisory,
+                ),
+            ),
+            // Collected: coherent category never gates.
+            (
+                "test.ledger.crdt.c",
+                FindingCategory::PermittedEpistemicConflict,
+                "c.ttl",
+                g(
+                    Severity::Error,
+                    FindingCategory::PermittedEpistemicConflict,
+                    Standpoint::Binding,
+                ),
+            ),
+            // Collected: non-error severity.
+            (
+                "test.ledger.crdt.d",
+                FindingCategory::ModelingDisciplineViolation,
+                "d.ttl",
+                g(
+                    Severity::Warning,
+                    FindingCategory::ModelingDisciplineViolation,
+                    Standpoint::Binding,
+                ),
+            ),
+            // Shares the anchor of spec 0 (same code/category/path) — hash-cons merge.
+            (
+                "test.ledger.crdt.a",
+                FindingCategory::DataShapeViolation,
+                "a.ttl",
+                g(
+                    Severity::Warning,
+                    FindingCategory::DataShapeViolation,
+                    Standpoint::Advisory,
+                ),
+            ),
+        ];
+        specs
+            .into_iter()
+            .map(|(code, cat, path, grade)| diag_at(code, cat, path, "msg").with_grade(grade))
+            .collect()
+    }
+
+    /// Build a ledger holding exactly the witnesses at `indices` from the pool.
+    fn ledger_from(indices: &[usize]) -> DiagLedger {
+        let pool = witness_pool();
+        let mut l = DiagLedger::new();
+        for &i in indices {
+            // Clone the spec by rebuilding from the pool each time (Diag is not Clone).
+            let d = pool_diag(&pool, i);
+            l.attach(d, StageId::new("s"));
+        }
+        l
+    }
+
+    /// Rebuild the pool witness at `i` (Diag has no Clone; the pool is cheap).
+    fn pool_diag(_pool: &[Diag], i: usize) -> Diag {
+        witness_pool().into_iter().nth(i).expect("pool index")
+    }
+
+    /// Byte-serialize a ledger's deterministic node sequence — two ledgers are
+    /// "equal as state" iff these bytes match.
+    fn state_bytes(l: &DiagLedger) -> Vec<u8> {
+        serde_json::to_vec(&l.emit_sorted().into_iter().cloned().collect::<Vec<_>>()).unwrap()
+    }
+
+    #[test]
+    fn verdict_is_the_join_fold_of_gate_over_every_witness() {
+        // Over every subset of the pool, verdict() equals the manual gate-join fold.
+        for mask in 0u32..(1 << 5) {
+            let idx: Vec<usize> = (0..5).filter(|b| mask & (1 << b) != 0).collect();
+            let l = ledger_from(&idx);
+            let expected = l
+                .emit_sorted()
+                .iter()
+                .map(|n| gate(n.grade))
+                .fold(GateVerdict::Collected, GateVerdict::join);
+            assert_eq!(l.verdict(), expected, "verdict fold mismatch for {idx:?}");
+        }
+        // Non-vacuity: the empty ledger is Collected, and a ledger with the Fatal
+        // witness (spec 0) is Fatal.
+        assert_eq!(DiagLedger::new().verdict(), GateVerdict::Collected);
+        assert_eq!(ledger_from(&[0]).verdict(), GateVerdict::Fatal);
+        assert_eq!(ledger_from(&[1, 2, 3]).verdict(), GateVerdict::Collected);
+    }
+
+    #[test]
+    fn union_is_commutative_associative_and_idempotent() {
+        // Exhaustive over all pairs/triples of subsets of a 3-element index space —
+        // small, but a genuine proof over the chosen carrier, not a sample.
+        let subsets: Vec<Vec<usize>> = (0u32..(1 << 3))
+            .map(|m| (0..3).filter(|b| m & (1 << b) != 0).collect())
+            .collect();
+        for a in &subsets {
+            let la = ledger_from(a);
+            // Idempotence: a ∪ a == a.
+            let mut aa = ledger_from(a);
+            aa.union(&la);
+            assert_eq!(
+                state_bytes(&aa),
+                state_bytes(&la),
+                "union idempotence {a:?}"
+            );
+            for b in &subsets {
+                let lb = ledger_from(b);
+                // Commutativity: a ∪ b == b ∪ a (byte-identical state).
+                let mut ab = ledger_from(a);
+                ab.union(&lb);
+                let mut ba = ledger_from(b);
+                ba.union(&la);
+                assert_eq!(
+                    state_bytes(&ab),
+                    state_bytes(&ba),
+                    "union not commutative for {a:?} / {b:?}"
+                );
+                for c in &subsets {
+                    let lc = ledger_from(c);
+                    // Associativity: (a ∪ b) ∪ c == a ∪ (b ∪ c).
+                    let mut left = ledger_from(a);
+                    left.union(&lb);
+                    left.union(&lc);
+                    let mut bc = ledger_from(b);
+                    bc.union(&lc);
+                    let mut right = ledger_from(a);
+                    right.union(&bc);
+                    assert_eq!(
+                        state_bytes(&left),
+                        state_bytes(&right),
+                        "union not associative for {a:?} / {b:?} / {c:?}"
+                    );
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn verdict_is_a_semilattice_homomorphism_over_union() {
+        // The load-bearing theorem: verdict(a ∪ b) == verdict(a) ⊔ verdict(b) for
+        // every pair of ledgers — so folding stage sub-ledgers in parallel and
+        // joining their verdicts equals the verdict of the whole. Exhaustive over
+        // all subset pairs of the full 5-element pool.
+        let subsets: Vec<Vec<usize>> = (0u32..(1 << 5))
+            .map(|m| (0..5).filter(|b| m & (1 << b) != 0).collect())
+            .collect();
+        for a in &subsets {
+            for b in &subsets {
+                let mut ab = ledger_from(a);
+                ab.union(&ledger_from(b));
+                let joined = ledger_from(a).verdict().join(ledger_from(b).verdict());
+                assert_eq!(
+                    ab.verdict(),
+                    joined,
+                    "verdict homomorphism broken for {a:?} / {b:?}"
+                );
+            }
+        }
     }
 }

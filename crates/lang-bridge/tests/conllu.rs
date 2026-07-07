@@ -44,8 +44,13 @@ fn carried_correspondence_is_exact() {
     // ConlluDoc and reproduced on emit, not charged as a loss.
     assert_eq!(lifted.ledger.len(), 1);
     assert_eq!(lifted.ledger[0].preservation, PreservationKind::Exact);
-    assert!(lifted.ledger[0].actual_drops.is_empty());
-    assert!(lifted.ledger[0].lossy_drops.is_empty());
+    // The drops are read back from the lift's loss store; an Exact row records none.
+    assert!(
+        lifted
+            .loss
+            .projection_drops_for(&lifted.ledger[0].target)
+            .is_empty()
+    );
 }
 
 #[test]

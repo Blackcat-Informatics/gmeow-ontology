@@ -185,6 +185,12 @@ pub struct LogicProjectionsChannel {
     pub header: ReportHeader,
     /// The logic projection rows that fed the compiler's own (diagnostics-only) report.
     pub projections: Vec<ProjectionResult>,
+    /// The compile's single loss store as owned, serializable nodes (the channel is JSON, so the
+    /// live ledger cannot cross it). The mappings stage rebuilds the store via
+    /// `LossLedger::from_nodes`, unions the correspondence + lang losses in, and reads each row's
+    /// residue back through `projection_drops_for` — so the FINAL report's per-target drops flow
+    /// from the SAME substrate ledger the producers interned into.
+    pub loss_nodes: Vec<gmeow_errors::DiagNode>,
 }
 
 /// Committed JSON projection of the compile diagnostics report.
@@ -456,6 +462,7 @@ impl Stage for CompileLogicStage {
         let channel = LogicProjectionsChannel {
             header: arts.report_header,
             projections: arts.logic_projections.clone(),
+            loss_nodes: arts.loss.to_nodes(),
         };
         artifacts.insert(
             LOGIC_PROJECTIONS_CHANNEL.to_string(),
@@ -497,15 +504,32 @@ impl Stage for CompileLogicStage {
         let mut report = gmeow_logic::logic_diagnostics::diagnostics_report(&diagnostics);
         let lossy_drop_code = format!("{TOOL}.lossy-drop");
         for entry in &arts.preservation_ledger {
+            // The antecedent DAG (U2): each per-run `actual: <note>` drop is caused by the
+            // target's structural limitation. Read the wired antecedent edge off the single
+            // loss store so the drop finding carries its cause as a related location.
+            let causes: std::collections::BTreeMap<String, String> = arts
+                .loss
+                .actual_drop_causes(&entry.target)
+                .into_iter()
+                .collect();
             for drop in &entry.lossy_drops {
-                report.add_finding(
-                    Finding::new(
-                        Severity::Note,
-                        lossy_drop_code.clone(),
-                        format!("projection {} drops: {drop}", entry.target),
-                    )
-                    .with_tool(TOOL),
-                );
+                let mut finding = Finding::new(
+                    Severity::Note,
+                    lossy_drop_code.clone(),
+                    format!("projection {} drops: {drop}", entry.target),
+                )
+                .with_tool(TOOL);
+                if let Some(note) = drop.strip_prefix("actual: ")
+                    && let Some(cause_iri) = causes.get(note)
+                {
+                    finding.related_locations.push(Location::new(
+                        None,
+                        None,
+                        None,
+                        Some(cause_iri.clone()),
+                    ));
+                }
+                report.add_finding(finding);
             }
         }
         // Anchor every compiler finding to the real repo-relative source file so
@@ -534,6 +558,9 @@ impl Stage for CompileLogicStage {
                 html: DIAG_HTML_PATH,
                 rdf: DIAG_RDF_PATH,
             },
+            // The logic compiler's findings are Severity::Note lossy-drops (projection
+            // loss), never on the gate-fatal up-set, so no gate verdict is derivable.
+            None,
         )?);
 
         // The REAL typed Logic handle (C6): carry the compiled program itself
