@@ -370,15 +370,6 @@ gmeow:projectionFunction
     gmeow:howToUse "Point the profile at a gmeow:ProjectionFunction via gmeow:projectionFunction and declare the function's input through gmeow:projectableExpression; the solver supplies the implementation."@x-gmeow-english ;
     gmeow:useWhen "Use on a projection profile to bind the FnO function that actually performs the render from canonical content to this notation's surface form — the executable hook the solver layer invokes (P12)."@x-gmeow-english .
 
-gmeow:projectionFunctionClosedWorldOptOut
-    a logic:ClosureEntry ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
-    rdfs:label "projection function closed-world opt-out"@x-gmeow-english ;
-    logic:closureKey gmeow:projectionFunction ;
-    logic:closureValue logic:OpenWorldClosure ;
-    skos:definition "gmeow:projectionFunction carries an open-world rdfs:range (its objects are reasoner-inferred-typed gmeow:ProjectionFunction individuals not closed-world-typed as the range class); its closed-world validation reading over-claims, so it takes the open-world reading and derives no validation shape."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxConfigBox .
-
 gmeow:representableParameter
     a owl:ObjectProperty ;
     rdfs:domain gmeow:NotationProjectionProfile ;

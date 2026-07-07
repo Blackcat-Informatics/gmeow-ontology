@@ -9,7 +9,7 @@
       "locations": [
         {
           "path": "slices/extensions/music/module.ttl",
-          "line": 1847,
+          "line": 1838,
           "column": 1,
           "logical": "https://blackcatinformatics.ca/gmeow/fixtureRagaYamanImprovised1975"
         }
@@ -29,7 +29,7 @@
       "locations": [
         {
           "path": "slices/extensions/music/module.ttl",
-          "line": 1900,
+          "line": 1891,
           "column": 1,
           "logical": "https://blackcatinformatics.ca/gmeow/fixtureRagaYamanOralExpression"
         }
@@ -49,7 +49,7 @@
       "locations": [
         {
           "path": "slices/extensions/music/module.ttl",
-          "line": 1909,
+          "line": 1900,
           "column": 1,
           "logical": "https://blackcatinformatics.ca/gmeow/fixtureRagaYamanPerformed1960"
         }
@@ -69,7 +69,7 @@
       "locations": [
         {
           "path": "slices/extensions/music/module.ttl",
-          "line": 1919,
+          "line": 1910,
           "column": 1,
           "logical": "https://blackcatinformatics.ca/gmeow/fixtureRagaYamanPerformed1980"
         }

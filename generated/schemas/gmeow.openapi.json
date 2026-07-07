@@ -767,35 +767,167 @@
             }
           ]
         },
-        "description": "Free-form metadata about an asserted triple (e.g. meta:accordingTo, meta:confidence, meta:assertedAt). Permissive; tightened by #699.",
+        "description": "Free-form metadata about an asserted triple (e.g. meta:accordingTo, meta:confidence, meta:assertedAt). Permissive.",
         "title": "RDF-1.2 statement metadata (reifier annotation)",
         "type": "object"
       },
       "Appellation": {
-        "not": {
-          "properties": {
-            "@annotation": {
-              "$ref": "#/$defs/Annotation"
-            },
-            "@id": {
-              "type": "string"
-            },
-            "@type": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "items": {
-                    "type": "string"
-                  },
-                  "type": "array"
+        "allOf": [
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:Person"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Person"
+                      },
+                      "type": "array"
+                    }
+                  ]
                 }
+              },
+              "required": [
+                "@type"
               ]
             }
           },
-          "type": "object"
-        },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:Language"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Language"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:Location"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Location"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:ContactPoint"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:ContactPoint"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:Organization"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Organization"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:SoftwareAgent"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:SoftwareAgent"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:CryptographicKey"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:CryptographicKey"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          }
+        ],
         "properties": {
           "@annotation": {
             "$ref": "#/$defs/Annotation"
@@ -1382,30 +1514,30 @@
         "type": "object"
       },
       "AtomicConstraint": {
-        "not": {
-          "properties": {
-            "@annotation": {
-              "$ref": "#/$defs/Annotation"
-            },
-            "@id": {
-              "type": "string"
-            },
-            "@type": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "items": {
-                    "type": "string"
-                  },
-                  "type": "array"
+        "allOf": [
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:LogicalConstraint"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:LogicalConstraint"
+                      },
+                      "type": "array"
+                    }
+                  ]
                 }
+              },
+              "required": [
+                "@type"
               ]
             }
-          },
-          "type": "object"
-        },
+          }
+        ],
         "properties": {
           "@annotation": {
             "$ref": "#/$defs/Annotation"
@@ -4082,30 +4214,118 @@
         "type": "object"
       },
       "Commit": {
-        "not": {
-          "properties": {
-            "@annotation": {
-              "$ref": "#/$defs/Annotation"
-            },
-            "@id": {
-              "type": "string"
-            },
-            "@type": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "items": {
-                    "type": "string"
-                  },
-                  "type": "array"
+        "allOf": [
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:Project"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Project"
+                      },
+                      "type": "array"
+                    }
+                  ]
                 }
+              },
+              "required": [
+                "@type"
               ]
             }
           },
-          "type": "object"
-        },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:Release"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Release"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:Repository"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Repository"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:SourceTree"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:SourceTree"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:SoftwareProduct"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:SoftwareProduct"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          }
+        ],
         "properties": {
           "@annotation": {
             "$ref": "#/$defs/Annotation"
@@ -4886,30 +5106,162 @@
         "type": "object"
       },
       "ContactPoint": {
-        "not": {
-          "properties": {
-            "@annotation": {
-              "$ref": "#/$defs/Annotation"
-            },
-            "@id": {
-              "type": "string"
-            },
-            "@type": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "items": {
-                    "type": "string"
-                  },
-                  "type": "array"
+        "allOf": [
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:Person"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Person"
+                      },
+                      "type": "array"
+                    }
+                  ]
                 }
+              },
+              "required": [
+                "@type"
               ]
             }
           },
-          "type": "object"
-        },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:Language"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Language"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:Location"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Location"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:Appellation"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Appellation"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:Organization"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Organization"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:SoftwareAgent"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:SoftwareAgent"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:CryptographicKey"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:CryptographicKey"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          }
+        ],
         "properties": {
           "@annotation": {
             "$ref": "#/$defs/Annotation"
@@ -5974,30 +6326,162 @@
         "type": "object"
       },
       "CryptographicKey": {
-        "not": {
-          "properties": {
-            "@annotation": {
-              "$ref": "#/$defs/Annotation"
-            },
-            "@id": {
-              "type": "string"
-            },
-            "@type": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "items": {
-                    "type": "string"
-                  },
-                  "type": "array"
+        "allOf": [
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:Person"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Person"
+                      },
+                      "type": "array"
+                    }
+                  ]
                 }
+              },
+              "required": [
+                "@type"
               ]
             }
           },
-          "type": "object"
-        },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:Language"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Language"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:Location"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Location"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:Appellation"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Appellation"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:ContactPoint"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:ContactPoint"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:Organization"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Organization"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:SoftwareAgent"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:SoftwareAgent"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          }
+        ],
         "properties": {
           "@annotation": {
             "$ref": "#/$defs/Annotation"
@@ -6394,30 +6878,30 @@
         "type": "object"
       },
       "Desire": {
-        "not": {
-          "properties": {
-            "@annotation": {
-              "$ref": "#/$defs/Annotation"
-            },
-            "@id": {
-              "type": "string"
-            },
-            "@type": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "items": {
-                    "type": "string"
-                  },
-                  "type": "array"
+        "allOf": [
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:Intention"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Intention"
+                      },
+                      "type": "array"
+                    }
+                  ]
                 }
+              },
+              "required": [
+                "@type"
               ]
             }
-          },
-          "type": "object"
-        },
+          }
+        ],
         "properties": {
           "@annotation": {
             "$ref": "#/$defs/Annotation"
@@ -7318,30 +7802,52 @@
         "type": "object"
       },
       "Duty": {
-        "not": {
-          "properties": {
-            "@annotation": {
-              "$ref": "#/$defs/Annotation"
-            },
-            "@id": {
-              "type": "string"
-            },
-            "@type": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "items": {
-                    "type": "string"
-                  },
-                  "type": "array"
+        "allOf": [
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:Permission"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Permission"
+                      },
+                      "type": "array"
+                    }
+                  ]
                 }
+              },
+              "required": [
+                "@type"
               ]
             }
           },
-          "type": "object"
-        },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:Prohibition"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Prohibition"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          }
+        ],
         "properties": {
           "@annotation": {
             "$ref": "#/$defs/Annotation"
@@ -8505,30 +9011,30 @@
         "type": "object"
       },
       "FinancialAccount": {
-        "not": {
-          "properties": {
-            "@annotation": {
-              "$ref": "#/$defs/Annotation"
-            },
-            "@id": {
-              "type": "string"
-            },
-            "@type": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "items": {
-                    "type": "string"
-                  },
-                  "type": "array"
+        "allOf": [
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:OnlineAccount"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:OnlineAccount"
+                      },
+                      "type": "array"
+                    }
+                  ]
                 }
+              },
+              "required": [
+                "@type"
               ]
             }
-          },
-          "type": "object"
-        },
+          }
+        ],
         "properties": {
           "@annotation": {
             "$ref": "#/$defs/Annotation"
@@ -8811,30 +9317,96 @@
         "type": "object"
       },
       "Gender": {
-        "not": {
-          "properties": {
-            "@annotation": {
-              "$ref": "#/$defs/Annotation"
-            },
-            "@id": {
-              "type": "string"
-            },
-            "@type": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "items": {
-                    "type": "string"
-                  },
-                  "type": "array"
+        "allOf": [
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:SexAssignedAtBirth"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:SexAssignedAtBirth"
+                      },
+                      "type": "array"
+                    }
+                  ]
                 }
+              },
+              "required": [
+                "@type"
               ]
             }
           },
-          "type": "object"
-        },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:GenderExpressionStyle"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:GenderExpressionStyle"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:SexualOrientationValue"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:SexualOrientationValue"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:RomanticOrientationValue"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:RomanticOrientationValue"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          }
+        ],
         "properties": {
           "@annotation": {
             "$ref": "#/$defs/Annotation"
@@ -8859,30 +9431,140 @@
         "type": "object"
       },
       "GenderExpression": {
-        "not": {
-          "properties": {
-            "@annotation": {
-              "$ref": "#/$defs/Annotation"
-            },
-            "@id": {
-              "type": "string"
-            },
-            "@type": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "items": {
-                    "type": "string"
-                  },
-                  "type": "array"
+        "allOf": [
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:Honorific"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Honorific"
+                      },
+                      "type": "array"
+                    }
+                  ]
                 }
+              },
+              "required": [
+                "@type"
               ]
             }
           },
-          "type": "object"
-        },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:PronounSet"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:PronounSet"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:GenderIdentity"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:GenderIdentity"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:SexualOrientation"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:SexualOrientation"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:SexAssignedAtBirth"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:SexAssignedAtBirth"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:RomanticOrientation"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:RomanticOrientation"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          }
+        ],
         "properties": {
           "@annotation": {
             "$ref": "#/$defs/Annotation"
@@ -8950,30 +9632,96 @@
         "type": "object"
       },
       "GenderExpressionStyle": {
-        "not": {
-          "properties": {
-            "@annotation": {
-              "$ref": "#/$defs/Annotation"
-            },
-            "@id": {
-              "type": "string"
-            },
-            "@type": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "items": {
-                    "type": "string"
-                  },
-                  "type": "array"
+        "allOf": [
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:Gender"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Gender"
+                      },
+                      "type": "array"
+                    }
+                  ]
                 }
+              },
+              "required": [
+                "@type"
               ]
             }
           },
-          "type": "object"
-        },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:SexAssignedAtBirth"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:SexAssignedAtBirth"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:SexualOrientationValue"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:SexualOrientationValue"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:RomanticOrientationValue"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:RomanticOrientationValue"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          }
+        ],
         "properties": {
           "@annotation": {
             "$ref": "#/$defs/Annotation"
@@ -8998,30 +9746,140 @@
         "type": "object"
       },
       "GenderIdentity": {
-        "not": {
-          "properties": {
-            "@annotation": {
-              "$ref": "#/$defs/Annotation"
-            },
-            "@id": {
-              "type": "string"
-            },
-            "@type": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "items": {
-                    "type": "string"
-                  },
-                  "type": "array"
+        "allOf": [
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:Honorific"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Honorific"
+                      },
+                      "type": "array"
+                    }
+                  ]
                 }
+              },
+              "required": [
+                "@type"
               ]
             }
           },
-          "type": "object"
-        },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:PronounSet"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:PronounSet"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:GenderExpression"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:GenderExpression"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:SexualOrientation"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:SexualOrientation"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:SexAssignedAtBirth"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:SexAssignedAtBirth"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:RomanticOrientation"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:RomanticOrientation"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          }
+        ],
         "properties": {
           "@annotation": {
             "$ref": "#/$defs/Annotation"
@@ -9490,30 +10348,140 @@
         "type": "object"
       },
       "Honorific": {
-        "not": {
-          "properties": {
-            "@annotation": {
-              "$ref": "#/$defs/Annotation"
-            },
-            "@id": {
-              "type": "string"
-            },
-            "@type": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "items": {
-                    "type": "string"
-                  },
-                  "type": "array"
+        "allOf": [
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:PronounSet"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:PronounSet"
+                      },
+                      "type": "array"
+                    }
+                  ]
                 }
+              },
+              "required": [
+                "@type"
               ]
             }
           },
-          "type": "object"
-        },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:GenderIdentity"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:GenderIdentity"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:GenderExpression"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:GenderExpression"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:SexualOrientation"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:SexualOrientation"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:SexAssignedAtBirth"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:SexAssignedAtBirth"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:RomanticOrientation"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:RomanticOrientation"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          }
+        ],
         "properties": {
           "@annotation": {
             "$ref": "#/$defs/Annotation"
@@ -10602,30 +11570,30 @@
         "type": "object"
       },
       "Intention": {
-        "not": {
-          "properties": {
-            "@annotation": {
-              "$ref": "#/$defs/Annotation"
-            },
-            "@id": {
-              "type": "string"
-            },
-            "@type": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "items": {
-                    "type": "string"
-                  },
-                  "type": "array"
+        "allOf": [
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:Desire"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Desire"
+                      },
+                      "type": "array"
+                    }
+                  ]
                 }
+              },
+              "required": [
+                "@type"
               ]
             }
-          },
-          "type": "object"
-        },
+          }
+        ],
         "properties": {
           "@annotation": {
             "$ref": "#/$defs/Annotation"
@@ -11427,30 +12395,162 @@
         "type": "object"
       },
       "Language": {
-        "not": {
-          "properties": {
-            "@annotation": {
-              "$ref": "#/$defs/Annotation"
-            },
-            "@id": {
-              "type": "string"
-            },
-            "@type": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "items": {
-                    "type": "string"
-                  },
-                  "type": "array"
+        "allOf": [
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:Person"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Person"
+                      },
+                      "type": "array"
+                    }
+                  ]
                 }
+              },
+              "required": [
+                "@type"
               ]
             }
           },
-          "type": "object"
-        },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:Location"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Location"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:Appellation"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Appellation"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:ContactPoint"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:ContactPoint"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:Organization"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Organization"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:SoftwareAgent"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:SoftwareAgent"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:CryptographicKey"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:CryptographicKey"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          }
+        ],
         "properties": {
           "@annotation": {
             "$ref": "#/$defs/Annotation"
@@ -11883,30 +12983,162 @@
         "type": "object"
       },
       "Location": {
-        "not": {
-          "properties": {
-            "@annotation": {
-              "$ref": "#/$defs/Annotation"
-            },
-            "@id": {
-              "type": "string"
-            },
-            "@type": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "items": {
-                    "type": "string"
-                  },
-                  "type": "array"
+        "allOf": [
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:Person"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Person"
+                      },
+                      "type": "array"
+                    }
+                  ]
                 }
+              },
+              "required": [
+                "@type"
               ]
             }
           },
-          "type": "object"
-        },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:Language"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Language"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:Appellation"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Appellation"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:ContactPoint"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:ContactPoint"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:Organization"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Organization"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:SoftwareAgent"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:SoftwareAgent"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:CryptographicKey"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:CryptographicKey"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          }
+        ],
         "properties": {
           "@annotation": {
             "$ref": "#/$defs/Annotation"
@@ -11969,30 +13201,30 @@
         "type": "object"
       },
       "LogicalConstraint": {
-        "not": {
-          "properties": {
-            "@annotation": {
-              "$ref": "#/$defs/Annotation"
-            },
-            "@id": {
-              "type": "string"
-            },
-            "@type": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "items": {
-                    "type": "string"
-                  },
-                  "type": "array"
+        "allOf": [
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:AtomicConstraint"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:AtomicConstraint"
+                      },
+                      "type": "array"
+                    }
+                  ]
                 }
+              },
+              "required": [
+                "@type"
               ]
             }
-          },
-          "type": "object"
-        },
+          }
+        ],
         "properties": {
           "@annotation": {
             "$ref": "#/$defs/Annotation"
@@ -13219,30 +14451,30 @@
         "type": "object"
       },
       "ModelDeployment": {
-        "not": {
-          "properties": {
-            "@annotation": {
-              "$ref": "#/$defs/Annotation"
-            },
-            "@id": {
-              "type": "string"
-            },
-            "@type": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "items": {
-                    "type": "string"
-                  },
-                  "type": "array"
+        "allOf": [
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:Agent"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Agent"
+                      },
+                      "type": "array"
+                    }
+                  ]
                 }
+              },
+              "required": [
+                "@type"
               ]
             }
-          },
-          "type": "object"
-        },
+          }
+        ],
         "properties": {
           "@annotation": {
             "$ref": "#/$defs/Annotation"
@@ -27420,7 +28652,7 @@
             }
           }
         ],
-        "description": "Validated by @type: a node typed gmeow:Foo MUST satisfy #/$defs/Foo (closed-world, #700). Nodes typed only by unmodeled classes are permissively allowed.",
+        "description": "Validated by @type: a node typed gmeow:Foo MUST satisfy #/$defs/Foo (closed-world). Nodes typed only by unmodeled classes are permissively allowed.",
         "properties": {
           "@annotation": {
             "$ref": "#/$defs/Annotation"
@@ -28230,30 +29462,162 @@
         "type": "object"
       },
       "Organization": {
-        "not": {
-          "properties": {
-            "@annotation": {
-              "$ref": "#/$defs/Annotation"
-            },
-            "@id": {
-              "type": "string"
-            },
-            "@type": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "items": {
-                    "type": "string"
-                  },
-                  "type": "array"
+        "allOf": [
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:Person"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Person"
+                      },
+                      "type": "array"
+                    }
+                  ]
                 }
+              },
+              "required": [
+                "@type"
               ]
             }
           },
-          "type": "object"
-        },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:Language"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Language"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:Location"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Location"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:Appellation"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Appellation"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:ContactPoint"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:ContactPoint"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:SoftwareAgent"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:SoftwareAgent"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:CryptographicKey"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:CryptographicKey"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          }
+        ],
         "properties": {
           "@annotation": {
             "$ref": "#/$defs/Annotation"
@@ -29328,30 +30692,162 @@
         "type": "object"
       },
       "Person": {
-        "not": {
-          "properties": {
-            "@annotation": {
-              "$ref": "#/$defs/Annotation"
-            },
-            "@id": {
-              "type": "string"
-            },
-            "@type": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "items": {
-                    "type": "string"
-                  },
-                  "type": "array"
+        "allOf": [
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:Language"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Language"
+                      },
+                      "type": "array"
+                    }
+                  ]
                 }
+              },
+              "required": [
+                "@type"
               ]
             }
           },
-          "type": "object"
-        },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:Location"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Location"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:Appellation"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Appellation"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:ContactPoint"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:ContactPoint"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:Organization"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Organization"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:SoftwareAgent"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:SoftwareAgent"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:CryptographicKey"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:CryptographicKey"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          }
+        ],
         "properties": {
           "@annotation": {
             "$ref": "#/$defs/Annotation"
@@ -29503,30 +30999,74 @@
         "type": "object"
       },
       "PhysicalObject": {
-        "not": {
-          "properties": {
-            "@annotation": {
-              "$ref": "#/$defs/Annotation"
-            },
-            "@id": {
-              "type": "string"
-            },
-            "@type": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "items": {
-                    "type": "string"
-                  },
-                  "type": "array"
+        "allOf": [
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:Agent"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Agent"
+                      },
+                      "type": "array"
+                    }
+                  ]
                 }
+              },
+              "required": [
+                "@type"
               ]
             }
           },
-          "type": "object"
-        },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:SocialObject"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:SocialObject"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:InformationObject"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:InformationObject"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          }
+        ],
         "properties": {
           "@annotation": {
             "$ref": "#/$defs/Annotation"
@@ -31095,30 +32635,118 @@
         "type": "object"
       },
       "Project": {
-        "not": {
-          "properties": {
-            "@annotation": {
-              "$ref": "#/$defs/Annotation"
-            },
-            "@id": {
-              "type": "string"
-            },
-            "@type": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "items": {
-                    "type": "string"
-                  },
-                  "type": "array"
+        "allOf": [
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:Commit"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Commit"
+                      },
+                      "type": "array"
+                    }
+                  ]
                 }
+              },
+              "required": [
+                "@type"
               ]
             }
           },
-          "type": "object"
-        },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:Release"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Release"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:Repository"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Repository"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:SourceTree"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:SourceTree"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:SoftwareProduct"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:SoftwareProduct"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          }
+        ],
         "properties": {
           "@annotation": {
             "$ref": "#/$defs/Annotation"
@@ -31143,30 +32771,140 @@
         "type": "object"
       },
       "PronounSet": {
-        "not": {
-          "properties": {
-            "@annotation": {
-              "$ref": "#/$defs/Annotation"
-            },
-            "@id": {
-              "type": "string"
-            },
-            "@type": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "items": {
-                    "type": "string"
-                  },
-                  "type": "array"
+        "allOf": [
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:Honorific"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Honorific"
+                      },
+                      "type": "array"
+                    }
+                  ]
                 }
+              },
+              "required": [
+                "@type"
               ]
             }
           },
-          "type": "object"
-        },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:GenderIdentity"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:GenderIdentity"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:GenderExpression"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:GenderExpression"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:SexualOrientation"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:SexualOrientation"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:SexAssignedAtBirth"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:SexAssignedAtBirth"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:RomanticOrientation"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:RomanticOrientation"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          }
+        ],
         "properties": {
           "@annotation": {
             "$ref": "#/$defs/Annotation"
@@ -31777,30 +33515,118 @@
         "type": "object"
       },
       "Release": {
-        "not": {
-          "properties": {
-            "@annotation": {
-              "$ref": "#/$defs/Annotation"
-            },
-            "@id": {
-              "type": "string"
-            },
-            "@type": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "items": {
-                    "type": "string"
-                  },
-                  "type": "array"
+        "allOf": [
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:Commit"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Commit"
+                      },
+                      "type": "array"
+                    }
+                  ]
                 }
+              },
+              "required": [
+                "@type"
               ]
             }
           },
-          "type": "object"
-        },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:Project"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Project"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:Repository"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Repository"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:SourceTree"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:SourceTree"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:SoftwareProduct"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:SoftwareProduct"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          }
+        ],
         "properties": {
           "@annotation": {
             "$ref": "#/$defs/Annotation"
@@ -31935,30 +33761,118 @@
         "type": "object"
       },
       "Repository": {
-        "not": {
-          "properties": {
-            "@annotation": {
-              "$ref": "#/$defs/Annotation"
-            },
-            "@id": {
-              "type": "string"
-            },
-            "@type": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "items": {
-                    "type": "string"
-                  },
-                  "type": "array"
+        "allOf": [
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:Commit"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Commit"
+                      },
+                      "type": "array"
+                    }
+                  ]
                 }
+              },
+              "required": [
+                "@type"
               ]
             }
           },
-          "type": "object"
-        },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:Project"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Project"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:Release"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Release"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:SourceTree"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:SourceTree"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:SoftwareProduct"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:SoftwareProduct"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          }
+        ],
         "properties": {
           "@annotation": {
             "$ref": "#/$defs/Annotation"
@@ -32145,30 +34059,96 @@
         "type": "object"
       },
       "RomanticOrientationValue": {
-        "not": {
-          "properties": {
-            "@annotation": {
-              "$ref": "#/$defs/Annotation"
-            },
-            "@id": {
-              "type": "string"
-            },
-            "@type": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "items": {
-                    "type": "string"
-                  },
-                  "type": "array"
+        "allOf": [
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:Gender"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Gender"
+                      },
+                      "type": "array"
+                    }
+                  ]
                 }
+              },
+              "required": [
+                "@type"
               ]
             }
           },
-          "type": "object"
-        },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:SexAssignedAtBirth"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:SexAssignedAtBirth"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:GenderExpressionStyle"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:GenderExpressionStyle"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:SexualOrientationValue"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:SexualOrientationValue"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          }
+        ],
         "properties": {
           "@annotation": {
             "$ref": "#/$defs/Annotation"
@@ -33191,30 +35171,228 @@
         "type": "object"
       },
       "SexAssignedAtBirth": {
-        "not": {
-          "properties": {
-            "@annotation": {
-              "$ref": "#/$defs/Annotation"
-            },
-            "@id": {
-              "type": "string"
-            },
-            "@type": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "items": {
-                    "type": "string"
-                  },
-                  "type": "array"
+        "allOf": [
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:Gender"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Gender"
+                      },
+                      "type": "array"
+                    }
+                  ]
                 }
+              },
+              "required": [
+                "@type"
               ]
             }
           },
-          "type": "object"
-        },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:Honorific"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Honorific"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:PronounSet"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:PronounSet"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:GenderIdentity"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:GenderIdentity"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:GenderExpression"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:GenderExpression"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:SexualOrientation"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:SexualOrientation"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:RomanticOrientation"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:RomanticOrientation"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:GenderExpressionStyle"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:GenderExpressionStyle"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:SexualOrientationValue"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:SexualOrientationValue"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:RomanticOrientationValue"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:RomanticOrientationValue"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          }
+        ],
         "properties": {
           "@annotation": {
             "$ref": "#/$defs/Annotation"
@@ -33269,30 +35447,96 @@
         "type": "object"
       },
       "SexualOrientationValue": {
-        "not": {
-          "properties": {
-            "@annotation": {
-              "$ref": "#/$defs/Annotation"
-            },
-            "@id": {
-              "type": "string"
-            },
-            "@type": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "items": {
-                    "type": "string"
-                  },
-                  "type": "array"
+        "allOf": [
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:Gender"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Gender"
+                      },
+                      "type": "array"
+                    }
+                  ]
                 }
+              },
+              "required": [
+                "@type"
               ]
             }
           },
-          "type": "object"
-        },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:SexAssignedAtBirth"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:SexAssignedAtBirth"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:GenderExpressionStyle"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:GenderExpressionStyle"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:RomanticOrientationValue"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:RomanticOrientationValue"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          }
+        ],
         "properties": {
           "@annotation": {
             "$ref": "#/$defs/Annotation"
@@ -33534,30 +35778,162 @@
         "type": "object"
       },
       "SoftwareAgent": {
-        "not": {
-          "properties": {
-            "@annotation": {
-              "$ref": "#/$defs/Annotation"
-            },
-            "@id": {
-              "type": "string"
-            },
-            "@type": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "items": {
-                    "type": "string"
-                  },
-                  "type": "array"
+        "allOf": [
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:Person"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Person"
+                      },
+                      "type": "array"
+                    }
+                  ]
                 }
+              },
+              "required": [
+                "@type"
               ]
             }
           },
-          "type": "object"
-        },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:Language"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Language"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:Location"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Location"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:Appellation"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Appellation"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:ContactPoint"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:ContactPoint"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:Organization"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Organization"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:CryptographicKey"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:CryptographicKey"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          }
+        ],
         "properties": {
           "@annotation": {
             "$ref": "#/$defs/Annotation"
@@ -33582,30 +35958,118 @@
         "type": "object"
       },
       "SoftwareProduct": {
-        "not": {
-          "properties": {
-            "@annotation": {
-              "$ref": "#/$defs/Annotation"
-            },
-            "@id": {
-              "type": "string"
-            },
-            "@type": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "items": {
-                    "type": "string"
-                  },
-                  "type": "array"
+        "allOf": [
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:Commit"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Commit"
+                      },
+                      "type": "array"
+                    }
+                  ]
                 }
+              },
+              "required": [
+                "@type"
               ]
             }
           },
-          "type": "object"
-        },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:Project"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Project"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:Release"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Release"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:Repository"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Repository"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:SourceTree"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:SourceTree"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          }
+        ],
         "properties": {
           "@annotation": {
             "$ref": "#/$defs/Annotation"
@@ -33630,30 +36094,118 @@
         "type": "object"
       },
       "SourceTree": {
-        "not": {
-          "properties": {
-            "@annotation": {
-              "$ref": "#/$defs/Annotation"
-            },
-            "@id": {
-              "type": "string"
-            },
-            "@type": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "items": {
-                    "type": "string"
-                  },
-                  "type": "array"
+        "allOf": [
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:Commit"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Commit"
+                      },
+                      "type": "array"
+                    }
+                  ]
                 }
+              },
+              "required": [
+                "@type"
               ]
             }
           },
-          "type": "object"
-        },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:Project"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Project"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:Release"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Release"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:Repository"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Repository"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:SoftwareProduct"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:SoftwareProduct"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          }
+        ],
         "properties": {
           "@annotation": {
             "$ref": "#/$defs/Annotation"
@@ -36733,30 +39285,30 @@
         "type": "object"
       },
       "lang:InterpretationAct": {
-        "not": {
-          "properties": {
-            "@annotation": {
-              "$ref": "#/$defs/Annotation"
-            },
-            "@id": {
-              "type": "string"
-            },
-            "@type": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "items": {
-                    "type": "string"
-                  },
-                  "type": "array"
+        "allOf": [
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:Observation"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Observation"
+                      },
+                      "type": "array"
+                    }
+                  ]
                 }
+              },
+              "required": [
+                "@type"
               ]
             }
-          },
-          "type": "object"
-        },
+          }
+        ],
         "properties": {
           "@annotation": {
             "$ref": "#/$defs/Annotation"
@@ -38933,6 +41485,7 @@
             ]
           },
           "math:exponentDenominator": {
+            "$comment": "a sh:not constraint on property math:exponentDenominator was dropped (no lossless value-schema projection)",
             "anyOf": [
               {
                 "type": "integer"
@@ -43945,7 +46498,7 @@
   },
   "info": {
     "title": "PURRDF",
-    "version": "0.3.3"
+    "version": "0.4.0"
   },
   "openapi": "3.1.0",
   "paths": {
