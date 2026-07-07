@@ -270,15 +270,21 @@ fn intern_shacl_findings(ledger: &mut DiagLedger, findings: Vec<Finding>) {
 }
 
 /// The message-independent structural identity of a [`Finding`] used as its
-/// hash-cons focus — the unit separator joins every primary and related location
-/// logical/path and the detail. It deliberately does NOT include `finding.message`:
-/// the content-address fingerprint (which folds the focus) must NEVER depend on the
+/// hash-cons focus — the unit separator joins every primary and related location's
+/// structural coordinates (logical, path, and line/column when present) plus the
+/// detail. The ONLY thing deliberately excluded is `finding.message`: the
+/// content-address fingerprint (which folds the focus) must NEVER depend on the
 /// message (substrate Hard Invariant 6, see the module docs in
-/// `gmeow_errors::ledger`). Two findings identical in all structural identity but
-/// differing only in message ARE the same witness by the substrate's design and
-/// SHOULD hash-cons-merge; no message is lost, because `LintReport::messages()` /
-/// `errors()` / `warnings()` emit per-observation and the report projection folds
-/// every extra observation into the finding's detail.
+/// `gmeow_errors::ledger`). Line/column ARE part of the identity: two structurally
+/// distinct violations of the same constraint at different lines of one file (same
+/// `path`, no `logical`) are genuinely different witnesses and must get distinct
+/// fingerprints — otherwise one line/message would be silently hash-cons-dropped.
+/// Locations without line/column contribute nothing new, so their keys stay
+/// byte-stable. Two findings identical in all structural identity (including
+/// line/column) but differing only in message ARE the same witness by the
+/// substrate's design and SHOULD hash-cons-merge; no message is lost, because
+/// `LintReport::messages()` / `errors()` / `warnings()` emit per-observation and
+/// the report projection folds every extra observation into the finding's detail.
 fn finding_identity_key(finding: &Finding) -> String {
     let mut parts: Vec<String> = Vec::new();
     for location in finding
@@ -291,6 +297,15 @@ fn finding_identity_key(finding: &Finding) -> String {
         }
         if let Some(path) = &location.path {
             parts.push(path.clone());
+        }
+        // Structural line/column distinguish two distinct violations at different
+        // positions of the same file/constraint. Only appended when present, so
+        // locations without them keep their prior byte-stable key.
+        if let Some(line) = location.line {
+            parts.push(line.to_string());
+        }
+        if let Some(column) = location.column {
+            parts.push(column.to_string());
         }
     }
     if let Some(detail) = &finding.detail {
@@ -2731,6 +2746,65 @@ ex:x rdf:type ex:A .
                 .count(),
             1,
             "a message-only variant must hash-cons-merge, not fork a new finding"
+        );
+    }
+
+    #[test]
+    fn distinct_lines_of_same_constraint_do_not_hash_cons_merge() {
+        use gmeow_errors::Location;
+
+        // Two structurally-distinct violations of the SAME constraint at DIFFERENT
+        // lines of one file: identical code / severity / path / detail, no `logical`
+        // location, differing only by `line`. Because line/column are part of the
+        // message-independent structural identity, these are genuinely different
+        // witnesses and must NOT hash-cons-merge — both line numbers must survive.
+        let make = |line: u32| {
+            let mut finding = Finding::new(
+                Severity::Error,
+                "shacl.MinCountConstraintComponent",
+                "missing required property",
+            )
+            .with_tool("shacl")
+            .with_category(FindingCategory::DataShapeViolation);
+            finding.add_location(Location {
+                path: Some("ontology.ttl".to_owned()),
+                line: Some(line),
+                ..Location::default()
+            });
+            finding.detail = Some("source shape: https://ex/shape".to_owned());
+            finding
+        };
+
+        let mut ledger = DiagLedger::new();
+        for line in [10u32, 40u32] {
+            intern_finding(
+                &mut ledger,
+                StageId::new("validate.shacl"),
+                Standpoint::Binding,
+                &make(line),
+            );
+        }
+        let report = ledger.project_report("validate");
+
+        let lines: std::collections::BTreeSet<u32> = report
+            .findings
+            .iter()
+            .filter(|f| f.code == "shacl.MinCountConstraintComponent")
+            .filter_map(|f| f.primary_location().and_then(|l| l.line))
+            .collect();
+        assert_eq!(
+            report
+                .findings
+                .iter()
+                .filter(|f| f.code == "shacl.MinCountConstraintComponent")
+                .count(),
+            2,
+            "two distinct-line violations of one constraint must NOT merge; got \
+             lines {lines:?}"
+        );
+        assert!(
+            lines.contains(&10) && lines.contains(&40),
+            "both violated line numbers must survive the ledger round-trip; got {lines:?}"
         );
     }
 }
