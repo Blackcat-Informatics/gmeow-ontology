@@ -830,10 +830,13 @@ not warnings:
    is a recomputable derived view, never a stored ground fact (Principle 12).
 9. A projection that collapses mode, experience, expression, and classifier output
    into one external "emotion" record without a loss annotation fails.
-10. A `gmeow:AffectLabelSet` with no declared `gmeow:labelSetDecision` fails: its
-    exclusivity is then unknown and the producer cannot judge whether more than one
-    crossing is a violation (an `owl:minCardinality` restriction, projected to
-    `sh:minCount`).
+10. A REGISTERED (static) `gmeow:AffectLabelSet` with no declared
+    `gmeow:labelSetDecision` fails: its exclusivity is then unknown and the producer
+    cannot judge whether more than one crossing is a violation. Enforced in the
+    producer (it cannot build a config for a rule-less registered set). A run-scoped
+    zero-shot candidate set is minted per run and is legitimately rule-less, so this
+    is a producer invariant on registered sets, never a universal cardinality that
+    would wrongly flag the minted candidate set.
 11. More than one label crossing its claim threshold in one observation over a
     single-label (`gmeow:decisionArgmax`) label set fails: an exclusive set admits at
     most one routed `gmeow:AffectiveClaim` per target. Enforced in the producer AND at
