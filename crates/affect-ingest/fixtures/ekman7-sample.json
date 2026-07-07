@@ -1,0 +1,116 @@
+{
+  "model_identifier": "j-hartmann/emotion-english-distilroberta-base",
+  "model_revision": "0e1cd914e3d46199ed785853e12b57304e04178b",
+  "model_framework": "transformers",
+  "model_task": "text-classification",
+  "function_to_apply": "softmax",
+  "return_all_scores": true,
+  "label_set_id": "Ekman7",
+  "score_semantics": "softmax",
+  "tokenizer_revision": "0e1cd914e3d46199ed785853e12b57304e04178b",
+  "threshold_policy": {
+    "kind": "global",
+    "value": 0.5
+  },
+  "targets": [
+    {
+      "target_iri": "https://blackcatinformatics.ca/gmeow/examples/affect/ekman/gratitude",
+      "scores": [
+        {
+          "label": "ekmanAnger",
+          "score": 0.0027275190223008394
+        },
+        {
+          "label": "ekmanDisgust",
+          "score": 0.001134788035415113
+        },
+        {
+          "label": "ekmanFear",
+          "score": 0.000481345021398738
+        },
+        {
+          "label": "ekmanJoy",
+          "score": 0.9632641673088074
+        },
+        {
+          "label": "ekmanNeutral",
+          "score": 0.01192744355648756
+        },
+        {
+          "label": "ekmanSadness",
+          "score": 0.003092837752774358
+        },
+        {
+          "label": "ekmanSurprise",
+          "score": 0.01737196370959282
+        }
+      ]
+    },
+    {
+      "target_iri": "https://blackcatinformatics.ca/gmeow/examples/affect/ekman/joy",
+      "scores": [
+        {
+          "label": "ekmanAnger",
+          "score": 0.0017275024438276887
+        },
+        {
+          "label": "ekmanDisgust",
+          "score": 0.0006819297559559345
+        },
+        {
+          "label": "ekmanFear",
+          "score": 0.00042085337918251753
+        },
+        {
+          "label": "ekmanJoy",
+          "score": 0.9903477430343628
+        },
+        {
+          "label": "ekmanNeutral",
+          "score": 0.0016681751003488898
+        },
+        {
+          "label": "ekmanSadness",
+          "score": 0.0009400441194884479
+        },
+        {
+          "label": "ekmanSurprise",
+          "score": 0.004213614389300346
+        }
+      ]
+    },
+    {
+      "target_iri": "https://blackcatinformatics.ca/gmeow/examples/affect/ekman/fear",
+      "scores": [
+        {
+          "label": "ekmanAnger",
+          "score": 0.0008648483199067414
+        },
+        {
+          "label": "ekmanDisgust",
+          "score": 0.0008214256376959383
+        },
+        {
+          "label": "ekmanFear",
+          "score": 0.9926866292953491
+        },
+        {
+          "label": "ekmanJoy",
+          "score": 0.0007444797083735466
+        },
+        {
+          "label": "ekmanNeutral",
+          "score": 0.0022854958660900593
+        },
+        {
+          "label": "ekmanSadness",
+          "score": 0.0012941431486979127
+        },
+        {
+          "label": "ekmanSurprise",
+          "score": 0.0013030442642048001
+        }
+      ]
+    }
+  ]
+}

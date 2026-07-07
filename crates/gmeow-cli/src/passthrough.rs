@@ -123,6 +123,31 @@ pub(crate) fn music(command: &MusicCommands) -> i32 {
     }
 }
 
+/// Read a command source: standard input when the path is `-`, else the file.
+fn read_source(path: &std::path::Path) -> std::io::Result<String> {
+    if path.as_os_str() == "-" {
+        use std::io::Read;
+        let mut buf = String::new();
+        std::io::stdin().read_to_string(&mut buf)?;
+        Ok(buf)
+    } else {
+        std::fs::read_to_string(path)
+    }
+}
+
+/// Read the embedded bundle's SSSOM correspondence blob(s): the reviewed
+/// label→emotion `skos:closeMatch` cells the pipeline keeps out of the base graph
+/// (the claim-routing map's single source of truth). The registered label set and
+/// canonical EmotionType typing come from the base graph itself.
+fn bundled_sssom_texts() -> Result<Vec<String>, String> {
+    let sssom = gmeow_pipeline::bundle_blobs::bundled_sssom(BUNDLE_GTS)
+        .map_err(|e| format!("cannot read bundled SSSOM: {e}"))?;
+    Ok(sssom
+        .values()
+        .map(|bytes| String::from_utf8_lossy(bytes).into_owned())
+        .collect())
+}
+
 /// `gmeow affect …` — the native affect-intensity geometry engine.
 ///
 /// Product results → stdout with stable, greppable key prefixes; any failure →
@@ -180,6 +205,97 @@ pub(crate) fn affect(command: &AffectCommands) -> i32 {
                         eprintln!("Error: {message}");
                         1
                     }
+                }
+            }
+        }
+        AffectCommands::Ingest { source, out } => {
+            let json = match read_source(source) {
+                Ok(json) => json,
+                Err(e) => {
+                    eprintln!("Error: cannot read {}: {e}", source.display());
+                    return 1;
+                }
+            };
+            let capture =
+                match serde_json::from_str::<gmeow_affect_ingest::ClassifierRunCapture>(&json) {
+                    Ok(capture) => capture,
+                    Err(e) => {
+                        eprintln!("Error: invalid classifier capture JSON: {e}");
+                        return 1;
+                    }
+                };
+            let sssom_texts = match bundled_sssom_texts() {
+                Ok(texts) => texts,
+                Err(e) => {
+                    eprintln!("Error: {e}");
+                    return 1;
+                }
+            };
+            let config =
+                match gmeow_affect_ingest::config_for_capture(BUNDLE_GTS, &sssom_texts, &capture) {
+                    Ok(config) => config,
+                    Err(e) => {
+                        eprintln!("Error: {e}");
+                        return 1;
+                    }
+                };
+            match gmeow_affect_ingest::produce(&capture, &config) {
+                Ok(ttl) => match out {
+                    Some(out) => match std::fs::write(out, &ttl) {
+                        Ok(()) => 0,
+                        Err(e) => {
+                            eprintln!("Error: cannot write {}: {e}", out.display());
+                            1
+                        }
+                    },
+                    None => {
+                        print!("{ttl}");
+                        0
+                    }
+                },
+                Err(e) => {
+                    eprintln!("Error: {e}");
+                    1
+                }
+            }
+        }
+        AffectCommands::Recover { source } => {
+            let ttl = match read_source(source) {
+                Ok(ttl) => ttl,
+                Err(e) => {
+                    eprintln!("Error: cannot read {}: {e}", source.display());
+                    return 1;
+                }
+            };
+            let sssom_texts = match bundled_sssom_texts() {
+                Ok(texts) => texts,
+                Err(e) => {
+                    eprintln!("Error: {e}");
+                    return 1;
+                }
+            };
+            let config =
+                match gmeow_affect_ingest::config_for_evidence(BUNDLE_GTS, &sssom_texts, &ttl) {
+                    Ok(config) => config,
+                    Err(e) => {
+                        eprintln!("Error: {e}");
+                        return 1;
+                    }
+                };
+            match gmeow_affect_ingest::recover(&ttl, &config) {
+                Ok(capture) => match serde_json::to_string_pretty(&capture) {
+                    Ok(json) => {
+                        println!("{json}");
+                        0
+                    }
+                    Err(e) => {
+                        eprintln!("Error: {e}");
+                        1
+                    }
+                },
+                Err(e) => {
+                    eprintln!("Error: {e}");
+                    1
                 }
             }
         }
