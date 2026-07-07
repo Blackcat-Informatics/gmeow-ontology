@@ -965,9 +965,11 @@ impl McpServer {
     /// `formula` is a Turtle `logic:` document naming the candidate (exactly one top-level
     /// `logic:Formula`, or exactly one ground `logic:` axiom lifted to a binary atom); `kb`
     /// is a Turtle KB the candidate is tested against; `standpoint` is the REQUIRED reified
-    /// scope (Principle 9); `math_conjecture` optionally names the `math:Conjecture` twin so a
-    /// refutation's counterexample is re-exposed via `math:hasCounterexample`; `dry_run=true`
-    /// computes and returns the verdict but WRITES NOTHING.
+    /// scope (Principle 9); `math_conjecture` optionally names the `math:Conjecture` twin so
+    /// the statement is bridged to the runtime `logic:Conjecture` node via
+    /// `math:conjectureUnderTest` (on every verdict) and a refutation's counterexample is
+    /// re-exposed via `math:hasCounterexample`; `dry_run=true` computes and returns the verdict
+    /// but WRITES NOTHING.
     fn tool_conjecture_test(&self, args: &Value) -> gmeow_errors::Result<String> {
         let formula_src = required_str(args, "formula")?;
         let kb_src = required_str(args, "kb")?;
@@ -2967,6 +2969,7 @@ mod tests {
     // ── Conjecture-library persistence (Task 5a) ─────────────────────────────
 
     const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
+    const MATH_NS: &str = "https://blackcatinformatics.ca/math/";
     const RDF_TYPE_IRI: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 
     /// A `∀x. trigger(x, mark) → rdf:type(x, <cls>)` candidate, authored as a reified
@@ -3153,6 +3156,45 @@ mod tests {
         assert!(
             !premises.is_empty(),
             "a refutation must persist recoverable witness premises"
+        );
+    }
+
+    #[test]
+    fn conjecture_test_bridges_math_twin_via_conjecture_under_test() {
+        // Driving the real MCP `conjecture_test` tool (the shared conjecture-test core) with a
+        // `math_conjecture` must persist the always-present structural twin bridge
+        // `<math> math:conjectureUnderTest <logic:Conjecture-node>` (domain math:Conjecture,
+        // range logic:Conjecture) — readable back out of the append-only GTS library.
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let (_env, _cg) = ConjEnvGuard::set();
+        let (_mem, _mp) = temp_memory();
+        let (_dir, path) = temp_conjecture();
+        let bytes = snapshot();
+        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+
+        let math_iri = "https://blackcatinformatics.ca/math/conjecture/goldbach";
+        let resp = text_payload(server.call_tool_result(
+            "conjecture_test",
+            &json!({
+                "formula": forall_horn_candidate("B"),
+                "kb": refuting_kb("B"),
+                "standpoint": "http://ex/standpoint/alice",
+                "math_conjecture": math_iri,
+            }),
+        ));
+        assert_eq!(resp["ok"], true, "math-twin persist must succeed: {resp}");
+        let node = resp["conjecture"].as_str().expect("node iri").to_string();
+
+        let dataset = read_conjectures(&path);
+        let under_test = format!("{MATH_NS}conjectureUnderTest");
+        assert!(
+            dataset.owned_quads().any(|q| {
+                q.subject == RdfTerm::iri(math_iri)
+                    && q.predicate == under_test
+                    && q.object == RdfTerm::iri(node.clone())
+            }),
+            "the math:conjectureUnderTest bridge <{math_iri}> -> <{node}> must be recoverable \
+             from the persisted GTS library"
         );
     }
 

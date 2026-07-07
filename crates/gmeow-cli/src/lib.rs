@@ -236,8 +236,10 @@ pub enum ConjectureCommands {
         /// The REQUIRED reified standpoint scope IRI (Principle 9).
         #[arg(long = "standpoint")]
         standpoint: String,
-        /// Optionally, the `math:Conjecture` twin IRI so a refutation's counterexample is
-        /// re-exposed via `math:hasCounterexample`.
+        /// Optionally, the `math:Conjecture` twin IRI. When given, the statement is bridged to
+        /// the runtime `logic:Conjecture` node via `math:conjectureUnderTest` (on every
+        /// verdict), and a refutation's counterexample is additionally re-exposed via
+        /// `math:hasCounterexample`.
         #[arg(long = "math-conjecture")]
         math_conjecture: Option<String>,
         /// Compute and print the verdict but WRITE NOTHING to the library.

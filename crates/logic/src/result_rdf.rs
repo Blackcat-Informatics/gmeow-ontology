@@ -90,7 +90,8 @@ const PROMOTION_CANDIDATE_IRI_BASE: &str =
 /// ConjectureObligationCandidate`). DISTINCT from [`CONJECTURE_IRI_BASE`] for the same reason.
 const OBLIGATION_CANDIDATE_IRI_BASE: &str =
     "https://blackcatinformatics.ca/gmeow/graph/conjecture-obligation/";
-/// The `math:` namespace (the one math→logic twin edge, `math:hasCounterexample`).
+/// The `math:` namespace (the math→logic twin edges: the always-present
+/// `math:conjectureUnderTest` bridge and the refutation-only `math:hasCounterexample`).
 const MATH_NAMESPACE: &str = "https://blackcatinformatics.ca/math/";
 /// The `gmeow:` namespace (the projection's provenance edges).
 const GMEOW_NAMESPACE: &str = "https://blackcatinformatics.ca/gmeow/";
@@ -1101,9 +1102,11 @@ pub struct ConjectureVerdictInput<'a> {
     pub kb_world: &'a str,
     /// The engine-produced answer (verdict + witness + lifecycle + discharge).
     pub answer: &'a ConjectureAnswer,
-    /// When the conjecture formalizes a `math:Conjecture`, that math statement's IRI —
-    /// the twin edge `<math_conjecture> math:hasCounterexample <witness>` is emitted iff
-    /// this is `Some` AND the answer carries a refutation witness.
+    /// When the conjecture formalizes a `math:Conjecture`, that math statement's IRI. When
+    /// `Some`, the always-present structural twin `<math_conjecture> math:conjectureUnderTest
+    /// <conjecture-node>` is emitted for EVERY verdict (corroborated / refuted / open /
+    /// withdrawn); additionally the refutation-only `<math_conjecture> math:hasCounterexample
+    /// <witness>` edge is emitted iff the answer also carries a refutation witness.
     pub math_conjecture: Option<&'a str>,
     /// The candidate formula's PRINCIPAL predicate IRI (its
     /// `Formula::principal_predicate`, in `gmeow-logic-compile`),
@@ -1122,7 +1125,8 @@ pub struct ConjectureVerdictInput<'a> {
 /// two worlds mints two DISTINCT nodes, Principle 9 / no silent overwrite), the embedded
 /// `logic:ReasoningResult` graph its verdict was read from (its OWN content-addressed
 /// node, linked via `logic:conjectureVerdict`), the refutation witness (when present), the
-/// provenance edges, and the optional `math:hasCounterexample` twin edge.
+/// provenance edges, the always-present `math:conjectureUnderTest` twin bridge (when a math
+/// statement is named), and the refutation-only `math:hasCounterexample` twin edge.
 pub fn project_conjecture_verdict(input: &ConjectureVerdictInput) -> String {
     let answer = input.answer;
 
@@ -1171,6 +1175,22 @@ pub fn project_conjecture_verdict(input: &ConjectureVerdictInput) -> String {
         logic("conjectureVerdict"),
         Node::iri(result_iri.clone()),
     );
+
+    // The always-present structural twin bridge: whenever this conjecture formalizes a
+    // `math:Conjecture`, the statement-layer object is linked to THIS runtime-testable
+    // `logic:Conjecture` node via `math:conjectureUnderTest` (domain math:Conjecture, range
+    // logic:Conjecture — a math→logic edge, permitted because math: is last in the acyclic
+    // grounding-layer order). Unlike the refutation-only `math:hasCounterexample` witness
+    // edge, this twin is emitted for corroborated, refuted, open, and withdrawn verdicts
+    // alike — any time a math twin is named — so the statement always resolves to the node
+    // carrying its standpoint-scoped verdict.
+    if let Some(math_conjecture) = input.math_conjecture {
+        sink.push(
+            Node::iri(math_conjecture.to_owned()),
+            math("conjectureUnderTest"),
+            subject.clone(),
+        );
+    }
 
     // The refutation witness (present exactly for a RefutedInStandpoint verdict): a
     // `logic:ContradictionWitness` node linked via `logic:conjectureRefutationWitness`,
@@ -1429,6 +1449,9 @@ pub struct ConjectureVerdictRecord {
     pub verdict: ReasoningResult,
     /// The refutation witness (present exactly for a RefutedInStandpoint verdict).
     pub witness: Option<ContradictionWitness>,
+    /// The `math:Conjecture` statement IRI this node is the runtime twin of (present exactly
+    /// when the body carries a `<math> math:conjectureUnderTest <this-node>` bridge edge).
+    pub math_conjecture: Option<String>,
     /// The POSITIVE promotion leg (present exactly for a Corroborated verdict): the
     /// `logic:FormalizationCandidate` linked via `logic:conjecturePromotionCandidate`.
     pub promotion_candidate: Option<PromotionCandidateRecord>,
@@ -1528,6 +1551,15 @@ pub fn parse_conjecture_verdict(nt_body: &str) -> Result<ConjectureVerdictRecord
         .and_then(|t| t.object_blank())
         .map(|node| parse_witness_body(&triples, &node));
 
+    // The always-present structural twin bridge: the `math:Conjecture` whose
+    // `math:conjectureUnderTest` edge names THIS `logic:Conjecture` node as its object.
+    let math_conjecture = triples
+        .iter()
+        .find(|t| {
+            t.predicate == math("conjectureUnderTest") && t.object_iri() == Some(subject.clone())
+        })
+        .map(|t| t.subject.clone());
+
     // The two symmetric promotion legs (present exactly on their lifecycle).
     let promotion_candidate = parse_promotion_candidate(&triples, &subject);
     let obligation_candidate = parse_obligation_candidate(&triples, &subject);
@@ -1540,6 +1572,7 @@ pub fn parse_conjecture_verdict(nt_body: &str) -> Result<ConjectureVerdictRecord
         discharge,
         verdict,
         witness,
+        math_conjecture,
         promotion_candidate,
         obligation_candidate,
     })
