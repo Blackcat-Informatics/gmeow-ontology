@@ -606,6 +606,14 @@ gmeow:labelSetRevision
     skos:definition "The pinned revision of the label set the run emitted over — part of the full run provenance (a zero-shot candidate label set is part of the run identity; a zero-shot 'joy' is not GoEmotions joy)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+gmeow:hypothesisTemplate
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:ModelInferenceRun ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "hypothesis template"@x-gmeow-english ;
+    skos:definition "The natural-language hypothesis template a zero-shot (NLI) inference run instantiated per candidate label (e.g. 'This text expresses {}.'). Part of the run identity: the same candidate word under a different template is a different run, so a zero-shot candidate set is run-scoped provenance, never a static gmeow:AffectLabelSet."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 gmeow:memberOfLabelSet
     a owl:ObjectProperty ;
     rdfs:domain gmeow:AffectClassifierLabel ;
@@ -1021,6 +1029,13 @@ gmeow:scoreSoftmax
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "softmax probability"@x-gmeow-english ;
     skos:definition "A softmax probability over a mutually-exclusive label set — a raw model probability, not calibrated unless a gmeow:scoreCalibration says so."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:scoreEntailment
+    a gmeow:ScoreSemantics ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "entailment probability"@x-gmeow-english ;
+    skos:definition "A natural-language-inference entailment probability from a zero-shot classifier (a hypothesis built from a run-scoped candidate label and template, scored entailment-vs-contradiction) — evidence strength, NOT a calibrated probability. The candidate label set is part of the run identity, carried by gmeow:hypothesisTemplate + gmeow:labelSetRevision, so a zero-shot 'joy' is not GoEmotions joy."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:polarityBipolar
