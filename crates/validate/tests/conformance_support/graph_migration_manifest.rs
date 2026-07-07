@@ -1118,6 +1118,86 @@ fn twin_kind_matches_locator_surface() {
 }
 
 #[test]
+fn twin_locators_resolve_to_real_targets() {
+    // Defense in depth over `twin_kind_matches_locator_surface`, which validates the
+    // locator STRING shape only — so a phantom, renamed, or off-gate twin passes
+    // green (exactly the class of hole that let six ai_claims twins land in an
+    // off-gate binary undetected). Here every `Twin` locator is RESOLVED against its
+    // real target:
+    //   - a `file.rs::fn` twin: the source file exists and defines `fn <fn>`; and for
+    //     a `crates/validate/tests` integration-test binary, that binary is NOT carved
+    //     out of the per-commit nextest profile (a twin that runs only on maint-heavy
+    //     is not on the conformance gate the migration promised).
+    //   - a `…/tests/*.ttl#cell` twin: the carrier file exists and declares `cell` as
+    //     a subject local name.
+    let root = super::repo_root();
+    let nextest = std::fs::read_to_string(root.join(".config/nextest.toml"))
+        .expect("read .config/nextest.toml");
+    // The [profile.default] exclusion is `default-filter = not( … )`; any `binary(x)`
+    // inside that block means binary x is off the per-commit gate.
+    let off_gate_block = {
+        let anchor = "default-filter = '''";
+        let start = nextest.find(anchor).expect("default-filter block") + anchor.len();
+        let end = start + nextest[start..].find("'''").expect("default-filter close");
+        nextest[start..end].to_owned()
+    };
+
+    for row in MANIFEST {
+        let TwinState::Twin(locator) = row.state else {
+            continue;
+        };
+        let ctx = format!("{}::{}", row.python_file, row.python_fn);
+
+        if let Some((stem, fn_name)) = locator.split_once(".rs::") {
+            // Resolve the source file across the two twin homes: validate
+            // integration tests and the pipeline cli_ops unit tests.
+            let integration = root
+                .join("crates/validate/tests")
+                .join(format!("{stem}.rs"));
+            let pipeline_unit = root
+                .join("crates/pipeline/src/cli_ops")
+                .join(format!("{stem}.rs"));
+            let (src_path, is_integration_binary) = if integration.exists() {
+                (integration, true)
+            } else if pipeline_unit.exists() {
+                (pipeline_unit, false)
+            } else {
+                panic!(
+                    "twin {locator:?} for {ctx}: no source file `{stem}.rs` under crates/validate/tests or crates/pipeline/src/cli_ops"
+                );
+            };
+            let src = std::fs::read_to_string(&src_path)
+                .unwrap_or_else(|e| panic!("twin {locator:?} for {ctx}: read {src_path:?}: {e}"));
+            assert!(
+                src.contains(&format!("fn {fn_name}(")),
+                "twin {locator:?} for {ctx}: no `fn {fn_name}` in {}",
+                src_path.display()
+            );
+            if is_integration_binary {
+                assert!(
+                    !off_gate_block.contains(&format!("binary({stem})")),
+                    "twin {locator:?} for {ctx}: binary `{stem}` is carved out of the \
+                     per-commit nextest profile — the twin runs only on maint-heavy, not the gate"
+                );
+            }
+        } else if let Some((ttl_stem, cell)) = locator.split_once(".ttl#") {
+            let ttl_path = root.join(format!("{ttl_stem}.ttl"));
+            let ttl = std::fs::read_to_string(&ttl_path)
+                .unwrap_or_else(|e| panic!("twin {locator:?} for {ctx}: read {ttl_path:?}: {e}"));
+            // A cell subject is written `<prefix>:<cell> …`; the colon anchors the
+            // local-name start and the following whitespace anchors its end.
+            assert!(
+                ttl.contains(&format!(":{cell} ")) || ttl.contains(&format!(":{cell}\n")),
+                "twin {locator:?} for {ctx}: cell `{cell}` is not declared as a subject in {}",
+                ttl_path.display()
+            );
+        } else {
+            panic!("twin {locator:?} for {ctx}: unrecognized locator surface");
+        }
+    }
+}
+
+#[test]
 fn parametrized_rows_declare_cardinality() {
     // The only parametrized source file is test_suppression_conformance.py; its three
     // fns parametrize over the projection registry. Pin the cardinalities so a twin
