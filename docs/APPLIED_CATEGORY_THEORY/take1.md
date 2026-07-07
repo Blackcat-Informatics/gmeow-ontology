@@ -471,7 +471,7 @@ under/over-approximation, not a model to import.
 
 ### 10.2 Execution & optimization — the physical engine
 
-Routing every query to Scryer (SLD) and Nemo (chase) is a **bootstrap, not an architecture**: two
+Routing every query to Scryer (SLD) and Nemo (chase) was a **bootstrap, not an architecture**: two
 black-box whole-program engines cannot be planned across, specialized, parallelized, or made
 incremental, and each boundary pays re-serialization (Nemo even materializes the full chase, then
 truncates). The long-term design extends §10.1's progressive lowering *downward* — past the
@@ -479,6 +479,15 @@ projection lowerings (§11) — to a **single native physical engine** in Rust, 
 demoted to conformance oracles, fallbacks for not-yet-native facets, and capability stand-ins
 (§10). The substrate is subsumed **fragment-by-fragment, oracle-gated** by the differential ledger
 — the same retirement discipline already applied to the Python oracle.
+
+The Nemo-track of that subsumption is now **realized**: native decides the production bundle. Each
+per-fragment `native ⊒ oracle` gap-zero is not merely asserted in a test — it is reified as a
+bundle-borne `logic:Correspondence` (relation `logic:Subsumes`, morphism `logic:SectionRetraction`,
+preservation `logic:CompleteOverApproximation`) in `generated/logic/subsumption-correspondence.ttl`,
+bound to `native_contract_hash()` so it is content-addressed to the exact native core it certifies,
+and enforced by an on-gate drift-gate. The correspondence *is* the subsumption claim, carried in the
+ontology and re-checked every gate; Scryer/Nemo now ride only the differential parity lane behind that
+gate, no longer the forward reasoning path.
 
 The execution lowering stack (the physical continuation of §10):
 
@@ -532,7 +541,9 @@ target *it*. The other two prerequisites already hold — the four axes are semi
 first-class structure (§7), and the IR is content-addressed (§3).
 
 **Staging & honest risk.** Native subsumption is fragment-by-fragment, oracle-gated (Scryer/Nemo as
-parity oracle under a growing native core). Name the hard parts now, do not promise them early:
+parity oracle under a growing native core). The Nemo-track — the forward-chase OWL profiles (EL, RL,
+DL Horn) — is realized and in production; the remaining hard parts stay ahead of it. Name them now,
+do not promise them early:
 **well-founded / stable-model semantics *incrementally*** (non-monotonic + differential is
 research-frontier — monotone recursion and stratified negation are tractable, full WFS-incremental
 is not); **existential-rule chase with termination *and* incrementality together**; and the

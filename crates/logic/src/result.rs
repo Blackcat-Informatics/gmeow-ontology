@@ -767,6 +767,21 @@ impl ReasoningResult {
         self.information != InformationState::Both
     }
 
+    /// `true` iff the ontology is *decided* consistent — a genuine, conclusive
+    /// proof of satisfiability ([`InformationState::Supported`]).
+    ///
+    /// This is the predicate a **positive-consistency** consumer must use: unlike
+    /// [`Self::is_consistent`] (which merely rules out the witnessed-contradiction
+    /// glut [`InformationState::Both`]), it also rules out
+    /// [`InformationState::Undetermined`] — the honest *cannot-decide* state the
+    /// DL fold emits when the bundle carries out-of-fragment constructs the native
+    /// path did not decide. A cannot-decide is NOT a positive consistency verdict:
+    /// reporting it as "consistent" would silently ignore the undecided axioms
+    /// (an unsound answer, the incomplete-never-wrong violation this guards).
+    pub fn is_decided_consistent(&self) -> bool {
+        self.information == InformationState::Supported
+    }
+
     /// `true` iff this result rests on a conclusive evaluation — a completed run
     /// OR a complete-for-the-fragment answer (SEMANTICS:294-297). This is the
     /// predicate [`InformationState::Neither`] requires.
@@ -1034,6 +1049,16 @@ impl ReasoningResult {
                 .collect();
             provenance.contradiction_witnesses.sort();
             InformationState::Both
+        } else if unsupported {
+            // No inconsistency witness was derived, but the native path carries
+            // constructs it does NOT decide (the coverage gap). It reached that
+            // "no clash" state by IGNORING those out-of-fragment axioms, any of
+            // which could have forced a contradiction — so there is genuinely no
+            // proof of satisfiability. The consistency verdict is UNDETERMINED
+            // (cannot-decide), never a wrong `supported`/`consistent`. This is
+            // the incomplete-never-wrong soundness floor; it does NOT collapse the
+            // Belnap lattice — a real witnessed contradiction still yields `Both`.
+            InformationState::Undetermined
         } else {
             // The consistency claim is supported (a proof of satisfiability) with no
             // counterproof, conclusively when the fragment is fully covered.

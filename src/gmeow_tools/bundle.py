@@ -135,7 +135,8 @@ def bundled_reasoning() -> dict[str, bytes]:
     consumer can read WHY each entailment holds and the DL/EL agreement ledger
     (maximal information flow, north-star (d)) WITHOUT re-running the engine. Keys are
     bundle-relative (``reason/reasoning-explanations.rdf12.ttl``,
-    ``reason/dl-el-crosscheck-report.ttl``). These are the bundle-consistent reports
+    ``reason/dl-el-crosscheck-report.ttl``,
+    ``reason/subsumption-correspondence.ttl``). These are the bundle-consistent reports
     over the early-composed closure that rides the bundle GRAPH — NOT the full-fold
     committed ``generated/logic/`` files (owned by ``stage-export-logic``), which are
     derived after the snapshot and so cannot be folded one-pass. The reasoned closure
