@@ -586,28 +586,61 @@ pub const MANIFEST: &[ManifestRow] = &[
         "test_ambiguous_cases_co_modelable",
     ),
     // ── tests/test_notes.py (8) — 4 traversal + 4 .rq parse guards ─────────────
-    t(
+    twin(
         "tests/test_notes.py",
         "test_evidence_span_is_information_object",
+        1,
+        QueryBehavioral,
+        "conformance_notes.rs::evidence_span_is_information_object",
     ),
-    t(
+    twin(
         "tests/test_notes.py",
         "test_selector_sub_class_of_evidence_span",
+        1,
+        QueryBehavioral,
+        "conformance_notes.rs::selector_sub_class_of_evidence_span",
     ),
-    q(
+    twin(
         "tests/test_notes.py",
         "test_motivation_values_are_individuals",
+        1,
+        QueryBehavioral,
+        "conformance_notes.rs::motivation_values_are_individuals",
     ),
-    t("tests/test_notes.py", "test_notes_are_standpoint_indexed"),
-    q("tests/test_notes.py", "test_notes_oa_projection_executable"),
-    q(
+    twin(
+        "tests/test_notes.py",
+        "test_notes_are_standpoint_indexed",
+        1,
+        QueryBehavioral,
+        "conformance_notes.rs::notes_are_standpoint_indexed",
+    ),
+    twin(
+        "tests/test_notes.py",
+        "test_notes_oa_projection_executable",
+        1,
+        QueryBehavioral,
+        "conformance_notes.rs::notes_oa_projection_executable",
+    ),
+    twin(
         "tests/test_notes.py",
         "test_notes_schema_projection_executable",
+        1,
+        QueryBehavioral,
+        "conformance_notes.rs::notes_schema_projection_executable",
     ),
-    q("tests/test_notes.py", "test_notes_as_projection_executable"),
-    q(
+    twin(
+        "tests/test_notes.py",
+        "test_notes_as_projection_executable",
+        1,
+        QueryBehavioral,
+        "conformance_notes.rs::notes_as_projection_executable",
+    ),
+    twin(
         "tests/test_notes.py",
         "test_notes_markdown_projection_executable",
+        1,
+        QueryBehavioral,
+        "conformance_notes.rs::notes_markdown_projection_executable",
     ),
     // ── tests/test_observations.py (1) ──────────────────────────────────────────
     q(
