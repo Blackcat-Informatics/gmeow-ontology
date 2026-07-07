@@ -78,6 +78,18 @@ const RESULT_IRI_BASE: &str = "https://blackcatinformatics.ca/gmeow/graph/reason
 /// [`RESULT_IRI_BASE`] so a conjecture node never collides with the reasoning-result
 /// node it embeds and links to via `logic:conjectureVerdict`.
 const CONJECTURE_IRI_BASE: &str = "https://blackcatinformatics.ca/gmeow/graph/conjecture/";
+/// The content-addressed IRI base for the POSITIVE promotion leg's target — the
+/// `logic:FormalizationCandidate` a corroborated conjecture proposes (`logic:conjecture-
+/// PromotionCandidate`). DISTINCT from (and not a prefix-collision with) [`CONJECTURE_IRI_BASE`]
+/// — the segment is `conjecture-promotion`, never `conjecture/…`, so the conjecture-node
+/// scan never mistakes a candidate node for the conjecture subject.
+const PROMOTION_CANDIDATE_IRI_BASE: &str =
+    "https://blackcatinformatics.ca/gmeow/graph/conjecture-promotion/";
+/// The content-addressed IRI base for the SYMMETRIC anti-conjecture leg's target — the
+/// candidate `logic:NonEntailmentObligation` a refuted conjecture proposes (`logic:anti-
+/// ConjectureObligationCandidate`). DISTINCT from [`CONJECTURE_IRI_BASE`] for the same reason.
+const OBLIGATION_CANDIDATE_IRI_BASE: &str =
+    "https://blackcatinformatics.ca/gmeow/graph/conjecture-obligation/";
 /// The `math:` namespace (the one math→logic twin edge, `math:hasCounterexample`).
 const MATH_NAMESPACE: &str = "https://blackcatinformatics.ca/math/";
 /// The `gmeow:` namespace (the projection's provenance edges).
@@ -88,6 +100,7 @@ const CONJECTURE_ACTIVITY: &str = "https://blackcatinformatics.ca/gmeow/activity
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
 const XSD_INTEGER: &str = "http://www.w3.org/2001/XMLSchema#integer";
+const XSD_ANY_URI: &str = "http://www.w3.org/2001/XMLSchema#anyURI";
 
 /// `logic:` IRI helper. All container/structure predicates this projection mints
 /// live in the logic namespace (consistent with the axis individuals), so the
@@ -121,6 +134,14 @@ impl Node {
         Node::Lit {
             lex: n.to_string(),
             datatype: XSD_INTEGER.to_owned(),
+        }
+    }
+    /// An `xsd:anyURI` typed literal (the `logic:obligationForbiddenPredicate` datatype —
+    /// a predicate IRI carried as a lexical URI, exactly as the authored obligations do).
+    fn any_uri(s: impl Into<String>) -> Self {
+        Node::Lit {
+            lex: s.into(),
+            datatype: XSD_ANY_URI.to_owned(),
         }
     }
     /// Render this node in canonical N-Triples term syntax.
@@ -1084,6 +1105,15 @@ pub struct ConjectureVerdictInput<'a> {
     /// the twin edge `<math_conjecture> math:hasCounterexample <witness>` is emitted iff
     /// this is `Some` AND the answer carries a refutation witness.
     pub math_conjecture: Option<&'a str>,
+    /// The candidate formula's PRINCIPAL predicate IRI (its
+    /// `Formula::principal_predicate`, in `gmeow-logic-compile`),
+    /// the sound `logic:obligationForbiddenPredicate` of the anti-conjecture
+    /// `logic:NonEntailmentObligation` a REFUTED conjecture proposes. REQUIRED (must be
+    /// `Some`) exactly for a [`ConjectureLifecycleState::RefutedInStandpoint`] answer whose
+    /// formula names a single predicate; the caller hard-fails (never fabricates one) for a
+    /// refuted *compound* formula that names no single predicate. Unused for the corroborated
+    /// / open / withdrawn legs.
+    pub forbidden_predicate: Option<&'a str>,
 }
 
 /// Project an engine-produced [`ConjectureAnswer`] into deterministic, sorted N-Triples:
@@ -1182,6 +1212,45 @@ pub fn project_conjecture_verdict(input: &ConjectureVerdictInput) -> String {
         );
     }
 
+    // ── The two symmetric promotion legs (LOGIC-FOUNDATION.md §"Two symmetric promotion
+    // legs"). A conjecture that survives feeds forward, and so does one that dies. Each leg
+    // is emitted EXACTLY on its epistemic lifecycle — corroborated → the POSITIVE promotion
+    // leg only; refuted-in-standpoint → the SYMMETRIC anti-conjecture obligation leg only;
+    // open / withdrawn → neither — matching each vocabulary term's "present exactly when …"
+    // wording. Each target is a content-addressed node keyed on the SAME (formula ×
+    // standpoint × KB-world) identity coordinates as the conjecture node, minted with the
+    // carriers its own SHACL shape requires so it is well-formed, never a bare typed stub.
+    match answer.lifecycle {
+        ConjectureLifecycleState::Corroborated => {
+            let node = Node::iri(promotion_candidate_iri(input));
+            sink.push(
+                subject.clone(),
+                logic("conjecturePromotionCandidate"),
+                node.clone(),
+            );
+            emit_promotion_candidate_body(&mut sink, &node, input);
+        }
+        ConjectureLifecycleState::RefutedInStandpoint => {
+            // A refuted conjecture forbids its formula: the anti-conjecture obligation names
+            // the refuted claim's principal predicate as the one the closure must never draw.
+            // The caller (`run_conjecture_test`) guarantees this is `Some` for a refuted
+            // answer whose formula names a single predicate, and hard-fails otherwise — so a
+            // missing predicate here is a broken caller contract, never a fabricated node.
+            let forbidden = input.forbidden_predicate.expect(
+                "caller contract: a refuted conjecture must carry its formula's principal \
+                 predicate as the anti-conjecture obligation's forbidden predicate",
+            );
+            let node = Node::iri(obligation_candidate_iri(input));
+            sink.push(
+                subject.clone(),
+                logic("antiConjectureObligationCandidate"),
+                node.clone(),
+            );
+            emit_obligation_candidate_body(&mut sink, &node, forbidden);
+        }
+        ConjectureLifecycleState::Open | ConjectureLifecycleState::Withdrawn => {}
+    }
+
     let conjecture_body = finalize_with_base(sink, CONJECTURE_IRI_BASE, CONJECTURE_PLACEHOLDER);
 
     // Merge the conjecture node graph with the embedded reasoning-result graph into one
@@ -1200,6 +1269,129 @@ pub fn project_conjecture_verdict(input: &ConjectureVerdictInput) -> String {
         out.push('\n');
     }
     out
+}
+
+/// The content-address digest a promotion / obligation candidate node is keyed on: the
+/// SAME `(content_key × standpoint × KB-world)` identity coordinates as the conjecture node
+/// (Principle 9 — one candidate per formula-in-a-standpoint-in-a-world), so the leg target
+/// is deterministic and re-derivable without re-parsing the body. The `\u{1}` separator is a
+/// term the IRIs / keys never contain, so the concatenation is injective.
+fn candidate_identity_digest(input: &ConjectureVerdictInput) -> String {
+    sha256_hex(&format!(
+        "{}\u{1}{}\u{1}{}",
+        input.content_key, input.standpoint, input.kb_world
+    ))
+}
+
+/// The deterministic IRI of the POSITIVE promotion leg's `logic:FormalizationCandidate`.
+fn promotion_candidate_iri(input: &ConjectureVerdictInput) -> String {
+    format!(
+        "{PROMOTION_CANDIDATE_IRI_BASE}{}",
+        candidate_identity_digest(input)
+    )
+}
+
+/// The deterministic IRI of the anti-conjecture leg's `logic:NonEntailmentObligation`.
+fn obligation_candidate_iri(input: &ConjectureVerdictInput) -> String {
+    format!(
+        "{OBLIGATION_CANDIDATE_IRI_BASE}{}",
+        candidate_identity_digest(input)
+    )
+}
+
+/// Emit the POSITIVE promotion leg's target: the `logic:FormalizationCandidate` proposing to
+/// promote a CORROBORATED conjecture's formula to a canonical axiom. It carries the eight
+/// universal candidate carriers `logic:FormalizationCandidateShape` requires so the node is
+/// well-formed (never a bare typed stub), populated deterministically as a `logic:Candidate-
+/// Proposed` candidate a reviewer STILL adjudicates — corroboration is provisional support,
+/// never proof (design/LOGIC-FOUNDATION.md §"Two symmetric promotion legs"):
+///  - source hash / extraction provenance / scope anchor it to the conjectured formula and
+///    the engine run that produced it (SOUND: pure provenance of THIS corroboration);
+///  - `logic:StratifiedNAFProfile` is the reasoning contract the conjecture chase runs under;
+///  - `logic:CandidateProposed` is the entry lifecycle every automated extraction enters at;
+///  - `logic:RiskCoreContaminating` is the honest worst-case for a promotion INTO the core,
+///    which keeps the reviewer gate maximally strict;
+///  - `logic:CategoryDerivationRule` / `logic:SoundUnderApproximation` follow the established
+///    convention every machine-harvested axiom candidate in `module.ttl` records, refinable
+///    by the reviewer the candidate is routed to.
+fn emit_promotion_candidate_body(sink: &mut Sink, node: &Node, input: &ConjectureVerdictInput) {
+    sink.push(
+        node.clone(),
+        RDF_TYPE,
+        Node::iri(logic("FormalizationCandidate")),
+    );
+    sink.push(
+        node.clone(),
+        logic("candidateSourceHash"),
+        Node::string(format!("sha256:{}", sha256_hex(input.content_key))),
+    );
+    sink.push(
+        node.clone(),
+        logic("candidateExtractionProvenance"),
+        Node::string(format!(
+            "engine-produced by the conjecture-test activity <{CONJECTURE_ACTIVITY}>: a \
+             corroboration scoped to standpoint <{}> against KB-world-hash {}",
+            input.standpoint,
+            sha256_hex(input.kb_world)
+        )),
+    );
+    sink.push(
+        node.clone(),
+        logic("candidateScope"),
+        Node::string(input.content_key.to_owned()),
+    );
+    sink.push(
+        node.clone(),
+        logic("candidateContract"),
+        Node::iri(logic("StratifiedNAFProfile")),
+    );
+    sink.push(
+        node.clone(),
+        logic("candidateCategory"),
+        Node::iri(logic("CategoryDerivationRule")),
+    );
+    sink.push(
+        node.clone(),
+        logic("candidateLifecycle"),
+        Node::iri(logic("CandidateProposed")),
+    );
+    sink.push(
+        node.clone(),
+        logic("candidateProjectionBehavior"),
+        Node::iri(logic("SoundUnderApproximation")),
+    );
+    sink.push(
+        node.clone(),
+        logic("candidateSemanticRisk"),
+        Node::iri(logic("RiskCoreContaminating")),
+    );
+}
+
+/// Emit the anti-conjecture leg's target: the candidate `logic:NonEntailmentObligation` a
+/// REFUTED conjecture proposes, forbidding its formula. It carries the two carriers
+/// `logic:NonEntailmentObligationShape` requires so the node is well-formed:
+///  - `logic:obligationForbiddenPredicate` — the refuted formula's principal predicate (the
+///    predicate the closure must never draw), passed in from the caller's `Formula`;
+///  - `logic:obligationDischargeCondition logic:DischargeFiniteClosure` — the engine-wired
+///    condition the obligation is conclusively checkable under, matching exactly HOW the
+///    refutation was found (a contradiction in the materialized finite closure of the
+///    isolated scenario world).
+fn emit_obligation_candidate_body(sink: &mut Sink, node: &Node, forbidden_predicate: &str) {
+    sink.push(
+        node.clone(),
+        RDF_TYPE,
+        Node::iri(logic("NonEntailmentObligation")),
+    );
+    sink.push(
+        node.clone(),
+        logic("obligationForbiddenPredicate"),
+        Node::any_uri(forbidden_predicate.to_owned()),
+    );
+    sink.push(
+        node.clone(),
+        logic("obligationDischargeCondition"),
+        Node::iri(logic("DischargeFiniteClosure")),
+    );
 }
 
 /// The content-addressed conjecture-node IRI for `input` — the subject the projection
@@ -1237,6 +1429,49 @@ pub struct ConjectureVerdictRecord {
     pub verdict: ReasoningResult,
     /// The refutation witness (present exactly for a RefutedInStandpoint verdict).
     pub witness: Option<ContradictionWitness>,
+    /// The POSITIVE promotion leg (present exactly for a Corroborated verdict): the
+    /// `logic:FormalizationCandidate` linked via `logic:conjecturePromotionCandidate`.
+    pub promotion_candidate: Option<PromotionCandidateRecord>,
+    /// The SYMMETRIC anti-conjecture leg (present exactly for a RefutedInStandpoint verdict):
+    /// the candidate `logic:NonEntailmentObligation` linked via
+    /// `logic:antiConjectureObligationCandidate`.
+    pub obligation_candidate: Option<ObligationCandidateRecord>,
+}
+
+/// The re-read POSITIVE promotion leg: the `logic:FormalizationCandidate` a corroborated
+/// conjecture proposes, with its node IRI and the eight universal candidate carriers.
+#[derive(Debug, Clone, PartialEq)]
+pub struct PromotionCandidateRecord {
+    /// The content-addressed candidate node IRI.
+    pub node: String,
+    /// `logic:candidateSourceHash` (the `sha256:` content hash of the conjectured formula).
+    pub source_hash: String,
+    /// `logic:candidateExtractionProvenance` (what produced it — the conjecture-test run).
+    pub extraction_provenance: String,
+    /// `logic:candidateScope` (the formula the proposed axiom would constrain).
+    pub scope: String,
+    /// `logic:candidateContract` (the reasoning contract IRI the conjecture ran under).
+    pub contract: String,
+    /// `logic:candidateCategory` (the formalization-category IRI).
+    pub category: String,
+    /// `logic:candidateLifecycle` (the governance lifecycle IRI — `CandidateProposed`).
+    pub lifecycle: String,
+    /// `logic:candidateProjectionBehavior` (the preservation-kind IRI).
+    pub projection_behavior: String,
+    /// `logic:candidateSemanticRisk` (the semantic-risk IRI).
+    pub semantic_risk: String,
+}
+
+/// The re-read anti-conjecture leg: the candidate `logic:NonEntailmentObligation` a refuted
+/// conjecture proposes, with its node IRI, forbidden predicate, and discharge conditions.
+#[derive(Debug, Clone, PartialEq)]
+pub struct ObligationCandidateRecord {
+    /// The content-addressed obligation node IRI.
+    pub node: String,
+    /// `logic:obligationForbiddenPredicate` (the predicate the closure must never draw).
+    pub forbidden_predicate: String,
+    /// `logic:obligationDischargeCondition` IRIs (sorted), the conditions it is checkable under.
+    pub discharge_conditions: Vec<String>,
 }
 
 /// Re-read a `project_conjecture_verdict` N-Triples body back into a
@@ -1293,6 +1528,10 @@ pub fn parse_conjecture_verdict(nt_body: &str) -> Result<ConjectureVerdictRecord
         .and_then(|t| t.object_blank())
         .map(|node| parse_witness_body(&triples, &node));
 
+    // The two symmetric promotion legs (present exactly on their lifecycle).
+    let promotion_candidate = parse_promotion_candidate(&triples, &subject);
+    let obligation_candidate = parse_obligation_candidate(&triples, &subject);
+
     Ok(ConjectureVerdictRecord {
         content_key,
         standpoint,
@@ -1301,6 +1540,78 @@ pub fn parse_conjecture_verdict(nt_body: &str) -> Result<ConjectureVerdictRecord
         discharge,
         verdict,
         witness,
+        promotion_candidate,
+        obligation_candidate,
+    })
+}
+
+/// Re-read the POSITIVE promotion leg from a parsed body: the `logic:FormalizationCandidate`
+/// linked from `subject` via `logic:conjecturePromotionCandidate`, together with its eight
+/// universal candidate carriers. `None` when no such edge is present.
+fn parse_promotion_candidate(
+    triples: &[ParsedTriple],
+    subject: &str,
+) -> Option<PromotionCandidateRecord> {
+    let node = triples
+        .iter()
+        .find(|t| t.subject == *subject && t.predicate == logic("conjecturePromotionCandidate"))
+        .and_then(|t| t.object_iri())?;
+    let carrier_iri = |local: &str| -> String {
+        triples
+            .iter()
+            .find(|t| t.subject == node && t.predicate == logic(local))
+            .and_then(|t| t.object_iri())
+            .unwrap_or_default()
+    };
+    let carrier_str = |local: &str| -> String {
+        triples
+            .iter()
+            .find(|t| t.subject == node && t.predicate == logic(local))
+            .and_then(|t| t.object_string())
+            .unwrap_or_default()
+    };
+    Some(PromotionCandidateRecord {
+        source_hash: carrier_str("candidateSourceHash"),
+        extraction_provenance: carrier_str("candidateExtractionProvenance"),
+        scope: carrier_str("candidateScope"),
+        contract: carrier_iri("candidateContract"),
+        category: carrier_iri("candidateCategory"),
+        lifecycle: carrier_iri("candidateLifecycle"),
+        projection_behavior: carrier_iri("candidateProjectionBehavior"),
+        semantic_risk: carrier_iri("candidateSemanticRisk"),
+        node,
+    })
+}
+
+/// Re-read the anti-conjecture leg from a parsed body: the candidate
+/// `logic:NonEntailmentObligation` linked from `subject` via
+/// `logic:antiConjectureObligationCandidate`, with its forbidden predicate and (sorted)
+/// discharge conditions. `None` when no such edge is present.
+fn parse_obligation_candidate(
+    triples: &[ParsedTriple],
+    subject: &str,
+) -> Option<ObligationCandidateRecord> {
+    let node = triples
+        .iter()
+        .find(|t| {
+            t.subject == *subject && t.predicate == logic("antiConjectureObligationCandidate")
+        })
+        .and_then(|t| t.object_iri())?;
+    let forbidden_predicate = triples
+        .iter()
+        .find(|t| t.subject == node && t.predicate == logic("obligationForbiddenPredicate"))
+        .and_then(|t| t.object_string())
+        .unwrap_or_default();
+    let mut discharge_conditions: Vec<String> = triples
+        .iter()
+        .filter(|t| t.subject == node && t.predicate == logic("obligationDischargeCondition"))
+        .filter_map(|t| t.object_iri())
+        .collect();
+    discharge_conditions.sort();
+    Some(ObligationCandidateRecord {
+        node,
+        forbidden_predicate,
+        discharge_conditions,
     })
 }
 
