@@ -405,3 +405,80 @@ ex:ecProjectionMissingPreservationKind a gmeow:ExampleConformance ;
 # lint tests. lang:SilentDisambiguation (the co-resident-reading collapse) is likewise
 # a native gate, noted with the meaning-stratum fixtures above.
 # =========================================================================== #
+
+# =========================================================================== #
+# GMN dialect fixtures — the gmeow:gmn* graft's seven SHACL gates: canonical
+# codepoints, the confusables blocklist, sigil-scoped glyph collisions, the
+# eight-field envelope contract, version overclaims, compaction provenance, and
+# compaction overclaims. The five parser-tier failure classes
+# (lang:GmnUncoveredTerm, lang:GmnNonCanonicalOrder, lang:GmnMalformedNumber,
+# lang:GmnUndeclaredDialectVersion, lang:GmnNonDecodableGrammar) are the GMN
+# parser/writer's own validator, not SHACL, so they have no cell here. The
+# silent-collapse compaction counter-example
+# (tests/counter-examples/gmn-compaction-silent-disambiguation.ttl) reuses the
+# EXISTING bundle-wide lang:SilentDisambiguation discipline, a native Rust gate
+# (crates/validate structural_lint) exercised by the native lint tests like
+# projection-silent-disambiguation.ttl, so it likewise has no cell here.
+# =========================================================================== #
+
+ex:ecGmnScriptGlyphCanonical a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/gmn-script-glyph-canonical.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A grapheme in gmeow:gmnScript with the canonical codepoint spelling \"U+2291\" and a full lang:Denotation binding its operator form to a denoted term, plus two sigil-scoped glyphs lawfully sharing \"U+03BC\" (BOTH carry gmeow:gmnSigilScope, the exemption of lang:GmnGlyphCollisionShape) — satisfies the codepoint, confusable, and collision gates and validates with no findings." .
+
+ex:ecGmnEnvelopeComplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/gmn-envelope-complete.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A gmeow:GmnEnvelope carrying all eight contract fields — the three dialect coordinates, the boundary ring, gmeow:accordingTo, gmeow:wasGeneratedBy, gmeow:contentDigest, and a logic:Correspondence losslessness judgment — satisfies lang:GmnEnvelopeContractShape and validates with no findings." .
+
+ex:ecGmnCompactionHonest a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/gmn-compaction-honest.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "An honest GMN-2 compaction — sources named through gmeow:gmnCompacts, holder named through gmeow:vantage, a logic:ValidationOnly / mnemomorphic-false correspondence — plus the canonical GMN-1 lang:ProjectionEmission enumerating the GMN-0 → GMN-1 drop list as lang:unsupportedConstruct entries; satisfies lang:GmnCompactionProvenanceShape, lang:GmnCompactionOverclaimShape, and lang:ProjectionEmissionDeclaredShape and validates with no findings." .
+
+ex:ecGmnMigrationAdditive a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/gmn-migration-additive.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A version migration whose correspondence claims logic:mnemomorphic true over an ADDITIVE bump — the destination membership carries gmeow:versionScale gmeow:scaleMinor and the lineage's gmeow:gmnAcceptWindow is 1 — satisfies lang:GmnVersionOverclaimShape (and the translation-unit gates) and validates with no findings." .
+
+ex:ecGmnNonCanonicalCodepoint a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/gmn-noncanonical-codepoint.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.PatternConstraintComponent" ;
+    gmeow:conformanceRationale "The grapheme's gmeow:gmnCodepoints value \"2291\" drops the canonical \"U+\" prefix (sh:pattern on lang:GmnCodepointCanonicalShape), so validation MUST emit shacl.PatternConstraintComponent and NO other finding (lang:GmnNonCanonicalCodepoint); the value is present, so the presence branch stays quiet." .
+
+ex:ecGmnConfusableGlyph a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/gmn-confusable-glyph.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "Two distinct graphemes of gmeow:gmnScript are related by gmeow:gmnConfusableWith (the sh:sparql of lang:GmnConfusableGlyphShape), so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (lang:GmnConfusableGlyph); their codepoint values are distinct and canonical, so the collision and codepoint gates stay quiet." .
+
+ex:ecGmnGlyphCollision a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/gmn-glyph-collision.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "Two distinct graphemes of one script share the identical gmeow:gmnCodepoints \"U+03BC\" with NO gmeow:gmnSigilScope on either (the sh:sparql of lang:GmnGlyphCollisionShape — the sigil-scoped exemption requires BOTH to be scoped), so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (lang:GmnGlyphCollision)." .
+
+ex:ecGmnEnvelopeMissingField a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/gmn-envelope-missing-field.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The gmeow:GmnEnvelope omits exactly one of its eight contract fields — the gmeow:gmnSecurityRing boundary ring (sh:minCount 1 on lang:GmnEnvelopeContractShape) — so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (lang:GmnMissingEnvelopeField); the other seven fields are present." .
+
+ex:ecGmnVersionOverclaim a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/gmn-version-overclaim.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "The migration's carried correspondence claims logic:mnemomorphic true while the destination version's membership carries gmeow:versionScale gmeow:scaleMajor — a stronger-than-additive bump (the sh:sparql of lang:GmnVersionOverclaimShape) — so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (lang:GmnVersionOverclaim); the unit itself satisfies the translation-unit gates and the acceptance window is 1." .
+
+ex:ecGmnCompactionWithoutProvenance a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/gmn-compaction-without-provenance.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The gmeow:GmnCompaction names its sources through gmeow:gmnCompacts but carries no attributing gmeow:vantage (sh:minCount 1 on lang:GmnCompactionProvenanceShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (lang:GmnCompactionWithoutProvenance); it links no correspondence, so the overclaim gate stays quiet." .
+
+ex:ecGmnCompactionOverclaim a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/gmn-compaction-overclaim.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "The gmeow:GmnCompaction's linked correspondence claims logic:ExactPreservation with a mnemomorphic witness — stronger than the logic:ValidationOnly the compaction discipline licenses (the sh:sparql of lang:GmnCompactionOverclaimShape) — so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (lang:GmnCompactionOverclaim); the compaction is fully provenance-linked, so the provenance gate stays quiet." .

@@ -48,6 +48,7 @@ status. Competing analyses of one surface are held co-resident and non-collapsin
 | [`LANG-FORMS.md`](design/LANG-FORMS.md) | **this slice** — the sign-system reference layer and the typed form AST |
 | [`LANG-MEANING.md`](design/LANG-MEANING.md) | sense, reference, the denotation bridge into `logic:` |
 | [`LANG-TRANSLATION.md`](design/LANG-TRANSLATION.md) | rendering, translation, and paraphrase |
+| [`LANG-GMN.md`](design/LANG-GMN.md) | GMN — the token-compact model-notation dialect ladder and its contracts |
 | [`LANG-PROJECTIONS.md`](design/LANG-PROJECTIONS.md) | the generated lossy lowerings + loss ledger |
 | [`LANG-RUNTIME.md`](design/LANG-RUNTIME.md) | ingestion, content-addressed interning, engine handoff |
 | [`LANG-CONFORMANCE.md`](design/LANG-CONFORMANCE.md) | the gate matrix and failure classes |
