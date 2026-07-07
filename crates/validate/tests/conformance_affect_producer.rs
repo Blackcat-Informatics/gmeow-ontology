@@ -273,6 +273,55 @@ fn twin_softmax_over_multilabel_set_fires() {
 }
 
 #[test]
+fn twin_affect_decision_two_decided_labels_fires() {
+    // The categorical winner-take-all bound: a gmeow:AffectDecision decides EXACTLY ONE
+    // gmeow:decidedLabel. Two decided labels over an argmax set is not a single-label
+    // decision — a hard fail on the ENFORCED gate corpus (owl:FunctionalProperty projects
+    // to the gate-excluded validation-shapes.ttl, so the bound is stated declaratively in
+    // shapes/gmeow-shapes.ttl to keep it an on-gate hard fail, not only a shipped-bundle one).
+    let graph = format!(
+        "{TWIN_PREFIXES}\
+         ex:d a gmeow:AffectDecision ; gmeow:vantage ex:run ; gmeow:observedFeature ex:t ; \
+         gmeow:decidedLabel gmeow-hf:ekmanJoy , gmeow-hf:ekmanAnger ; \
+         gmeow:decisionCrossedThreshold false ; gmeow:derivedByFunction gmeow:fnArgmax .\n"
+    );
+    Case::inline(graph)
+        .with_ontology()
+        .fails()
+        .violations(&["decides EXACTLY ONE gmeow:decidedLabel"])
+        .run();
+}
+
+#[test]
+fn twin_affect_decision_missing_decided_label_fires() {
+    // The mandatory half of the same bound: a gmeow:AffectDecision with no decided label
+    // is meaningless — a hard fail on the enforced gate corpus.
+    let graph = format!(
+        "{TWIN_PREFIXES}\
+         ex:d a gmeow:AffectDecision ; gmeow:vantage ex:run ; gmeow:observedFeature ex:t ; \
+         gmeow:decisionCrossedThreshold false ; gmeow:derivedByFunction gmeow:fnArgmax .\n"
+    );
+    Case::inline(graph)
+        .with_ontology()
+        .fails()
+        .violations(&["decides EXACTLY ONE gmeow:decidedLabel"])
+        .run();
+}
+
+#[test]
+fn twin_affect_decision_single_decided_label_conforms() {
+    // The well-formed shape of the bound: exactly one decided label over an argmax set
+    // conforms — the declarative cardinality must not over-flag the producer's own output.
+    let graph = format!(
+        "{TWIN_PREFIXES}\
+         ex:d a gmeow:AffectDecision ; gmeow:vantage ex:run ; gmeow:observedFeature ex:t ; \
+         gmeow:decidedLabel gmeow-hf:ekmanJoy ; gmeow:decisionCrossedThreshold false ; \
+         gmeow:derivedByFunction gmeow:fnArgmax .\n"
+    );
+    Case::inline(graph).with_ontology().run();
+}
+
+#[test]
 fn twin_two_exclusive_claims_over_one_target_fires() {
     // Two mutually-exclusive claims routed over one target from an EXCLUSIVE
     // (Ekman7) run — the validation-surface guard for the mutually-exclusive-claims
