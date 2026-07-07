@@ -193,6 +193,84 @@ fn surface_blob_digest(text: &str) -> String {
     format!("blake3:{}", blake3::hash(text.as_bytes()).to_hex())
 }
 
+/// The totality of the prose lift: the size of the extraction universe (distinct
+/// `@x-gmeow-english` literals) and how many of them the built corpus actually lifts to a
+/// reachable `lang:SurfaceForm`. The lift is TOTAL — the count-equality the flagship
+/// contract advertises — iff `covered == universe`.
+pub struct ProseLiftCoverage {
+    /// The distinct `@x-gmeow-english` literals the corpus must lift (the extraction
+    /// universe, from [`collect_english_literals`]).
+    pub universe: usize,
+    /// How many of those universe literals are reachable as a `lang:SurfaceForm` in the
+    /// built corpus — inline through `lang:surfaceText`, or by reference through a
+    /// content-addressed `lang:surfaceBlob` digest for document-scale surfaces.
+    pub covered: usize,
+}
+
+/// Compute the total prose-lift coverage over the shared in-memory source [`SliceCatalog`]:
+/// the extraction universe (distinct `@x-gmeow-english` literals) and how many of them the
+/// built corpus actually lifts to a reachable `lang:SurfaceForm`. This is the count-equality
+/// the flagship contract advertises — in a total lift `covered == universe`.
+///
+/// A document-scale surface (byte-length exceeding [`DOCUMENT_SCALE_BYTES`]) holds its bytes
+/// BY REFERENCE — a content-addressed `lang:surfaceBlob "blake3:<hex>"` handle — rather than
+/// inline `lang:surfaceText`, so a universe literal counts as covered if it is reachable
+/// through EITHER channel, keyed on the SAME threshold and [`surface_blob_digest`] the corpus
+/// emits. `None` (no `slices/` tree) yields an empty universe.
+pub fn prose_lift_coverage(
+    catalog: Option<&SliceCatalog>,
+) -> Result<ProseLiftCoverage, gmeow_errors::Diag> {
+    let universe = collect_english_literals(catalog)?;
+    let corpus = build_corpus(catalog)?;
+    let nt = String::from_utf8(corpus.ntriples).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            stage: "stage-mappings".to_string(),
+            message: format!("lang-form: corpus N-Triples are not UTF-8: {e}"),
+        })
+    })?;
+
+    // Index every emitted lang:surfaceText OBJECT literal and lang:surfaceBlob reference
+    // ONCE (set membership, not a per-literal scan of the whole graph) so the coverage
+    // computation is linear in the corpus size. Each line is `<surface> <predicate>
+    // "escaped" .`; the object is the segment after the predicate marker, minus the trailing
+    // ` .`.
+    let text_marker = format!("<{}> ", iri(LANG_NS, "surfaceText"));
+    let emitted: BTreeSet<&str> = nt
+        .lines()
+        .filter_map(|line| {
+            line.find(&text_marker)
+                .map(|idx| &line[idx + text_marker.len()..line.len() - 2])
+        })
+        .collect();
+    let blob_marker = format!("<{}> ", iri(LANG_NS, "surfaceBlob"));
+    let blobs: BTreeSet<&str> = nt
+        .lines()
+        .filter_map(|line| {
+            line.find(&blob_marker)
+                .map(|idx| &line[idx + blob_marker.len()..line.len() - 2])
+        })
+        .collect();
+
+    // Resolve each universe literal through whichever channel its byte-length selects — a
+    // document-scale literal through its content-addressed blob digest, a below-threshold
+    // one through the inline surface text — and count it covered iff it is reachable there.
+    let mut covered = 0usize;
+    for text in &universe {
+        let reachable = if text.len() > DOCUMENT_SCALE_BYTES {
+            blobs.contains(nt_literal(&surface_blob_digest(text)).as_str())
+        } else {
+            emitted.contains(nt_literal(text).as_str())
+        };
+        if reachable {
+            covered += 1;
+        }
+    }
+    Ok(ProseLiftCoverage {
+        universe: universe.len(),
+        covered,
+    })
+}
+
 /// Collect every DISTINCT `@x-gmeow-english` literal across the SHARED in-memory source
 /// [`SliceCatalog`]'s Turtle artifacts. The catalog was discovered ONCE upstream (the
 /// mappings stage holds it, and the correspondence lowerings consume the same instance), so
@@ -655,59 +733,31 @@ mod tests {
 
     #[test]
     fn gate1_every_distinct_english_literal_has_a_surface_form() {
-        use std::collections::HashSet;
-
         // Draw the universe from the SHARED in-memory source catalog — the same composed
         // source the production path interns from — so this genuinely checks "every English
         // literal reachable in the composed carrier has exactly one SurfaceForm", not a
-        // tautology over an independent second disk read.
+        // tautology over an independent second disk read. The totality count-equality is
+        // computed by the SAME production-callable `prose_lift_coverage` the flagship
+        // discharge harness asserts, so the totality logic lives in one place (DRY).
         let catalog = repo_catalog();
-        let universe = collect_english_literals(Some(&catalog)).expect("collect universe");
+        let coverage = prose_lift_coverage(Some(&catalog)).expect("compute prose-lift coverage");
         assert!(
-            !universe.is_empty(),
+            coverage.universe > 0,
             "the source bundle must carry @x-gmeow-english prose"
         );
+        assert_eq!(
+            coverage.covered,
+            coverage.universe,
+            "Gate 1: {} of {} distinct @x-gmeow-english literals are not lifted to a reachable \
+             lang:SurfaceForm — the prose lift is not total",
+            coverage.universe - coverage.covered,
+            coverage.universe
+        );
+
+        // The remaining structural assertions read the emitted corpus directly.
+        let universe = collect_english_literals(Some(&catalog)).expect("collect universe");
         let corpus = build_corpus(Some(&catalog)).expect("build corpus");
         let nt = String::from_utf8(corpus.ntriples).expect("utf8");
-
-        // Index every emitted lang:surfaceText OBJECT literal ONCE (set membership, not a
-        // per-literal scan of the whole graph) so the coverage check is linear in the corpus
-        // size. Each surfaceText line is `<surface> <surfaceText> "escaped" .`; the object is
-        // the segment after the predicate marker, minus the trailing ` .`.
-        let pred_marker = format!("<{}> ", iri(LANG_NS, "surfaceText"));
-        let emitted: HashSet<&str> = nt
-            .lines()
-            .filter_map(|line| {
-                line.find(&pred_marker)
-                    .map(|idx| &line[idx + pred_marker.len()..line.len() - 2])
-            })
-            .collect();
-        // A document-scale surface holds its bytes BY REFERENCE (lang:surfaceBlob) rather
-        // than inline, so index the emitted blob references the same way and resolve each
-        // universe literal through whichever channel its byte-length selects.
-        let blob_marker = format!("<{}> ", iri(LANG_NS, "surfaceBlob"));
-        let blobs: HashSet<&str> = nt
-            .lines()
-            .filter_map(|line| {
-                line.find(&blob_marker)
-                    .map(|idx| &line[idx + blob_marker.len()..line.len() - 2])
-            })
-            .collect();
-        for text in &universe {
-            if text.len() > DOCUMENT_SCALE_BYTES {
-                let digest = nt_literal(&surface_blob_digest(text));
-                assert!(
-                    blobs.contains(digest.as_str()),
-                    "Gate 1: document-scale @x-gmeow-english literal has no lang:surfaceBlob \
-                     reference: {text:?}"
-                );
-            } else {
-                assert!(
-                    emitted.contains(nt_literal(text).as_str()),
-                    "Gate 1: distinct @x-gmeow-english literal has no lang:SurfaceForm: {text:?}"
-                );
-            }
-        }
         // Exactly one lang:SurfaceForm per distinct literal — total, not partial.
         let surface_forms = nt
             .matches(&format!("<{}> .", iri(LANG_NS, "SurfaceForm")))

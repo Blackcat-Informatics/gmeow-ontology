@@ -412,6 +412,26 @@ fn run_producer(flagship: &Flagship, catalog: &purrdf::slice::SliceCatalog) {
                     "FS2: the prose-lift corpus must carry {needle}"
                 );
             }
+
+            // The TOTALITY the flagship advertises, discharged on the PRODUCTION corpus by
+            // the contract artifact itself: every DISTINCT @x-gmeow-english literal in the
+            // extraction universe is lifted to a reachable lang:SurfaceForm (inline
+            // surfaceText, or a by-reference surfaceBlob digest for document-scale surfaces),
+            // so `covered == universe` — the count-equality, not mere presence of a token.
+            let coverage = gmeow_pipeline::stages::lang_form::prose_lift_coverage(Some(catalog))
+                .expect("FS2: prose-lift coverage computes over the real slice catalog");
+            assert!(
+                coverage.universe > 0,
+                "FS2: the source bundle must carry @x-gmeow-english prose to lift"
+            );
+            assert_eq!(
+                coverage.covered,
+                coverage.universe,
+                "FS2: {} of {} distinct @x-gmeow-english literals are not lifted — the prose \
+                 lift is not total",
+                coverage.universe - coverage.covered,
+                coverage.universe
+            );
         }
 
         // FS3: the translation stage. The multilingual docs are lang:TranslationUnits, each
