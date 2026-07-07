@@ -1339,6 +1339,12 @@ math:UnderspecifiedEncryptionScheme
 
 math:Lattice math:formalizes gmeow:tuningSystemJustIntonation .
 
+# The well-ordered integers ℤ ground the diagnostics grade ordinal (Principle 19):
+# gmeow:gradeOrdinal is a monotone order-embedding of each diagnostics truth-order
+# ⊑-chain (severity, standpoint, blocking) into (ℤ, ≤), so the numeric rank embeds
+# the poset without claiming a metric spacing.
+math:integers math:formalizes gmeow:gradeOrdinal .
+
 # =========================================================================== #
 # Measure, integration, and dimension (MEASURE-AND-DIMENSION charter)
 #

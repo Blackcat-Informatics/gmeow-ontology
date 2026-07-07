@@ -5,6 +5,7 @@
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix lang: <https://blackcatinformatics.ca/lang/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:DiagnosticSeverity
@@ -278,6 +279,7 @@ gmeow:severityError
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "error"@x-gmeow-english ;
     skos:definition "The error grade — a gate-failing diagnostic: the report is not OK while any finding carries it. Maps to SARIF level \"error\"."@x-gmeow-english ;
+    gmeow:gradeOrdinal 3 ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:severityInfo
@@ -285,6 +287,7 @@ gmeow:severityInfo
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "info"@x-gmeow-english ;
     skos:definition "The info grade — an informational diagnostic. Maps to SARIF level \"note\" (SARIF has no distinct info level)."@x-gmeow-english ;
+    gmeow:gradeOrdinal 0 ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:severityNote
@@ -292,6 +295,7 @@ gmeow:severityNote
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "note"@x-gmeow-english ;
     skos:definition "The note grade — an advisory diagnostic. Maps to SARIF level \"note\"."@x-gmeow-english ;
+    gmeow:gradeOrdinal 1 ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:severityWarning
@@ -299,6 +303,7 @@ gmeow:severityWarning
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "warning"@x-gmeow-english ;
     skos:definition "The warning grade — a non-gate-failing diagnostic worth surfacing. Maps to SARIF level \"warning\"."@x-gmeow-english ;
+    gmeow:gradeOrdinal 2 ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -334,7 +339,8 @@ gmeow:DiagnosticStandpoint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "Diagnostic Standpoint"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
-    skos:definition "The gating STRENGTH a finding is asserted from — the chain gmeow:standpointAdvisory ⊑ gmeow:standpointPerspectival ⊑ gmeow:standpointBinding, the third axis of the truth-ordering triple the gate reads. Only a gmeow:standpointBinding finding can contribute to gate fatality; an advisory finding never gates, whatever its severity — the never-gate guarantee falls out of the up-set construction, not a special case. An open value space, individuals never subclasses (Principle 9); it grounds the standpoint axis of logic:StandpointContextAxis. Mirrors the Rust gmeow_errors::grade::Standpoint chain."@x-gmeow-english ;
+    gmeow:groundsContextAxis logic:StandpointContextAxis ;
+    skos:definition "The gating STRENGTH a finding is asserted from — the chain gmeow:standpointAdvisory ⊑ gmeow:standpointPerspectival ⊑ gmeow:standpointBinding, the third axis of the truth-ordering triple the gate reads. Only a gmeow:standpointBinding finding can contribute to gate fatality; an advisory finding never gates, whatever its severity — the never-gate guarantee falls out of the up-set construction, not a special case. An open value space, individuals never subclasses (Principle 9). Its grounding onto the standpoint index axis of the reasoning-context facet is asserted, not narrated (gmeow:groundsContextAxis). Mirrors the Rust gmeow_errors::grade::Standpoint chain."@x-gmeow-english ;
     skos:example "ex:f1 gmeow:findingStandpoint gmeow:standpointBinding ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid subclassing it to add a tier (the members are individuals) and avoid conflating the standpoint with the severity (how loud) or the category (what kind); the standpoint is the gating strength — the only axis that lets a finding bind the gate."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
@@ -373,6 +379,7 @@ gmeow:findingGateVerdict
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "finding gate verdict"@x-gmeow-english ;
     rdfs:range gmeow:GateVerdict ;
+    gmeow:enforcedByShape <https://blackcatinformatics.ca/gmeow/GateFatalUpsetShape> ;
     skos:definition "The gate verdict of a finding — a gmeow:GateVerdict individual, DERIVED by logic:ruleGateFatalVerdict, never asserted by hand. gmeow:gateFatal is materialized exactly for the principal up-set ↑(gmeow:severityError, gmeow:blockingBlocking, gmeow:standpointBinding) read off the finding's gmeow:findingSeverity, its gmeow:findingCategory's gmeow:categoryBlocking projection, and its gmeow:findingStandpoint; every other grade stays gmeow:gateCollected. It is the reasoner-derived RDF image of the single Rust gmeow_errors::grade::gate() policy morphism, and the diagnostics conformance lane proves the derived Fatal set equals gate()'s over every grade."@x-gmeow-english ;
     skos:example "ex:f1 gmeow:findingGateVerdict gmeow:gateFatal ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid asserting it by hand — it is derived; asserting gmeow:gateFatal directly would bypass the single gate morphism and could disagree with gate(). Avoid conflating it with gmeow:findingSeverity; the verdict is the meet of all three axes, not the severity."@x-gmeow-english ;
@@ -398,6 +405,7 @@ gmeow:blockingBlocking
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "blocking"@x-gmeow-english ;
     skos:definition "The Blocking projection value — the TOP of the gmeow:BlockingDisposition chain: a finding KIND that is a real failure and can contribute to gate fatality. The image of exactly the three failure categories logic:FindingDataShapeViolation, logic:FindingModelingDisciplineViolation, and logic:FindingContradictionWitness."@x-gmeow-english ;
+    gmeow:gradeOrdinal 1 ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:blockingCoherent
@@ -405,6 +413,7 @@ gmeow:blockingCoherent
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "coherent"@x-gmeow-english ;
     skos:definition "The Blocking projection value — the BOTTOM of the gmeow:BlockingDisposition chain: a finding KIND that is surfaced but never a failure, structurally unable to reach gmeow:gateFatal. The image of the five non-failure categories, chiefly the load-bearing logic:FindingPermittedEpistemicConflict (a disclosed, coherent contradiction a glut-admitting contract permits)."@x-gmeow-english ;
+    gmeow:gradeOrdinal 0 ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:gateCollected
@@ -426,6 +435,7 @@ gmeow:standpointAdvisory
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "advisory"@x-gmeow-english ;
     skos:definition "The gating strength — the BOTTOM of the gmeow:DiagnosticStandpoint chain: a finding offered as advice, from which the gate can never derive a fatal verdict whatever the finding's severity. The soft-tier recommendation standpoint."@x-gmeow-english ;
+    gmeow:gradeOrdinal 0 ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:standpointBinding
@@ -433,6 +443,7 @@ gmeow:standpointBinding
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "binding"@x-gmeow-english ;
     skos:definition "The gating strength — the TOP of the gmeow:DiagnosticStandpoint chain: a finding asserted with binding authority, the only standpoint that can contribute to gmeow:gateFatal (alongside gmeow:severityError and a gmeow:blockingBlocking category)."@x-gmeow-english ;
+    gmeow:gradeOrdinal 2 ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:standpointPerspectival
@@ -440,6 +451,7 @@ gmeow:standpointPerspectival
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "perspectival"@x-gmeow-english ;
     skos:definition "The gating strength — the MIDDLE of the gmeow:DiagnosticStandpoint chain: a finding asserted as one perspective's claim, above advisory but below binding, so it too cannot reach gmeow:gateFatal (only gmeow:standpointBinding can)."@x-gmeow-english ;
+    gmeow:gradeOrdinal 1 ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 # ── The gating projection of each logic:FindingCategory (FindingCategory::blocking()).
@@ -453,6 +465,70 @@ logic:FindingUnsupportedSemanticFeature gmeow:categoryBlocking gmeow:blockingCoh
 logic:FindingIncompleteCheck gmeow:categoryBlocking gmeow:blockingCoherent .
 logic:FindingProjectionLoss gmeow:categoryBlocking gmeow:blockingCoherent .
 logic:FindingPolicyWarning gmeow:categoryBlocking gmeow:blockingCoherent .
+
+# ── The MATH grounding of the truth-order chains (Principle 19): a monotone
+# order-embedding of each ⊑-chain into (ℤ, ≤). The integer rank EMBEDS the poset
+# numerically — ordering only, never a metric spacing (Principle 9). The one-way
+# math bridge (math:integers math:formalizes gmeow:gradeOrdinal) is asserted in
+# the math slice; here the ordinal is carried on each existing chain member. This
+# is NOT a parallel gmeow:Grade subtree — it annotates the members already minted.
+gmeow:gradeOrdinal
+    a owl:DatatypeProperty ;
+    rdfs:domain logic:QualityValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "grade ordinal"@x-gmeow-english ;
+    rdfs:range xsd:integer ;
+    skos:definition "The ordinal rank of a truth-order grade value on its ⊑-chain — the integer that embeds a diagnostics value chain (gmeow:DiagnosticSeverity Info<Note<Warning<Error, gmeow:DiagnosticStandpoint Advisory<Perspectival<Binding, gmeow:BlockingDisposition Coherent<Blocking) into (ℤ, ≤), monotone with the ⊑ order so a query can compare two grades on one axis numerically. This is the Principle-19 MATH grounding of the truth ordering: the well-ordered integers ℤ ground the numeric rank, recorded as the one-way bridge math:integers math:formalizes gmeow:gradeOrdinal in the math slice. It is NOT a parallel gmeow:Grade subtree — it annotates the EXISTING chain individuals."@x-gmeow-english ;
+    skos:example "gmeow:severityError gmeow:gradeOrdinal 3 ."@x-gmeow-english ;
+    skos:scopeNote "Ordering only, not a metric (Principle 9): gradeOrdinal fixes the ⊑-monotone sequence of each chain's members so a query can read 'stronger than' as an order-embedding into the integers; it asserts no equal spacing, no unit, and no cross-chain commensurability — the three axes meet at the gate as a meet, they are never summed."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading the rank as a magnitude, a confidence, or a cross-chain metric (the gate is the meet of three axes, not a sum of ordinals), and avoid asserting it on anything but a member of one of the three truth-order value chains."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Assign each chain member one xsd:integer monotone with its position in the ⊑ chain (bottom lowest); read 'stronger than' as a rank comparison WITHIN one chain, leaving the fatality fold to logic:ruleGateFatalVerdict."@x-gmeow-english ;
+    gmeow:useWhen "Use to order the named members of a diagnostics truth-order chain — the integer a query reads to compare two grades on the same axis, grounding the ⊑ order numerically (Principle 19)."@x-gmeow-english .
+
+gmeow:groundsContextAxis
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "grounds context axis"@x-gmeow-english ;
+    rdfs:range logic:ContextAxis ;
+    skos:definition "Asserts that a diagnostics value vocabulary grounds one index axis of the multi-dimensional reasoning-context facet — the concrete domain value space that fills in a logic:ContextAxis. gmeow:DiagnosticStandpoint grounds logic:StandpointContextAxis: the standpoint a finding is asserted from IS a value on the standpoint index axis a reasoning result is relative to. Range logic:ContextAxis; the subject is the grounding value class (domain left open, stated in prose, so the same predicate grounds other axes as the substrate grows). An asserted grounding edge, replacing the earlier prose claim so the link is queryable rather than narrated."@x-gmeow-english ;
+    skos:example "gmeow:DiagnosticStandpoint gmeow:groundsContextAxis logic:StandpointContextAxis ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it for the finding→standpoint assignment (that is gmeow:findingStandpoint) or for a reasoning contract's declared axes (that is logic:contextAxis); groundsContextAxis names which value vocabulary FILLS an axis, not which axes a contract carries."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Point a diagnostics truth-order value class at the logic:ContextAxis it grounds; read it to resolve 'what value space indexes this context axis' from the reasoning core into the concrete diagnostics vocabulary."@x-gmeow-english ;
+    gmeow:useWhen "Use to assert that a diagnostics value vocabulary grounds a reasoning-context index axis — chiefly gmeow:DiagnosticStandpoint grounding logic:StandpointContextAxis."@x-gmeow-english .
+
+# ── The lang: prose grounding of the gate policy (Principle 19). The gate policy's
+# localizable definition is carried as a first-class lang:UnanalyzedProse surface
+# (the honest lang: status of an @x-gmeow-english prose field), situated in the
+# English sign system, so the prose is a queryable surface rather than only a bare
+# literal. gmeow:GateVerdict points at it through gmeow:proseSurface.
+gmeow:proseSurface
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "prose surface"@x-gmeow-english ;
+    rdfs:range lang:SurfaceForm ;
+    skos:definition "Links a gmeow: term to the lang:SurfaceForm that carries its localizable prose — grounding the term's human-readable definition in the lang: form AST rather than leaving it a bare @x-gmeow-english literal. Range lang:SurfaceForm (domain left open, stated in prose); the surface situates the prose in a lang:SignSystem and declares its material identity, so 'the definition of this term' becomes a first-class, sign-system-situated surface. Introduced for the gate policy (gmeow:GateVerdict), the first gmeow: term whose prose is grounded in lang:."@x-gmeow-english ;
+    skos:example "gmeow:GateVerdict gmeow:proseSurface gmeow:gatePolicyProse ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it to replace the term's own skos:definition (the surface CARRIES the localizable prose, it does not remove the SKOS annotation) or to point at an analyzed lang:Form above the surface stratum; proseSurface names the concrete prose surface, not its analysis."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Mint one lang:UnanalyzedProse carrying the term's localizable definition through lang:surfaceText, situate it with lang:inSignSystem, and point the term at it through gmeow:proseSurface."@x-gmeow-english ;
+    gmeow:useWhen "Use to ground a gmeow: term's localizable prose in the lang: layer — carrying the definition as a first-class, sign-system-situated surface a query can reach."@x-gmeow-english .
+
+gmeow:gatePolicyProse
+    a lang:UnanalyzedProse ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "gate policy prose"@x-gmeow-english ;
+    lang:inSignSystem lang:english ;
+    lang:analysisLevel lang:rawLevel ;
+    lang:inScript lang:latinScript ;
+    lang:unicodeNormalization "NFC" ;
+    lang:collationLocale "und" ;
+    lang:surfaceText "A finding is gate-fatal exactly when its severity is error, its category projects to blocking, and its standpoint is binding — the principal up-set of the truth ordering. Any advisory-standpoint or coherent-category finding is structurally unable to fail the gate, whatever its severity." ;
+    skos:definition "The lang:UnanalyzedProse surface carrying the localizable definition of the gate policy (gmeow:GateVerdict): the up-set fatality rule stated as English prose, situated in the English sign system at raw analysis level. The honest lang: status of an @x-gmeow-english prose field made first-class, so the gate policy's prose is a queryable, sign-system-situated surface. gmeow:GateVerdict reaches it through gmeow:proseSurface. An unanalyzed-prose surface at lang:rawLevel: it does not lang:realize an analyzed form (a realized surface would be forbidden at raw level)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:GateVerdict gmeow:proseSurface gmeow:gatePolicyProse .
 
 <https://blackcatinformatics.ca/gmeow/slices/diagnostics>
     a owl:Ontology ;
