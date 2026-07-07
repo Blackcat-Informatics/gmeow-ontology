@@ -530,6 +530,225 @@ gmeow:gatePolicyProse
 
 gmeow:GateVerdict gmeow:proseSurface gmeow:gatePolicyProse .
 
+# ════════════════════════════════════════════════════════════════════════════
+# Standing remediation and its occurrence projection.
+#
+# A rule carries authored fix guidance ONCE (gmeow:ruleRemediation); each finding
+# of that rule projects it as gmeow:findingRemediation, the sibling of
+# gmeow:findingSuggestion / gmeow:findingHelpUri. The prose is DSL-authored and
+# rendered verbatim into SARIF fixes / JSON / human output, NEVER fabricated at
+# render time (a render-time invention would be an unattributable claim).
+# ════════════════════════════════════════════════════════════════════════════
+
+gmeow:ruleRemediation
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:ValidationRule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "rule remediation"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "The standing, rule-level remediation guidance of an enforced check — the DSL-authored prose that tells a reader how to fix a violation of the rule, carried once on the gmeow:ValidationRule and projected onto each of its findings as gmeow:findingRemediation. The sibling of gmeow:ruleHelpUri: where the help URI points OUT to the catalog, ruleRemediation carries the fix text IN. It is authored in the DSL and rendered verbatim into the SARIF result fixes, the flat JSON, and the human CLI/HTML output; it is NEVER fabricated at render time — a finding with no authored remediation carries none rather than an invented suggestion."@x-gmeow-english ;
+    skos:example "ex:ruleRelatorMediation gmeow:ruleRemediation \"Introduce the mediating relator and attach both relata through gmeow:mediates.\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid fabricating it at render time (it is DSL-authored; a rule with no authored guidance carries no remediation) and avoid confusing it with gmeow:ruleHelpUri (the outward catalog link) or gmeow:ruleCode (the identity); ruleRemediation is the standing fix prose the rule's findings project."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Author it once on the gmeow:ValidationRule as the fix guidance for the code; project it onto every gmeow:Finding of the rule as gmeow:findingRemediation, and render it as the SARIF fixes description, the JSON remediation field, and the CLI/HTML 'how to fix' line."@x-gmeow-english ;
+    gmeow:useWhen "Use to carry the standing, DSL-authored fix guidance of an enforced check on its ValidationRule — the rule-level source every finding's remediation projects from."@x-gmeow-english .
+
+gmeow:findingRemediation
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Finding ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "finding remediation"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "The occurrence projection of gmeow:ruleRemediation onto a finding — the DSL-authored fix guidance of the finding's rule, carried on the gmeow:Finding so every surface (SARIF fixes, JSON, CLI, HTML) can render 'how to fix this' beside the message. The sibling of gmeow:findingSuggestion (occurrence advice) and gmeow:findingHelpUri (the rule's outward link): findingRemediation is the standing remediation prose resolved onto the occurrence. It is projected verbatim from the rule's gmeow:ruleRemediation, NEVER fabricated at render time; a finding whose rule authors no remediation carries none."@x-gmeow-english ;
+    skos:example "ex:f1 gmeow:findingRemediation \"Introduce the mediating relator and attach both relata through gmeow:mediates.\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing it at render time (project it from the rule's gmeow:ruleRemediation, never fabricate) and avoid conflating it with gmeow:findingSuggestion (per-occurrence advice) or gmeow:findingMessage (the description of what went wrong); findingRemediation is the projected fix guidance."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Project it onto a gmeow:Finding from the gmeow:ruleRemediation of the finding's rule (resolved by shared code); render it as the SARIF fixes description and the CLI/HTML remediation line beside gmeow:findingMessage."@x-gmeow-english ;
+    gmeow:useWhen "Use to carry a finding's rule-level fix guidance on the occurrence so consumers render 'how to fix this' without re-resolving the rule."@x-gmeow-english .
+
+# ════════════════════════════════════════════════════════════════════════════
+# The witness provenance DAG and the cross-code join anchor.
+#
+# gmeow:findingAntecedent is a provenance edge up the witness DAG (this finding
+# derives FROM that one); gmeow:findingAnchor is the cross-code join key: a
+# content hash over (location, term role, focus) EXCLUDING code and category, so
+# two DIFFERENT-code findings at the SAME source anchor share it — the join the
+# same-fingerprint merge (which keys on code) structurally cannot make.
+# ════════════════════════════════════════════════════════════════════════════
+
+gmeow:findingAntecedent
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Finding ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "finding antecedent"@x-gmeow-english ;
+    rdfs:range gmeow:Finding ;
+    skos:definition "A provenance-DAG edge from a witness finding to the finding it derives FROM — the object is the antecedent finding's fingerprint IRI. It records that this finding is a downstream witness of the antecedent (a contradiction witness derived from the data-shape violation that produced it, say), so the reasoner can join up the witness DAG for root-cause analysis. The edge is directed toward the cause; a childless finding up the chain is a root antecedent. Distinct from gmeow:findingLocation (WHERE the finding is) and gmeow:wasGeneratedBy (WHICH tool produced it): findingAntecedent is the finding→finding derivation lineage."@x-gmeow-english ;
+    skos:example "ex:witnessF2 gmeow:findingAntecedent ex:causeF1 ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid pointing it at a non-Finding (the object is another finding's fingerprint IRI, not a location or a tool) and avoid using it for the producing tool (that is gmeow:wasGeneratedBy); findingAntecedent is the witness-DAG derivation edge toward the cause."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Point a downstream witness finding at each finding it derives from; a reasoner root-cause rule follows the edge transitively up to the childless root antecedent and joins findings that share it."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the derivation lineage between findings — the provenance-DAG edge that enables reasoner root-cause joins over the witness DAG."@x-gmeow-english .
+
+gmeow:findingAnchor
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Finding ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "finding anchor"@x-gmeow-english ;
+    skos:definition "The source anchor of a finding — an IRI that is a content hash over (location, term role, focus) EXCLUDING the finding's code and category, so two findings with DIFFERENT codes at the SAME source position share one anchor. It is the join key for cross-node glut detection: the same-fingerprint merge keys on the code and therefore CANNOT see across codes, but the anchor deliberately drops the code, so a reasoner can join two different-code findings at one place and detect an opposing-polarity conflict the merge misses. The range is left open (like gmeow:findingLocation): the value is the anchor IRI, an opaque content hash, not a reified statement."@x-gmeow-english ;
+    skos:example "ex:f1 gmeow:findingAnchor <https://blackcatinformatics.ca/gmeow/anchor/9f2c> ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid folding the code or category into the anchor (that would make it a per-code fingerprint, defeating the cross-code join) and avoid conflating it with gmeow:findingLocation (the reified statement) — the anchor is the code-blind content hash two different-code findings at one place share."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Compute the anchor as a content hash over (location, term role, focus) with the code and category EXCLUDED, and point each finding at it; a cross-node-glut rule joins findings on shared gmeow:findingAnchor and compares their gmeow:findingCategory polarities."@x-gmeow-english ;
+    gmeow:useWhen "Use to carry the code-blind source anchor of a finding — the join key that lets cross-node glut detection see two different-code findings at the same place the same-fingerprint merge cannot."@x-gmeow-english .
+
+# ════════════════════════════════════════════════════════════════════════════
+# The diagnostic meta-reasoning fold.
+#
+# gmeow:DiagnosticMetaRule tags a logic:Rule as a member of the fold the
+# carrier-compose reasoner runs over the PROJECTED diagnostic graph: it discovers
+# every rule of this type and applies it, so a new meta-finding (root-cause,
+# cluster, cross-node glut, …) is added by authoring a new tagged rule with ZERO
+# engine change. Root-cause, cluster, and cross-node-glut rules are its first
+# members.
+# ════════════════════════════════════════════════════════════════════════════
+
+gmeow:DiagnosticMetaRule
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "Diagnostic Meta-Rule"@x-gmeow-english ;
+    rdfs:subClassOf logic:Rule ;
+    skos:definition "The tag marking a logic:Rule as a member of the diagnostic meta-reasoning fold — the set of rules the carrier-compose reasoner discovers and runs over the PROJECTED diagnostic graph (the gmeow:Finding named graph), deriving meta-findings ABOUT the findings rather than about the data. Because membership is a type, the reasoner enumerates every gmeow:DiagnosticMetaRule and applies it: a new meta-finding kind — a new root-cause, cluster, or cross-node-glut derivation — is added by authoring a new tagged rule, with zero engine change. Its first members are the root-cause (gmeow:findingRootCause), cluster (gmeow:findingCluster / gmeow:clusterRoot), and cross-node-glut (gmeow:CrossNodeGlutWitness) rules."@x-gmeow-english ;
+    skos:example "ex:ruleFindingRootCause a gmeow:DiagnosticMetaRule ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid tagging an ordinary data-level rule with it (the fold runs only over the projected diagnostic graph, deriving findings-about-findings) and avoid special-casing a meta-finding in the engine (author a new tagged rule instead); the tag IS the extension point."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Type a logic:Rule that reasons over the projected diagnostic graph as a gmeow:DiagnosticMetaRule; the carrier-compose reasoner enumerates every such rule and runs it, so no wiring is needed beyond the type assertion."@x-gmeow-english ;
+    gmeow:useWhen "Use to enrol a logic:Rule in the diagnostic meta-reasoning fold — the discovered-and-run set that derives root-cause, cluster, and cross-node-glut meta-findings over the projected diagnostic graph."@x-gmeow-english .
+
+# ════════════════════════════════════════════════════════════════════════════
+# The Belnap coherence polarity of a finding kind (FindingCategory::polarity()).
+#
+# REUSE of the existing logic: information vocabulary: gmeow:categoryPolarity
+# wires each logic:FindingCategory to a value of the existing logic:InformationState
+# Belnap value class (logic:InfoSupported / logic:InfoOpposed / logic:InfoNeither),
+# NOT a parallel gmeow: polarity vocabulary. A witnessed defect is evidence a
+# defect is present (Supported); a permitted epistemic conflict is evidence the
+# apparent contradiction is coherent (Opposed); every other kind takes no
+# coherence stance (Neither).
+# ════════════════════════════════════════════════════════════════════════════
+
+gmeow:categoryPolarity
+    a owl:ObjectProperty ;
+    rdfs:domain logic:FindingCategory ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "category polarity"@x-gmeow-english ;
+    rdfs:range logic:InformationState ;
+    skos:definition "Wires a logic:FindingCategory to the Belnap coherence POLARITY its KIND asserts — a value of the EXISTING logic:InformationState Belnap value class, reused rather than re-minted. The three failure kinds (logic:FindingDataShapeViolation, logic:FindingModelingDisciplineViolation, logic:FindingContradictionWitness) map to logic:InfoSupported (evidence a defect is present); logic:FindingPermittedEpistemicConflict maps to logic:InfoOpposed (evidence the apparent contradiction is coherent); the other four (logic:FindingUnsupportedSemanticFeature, logic:FindingIncompleteCheck, logic:FindingProjectionLoss, logic:FindingPolicyWarning) map to logic:InfoNeither (no coherence stance). It mirrors the Rust FindingCategory::polarity(); a cross-node-glut rule reads this projection to detect two findings at one anchor whose polarities OPPOSE. Distinct axis from gmeow:categoryBlocking (the gating projection): polarity is the coherence stance, blocking is the gate contribution."@x-gmeow-english ;
+    skos:example "logic:FindingContradictionWitness gmeow:categoryPolarity logic:InfoSupported ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid minting a parallel gmeow: polarity vocabulary (reuse the logic:InformationState Belnap values) and avoid conflating it with gmeow:categoryBlocking (the gating axis) or gmeow:findingSeverity (the grade); categoryPolarity is the coherence stance a kind of finding asserts."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Assert exactly one gmeow:categoryPolarity per logic:FindingCategory, mirroring FindingCategory::polarity(); a cross-node-glut meta-rule joins two findings on a shared gmeow:findingAnchor and flags a glut when their categories' polarities are opposing Belnap values."@x-gmeow-english ;
+    gmeow:useWhen "Use to state a finding kind's Belnap coherence polarity — whether the kind asserts a defect is present (Supported), that the apparent contradiction is coherent (Opposed), or takes no stance (Neither) — reusing the logic:InformationState value class."@x-gmeow-english .
+
+# ── The Belnap coherence POLARITY of each logic:FindingCategory (FindingCategory::polarity()).
+# The three failure kinds project to logic:InfoSupported; the permitted-conflict kind to
+# logic:InfoOpposed; the other four to logic:InfoNeither. This is the single asserted source
+# a cross-node-glut rule reads to detect opposing-polarity findings at one anchor.
+logic:FindingDataShapeViolation gmeow:categoryPolarity logic:InfoSupported .
+logic:FindingModelingDisciplineViolation gmeow:categoryPolarity logic:InfoSupported .
+logic:FindingContradictionWitness gmeow:categoryPolarity logic:InfoSupported .
+logic:FindingPermittedEpistemicConflict gmeow:categoryPolarity logic:InfoOpposed .
+logic:FindingUnsupportedSemanticFeature gmeow:categoryPolarity logic:InfoNeither .
+logic:FindingIncompleteCheck gmeow:categoryPolarity logic:InfoNeither .
+logic:FindingProjectionLoss gmeow:categoryPolarity logic:InfoNeither .
+logic:FindingPolicyWarning gmeow:categoryPolarity logic:InfoNeither .
+
+# ════════════════════════════════════════════════════════════════════════════
+# The reasoner-derived meta-findings.
+#
+# The following predicates and classes are asserted ONLY by the diagnostic
+# meta-reasoning fold (gmeow:DiagnosticMetaRule), never authored by hand — exactly
+# like gmeow:findingGateVerdict. Only their SCHEMA is authored here; instances are
+# materialized by the reasoner over the projected diagnostic graph.
+# ════════════════════════════════════════════════════════════════════════════
+
+gmeow:findingRootCause
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Finding ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "finding root cause"@x-gmeow-english ;
+    rdfs:range gmeow:Finding ;
+    skos:definition "The shared ROOT antecedent of a finding — a childless witness reached by following gmeow:findingAntecedent transitively up the witness DAG. Honestly the shared root antecedent, NOT a lowest-common-dominator: it names a root the finding derives from, without claiming that root is the unique nearest common cause. DERIVED by a diagnostic meta-rule (gmeow:DiagnosticMetaRule) over the projected diagnostic graph, never authored by hand; two findings sharing a gmeow:findingRootCause are grouped by gmeow:findingCluster."@x-gmeow-english ;
+    skos:example "ex:witnessF3 gmeow:findingRootCause ex:rootF1 ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting it by hand (it is derived by a gmeow:DiagnosticMetaRule from gmeow:findingAntecedent) and avoid reading it as a lowest-common-dominator; it is honestly the shared root antecedent, not the unique nearest common cause."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Read it off the reasoned graph after the root-cause meta-rule has fired; it points at a childless root antecedent up the gmeow:findingAntecedent DAG, the value gmeow:findingCluster groups findings under."@x-gmeow-english ;
+    gmeow:useWhen "Use to carry the derived shared root antecedent of a finding so a consumer can group findings by common cause without re-walking the witness DAG."@x-gmeow-english .
+
+gmeow:FindingCluster
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "Finding Cluster"@x-gmeow-english ;
+    skos:definition "A reasoner-minted grouping of findings that share one gmeow:findingRootCause — the readable 'N findings share root R' surface. DERIVED by a diagnostic meta-rule (gmeow:DiagnosticMetaRule) over the projected diagnostic graph, never authored by hand: its members are the findings linked to it by gmeow:findingCluster, and its shared root is carried by gmeow:clusterRoot. It exists to render root-cause grouping as a first-class, queryable node rather than a repeated per-finding annotation."@x-gmeow-english ;
+    skos:example "ex:cluster1 a gmeow:FindingCluster ; gmeow:clusterRoot ex:rootF1 ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid authoring a FindingCluster by hand (it is derived by a gmeow:DiagnosticMetaRule) and avoid using it where a single gmeow:findingRootCause edge suffices; the cluster is the readable grouping node for many findings under one root."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Read a FindingCluster off the reasoned graph: its gmeow:clusterRoot is the shared root and its members are the findings pointing at it through gmeow:findingCluster; render it as the 'N findings share root R' grouping."@x-gmeow-english ;
+    gmeow:useWhen "Use as the reasoner-derived grouping node that gathers the findings sharing one root cause into a single readable surface."@x-gmeow-english .
+
+gmeow:findingCluster
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Finding ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "finding cluster"@x-gmeow-english ;
+    rdfs:range gmeow:FindingCluster ;
+    skos:definition "The membership edge from a finding to the gmeow:FindingCluster that gathers it with the other findings sharing its gmeow:findingRootCause — the 'this finding belongs to that group' link of the readable 'N findings share root R' surface. DERIVED by a diagnostic meta-rule (gmeow:DiagnosticMetaRule), never authored by hand; the cluster's shared root is reached from the cluster through gmeow:clusterRoot."@x-gmeow-english ;
+    skos:example "ex:witnessF3 gmeow:findingCluster ex:cluster1 ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting it by hand (it is derived) and avoid pointing it at a raw root finding (that is the cluster's gmeow:clusterRoot); findingCluster names the finding's membership in a derived grouping node."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Read it off the reasoned graph to find the gmeow:FindingCluster a finding belongs to; follow the cluster's gmeow:clusterRoot for the shared root the group gathers under."@x-gmeow-english ;
+    gmeow:useWhen "Use to carry a finding's membership in its derived root-cause cluster so a consumer can list every finding in one group."@x-gmeow-english .
+
+gmeow:clusterRoot
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:FindingCluster ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "cluster root"@x-gmeow-english ;
+    rdfs:range gmeow:Finding ;
+    skos:definition "The shared root a gmeow:FindingCluster groups under — the single gmeow:findingRootCause every member of the cluster shares, carried once on the cluster node so the readable 'N findings share root R' surface names R exactly once. DERIVED by a diagnostic meta-rule (gmeow:DiagnosticMetaRule), never authored by hand; the members of the cluster reach it via gmeow:findingCluster and each member's gmeow:findingRootCause equals it."@x-gmeow-english ;
+    skos:example "ex:cluster1 gmeow:clusterRoot ex:rootF1 ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting it by hand (it is derived) and avoid conflating it with a member's gmeow:findingRootCause (that is per-finding); clusterRoot is the one shared root carried on the grouping node."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Read it off the reasoned graph as the shared root of a gmeow:FindingCluster; it equals the gmeow:findingRootCause of every finding linked to the cluster by gmeow:findingCluster."@x-gmeow-english ;
+    gmeow:useWhen "Use to carry the shared root of a derived finding cluster once on the cluster node, the R in the 'N findings share root R' surface."@x-gmeow-english .
+
+gmeow:CrossNodeGlutWitness
+    a logic:SubKind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "Cross-Node Glut Witness"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:Finding ;
+    skos:definition "A reasoner-minted meta-finding recording a cross-node glut: two findings at ONE gmeow:findingAnchor whose logic:FindingCategory polarities (gmeow:categoryPolarity) OPPOSE — a Supported/Opposed clash the same-fingerprint merge cannot detect because the merge keys on the code, and the two conflicting findings carry different codes. It is itself a gmeow:Finding (so it carries its own gmeow:findingSeverity / gmeow:findingStandpoint grade and gmeow:findingCategory polarity) minted by a diagnostic meta-rule (gmeow:DiagnosticMetaRule), never authored by hand; it links to the two conflicting findings through gmeow:glutWitnessOf. The glut it witnesses is a coherence conflict SURFACED across codes, not a gate failure."@x-gmeow-english ;
+    skos:example "ex:glut1 a gmeow:CrossNodeGlutWitness ; gmeow:glutWitnessOf ex:f1 , ex:f2 ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid authoring it by hand (it is minted by a gmeow:DiagnosticMetaRule from opposing gmeow:categoryPolarity at one gmeow:findingAnchor) and avoid reading it as a gate failure; it is an informational cross-code coherence witness the same-fingerprint merge structurally misses."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Read a CrossNodeGlutWitness off the reasoned graph: its two gmeow:glutWitnessOf links name the conflicting findings, and its own grade and polarity carry how the glut is surfaced; render it as a 'these two findings at one anchor disagree' note."@x-gmeow-english ;
+    gmeow:useWhen "Use as the reasoner-derived meta-finding for a cross-node glut — two opposing-polarity findings at one anchor the same-fingerprint merge cannot detect across codes."@x-gmeow-english .
+
+gmeow:glutWitnessOf
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:CrossNodeGlutWitness ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "glut witness of"@x-gmeow-english ;
+    rdfs:range gmeow:Finding ;
+    skos:definition "Links a gmeow:CrossNodeGlutWitness to each of the two conflicting findings it witnesses — the findings at one shared gmeow:findingAnchor whose gmeow:categoryPolarity values oppose. A glut witness carries exactly two gmeow:glutWitnessOf edges, one per side of the coherence conflict. DERIVED by a diagnostic meta-rule (gmeow:DiagnosticMetaRule), never authored by hand."@x-gmeow-english ;
+    skos:example "ex:glut1 gmeow:glutWitnessOf ex:f1 ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting it by hand (it is derived) and avoid pointing it at more or fewer than the two conflicting findings; glutWitnessOf names exactly the two opposing-polarity findings a cross-node glut witnesses."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Read the two gmeow:glutWitnessOf edges of a gmeow:CrossNodeGlutWitness off the reasoned graph to recover the conflicting findings; each points at a gmeow:Finding sharing the witness's anchor."@x-gmeow-english ;
+    gmeow:useWhen "Use to link a cross-node glut witness to the two opposing-polarity findings it records, so a consumer can resolve the glut to its conflicting sides."@x-gmeow-english .
+
 <https://blackcatinformatics.ca/gmeow/slices/diagnostics>
     a owl:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
