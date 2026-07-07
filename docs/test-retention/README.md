@@ -92,7 +92,8 @@ Removed because a Rust artifact already asserts the same behavior:
   `test_evidence` → `conformance_evidence.rs` (+ constitution artifact cite redirected);
   `test_genealogy` → `conformance_genealogy.rs`;
   `test_lifecycle` → `conformance_lifecycle.rs`;
-  `test_registers` → `conformance_registers.rs`.
+  `test_registers` → `conformance_registers.rs`;
+  `test_inference` → `conformance_inference.rs`.
 
 Relocated out of the mainline test tree (dossier removed with the test):
 
