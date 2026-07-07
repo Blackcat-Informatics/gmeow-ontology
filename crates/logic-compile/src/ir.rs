@@ -2078,7 +2078,7 @@ impl Formula {
     /// is exactly a binary predication (an IRI relation with two non-sequence-marker
     /// args) — i.e. an ordinary triple. Such a node has a Horn home and must not enter the
     /// formula collection, where it would give one fact two distinct content keys.
-    fn is_trivially_horn(&self) -> bool {
+    pub(crate) fn is_trivially_horn(&self) -> bool {
         match self {
             Self::Atom { relation, args } => {
                 matches!(relation, Term::Iri(_))
@@ -2087,6 +2087,45 @@ impl Formula {
             }
             _ => false,
         }
+    }
+
+    /// Convert a *trivially-Horn* binary predication ([`Self::is_trivially_horn`]) into its
+    /// proper [`LogicAxiom`] home — the sound resolution when a reified `logic:Formula` node
+    /// turns out to be an ordinary triple (`relation` + two arguments). Returns `None` for any
+    /// non-trivially-Horn formula (a connective, quantifier, negation, or fixed-arity n-ary
+    /// atom) — those keep their formula identity — AND for a degenerate binary atom whose
+    /// subject cannot be a triple subject (a literal or sequence marker in argument position 0),
+    /// which is malformed rather than a fact.
+    ///
+    /// This is what lets the front-end enforce the [`LogicProgram::with_formulas`] invariant by
+    /// ROUTING rather than by assumption: a trivially-Horn leaf is redirected to
+    /// [`LogicProgram::axioms`] (where a fact belongs) instead of tripping the assertion. A
+    /// variable argument is preserved with the `?name` sigil the axiom string encoding uses, so
+    /// a reified binary atom with variables becomes a rule-shaped axiom, and a fully ground one
+    /// becomes an EDB fact.
+    pub fn as_horn_axiom(&self) -> Option<LogicAxiom> {
+        let Self::Atom { relation, args } = self else {
+            return None;
+        };
+        if !self.is_trivially_horn() {
+            return None;
+        }
+        let Term::Iri(predicate) = relation else {
+            return None;
+        };
+        // A triple subject is an IRI or a variable — never a literal or a sequence marker.
+        let subject = match &args[0] {
+            Term::Iri(iri) => iri.clone(),
+            Term::Var(name) => format!("?{name}"),
+            Term::Literal { .. } | Term::SequenceMarker(_) => return None,
+        };
+        let (obj, obj_is_literal) = match &args[1] {
+            Term::Iri(iri) => (iri.clone(), false),
+            Term::Var(name) => (format!("?{name}"), false),
+            Term::Literal { lexical, .. } => (lexical.clone(), true),
+            Term::SequenceMarker(_) => return None,
+        };
+        LogicAxiom::ground(subject, predicate.clone(), obj, obj_is_literal).ok()
     }
 
     /// The closed [`FormulaShape`] tags this formula exhibits, ordered and deduped — the
