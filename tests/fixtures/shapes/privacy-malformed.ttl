@@ -1,7 +1,7 @@
 # Malformed privacy fixture (#73). Each privacy-related relator trips its closed-
 # world SHACL shape: the RightsStatement governs no asset, the Permission regulates
 # no action, and the consent-governing RightsStatements lack a data subject or a
-# data controller. run_shacl over this graph MUST NOT conform.
+# data controller. SHACL validation over this graph MUST NOT conform.
 
 @prefix ex:    <https://example.org/shapes/> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .

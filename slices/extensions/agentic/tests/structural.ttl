@@ -11,7 +11,7 @@
 # (logic:Event), not gufo:.
 #
 # RETAINED in pytest (not migratable here):
-#   test_double_valued_toolcall_violates_the_closed_world_twins -- run_shacl()
+#   test_double_valued_toolcall_violates_the_closed_world_twins -- SHACL validation
 #     call with error-text assertions; ExampleConformance, not a structural
 #     TBox assertion.
 #   test_example_answers_which_tool_under_which_invocation -- loads an

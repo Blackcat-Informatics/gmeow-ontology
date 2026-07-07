@@ -4,7 +4,7 @@
 # exemplar redirects to another criterion and pins by SUBJECT — the entity-
 # pattern case, EPIC #358), and two judges disagreeing about one chunk's
 # score — two coexisting Assessments, no winner (Principle 9).
-# run_shacl over this graph MUST conform.
+# SHACL validation over this graph MUST conform.
 
 @prefix ex:    <https://example.org/shapes/> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .

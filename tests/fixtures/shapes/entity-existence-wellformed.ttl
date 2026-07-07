@@ -1,6 +1,6 @@
 # Well-formed EntityExistence fixture (#81). Every subject satisfies the lifecycle
 # SHACL shapes: an EntityExistence binds exactly one entity and one interval.
-# `run_shacl` MUST conform.
+# `SHACL validation` MUST conform.
 
 @prefix ex:    <https://example.org/shapes/> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .

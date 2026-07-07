@@ -15,11 +15,11 @@
 #   test_expanded_action_vocabulary_is_seeded — asserts len(actions) >= 45, a
 #     numeric cardinality check over the live action-individual set; SPARQL ASK
 #     cannot express numeric lower-bound counts in a module-scoped cell.
-#   test_wellformed_rights_fixture_conforms — run_shacl() call;
+#   test_wellformed_rights_fixture_conforms — SHACL validation call;
 #     ExampleConformance, not a structural TBox assertion.
-#   test_malformed_rights_fixture_is_flagged — run_shacl() call with error-text
+#   test_malformed_rights_fixture_is_flagged — SHACL validation call with error-text
 #     assertions; ExampleConformance, not a structural TBox assertion.
-#   test_expired_trademark_warns_but_does_not_fail — run_shacl() call;
+#   test_expired_trademark_warns_but_does_not_fail — SHACL validation call;
 #     ExampleConformance, not a structural TBox assertion.
 #   test_odrl_projection_emits_a_policy_with_rules — project_graph() over loaded
 #     coverage fixture; generated-artifact projection check, not a TBox assertion.
