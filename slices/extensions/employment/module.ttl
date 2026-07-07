@@ -20,14 +20,14 @@ gmeow:Employment
         [
             a owl:Restriction ;
             owl:onProperty gmeow:membershipMember ;
-            owl:someValuesFrom gmeow:Agent ;
+            owl:allValuesFrom gmeow:Person ;
         ] ,
         [
             a owl:Restriction ;
             owl:onProperty gmeow:membershipOrganization ;
             owl:someValuesFrom gmeow:Organization ;
         ] ;
-    skos:definition "A reified employment relationship between an agent and an organization, optionally founded on an employment contract and bearing a role, compensation, and employment type over a period. A specialization of gmeow:Membership: the employment-specific facets (compensation, seniority, employment type) are added here; the structural spine (member, organization, role, period) is inherited."@x-gmeow-english ;
+    skos:definition "A reified employment relationship between a natural person and an organization, optionally founded on an employment contract and bearing a role, compensation, and employment type over a period. A specialization of gmeow:Membership: the employment-specific facets (compensation, seniority, employment type) are added here; the structural spine (member, organization, role, period) is inherited. On an Employment every member is a gmeow:Person (a narrowing of the inherited gmeow:Agent member range) — organizations affiliate through other Membership subtypes such as partnership or consortium membership, not employment."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:EmploymentType

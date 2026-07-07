@@ -645,6 +645,76 @@
         },
         "type": "object"
       },
+      "Agent": {
+        "allOf": [
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:SocialObject"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:SocialObject"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:InformationObject"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:InformationObject"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          }
+        ],
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          }
+        },
+        "type": "object"
+      },
       "AgentSession": {
         "properties": {
           "@annotation": {
@@ -1751,29 +1821,41 @@
           "gmeow:attester": {
             "anyOf": [
               {
-                "$comment": "gmeow:Agent has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Agent"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
                   }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                ]
               },
               {
                 "items": {
-                  "$comment": "gmeow:Agent has no NodeShape; node reference only",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/Agent"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
                     }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
+                  ]
                 },
                 "type": "array"
               }
@@ -1922,29 +2004,41 @@
           "gmeow:availabilityAgent": {
             "anyOf": [
               {
-                "$comment": "gmeow:Agent has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Agent"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
                   }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                ]
               },
               {
                 "items": {
-                  "$comment": "gmeow:Agent has no NodeShape; node reference only",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/Agent"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
                     }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
+                  ]
                 },
                 "type": "array"
               }
@@ -3802,29 +3896,41 @@
           "gmeow:certifiedIdentity": {
             "anyOf": [
               {
-                "$comment": "gmeow:Agent has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Agent"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
                   }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                ]
               },
               {
                 "items": {
-                  "$comment": "gmeow:Agent has no NodeShape; node reference only",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/Agent"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
                     }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
+                  ]
                 },
                 "type": "array"
               }
@@ -3876,29 +3982,41 @@
           "gmeow:certifier": {
             "anyOf": [
               {
-                "$comment": "gmeow:Agent has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Agent"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
                   }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                ]
               },
               {
                 "items": {
-                  "$comment": "gmeow:Agent has no NodeShape; node reference only",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/Agent"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
                     }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
+                  ]
                 },
                 "type": "array"
               }
@@ -4349,29 +4467,41 @@
           "gmeow:authoredBy": {
             "anyOf": [
               {
-                "$comment": "gmeow:Agent has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Agent"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
                   }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                ]
               },
               {
                 "items": {
-                  "$comment": "gmeow:Agent has no NodeShape; node reference only",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/Agent"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
                     }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
+                  ]
                 },
                 "type": "array"
               }
@@ -5515,16 +5645,22 @@
             ]
           },
           "gmeow:determiningAuthority": {
-            "$comment": "gmeow:Agent has no NodeShape; node reference only",
-            "properties": {
-              "@id": {
-                "type": "string"
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Agent"
+              },
+              {
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
               }
-            },
-            "required": [
-              "@id"
-            ],
-            "type": "object"
+            ]
           }
         },
         "type": "object"
@@ -5668,29 +5804,41 @@
           "gmeow:contributor": {
             "anyOf": [
               {
-                "$comment": "gmeow:Agent has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Agent"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
                   }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                ]
               },
               {
                 "items": {
-                  "$comment": "gmeow:Agent has no NodeShape; node reference only",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/Agent"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
                     }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
+                  ]
                 },
                 "type": "array"
               }
@@ -5721,16 +5869,22 @@
             ]
           },
           "gmeow:controlAgent": {
-            "$comment": "gmeow:Agent has no NodeShape; node reference only",
-            "properties": {
-              "@id": {
-                "type": "string"
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Agent"
+              },
+              {
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
               }
-            },
-            "required": [
-              "@id"
-            ],
-            "type": "object"
+            ]
           },
           "gmeow:controlInterval": {
             "anyOf": [
@@ -5956,29 +6110,41 @@
           "gmeow:vantage": {
             "anyOf": [
               {
-                "$comment": "gmeow:Agent has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Agent"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
                   }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                ]
               },
               {
                 "items": {
-                  "$comment": "gmeow:Agent has no NodeShape; node reference only",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/Agent"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
                     }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
+                  ]
                 },
                 "type": "array"
               }
@@ -6011,29 +6177,41 @@
           "gmeow:copyrightHolder": {
             "anyOf": [
               {
-                "$comment": "gmeow:Agent has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Agent"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
                   }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                ]
               },
               {
                 "items": {
-                  "$comment": "gmeow:Agent has no NodeShape; node reference only",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/Agent"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
                     }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
+                  ]
                 },
                 "type": "array"
               }
@@ -7153,16 +7331,22 @@
             ]
           },
           "gmeow:tenureSubjectAgent": {
-            "$comment": "gmeow:Agent has no NodeShape; node reference only",
-            "properties": {
-              "@id": {
-                "type": "string"
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Agent"
+              },
+              {
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
               }
-            },
-            "required": [
-              "@id"
-            ],
-            "type": "object"
+            ]
           },
           "gmeow:tenureSupportedBy": {
             "anyOf": [
@@ -7208,16 +7392,22 @@
             ]
           },
           "gmeow:tenureVantage": {
-            "$comment": "gmeow:Agent has no NodeShape; node reference only",
-            "properties": {
-              "@id": {
-                "type": "string"
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Agent"
+              },
+              {
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
               }
-            },
-            "required": [
-              "@id"
-            ],
-            "type": "object"
+            ]
           }
         },
         "type": "object"
@@ -7602,29 +7792,41 @@
           "gmeow:epistemicAgent": {
             "anyOf": [
               {
-                "$comment": "gmeow:Agent has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Agent"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
                   }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                ]
               },
               {
                 "items": {
-                  "$comment": "gmeow:Agent has no NodeShape; node reference only",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/Agent"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
                     }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
+                  ]
                 },
                 "type": "array"
               }
@@ -8034,16 +8236,22 @@
             "type": "object"
           },
           "gmeow:assignmentSubject": {
-            "$comment": "gmeow:Agent has no NodeShape; node reference only",
-            "properties": {
-              "@id": {
-                "type": "string"
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Agent"
+              },
+              {
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
               }
-            },
-            "required": [
-              "@id"
-            ],
-            "type": "object"
+            ]
           }
         },
         "type": "object"
@@ -8220,29 +8428,41 @@
           "gmeow:membershipMember": {
             "anyOf": [
               {
-                "$comment": "gmeow:Agent has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Person"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
                   }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                ]
               },
               {
                 "items": {
-                  "$comment": "gmeow:Agent has no NodeShape; node reference only",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/Person"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
                     }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
+                  ]
                 },
                 "type": "array"
               }
@@ -8595,29 +8815,41 @@
           "gmeow:invitationInvitee": {
             "anyOf": [
               {
-                "$comment": "gmeow:Agent has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Agent"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
                   }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                ]
               },
               {
                 "items": {
-                  "$comment": "gmeow:Agent has no NodeShape; node reference only",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/Agent"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
                     }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
+                  ]
                 },
                 "type": "array"
               }
@@ -9058,29 +9290,41 @@
           "gmeow:accountHolder": {
             "anyOf": [
               {
-                "$comment": "gmeow:Agent has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Agent"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
                   }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                ]
               },
               {
                 "items": {
-                  "$comment": "gmeow:Agent has no NodeShape; node reference only",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/Agent"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
                     }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
+                  ]
                 },
                 "type": "array"
               }
@@ -10285,29 +10529,41 @@
           "gmeow:holdingAgent": {
             "anyOf": [
               {
-                "$comment": "gmeow:Agent has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Agent"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
                   }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                ]
               },
               {
                 "items": {
-                  "$comment": "gmeow:Agent has no NodeShape; node reference only",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/Agent"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
                     }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
+                  ]
                 },
                 "type": "array"
               }
@@ -10680,29 +10936,41 @@
           "gmeow:facetVantage": {
             "anyOf": [
               {
-                "$comment": "gmeow:Agent has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Agent"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
                   }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                ]
               },
               {
                 "items": {
-                  "$comment": "gmeow:Agent has no NodeShape; node reference only",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/Agent"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
                     }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
+                  ]
                 },
                 "type": "array"
               }
@@ -11033,16 +11301,22 @@
             "type": "object"
           },
           "gmeow:inhabitationSubject": {
-            "$comment": "gmeow:Agent has no NodeShape; node reference only",
-            "properties": {
-              "@id": {
-                "type": "string"
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Agent"
+              },
+              {
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
               }
-            },
-            "required": [
-              "@id"
-            ],
-            "type": "object"
+            ]
           },
           "gmeow:inhabitedHost": {
             "anyOf": [
@@ -11671,29 +11945,41 @@
           "gmeow:relationshipParty": {
             "anyOf": [
               {
-                "$comment": "gmeow:Agent has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Agent"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
                   }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                ]
               },
               {
                 "items": {
-                  "$comment": "gmeow:Agent has no NodeShape; node reference only",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/Agent"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
                     }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
+                  ]
                 },
                 "type": "array"
               }
@@ -11821,43 +12107,9 @@
           },
           "gmeow:journalEntryPostings": {
             "anyOf": [
+              {},
               {
-                "anyOf": [
-                  {
-                    "$ref": "#/$defs/Posting"
-                  },
-                  {
-                    "properties": {
-                      "@id": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "@id"
-                    ],
-                    "type": "object"
-                  }
-                ]
-              },
-              {
-                "items": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/$defs/Posting"
-                    },
-                    {
-                      "properties": {
-                        "@id": {
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "@id"
-                      ],
-                      "type": "object"
-                    }
-                  ]
-                },
+                "items": {},
                 "type": "array"
               }
             ]
@@ -11932,29 +12184,41 @@
           "gmeow:jurisdictionPolity": {
             "anyOf": [
               {
-                "$comment": "gmeow:Agent has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Agent"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
                   }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                ]
               },
               {
                 "items": {
-                  "$comment": "gmeow:Agent has no NodeShape; node reference only",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/Agent"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
                     }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
+                  ]
                 },
                 "type": "array"
               }
@@ -12015,16 +12279,22 @@
             ]
           },
           "gmeow:attributedKnower": {
-            "$comment": "gmeow:Agent has no NodeShape; node reference only",
-            "properties": {
-              "@id": {
-                "type": "string"
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Agent"
+              },
+              {
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
               }
-            },
-            "required": [
-              "@id"
-            ],
-            "type": "object"
+            ]
           },
           "gmeow:attributedProposition": {
             "$comment": "gmeow:Proposition has no NodeShape; node reference only",
@@ -12039,16 +12309,22 @@
             "type": "object"
           },
           "gmeow:attributingAgent": {
-            "$comment": "gmeow:Agent has no NodeShape; node reference only",
-            "properties": {
-              "@id": {
-                "type": "string"
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Agent"
+              },
+              {
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
               }
-            },
-            "required": [
-              "@id"
-            ],
-            "type": "object"
+            ]
           }
         },
         "required": [
@@ -12080,16 +12356,22 @@
             ]
           },
           "gmeow:knowerAgent": {
-            "$comment": "gmeow:Agent has no NodeShape; node reference only",
-            "properties": {
-              "@id": {
-                "type": "string"
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Agent"
+              },
+              {
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
               }
-            },
-            "required": [
-              "@id"
-            ],
-            "type": "object"
+            ]
           },
           "gmeow:knownInWorld": {
             "$comment": "gmeow:EpistemicContext has no NodeShape; node reference only",
@@ -12160,29 +12442,41 @@
           "gmeow:knowledgeProficiencyAgent": {
             "anyOf": [
               {
-                "$comment": "gmeow:Agent has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Agent"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
                   }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                ]
               },
               {
                 "items": {
-                  "$comment": "gmeow:Agent has no NodeShape; node reference only",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/Agent"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
                     }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
+                  ]
                 },
                 "type": "array"
               }
@@ -12320,29 +12614,41 @@
           "gmeow:tenureParty": {
             "anyOf": [
               {
-                "$comment": "gmeow:Agent has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Agent"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
                   }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                ]
               },
               {
                 "items": {
-                  "$comment": "gmeow:Agent has no NodeShape; node reference only",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/Agent"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
                     }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
+                  ]
                 },
                 "type": "array"
               }
@@ -12598,29 +12904,41 @@
           "gmeow:stateAuthority": {
             "anyOf": [
               {
-                "$comment": "gmeow:Agent has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Agent"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
                   }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                ]
               },
               {
                 "items": {
-                  "$comment": "gmeow:Agent has no NodeShape; node reference only",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/Agent"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
                     }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
+                  ]
                 },
                 "type": "array"
               }
@@ -12696,29 +13014,41 @@
           "gmeow:ledgerAccountHolder": {
             "anyOf": [
               {
-                "$comment": "gmeow:Agent has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Agent"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
                   }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                ]
               },
               {
                 "items": {
-                  "$comment": "gmeow:Agent has no NodeShape; node reference only",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/Agent"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
                     }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
+                  ]
                 },
                 "type": "array"
               }
@@ -12951,29 +13281,41 @@
           "gmeow:licensor": {
             "anyOf": [
               {
-                "$comment": "gmeow:Agent has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Agent"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
                   }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                ]
               },
               {
                 "items": {
-                  "$comment": "gmeow:Agent has no NodeShape; node reference only",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/Agent"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
                     }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
+                  ]
                 },
                 "type": "array"
               }
@@ -13578,29 +13920,41 @@
           "gmeow:memoryOf": {
             "anyOf": [
               {
-                "$comment": "gmeow:Agent has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Agent"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
                   }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                ]
               },
               {
                 "items": {
-                  "$comment": "gmeow:Agent has no NodeShape; node reference only",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/Agent"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
                     }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
+                  ]
                 },
                 "type": "array"
               }
@@ -15999,6 +16353,31 @@
             },
             "then": {
               "$ref": "#/$defs/AffectiveExperience"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:Agent"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Agent"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/Agent"
             }
           },
           {
@@ -33440,29 +33819,41 @@
           "gmeow:overlayAuthority": {
             "anyOf": [
               {
-                "$comment": "gmeow:Agent has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Agent"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
                   }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                ]
               },
               {
                 "items": {
-                  "$comment": "gmeow:Agent has no NodeShape; node reference only",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/Agent"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
                     }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
+                  ]
                 },
                 "type": "array"
               }
@@ -35584,29 +35975,41 @@
           "gmeow:skillProficiencyAgent": {
             "anyOf": [
               {
-                "$comment": "gmeow:Agent has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Agent"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
                   }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                ]
               },
               {
                 "items": {
-                  "$comment": "gmeow:Agent has no NodeShape; node reference only",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/Agent"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
                     }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
+                  ]
                 },
                 "type": "array"
               }
@@ -36415,29 +36818,41 @@
           "gmeow:vantage": {
             "anyOf": [
               {
-                "$comment": "gmeow:Agent has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Agent"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
                   }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                ]
               },
               {
                 "items": {
-                  "$comment": "gmeow:Agent has no NodeShape; node reference only",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/Agent"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
                     }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
+                  ]
                 },
                 "type": "array"
               }
@@ -37025,29 +37440,41 @@
           "gmeow:learner": {
             "anyOf": [
               {
-                "$comment": "gmeow:Agent has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Agent"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
                   }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                ]
               },
               {
                 "items": {
-                  "$comment": "gmeow:Agent has no NodeShape; node reference only",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/Agent"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
                     }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
+                  ]
                 },
                 "type": "array"
               }
@@ -37056,29 +37483,41 @@
           "gmeow:teacher": {
             "anyOf": [
               {
-                "$comment": "gmeow:Agent has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Agent"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
                   }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                ]
               },
               {
                 "items": {
-                  "$comment": "gmeow:Agent has no NodeShape; node reference only",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/Agent"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
                     }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
+                  ]
                 },
                 "type": "array"
               }
@@ -38661,29 +39100,41 @@
           "gmeow:trustee": {
             "anyOf": [
               {
-                "$comment": "gmeow:Agent has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Agent"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
                   }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                ]
               },
               {
                 "items": {
-                  "$comment": "gmeow:Agent has no NodeShape; node reference only",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/Agent"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
                     }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
+                  ]
                 },
                 "type": "array"
               }
@@ -38692,29 +39143,41 @@
           "gmeow:trustor": {
             "anyOf": [
               {
-                "$comment": "gmeow:Agent has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Agent"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
                   }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                ]
               },
               {
                 "items": {
-                  "$comment": "gmeow:Agent has no NodeShape; node reference only",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/Agent"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
                     }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
+                  ]
                 },
                 "type": "array"
               }
@@ -38929,29 +39392,41 @@
           "gmeow:membershipAuthority": {
             "anyOf": [
               {
-                "$comment": "gmeow:Agent has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Agent"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
                   }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                ]
               },
               {
                 "items": {
-                  "$comment": "gmeow:Agent has no NodeShape; node reference only",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/Agent"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
                     }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
+                  ]
                 },
                 "type": "array"
               }

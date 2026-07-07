@@ -1465,6 +1465,109 @@ fn derive_qualified_cardinality_emits_qualified_value_shape() {
 }
 
 #[test]
+fn derive_min_qualified_cardinality_uses_the_owl2_standard_keyword() {
+    // The OWL 2 RDF keyword is `owl:minQualifiedCardinality` (NOT `owl:qualifiedMinCardinality`).
+    // Regression guard: the derivation must read the standard local name, else a real qualified
+    // min-cardinality restriction is silently invisible and the arm ships zero shapes.
+    let ds = shape_dataset(
+        "g:Posting a owl:Class . \
+         g:JournalEntry a owl:Class ; rdfs:subClassOf \
+         [ a owl:Restriction ; owl:onProperty g:entryPostings ; owl:onClass g:Posting ; \
+           owl:minQualifiedCardinality \"2\"^^xsd:nonNegativeInteger ] .",
+    );
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    let comp = shapes
+        .iter()
+        .flat_map(|s| &s.properties)
+        .flat_map(|p| &p.components)
+        .find(|c| matches!(c, ConstraintComponent::QualifiedValueShape { .. }))
+        .expect("owl:minQualifiedCardinality must derive a qualified value shape");
+    match comp {
+        ConstraintComponent::QualifiedValueShape { shape, min, max } => {
+            assert_eq!(
+                *min,
+                Some(2),
+                "minQualifiedCardinality 2 → qualifiedMinCount 2"
+            );
+            assert_eq!(*max, None);
+            assert!(
+                shape
+                    .iter()
+                    .any(|c| matches!(c, ConstraintComponent::Class(d) if d.ends_with("Posting"))),
+                "inner shape must be sh:class g:Posting: {shape:?}"
+            );
+        }
+        other => panic!("expected QualifiedValueShape, got {other:?}"),
+    }
+}
+
+#[test]
+fn derive_all_values_from_faceted_datatype_emits_length_and_pattern_facets() {
+    // An owl:allValuesFrom whose filler is a faceted rdfs:Datatype
+    // (owl:onDatatype + owl:withRestrictions) reads as the SHACL length / pattern facets its
+    // values must satisfy — the derivation's owl:withRestrictions arm.
+    let ds = shape_dataset(
+        "g:FinancialAccount a owl:Class ; rdfs:subClassOf \
+         [ a owl:Restriction ; owl:onProperty g:bic ; owl:allValuesFrom \
+           [ a rdfs:Datatype ; owl:onDatatype xsd:string ; owl:withRestrictions ( \
+              [ xsd:minLength \"8\"^^xsd:nonNegativeInteger ] \
+              [ xsd:maxLength \"11\"^^xsd:nonNegativeInteger ] \
+              [ xsd:pattern \"^[A-Z]{6}[A-Z0-9]{2}([A-Z0-9]{3})?$\" ] ) ] ] .",
+    );
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    let comps: Vec<&ConstraintComponent> = shapes
+        .iter()
+        .flat_map(|s| &s.properties)
+        .filter(|p| p.path.ends_with("bic"))
+        .flat_map(|p| &p.components)
+        .collect();
+    assert!(
+        comps
+            .iter()
+            .any(|c| matches!(c, ConstraintComponent::MinLength(8))),
+        "xsd:minLength 8 → sh:minLength 8: {comps:?}"
+    );
+    assert!(
+        comps
+            .iter()
+            .any(|c| matches!(c, ConstraintComponent::MaxLength(11))),
+        "xsd:maxLength 11 → sh:maxLength 11: {comps:?}"
+    );
+    assert!(
+        comps
+            .iter()
+            .any(|c| matches!(c, ConstraintComponent::Pattern { regex, .. } if regex.starts_with("^[A-Z]{6}"))),
+        "xsd:pattern → sh:pattern: {comps:?}"
+    );
+    assert!(
+        comps.iter().any(|c| matches!(
+            c,
+            ConstraintComponent::Datatype(d) if d.ends_with("string")
+        )),
+        "owl:onDatatype xsd:string → sh:datatype xsd:string: {comps:?}"
+    );
+}
+
+#[test]
+fn derive_non_faceted_blank_filler_is_skipped() {
+    // A blank allValuesFrom filler that is NOT a faceted datatype (no owl:withRestrictions) is an
+    // anonymous class expression — carried in the canon, never a bare blank shape → no component.
+    let ds = shape_dataset(
+        "g:C a owl:Class ; rdfs:subClassOf \
+         [ a owl:Restriction ; owl:onProperty g:p ; owl:allValuesFrom \
+           [ a owl:Class ; owl:unionOf ( g:A g:B ) ] ] .",
+    );
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    assert!(
+        !shapes
+            .iter()
+            .flat_map(|s| &s.properties)
+            .any(|p| p.path.ends_with("/p")),
+        "a non-faceted blank filler must derive no property shape: {shapes:?}"
+    );
+}
+
+#[test]
 fn derive_qualified_cardinality_without_on_class_hard_fails() {
     // A qualified cardinality with no owl:onClass is malformed — hard-fail, never a silent drop.
     let ds = shape_dataset(

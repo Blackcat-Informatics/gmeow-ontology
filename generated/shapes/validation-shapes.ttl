@@ -231,7 +231,7 @@
 <https://blackcatinformatics.ca/gmeow/Employment-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/Employment> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/employmentType> ; sh:class <https://blackcatinformatics.ca/gmeow/EmploymentType> ] ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/membershipMember> ; sh:class <https://blackcatinformatics.ca/gmeow/Agent> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/membershipMember> ; sh:class <https://blackcatinformatics.ca/gmeow/Person> ] ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/membershipOrganization> ; sh:class <https://blackcatinformatics.ca/gmeow/Organization> ] .
 
 <https://blackcatinformatics.ca/gmeow/EntityExistence-shape> a sh:NodeShape ;
@@ -266,6 +266,7 @@
 <https://blackcatinformatics.ca/gmeow/FinancialAccount-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/FinancialAccount> ;
     sh:not [ sh:class <https://blackcatinformatics.ca/gmeow/OnlineAccount> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/bic> ; sh:datatype <http://www.w3.org/2001/XMLSchema#string> ; sh:maxLength 11 ; sh:minLength 8 ; sh:pattern "^[A-Z]{6}[A-Z0-9]{2}([A-Z0-9]{3})?$" ] ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/accountHolder> ; sh:class <https://blackcatinformatics.ca/gmeow/Agent> ] .
 
 <https://blackcatinformatics.ca/gmeow/FinancialTransaction-shape> a sh:NodeShape ;
@@ -381,7 +382,7 @@
 
 <https://blackcatinformatics.ca/gmeow/JournalEntry-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/JournalEntry> ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/journalEntryPostings> ; sh:class <https://blackcatinformatics.ca/gmeow/Posting> ] .
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/journalEntryPostings> ; sh:qualifiedValueShape [ sh:class <https://blackcatinformatics.ca/gmeow/Posting> ] ; sh:qualifiedMinCount 2 ] .
 
 <https://blackcatinformatics.ca/gmeow/JurisdictionTenure-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/JurisdictionTenure> ;
@@ -1731,6 +1732,10 @@
 <https://blackcatinformatics.ca/gmeow/gtsHeadId-domain-shape> a sh:NodeShape ;
     sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/gtsHeadId> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/gtsHeadId> ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/gtsHeadId-range-shape> a sh:NodeShape ;
+    sh:targetObjectsOf <https://blackcatinformatics.ca/gmeow/gtsHeadId> ;
+    sh:property [ sh:path [ sh:inversePath <https://blackcatinformatics.ca/gmeow/gtsHeadId> ] ; sh:maxCount 1 ] .
 
 <https://blackcatinformatics.ca/gmeow/gtsProfile-domain-shape> a sh:NodeShape ;
     sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/gtsProfile> ;
