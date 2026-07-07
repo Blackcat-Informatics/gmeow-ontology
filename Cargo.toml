@@ -49,9 +49,10 @@ members = [
     # Gram matrix, read from an RDF graph, the √(xᵀGx) norm computed OUTSIDE the
     # reasoned core (Principle 12) for the CLI and the EmotionML emitter.
     "crates/affect",
-    # Classifier-ingestion producer (#1380): a captured HuggingFace GoEmotions
-    # output → attributed gmeow:ModelInferenceRun / AffectClassifierOutput /
-    # AffectiveClaim evidence, with a blind get-leg round-trip proof of losslessness.
+    # Classifier-ingestion producers: captured HuggingFace classifier outputs
+    # (GoEmotions / SST-2 / CardiffNLP / j-hartmann / zero-shot) → attributed
+    # gmeow:ModelInferenceRun / AffectClassifierOutput / AffectiveClaim evidence,
+    # with a blind get-leg round-trip proof of losslessness.
     "crates/affect-ingest",
     # Music-package toolchain: piece model, GTS package I/O, notation renderers,
     # MusicXML import, and loss manifests.
