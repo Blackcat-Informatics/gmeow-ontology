@@ -6,6 +6,7 @@
 
 @prefix ex:     <https://example.org/notation/> .
 @prefix gmeow:  <https://blackcatinformatics.ca/gmeow/> .
+@prefix lang:   <https://blackcatinformatics.ca/lang/> .
 @prefix owl:    <http://www.w3.org/2002/07/owl#> .
 @prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd:    <http://www.w3.org/2001/XMLSchema#> .
@@ -108,7 +109,7 @@ ex:plaintextUsesMorse a gmeow:NotationSystemUsage ;
 
 # --- WritingSystem ↔ NotationSystem bridge ----------------------------------- #
 
-ex:braille a gmeow:WritingSystem ;
+ex:braille a lang:Script ;
     gmeow:writingSystemAsNotation ex:brailleAsNotation .
 
 ex:brailleAsNotation a gmeow:NotationSystem ;

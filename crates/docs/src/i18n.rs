@@ -425,14 +425,19 @@ pub fn available_languages(translations: &Translations) -> Vec<String> {
     out
 }
 
-/// Read the `gmeow:bcp47Tag` ↔ `gmeow:languageTag` pairs from the language
-/// slice's module so a BCP-47 code maps to its internal `x-gmeow-*` tag.
+/// Map a BCP-47 code to its internal `x-gmeow-*` carrier tag by reading the
+/// carrier varieties in the lang module: the internal tag rides `lang:carrierTag`
+/// on a `lang:LanguageVariety`, and its public BCP-47 code is DERIVED over the
+/// model (never authored per language) — the variety's `lang:varietyOf` parent
+/// sign system carries the ISO 639 primary subtag as `skos:notation` (script
+/// suppressed for the carriers), matching the tag the `bcp47` projection folds.
 fn internal_tag_map(catalog: &SliceCatalog) -> BTreeMap<String, String> {
     use crate::model::parse_turtle_lenient;
     use crate::store::Object;
 
-    const BCP47: &str = "https://blackcatinformatics.ca/gmeow/bcp47Tag";
-    const LANG_TAG: &str = "https://blackcatinformatics.ca/gmeow/languageTag";
+    const CARRIER_TAG: &str = "https://blackcatinformatics.ca/lang/carrierTag";
+    const VARIETY_OF: &str = "https://blackcatinformatics.ca/lang/varietyOf";
+    const SKOS_NOTATION: &str = "http://www.w3.org/2004/02/skos/core#notation";
 
     let mut out: BTreeMap<String, String> = BTreeMap::new();
 
@@ -446,17 +451,21 @@ fn internal_tag_map(catalog: &SliceCatalog) -> BTreeMap<String, String> {
             let store = parse_turtle_lenient(&artifact.content)
                 .unwrap_or_else(|e| panic!("module.ttl for slice {owner} failed to parse: {e}"));
 
-            // For each subject with both a bcp47Tag and a languageTag, map the
-            // (lowercased) bcp47 code to the internal tag.
-            for (subject, object) in store.pattern_subjects_objects(BCP47) {
+            // For each carrier variety (subject with a lang:carrierTag), derive the
+            // BCP-47 code from its lang:varietyOf parent's skos:notation and map the
+            // (lowercased) code to the internal carrier tag.
+            for (subject, object) in store.pattern_subjects_objects(CARRIER_TAG) {
                 let Some(subject) = subject.as_named() else {
                     continue;
                 };
-                let Object::Literal(bcp) = object else {
+                let Object::Literal(internal) = object else {
                     continue;
                 };
-                // First literal value (lowest lexical form) for the languageTag.
-                if let Some(internal) = store.first_literal(subject, LANG_TAG) {
+                let Some(parent) = store.named_objects(subject, VARIETY_OF).into_iter().next()
+                else {
+                    continue;
+                };
+                if let Some(bcp) = store.first_literal(&parent, SKOS_NOTATION) {
                     out.entry(bcp.to_ascii_lowercase()).or_insert(internal);
                 }
             }

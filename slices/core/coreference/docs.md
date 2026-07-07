@@ -66,6 +66,27 @@ separate decision (`gmeow:displayable` false). The lifecycle slice supplies the 
 (`gmeow:supersededBy`) and the event-shaped view (`gmeow:eventTypeSupersession`) when
 the replacement itself needs a date, location, or participants.
 
+## Reference resolution — coreference by shared referent (lang: graft)
+
+The links above are identity **lineage**: they relate one entity or record to another
+across realms or over a version/edition/succession history. They are *not* NLP-style
+reference resolution. That seam — the point where a link asserts "these forms denote the
+**same** referent" — is grounded in the `lang:` layer (Principle 19) as a new term,
+`gmeow:corefDenotation`, and none of the lineage links above is superseded by it (each
+carries a negative-supersession cell in `mappings/equivalences.ttl`: `lang:Denotation` is
+form→referent meaning and cannot express an entity→entity lineage).
+
+### gmeow:corefDenotation
+
+Relates a `gmeow:Entity` to a reified **`lang:Denotation`** that resolves a form or
+appellation to it as *referent* (`lang:denotationKind lang:denotesEntity`,
+`lang:denotationTarget` the entity, `lang:denotedForm` the resolved non-surface
+`lang:Form`). Coreference is decided **structurally**: two forms co-refer exactly when
+their denotations share a `lang:denotationTarget` — "the morning star" and "the evening
+star" both resolve to Venus — never an `owl:sameAs` merge and never a same-string guess.
+Non-functional: many context-scoped denotations may resolve to one entity. See
+`examples/authority-links.ttl` for the worked Venus resolution.
+
 ## Solver layer & deferred alignment
 
 Entity *resolution* — deciding that two records corefer, scoring the match, clustering
@@ -77,6 +98,7 @@ the one slice whose job is to be everyone else's out-edge.
 
 ## Dependencies
 
-Depends on `kernel` and `documents` (the CreativeWork range of `editionOf`). Consumed
+Depends on `kernel`, `documents` (the CreativeWork range of `editionOf`), and `lang`
+(the `lang:Denotation` reference-resolution substrate of `gmeow:corefDenotation`). Consumed
 by every slice that links to Wikidata and external registries — which, under the
 maximal-linkage convention, is all of them.

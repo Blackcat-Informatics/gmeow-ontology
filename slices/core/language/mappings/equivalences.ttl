@@ -1,4 +1,5 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix lang: <https://blackcatinformatics.ca/lang/> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
@@ -16,3 +17,13 @@ gmeow:eqWikidata050 a gmeow:TermEquivalence ;
     gmeow:objectLabel "Wikimedia language code" ;
     gmeow:comment "Wikidata P424 is the Wikimedia language code; GMEOW languageCode uses BCP-47. Related but not identical." ;
     gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+# --------------------------------------------------------------------------- #
+# lang: graft supersession ledger — the machine-checked rung carrier lives in  #
+# imports/supersession-correspondences.ttl as logic:Correspondence nodes       #
+# (logic:morphismClass + logic:mnemomorphic + logic:getLeg), run through        #
+# assert_gates in the logic-compile stage. The old prose-rung gmeow:            #
+# TermEquivalence rows are removed: the rung is no longer a comment, it is a    #
+# gate-enforced correspondence law (Principle 17 — SSSOM is its lossy           #
+# projection, not a competing authored form).                                   #
+# --------------------------------------------------------------------------- #

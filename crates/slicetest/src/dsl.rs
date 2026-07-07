@@ -147,6 +147,11 @@ pub enum Outcome {
 }
 
 /// `gmeow:cqReasoning` value — the entailment lane a competency question runs under.
+///
+/// Three lanes: [`None`](ReasoningProfile::None) (asserted graph, SPARQL property paths),
+/// [`Rdfs`](ReasoningProfile::Rdfs) (RDFS closure), and [`Native`](ReasoningProfile::Native)
+/// (the full native `logic:` reasoner — the lane the n-ary `math:` algebra laws entail
+/// their consequents through).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum ReasoningProfile {
     /// `gmeow:reasoningNone` (the default): the asserted merged graph; SPARQL
@@ -156,6 +161,14 @@ pub enum ReasoningProfile {
     /// `gmeow:reasoningRdfs`: the merged graph closed under RDFS (domain/range
     /// typing + type/subclass/subproperty propagation).
     Rdfs,
+    /// `gmeow:reasoningLogic`: the merged graph closed under the NATIVE `logic:` reasoner
+    /// (`gmeow_logic::reason::reason_program`) — the canonical entailment engine, run over
+    /// the `LogicProgram` compiled from the slice sources plus the authored law examples.
+    /// This is the lane the four `math:` algebra laws (associativity, the determinant
+    /// homomorphism, the E8 group action, and homomorphic encryption) run under as LIVE
+    /// entailment consumers: each competency question queries a consequent the law DERIVES
+    /// through fixed-arity n-ary predication, not an asserted fact.
+    Native,
 }
 
 // ── Introspection queries ──────────────────────────────────────────────────────
@@ -246,6 +259,7 @@ fn parse_competency(store: &Arc<RdfDataset>) -> Result<Vec<CompetencyQuestion>, 
                 Some(iri) => match local_name(&iri) {
                     "reasoningNone" => ReasoningProfile::None,
                     "reasoningRdfs" => ReasoningProfile::Rdfs,
+                    "reasoningLogic" => ReasoningProfile::Native,
                     other => return Err(format!("unknown cqReasoning gmeow:{other}")),
                 },
             },

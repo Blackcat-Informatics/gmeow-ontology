@@ -372,8 +372,9 @@ fn shape_tags_classify_the_residue_constructs() {
         .unwrap()
     };
 
-    // ∀x.(p(x) ∧ ¬q(x)) → quantified + strong-negation + nested, and the unary atoms
-    // p(x)/q(x) are non-binary predications → variadic too.
+    // ∀x.(p(x) ∧ ¬q(x)) → quantified + strong-negation + nested. The unary atoms
+    // p(x)/q(x) are fixed-arity and now evaluable via reification, so they are NOT
+    // Variadic — only a genuine sequence marker carries that tag.
     let f1 = Formula::Forall {
         vars: vec!["x".into()],
         body: Box::new(Formula::And(vec![
@@ -387,11 +388,11 @@ fn shape_tags_classify_the_residue_constructs() {
             FormulaShape::Nested,
             FormulaShape::Quantified,
             FormulaShape::StrongNegation,
-            FormulaShape::Variadic,
         ]
     );
 
-    // ∃y.(r(y) ∨ s(y)) → disjunctive + quantified + nested (+ variadic, unary atoms).
+    // ∃y.(r(y) ∨ s(y)) → disjunctive + quantified + nested. Unary atoms are fixed-arity
+    // (reifiable), so no Variadic tag.
     let f2 = Formula::Exists {
         vars: vec!["y".into()],
         body: Box::new(Formula::Or(vec![
@@ -405,7 +406,6 @@ fn shape_tags_classify_the_residue_constructs() {
             FormulaShape::Disjunctive,
             FormulaShape::Nested,
             FormulaShape::Quantified,
-            FormulaShape::Variadic,
         ]
     );
 
@@ -416,7 +416,7 @@ fn shape_tags_classify_the_residue_constructs() {
     );
     assert_eq!(f3.shape_tags(), vec![FormulaShape::Nested]);
 
-    // A sequence-marker / non-binary predication → variadic.
+    // A genuine sequence-marker (unbounded) atom → variadic.
     let f4 = Formula::atom(
         Term::iri("https://blackcatinformatics.ca/logic/rel".to_owned()).unwrap(),
         vec![Term::sequence_marker("xs").unwrap()],

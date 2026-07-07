@@ -1,16 +1,12 @@
-# Competency question: "Which structure-preserving maps are declared, and for each,
-# what operation does it preserve and by which preservation law?"  This is the charter's
-# unification made queryable: the determinant, the E8 Weyl action, and a homomorphic-
-# encryption scheme are the SAME kind of object — a map that names a preserved operation
-# and a preservation law (a logic: formula). The query matches that uniform shape by the
-# defining properties (math:preservedOperation + math:preservationLaw), so it returns all
-# three regardless of their specific homomorphism subclass. Over the fixture the answer is
-# exactly {detHom → matrixMultiplication/detLaw, heScheme → ringMultiplication/heLaw,
-# weylAction → rootReflection/weylLaw}.
-PREFIX math: <https://blackcatinformatics.ca/math/>
+# Competency question (native gmeow:reasoningLogic lane): "Does the E8 group-action
+# law (g·h)·x = g·(h·x), evaluated as a real logic:Formula over a concrete compatible action,
+# ENTAIL that both association orders reach the same point?"  The comp(·,·,·)/act(·,·,·) atoms
+# are fixed-arity n-ary predications the native reasoner reifies and joins; firing the law
+# DERIVES the binary consequent eq(gaWr, gaWr), present in the closure only because the law
+# fired. VALUES pins the query to the group-action witness. Over the closure: exactly {gaWr}.
+PREFIX exa: <https://blackcatinformatics.ca/gmeow/examples/math/algebra/>
 
-SELECT ?map ?operation ?law WHERE {
-    ?map math:preservedOperation ?operation ;
-         math:preservationLaw ?law .
+SELECT ?value WHERE {
+    VALUES ?value { exa:gaWr }
+    ?value exa:eqRel ?value .
 }
-ORDER BY ?map

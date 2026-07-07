@@ -183,6 +183,14 @@ const NON_CONFORMANT: &[&str] = &[
     "slices/extensions/procedures/examples/data-pipeline.ttl", // domain/range: dataFlowEntity/executionParticipant/executionStatus/procedureStepType/procedureType/name/title subjects/objects untyped standalone
     "slices/extensions/risk/examples/trust-collapse.ttl", // domain/range: hazardBearer/hazardSeverity/cascadeSeverity/causalModality/mitigationCounters/mitigationStatus objects untyped standalone
     "slices/extensions/software/examples/commit-history.ttl", // domain/range: repositoryType/canonicalizedIdentity/name subjects/objects untyped standalone
+    // Bucket A (lang: grounding graft) — the example references shared lang:/logic:
+    // grounding individuals (rendering/denotation/preservation kinds, sign-system
+    // kinds, scripts, the seed lang:english) that are typed in the grounding slices
+    // but not standalone in the example's closed-world scope.
+    "slices/core/coreference/examples/authority-links.ttl", // lang:denotationKind → lang:denotesEntity + lang:inSignSystem → lang:english (shared grounding individuals) untyped standalone
+    "slices/core/language/examples/multilingual-document.ttl", // lang:renderingKind/transliterationScheme → shared rendering/transliteration individuals + lang:renderingPreservation → logic:PreservationKind (logic:ExactPreservation/SoundUnderApproximation) untyped standalone
+    "slices/core/notation/examples/notation-systems.ttl", // lang:signSystemKind → lang:notationalKind + lang:modality → lang:writtenModality + lang:renderingPreservation → logic:PreservationKind untyped standalone
+    "slices/grounding/math/examples/expression-rendering.ttl", // lang:renderingKind → lang:renderingNotation + lang:renderingPreservation → logic:ExactPreservation (shared logic:PreservationKind) untyped standalone
 ];
 
 /// The repo root (two levels up from this crate's manifest dir).
