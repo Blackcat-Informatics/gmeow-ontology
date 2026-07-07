@@ -65,7 +65,10 @@ fn diagnostics_report(report: &purrdf::shapes::report::ValidationReport) -> Repo
 /// Render the four committed SHACL diagnostics projections for a canonical report,
 /// through the shared [`crate::stages::diag_render`] renderer (the one path both
 /// this stage and `stage-compile-logic` route their reports through).
-fn render_artifacts(report: &Report) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
+fn render_artifacts(
+    report: &Report,
+    gate: Option<&crate::stages::gate_verdict::GateProgram>,
+) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
     crate::stages::diag_render::render_diagnostics_artifacts(
         "stage-validate",
         report,
@@ -75,6 +78,7 @@ fn render_artifacts(report: &Report) -> Result<BTreeMap<String, Vec<u8>>, gmeow_
             html: SHACL_HTML_PATH,
             rdf: SHACL_RDF_PATH,
         },
+        gate,
     )
 }
 
@@ -168,7 +172,15 @@ impl Stage for ValidateStage {
             })?
             .span_index()?;
         crate::ingest::enrich_findings_with_spans(&mut report, &spans);
-        let artifacts = render_artifacts(&report)?;
+        // Build the reasoner-derived gate-verdict program ONCE from the authored source
+        // graph (the base-graph bytes carry the logic + diagnostics slices, hence the
+        // authored logic:ruleGateFatalVerdict rule + the gmeow:categoryBlocking wiring).
+        // These SHACL findings are the ones that can join the gate-fatal up-set, so their
+        // diagnostics graph must carry the DERIVED verdict or gmeow:GateFatalUpsetShape
+        // fires under validate-gts. A source without the authored rule yields None and the
+        // projection stays byte-unchanged (never a faked verdict).
+        let gate = crate::stages::gate_verdict::GateProgram::from_source(source_graph);
+        let artifacts = render_artifacts(&report, gate.as_ref())?;
         // Attach the SHACL diagnostics RDF as the carrier's `graph/diagnostics` named
         // graph so the presenter reads it as a pure keyed fold (PIPELINE_SPINE §4) and
         // unions it with the logic-compile diagnostics, never re-parsing the byte
@@ -254,7 +266,7 @@ ex:RequiredShape a sh:NodeShape ;
             serde_json::Value::Bool(false)
         );
 
-        let artifacts = render_artifacts(&report).expect("render");
+        let artifacts = render_artifacts(&report, None).expect("render");
         let sarif: serde_json::Value =
             serde_json::from_slice(&artifacts[SHACL_SARIF_PATH]).expect("SARIF artifact is JSON");
         assert_eq!(sarif["version"], "2.1.0");

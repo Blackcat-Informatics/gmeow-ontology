@@ -9,8 +9,8 @@
 //! projection in the ontology (a finding is a shadow of its witness node, not the
 //! other way round).
 
-use crate::ledger::{DiagLedger, DiagNode};
-use crate::model::{Finding, Report};
+use crate::ledger::{DiagLedger, DiagNode, fingerprint_iri};
+use crate::model::{Finding, Location, Report};
 
 impl DiagNode {
     /// Project this witness node to a wire [`Finding`]. The first observation is
@@ -24,11 +24,32 @@ impl DiagNode {
             .unwrap_or("");
         let mut finding = Finding::new(self.grade.severity, self.code.clone(), head)
             .with_tool(tool)
-            .with_category(self.grade.category);
+            .with_category(self.grade.category)
+            .with_standpoint(self.grade.standpoint);
         finding.add_location(self.source_ctx.location.clone());
         finding.tags = self.tags.clone();
         finding.attributions = self.attributions.clone();
         finding.suggestions = self.advice.iter().map(|a| a.text.clone()).collect();
+        // Secondary labelled spans (Rust-compiler-style "defined here" / SHACL
+        // result-path / offending value) ride as related locations, so a
+        // multi-anchor witness keeps every secondary anchor through the projection
+        // instead of collapsing to its primary source context.
+        for label in &self.labels {
+            if !label.location.is_empty() {
+                finding.related_locations.push(label.location.clone());
+            }
+        }
+        // Project the content-addressed antecedent DAG edges as related locations
+        // (the stable finding IRI of each cause), so `gmeow explain`, SARIF
+        // relatedLocations, and LSP related-information get the provenance chain for
+        // free. Content-addressed by fingerprint, so the projection encodes no arena
+        // handle.
+        for antecedent in self.antecedents.iter() {
+            finding.related_locations.push(Location {
+                logical: Some(fingerprint_iri(antecedent)),
+                ..Location::default()
+            });
+        }
 
         // Extra observations (from merged witnesses) + the source-chain frames go
         // into the detail so nothing is dropped.
@@ -71,5 +92,133 @@ impl DiagLedger {
             .iter()
             .map(|n| n.to_finding(tool))
             .collect()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::code::register_code;
+    use crate::diag::{Diag, StageId};
+    use crate::grade::{FindingCategory, Grade, Severity, Standpoint};
+    use crate::ledger::{DiagLedger, fingerprint_iri};
+    use crate::model::Location;
+
+    fn diag_at(code: &'static str, path: &str, grade: Grade) -> Diag {
+        let c = register_code(code);
+        Diag::new(c, grade, "msg").with_location(Location {
+            path: Some(path.to_owned()),
+            ..Location::default()
+        })
+    }
+
+    #[test]
+    fn projected_finding_carries_the_grade_standpoint() {
+        // U1: the projected finding carries the gating standpoint truth-axis, so the
+        // RDF `gmeow:findingStandpoint` twin (and its SHACL up-set shape) is not
+        // vacuous. Without this the gate morphism's binding-standpoint conjunct
+        // would have nothing to read on a real projected finding.
+        let mut ledger = DiagLedger::new();
+        ledger.attach(
+            diag_at(
+                "test.project.standpoint",
+                "s.ttl",
+                Grade::new(
+                    Severity::Error,
+                    FindingCategory::DataShapeViolation,
+                    Standpoint::Binding,
+                ),
+            ),
+            StageId::new("s"),
+        );
+        let finding = &ledger.findings("validate")[0];
+        assert_eq!(finding.standpoint, Some(Standpoint::Binding));
+        assert_eq!(finding.category, Some(FindingCategory::DataShapeViolation));
+    }
+
+    #[test]
+    fn projected_finding_carries_labels_as_related_locations() {
+        // A multi-anchor witness (e.g. a SHACL result with a result-path / value,
+        // or a "defined here / used there" lint) carries its secondary Label spans
+        // through the projection as related locations — no secondary anchor is lost
+        // to the single primary source context.
+        use crate::diag::Label;
+        use crate::model::Location as ModelLocation;
+        let mut ledger = DiagLedger::new();
+        let diag = diag_at(
+            "test.project.labels",
+            "s.ttl",
+            Grade::new(
+                Severity::Error,
+                FindingCategory::DataShapeViolation,
+                Standpoint::Binding,
+            ),
+        )
+        .with_label(Label {
+            location: ModelLocation {
+                logical: Some("path https://ex/p".to_owned()),
+                ..ModelLocation::default()
+            },
+            text: "path".to_owned(),
+        });
+        ledger.attach(diag, StageId::new("s"));
+        let finding = &ledger.findings("validate")[0];
+        assert!(
+            finding
+                .related_locations
+                .iter()
+                .any(|l| l.logical.as_deref() == Some("path https://ex/p")),
+            "a Label span must project to a related location"
+        );
+    }
+
+    #[test]
+    fn projected_finding_carries_antecedents_as_related_locations() {
+        // U2: a witness with an antecedent edge projects that edge as a related
+        // location keyed on the cause's stable finding IRI — the provenance chain
+        // Phase-5 remediation and `gmeow explain` consume.
+        let mut ledger = DiagLedger::new();
+        let cause = diag_at(
+            "test.project.cause",
+            "cause.ttl",
+            Grade::new(
+                Severity::Note,
+                FindingCategory::ProjectionLoss,
+                Standpoint::Perspectival,
+            ),
+        );
+        let cause_ref = ledger.attach(cause, StageId::new("s"));
+        let effect = diag_at(
+            "test.project.effect",
+            "effect.ttl",
+            Grade::new(
+                Severity::Error,
+                FindingCategory::DataShapeViolation,
+                Standpoint::Binding,
+            ),
+        )
+        .with_antecedents([cause_ref]);
+        ledger.attach(effect, StageId::new("s"));
+
+        let cause_iri = {
+            // The cause node's stable finding IRI, recomputed from its identity.
+            let node = ledger
+                .emit_sorted()
+                .into_iter()
+                .find(|n| n.code == "test.project.cause")
+                .expect("cause node present");
+            fingerprint_iri(&node.fingerprint)
+        };
+        let effect_finding = ledger
+            .findings("validate")
+            .into_iter()
+            .find(|f| f.code == "test.project.effect")
+            .expect("effect finding present");
+        assert!(
+            effect_finding
+                .related_locations
+                .iter()
+                .any(|l| l.logical.as_deref() == Some(cause_iri.as_str())),
+            "the effect finding must relate to its antecedent cause by finding IRI"
+        );
     }
 }

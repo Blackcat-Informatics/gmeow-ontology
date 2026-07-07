@@ -20,6 +20,7 @@ use purrdf::{NativeRdfFormat, parse_dataset};
 
 use crate::ingest::DslView;
 use crate::ingest::prefixes::registry_pairs;
+use crate::loss_ledger::LossLedger;
 use crate::projections::correspondence_frontend::CorrespondenceLookup;
 use crate::projections::correspondence_gate::assert_relation_no_overclaim;
 use crate::projections::get_leg::{
@@ -62,6 +63,10 @@ pub struct EdoalLowering {
     /// One [`ProjectionResult`] per correspondence (cell::profile binding) that drops
     /// something — the per-correspondence preservation rows for the loss ledger.
     pub ledger: Vec<ProjectionResult>,
+    /// The per-correspondence loss store this lowering interned every drop into (keyed by
+    /// target focus). The mappings stage unions it into the single report loss store so the
+    /// EDOAL rows' `gmeow:lossyDrop` records read back from the SAME substrate ledger.
+    pub loss: LossLedger,
 }
 
 /// Lower every profile's EDOAL alignment, keyed `<profile>.edoal.ttl`, plus the
@@ -77,8 +82,9 @@ pub fn lower_edoal(
     let prefixes = registry_pairs();
     let mut alignments = BTreeMap::new();
     let mut ledger: Vec<ProjectionResult> = Vec::new();
+    let mut loss = LossLedger::new();
     for profile in PROFILES {
-        let emitted = emit_edoal_nt(&cells, profile, &tag_map, lookup)?;
+        let emitted = emit_edoal_nt(&cells, profile, &tag_map, lookup, &mut loss)?;
         // Parse the freshly-built N-Triples into a wasm-clean dataset and render it
         // through the canonical-Turtle serializer (object order is content-derived, so
         // no oxigraph re-dump is needed to fix the blank order).
@@ -93,7 +99,11 @@ pub fn lower_edoal(
         alignments.insert(format!("{profile}.edoal.ttl"), text);
         ledger.extend(emitted.ledger);
     }
-    Ok(EdoalLowering { alignments, ledger })
+    Ok(EdoalLowering {
+        alignments,
+        ledger,
+        loss,
+    })
 }
 
 // ── Language-tag retag map ───────────────────────────────────────────────────────
@@ -250,6 +260,7 @@ fn emit_edoal_nt(
     profile: &str,
     tag_map: &BTreeMap<String, String>,
     lookup: &CorrespondenceLookup,
+    loss: &mut LossLedger,
 ) -> Result<EmittedEdoal, String> {
     let mut nt = Nt::new();
     let mut ledger: Vec<ProjectionResult> = Vec::new();
@@ -316,7 +327,7 @@ fn emit_edoal_nt(
             residue.push("get-leg: the put leg is not carried by EDOAL".to_owned());
             residue.push("get-leg: world/standpoint scope is not carried by EDOAL".to_owned());
             let key = format!("{}::{}", local(&cell.iri), b.profile);
-            ledger.push(correspondence_result("edoal", &key, residue));
+            ledger.push(correspondence_result(loss, "edoal", &key, residue));
         }
     }
     Ok(EmittedEdoal {
@@ -711,7 +722,8 @@ mod tests {
                 morphism_kind: crate::ir::MorphismKind::InstitutionMorphism,
             },
         );
-        let err = emit_edoal_nt(&[bridge_cell], "schema-org", &tag_map, &lookup)
+        let mut loss = LossLedger::new();
+        let err = emit_edoal_nt(&[bridge_cell], "schema-org", &tag_map, &lookup, &mut loss)
             .expect_err("a bridge view emitting `=` must be rejected by the lowering");
         assert!(err.contains("bridge"), "{err}");
         assert!(err.contains("Principle 5"), "{err}");

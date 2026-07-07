@@ -27,7 +27,7 @@ const XSD_INTEGER: &str = "http://www.w3.org/2001/XMLSchema#integer";
 /// sibling projectors, rather than panicking.
 pub fn project_xcl(program: &LogicProgram) -> Result<ProjectionResult, String> {
     // Registry is the single source of truth for (preservation, complexity, drops).
-    let (kind, cx, drops) = target_meta("xcl");
+    let (kind, cx, _) = target_meta("xcl");
 
     let mut lines: Vec<String> = vec![
         "<?xml version=\"1.0\" encoding=\"UTF-8\"?>".to_owned(),
@@ -84,11 +84,9 @@ pub fn project_xcl(program: &LogicProgram) -> Result<ProjectionResult, String> {
         is_rdf: false,
         preservation: kind,
         complexity: cx.to_owned(),
-        lossy_drops: drops.into_iter().map(str::to_owned).collect(),
         // Exact target: every construct is carried (sentence channel verbatim, RDF channel via
-        // the lossless canonical-RDF-1.2 leg). Nothing is dropped — the overclaim gate requires
-        // this list be empty under an Exact claim.
-        actual_drops: Vec::new(),
+        // the lossless canonical-RDF-1.2 leg). Nothing is dropped, so the writer never touches
+        // the loss store — the drop-less row keeps its pure signature.
     })
 }
 

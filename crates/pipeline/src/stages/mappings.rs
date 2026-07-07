@@ -29,6 +29,7 @@ use std::path::Path;
 use crate::mapping_purity::lint_dsl_mapping_purity;
 use gmeow_errors::{Finding, Location, Report, Severity};
 use gmeow_logic_compile::ir::{Correspondence, DischargeVerdict};
+use gmeow_logic_compile::loss_ledger::LossLedger;
 use gmeow_logic_compile::projections::ProjectionResult;
 use gmeow_logic_compile::projections::correspondence::{
     CorrespondenceProgram, project_correspondence,
@@ -74,8 +75,14 @@ pub struct CompiledMappings {
     /// Every emitted artifact, by logical path.
     pub artifacts: BTreeMap<String, Vec<u8>>,
     /// The per-correspondence loss ledger across all four dialects PLUS the live
-    /// `lang:TranslationUnit` corpus rows (one per unit + one per language roll-up).
+    /// `lang:TranslationUnit` corpus rows (one per unit + one per language roll-up). The rows
+    /// carry only identity/judgment; their drops live in [`loss`](Self::loss).
     pub ledger: Vec<ProjectionResult>,
+    /// The single loss store every correspondence dialect, the EmotionML emitter, and every
+    /// `lang:` corpus interned their per-row drops into (unioned, keyed by target focus). The
+    /// mappings stage unions it with the compile-logic loss store so the FINAL projection report
+    /// reads every row's residue back from ONE substrate ledger.
+    pub loss: LossLedger,
     /// The live translation-corpus N-Triples graph (`graph/lang-translation-corpus`):
     /// every `.po` catalog pair typed as a `lang:TranslationUnit` carrying a
     /// `logic:Correspondence` with an honestly-computed preservation judgment. Carried
@@ -228,6 +235,10 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, gmeow_errors::D
     // projection-report below), so writing the document is all that remains here.
     artifacts.insert(EMOTIONML_PATH.to_string(), aligned.emotionml.into_bytes());
     let mut ledger = aligned.ledger;
+    // The single loss store: start from the correspondence dialects' + EmotionML's unioned
+    // store, then fold every `lang:` corpus's store in below (each keyed by target focus, so
+    // the union is byte-identical to a single fold).
+    let mut loss = aligned.loss;
 
     // Live `lang:TranslationUnit` corpus (Principle 15 consumer wiring): type every
     // multilingual `.po` catalog pair as a first-class crossing carrying a
@@ -236,6 +247,7 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, gmeow_errors::D
     // a named graph by the stage `run` below (never a `generated/` file).
     let lang_corpus = crate::stages::lang_translation::build_corpus(root)?;
     ledger.extend(lang_corpus.ledger);
+    loss.union(&lang_corpus.loss);
     let lang_translation_corpus = lang_corpus.ntriples;
 
     // Total prose lift (Gate 1): type every distinct `@x-gmeow-english` source literal as a
@@ -245,6 +257,7 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, gmeow_errors::D
     // file), excluded from the reasoned EDB exactly like the translation corpus.
     let form_corpus = crate::stages::lang_form::build_corpus(catalog.as_ref())?;
     ledger.extend(form_corpus.ledger);
+    loss.union(&form_corpus.loss);
     let lang_form_corpus = form_corpus.ntriples;
 
     // `lang:` projection corpus (the projection contract): lower the canonical `lang:`
@@ -254,6 +267,7 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, gmeow_errors::D
     // records as a named graph by the stage `run` below (never a `generated/` file).
     let projection_corpus = crate::stages::lang_projection::build_corpus(catalog.as_ref())?;
     ledger.extend(projection_corpus.ledger);
+    loss.union(&projection_corpus.loss);
     let lang_projection_corpus = projection_corpus.ntriples;
     for (path, bytes) in projection_corpus.artifacts {
         artifacts.insert(path, bytes);
@@ -268,6 +282,7 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, gmeow_errors::D
     // rides as a named graph by the stage `run` below (never a `generated/` file).
     let docs_rendering_corpus = crate::stages::lang_docs_rendering::build_corpus(root)?;
     ledger.extend(docs_rendering_corpus.ledger);
+    loss.union(&docs_rendering_corpus.loss);
     let lang_docs_rendering_corpus = docs_rendering_corpus.ntriples;
 
     // Standpoint projections — the seven fixed `standpoint-*.rq` queries (byte-identical
@@ -324,6 +339,7 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, gmeow_errors::D
     Ok(CompiledMappings {
         artifacts,
         ledger,
+        loss,
         lang_translation_corpus,
         lang_form_corpus,
         lang_projection_corpus,
@@ -511,10 +527,17 @@ fn build_union_report(
     header: ReportHeader,
     channel: &LogicProjectionsChannel,
     correspondence_ledger: &[ProjectionResult],
+    correspondence_loss: &LossLedger,
 ) -> Result<Vec<u8>, gmeow_errors::Diag> {
     let mut rows: Vec<ProjectionResult> = channel.projections.clone();
     rows.extend(correspondence_ledger.iter().cloned());
-    let report = build_projection_report_from(header, &rows).map_err(|e| {
+    // Reconstruct the compile-logic loss store from the nodes carried across the JSON channel,
+    // then union the correspondence + lang loss store in. Every row above (logic projections +
+    // correspondence/lang rows) reads its residue back from this ONE store, byte-identically to
+    // the pre-split single-ledger serialization.
+    let mut loss = LossLedger::from_nodes(channel.loss_nodes.clone());
+    loss.union(correspondence_loss);
+    let report = build_projection_report_from(header, &rows, &loss).map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
             stage: "stage-mappings".to_string(),
             message: format!("projection-report assembly: {e}"),
@@ -858,7 +881,7 @@ impl Stage for MappingsStage {
         // . Then canonicalize the report TTL so `projection-report.ttl` is carried as
         // the fold of its named graph (superset gate), not an opaque byte lane.
         let header = fold_up_projection_audit(input.root, &artifacts, channel.header)?;
-        let report = build_union_report(header, &channel, &compiled.ledger)?;
+        let report = build_union_report(header, &channel, &compiled.ledger, &compiled.loss)?;
         artifacts.insert(
             PROJECTION_REPORT_PATH.to_string(),
             canon_fanout_ttl_bytes(&report)?,

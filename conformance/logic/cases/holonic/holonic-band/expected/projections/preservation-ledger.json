@@ -52,7 +52,6 @@
       "actual: logic:properPartOf on <https://example.org/holonic/holonic-band/ChipA> has no gUFO bridge equivalent",
       "actual: logic:properPartOf on <https://example.org/holonic/holonic-band/ChipB> has no gUFO bridge equivalent",
       "actual: logic:properPartOf on <https://example.org/holonic/holonic-band/Sensor> has no gUFO bridge equivalent",
-      "actual: logic:properPartOf on <https://example.org/holonic/holonic-band/Sensor> has no gUFO bridge equivalent",
       "actual: logic:properPartOf on <https://example.org/holonic/holonic-band/Wing> has no gUFO bridge equivalent",
       "actual: logic:underMereologyProfile on <https://example.org/holonic/holonic-band/Sensor> has no gUFO bridge equivalent",
       "actual: rdf:type logic:Holarchy on <https://example.org/holonic/holonic-band/H> has no gUFO equivalent",

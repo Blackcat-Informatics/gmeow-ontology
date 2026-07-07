@@ -241,6 +241,76 @@ impl PreservationKind {
     }
 }
 
+impl PreservationKind {
+    /// Every preservation kind, ordered BOTTOM (most-preserving) to TOP
+    /// (least-preserving) — drives the exhaustive lattice-law test and any
+    /// worst-preservation fold over the loss ledger.
+    pub const ALL: [PreservationKind; 7] = [
+        PreservationKind::Exact,
+        PreservationKind::SoundUnder,
+        PreservationKind::CompleteOver,
+        PreservationKind::InconsistencyPreserving,
+        PreservationKind::InconsistencyReflecting,
+        PreservationKind::ValidationOnly,
+        PreservationKind::Unsupported,
+    ];
+
+    /// Position on the preservation-strength chain: `0` = most-preserving
+    /// ([`Exact`](Self::Exact), the BOTTOM), `6` = least-preserving
+    /// ([`Unsupported`](Self::Unsupported), the legalization floor / TOP). The chain
+    /// is deliberate: `Exact` (0) is lossless; `SoundUnder` (1) and `CompleteOver`
+    /// (2) are one-sided entailment approximations (sound-but-incomplete then
+    /// complete-but-unsound), still carrying entailment; `InconsistencyPreserving`
+    /// (3) and `InconsistencyReflecting` (4) carry only the (in)consistency verdict
+    /// (reflecting is weaker than preserving); `ValidationOnly` (5) carries no
+    /// entailment at all; `Unsupported` (6) carries nothing but the residue flag.
+    ///
+    /// The order among the middle five is a documented design choice; the
+    /// load-bearing property is the endpoints and the monotone rank, so the
+    /// [`join`](gmeow_errors::BoundedLattice::join) of two witnesses returns the
+    /// LESS-preserving (higher-rank) one — worst-preservation-wins.
+    fn preservation_rank(self) -> u8 {
+        match self {
+            Self::Exact => 0,
+            Self::SoundUnder => 1,
+            Self::CompleteOver => 2,
+            Self::InconsistencyPreserving => 3,
+            Self::InconsistencyReflecting => 4,
+            Self::ValidationOnly => 5,
+            Self::Unsupported => 6,
+        }
+    }
+}
+
+impl gmeow_errors::BoundedLattice for PreservationKind {
+    /// The most-preserving reading: [`Exact`](Self::Exact).
+    const BOTTOM: Self = PreservationKind::Exact;
+    /// The least-preserving reading (the legalization floor):
+    /// [`Unsupported`](Self::Unsupported).
+    const TOP: Self = PreservationKind::Unsupported;
+
+    /// **Worst-preservation-wins**: the join of two loss witnesses at one ledger
+    /// anchor is the LESS-preserving (higher-rank) reading, so the surviving
+    /// preservation is the worse of the two — a projection is never reported as
+    /// better-preserving than its worst disclosed loss.
+    fn join(self, other: Self) -> Self {
+        if self.preservation_rank() >= other.preservation_rank() {
+            self
+        } else {
+            other
+        }
+    }
+
+    /// The dual: the more-preserving (lower-rank) reading.
+    fn meet(self, other: Self) -> Self {
+        if self.preservation_rank() <= other.preservation_rank() {
+            self
+        } else {
+            other
+        }
+    }
+}
+
 impl fmt::Display for PreservationKind {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str(self.as_str())

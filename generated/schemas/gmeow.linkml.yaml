@@ -8102,6 +8102,11 @@ slots:
     range: GovernanceModel
     domain: Project
     multivalued: true
+  gradeOrdinal:
+    slot_uri: https://blackcatinformatics.ca/gmeow/gradeOrdinal
+    title: grade ordinal
+    range: integer
+    multivalued: true
   graphBoxRole:
     slot_uri: https://blackcatinformatics.ca/gmeow/graphBoxRole
     title: graph box role
@@ -8134,6 +8139,11 @@ slots:
     title: grounds claim
     range: ClaimToken
     domain: MentalMoment
+    multivalued: true
+  groundsContextAxis:
+    slot_uri: https://blackcatinformatics.ca/gmeow/groundsContextAxis
+    title: grounds context axis
+    range: uriorcurie
     multivalued: true
   groupAccentWeight:
     slot_uri: https://blackcatinformatics.ca/gmeow/groupAccentWeight
@@ -11981,6 +11991,11 @@ slots:
     title: propagation mutation distance
     range: integer
     domain: Event
+    multivalued: true
+  proseSurface:
+    slot_uri: https://blackcatinformatics.ca/gmeow/proseSurface
+    title: prose surface
+    range: uriorcurie
     multivalued: true
   provenance:
     slot_uri: https://blackcatinformatics.ca/gmeow/provenance
