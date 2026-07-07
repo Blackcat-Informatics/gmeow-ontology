@@ -290,3 +290,194 @@ ASK {
     gmeow:periodContainsPeriod owl:inverseOf gmeow:periodPartOf .
 }""" ;
     gmeow:saRationale "gmeow:periodContainsPeriod MUST be the owl:inverseOf gmeow:periodPartOf — the whole-rooted view of period nesting. Mirrors test_period_contains_period_is_inverse." .
+
+# ===========================================================================
+# Temporal frame profile (migrated from tests/test_temporal_frame.py)
+# ===========================================================================
+
+# --- 20. TemporalFrame ⊑ logic:Object AND ⊑ ReferenceFrame (MUST) ------------
+ex:saTemporalFrameSubclassesReferenceFrame a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:TemporalFrame rdfs:subClassOf gmeow:ReferenceFrame .
+    gmeow:TemporalFrame rdfs:subClassOf logic:Object .
+}""" ;
+    gmeow:saRationale "gmeow:TemporalFrame MUST be a subclass of both gmeow:ReferenceFrame (the frame supertype, so generic frame consumers read it) and logic:Object (the migrated endurant stereotype) — a temporal frame is a first-class reference system, the time counterpart of the spatial reference frame." .
+
+# --- 21. temporalFrameUTCGregorian is fully componented (MUST) ----------------
+ex:saTemporalFrameUTCGregorianComponents a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:temporalFrameUTCGregorian a gmeow:TemporalFrame ;
+        gmeow:frameTimeScale gmeow:timeScaleUTC ;
+        gmeow:frameCalendarSystem gmeow:calendarGregorian ;
+        gmeow:frameRealm gmeow:frameRealmTemporal ;
+        gmeow:frameKind gmeow:frameKindTemporal .
+}""" ;
+    gmeow:saRationale "The seed civil frame gmeow:temporalFrameUTCGregorian MUST be a gmeow:TemporalFrame decomposed into its UTC time scale and Gregorian calendar, and tagged with the temporal realm and kind — the canonical worked frame every crisp civil timestamp resolves against." .
+
+# --- 22. frameTimeScale is functional (MUST) ---------------------------------
+ex:saFrameTimeScaleIsFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:frameTimeScale a owl:FunctionalProperty . }""" ;
+    gmeow:saRationale "gmeow:frameTimeScale MUST be an owl:FunctionalProperty — a temporal frame has exactly one underlying time scale (the mandatory 'which clock' component)." .
+
+# --- 23. hasTemporalFrame is a subproperty of hasReferenceFrame (MUST) -------
+ex:saHasTemporalFrameSubpropertyOfReferenceFrame a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:hasTemporalFrame a owl:ObjectProperty ;
+        rdfs:subPropertyOf gmeow:hasReferenceFrame ;
+        rdfs:domain gmeow:TimeInterval ;
+        rdfs:range gmeow:TemporalFrame .
+}""" ;
+    gmeow:saRationale "gmeow:hasTemporalFrame MUST be an owl:ObjectProperty from gmeow:TimeInterval to gmeow:TemporalFrame that specializes gmeow:hasReferenceFrame — the interval's frame edge, read uniformly by generic frame consumers across the spatial and temporal profiles." .
+
+# --- 24. inTemporalFrame is a subproperty of hasReferenceFrame (MUST) --------
+ex:saInTemporalFrameSubpropertyOfReferenceFrame a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:inTemporalFrame a owl:ObjectProperty ;
+        rdfs:subPropertyOf gmeow:hasReferenceFrame ;
+        rdfs:domain gmeow:Instant ;
+        rdfs:range gmeow:TemporalFrame .
+}""" ;
+    gmeow:saRationale "gmeow:inTemporalFrame MUST be an owl:ObjectProperty from gmeow:Instant to gmeow:TemporalFrame that specializes gmeow:hasReferenceFrame — the point's frame edge, the parallel of gmeow:hasTemporalFrame for intervals." .
+
+# ===========================================================================
+# Temporal measurement + dating methods (migrated from
+# tests/test_temporal_measurement.py)
+# ===========================================================================
+
+# --- 25. TemporalMeasurement and DatingMethod both exist (MUST) --------------
+ex:saTemporalMeasurementAndDatingMethodExist a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    gmeow:TemporalMeasurement a owl:Class .
+    gmeow:DatingMethod a owl:Class .
+}""" ;
+    gmeow:saRationale "Both gmeow:TemporalMeasurement (the reified dating claim) and gmeow:DatingMethod (its method value vocabulary) MUST exist as owl:Class — the spine of the temporal-dating domain." .
+
+# --- 26. Seed dating methods exist (MUST) ------------------------------------
+ex:saSeedDatingMethodsExist a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:datingMethodRadiocarbon a gmeow:DatingMethod .
+    gmeow:datingMethodDendrochronology a gmeow:DatingMethod .
+    gmeow:datingMethodThermoluminescence a gmeow:DatingMethod .
+    gmeow:datingMethodPotassiumArgon a gmeow:DatingMethod .
+    gmeow:datingMethodUraniumLead a gmeow:DatingMethod .
+}""" ;
+    gmeow:saRationale "The five seed dating-method individuals (radiocarbon, dendrochronology, thermoluminescence, potassium-argon, uranium-lead) MUST exist as gmeow:DatingMethod individuals — the bootstrap value vocabulary for how a temporal measurement was derived, minted as individuals never subclasses." .
+
+# --- 27. measurementMethod is functional (MUST) ------------------------------
+ex:saMeasurementMethodIsFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:measurementMethod a owl:FunctionalProperty . }""" ;
+    gmeow:saRationale "gmeow:measurementMethod MUST be an owl:FunctionalProperty — a single temporal measurement was derived by exactly one dating method." .
+
+# --- 28. measuredAge ranges over xsd:decimal (MUST) --------------------------
+ex:saMeasuredAgeRangeIsDecimal a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+ASK { gmeow:measuredAge rdfs:range xsd:decimal . }""" ;
+    gmeow:saRationale "gmeow:measuredAge MUST range over xsd:decimal — a measured elapsed-time figure is an exact decimal quantity paired with a unit, not a floating-point approximation." .
+
+# --- 29. measurementDeterminacy ranges over Determinacy (MUST) ---------------
+ex:saMeasurementDeterminacyRangeIsDeterminacy a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:measurementDeterminacy rdfs:range gmeow:Determinacy . }""" ;
+    gmeow:saRationale "gmeow:measurementDeterminacy MUST range over gmeow:Determinacy — the ontic determinacy model of a dating result (crisp, vague, fuzzy, probabilistic, disputed) is drawn from the shared Determinacy value vocabulary." .
+
+# --- 30. DatingMethod ⊑ ObservationMethod (MUST) -----------------------------
+ex:saDatingMethodSubclassesObservationMethod a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:DatingMethod rdfs:subClassOf gmeow:ObservationMethod . }""" ;
+    gmeow:saRationale "gmeow:DatingMethod MUST be a subclass of gmeow:ObservationMethod — a dating technique specializes the domain-neutral observation-method vocabulary for the temporal-dating domain." .
+
+# --- 31. measuredDate is NOT a subproperty of observationResult (MUST-NOT) ----
+ex:saMeasuredDateNotBridgedToObservationResult a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:measuredDate rdfs:subPropertyOf gmeow:observationResult . }""" ;
+    gmeow:saRationale "gmeow:measuredDate MUST NOT be asserted rdfs:subPropertyOf gmeow:observationResult: it plays the observationResult role only semantically, but gmeow:Instant (an abstract individual) is not a gmeow:Entity (an endurant), the range of observationResult, so the bridge would be ill-typed — the alignment lives in the projection mapping only." .
+
+# --- 32. measurementMethod bridges to observationMethod (MUST) ---------------
+ex:saMeasurementMethodBridgesToObservationMethod a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:measurementMethod rdfs:subPropertyOf gmeow:observationMethod . }""" ;
+    gmeow:saRationale "gmeow:measurementMethod MUST be rdfs:subPropertyOf gmeow:observationMethod — the bridge that lets domain-neutral consumers query every observation by its method without knowing it is a dating method." .
+
+# --- 33. measurementDeterminacy bridges to hasDeterminacy (MUST) -------------
+ex:saMeasurementDeterminacyBridgesToHasDeterminacy a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:measurementDeterminacy rdfs:subPropertyOf gmeow:hasDeterminacy . }""" ;
+    gmeow:saRationale "gmeow:measurementDeterminacy MUST be rdfs:subPropertyOf gmeow:hasDeterminacy — the bridge exposing a dating result's determinacy to generic determinacy queries across all domains." .
+
+# --- 34. periodStart property chain from a measurement (MUST) ----------------
+ex:saPeriodStartPropertyChainFromMeasurement a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:periodStart owl:propertyChainAxiom ( gmeow:hasTemporalMeasurement gmeow:measuredDate ) . }""" ;
+    gmeow:saRationale "gmeow:periodStart MUST carry the ordered owl:propertyChainAxiom (gmeow:hasTemporalMeasurement ∘ gmeow:measuredDate) — a named period's start instant is derivable from a temporal measurement's measured date, so a period bounded only by a dated measurement still has a computable start." .
+
+# --- 35. Seed measurements carry vantage, observed feature, method (MUST) ----
+ex:saSeedMeasurementsCarryVantageAndObservedFeature a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:measurementPhanerozoicStart a gmeow:TemporalMeasurement ;
+        gmeow:vantage [] ; gmeow:observedFeature [] ; gmeow:observationMethod [] .
+    gmeow:measurementCenozoicStart a gmeow:TemporalMeasurement ;
+        gmeow:vantage [] ; gmeow:observedFeature [] ; gmeow:observationMethod [] .
+    gmeow:measurementQuaternaryStart a gmeow:TemporalMeasurement ;
+        gmeow:vantage [] ; gmeow:observedFeature [] ; gmeow:observationMethod [] .
+    gmeow:measurementHoloceneStart a gmeow:TemporalMeasurement ;
+        gmeow:vantage [] ; gmeow:observedFeature [] ; gmeow:observationMethod [] .
+}""" ;
+    gmeow:saRationale "Each of the four seed geologic-boundary measurements MUST be a gmeow:TemporalMeasurement carrying a gmeow:vantage (the dating agent), a gmeow:observedFeature (the dated period), and a gmeow:observationMethod — the standpoint-indexed-claim shape (P9), never a bare ground-truth value." .
