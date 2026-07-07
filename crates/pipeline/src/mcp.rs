@@ -971,117 +971,60 @@ impl McpServer {
         let math_conjecture = optional_str(args, "math_conjecture");
         let dry_run = optional_bool_checked(args, "dry_run")?.unwrap_or(false);
 
-        // (1) Parse the candidate document and extract exactly one candidate formula.
-        let candidate = parse_candidate_formula(formula_src)?;
-
-        // (2) Parse the KB and re-home every triple into the isolated scenario world, so the
-        //     world-scoped DL calculus joins the KB with the asserted / evaluated candidate.
-        let kb = rehome_kb_into_scenario(kb_src)?;
-
-        // (3) Run the engine. The KB is borrowed and never mutated (isolation is inherent).
-        let kb_world = format!(
-            "{CONJECTURE_SCENARIO_WORLD}#kb-{}",
-            sha256_hex(kb_src.as_bytes())
-        );
-        let answer = conjecture_test(
-            kb.as_ref(),
-            CONJECTURE_SCENARIO_WORLD,
-            &candidate,
+        // The parse → test → project → TR-gate → persist path is the SHARED core; the tool is a
+        // thin wrapper rendering its outcome as the JSON response.
+        let out = run_conjecture_test(&ConjectureRunInput {
+            formula_ttl: formula_src,
+            kb_ttl: kb_src,
             standpoint,
-            &[],
-            &Budget::default(),
-        )
-        .map_err(|e| {
-            gmeow_errors::Diag::of_kind(crate::error::Mcp {
-                message: format!("conjecture_test failed: {e}"),
-            })
+            math_conjecture,
+            dry_run,
         })?;
 
-        // (4) Project the verdict → deterministic N-Triples, and mint the content-addressed
-        //     (formula × standpoint × KB-world) conjecture node IRI.
-        let content_key = candidate.content_key();
-        let input = ConjectureVerdictInput {
-            content_key: &content_key,
-            standpoint,
-            kb_world: &kb_world,
-            answer: &answer,
-            math_conjecture,
-        };
-        let body = project_conjecture_verdict(&input);
-        let node_iri = conjecture_node_iri(&input);
-
         // The five-field verdict summary + witness, rendered for every response path.
-        let verdict = &answer.verdict;
-        let witness_json = answer.witness.as_ref().map(|w| {
+        let witness_json = out.witness.as_ref().map(|w| {
             json!({
                 "individual": w.individual,
                 "world": w.world,
-                "premises": w.premises
-                    .iter()
-                    .map(|(s, p, o)| format!("{s} {p} {o}"))
-                    .collect::<Vec<_>>(),
+                "premises": w.premises,
             })
         });
         let verdict_json = json!({
-            "information": verdict.information.wire(),
-            "evaluation": verdict.evaluation.wire(),
-            "completeness": verdict.completeness.wire(),
-            "lifecycle": answer.lifecycle.wire(),
-            "discharge": answer.discharge.local_name(),
+            "information": out.information,
+            "evaluation": out.evaluation,
+            "completeness": out.completeness,
+            "lifecycle": out.lifecycle,
+            "discharge": out.discharge,
         });
 
-        // (5) TR-gate the write on the persistConjecture schema. The precondition — a verdict
-        //     has been presented — obtains once the engine returns a verdict (step 3).
-        let obtains = [MCP_CONJECTURE_VERDICT_PRESENTED];
-        let receipt = execute_memory_txn(MCP_PERSIST_CONJECTURE_SCHEMA, &obtains, dry_run)?;
-        match &receipt {
-            TxReceipt::CommittedFailure { reason } | TxReceipt::HypotheticalFailure { reason } => {
-                return Ok(json!({
-                    "ok": false,
-                    "error": format!("persistConjecture precondition unmet: {reason}"),
-                    "verdict": verdict_json,
-                    "witness": witness_json,
-                    "transaction": txn_json(&receipt),
-                })
-                .to_string());
-            }
-            // Sandbox run: the verdict is observed, nothing is appended to the library.
-            TxReceipt::HypotheticalSuccess { .. } => {
-                return Ok(json!({
-                    "ok": true,
-                    "dry_run": true,
-                    "verdict": verdict_json,
-                    "witness": witness_json,
-                    "conjecture": node_iri,
-                    "transaction": txn_json(&receipt),
-                })
-                .to_string());
-            }
-            TxReceipt::CommittedSuccess { .. } => {}
+        if let Some(reason) = &out.precondition_unmet {
+            return Ok(json!({
+                "ok": false,
+                "error": format!("persistConjecture precondition unmet: {reason}"),
+                "verdict": verdict_json,
+                "witness": witness_json,
+                "transaction": txn_json(&out.receipt),
+            })
+            .to_string());
         }
-
-        // (6) Committed: APPEND the verdict segment to the append-only library, then record a
-        //     cold-auditable trajectory segment keyed to a content-addressed call id.
-        let path = conjecture_path()?;
-        write_conjecture_segment(&path, &body)?;
-        let call_id = format!(
-            "urn:gmeow:conjecture-call:{}",
-            sha256_hex(format!("{node_iri}\u{1}{content_key}").as_bytes())
-        );
-        write_audit_segment(
-            &path,
-            &call_id,
-            MCP_PERSIST_CONJECTURE_SCHEMA,
-            &obtains,
-            "1970-01-01T00:00:00Z",
-        )?;
+        if out.dry_run {
+            return Ok(json!({
+                "ok": true,
+                "dry_run": true,
+                "verdict": verdict_json,
+                "witness": witness_json,
+                "conjecture": out.node_iri,
+                "transaction": txn_json(&out.receipt),
+            })
+            .to_string());
+        }
 
         Ok(json!({
             "ok": true,
             "verdict": verdict_json,
             "witness": witness_json,
-            "conjecture": node_iri,
-            "transaction": txn_json(&receipt),
+            "conjecture": out.node_iri,
+            "transaction": txn_json(&out.receipt),
         })
         .to_string())
     }
@@ -1181,6 +1124,205 @@ impl McpView {
         // The carrier IS the dataset — no gts round-trip (GTS is exit-only).
         Ok(Arc::clone(&self.dataset))
     }
+}
+
+// --------------------------------------------------------------------------- //
+// The shared conjecture-test core (one implementation, two surfaces).
+//
+// Both the private MCP tool `tool_conjecture_test` and the public
+// `gmeow conjecture test` CLI subcommand call [`run_conjecture_test`]: the
+// SINGLE parse → test → project → TR-gate → persist path. Neither surface
+// re-implements it; the MCP wrapper renders the returned summary as JSON, the
+// CLI renders it as human-readable text.
+// --------------------------------------------------------------------------- //
+
+/// The inputs to one conjecture test: the candidate `logic:` Turtle document, the KB Turtle
+/// it is tested against, the REQUIRED reified standpoint scope (Principle 9), an optional
+/// `math:Conjecture` twin, and whether the run is a sandbox (`dry_run`, writes nothing).
+pub struct ConjectureRunInput<'a> {
+    /// The candidate document: a Turtle `logic:` doc naming exactly one candidate formula.
+    pub formula_ttl: &'a str,
+    /// The KB the candidate is tested against, as Turtle.
+    pub kb_ttl: &'a str,
+    /// The required reified standpoint scope IRI (Principle 9).
+    pub standpoint: &'a str,
+    /// Optionally, the `math:Conjecture` twin IRI so a refutation's counterexample is
+    /// re-exposed via `math:hasCounterexample`.
+    pub math_conjecture: Option<&'a str>,
+    /// When true, compute and return the verdict but WRITE NOTHING to the library.
+    pub dry_run: bool,
+}
+
+/// A refutation's contradiction witness, flattened for both response surfaces.
+pub struct ConjectureRunWitness {
+    /// The individual forced into a clash.
+    pub individual: String,
+    /// The world the contradiction is local to.
+    pub world: String,
+    /// The premise triples that witness the clash, each rendered `"s p o"`.
+    pub premises: Vec<String>,
+}
+
+/// The outcome of a [`run_conjecture_test`] call: the projected verdict facets, the refutation
+/// witness (when refuted), the content-addressed node IRI, the projected N-Triples body, and
+/// the TR receipt gating the persist. `committed` is true exactly when the segment was appended.
+pub struct ConjectureRunOutput {
+    /// True exactly when the verdict segment + audit were appended to the library (a committed,
+    /// precondition-met, non-dry run).
+    pub committed: bool,
+    /// True when the run was a sandbox (`dry_run`): the verdict is computed, nothing is written.
+    pub dry_run: bool,
+    /// `Some(reason)` when the TR precondition was UNMET (the persist was refused, nothing
+    /// written); `None` otherwise.
+    pub precondition_unmet: Option<String>,
+    /// The epistemic lifecycle wire value (`open` | `corroborated` | `refuted-in-standpoint`).
+    pub lifecycle: String,
+    /// The Belnap information-state wire value.
+    pub information: String,
+    /// The evaluation-axis wire value.
+    pub evaluation: String,
+    /// The completeness-axis wire value.
+    pub completeness: String,
+    /// The discharge carrier local name (`ObligationDischarged` | `ObligationUnknown`).
+    pub discharge: String,
+    /// The refutation witness, present exactly when refuted.
+    pub witness: Option<ConjectureRunWitness>,
+    /// The content-addressed `(formula × standpoint × KB-world)` conjecture node IRI.
+    pub node_iri: String,
+    /// The deterministic N-Triples body [`project_conjecture_verdict`] emitted.
+    pub verdict_nt: String,
+    /// The TR receipt gating the persist (rendered as the transaction summary by callers).
+    pub receipt: TxReceipt,
+}
+
+/// Run one conjecture test end-to-end: parse the candidate document and KB, re-home the KB
+/// into the isolated scenario world, run the native engine, project the verdict to
+/// deterministic N-Triples, TR-gate the write on the `persistConjecture` schema, and — on a
+/// committed, precondition-met run — APPEND the verdict segment plus a cold-auditable
+/// trajectory segment to the append-only conjecture library.
+///
+/// This is the single shared core behind both the MCP `conjecture_test` tool and the
+/// `gmeow conjecture test` CLI subcommand. It never mutates the caller's KB (isolation is
+/// inherent) and, on a `dry_run` or a precondition-unmet run, writes nothing.
+///
+/// # Errors
+///
+/// Returns an error if the candidate document does not name exactly one candidate formula, if
+/// the KB does not parse, if the native engine fails (see [`conjecture_test`]), or if the TR
+/// transaction or the library append fails.
+pub fn run_conjecture_test(
+    input: &ConjectureRunInput,
+) -> gmeow_errors::Result<ConjectureRunOutput> {
+    let ConjectureRunInput {
+        formula_ttl,
+        kb_ttl,
+        standpoint,
+        math_conjecture,
+        dry_run,
+    } = *input;
+
+    // (1) Parse the candidate document and extract exactly one candidate formula.
+    let candidate = parse_candidate_formula(formula_ttl)?;
+
+    // (2) Parse the KB and re-home every triple into the isolated scenario world, so the
+    //     world-scoped DL calculus joins the KB with the asserted / evaluated candidate.
+    let kb = rehome_kb_into_scenario(kb_ttl)?;
+
+    // (3) Run the engine. The KB is borrowed and never mutated (isolation is inherent).
+    let kb_world = format!(
+        "{CONJECTURE_SCENARIO_WORLD}#kb-{}",
+        sha256_hex(kb_ttl.as_bytes())
+    );
+    let answer = conjecture_test(
+        kb.as_ref(),
+        CONJECTURE_SCENARIO_WORLD,
+        &candidate,
+        standpoint,
+        &[],
+        &Budget::default(),
+    )
+    .map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Mcp {
+            message: format!("conjecture_test failed: {e}"),
+        })
+    })?;
+
+    // (4) Project the verdict → deterministic N-Triples, and mint the content-addressed
+    //     (formula × standpoint × KB-world) conjecture node IRI.
+    let content_key = candidate.content_key();
+    let verdict_input = ConjectureVerdictInput {
+        content_key: &content_key,
+        standpoint,
+        kb_world: &kb_world,
+        answer: &answer,
+        math_conjecture,
+    };
+    let verdict_nt = project_conjecture_verdict(&verdict_input);
+    let node_iri = conjecture_node_iri(&verdict_input);
+
+    let verdict = &answer.verdict;
+    let witness = answer.witness.as_ref().map(|w| ConjectureRunWitness {
+        individual: w.individual.clone(),
+        world: w.world.clone(),
+        premises: w
+            .premises
+            .iter()
+            .map(|(s, p, o)| format!("{s} {p} {o}"))
+            .collect(),
+    });
+    let lifecycle = answer.lifecycle.wire().to_string();
+    let information = verdict.information.wire().to_string();
+    let evaluation = verdict.evaluation.wire().to_string();
+    let completeness = verdict.completeness.wire().to_string();
+    let discharge = answer.discharge.local_name().to_string();
+
+    // (5) TR-gate the write on the persistConjecture schema. The precondition — a verdict has
+    //     been presented — obtains once the engine returns a verdict (step 3).
+    let obtains = [MCP_CONJECTURE_VERDICT_PRESENTED];
+    let receipt = execute_memory_txn(MCP_PERSIST_CONJECTURE_SCHEMA, &obtains, dry_run)?;
+
+    let mut out = ConjectureRunOutput {
+        committed: false,
+        dry_run,
+        precondition_unmet: None,
+        lifecycle,
+        information,
+        evaluation,
+        completeness,
+        discharge,
+        witness,
+        node_iri,
+        verdict_nt,
+        receipt,
+    };
+
+    match &out.receipt {
+        TxReceipt::CommittedFailure { reason } | TxReceipt::HypotheticalFailure { reason } => {
+            out.precondition_unmet = Some(reason.clone());
+            return Ok(out);
+        }
+        // Sandbox run: the verdict is observed, nothing is appended to the library.
+        TxReceipt::HypotheticalSuccess { .. } => return Ok(out),
+        TxReceipt::CommittedSuccess { .. } => {}
+    }
+
+    // (6) Committed: APPEND the verdict segment to the append-only library, then record a
+    //     cold-auditable trajectory segment keyed to a content-addressed call id.
+    let path = conjecture_path()?;
+    write_conjecture_segment(&path, &out.verdict_nt)?;
+    let call_id = format!(
+        "urn:gmeow:conjecture-call:{}",
+        sha256_hex(format!("{}\u{1}{content_key}", out.node_iri).as_bytes())
+    );
+    write_audit_segment(
+        &path,
+        &call_id,
+        MCP_PERSIST_CONJECTURE_SCHEMA,
+        &obtains,
+        "1970-01-01T00:00:00Z",
+    )?;
+    out.committed = true;
+    Ok(out)
 }
 
 #[cfg(feature = "python")]
