@@ -1348,6 +1348,7 @@ fn build_fanout_opaque_blob(
         ("stage-reason", crate::stages::reason::EXPLANATIONS_PATH),
         ("stage-reason", crate::stages::reason::LEDGER_PATH),
         ("stage-reason", crate::stages::reason::PERF_LEDGER_PATH),
+        ("stage-reason", crate::stages::reason::CORRESPONDENCE_PATH),
     ] {
         let bytes = upstream
             .get(stage)
@@ -1574,6 +1575,10 @@ fn build_reasoning_blob(
         (
             "reason/perf-ledger.ttl".to_string(),
             get(crate::stages::reason::PERF_LEDGER_PATH)?,
+        ),
+        (
+            "reason/subsumption-correspondence.ttl".to_string(),
+            get(crate::stages::reason::CORRESPONDENCE_PATH)?,
         ),
     ];
     archive_blob(REP_REASONING, &members)
@@ -4016,6 +4021,10 @@ mod ustar_tests {
             crate::stages::reason::PERF_LEDGER_PATH.to_string(),
             b"# perf ledger".to_vec(),
         );
+        artifacts.insert(
+            crate::stages::reason::CORRESPONDENCE_PATH.to_string(),
+            b"# subsumption correspondence".to_vec(),
+        );
         let mut upstream: BTreeMap<String, StageProduct> = BTreeMap::new();
         upstream.insert(
             "stage-reason".to_string(),
@@ -4032,7 +4041,8 @@ mod ustar_tests {
             [
                 "reason/dl-el-crosscheck-report.ttl",
                 "reason/perf-ledger.ttl",
-                "reason/reasoning-explanations.rdf12.ttl"
+                "reason/reasoning-explanations.rdf12.ttl",
+                "reason/subsumption-correspondence.ttl"
             ]
             .into_iter()
             .collect::<std::collections::BTreeSet<&str>>(),

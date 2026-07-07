@@ -235,6 +235,17 @@ pub(crate) struct DerivedRow {
     pub(crate) source_quad_ids: Vec<String>,
     /// The content-addressed derivation IRI.
     pub(crate) derivation_id: String,
+    /// The matched positive body facts of the winning firing, in body order —
+    /// the pre-reifier `(subject, predicate, object)` antecedents whose reifiers
+    /// are exactly [`source_quad_ids`](Self::source_quad_ids).
+    ///
+    /// Carried so the [`crate::oracle::ForwardOracle`] seam can re-expose each
+    /// antecedent as a decoded [`crate::oracle::TypedRow`] (the production
+    /// provenance the reason/explain/materialize consumers require — they cannot
+    /// invert a reifier hash back to its triple).  Empty for an echoed EDB row
+    /// (an asserted fact has no antecedents) and on the facts-only (Skip) lane
+    /// (which records no provenance at all).
+    pub(crate) antecedents: Vec<Fact>,
 }
 
 /// Sort rows canonically by `(graph, subject, predicate, object)` N3 surfaces —
@@ -273,7 +284,13 @@ pub(crate) struct ReductResult {
 /// A variable renders as `?Name`; a ground IRI as `<iri>`; a literal as its N3.
 /// The `is_subject` flag enforces no-optionality: a literal in subject/predicate
 /// position is a hard error (the gmeow fragment never emits one).
-fn lower_nemo_term(
+///
+/// `pub(crate)` so the arity-generic n-ary lowering
+/// ([`crate::physical::generic::parse_generic_rules`]) reuses the SAME term codec
+/// — it lowers EVERY argument (including the predicate-as-data position) with
+/// `slot = "object"`, which is permissive by design: a generic n-ary relation may
+/// carry a literal in any position.
+pub(crate) fn lower_nemo_term(
     term: &nemo::rule_model::components::term::Term,
     slot: &str,
 ) -> Result<EvalTerm, String> {
@@ -349,9 +366,23 @@ pub(crate) fn lower_nemo_atom(
 /// subject slot).
 pub(crate) fn parse_eval_rules(rules: &str) -> Result<Vec<EvalRule>, String> {
     use crate::nemo_engine::NemoParsedRules;
-    use nemo::rule_model::programs::ProgramRead;
 
     let program = NemoParsedRules::parse_unvalidated(rules)?.into_program();
+    lower_program_eval_rules(&program)
+}
+
+/// Lower an already-parsed Nemo [`Program`] into the evaluable IR.
+///
+/// The arity-generic dispatch in [`crate::oracle::NativeForwardOracle::materialize`]
+/// parses the rule text ONCE and threads the resulting `Program` into both its
+/// eligibility inspection and this lowering, so the binary path never re-parses the
+/// same text; [`parse_eval_rules`] is the string-front convenience over this.
+///
+/// [`Program`]: nemo::rule_model::programs::program::Program
+pub(crate) fn lower_program_eval_rules(
+    program: &nemo::rule_model::programs::program::Program,
+) -> Result<Vec<EvalRule>, String> {
+    use nemo::rule_model::programs::ProgramRead;
 
     let mut out: Vec<EvalRule> = Vec::new();
     for rule in program.rules() {
@@ -661,6 +692,11 @@ pub(crate) struct Provenance {
     pub(crate) max_src_depth: u32,
     /// Sum of derivation depths across matched source facts.
     pub(crate) sum_src_depth: u64,
+    /// The matched positive body facts, in body order — the same facts whose
+    /// reifiers are [`sources`](Self::sources).  Carried into
+    /// [`DerivedRow::antecedents`] so the oracle seam can re-expose the decoded
+    /// antecedent triples (a reifier hash cannot be inverted).
+    pub(crate) source_facts: Vec<Fact>,
 }
 
 #[derive(Clone)]
@@ -782,6 +818,7 @@ pub(crate) fn least_model_of_reduct(
                         rule_iri: rule.rule_iri.clone(),
                         max_src_depth: max_sd,
                         sum_src_depth: sum_sd,
+                        source_facts: sol.source_facts.clone(),
                     }),
                 };
                 round
@@ -825,6 +862,7 @@ pub(crate) fn least_model_of_reduct(
                     rule_iri: prov.rule_iri,
                     source_quad_ids: prov.sources, // body-order, NEVER sorted copy
                     derivation_id: prov.deriv,
+                    antecedents: prov.source_facts,
                 });
             }
         }
@@ -906,6 +944,8 @@ pub(crate) fn echo_asserted(world: &str, edb: &[Fact]) -> Result<Vec<DerivedRow>
             rule_iri: ASSERT_RULE_IRI.to_owned(),
             source_quad_ids: vec![reifier],
             derivation_id: deriv,
+            // An asserted EDB fact has no antecedents (it is echoed, not derived).
+            antecedents: Vec::new(),
         });
     }
     Ok(out)
