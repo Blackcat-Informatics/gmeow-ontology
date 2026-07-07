@@ -3,7 +3,7 @@
 # the gmeow:SupersededFacetSuppressionShape, which is sh:Warning severity
 # (Principle 10: a source may lag the flag). The facet is otherwise well-formed:
 # exactly one gmeow:genderValue, a single axis type — so NO Violation fires.
-# `run_shacl` must report a WARNING but still pass (result.ok is True).
+# `SHACL validation` must report a WARNING but still pass (result.ok is True).
 
 @prefix ex:    <https://example.org/shapes/> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .

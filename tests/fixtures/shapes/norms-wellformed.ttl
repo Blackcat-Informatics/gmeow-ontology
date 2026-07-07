@@ -4,7 +4,7 @@
 # norm whose trigger is a composed condition with a Rego formalization and a
 # parameter binding, a vantage-indexed evaluation and compliance assessment,
 # and a grafted Permission whose stated modality matches its subkind.
-# run_shacl over this graph MUST conform.
+# SHACL validation over this graph MUST conform.
 
 @prefix ex:    <https://example.org/shapes/> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
