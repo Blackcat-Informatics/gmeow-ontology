@@ -24,19 +24,19 @@
 #   test_place_type_parcel_exists -- checks graph.value() label string
 #     contents ("parcel" not in label); string-content checks are not ASK.
 #   test_contested_* / test_superseded_* / test_lapsed_* -- load fixture
-#     files and call run_shacl(); multi-file ABox + ExampleConformance checks.
+#     files and call SHACL validation; multi-file ABox + ExampleConformance checks.
 #   test_location_stream_to_trajectory_derivation,
 #   test_stream_and_trajectory_coexist -- load places-streaming.ttl fixture
-#     and call run_shacl(); ABox checks.
-#   test_geocode_shape_valid / test_geocode_shape_invalid_* -- run_shacl()
+#     and call SHACL validation; ABox checks.
+#   test_geocode_shape_valid / test_geocode_shape_invalid_* -- SHACL validation
 #     calls; ExampleConformance, not structural TBox assertions.
 #   test_biological_coverage_passes_shacl,
-#   test_biological_standpoint_coordinate_claims_coexist -- run_shacl();
+#   test_biological_standpoint_coordinate_claims_coexist -- SHACL validation;
 #     ABox / ExampleConformance checks.
 #   test_cadastral_coverage_passes_shacl, test_land_tenure_instance_structure,
 #   test_cadastral_reference_instance_structure,
 #   test_contested_land_tenures_coexist, test_lapsed_tenure_suppressed_not_deleted,
-#   test_cadastral_reference_multiple_types_coexist -- run_shacl() or ABox
+#   test_cadastral_reference_multiple_types_coexist -- SHACL validation or ABox
 #     fixture sweeps; not structural TBox assertions.
 #   test_occupancy_with_unit_asserted, test_storage_capacity_in_bytes --
 #     numeric Decimal equality checks on ABox fixture values.

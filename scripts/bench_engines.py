@@ -65,7 +65,7 @@ def main() -> None:
         n=3,
     )
 
-    print("\nSHACL shapes parse (per run_shacl call before caching):")
+    print("\nSHACL shapes parse (per SHACL validation call before caching):")
     _time(
         "(f) Graph().parse(shapes)",
         lambda: rdflib.Graph().parse(SHAPES_FILE, format="turtle"),

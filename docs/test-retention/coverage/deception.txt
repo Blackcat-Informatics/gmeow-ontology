@@ -1,0 +1,11 @@
+Source: tests/test_deception.py
+run_shacl() call-sites (real): 1  (test_licensed_falsehood_not_a_lie)
+def test_ functions retained in this file: 2
+  test_blame_deflection_example_uses_doxastic_standpoint_claims
+    -> conformance_deception.rs::blame_deflection_example_doxastic_claims (GraphStore, example load)
+  test_licensed_falsehood_not_a_lie
+    -> conformance_deception.rs case licensed_falsehood_conforms (run_shacl half)
+    -> conformance_deception.rs::licensed_falsehood_vocab (GraphStore, cross-slice vocab)
+Note: the other 12 def test_ named in the docstring were migrated in prior batches
+      (10 -> conformance_deception.rs cases; test_bullshit_modality_exists -> standpoint
+      structural.ttl; test_disinformation_boundary_query -> deception competency.ttl).

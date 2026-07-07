@@ -16,7 +16,7 @@
 #     OWL.DatatypeProperty anywhere in the merged graph; the subject IRIs
 #     (gmeow:primaryAuthority etc.) are not asserted anywhere in module.ttl so a
 #     scopeModule cell would silently miss them -- whole-graph absence sweep.
-#   test_authority_link_without_match_strength_warns_only -- calls run_shacl()
+#   test_authority_link_without_match_strength_warns_only -- calls SHACL validation
 #     against a hand-built Graph; ExampleConformance, not a structural TBox
 #     assertion.
 #   test_schema_sameas_projection_requires_exact_authority_match -- calls
