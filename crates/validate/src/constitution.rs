@@ -959,6 +959,698 @@ pub fn check_references(enforcements: &BTreeMap<String, Enforcement>, root: &Pat
     findings
 }
 
+// ─────────────────────────────────────────────────────────────────────────
+// makeTarget → symbol execution binding, and gate-lane membership.
+//
+// A cited `meta:makeTarget` must (a) exist (checked above), (b) be reachable
+// from a gate-aggregate lane, and (c) — when the enforcement also cites Rust
+// `fn`/test symbols — have a static call-name path from the target's entrypoint
+// to each cited symbol. This proves the citation is not merely a name that
+// resolves in isolation but one the target actually *runs*, closing the hollow
+// "cited-but-not-run" gate. The reachability is NAME-BASED and workspace-scoped:
+// it establishes that a static call-name path EXISTS from the target's
+// entrypoint to the symbol — not that the symbol is dynamically executed
+// (macro/trait/fn-pointer indirection is invisible, and same-named fns are not
+// disambiguated by module path). That leniency is deliberate and only ever
+// makes the check MORE permissive, never falsely accusatory.
+
+static MAKE_ASSIGN_RE: OnceLock<Regex> = OnceLock::new();
+static MAKE_VAR_REF_RE: OnceLock<Regex> = OnceLock::new();
+static MAKE_TARGET_HEAD_RE: OnceLock<Regex> = OnceLock::new();
+static RUST_CALL_RE: OnceLock<Regex> = OnceLock::new();
+static RUST_TEST_ATTR_RE: OnceLock<Regex> = OnceLock::new();
+static CARGO_PKG_NAME_RE: OnceLock<Regex> = OnceLock::new();
+static DISPATCH_ARM_RE: OnceLock<Regex> = OnceLock::new();
+
+/// A Makefile target's prerequisites and its recipe command lines (each a
+/// whitespace token list with simple `$(VAR)` references already expanded).
+#[derive(Debug, Default, Clone)]
+struct TargetRecipe {
+    prereqs: Vec<String>,
+    commands: Vec<Vec<String>>,
+}
+
+/// Single-line Makefile variable assignments (`NAME := v`, `NAME ?= v`,
+/// `NAME = v`), first definition winning (matching make's `?=`/simple-var use
+/// here well enough for the fixed vars the recipes reference).
+fn makefile_variables(text: &str) -> BTreeMap<String, String> {
+    let re = MAKE_ASSIGN_RE.get_or_init(|| {
+        Regex::new(r"^([A-Za-z_][A-Za-z0-9_]*)\s*(?::=|\?=|=)\s*(.*)$")
+            .expect("valid make assign regex")
+    });
+    let mut vars: BTreeMap<String, String> = BTreeMap::new();
+    // `$(MAKE)` is a make built-in; recipes invoke sub-makes through it.
+    vars.insert("MAKE".to_string(), "make".to_string());
+    // Join `\`-continued assignment lines (e.g. a multi-line `CHECK_TARGETS`)
+    // into one logical line before matching, so every listed value is seen.
+    // A continuation line of an assignment may itself be tab-indented (make
+    // strips leading whitespace), so a tab prefix only means "recipe line" when
+    // we are NOT mid-continuation.
+    let mut logical = String::new();
+    for raw in text.lines() {
+        if logical.is_empty() && raw.starts_with('\t') {
+            // A recipe line that starts no assignment — skip it.
+            continue;
+        }
+        let piece = if logical.is_empty() {
+            raw
+        } else {
+            raw.trim_start()
+        };
+        if let Some(cont) = piece.strip_suffix('\\') {
+            logical.push_str(cont);
+            logical.push(' ');
+            continue;
+        }
+        logical.push_str(piece);
+        if let Some(cap) = re.captures(&logical) {
+            vars.entry(cap[1].to_string())
+                .or_insert_with(|| cap[2].trim().to_string());
+        }
+        logical.clear();
+    }
+    vars
+}
+
+/// Expand `$(VAR)` references (bounded depth; unknown vars and make functions
+/// like `$(if …)` — which contain spaces and so never match — are left as-is
+/// and simply become opaque tokens).
+fn expand_make_vars(s: &str, vars: &BTreeMap<String, String>) -> String {
+    let re = MAKE_VAR_REF_RE.get_or_init(|| {
+        Regex::new(r"\$\(([A-Za-z_][A-Za-z0-9_]*)\)").expect("valid var ref regex")
+    });
+    let mut cur = s.to_string();
+    for _ in 0..8 {
+        let mut changed = false;
+        cur = re
+            .replace_all(&cur, |cap: &regex::Captures<'_>| match vars.get(&cap[1]) {
+                Some(v) => {
+                    changed = true;
+                    v.clone()
+                }
+                None => cap[0].to_string(),
+            })
+            .into_owned();
+        if !changed {
+            break;
+        }
+    }
+    cur
+}
+
+/// Parse the Makefile into `target → (prereqs, recipe command token lists)`.
+/// Recipe line continuations (`\` at EOL) are joined; leading `@`/`-` recipe
+/// prefixes are stripped; `$(VAR)` references are expanded.
+fn makefile_recipes(text: &str) -> BTreeMap<String, TargetRecipe> {
+    let head_re = MAKE_TARGET_HEAD_RE.get_or_init(|| {
+        // A target header: `name:` (or `name: prereqs`), but NOT an assignment
+        // (`name :=`/`name ?=`) — require the char after `:` to not be `=`.
+        Regex::new(r"^([A-Za-z][A-Za-z0-9_-]*)\s*:(?:[^=].*|$)").expect("valid target head regex")
+    });
+    let vars = makefile_variables(text);
+    let mut recipes: BTreeMap<String, TargetRecipe> = BTreeMap::new();
+    let mut current: Option<String> = None;
+    let mut pending = String::new();
+
+    let flush_pending = |current: &Option<String>,
+                         pending: &mut String,
+                         recipes: &mut BTreeMap<String, TargetRecipe>| {
+        if pending.is_empty() {
+            return;
+        }
+        if let Some(t) = current {
+            let expanded = expand_make_vars(pending, &vars);
+            let toks: Vec<String> = expanded.split_whitespace().map(str::to_string).collect();
+            if !toks.is_empty() {
+                recipes.entry(t.clone()).or_default().commands.push(toks);
+            }
+        }
+        pending.clear();
+    };
+
+    for raw in text.lines() {
+        if let Some(stripped) = raw.strip_prefix('\t') {
+            // Recipe line for the current target.
+            let mut line = stripped.trim_start();
+            while let Some(rest) = line.strip_prefix('@').or_else(|| line.strip_prefix('-')) {
+                line = rest.trim_start();
+            }
+            pending.push(' ');
+            if let Some(cont) = line.strip_suffix('\\') {
+                pending.push_str(cont);
+            } else {
+                pending.push_str(line);
+                flush_pending(&current, &mut pending, &mut recipes);
+            }
+            continue;
+        }
+        // Non-recipe line ends any pending continuation.
+        flush_pending(&current, &mut pending, &mut recipes);
+        if raw.starts_with('#') || raw.trim().is_empty() {
+            continue;
+        }
+        if let Some(cap) = head_re.captures(raw) {
+            let name = cap[1].to_string();
+            // Prerequisites: everything after the first `:` up to a `#` comment.
+            let after = raw.split_once(':').map(|x| x.1).unwrap_or("");
+            let after = after.split('#').next().unwrap_or("");
+            let prereqs: Vec<String> = expand_make_vars(after, &vars)
+                .split_whitespace()
+                .map(str::to_string)
+                .collect();
+            recipes.entry(name.clone()).or_default().prereqs = prereqs;
+            current = Some(name);
+        } else {
+            current = None;
+        }
+    }
+    flush_pending(&current, &mut pending, &mut recipes);
+    recipes
+}
+
+/// Sub-make targets named by `make <t> …` within a command's tokens (skipping
+/// flags and `VAR=value` assignments).
+fn submake_targets(cmd: &[String]) -> Vec<String> {
+    if cmd.first().map(String::as_str) != Some("make") {
+        return Vec::new();
+    }
+    cmd[1..]
+        .iter()
+        .filter(|t| !t.starts_with('-') && !t.contains('='))
+        .cloned()
+        .collect()
+}
+
+/// Transitive closure of targets reached by running `root`: itself, its
+/// prerequisites, and every `make <t>` sub-invocation, cycle-guarded.
+fn reached_targets(root: &str, recipes: &BTreeMap<String, TargetRecipe>) -> BTreeSet<String> {
+    let mut seen = BTreeSet::new();
+    let mut stack = vec![root.to_string()];
+    while let Some(t) = stack.pop() {
+        if !seen.insert(t.clone()) {
+            continue;
+        }
+        if let Some(r) = recipes.get(&t) {
+            for p in &r.prereqs {
+                if !seen.contains(p) {
+                    stack.push(p.clone());
+                }
+            }
+            for cmd in &r.commands {
+                for sub in submake_targets(cmd) {
+                    if !seen.contains(&sub) {
+                        stack.push(sub);
+                    }
+                }
+            }
+        }
+    }
+    seen
+}
+
+/// What a leaf recipe command executes, for symbol-reachability purposes.
+#[derive(Debug, Clone, PartialEq, Eq)]
+enum ExecKind {
+    /// `cargo nextest`/`cargo test` over a package set (`None` = whole
+    /// workspace minus `excludes`).
+    Nextest {
+        packages: Option<BTreeSet<String>>,
+        excludes: BTreeSet<String>,
+    },
+    /// `gmeow-dev`/`gmeow` `<subcommand>` (kebab name).
+    Subcommand(String),
+    /// Anything else — binds nothing (a doctest lane, clippy, a shell script,
+    /// or an unrecognised `cargo run` bin).
+    Opaque,
+}
+
+/// Classify one already-var-expanded, tokenised leaf command.
+fn classify_command(cmd: &[String]) -> ExecKind {
+    let has = |w: &str| cmd.iter().any(|t| t == w);
+    if has("cargo") && (has("nextest") || has("test")) {
+        if has("--doc") {
+            return ExecKind::Opaque; // doctests run doc examples, not cited fns.
+        }
+        let mut packages: BTreeSet<String> = BTreeSet::new();
+        let mut excludes: BTreeSet<String> = BTreeSet::new();
+        let mut it = cmd.iter();
+        let mut workspace = false;
+        while let Some(t) = it.next() {
+            match t.as_str() {
+                "-p" | "--package" => {
+                    if let Some(p) = it.next() {
+                        packages.insert(p.clone());
+                    }
+                }
+                "--workspace" => workspace = true,
+                "--exclude" => {
+                    if let Some(p) = it.next() {
+                        excludes.insert(p.clone());
+                    }
+                }
+                other => {
+                    if let Some(p) = other.strip_prefix("--package=") {
+                        packages.insert(p.to_string());
+                    } else if let Some(p) = other.strip_prefix("--exclude=") {
+                        excludes.insert(p.to_string());
+                    }
+                }
+            }
+        }
+        return ExecKind::Nextest {
+            packages: if workspace || packages.is_empty() {
+                None
+            } else {
+                Some(packages)
+            },
+            excludes,
+        };
+    }
+    if has("cargo") && has("run") {
+        // `cargo run … -p <cli-crate> -- <sub> …` is a CLI subcommand;
+        // any other `cargo run` bin is opaque for our purposes.
+        let pkg = cmd
+            .iter()
+            .position(|t| t == "-p" || t == "--package")
+            .and_then(|i| cmd.get(i + 1))
+            .map(String::as_str);
+        let is_cli = matches!(pkg, Some("gmeow-dev-cli") | Some("gmeow-cli"));
+        if is_cli
+            && let Some(sub) = cmd
+                .iter()
+                .position(|t| t == "--")
+                .and_then(|dd| cmd.get(dd + 1))
+        {
+            return ExecKind::Subcommand(sub.clone());
+        }
+        return ExecKind::Opaque;
+    }
+    ExecKind::Opaque
+}
+
+/// One Rust `fn` definition found in the workspace: its owning package, whether
+/// it carries a `#[test]`/`#[bench]` attribute, and the set of identifiers it
+/// calls (approximate — any `ident(` in its body).
+#[derive(Debug, Default, Clone)]
+struct FnDef {
+    package: String,
+    is_test: bool,
+    callees: BTreeSet<String>,
+}
+
+/// Workspace `fn` index: name → every definition of that name (overloads across
+/// impls/modules/crates are all kept — reachability is intentionally lenient).
+type FnIndex = BTreeMap<String, Vec<FnDef>>;
+
+/// Recursively collect `*.rs` paths under `dir`, skipping any `target` tree.
+fn collect_rs_files(dir: &Path, out: &mut Vec<std::path::PathBuf>) {
+    let Ok(entries) = fs::read_dir(dir) else {
+        return;
+    };
+    for entry in entries.flatten() {
+        let path = entry.path();
+        if path.is_dir() {
+            if path.file_name().and_then(|n| n.to_str()) == Some("target") {
+                continue;
+            }
+            collect_rs_files(&path, out);
+        } else if path.extension().and_then(|e| e.to_str()) == Some("rs") {
+            out.push(path);
+        }
+    }
+}
+
+/// Every workspace package under `crates/*`, mapped `package-name → crate dir`.
+fn workspace_packages(root: &Path) -> BTreeMap<String, std::path::PathBuf> {
+    let name_re = CARGO_PKG_NAME_RE.get_or_init(|| {
+        Regex::new(r#"(?m)^\s*name\s*=\s*"([^"]+)""#).expect("valid pkg name regex")
+    });
+    let mut pkgs = BTreeMap::new();
+    let crates = root.join("crates");
+    let Ok(entries) = fs::read_dir(&crates) else {
+        return pkgs;
+    };
+    for entry in entries.flatten() {
+        let dir = entry.path();
+        let manifest = dir.join("Cargo.toml");
+        if let Ok(text) = fs::read_to_string(&manifest)
+            && let Some(cap) = name_re.captures(&text)
+        {
+            pkgs.insert(cap[1].to_string(), dir);
+        }
+    }
+    pkgs
+}
+
+/// Parse all `fn` definitions in one `.rs` file into `index`, tagging each with
+/// `package`, whether it is a test, and its called-identifier set. Operates on
+/// the comment/string-stripped source so call sites in comments/strings do not
+/// pollute the call graph.
+fn index_rust_file(text: &str, package: &str, index: &mut FnIndex) {
+    let fn_re = RUST_ITEM_FN_RE.get_or_init(|| {
+        Regex::new(r"\bfn\s+([A-Za-z_][A-Za-z0-9_]*)").expect("valid rust fn regex")
+    });
+    let call_re = RUST_CALL_RE.get_or_init(|| {
+        Regex::new(r"\b([A-Za-z_][A-Za-z0-9_]*)\s*\(").expect("valid rust call regex")
+    });
+    let test_re = RUST_TEST_ATTR_RE.get_or_init(|| {
+        Regex::new(r"#\s*\[\s*(?:[A-Za-z_][A-Za-z0-9_]*\s*::\s*)*(?:test|bench)\b")
+            .expect("valid rust test-attr regex")
+    });
+    const KEYWORDS: &[&str] = &[
+        "if", "while", "for", "match", "return", "fn", "let", "as", "in", "loop", "move",
+    ];
+
+    let stripped = strip_rust_comments_and_strings(text);
+    let b = stripped.as_bytes();
+    for cap in fn_re.captures_iter(&stripped) {
+        let name = cap[1].to_string();
+        let name_m = cap.get(1).expect("fn name group");
+        let fn_kw_start = cap.get(0).expect("fn match").start();
+
+        // Signature scan from just after the name: balance ()/[] and stop at the
+        // first depth-0 `{` (body) or `;` (bodiless decl).
+        let mut i = name_m.end();
+        let mut depth: i32 = 0;
+        let mut body_start: Option<usize> = None;
+        while i < b.len() {
+            match b[i] {
+                b'(' | b'[' => depth += 1,
+                b')' | b']' => depth -= 1,
+                b'{' if depth <= 0 => {
+                    body_start = Some(i);
+                    break;
+                }
+                b';' if depth <= 0 => break,
+                _ => {}
+            }
+            i += 1;
+        }
+
+        let mut def = FnDef {
+            package: package.to_string(),
+            is_test: false,
+            callees: BTreeSet::new(),
+        };
+        // Attributes bind to this fn iff they sit between the previous item
+        // terminator (`;`/`{`/`}`) and the `fn` keyword.
+        let attr_from = stripped[..fn_kw_start]
+            .rfind([';', '{', '}'])
+            .map(|p| p + 1)
+            .unwrap_or(0);
+        if test_re.is_match(&stripped[attr_from..fn_kw_start]) {
+            def.is_test = true;
+        }
+        if let Some(bs) = body_start {
+            // Balance the body braces to find its end.
+            let mut d: i32 = 0;
+            let mut j = bs;
+            let mut end = bs;
+            while j < b.len() {
+                match b[j] {
+                    b'{' => d += 1,
+                    b'}' => {
+                        d -= 1;
+                        if d == 0 {
+                            end = j;
+                            break;
+                        }
+                    }
+                    _ => {}
+                }
+                j += 1;
+            }
+            for c in call_re.captures_iter(&stripped[bs..end.max(bs)]) {
+                let callee = &c[1];
+                if !KEYWORDS.contains(&callee) {
+                    def.callees.insert(callee.to_string());
+                }
+            }
+        }
+        index.entry(name).or_default().push(def);
+    }
+}
+
+/// Build the workspace `fn` index once (all `crates/*` packages).
+fn build_fn_index(root: &Path) -> FnIndex {
+    let mut index: FnIndex = BTreeMap::new();
+    for (pkg, dir) in workspace_packages(root) {
+        let mut files = Vec::new();
+        collect_rs_files(&dir, &mut files);
+        for f in files {
+            if let Ok(text) = fs::read_to_string(&f) {
+                index_rust_file(&text, &pkg, &mut index);
+            }
+        }
+    }
+    index
+}
+
+/// Names reachable from `roots` by following called-identifier edges through
+/// workspace `fn` definitions (a callee is followed only if it names a defined
+/// workspace fn — the strictness lever). Returns the set of all reached names,
+/// which includes the roots themselves.
+fn reachable_names(roots: &BTreeSet<String>, index: &FnIndex) -> BTreeSet<String> {
+    let mut seen: BTreeSet<String> = BTreeSet::new();
+    let mut stack: Vec<String> = roots.iter().cloned().collect();
+    while let Some(name) = stack.pop() {
+        if !seen.insert(name.clone()) {
+            continue;
+        }
+        if let Some(defs) = index.get(&name) {
+            for def in defs {
+                for callee in &def.callees {
+                    if !seen.contains(callee) && index.contains_key(callee) {
+                        stack.push(callee.clone());
+                    }
+                }
+            }
+        }
+    }
+    seen
+}
+
+/// Map each CLI subcommand (kebab name) to its handler fn identifier, read from
+/// the `match cli.command { Commands::Variant … => path::handler(…) }` dispatch
+/// in each CLI crate's `lib.rs`.
+fn cli_subcommand_handlers(root: &Path) -> BTreeMap<String, String> {
+    let arm_re = DISPATCH_ARM_RE.get_or_init(|| {
+        Regex::new(
+            r"Commands::([A-Za-z_][A-Za-z0-9_]*)(?:\s*\{[^}]*\}|\s*\([^)]*\))?\s*=>\s*(?:\{[\s\S]*?)?(?:[A-Za-z_][A-Za-z0-9_]*::)*([A-Za-z_][A-Za-z0-9_]*)\s*\(",
+        )
+        .expect("valid dispatch-arm regex")
+    });
+    let mut map = BTreeMap::new();
+    for rel in [
+        "crates/gmeow-cli/src/lib.rs",
+        "crates/gmeow-dev-cli/src/lib.rs",
+    ] {
+        let Ok(text) = fs::read_to_string(root.join(rel)) else {
+            continue;
+        };
+        let stripped = strip_rust_comments_and_strings(&text);
+        for cap in arm_re.captures_iter(&stripped) {
+            let variant = &cap[1];
+            let handler = cap[2].to_string();
+            map.entry(variant_to_kebab(variant)).or_insert(handler);
+        }
+    }
+    map
+}
+
+/// Names of every documented top-level workflow target — a header line
+/// `name: … ## help`. In this Makefile the `## ` help annotation marks the
+/// public, directly-invocable workflow surface ("Make … names the workflows");
+/// an undocumented target is an internal helper. A gate may cite a documented
+/// workflow directly; citing an undocumented/dead target is what
+/// `off-lane-target` forbids.
+fn documented_workflow_targets(text: &str) -> BTreeSet<String> {
+    let head_re = MAKE_TARGET_HEAD_RE.get_or_init(|| {
+        Regex::new(r"^([A-Za-z][A-Za-z0-9_-]*)\s*:(?:[^=].*|$)").expect("valid target head regex")
+    });
+    text.lines()
+        .filter(|line| !line.starts_with('\t') && line.contains("## "))
+        .filter_map(|line| head_re.captures(line).map(|c| c[1].to_string()))
+        .collect()
+}
+
+/// The gate-aggregate lanes a cited `meta:makeTarget` must be reachable from:
+/// the local `check` lane and its `CHECK_TARGETS`, the explicit test / release /
+/// maintainer entrypoints, and every documented (`## `) top-level workflow
+/// target. A cited target reachable from none of these is dangling
+/// (`off-lane-target`).
+fn gate_lane_targets(
+    text: &str,
+    recipes: &BTreeMap<String, TargetRecipe>,
+    vars: &BTreeMap<String, String>,
+) -> BTreeSet<String> {
+    let mut roots: BTreeSet<String> = ["check", "rust-test", "full-release", "verify-release"]
+        .into_iter()
+        .map(str::to_string)
+        .collect();
+    if let Some(v) = vars.get("CHECK_TARGETS") {
+        for t in expand_make_vars(v, vars).split_whitespace() {
+            roots.insert(t.to_string());
+        }
+    }
+    for name in recipes.keys() {
+        if name.starts_with("maint-") {
+            roots.insert(name.clone());
+        }
+    }
+    roots.extend(documented_workflow_targets(text));
+    let mut lane: BTreeSet<String> = BTreeSet::new();
+    for r in &roots {
+        lane.extend(reached_targets(r, recipes));
+    }
+    lane
+}
+
+/// Names reachable by *running* a make target: the union of the reachable-name
+/// closures of every entrypoint of every leaf command in the target's
+/// transitive `reached_targets` set.
+fn names_reached_by_target(
+    target: &str,
+    recipes: &BTreeMap<String, TargetRecipe>,
+    handlers: &BTreeMap<String, String>,
+    index: &FnIndex,
+    test_names_by_pkg: &BTreeMap<String, BTreeSet<String>>,
+) -> BTreeSet<String> {
+    let mut roots: BTreeSet<String> = BTreeSet::new();
+    for t in reached_targets(target, recipes) {
+        let Some(recipe) = recipes.get(&t) else {
+            continue;
+        };
+        for cmd in &recipe.commands {
+            match classify_command(cmd) {
+                ExecKind::Nextest { packages, excludes } => match packages {
+                    None => {
+                        for (pkg, names) in test_names_by_pkg {
+                            if !excludes.contains(pkg) {
+                                roots.extend(names.iter().cloned());
+                            }
+                        }
+                    }
+                    Some(pkgs) => {
+                        for pkg in &pkgs {
+                            if let Some(names) = test_names_by_pkg.get(pkg) {
+                                roots.extend(names.iter().cloned());
+                            }
+                        }
+                    }
+                },
+                ExecKind::Subcommand(sub) => {
+                    if let Some(handler) = handlers.get(&sub) {
+                        roots.insert(handler.clone());
+                    }
+                }
+                ExecKind::Opaque => {}
+            }
+        }
+    }
+    reachable_names(&roots, index)
+}
+
+/// makeTarget → symbol execution binding and gate-lane membership, over every
+/// enforcement that cites make targets.
+fn check_target_bindings(
+    enforcements: &BTreeMap<String, Enforcement>,
+    root: &Path,
+) -> Vec<Finding> {
+    let mut findings = Vec::new();
+    let makefile_text = fs::read_to_string(root.join("Makefile")).unwrap_or_default();
+    if makefile_text.is_empty() {
+        return findings;
+    }
+    let recipes = makefile_recipes(&makefile_text);
+    let vars = makefile_variables(&makefile_text);
+    let lane = gate_lane_targets(&makefile_text, &recipes, &vars);
+
+    // ── gate-lane membership (H3) ──────────────────────────────────────────
+    for enforcement in enforcements.values() {
+        let name = enforcement.local_name();
+        for target in &enforcement.make_targets {
+            // Only adjudicate targets that actually exist (a missing target is
+            // already reported as `stale-make-target`).
+            if recipes.contains_key(target) && !lane.contains(target) {
+                findings.push(error(
+                    "off-lane-target",
+                    format!(
+                        "{name}: Makefile target {} exists but is reachable from no gate lane (check / CHECK_TARGETS / rust-test / release / maint-*)",
+                        py_repr(target)
+                    ),
+                ));
+            }
+        }
+    }
+
+    // ── makeTarget → symbol execution binding (H2) ─────────────────────────
+    // Only build the (expensive) workspace fn index when a node co-cites both
+    // an existing make target and Rust fn symbols.
+    let needs_binding = enforcements
+        .values()
+        .any(|e| !e.symbols.is_empty() && e.make_targets.iter().any(|t| recipes.contains_key(t)));
+    if !needs_binding {
+        return findings;
+    }
+    let index = build_fn_index(root);
+    let handlers = cli_subcommand_handlers(root);
+    let mut test_names_by_pkg: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
+    for (fname, defs) in &index {
+        for def in defs {
+            if def.is_test {
+                test_names_by_pkg
+                    .entry(def.package.clone())
+                    .or_default()
+                    .insert(fname.clone());
+            }
+        }
+    }
+
+    // Memoise per-target reachable-name closures across enforcements.
+    let mut reach_cache: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
+    for enforcement in enforcements.values() {
+        let name = enforcement.local_name();
+        let cited_targets: Vec<&String> = enforcement
+            .make_targets
+            .iter()
+            .filter(|t| recipes.contains_key(*t))
+            .collect();
+        if cited_targets.is_empty() {
+            continue;
+        }
+        for symbol in &enforcement.symbols {
+            // Binding only applies to Rust fn/test symbols (the only thing a
+            // make target can be said to *execute*). A symbol with no fn
+            // definition anywhere in the workspace is a type/const/ontology
+            // term — its existence is covered by the symbol check, and it is
+            // not "run", so it is out of binding scope.
+            if !index.contains_key(symbol) {
+                continue;
+            }
+            let bound = cited_targets.iter().any(|target| {
+                let reachable = reach_cache.entry((*target).clone()).or_insert_with(|| {
+                    names_reached_by_target(target, &recipes, &handlers, &index, &test_names_by_pkg)
+                });
+                reachable.contains(symbol)
+            });
+            if !bound {
+                let targets: Vec<&str> = cited_targets.iter().map(|s| s.as_str()).collect();
+                findings.push(error(
+                    "unbound-symbol",
+                    format!(
+                        "{name}: symbol {} has no static call path from any cited makeTarget ({}) — cited but not run",
+                        py_repr(symbol),
+                        targets.join(", ")
+                    ),
+                ));
+            }
+        }
+    }
+
+    findings
+}
+
 fn format_list(set: &BTreeSet<i64>) -> String {
     if set.is_empty() {
         "∅".to_string()
@@ -1100,6 +1792,7 @@ pub fn constitution_full_report(
     findings.extend(check_enforcement_coverage(&dataset));
     findings.extend(check_principle_sync(&principles, &headings));
     findings.extend(check_references(&enforcements, root));
+    findings.extend(check_target_bindings(&enforcements, root));
     findings.extend(check_supersession(&md_text, &principles));
 
     findings.sort_by(|a, b| (&a.code, &a.message).cmp(&(&b.code, &b.message)));
@@ -1581,6 +2274,97 @@ mod tests {
         assert!(text.contains("'ghost_symbol' not found"), "{text}");
         // … while the genuine impl-method definition resolves (no finding).
         assert!(!text.contains("'real_item' not found"), "{text}");
+    }
+
+    /// Build a temp repo with one workspace crate `foo` containing `real_test`
+    /// (a `#[test]` calling `reached_fn`) and `lonely` (reached by nothing).
+    fn write_binding_repo(tmp: &tempfile::TempDir, makefile: &str, manifest_ttl: &str) {
+        fs::write(tmp.path().join("Makefile"), makefile).unwrap();
+        let foo = tmp.path().join("crates/foo/src");
+        fs::create_dir_all(&foo).unwrap();
+        fs::write(
+            tmp.path().join("crates/foo/Cargo.toml"),
+            "[package]\nname = \"foo\"\nversion = \"0.0.0\"\n",
+        )
+        .unwrap();
+        fs::write(
+            foo.join("lib.rs"),
+            "pub fn reached_fn() {}\n\
+             pub fn lonely() {}\n\
+             #[cfg(test)]\nmod t {\n    use super::*;\n    #[test]\n    fn real_test() { reached_fn(); }\n}\n",
+        )
+        .unwrap();
+        let prefixes = "@prefix meta: <https://blackcatinformatics.ca/gmeow/meta#> .\n\
+             @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n";
+        fs::write(
+            tmp.path().join("constitution.ttl"),
+            format!("{prefixes}{manifest_ttl}"),
+        )
+        .unwrap();
+        fs::write(
+            tmp.path().join("CONSTITUTION.md"),
+            "## 1. Be good\n\nprose\n",
+        )
+        .unwrap();
+    }
+
+    #[test]
+    fn unbound_symbol_fires_when_target_cannot_run_it() {
+        let tmp = tempfile::tempdir().unwrap();
+        // `runit` runs the workspace test `real_test` (which reaches `reached_fn`
+        // but NOT `lonely`). Gate `reach` cites a symbol on that call path;
+        // gate `unreach` cites `lonely`, which nothing the target runs reaches.
+        write_binding_repo(
+            &tmp,
+            "runit: ## workflow\n\tcargo nextest run -p foo\n",
+            "meta:reach a meta:Gate ;\n\
+             meta:artifact \"crates/foo/src/lib.rs\" ; meta:symbol \"reached_fn\" ; meta:makeTarget \"runit\" .\n\
+             meta:unreach a meta:Gate ;\n\
+             meta:artifact \"crates/foo/src/lib.rs\" ; meta:symbol \"lonely\" ; meta:makeTarget \"runit\" .\n\
+             meta:Principle1 a meta:Principle ; meta:number 1 ; meta:title \"Be good\" ;\n\
+             meta:enforcedBy meta:reach, meta:unreach .\n",
+        );
+        let findings = constitution_full_report(
+            &tmp.path().join("constitution.ttl"),
+            &tmp.path().join("CONSTITUTION.md"),
+            tmp.path(),
+        );
+        let text: String = findings.iter().map(|f| f.message.clone() + "\n").collect();
+        // `lonely` is cited but no cited target runs it → fires.
+        assert!(
+            text.contains("unreach: symbol 'lonely' has no static call path"),
+            "{text}"
+        );
+        // `reached_fn` is on the test's call path → bound, no finding.
+        assert!(!text.contains("reach: symbol 'reached_fn'"), "{text}");
+    }
+
+    #[test]
+    fn off_lane_target_fires_for_undocumented_unreachable_target() {
+        let tmp = tempfile::tempdir().unwrap();
+        // `orphan-target` is undocumented and reachable from no gate lane;
+        // `runit` is a documented workflow, so it stays on-lane.
+        write_binding_repo(
+            &tmp,
+            "orphan-target:\n\techo hi\nrunit: ## workflow\n\tcargo nextest run -p foo\n",
+            "meta:dead a meta:Gate ; meta:makeTarget \"orphan-target\" .\n\
+             meta:live a meta:Gate ; meta:makeTarget \"runit\" .\n\
+             meta:Principle1 a meta:Principle ; meta:number 1 ; meta:title \"Be good\" ;\n\
+             meta:enforcedBy meta:dead, meta:live .\n",
+        );
+        let findings = constitution_full_report(
+            &tmp.path().join("constitution.ttl"),
+            &tmp.path().join("CONSTITUTION.md"),
+            tmp.path(),
+        );
+        let text: String = findings.iter().map(|f| f.message.clone() + "\n").collect();
+        assert!(
+            text.contains(
+                "dead: Makefile target 'orphan-target' exists but is reachable from no gate lane"
+            ),
+            "{text}"
+        );
+        assert!(!text.contains("live: Makefile target 'runit'"), "{text}");
     }
 
     #[test]
