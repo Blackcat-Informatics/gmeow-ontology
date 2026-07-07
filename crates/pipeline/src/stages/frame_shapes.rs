@@ -314,6 +314,87 @@ mod tests {
         assert_eq!(fresh, committed, "frame-shapes.ttl drifted from committed");
     }
 
+    /// Semantic drift-guard: the bespoke `render_frame_shape` and the shared canonical
+    /// projection ([`project_validation_shape_shacl`]) are TWO lowerings of the SAME
+    /// [`ValidationShapeIr`]. The frame surface keeps a bespoke renderer only for its exact
+    /// committed byte layout (a human-readable `rdfs:label`, prefixed CURIEs), but the two MUST
+    /// stay behaviorally identical — else a change to the shared projection would silently not
+    /// reach the frame surface. For every frame shape this validates the same data against BOTH
+    /// rendered SHACL documents and asserts they flag the SAME focus nodes (robust to the cosmetic
+    /// label/CURIE differences a byte comparison would trip on), and that the guard has teeth (the
+    /// missing-frame instance IS flagged by both).
+    #[test]
+    fn bespoke_frame_render_and_shared_projection_are_behaviorally_identical() {
+        use crate::stages::native_query;
+        use gmeow_logic_compile::projections::shapes::project_validation_shape_shacl;
+        use purrdf::shapes::engine::{parse_shapes, validate_dataset};
+        use std::collections::BTreeSet;
+
+        let root = repo_root();
+        let store = load_authored_no_imports(&root).expect("load authored");
+        let shapes = frame_shapes(&store).expect("build frame IR");
+        assert!(!shapes.is_empty(), "expected at least one frame shape");
+
+        let flagged = |report: &purrdf::shapes::report::ValidationReport| -> BTreeSet<String> {
+            report
+                .results
+                .iter()
+                .map(|r| r.focus_node.to_string())
+                .collect()
+        };
+
+        for shape in &shapes {
+            let carrier = match &shape.target {
+                ShapeTarget::Class(c) => c.clone(),
+                other => panic!("frame shape target must be a class, got {other:?}"),
+            };
+            let prop = shape.properties[0].path.clone();
+
+            let bespoke_ttl = format!(
+                "@prefix sh: <http://www.w3.org/ns/shacl#> .\n\
+                 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
+                 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n{}",
+                render_frame_shape(shape).expect("bespoke render")
+            );
+            let shared_ttl = format!(
+                "@prefix sh: <http://www.w3.org/ns/shacl#> .\n{}",
+                project_validation_shape_shacl(shape)
+            );
+            let bespoke_shapes = parse_shapes(&bespoke_ttl).expect("parse bespoke frame shape");
+            let shared_shapes = parse_shapes(&shared_ttl).expect("parse shared projection");
+
+            // A carrier instance MISSING its frame (violates minCount 1) and one that carries it.
+            let data = format!(
+                "@prefix ex: <https://example.org/> .\n\
+                 ex:bad a <{carrier}> .\n\
+                 ex:good a <{carrier}> ; <{prop}> ex:frame .\n"
+            );
+            let data_store = native_query::dataset_from_turtle(data.as_bytes(), "drift").unwrap();
+
+            let bespoke_report = validate_dataset(&data_store, &bespoke_shapes).unwrap();
+            let shared_report = validate_dataset(&data_store, &shared_shapes).unwrap();
+
+            assert_eq!(
+                flagged(&bespoke_report),
+                flagged(&shared_report),
+                "bespoke frame render and the shared projection must flag the SAME focus nodes \
+                 for {} — the shared projection changed without the bespoke renderer mirroring it",
+                shape.iri
+            );
+            // Teeth: the missing-frame instance IS flagged by both (not a vacuous agreement).
+            assert!(
+                flagged(&bespoke_report).iter().any(|f| f.contains("/bad")),
+                "the missing-frame instance must be flagged for {} (guard has no teeth otherwise)",
+                shape.iri
+            );
+            assert!(
+                !flagged(&shared_report).iter().any(|f| f.contains("/good")),
+                "the framed instance must NOT be flagged for {}",
+                shape.iri
+            );
+        }
+    }
+
     #[test]
     fn rule_severity_declaration_drives_shape_severity() {
         // An advisory carrier downgrades to sh:Warning; an undeclared carrier
