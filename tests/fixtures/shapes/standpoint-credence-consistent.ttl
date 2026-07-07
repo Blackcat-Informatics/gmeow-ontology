@@ -4,7 +4,7 @@
 #   credenceLikely   [0.5, 0.9)  ← 0.7
 #   credenceCertain  [0.9, 1.0]  ← 0.95
 #   credencePossible [0.0, 0.5)  ← 0.2
-# run_shacl MUST report NO violation — the decimal and band agree, and the
+# SHACL validation MUST report NO violation — the decimal and band agree, and the
 # decimal is a valid in-range advisory refinement of the band.
 
 @prefix ex:    <https://example.org/shapes/> .

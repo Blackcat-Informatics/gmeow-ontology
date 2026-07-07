@@ -83,6 +83,7 @@ pub fn check_repo_static(root: &Path) -> RepoStaticReport {
     check_projection_compute_purity(root, &mut report);
     check_projection_shape_purity(root, &mut report);
     check_no_generated_read_in_pipeline_stages(root, &mut report);
+    check_no_run_shacl_seam(root, &mut report);
     report
 }
 
@@ -220,6 +221,79 @@ fn check_no_docker_lane_python(root: &Path, report: &mut RepoStaticReport) {
             report.error(format!(
                 "retired Docker-reasoning-lane symbol(s) re-introduced in first-party Python {rel}: {} — that lane is permanently removed",
                 hits.join(", ")
+            ));
+        }
+    }
+}
+
+/// Hard-fail if the retired black-box SHACL test seam is re-introduced. The
+/// `gmeow_tools.validate.run_shacl` helper (validate an rdflib graph → N-Triples → SHACL) and the
+/// `tests/_graph_nt.py` rdflib→N-Triples adapter drove the domain conformance tests; that surface
+/// is now native (`crates/validate/tests/conformance_*.rs` + `label_completeness.rs` over
+/// `structural_lint_dataset`). This seals the deletion — the Python-surface complement of the
+/// native conformance twins — so the next author cannot silently re-add a black-box Python SHACL
+/// helper. Scans code only (comments/strings stripped), so a docstring mentioning `run_shacl` is
+/// fine. NOT tripped by `src/gmeow_tools/language_tags.py`'s unrelated private `_graph_nt` helper
+/// (that is not the `tests._graph_nt` module).
+fn check_no_run_shacl_seam(root: &Path, report: &mut RepoStaticReport) {
+    // 1. The rdflib→N-Triples adapter file must not exist.
+    if root.join("tests").join("_graph_nt.py").is_file() {
+        report.error(
+            "tests/_graph_nt.py has been retired (its run_shacl / structural_lint shims are \
+             native now); it must not be re-created"
+                .to_owned(),
+        );
+    }
+
+    // 2. No first-party Python may define a `run_shacl` helper or import `tests._graph_nt`.
+    let mut files = python_files(&root.join("src").join("gmeow_tools"), report);
+    for dir in [root.join("tests"), root.join("slices")] {
+        if dir.is_dir() {
+            collect_python_files(&dir, report, &mut files);
+        }
+    }
+    files.sort();
+    files.dedup();
+
+    let run_shacl_def = match Regex::new(r"\bdef\s+run_shacl\b") {
+        Ok(re) => re,
+        Err(err) => {
+            report.error(format!(
+                "run_shacl-seam guard: def regex failed to compile: {err}"
+            ));
+            return;
+        }
+    };
+    let graph_nt_import = match Regex::new(r"\btests\._graph_nt\b") {
+        Ok(re) => re,
+        Err(err) => {
+            report.error(format!(
+                "run_shacl-seam guard: import regex failed to compile: {err}"
+            ));
+            return;
+        }
+    };
+
+    for path in files {
+        let text = match fs::read_to_string(&path) {
+            Ok(text) => text,
+            Err(err) => {
+                report.error(format!("{}: cannot read: {err}", path.display()));
+                continue;
+            }
+        };
+        let code = strip_python_non_code(&text);
+        let rel = slash_path(path.strip_prefix(root).unwrap_or(&path));
+        if run_shacl_def.is_match(&code) {
+            report.error(format!(
+                "black-box SHACL test seam re-introduced in {rel}: `def run_shacl` — SHACL \
+                 conformance is native now (crates/validate/tests/conformance_*.rs)"
+            ));
+        }
+        if graph_nt_import.is_match(&code) {
+            report.error(format!(
+                "import of the retired tests._graph_nt rdflib→N-Triples seam in {rel} — it has \
+                 been deleted"
             ));
         }
     }
@@ -1366,6 +1440,88 @@ mod tests {
                 "guard message must list `{sym}`; got {bare_msg:?}"
             );
         }
+    }
+
+    #[test]
+    fn run_shacl_seam_guard_flags_reintroduction_and_passes_clean() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+
+        // Clean tree: gmeow_tools with no run_shacl def, no tests/_graph_nt.py → passes.
+        write(
+            &root.join("src/gmeow_tools/validate.py"),
+            "import os\nX = 1\n",
+        );
+        let mut clean = RepoStaticReport::default();
+        check_no_run_shacl_seam(root, &mut clean);
+        assert!(
+            clean.errors.is_empty(),
+            "clean tree must pass; got {:?}",
+            clean.errors
+        );
+
+        // A `def run_shacl` re-added to first-party Python must fail.
+        write(
+            &root.join("src/gmeow_tools/validate.py"),
+            "def run_shacl(data_nt):\n    return None\n",
+        );
+        let mut def = RepoStaticReport::default();
+        check_no_run_shacl_seam(root, &mut def);
+        assert!(
+            def.errors
+                .iter()
+                .any(|e| e.contains("black-box SHACL test seam") && e.contains("validate.py")),
+            "a re-introduced `def run_shacl` must be flagged; got {:?}",
+            def.errors
+        );
+
+        // Re-creating tests/_graph_nt.py must fail.
+        write(&root.join("src/gmeow_tools/validate.py"), "X = 1\n");
+        write(
+            &root.join("tests/_graph_nt.py"),
+            "def run_shacl(g):\n    return None\n",
+        );
+        let mut seam = RepoStaticReport::default();
+        check_no_run_shacl_seam(root, &mut seam);
+        assert!(
+            seam.errors
+                .iter()
+                .any(|e| e.contains("tests/_graph_nt.py has been retired")),
+            "a re-created tests/_graph_nt.py must be flagged; got {:?}",
+            seam.errors
+        );
+
+        // Importing the retired seam must fail.
+        std::fs::remove_file(root.join("tests/_graph_nt.py")).unwrap();
+        write(
+            &root.join("tests/test_thing.py"),
+            "from tests._graph_nt import run_shacl\n",
+        );
+        let mut imp = RepoStaticReport::default();
+        check_no_run_shacl_seam(root, &mut imp);
+        assert!(
+            imp.errors
+                .iter()
+                .any(|e| e.contains("tests._graph_nt") && e.contains("test_thing.py")),
+            "an import of the retired seam must be flagged; got {:?}",
+            imp.errors
+        );
+
+        // `run_shacl` / `tests._graph_nt` mentioned only in a comment or string must NOT trip it,
+        // and the unrelated private `_graph_nt` helper in language_tags.py is fine.
+        std::fs::remove_file(root.join("tests/test_thing.py")).unwrap();
+        write(
+            &root.join("src/gmeow_tools/language_tags.py"),
+            "# run_shacl was retired; tests._graph_nt is gone\nDOC = \"def run_shacl\"\ndef _graph_nt(graph):\n    return graph\n",
+        );
+        let mut commented = RepoStaticReport::default();
+        check_no_run_shacl_seam(root, &mut commented);
+        assert!(
+            commented.errors.is_empty(),
+            "run_shacl/tests._graph_nt in comments/strings and the unrelated private _graph_nt \
+             helper must not trip the guard; got {:?}",
+            commented.errors
+        );
     }
 
     #[test]

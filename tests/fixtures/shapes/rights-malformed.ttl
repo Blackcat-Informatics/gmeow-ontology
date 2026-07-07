@@ -1,7 +1,7 @@
 # Malformed rights fixture (#21). Each rights relator trips its closed-world SHACL
 # Violation in shapes/gmeow-shapes.ttl: the RightsStatement governs no asset, the
 # Permission regulates no action, the Copyright has a work but no holder, the License
-# names no licensor, and the Trademark has neither mark nor holder. run_shacl over
+# names no licensor, and the Trademark has neither mark nor holder. SHACL validation over
 # this graph MUST NOT conform, and each shape names its violation.
 
 @prefix ex:    <https://example.org/shapes/> .

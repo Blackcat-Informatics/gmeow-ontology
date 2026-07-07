@@ -2,7 +2,7 @@
 # exactly one data subject, one data controller, a privacy notice, and a
 # Permission for actionProcessPersonalData with purpose/recipient constraints.
 # The sensitive home location carries both hasSensitivity and coarsenTo, so the
-# SensitiveValueShape warning does not fire. run_shacl over this graph MUST conform.
+# SensitiveValueShape warning does not fire. SHACL validation over this graph MUST conform.
 
 @prefix ex:    <https://example.org/shapes/> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .

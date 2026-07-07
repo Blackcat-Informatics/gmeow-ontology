@@ -86,7 +86,11 @@ Removed because a Rust artifact already asserts the same behavior:
   are migrated.
 - SHACL/TBox black-box cluster → native `crates/validate/tests/conformance_*.rs`
   (SHACL fixture cases via `Case`, TBox axioms via the bnode-aware `GraphStore`),
-  each Python file deleted in the same commit as its Rust twin. Migrated so far:
+  each Python file deleted in the same commit as its Rust twin. The whole cluster
+  is migrated, and with it the `gmeow_tools.validate.run_shacl` test surface and
+  the `tests/_graph_nt.py` rdflib→N-Triples adapter are **deleted**; the deletion
+  is sealed permanently by `check_no_run_shacl_seam` in
+  `crates/validate/src/repo_static.rs`. Migrated:
   `test_deception` → `conformance_deception.rs`;
   `test_employment` → `conformance_employment.rs`;
   `test_evidence` → `conformance_evidence.rs` (+ constitution artifact cite redirected);
