@@ -697,6 +697,15 @@ gmeow:unit
     gmeow:howToUse "Point the measured value at its QUDT unit IRI and ensure it also carries a gmeow:hasReferenceFrame so the value is well-framed; keep the numeric magnitude on gmeow:quantityValue and let consumers read magnitude, unit, and frame together."@x-gmeow-english ;
     gmeow:useWhen "Use to name the QUDT unit a measured value is expressed in — the canonical unit carrier on the measurement spine (the successor to gmeow:unit), so a magnitude is never published without its unit and frame (no silent units)."@x-gmeow-english .
 
+gmeow:unitClosedWorldOptOut
+    a logic:ClosureEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
+    rdfs:label "unit closed-world opt-out"@x-gmeow-english ;
+    logic:closureKey gmeow:unit ;
+    logic:closureValue logic:OpenWorldClosure ;
+    skos:definition "gmeow:unit carries an open-world rdfs:range (its objects are external QUDT-vocabulary qudt:Unit individuals referenced by IRI, not closed-world-typed as the range class); its closed-world validation reading over-claims, so it takes the open-world reading and derives no validation shape."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxConfigBox .
+
 gmeow:usageAppellation
     rdfs:subPropertyOf gmeow:observationResult .
 

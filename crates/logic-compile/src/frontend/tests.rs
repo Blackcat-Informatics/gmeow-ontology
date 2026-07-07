@@ -1070,34 +1070,37 @@ fn derive_contradictory_cardinality_hard_fails() {
 // ── Full closed-world OWL fragment: per family ───────────────────────────────
 
 #[test]
-fn derive_some_values_from_wraps_classification_in_qualified_min_one() {
-    // owl:someValuesFrom is EXISTENTIAL: at least ONE value is a g:Doc → a qualified value
-    // shape with min 1 (NOT a bare sh:class, which would demand ALL values be g:Doc).
+fn derive_some_values_from_uses_class_membership_under_approximation() {
+    // owl:someValuesFrom is EXISTENTIAL ("K ⊑ ∃P.C"), but a validation shape is a
+    // `logic:ValidationOnly` UNDER-approximation that must never over-claim: a `qualifiedMinCount 1`
+    // existential would false-positive on the ontology's own open-world value-vocabulary
+    // individuals (instances of a restricted class that legitimately do not populate the relation).
+    // So the shape projects the class-membership under-approximation (a bare sh:class, vacuously
+    // true when the property is absent); the existence obligation is carried in the canon, not the
+    // shape. It must NOT be wrapped in a qualified value shape.
     let ds = shape_dataset(
         "g:Doc a owl:Class . \
          g:Article a owl:Class ; rdfs:subClassOf \
          [ a owl:Restriction ; owl:onProperty g:cites ; owl:someValuesFrom g:Doc ] .",
     );
     let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
-    let comp = shapes
+    let comps: Vec<_> = shapes
         .iter()
         .flat_map(|s| &s.properties)
         .flat_map(|p| &p.components)
-        .find(|c| matches!(c, ConstraintComponent::QualifiedValueShape { .. }))
-        .expect("a qualified value shape");
-    match comp {
-        ConstraintComponent::QualifiedValueShape { shape, min, max } => {
-            assert_eq!(*min, Some(1), "someValuesFrom is min-1 existential");
-            assert_eq!(*max, None, "someValuesFrom sets no upper bound");
-            assert!(
-                shape
-                    .iter()
-                    .any(|c| matches!(c, ConstraintComponent::Class(d) if d.ends_with("Doc"))),
-                "inner shape must be sh:class g:Doc: {shape:?}"
-            );
-        }
-        other => panic!("expected QualifiedValueShape, got {other:?}"),
-    }
+        .collect();
+    assert!(
+        comps
+            .iter()
+            .any(|c| matches!(c, ConstraintComponent::Class(d) if d.ends_with("Doc"))),
+        "someValuesFrom emits the class-membership under-approximation (bare sh:class): {comps:?}"
+    );
+    assert!(
+        !comps
+            .iter()
+            .any(|c| matches!(c, ConstraintComponent::QualifiedValueShape { .. })),
+        "someValuesFrom must NOT over-claim with a qualifiedMinCount existential: {comps:?}"
+    );
 }
 
 #[test]
@@ -1181,6 +1184,45 @@ fn derive_rdfs_range_targets_objects_of_class_and_datatype() {
         "datatype range → sh:datatype node component: {:?}",
         dt_shape.node_components
     );
+}
+
+#[test]
+fn derive_rdfs_resource_range_domain_is_vacuous_no_class_component() {
+    // rdfs:Resource is the UNIVERSAL TOP (the class of everything, literals included). A
+    // range/domain of rdfs:Resource is VACUOUS: `sh:class rdfs:Resource` would demand a
+    // never-materialized `rdf:type rdfs:Resource` edge and false-positive universally, so the
+    // the derivation must emit NO node/class component for it.
+    let range_ds = shape_dataset("g:usesTerm a owl:ObjectProperty ; rdfs:range rdfs:Resource .");
+    let range_shapes = derive_validation_shapes(range_ds.as_ref()).expect("derive ok");
+    if let Some(shape) = range_shapes
+        .iter()
+        .find(|s| matches!(&s.target, ShapeTarget::ObjectsOf(p) if p.ends_with("usesTerm")))
+    {
+        assert!(
+            !shape.node_components.iter().any(|c| matches!(
+                c,
+                ConstraintComponent::Class(d) if d.ends_with("Resource")
+            )),
+            "rdfs:Resource range must emit NO sh:class node component (vacuous top): {:?}",
+            shape.node_components
+        );
+    }
+    // Same for a domain of rdfs:Resource.
+    let domain_ds = shape_dataset("g:usesTerm a owl:ObjectProperty ; rdfs:domain rdfs:Resource .");
+    let domain_shapes = derive_validation_shapes(domain_ds.as_ref()).expect("derive ok");
+    if let Some(shape) = domain_shapes
+        .iter()
+        .find(|s| matches!(&s.target, ShapeTarget::SubjectsOf(p) if p.ends_with("usesTerm")))
+    {
+        assert!(
+            !shape.node_components.iter().any(|c| matches!(
+                c,
+                ConstraintComponent::Class(d) if d.ends_with("Resource")
+            )),
+            "rdfs:Resource domain must emit NO sh:class node component (vacuous top): {:?}",
+            shape.node_components
+        );
+    }
 }
 
 #[test]

@@ -1163,6 +1163,15 @@ gmeow:constraintFunction
     skos:definition "An optional FnO function reference that interprets the selection and termination rules (Principle 12)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+gmeow:constraintFunctionClosedWorldOptOut
+    a logic:ClosureEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "constraint function closed-world opt-out"@x-gmeow-english ;
+    logic:closureKey gmeow:constraintFunction ;
+    logic:closureValue logic:OpenWorldClosure ;
+    skos:definition "gmeow:constraintFunction carries an open-world rdfs:range (its objects are external FnO-vocabulary fno:Function individuals not closed-world-typed as the range class); its closed-world validation reading over-claims, so it takes the open-world reading and derives no validation shape."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxConfigBox .
+
 gmeow:constraintText
     a owl:AnnotationProperty ;
     rdfs:domain gmeow:TraversalConstraint ;
@@ -4872,6 +4881,15 @@ gmeow:processFunction
     rdfs:range fno:Function ;
     skos:definition "An FnO function reference that realizes the process, e.g. fnRealizePhasing or fnRealizeStochasticProcess (Principle 12)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:processFunctionClosedWorldOptOut
+    a logic:ClosureEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "process function closed-world opt-out"@x-gmeow-english ;
+    logic:closureKey gmeow:processFunction ;
+    logic:closureValue logic:OpenWorldClosure ;
+    skos:definition "gmeow:processFunction carries an open-world rdfs:range (its objects are external FnO-vocabulary fno:Function individuals not closed-world-typed as the range class); its closed-world validation reading over-claims, so it takes the open-world reading and derives no validation shape."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxConfigBox .
 
 gmeow:processKind
     a owl:FunctionalProperty ,

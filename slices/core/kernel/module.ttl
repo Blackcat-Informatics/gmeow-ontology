@@ -46,6 +46,15 @@ gmeow:Agent
     gmeow:howToUse "Type the participant as Agent (or a Person/Organization specialization) and link it through role relators — contribution, attribution, party-to-agreement — rather than flattening agency into a single attribute."@x-gmeow-english ;
     gmeow:useWhen "Use for the bearer of action, responsibility, authorship, agreement, or trust — the domain of contribution, attestation, and provenance roles whenever the participant is a person, organization, or software agent."@x-gmeow-english .
 
+gmeow:AgentDisjointnessClosedWorldOptOut
+    a logic:ClosureEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
+    rdfs:label "Agent disjointness closed-world opt-out"@x-gmeow-english ;
+    logic:closureKey gmeow:Agent ;
+    logic:closureValue logic:OpenWorldClosure ;
+    skos:definition "gmeow:Agent's top-sortal owl:disjointWith gmeow:InformationObject / gmeow:SocialObject is a TBox integrity axiom enforced authoritatively by the native DL coherence gate (which forces a two-sortal individual to owl:Nothing), not a closed-world data-shape; it therefore takes the open-world reading and derives no closed-world validation shape. Projecting it as sh:not would compile gmeow:Agent's JSON-Schema $def into a closed targetClass object that permits only @id/@type/@annotation, wrongly rejecting conformant Agent instances that carry real properties (gmeow:accepts / believes / knowsThat / suspendsJudgementOn)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxConfigBox .
+
 gmeow:Determinacy
     a logic:AbstractIndividualType ,
         owl:Class ;

@@ -88,6 +88,15 @@ gmeow:bcp47Tag
         gmeow:consumerWikidata ;
     gmeow:useWhen "Use to declare the standard BCP-47 tag(s) the projection layer substitutes for an x-gmeow-* private-use tag when serializing to consumers that require standard language-tag literals (Wikidata, schema.org JSON-LD)."@x-gmeow-english .
 
+gmeow:bcp47TagClosedWorldOptOut
+    a logic:ClosureEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/language> ;
+    rdfs:label "BCP-47 tag closed-world opt-out"@x-gmeow-english ;
+    logic:closureKey gmeow:bcp47Tag ;
+    logic:closureValue logic:OpenWorldClosure ;
+    skos:definition "gmeow:bcp47Tag carries an open-world rdfs:range (its objects are BCP-47 tag literals not asserted with the xsd:language datatype); its closed-world validation reading over-claims, so it takes the open-world reading and derives no validation shape."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxConfigBox .
+
 gmeow:langEnglish
     a owl:NamedIndividual ,
         gmeow:Language ;
