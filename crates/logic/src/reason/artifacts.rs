@@ -616,6 +616,27 @@ fn correspondence_header(fragment: &SubsumptionFragment) -> String {
     )
 }
 
+/// Banner for the COMBINED EL ⊂ RL ⊂ DL native⊒oracle subsumption correspondence
+/// bundle — the single committed `generated/logic/subsumption-correspondence.ttl`
+/// projection carrying all three lattice-edge `logic:Correspondence` individuals
+/// under one prefix block.
+fn combined_correspondence_header() -> String {
+    "\
+# GMEOW native ⊒ oracle EL ⊂ RL ⊂ DL subsumption correspondence bundle (RDF 1.2).
+# The three reified logic:Correspondence individuals recording that the native
+# forward engine SUBSUMES the demoted external oracle on each certified fragment of
+# the EL ⊂ RL ⊂ DL promotion lattice: on every edge the oracle closure is a
+# section/retraction of the native closure (put ∘ get = id over the profile), a
+# complete over-approximation carrying the native↔oracle divergence ledger as its
+# loss cell. Pure native-lane projection of gmeow.gts. DO NOT EDIT.
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+"
+    .to_owned()
+}
+
 /// Render the native⊒oracle EL-subsumption parity result as a bundle-borne
 /// `logic:Correspondence` individual (Part B of the native-chase promotion).
 ///
@@ -701,6 +722,51 @@ fn build_subsumption_correspondence_ttl(
     view_engine: &str,
 ) -> String {
     let mut out = correspondence_header(fragment);
+    out.push_str(&subsumption_correspondence_body(
+        fragment,
+        ledger,
+        contract_hash,
+        view_engine,
+    ));
+    out
+}
+
+/// Emit ALL THREE certified lattice edges (EL ⊂ RL ⊂ DL) as one committed
+/// `logic:Correspondence` bundle under a single prefix block — the body of the
+/// `generated/logic/subsumption-correspondence.ttl` projection the reason stage
+/// commits. Each edge reuses the identical claim shape ([`subsumption_correspondence_body`]);
+/// the shared `ledger` / `contract_hash` / `view_engine` bind every edge to the same
+/// gap-zero verdict and native contract digest. This is the single production consumer
+/// of the per-fragment builders (the on-gate drift-gate reads what this mints).
+pub fn build_all_subsumption_correspondences_ttl(
+    ledger: &DivergenceLedger,
+    contract_hash: &str,
+    view_engine: &str,
+) -> String {
+    let mut out = combined_correspondence_header();
+    for fragment in [&EL_FRAGMENT, &RL_FRAGMENT, &DL_FRAGMENT] {
+        out.push_str(&subsumption_correspondence_body(
+            fragment,
+            ledger,
+            contract_hash,
+            view_engine,
+        ));
+    }
+    out
+}
+
+/// The per-fragment body (everything after the prefix header) of a native⊒oracle
+/// subsumption correspondence: the reified `logic:Correspondence`, its discharged
+/// `logic:SectionLaw` claim, and the loss-cell findings. Factored out so the single
+/// (`build_subsumption_correspondence_ttl`) and combined
+/// (`build_all_subsumption_correspondences_ttl`) builders share one claim shape.
+fn subsumption_correspondence_body(
+    fragment: &SubsumptionFragment,
+    ledger: &DivergenceLedger,
+    contract_hash: &str,
+    view_engine: &str,
+) -> String {
+    let mut out = String::new();
 
     let slug = fragment.slug;
     let label = fragment.label;

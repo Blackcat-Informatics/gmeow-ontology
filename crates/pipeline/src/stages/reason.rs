@@ -20,8 +20,10 @@ use std::collections::BTreeMap;
 use std::sync::Arc;
 
 use gmeow_logic::reason::artifacts::{
-    build_dl_el_ledger_ttl, build_explanations_ttl, build_inferred_closure_ttl,
+    build_all_subsumption_correspondences_ttl, build_dl_el_ledger_ttl, build_explanations_ttl,
+    build_inferred_closure_ttl,
 };
+use gmeow_logic::reason::ledger::DivergenceLedger;
 use gmeow_logic::reason::perf_ledger::perf_ledger;
 use gmeow_logic::reason::reason_all;
 use gmeow_logic::result::ReasoningResult;
@@ -47,6 +49,13 @@ pub const LEDGER_PATH: &str = "generated/logic/dl-el-crosscheck-report.ttl";
 /// Canonical static content (a property of the engine, not of this run's data), so
 /// it is byte-identical run to run.
 pub const PERF_LEDGER_PATH: &str = "generated/logic/perf-ledger.ttl";
+/// COMMITTED logical path of the native ⊒ oracle EL ⊂ RL ⊂ DL subsumption
+/// correspondence bundle — the three reified `logic:Correspondence` individuals
+/// certifying that the native forward engine subsumes the demoted oracle on each
+/// fragment of the promotion lattice (a gap-zero section/retraction, complete
+/// over-approximation). The on-gate correspondence drift-gate reads THIS committed
+/// file and refuses a claim minted under a different native contract hash.
+pub const CORRESPONDENCE_PATH: &str = "generated/logic/subsumption-correspondence.ttl";
 
 /// The reasoned artifacts a single `reason_all` produces: the three committed-style
 /// Turtle blobs plus the typed [`ReasoningResult`] itself (the C7 typed handle's
@@ -61,6 +70,11 @@ pub struct ReasonArtifacts {
     /// The native physical-engine performance ledger Turtle — the flag-don't-build
     /// record of the deferred / non-incremental levers. Canonical static content.
     pub perf_ledger: String,
+    /// The native ⊒ oracle EL ⊂ RL ⊂ DL subsumption correspondence bundle Turtle —
+    /// the three reified `logic:Correspondence` individuals (one per lattice edge)
+    /// certifying native subsumption of the demoted oracle, gap-zero, bound to the
+    /// native contract hash. The consumer for the on-gate correspondence drift-gate.
+    pub subsumption_correspondence: String,
     /// The typed five-axis result (C7 handle payload).
     pub result: ReasoningResult,
 }
@@ -130,11 +144,34 @@ pub fn reason_over_dataset(edb: &RdfDataset) -> Result<ReasonArtifacts, gmeow_er
     // physical engine's lever staging, not of this run's data), so it is byte-stable
     // run to run regardless of the reasoned result.
     let perf = perf_ledger().to_turtle();
+    // The native ⊒ oracle subsumption correspondence bundle (Part B of the
+    // native-chase promotion): three reified `logic:Correspondence` individuals, one
+    // per EL ⊂ RL ⊂ DL lattice edge. The committed bundle is a HEALTHY, gap-zero run,
+    // so the divergence ledger fed to the builders carries NO OracleOnly/DlGap/
+    // CorpusOnly rows (empty ledger) — exactly as `build_dl_el_ledger_ttl` is empty on a
+    // healthy run. It binds to the native contract hash carried on this run's result
+    // provenance (identical to `native_contract_hash()`); `view_engine` names the
+    // demoted oracle Nemo (native ⊒ nemo). Nemo is NOT run on-gate — native is the
+    // production engine and the native↔Nemo proof lives in the Task-7 cross-check lane.
+    let gap_zero_ledger = DivergenceLedger {
+        rows: Vec::new(),
+        agree: 0,
+        native_only: 0,
+        oracle_only: 0,
+        dl_gap: 0,
+        corpus_only: 0,
+    };
+    let subsumption_correspondence = build_all_subsumption_correspondences_ttl(
+        &gap_zero_ledger,
+        &result.provenance.contract_hash,
+        "nemo",
+    );
     Ok(ReasonArtifacts {
         closure,
         explanations,
         ledger,
         perf_ledger: perf,
+        subsumption_correspondence,
         result,
     })
 }
@@ -179,6 +216,143 @@ fn reason_dataset(
             message: format!("freeze reason dual-carriage dataset: {e}"),
         })
     })
+}
+
+// ── correspondence drift-gate (the mandatory reader — adversary F4) ────────────
+
+/// The `logic:` term namespace (mirrors `gmeow_logic::reason::artifacts`'s `logic()`).
+const DRIFT_LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
+/// The `gmeow:` term namespace (mirrors `gmeow_logic::reason::artifacts`'s `gmeow()`).
+const DRIFT_GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
+
+/// The on-gate CONSUMER of the committed `subsumption-correspondence.ttl` projection.
+///
+/// It LOADS the committed bundle (Turtle bytes read from disk — NOT a fresh in-memory
+/// build) and refuses it unless EVERY certified EL/RL/DL lattice edge still carries the
+/// full, un-weakened native ⊒ oracle section/retraction claim AND binds to the CURRENT
+/// native contract hash. Returns `Err` (the drift-gate's non-zero signal) on:
+///
+/// * a missing fragment (an edge silently dropped from the bundle);
+/// * an absent or weakened status (`logic:correspondenceRelation` ≠ `logic:Subsumes`,
+///   `logic:morphismClass` ≠ `logic:SectionRetraction`, `logic:preservationKind` ≠
+///   `logic:CompleteOverApproximation`, or the discharged `logic:SectionLaw` claim not
+///   `logic:ObligationDischarged` under `logic:DischargeCertifiedFragment`);
+/// * `logic:contractHash` ≠ `expected_contract_hash` — the STALE-hash case: the native
+///   engine's reasoning contract changed but the subsumption claim was not re-minted, so
+///   CI must refuse to ship a correspondence that certifies a contract it no longer runs.
+///
+/// This is the property "CI can refuse a broken subsumption": a green `rust-test` lane
+/// requires the committed claim to be current, complete, and discharged.
+pub fn check_subsumption_correspondence_drift(
+    ttl: &str,
+    expected_contract_hash: &str,
+) -> Result<(), String> {
+    let ds = purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None)
+        .map_err(|e| format!("parse subsumption-correspondence bundle: {e}"))?;
+    let quads: Vec<purrdf::RdfQuad> = ds.owned_quads().collect();
+
+    // Resolve the single IRI object of (subject, predicate); Err naming the miss.
+    let iri_object = |subject: &str, predicate: &str| -> Result<String, String> {
+        let mut hits = quads.iter().filter(|q| {
+            matches!(&q.subject, purrdf::RdfTerm::Iri(s) if s == subject)
+                && q.predicate == predicate
+        });
+        match hits.next() {
+            Some(q) => match &q.object {
+                purrdf::RdfTerm::Iri(o) => Ok(o.clone()),
+                other => Err(format!("<{subject}> <{predicate}> is not an IRI ({other})")),
+            },
+            None => Err(format!("<{subject}> is missing <{predicate}>")),
+        }
+    };
+    // Resolve the single literal lexical value of (subject, predicate).
+    let literal_object = |subject: &str, predicate: &str| -> Result<String, String> {
+        let mut hits = quads.iter().filter(|q| {
+            matches!(&q.subject, purrdf::RdfTerm::Iri(s) if s == subject)
+                && q.predicate == predicate
+        });
+        match hits.next() {
+            Some(q) => match &q.object {
+                purrdf::RdfTerm::Literal(l) => Ok(l.lexical_form.clone()),
+                other => Err(format!(
+                    "<{subject}> <{predicate}> is not a literal ({other})"
+                )),
+            },
+            None => Err(format!("<{subject}> is missing <{predicate}>")),
+        }
+    };
+    let logic = |local: &str| format!("{DRIFT_LOGIC_NS}{local}");
+    let assert_iri = |subject: &str, predicate: &str, want: &str| -> Result<(), String> {
+        let got = iri_object(subject, predicate)?;
+        if got == want {
+            Ok(())
+        } else {
+            Err(format!(
+                "<{subject}> <{predicate}> = <{got}>, expected <{want}> (weakened/altered claim)"
+            ))
+        }
+    };
+
+    for slug in ["el", "rl", "dl"] {
+        let correspondence = format!("{DRIFT_GMEOW_NS}{slug}-native-subsumption-correspondence");
+        let law_claim = format!("{DRIFT_GMEOW_NS}{slug}-native-subsumption-lawclaim");
+
+        // 1) the reified correspondence carries the full native ⊒ oracle claim shape.
+        assert_iri(
+            &correspondence,
+            "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+            &logic("Correspondence"),
+        )?;
+        assert_iri(
+            &correspondence,
+            &logic("correspondenceRelation"),
+            &logic("Subsumes"),
+        )?;
+        assert_iri(
+            &correspondence,
+            &logic("morphismClass"),
+            &logic("SectionRetraction"),
+        )?;
+        assert_iri(
+            &correspondence,
+            &logic("preservationKind"),
+            &logic("CompleteOverApproximation"),
+        )?;
+        let linked_claim = iri_object(&correspondence, &logic("hasLawClaim"))?;
+        if linked_claim != law_claim {
+            return Err(format!(
+                "{slug}: hasLawClaim points at <{linked_claim}>, expected <{law_claim}>"
+            ));
+        }
+
+        // 2) the section law is discharged within the certified fragment — not weakened.
+        assert_iri(
+            &law_claim,
+            "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+            &logic("LawClaim"),
+        )?;
+        assert_iri(&law_claim, &logic("lawClaimed"), &logic("SectionLaw"))?;
+        assert_iri(
+            &law_claim,
+            &logic("lawDischargeVerdict"),
+            &logic("ObligationDischarged"),
+        )?;
+        assert_iri(
+            &law_claim,
+            &logic("lawDischargeCondition"),
+            &logic("DischargeCertifiedFragment"),
+        )?;
+
+        // 3) the claim binds to the CURRENT native contract hash (stale = refused).
+        let hash = literal_object(&correspondence, &logic("contractHash"))?;
+        if hash != expected_contract_hash {
+            return Err(format!(
+                "{slug}: contractHash \"{hash}\" != current native contract \
+                 \"{expected_contract_hash}\" — engine changed, subsumption claim not re-minted"
+            ));
+        }
+    }
+    Ok(())
 }
 
 // ── Stage impl ───────────────────────────────────────────────────────────────
@@ -272,6 +446,10 @@ impl Stage for ReasonStage {
             PERF_LEDGER_PATH.to_string(),
             reasoned.perf_ledger.into_bytes(),
         );
+        artifacts.insert(
+            CORRESPONDENCE_PATH.to_string(),
+            reasoned.subsumption_correspondence.into_bytes(),
+        );
 
         // Attach the typed Reasoning handle, pinned to the `graph/reasoning` named
         // graph's canonical digest. `pin_handle` HARD-fails on a digest mismatch, so a
@@ -322,9 +500,29 @@ mod tests {
             ("explanations", &reasoned.explanations),
             ("ledger", &reasoned.ledger),
             ("perf_ledger", &reasoned.perf_ledger),
+            (
+                "subsumption_correspondence",
+                &reasoned.subsumption_correspondence,
+            ),
         ] {
             assert!(!ttl.trim().is_empty(), "{name} artifact is empty");
         }
+        // The correspondence bundle carries all three certified lattice edges bound to
+        // the live native contract hash (the on-gate drift-gate's contract).
+        for slug in ["el", "rl", "dl"] {
+            assert!(
+                reasoned
+                    .subsumption_correspondence
+                    .contains(&format!("{slug}-native-subsumption-correspondence")),
+                "correspondence bundle carries the {slug} lattice edge"
+            );
+        }
+        assert!(
+            reasoned
+                .subsumption_correspondence
+                .contains(&gmeow_logic::reason::native_contract_hash()),
+            "correspondence bundle binds to the live native contract hash"
+        );
         assert!(reasoned.closure.contains("<http://example.org/A> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/C> ."));
         // The perf ledger flags the deferred / non-incremental levers (static content).
         assert!(
@@ -332,6 +530,98 @@ mod tests {
                 .perf_ledger
                 .contains("https://blackcatinformatics.ca/gmeow/FlaggedNonIncremental"),
             "the perf ledger flags the non-incremental hard parts"
+        );
+    }
+
+    /// A gap-zero (healthy) divergence ledger — the same empty ledger the reason stage
+    /// feeds the correspondence builders on a healthy committed run.
+    fn gap_zero_ledger() -> DivergenceLedger {
+        DivergenceLedger {
+            rows: Vec::new(),
+            agree: 0,
+            native_only: 0,
+            oracle_only: 0,
+            dl_gap: 0,
+            corpus_only: 0,
+        }
+    }
+
+    #[test]
+    fn committed_subsumption_correspondence_is_current_and_discharged() {
+        // The on-gate CONSUMER (adversary F4): load the COMMITTED bundle from disk and
+        // assert every EL/RL/DL edge is present, fully discharged, and bound to the CURRENT
+        // native contract hash. A stale/broken committed claim fails this `rust-test` lane.
+        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("..")
+            .join("..")
+            .canonicalize()
+            .expect("canonicalize repo root");
+        let ttl = std::fs::read_to_string(root.join(CORRESPONDENCE_PATH)).unwrap_or_else(|e| {
+            panic!("read committed {CORRESPONDENCE_PATH} (run `make regenerate` first): {e}")
+        });
+        check_subsumption_correspondence_drift(&ttl, &gmeow_logic::reason::native_contract_hash())
+            .expect(
+                "committed subsumption-correspondence must be current, complete, and discharged",
+            );
+    }
+
+    #[test]
+    fn drift_gate_accepts_a_freshly_minted_bundle() {
+        let hash = gmeow_logic::reason::native_contract_hash();
+        let ttl = build_all_subsumption_correspondences_ttl(&gap_zero_ledger(), &hash, "nemo");
+        check_subsumption_correspondence_drift(&ttl, &hash)
+            .expect("a freshly minted bundle at the current hash passes");
+    }
+
+    #[test]
+    fn drift_gate_refuses_a_stale_contract_hash() {
+        // Mint under one contract, verify against a DIFFERENT (current) one: the engine
+        // changed but the claim was not re-minted — the drift-gate MUST refuse it.
+        let ttl = build_all_subsumption_correspondences_ttl(
+            &gap_zero_ledger(),
+            "0000-old-native-contract",
+            "nemo",
+        );
+        check_subsumption_correspondence_drift(&ttl, "0000-old-native-contract")
+            .expect("matching hash passes");
+        let err = check_subsumption_correspondence_drift(&ttl, "ffff-current-native-contract")
+            .expect_err("a stale contract hash must be refused");
+        assert!(
+            err.contains("contractHash") && err.contains("not re-minted"),
+            "the refusal names the stale-hash cause: {err}"
+        );
+    }
+
+    #[test]
+    fn drift_gate_refuses_a_weakened_section_law() {
+        // Downgrade the discharged status: the drift-gate must refuse a weakened claim.
+        let hash = gmeow_logic::reason::native_contract_hash();
+        let ttl = build_all_subsumption_correspondences_ttl(&gap_zero_ledger(), &hash, "nemo");
+        let weakened = ttl.replace("ObligationDischarged", "ObligationPending");
+        let err = check_subsumption_correspondence_drift(&weakened, &hash)
+            .expect_err("a weakened section-law discharge must be refused");
+        assert!(
+            err.contains("lawDischargeVerdict"),
+            "the refusal names the weakened discharge: {err}"
+        );
+    }
+
+    #[test]
+    fn drift_gate_refuses_a_missing_fragment() {
+        // Drop the DL edge entirely: the drift-gate must refuse an incomplete bundle.
+        let hash = gmeow_logic::reason::native_contract_hash();
+        let el = build_all_subsumption_correspondences_ttl(&gap_zero_ledger(), &hash, "nemo");
+        // Cut at the DL section banner so EL+RL stay a VALID (parseable) Turtle doc but the
+        // whole DL edge (subject + law claim) is gone — a silently incomplete bundle.
+        let cut = el
+            .find("the reified native ⊒ oracle DL correspondence")
+            .expect("bundle carries the dl section");
+        let truncated = &el[..cut];
+        let err = check_subsumption_correspondence_drift(truncated, &hash)
+            .expect_err("a missing DL fragment must be refused");
+        assert!(
+            err.contains("dl-native-subsumption-correspondence") && err.contains("missing"),
+            "the refusal names the dropped fragment: {err}"
         );
     }
 
