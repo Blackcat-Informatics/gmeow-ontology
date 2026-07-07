@@ -464,34 +464,64 @@ pub const MANIFEST: &[ManifestRow] = &[
         "test_no_preferred_or_primary_term_is_declared",
     ),
     // ── tests/test_email_calendar.py (1) ────────────────────────────────────────
-    a(
+    twin(
         "tests/test_email_calendar.py",
         "test_fixture_calendar_invitation_links_to_event",
+        1,
+        QueryBehavioral,
+        "conformance_email.rs::calendar_invitation_links_to_event",
     ),
     // ── tests/test_email_jmap.py (1) ────────────────────────────────────────────
-    a(
+    twin(
         "tests/test_email_jmap.py",
         "test_fixture_includes_jmap_identifiers",
+        1,
+        QueryBehavioral,
+        "conformance_email.rs::includes_jmap_identifiers",
     ),
     // ── tests/test_email_mailbox.py (5) ─────────────────────────────────────────
-    a(
+    twin(
         "tests/test_email_mailbox.py",
         "test_fixture_nested_hierarchy",
+        1,
+        QueryBehavioral,
+        "conformance_email.rs::nested_hierarchy",
     ),
-    a("tests/test_email_mailbox.py", "test_fixture_mailbox_paths"),
-    a("tests/test_email_mailbox.py", "test_fixture_sort_orders"),
-    a(
+    twin(
+        "tests/test_email_mailbox.py",
+        "test_fixture_mailbox_paths",
+        1,
+        QueryBehavioral,
+        "conformance_email.rs::mailbox_paths",
+    ),
+    twin(
+        "tests/test_email_mailbox.py",
+        "test_fixture_sort_orders",
+        1,
+        QueryBehavioral,
+        "conformance_email.rs::sort_orders",
+    ),
+    twin(
         "tests/test_email_mailbox.py",
         "test_fixture_destroyed_mailbox_uses_lifecycle",
+        1,
+        QueryBehavioral,
+        "conformance_email.rs::destroyed_mailbox_uses_lifecycle",
     ),
-    a(
+    twin(
         "tests/test_email_mailbox.py",
         "test_fixture_messages_in_nested_mailbox",
+        1,
+        QueryBehavioral,
+        "conformance_email.rs::messages_in_nested_mailbox",
     ),
     // ── tests/test_email_thread_subject.py (1) ──────────────────────────────────
-    a(
+    twin(
         "tests/test_email_thread_subject.py",
         "test_fixture_has_thread_subject_and_prefix",
+        1,
+        QueryBehavioral,
+        "conformance_email.rs::has_thread_subject_and_prefix",
     ),
     // ── tests/test_foundational_bridging.py (7) — no slice dir → R5 ─────────────
     q(
