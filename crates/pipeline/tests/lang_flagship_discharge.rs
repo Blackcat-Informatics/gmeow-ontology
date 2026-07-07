@@ -115,6 +115,12 @@ fn parse_manifest() -> Vec<Flagship> {
     let mut class: HashMap<String, String> = HashMap::new();
     let mut producer: HashMap<String, String> = HashMap::new();
 
+    // The four predicate IRIs, built ONCE rather than reformatted per quad.
+    let pred_example = format!("{LANG_NS}demonstratedByExample");
+    let pred_counter = format!("{LANG_NS}guardedByCounterExample");
+    let pred_class = format!("{LANG_NS}enforcesFailureClass");
+    let pred_producer = format!("{LANG_NS}demonstratedByProducer");
+
     for quad in ds.owned_quads() {
         let RdfTerm::Iri(subject) = &quad.subject else {
             continue;
@@ -127,32 +133,27 @@ fn parse_manifest() -> Vec<Flagship> {
             RdfTerm::Iri(iri) => Some(iri.clone()),
             _ => None,
         };
-        match quad.predicate.as_str() {
-            p if p == format!("{LANG_NS}demonstratedByExample") => {
-                example.insert(
-                    subject.clone(),
-                    obj_literal.expect("example is a literal path"),
-                );
-            }
-            p if p == format!("{LANG_NS}guardedByCounterExample") => {
-                counter.insert(
-                    subject.clone(),
-                    obj_literal.expect("counter-example is a literal path"),
-                );
-            }
-            p if p == format!("{LANG_NS}enforcesFailureClass") => {
-                class.insert(
-                    subject.clone(),
-                    local_name(&obj_iri.expect("failure class is an IRI")),
-                );
-            }
-            p if p == format!("{LANG_NS}demonstratedByProducer") => {
-                producer.insert(
-                    subject.clone(),
-                    obj_literal.expect("producer identifier is a literal"),
-                );
-            }
-            _ => {}
+        let pred = quad.predicate.as_str();
+        if pred == pred_example {
+            example.insert(
+                subject.clone(),
+                obj_literal.expect("example is a literal path"),
+            );
+        } else if pred == pred_counter {
+            counter.insert(
+                subject.clone(),
+                obj_literal.expect("counter-example is a literal path"),
+            );
+        } else if pred == pred_class {
+            class.insert(
+                subject.clone(),
+                local_name(&obj_iri.expect("failure class is an IRI")),
+            );
+        } else if pred == pred_producer {
+            producer.insert(
+                subject.clone(),
+                obj_literal.expect("producer identifier is a literal"),
+            );
         }
     }
 
@@ -196,23 +197,25 @@ fn parse_manifest() -> Vec<Flagship> {
 fn native_lang_failures(errors: &[String]) -> HashSet<String> {
     let mut out = HashSet::new();
     for error in errors {
-        let mut rest = error.as_str();
-        while let Some(idx) = rest.find("lang:") {
-            let after = &rest[idx + "lang:".len()..];
+        // Walk every `lang:` occurrence by byte index. `match_indices` yields the start of
+        // each match, so we always advance past the whole token — never into the middle of a
+        // multibyte char (a `lang:中文` token reads an empty ascii prefix and is skipped, not
+        // sliced at a non-char boundary).
+        for (idx, _) in error.match_indices("lang:") {
+            let after = &error[idx + "lang:".len()..];
+            // The ascii-alphanumeric run is pure ASCII, so its byte length is always a char
+            // boundary; the char immediately after it decides whether this is `lang:<Class>:`.
             let local: String = after
                 .chars()
                 .take_while(|c| c.is_ascii_alphanumeric())
                 .collect();
             // A failure class is a CamelCase (Uppercase-initial) local name immediately
             // followed by `:` — the emitted token shape `lang:<Class>:`.
-            let advance = local.len().max(1);
-            if !local.is_empty()
-                && local.starts_with(|c: char| c.is_ascii_uppercase())
+            if local.starts_with(|c: char| c.is_ascii_uppercase())
                 && after[local.len()..].starts_with(':')
             {
                 out.insert(local);
             }
-            rest = &after[advance..];
         }
     }
     out
@@ -224,8 +227,9 @@ fn native_lang_failures(errors: &[String]) -> HashSet<String> {
 /// constraints inherit the node shape's id), so this IRI-keyed map resolves every violation.
 fn shape_class_map(shapes_ds: &RdfDataset) -> HashMap<String, String> {
     let mut map = HashMap::new();
+    let pred_class = format!("{LANG_NS}enforcesFailureClass");
     for quad in shapes_ds.owned_quads() {
-        if quad.predicate == format!("{LANG_NS}enforcesFailureClass")
+        if quad.predicate == pred_class
             && let (RdfTerm::Iri(shape), RdfTerm::Iri(class)) = (&quad.subject, &quad.object)
         {
             map.insert(shape.clone(), local_name(class));
@@ -249,7 +253,12 @@ fn shacl_lang_failures(
     let mut out = HashSet::new();
     for result in &report.results {
         let rendered = result.source_shape.to_string();
-        let shape_iri = rendered.trim_start_matches('<').trim_end_matches('>');
+        // Unwrap exactly one `<…>` pair (a rendered IRI term); leave a bare IRI untouched
+        // rather than greedily stripping repeated angle brackets.
+        let shape_iri = rendered
+            .strip_prefix('<')
+            .and_then(|s| s.strip_suffix('>'))
+            .unwrap_or(rendered.as_str());
         if let Some(class) = shape_class.get(shape_iri) {
             out.insert(class.clone());
         }
@@ -425,4 +434,25 @@ fn run_producer(flagship: &Flagship, catalog: &purrdf::slice::SliceCatalog) {
             flagship.subject
         ),
     }
+}
+
+#[test]
+fn native_lang_failures_handles_non_ascii_and_isolates_camelcase_class() {
+    // A `lang:` token immediately followed by a NON-ASCII multibyte char must neither panic
+    // (the scan must never slice at a non-char boundary) nor match. A CamelCase class token
+    // `lang:<Class>:` in the SAME message must still be collected, and only that one.
+    let errors = vec![
+        "guard raised lang:中文 alongside lang:denotesEntity: and lang:ExactPreservationViolated: here"
+            .to_string(),
+    ];
+    let got = native_lang_failures(&errors);
+    let want: HashSet<String> = std::iter::once("ExactPreservationViolated".to_string()).collect();
+    assert_eq!(
+        got, want,
+        "only the CamelCase-before-colon class matches; lowercase and non-ascii tokens do not, and the multibyte char does not panic"
+    );
+
+    // A `lang:` at the very end of a string and a trailing multibyte token also stay panic-free.
+    let edge = vec!["dangling lang:".to_string(), "tail lang:漢字".to_string()];
+    assert!(native_lang_failures(&edge).is_empty());
 }
