@@ -361,13 +361,19 @@ pub const MANIFEST: &[ManifestRow] = &[
         "temporal.rs::unknown_query_name_is_rejected",
     ),
     // ── slices/extensions/music/tests/test_music_timbre.py (5) ──────────────────
-    t(
+    twin(
         "slices/extensions/music/tests/test_music_timbre.py",
         "test_timbre_descriptor_seeds_exist",
+        1,
+        TBoxStructural,
+        "slices/extensions/music/tests/structural.ttl#saTimbreDescriptorSeedsExist",
     ),
-    t(
+    twin(
         "slices/extensions/music/tests/test_music_timbre.py",
         "test_timbre_observation_result_property_exists",
+        1,
+        TBoxStructural,
+        "slices/extensions/music/tests/structural.ttl#saTimbreObservationResultProperty",
     ),
     a(
         "slices/extensions/music/tests/test_music_timbre.py",
@@ -377,9 +383,12 @@ pub const MANIFEST: &[ManifestRow] = &[
         "slices/extensions/music/tests/test_music_timbre.py",
         "test_timbre_fixture_coequal_vantages",
     ),
-    t(
+    twin(
         "slices/extensions/music/tests/test_music_timbre.py",
         "test_afo_timbre_mapping_exists",
+        1,
+        QueryBehavioral,
+        "conformance_music.rs::afo_timbre_mapping_exists",
     ),
     // ── tests/test_aboutness.py (2) — no slice dir → R5 ─────────────────────────
     q(
@@ -388,9 +397,12 @@ pub const MANIFEST: &[ManifestRow] = &[
     ),
     q("tests/test_aboutness.py", "test_no_aboutness_truth_bridge"),
     // ── tests/test_aggregation.py (1) ───────────────────────────────────────────
-    t(
+    twin(
         "tests/test_aggregation.py",
         "test_contains_place_exists_and_is_inverse",
+        1,
+        QueryBehavioral,
+        "conformance_aggregation.rs::contains_place_exists_and_is_inverse",
     ),
     // ── tests/test_ai_claims.py (6) ─────────────────────────────────────────────
     q(
@@ -418,13 +430,19 @@ pub const MANIFEST: &[ManifestRow] = &[
         "test_assessment_seam_is_the_norms_extensions",
     ),
     // ── tests/test_archaeological_evidence.py (2) ───────────────────────────────
-    t(
+    twin(
         "tests/test_archaeological_evidence.py",
         "test_attested_on_carrier_exists",
+        1,
+        QueryBehavioral,
+        "conformance_archaeological_evidence.rs::attested_on_carrier_exists",
     ),
-    t(
+    twin(
         "tests/test_archaeological_evidence.py",
         "test_no_primary_or_preferred_archaeological_terms",
+        1,
+        QueryBehavioral,
+        "conformance_archaeological_evidence.rs::no_primary_or_preferred_archaeological_terms",
     ),
     // ── tests/test_cognition.py (4) ─────────────────────────────────────────────
     q(
@@ -444,21 +462,42 @@ pub const MANIFEST: &[ManifestRow] = &[
         "test_cognition_sssom_includes_opencyc_knows_about",
     ),
     // ── tests/test_contact_fields.py (3) ────────────────────────────────────────
-    t("tests/test_contact_fields.py", "test_new_small_terms_exist"),
-    t(
+    twin(
+        "tests/test_contact_fields.py",
+        "test_new_small_terms_exist",
+        1,
+        QueryBehavioral,
+        "conformance_contacts.rs::new_small_terms_exist",
+    ),
+    twin(
         "tests/test_contact_fields.py",
         "test_membership_relator_completed",
+        1,
+        QueryBehavioral,
+        "conformance_contacts.rs::membership_relator_completed",
     ),
-    t("tests/test_contact_fields.py", "test_no_flat_contact_terms"),
+    twin(
+        "tests/test_contact_fields.py",
+        "test_no_flat_contact_terms",
+        1,
+        QueryBehavioral,
+        "conformance_contacts.rs::no_flat_contact_terms",
+    ),
     // ── tests/test_coreference.py (1) ───────────────────────────────────────────
-    t(
+    twin(
         "tests/test_coreference.py",
         "test_no_preferred_or_primary_coreference_terms",
+        1,
+        QueryBehavioral,
+        "conformance_coreference.rs::no_preferred_or_primary_coreference_terms",
     ),
     // ── tests/test_creative_works.py (1) ────────────────────────────────────────
-    t(
+    twin(
         "tests/test_creative_works.py",
         "test_wemi_tiers_subclass_information_object",
+        1,
+        QueryBehavioral,
+        "conformance_creative_works.rs::wemi_tiers_subclass_information_object",
     ),
     // ── tests/test_determinacy.py (1) — no slice dir → R5 ───────────────────────
     q(
@@ -560,30 +599,48 @@ pub const MANIFEST: &[ManifestRow] = &[
         "test_no_winner_or_cardinality_terms_for_parts",
     ),
     // ── tests/test_narrative.py (4) ─────────────────────────────────────────────
-    t(
+    twin(
         "tests/test_narrative.py",
         "test_narrative_reference_frame_is_not_standpoint_subclass",
+        1,
+        QueryBehavioral,
+        "conformance_narrative.rs::narrative_reference_frame_is_not_standpoint_subclass",
     ),
-    t(
+    twin(
         "tests/test_narrative.py",
         "test_book_release_and_serial_installment_are_creative_works",
+        1,
+        QueryBehavioral,
+        "conformance_narrative.rs::book_release_and_serial_installment_are_creative_works",
     ),
-    t(
+    twin(
         "tests/test_narrative.py",
         "test_frame_realm_narrative_and_frame_kind_narrative_exist",
+        1,
+        QueryBehavioral,
+        "conformance_narrative.rs::frame_realm_narrative_and_frame_kind_narrative_exist",
     ),
-    t(
+    twin(
         "tests/test_narrative.py",
         "test_reading_order_subclasses_standpoint",
+        1,
+        QueryBehavioral,
+        "conformance_narrative.rs::reading_order_subclasses_standpoint",
     ),
     // ── tests/test_notation.py (2) ──────────────────────────────────────────────
-    t(
+    twin(
         "tests/test_notation.py",
         "test_value_vocabularies_not_subclasses",
+        1,
+        QueryBehavioral,
+        "conformance_notation.rs::value_vocabularies_not_subclasses",
     ),
-    t(
+    twin(
         "tests/test_notation.py",
         "test_ambiguous_cases_co_modelable",
+        1,
+        QueryBehavioral,
+        "conformance_notation.rs::ambiguous_cases_co_modelable",
     ),
     // ── tests/test_notes.py (8) — 4 traversal + 4 .rq parse guards ─────────────
     twin(
@@ -663,13 +720,19 @@ pub const MANIFEST: &[ManifestRow] = &[
         "conformance_privacy.rs::odrl_projection_emits_privacy_policy",
     ),
     // ── tests/test_provenance.py (2) ────────────────────────────────────────────
-    t(
+    twin(
         "tests/test_provenance.py",
         "test_carrier_and_ingestion_props",
+        1,
+        QueryBehavioral,
+        "conformance_provenance.rs::carrier_and_ingestion_props",
     ),
-    t(
+    twin(
         "tests/test_provenance.py",
         "test_four_clocks_are_distinct_dated_annotations",
+        1,
+        QueryBehavioral,
+        "conformance_provenance.rs::four_clocks_are_distinct_dated_annotations",
     ),
     // ── tests/test_quality.py (1) ───────────────────────────────────────────────
     q(
@@ -736,10 +799,19 @@ pub const MANIFEST: &[ManifestRow] = &[
         "test_two_judges_disagree_without_contradiction",
     ),
     // ── tests/test_sensory_environment.py (4) ───────────────────────────────────
-    t("tests/test_sensory_environment.py", "test_new_axes_exist"),
-    t(
+    twin(
+        "tests/test_sensory_environment.py",
+        "test_new_axes_exist",
+        1,
+        QueryBehavioral,
+        "conformance_sensory_environment.rs::new_axes_exist",
+    ),
+    twin(
         "tests/test_sensory_environment.py",
         "test_perceptual_frame_realm_exists",
+        1,
+        QueryBehavioral,
+        "conformance_sensory_environment.rs::perceptual_frame_realm_exists",
     ),
     q(
         "tests/test_sensory_environment.py",
@@ -772,28 +844,43 @@ pub const MANIFEST: &[ManifestRow] = &[
         "conformance_suppression.rs::control_canary_proves_coverage",
     ),
     // ── tests/test_tags.py (1) ──────────────────────────────────────────────────
-    t(
+    twin(
         "tests/test_tags.py",
         "test_no_bridge_among_has_tag_is_about_and_rdf_type",
+        1,
+        QueryBehavioral,
+        "conformance_tags.rs::no_bridge_among_has_tag_is_about_and_rdf_type",
     ),
     // ── tests/test_teleology.py (1) ─────────────────────────────────────────────
-    t(
+    twin(
         "tests/test_teleology.py",
         "test_no_preferred_or_primary_goal_terms",
+        1,
+        QueryBehavioral,
+        "conformance_teleology.rs::no_preferred_or_primary_goal_terms",
     ),
     // ── tests/test_trust.py (2) ─────────────────────────────────────────────────
-    t(
+    twin(
         "tests/test_trust.py",
         "test_three_axes_are_orthogonal_in_trust",
+        1,
+        QueryBehavioral,
+        "conformance_trust.rs::three_axes_are_orthogonal_in_trust",
     ),
-    t(
+    twin(
         "tests/test_trust.py",
         "test_no_preferred_or_primary_trust_term",
+        1,
+        QueryBehavioral,
+        "conformance_trust.rs::no_preferred_or_primary_trust_term",
     ),
     // ── tests/test_versions.py (1) ──────────────────────────────────────────────
-    t(
+    twin(
         "tests/test_versions.py",
         "test_version_label_domain_is_entity",
+        1,
+        QueryBehavioral,
+        "conformance_versions.rs::version_label_domain_is_entity",
     ),
 ];
 
