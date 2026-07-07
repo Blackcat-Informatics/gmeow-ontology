@@ -1,0 +1,47 @@
+{
+  "model_identifier": "SamLowe/roberta-base-go_emotions",
+  "model_revision": "d75048347613a25d77de8cf6412eaae9fa7b26be",
+  "model_framework": "transformers",
+  "model_task": "text-classification",
+  "function_to_apply": "sigmoid",
+  "return_all_scores": true,
+  "label_set_id": "GoEmotions",
+  "score_semantics": "sigmoid",
+  "tokenizer_revision": "d75048347613a25d77de8cf6412eaae9fa7b26be",
+  "threshold_policy": { "kind": "global", "value": 0.5 },
+  "targets": [
+    {
+      "target_iri": "https://blackcatinformatics.ca/gmeow/examples/affect/goemotions/comment-1",
+      "scores": [
+        { "label": "admiration", "score": 0.31 },
+        { "label": "amusement", "score": 0.08 },
+        { "label": "anger", "score": 0.01 },
+        { "label": "annoyance", "score": 0.02 },
+        { "label": "approval", "score": 0.12 },
+        { "label": "caring", "score": 0.06 },
+        { "label": "confusion", "score": 0.02 },
+        { "label": "curiosity", "score": 0.03 },
+        { "label": "desire", "score": 0.04 },
+        { "label": "disappointment", "score": 0.01 },
+        { "label": "disapproval", "score": 0.01 },
+        { "label": "disgust", "score": 0.01 },
+        { "label": "embarrassment", "score": 0.01 },
+        { "label": "excitement", "score": 0.46 },
+        { "label": "fear", "score": 0.01 },
+        { "label": "gratitude", "score": 0.90 },
+        { "label": "grief", "score": 0.00 },
+        { "label": "joy", "score": 0.82 },
+        { "label": "love", "score": 0.07 },
+        { "label": "nervousness", "score": 0.01 },
+        { "label": "neutral", "score": 0.01 },
+        { "label": "optimism", "score": 0.10 },
+        { "label": "pride", "score": 0.05 },
+        { "label": "realization", "score": 0.03 },
+        { "label": "relief", "score": 0.06 },
+        { "label": "remorse", "score": 0.00 },
+        { "label": "sadness", "score": 0.01 },
+        { "label": "surprise", "score": 0.55 }
+      ]
+    }
+  ]
+}

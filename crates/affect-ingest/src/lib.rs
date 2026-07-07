@@ -1057,6 +1057,24 @@ mod tests {
     }
 
     #[test]
+    fn sample_fixture_deserializes_with_28_labels() {
+        let json = include_str!("../fixtures/goemotions-sample.json");
+        let cap: ClassifierRunCapture = serde_json::from_str(json).expect("valid fixture");
+        assert_eq!(
+            cap.model_revision,
+            "d75048347613a25d77de8cf6412eaae9fa7b26be"
+        );
+        assert_eq!(cap.score_semantics, ScoreSemantics::Sigmoid);
+        assert!(cap.return_all_scores);
+        assert_eq!(cap.targets.len(), 1);
+        assert_eq!(
+            cap.targets[0].scores.len(),
+            28,
+            "GoEmotions emits 28 labels"
+        );
+    }
+
+    #[test]
     fn config_loads_labels_and_only_closematch_emotiontypes() {
         let c = config();
         let mut labels: Vec<&str> = c.registered_labels().collect();
